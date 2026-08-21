@@ -2,6 +2,7 @@
 Title: Accented queries return confident noise on the SQLite backend
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T19:15Z minh created
@@ -10,6 +11,7 @@ Author: minh
 2026-08-22T03:45Z claude note implemented, fork 50b3f15, 739 tests; four of this ticket's design claims corrected against the real tokenizer
 2026-08-22T00:30Z claude note closed: sweep committed, and it found twelve wrong-direction divergences the prose had called harmless; all twelve fixed
 
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---
 ## Severity, corrected 2026-08-21 on real-library evidence
 

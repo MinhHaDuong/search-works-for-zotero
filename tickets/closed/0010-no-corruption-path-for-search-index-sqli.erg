@@ -2,12 +2,14 @@
 Title: No corruption path for search-index.sqlite; a corrupt index answers nothing, forever
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T19:18Z minh created
 2026-08-22T03:10Z minh decided a corrupt index refuses and reports; it does not rebuild itself. Rationale: this is an agentic tool.
 2026-08-22T00:35Z claude note closed: typed corruption error, refuse-and-report implemented, server survives a bad index; recovery-clears-meta criterion met by deletion rather than by a guard
 
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---
 ## Context
 

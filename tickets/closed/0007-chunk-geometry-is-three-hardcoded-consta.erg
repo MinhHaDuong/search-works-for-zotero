@@ -2,6 +2,7 @@
 Title: Chunk geometry is three hardcoded constants; make it configurable
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T16:56Z minh created
@@ -12,6 +13,7 @@ Author: minh
 2026-08-22T02:15Z minh note opened Stadler2021 in Zotero (Indexed: yes); .zotero-ft-cache written post-install, still zero .zotero-sdt-cache library-wide
 2026-08-22T00:30Z claude note closed: geometry is configuration and stamped; SDT probed a third time, still zero, reader path needs a human
 
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---
 ## Correction 2026-08-21: the premise below is wrong
 

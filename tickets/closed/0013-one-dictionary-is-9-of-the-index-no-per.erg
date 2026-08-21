@@ -2,6 +2,7 @@
 Title: One dictionary is 9% of the index: no per-item ceiling on passage contribution
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T20:21Z minh created
@@ -9,6 +10,7 @@ Author: minh
 2026-08-22T03:30Z claude note order test run: the dictionary takes the top slot on HET queries and the rest is near-unchanged; recommends recording rather than bounding
 2026-08-22T00:40Z claude note closed: concentration is a documented query; order effect re-measured through FTS5's own bm25 over 72 queries, and the 'almost entirely cancels' reading corrected
 
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---
 ## Context
 
