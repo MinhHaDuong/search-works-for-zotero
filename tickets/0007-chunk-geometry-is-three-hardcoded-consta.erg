@@ -8,6 +8,7 @@ Author: minh
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed -- Blocked-by removed.
 2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
+2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
 --- body ---
 ## Correction 2026-08-21: the premise below is wrong
 
@@ -31,11 +32,28 @@ So the chunker question is not "structure is unavailable, therefore tune two
 constants". It is "structure exists; can we reach it?"
 
 **Three obstacles, and the first is decisive.** No pack has been generated on
-this library: **zero `.zotero-sdt-cache` files across 13 631 attachments**, so
-even a perfect reader would find nothing to read. Extraction is lazy and
-nothing has triggered it. That is the same cost question Zotero's own developer
-raises in the only comment on zotero/zotero#6012 -- whether running SDT over
-every attachment is affordable. Second, the pack is an **undocumented binary
+this library: **zero `.zotero-sdt-cache` files across 13 631 attachments**.
+
+That is not simply "nothing has triggered it yet", which was the first reading
+and the weaker one. Opening a PDF in the reader is what writes
+`.zotero-ft-cache`, and two attachments were opened *after* the 2026-08-17
+15:17:51 build -- `746J4UL3` at 15:45 the same day, and `TB28BNW2` on
+2026-08-20 21:52, whose `.zotero-ft-cache` was then rewritten 2026-08-21 14:38.
+So full-text extraction demonstrably ran post-upgrade, on a reader session, and
+**produced no SDT pack either time**.
+
+The conclusion is therefore stronger and more specific: in shipped Zotero 10.0
+the SDT modules are present but **nothing in the normal reader path invokes
+them**. Extraction is gated behind something that is not shipped or not
+enabled -- most plausibly zotero/zotero#6012's embeddings pipeline, whose
+`extensions.zotero.embeddings.model` pref defaults to `""` (disabled). Which
+means the packs do not merely not-exist-yet; on a stock install there is
+currently no way to make them exist.
+
+That also reframes the cost question Zotero's own developer raises in the only
+comment on #6012 -- whether running SDT over every attachment is affordable.
+It is unanswered upstream, and until it is answered the extraction has no
+trigger here at all. Second, the pack is an **undocumented binary
 format** (magic + `SDT_PACK_VERSION` + independently compressed block groups)
 read through a bundled module; using it externally means porting that reader
 from in-tree AGPL source. Third, it is **not exposed over the local API**, so an
@@ -62,11 +80,12 @@ size, which a fixed window cannot express.
 
 ## Revised actions
 
-1. Determine whether SDT is reachable at all: does anything trigger pack
-   generation, and is porting the reader proportionate? If the answer is no on
-   either count, say so in this ticket and fall back to actions 2-4 below --
-   but record the finding, because it is the difference between "not possible"
-   and "not attempted".
+1. Determine whether SDT can be triggered at all on a stock install. The
+   reader path demonstrably does not (evidence above), so this means finding
+   the pref or code path that does, or establishing that none is shipped. If
+   none is, SDT is a *future* option and this ticket proceeds on actions 2-4
+   without it -- but record that, because it is the difference between "not
+   possible" and "not attempted".
 2. Config knobs as originally planned (`ZOTEUS_INDEX_CHUNK_SIZE` /
    `_OVERLAP` and the full-text pair), defaults unchanged.
 3. Consider a token budget rather than a character budget, following #6012.
