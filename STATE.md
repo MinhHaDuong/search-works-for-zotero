@@ -78,11 +78,32 @@ as ticket 0011. The at-rest figure, which is the one the chantier turns on, is
 unaffected at 121–135 MiB. And the build is API-bound, not SQLite-bound: run 2
 spent 113 s of its 339 s on the first page of full text.
 
-Also worth knowing before the #10 writeup: **Zotero 10 already runs FTS5
-itself** (`fulltext.sqlite`: `fulltextContent USING fts5(text,
-tokenize='unicode61', content='')`), but the table is *contentless* — matchable,
-not readable — which is why zoteus reads the cache and why "just reuse Zotero's
-index" is not available.
+Three things to settle before the #10 writeup, all established 2026-08-21.
+
+**Zotero 10 already runs FTS5 itself** (`fulltext.sqlite`, attached as
+`ftindex`: `fulltextContent USING fts5(text, tokenize='unicode61',
+content='')`), but the tables are *contentless* — matchable, not readable. That
+is why zoteus keeps its own copy of the text, and it forecloses "just reuse
+Zotero's index" before someone proposes it. Their release notes make the
+rewrite sound more reusable than it is.
+
+**Zotero is building semantic search** — zotero/zotero#6012, draft, two core
+developers, active daily, superseding its own predecessor #5984. It does
+**not** expose anything over the local API: no file under `xpcom/server/` is
+touched and no endpoint is contemplated, so zoteus cannot delegate and the
+vector work here stands. Notably they *declined* `sqlite-vec` and score with
+brute-force JS dot products, which puts this prototype's `vec0` KNN ahead of
+theirs rather than behind. They fuse keyword and vector with RRF at `k = 60` —
+the same constant this prototype picked independently.
+
+**Zotero ships structure extraction we did not know about.** `Zotero.SDT`
+(`sdt.js` + `structured-document-text.js`, present in build 20260817151751)
+writes a per-attachment `.zotero-sdt-cache` pack carrying page labels, outline
+paths, reader positions and running-head exclusion. An earlier finding here
+said Zotero exposes no in-text structure; that was true of `.zotero-ft-cache`
+and wrong about Zotero. Three obstacles keep it out of reach for now — **zero
+packs exist on this library**, the format is undocumented binary, and it has no
+API surface. Ticket 0007 carries the correction.
 
 No current setting both writes and reads this library back: 40 000 chars/item
 fits but discards 61% of the text, 200 000 writes but needs
