@@ -6,6 +6,7 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T15:49Z claude note planned: watermark persists in a meta table with its backend label; deleteByItem lands on the port in 0002
 
 --- body ---
 ## Context
@@ -24,17 +25,53 @@ Verified on the Zotero 10 local API:
     ?format=versions      -> key -> version map for the whole library
     /deleted?since=0      -> 404        cloud-only; deletions need a key-set reconcile
 
+## Design
+
+`deleteByItem` is already on 0002's `PassageStore` port, and the indexed
+`passage_meta_item` index is why it is affordable -- 0 ms against 362 ms for
+the `UNINDEXED`-column shape 0002 rejected. That measurement was taken for this
+ticket: a fifty-item delta on the scanning shape would cost eighteen seconds.
+
+**The watermark lives in the database, with its provenance.** A `meta` table of
+key/value, holding `builtFromVersion` and `backend` (`'local' | 'web'`). Local
+and cloud version sequences are unrelated integers, so a watermark without its
+backend label is worse than none: switching a user from the desktop API to the
+Web API would compare two incommensurable numbers and either skip a real delta
+or replay the library. On a backend mismatch, ignore the watermark and rebuild.
+
+**Deletions need a key-set reconcile.** `/deleted?since=` is cloud-only and
+404s on the Zotero 10 local API (verified). So deletions come from
+`?format=versions`, which returns a key -> version map for the whole library:
+diff its key set against `SELECT DISTINCT item FROM passage_meta` and delete
+the difference. That is one request and one indexed query, not a scan.
+
+**Freshness at query time, not a background poll.** One request for
+`Last-Modified-Version`. Equal to the watermark, serve; greater, apply the
+delta first. This is also what fixes the stale-index hole in the current
+design: `zotero_semantic_search`'s auto-build only fires on an *empty* index,
+so a stale one never self-heals today.
+
+**Attachments not yet extracted are recorded, not skipped.** A row with the
+item present and no text, so a later delta picks it up. Skipping makes the
+absence indistinguishable from an item that has no attachment, and the delta
+never revisits it.
+
 ## Actions
 
-1. `builtFromVersion` carries the library version. Local and cloud version
-   sequences differ, so record which backend produced it.
-2. Freshness check at query time: one request for the watermark. Unchanged,
-   serve; changed, apply a delta.
-3. Additions and modifications via `?since=`; deletions by reconciling the key
-   set from `?format=versions`.
-4. An attachment Zotero has not extracted yet is recorded as present-without-text,
-   not skipped, so a later delta picks it up. `fullTextSince` already exists on
-   both clients.
+1. `meta` table with `builtFromVersion` and `backend`; mismatch forces rebuild.
+2. Freshness check at query time: one `Last-Modified-Version` request.
+3. Additions and modifications via `?since=`; `deleteByItem` for what changed,
+   then re-insert.
+4. Deletions by reconciling `?format=versions` against `SELECT DISTINCT item`.
+5. Attachments awaiting extraction recorded as present-without-text;
+   `fullTextSince` already exists on both clients.
+
+## Test
+
+Red step: build an index over three items, delete one from the fixture library,
+run the delta, and assert a query that matched it returns nothing. This is the
+one behaviour the current design cannot express at all -- `buildIncremental`
+calls `reset()`, so today the only way to forget a document is to rebuild.
 
 ## Invariants
 

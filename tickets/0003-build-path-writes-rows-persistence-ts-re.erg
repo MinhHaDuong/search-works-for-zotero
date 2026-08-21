@@ -6,6 +6,7 @@ Blocked-by: 0002
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T15:45Z claude note planned against 0002's PassageStore port: persist() becomes a transaction boundary on the port, backend selected by ZOTEUS_SEARCH_BACKEND
 
 --- body ---
 ## Context
@@ -15,12 +16,67 @@ Blocked-by: 0002
 passages are inserted as they are chunked, inside a transaction, and there is
 nothing left to serialise. `persistence.ts` retires with it. Tracker: 0001.
 
+## Design, planned against 0002's port
+
+0002 extracts a `PassageStore` port with `MemoryPassageStore` (today's
+`BM25Index` + Map) and `Fts5PassageStore`. 0003 is where that port meets the
+build path, and it needs one addition.
+
+**`persist()` becomes a transaction boundary on the port.** Today
+`IncrementalBuildOptions.persist` is a callback that snapshots the whole index
+through `saveIndex`. For rows, the equivalent is committing the open
+transaction and opening the next one -- the same *cadence* (every N items,
+every N ms), a different meaning. So the port gains:
+
+    beginBatch(): void      // memory: no-op;  fts5: BEGIN
+    commitBatch(): void     // memory: no-op;  fts5: COMMIT
+
+`buildIncremental` calls them at the existing persist points and keeps calling
+`opts.persist?.()` for the JSON backend. Neither store leaks SQLite vocabulary
+into `index-manager.ts`; the memory store's no-op is what keeps the default
+path byte-identical.
+
+Doing it any other way -- inserting per passage with autocommit -- is the known
+performance cliff: the bench committed every 500 documents to reach 46,6 s, and
+one transaction per insert would be orders slower.
+
+**Backend selection.** `ZOTEUS_SEARCH_BACKEND` in `config.ts`, `'json' |
+'sqlite'`, defaulting to `'json'`. Registry construction picks
+`SqliteSearchIndex` when it reads `'sqlite'`. Defaulting to the existing path
+is the shadow-do-not-replace posture from 0002 and 0001: both live at once, or
+there is nothing to compare.
+
+**`toJSON` / `loadFromJSON` on the SQLite path.** These are the JSON snapshot
+interface, and the database is the state. They must throw a message naming the
+backend rather than returning an empty or partial structure -- a silent empty
+`toJSON()` would make `saveIndex` write a valid, empty `search-index.json` over
+a good one. `saveIndex`/`loadIndex` are simply not called on the SQLite path;
+`persistence.ts` stays on disk for the JSON backend until 0005 has migrated
+installs off it.
+
 ## Actions
 
-1. Insert per item rather than accumulate; commit every N items.
-2. Drop `saveIndex`/`loadIndex` from the SQLite path; the database is the state.
-3. Keep `IndexBuildStatus` bookkeeping intact, including `itemsAvailable` and
-   `truncationNotice` from the upstream PR MinhHaDuong:index-max-items-runtime.
+1. Add `beginBatch`/`commitBatch` to `PassageStore`; no-op in memory, real
+   transactions in `Fts5PassageStore`. Ensure a `commitBatch` on a store with
+   no open transaction is harmless.
+2. Call them from `buildIncremental` at the existing persist cadence, leaving
+   `opts.persist` in place for the JSON backend.
+3. `ZOTEUS_SEARCH_BACKEND` in `config.ts` (`json` default) and the registry
+   branch that builds `SqliteSearchIndex` with `<dataDir>/search-index.sqlite`.
+4. `toJSON`/`loadFromJSON` throw on the SQLite path, with the backend named.
+5. Guarantee a commit on every exit from `buildIncremental` -- normal end,
+   `requestStop()`, and the error path -- so a cancelled build leaves the rows
+   it already wrote queryable rather than rolling them back.
+6. Measure the full library build and record it in `bench/`.
+
+## Test
+
+Red step: build incrementally against a `Fts5PassageStore`, call
+`requestStop()` mid-build, and assert the passages written before the stop are
+still queryable from a freshly opened store on the same file. That fails today
+(the JSON path rewrites the whole snapshot) and is the behaviour 0003 exists to
+produce.
+
 
 ## Verification
 
@@ -30,5 +86,7 @@ nothing left to serialise. `persistence.ts` retires with it. Tracker: 0001.
 
 ## Exit criteria
 
+- [ ] `IndexBuildStatus` bookkeeping intact, `itemsAvailable` and
+      `truncationNotice` included
 - [ ] `persistence.ts` unused by the SQLite path
 - [ ] Build of the full library measured and recorded in `bench/`
