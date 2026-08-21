@@ -48,33 +48,49 @@ Zotero into `.zotero-ft-cache`.
 |---|---|---|---|
 | passages | 477 511 | **477 511** | 408 628 |
 | build | 337 s | **339–374 s** | 46,6 s |
-| RSS peak during build | 6,48 GB | **1 892–2 085 MiB** | — |
+| RSS peak during build | **8 692 MiB** (measured; 6,48 GB was 34% low) | **1 892–2 085 MiB** | — |
 | RSS at rest / serving | 5 370 MB | **121–135 MiB** | 162 MB |
 | on disk | 546 MB (write fails) | **949,5 MiB** | 762 MB |
 | reload | OOM on stock Node | **opens the file, stock Node** | opens the file |
 | query | 0,37–0,5 s | **33–339 ms** (MCP round trip) | 1–76 ms (bare SQLite) |
 
-**Two caveats on the memory column, both raised at review and both load-bearing
-for anything quoted externally.** The FTS5 figure is process RSS, and SQLite
-uses default buffered I/O with no `mmap_size` — so the kernel page cache
-holding up to 949,5 MiB of database file is *not* in it. The resident-JS
-figure has no such hidden remainder: every byte it needs is JS heap, which RSS
-sees. Read as total memory implicated, the win is nearer 5x than 40x. And the
-5 370 MB baseline itself **was never measured by this repo** — it predates the
-first commit, with no recorded instrument or method, while every FTS5 number
-here comes from `VmHWM`. One half of the ratio is reproducible from committed
-artifacts and the other is inherited. Re-measuring the JSON backend with the
-same instrument would close it; until then the *direction* is solid (the
-write-fails and reload-OOM walls are structural) and the *ratio* is not
-quotable.
+**The resident-JS baseline is now measured, not inherited** (2026-08-22,
+`bench/results/json-baseline/`). It had predated the first commit with no
+recorded method. Re-measured with this repo's own `VmHWM` instrument, on a
+ladder from 5 000 items to the whole library, after first reproducing the known
+5 000-item figure three times within 0,12%.
 
-Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, no
-`--max-old-space-size` at any point. Raw artifacts in
-`bench/results/0003-full-build/`; drivers are `bench/run_build.py`,
-`run_serve.py`, `run_serve2.py`. Two runs, byte-identical in every content
-figure. Also recorded: `fulltextItems` 5 562, `fulltextPassages` 465 110,
-`fulltextPendingItems` 429 (attachments Zotero has not extracted yet, which
-bounds the corpus).
+| items | passages | at-rest `VmHWM` |
+|---|---|---|
+| 5 000 | 237 352 | 3 788 MiB |
+| 6 000 | 290 999 | 4 603 MiB |
+| 7 000 | 338 346 | 5 316 MiB |
+| **7 541 (all)** | **360 811** | **5 674 MiB** |
+
+At-rest cost is linear in passages, 16,09–16,34 kB each. **So 5 370 MB holds
+and understates** — the real figure at the largest geometry the JSON backend
+can complete is 5,7% above it.
+
+**But the inherited 6,48 GB *build* figure does not hold: it is 34% low.**
+At zoteus's real chunk geometry (no character cap) the JSON build peaks at
+**8 692 MiB** — and then fails to persist, three times, with `Invalid string
+length`. That is V8's maximum string length defeating `JSON.stringify`,
+reproduced. The build reaches 477 512 passages in memory, matching the FTS5
+column to the unit, and writes nothing.
+
+**Which means the strictly comparable at-rest number does not exist.** The
+JSON backend cannot produce an index at the geometry the FTS5 column is
+measured at. The honest comparison is therefore conservative rather than
+ratio-shaped: at the largest geometry it can complete (360 811 passages) the
+JSON backend costs **5 674 MiB at rest**, while the SQLite backend costs
+**121–135 MiB at a larger one** (477 511 passages). More work, less memory, and
+the wall the other side hits is structural rather than a matter of degree.
+
+**One caveat measurement cannot remove.** The FTS5 figure is process RSS, and
+SQLite uses default buffered I/O with no `mmap_size`, so the kernel page cache
+holding up to 949,5 MiB of database file is not in it. The JS heap figure has
+no such hidden remainder. Read as total memory implicated the gap narrows, and
+`#10` should say both numbers rather than one.
 
 **Read the columns carefully — only the first two are comparable.** The middle
 column runs the server's own chunker at zoteus's geometry (512/64 metadata plus

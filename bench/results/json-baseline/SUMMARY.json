@@ -1,0 +1,197 @@
+{
+  "title": "JSON (resident-JS) backend memory baseline, measured with this repo's own VmHWM instrument",
+  "purpose": "Close the provenance gap in STATE.md: the 5 370 MB resident-JS at-rest figure predates the first commit and had no recorded instrument or method. Every figure here comes from /proc/<pid>/status VmHWM, the same instrument as the SQLite 121-135 MiB column.",
+  "timestamp_utc": "2026-08-21T20:44:29.403211+00:00",
+  "unit_convention": "MiB = kB/1024. STATE.md's memory column uses the same convention (its '3 786 MB' is res5k_json.json's 3876592 kB / 1024 = 3785.7). Index sizes on disk in STATE.md are DECIMAL MB (its '546 MB' = 545745747 B). Both conventions are preserved here with raw byte/kB values alongside.",
+  "environment": {
+    "node_version": "v22.23.1",
+    "platform": "Linux-7.0.0-29-generic-x86_64-inconnu-with-glibc2.43",
+    "machine_total_ram_gb": 23,
+    "server": "/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js (prebuilt, NOT rebuilt by this run)",
+    "drivers": "bench/run_build.py (build) and bench/query.py (at-rest), both reading VmHWM",
+    "zotero": "Zotero 10.0 local API on 127.0.0.1:23119, 7 541 top-level items available",
+    "backend": "json (ZOTEUS_SEARCH_BACKEND=json)",
+    "node_options_all_rungs": "--max-old-space-size=12288",
+    "why_the_heap_flag": "Legitimate here and not the flag-under-test trap: ticket 0003's stock-heap criterion is about the SQLITE backend. The JSON backend needing a raised heap IS the finding.",
+    "wall_clock_caveat": "Another agent ran the test suite on this machine concurrently. Elapsed times are contaminated and are reported for context only. VmHWM is per-process and is not.",
+    "src_caveat": "fork/src/features/search/fts5-store.ts was newer than dist/ at run time (a concurrent agent editing src). Irrelevant here: dist/ was not rebuilt and fts5-store is the SQLite path, not the JSON path under measurement."
+  },
+  "reproduction_check": {
+    "target": "bench/results/0005-migration/res5k_json.json, at-rest peak_rss_kb_final = 3876592 kB (3785.7 MiB)",
+    "measured_on_copy_of_that_index": 3881088,
+    "measured_on_index_rebuilt_here": 3879172,
+    "rebuilt_index_bytes": 321273862,
+    "verdict": "REPRODUCED. At-rest VmHWM 3 881 088 kB on a copy of the pre-existing index and 3 879 172 kB on an index rebuilt here, against 3 876 592 kB recorded -- all three within 0.12%. The rebuilt index has the identical passage count (237 352) and is 321 273 862 B against the pre-existing 321 274 157 B: 295 bytes apart (0.00009%), NOT byte-identical. The library moved between the two builds (builtFromVersion 200 then 209), which accounts for it.",
+    "preexisting_index_bytes": 321274157,
+    "byte_identical": false
+  },
+  "headline": {
+    "inherited_claim_mib": 5370,
+    "measured_full_library_200k_chars_mib": 5673.5,
+    "measured_full_library_200k_chars_kb": 5809688,
+    "verdict": "The inherited 5 370 MB figure HOLDS UP and is CONSERVATIVE. At the only setting that both writes and reads the full library back (7 541 items, 200 000 chars/item), at-rest VmHWM is 5 673.5 MiB -- 5.7% ABOVE the inherited figure. At the uncapped-chars geometry the FTS5 column was actually measured at (477 511 passages), the figure is UNREACHABLE: the index cannot be persisted at all. The nearest measurable point there, a 402 542-passage partial, already costs 6 410.8 MiB.",
+    "linear_extrapolation_predicted_mib": 5709,
+    "extrapolation_agreement": "Measured 5 673.5 vs predicted ~5 700 from the 2500/5000-item points. Agreement within 0.6%."
+  },
+  "ladder": [
+    {
+      "rung": "instrument-check (pre-existing 5000-item index from .zoteus-bench-0005, copied)",
+      "artifact": "rung-instrument-check-5000.json",
+      "max_items": "(index pre-built elsewhere; caps unknown)",
+      "max_chars": "(unknown)",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 5000,
+      "passages": 237352,
+      "index_bytes": 321274157,
+      "index_mib": 306.4,
+      "build_peak_vmhwm_kb": null,
+      "build_peak_vmhwm_mib": null,
+      "atrest_peak_vmhwm_kb": 3881088,
+      "atrest_peak_vmhwm_mib": 3790.1,
+      "startup_s": 26.32,
+      "persist_failed": false,
+      "atrest_index_is_partial": false
+    },
+    {
+      "rung": "r5000",
+      "artifact": "rung-r5000.json",
+      "max_items": "5000",
+      "max_chars": "200000",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 5000,
+      "passages": 237352,
+      "index_bytes": 321273862,
+      "index_mib": 306.4,
+      "build_peak_vmhwm_kb": 5255640,
+      "build_peak_vmhwm_mib": 5132.5,
+      "atrest_peak_vmhwm_kb": 3879172,
+      "atrest_peak_vmhwm_mib": 3788.3,
+      "startup_s": 24.32,
+      "persist_failed": false,
+      "atrest_index_is_partial": false
+    },
+    {
+      "rung": "r6000",
+      "artifact": "rung-r6000.json",
+      "max_items": "6000",
+      "max_chars": "200000",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 6000,
+      "passages": 290999,
+      "index_bytes": 392973258,
+      "index_mib": 374.8,
+      "build_peak_vmhwm_kb": 6415032,
+      "build_peak_vmhwm_mib": 6264.7,
+      "atrest_peak_vmhwm_kb": 4713508,
+      "atrest_peak_vmhwm_mib": 4603.0,
+      "startup_s": 34.68,
+      "persist_failed": false,
+      "atrest_index_is_partial": false
+    },
+    {
+      "rung": "r7000",
+      "artifact": "rung-r7000.json",
+      "max_items": "7000",
+      "max_chars": "200000",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 7000,
+      "passages": 338346,
+      "index_bytes": 456027729,
+      "index_mib": 434.9,
+      "build_peak_vmhwm_kb": 7154044,
+      "build_peak_vmhwm_mib": 6986.4,
+      "atrest_peak_vmhwm_kb": 5443580,
+      "atrest_peak_vmhwm_mib": 5316.0,
+      "startup_s": 46.99,
+      "persist_failed": false,
+      "atrest_index_is_partial": false
+    },
+    {
+      "rung": "rall",
+      "artifact": "rung-rall.json",
+      "max_items": "1000000",
+      "max_chars": "200000",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 7541,
+      "passages": 360811,
+      "index_bytes": 485774399,
+      "index_mib": 463.3,
+      "build_peak_vmhwm_kb": 7026696,
+      "build_peak_vmhwm_mib": 6862.0,
+      "atrest_peak_vmhwm_kb": 5809688,
+      "atrest_peak_vmhwm_mib": 5673.5,
+      "startup_s": 42.71,
+      "persist_failed": false,
+      "atrest_index_is_partial": false
+    },
+    {
+      "rung": "rall-nochar",
+      "artifact": "rung-rall-nochar.json",
+      "max_items": "1000000",
+      "max_chars": "0",
+      "node_options": "--max-old-space-size=12288",
+      "items_indexed": 6100,
+      "passages": 402542,
+      "index_bytes": 545745747,
+      "index_mib": 520.5,
+      "build_peak_vmhwm_kb": 8900056,
+      "build_peak_vmhwm_mib": 8691.5,
+      "atrest_peak_vmhwm_kb": 6564660,
+      "atrest_peak_vmhwm_mib": 6410.8,
+      "startup_s": 41.04,
+      "persist_failed": true,
+      "atrest_index_is_partial": true
+    }
+  ],
+  "scaling": {
+    "per_passage": [
+      {
+        "rung": "instrument-check (pre-ex",
+        "passages": 237352,
+        "atrest_kb_per_passage": 16.35,
+        "build_kb_per_passage": null
+      },
+      {
+        "rung": "r5000",
+        "passages": 237352,
+        "atrest_kb_per_passage": 16.34,
+        "build_kb_per_passage": 22.14
+      },
+      {
+        "rung": "r6000",
+        "passages": 290999,
+        "atrest_kb_per_passage": 16.2,
+        "build_kb_per_passage": 22.04
+      },
+      {
+        "rung": "r7000",
+        "passages": 338346,
+        "atrest_kb_per_passage": 16.09,
+        "build_kb_per_passage": 21.14
+      },
+      {
+        "rung": "rall",
+        "passages": 360811,
+        "atrest_kb_per_passage": 16.1,
+        "build_kb_per_passage": 19.47
+      },
+      {
+        "rung": "rall-nochar",
+        "passages": 402542,
+        "atrest_kb_per_passage": 16.31,
+        "build_kb_per_passage": 18.64,
+        "passages_note": "402542 is the PARTIAL index the at-rest run loaded; the build reached 477512 in memory",
+        "build_passages": 477512
+      }
+    ],
+    "at_rest_is_linear_in_passages": "yes -- 16.09 to 16.34 kB/passage across every rung, a 1.5% spread",
+    "build_peak_is_sublinear_in_passages": "yes -- 22.14, 22.04, 21.14, 19.47, 18.64 kB/passage as the index grows (last figure is the uncapped-chars build against its in-memory 477 512 passages)",
+    "observed_anomaly": "build peak at r7000 (7 154 044 kB, 338 346 passages) EXCEEDS build peak at rall (7 026 696 kB, 360 811 passages) despite rall being the larger index. Reported as observed; cause not isolated. It is consistent with the sublinear build curve above plus run-to-run V8 GC-timing variance, but that is a hypothesis, not a finding -- it was not re-run.",
+    "at_rest_extrapolation_to_477512_passages_mib": 7531.1,
+    "extrapolation_caveat": "NOT a measurement. The complete uncapped-chars index cannot be written, so this point cannot be measured on this code path."
+  },
+  "data_dirs_left_on_disk": {
+    "root": "/home/haduong/.zoteus-json-baseline/",
+    "note": "instr5000/ is a copy of .zoteus-bench-0005/search-index.json (source untouched). rall/search-index.json (485 774 399 B) is the 463 MiB full-library 200k-chars index that ticket 0005's migration criterion refers to -- it exists again and can feed a migration run. rall-nochar/search-index.json is a STALE PARTIAL (6 100 items) and must not be used as a full index."
+  }
+}
