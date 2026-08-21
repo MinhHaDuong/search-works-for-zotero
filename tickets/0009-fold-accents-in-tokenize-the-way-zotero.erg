@@ -256,4 +256,5 @@ fold.
 - [x] Vietnamese `đ` case checked and recorded: `đ` does NOT fold, because
       the document side keeps it
 - [x] 0002's divergence tests inverted in place, not deleted
-- [ ] 0001's stated exception re-examined and removed
+- [x] 0001's stated exception re-examined and removed, with a note on how the
+      divergence was first misread as extra recall

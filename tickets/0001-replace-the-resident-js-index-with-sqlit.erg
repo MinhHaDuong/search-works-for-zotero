@@ -78,8 +78,10 @@ replaces the existing class.
 - 0008 — quantize the vector column: implemented, measured, and shipped OFF by
   default. The 13x was a k=30 figure that does not survive being asked for a
   pool; recall at any affordable pool is 0,63-0,86.
-- 0009 — fold accents in `tokenize()` (filed 2026-08-21): may remove the
-  accented-query exception the invariant below currently carries
+- 0009 — fold accents in `tokenize()`: **fixed 2026-08-22**, fork `50b3f15`.
+  Both backends now fold, so the accented-query exception the invariant below
+  carried is gone — the divergence was a defect, not the extra recall it was
+  first recorded as.
 - 0010 — corruption path for the database (filed 2026-08-21): none exists, and
   a naive rebuild would leave 0006's watermark claiming an empty index is current
 - 0011 — peak build RSS is ~2 GB (filed 2026-08-21): 0003's "few hundred MB"
@@ -146,6 +148,16 @@ Nothing in this chantier uses it.
   is validated by comparing search results between the old and new index on the
   same library, not by a green suite. Green tests pass on a refactor that
   quietly changed ranking.
+
+  Operationalised in 0002 as top-k item-set overlap, because FTS5's `bm25()`
+  and the JS BM25 cannot agree on scores. It carried one exception between
+  2026-08-21 and 2026-08-22 — accented queries, where the backends diverged —
+  and that exception is now closed by 0009. Worth remembering how it read at
+  the time: the divergence was first recorded as FTS5 *out-recalling* the JS
+  index, an improvement. Measurement on the real library showed it returning
+  twenty wrong results. **An unexplained divergence is not evidence of the
+  better side winning**, and this invariant is the thing that would have caught
+  it earlier had the comparison been run on real data sooner.
 - Nothing under `fork/` is committed here, and no `tickets/` directory is ever
   added to the fork — it would appear in any diff sent upstream.
 
