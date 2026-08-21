@@ -53,19 +53,69 @@ Zotero into `.zotero-ft-cache`.
 | reload | OOM on stock Node | opens the file |
 | query | 0,37–0,5 s | 1–76 ms |
 
+**The `passages` row is not like-for-like** and should not be read as one:
+`bench/fts5_bench.mjs` chunks attachment full text only, at 1200 with no
+overlap, while zoteus indexes metadata at 512/64 *plus* full text at 1200/150.
+Three independent differences before storage enters the picture. Build time,
+disk and RSS still hold — the resident-JS column is measuring a larger corpus,
+which if anything understates the win. Ticket 0007 carries the fix.
+
+Also worth knowing before the #10 writeup: **Zotero 10 already runs FTS5
+itself** (`fulltext.sqlite`: `fulltextContent USING fts5(text,
+tokenize='unicode61', content='')`), but the table is *contentless* — matchable,
+not readable — which is why zoteus reads the cache and why "just reuse Zotero's
+index" is not available.
+
 No current setting both writes and reads this library back: 40 000 chars/item
 fits but discards 61% of the text, 200 000 writes but needs
 `--max-old-space-size=12288` to reload, uncapped will not write at all.
 
+## What has landed
+
+All five children of 0001 are implemented in the fork and gate-verified.
+Upstream's suite went **477 → 668 tests**, `tsc --noEmit` and `eslint` clean at
+every wave. Nothing is committed in `fork/` yet — the author owns those commits.
+
+| ticket | what | suite after |
+|---|---|---|
+| 0002 | `PassageStore` port, `Fts5PassageStore`, MATCH sanitiser, `SqliteSearchIndex` | 581 |
+| 0003 | transaction boundaries on the port, `ZOTEUS_SEARCH_BACKEND`, `persistence.ts` off the SQLite path | 592 |
+| 0005 | streaming JSON → SQLite migration, no dependency, atomic rename | 612 |
+| 0004 | vectors in `vec0` via `sqlite-vec` (optional dep), KNN in C | 652 |
+| 0006 | library-version watermark, `?since=` deltas, deletion by key-set reconcile | 668 |
+
+Design decisions taken on the way, each recorded in its ticket: a store port
+rather than a duplicated class (0002); the `engines` floor left at `>=20.19`
+with a lazy `node:sqlite` import (0002); "match" defined as top-k item-set
+overlap, since FTS5 and the JS BM25 cannot agree on scores (0002); and the
+`sqlite-vec` ruling in 0004 **reversed on evidence** — `node:sqlite` does load
+extensions, and zoteus already carries two optional dependencies on the same
+graceful-degradation pattern.
+
+Two behavioural divergences from upstream, both deliberate and both tested:
+FTS5 **out-recalls** the JS index on accented queries (`remove_diacritics 2`
+folds the document side), and the SQLite backend refuses `toJSON`/`loadFromJSON`
+rather than materialising 408 628 passages into the heap.
+
 ## Next action
 
-**Ticket 0002 — schema and keyword-only `SqliteSearchIndex`.** Its design
-decisions were reviewed with the author on 2026-08-21 and are settled in the
-ticket body; no code written yet. Start by implementing the schema and the
-query-sanitisation piece, then point upstream's existing search tests at the
-new class.
+**The author's own library is the remaining gate.** Four exit criteria across
+0001, 0003, 0004 and 0005 need the real 7 540-item corpus and cannot be
+fabricated; the commands are in each ticket. In order:
 
-0002 is the only child carrying design risk; 0003–0006 follow from it.
+1. Migrate the existing `search-index.json` (0005) — watch peak RSS, which
+   should *not* scale with file size.
+2. Full build on the sqlite backend (0003) — build time, peak RSS, on-disk
+   size, and that the server serves with no `--max-old-space-size`.
+3. Embedding pass (0004) — bytes/passage and semantic query latency.
+   `bench/build_index.py` hardcodes `ZOTEUS_EMBEDDINGS: "off"`; that one key
+   needs changing first.
+4. Old-vs-new result comparison on the same corpus (0001), then the findings
+   go on oscardvs/zoteus#10.
+
+Then commit the fork branch, and consider 0008 (binary quantization: measured
+13x faster, 24x smaller) before the #10 writeup, since it changes the numbers
+that writeup would quote.
 
 ## Gates
 
