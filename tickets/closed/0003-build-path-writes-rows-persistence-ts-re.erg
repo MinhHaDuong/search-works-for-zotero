@@ -131,6 +131,11 @@ tests use it today; it is the one remaining unbatched write loop.
 
 - [ ] Whole library, no character cap, builds and is queryable immediately after
 - [ ] Peak RSS stays within a few hundred MB, against 6,48 GB today
+      -- NOT MET, and tracked as ticket 0011 rather than reopening this one.
+      Measured three times on the real library: ~1,85-2,08 GB peak during the
+      build, against ~128 MiB at rest. 0011 isolated the cause to a single
+      44,9 MB document and closed with the author's decision to ship no
+      per-item character cap by default.
 - [ ] Server restarts and serves without `--max-old-space-size`
 
 ## Exit criteria

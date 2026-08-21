@@ -1,0 +1,330 @@
+{
+ "probe": "ticket 0001 — old (resident JS) versus new (SQLite/FTS5) on ONE corpus",
+ "why_this_is_like_for_like": "Both backends read the same 360 811 passages, produced by a single local-API crawl (7 541 items, fulltext on, 200 000 chars/item). The SQLite side is that crawl's own search-index.json migrated in place, so the corpora are not merely comparable, they are the same rows. This removes the caveat 0001 recorded — that a comparison run through two backends measures the API's differences as well as the index's — and the caveat STATE carried, that no strictly comparable at-rest pair existed: the JSON backend cannot reach 477 512 passages, but both backends reach 360 811.",
+ "corpus": {
+  "passages": 360811,
+  "items": 7541,
+  "fulltext_passages": 348409,
+  "library_version": 410
+ },
+ "instrument": "/proc/<pid>/status VmHWM, identical on both sides",
+ "startup_s": {
+  "json": 90.87,
+  "sqlite": 3.86,
+  "ratio": 23.5
+ },
+ "resident_mib": {
+  "json_after_load": 5406.1,
+  "sqlite_after_load": 121.1,
+  "json_after_16_queries": 5759.6,
+  "sqlite_after_16_queries": 128.0,
+  "ratio_after_16_queries": 45.0
+ },
+ "memory_caveat": {
+  "note": "RSS excludes the kernel page cache holding the database file, and the JS heap figure has no such remainder. Read as total memory implicated, the honest bound adds the whole file to the SQLite side.",
+  "database_bytes": 747487232,
+  "sqlite_plus_whole_file_mib": 840.9,
+  "conservative_ratio": 6.8
+ },
+ "result_agreement": {
+  "queries": 16,
+  "mean_jaccard": 0.7803,
+  "min_jaccard": 0.429,
+  "identical_ordered": 1,
+  "note": "Exact agreement was never the criterion — 0002 defined a match as top-k item-set overlap, because FTS5's bm25() and the JS BM25 cannot agree on scores. What the spread has to show is that no query class is broken."
+ },
+ "accent_pairs_after_0009": {
+  "note": "The 0009 defect was that an accented query and its unaccented spelling reached DIFFERENT answers on the SQLite backend — jaccard 0,00 against the JSON backend for `théorie`, twenty confident wrong hits. Each pair below now scores identically, which is the fix stated as a measurement rather than as a test.",
+  "pairs": [
+   {
+    "accented": "théorie",
+    "plain": "theorie",
+    "accented_jaccard_vs_json": 0.889,
+    "plain_jaccard_vs_json": 0.889,
+    "sqlite_answers_identical_across_spellings": true
+   },
+   {
+    "accented": "mathématiques",
+    "plain": "mathematiques",
+    "accented_jaccard_vs_json": 0.429,
+    "plain_jaccard_vs_json": 0.429,
+    "sqlite_answers_identical_across_spellings": true
+   },
+   {
+    "accented": "probabilità",
+    "plain": "probabilita",
+    "accented_jaccard_vs_json": 1.0,
+    "plain_jaccard_vs_json": 1.0,
+    "sqlite_answers_identical_across_spellings": true
+   }
+  ]
+ },
+ "rows": [
+  {
+   "query": "climate policy",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 17,
+   "jaccard": 0.739,
+   "identical_ordered": false,
+   "json_only": [
+    "DXDAGUQ5",
+    "GT5BJQ5L",
+    "W2ZVKFX4"
+   ],
+   "sqlite_only": [
+    "64VWFQ4D",
+    "IDPBI3G8",
+    "VB53B2JB"
+   ]
+  },
+  {
+   "query": "index numbers",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 13,
+   "jaccard": 0.481,
+   "identical_ordered": false,
+   "json_only": [
+    "2HAHT8FF",
+    "2KDVRCNK",
+    "BXEXAMIU",
+    "HC4MN7NM",
+    "WR8UMZDD",
+    "XVGD8S63",
+    "YW8SYSWH"
+   ],
+   "sqlite_only": [
+    "224895YK",
+    "3H2EZRDQ",
+    "72JRJEUR",
+    "7TDQKYHL",
+    "J9JBYHE9",
+    "P7IJ4QSL",
+    "SLCT6KLF"
+   ]
+  },
+  {
+   "query": "optimal transport",
+   "n_json": 10,
+   "n_sqlite": 11,
+   "overlap": 9,
+   "jaccard": 0.75,
+   "identical_ordered": false,
+   "json_only": [
+    "3GZ7DJVN"
+   ],
+   "sqlite_only": [
+    "6W4MZ9FC",
+    "KCTC7QTC"
+   ]
+  },
+  {
+   "query": "arbitrage",
+   "n_json": 20,
+   "n_sqlite": 18,
+   "overlap": 16,
+   "jaccard": 0.727,
+   "identical_ordered": false,
+   "json_only": [
+    "987BQH4S",
+    "P4GRFMFC",
+    "S7AKUVHE",
+    "SXTE5992"
+   ],
+   "sqlite_only": [
+    "C7C9NVXX",
+    "MINQVTZE"
+   ]
+  },
+  {
+   "query": "consumer demand",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 18,
+   "jaccard": 0.818,
+   "identical_ordered": false,
+   "json_only": [
+    "FVSBKBTL",
+    "Z7ZW4K4J"
+   ],
+   "sqlite_only": [
+    "UJCHCTYI",
+    "YG8XKML4"
+   ]
+  },
+  {
+   "query": "mathematical economics",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 19,
+   "jaccard": 0.905,
+   "identical_ordered": false,
+   "json_only": [
+    "4QQDLYXC"
+   ],
+   "sqlite_only": [
+    "B3UMRE4G"
+   ]
+  },
+  {
+   "query": "carbon tax",
+   "n_json": 13,
+   "n_sqlite": 15,
+   "overlap": 13,
+   "jaccard": 0.867,
+   "identical_ordered": false,
+   "json_only": [],
+   "sqlite_only": [
+    "THADWQTQ",
+    "V38W5GKD"
+   ]
+  },
+  {
+   "query": "equilibrium",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 16,
+   "jaccard": 0.667,
+   "identical_ordered": false,
+   "json_only": [
+    "4DQGPIBI",
+    "ER4DSTD2",
+    "GV5U9CPV",
+    "H678DN9J"
+   ],
+   "sqlite_only": [
+    "5ESN4L69",
+    "RKVRDT97",
+    "W2ZVKFX4",
+    "ZPXHPF9Q"
+   ]
+  },
+  {
+   "query": "théorie",
+   "n_json": 18,
+   "n_sqlite": 16,
+   "overlap": 16,
+   "jaccard": 0.889,
+   "identical_ordered": false,
+   "json_only": [
+    "8VHUFARC",
+    "WY2V3MGB"
+   ],
+   "sqlite_only": []
+  },
+  {
+   "query": "theorie",
+   "n_json": 18,
+   "n_sqlite": 16,
+   "overlap": 16,
+   "jaccard": 0.889,
+   "identical_ordered": false,
+   "json_only": [
+    "8VHUFARC",
+    "WY2V3MGB"
+   ],
+   "sqlite_only": []
+  },
+  {
+   "query": "mathématiques",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 12,
+   "jaccard": 0.429,
+   "identical_ordered": false,
+   "json_only": [
+    "386DHVX2",
+    "3XAI3VFE",
+    "6ZMCCBGX",
+    "REU8X9AR",
+    "S7AKUVHE",
+    "UQ9EPQNE",
+    "XMFQBZQZ",
+    "XVU5A5XH"
+   ],
+   "sqlite_only": [
+    "4574EQ7I",
+    "4D4JKT7W",
+    "BM3DIM8E",
+    "CDUVFRZ5",
+    "JM8NHHM8",
+    "LZD6BYA9",
+    "SVED9CET",
+    "UKZTNUMI"
+   ]
+  },
+  {
+   "query": "mathematiques",
+   "n_json": 20,
+   "n_sqlite": 20,
+   "overlap": 12,
+   "jaccard": 0.429,
+   "identical_ordered": false,
+   "json_only": [
+    "386DHVX2",
+    "3XAI3VFE",
+    "6ZMCCBGX",
+    "REU8X9AR",
+    "S7AKUVHE",
+    "UQ9EPQNE",
+    "XMFQBZQZ",
+    "XVU5A5XH"
+   ],
+   "sqlite_only": [
+    "4574EQ7I",
+    "4D4JKT7W",
+    "BM3DIM8E",
+    "CDUVFRZ5",
+    "JM8NHHM8",
+    "LZD6BYA9",
+    "SVED9CET",
+    "UKZTNUMI"
+   ]
+  },
+  {
+   "query": "probabilità",
+   "n_json": 6,
+   "n_sqlite": 6,
+   "overlap": 6,
+   "jaccard": 1.0,
+   "identical_ordered": false,
+   "json_only": [],
+   "sqlite_only": []
+  },
+  {
+   "query": "probabilita",
+   "n_json": 6,
+   "n_sqlite": 6,
+   "overlap": 6,
+   "jaccard": 1.0,
+   "identical_ordered": false,
+   "json_only": [],
+   "sqlite_only": []
+  },
+  {
+   "query": "Grössenbegriffes",
+   "n_json": 1,
+   "n_sqlite": 1,
+   "overlap": 1,
+   "jaccard": 1.0,
+   "identical_ordered": true,
+   "json_only": [],
+   "sqlite_only": []
+  },
+  {
+   "query": "richesses",
+   "n_json": 18,
+   "n_sqlite": 18,
+   "overlap": 17,
+   "jaccard": 0.895,
+   "identical_ordered": false,
+   "json_only": [
+    "QED2Q2A4"
+   ],
+   "sqlite_only": [
+    "MCR55KTK"
+   ]
+  }
+ ]
+}

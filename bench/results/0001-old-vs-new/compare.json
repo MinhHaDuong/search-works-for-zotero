@@ -1,0 +1,272 @@
+{
+  "backend_a": "json",
+  "backend_b": "sqlite",
+  "rows": [
+    {
+      "query": "climate policy",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 17,
+      "jaccard": 0.739,
+      "identical_ordered": false,
+      "json_only": [
+        "DXDAGUQ5",
+        "GT5BJQ5L",
+        "W2ZVKFX4"
+      ],
+      "sqlite_only": [
+        "64VWFQ4D",
+        "IDPBI3G8",
+        "VB53B2JB"
+      ]
+    },
+    {
+      "query": "index numbers",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 13,
+      "jaccard": 0.481,
+      "identical_ordered": false,
+      "json_only": [
+        "2HAHT8FF",
+        "2KDVRCNK",
+        "BXEXAMIU",
+        "HC4MN7NM",
+        "WR8UMZDD",
+        "XVGD8S63",
+        "YW8SYSWH"
+      ],
+      "sqlite_only": [
+        "224895YK",
+        "3H2EZRDQ",
+        "72JRJEUR",
+        "7TDQKYHL",
+        "J9JBYHE9",
+        "P7IJ4QSL",
+        "SLCT6KLF"
+      ]
+    },
+    {
+      "query": "optimal transport",
+      "n_json": 10,
+      "n_sqlite": 11,
+      "overlap": 9,
+      "jaccard": 0.75,
+      "identical_ordered": false,
+      "json_only": [
+        "3GZ7DJVN"
+      ],
+      "sqlite_only": [
+        "6W4MZ9FC",
+        "KCTC7QTC"
+      ]
+    },
+    {
+      "query": "arbitrage",
+      "n_json": 20,
+      "n_sqlite": 18,
+      "overlap": 16,
+      "jaccard": 0.727,
+      "identical_ordered": false,
+      "json_only": [
+        "987BQH4S",
+        "P4GRFMFC",
+        "S7AKUVHE",
+        "SXTE5992"
+      ],
+      "sqlite_only": [
+        "C7C9NVXX",
+        "MINQVTZE"
+      ]
+    },
+    {
+      "query": "consumer demand",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 18,
+      "jaccard": 0.818,
+      "identical_ordered": false,
+      "json_only": [
+        "FVSBKBTL",
+        "Z7ZW4K4J"
+      ],
+      "sqlite_only": [
+        "UJCHCTYI",
+        "YG8XKML4"
+      ]
+    },
+    {
+      "query": "mathematical economics",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 19,
+      "jaccard": 0.905,
+      "identical_ordered": false,
+      "json_only": [
+        "4QQDLYXC"
+      ],
+      "sqlite_only": [
+        "B3UMRE4G"
+      ]
+    },
+    {
+      "query": "carbon tax",
+      "n_json": 13,
+      "n_sqlite": 15,
+      "overlap": 13,
+      "jaccard": 0.867,
+      "identical_ordered": false,
+      "json_only": [],
+      "sqlite_only": [
+        "THADWQTQ",
+        "V38W5GKD"
+      ]
+    },
+    {
+      "query": "equilibrium",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 16,
+      "jaccard": 0.667,
+      "identical_ordered": false,
+      "json_only": [
+        "4DQGPIBI",
+        "ER4DSTD2",
+        "GV5U9CPV",
+        "H678DN9J"
+      ],
+      "sqlite_only": [
+        "5ESN4L69",
+        "RKVRDT97",
+        "W2ZVKFX4",
+        "ZPXHPF9Q"
+      ]
+    },
+    {
+      "query": "théorie",
+      "n_json": 18,
+      "n_sqlite": 16,
+      "overlap": 16,
+      "jaccard": 0.889,
+      "identical_ordered": false,
+      "json_only": [
+        "8VHUFARC",
+        "WY2V3MGB"
+      ],
+      "sqlite_only": []
+    },
+    {
+      "query": "theorie",
+      "n_json": 18,
+      "n_sqlite": 16,
+      "overlap": 16,
+      "jaccard": 0.889,
+      "identical_ordered": false,
+      "json_only": [
+        "8VHUFARC",
+        "WY2V3MGB"
+      ],
+      "sqlite_only": []
+    },
+    {
+      "query": "mathématiques",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 12,
+      "jaccard": 0.429,
+      "identical_ordered": false,
+      "json_only": [
+        "386DHVX2",
+        "3XAI3VFE",
+        "6ZMCCBGX",
+        "REU8X9AR",
+        "S7AKUVHE",
+        "UQ9EPQNE",
+        "XMFQBZQZ",
+        "XVU5A5XH"
+      ],
+      "sqlite_only": [
+        "4574EQ7I",
+        "4D4JKT7W",
+        "BM3DIM8E",
+        "CDUVFRZ5",
+        "JM8NHHM8",
+        "LZD6BYA9",
+        "SVED9CET",
+        "UKZTNUMI"
+      ]
+    },
+    {
+      "query": "mathematiques",
+      "n_json": 20,
+      "n_sqlite": 20,
+      "overlap": 12,
+      "jaccard": 0.429,
+      "identical_ordered": false,
+      "json_only": [
+        "386DHVX2",
+        "3XAI3VFE",
+        "6ZMCCBGX",
+        "REU8X9AR",
+        "S7AKUVHE",
+        "UQ9EPQNE",
+        "XMFQBZQZ",
+        "XVU5A5XH"
+      ],
+      "sqlite_only": [
+        "4574EQ7I",
+        "4D4JKT7W",
+        "BM3DIM8E",
+        "CDUVFRZ5",
+        "JM8NHHM8",
+        "LZD6BYA9",
+        "SVED9CET",
+        "UKZTNUMI"
+      ]
+    },
+    {
+      "query": "probabilità",
+      "n_json": 6,
+      "n_sqlite": 6,
+      "overlap": 6,
+      "jaccard": 1.0,
+      "identical_ordered": false,
+      "json_only": [],
+      "sqlite_only": []
+    },
+    {
+      "query": "probabilita",
+      "n_json": 6,
+      "n_sqlite": 6,
+      "overlap": 6,
+      "jaccard": 1.0,
+      "identical_ordered": false,
+      "json_only": [],
+      "sqlite_only": []
+    },
+    {
+      "query": "Grössenbegriffes",
+      "n_json": 1,
+      "n_sqlite": 1,
+      "overlap": 1,
+      "jaccard": 1.0,
+      "identical_ordered": true,
+      "json_only": [],
+      "sqlite_only": []
+    },
+    {
+      "query": "richesses",
+      "n_json": 18,
+      "n_sqlite": 18,
+      "overlap": 17,
+      "jaccard": 0.895,
+      "identical_ordered": false,
+      "json_only": [
+        "QED2Q2A4"
+      ],
+      "sqlite_only": [
+        "MCR55KTK"
+      ]
+    }
+  ]
+}

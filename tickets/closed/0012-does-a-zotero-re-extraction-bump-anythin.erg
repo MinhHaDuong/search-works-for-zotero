@@ -1,0 +1,201 @@
+%erg 0.1
+Title: The delta compares a library version against full-text versions, a different sequence
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #3
+
+--- log ---
+2026-08-21T19:28Z minh created
+2026-08-22T04:05Z claude note answered, and it is a defect: the delta consults the right channel but compares it against the wrong sequence -- library version 410 against full-text versions up to 25 036
+2026-08-22T00:40Z claude note closed: second watermark implemented and tested; the reported figures re-measured through a committed driver and all reproduce, 92,7% at the real library version
+
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
+--- body ---
+## Context
+
+Tracker: 0001. Filed as an open question. **The experiment has since been run
+and it is a defect** -- see "Answered" below; the framing in this section is
+kept as the record of what was suspected before it was measured.
+
+0006 keeps a library-version watermark and applies deltas via `?since=`. That
+tracks *item* changes. It is not obvious that it tracks a change in the
+**extracted text of an unchanged item**, and that case is real: Zotero
+re-extracts an attachment when its extractor improves, and the item's own
+metadata does not change when it does.
+
+zotero/zotero#6012 shows Zotero treating this as a first-class problem.
+`Zotero.SDT.getProcessorVersion()` returns an identity like `'pdf/3/1'` and its
+in-tree comment says it exists **"for consumers that store data derived from
+packs, to fold into their staleness keys"**. Zotero also hashes each chunk's
+source text (`sourceHash`) so an unchanged item is skipped and a changed one is
+re-embedded regardless of why it changed. Both mechanisms exist because item
+version alone is not sufficient.
+
+zoteus stores data derived from Zotero's extraction. If the extractor changes
+what a PDF yields, our index holds text that no longer matches what Zotero
+would return -- silently, and until a manual rebuild.
+
+## Why this is a question and not yet a finding
+
+0006's ticket records that `fullTextSince` "already exists on both clients", so
+there **may** already be a full-text version channel separate from item
+versions, and the delta may already consult it. I have not read that path, and
+`fulltext.sqlite` carries its own `fulltextIndexState(itemID, version)`
+independent of `zotero.sqlite`'s item versions -- which suggests the two
+sequences are genuinely separate.
+
+So: establish the behaviour before designing anything. State the observation,
+hold the cause. *(That was the right instinct, and the answer turned out to be
+neither of the two outcomes anticipated below: the delta neither misses the
+re-extraction nor handles it correctly. It over-reports, by comparing the right
+channel against the wrong sequence.)*
+
+## The experiment
+
+1. Build an index over a small library including one PDF attachment.
+2. Force Zotero to re-extract that attachment's full text without touching the
+   item's metadata (delete `.zotero-ft-cache` and reopen in Zotero, or use
+   Zotero's own re-index action).
+3. Read `Last-Modified-Version` and `?since=` before and after. Does either
+   surface the item?
+4. Read `/items/<key>/fulltext` and check whether its own version moved.
+5. Run zoteus's delta and check whether the passage text updated.
+
+If the delta already picks it up, close this ticket with the evidence -- that is
+a valuable negative result and the ticket has done its job. If it does not,
+the fix follows Zotero's shape: fold an extraction identity into the staleness
+key, and prefer a content hash over a version comparison, since a hash is
+robust to *why* the text changed. *(Outcome: neither. See below.)*
+
+## Answered 2026-08-22 -- and the answer is a defect, not a reassurance
+
+**The delta does consult the right channel.** `addNewlyExtracted()` in
+`delta.ts` calls `ctx.router.fullTextSince(run.watermark, ...)`, resolves each
+returned attachment to its parent item, and folds it into the re-index set. Its
+comment states the exact reasoning this ticket was filed to check: *"extraction
+touches the attachment, and the parent item — the one the index holds passages
+for — need not appear in a top-level `?since=` page at all."* So 0006's author
+anticipated the hole.
+
+**But the watermark passed to it is the wrong sequence.** Measured on the live
+local API:
+
+| | |
+|---|---|
+| library version (`Last-Modified-Version` on `/items`) | **410** |
+| full-text versions from `/fulltext?since=0` | min 0, median **12 884**, max **25 036** |
+| entries returned by `/fulltext?since=200` | **7 453 of 8 037** |
+
+`index_meta` stores exactly one watermark (`builtFromVersion`, plus
+`indexBackend` and `fulltextPending` — no full-text watermark exists).
+`delta.ts:185` reads it once and uses it for both the item `?since=` pass and
+`fullTextSince`. Since full-text versions run two orders of magnitude above the
+library version, **`fullTextSince` reports essentially the whole library as
+newly extracted on every delta.**
+
+## What that costs
+
+It does not run away — `maxItems` caps the re-index set at 500 items, or 50
+when full text is on. The damage is subtler:
+
+- **The genuinely re-extracted items are lost.** Candidates are taken in
+  map-iteration order from a set of ~7 400, so the handful that actually
+  changed are almost certainly not among the first 50.
+- **Each candidate costs a request.** `addNewlyExtracted` issues a `getItem`
+  per attachment to find its parent — up to `maxItems` extra requests on a
+  delta whose budget this chantier states as one request when nothing changed.
+  (The one-request budget itself holds: an unchanged library version returns
+  `fresh` before any of this runs.)
+- **It cannot converge.** The watermark advances along the library sequence, so
+  the full-text comparison is no closer next time.
+
+## The irony, recorded because it is the lesson
+
+0006 guards *carefully* against exactly this class of error across backends —
+that is what the `indexBackend` label is for, and `delta.ts:194` refuses to
+compare when the label differs, saying the sequences are unrelated. It then
+compares two unrelated sequences **inside** one backend. Guarding one instance
+of a defect class does not guard the class.
+
+## A note 0010 left here for whoever touched `delta.ts` next
+
+That was this ticket. 0010 recorded that the same principle it settled --
+refuse rather than launch an unrequested long rebuild behind a caller's back --
+bites 0006's background rebuild path in `delta.ts`, which this fix touches.
+Nothing changed there: a rebuild triggered by a *stale or unattributable
+watermark* is a different case from one triggered by *corruption*. The first is
+the index doing its job on a library that moved; the second is an error
+condition the user has to know about. The distinction is worth keeping in mind
+if that path is ever revisited.
+
+## Actions
+
+1. Store a **second watermark**, `fulltextVersion`, in `index_meta` beside
+   `builtFromVersion`, and pass it to `fullTextSince`. It advances only when a
+   full-text delta is applied.
+2. Seed it correctly on a first build: the largest value seen from
+   `fullTextSince(0)`, or 0 with the first delta accepted as a full sweep —
+   pick one and say which, because seeding it wrong reproduces this bug in the
+   other direction and hides it (nothing would ever look newly extracted).
+3. Label it like the item watermark. Local and cloud full-text sequences have
+   no more reason to be commensurable than the item ones do.
+
+## Test
+
+Red step: a fake client whose full-text versions are an order of magnitude
+above its library versions — the real shape — asserting the delta requests
+`fullTextSince` with the full-text watermark rather than the library one, and
+that a second delta with nothing changed returns no candidates. Against today's
+code the second assertion fails, because every attachment is still "newer" than
+a library version.
+
+## Exit criteria
+
+- [x] The behaviour is established by experiment and recorded -- it over-reports
+      rather than misses, and the measurement is now a committed artifact,
+      `bench/results/0012-fulltext-sequence/sequences.json`, produced by
+      `bench/fulltext_sequence.py` against the live local API
+- [x] A separate, labelled full-text watermark, seeded deliberately
+- [x] Test asserting a no-change second delta produces no candidates
+      (`tests/features/search-delta-fulltext-watermark.test.ts`)
+
+## The evidence, committed 2026-08-22
+
+The figures below were first reported from an uncaptured call, and a review
+found nothing behind them. Re-run through a committed driver that writes the
+raw version list into its own output, every one reproduces:
+
+| | |
+|---|---|
+| library version (`Last-Modified-Version` on `/items`) | **410** |
+| full-text versions, `/fulltext?since=0` | **0 … 25 036**, median **12 884**, 8 037 entries |
+| entries returned by `/fulltext?since=200` | **7 453** |
+| entries returned by `/fulltext?since=410` -- the real case | **7 453**, i.e. **92,7%** |
+
+## How it was fixed, and the two decisions inside that
+
+**Seeded from the build's own read, not from an extra request.** The build
+already calls `/fulltext?since=0` in `createFulltextSource`, to learn which
+attachments have text at all; its values *are* the full-text sequence. Taking
+the maximum there costs nothing and makes the FIRST delta after a build correct.
+The alternative this ticket offered -- seed 0 and accept one full sweep -- would
+have reproduced the defect once, deliberately.
+
+The seed is withheld when the attachment walk did not locate every extracted
+attachment (`mapped < total`). Seeding past attachments that were never indexed
+is the failure this ticket warned about in the other direction, where nothing
+ever looks newly extracted again.
+
+**Swept in ascending version order, advanced only past completed versions.**
+Map order plus an unmoved watermark is a loop that makes no progress -- it is
+the shape the defect had. Ordering by version means a sweep cut short by the
+item ceiling still leaves a version below which everything has been folded in,
+so the next delta resumes there. A version group in which an attachment failed
+to resolve is not counted as completed.
+
+**No label of its own.** Local and cloud full-text sequences are no more
+commensurable than the item ones, so this ticket asked for a label. It does not
+need one: the backend-label check on the ITEM watermark runs before any of this,
+a mismatch rebuilds, and a rebuild clears both watermarks together. They are
+written together and cleared together, so no path can leave one attributable and
+the other not. Pinned by the test rather than argued.

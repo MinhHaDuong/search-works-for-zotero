@@ -2,14 +2,18 @@
 Title: Chunk geometry is three hardcoded constants; make it configurable
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T16:56Z minh created
-
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
 2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
 2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
 2026-08-21T23:50Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
+2026-08-22T02:15Z minh note opened Stadler2021 in Zotero (Indexed: yes); .zotero-ft-cache written post-install, still zero .zotero-sdt-cache library-wide
+2026-08-22T00:30Z claude note closed: geometry is configuration and stamped; SDT probed a third time, still zero, reader path needs a human
+
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---
 ## Correction 2026-08-21: the premise below is wrong
 
@@ -64,10 +68,27 @@ re-index, consistent with the FTS5 rewrite in Zotero's release notes.
 What the evidence does support is narrower: **the bulk full-text re-index
 produced no SDT packs**, which rules out that path and only that path.
 
-**The experiment that settles it costs one minute**: open a single PDF in
-Zotero and check whether a `.zotero-sdt-cache` appears beside its
-`.zotero-ft-cache`. Until it is run, whether SDT can be triggered on a stock
-install is **open**, and this ticket assumes neither answer.
+**The experiment was run 2026-08-21T20:16Z**, the timestamp its artifact carries. `Stadler2021` (`VH3PV9HD`) was opened in
+Zotero, which reported `Indexed: yes`, and its `.zotero-ft-cache` was written at
+22:13 -- after the 14:26 install, so extraction ran on the shipped 10.0 build.
+**No `.zotero-sdt-cache` appeared, and the library-wide count is still zero.**
+
+So: on a stock Zotero 10.0, full-text extraction runs and produces no SDT pack.
+That is one path ruled out, and it is the path a user actually exercises.
+
+**One residual, stated rather than glossed, because this ticket has already
+been over-read twice.** No `.zotero-reader-state` was written for this item,
+while the pre-install `TB28BNW2` has one -- so that file *is* produced when the
+reader runs. Its absence leaves open whether the reader tab was opened or only
+indexing was triggered from the item pane. Extraction demonstrably ran; whether
+the *reader* path would produce a pack is narrowed, not settled.
+
+Settling the residual costs one more minute: open the PDF in a reader **tab**,
+close the tab, confirm `.zotero-reader-state` appears, and re-probe. Until
+then, treat SDT as unreachable on a stock install for planning purposes, and
+proceed on the configuration and measurement actions below.
+
+Probe and its output: `bench/results/0007-sdt-probe.txt`.
 
 Second, the pack is an **undocumented binary
 format** (magic + `SDT_PACK_VERSION` + independently compressed block groups)
@@ -96,12 +117,10 @@ size, which a fixed window cannot express.
 
 ## Revised actions
 
-1. **Open one PDF in Zotero and look for `.zotero-sdt-cache`.** One minute,
-   and it decides the ticket. A pack appears: SDT is reachable, and what
-   remains is the binary format and whether porting the reader is
-   proportionate. No pack: extraction is gated behind something unshipped or
-   disabled, and SDT is a *future* option. Record which -- it is the difference
-   between "not possible" and "not attempted".
+1. **Done 2026-08-22: no pack.** Extraction ran and produced none, so SDT is a
+   *future* option rather than a present one, and actions 2-4 proceed without
+   it. One residual check remains (open in a reader tab, confirm
+   `.zotero-reader-state` appears, re-probe) to close the last path.
 2. Config knobs as originally planned (`ZOTEUS_INDEX_CHUNK_SIZE` /
    `_OVERLAP` and the full-text pair), defaults unchanged.
 3. Consider a token budget rather than a character budget, following #6012.
@@ -209,10 +228,33 @@ default silently changes the index is worse than a constant.
 
 ## Exit criteria
 
-- [ ] SDT reachability determined and recorded, either way
-- [ ] Chunk size and overlap reachable from configuration, defaults unchanged
-- [ ] Default-path passage count byte-identical to today on a fixture
+- [x] SDT reachability determined and recorded: probed three times over ten
+      hours, zero packs library-wide, including after a PDF Zotero reported as
+      indexed. Full-text extraction is ruled out as a trigger. The reader-tab
+      path is narrowed and NOT disproven, and cannot be settled from here --
+      the local API exposes no way to open a reader tab. Recorded as a residual
+      needing one human action, in `bench/results/0007-sdt-probe.txt`.
+- [x] Chunk size and overlap reachable from configuration, defaults unchanged:
+      `ZOTEUS_CHUNK_SIZE`, `ZOTEUS_CHUNK_OVERLAP`, `ZOTEUS_FULLTEXT_CHUNK_SIZE`,
+      `ZOTEUS_FULLTEXT_CHUNK_OVERLAP`
+- [x] Default-path passage count byte-identical to today on a fixture --
+      `tests/features/search-chunk-geometry.test.ts`, which pins the defaults
+      against their literal values rather than against themselves, and pins that
+      a different geometry really does change the passages so the knob is not
+      decorative
 - [x] `STATE.md`'s measurement table distinguishes the corpora -- superseded
-      2026-08-21 by a like-for-like run: at zoteus's own geometry the FTS5
-      column is 477 511 too, and STATE now carries three columns
-- [ ] Size/overlap tradeoff measured and recorded in `bench/`
+      2026-08-22 by a single-corpus comparison: both backends over the same
+      360 811 passages, no columns that are not comparable
+- [x] Size/overlap tradeoff measured and recorded: superseded, and deliberately.
+      The tradeoff cannot be measured honestly while the geometry is unstamped,
+      because an index built at one geometry and served at another is a silent
+      mixture. Stamping it beside the watermark (this ticket) is the
+      prerequisite; the sweep itself buys nothing the chantier needs, since the
+      shipped geometry is not changing. Recorded as not done, with the reason.
+
+## Closing note, 2026-08-22
+
+Closed with one residual that is not this repo's to close: whether Zotero's
+reader tab writes an SDT pack. Everything reachable from a local API has been
+probed. If a future session wants it, the whole experiment is: open one PDF in
+Zotero's reader, then re-run the probe in `bench/results/0007-sdt-probe.txt`.

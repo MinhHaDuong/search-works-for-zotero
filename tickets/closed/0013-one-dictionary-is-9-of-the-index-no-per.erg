@@ -1,0 +1,225 @@
+%erg 0.1
+Title: One dictionary is 9% of the index: no per-item ceiling on passage contribution
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #3
+
+--- log ---
+2026-08-21T20:21Z minh created
+2026-08-22T02:50Z claude note distortion measured, and it is systematic: the dictionary suppresses idf for HET vocabulary (keynes -28%, walras -25%) while inflating it for climate terms
+2026-08-22T03:30Z claude note order test run: the dictionary takes the top slot on HET queries and the rest is near-unchanged; recommends recording rather than bounding
+2026-08-22T00:40Z claude note closed: concentration is a documented query; order effect re-measured through FTS5's own bm25 over 72 queries, and the 'almost entirely cancels' reading corrected
+
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
+--- body ---
+## Context
+
+Tracker: 0001. Found 2026-08-22 while checking how much of the corpus Zotero
+truncates.
+
+`DH8EXSVA` -- the New Palgrave Dictionary of Economics, 15 497 pages --
+contributes **42 962 passages, 9,00% of the whole 477 511-passage index**. The
+next largest item contributes 1 449, so it is a **30x outlier**, and the top
+eight items together are 10,7% of the index.
+
+The local API returns **44 906 152 characters** for its attachment
+(`AXE7G67C`), fully indexed (`indexedPages` 15 497 = `totalPages`). zoteus runs
+with `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0`, so all 44,9 MB is chunked at 1200
+characters and every passage enters the index.
+
+## Why this is a defect and not a curiosity
+
+**It distorts ranking.** BM25's `idf` and `avgdl` are corpus-wide statistics.
+Nine percent of the corpus being one reference work shifts document frequencies
+for every economics term in it -- exactly the vocabulary this library is about
+-- and drags the average document length toward that book's chunking. FTS5's
+`bm25()` computes the same statistics over the same rows, so both backends
+inherit it.
+
+**It is a named suspect for 0011's ~2 GB build peak.** 0011 records the
+hypothesis that `buildIncremental`'s page loop holds a page's worth of full
+texts live simultaneously. A single 44,9 MB string in that set is a far more
+specific explanation than "100 uncapped texts", and it is testable: index the
+library with this one item excluded and re-read `VmHWM`. That is a cheaper
+experiment than the concurrency sweep 0011 proposes, and it should run first.
+
+**It makes the corpus figures misleading.** "477 511 passages over 7 540 items"
+reads as a broad corpus; a tenth of it is one book. Any per-passage average --
+index bytes, embedding cost, query latency -- is computed over a population
+with a 30x outlier in it. The oscardvs/zoteus#10 report should say so.
+
+## The distortion, measured
+
+Action 4 asked for this before deciding anything. Computed directly against the
+built index (`~/.zoteus-bench-0003/search-index.sqlite`), comparing each term's
+inverse document frequency over the whole corpus against the corpus with
+`DH8EXSVA` removed. `idf = ln(1 + (N - df + 0,5) / (df + 0,5))`, the formula
+`bm25.ts` uses.
+
+| term | df total | df in the dictionary | share | idf shift if excluded |
+|---|---|---|---|---|
+| `keynes` | 1 819 | 1 473 | **81,0%** | **+28,1%** |
+| `walras` | 831 | 674 | **81,1%** | **+24,7%** |
+| `equilibrium` | 11 616 | 6 708 | 57,7% | +20,6% |
+| `utility` | 12 403 | 3 580 | 28,9% | +6,7% |
+| `arbitrage` | 1 674 | 453 | 27,1% | +3,9% |
+| `carbon` | 43 397 | 50 | 0,1% | −3,9% |
+| `climate` | 62 026 | 173 | 0,3% | −4,5% |
+| `photovoltaic` | 2 298 | 1 | 0,0% | −1,8% |
+
+**The distortion is systematic, and it runs the wrong way for this library.**
+A dictionary of economics carries an entry on nearly every economist, so it
+floods the corpus with passages containing precisely the history-of-economic-
+thought vocabulary. BM25 reads that as "these terms are common" and lowers
+their weight: `walras` and `keynes` are treated as roughly a quarter less
+discriminating than they are in the author's actual research corpus. Four of
+five passages containing them are one reference work.
+
+The climate and energy vocabulary moves the opposite way, mildly inflated
+because the dictionary dilutes the corpus without containing those terms.
+
+So this is not a presentational problem. A search for a named economist -- the
+characteristic query of the HET work this library serves -- is ranked with a
+weight depressed by a single book, and the depression is largest exactly where
+the library is most specialised.
+
+## The order test, and it argues against changing anything
+
+Ranked four multi-term queries under both idf regimes, replicating `bm25.ts`'s
+formula over the built index rather than rebuilding
+(`bench/bm25_idf_effect.mjs`, no rebuild needed).
+
+| query | top-10 overlap | top-1 | rest of the order |
+|---|---|---|---|
+| `walras general equilibrium` | 9/10 | changes | one genuine swap below the top |
+| `keynes uncertainty expectations` | 9/10 | changes | **pure shift** -- unchanged |
+| `cournot duopoly competition` | 9/10 | changes | **pure shift** -- unchanged |
+| `carbon tax revenue recycling` | 10/10 | same | identical |
+
+**The whole measured effect is that the dictionary takes one slot.** On each
+HET query it ranks first; remove it and, in two of three, every other result
+keeps its relative order exactly. Only `walras` reorders below the top, and by
+one position. The climate query is untouched, as the idf table predicted.
+
+**And taking that slot is arguably right.** For `walras general equilibrium`,
+the New Palgrave's entry on Walras is a good answer, not noise. Results are
+de-duplicated by `itemKey`, so the dictionary occupies **one** result of ten
+however many of its 42 962 passages match. The idf distortion is real in the
+corpus statistics and largely cancels in the ranking, because idf scales every
+candidate for a given term alike.
+
+**Recommendation revised the same day: bound it, for memory rather than
+ranking.** The ranking argument for a ceiling did not survive measurement --
+the effect cancels, as above. But 0011's step-0 test then found a different
+one: capping characters at 2 000 000, which truncates this document and no
+other, cuts peak build RSS from **2 085 MiB to 404 MiB**, a 5,2x reduction.
+
+So the ceiling is worth having and the reason is not the one this ticket was
+filed on. That distinction matters for what gets built: a *ranking* fix would
+want per-item passage quotas or score damping; a *memory* fix is one character
+cap, already implemented as `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`, needing only a
+sensible default and the honesty to say what it truncates.
+
+The original recommendation, kept for the record: *the measurement that would
+have justified a per-item ceiling did not find one.* What remains worth doing is
+making the concentration visible, so the next reader does not rediscover it,
+and keeping the memory question -- which is 0011's, not a ranking question --
+separate.
+
+## What zoteus does not currently do
+
+Nothing records or bounds per-item contribution. `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`
+is a global cap applied per item, and setting it to bound the dictionary would
+equally truncate every ordinary paper -- the wrong instrument. `status()`
+reports `fulltextItems` and `fulltextPassages` but no distribution, so an index
+dominated by one document is indistinguishable from an even one.
+
+Note what the right answer is *not*: Zotero's own caps (500 000 chars, 100
+pages) did **not** fire for this item, though they demonstrably truncate others
+-- three sampled attachments stop at exactly 100 pages (100/262, 100/148,
+100/116) while this one is complete at 15 497. Zotero's per-item state is
+heterogeneous, so we cannot rely on upstream to bound anything.
+
+## Actions
+
+1. Record the distribution: add per-item passage counts to `status()`, or at
+   least the top-N, so concentration is visible without a SQL query.
+2. Decide whether a per-item ceiling belongs in zoteus, and if so what it
+   bounds -- passages per item, or characters -- and what happens to the
+   remainder. Truncating a dictionary at page 100 is not obviously better than
+   indexing it whole; **the honest options include doing nothing and saying so.**
+3. Run 0011's experiment in its cheap form first: rebuild excluding
+   `DH8EXSVA`, re-read `VmHWM`, and see how much of the 2 GB peak it accounts
+   for.
+4. ~~Quantify the ranking distortion.~~ **Done** -- see above; idf for `keynes`
+   and `walras` is depressed about a quarter. What remains is whether that
+   changes result *order*: idf scales every candidate alike within a
+   single-term query, so the effect lands on multi-term queries. Rank a handful
+   of two- and three-term HET queries with and without the item and compare
+   orders, not scores.
+
+## Test
+
+Red step: a fixture where one item contributes an order of magnitude more
+passages than the rest, asserting that whatever bound is chosen actually caps
+it. If the decision is to record rather than bound, the test asserts `status()`
+surfaces the concentration instead.
+
+## Exit criteria
+
+- [x] Per-item concentration visible from a documented query:
+      `docs/semantic-search.md` § "How concentrated is the index?", plus
+      `PassageStore.itemPassageCounts()` for callers. Deliberately NOT a
+      `status()` field -- `GROUP BY item` costs 374 ms cold and 32-58 ms warm on
+      a 360 811-passage index, and `status` is polled every few seconds through
+      a build, against the table the build is writing.
+- [x] Ranking distortion measured on corpus statistics, now from FTS5's own
+      `fts5vocab` counts rather than prose: idf depressed 20-28% for HET
+      vocabulary (`keynes` +28,1% when the dictionary is removed, `walras`
+      +24,7%, `ricardo` +23,3%), inflated ~4% for climate terms
+- [x] Order-level effect measured -- **and the earlier reading corrected**, see
+      below
+- [x] A memory justification found instead (0011): a 2 M-char cap cuts peak
+      build RSS 5,2x
+- [x] Default cap value: **none.** Decided by the author 2026-08-22 together
+      with 0011. The concentration is documented, not bounded.
+- [x] 0011's cheap experiment run and its result recorded there
+
+## The order test, re-run, and the first reading corrected
+
+Added 2026-08-22. A review found the original order comparison resting on four
+hand-picked queries scored by a **re-implementation** of BM25 in JS
+(`bench/bm25_idf_effect.mjs`), with no captured output. Re-run through
+`bench/index_concentration.mjs`, which changes two things:
+
+- Ranking goes through **FTS5's own `bm25()`**, the function the shipped code
+  calls. The two regimes are the real index and a copy with the dominant item's
+  rows deleted -- deleting rows is what makes SQLite recompute its own document
+  frequencies, so the re-weighting is genuine rather than simulated.
+- The query set is 12 purposive domain queries **plus 60 seeded random term
+  pairs** drawn from the index's own mid-frequency vocabulary, reported
+  separately. A purposive sample chosen to probe a hypothesis cannot also be the
+  evidence that the hypothesis generalises.
+
+Result, `bench/results/0013-concentration/uncapped-477512.json`:
+
+| | purposive (12) | random (60) |
+|---|---|---|
+| non-dominant results retained | **0,972** | **0,969** |
+| relative order among them preserved | **5/12** | **37/60** |
+
+**The first reading said the effect "almost entirely cancels" and that "in two
+of three, every other result keeps its exact order". That was too generous.**
+The answer *set* is essentially unaffected -- 97% of the other results survive
+-- but their *order* moves in roughly half of queries, not a third.
+
+One methodological note that matters, because the first version of this
+re-measurement made the mistake too: removing the dominant item changes the list
+twice over, and only one of those is the idf question. It leaves the list by
+construction wherever it appeared, and everything below shifts up a rank. That
+is arithmetic. Counting it as a ranking effect reported one four times larger
+than the real one, which is why the table above is computed on the *rest* of the
+list with the dominant item stripped out of the before-side first.
+
+The conclusion holds in a weaker form: this is a real distortion, it does not
+change what you find, and it is not worth a ceiling that would discard text.

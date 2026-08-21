@@ -1,0 +1,58 @@
+{
+ "probe": "Ticket 0011 -- third uncapped full-library build: wall clock, peak build RSS and on-disk size at the geometry the JSON backend cannot persist at (477 512 passages).",
+ "why_committed": "STATE.md's 'The FTS5 side at full size' table quotes 371,6 s / 1 848,8 MiB from this run. Round-1 review found the table citing bench/results/0013-concentration/, a read-only ranking probe that holds no timing, RSS or disk field and cannot back a build-performance claim. This file is the run's own artifact.",
+ "driver": "bench/run_build.py",
+ "source_log": "/home/haduong/data/projets/zoteus-bench/logs/sqlite-uncapped.log",
+ "source_log_copy": "bench/results/0011-rss/uncapped-build-3.log.txt (the .txt suffix because .gitignore ignores *.log repo-wide; same convention as bench/results/0007-sdt-probe.txt)",
+ "source_log_line": 34,
+ "date": "2026-08-22",
+ "backend": "sqlite",
+ "fulltext_max_chars": 0,
+ "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
+ "elapsed_s": 371.6,
+ "peak_rss_kb": 1893192,
+ "peak_rss_mib": 1848.8,
+ "status": {
+  "documents": 477512,
+  "vectors": 0,
+  "items": 7541,
+  "embedder": "none (keyword-only)",
+  "embedderConfigured": "off",
+  "embedderActive": false,
+  "fulltextEnabled": true,
+  "fulltextItems": 5562,
+  "fulltextPassages": 465110,
+  "builtFromVersion": 410,
+  "indexBackend": "local",
+  "fulltextPendingItems": 429,
+  "passages": 477512,
+  "state": "done",
+  "itemsFetched": 7541,
+  "itemsTotal": 7541,
+  "itemsAvailable": 7541
+ },
+ "files": {
+  "search-index.sqlite": 995524608,
+  "search-index.sqlite-wal": 174766312,
+  "search-index.sqlite-shm": 360448,
+  "update-check.json": 120
+ },
+ "files_mib": {
+  "search-index.sqlite": 949.4,
+  "search-index.sqlite-wal": 166.7,
+  "search-index.sqlite-shm": 0.3,
+  "update-check.json": 0.0
+ },
+ "files_mb_decimal": {
+  "search-index.sqlite": 995.5,
+  "search-index.sqlite-wal": 174.8,
+  "search-index.sqlite-shm": 0.4,
+  "update-check.json": 0.0
+ },
+ "siblings": {
+  "run_1": "bench/results/0003-full-build/build_result.json -- 339,0 s, 2 084,9 MiB, 477 511 passages",
+  "run_2": "2 085 / 1 892 MiB spread quoted in STATE.md; this run reproduces within it",
+  "capped_comparison": "bench/results/0011-rss/capped-vs-uncapped.json"
+ },
+ "note": "477 512 rather than 0003's 477 511: the library gained one top-level item between the crawls (7 540 -> 7 541). builtFromVersion 410 against 0003's 200 records the same drift."
+}

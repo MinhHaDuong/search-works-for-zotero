@@ -1,0 +1,156 @@
+%erg 0.1
+Title: Peak build RSS is ~2 GB, not the few hundred MB 0003 assumed
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #3
+
+--- log ---
+2026-08-21T19:25Z minh created
+2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the New Palgrave and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
+2026-08-22T00:35Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
+
+2026-08-21T22:40Z bump verify-reroll — round 1: third-build figures had no committed artifact; committed and citation corrected
+2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
+--- body ---
+## Context
+
+Tracker: 0001. 0003 is closed, and its verification line
+
+    - [ ] Peak RSS stays within a few hundred MB, against 6,48 GB today
+
+has now been measured on the real library and is **not met**. Filed as its own
+ticket rather than reopening 0003, whose other criteria did pass.
+
+Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, stock
+Node with no heap flag. Two runs, one under concurrent load and one clean,
+byte-identical in every content figure:
+
+| | run 1 (contended) | run 2 (clean) |
+|---|---|---|
+| build wall clock | 374 s | 339 s |
+| **peak RSS** (`VmHWM`) | 1 892 MiB | **2 085 MiB** |
+| RSS at end of build | 382 MiB | 327 MiB |
+| RSS serving, after 8 queries | — | **135 MiB** |
+
+Peak RSS is per-process, so contention did not cause it: it reproduced.
+
+## What this does and does not damage
+
+**The chantier's headline survives intact.** The claim that matters is
+resident memory *at rest* -- 5 370 MB for the JS index against **121-135 MiB**
+here, and an index that reloads on stock Node instead of OOMing. That is
+measured and holds.
+
+**What fails is the build-time claim**, and only by comparison with the
+ticket's own wording. 2 085 MiB is still 2,6x below the 5 370 MB resident
+figure and 3,1x below the 6,48 GB build peak 0003 cites. It is not a
+regression against zoteus; it is a promise this chantier should not have made
+in that form. The honest headline is **"~2 GB peak during build, ~130 MB at
+rest"**, and every place that currently says "a few hundred MB" needs to say
+that instead.
+
+## The hypothesis, which is not yet a finding
+
+The RSS curve climbs monotonically to its peak at t≈253 s, collapses to
+~220 MiB, then sawtooths 240-400 MiB to the end. That shape is consistent with
+V8 old-space growing until a major GC rather than with a leak.
+
+A candidate cause: `buildIncremental`'s page loop resolves full text for a
+whole page before chunking any of it, so 100 uncapped attachment texts are
+live simultaneously. At this library's sizes that is plausibly a gigabyte.
+
+**This has not been isolated.** It is an observation plus a guess, and the
+guess is cheap to test by varying `fulltextConcurrency` and page size and
+re-reading `VmHWM`. Do that before changing anything -- the failure mode here
+is fixing the wrong thing because the shape looked familiar.
+
+## Cause isolated 2026-08-22
+
+Step 0 ran, and one document accounts for the peak.
+
+Rebuilt the full library changing exactly one variable:
+`ZOTEUS_INDEX_FULLTEXT_MAX_CHARS` from 0 to 2 000 000. The next-largest
+`.zotero-ft-cache` is 1 908 743 B, so that truncates precisely one document --
+`DH8EXSVA`, the New Palgrave, 44 906 152 characters -- and leaves every other
+document in the library untouched.
+
+| | passages | peak build `VmHWM` | elapsed |
+|---|---|---|---|
+| uncapped chars | 477 511 | **2 085 MiB** | 339 s |
+| 2 M-char cap | 436 463 | **404 MiB** | 201 s |
+
+**Peak RSS falls 5,2x.** So the ~2 GB is that single 44,9 MB string, not a
+generic property of `buildIncremental`'s page loop. The hypothesis this ticket
+recorded -- "100 uncapped full texts live simultaneously" -- was the right
+shape and the wrong magnitude: it is one text, not a hundred.
+
+The concurrency sweep this ticket planned is therefore unnecessary as a
+diagnostic. It may still be worth running as a tuning exercise, but it is no
+longer the way to find the cause.
+
+Artifact: `bench/results/0011-rss/capped-vs-uncapped.json`.
+
+**What this does to the headline.** "Peak ~2 GB during build" is true of this
+library at uncapped chars and is not a property of the backend. With a cap that
+touches one book, the same 7 541 items build at 404 MiB -- comfortably inside
+the "few hundred MB" this ticket was filed for missing. The honest statement
+for #10 is that build peak is governed by the largest single document, and
+name the number both ways.
+
+## Actions
+
+0. **Cheapest first, added 2026-08-22:** one item (`DH8EXSVA`, the New Palgrave
+   Dictionary) contributes 44,9 MB of text and 9% of all passages -- see
+   ticket 0013. Rebuild with it excluded and re-read `VmHWM` before doing
+   anything else. A single 44,9 MB string live in the page loop is a far more
+   specific suspect than "100 uncapped texts", and this experiment is minutes
+   rather than a sweep.
+1. If that does not account for the peak: vary `fulltextConcurrency`
+   (currently defaults to 4) and the page size, measure `VmHWM` for each, and
+   establish whether the page loop is in fact the cause.
+2. If it is: stream the page rather than holding it -- chunk and insert each
+   item's text as it arrives, so a page's worth is never simultaneously live.
+   The rows already go to disk per item; it is the *source text* that
+   accumulates.
+3. Re-measure and record.
+4. Correct the wording everywhere it appears: `STATE.md`, ticket 0001's
+   claims, and whatever goes into the oscardvs/zoteus#10 report. **The #10
+   number must be the measured one**, not the one this chantier hoped for.
+
+## Test
+
+Read `VmHWM` from `/proc/<pid>/status` after a build, not a sampled `VmRSS`:
+the kernel's high-water mark cannot miss a peak between samples. `bench/run_build.py`
+does this already and is the reference. Assert nothing in the unit suite --
+this is a measurement, and a memory assertion in CI would be machine-dependent.
+
+## Exit criteria
+
+- [x] Cause isolated: one 44,9 MB document; capping it cuts peak 5,2x
+- [x] Reducible and re-measured: 404 MiB at a 2 M-char cap
+      (`bench/results/0011-rss/capped-vs-uncapped.json`)
+- [x] Decided 2026-08-22 by the author: **zoteus ships no such cap by default.**
+      `fulltext_max_chars` remains available and the 2 M figure is documented as
+      the value that buys the reduction, but enabling it changes what is indexed
+      -- it discards text -- so it is the user's call and not a default. Shared
+      with 0013, whose ranking evidence points the same way: the concentration
+      is real and not worth bounding.
+- [x] "A few hundred MB" corrected to the measured figure in STATE and 0001.
+      The #10 report was dropped as a criterion (0001, 2026-08-22), so there is
+      nothing else to correct.
+
+## Re-measured 2026-08-22
+
+A third uncapped build, on the same library, one item larger: **477 512
+passages, 371,6 s, peak 1 848,8 MiB**. That lands inside the spread of the two
+runs above (1 892 and 2 085 MiB) and confirms the figure is a property of the
+corpus rather than of a run.
+
+Committed as `bench/results/0011-rss/uncapped-build-3.json`, with the driver's raw
+`RESULT` line beside it as `bench/results/0011-rss/uncapped-build-3.log.txt`. Until
+2026-08-22 these three numbers were quoted here and in STATE.md with nothing
+committed behind them.
+
+The honest headline this ticket exists to establish: **~1,85 GB peak during
+build, ~128 MiB at rest.** The at-rest number is the one the chantier turns on
+and it is unaffected.

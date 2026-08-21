@@ -1,0 +1,19 @@
+{
+ "node_options": "",
+ "node_version": "v22.23.1",
+ "jsonPath": "/home/haduong/data/projets/zoteus-bench/json-full/search-index.json",
+ "json_bytes": 485774399,
+ "db_bytes": 747487232,
+ "ratio_db_over_json": 1.5388,
+ "wall_ms": 55534,
+ "peak_rss_kB_VmHWM": 95404,
+ "final_rss_kB_VmRSS": 94684,
+ "sidecars_left": [],
+ "result": {
+  "chunks": 360811,
+  "vectorsSkipped": 0,
+  "builtFromVersion": 410,
+  "bytes": 485774399,
+  "ms": 55475
+ }
+}
