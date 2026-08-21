@@ -32,7 +32,7 @@ python3 -u query.py --server "$SERVER" --data-dir "$DD" --backend json \
 ARC=$?
 echo "atrest exit $ARC $(date -Is)"
 python3 "$EMIT" --rung "$LBL" --data-dir "$DD" --max-items "$ITEMS" --max-chars "$CHARS" \
-  --node-options=$NOPT --build-log "$OUT/build-$LBL.log" \
+  --node-options=$NOPT --server "$SERVER" --build-log "$OUT/build-$LBL.log" \
   --atrest-json "$OUT/atrest-$LBL.raw.json" --out "$OUT/rung-$LBL.json" \
   --note "build exit $BRC, atrest exit $ARC"
 echo "=== DONE $LBL $(date -Is) ==="

@@ -105,14 +105,14 @@ property of the corpus rather than of any one run.
 ## The FTS5 side at full size
 
 Uncapped, the geometry the JSON backend cannot persist at (2026-08-22,
-`bench/results/0013-concentration/`, driver `bench/run_build.py`):
+`bench/results/0011-rss/uncapped-build-3.json`, driver `bench/run_build.py`):
 
 | | |
 |---|---|
 | passages | **477 512** |
 | build wall clock | 371,6 s |
 | peak RSS during build | **1 848,8 MiB** |
-| on disk | 949,4 MB + 166,7 MB WAL |
+| on disk | 949,4 MiB + 166,7 MiB WAL |
 
 Reproduces the two earlier runs (1 892 and 2 085 MiB) within their spread. The
 build is API-bound, not SQLite-bound.
@@ -185,7 +185,7 @@ since filing. Driver `bench/migrate_measure.mjs`, which records Node version,
 |---|---|---|---|
 | migration, isolated | 13,7 s | 42,7 s | **55,5 s** |
 | **peak RSS** (`VmHWM`) | 80,7 MiB | 97,0 MiB | **93,2 MiB** |
-| resulting database | 162,3 MB | 498,7 MB | **712,9 MB** |
+| resulting database | 162,3 MB | 498,7 MB | **747,5 MB** |
 | ratio to JSON | 1,5416 | 1,5522 | **1,5388** |
 
 **The third point changes the reading.** Two points showed 80,7 → 97,0 MiB and
@@ -353,12 +353,23 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The chantier is complete.** 0001 and all twelve children are closed. What
-remains is not work this repo owes anyone:
+**The implementation work is done; two tickets stay open.** This wave closes
+0007, 0009, 0010, 0011, 0012 and 0013, which joins 0002–0006 already closed —
+eleven of the twelve children. Still open:
 
-1. **0008's real-vector re-measure** finishes overnight 2026-08-22 and appends
-   to the section above. It cannot change what ships — the two-stage path is
-   already off by default — only what is known about why.
+- **0008**, whose one remaining criterion is marked BLOCKED: the real-vector
+  re-measure below has not returned. What ships is settled either way.
+- **0001**, the tracker, which by the tracking-ticket convention closes after
+  the integration review — every child closed, child diffs re-read, exit
+  criteria verified — and not on the bare event of the last child merging. Four
+  of its criteria are still unchecked.
+
+What remains beyond those is not work this repo owes anyone:
+
+1. **0008's real-vector re-measure** was launched 2026-08-22 and its result is
+   not in yet; it appends to the section above when it lands. It cannot change
+   what ships — the two-stage path is already off by default — only what is
+   known about why.
 2. **One PDF opened in a Zotero reader tab** would close 0007's last residual.
    It needs a human; the local API cannot do it.
 3. **Nothing goes upstream** unless the maintainer answers #10. That is the

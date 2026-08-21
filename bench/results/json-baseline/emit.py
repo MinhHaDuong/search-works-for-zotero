@@ -24,6 +24,20 @@ def dirsizes(path):
     return out
 
 
+def mtime_iso(path: str) -> str | None:
+    """Server mtime as provenance, or None when the path is absent.
+
+    A missing build is a gap in the record, not a reason to lose the whole
+    measurement -- the artifact is written after a run that already happened.
+    """
+    if not path:
+        return None
+    try:
+        return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(os.path.getmtime(path)))
+    except OSError:
+        return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--rung", required=True)
@@ -31,6 +45,8 @@ def main():
     ap.add_argument("--max-items", required=True)
     ap.add_argument("--max-chars", required=True)
     ap.add_argument("--node-options", required=True)
+    ap.add_argument("--server", default="",
+                    help="path to the built server rung.sh drove; recorded as provenance")
     ap.add_argument("--build-log", default="")
     ap.add_argument("--atrest-json", default="")
     ap.add_argument("--out", required=True)
@@ -53,9 +69,8 @@ def main():
             "ZOTEUS_EMBEDDINGS": "off",
             "ZOTEUS_INDEX_AUTO_REFRESH": "false",
             "ZOTEUS_DATA_DIR": a.data_dir,
-            "server": "/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js",
-            "server_mtime": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(
-                os.path.getmtime("/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js"))),
+            "server": a.server,
+            "server_mtime": mtime_iso(a.server),
             "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
             "wall_clock_contaminated": "yes -- another agent ran tests on this machine concurrently; VmHWM is per-process and unaffected",
         },

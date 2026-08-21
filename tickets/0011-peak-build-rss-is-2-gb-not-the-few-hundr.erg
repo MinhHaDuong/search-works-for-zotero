@@ -8,6 +8,7 @@ Author: minh
 2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the New Palgrave and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
 2026-08-22T00:35Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
 
+2026-08-21T22:40Z bump verify-reroll — round 1: third-build figures had no committed artifact; committed and citation corrected
 --- body ---
 ## Context
 
@@ -142,6 +143,11 @@ A third uncapped build, on the same library, one item larger: **477 512
 passages, 371,6 s, peak 1 848,8 MiB**. That lands inside the spread of the two
 runs above (1 892 and 2 085 MiB) and confirms the figure is a property of the
 corpus rather than of a run.
+
+Committed as `bench/results/0011-rss/uncapped-build-3.json`, with the driver's raw
+`RESULT` line beside it as `bench/results/0011-rss/uncapped-build-3.log.txt`. Until
+2026-08-22 these three numbers were quoted here and in STATE.md with nothing
+committed behind them.
 
 The honest headline this ticket exists to establish: **~1,85 GB peak during
 build, ~128 MiB at rest.** The at-rest number is the one the chantier turns on

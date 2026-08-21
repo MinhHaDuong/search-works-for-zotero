@@ -220,6 +220,14 @@ one at a time through a real FTS5 table via `fts5vocab` against the JS
 normalizer. 22 residual divergences remain, all rare and all in the direction
 of retrieving less rather than wrongly.
 
+> **Retracted 2026-08-22 — the two paragraphs above are the prose, not the
+> run.** The sweep was later actually executed: 1 301 codepoints, 27
+> divergences, and twelve of them in the *wrong* direction, sending a query to
+> a token the index does not hold. Read "## The sweep was described in prose,
+> then run, and the prose was wrong" below before citing any number in this
+> section. Quoted rather than deleted, the way 0002's inverted tests and 0007's
+> retraction are handled here.
+
 Cost: tokenisation 13,5 -> 18,1 us for a 740-char English passage, 17,0 -> 58,9
 us for a French one. Only the JS backend pays it at index time, since FTS5
 tokenises in SQLite -- under a second on a 20 000-passage library.

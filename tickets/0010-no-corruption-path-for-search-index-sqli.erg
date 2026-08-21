@@ -141,7 +141,8 @@ throws out of `query()`. Assert instead that it is recognised, recovered, and
 
 Recorded 2026-08-22. The index is derived data, so an automatic rebuild loses
 nothing but time -- which is exactly the objection. A rebuild re-crawls the whole
-library: 371,6 s measured on this one, with full text on. The caller is an MCP
+library: 371,6 s measured on this one, with full text on
+(`bench/results/0011-rss/uncapped-build-3.json`). The caller is an MCP
 client in the middle of somebody's task, and it cannot consent to that on their
 behalf. A tool that silently disappears for six minutes is worse than one that
 says what is wrong.

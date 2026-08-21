@@ -54,6 +54,8 @@ def main() -> None:
 
     # The FULL-TEXT sequence: a key -> version map over every extracted attachment.
     full_map, ft_headers = get(f"{prefix}/fulltext?since=0", a.timeout)
+    if not isinstance(full_map, dict) or "_http_error" in full_map:
+        raise SystemExit(f"/fulltext?since=0 did not return a version map: {full_map}")
     versions = sorted(v for v in full_map.values() if isinstance(v, int))
 
     # How many entries each `since=` returns. The defect is visible in one line of this

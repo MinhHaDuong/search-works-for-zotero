@@ -118,6 +118,10 @@ restore.
 
 ## Exit criteria
 
-- [ ] Migration path tested on the 463 MB index -- **unblocked 2026-08-22**:
-      the file exists at `~/.zoteus-json-baseline/rall/search-index.json`
-      (485 774 399 B). Run `node bench/migrate_measure.mjs <that> <out.sqlite>`
+- [x] Migration path tested on the 463 MB index -- **measured 2026-08-22** by
+      `bench/migrate_measure.mjs` on the real file (485 774 399 B): 55,5 s wall
+      (`wall_ms` 55 534), peak 93,2 MiB `VmHWM`, resulting database
+      747 487 232 B, ratio 1,5388. Artifact
+      `bench/results/0005-migration/migrate_463MB.json`. The peak comes in
+      *below* the 321 MB rung's 97,0 MiB, so the curve flattens rather than
+      keeps rising -- which two points could not have shown.

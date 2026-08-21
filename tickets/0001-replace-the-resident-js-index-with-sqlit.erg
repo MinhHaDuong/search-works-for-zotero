@@ -99,7 +99,9 @@ first figures unbacked. The JSON backend it replaces went
 including the one-off migration, then 0,97 s on every later start, against
 30,8 s every time for JSON. Database/JSON ratio 1,55x, consistently above the
 1,34x budgeted from the synthetic fixture. Artifacts in
-`bench/results/0005-migration/`; the full 463 MB case stays untested.
+`bench/results/0005-migration/`. The full 463 MB case is no longer untested:
+measured 2026-08-22 at 55,5 s, peak 93,2 MiB `VmHWM`, ratio 1,5388, artifact
+`bench/results/0005-migration/migrate_463MB.json`.
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.
