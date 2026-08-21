@@ -11,6 +11,7 @@ Closed: autoclosed — PR #1
 2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
 2026-08-21T19:05Z claude note implemented and verified: 612 passed 7 skipped, tsc and eslint clean; 600 MB fixture migrates at 150 MB peak RSS
 2026-08-22T01:10Z claude note re-measured on real data after review found the first figures unbacked: db/JSON ratio 1,55x not 1,34x at both sizes, peak RSS 80,7->97,0 MiB for a 3,05x file (sublinear, not flat); the 463 MB criterion stays open
+2026-08-22T04:50Z claude note the 463 MB index exists again at ~/.zoteus-json-baseline/rall/search-index.json (485 774 399 B), a by-product of the JSON baseline ladder; the open migration criterion can now run without a rebuild
 
 --- body ---
 ## Context
@@ -117,5 +118,6 @@ restore.
 
 ## Exit criteria
 
-- [ ] Migration path tested on the 463 MB index -- BLOCKED, the file lives in
-      the author's ZOTEUS_DATA_DIR, not in `bench/`; command handed over
+- [ ] Migration path tested on the 463 MB index -- **unblocked 2026-08-22**:
+      the file exists at `~/.zoteus-json-baseline/rall/search-index.json`
+      (485 774 399 B). Run `node bench/migrate_measure.mjs <that> <out.sqlite>`

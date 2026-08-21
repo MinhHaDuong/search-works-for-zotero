@@ -343,9 +343,16 @@ committed. What remains is not more measurement but three decisions.
    configuration and measurement. One residual check (reader tab rather than
    item pane) would close the last path.
 
-Two criteria remain open and are not blockers: the 463 MB migration at full
-size (0005 — 321 MB reached, 69%), and 0008's re-measure on the real vector
-index, where the anisotropy risk is the thing to test.
+Two criteria remain open and are not blockers, and the first is now unblocked:
+the 463 MB migration (0005) can run against
+`~/.zoteus-json-baseline/rall/search-index.json`, 485 774 399 B, left by the
+baseline ladder — `node bench/migrate_measure.mjs <that> <out.sqlite>`, no
+rebuild needed. And 0008's re-measure on the real vector index, where
+anisotropy is the thing to test.
+
+Bench data directories were cleared 2026-08-22 apart from that one index;
+`.zoteus-bench-0003`, `-0005` and `-rss0011` are gone, their artifacts
+committed under `bench/results/`.
 
 
 ## Gates
