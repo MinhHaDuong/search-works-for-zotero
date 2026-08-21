@@ -10,6 +10,15 @@ a **fork of someone else's project**. `fork/` is a plain checkout of
 has its own history, and a `tickets/` directory must never appear in it, or it
 would show up in any diff sent upstream.
 
+## The fork checkout
+
+`fork/` sits on branch **`fts5-base`** = PR #11 ⊕ PR #12 merged, not upstream
+`main`. Both are prerequisites for measuring anything: without #11's
+configurable cap the library never indexes past 5 000 items, and without #12
+the ASEAN group library is invisible. 477 tests green on that base. 0002's work
+branches from `fts5-base`, and it is pushed to the fork so the base is
+reproducible.
+
 ## Posture
 
 The maintainer has not yet answered. Work proceeds as a **prototype in the
@@ -24,6 +33,11 @@ the PR; if he picks (a) or declines, it is a usable fork.
 | [oscardvs/zoteus#10](https://github.com/oscardvs/zoteus/issues/10) | open — persistence ceiling, + comment proposing SQLite as direction (d) |
 | [#11](https://github.com/oscardvs/zoteus/pull/11) | open, no review — item cap configurable + `truncationNotice` |
 | [#12](https://github.com/oscardvs/zoteus/pull/12) | open, no review — group libraries served locally on Zotero 10 |
+
+Both branches were force-pushed on 2026-08-21 to drop a stray executable bit:
+an `install -D` used while splitting the patches had marked every touched
+`.ts` file 100755, which showed in the diffs as `old mode / new mode` noise.
+`scripts/backup-store.sh` is executable upstream and stays so.
 
 ## The measurements that motivate this
 
