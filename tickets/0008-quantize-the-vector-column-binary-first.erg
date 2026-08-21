@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-08-21T17:41Z minh created
+2026-08-21T23:55Z claude note implemented and measured; the premise does not hold -- vec0's k-best cost grows faster than linearly in k, so the pool that preserves recall is slower than the exact scan. Ships off by default.
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0004 closed — Blocked-by removed.
 --- body ---
@@ -62,6 +63,71 @@ int8.
 At the library's 408 628 passages this is roughly **0,5 s -> 0,05 s** per
 semantic query, and ~650 MB -> ~27 MB of vectors.
 
+## Result 2026-08-21: the premise does not survive the measurement
+
+Implemented, measured, and **shipped off by default**. Fork commit `bac5d62`,
+679 tests passing, `tsc` and `eslint` clean.
+
+**Where the 13x figure came from and why it does not apply.** It was measured
+at `k=30` and is real at `k=30`. The two-stage design does not need the binary
+pass to be cheap at `k`; it needs it cheap at a **pool**. vec0's k-best
+structure costs more than linearly in `k`:
+
+| | binary scan |
+|---|---|
+| k=30 | 7,7 ms |
+| k=120 | 18,2 ms |
+| k=480 | 83,6 ms |
+| k=960 | 216,8 ms |
+| *exact float32 scan, k=30* | *121 ms* |
+
+So the pool that preserves the ranking is not a speedup, and the pool that is
+a speedup does not preserve the ranking. This ticket was filed on an
+extrapolation from one operating point, and the extrapolation was wrong.
+
+**Recall@30, 100 probes, N=100 000, dim 384**, on a clustered fixture chosen to
+resemble sentence-embedder geometry (exact scan = 110 ms):
+
+| pool | recall@30 | sim kept | median |
+|---|---|---|---|
+| binary only | 0,256 | 0,970 | 8,3 ms |
+| 4x | 0,628 | 0,994 | 66,3 ms |
+| 8x | 0,862 | 0,999 | 128,3 ms |
+| **16x** | **0,998** | 1,000 | **272,1 ms** |
+
+Recall was the acceptance criterion, not latency, and recall at any affordable
+pool is 0,63-0,86. So the path ships behind `VEC_TWO_STAGE_DEFAULT = false`.
+**Both columns are maintained on every insert**, so enabling it later is a
+one-line flip rather than a reindex -- which keeps the option alive for the
+real-library re-measure without shipping a regression now.
+
+**float32 stays mandatory.** Binary-only recall is 0,256. The binary code
+finds the neighbourhood -- it retains 0,970 of the exact top-30's total cosine
+-- and cannot order within it. Dropping float32 for 25 MB is not offerable.
+
+**A consolation worth recording:** the misses are near-ties, not junk. At a 4x
+pool, recall is 0,628 while similarity retained is 0,994. If a use case ever
+tolerates approximate ordering among near-equivalent passages, the trade is
+better than the recall figure alone suggests.
+
+## Implementation notes
+
+`vec_quantize_binary` refuses widths not divisible by 8, so the dim-3 and
+dim-4 fixtures in the existing suites fall back to the exact scan; every real
+model (384/768/1024) qualifies. And the obvious rerank shape,
+`rowid IN (SELECT value FROM json_each(?))`, plans as a full virtual-table
+scan because vec0 claims only rowid *equality* -- 61 ms against 15 ms for 480
+point queries, and exactly the O(N) pass stage one exists to avoid.
+
+## Still open
+
+The real-library re-measure, and one specific risk to test there before this
+verdict is final: `vec_quantize_binary` thresholds at zero, and sentence
+embeddings are anisotropic, so most vectors may share a sign pattern and the
+first pass could be **worse** on real data than on these zero-mean fixtures.
+Centring on the corpus mean is the standard remedy -- and is what
+zotero/zotero#6012 already does with its `modelCalibration.meanVector`.
+
 ## Actions
 
 1. Add a `bit[N]` vec0 table beside the float32 one, populated with
@@ -86,8 +152,12 @@ magic number.
 
 ## Exit criteria
 
-- [ ] Binary first pass with exact rerank, both columns maintained
-- [ ] Recall against the current exact ranking measured on a shared sample and
-      recorded in `bench/`
-- [ ] Pool size justified by that measurement, not chosen by feel
-- [ ] Latency and on-disk size re-measured on the real library
+- [x] Binary first pass with exact rerank, both columns maintained
+- [x] Recall against the current exact ranking measured and recorded --
+      `bench/vec_recall.ts`, `bench/results/0008-recall/`
+- [x] Pool size justified by that measurement: 16x topK, floor 128, the
+      value at which recall returns to 1,0 -- and the path shipped off by
+      default because that pool is slower than the scan it replaces
+- [ ] Latency and on-disk size re-measured on the real library -- BLOCKED,
+      needs the 408 628-passage index; the anisotropy risk above is the thing
+      to test there

@@ -183,6 +183,28 @@ an empty answer, because a user cannot tell. Across the accented set: 0,00 to
 0,50, against 0,48–1,00 for every ASCII query. The index is fine; the query
 path alone is broken, and a shared NFD fold in front of `tokenize()` closes it.
 
+## Binary quantization: measured, and rejected for now
+
+Ticket 0008 proposed it on a measured 13x speedup. That figure was taken at
+`k=30` and does not survive being asked for a *pool*: vec0's k-best structure
+costs more than linearly in `k` (7,7 ms at k=30, 83,6 at k=480, 216,8 at
+k=960, against 121 ms for the whole exact float32 scan). So the pool that
+preserves the ranking is slower than the scan it would replace.
+
+Recall@30 at N=100 000, dim 384, clustered fixture: 0,256 binary-only, 0,628
+at a 4x pool, 0,862 at 8x, 0,998 at 16x — and the 16x pool costs 272 ms
+against 110 ms exact. Recall was the acceptance criterion, so the two-stage
+path ships **off by default**. Both columns are maintained on every insert, so
+enabling it later is a one-line flip, not a reindex. float32 stays mandatory.
+
+The lesson is the same one this chantier keeps paying for: a ratio measured at
+one operating point is not a property of the system. The real-library
+re-measure stays open, and the risk to test there is anisotropy —
+`vec_quantize_binary` thresholds at zero, real sentence embeddings are not
+zero-mean, and the first pass could be worse on real data than on these
+fixtures. Centring on the corpus mean is the remedy, and is what
+zotero/zotero#6012 already does.
+
 ## Next action
 
 **The author's own library is the remaining gate.** Four exit criteria across
