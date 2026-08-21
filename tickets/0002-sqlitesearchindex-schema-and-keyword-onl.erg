@@ -7,6 +7,7 @@ Author: minh
 2026-08-21T13:48Z minh created
 
 2026-08-21T14:08Z decisions reviewed with author: schema revised to FTS5 + indexed side table (362ms vs 0ms measured), query sanitisation named, makeSnippet retained
+2026-08-21T15:30Z claude note raid round: three open questions settled with author -- store port over duplicate class, engines floor left at >=20.19 with lazy import, match gate is top-k item-set overlap
 --- body ---
 ## Context
 
@@ -64,11 +65,76 @@ a deliberate, separate change.
 selected by config, defaulting to the existing path. Without both live at once
 there is nothing to compare, and the comparison is the gate.
 
+**Shape: a passage-store port, not a duplicated class** (settled 2026-08-21,
+raid round). Read literally, "a second implementation" duplicates some 600
+lines of `SearchIndex` -- `build`, `buildIncremental`, the embedder plumbing,
+`status` -- when only the storage differs. Instead the passage store is
+extracted behind a small internal port and injected:
+
+    interface PassageStore {
+      add(rec: ChunkRecord): void
+      search(q: string, k: number): Array<{ id: string; score: number }>
+      get(id: string): ChunkRecord | undefined
+      deleteByItem(item: string): void
+      clear(): void
+      readonly size: number
+    }
+
+`MemoryPassageStore` wraps today's `BM25Index` + `chunks` Map and is the
+default, so the existing path is unchanged by construction.
+`Fts5PassageStore` is the SQLite one. `SqliteSearchIndex extends SearchIndex`
+and injects it, which keeps the ticket's shadow-do-not-replace posture and the
+config-selected name. Three things this buys: upstream's tests run unchanged
+through a factory swap, the same-results-out gate isolates the *store* as the
+only variable rather than comparing two whole implementations, and 0004's
+vector BLOB and 0006's delete-by-item get a declared home on the port.
+
+**The engines floor stays at `>=20.19`** (settled 2026-08-21). `node:sqlite`
+lands in Node 22.5 -- verified here on v22.23.1: FTS5 present, sqlite 3.51.3,
+`unicode61 remove_diacritics 2` folds `eleve`/`élève`, and an
+`ExperimentalWarning` goes to stderr, which is harmless for an MCP server whose
+protocol channel is stdout. The SQLite path is opt-in and off by default, so a
+Node 20 install never reaches it. Import `node:sqlite` lazily inside
+`Fts5PassageStore` and throw a message naming the version requirement when it
+is absent -- never a silent fall back to the JS index, which would hand the
+user the OOM they were escaping with nothing saying so. Bumping `engines` is a
+packaging question for whenever this becomes a merge request, not for 0002.
+
+**"Match" means top-k item-set overlap, not score equality** (settled
+2026-08-21). FTS5's `bm25()` uses its own parameters, its own tokenizer and no
+stopword list, so scores cannot agree and exact rank equality would fail for
+reasons that are not defects. The gate: on a fixture corpus and a fixed query
+list, every query's top-3 `itemKey`s are a subset of the JS index's top-5, and
+no query returns empty where the other returns hits. That tests retrieval
+equivalence, which is what a user feels.
+
 ## Relevant files
 
 - `fork/src/features/search/index-manager.ts` — the `SearchIndex` interface to satisfy
 - `fork/src/features/search/bm25.ts`, `tokenize.ts` — what FTS5 replaces
 - `bench/fts5_bench.mjs` — the standalone prototype the schema comes from
+
+## Actions
+
+1. Define `PassageStore` and `MemoryPassageStore` in a new
+   `fork/src/features/search/passage-store.ts`; move `ChunkRecord` there (or
+   re-export) so both stores and `index-manager.ts` share one definition.
+2. Add `store?: PassageStore` to `SearchIndexOptions`; replace `this.bm25` and
+   `this.chunks` in `index-manager.ts` with `this.store`, defaulting to
+   `MemoryPassageStore`. `reset()` calls `store.clear()`. No behaviour change:
+   the existing suite must stay green before any SQLite code is written.
+3. Write `fork/src/features/search/fts5-store.ts` -- the DDL from the ticket
+   body, a lazy `node:sqlite` import, `PRAGMA journal_mode=WAL`, and a prepared
+   insert into `passages` + `passage_meta`.
+4. Write the query sanitiser: tokenise with the index's own rules, quote each
+   term, join with `OR`. Its own unit test covers apostrophes, `"`, `*`,
+   `NEAR`, `-`, `(`, and the empty-query case.
+5. `SqliteSearchIndex extends SearchIndex` in
+   `fork/src/features/search/sqlite-index.ts`, taking `dbPath` and defaulting
+   to `<ZOTEUS_DATA_DIR>/search-index.sqlite`.
+6. Parameterise upstream's search tests over a store factory so the same
+   bodies run against both, using `:memory:` for the SQLite pass.
+7. Add the top-k overlap comparison test described above.
 
 ## Test
 
@@ -79,6 +145,10 @@ pass as each lands. No new test fixtures — reusing upstream's is the point.
 ## Exit criteria
 
 - [ ] `SqliteSearchIndex` satisfies the `SearchIndex` interface, keyword-only
+- [ ] The default (memory) path is unchanged: upstream's suite green before any
+      SQLite code exists
 - [ ] Upstream's suite passes against it
-- [ ] Query semantics match the current BM25 on a shared sample of queries
+- [ ] Query semantics match the current BM25 on a shared sample of queries:
+      every query's top-3 items a subset of the JS index's top-5, no query empty
+      on one side and non-empty on the other
 - [ ] `tsc --noEmit` and `eslint` clean
