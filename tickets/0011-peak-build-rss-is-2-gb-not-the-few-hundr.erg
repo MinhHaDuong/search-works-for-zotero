@@ -61,9 +61,15 @@ is fixing the wrong thing because the shape looked familiar.
 
 ## Actions
 
-1. Vary `fulltextConcurrency` (currently defaults to 4) and the page size,
-   measure `VmHWM` for each, and establish whether the page loop is in fact
-   the cause.
+0. **Cheapest first, added 2026-08-22:** one item (`DH8EXSVA`, the New Palgrave
+   Dictionary) contributes 44,9 MB of text and 9% of all passages -- see
+   ticket 0013. Rebuild with it excluded and re-read `VmHWM` before doing
+   anything else. A single 44,9 MB string live in the page loop is a far more
+   specific suspect than "100 uncapped texts", and this experiment is minutes
+   rather than a sweep.
+1. If that does not account for the peak: vary `fulltextConcurrency`
+   (currently defaults to 4) and the page size, measure `VmHWM` for each, and
+   establish whether the page loop is in fact the cause.
 2. If it is: stream the page rather than holding it -- chunk and insert each
    item's text as it arrives, so a page's worth is never simultaneously live.
    The rows already go to disk per item; it is the *source text* that
@@ -83,7 +89,7 @@ this is a measurement, and a memory assertion in CI would be machine-dependent.
 ## Exit criteria
 
 - [ ] Cause of the ~2 GB peak isolated, or explicitly recorded as not isolated
-      after the concurrency/page-size sweep
+      after the exclude-0013 test and then the concurrency/page-size sweep
 - [ ] If reducible, reduced and re-measured; if not, the number documented as
       inherent
 - [ ] "A few hundred MB" corrected to the measured figure in STATE, 0001, and

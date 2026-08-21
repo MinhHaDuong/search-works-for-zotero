@@ -251,6 +251,34 @@ zero-mean, and the first pass could be worse on real data than on these
 fixtures. Centring on the corpus mean is the remedy, and is what
 zotero/zotero#6012 already does.
 
+## What "the whole library" actually means
+
+Established 2026-08-22, and it qualifies every corpus figure above.
+
+**Zotero's own indexing is heterogeneous, and zoteus inherits it.** Zotero
+reports 12 242 attachments indexed, **1 072 partially indexed**, 749 with no
+text available, 1 216 notes. Three sampled attachments stop at exactly 100
+pages (100/262, 100/148, 100/116) — the page cap firing. Yet the largest
+document in the library is complete: the New Palgrave Dictionary, 15 497 pages,
+`indexedPages == totalPages`, 44 906 152 characters returned by the API.
+Neither the 500 000-char nor the 100-page cap bound it. So per-item state
+varies, upstream bounds nothing reliably, and zoteus records none of it —
+`fulltext-source.ts` takes `content` and never reads `indexedPages` /
+`totalPages`, which the API supplies precisely so a client can tell.
+
+**One item is 9% of the index.** That dictionary contributes **42 962 of
+477 511 passages**; the next largest item contributes 1 449, a 30× gap. Ticket
+0013 carries it. Three consequences: BM25's `idf` and `avgdl` are corpus-wide,
+so a tenth of the corpus being one reference work shifts the statistics for
+exactly the vocabulary this library is about; a single 44,9 MB string live in
+the build's page loop is a far more specific suspect for the ~2 GB peak than
+ticket 0011's original "100 uncapped texts" hypothesis, and a cheaper
+experiment; and every per-passage average quoted here is computed over a
+population containing a 30× outlier.
+
+Cache files on disk total 859 219 358 bytes across 13 631 attachments, which is
+where the 0,86 GB figure comes from.
+
 ## Next action
 
 **The chantier's code is complete** — fork `bac5d62` on `fts5-storage`, 679

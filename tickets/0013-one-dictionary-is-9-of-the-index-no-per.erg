@@ -1,0 +1,87 @@
+%erg 0.1
+Title: One dictionary is 9% of the index: no per-item ceiling on passage contribution
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T20:21Z minh created
+
+--- body ---
+## Context
+
+Tracker: 0001. Found 2026-08-22 while checking how much of the corpus Zotero
+truncates.
+
+`DH8EXSVA` -- the New Palgrave Dictionary of Economics, 15 497 pages --
+contributes **42 962 passages, 9,00% of the whole 477 511-passage index**. The
+next largest item contributes 1 449, so it is a **30x outlier**, and the top
+eight items together are 10,7% of the index.
+
+The local API returns **44 906 152 characters** for its attachment
+(`AXE7G67C`), fully indexed (`indexedPages` 15 497 = `totalPages`). zoteus runs
+with `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0`, so all 44,9 MB is chunked at 1200
+characters and every passage enters the index.
+
+## Why this is a defect and not a curiosity
+
+**It distorts ranking.** BM25's `idf` and `avgdl` are corpus-wide statistics.
+Nine percent of the corpus being one reference work shifts document frequencies
+for every economics term in it -- exactly the vocabulary this library is about
+-- and drags the average document length toward that book's chunking. FTS5's
+`bm25()` computes the same statistics over the same rows, so both backends
+inherit it.
+
+**It is a named suspect for 0011's ~2 GB build peak.** 0011 records the
+hypothesis that `buildIncremental`'s page loop holds a page's worth of full
+texts live simultaneously. A single 44,9 MB string in that set is a far more
+specific explanation than "100 uncapped texts", and it is testable: index the
+library with this one item excluded and re-read `VmHWM`. That is a cheaper
+experiment than the concurrency sweep 0011 proposes, and it should run first.
+
+**It makes the corpus figures misleading.** "477 511 passages over 7 540 items"
+reads as a broad corpus; a tenth of it is one book. Any per-passage average --
+index bytes, embedding cost, query latency -- is computed over a population
+with a 30x outlier in it. The oscardvs/zoteus#10 report should say so.
+
+## What zoteus does not currently do
+
+Nothing records or bounds per-item contribution. `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`
+is a global cap applied per item, and setting it to bound the dictionary would
+equally truncate every ordinary paper -- the wrong instrument. `status()`
+reports `fulltextItems` and `fulltextPassages` but no distribution, so an index
+dominated by one document is indistinguishable from an even one.
+
+Note what the right answer is *not*: Zotero's own caps (500 000 chars, 100
+pages) did **not** fire for this item, though they demonstrably truncate others
+-- three sampled attachments stop at exactly 100 pages (100/262, 100/148,
+100/116) while this one is complete at 15 497. Zotero's per-item state is
+heterogeneous, so we cannot rely on upstream to bound anything.
+
+## Actions
+
+1. Record the distribution: add per-item passage counts to `status()`, or at
+   least the top-N, so concentration is visible without a SQL query.
+2. Decide whether a per-item ceiling belongs in zoteus, and if so what it
+   bounds -- passages per item, or characters -- and what happens to the
+   remainder. Truncating a dictionary at page 100 is not obviously better than
+   indexing it whole; **the honest options include doing nothing and saying so.**
+3. Run 0011's experiment in its cheap form first: rebuild excluding
+   `DH8EXSVA`, re-read `VmHWM`, and see how much of the 2 GB peak it accounts
+   for.
+4. Quantify the ranking distortion before fixing it: compare `bm25()` scores
+   for a sample of economics queries with and without the item indexed. If the
+   effect is small, this becomes a documentation note rather than a change.
+
+## Test
+
+Red step: a fixture where one item contributes an order of magnitude more
+passages than the rest, asserting that whatever bound is chosen actually caps
+it. If the decision is to record rather than bound, the test asserts `status()`
+surfaces the concentration instead.
+
+## Exit criteria
+
+- [ ] Per-item concentration visible from `status()` or a documented query
+- [ ] Ranking distortion measured, and the decision to bound or not to bound
+      taken on that measurement
+- [ ] 0011's cheap experiment run and its result recorded there
