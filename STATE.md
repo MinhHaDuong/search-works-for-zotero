@@ -115,11 +115,12 @@ the same constant this prototype picked independently.
 per-attachment `.zotero-sdt-cache` pack carrying page labels, outline paths,
 reader positions and running-head exclusion. An earlier finding here said
 Zotero exposes no in-text structure; that was true of `.zotero-ft-cache` and
-wrong about Zotero. Whether it is *reachable* is open: zero packs exist, and
-the one path known not to produce them is the post-install bulk full-text
-re-index. No PDF has been opened in the reader since the 2026-08-21 14:26
-install, so the reader path is untested rather than ruled out — one PDF opened
-in Zotero decides it. Ticket 0007 carries the correction and the experiment.
+wrong about Zotero. It is **not reachable on a stock install**: a PDF opened
+in Zotero on 2026-08-22 reported `Indexed: yes` and wrote its
+`.zotero-ft-cache` post-install, and no pack appeared — the library-wide count
+is still zero. Extraction runs; SDT does not. One residual path (open in a
+reader *tab*, not just the item pane) is narrowed but not formally closed.
+Ticket 0007 carries it, with `bench/results/0007-sdt-probe.txt`.
 
 No current setting both writes and reads this library back: 40 000 chars/item
 fits but discards 61% of the text, 200 000 writes but needs
@@ -268,9 +269,10 @@ committed. What remains is not more measurement but three decisions.
    excludes page cache, and the 5 370 MB baseline was never measured by this
    repo. Re-measuring the JSON backend with `VmHWM` closes it, and it is the
    number most likely to be lifted verbatim.
-3. **Settle 0007 with one PDF.** Open one in Zotero, look for
-   `.zotero-sdt-cache`. That decides whether structure-aware chunking is
-   reachable at all.
+3. ~~Settle 0007 with one PDF.~~ **Done 2026-08-22: no pack.** Structure-aware
+   chunking is a future option, not a present one, so 0007 proceeds on
+   configuration and measurement. One residual check (reader tab rather than
+   item pane) would close the last path.
 
 Two criteria remain open and are not blockers: the 463 MB migration at full
 size (0005 — 321 MB reached, 69%), and 0008's re-measure on the real vector

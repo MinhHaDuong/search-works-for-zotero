@@ -18,3 +18,16 @@ SDT modules present in the installed build:
 NO POSITIVE CONTROL. Nothing here shows the probe would find a pack if one
 existed, because none does. Treat the zero as provisional until one PDF is
 opened in Zotero and this same probe is re-run against it.
+
+--- re-probe after opening one PDF (Stadler2021), 2026-08-21T20:16Z ---
+item VH3PV9HD, .zotero-ft-cache written 22:13 (post-install, so extraction ran)
+$ find $STORAGE -name '.zotero-sdt-cache' | wc -l
+0
+$ ls VH3PV9HD/
+.zotero-ft-cache
+
+CAVEAT: no .zotero-reader-state was written for this item, while the
+pre-install item TB28BNW2 has one -- so that file IS produced when the
+reader runs. Its absence leaves open whether the reader tab was opened
+or only indexing was triggered. Extraction ran and produced no pack;
+whether the READER path produces one is narrowed, not settled.
