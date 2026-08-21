@@ -276,6 +276,29 @@ population containing a 30× outlier.
 Cache files on disk total 859 219 358 bytes across 13 631 attachments, which is
 where the 0,86 GB figure comes from.
 
+## The delta compares two unrelated version sequences
+
+Found 2026-08-22 answering ticket 0012, now a defect rather than a question.
+
+`delta.ts` correctly asks `fullTextSince` for attachments Zotero re-extracted —
+0006's author saw that a `?since=` item pass alone would miss them. But
+`index_meta` holds **one** watermark, and it is the library version. Measured
+live: the library version is **410** while full-text versions run to **25 036**,
+and `/fulltext?since=200` returns **7 453 of 8 037** entries. So every delta
+reports nearly the whole library as newly extracted.
+
+It does not run away — `maxItems` caps the set at 500, or 50 with full text on.
+It fails quietly instead: the handful of genuinely re-extracted items are lost
+in map-iteration order among ~7 400 candidates, each candidate costs a
+`getItem` to resolve its parent, and the comparison is no closer next time
+because the watermark advances along a different sequence.
+
+Worth naming the shape: 0006 guards carefully against this exact class of error
+*across backends* — that is what the `indexBackend` label is for, and the code
+refuses to compare when it differs. It then compares two unrelated sequences
+inside one backend. Guarding one instance of a defect class does not guard the
+class.
+
 ## Next action
 
 **The chantier's code is complete** — fork `bac5d62` on `fts5-storage`, 679

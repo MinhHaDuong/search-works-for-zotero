@@ -1,16 +1,18 @@
 %erg 0.1
-Title: Does a Zotero re-extraction bump anything our watermark sees?
+Title: The delta compares a library version against full-text versions, a different sequence
 Created: 2026-08-21
 Author: minh
 
 --- log ---
 2026-08-21T19:28Z minh created
+2026-08-22T04:05Z claude note answered, and it is a defect: the delta consults the right channel but compares it against the wrong sequence -- library version 410 against full-text versions up to 25 036
 
 --- body ---
 ## Context
 
-Tracker: 0001. **An open question, not an asserted defect** -- it needs one
-experiment before it is either.
+Tracker: 0001. Filed as an open question. **The experiment has since been run
+and it is a defect** -- see "Answered" below; the framing in this section is
+kept as the record of what was suspected before it was measured.
 
 0006 keeps a library-version watermark and applies deltas via `?since=`. That
 tracks *item* changes. It is not obvious that it tracks a change in the
@@ -40,7 +42,10 @@ independent of `zotero.sqlite`'s item versions -- which suggests the two
 sequences are genuinely separate.
 
 So: establish the behaviour before designing anything. State the observation,
-hold the cause.
+hold the cause. *(That was the right instinct, and the answer turned out to be
+neither of the two outcomes anticipated below: the delta neither misses the
+re-extraction nor handles it correctly. It over-reports, by comparing the right
+channel against the wrong sequence.)*
 
 ## The experiment
 
@@ -57,10 +62,86 @@ If the delta already picks it up, close this ticket with the evidence -- that is
 a valuable negative result and the ticket has done its job. If it does not,
 the fix follows Zotero's shape: fold an extraction identity into the staleness
 key, and prefer a content hash over a version comparison, since a hash is
-robust to *why* the text changed.
+robust to *why* the text changed. *(Outcome: neither. See below.)*
 
 ## Exit criteria
 
 - [ ] The behaviour is established by experiment and recorded, either way
 - [ ] If the delta misses a re-extraction: a staleness key that catches it,
-      with a test that re-extracts and asserts the passage text updated
+      with a test that re-extracts and asserts the passage text updated## Answered 2026-08-22 — and the answer is a defect, not a reassurance
+
+**The delta does consult the right channel.** `addNewlyExtracted()` in
+`delta.ts` calls `ctx.router.fullTextSince(run.watermark, ...)`, resolves each
+returned attachment to its parent item, and folds it into the re-index set. Its
+comment states the exact reasoning this ticket was filed to check: *"extraction
+touches the attachment, and the parent item — the one the index holds passages
+for — need not appear in a top-level `?since=` page at all."* So 0006's author
+anticipated the hole.
+
+**But the watermark passed to it is the wrong sequence.** Measured on the live
+local API:
+
+| | |
+|---|---|
+| library version (`Last-Modified-Version` on `/items`) | **410** |
+| full-text versions from `/fulltext?since=0` | min 0, median **12 884**, max **25 036** |
+| entries returned by `/fulltext?since=200` | **7 453 of 8 037** |
+
+`index_meta` stores exactly one watermark (`builtFromVersion`, plus
+`indexBackend` and `fulltextPending` — no full-text watermark exists).
+`delta.ts:185` reads it once and uses it for both the item `?since=` pass and
+`fullTextSince`. Since full-text versions run two orders of magnitude above the
+library version, **`fullTextSince` reports essentially the whole library as
+newly extracted on every delta.**
+
+## What that costs
+
+It does not run away — `maxItems` caps the re-index set at 500 items, or 50
+when full text is on. The damage is subtler:
+
+- **The genuinely re-extracted items are lost.** Candidates are taken in
+  map-iteration order from a set of ~7 400, so the handful that actually
+  changed are almost certainly not among the first 50.
+- **Each candidate costs a request.** `addNewlyExtracted` issues a `getItem`
+  per attachment to find its parent — up to `maxItems` extra requests on a
+  delta whose budget this chantier states as one request when nothing changed.
+  (The one-request budget itself holds: an unchanged library version returns
+  `fresh` before any of this runs.)
+- **It cannot converge.** The watermark advances along the library sequence, so
+  the full-text comparison is no closer next time.
+
+## The irony, recorded because it is the lesson
+
+0006 guards *carefully* against exactly this class of error across backends —
+that is what the `indexBackend` label is for, and `delta.ts:194` refuses to
+compare when the label differs, saying the sequences are unrelated. It then
+compares two unrelated sequences **inside** one backend. Guarding one instance
+of a defect class does not guard the class.
+
+## Actions
+
+1. Store a **second watermark**, `fulltextVersion`, in `index_meta` beside
+   `builtFromVersion`, and pass it to `fullTextSince`. It advances only when a
+   full-text delta is applied.
+2. Seed it correctly on a first build: the largest value seen from
+   `fullTextSince(0)`, or 0 with the first delta accepted as a full sweep —
+   pick one and say which, because seeding it wrong reproduces this bug in the
+   other direction and hides it (nothing would ever look newly extracted).
+3. Label it like the item watermark. Local and cloud full-text sequences have
+   no more reason to be commensurable than the item ones do.
+
+## Test
+
+Red step: a fake client whose full-text versions are an order of magnitude
+above its library versions — the real shape — asserting the delta requests
+`fullTextSince` with the full-text watermark rather than the library one, and
+that a second delta with nothing changed returns no candidates. Against today's
+code the second assertion fails, because every attachment is still "newer" than
+a library version.
+
+## Exit criteria
+
+- [x] The behaviour is established by experiment and recorded — it over-reports
+      rather than misses, and the measurement is above
+- [ ] A separate, labelled full-text watermark, seeded deliberately
+- [ ] Test asserting a no-change second delta produces no candidates
