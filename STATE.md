@@ -143,6 +143,44 @@ FTS5 **out-recalls** the JS index on accented queries (`remove_diacritics 2`
 folds the document side), and the SQLite backend refuses `toJSON`/`loadFromJSON`
 rather than materialising 408 628 passages into the heap.
 
+## Migration, measured 2026-08-21
+
+The 463 MB index no longer exists, so two real ones were built from the live
+library instead — 153 MB and 321 MB — because the claim under test is that
+migration memory *does not scale with file size*, and one point cannot show it.
+
+| | 153 MB JSON | 321 MB JSON |
+|---|---|---|
+| migration, isolated | 17,0 s | 28,4 s |
+| **peak RSS migrating** | **94 MiB** | **96 MiB** |
+| same index into the JSON backend | 1 896 MB | **3 786 MB** |
+| resulting database | 236 MB | 499 MB (1,55×) |
+
+File ×2,10, migration memory ×1,02. Flat, on real and messy text. The backend
+it replaces is linear at roughly 11,8× the file. Startup is 45 s including the
+one-off migration and **0,97 s on every later start**, against 30,8 s every
+time for JSON. Passage counts match exactly on both sides, `integrity_check`
+ok, source JSON byte-identical afterwards, no WAL residue.
+
+Two corrections: the database/JSON ratio is **1,55×**, not the 1,34× budgeted
+from the synthetic fixture — so a full-size migration needs ~715 MB, not 620.
+And the 463 MB criterion **stays open**; 321 MB is 69% of it.
+
+## Accented queries are broken on the SQLite backend
+
+Found by that comparison and now ticket 0009, raised from enhancement to
+defect. `toMatchQuery` tokenises with `/[a-z0-9]+/g`, so `théorie` becomes the
+fragments `"th" OR "orie"` while FTS5 has folded the document side to
+`theorie`. The two never meet, and `"th"` matches English prose:
+
+    SQLITE  "théorie" -> 20 hits: Do conservation contests work? / Graphical Economics / …
+    JSON    "théorie" -> 14 hits: Théorie économique… / Éléments d'économie politique pure… / Cournot
+
+Jaccard 0,00. Twenty confident, plausible, entirely wrong results — worse than
+an empty answer, because a user cannot tell. Across the accented set: 0,00 to
+0,50, against 0,48–1,00 for every ASCII query. The index is fine; the query
+path alone is broken, and a shared NFD fold in front of `tokenize()` closes it.
+
 ## Next action
 
 **The author's own library is the remaining gate.** Four exit criteria across

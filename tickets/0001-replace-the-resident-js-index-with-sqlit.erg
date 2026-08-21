@@ -11,6 +11,7 @@ Author: minh
 2026-08-21T21:55Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
 2026-08-21T22:20Z claude note full-library build measured: 477 511 passages, 949,5 MiB, stock Node, 135 MiB serving; peak build RSS ~2 GB misses 0003's line, filed as 0011
 2026-08-21T22:50Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
+2026-08-21T23:05Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
 
 --- body ---
 ## Context
@@ -79,6 +80,15 @@ replaces the existing class.
   verification line measured and not met; the at-rest claim is unaffected
 - 0012 — does a Zotero re-extraction bump anything the watermark sees? (filed
   2026-08-21): an open question, one experiment from being answered
+
+Migration measured 2026-08-21 on two real indexes (153 MB and 321 MB, the
+463 MB file no longer existing): peak RSS 94 -> 96 MiB while the file grew
+2,10x, so the non-scaling property holds. The JSON backend it replaces went
+1 896 MB -> 3 786 MB over the same two, about 11,8x the file. Startup 45 s
+including the one-off migration, then 0,97 s on every later start, against
+30,8 s every time for JSON. Database/JSON ratio 1,55x, consistently above the
+1,34x budgeted from the synthetic fixture. Artifacts in
+`bench/results/0005-migration/`; the full 463 MB case stays untested.
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.

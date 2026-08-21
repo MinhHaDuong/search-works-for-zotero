@@ -1,15 +1,55 @@
 %erg 0.1
-Title: Fold accents in tokenize(), the way Zotero's normalized shadow columns do
+Title: Accented queries return confident noise on the SQLite backend
 Created: 2026-08-21
 Author: minh
 
 --- log ---
 2026-08-21T19:15Z minh created
+2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
 
 --- body ---
+## Severity, corrected 2026-08-21 on real-library evidence
+
+**Filed as a recall enhancement. It is a correctness defect.** The 0005
+migration run compared both backends over 16 queries on a 5 000-item slice of
+the real library, and the accented cases do not merely retrieve less -- they
+retrieve *wrongly*, with confidence.
+
+    SQLITE  "théorie" -> 20 hits: Do conservation contests work? /
+                                  Graphical Economics /
+                                  Optimal Transport Networks in Spatial Equilibrium
+    JSON    "théorie" -> 14 hits: Théorie économique, réalité industrielle... /
+                                  Éléments d'économie politique pure... /
+                                  Antoine-Augustin Cournot (1801-1877)
+
+Jaccard between the two result sets: **0,00**. Not one item in common.
+
+The mechanism is the one described below, and its consequence is worse than
+the empty result the original ticket imagined. `toMatchQuery` tokenises with
+`/[a-z0-9]+/g`, so `théorie` becomes the fragments `"th" OR "orie"`, and `"th"`
+matches ordinary English text across the corpus. FTS5 then ranks that noise and
+returns twenty plausible-looking, entirely irrelevant results. A user cannot
+tell this from a real answer.
+
+Measured across the accented set, jaccard between backends: `théorie` 0,00,
+`mathématiques` 0,03, `mathematiques` 0,05, `theorie` 0,13, `probabilità` 0,14,
+`probabilita` 0,50. Against 0,48-1,00 for every ASCII query.
+
+**The divergence is a shift, not a widening.** SQLite's answer to the
+*unaccented* query is the JSON backend's answer to the *accented* one -- the
+same top three, jaccard 0,58 between those two lists. So the index is fine and
+the accent folding works; it is the query path alone that is broken.
+
+**One case shows the fix is also a real gain**, not only a repair: only SQLite,
+and only via `probabilita`, retrieves *Sul significato soggettivo della
+probabilità*. The JSON backend never finds it at all, from either spelling.
+
+For a library that is substantially French and Italian, this is not an edge
+case. Raw comparison data: `bench/results/0005-migration/cmp5k.json`.
+
 ## Context
 
-Tracker: 0001. Closing a divergence 0002 recorded as unfixable, using a pattern
+Tracker: 0001. Repairing a defect 0002 recorded as an acceptable divergence, using a pattern
 Zotero itself adopted -- released the same week in its FTS5 rewrite, whose
 notes say several tables "gained accent-normalized shadow columns (e.g.
 `nameNormalized` on tags) to support accent-insensitive search".

@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-"""Ticket 0003: full-library FTS5 index build, timed and RSS-measured.
+"""Build a Zoteus search index on a chosen backend, timing it and recording true peak RSS.
 
-Peak RSS is read from /proc/<pid>/status VmHWM (kernel high-water mark, exact),
-not sampled from ps (which can miss a peak between polls). VmRSS is sampled too,
-for the shape of the curve.
+Peak RSS is read from /proc/<pid>/status VmHWM (kernel high-water mark), not sampled
+with ps: a sampler misses a spike between polls, VmHWM cannot.
 """
-import json, os, subprocess, sys, time
+import argparse
+import json
+import logging
+import os
+import sys
+import time
 
-sys.path.insert(0, "/home/haduong/CNRS/projets/actifs/zoteus-fts5/bench")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcp_drive import Server  # noqa: E402
 
-SERVER = "/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js"
-DATA_DIR = "/home/haduong/.zoteus-bench-0003"
-OUT = "/tmp/zbench0003"
-POLL = 10.0
-MAX_WAIT = 6 * 3600.0
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("build")
 
 
-def payload(resp):
+def payload(resp: dict) -> dict:
     r = resp.get("result", resp)
     if "structuredContent" in r:
         return r["structuredContent"]
@@ -30,111 +31,87 @@ def payload(resp):
     return r
 
 
-def procmem(pid):
-    out = {}
+def vmhwm_kb(pid: int) -> int:
     try:
-        with open(f"/proc/{pid}/status") as f:
-            for line in f:
-                for k in ("VmRSS:", "VmHWM:", "VmSize:", "VmPeak:"):
-                    if line.startswith(k):
-                        out[k.rstrip(":")] = int(line.split()[1])  # kB
-    except FileNotFoundError:
+        with open(f"/proc/{pid}/status") as fh:
+            for line in fh:
+                if line.startswith("VmHWM:"):
+                    return int(line.split()[1])
+    except OSError:
         pass
+    return 0
+
+
+def dir_listing(path: str) -> dict[str, int]:
+    out = {}
+    for root, _, files in os.walk(path):
+        for f in files:
+            p = os.path.join(root, f)
+            out[os.path.relpath(p, path)] = os.path.getsize(p)
     return out
 
 
-def dirlist(path):
-    return {f: os.path.getsize(os.path.join(path, f))
-            for f in sorted(os.listdir(path))
-            if os.path.isfile(os.path.join(path, f))}
-
-
 def main():
-    env = {
-        "ZOTEUS_EMBEDDINGS": "off",
-        "ZOTEUS_INDEX_FULLTEXT": "1",
-        "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0",     # no character cap
-        "ZOTEUS_INDEX_MAX_ITEMS": "1000000",        # effectively no item cap
-        "ZOTEUS_SEARCH_BACKEND": "sqlite",
-        "ZOTEUS_DATA_DIR": DATA_DIR,
-        "NODE_OPTIONS": "",                          # NO --max-old-space-size
-    }
-    logf = open(f"{OUT}/build.log", "a", buffering=1)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--server", required=True)
+    ap.add_argument("--data-dir", required=True)
+    ap.add_argument("--backend", default="json")
+    ap.add_argument("--poll", type=float, default=15.0)
+    ap.add_argument("--max-wait", type=float, default=5400.0)
+    ap.add_argument("--max-items", default="5000")
+    ap.add_argument("--max-chars", default="200000")
+    ap.add_argument("--node-options", default="--max-old-space-size=8192")
+    ap.add_argument("--build", action="store_true", help="kick off a build; otherwise only start+status")
+    a = ap.parse_args()
 
-    def say(msg):
-        line = f"{time.strftime('%H:%M:%S')} {msg}"
-        print(line, flush=True)
-        logf.write(line + "\n")
-
-    say(f"env: {json.dumps(env)}")
-    s = Server(["node", SERVER], env, MAX_WAIT)
-    pid = s.p.pid
-    say(f"server pid {pid}")
+    env = {"ZOTEUS_EMBEDDINGS": "off",
+           "ZOTEUS_INDEX_FULLTEXT": "1",
+           "ZOTEUS_DATA_DIR": a.data_dir,
+           "ZOTEUS_SEARCH_BACKEND": a.backend,
+           "ZOTEUS_INDEX_MAX_ITEMS": a.max_items,
+           "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": a.max_chars,
+           "ZOTEUS_INDEX_AUTO_REFRESH": "false",
+           "NODE_OPTIONS": a.node_options}
+    t_launch = time.monotonic()
+    s = Server(["node", a.server], env, a.max_wait)
     s.handshake()
+    log.info("[startup] handshake at %.1f s, pid %d", time.monotonic() - t_launch, s.p.pid)
+
+    if not a.build:
+        st = payload(s.call("tools/call", {"name": "zotero_index", "arguments": {"action": "status"}}))
+        log.info("status: %s", json.dumps(st, ensure_ascii=False)[:2000])
+        log.info("RESULT %s", json.dumps({"peak_rss_kb": vmhwm_kb(s.p.pid),
+                                          "startup_s": round(time.monotonic() - t_launch, 2),
+                                          "files": dir_listing(a.data_dir)}))
+        s.p.terminate()
+        return
 
     t0 = time.monotonic()
     start = payload(s.call("tools/call", {"name": "zotero_index",
                                           "arguments": {"action": "build", "fulltext": True}}))
-    say("build kicked off: " + json.dumps(start, ensure_ascii=False)[:600])
+    log.info("build kicked off: %s", json.dumps(start, ensure_ascii=False)[:600])
 
-    samples = open(f"{OUT}/rss_samples.jsonl", "a", buffering=1)
-    last, final = None, None
-    while time.monotonic() - t0 < MAX_WAIT:
-        time.sleep(POLL)
-        mem = procmem(pid)
-        if not mem:
-            say("!! server process gone (check build.log tail for a crash)")
-            break
+    last, peak = None, 0
+    while time.monotonic() - t0 < a.max_wait:
+        time.sleep(a.poll)
+        peak = max(peak, vmhwm_kb(s.p.pid))
         st = payload(s.call("tools/call", {"name": "zotero_index", "arguments": {"action": "status"}}))
-        el = time.monotonic() - t0
-        samples.write(json.dumps({"t": round(el, 1), **mem,
-                                  "state": st.get("state"),
-                                  "itemsFetched": st.get("itemsFetched"),
-                                  "documents": st.get("documents"),
-                                  "fulltextPassages": st.get("fulltextPassages")}) + "\n")
-        key = (st.get("state"), st.get("itemsFetched"), st.get("documents") and st.get("documents") // 1000)
-        if key != last:
-            say(f"[{el:7.0f}s] RSS {mem.get('VmRSS',0)/1024:.0f}M HWM {mem.get('VmHWM',0)/1024:.0f}M "
-                + json.dumps(st, ensure_ascii=False)[:400])
-            last = key
-        final = st
-        state = st.get("state")
-        if state in ("done", "error"):
-            break
-        if state == "idle" and el > 90:
-            say("!! state fell back to idle after 90s — treating as terminal")
+        state = json.dumps(st, ensure_ascii=False)
+        if state != last:
+            log.info("[%6.0fs peak %.2f GB] %s", time.monotonic() - t0, peak / 1048576, state[:500])
+            last = state
+        status = str(st.get("status") or st.get("state") or "")
+        if status and status not in {"running", "building", "in_progress", "pending"}:
             break
 
     elapsed = time.monotonic() - t0
-    mem = procmem(pid)
-    result = {
-        "elapsed_s": round(elapsed, 1),
-        "peak_rss_kB_VmHWM": mem.get("VmHWM"),
-        "final_rss_kB_VmRSS": mem.get("VmRSS"),
-        "peak_vsize_kB_VmPeak": mem.get("VmPeak"),
-        "status": final,
-        "files_before_shutdown": dirlist(DATA_DIR),
-    }
-    say("RESULT " + json.dumps(result, ensure_ascii=False))
-    with open(f"{OUT}/build_result.json", "w") as f:
-        json.dump(result, f, indent=2, ensure_ascii=False)
-
-    # Graceful shutdown so SQLite checkpoints cleanly.
-    try:
-        s.p.stdin.close()
-    except Exception:
-        pass
-    try:
-        s.p.wait(timeout=60)
-    except subprocess.TimeoutExpired:
-        say("stdin close did not end the server; sending SIGTERM")
-        s.p.terminate()
-        try:
-            s.p.wait(timeout=60)
-        except subprocess.TimeoutExpired:
-            s.p.kill()
-    say(f"server exit code {s.p.returncode}")
-    say("files after shutdown: " + json.dumps(dirlist(DATA_DIR)))
+    peak = max(peak, vmhwm_kb(s.p.pid))
+    final = payload(s.call("tools/call", {"name": "zotero_index", "arguments": {"action": "status"}}))
+    log.info("RESULT %s", json.dumps({"elapsed_s": round(elapsed, 1),
+                                      "peak_rss_kb": peak,
+                                      "status": final,
+                                      "files": dir_listing(a.data_dir)}, ensure_ascii=False))
+    s.p.terminate()
 
 
 if __name__ == "__main__":
