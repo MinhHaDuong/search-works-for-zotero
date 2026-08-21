@@ -8,6 +8,7 @@ Author: minh
 2026-08-21T19:40Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
 2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
 2026-08-21T21:40Z claude note 0009 filed: Zotero's accent-normalized shadow columns show a third option 0002 missed; measured fix removes the backend divergence
+2026-08-21T21:55Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
 
 --- body ---
 ## Context
@@ -70,9 +71,47 @@ replaces the existing class.
   13x query speedup and 24x smaller vectors, pending a recall check)
 - 0009 — fold accents in `tokenize()` (filed 2026-08-21): may remove the
   accented-query exception the invariant below currently carries
+- 0010 — corruption path for the database (filed 2026-08-21): none exists, and
+  a naive rebuild would leave 0006's watermark claiming an empty index is current
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.
+
+## What the local API documentation settles
+
+Read 2026-08-21 (`zotero.org/support/dev/web_api/v3/local_api`), against
+decisions this chantier had taken by inference or by probing.
+
+**0006's backend label is documented, not inferred.** The design recorded there
+was that local and cloud version sequences are unrelated integers, so a
+watermark must carry which backend produced it or a backend switch either skips
+a delta or replays the library. The documentation states it outright: local
+versions are maintained locally and have **"no relation to Web API versions"**,
+incrementing per library per transaction regardless of change source. That
+decision now has a citation rather than an argument.
+
+**The three endpoints 0006 depends on are supported**: `?since=` filtering,
+`Last-Modified-Version`, and `?format=versions` are all named. `/deleted` is
+not in the supported list, consistent with the 404 measured on this machine --
+so 0006's key-set reconcile through `?format=versions` is the documented route,
+not a workaround.
+
+**Reads need no authentication**; writes do, from Zotero 10 on, via a key from
+`POST /api/local/authorize` plus a `Zotero-Server-ID` header. The warning that
+matters for an MCP server: because reads are unauthenticated, anything running
+locally can read the library, and the port must never be forwarded.
+
+**Two differences worth carrying into the #10 report.** Results are
+**unpaginated by default** on the local API, where the Web API pages -- zoteus
+pages 100 at a time regardless, which is safe but leaves throughput on the
+table for a local build. And sort order, quicksearch matching and JSON output
+"may differ subtly from the Web API", which bears directly on 0001's
+old-vs-new comparison: run both sides of that comparison through the *same*
+backend, or the difference measured is partly the API's, not the index's.
+
+**One capability the Web API lacks**, noted for elsewhere: the local API
+executes saved searches at `<userOrGroupPrefix>/searches/<searchKey>/items`.
+Nothing in this chantier uses it.
 
 ## Invariants
 
