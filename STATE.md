@@ -44,21 +44,39 @@ an `install -D` used while splitting the patches had marked every touched
 Zotero library of 7 540 top-level items, 0,86 GB of text already extracted by
 Zotero into `.zotero-ft-cache`.
 
-| | zoteus (resident JS) | FTS5 via `node:sqlite` |
-|---|---|---|
-| passages | 477 511 | 408 628 |
-| build | 337 s | 46,6 s |
-| RSS at rest | 5 370 MB | 162 MB |
-| on disk | 546 MB (write fails) | 762 MB |
-| reload | OOM on stock Node | opens the file |
-| query | 0,37–0,5 s | 1–76 ms |
+| | zoteus (resident JS) | FTS5, same geometry | FTS5 prototype bench |
+|---|---|---|---|
+| passages | 477 511 | **477 511** | 408 628 |
+| build | 337 s | **339 s** | 46,6 s |
+| RSS peak during build | 6,48 GB | **2 085 MiB** | — |
+| RSS at rest / serving | 5 370 MB | **121–135 MiB** | 162 MB |
+| on disk | 546 MB (write fails) | **949,5 MiB** | 762 MB |
+| reload | OOM on stock Node | **opens the file, stock Node** | opens the file |
+| query | 0,37–0,5 s | **27–339 ms** (MCP round trip) | 1–76 ms (bare SQLite) |
 
-**The `passages` row is not like-for-like** and should not be read as one:
-`bench/fts5_bench.mjs` chunks attachment full text only, at 1200 with no
-overlap, while zoteus indexes metadata at 512/64 *plus* full text at 1200/150.
-Three independent differences before storage enters the picture. Build time,
-disk and RSS still hold — the resident-JS column is measuring a larger corpus,
-which if anything understates the win. Ticket 0007 carries the fix.
+Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, no
+`--max-old-space-size` at any point. Raw artifacts in
+`bench/results/0003-full-build/`; drivers are `bench/run_build.py`,
+`run_serve.py`, `run_serve2.py`. Two runs, byte-identical in every content
+figure. Also recorded: `fulltextItems` 5 562, `fulltextPassages` 465 110,
+`fulltextPendingItems` 429 (attachments Zotero has not extracted yet, which
+bounds the corpus).
+
+**Read the columns carefully — only the first two are comparable.** The middle
+column runs the server's own chunker at zoteus's geometry (512/64 metadata plus
+1200/150 full text), which is why its passage count lands on 477 511 exactly,
+to the unit. The third column is `bench/fts5_bench.mjs`, a direct SQLite
+benchmark at 1200-no-overlap over attachment text only — a different corpus and
+no MCP framing, no RRF, no snippet extraction. Its 1–76 ms is not the number a
+user experiences; the middle column's 27–339 ms is. Of that, 200–300 ms on a
+cold query is 0006's Zotero freshness probe, not FTS5: with
+`ZOTEUS_INDEX_AUTO_REFRESH=false` the best query measured 26,9 ms.
+
+**Two claims not to overstate.** Peak RSS *during the build* is ~2 GB, not the
+"few hundred MB" ticket 0003 anticipated — reproduced across both runs, filed
+as ticket 0011. The at-rest figure, which is the one the chantier turns on, is
+unaffected at 121–135 MiB. And the build is API-bound, not SQLite-bound: run 2
+spent 113 s of its 339 s on the first page of full text.
 
 Also worth knowing before the #10 writeup: **Zotero 10 already runs FTS5
 itself** (`fulltext.sqlite`: `fulltextContent USING fts5(text,

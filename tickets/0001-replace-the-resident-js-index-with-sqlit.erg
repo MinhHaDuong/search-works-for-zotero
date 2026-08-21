@@ -9,6 +9,7 @@ Author: minh
 2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
 2026-08-21T21:40Z claude note 0009 filed: Zotero's accent-normalized shadow columns show a third option 0002 missed; measured fix removes the backend divergence
 2026-08-21T21:55Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
+2026-08-21T22:20Z claude note full-library build measured: 477 511 passages, 949,5 MiB, stock Node, 135 MiB serving; peak build RSS ~2 GB misses 0003's line, filed as 0011
 
 --- body ---
 ## Context
@@ -73,6 +74,8 @@ replaces the existing class.
   accented-query exception the invariant below currently carries
 - 0010 — corruption path for the database (filed 2026-08-21): none exists, and
   a naive rebuild would leave 0006's watermark claiming an empty index is current
+- 0011 — peak build RSS is ~2 GB (filed 2026-08-21): 0003's "few hundred MB"
+  verification line measured and not met; the at-rest claim is unaffected
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.

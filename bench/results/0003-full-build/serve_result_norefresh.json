@@ -1,0 +1,98 @@
+{
+  "env": {
+    "ZOTEUS_EMBEDDINGS": "off",
+    "ZOTEUS_INDEX_FULLTEXT": "1",
+    "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0",
+    "ZOTEUS_INDEX_MAX_ITEMS": "1000000",
+    "ZOTEUS_SEARCH_BACKEND": "sqlite",
+    "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-bench-0003",
+    "ZOTEUS_INDEX_AUTO_REFRESH": "false",
+    "NODE_OPTIONS": ""
+  },
+  "rows": [
+    {
+      "round": "cold",
+      "q": "carbon tax revenue recycling",
+      "ms": 255.8,
+      "n": 5,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "cold",
+      "q": "biomass energy Vietnam",
+      "ms": 338.9,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "cold",
+      "q": "integrated assessment model uncertainty",
+      "ms": 186.7,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "cold",
+      "q": "carbon capture and storage cost",
+      "ms": 264.4,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "cold",
+      "q": "discount rate",
+      "ms": 109.3,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "cold",
+      "q": "photovoltaic",
+      "ms": 36.2,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "carbon tax revenue recycling",
+      "ms": 124.1,
+      "n": 5,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "biomass energy Vietnam",
+      "ms": 268.1,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "integrated assessment model uncertainty",
+      "ms": 277.0,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "carbon capture and storage cost",
+      "ms": 274.4,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "discount rate",
+      "ms": 117.3,
+      "n": 10,
+      "indexRefresh": "disabled"
+    },
+    {
+      "round": "warm",
+      "q": "photovoltaic",
+      "ms": 32.7,
+      "n": 10,
+      "indexRefresh": "disabled"
+    }
+  ]
+}
