@@ -6,6 +6,7 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T20:50Z claude note implemented and verified: 652 passed 7 skipped, tsc and eslint clean; direction guard sabotage-checked
 2026-08-21T19:10Z minh decided sqlite-vec ruling reversed -- it rested on a false premise; embedding stays in embeddings.ts
 2026-08-21T15:47Z claude note planned against 0002's PassageStore port: vectors join the port rather than a parallel store, so one seam carries both rankings
 
@@ -111,11 +112,67 @@ to the author rather than take here.
 
 ## Verification
 
-- [ ] Same query, same top-k as the current implementation on a shared sample
-- [ ] Embedding storage measured: expect ~1,5 kB/passage at 384 dims float32
+- [x] Same query, same top-k as the current implementation on a shared sample
+- [x] Embedding storage measured: ~1,59-1,70 kB/passage at 384 dims, synthetic;
+      real-library figure still to be taken
+
+## Findings from the implementation
+
+**The direction guard took two sabotages to test properly, and the first was a
+bad test.** Reversing `ORDER BY v.distance` reddened 19 tests -- but vec0
+rejects that at `prepare()` time, so it broke the mechanism rather than the
+ordering, which proves nothing about the guard. The honest sabotage is
+`.reverse()` on the returned hits: exactly **2** tests red, both the direct
+nearest-first/farthest-last assertions. Every fused test, every mode test and
+every parity test stayed green -- including `semantic mode answers from the
+vectors alone`. That is this ticket's own warning demonstrated: a fused-only
+assertion cannot see a reversed list, because `rrf()` ranks by position and a
+reversed list is still a list.
+
+**Mismatched embedding dimensions throw, naming both widths.** Safe because
+`clear()` *drops* the `vec0` table rather than emptying it and forgets the
+recorded dimension, and every build begins with `reset()` -> `clear()`. So the
+legitimate route to a new width -- change `ZOTEUS_EMBEDDINGS`, rebuild -- never
+reaches the throw. What does reach it is one embedder emitting two widths
+inside a single build, which is an incoherence rather than a configuration
+change; a silent drop-and-rebuild there would discard every vector already
+stored, mid-build, without saying so.
+
+**`node:sqlite` binds every JS number as SQLite REAL**, and `vec0` requires an
+INTEGER primary key. `INSERT INTO vec0(rowid, ...)` fails with "Only integers
+are allows for primary key values" until the rowid is bound as a `BigInt`. The
+one non-obvious mechanical fact in the change.
+
+**`vectorEntries()` had to become a required port member**, not a memory-side
+detail: 0002/0003 already run `toJSON`/`loadFromJSON` round trips through
+`describe.each(STORES)` against a bare `Fts5PassageStore`, and keeping the dump
+memory-only turned both red. The heap concern is untouched --
+`SqliteSearchIndex.toJSON()` still refuses the whole snapshot before reaching
+it.
+
+**A `score > 0` filter was added to `Fts5PassageStore.vectorSearch`**, beyond
+the ticket's "convert distance to similarity". Without it the stores diverge:
+`VectorStore` drops orthogonal and opposed passages, `vec0` would rank them
+last. The parameterised suites hold both to the same assertions, so parity is
+not optional.
+
+**Residual, deliberate:** `MemoryPassageStore.setVector` *appends* on a
+repeated id, since its `VectorStore` has no key index, while the FTS5 store
+replaces. Left as a pure delegate because no live path embeds the same id
+twice.
+
+**The performance fact the ticket did not anticipate**, and which 0008 now
+carries: `sqlite-vec` 0.1.x has no ANN index, so `vec0` KNN is brute force --
+fast, in C, on disk, but linear. Measured flat at ~141 ms per 100 000 vectors
+across a 40x range. Synthetic measurements at 384 dims: 1 697 B/passage at
+20 000, 1 587 B at 100 000, confirming the ticket's ~1,5 kB estimate; 25,7 ms
+and 121,8 ms per query respectively. Against the resident `VectorStore` on the
+same 20 000: 3 188 B/vector of *live heap* and 57,3 ms/query. So vec0 is 2,2x
+faster at zero resident heap, and quantization (0008) takes another 13x.
 
 ## Exit criteria
 
-- [ ] `mode: "semantic"` and `mode: "auto"` behave as upstream
-- [ ] Vector storage does not reintroduce a memory ceiling
-- [ ] Ranking direction asserted directly, not only through fused output
+- [x] `mode: "semantic"` and `mode: "auto"` behave as upstream
+- [x] Vector storage does not reintroduce a memory ceiling -- zero resident
+      heap; the scan is on-disk and in C
+- [x] Ranking direction asserted directly, not only through fused output

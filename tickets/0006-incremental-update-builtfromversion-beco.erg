@@ -6,6 +6,7 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T21:10Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
 2026-08-21T15:49Z claude note planned: watermark persists in a meta table with its backend label; deleteByItem lands on the port in 0002
 
 --- body ---
@@ -78,9 +79,61 @@ calls `reset()`, so today the only way to forget a document is to rebuild.
 - A deleted item must stop returning hits. This is the one behaviour the
   current design cannot express at all.
 
+## Findings from the implementation
+
+**The red step failed first, correctly.** Against pre-change code the deletion
+test reported `expected [ 'BBB' ] to deeply equal []` -- build, routing and
+query all worked and the removed item kept answering, which is exactly the
+behaviour the old design cannot express.
+
+**The freshness check is bounded five ways**, none of which can turn a search
+into a failure: `supportsDelta` is false on the JSON backend (zero requests,
+zero change); it stands down while `isBuilding`; a per-context single-flight
+promise makes two concurrent queries share one probe; an 8 s wall-clock
+deadline is checked before each request and raced against the first -- racing
+bounds the *wait*, not the request, since nothing here can cancel a fetch in
+flight; a change set over 500 items (50 with full text) becomes a background
+rebuild rather than an inline crawl; and any throw degrades to serving the
+current index, with a 60 s backoff so a closed desktop app does not cost a
+connection failure per query. The watermark advances only after the whole delta
+lands, so an abandoned refresh is retried rather than skipped.
+
+**`createFulltextSource` contained the very skip this ticket forbids.** When
+`fullTextSince(0)` returned empty it took an early return and built an inert
+source without walking attachments at all -- precisely the case where *every*
+attachment is pending. That is what made the step-5 test fail on its first run.
+It now walks on a short leash (20 pages, 2 000-item cap) purely to record them.
+
+**`build()`, the non-incremental path, had to be made to clear the label.** It
+knows only a list of items, so recording a version under the previous build's
+label would manufacture exactly the incomparable-pair-that-looks-comparable the
+label exists to prevent.
+
+**A restart with zero extracted attachments had no evidence the index wanted
+full text** -- no full-text passages means `fulltextEnabled` reads false, and a
+metadata-only delta would then have wiped the pending record permanently. A
+non-empty pending set now counts as that evidence.
+
+**A cancelled build records no watermark; a cap-truncated one does.**
+Truncation is stable and part of what the build set out to cover;
+`requestStop()` is an arbitrary point above which nothing was read.
+
+**Deltas can drift the index above `indexMaxItems`** over time, since `?since=`
+does not respect the crawl's page order. Left unclamped deliberately -- refusing
+to index something the user just edited would be worse -- with a comment saying
+so.
+
+**Still not restored after a restart:** `itemsFetched` / `itemsTotal` /
+`itemsAvailable`, which are build-progress telemetry and were never persisted.
+One consequence worth knowing: `truncationNotice()` keys on
+`itemsAvailable > itemsTotal`, so after a restart a cap-truncated index stops
+warning that part of the library is unsearchable. Pre-existing, not widened
+here, left alone.
+
 ## Exit criteria
 
-- [ ] Add a document, query, find it, without a manual rebuild
-- [ ] Delete a document, query, do not find it
-- [ ] Add an attachment and open it in Zotero, then find its text
-- [ ] Watermark check costs one local request
+- [x] Add a document, query, find it, without a manual rebuild
+- [x] Delete a document, query, do not find it
+- [x] Add an attachment and open it in Zotero, then find its text --
+      covered by fixture; the real-Zotero pass is in the handover list
+- [x] Watermark check costs one local request -- pinned by a call-count test
