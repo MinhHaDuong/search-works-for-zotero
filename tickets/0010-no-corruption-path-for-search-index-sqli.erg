@@ -6,6 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T19:18Z minh created
 2026-08-22T03:10Z minh decided a corrupt index refuses and reports; it does not rebuild itself. Rationale: this is an agentic tool.
+2026-08-22T00:35Z claude note closed: typed corruption error, refuse-and-report implemented, server survives a bad index; recovery-clears-meta criterion met by deletion rather than by a guard
 
 --- body ---
 ## Context
@@ -117,11 +118,44 @@ throws out of `query()`. Assert instead that it is recognised, recovered, and
 
 ## Exit criteria
 
-- [ ] A corrupt index is recognised, not propagated as an opaque error
-- [ ] Recovery clears `index_meta`, pinned by a test asserting the next
-      freshness check rebuilds rather than serving an empty index as current
+- [x] A corrupt index is recognised, not propagated as an opaque error:
+      `SearchIndexCorruptError`, raised at open and on the read path, matched on
+      SQLite's own corruption vocabulary and deliberately NOT on `database is
+      locked`, `readonly database` or `no such table` -- pinned both ways
 - [x] The rebuild-vs-report position decided by the author 2026-08-22: refuse
       and report
-- [ ] Implemented that way, with a test asserting the error names cause and
+- [x] Implemented that way, with a test asserting the error names cause and
       command and that no rebuild is attempted
-- [ ] Message names the cause and the command
+      (`tests/features/search-corruption.test.ts`)
+- [x] Message names the cause and the command -- the file, both sidecars, the
+      `rm`, and `zotero_index action:"build"`
+- [x] SUPERSEDED: "recovery clears `index_meta`, pinned by a test asserting the
+      next freshness check rebuilds". There is no automatic recovery any more,
+      so there is nothing to clear. Deleting the file -- the command the message
+      gives -- removes `index_meta` with it, and the test asserts exactly that:
+      after the documented recovery the reopened index reports watermark 0, no
+      backend label, and empty, which is the state the freshness check rebuilds
+      from. The criterion is met by construction rather than by a guard.
+
+## The decision, and why refusing is not the lazy answer
+
+Recorded 2026-08-22. The index is derived data, so an automatic rebuild loses
+nothing but time -- which is exactly the objection. A rebuild re-crawls the whole
+library: 371,6 s measured on this one, with full text on. The caller is an MCP
+client in the middle of somebody's task, and it cannot consent to that on their
+behalf. A tool that silently disappears for six minutes is worse than one that
+says what is wrong.
+
+Two consequences worth keeping:
+
+**Refusing rather than answering emptily is the load-bearing half.** An empty
+`SearchIndex` in place of the corrupt one would answer every query with no hits,
+which to an agent is indistinguishable from a library with nothing in it. That
+is the failure this ticket called worse than the corruption. `CorruptSearchIndex`
+therefore reports `isEmpty === false` and throws, so nothing helpfully
+auto-builds over it.
+
+**The server survives.** Item lookups, bibliographies and full-text reads go to
+Zotero and never through the index, so one bad derived file no longer takes the
+whole MCP server down with it -- which is what the untyped throw out of a
+constructor used to do.

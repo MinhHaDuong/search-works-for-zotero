@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Ticket 0003 phase 2: restart the server plain (no heap flag) on the built DB,
 confirm it opens without rebuilding, and time real keyword queries."""
-import json, sys, time
+import json
+import sys
+import time
 
 sys.path.insert(0, "/home/haduong/CNRS/projets/actifs/zoteus-fts5/bench")
 from mcp_drive import Server  # noqa: E402
@@ -83,7 +85,8 @@ def main():
     with open("/tmp/zbench0003/serve_result.json", "w") as f:
         json.dump(out, f, indent=2, ensure_ascii=False)
     try:
-        s.p.stdin.close(); s.p.wait(timeout=30)
+        s.p.stdin.close()
+        s.p.wait(timeout=30)
     except Exception:
         s.p.terminate()
 

@@ -1,0 +1,295 @@
+{
+ "probe": "ticket 0009 — JS fold versus what FTS5 unicode61 remove_diacritics 2 actually indexes",
+ "tokenizer": "unicode61 remove_diacritics 2",
+ "codepoints_swept": 1301,
+ "codepoints_agreeing": 1286,
+ "divergences_total": 15,
+ "divergences_by_direction": {
+  "narrows": 15
+ },
+ "per_block": [
+  {
+   "block": "Latin-1 Supplement + Latin Extended-A/B",
+   "swept": 400,
+   "divergences": 0
+  },
+  {
+   "block": "Greek and Coptic",
+   "swept": 144,
+   "divergences": 9
+  },
+  {
+   "block": "Cyrillic",
+   "swept": 256,
+   "divergences": 0
+  },
+  {
+   "block": "Latin Extended Additional (Vietnamese)",
+   "swept": 256,
+   "divergences": 0
+  },
+  {
+   "block": "Letterlike Symbols",
+   "swept": 80,
+   "divergences": 0
+  },
+  {
+   "block": "Number Forms",
+   "swept": 64,
+   "divergences": 6
+  },
+  {
+   "block": "Alphabetic Presentation Forms (ligatures)",
+   "swept": 7,
+   "divergences": 0
+  },
+  {
+   "block": "Halfwidth and Fullwidth Forms",
+   "swept": 94,
+   "divergences": 0
+  }
+ ],
+ "misses": [],
+ "divergences": [
+  {
+   "codepoint": "U+0378",
+   "char": "͸",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "͸"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+0379",
+   "char": "͹",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "͹"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+0380",
+   "char": "΀",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΀"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+0381",
+   "char": "΁",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΁"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+0382",
+   "char": "΂",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΂"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+0383",
+   "char": "΃",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΃"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+038B",
+   "char": "΋",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΋"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+038D",
+   "char": "΍",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΍"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+03A2",
+   "char": "΢",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΢"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218A",
+   "char": "↊",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↊"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218B",
+   "char": "↋",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↋"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218C",
+   "char": "↌",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↌"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218D",
+   "char": "↍",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↍"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218E",
+   "char": "↎",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↎"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  },
+  {
+   "codepoint": "U+218F",
+   "char": "↏",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↏"
+   ],
+   "queried_as": [],
+   "direction": "narrows"
+  }
+ ],
+ "word_level_regressions": [
+  {
+   "word": "théorie",
+   "why": "the defect that opened the ticket",
+   "indexed_as": [
+    "theorie"
+   ],
+   "queried_as": [
+    "theorie"
+   ],
+   "agree": true
+  },
+  {
+   "word": "theorie",
+   "why": "its unaccented spelling — both must reach the same term",
+   "indexed_as": [
+    "theorie"
+   ],
+   "queried_as": [
+    "theorie"
+   ],
+   "agree": true
+  },
+  {
+   "word": "Θεωρία",
+   "why": "Greek tonos, which remove_diacritics 2 does NOT strip",
+   "indexed_as": [
+    "θεωρία"
+   ],
+   "queried_as": [
+    "θεωρία"
+   ],
+   "agree": true
+  },
+  {
+   "word": "теория",
+   "why": "Cyrillic, untouched by a Latin-only fold",
+   "indexed_as": [
+    "теория"
+   ],
+   "queried_as": [
+    "теория"
+   ],
+   "agree": true
+  },
+  {
+   "word": "đại",
+   "why": "Vietnamese đ, which the index keeps — the query must keep it too",
+   "indexed_as": [
+    "đai"
+   ],
+   "queried_as": [
+    "đai"
+   ],
+   "agree": true
+  },
+  {
+   "word": "mathématiques",
+   "why": "the second worst case measured on the real library",
+   "indexed_as": [
+    "mathematiques"
+   ],
+   "queried_as": [
+    "mathematiques"
+   ],
+   "agree": true
+  },
+  {
+   "word": "probabilità",
+   "why": "Italian, the case only the SQLite backend ever retrieved",
+   "indexed_as": [
+    "probabilita"
+   ],
+   "queried_as": [
+    "probabilita"
+   ],
+   "agree": true
+  },
+  {
+   "word": "søren",
+   "why": "a Latin letter with a stroke, which unicode61 does not fold",
+   "indexed_as": [
+    "søren"
+   ],
+   "queried_as": [
+    "søren"
+   ],
+   "agree": true
+  }
+ ]
+}

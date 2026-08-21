@@ -88,7 +88,7 @@ replaces the existing class.
   verification line measured and not met; the at-rest claim is unaffected
 - 0012 — does a Zotero re-extraction bump anything the watermark sees? (filed
   2026-08-21): an open question, one experiment from being answered
-- 0013 — one dictionary is 9% of the index (filed 2026-08-22): no per-item
+- 0013 — one dictionary is 9% of the index (filed 2026-08-21): no per-item
   ceiling; distorts BM25 corpus statistics and is 0011's cheapest suspect
 
 Migration measured 2026-08-21 on two real indexes (153 MB and 321 MB, the

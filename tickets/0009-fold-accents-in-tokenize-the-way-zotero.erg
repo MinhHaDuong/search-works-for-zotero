@@ -8,6 +8,7 @@ Author: minh
 2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
 2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
 2026-08-22T03:45Z claude note implemented, fork 50b3f15, 739 tests; four of this ticket's design claims corrected against the real tokenizer
+2026-08-22T00:30Z claude note closed: sweep committed, and it found twelve wrong-direction divergences the prose had called harmless; all twelve fixed
 
 --- body ---
 ## Severity, corrected 2026-08-21 on real-library evidence
@@ -250,7 +251,11 @@ fold.
 - [x] Fold applied inside `tokenize()`, both backends accent-insensitive
 - [x] Token class widened to `/[\p{L}\p{N}]+/u`, so non-Latin scripts stop
       being shredded (covers 0007's recorded CJK blind spot too)
-- [x] Cross-spelling queries agree on both stores, pinned by test
+- [x] Cross-spelling queries agree on both stores, pinned by test -- and
+      measured on the full library 2026-08-22: `théorie`/`theorie` both score
+      0,889 against the JSON backend, `mathématiques`/`mathematiques` both
+      0,429, `probabilità`/`probabilita` both 1,000
+      (`bench/results/0001-old-vs-new/SUMMARY.json`)
 - [x] Stale-index behaviour: no defect exists -- both artifacts store raw
       text and rebuild terms on load, asserted by a round-trip test
 - [x] Vietnamese `đ` case checked and recorded: `đ` does NOT fold, because
@@ -258,3 +263,34 @@ fold.
 - [x] 0002's divergence tests inverted in place, not deleted
 - [x] 0001's stated exception re-examined and removed, with a note on how the
       divergence was first misread as extra recall
+
+## The sweep was described in prose, then run, and the prose was wrong
+
+Added 2026-08-22, after a review found the "1 287 codepoints, 22 divergences,
+all toward retrieving less" claim resting on nothing committed.
+
+`bench/fold_sweep.mjs` puts 1 301 codepoints through a real FTS5 table declared
+with the shipped tokenizer and compares what SQLite stores against what the
+shipped JS fold produces. Output: `bench/results/0009-fold-sweep/codepoints.json`.
+
+It found **27 divergences, twelve of them in the wrong direction** -- the query
+resolving to a token the index does not hold. That is this ticket's own defect
+class on rarer input, not a narrowing: `Ǽgir` queried as `ægir`, a token other
+documents genuinely contain, so it retrieves confidently and wrongly rather than
+retrieving nothing.
+
+- Ten were letters whose base is itself non-ASCII Latin (`Ǡ Ǣ Ǯ Ǽ Ǿ` and their
+  lowercase forms): NFD decomposes them, unicode61's table does not reach them.
+- Two were gaps in unicode61's Greek case table -- `U+037F` (newer than the
+  table, so the index stores it uppercase) and `U+0374` (which `normalize` maps
+  to `U+02B9` and SQLite leaves alone: two codepoints that print alike).
+
+All twelve are shielded now, pinned by test, and the sweep reports **1 286 of
+1 301 agreeing with no query going where the index is not**. The residual
+fifteen are unassigned or symbol codepoints that unicode61 indexes and
+`\p{L}\p{N}` does not; those genuinely only retrieve less.
+
+The lesson is the one this chantier keeps paying for: a claim written from a
+sweep whose output was never captured is a claim about a sweep, not a finding.
+The first shield also shipped a collision between its two nested placeholder
+blocks -- `Ǽ Ϳ` folded to `ǽ ǽ` -- caught by the test written to pin the twelve.

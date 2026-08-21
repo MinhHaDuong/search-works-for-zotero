@@ -184,7 +184,7 @@
         "build_passages": 477512
       }
     ],
-    "at_rest_is_linear_in_passages": "yes -- 16.09 to 16.34 kB/passage across every rung, a 1.5% spread",
+    "at_rest_is_linear_in_passages": "yes -- 16.09 to 16.35 kB/passage across every rung including the instrument check, a 1.6% spread",
     "build_peak_is_sublinear_in_passages": "yes -- 22.14, 22.04, 21.14, 19.47, 18.64 kB/passage as the index grows (last figure is the uncapped-chars build against its in-memory 477 512 passages)",
     "observed_anomaly": "build peak at r7000 (7 154 044 kB, 338 346 passages) EXCEEDS build peak at rall (7 026 696 kB, 360 811 passages) despite rall being the larger index. Reported as observed; cause not isolated. It is consistent with the sublinear build curve above plus run-to-run V8 GC-timing variance, but that is a hypothesis, not a finding -- it was not re-run.",
     "at_rest_extrapolation_to_477512_passages_mib": 7531.1,

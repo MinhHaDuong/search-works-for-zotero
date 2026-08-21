@@ -7,6 +7,7 @@ Author: minh
 2026-08-21T20:21Z minh created
 2026-08-22T02:50Z claude note distortion measured, and it is systematic: the dictionary suppresses idf for HET vocabulary (keynes -28%, walras -25%) while inflating it for climate terms
 2026-08-22T03:30Z claude note order test run: the dictionary takes the top slot on HET queries and the rest is near-unchanged; recommends recording rather than bounding
+2026-08-22T00:40Z claude note closed: concentration is a documented query; order effect re-measured through FTS5's own bm25 over 72 queries, and the 'almost entirely cancels' reading corrected
 
 --- body ---
 ## Context
@@ -164,12 +165,59 @@ surfaces the concentration instead.
 
 ## Exit criteria
 
-- [ ] Per-item concentration visible from `status()` or a documented query
-- [x] Ranking distortion measured on corpus statistics: idf depressed 20-28%
-      for HET vocabulary, inflated 2-5% for climate terms
-- [x] Order-level effect measured: negligible, so ranking does not justify a
-      ceiling
+- [x] Per-item concentration visible from a documented query:
+      `docs/semantic-search.md` § "How concentrated is the index?", plus
+      `PassageStore.itemPassageCounts()` for callers. Deliberately NOT a
+      `status()` field -- `GROUP BY item` costs 374 ms cold and 32-58 ms warm on
+      a 360 811-passage index, and `status` is polled every few seconds through
+      a build, against the table the build is writing.
+- [x] Ranking distortion measured on corpus statistics, now from FTS5's own
+      `fts5vocab` counts rather than prose: idf depressed 20-28% for HET
+      vocabulary (`keynes` +28,1% when the dictionary is removed, `walras`
+      +24,7%, `ricardo` +23,3%), inflated ~4% for climate terms
+- [x] Order-level effect measured -- **and the earlier reading corrected**, see
+      below
 - [x] A memory justification found instead (0011): a 2 M-char cap cuts peak
       build RSS 5,2x
-- [ ] Default cap value chosen, and what it truncates documented
-- [ ] 0011's cheap experiment run and its result recorded there
+- [x] Default cap value: **none.** Decided by the author 2026-08-22 together
+      with 0011. The concentration is documented, not bounded.
+- [x] 0011's cheap experiment run and its result recorded there
+
+## The order test, re-run, and the first reading corrected
+
+Added 2026-08-22. A review found the original order comparison resting on four
+hand-picked queries scored by a **re-implementation** of BM25 in JS
+(`bench/bm25_idf_effect.mjs`), with no captured output. Re-run through
+`bench/index_concentration.mjs`, which changes two things:
+
+- Ranking goes through **FTS5's own `bm25()`**, the function the shipped code
+  calls. The two regimes are the real index and a copy with the dominant item's
+  rows deleted -- deleting rows is what makes SQLite recompute its own document
+  frequencies, so the re-weighting is genuine rather than simulated.
+- The query set is 12 purposive domain queries **plus 60 seeded random term
+  pairs** drawn from the index's own mid-frequency vocabulary, reported
+  separately. A purposive sample chosen to probe a hypothesis cannot also be the
+  evidence that the hypothesis generalises.
+
+Result, `bench/results/0013-concentration/uncapped-477512.json`:
+
+| | purposive (12) | random (60) |
+|---|---|---|
+| non-dominant results retained | **0,972** | **0,969** |
+| relative order among them preserved | **5/12** | **37/60** |
+
+**The first reading said the effect "almost entirely cancels" and that "in two
+of three, every other result keeps its exact order". That was too generous.**
+The answer *set* is essentially unaffected -- 97% of the other results survive
+-- but their *order* moves in roughly half of queries, not a third.
+
+One methodological note that matters, because the first version of this
+re-measurement made the mistake too: removing the dominant item changes the list
+twice over, and only one of those is the idf question. It leaves the list by
+construction wherever it appeared, and everything below shifts up a rank. That
+is arithmetic. Counting it as a ranking effect reported one four times larger
+than the real one, which is why the table above is computed on the *rest* of the
+list with the dominant item stripped out of the before-side first.
+
+The conclusion holds in a weaker form: this is a real distortion, it does not
+change what you find, and it is not worth a ceiling that would discard text.

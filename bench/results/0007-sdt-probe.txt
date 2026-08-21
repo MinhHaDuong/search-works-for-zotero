@@ -31,3 +31,20 @@ pre-install item TB28BNW2 has one -- so that file IS produced when the
 reader runs. Its absence leaves open whether the reader tab was opened
 or only indexing was triggered. Extraction ran and produced no pack;
 whether the READER path produces one is narrowed, not settled.
+
+--- third probe, 2026-08-22T00:05Z, ~10 h after the second ---
+$ find $STORAGE -name '.zotero-sdt-cache' | wc -l
+0
+$ find $STORAGE -name '.zotero-reader-state' -newermt '2026-08-21 14:26' | wc -l
+0
+$ find $STORAGE -name '.zotero-reader-state' | wc -l        # all of them, any age
+205
+$ find $STORAGE -name '.zotero-ft-cache' -newermt '2026-08-21 14:26' | wc -l
+1036
+
+Unchanged, and the residual is unchanged with it. 205 reader-state files exist
+from before the 10.0 install, so the probe would see one if the reader had run;
+none has run since. Extraction is ruled out as an SDT trigger. The reader tab
+remains untested rather than disproven, and it cannot be tested from here: the
+local API exposes no way to open a reader tab, so this needs one human to open
+one PDF in Zotero and re-run the probe above.

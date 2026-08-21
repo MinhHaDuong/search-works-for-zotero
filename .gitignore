@@ -7,3 +7,10 @@ bench/*.sqlite
 bench/*.sqlite-*
 bench/data/
 *.log
+
+# Python bytecode from the bench drivers.
+__pycache__/
+*.pyc
+
+# Per-session agent runtime state, not project state.
+.claude/

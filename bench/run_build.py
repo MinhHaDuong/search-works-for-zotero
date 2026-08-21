@@ -67,9 +67,15 @@ def main():
     # genuinely needs it.
     ap.add_argument("--node-options", default="")
     ap.add_argument("--build", action="store_true", help="kick off a build; otherwise only start+status")
+    # Vectors are OFF by default for the same reason --node-options is empty: the storage
+    # comparison this harness was written for is keyword-only, and an embedder silently
+    # turned on would change both the wall clock and the on-disk size it reports. Ticket
+    # 0008 needs the opposite, so it is a flag rather than an edit.
+    ap.add_argument("--embeddings", default="off", help="ZOTEUS_EMBEDDINGS: off | local | openai | gemini")
+    ap.add_argument("--transformers-path", default="", help="ZOTEUS_TRANSFORMERS_PATH for a non-bundled model runtime")
     a = ap.parse_args()
 
-    env = {"ZOTEUS_EMBEDDINGS": "off",
+    env = {"ZOTEUS_EMBEDDINGS": a.embeddings,
            "ZOTEUS_INDEX_FULLTEXT": "1",
            "ZOTEUS_DATA_DIR": a.data_dir,
            "ZOTEUS_SEARCH_BACKEND": a.backend,
@@ -77,6 +83,8 @@ def main():
            "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": a.max_chars,
            "ZOTEUS_INDEX_AUTO_REFRESH": "false",
            "NODE_OPTIONS": a.node_options}
+    if a.transformers_path:
+        env["ZOTEUS_TRANSFORMERS_PATH"] = a.transformers_path
     t_launch = time.monotonic()
     s = Server(["node", a.server], env, a.max_wait)
     s.handshake()

@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Assemble one rung artifact: measurements + full environment provenance."""
-import argparse, json, os, platform, subprocess, sys, time, datetime
+import argparse
+import json
+import os
+import platform
+import subprocess
+import sys
+import time
+import datetime
 
 
 def dirsizes(path):

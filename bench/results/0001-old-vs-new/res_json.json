@@ -1,0 +1,1888 @@
+{
+  "backend": "json",
+  "handshake_s": 90.87,
+  "ready_s": 90.88,
+  "peak_rss_kb_after_start": 5535828,
+  "status": {
+    "documents": 360811,
+    "vectors": 0,
+    "items": 7541,
+    "embedder": "none (keyword-only)",
+    "embedderConfigured": "off",
+    "embedderActive": false,
+    "fulltextEnabled": true,
+    "fulltextItems": 5562,
+    "fulltextPassages": 348409,
+    "builtFromVersion": 410,
+    "passages": 360811,
+    "state": "idle",
+    "itemsFetched": 0,
+    "itemsTotal": 0,
+    "itemsAvailable": 0
+  },
+  "queries": {
+    "climate policy": {
+      "n": 20,
+      "keys": [
+        "JZ8UGBS3",
+        "FGBS9CZN",
+        "9S4G8SCS",
+        "NPRSQW47",
+        "BLL9E64L",
+        "WLDQXN7M",
+        "8N5WB48F",
+        "8RF6JCJV",
+        "C7LYAMZJ",
+        "JITQRET4",
+        "KYYLDJ4V",
+        "NQQG34H8",
+        "RQJPNM2Y",
+        "BP6NVI3J",
+        "U2VSEBRB",
+        "XED42BVI",
+        "W2ZVKFX4",
+        "GT5BJQ5L",
+        "4HDCGCD3",
+        "DXDAGUQ5"
+      ],
+      "hits": [
+        {
+          "itemKey": "JZ8UGBS3",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The need for and use of socio-economic scenarios for climate change analysis: A new approach based on shared socio-economic pathways"
+        },
+        {
+          "itemKey": "FGBS9CZN",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Oil rent and diversification facing  climate challenge: The case of Saudi Arabia"
+        },
+        {
+          "itemKey": "9S4G8SCS",
+          "score": 0.015873015873015872,
+          "source": null,
+          "title": "Misdefining \"climate change\": consequences for science and action"
+        },
+        {
+          "itemKey": "NPRSQW47",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Analysis: Why the $300bn climate-finance goal is even less ambitious than it seems"
+        },
+        {
+          "itemKey": "BLL9E64L",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "COP29: Key outcomes agreed at the UN climate talks in Baku"
+        },
+        {
+          "itemKey": "WLDQXN7M",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Progress and Prospects of Research on Climate Policy and Governance"
+        },
+        {
+          "itemKey": "8N5WB48F",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Climate clubs: politically feasible and desirable?"
+        },
+        {
+          "itemKey": "8RF6JCJV",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "A new scenario framework for climate change research: the concept of shared climate policy assumptions"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.014285714285714285,
+          "source": null,
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        },
+        {
+          "itemKey": "JITQRET4",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Does climate adaptation policy need probabilities"
+        },
+        {
+          "itemKey": "KYYLDJ4V",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "What motivates Vietnam to strive for a low-carbon economy? — On the drivers of climate policy in a developing country"
+        },
+        {
+          "itemKey": "NQQG34H8",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Optimal climate policy is a utopia: from quantitative to qualitative cost-benefit analysis"
+        },
+        {
+          "itemKey": "RQJPNM2Y",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Transport and Climate Profile Viet Nam"
+        },
+        {
+          "itemKey": "BP6NVI3J",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "A framework for a new generation of socioeconomic scenarios for climate change impact, adaptation, vulnerability, and mitigation research"
+        },
+        {
+          "itemKey": "U2VSEBRB",
+          "score": 0.012048192771084338,
+          "source": null,
+          "title": "Looking to sky to fight climate change"
+        },
+        {
+          "itemKey": "XED42BVI",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Carbon Pricing Potential in East and South Asia"
+        },
+        {
+          "itemKey": "W2ZVKFX4",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Anchoring Amid Uncertainty"
+        },
+        {
+          "itemKey": "GT5BJQ5L",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "Implementation and governance: Current and future research on climate change policies"
+        },
+        {
+          "itemKey": "4HDCGCD3",
+          "score": 0.01,
+          "source": "fulltext",
+          "title": "Governing Climate Engineering: Scenarios for Analysis"
+        },
+        {
+          "itemKey": "DXDAGUQ5",
+          "score": 0.009900990099009901,
+          "source": "fulltext",
+          "title": "Delayed action and uncertain stabilisation targets. How much will the delay cost?"
+        }
+      ]
+    },
+    "index numbers": {
+      "n": 20,
+      "keys": [
+        "FIL2JI5M",
+        "XMFQBZQZ",
+        "IC3VB3BZ",
+        "L2N43464",
+        "2BK3JGTQ",
+        "I4MCFS4X",
+        "GZK9KAH4",
+        "ZIBPXXTW",
+        "7GFY7GPX",
+        "SVSCFTWT",
+        "X3DSV35X",
+        "Z4G84MM6",
+        "79FCFXE7",
+        "YW8SYSWH",
+        "WR8UMZDD",
+        "HC4MN7NM",
+        "2HAHT8FF",
+        "2KDVRCNK",
+        "XVGD8S63",
+        "BXEXAMIU"
+      ],
+      "hits": [
+        {
+          "itemKey": "FIL2JI5M",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "System of national accounts 2008"
+        },
+        {
+          "itemKey": "XMFQBZQZ",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Al-Hawārī's Essential Commentary: Arabic Arithmetic in the Fourteenth Century"
+        },
+        {
+          "itemKey": "IC3VB3BZ",
+          "score": 0.015873015873015872,
+          "source": null,
+          "title": "The method of limits in the theory of index-numbers"
+        },
+        {
+          "itemKey": "L2N43464",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "ESRI Shapefile Technical Description"
+        },
+        {
+          "itemKey": "2BK3JGTQ",
+          "score": 0.014925373134328358,
+          "source": null,
+          "title": "Annual Survey of General Economic Theory: The Problem of Index Numbers"
+        },
+        {
+          "itemKey": "I4MCFS4X",
+          "score": 0.014705882352941176,
+          "source": null,
+          "title": "The Making of Index Numbers: A Study of Their Varieties, Tests, and Reliability"
+        },
+        {
+          "itemKey": "GZK9KAH4",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Energy security in ASEAN: A quantitative approach for sustainable energy policy"
+        },
+        {
+          "itemKey": "ZIBPXXTW",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Community Noise"
+        },
+        {
+          "itemKey": "7GFY7GPX",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "2020 Global Go To Think Tank Index Report"
+        },
+        {
+          "itemKey": "SVSCFTWT",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "One-Stop Source: A Global Database of Inflation"
+        },
+        {
+          "itemKey": "X3DSV35X",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Examining the social acceptance of wind energy: Practical guidelines for onshore wind project development in France"
+        },
+        {
+          "itemKey": "Z4G84MM6",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "A Whirlwind Tour of Python"
+        },
+        {
+          "itemKey": "79FCFXE7",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "2018 Global Go To Think Tank Index Report"
+        },
+        {
+          "itemKey": "YW8SYSWH",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Social assessment of environmental low frequency noise"
+        },
+        {
+          "itemKey": "WR8UMZDD",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Collision and grounding of passenger ships–risk assessment and emergency evacuation"
+        },
+        {
+          "itemKey": "HC4MN7NM",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "The system of inequalities ars > Xr − Xs"
+        },
+        {
+          "itemKey": "2HAHT8FF",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Climate Change 2014: Synthesis Report. Contribution of Working Groups I, II and III to the Fifth Assessment Report of the Intergovernmental Panel on Climate Change"
+        },
+        {
+          "itemKey": "2KDVRCNK",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
+        },
+        {
+          "itemKey": "XVGD8S63",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "China in Africa: Competition for traditional development finance institutions?"
+        },
+        {
+          "itemKey": "BXEXAMIU",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Chordal Graphs and Semidefinite Optimization"
+        }
+      ]
+    },
+    "optimal transport": {
+      "n": 10,
+      "keys": [
+        "SCT565MN",
+        "IFR5B8I3",
+        "3F8ERVCM",
+        "MD672UBB",
+        "XVSR2X2R",
+        "IPTU8AB4",
+        "GV5U9CPV",
+        "XVU5A5XH",
+        "RG9US92B",
+        "3GZ7DJVN"
+      ],
+      "hits": [
+        {
+          "itemKey": "SCT565MN",
+          "score": 0.01639344262295082,
+          "source": null,
+          "title": "The Optimal Production Transport: Model and Algorithm"
+        },
+        {
+          "itemKey": "IFR5B8I3",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Optimal Transport Networks in Spatial Equilibrium"
+        },
+        {
+          "itemKey": "3F8ERVCM",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Scaling algorithms for unbalanced optimal transport problems"
+        },
+        {
+          "itemKey": "MD672UBB",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Multi-marginal optimal transport: theory and applications"
+        },
+        {
+          "itemKey": "XVSR2X2R",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Optimal Entropy-Transport problems and a new Hellinger-Kantorovich distance between positive measures"
+        },
+        {
+          "itemKey": "IPTU8AB4",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Optimal biomass truck load size and work models for loading of loose biomasses"
+        },
+        {
+          "itemKey": "GV5U9CPV",
+          "score": 0.010869565217391304,
+          "source": null,
+          "title": "Constrained optimal transport with an application to large markets with indivisible goods"
+        },
+        {
+          "itemKey": "XVU5A5XH",
+          "score": 0.010309278350515464,
+          "source": null,
+          "title": "A Unified Kantorovich Duality for Multimarginal Optimal Transport"
+        },
+        {
+          "itemKey": "RG9US92B",
+          "score": 0.010101010101010102,
+          "source": "fulltext",
+          "title": "Optimal Transport Methods in Economics"
+        },
+        {
+          "itemKey": "3GZ7DJVN",
+          "score": 0.009009009009009009,
+          "source": "fulltext",
+          "title": "Modelling to generate alternatives: A technique to explore uncertainty in energy-environment-economy models"
+        }
+      ]
+    },
+    "arbitrage": {
+      "n": 20,
+      "keys": [
+        "G4KUDUJP",
+        "HEJVJWYV",
+        "PNPVBZDQ",
+        "HRSWWSGX",
+        "MEXGIZD8",
+        "CUP4DV9D",
+        "JDNF84UG",
+        "E3JCGHCU",
+        "4QKDRH94",
+        "UUTET8WM",
+        "GW84G9KE",
+        "H678DN9J",
+        "SZC9665E",
+        "9AJ9A4ZZ",
+        "SXTE5992",
+        "T7RNBMWB",
+        "7W9NIS7N",
+        "P4GRFMFC",
+        "987BQH4S",
+        "S7AKUVHE"
+      ],
+      "hits": [
+        {
+          "itemKey": "G4KUDUJP",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Origins of arbitrage"
+        },
+        {
+          "itemKey": "HEJVJWYV",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "The Sufficiency of Three-Point Arbitrage to Insure Consistent Cross Rates of Exchange"
+        },
+        {
+          "itemKey": "PNPVBZDQ",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Arbitrage: Historical Perspectives"
+        },
+        {
+          "itemKey": "HRSWWSGX",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "The fundamental theorem of asset pricing under proportional transaction costs in finite discrete time"
+        },
+        {
+          "itemKey": "MEXGIZD8",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Detecting and identifying arbitrage in the spot foreign exchange market"
+        },
+        {
+          "itemKey": "CUP4DV9D",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Cyclic Arbitrage in Decentralized Exchanges"
+        },
+        {
+          "itemKey": "JDNF84UG",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Maximal Extractable Value in Decentralized Finance: Taxonomy, Detection, and Mitigation"
+        },
+        {
+          "itemKey": "E3JCGHCU",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Arbitrage and deflators in illiquid markets"
+        },
+        {
+          "itemKey": "4QKDRH94",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Energy storage system in Vietnam's power system"
+        },
+        {
+          "itemKey": "UUTET8WM",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Optimal Routing for Constant Function Market Makers"
+        },
+        {
+          "itemKey": "GW84G9KE",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Arbitrage, linear programming and martingales in securities markets with bid-ask spreads"
+        },
+        {
+          "itemKey": "H678DN9J",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
+        },
+        {
+          "itemKey": "SZC9665E",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "Arbitrage detection using max plus product iteration on foreign exchange rate graphs"
+        },
+        {
+          "itemKey": "9AJ9A4ZZ",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "Efficient Triangular Arbitrage Detection via Graph Neural Networks"
+        },
+        {
+          "itemKey": "SXTE5992",
+          "score": 0.01020408163265306,
+          "source": "fulltext",
+          "title": "Computational Complexity of Arbitrage in Frictional Security Market"
+        },
+        {
+          "itemKey": "T7RNBMWB",
+          "score": 0.01,
+          "source": "fulltext",
+          "title": "Computation of Arbitrage in a Financial Market with Various Types of Frictions"
+        },
+        {
+          "itemKey": "7W9NIS7N",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "RICH: Real-Time Identification of Negative Cycles for High-Efficiency Arbitrage"
+        },
+        {
+          "itemKey": "P4GRFMFC",
+          "score": 0.008849557522123894,
+          "source": "fulltext",
+          "title": "Martingales and arbitrage in multiperiod securities markets"
+        },
+        {
+          "itemKey": "987BQH4S",
+          "score": 0.008620689655172414,
+          "source": "fulltext",
+          "title": "Global Order Routing on Exchange Networks"
+        },
+        {
+          "itemKey": "S7AKUVHE",
+          "score": 0.008333333333333333,
+          "source": "fulltext",
+          "title": "Markets with Transaction Costs: Mathematical Theory"
+        }
+      ]
+    },
+    "consumer demand": {
+      "n": 20,
+      "keys": [
+        "TAMLP8PA",
+        "CN68AB9F",
+        "E6E4L7U8",
+        "PMDUK5VX",
+        "2M8DM5BI",
+        "K7TPDAVF",
+        "IM84TQGT",
+        "H22UKQD7",
+        "7IDIKHS2",
+        "EHWRIFKJ",
+        "RG9US92B",
+        "QSXGG8JB",
+        "2KDVRCNK",
+        "R4SH68GY",
+        "Y3FW8M4Y",
+        "Z7ZW4K4J",
+        "YK2UIJXU",
+        "FVSBKBTL",
+        "APKYS8ZJ",
+        "S6JZWDEI"
+      ],
+      "hits": [
+        {
+          "itemKey": "TAMLP8PA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Household electricity demand, revisited"
+        },
+        {
+          "itemKey": "CN68AB9F",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Consumer demand and welfare under increasing block pricing"
+        },
+        {
+          "itemKey": "E6E4L7U8",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Impact of Electricity Pricing Policies on Renewable Energy Investments and Carbon Emissions"
+        },
+        {
+          "itemKey": "PMDUK5VX",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Easing the Natural Gas Crisis: Reducing Natural Gas Prices through Increased Deployment of Renewable Energy and Energy Efficiency."
+        },
+        {
+          "itemKey": "2M8DM5BI",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "The nonparametric approach to demand analysis"
+        },
+        {
+          "itemKey": "K7TPDAVF",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "An econometric analysis of residential electric appliance holdings and consumption"
+        },
+        {
+          "itemKey": "IM84TQGT",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Graphical Economics"
+        },
+        {
+          "itemKey": "H22UKQD7",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Schmeduling"
+        },
+        {
+          "itemKey": "7IDIKHS2",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Demand for livestock products in developing countries with a focus on quality and safety attributes: Evidence from Asia and Africa"
+        },
+        {
+          "itemKey": "EHWRIFKJ",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Divergences in Long-Run Trends in the Prices of Energy and Energy Services"
+        },
+        {
+          "itemKey": "RG9US92B",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Optimal Transport Methods in Economics"
+        },
+        {
+          "itemKey": "QSXGG8JB",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Formalizing best practice for energy system optimization modelling"
+        },
+        {
+          "itemKey": "2KDVRCNK",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
+        },
+        {
+          "itemKey": "R4SH68GY",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Examining the sensitivity of electricity costs to international coal and gas prices in Vietnam"
+        },
+        {
+          "itemKey": "Y3FW8M4Y",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Southeast Asia Energy Outlook 2017"
+        },
+        {
+          "itemKey": "Z7ZW4K4J",
+          "score": 0.010869565217391304,
+          "source": "fulltext",
+          "title": "Equilibria for Economies with Production: Constant-Returns Technologies and Production Planning Constraints"
+        },
+        {
+          "itemKey": "YK2UIJXU",
+          "score": 0.010752688172043012,
+          "source": "fulltext",
+          "title": "The Economic Effects of Energy Price Shocks"
+        },
+        {
+          "itemKey": "FVSBKBTL",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "To what electricity price do consumers respond? Residential demand elasticity under increasing-block pricing"
+        },
+        {
+          "itemKey": "APKYS8ZJ",
+          "score": 0.01,
+          "source": "fulltext",
+          "title": "The slow search for solutions: Lessons from historical energy transitions by sector and service"
+        },
+        {
+          "itemKey": "S6JZWDEI",
+          "score": 0.009900990099009901,
+          "source": "fulltext",
+          "title": "Understanding Hourly Electricity Demand: Implications for Load, Welfare and Emissions"
+        }
+      ]
+    },
+    "mathematical economics": {
+      "n": 20,
+      "keys": [
+        "6ZMCCBGX",
+        "8LNV6JF4",
+        "KKATI6EI",
+        "XH9UWCKG",
+        "3IFP396P",
+        "B4APP976",
+        "TAMLP8PA",
+        "SFWS38BV",
+        "CEI5RIHI",
+        "MM56C8XH",
+        "V5D49GEX",
+        "ZTXRZKZP",
+        "CSK9WJEW",
+        "GQF7675B",
+        "CIJ2E7DV",
+        "AGMQMZP9",
+        "H678DN9J",
+        "UQ9EPQNE",
+        "2KDVRCNK",
+        "4QQDLYXC"
+      ],
+      "hits": [
+        {
+          "itemKey": "6ZMCCBGX",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The Cultures of Mathematical Economics in the Postwar Soviet Union: More than a Method, Less than a Discipline"
+        },
+        {
+          "itemKey": "8LNV6JF4",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Soviet Mathematics and Economic Theory in the Past Century: An Historical Reappraisal"
+        },
+        {
+          "itemKey": "KKATI6EI",
+          "score": 0.015873015873015872,
+          "source": null,
+          "title": "Additive representations of preferences: a new foundation of decision analysis"
+        },
+        {
+          "itemKey": "XH9UWCKG",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
+        },
+        {
+          "itemKey": "3IFP396P",
+          "score": 0.012658227848101266,
+          "source": null,
+          "title": "Theory of Games and Economic Behavior"
+        },
+        {
+          "itemKey": "B4APP976",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Soviet Mathematics and Economic Theory in the Past Century: A Historical Reappraisal"
+        },
+        {
+          "itemKey": "TAMLP8PA",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Household electricity demand, revisited"
+        },
+        {
+          "itemKey": "SFWS38BV",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "Koopmans in the Soviet Union: A Travel Report of the Summer of 1965"
+        },
+        {
+          "itemKey": "CEI5RIHI",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "Finding Equilibrium: Arrow, Debreu, McKenzie and the Problem of Scientific Credit"
+        },
+        {
+          "itemKey": "MM56C8XH",
+          "score": 0.01020408163265306,
+          "source": null,
+          "title": "Mathematical Introduction to Economics"
+        },
+        {
+          "itemKey": "V5D49GEX",
+          "score": 0.010101010101010102,
+          "source": "fulltext",
+          "title": "Reduced cost functions and their applications"
+        },
+        {
+          "itemKey": "ZTXRZKZP",
+          "score": 0.01,
+          "source": "fulltext",
+          "title": "The Frame for the Not-Yet Existent: How American, European, and Soviet Scholars Jointly Shaped Modern Mathematical Economics"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.009900990099009901,
+          "source": null,
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "GQF7675B",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "Convex and Coherent Risk Measures"
+        },
+        {
+          "itemKey": "CIJ2E7DV",
+          "score": 0.009615384615384616,
+          "source": "fulltext",
+          "title": "Intergenerational justice when future worlds are uncertain"
+        },
+        {
+          "itemKey": "AGMQMZP9",
+          "score": 0.009009009009009009,
+          "source": "fulltext",
+          "title": "Programming the USSR: Leonid V. Kantorovich in Context"
+        },
+        {
+          "itemKey": "H678DN9J",
+          "score": 0.008620689655172414,
+          "source": null,
+          "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
+        },
+        {
+          "itemKey": "UQ9EPQNE",
+          "score": 0.00847457627118644,
+          "source": null,
+          "title": "The Harrison–Pliska arbitrage pricing theorem under transaction costs"
+        },
+        {
+          "itemKey": "2KDVRCNK",
+          "score": 0.008403361344537815,
+          "source": null,
+          "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
+        },
+        {
+          "itemKey": "4QQDLYXC",
+          "score": 0.008333333333333333,
+          "source": null,
+          "title": "A necessary and sufficient condition for rationalizability in a quasi-linear context"
+        }
+      ]
+    },
+    "carbon tax": {
+      "n": 13,
+      "keys": [
+        "Z7A2WC4X",
+        "X69DJS66",
+        "R4HDCVL9",
+        "XFN2ZM2B",
+        "3IPR4M8J",
+        "DWW5EJ9X",
+        "GP4CV9I3",
+        "LMZZ6L7N",
+        "2GJCXUZ6",
+        "DS9KVEAS",
+        "IMYL7D2C",
+        "KCFDEM2J",
+        "7TMVQ6SS"
+      ],
+      "hits": [
+        {
+          "itemKey": "Z7A2WC4X",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "State and Trends of Carbon Pricing 2019"
+        },
+        {
+          "itemKey": "X69DJS66",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Opportunities for carbon pricing in Viet Nam"
+        },
+        {
+          "itemKey": "R4HDCVL9",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Ancillary benefits of reduced air pollution in the US from moderate greenhouse gas mitigation policies in the electricity sector"
+        },
+        {
+          "itemKey": "XFN2ZM2B",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Beyond Kyoto: Flexible Carbon Pricing for Global Cooperation"
+        },
+        {
+          "itemKey": "3IPR4M8J",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "The Challenge of Global Warming: Economic Models and Environmental Policy"
+        },
+        {
+          "itemKey": "DWW5EJ9X",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Economics of co-firing coal and biomass: An application to Western Canada"
+        },
+        {
+          "itemKey": "GP4CV9I3",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "The synthesis of bottom-up and top-down approaches to climate policy modeling: Electric power technologies and the cost of limiting US CO2 emissions"
+        },
+        {
+          "itemKey": "LMZZ6L7N",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Carbon pricing in Vietnam: Options for adoption"
+        },
+        {
+          "itemKey": "2GJCXUZ6",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "Advanced Fuel Cycle Economic Tools, Algorithms, and Methodologies"
+        },
+        {
+          "itemKey": "DS9KVEAS",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
+        },
+        {
+          "itemKey": "IMYL7D2C",
+          "score": 0.009345794392523364,
+          "source": "fulltext",
+          "title": "Optimizing ethanol and bioelectricity production in sugarcane biorefineries in Brazil"
+        },
+        {
+          "itemKey": "KCFDEM2J",
+          "score": 0.00909090909090909,
+          "source": "fulltext",
+          "title": "Techno-Economic Study of Biomass Co-Firing with and without CO2 Capture in an Australian Black Coal-Fired Power Plant"
+        },
+        {
+          "itemKey": "7TMVQ6SS",
+          "score": 0.008849557522123894,
+          "source": "fulltext",
+          "title": "Carbon Storage and Climate Policy in a Growth Model with Innovation"
+        }
+      ]
+    },
+    "equilibrium": {
+      "n": 20,
+      "keys": [
+        "K2I876ZW",
+        "QXZAV24W",
+        "UA7S9ZFV",
+        "GS6DK2JI",
+        "C7LYAMZJ",
+        "5UIJPSWI",
+        "IDAACIUE",
+        "AZDFDDWG",
+        "IYKSXMNP",
+        "F4ZCUXEF",
+        "I3GMMBEC",
+        "GV5U9CPV",
+        "MINQVTZE",
+        "Z7ZW4K4J",
+        "X6DWTVTF",
+        "4DQGPIBI",
+        "XH9UWCKG",
+        "9KSMUGKB",
+        "H678DN9J",
+        "ER4DSTD2"
+      ],
+      "hits": [
+        {
+          "itemKey": "K2I876ZW",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The Environment and Directed Technical Change"
+        },
+        {
+          "itemKey": "QXZAV24W",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "A Detailed Overview and Consistent Classification of Climate-Economy Models"
+        },
+        {
+          "itemKey": "UA7S9ZFV",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Existence of an Equilibrium for a Competitive Economy"
+        },
+        {
+          "itemKey": "GS6DK2JI",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "On the economic theory of socialism: part one"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        },
+        {
+          "itemKey": "5UIJPSWI",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Spatial and Temporal Price and Allocation Models"
+        },
+        {
+          "itemKey": "IDAACIUE",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Transboundary Acidification, Eutrophication and Ground Level Ozone in Europe. Part I Unified EMEP Model Description"
+        },
+        {
+          "itemKey": "AZDFDDWG",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Uncertainty and risk in financial markets"
+        },
+        {
+          "itemKey": "IYKSXMNP",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "On the Existence of a Competitive Equilibrium: 1930–1954"
+        },
+        {
+          "itemKey": "F4ZCUXEF",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Set Identification in Models with Multiple Equilibria"
+        },
+        {
+          "itemKey": "I3GMMBEC",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "HOW TO PLAY GAMES? NASH VERSUS BERGE BEHAVIOUR RULES"
+        },
+        {
+          "itemKey": "GV5U9CPV",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Constrained optimal transport with an application to large markets with indivisible goods"
+        },
+        {
+          "itemKey": "MINQVTZE",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Arbitrage, rationality, and equilibrium"
+        },
+        {
+          "itemKey": "Z7ZW4K4J",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Equilibria for Economies with Production: Constant-Returns Technologies and Production Planning Constraints"
+        },
+        {
+          "itemKey": "X6DWTVTF",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Experimental and numerical study of steam gasification of a single charcoal particle"
+        },
+        {
+          "itemKey": "4DQGPIBI",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Stochastic Graphon Games: I. The Static Case"
+        },
+        {
+          "itemKey": "XH9UWCKG",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
+        },
+        {
+          "itemKey": "9KSMUGKB",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "A survey of the theory of international trade: part 2, the neo-classical theory"
+        },
+        {
+          "itemKey": "H678DN9J",
+          "score": 0.010416666666666666,
+          "source": "fulltext",
+          "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
+        },
+        {
+          "itemKey": "ER4DSTD2",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "Money and the decentralization of exchange"
+        }
+      ]
+    },
+    "théorie": {
+      "n": 18,
+      "keys": [
+        "3FU4WF3V",
+        "J7B6FQ86",
+        "GTIGCIFF",
+        "CJHUAB3J",
+        "7W6427SB",
+        "R3KFAMIG",
+        "2C933JHA",
+        "M8T2GBWF",
+        "CSK9WJEW",
+        "MYH839NE",
+        "52LAGW8S",
+        "W4925VVD",
+        "CTQGK676",
+        "UKVXPC5P",
+        "27RQ3BN4",
+        "J6MXQTJ5",
+        "WY2V3MGB",
+        "8VHUFARC"
+      ],
+      "hits": [
+        {
+          "itemKey": "3FU4WF3V",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Théorie économique, réalité industrielle et intérêt général. La recherche de l'optimum à Électricité de France (1946-1965)"
+        },
+        {
+          "itemKey": "J7B6FQ86",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
+        },
+        {
+          "itemKey": "GTIGCIFF",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot (1801-1877)"
+        },
+        {
+          "itemKey": "CJHUAB3J",
+          "score": 0.014705882352941176,
+          "source": null,
+          "title": "Analyse critique des approches de l'acceptation des technologies : de l'utilisabilité à la symbiose humain-technologie-organisation"
+        },
+        {
+          "itemKey": "7W6427SB",
+          "score": 0.014285714285714285,
+          "source": null,
+          "title": "Die Grundzüge der Theorie der Statistik"
+        },
+        {
+          "itemKey": "R3KFAMIG",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "La production jointe : le point de vue de la théorie de l'équilibre général"
+        },
+        {
+          "itemKey": "2C933JHA",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
+        },
+        {
+          "itemKey": "M8T2GBWF",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Les doctrines de Cournot sur le commerce international"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "MYH839NE",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Durch die Kriegswirtschaft zur Naturalwirtschaft"
+        },
+        {
+          "itemKey": "52LAGW8S",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "La grande inversion : « les » valeurs comme objectif, « la » valeur comme conséquence ?"
+        },
+        {
+          "itemKey": "W4925VVD",
+          "score": 0.010101010101010102,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "CTQGK676",
+          "score": 0.01,
+          "source": null,
+          "title": "Modèles de précaution en économie: introduction aux probabilités imprécises"
+        },
+        {
+          "itemKey": "UKVXPC5P",
+          "score": 0.009523809523809525,
+          "source": "fulltext",
+          "title": "Note sur les œuvres économiques d'Augustin Cournot"
+        },
+        {
+          "itemKey": "27RQ3BN4",
+          "score": 0.009433962264150943,
+          "source": null,
+          "title": "Theorie der einfachen Ungleichungen"
+        },
+        {
+          "itemKey": "J6MXQTJ5",
+          "score": 0.008695652173913044,
+          "source": "fulltext",
+          "title": "A Contextualized Historical Analysis of the Kuhn–Tucker Theorem in Nonlinear Programming: The Impact of World War II"
+        },
+        {
+          "itemKey": "WY2V3MGB",
+          "score": 0.00847457627118644,
+          "source": null,
+          "title": "Evaluating and extending SCALERS: Implications for social entrepreneurs"
+        },
+        {
+          "itemKey": "8VHUFARC",
+          "score": 0.008333333333333333,
+          "source": null,
+          "title": "Schémas intertemporels de la modélisation macroéconomique et théorie du contrôle : simulation, optimisation, anticipations et régulation"
+        }
+      ]
+    },
+    "theorie": {
+      "n": 18,
+      "keys": [
+        "3FU4WF3V",
+        "J7B6FQ86",
+        "GTIGCIFF",
+        "CJHUAB3J",
+        "7W6427SB",
+        "R3KFAMIG",
+        "2C933JHA",
+        "M8T2GBWF",
+        "CSK9WJEW",
+        "MYH839NE",
+        "52LAGW8S",
+        "W4925VVD",
+        "CTQGK676",
+        "UKVXPC5P",
+        "27RQ3BN4",
+        "J6MXQTJ5",
+        "WY2V3MGB",
+        "8VHUFARC"
+      ],
+      "hits": [
+        {
+          "itemKey": "3FU4WF3V",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Théorie économique, réalité industrielle et intérêt général. La recherche de l'optimum à Électricité de France (1946-1965)"
+        },
+        {
+          "itemKey": "J7B6FQ86",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
+        },
+        {
+          "itemKey": "GTIGCIFF",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot (1801-1877)"
+        },
+        {
+          "itemKey": "CJHUAB3J",
+          "score": 0.014705882352941176,
+          "source": null,
+          "title": "Analyse critique des approches de l'acceptation des technologies : de l'utilisabilité à la symbiose humain-technologie-organisation"
+        },
+        {
+          "itemKey": "7W6427SB",
+          "score": 0.014285714285714285,
+          "source": null,
+          "title": "Die Grundzüge der Theorie der Statistik"
+        },
+        {
+          "itemKey": "R3KFAMIG",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "La production jointe : le point de vue de la théorie de l'équilibre général"
+        },
+        {
+          "itemKey": "2C933JHA",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
+        },
+        {
+          "itemKey": "M8T2GBWF",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Les doctrines de Cournot sur le commerce international"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "MYH839NE",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Durch die Kriegswirtschaft zur Naturalwirtschaft"
+        },
+        {
+          "itemKey": "52LAGW8S",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "La grande inversion : « les » valeurs comme objectif, « la » valeur comme conséquence ?"
+        },
+        {
+          "itemKey": "W4925VVD",
+          "score": 0.010101010101010102,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "CTQGK676",
+          "score": 0.01,
+          "source": null,
+          "title": "Modèles de précaution en économie: introduction aux probabilités imprécises"
+        },
+        {
+          "itemKey": "UKVXPC5P",
+          "score": 0.009523809523809525,
+          "source": "fulltext",
+          "title": "Note sur les œuvres économiques d'Augustin Cournot"
+        },
+        {
+          "itemKey": "27RQ3BN4",
+          "score": 0.009433962264150943,
+          "source": null,
+          "title": "Theorie der einfachen Ungleichungen"
+        },
+        {
+          "itemKey": "J6MXQTJ5",
+          "score": 0.008695652173913044,
+          "source": "fulltext",
+          "title": "A Contextualized Historical Analysis of the Kuhn–Tucker Theorem in Nonlinear Programming: The Impact of World War II"
+        },
+        {
+          "itemKey": "WY2V3MGB",
+          "score": 0.00847457627118644,
+          "source": null,
+          "title": "Evaluating and extending SCALERS: Implications for social entrepreneurs"
+        },
+        {
+          "itemKey": "8VHUFARC",
+          "score": 0.008333333333333333,
+          "source": null,
+          "title": "Schémas intertemporels de la modélisation macroéconomique et théorie du contrôle : simulation, optimisation, anticipations et régulation"
+        }
+      ]
+    },
+    "mathématiques": {
+      "n": 20,
+      "keys": [
+        "2C933JHA",
+        "CZD2P36I",
+        "J7B6FQ86",
+        "W4925VVD",
+        "MEC4PX3C",
+        "QZ7JFQVC",
+        "CSK9WJEW",
+        "GTIGCIFF",
+        "Q5MQUGBA",
+        "UKVXPC5P",
+        "XMFQBZQZ",
+        "DYPCMBV6",
+        "6ZMCCBGX",
+        "9M2ZWNY6",
+        "386DHVX2",
+        "REU8X9AR",
+        "UQ9EPQNE",
+        "XVU5A5XH",
+        "3XAI3VFE",
+        "S7AKUVHE"
+      ],
+      "hits": [
+        {
+          "itemKey": "2C933JHA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
+        },
+        {
+          "itemKey": "CZD2P36I",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Réponse à Accident nucléaire : une certitude statistique"
+        },
+        {
+          "itemKey": "J7B6FQ86",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
+        },
+        {
+          "itemKey": "W4925VVD",
+          "score": 0.0136986301369863,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "MEC4PX3C",
+          "score": 0.0125,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "QZ7JFQVC",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Liste de bases de données et de moteurs de recherche académiques"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "GTIGCIFF",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot (1801-1877)"
+        },
+        {
+          "itemKey": "Q5MQUGBA",
+          "score": 0.011904761904761904,
+          "source": null,
+          "title": "L'éducation au développement durable : entre « éducation à » et disciplines scolaires"
+        },
+        {
+          "itemKey": "UKVXPC5P",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Note sur les œuvres économiques d'Augustin Cournot"
+        },
+        {
+          "itemKey": "XMFQBZQZ",
+          "score": 0.00980392156862745,
+          "source": "fulltext",
+          "title": "Al-Hawārī's Essential Commentary: Arabic Arithmetic in the Fourteenth Century"
+        },
+        {
+          "itemKey": "DYPCMBV6",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "French R&Dialogue Council Vision Paper"
+        },
+        {
+          "itemKey": "6ZMCCBGX",
+          "score": 0.009615384615384616,
+          "source": "fulltext",
+          "title": "The Cultures of Mathematical Economics in the Postwar Soviet Union: More than a Method, Less than a Discipline"
+        },
+        {
+          "itemKey": "9M2ZWNY6",
+          "score": 0.009433962264150943,
+          "source": "fulltext",
+          "title": "A Review on Global Sensitivity Analysis Methods"
+        },
+        {
+          "itemKey": "386DHVX2",
+          "score": 0.009345794392523364,
+          "source": "fulltext",
+          "title": "Invitation à la prospective = An invitation to foresight"
+        },
+        {
+          "itemKey": "REU8X9AR",
+          "score": 0.009259259259259259,
+          "source": "fulltext",
+          "title": "On the Development of Optimization Theory"
+        },
+        {
+          "itemKey": "UQ9EPQNE",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "The Harrison–Pliska arbitrage pricing theorem under transaction costs"
+        },
+        {
+          "itemKey": "XVU5A5XH",
+          "score": 0.009009009009009009,
+          "source": "fulltext",
+          "title": "A Unified Kantorovich Duality for Multimarginal Optimal Transport"
+        },
+        {
+          "itemKey": "3XAI3VFE",
+          "score": 0.008928571428571428,
+          "source": "fulltext",
+          "title": "Handbook on the History of Economic Analysis, Volume I: Great Economists since Petty and Boisguilbert"
+        },
+        {
+          "itemKey": "S7AKUVHE",
+          "score": 0.008771929824561403,
+          "source": "fulltext",
+          "title": "Markets with Transaction Costs: Mathematical Theory"
+        }
+      ]
+    },
+    "mathematiques": {
+      "n": 20,
+      "keys": [
+        "2C933JHA",
+        "CZD2P36I",
+        "J7B6FQ86",
+        "W4925VVD",
+        "MEC4PX3C",
+        "QZ7JFQVC",
+        "CSK9WJEW",
+        "GTIGCIFF",
+        "Q5MQUGBA",
+        "UKVXPC5P",
+        "XMFQBZQZ",
+        "DYPCMBV6",
+        "6ZMCCBGX",
+        "9M2ZWNY6",
+        "386DHVX2",
+        "REU8X9AR",
+        "UQ9EPQNE",
+        "XVU5A5XH",
+        "3XAI3VFE",
+        "S7AKUVHE"
+      ],
+      "hits": [
+        {
+          "itemKey": "2C933JHA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
+        },
+        {
+          "itemKey": "CZD2P36I",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Réponse à Accident nucléaire : une certitude statistique"
+        },
+        {
+          "itemKey": "J7B6FQ86",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
+        },
+        {
+          "itemKey": "W4925VVD",
+          "score": 0.0136986301369863,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "MEC4PX3C",
+          "score": 0.0125,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "QZ7JFQVC",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Liste de bases de données et de moteurs de recherche académiques"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "GTIGCIFF",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot (1801-1877)"
+        },
+        {
+          "itemKey": "Q5MQUGBA",
+          "score": 0.011904761904761904,
+          "source": null,
+          "title": "L'éducation au développement durable : entre « éducation à » et disciplines scolaires"
+        },
+        {
+          "itemKey": "UKVXPC5P",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Note sur les œuvres économiques d'Augustin Cournot"
+        },
+        {
+          "itemKey": "XMFQBZQZ",
+          "score": 0.00980392156862745,
+          "source": "fulltext",
+          "title": "Al-Hawārī's Essential Commentary: Arabic Arithmetic in the Fourteenth Century"
+        },
+        {
+          "itemKey": "DYPCMBV6",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "French R&Dialogue Council Vision Paper"
+        },
+        {
+          "itemKey": "6ZMCCBGX",
+          "score": 0.009615384615384616,
+          "source": "fulltext",
+          "title": "The Cultures of Mathematical Economics in the Postwar Soviet Union: More than a Method, Less than a Discipline"
+        },
+        {
+          "itemKey": "9M2ZWNY6",
+          "score": 0.009433962264150943,
+          "source": "fulltext",
+          "title": "A Review on Global Sensitivity Analysis Methods"
+        },
+        {
+          "itemKey": "386DHVX2",
+          "score": 0.009345794392523364,
+          "source": "fulltext",
+          "title": "Invitation à la prospective = An invitation to foresight"
+        },
+        {
+          "itemKey": "REU8X9AR",
+          "score": 0.009259259259259259,
+          "source": "fulltext",
+          "title": "On the Development of Optimization Theory"
+        },
+        {
+          "itemKey": "UQ9EPQNE",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "The Harrison–Pliska arbitrage pricing theorem under transaction costs"
+        },
+        {
+          "itemKey": "XVU5A5XH",
+          "score": 0.009009009009009009,
+          "source": "fulltext",
+          "title": "A Unified Kantorovich Duality for Multimarginal Optimal Transport"
+        },
+        {
+          "itemKey": "3XAI3VFE",
+          "score": 0.008928571428571428,
+          "source": "fulltext",
+          "title": "Handbook on the History of Economic Analysis, Volume I: Great Economists since Petty and Boisguilbert"
+        },
+        {
+          "itemKey": "S7AKUVHE",
+          "score": 0.008771929824561403,
+          "source": "fulltext",
+          "title": "Markets with Transaction Costs: Mathematical Theory"
+        }
+      ]
+    },
+    "probabilità": {
+      "n": 6,
+      "keys": [
+        "4QSZ36XW",
+        "4NZH6JH5",
+        "V6DS9TBB",
+        "DPKSQULU",
+        "4C8VG4FG",
+        "AU8GDCRB"
+      ],
+      "hits": [
+        {
+          "itemKey": "4QSZ36XW",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "La prévision : ses lois logiques, ses sources subjectives"
+        },
+        {
+          "itemKey": "4NZH6JH5",
+          "score": 0.015384615384615385,
+          "source": null,
+          "title": "Sul significato soggettivo della probabilità"
+        },
+        {
+          "itemKey": "V6DS9TBB",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Coherence and the axioms of confirmation"
+        },
+        {
+          "itemKey": "DPKSQULU",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Fair bets and inductive probabilities"
+        },
+        {
+          "itemKey": "4C8VG4FG",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Ambiguity and the Bayesian Paradigm"
+        },
+        {
+          "itemKey": "AU8GDCRB",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Consistency in Statistical Inference and Decision"
+        }
+      ]
+    },
+    "probabilita": {
+      "n": 6,
+      "keys": [
+        "4QSZ36XW",
+        "4NZH6JH5",
+        "V6DS9TBB",
+        "DPKSQULU",
+        "4C8VG4FG",
+        "AU8GDCRB"
+      ],
+      "hits": [
+        {
+          "itemKey": "4QSZ36XW",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "La prévision : ses lois logiques, ses sources subjectives"
+        },
+        {
+          "itemKey": "4NZH6JH5",
+          "score": 0.015384615384615385,
+          "source": null,
+          "title": "Sul significato soggettivo della probabilità"
+        },
+        {
+          "itemKey": "V6DS9TBB",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Coherence and the axioms of confirmation"
+        },
+        {
+          "itemKey": "DPKSQULU",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Fair bets and inductive probabilities"
+        },
+        {
+          "itemKey": "4C8VG4FG",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Ambiguity and the Bayesian Paradigm"
+        },
+        {
+          "itemKey": "AU8GDCRB",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Consistency in Statistical Inference and Decision"
+        }
+      ]
+    },
+    "Grössenbegriffes": {
+      "n": 1,
+      "keys": [
+        "B6T9NF4T"
+      ],
+      "hits": [
+        {
+          "itemKey": "B6T9NF4T",
+          "score": 0.01639344262295082,
+          "source": null,
+          "title": "Rechnungsmethoden, die sich auf eine Erweiterung des Grössenbegriffes gründen"
+        }
+      ]
+    },
+    "richesses": {
+      "n": 18,
+      "keys": [
+        "W4925VVD",
+        "UKVXPC5P",
+        "9QGXJU9N",
+        "MEC4PX3C",
+        "CSK9WJEW",
+        "GTIGCIFF",
+        "J7B6FQ86",
+        "REU8X9AR",
+        "S3MSZRRD",
+        "3XAI3VFE",
+        "CQ6X57NJ",
+        "5VA22A3D",
+        "M8T2GBWF",
+        "JDJUFSZA",
+        "3HNW65TS",
+        "QED2Q2A4",
+        "K6ISXUI2",
+        "JM8NHHM8"
+      ],
+      "hits": [
+        {
+          "itemKey": "W4925VVD",
+          "score": 0.01639344262295082,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "UKVXPC5P",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Note sur les œuvres économiques d'Augustin Cournot"
+        },
+        {
+          "itemKey": "9QGXJU9N",
+          "score": 0.015384615384615385,
+          "source": null,
+          "title": "Un plan mondial pour le climat et contre l'extrême pauvreté"
+        },
+        {
+          "itemKey": "MEC4PX3C",
+          "score": 0.014925373134328358,
+          "source": null,
+          "title": "Recherches sur les principes mathématiques de la théorie des richesses"
+        },
+        {
+          "itemKey": "CSK9WJEW",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
+        },
+        {
+          "itemKey": "GTIGCIFF",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Antoine-Augustin Cournot (1801-1877)"
+        },
+        {
+          "itemKey": "J7B6FQ86",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
+        },
+        {
+          "itemKey": "REU8X9AR",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "On the Development of Optimization Theory"
+        },
+        {
+          "itemKey": "S3MSZRRD",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Managing tree seed in an uncertain climate: conference summary"
+        },
+        {
+          "itemKey": "3XAI3VFE",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Handbook on the History of Economic Analysis, Volume I: Great Economists since Petty and Boisguilbert"
+        },
+        {
+          "itemKey": "CQ6X57NJ",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "A Survey of the Theory of International Trade: Part 1, The Classical Theory"
+        },
+        {
+          "itemKey": "5VA22A3D",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "Budget support guidelines"
+        },
+        {
+          "itemKey": "M8T2GBWF",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "Les doctrines de Cournot sur le commerce international"
+        },
+        {
+          "itemKey": "JDJUFSZA",
+          "score": 0.00909090909090909,
+          "source": "fulltext",
+          "title": "Les problèmes économiques de l'équipement hydroélectrique"
+        },
+        {
+          "itemKey": "3HNW65TS",
+          "score": 0.008849557522123894,
+          "source": "fulltext",
+          "title": "Bilan de la concertation. Projet pilote de captage stockage de CO2 dans le bassin de Lacq"
+        },
+        {
+          "itemKey": "QED2Q2A4",
+          "score": 0.008771929824561403,
+          "source": "fulltext",
+          "title": "Communes de Jurançon - Moneim - Lacq - Mont. Demande d’autorisation d’exploiter une unité pilote de captage de CO2 depuis l’usine de Lacq, de transport par les canalisations existantes, puis injection aux fins de stockage de CO2, dans le puits dit de Rousse 1 sur la commune de Jurançon."
+        },
+        {
+          "itemKey": "K6ISXUI2",
+          "score": 0.008547008547008548,
+          "source": "fulltext",
+          "title": "Stockage du CO2 dans le bassin parisien"
+        },
+        {
+          "itemKey": "JM8NHHM8",
+          "score": 0.008333333333333333,
+          "source": "fulltext",
+          "title": "Les modèles du futur: changement climatique et scénarios économiques, enjeux scientifiques et politiques"
+        }
+      ]
+    }
+  },
+  "peak_rss_kb_final": 5897796
+}

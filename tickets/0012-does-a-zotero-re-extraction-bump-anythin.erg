@@ -6,6 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T19:28Z minh created
 2026-08-22T04:05Z claude note answered, and it is a defect: the delta consults the right channel but compares it against the wrong sequence -- library version 410 against full-text versions up to 25 036
+2026-08-22T00:40Z claude note closed: second watermark implemented and tested; the reported figures re-measured through a committed driver and all reproduce, 92,7% at the real library version
 
 --- body ---
 ## Context
@@ -64,11 +65,7 @@ the fix follows Zotero's shape: fold an extraction identity into the staleness
 key, and prefer a content hash over a version comparison, since a hash is
 robust to *why* the text changed. *(Outcome: neither. See below.)*
 
-## Exit criteria
-
-- [ ] The behaviour is established by experiment and recorded, either way
-- [ ] If the delta misses a re-extraction: a staleness key that catches it,
-      with a test that re-extracts and asserts the passage text updated## Answered 2026-08-22 — and the answer is a defect, not a reassurance
+## Answered 2026-08-22 -- and the answer is a defect, not a reassurance
 
 **The delta does consult the right channel.** `addNewlyExtracted()` in
 `delta.ts` calls `ctx.router.fullTextSince(run.watermark, ...)`, resolves each
@@ -141,7 +138,51 @@ a library version.
 
 ## Exit criteria
 
-- [x] The behaviour is established by experiment and recorded — it over-reports
-      rather than misses, and the measurement is above
-- [ ] A separate, labelled full-text watermark, seeded deliberately
-- [ ] Test asserting a no-change second delta produces no candidates
+- [x] The behaviour is established by experiment and recorded -- it over-reports
+      rather than misses, and the measurement is now a committed artifact,
+      `bench/results/0012-fulltext-sequence/sequences.json`, produced by
+      `bench/fulltext_sequence.py` against the live local API
+- [x] A separate, labelled full-text watermark, seeded deliberately
+- [x] Test asserting a no-change second delta produces no candidates
+      (`tests/features/search-delta-fulltext-watermark.test.ts`)
+
+## The evidence, committed 2026-08-22
+
+The figures below were first reported from an uncaptured call, and a review
+found nothing behind them. Re-run through a committed driver that writes the
+raw version list into its own output, every one reproduces:
+
+| | |
+|---|---|
+| library version (`Last-Modified-Version` on `/items`) | **410** |
+| full-text versions, `/fulltext?since=0` | **0 … 25 036**, median **12 884**, 8 037 entries |
+| entries returned by `/fulltext?since=200` | **7 453** |
+| entries returned by `/fulltext?since=410` -- the real case | **7 453**, i.e. **92,7%** |
+
+## How it was fixed, and the two decisions inside that
+
+**Seeded from the build's own read, not from an extra request.** The build
+already calls `/fulltext?since=0` in `createFulltextSource`, to learn which
+attachments have text at all; its values *are* the full-text sequence. Taking
+the maximum there costs nothing and makes the FIRST delta after a build correct.
+The alternative this ticket offered -- seed 0 and accept one full sweep -- would
+have reproduced the defect once, deliberately.
+
+The seed is withheld when the attachment walk did not locate every extracted
+attachment (`mapped < total`). Seeding past attachments that were never indexed
+is the failure this ticket warned about in the other direction, where nothing
+ever looks newly extracted again.
+
+**Swept in ascending version order, advanced only past completed versions.**
+Map order plus an unmoved watermark is a loop that makes no progress -- it is
+the shape the defect had. Ordering by version means a sweep cut short by the
+item ceiling still leaves a version below which everything has been folded in,
+so the next delta resumes there. A version group in which an attachment failed
+to resolve is not counted as completed.
+
+**No label of its own.** Local and cloud full-text sequences are no more
+commensurable than the item ones, so this ticket asked for a label. It does not
+need one: the backend-label check on the ITEM watermark runs before any of this,
+a mismatch rebuilds, and a rebuild clears both watermarks together. They are
+written together and cleared together, so no path can leave one attributable and
+the other not. Pinned by the test rather than argued.

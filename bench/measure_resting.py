@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Measure a Zoteus server at rest: load an existing index, query it, report memory."""
 import argparse
-import json
 import logging
 import subprocess
 import sys

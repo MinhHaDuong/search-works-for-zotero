@@ -6,6 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T19:25Z minh created
 2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the New Palgrave and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
+2026-08-22T00:35Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
 
 --- body ---
 ## Context
@@ -39,7 +40,7 @@ measured and holds.
 
 **What fails is the build-time claim**, and only by comparison with the
 ticket's own wording. 2 085 MiB is still 2,6x below the 5 370 MB resident
-figure and 3,2x below the 6,48 GB build peak 0003 cites. It is not a
+figure and 3,1x below the 6,48 GB build peak 0003 cites. It is not a
 regression against zoteus; it is a promise this chantier should not have made
 in that form. The honest headline is **"~2 GB peak during build, ~130 MB at
 rest"**, and every place that currently says "a few hundred MB" needs to say
@@ -124,7 +125,24 @@ this is a measurement, and a memory assertion in CI would be machine-dependent.
 
 - [x] Cause isolated: one 44,9 MB document; capping it cuts peak 5,2x
 - [x] Reducible and re-measured: 404 MiB at a 2 M-char cap
-- [ ] Decide whether zoteus ships such a cap by default -- shared with 0013,
-      which now has a memory argument its ranking evidence lacked
-- [ ] "A few hundred MB" corrected to the measured figure in STATE, 0001, and
-      the #10 report
+      (`bench/results/0011-rss/capped-vs-uncapped.json`)
+- [x] Decided 2026-08-22 by the author: **zoteus ships no such cap by default.**
+      `fulltext_max_chars` remains available and the 2 M figure is documented as
+      the value that buys the reduction, but enabling it changes what is indexed
+      -- it discards text -- so it is the user's call and not a default. Shared
+      with 0013, whose ranking evidence points the same way: the concentration
+      is real and not worth bounding.
+- [x] "A few hundred MB" corrected to the measured figure in STATE and 0001.
+      The #10 report was dropped as a criterion (0001, 2026-08-22), so there is
+      nothing else to correct.
+
+## Re-measured 2026-08-22
+
+A third uncapped build, on the same library, one item larger: **477 512
+passages, 371,6 s, peak 1 848,8 MiB**. That lands inside the spread of the two
+runs above (1 892 and 2 085 MiB) and confirms the figure is a property of the
+corpus rather than of a run.
+
+The honest headline this ticket exists to establish: **~1,85 GB peak during
+build, ~128 MiB at rest.** The at-rest number is the one the chantier turns on
+and it is unaffected.
