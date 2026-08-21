@@ -6,9 +6,52 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T19:10Z minh decided sqlite-vec ruling reversed -- it rested on a false premise; embedding stays in embeddings.ts
 2026-08-21T15:47Z claude note planned against 0002's PassageStore port: vectors join the port rather than a parallel store, so one seam carries both rankings
 
 --- body ---
+## Amendment 2026-08-21: the sqlite-vec ruling is reversed
+
+The body below rules `sqlite-vec` out because "it is a loadable extension, and
+the point of `node:sqlite` here is to add no dependency". **That ruling rested
+on a false premise and the author has reversed it.** Verified directly:
+
+- `node:sqlite` does support loadable extensions -- `DatabaseSync` accepts
+  `{ allowExtension: true }`, and `enableLoadExtension` / `loadExtension` both
+  work on Node 22.23.1.
+- `sqlite-vec` is an ordinary npm install: v0.1.9, ~188 kB, prebuilt
+  per-platform binaries shipped as its own `optionalDependencies`, no
+  compilation, MIT/Apache. A KNN query was run through it end to end.
+- zoteus already uses exactly this pattern twice: `pdfjs-dist` in
+  `optionalDependencies`, and `@huggingface/transformers` resolved without
+  executing in `embeddings.ts`, degrading gracefully. Vectors exist only when
+  that far heavier optional dependency is installed, so `sqlite-vec` is needed
+  precisely when one already is.
+
+What this buys is the reason it was accepted: KNN runs in C, so `mode:
+"semantic"` keeps upstream's exact recall with no JS scan. The alternative --
+a faithful full scan in JS -- would pull roughly 628 MB through memory per
+query at 384 dims over 408 628 passages, partly reintroducing the ceiling this
+chantier exists to remove. The other alternative, restricting the scan to FTS5
+candidates, bounds memory but makes a semantically-close passage sharing no
+keyword with the query unreachable, which is the case semantic search is for.
+
+**Embedding is NOT delegated to SQLite.** `sqlite-lembed` (0.0.1-alpha.8) and
+`sqlite-rembed` (0.0.1-alpha.9) stay out. They generate embeddings, which is a
+different job from storing them: swapping the model changes the vectors and so
+voids 0001's "same corpus in, same results out" gate, they are alpha where
+`sqlite-vec` is released, embedding is not the bottleneck the measurements
+show, and replacing the provider would make this something other than the
+contained storage swap the upstream posture depends on. `sqlite-rembed` as a
+remote-embedding *feature* is a separate ticket if wanted.
+
+**One wrinkle this creates.** `vec0` needs the vector dimension at CREATE time;
+zoteus discovers it at runtime from the tensor and it varies by model. So the
+vec table is created lazily on the first vector, its dimension recorded in the
+`index_meta` table 0005 added, and read back on reopen. A later vector of a
+different length (the user changed `ZOTEUS_EMBEDDINGS`) must not be stored
+beside the others -- mixed dimensions in one table produce plausible nonsense.
+
 ## Context
 
 Vectors currently live in a JS array beside the keyword index and are fused

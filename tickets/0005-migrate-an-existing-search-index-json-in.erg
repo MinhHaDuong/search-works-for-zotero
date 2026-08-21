@@ -6,6 +6,7 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T19:05Z claude note implemented and verified: 612 passed 7 skipped, tsc and eslint clean; 600 MB fixture migrates at 150 MB peak RSS
 2026-08-21T15:48Z claude note planned: hand-rolled incremental scan of the chunks array, no dependency; the file that needs migrating is the file JSON.parse cannot read
 
 --- body ---
@@ -65,12 +66,53 @@ escaped `"` in its text. A naive scanner cuts it in the wrong place and the
 migration produces the wrong passage count -- assert the count and the exact
 text of that passage round-trip.
 
+## Findings from the implementation
+
+**The 463 MB index is *under* V8's string cap, not over it.** The cap is
+536 870 888 *characters*; 463 MB of mostly-ASCII JSON is about 86% of that. So
+`JSON.parse` very likely still reads the author's current file. The premise
+stated in 0001 -- that `JSON.stringify` throws past the cap -- remains true and
+is a real wall, but this particular file has not hit it yet; what it *has* hit
+is the separate heap wall on reload. Worth keeping the two apart, because they
+have different thresholds and different symptoms.
+
+This changed nothing about the implementation. A fast path would still be the
+branch nobody exercises, and the margin is one growth step wide. Demonstrated
+instead on a 600 MB synthetic fixture, where the control
+(`readFileSync(path,'utf8')`) throws `Cannot create a string longer than
+0x1fffffe8 characters` and the scanner migrates all 1 189 225 chunks.
+
+**Measured, out of band:** 600 MB / 1 189 225 chunks migrates in 41 s at a peak
+RSS of 150 MB, every row readable afterwards from a separate process. The
+memory figure should not scale with file size -- that is the property worth
+checking on the real file, more than the wall clock.
+
+**The database comes out larger than the JSON**, 1,34x on that fixture (600 MB
+-> 801 MB), because FTS5 stores the body *and* its inverted index. Budget about
+620 MB for the 463 MB index, plus the same again transiently: the temporary
+database is renamed rather than written in place, and the JSON is left alone.
+
+**In-suite the streaming property is bounded, not measured.** A 2,5 MB fixture
+migrates with `maxObjectBytes` at 8 KiB -- smaller than one stream chunk -- so
+anything accumulating the document, or even one chunk's worth of records, trips
+the guard. That bounds the retained parse window. It is not an RSS assertion,
+which would be too machine-dependent for a suite gate.
+
+**`builtFromVersion` is restored at construction but goes stale after a later
+build** -- nothing writes it back. Harmless today because `buildIncremental`
+always rebuilds from scratch, so the value is reported and never acted on. It
+becomes load-bearing in 0006, which is where it should be made durable,
+alongside `items` and `fulltextItems` which the SQLite backend also does not
+restore.
+
 ## Verification
 
-- [ ] A migrated index answers the same queries as the JSON it came from
-- [ ] Migration of a file above V8's string limit succeeds, or fails with a
+- [x] A migrated index answers the same queries as the JSON it came from
+- [x] Migration of a file above V8's string limit succeeds, or fails with a
       message naming the cause rather than silently falling back to "no index"
+      -- 600 MB fixture, above the cap, migrates whole
 
 ## Exit criteria
 
-- [ ] Migration path tested on the 463 MB index in `bench/`
+- [ ] Migration path tested on the 463 MB index -- BLOCKED, the file lives in
+      the author's ZOTEUS_DATA_DIR, not in `bench/`; command handed over

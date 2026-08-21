@@ -6,6 +6,7 @@ Blocked-by: 0002
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T18:40Z claude note implemented and verified: 592 passed 7 skipped, tsc and eslint clean; commit-on-exit sabotage-checked
 2026-08-21T15:45Z claude note planned against 0002's PassageStore port: persist() becomes a transaction boundary on the port, backend selected by ZOTEUS_SEARCH_BACKEND
 
 --- body ---
@@ -78,6 +79,46 @@ still queryable from a freshly opened store on the same file. That fails today
 produce.
 
 
+## Findings from the implementation
+
+**The ticket guessed the cancellation path wrong, and the real reason for the
+`finally` commit is better than the guessed one.** `buildIncremental`'s try
+block has exactly two `return`s, both after `await persistNow()`; cancellation
+only `break`s the page loop and falls through the same tail as a normal
+completion. So the `finally` commit is not there to catch an early return. Its
+actual job: `persistNow` always opens the *next* transaction after committing,
+and left open that transaction silently absorbs every write after the build
+returns -- no second connection ever sees them. Verified by sabotage: removing
+the `finally` commit reddens the trailing-transaction test alone, and the test
+now names that mechanism rather than the guessed one.
+
+**`beginBatch` at build start is not pinned by any test.** Removing it leaves
+the suite green, because it only covers the first `persistEveryItems` items
+before `persistNow` opens the first real transaction. Its effect is throughput,
+not correctness, so no test pins it and the bench is the measurement. Recorded
+rather than papered over with a test that would assert nothing.
+
+**The anticipated `toJSON` breakage did not happen, and the refusal sits one
+level up from where the ticket assumed.** The parameterised round-trip tests
+construct a plain `SearchIndex` with an injected `Fts5PassageStore`, not a
+`SqliteSearchIndex`, and the refusal lives on the latter -- where 0002 put the
+backend's identity. Nothing had to be moved or weakened.
+
+Residual, stated plainly: a bare `SearchIndex` handed an `Fts5PassageStore`
+still round-trips through JSON. No production path does that -- `grep 'new
+Fts5PassageStore' src/` returns exactly one site, `SqliteSearchIndex`'s
+constructor, confirmed at the wave gate. Pushing the refusal down to the port
+would need either SQLite vocabulary in `index-manager.ts` or a capability flag,
+and it would guard nothing real: `values()` returns every row, so the
+data-loss case the ticket feared (a silent empty `toJSON`) does not exist. The
+honest reason to refuse is that materialising 408 628 passages into the heap is
+the OOM the backend exists to avoid -- a property of the backend, not of one
+store instance.
+
+**Out of scope but worth recording:** `SearchIndex.build()`, the synchronous
+non-incremental path, still autocommits per passage. Only small builds and
+tests use it today; it is the one remaining unbatched write loop.
+
 ## Verification
 
 - [ ] Whole library, no character cap, builds and is queryable immediately after
@@ -86,7 +127,10 @@ produce.
 
 ## Exit criteria
 
-- [ ] `IndexBuildStatus` bookkeeping intact, `itemsAvailable` and
+- [x] `IndexBuildStatus` bookkeeping intact, `itemsAvailable` and
       `truncationNotice` included
-- [ ] `persistence.ts` unused by the SQLite path
-- [ ] Build of the full library measured and recorded in `bench/`
+- [x] `persistence.ts` unused by the SQLite path -- `searchIndexPath` is left
+      undefined on the sqlite backend, so the persist callback is never built
+- [ ] Build of the full library measured and recorded in `bench/` -- BLOCKED,
+      needs the author's 7 540-item library; command handed over, no numbers
+      fabricated
