@@ -9,6 +9,7 @@ Author: minh
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed -- Blocked-by removed.
 2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
 2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
+2026-08-21T23:50Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
 --- body ---
 ## Correction 2026-08-21: the premise below is wrong
 
@@ -34,26 +35,34 @@ constants". It is "structure exists; can we reach it?"
 **Three obstacles, and the first is decisive.** No pack has been generated on
 this library: **zero `.zotero-sdt-cache` files across 13 631 attachments**.
 
-That is not simply "nothing has triggered it yet", which was the first reading
-and the weaker one. Opening a PDF in the reader is what writes
-`.zotero-ft-cache`, and two attachments were opened *after* the 2026-08-17
-15:17:51 build -- `746J4UL3` at 15:45 the same day, and `TB28BNW2` on
-2026-08-20 21:52, whose `.zotero-ft-cache` was then rewritten 2026-08-21 14:38.
-So full-text extraction demonstrably ran post-upgrade, on a reader session, and
-**produced no SDT pack either time**.
+Two readings of that were attempted before the right one, and both failed the
+same way -- `BuildID=20260817151751` is when Zotero *compiled* the release, and
+it was used as the date the author *installed* it. The install is
+`/opt/zotero7/app/omni.ja`, **2026-08-21 14:26**.
 
-The conclusion is therefore stronger and more specific: in shipped Zotero 10.0
-the SDT modules are present but **nothing in the normal reader path invokes
-them**. Extraction is gated behind something that is not shipped or not
-enabled -- most plausibly zotero/zotero#6012's embeddings pipeline, whose
-`extensions.zotero.embeddings.model` pref defaults to `""` (disabled). Which
-means the packs do not merely not-exist-yet; on a stock install there is
-currently no way to make them exist.
+| | | |
+|---|---|---|
+| `746J4UL3/.zotero-reader-state` | 2026-08-17 15:45 | before install |
+| `TB28BNW2/.zotero-reader-state` | 2026-08-20 21:52 | before install |
+| local install | **2026-08-21 14:26** | |
+| 1 036 `.zotero-ft-cache` rewritten | 14:27 onward | bulk re-index |
+| reader sessions since install | **0** | |
 
-That also reframes the cost question Zotero's own developer raises in the only
-comment on #6012 -- whether running SDT over every attachment is affordable.
-It is unanswered upstream, and until it is answered the extraction has no
-trigger here at all. Second, the pack is an **undocumented binary
+So **no PDF has been opened in the reader since the upgrade**, and the
+confident conclusion drawn from the second reading -- that the reader path does
+not invoke SDT -- is *unsupported*: that path has not run once. The 14:38
+`.zotero-ft-cache` that looked like a reader session belongs to the bulk
+re-index, consistent with the FTS5 rewrite in Zotero's release notes.
+
+What the evidence does support is narrower: **the bulk full-text re-index
+produced no SDT packs**, which rules out that path and only that path.
+
+**The experiment that settles it costs one minute**: open a single PDF in
+Zotero and check whether a `.zotero-sdt-cache` appears beside its
+`.zotero-ft-cache`. Until it is run, whether SDT can be triggered on a stock
+install is **open**, and this ticket assumes neither answer.
+
+Second, the pack is an **undocumented binary
 format** (magic + `SDT_PACK_VERSION` + independently compressed block groups)
 read through a bundled module; using it externally means porting that reader
 from in-tree AGPL source. Third, it is **not exposed over the local API**, so an
@@ -80,12 +89,12 @@ size, which a fixed window cannot express.
 
 ## Revised actions
 
-1. Determine whether SDT can be triggered at all on a stock install. The
-   reader path demonstrably does not (evidence above), so this means finding
-   the pref or code path that does, or establishing that none is shipped. If
-   none is, SDT is a *future* option and this ticket proceeds on actions 2-4
-   without it -- but record that, because it is the difference between "not
-   possible" and "not attempted".
+1. **Open one PDF in Zotero and look for `.zotero-sdt-cache`.** One minute,
+   and it decides the ticket. A pack appears: SDT is reachable, and what
+   remains is the binary format and whether porting the reader is
+   proportionate. No pack: extraction is gated behind something unshipped or
+   disabled, and SDT is a *future* option. Record which -- it is the difference
+   between "not possible" and "not attempted".
 2. Config knobs as originally planned (`ZOTEUS_INDEX_CHUNK_SIZE` /
    `_OVERLAP` and the full-text pair), defaults unchanged.
 3. Consider a token budget rather than a character budget, following #6012.

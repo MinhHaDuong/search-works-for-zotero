@@ -97,13 +97,15 @@ theirs rather than behind. They fuse keyword and vector with RRF at `k = 60` —
 the same constant this prototype picked independently.
 
 **Zotero ships structure extraction we did not know about.** `Zotero.SDT`
-(`sdt.js` + `structured-document-text.js`, present in build 20260817151751)
-writes a per-attachment `.zotero-sdt-cache` pack carrying page labels, outline
-paths, reader positions and running-head exclusion. An earlier finding here
-said Zotero exposes no in-text structure; that was true of `.zotero-ft-cache`
-and wrong about Zotero. Three obstacles keep it out of reach for now — **zero
-packs exist on this library**, the format is undocumented binary, and it has no
-API surface. Ticket 0007 carries the correction.
+(`sdt.js` + `structured-document-text.js`, in the installed build) writes a
+per-attachment `.zotero-sdt-cache` pack carrying page labels, outline paths,
+reader positions and running-head exclusion. An earlier finding here said
+Zotero exposes no in-text structure; that was true of `.zotero-ft-cache` and
+wrong about Zotero. Whether it is *reachable* is open: zero packs exist, and
+the one path known not to produce them is the post-install bulk full-text
+re-index. No PDF has been opened in the reader since the 2026-08-21 14:26
+install, so the reader path is untested rather than ruled out — one PDF opened
+in Zotero decides it. Ticket 0007 carries the correction and the experiment.
 
 No current setting both writes and reads this library back: 40 000 chars/item
 fits but discards 61% of the text, 200 000 writes but needs
