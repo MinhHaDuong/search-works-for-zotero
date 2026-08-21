@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-08-21T20:21Z minh created
+2026-08-22T02:50Z claude note distortion measured, and it is systematic: the dictionary suppresses idf for HET vocabulary (keynes -28%, walras -25%) while inflating it for climate terms
 
 --- body ---
 ## Context
@@ -43,6 +44,49 @@ reads as a broad corpus; a tenth of it is one book. Any per-passage average --
 index bytes, embedding cost, query latency -- is computed over a population
 with a 30x outlier in it. The oscardvs/zoteus#10 report should say so.
 
+## The distortion, measured
+
+Action 4 asked for this before deciding anything. Computed directly against the
+built index (`~/.zoteus-bench-0003/search-index.sqlite`), comparing each term's
+inverse document frequency over the whole corpus against the corpus with
+`DH8EXSVA` removed. `idf = ln(1 + (N - df + 0,5) / (df + 0,5))`, the formula
+`bm25.ts` uses.
+
+| term | df total | df in the dictionary | share | idf shift if excluded |
+|---|---|---|---|---|
+| `keynes` | 1 819 | 1 473 | **81,0%** | **+28,1%** |
+| `walras` | 831 | 674 | **81,1%** | **+24,7%** |
+| `equilibrium` | 11 616 | 6 708 | 57,7% | +20,6% |
+| `utility` | 12 403 | 3 580 | 28,9% | +6,7% |
+| `arbitrage` | 1 674 | 453 | 27,1% | +3,9% |
+| `carbon` | 43 397 | 50 | 0,1% | −3,9% |
+| `climate` | 62 026 | 173 | 0,3% | −4,5% |
+| `photovoltaic` | 2 298 | 1 | 0,0% | −1,8% |
+
+**The distortion is systematic, and it runs the wrong way for this library.**
+A dictionary of economics carries an entry on nearly every economist, so it
+floods the corpus with passages containing precisely the history-of-economic-
+thought vocabulary. BM25 reads that as "these terms are common" and lowers
+their weight: `walras` and `keynes` are treated as roughly a quarter less
+discriminating than they are in the author's actual research corpus. Four of
+five passages containing them are one reference work.
+
+The climate and energy vocabulary moves the opposite way, mildly inflated
+because the dictionary dilutes the corpus without containing those terms.
+
+So this is not a presentational problem. A search for a named economist -- the
+characteristic query of the HET work this library serves -- is ranked with a
+weight depressed by a single book, and the depression is largest exactly where
+the library is most specialised.
+
+**What this does not yet establish:** whether the depressed idf changes the
+*order* of results a user sees, as opposed to their scores. idf enters BM25
+multiplicatively per term, so a single-term query's ranking is unaffected --
+every candidate is scaled alike. It bites on **multi-term queries**, where the
+relative weight of terms decides which document wins. That is the experiment to
+run next, and it is cheap: a handful of two- and three-term HET queries, ranked
+with and without the item indexed, compared by result order rather than score.
+
 ## What zoteus does not currently do
 
 Nothing records or bounds per-item contribution. `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`
@@ -68,9 +112,12 @@ heterogeneous, so we cannot rely on upstream to bound anything.
 3. Run 0011's experiment in its cheap form first: rebuild excluding
    `DH8EXSVA`, re-read `VmHWM`, and see how much of the 2 GB peak it accounts
    for.
-4. Quantify the ranking distortion before fixing it: compare `bm25()` scores
-   for a sample of economics queries with and without the item indexed. If the
-   effect is small, this becomes a documentation note rather than a change.
+4. ~~Quantify the ranking distortion.~~ **Done** -- see above; idf for `keynes`
+   and `walras` is depressed about a quarter. What remains is whether that
+   changes result *order*: idf scales every candidate alike within a
+   single-term query, so the effect lands on multi-term queries. Rank a handful
+   of two- and three-term HET queries with and without the item and compare
+   orders, not scores.
 
 ## Test
 
@@ -82,6 +129,8 @@ surfaces the concentration instead.
 ## Exit criteria
 
 - [ ] Per-item concentration visible from `status()` or a documented query
-- [ ] Ranking distortion measured, and the decision to bound or not to bound
-      taken on that measurement
+- [x] Ranking distortion measured on corpus statistics: idf depressed 20-28%
+      for HET vocabulary, inflated 2-5% for climate terms
+- [ ] Order-level effect measured on multi-term queries, and the decision to
+      bound or not to bound taken on that
 - [ ] 0011's cheap experiment run and its result recorded there
