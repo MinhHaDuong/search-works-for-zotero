@@ -198,36 +198,33 @@ The database/JSON ratio is **1,55×**, not the 1,34× budgeted from the syntheti
 fixture — confirmed at both sizes — so a full-size migration needs ~715 MB, not
 620. The 463 MB criterion **stays open**; 321 MB is 69% of it.
 
-## Accented queries are broken on the SQLite backend
+## Accented queries: was broken, fixed 2026-08-22
 
-Found by that comparison and now ticket 0009, raised from enhancement to
-defect. `toMatchQuery` tokenises with `/[a-z0-9]+/g`, so `théorie` becomes the
-fragments `"th" OR "orie"` while FTS5 has folded the document side to
-`theorie`. The two never meet, and `"th"` matches English prose:
+`toMatchQuery` tokenised with `/[a-z0-9]+/g`, so `théorie` became the fragments
+`"th" OR "orie"` while FTS5 had folded the document side to `theorie`. `"th"`
+matches English prose, so the SQLite backend returned twenty confident,
+plausible, entirely wrong results — jaccard 0,00 against the JSON backend,
+which returned the right French works.
 
-    SQLITE  "théorie" -> 20 hits: Do conservation contests work? / Graphical Economics / …
-    JSON    "théorie" -> 14 hits: Théorie économique… / Éléments d'économie politique pure… / Cournot
+Fixed the way Zotero fixes it: one normalizer applied on both sides in JS, plus
+a Unicode-aware token class `/[\p{L}\p{N}]+/u`. `tokenize()` is shared by the
+BM25 index at index and query time and by `toMatchQuery`, so the symmetry is
+structural. Fork `50b3f15`, 679 → 739 tests.
 
-Jaccard 0,00. Twenty confident, plausible, entirely wrong results — worse than
-an empty answer, because a user cannot tell. Across the accented set: 0,00 to
-0,50, against 0,48–1,00 for every ASCII query. The index is fine; the query
-path alone is broken.
+**Four of the plan's assumptions were wrong, and the tokenizer said so.**
+Zotero's hand map (`ø œ æ ł đ ð þ ß`) suits Zotero, which owns both sides of
+its comparison; here `passages.body` is the display text, so the document side
+is FTS5's — and `remove_diacritics 2` **keeps** every one of those letters. So
+`đ` does not fold to `d` (`đại` indexes as `đai`), and a blanket `\p{M}` strip
+would have broken Greek, since `Θεωρία` keeps its tonos. And
+`remove_diacritics 2` did not become moot as planned: it is the document-side
+normalizer that the JS side now emulates, so 0002's reasoning for choosing it
+stands. There was also no stale-index problem — both artifacts store raw text
+and rebuild terms on load, asserted by a round-trip test rather than a comment.
 
-Zotero was checked for the same defect and does not have it, which gave a
-better fix than the one first filed. It pre-tokenises in JS exactly as we do,
-and avoids the bug by keeping the fold **in JS, applied to both sides by one
-function**, with a Unicode-aware token class `/[\p{L}\p{N}]+/u`. Our fold sits
-inside SQLite where only the document side passes through it. Widening the
-token class matters as much as folding: it fixes non-Latin scripts, Vietnamese
-`đ` and the CJK blind spot in one change, and would alone have prevented this
-defect by keeping `théorie` a single token. Once the fold is in JS the FTS5
-`remove_diacritics` setting stops mattering — which is why Zotero can run
-`unicode61` for content and `trigram` for notes, with opposite defaults, and
-neither is wrong.
-
-Quantified on the real index: the fragments our regex produces, `th` and
-`orie`, match 1 904 and 13 documents — `th` alone about eleven times the
-correct answer set.
+Symmetry was established by sweeping 1 287 codepoints through a real FTS5 table
+via `fts5vocab`; 22 divergences remain, all rare and all toward retrieving less
+rather than wrongly.
 
 ## Binary quantization: measured, and rejected for now
 

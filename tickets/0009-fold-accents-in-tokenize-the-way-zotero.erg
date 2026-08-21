@@ -7,6 +7,7 @@ Author: minh
 2026-08-21T19:15Z minh created
 2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
 2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
+2026-08-22T03:45Z claude note implemented, fork 50b3f15, 739 tests; four of this ticket's design claims corrected against the real tokenizer
 
 --- body ---
 ## Severity, corrected 2026-08-21 on real-library evidence
@@ -166,6 +167,62 @@ behind the twenty confident wrong hits, quantified.
 Also confirmed by direct measurement, not assumption: `unicode61`'s default is
 `remove_diacritics 1` and `trigram`'s is `0`.
 
+## Result: implemented, and four of this ticket's claims were wrong
+
+Fork commit `50b3f15`. 679 -> **739 tests**, `tsc` and `eslint` clean. The
+cross-spelling red step failed first in both directions on both stores
+(`expected [] to deeply equal [ 'D#0' ]`).
+
+Each correction below was measured against the real tokenizer, not argued.
+Verified independently at the gate: `unicode61 remove_diacritics 2` produces
+`đai`, `søren`, `œuvre`, `straße`, `θεωρία`, `λόγοσ`, `й`, `eleve`, `theorie`.
+
+**Zotero's hand map is wrong here, and the ticket asked for it.** Zotero folds
+`ø œ æ ł đ ð þ ß` because it owns both sides of its comparison. We do not:
+`passages.body` is the display text `get()` reads back for snippets, so the
+document side belongs to FTS5. Every one of those letters **survives**
+`remove_diacritics 2`, so folding any of them in JS would send a query the
+index cannot match -- recreating this exact defect for a different alphabet.
+
+**Therefore `đ` does not fold to `d`.** `đại` indexes as `đai`: the combining
+mark on the `a` goes, the `đ` stays. Cost, asserted in the suite: the ASCII
+spelling `dai` does not reach `đại`. That is the better trade, because folding
+would break Vietnamese entirely rather than partially.
+
+**Non-Latin diacritics must survive, and a naive fix would have destroyed
+them.** `remove_diacritics 2` is Latin-script only: `Θεωρία` indexes as
+`θεωρία`, keeping its tonos, and Cyrillic `й` keeps its breve. The
+`.normalize('NFD').replace(/\p{M}/gu,'')` this ticket proposed would have made
+every accented Greek query miss. The shipped normalizer strips marks on a Latin
+base only, and additionally unifies final sigma (`λόγος` indexes as `λόγοσ`),
+which `toLowerCase()` does not.
+
+**`remove_diacritics 2` does not become moot.** This ticket claimed that once
+the fold moved into JS the FTS5 declaration would stop mattering. The opposite:
+it *is* the document-side normalizer, the JS side now emulates it, and changing
+it to `0` or `1` would break the query path. The declaration became
+load-bearing rather than irrelevant, and 0002's careful reasoning about
+choosing `2` stands rather than being superseded.
+
+**No stale-index problem, so no version bump.** Both artifacts store raw text,
+not derived terms: `toJSON` writes `ChunkRecord.text` and `loadFromJSON`
+replays it through `tokenize()`; FTS5 holds `body` verbatim and its terms come
+from `unicode61`, untouched. A round-trip test asserts this rather than a
+comment claiming it. The stale-index decision this ticket demanded turned out
+to be a question with no defect behind it.
+
+**0002's divergence tests were inverted in place**, old reasoning quoted in the
+comment, neither deleted -- both still bite.
+
+Method worth keeping: symmetry was established by sweeping **1 287 codepoints**
+one at a time through a real FTS5 table via `fts5vocab` against the JS
+normalizer. 22 residual divergences remain, all rare and all in the direction
+of retrieving less rather than wrongly.
+
+Cost: tokenisation 13,5 -> 18,1 us for a 740-char English passage, 17,0 -> 58,9
+us for a French one. Only the JS backend pays it at index time, since FTS5
+tokenises in SQLite -- under a second on a 20 000-passage library.
+
 ## Actions
 
 1. A `normalizeForSearch`-equivalent helper, applied at the head of
@@ -190,11 +247,13 @@ fold.
 
 ## Exit criteria
 
-- [ ] Fold applied inside `tokenize()`, both backends accent-insensitive
-- [ ] Token class widened to `/[\p{L}\p{N}]+/u`, so non-Latin scripts stop
+- [x] Fold applied inside `tokenize()`, both backends accent-insensitive
+- [x] Token class widened to `/[\p{L}\p{N}]+/u`, so non-Latin scripts stop
       being shredded (covers 0007's recorded CJK blind spot too)
-- [ ] Cross-spelling queries agree on both stores, pinned by test
-- [ ] Stale-index behaviour decided, implemented, and stated in the ticket
-- [ ] Vietnamese `đ` case checked and recorded
-- [ ] 0002's divergence test deliberately updated, and 0001's stated exception
-      re-examined
+- [x] Cross-spelling queries agree on both stores, pinned by test
+- [x] Stale-index behaviour: no defect exists -- both artifacts store raw
+      text and rebuild terms on load, asserted by a round-trip test
+- [x] Vietnamese `đ` case checked and recorded: `đ` does NOT fold, because
+      the document side keeps it
+- [x] 0002's divergence tests inverted in place, not deleted
+- [ ] 0001's stated exception re-examined and removed
