@@ -165,7 +165,7 @@ Nothing in this chantier uses it.
 
 ## Exit criteria
 
-- [ ] All children closed -- 0002-0007 and 0009-0013 closed; 0008 last
+- [x] All children closed -- 0002 to 0013, twelve of them
 - [x] The whole library indexes with no character cap, writes, and reloads on a
       stock Node with no `--max-old-space-size`. Measured 2026-08-22 end to end:
       **477 512 passages** at `fulltext_max_chars: 0`, built in 371,6 s at a
@@ -244,3 +244,27 @@ discipline is worth the two that did not.
 guards carefully against comparing unrelated version sequences across backends,
 and then compared two unrelated sequences inside one backend (0012). The guard
 was right and its scope was an accident of where the author had been looking.
+
+## Closed 2026-08-22
+
+Twelve children, all closed. The prototype does what the tracker was opened to
+find out: the same library that costs the resident-JS index 5 759,6 MiB and
+90,87 s to open costs SQLite/FTS5 **128,0 MiB and 3,86 s**, measured on one
+corpus with one instrument. At the uncapped geometry the old backend cannot
+write at all, the new one opens in **1,47 s at 124,5 MiB**.
+
+Three walls this ticket named at filing are gone rather than mitigated. The
+`JSON.stringify` ceiling does not exist for a database. The reload OOM does not
+exist for a file that is opened rather than parsed. And `buildIncremental`'s
+`reset()` is replaced by a real delta, which is what 0006 and then 0012 are
+about.
+
+What it cost to find out is recorded above, and the honest summary is that the
+measurements were wrong more often than the code was. Four defects came out of
+this chantier's own claims rather than out of the implementation: 0012's
+watermark, 0009's twelve codepoints, 0013's order effect, and 0008's operating
+point. Each was found by producing evidence for something already written down
+as settled.
+
+**Posture unchanged.** Nothing has been reported to oscardvs/zoteus#10 and
+nothing will be unless the maintainer answers. The fork stands on its own.

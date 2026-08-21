@@ -1,0 +1,150 @@
+{
+ "probe": "ticket 0008 — binary quantization on the REAL vector index",
+ "db": "/home/haduong/data/projets/zoteus-bench/vec-real/search-index.sqlite",
+ "corpus": {
+  "vectors": 93022,
+  "passages": 93022,
+  "dim": 384,
+  "probes": 100,
+  "topk": 30,
+  "seed": "20260822"
+ },
+ "on_disk": {
+  "file_bytes": 343072768,
+  "page_size": 4096,
+  "float32_bytes": 145408000,
+  "float32_tables": [
+   "passage_vectors",
+   "passage_vectors_info",
+   "passage_vectors_chunks",
+   "passage_vectors_rowids",
+   "passage_vectors_vector_chunks00"
+  ],
+  "binary_bytes": 6610944,
+  "binary_tables": [
+   "passage_vectors_bin",
+   "passage_vectors_bin_info",
+   "passage_vectors_bin_chunks",
+   "passage_vectors_bin_rowids",
+   "passage_vectors_bin_vector_chunks00"
+  ],
+  "fts5_bytes": 173363200,
+  "fts5_tables": [
+   "passages",
+   "passages_data",
+   "passages_idx",
+   "passages_content",
+   "passages_docsize",
+   "passages_config"
+  ],
+  "meta_bytes": 11079680,
+  "accounted_bytes": 336461824,
+  "unaccounted_bytes": 6610944,
+  "float32_bytes_per_vector": 1563.2,
+  "binary_bytes_per_vector": 71.1,
+  "float32_over_binary": 22
+ },
+ "anisotropy": {
+  "question": "vec_quantize_binary thresholds at zero. If the corpus mean is far from the origin, dimensions sit mostly on one side of it and their bits carry little information — the risk 0008 named and a symmetric fixture cannot exhibit.",
+  "corpus_mean_norm": 0.406,
+  "note_on_scale": "Embeddings are unit-normalised, so a mean norm near 1 would mean the corpus barely spreads at all; near 0 means it is centred.",
+  "dimensions_over_95pct_one_sided": 2,
+  "dimensions_over_90pct_one_sided": 3,
+  "most_one_sided_dimensions": [
+   1,
+   0.9689,
+   0.9089,
+   0.8986,
+   0.8793,
+   0.8749,
+   0.8676,
+   0.8658,
+   0.8441,
+   0.8384
+  ]
+ },
+ "recall": [
+  {
+   "pool": 30,
+   "multiple": 1,
+   "recall_threshold_zero": 0.5917,
+   "recall_mean_centred": 0.6073
+  },
+  {
+   "pool": 60,
+   "multiple": 2,
+   "recall_threshold_zero": 0.7763,
+   "recall_mean_centred": 0.81
+  },
+  {
+   "pool": 120,
+   "multiple": 4,
+   "recall_threshold_zero": 0.884,
+   "recall_mean_centred": 0.918
+  },
+  {
+   "pool": 240,
+   "multiple": 8,
+   "recall_threshold_zero": 0.9527,
+   "recall_mean_centred": 0.9687
+  },
+  {
+   "pool": 480,
+   "multiple": 16,
+   "recall_threshold_zero": 0.986,
+   "recall_mean_centred": 0.991
+  }
+ ],
+ "latency_ms": {
+  "exact_k30": {
+   "median_ms": 104.17,
+   "min_ms": 102.34,
+   "max_ms": 110.32
+  },
+  "binary_first_pass_k30": {
+   "median_ms": 6.4,
+   "min_ms": 6.14,
+   "max_ms": 9.46
+  },
+  "binary_first_pass_k120": {
+   "median_ms": 15.09,
+   "min_ms": 14.75,
+   "max_ms": 29
+  },
+  "binary_first_pass_k240": {
+   "median_ms": 30.99,
+   "min_ms": 29.46,
+   "max_ms": 35.14
+  },
+  "binary_first_pass_k480": {
+   "median_ms": 71.96,
+   "min_ms": 69.21,
+   "max_ms": 76.23
+  },
+  "binary_first_pass_k960": {
+   "median_ms": 182.81,
+   "min_ms": 179.8,
+   "max_ms": 188.78
+  },
+  "two_stage_pool_4x": {
+   "median_ms": 35.52,
+   "min_ms": 32.2,
+   "max_ms": 45.94
+  },
+  "two_stage_pool_8x": {
+   "median_ms": 63.05,
+   "min_ms": 58.1,
+   "max_ms": 73.94
+  },
+  "two_stage_pool_16x": {
+   "median_ms": 124.4,
+   "min_ms": 120.27,
+   "max_ms": 132.21
+  }
+ },
+ "probe_design": {
+  "note": "Probes are real indexed passages, leave-one-out: a probe never retrieves itself. Without that exclusion every ranking starts with a free self-match, identical in both regimes, which inflates recall and hides the degradation under test.",
+  "exact_topk_from_the_probe_own_item": 0.521,
+  "note_on_that": "Chunk overlap is 150 characters, so a passage neighbours its own siblings. Reported rather than filtered: it is the corpus, but it makes retrieval easier than a real query's, so the recall figures should be read next to it."
+ }
+}

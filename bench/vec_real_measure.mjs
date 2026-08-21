@@ -161,40 +161,70 @@ const codesZero = vecs.map((v) => bits(v, null));
 const codesCentred = vecs.map((v) => bits(v, mean));
 
 /**
- * Recall@topK of a binary-first pool reranked exactly, against the exact ranking.
+ * Per-probe rankings, computed ONCE.
+ *
+ * The exact ranking depends only on the probe, and the coarse Hamming ranking only on the
+ * probe and the thresholding regime — neither depends on the pool size. Recomputing them
+ * inside the pool loop cost ten full scans of the corpus per probe, which at N = 93 022
+ * and 384 dimensions is the difference between a run of minutes and a run of an hour.
  *
  * **Leave-one-out.** The probe is a real passage drawn from the corpus, which is the
  * point — its embedding has the distribution under test, where a synthesised query would
  * not. But it is also IN the index, so without excluding it every ranking begins with a
- * cosine of 1,0 against itself, at Hamming distance 0, in both regimes. That self-match
- * is free recall, it is free in exactly the same amount for the coarse and the exact
- * pass, and it therefore hides the degradation this driver exists to detect. At topK=30
- * it would inflate every figure by up to 1/30 and mask a first-pass failure at pool 1x
- * almost entirely. The forge review seat caught this before the run landed.
+ * cosine of 1,0 against itself, at Hamming distance 0, in both regimes. That self-match is
+ * free recall, free in the same amount for the coarse and the exact pass, and it therefore
+ * hides the degradation this driver exists to detect. The forge review seat caught it
+ * before the run landed.
  */
-function recallAt(pool, codes, centre) {
+const norms = vecs.map((v) => {
+  let s = 0;
+  for (let i = 0; i < v.length; i++) s += v[i] * v[i];
+  return Math.sqrt(s) || 1;
+});
+function dot(a, b) {
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d += a[i] * b[i];
+  return d;
+}
+
+const exactTop = new Map();
+for (const p of probeIdx) {
+  const q = vecs[p];
+  const nq = norms[p];
+  const scored = new Float64Array(vecs.length);
+  for (let i = 0; i < vecs.length; i++) scored[i] = dot(q, vecs[i]) / (nq * norms[i]);
+  const order = Array.from({ length: vecs.length }, (_, i) => i).filter((i) => i !== p);
+  order.sort((a, b) => scored[b] - scored[a]);
+  exactTop.set(p, { top: order.slice(0, TOPK), scored });
+}
+
+/** Coarse Hamming order for every probe under one thresholding regime. */
+function coarseOrders(codes, centre) {
+  const out = new Map();
+  for (const p of probeIdx) {
+    const qc = bits(vecs[p], centre);
+    const d = new Int32Array(vecs.length);
+    for (let i = 0; i < vecs.length; i++) d[i] = hamming(qc, codes[i]);
+    const order = Array.from({ length: vecs.length }, (_, i) => i).filter((i) => i !== p);
+    order.sort((a, b) => d[a] - d[b]);
+    out.set(p, order);
+  }
+  return out;
+}
+const coarseZero = coarseOrders(codesZero, null);
+const coarseCentred = coarseOrders(codesCentred, mean);
+
+/** Recall@topK of a binary-first pool reranked exactly, against the exact ranking. */
+function recallAt(pool, coarse) {
   let hit = 0;
   for (const p of probeIdx) {
-    const q = vecs[p];
-    const exact = vecs
-      .map((v, i) => [cosine(q, v), i])
-      .filter((x) => x[1] !== p)
-      .sort((a, b) => b[0] - a[0])
-      .slice(0, TOPK)
-      .map((x) => x[1]);
-    const qc = bits(q, centre);
-    const coarse = codes
-      .map((c, i) => [hamming(qc, c), i])
-      .filter((x) => x[1] !== p)
-      .sort((a, b) => a[0] - b[0])
-      .slice(0, pool)
-      .map((x) => x[1]);
+    const { top, scored } = exactTop.get(p);
+    const want = new Set(top);
     const reranked = coarse
-      .map((i) => [cosine(q, vecs[i]), i])
-      .sort((a, b) => b[0] - a[0])
-      .slice(0, TOPK)
-      .map((x) => x[1]);
-    const want = new Set(exact);
+      .get(p)
+      .slice(0, pool)
+      .sort((a, b) => scored[b] - scored[a])
+      .slice(0, TOPK);
     hit += reranked.filter((i) => want.has(i)).length / TOPK;
   }
   return +(hit / probeIdx.length).toFixed(4);
@@ -215,14 +245,9 @@ function sameItemShare() {
   );
   let share = 0;
   for (const p of probeIdx) {
-    const q = vecs[p];
     const mine = itemOf.get(rowids[p]);
-    const exact = vecs
-      .map((v, i) => [cosine(q, v), i])
-      .filter((x) => x[1] !== p)
-      .sort((a, b) => b[0] - a[0])
-      .slice(0, TOPK);
-    share += exact.filter(([, i]) => itemOf.get(rowids[i]) === mine).length / TOPK;
+    const { top } = exactTop.get(p);
+    share += top.filter((i) => itemOf.get(rowids[i]) === mine).length / TOPK;
   }
   return +(share / probeIdx.length).toFixed(4);
 }
@@ -231,8 +256,8 @@ const POOLS = [TOPK, TOPK * 2, TOPK * 4, TOPK * 8, TOPK * 16];
 const recall = POOLS.map((pool) => ({
   pool,
   multiple: pool / TOPK,
-  recall_threshold_zero: recallAt(pool, codesZero, null),
-  recall_mean_centred: recallAt(pool, codesCentred, mean),
+  recall_threshold_zero: recallAt(pool, coarseZero),
+  recall_mean_centred: recallAt(pool, coarseCentred),
 }));
 
 // ---- latency, through the shipped SQL ------------------------------------------------
@@ -251,11 +276,31 @@ function timeIt(fn, reps = 20) {
   return { median_ms: +t[t.length >> 1].toFixed(2), min_ms: +t[0].toFixed(2), max_ms: +t[t.length - 1].toFixed(2) };
 }
 const q = toBlob(vecs[probeIdx[0]]);
+// The rerank the shipped two-stage path performs: one exact cosine per pooled rowid,
+// through the same prepared statement `Fts5PassageStore.vectorSearch` uses.
+const rerankStmt = db.prepare(
+  'SELECT 1.0 - vec_distance_cosine(v.embedding, ?) AS score FROM passage_vectors v WHERE v.rowid = ?',
+);
+/** End to end: binary first pass at `pool`, then exact rerank of what it returned. */
+const twoStage = (pool) => () => {
+  const ids = binStmt.all(q, pool);
+  for (const r of ids) rerankStmt.get(q, r.rowid);
+};
 const latency = {
+  // The baseline the two-stage path has to beat.
   exact_k30: timeIt(() => exactStmt.all(q, 30)),
-  binary_k30: timeIt(() => binStmt.all(q, 30)),
-  binary_k480: timeIt(() => binStmt.all(q, 480)),
-  binary_k960: timeIt(() => binStmt.all(q, 960)),
+  // First pass alone, to show where the cost sits.
+  binary_first_pass_k30: timeIt(() => binStmt.all(q, 30)),
+  binary_first_pass_k120: timeIt(() => binStmt.all(q, 120)),
+  binary_first_pass_k240: timeIt(() => binStmt.all(q, 240)),
+  binary_first_pass_k480: timeIt(() => binStmt.all(q, 480)),
+  binary_first_pass_k960: timeIt(() => binStmt.all(q, 960)),
+  // What a caller actually waits for, at the pools whose recall is measured above.
+  // Measured rather than interpolated: this chantier's recurring mistake is reading a
+  // curve off two of its points, and the operating point that matters is 8x.
+  two_stage_pool_4x: timeIt(twoStage(TOPK * 4)),
+  two_stage_pool_8x: timeIt(twoStage(TOPK * 8)),
+  two_stage_pool_16x: timeIt(twoStage(TOPK * 16)),
 };
 
 const out = {
@@ -295,6 +340,7 @@ console.log(
   `${n} real vectors, dim ${dim}\n` +
     `mean norm ${out.anisotropy.corpus_mean_norm}; ${deadBits} dims >95% one-sided, ${nearDead} >90%\n` +
     recall.map((r) => `  pool ${r.multiple}x: zero-threshold ${r.recall_threshold_zero}, mean-centred ${r.recall_mean_centred}`).join('\n') +
-    `\nlatency exact k=30 ${latency.exact_k30.median_ms} ms, binary k=30 ${latency.binary_k30.median_ms} ms, ` +
-    `k=480 ${latency.binary_k480.median_ms} ms, k=960 ${latency.binary_k960.median_ms} ms`,
+    `\nexact k=30 ${latency.exact_k30.median_ms} ms  |  two-stage: ` +
+    `4x ${latency.two_stage_pool_4x.median_ms} ms, 8x ${latency.two_stage_pool_8x.median_ms} ms, ` +
+    `16x ${latency.two_stage_pool_16x.median_ms} ms`,
 );

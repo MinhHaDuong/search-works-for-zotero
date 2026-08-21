@@ -156,9 +156,94 @@ magic number.
 - [x] Binary first pass with exact rerank, both columns maintained
 - [x] Recall against the current exact ranking measured and recorded --
       `bench/vec_recall.ts`, `bench/results/0008-recall/`
-- [x] Pool size justified by that measurement: 16x topK, floor 128, the
-      value at which recall returns to 1,0 -- and the path shipped off by
-      default because that pool is slower than the scan it replaces
-- [ ] Latency and on-disk size re-measured on the real library -- BLOCKED,
-      needs the 408 628-passage index; the anisotropy risk above is the thing
-      to test there
+- [x] Pool size justified by that measurement
+- [x] Latency and on-disk size re-measured on the real library, 2026-08-22 --
+      `bench/results/0008-real-vectors/real-93022.json`, driver
+      `bench/vec_real_measure.mjs`. The anisotropy risk this criterion was held
+      open for is **refuted**, and the ranking answer is conditional rather than
+      the flat "no" the fixture gave. See below.
+
+## The real-vector measurement, 2026-08-22
+
+93 022 passages of the real library embedded by the shipped on-device model
+(384 dims, 2 h 6 min of CPU), against the clustered fixture's N = 100 000 --
+close enough that the recall columns are comparable on N.
+
+| pool | fixture | **real** | real, mean-centred | two-stage latency | vs exact scan |
+|---|---|---|---|---|---|
+| 1x (k=30) | 0,256 | **0,592** | 0,607 | — | — |
+| 2x (k=60) | 0,422 | **0,776** | 0,810 | — | — |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 35,5 ms | **2,93x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 63,0 ms | **1,65x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 124,4 ms | 0,84x — slower |
+
+Exact float32 scan at k=30: **104,2 ms**. On disk: **1 563,2 B per float32
+vector against 71,1 B per binary code, 22x**; the component accounting closes to
+98,1% of the file.
+
+## The anisotropy risk did not materialise, and the fixture was the pessimist
+
+This criterion was held open on a specific fear: `vec_quantize_binary`
+thresholds every dimension at zero, real sentence embeddings are not zero-mean,
+and a corpus sitting off the origin would have dimensions where every vector
+agrees -- dead bits carrying no information. Measured: **corpus mean norm 0,406,
+and only 2 of 384 dimensions more than 95% one-sided** (3 above 90%). Centring
+on the corpus mean buys 2 to 4 points of recall, not a rescue.
+
+So the risk ran the other way from the one recorded. Real embeddings are
+**substantially easier** to quantize than the clustered fixture at every pool
+below 16x -- 0,884 against 0,628 at 4x. The fixture was not a conservative
+stand-in for real data; it was a harder problem than real data, and reading its
+recall curve as a lower bound was wrong in the safe direction by luck rather
+than by design.
+
+## What that does to the decision, and what it does not
+
+**The original ruling holds exactly where it was measured and fails elsewhere.**
+0008 shipped the path off because "the pool that preserves the ranking is slower
+than the scan it replaces". At 16x -- the pool the fixture said was needed --
+that is still true on real data: 124,4 ms against 104,2 ms. But real data does
+not need 16x. It reaches 0,953 at 8x, where the two-stage path is **1,65x
+faster**, and 0,884 at 4x, where it is **2,93x faster**.
+
+So the premise was not wrong, it was *narrow*: it was a statement about the pool
+the fixture required, presented as a statement about the mechanism. The same
+mistake this chantier has now made four times -- a ratio at one operating point
+read as a property of the system -- with the sign reversed.
+
+**The default is not flipped here, and that is deliberate.** Turning the
+two-stage path on changes what every user's semantic search returns: it trades
+about 5% of vector recall for 1,65x latency. That is a product decision the
+author owns, not a consequence of this ticket's own criteria, and nothing about
+the shipped behaviour needed to change for this criterion to close. Both columns
+are maintained on every insert, so it stays a one-line flip.
+
+**Two caveats on the recall figures, both of which make them optimistic.**
+
+*Probes are passages, and passages neighbour their own siblings.* Chunk overlap
+is 150 characters, so **52% of a probe's exact top-30 comes from its own item**.
+That is the corpus rather than an artifact -- filtering it would measure a
+corpus nobody has -- but it makes the retrieval task easier than a real query's,
+and the recall column should be read next to it. Probes are leave-one-out: an
+earlier version of the driver let each probe retrieve itself, which hid exactly
+the degradation the run existed to detect, and a review caught it before the
+numbers landed.
+
+*Recall here is against the exact VECTOR ranking, not against relevance.* The
+shipped path fuses keyword and vector with RRF, so 0,95 vector recall does not
+translate into 0,95 of the answer quality a user sees -- in either direction.
+
+## The thing to try next, recorded rather than ticketed
+
+The first pass is not what costs. At 8x it is 31,0 ms of the 63,0; the other
+32 ms is the **rerank, which issues one prepared-statement round trip per pooled
+rowid** -- 240 of them. Batching that into a single statement over the pooled
+rowids would plausibly put 8x near 35 ms, which would be about **3x faster than
+the exact scan at 0,953 recall** and would change the trade-off materially.
+Below the bar for its own ticket: nothing is broken, the path is off by default,
+and the measurement above is what a future session needs to decide it.
+
+## Closing note, 2026-08-22
+
+Closed. The criterion asked for latency and size on the real library and got
+both, plus an answer to the risk it named. What ships is unchanged.
