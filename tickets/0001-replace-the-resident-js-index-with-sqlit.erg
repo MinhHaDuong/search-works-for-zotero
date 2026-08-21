@@ -163,8 +163,82 @@ Nothing in this chantier uses it.
 
 ## Exit criteria
 
-- [ ] All children closed
-- [ ] The whole library indexes with no character cap, writes, and reloads on a
-      stock Node with no `--max-old-space-size`
-- [ ] Old-vs-new result comparison documented in `bench/`
-- [ ] Findings reported on oscardvs/zoteus#10
+- [ ] All children closed -- 0002-0007 and 0009-0013 closed; 0008 last
+- [x] The whole library indexes with no character cap, writes, and reloads on a
+      stock Node with no `--max-old-space-size`. Measured 2026-08-22 end to end:
+      **477 512 passages** at `fulltext_max_chars: 0`, built in 371,6 s at a
+      1 848,8 MiB peak, written as 949,4 MB, and reopened by a fresh server in
+      **1,47 s at 124,5 MiB** with no heap flag at any point
+      (`bench/results/0001-old-vs-new/uncapped_stock_node.json`). This is the
+      geometry the JSON backend cannot reach at all: it holds the same 477 512
+      passages in the heap at an 8 691,5 MiB peak and then fails to persist them,
+      three times, with `Invalid string length`.
+- [x] Old-vs-new result comparison documented in `bench/` --
+      `bench/results/0001-old-vs-new/`, and run over ONE corpus rather than two
+      (see below)
+- [x] ~~Findings reported on oscardvs/zoteus#10~~ -- **criterion dropped by the
+      author 2026-08-22.** Nothing goes upstream unless the maintainer answers.
+      The measurements stand as the fork's own record.
+
+## The comparison, finally like for like
+
+The caveat this ticket recorded at filing -- that running the two sides through
+two backends measures the API's differences as well as the index's -- is
+retired, and by a stronger method than the one it asked for. Both backends read
+**the same 360 811 passages**: one local-API crawl, its `search-index.json`, and
+that same file migrated in place. Not two crawls that ought to agree, the same
+rows.
+
+| | resident JS | SQLite/FTS5 |
+|---|---|---|
+| startup to first answer | 90,87 s | **3,86 s** |
+| resident after load | 5 406,1 MiB | **121,1 MiB** |
+| resident after 16 queries | 5 759,6 MiB | **128,0 MiB** |
+| on disk | 463,3 MiB | 712,9 MiB |
+
+Same `VmHWM` instrument on both sides. **45x less memory, 23x faster to answer.**
+
+This also retires a caveat `STATE.md` carried until tonight -- that no strictly
+comparable at-rest pair existed. That was true of the geometries then in hand,
+because the JSON backend cannot reach 477 512 passages. Both reach 360 811, so
+the answer was to measure there rather than to keep apologising for the columns.
+
+**One caveat measurement cannot remove, quantified rather than gestured at.**
+RSS excludes the kernel page cache holding the database file, and the JS heap
+figure has no such remainder. Charge the SQLite side the whole 712,9 MiB file --
+the most pessimistic reading available -- and it is 840,9 MiB against
+5 759,6 MiB, a **6,8x** win rather than 45x. Both are measured, on the same
+corpus, and both belong in any external claim.
+
+**Results agree as well as they can be expected to.** Mean jaccard 0,780 over 16
+queries, minimum 0,429. Exact agreement was never the criterion -- 0002 defined
+a match as top-k item-set overlap, because FTS5's `bm25()` and the JS BM25
+cannot agree on scores. What the spread had to show is that no query class is
+broken, and the class that *was* broken is now the clearest evidence: each
+accented query and its unaccented spelling return identical answers
+(`théorie`/`theorie` both 0,889, `mathématiques`/`mathematiques` both 0,429,
+`probabilità`/`probabilita` both 1,000), where before the fix the accented form
+scored 0,00 and returned twenty confident wrong hits.
+
+## What this chantier cost, and what it kept getting wrong
+
+Worth recording, because the same mistake recurred in four different costumes.
+
+**A number measured at one operating point is not a property of the system.**
+0008's 13x vector speedup was a k=30 figure that inverted when asked for a pool.
+0011's "few hundred MB" was an expectation that a real build missed by 5x.
+0005's migration memory looked "strongly sublinear" from two points and flat
+from three. 0013's ranking effect looked negligible from four hand-picked
+queries and moved half the orderings from seventy-two.
+
+**A claim whose evidence was never captured is not a finding.** Three of this
+chantier's claims survived review rounds on prose alone. When the artifacts were
+finally produced, two of the three were wrong -- 0009's codepoint sweep had
+twelve divergences in the direction it said it had none, and 0013's order test
+had the wrong conclusion. The measurement that confirms is worth little; the
+discipline is worth the two that did not.
+
+**Guarding one instance of a defect class does not guard the class.** 0006
+guards carefully against comparing unrelated version sequences across backends,
+and then compared two unrelated sequences inside one backend (0012). The guard
+was right and its scope was an accident of where the author had been looking.
