@@ -1,0 +1,100 @@
+%erg 0.1
+Title: Fold accents in tokenize(), the way Zotero's normalized shadow columns do
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T19:15Z minh created
+
+--- body ---
+## Context
+
+Tracker: 0001. Closing a divergence 0002 recorded as unfixable, using a pattern
+Zotero itself adopted -- released the same week in its FTS5 rewrite, whose
+notes say several tables "gained accent-normalized shadow columns (e.g.
+`nameNormalized` on tags) to support accent-insensitive search".
+
+0002's finding: FTS5 folds the **document** side via
+`tokenize='unicode61 remove_diacritics 2'`, so an ASCII query finds an accented
+document. The reverse fails. `toMatchQuery` tokenises with the index's own
+`tokenize()`, whose `[a-z0-9]+` shreds an accented query before FTS5 ever sees
+it. 0002 concluded that fixing it "means diverging the query tokeniser from the
+index tokeniser, which is the one thing the shared-tokenizer decision exists to
+prevent", and left it as a documented limitation with its own named test.
+
+That conclusion assumed only two options: diverge, or accept. Zotero's answer is
+a third -- **normalise, do not diverge**. Fold accents in front of the shared
+tokeniser and both sides see the same folded text, so the tokenisers stay
+identical and the asymmetry disappears.
+
+Measured before writing this ticket, `unicode61 remove_diacritics 2`, one
+document reading `un élève très appliqué`:
+
+| query | today | with the fold |
+|---|---|---|
+| `eleve` | 1 hit | 1 hit |
+| `élève` | **0 hits** | 1 hit |
+
+The mechanism, visible directly:
+
+    tokenize('élève')        -> ['ve']
+    tokenize(fold('élève'))  -> ['eleve']
+
+where `fold = s => s.normalize('NFD').replace(/\p{M}/gu, '')`.
+
+## Why this is worth more than the one query
+
+The fold belongs **inside `tokenize()`**, not inside `toMatchQuery`. Both
+backends already share that function, at index time and at query time, so one
+change makes the memory backend accent-insensitive too. That does not merely
+fix the FTS5 query side -- it **removes the divergence between the two
+backends**, which 0001's "same corpus in, same results out" invariant currently
+has to carry as a stated exception, and which 0002's parity suite works around
+by giving its accented fixture both spellings.
+
+For a French and Vietnamese corpus this is not cosmetic. `élève`, `Etat`,
+`réseau`, `Việt` typed either way should reach the same passages.
+
+## The thing to be careful about
+
+Folding inside `tokenize()` **changes the JS backend's index**, so it is not a
+pure refactor and cannot be validated by the same-results-out gate -- it is a
+deliberate behaviour change, and existing JSON indexes were built with the
+unfolded tokeniser. An index built before this change and queried after it will
+miss accented terms until rebuilt. Decide and state: either bump a stored index
+version and force a rebuild, or fold only the query side on the JSON backend
+and accept a narrower fix there. Do not leave it implicit.
+
+Check Vietnamese specifically before shipping. NFD-stripping combining marks
+turns `Việt` into `Viet`, which is wanted, but `đ` is a distinct letter and not
+a combining form -- it survives the fold and then dies on `[a-z0-9]+`. Whether
+that is acceptable is a real question for this library, not a detail.
+
+## Actions
+
+1. `fold()` helper; apply it at the head of `tokenize()`.
+2. Confirm both backends now answer the accented query, and that 0002's
+   named divergence test -- which currently asserts the JS index returns
+   nothing where FTS5 returns the item -- is inverted or retired deliberately,
+   not deleted quietly.
+3. Decide the stale-index question above and implement it.
+4. Check `đ` and the Vietnamese case; record the verdict either way.
+5. Update 0001's invariant note: the exception it carries may be removable.
+
+## Test
+
+Red step: assert `élève` finds a document containing `élève` on **both**
+stores. That fails today on FTS5 (query shredded to `ve`) and on the JS index
+(index and query both unfolded, so `élève` matches itself -- meaning the JS
+side passes for the wrong reason). Assert the cross case too: `eleve` finds
+`élève` and `élève` finds `eleve`, on both stores. Only the cross case pins the
+fold.
+
+## Exit criteria
+
+- [ ] `fold()` applied inside `tokenize()`, both backends accent-insensitive
+- [ ] Cross-spelling queries agree on both stores, pinned by test
+- [ ] Stale-index behaviour decided, implemented, and stated in the ticket
+- [ ] Vietnamese `đ` case checked and recorded
+- [ ] 0002's divergence test deliberately updated, and 0001's stated exception
+      re-examined
