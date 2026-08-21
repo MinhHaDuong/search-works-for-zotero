@@ -181,7 +181,23 @@ fragments `"th" OR "orie"` while FTS5 has folded the document side to
 Jaccard 0,00. Twenty confident, plausible, entirely wrong results — worse than
 an empty answer, because a user cannot tell. Across the accented set: 0,00 to
 0,50, against 0,48–1,00 for every ASCII query. The index is fine; the query
-path alone is broken, and a shared NFD fold in front of `tokenize()` closes it.
+path alone is broken.
+
+Zotero was checked for the same defect and does not have it, which gave a
+better fix than the one first filed. It pre-tokenises in JS exactly as we do,
+and avoids the bug by keeping the fold **in JS, applied to both sides by one
+function**, with a Unicode-aware token class `/[\p{L}\p{N}]+/u`. Our fold sits
+inside SQLite where only the document side passes through it. Widening the
+token class matters as much as folding: it fixes non-Latin scripts, Vietnamese
+`đ` and the CJK blind spot in one change, and would alone have prevented this
+defect by keeping `théorie` a single token. Once the fold is in JS the FTS5
+`remove_diacritics` setting stops mattering — which is why Zotero can run
+`unicode61` for content and `trigram` for notes, with opposite defaults, and
+neither is wrong.
+
+Quantified on the real index: the fragments our regex produces, `th` and
+`orie`, match 1 904 and 13 documents — `th` alone about eleven times the
+correct answer set.
 
 ## Binary quantization: measured, and rejected for now
 

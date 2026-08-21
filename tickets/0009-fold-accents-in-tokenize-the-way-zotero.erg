@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-08-21T19:15Z minh created
+2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
 2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
 
 --- body ---
@@ -110,9 +111,66 @@ turns `Việt` into `Viet`, which is wanted, but `đ` is a distinct letter and n
 a combining form -- it survives the fold and then dies on `[a-z0-9]+`. Whether
 that is acceptable is a real question for this library, not a detail.
 
+## The fix, revised 2026-08-22 after reading Zotero's
+
+Zotero was checked for this same defect and **does not have it**, which is more
+useful than if it did. It pre-tokenises the query in JS exactly as we do -- so
+"pass the raw string to MATCH" is not the answer -- and avoids the bug by
+construction instead:
+
+| | zoteus today | Zotero |
+|---|---|---|
+| where the fold lives | inside SQLite, `remove_diacritics 2` | **in JS, `Zotero.Utilities.Internal.normalizeForSearch()`** |
+| applied to | the document side only | **both sides, the same function** |
+| token class | `/[a-z0-9]+/` | **`/[\p{L}\p{N}]+/u`** |
+
+`normalizeForSearch` is NFKD, strip `[\u0300-\u036f]`, lowercase, a hand map
+for letters that do not decompose (`ø œ æ ł đ ð þ ß ı`), fold typographic
+quotes and dashes, NFC. Its docstring states the invariant: *"This is the form
+stored in the normalized search columns and applied to search terms."* Their
+word-token regex carries a comment saying it deliberately mirrors what
+`unicode61` would produce.
+
+**Three things to take, and the second is the one this ticket originally
+missed.**
+
+1. **One function, both sides.** Our fold happens inside SQLite, where the
+   query path cannot reach it -- the asymmetry is structural, not accidental.
+   Moving it into JS and calling it at index *and* query time makes the
+   symmetry hold by construction.
+2. **Widen the token class to `/[\p{L}\p{N}]+/u`.** The original plan --
+   NFD-fold in front of `tokenize()` -- fixes Latin accents and leaves every
+   non-Latin script shredded exactly as before: Greek, Cyrillic, Vietnamese
+   `đ`, and the CJK blind spot already recorded in 0007. `\p{L}\p{N}` handles
+   all of them in one change, and would on its own have prevented this defect
+   even without folding, because `théorie` would have stayed a single token
+   and missed cleanly instead of fragmenting into a high-frequency stopword.
+3. **Version the fold with the data.** Zotero's docstring requires a
+   migration step when the normalizer changes, and `fulltext.js` carries a
+   content-index version whose comment notes a tokenizer change needs a bump.
+   That is the concrete form of the stale-index question this ticket already
+   raises.
+
+**A simplification falls out.** Once the fold is in JS, nothing accented ever
+reaches SQLite, so whether the FTS5 declaration says `remove_diacritics 0`, `1`
+or `2` stops mattering. 0002 chose `2` and reasoned carefully about it; that
+reasoning becomes moot rather than wrong -- and it is why Zotero can run
+`unicode61` for content and `trigram` for notes, with opposite folding
+defaults, without either being a bug.
+
+**Measured on the author's own index**, as the counterfactual: the fragments
+our regex produces, `th` and `orie`, match **1 904** and **13** documents.
+`th` alone hits about eleven times the correct answer set -- the mechanism
+behind the twenty confident wrong hits, quantified.
+
+Also confirmed by direct measurement, not assumption: `unicode61`'s default is
+`remove_diacritics 1` and `trigram`'s is `0`.
+
 ## Actions
 
-1. `fold()` helper; apply it at the head of `tokenize()`.
+1. A `normalizeForSearch`-equivalent helper, applied at the head of
+   `tokenize()` so it runs on both the index and the query side.
+2. **Widen the token class to `/[\p{L}\p{N}]+/u`** -- not only NFD folding.
 2. Confirm both backends now answer the accented query, and that 0002's
    named divergence test -- which currently asserts the JS index returns
    nothing where FTS5 returns the item -- is inverted or retired deliberately,
@@ -132,7 +190,9 @@ fold.
 
 ## Exit criteria
 
-- [ ] `fold()` applied inside `tokenize()`, both backends accent-insensitive
+- [ ] Fold applied inside `tokenize()`, both backends accent-insensitive
+- [ ] Token class widened to `/[\p{L}\p{N}]+/u`, so non-Latin scripts stop
+      being shredded (covers 0007's recorded CJK blind spot too)
 - [ ] Cross-spelling queries agree on both stores, pinned by test
 - [ ] Stale-index behaviour decided, implemented, and stated in the ticket
 - [ ] Vietnamese `đ` case checked and recorded
