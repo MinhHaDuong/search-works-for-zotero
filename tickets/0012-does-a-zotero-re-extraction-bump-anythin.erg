@@ -115,6 +115,17 @@ compare when the label differs, saying the sequences are unrelated. It then
 compares two unrelated sequences **inside** one backend. Guarding one instance
 of a defect class does not guard the class.
 
+## A note 0010 left here for whoever touched `delta.ts` next
+
+That was this ticket. 0010 recorded that the same principle it settled --
+refuse rather than launch an unrequested long rebuild behind a caller's back --
+bites 0006's background rebuild path in `delta.ts`, which this fix touches.
+Nothing changed there: a rebuild triggered by a *stale or unattributable
+watermark* is a different case from one triggered by *corruption*. The first is
+the index doing its job on a library that moved; the second is an error
+condition the user has to know about. The distinction is worth keeping in mind
+if that path is ever revisited.
+
 ## Actions
 
 1. Store a **second watermark**, `fulltextVersion`, in `index_meta` beside
