@@ -5,6 +5,8 @@ Author: minh
 
 --- log ---
 2026-08-21T13:48Z minh created
+2026-08-21T19:40Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
+2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
 
 --- body ---
 ## Context
@@ -61,6 +63,10 @@ replaces the existing class.
 - 0004 — vectors in a BLOB column, RRF rescoring
 - 0005 — migration from an existing `search-index.json`
 - 0006 — incremental update via the library version watermark
+- 0007 — chunk geometry becomes configurable (filed 2026-08-21, after 0006:
+  changing it changes results, so it cannot overlap the storage comparison)
+- 0008 — quantize the vector column (filed 2026-08-21, after 0004: measured
+  13x query speedup and 24x smaller vectors, pending a recall check)
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.

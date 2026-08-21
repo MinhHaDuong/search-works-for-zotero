@@ -1,0 +1,93 @@
+%erg 0.1
+Title: Quantize the vector column: binary first pass, exact rerank
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T17:41Z minh created
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0004 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Tracker: 0001. 0004 stores embeddings as `float32` in a `vec0` table, faithful
+to its amended body, which specified a BLOB column and said nothing about
+quantization. That leaves a large, cheap win on the table.
+
+`sqlite-vec` 0.1.9 has **no ANN index**: `vec0` KNN is a brute-force scan, in C,
+over the on-disk table. Measured here, 384 dims, k=30, file-backed, warm,
+median of 25 probes:
+
+| N | median query | ms per 100 k |
+|---|---|---|
+| 10 000 | 14,12 ms | 141,21 |
+| 25 000 | 35,21 ms | 140,82 |
+| 50 000 | 70,56 ms | 141,11 |
+| 100 000 | 140,01 ms | 140,01 |
+| 200 000 | 314,85 ms | 157,43 |
+| 400 000 | 567,28 ms | 141,82 |
+
+Reproduce with `bench/vec_scaling.mjs`.
+
+Flat cost per vector across a 40x range -- 40,2x the time for 40x the data.
+O(N), not debatable.
+
+**This is a deliberate trade by the library, not an oversight.** `sqlite-vec`
+is the same author's successor to `sqlite-vss`, which *did* carry ANN via
+Faiss/IVF. `sqlite-vss-linux-x64` unpacks to 5 324 662 bytes;
+`sqlite-vec-linux-x64` to 160 160 -- 33x smaller, pure C, no dependencies,
+builds anywhere. He traded the ANN index for portability and offers
+quantization as the lever instead.
+
+## The measurement that motivates this
+
+400 000 vectors, 384 dims, k=30, `bench/vec_quantize.mjs`. **A separate run
+from the sweep above**, with its own seed -- which is why float32 reads 548,0 ms
+here against 567,28 ms there, a 3,5% spread between runs rather than a
+transcription slip. The ratios below are computed within this run only:
+
+| variant | on disk | median query | per vector |
+|---|---|---|---|
+| float32 (what 0004 built) | 596 MB | 548,0 ms | 1 563 B |
+| int8 (`vec_quantize_int8`, 'unit') | 156 MB | 345,6 ms | 408 B |
+| **binary (`vec_quantize_binary`)** | **25 MB** | **41,5 ms** | **65 B** |
+
+**13x faster and 24x smaller.** Still O(N) -- the constant collapses, it does
+not become sub-linear. Note int8 buys only 1,6x against 3,8x less data: the
+scan is not purely I/O-bound, there is real per-vector arithmetic, and binary
+removes the arithmetic (Hamming distance is a popcount) rather than only the
+bytes. That asymmetry is the reason to go to binary rather than stopping at
+int8.
+
+At the library's 408 628 passages this is roughly **0,5 s -> 0,05 s** per
+semantic query, and ~650 MB -> ~27 MB of vectors.
+
+## Actions
+
+1. Add a `bit[N]` vec0 table beside the float32 one, populated with
+   `vec_quantize_binary` at insert.
+2. Two-stage query: binary KNN for a coarse pool (say 10-20x the limit), then
+   rerank that pool exactly against the float32 vectors. Keep both columns --
+   binary alone loses accuracy, and the rerank is what buys it back.
+3. Measure recall of the two-stage result against the current exact ranking on
+   a shared query sample. **Recall is the acceptance criterion, not latency**:
+   a 13x speedup that quietly drops relevant passages is a regression wearing a
+   benchmark's clothes.
+4. Decide whether float32 stays mandatory or becomes optional. Dropping it
+   (binary only) gives 25 MB and no rerank, at an accuracy cost that must be
+   measured before it is offered.
+
+## Test
+
+Red step: assert the two-stage result equals the exact float32 ranking on a
+fixture where the two-stage pool is deliberately too small, and watch it fail
+-- that pins the pool size as the accuracy knob rather than leaving it a
+magic number.
+
+## Exit criteria
+
+- [ ] Binary first pass with exact rerank, both columns maintained
+- [ ] Recall against the current exact ranking measured on a shared sample and
+      recorded in `bench/`
+- [ ] Pool size justified by that measurement, not chosen by feel
+- [ ] Latency and on-disk size re-measured on the real library

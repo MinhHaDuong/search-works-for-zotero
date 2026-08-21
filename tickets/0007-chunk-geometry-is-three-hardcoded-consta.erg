@@ -1,0 +1,116 @@
+%erg 0.1
+Title: Chunk geometry is three hardcoded constants; make it configurable
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T16:56Z minh created
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Tracker: 0001, but landing after it -- changing chunk geometry changes results,
+which is exactly what "same corpus in, same results out" forbids while the
+storage swap is being validated.
+
+Three chunk geometries exist, none reachable from configuration:
+
+| where | geometry | how set |
+|---|---|---|
+| metadata passages, `index-manager.ts:560` and `:875` | 512 / 64 overlap | bare `chunkText()` defaults |
+| attachment full text, `index-manager.ts:890` | 1200 / 150 | `FULLTEXT_CHUNK_SIZE`, exported const |
+| passage locators, `fulltext/passages.ts:72` | 800 / 100 | bare `chunkWithOffsets()` defaults |
+
+`grep -n "chunk" src/config.ts` returns nothing. `chunkText` is a free
+function called directly at three sites -- no interface, no injection point.
+
+512 was tuned for a resident JS index, where every passage cost heap. On disk
+that constraint is gone and larger chunks mean fewer rows and a smaller index,
+but nobody can measure the tradeoff while the number is a default nobody can
+reach.
+
+Note the two geometries are not merely different, they disagree: a search hit
+comes from `chunkText`, while the locator `zotero_get_fulltext` reports for it
+comes from `chunkWithOffsets` at a different size and a different treatment of
+whitespace.
+
+## What Zotero 10 does and does not give us
+
+Investigated on the author's own library (13 631 cached attachments,
+`~/data/Zotero`), because the hunch was that Zotero extracts structure worth
+chunking on.
+
+**It is smart about extraction, and does not expose structure.**
+
+- `.zotero-ft-info` is a `pdfinfo` dump -- `Pages`, `Title`, `Author`,
+  `Subject`, `Keywords`, page size, PDF version. Present in 200 of 200 files
+  sampled. The API surfaces the useful part of it: `/items/KEY/fulltext`
+  returns `indexedPages` and `totalPages`, which `get-fulltext.ts:111` already
+  reads. pdfjs re-extraction is the fallback for *unindexed* attachments only,
+  not a duplicated page count -- that part of the design is sound.
+- `.zotero-ft-cache` is a **flat text stream with line breaks and no page
+  markers**. Form feeds appear in **5 of 300** caches sampled (1,7%). So there
+  are no page boundaries to chunk on, and none of Zotero's own page knowledge
+  reaches the text.
+- No headings, no sections, no paragraph semantics beyond newlines. What
+  zoteus displays as structure is invented downstream: `findSection` is a
+  regex guess over preceding lines, and `approxPage` is linear interpolation
+  (`ceil((charStart+1)/totalChars * totalPages)`) -- a proportional estimate
+  presented in the same field as a real page number.
+
+So chunking on document structure is not available from Zotero today. The
+useful geometry question is the boring one: what size and overlap, measured.
+
+## A second finding, recorded here rather than as its own ticket
+
+**Zotero 10 already runs FTS5**, and its tokenizer choices are worth reading
+against 0002's:
+
+    fulltextContent     fts5(text, tokenize='unicode61', content='', contentless_delete=1)
+    fulltextContentCJK  fts5(text, tokenize='ascii',     content='', contentless_delete=1)
+    fulltextNotes       fts5(text, tokenize='trigram',   content='', contentless_delete=1)
+
+Two consequences.
+
+`content=''` makes those tables **contentless**: they can be MATCHed but the
+text cannot be read back. That is why zoteus reads the cache rather than
+querying Zotero's index, and it forecloses the obvious "just reuse Zotero's
+FTS5" shortcut -- worth stating in the #10 writeup before someone proposes it.
+
+Zotero maintains a **separate CJK table** because `unicode61` does not segment
+CJK; it falls back to `ascii` there. 0002 chose
+`unicode61 remove_diacritics 2` and inherits the same blind spot: a Chinese or
+Japanese document indexes as very few enormous tokens. Below the severity floor
+for this library (French and English), so it is recorded, not ticketed -- but
+it is a real limitation of the tokenizer decision and should be named rather
+than discovered.
+
+## Actions
+
+1. `ZOTEUS_INDEX_CHUNK_SIZE` / `ZOTEUS_INDEX_CHUNK_OVERLAP` and the full-text
+   pair in `config.ts`, defaulting to today's exact values (512/64, 1200/150)
+   so nothing changes by default.
+2. Thread them from config to the three call sites. No strategy interface:
+   a pluggable chunker is speculative until a second strategy exists, and
+   YAGNI applies.
+3. Decide deliberately whether `chunkWithOffsets` (800/100) follows the same
+   settings or keeps its own -- it serves locators, not retrieval, and the two
+   jobs may legitimately want different windows. Say which, and why, in the code.
+4. Re-run `bench/fts5_bench.mjs` at two or three geometries and record index
+   size, build time and query latency against passage count.
+
+## Test
+
+Red step: assert the default configuration reproduces today's passage count on
+a fixture exactly. That is the whole safety property -- a config knob whose
+default silently changes the index is worse than a constant.
+
+## Exit criteria
+
+- [ ] Chunk size and overlap reachable from configuration, defaults unchanged
+- [ ] Default-path passage count byte-identical to today on a fixture
+- [x] `STATE.md`'s measurement table caption states that the 477 511 and
+      408 628 passage counts are different corpora (metadata included or not,
+      overlap or not), so the row is not read as like-for-like
+- [ ] Size/overlap tradeoff measured and recorded in `bench/`

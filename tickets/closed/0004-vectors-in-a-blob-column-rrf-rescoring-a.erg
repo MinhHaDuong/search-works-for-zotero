@@ -1,0 +1,186 @@
+%erg 0.1
+Title: Vectors in a BLOB column, RRF rescoring against FTS5 bm25
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #1
+
+--- log ---
+2026-08-21T13:48Z minh created
+2026-08-21T15:47Z claude note planned against 0002's PassageStore port: vectors join the port rather than a parallel store, so one seam carries both rankings
+2026-08-21T19:10Z minh decided sqlite-vec ruling reversed -- it rested on a false premise; embedding stays in embeddings.ts
+2026-08-21T20:50Z claude note implemented and verified: 652 passed 7 skipped, tsc and eslint clean; direction guard sabotage-checked
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0003 closed — Blocked-by removed.
+2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
+--- body ---
+## Amendment 2026-08-21: the sqlite-vec ruling is reversed
+
+The body below rules `sqlite-vec` out because "it is a loadable extension, and
+the point of `node:sqlite` here is to add no dependency". **That ruling rested
+on a false premise and the author has reversed it.** Verified directly:
+
+- `node:sqlite` does support loadable extensions -- `DatabaseSync` accepts
+  `{ allowExtension: true }`, and `enableLoadExtension` / `loadExtension` both
+  work on Node 22.23.1.
+- `sqlite-vec` is an ordinary npm install: v0.1.9, prebuilt per-platform binaries shipped as its own
+  `optionalDependencies`, no compilation, MIT/Apache. Size depends on what is
+  measured: 188 kB on disk for the wrapper plus the linux-x64 package, of which
+  the native binary is 160 160 bytes (156 KiB) unpacked -- the figure 0008 uses
+  against sqlite-vss's 5,1 MB. A KNN query was run through it end to end.
+- zoteus already uses exactly this pattern twice: `pdfjs-dist` in
+  `optionalDependencies`, and `@huggingface/transformers` resolved without
+  executing in `embeddings.ts`, degrading gracefully. Vectors exist only when
+  that far heavier optional dependency is installed, so `sqlite-vec` is needed
+  precisely when one already is.
+
+What this buys is the reason it was accepted: KNN runs in C, so `mode:
+"semantic"` keeps upstream's exact recall with no JS scan. The alternative --
+a faithful full scan in JS -- would pull roughly 628 MB through memory per
+query at 384 dims over 408 628 passages, partly reintroducing the ceiling this
+chantier exists to remove. The other alternative, restricting the scan to FTS5
+candidates, bounds memory but makes a semantically-close passage sharing no
+keyword with the query unreachable, which is the case semantic search is for.
+
+**Embedding is NOT delegated to SQLite.** `sqlite-lembed` (0.0.1-alpha.8) and
+`sqlite-rembed` (0.0.1-alpha.9) stay out. They generate embeddings, which is a
+different job from storing them: swapping the model changes the vectors and so
+voids 0001's "same corpus in, same results out" gate, they are alpha where
+`sqlite-vec` is released, embedding is not the bottleneck the measurements
+show, and replacing the provider would make this something other than the
+contained storage swap the upstream posture depends on. `sqlite-rembed` as a
+remote-embedding *feature* is a separate ticket if wanted.
+
+**One wrinkle this creates.** `vec0` needs the vector dimension at CREATE time;
+zoteus discovers it at runtime from the tensor and it varies by model. So the
+vec table is created lazily on the first vector, its dimension recorded in the
+`index_meta` table 0005 added, and read back on reopen. A later vector of a
+different length (the user changed `ZOTEUS_EMBEDDINGS`) must not be stored
+beside the others -- mixed dimensions in one table produce plausible nonsense.
+
+## Context
+
+Vectors currently live in a JS array beside the keyword index and are fused
+with BM25 by reciprocal-rank fusion in process. In SQLite they become a BLOB
+column, and the fusion has to be reimplemented against FTS5's `bm25()`.
+Tracker: 0001.
+
+Note the sign: FTS5's `bm25()` returns a negative score, best-first ascending.
+Fusing it with cosine similarity without normalising the direction inverts the
+ranking, and the suite would not necessarily catch it.
+
+## Design, planned against 0002's port
+
+0002's `PassageStore` already owns the passage row; the embedding belongs on
+the same row, so it joins the port rather than living in a parallel structure:
+
+    setVector(id: string, v: Float32Array): void
+    vectorSearch(q: Float32Array, topK: number): Array<{ id: string; score: number }>
+    readonly vectorCount: number
+
+`MemoryPassageStore` delegates all three to the existing `VectorStore`, so the
+default path keeps today's code and today's numbers. `Fts5PassageStore` adds a
+`vec BLOB` column to `passage_meta` and one `dim INTEGER` beside it -- a bare
+BLOB with no recorded dimension is unreadable once a second embedder has ever
+been configured.
+
+**The sign trap, stated once so it cannot be missed.** FTS5's `bm25()` returns
+a negative score, best-first ascending; cosine similarity is positive,
+best-first descending. 0002 already negates `bm25()` at the store boundary, so
+by the time `rrf()` sees either list both are descending-best. Do not negate
+twice. The existing `rrf()` ranks by list *position* and ignores magnitude,
+which is what makes fusing two incomparable scales legitimate at all -- the
+danger is not the scale, it is a list sorted the wrong way round, and the suite
+would not necessarily catch it. Assert the direction directly: a test where the
+known-best passage for a query is asserted to be at index 0 of the raw
+`vectorSearch` and `search` results, before any fusion.
+
+**Retrieval, then rescore in JS.** Candidates come from FTS5's MATCH (and, for
+`mode: "semantic"`, from a full scan of the vector column), then cosine is
+computed in process. `sqlite-vec` stays out of scope: it is a loadable
+extension, and the point of `node:sqlite` here is to add no dependency.
+
+At 384 dims float32 that is 1,536 B/passage, so 408 628 passages is ~628 MB of
+BLOB. That is disk, not RSS -- but `mode: "semantic"` as described scans every
+vector, which would pull all of it through memory per query. Measure it; if it
+bites, the answer is to restrict the scan to FTS5 candidates and accept that
+pure-semantic recall differs from upstream, which is a decision to bring back
+to the author rather than take here.
+
+## Actions
+
+1. `setVector`/`vectorSearch`/`vectorCount` on `PassageStore`; memory delegates
+   to `VectorStore`, FTS5 adds `vec BLOB` + `dim INTEGER` to `passage_meta`.
+2. Candidate retrieval from FTS5, cosine rescoring in JS.
+3. Fuse with the existing `rrf()`, both lists already descending-best.
+4. Measure BLOB storage and per-query RSS on the full library; record in `bench/`.
+
+## Verification
+
+- [x] Same query, same top-k as the current implementation on a shared sample
+- [ ] Embedding storage measured on the real library -- BLOCKED, needs the
+      author's 7 540-item corpus; command handed over. Synthetic figure taken:
+      ~1,59-1,70 kB/passage at 384 dims. Ticked boxes on this ticket mean done,
+      and this one is not (review 2026-08-21)
+
+## Findings from the implementation
+
+**The direction guard took two sabotages to test properly, and the first was a
+bad test.** Reversing `ORDER BY v.distance` reddened 19 tests -- but vec0
+rejects that at `prepare()` time, so it broke the mechanism rather than the
+ordering, which proves nothing about the guard. The honest sabotage is
+`.reverse()` on the returned hits: **3** tests red -- the two direct
+nearest-first/farthest-last and topK assertions in `passage-store.test.ts`, and
+`sqlite-index.test.ts`'s reopened-file semantic round trip. (The executor
+reported 2; a review reproduction found the third. Corrected 2026-08-21.) Every fused test, every mode test and
+every parity test stayed green -- including `semantic mode answers from the
+vectors alone`. That is this ticket's own warning demonstrated: a fused-only
+assertion cannot see a reversed list, because `rrf()` ranks by position and a
+reversed list is still a list.
+
+**Mismatched embedding dimensions throw, naming both widths.** Safe because
+`clear()` *drops* the `vec0` table rather than emptying it and forgets the
+recorded dimension, and every build begins with `reset()` -> `clear()`. So the
+legitimate route to a new width -- change `ZOTEUS_EMBEDDINGS`, rebuild -- never
+reaches the throw. What does reach it is one embedder emitting two widths
+inside a single build, which is an incoherence rather than a configuration
+change; a silent drop-and-rebuild there would discard every vector already
+stored, mid-build, without saying so.
+
+**`node:sqlite` binds every JS number as SQLite REAL**, and `vec0` requires an
+INTEGER primary key. `INSERT INTO vec0(rowid, ...)` fails with "Only integers
+are allows for primary key values" until the rowid is bound as a `BigInt`. The
+one non-obvious mechanical fact in the change.
+
+**`vectorEntries()` had to become a required port member**, not a memory-side
+detail: 0002/0003 already run `toJSON`/`loadFromJSON` round trips through
+`describe.each(STORES)` against a bare `Fts5PassageStore`, and keeping the dump
+memory-only turned both red. The heap concern is untouched --
+`SqliteSearchIndex.toJSON()` still refuses the whole snapshot before reaching
+it.
+
+**A `score > 0` filter was added to `Fts5PassageStore.vectorSearch`**, beyond
+the ticket's "convert distance to similarity". Without it the stores diverge:
+`VectorStore` drops orthogonal and opposed passages, `vec0` would rank them
+last. The parameterised suites hold both to the same assertions, so parity is
+not optional.
+
+**Residual, deliberate:** `MemoryPassageStore.setVector` *appends* on a
+repeated id, since its `VectorStore` has no key index, while the FTS5 store
+replaces. Left as a pure delegate because no live path embeds the same id
+twice.
+
+**The performance fact the ticket did not anticipate**, and which 0008 now
+carries: `sqlite-vec` 0.1.x has no ANN index, so `vec0` KNN is brute force --
+fast, in C, on disk, but linear. Measured flat at ~141 ms per 100 000 vectors
+across a 40x range. Synthetic measurements at 384 dims: 1 697 B/passage at
+20 000, 1 587 B at 100 000, confirming the ticket's ~1,5 kB estimate; 25,7 ms
+and 121,8 ms per query respectively. Against the resident `VectorStore` on the
+same 20 000: 3 188 B/vector of *live heap* and 57,3 ms/query. So vec0 is 2,2x
+faster at zero resident heap, and quantization (0008) takes another 13x.
+
+## Exit criteria
+
+- [x] `mode: "semantic"` and `mode: "auto"` behave as upstream
+- [x] Vector storage does not reintroduce a memory ceiling -- zero resident
+      heap; the scan is on-disk and in C
+- [x] Ranking direction asserted directly, not only through fused output

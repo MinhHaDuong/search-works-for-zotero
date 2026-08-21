@@ -1,0 +1,120 @@
+%erg 0.1
+Title: Migrate an existing search-index.json into the database
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #1
+
+--- log ---
+2026-08-21T13:48Z minh created
+2026-08-21T15:48Z claude note planned: hand-rolled incremental scan of the chunks array, no dependency; the file that needs migrating is the file JSON.parse cannot read
+2026-08-21T19:05Z claude note implemented and verified: 612 passed 7 skipped, tsc and eslint clean; 600 MB fixture migrates at 150 MB peak RSS
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0003 closed — Blocked-by removed.
+2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
+--- body ---
+## Context
+
+Existing installs hold a `search-index.json`. Rebuilding from scratch is
+correct but slow, and on a large library it is precisely what fails today.
+Tracker: 0001.
+
+## Design
+
+The trap is stated in the ticket and worth making explicit, because it decides
+the implementation: **the files that need migrating are exactly the files
+`JSON.parse` cannot read.** V8's max string length is 536 870 888 chars; the
+bench index is 463 MB and a larger library exceeds it outright. So the
+migration cannot begin by reading the file into a string, and a `try { parse }
+catch { stream }` shape is wrong -- the fallback is the only path that matters.
+
+**No dependency.** Node ships no streaming JSON parser and 0004 already
+declines a loadable extension on the same grounds. The structure is known and
+shallow -- `{"chunks":[{...},{...}],"vectors":[...],"builtFromVersion":N}` --
+so a hand-rolled incremental scanner over a read stream is a contained ~80
+lines: track brace depth and in-string/escape state, cut each top-level object
+of the `chunks` array, `JSON.parse` that object alone, insert, discard. Depth
+and string state are what make it correct: a brace inside a passage's text, or
+an escaped quote, is otherwise indistinguishable from structure.
+
+Vectors are read the same way but only under 0004; a 0005 landing before 0004
+migrates `chunks` and `builtFromVersion` and skips `vectors` with a logged
+count, rather than pretending they were carried over.
+
+**Trigger and reversibility.** Migrate when `search-index.json` exists beside
+the configured database path and the database is absent or empty. Write into a
+temporary database file and rename it into place only on success, so an
+interrupted migration never leaves a half-populated database that looks
+complete. The JSON is left untouched: the migration is reversible by setting
+`ZOTEUS_SEARCH_BACKEND=json`.
+
+**Failure is loud.** A malformed or truncated JSON aborts with a message naming
+the byte offset and the cause. It must never fall back to "no index" -- that
+presents as an empty library and sends the user rebuilding, which on a large
+library is the failure they were escaping.
+
+## Actions
+
+1. Incremental scanner over a read stream, cutting top-level objects of the
+   `chunks` array; brace-depth plus in-string/escape tracking.
+2. Insert into a temporary database inside one transaction batch per N records,
+   rename into place on success only.
+3. Trigger on JSON-present-and-database-absent; leave the JSON in place.
+4. Abort loudly with byte offset and cause; never degrade to an empty index.
+
+## Test
+
+Red step: a fixture JSON whose `chunks` contain a passage with `{`, `}` and an
+escaped `"` in its text. A naive scanner cuts it in the wrong place and the
+migration produces the wrong passage count -- assert the count and the exact
+text of that passage round-trip.
+
+## Findings from the implementation
+
+**The 463 MB index is *under* V8's string cap, not over it.** The cap is
+536 870 888 *characters*; 463 MB of mostly-ASCII JSON is about 86% of that. So
+`JSON.parse` very likely still reads the author's current file. The premise
+stated in 0001 -- that `JSON.stringify` throws past the cap -- remains true and
+is a real wall, but this particular file has not hit it yet; what it *has* hit
+is the separate heap wall on reload. Worth keeping the two apart, because they
+have different thresholds and different symptoms.
+
+This changed nothing about the implementation. A fast path would still be the
+branch nobody exercises, and the margin is one growth step wide. Demonstrated
+instead on a 600 MB synthetic fixture, where the control
+(`readFileSync(path,'utf8')`) throws `Cannot create a string longer than
+0x1fffffe8 characters` and the scanner migrates all 1 189 225 chunks.
+
+**Measured, out of band:** 600 MB / 1 189 225 chunks migrates in 41 s at a peak
+RSS of 150 MB, every row readable afterwards from a separate process. The
+memory figure should not scale with file size -- that is the property worth
+checking on the real file, more than the wall clock.
+
+**The database comes out larger than the JSON**, 1,34x on that fixture (600 MB
+-> 801 MB), because FTS5 stores the body *and* its inverted index. Budget about
+620 MB for the 463 MB index, plus the same again transiently: the temporary
+database is renamed rather than written in place, and the JSON is left alone.
+
+**In-suite the streaming property is bounded, not measured.** A 2,5 MB fixture
+migrates with `maxObjectBytes` at 8 KiB -- smaller than one stream chunk -- so
+anything accumulating the document, or even one chunk's worth of records, trips
+the guard. That bounds the retained parse window. It is not an RSS assertion,
+which would be too machine-dependent for a suite gate.
+
+**`builtFromVersion` is restored at construction but goes stale after a later
+build** -- nothing writes it back. Harmless today because `buildIncremental`
+always rebuilds from scratch, so the value is reported and never acted on. It
+becomes load-bearing in 0006, which is where it should be made durable,
+alongside `items` and `fulltextItems` which the SQLite backend also does not
+restore.
+
+## Verification
+
+- [x] A migrated index answers the same queries as the JSON it came from
+- [x] Migration of a file above V8's string limit succeeds, or fails with a
+      message naming the cause rather than silently falling back to "no index"
+      -- 600 MB fixture, above the cap, migrates whole
+
+## Exit criteria
+
+- [ ] Migration path tested on the 463 MB index -- BLOCKED, the file lives in
+      the author's ZOTEUS_DATA_DIR, not in `bench/`; command handed over

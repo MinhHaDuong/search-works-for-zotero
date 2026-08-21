@@ -1,0 +1,142 @@
+%erg 0.1
+Title: Incremental update: builtFromVersion becomes a real watermark
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #1
+
+--- log ---
+2026-08-21T13:48Z minh created
+2026-08-21T15:49Z claude note planned: watermark persists in a meta table with its backend label; deleteByItem lands on the port in 0002
+2026-08-21T21:10Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0003 closed — Blocked-by removed.
+2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
+--- body ---
+## Context
+
+`buildIncremental` calls `reset()`: despite the name, every build is a full
+rebuild, and `builtFromVersion` holds an item count rather than a library
+version. So an added or deleted document is invisible until someone rebuilds by
+hand, a deleted one keeps answering queries, and `zotero_semantic_search`'s
+auto-build only fires on an *empty* index — a stale one never self-heals.
+Tracker: 0001.
+
+Verified on the Zotero 10 local API:
+
+    Last-Modified-Version: 200          one header, one request
+    ?since=195&limit=100  -> 3 of 7540  a real delta
+    ?format=versions      -> key -> version map for the whole library
+    /deleted?since=0      -> 404        cloud-only; deletions need a key-set reconcile
+
+## Design
+
+`deleteByItem` is already on 0002's `PassageStore` port, and the indexed
+`passage_meta_item` index is why it is affordable -- 0 ms against 362 ms for
+the `UNINDEXED`-column shape 0002 rejected. That measurement was taken for this
+ticket: a fifty-item delta on the scanning shape would cost eighteen seconds.
+
+**The watermark lives in the database, with its provenance.** A `meta` table of
+key/value, holding `builtFromVersion` and `backend` (`'local' | 'web'`). Local
+and cloud version sequences are unrelated integers, so a watermark without its
+backend label is worse than none: switching a user from the desktop API to the
+Web API would compare two incommensurable numbers and either skip a real delta
+or replay the library. On a backend mismatch, ignore the watermark and rebuild.
+
+**Deletions need a key-set reconcile.** `/deleted?since=` is cloud-only and
+404s on the Zotero 10 local API (verified). So deletions come from
+`?format=versions`, which returns a key -> version map for the whole library:
+diff its key set against `SELECT DISTINCT item FROM passage_meta` and delete
+the difference. That is one request and one indexed query, not a scan.
+
+**Freshness at query time, not a background poll.** One request for
+`Last-Modified-Version`. Equal to the watermark, serve; greater, apply the
+delta first. This is also what fixes the stale-index hole in the current
+design: `zotero_semantic_search`'s auto-build only fires on an *empty* index,
+so a stale one never self-heals today.
+
+**Attachments not yet extracted are recorded, not skipped.** A row with the
+item present and no text, so a later delta picks it up. Skipping makes the
+absence indistinguishable from an item that has no attachment, and the delta
+never revisits it.
+
+## Actions
+
+1. `meta` table with `builtFromVersion` and `backend`; mismatch forces rebuild.
+2. Freshness check at query time: one `Last-Modified-Version` request.
+3. Additions and modifications via `?since=`; `deleteByItem` for what changed,
+   then re-insert.
+4. Deletions by reconciling `?format=versions` against `SELECT DISTINCT item`.
+5. Attachments awaiting extraction recorded as present-without-text;
+   `fullTextSince` already exists on both clients.
+
+## Test
+
+Red step: build an index over three items, delete one from the fixture library,
+run the delta, and assert a query that matched it returns nothing. This is the
+one behaviour the current design cannot express at all -- `buildIncremental`
+calls `reset()`, so today the only way to forget a document is to rebuild.
+
+## Invariants
+
+- A deleted item must stop returning hits. This is the one behaviour the
+  current design cannot express at all.
+
+## Findings from the implementation
+
+**The red step failed first, correctly.** Against pre-change code the deletion
+test reported `expected [ 'BBB' ] to deeply equal []` -- build, routing and
+query all worked and the removed item kept answering, which is exactly the
+behaviour the old design cannot express.
+
+**The freshness check is bounded five ways**, none of which can turn a search
+into a failure: `supportsDelta` is false on the JSON backend (zero requests,
+zero change); it stands down while `isBuilding`; a per-context single-flight
+promise makes two concurrent queries share one probe; an 8 s wall-clock
+deadline is checked before each request and raced against the first -- racing
+bounds the *wait*, not the request, since nothing here can cancel a fetch in
+flight; a change set over 500 items (50 with full text) becomes a background
+rebuild rather than an inline crawl; and any throw degrades to serving the
+current index, with a 60 s backoff so a closed desktop app does not cost a
+connection failure per query. The watermark advances only after the whole delta
+lands, so an abandoned refresh is retried rather than skipped.
+
+**`createFulltextSource` contained the very skip this ticket forbids.** When
+`fullTextSince(0)` returned empty it took an early return and built an inert
+source without walking attachments at all -- precisely the case where *every*
+attachment is pending. That is what made the step-5 test fail on its first run.
+It now walks on a short leash (20 pages, 2 000-item cap) purely to record them.
+
+**`build()`, the non-incremental path, had to be made to clear the label.** It
+knows only a list of items, so recording a version under the previous build's
+label would manufacture exactly the incomparable-pair-that-looks-comparable the
+label exists to prevent.
+
+**A restart with zero extracted attachments had no evidence the index wanted
+full text** -- no full-text passages means `fulltextEnabled` reads false, and a
+metadata-only delta would then have wiped the pending record permanently. A
+non-empty pending set now counts as that evidence.
+
+**A cancelled build records no watermark; a cap-truncated one does.**
+Truncation is stable and part of what the build set out to cover;
+`requestStop()` is an arbitrary point above which nothing was read.
+
+**Deltas can drift the index above `indexMaxItems`** over time, since `?since=`
+does not respect the crawl's page order. Left unclamped deliberately -- refusing
+to index something the user just edited would be worse -- with a comment saying
+so.
+
+**Still not restored after a restart:** `itemsFetched` / `itemsTotal` /
+`itemsAvailable`, which are build-progress telemetry and were never persisted.
+One consequence worth knowing: `truncationNotice()` keys on
+`itemsAvailable > itemsTotal`, so after a restart a cap-truncated index stops
+warning that part of the library is unsearchable. Pre-existing, not widened
+here, left alone.
+
+## Exit criteria
+
+- [x] Add a document, query, find it, without a manual rebuild
+- [x] Delete a document, query, do not find it
+- [ ] Add an attachment and open it in Zotero, then find its text -- BLOCKED on
+      a real Zotero pass. Fixture coverage exists and is not the same thing
+      (review 2026-08-21)
+- [x] Watermark check costs one local request -- pinned by a call-count test
