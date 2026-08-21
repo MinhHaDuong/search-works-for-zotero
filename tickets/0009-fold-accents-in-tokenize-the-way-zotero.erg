@@ -171,13 +171,13 @@ Also confirmed by direct measurement, not assumption: `unicode61`'s default is
 1. A `normalizeForSearch`-equivalent helper, applied at the head of
    `tokenize()` so it runs on both the index and the query side.
 2. **Widen the token class to `/[\p{L}\p{N}]+/u`** -- not only NFD folding.
-2. Confirm both backends now answer the accented query, and that 0002's
+3. Confirm both backends now answer the accented query, and that 0002's
    named divergence test -- which currently asserts the JS index returns
    nothing where FTS5 returns the item -- is inverted or retired deliberately,
    not deleted quietly.
-3. Decide the stale-index question above and implement it.
-4. Check `đ` and the Vietnamese case; record the verdict either way.
-5. Update 0001's invariant note: the exception it carries may be removable.
+4. Decide the stale-index question above and implement it.
+5. Check `đ` and the Vietnamese case; record the verdict either way.
+6. Update 0001's invariant note: the exception it carries may be removable.
 
 ## Test
 

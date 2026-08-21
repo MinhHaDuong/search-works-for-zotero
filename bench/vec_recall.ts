@@ -28,9 +28,11 @@
  * summary is that the clustered fixture brackets it from the easy side and the uniform one
  * from the hard side.
  */
+// Run from the repo root with the fork checked out at ./fork (git-ignored):
+//   cd fork && npx tsx ../bench/vec_recall.ts
 import { existsSync, unlinkSync, statSync } from 'node:fs';
 import type { DatabaseSync } from 'node:sqlite';
-import { Fts5PassageStore, loadSqlite, defaultVecLoader } from '../src/features/search/fts5-store.js';
+import { Fts5PassageStore, loadSqlite, defaultVecLoader } from '../fork/src/features/search/fts5-store.js';
 
 interface Options {
   n: number;

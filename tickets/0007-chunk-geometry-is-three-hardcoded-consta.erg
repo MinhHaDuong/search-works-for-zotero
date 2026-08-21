@@ -6,7 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T16:56Z minh created
 
-2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed -- Blocked-by removed.
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
 2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
 2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
 2026-08-21T23:50Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
@@ -47,6 +47,13 @@ it was used as the date the author *installed* it. The install is
 | local install | **2026-08-21 14:26** | |
 | 1 036 `.zotero-ft-cache` rewritten | 14:27 onward | bulk re-index |
 | reader sessions since install | **0** | |
+
+Counts recorded in `bench/results/0007-sdt-probe.txt`, with the commands that
+produced them. **There is no positive control**: nothing here demonstrates the
+probe would find a `.zotero-sdt-cache` if one existed, because none does. A
+check whose all-clear cannot be distinguished from "I could not look" is not a
+check, so treat the zero as provisional until the one-PDF experiment below
+produces a pack the same probe then finds.
 
 So **no PDF has been opened in the reader since the upgrade**, and the
 confident conclusion drawn from the second reading -- that the reader path does

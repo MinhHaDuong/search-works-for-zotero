@@ -50,7 +50,12 @@ def main():
     ap.add_argument("--queries-file", required=True)
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--node-options", default="--max-old-space-size=8192")
+    # Default EMPTY. Whether the server survives on a stock heap is itself an
+    # exit criterion of ticket 0003, so the flag under test must never be the
+    # default -- a run with defaults would pass the criterion without
+    # exercising it. Pass it explicitly when driving the JSON backend, which
+    # genuinely needs it.
+    ap.add_argument("--node-options", default="")
     a = ap.parse_args()
 
     env = {"ZOTEUS_EMBEDDINGS": "off",

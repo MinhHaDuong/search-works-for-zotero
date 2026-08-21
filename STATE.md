@@ -47,12 +47,26 @@ Zotero into `.zotero-ft-cache`.
 | | zoteus (resident JS) | FTS5, same geometry | FTS5 prototype bench |
 |---|---|---|---|
 | passages | 477 511 | **477 511** | 408 628 |
-| build | 337 s | **339 s** | 46,6 s |
-| RSS peak during build | 6,48 GB | **2 085 MiB** | — |
+| build | 337 s | **339–374 s** | 46,6 s |
+| RSS peak during build | 6,48 GB | **1 892–2 085 MiB** | — |
 | RSS at rest / serving | 5 370 MB | **121–135 MiB** | 162 MB |
 | on disk | 546 MB (write fails) | **949,5 MiB** | 762 MB |
 | reload | OOM on stock Node | **opens the file, stock Node** | opens the file |
-| query | 0,37–0,5 s | **27–339 ms** (MCP round trip) | 1–76 ms (bare SQLite) |
+| query | 0,37–0,5 s | **33–339 ms** (MCP round trip) | 1–76 ms (bare SQLite) |
+
+**Two caveats on the memory column, both raised at review and both load-bearing
+for anything quoted externally.** The FTS5 figure is process RSS, and SQLite
+uses default buffered I/O with no `mmap_size` — so the kernel page cache
+holding up to 949,5 MiB of database file is *not* in it. The resident-JS
+figure has no such hidden remainder: every byte it needs is JS heap, which RSS
+sees. Read as total memory implicated, the win is nearer 5x than 40x. And the
+5 370 MB baseline itself **was never measured by this repo** — it predates the
+first commit, with no recorded instrument or method, while every FTS5 number
+here comes from `VmHWM`. One half of the ratio is reproducible from committed
+artifacts and the other is inherited. Re-measuring the JSON backend with the
+same instrument would close it; until then the *direction* is solid (the
+write-fails and reload-OOM walls are structural) and the *ratio* is not
+quotable.
 
 Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, no
 `--max-old-space-size` at any point. Raw artifacts in
@@ -68,9 +82,9 @@ column runs the server's own chunker at zoteus's geometry (512/64 metadata plus
 to the unit. The third column is `bench/fts5_bench.mjs`, a direct SQLite
 benchmark at 1200-no-overlap over attachment text only — a different corpus and
 no MCP framing, no RRF, no snippet extraction. Its 1–76 ms is not the number a
-user experiences; the middle column's 27–339 ms is. Of that, 200–300 ms on a
+user experiences; the middle column's 33–339 ms is. Of that, 200–300 ms on a
 cold query is 0006's Zotero freshness probe, not FTS5: with
-`ZOTEUS_INDEX_AUTO_REFRESH=false` the best query measured 26,9 ms.
+`ZOTEUS_INDEX_AUTO_REFRESH=false` the fastest query measured 32,7 ms.
 
 **Two claims not to overstate.** Peak RSS *during the build* is ~2 GB, not the
 "few hundred MB" ticket 0003 anticipated — reproduced across both runs, filed
@@ -140,33 +154,48 @@ overlap, since FTS5 and the JS BM25 cannot agree on scores (0002); and the
 extensions, and zoteus already carries two optional dependencies on the same
 graceful-degradation pattern.
 
-Two behavioural divergences from upstream, both deliberate and both tested:
-FTS5 **out-recalls** the JS index on accented queries (`remove_diacritics 2`
-folds the document side), and the SQLite backend refuses `toJSON`/`loadFromJSON`
-rather than materialising 408 628 passages into the heap.
+One deliberate divergence from upstream: the SQLite backend refuses
+`toJSON`/`loadFromJSON` rather than materialising 477 511 passages into the
+heap. A second was recorded here as deliberate — "FTS5 out-recalls the JS index
+on accented queries" — and **that was wrong**. Measurement on the real library
+showed accented queries returning confident noise, not extra recall; it is a
+correctness defect, ticket 0009, and the section below carries the evidence.
 
 ## Migration, measured 2026-08-21
 
-The 463 MB index no longer exists, so two real ones were built from the live
-library instead — 153 MB and 321 MB — because the claim under test is that
-migration memory *does not scale with file size*, and one point cannot show it.
+The 463 MB index no longer exists. Two points were measured on real data,
+because the claim under test is how migration memory grows with file size and
+one point cannot show that. Both are re-runs: the figures first published here
+came from an agent's uncaptured stdout and were not reproducible from any
+committed artifact — a review caught it, and these replace them.
 
-| | 153 MB JSON | 321 MB JSON |
+| | 105 MB JSON | 321 MB JSON |
 |---|---|---|
-| migration, isolated | 17,0 s | 28,4 s |
-| **peak RSS migrating** | **94 MiB** | **96 MiB** |
-| same index into the JSON backend | 1 896 MB | **3 786 MB** |
-| resulting database | 236 MB | 499 MB (1,55×) |
+| migration, isolated | 13,7 s | 42,7 s |
+| **peak RSS** (`VmHWM`) | **80,7 MiB** | **97,0 MiB** |
+| resulting database | 162,3 MB | 498,7 MB |
+| ratio to JSON | 1,5416 | 1,5522 |
 
-File ×2,10, migration memory ×1,02. Flat, on real and messy text. The backend
-it replaces is linear at roughly 11,8× the file. Startup is 45 s including the
-one-off migration and **0,97 s on every later start**, against 30,8 s every
-time for JSON. Passage counts match exactly on both sides, `integrity_check`
-ok, source JSON byte-identical afterwards, no WAL residue.
+**File ×3,05, memory ×1,20 — strongly sublinear, not flat.** Linear would have
+been ×3,05. An earlier reading claimed flat (×2,10 file, ×1,02 memory); that
+was the unbacked one. The streaming scanner does bound memory well, and there
+is a real size-dependent component on top of it.
 
-Two corrections: the database/JSON ratio is **1,55×**, not the 1,34× budgeted
-from the synthetic fixture — so a full-size migration needs ~715 MB, not 620.
-And the 463 MB criterion **stays open**; 321 MB is 69% of it.
+Artifacts `bench/results/0005-migration/migrate_{105,321}MB.json`, driver
+`bench/migrate_measure.mjs`, which records `NODE_OPTIONS`, Node version, both
+file sizes and `VmHWM` into its own output so this cannot recur. The smaller
+index was cut from the larger with `bench/slice_index.mjs` — real passages,
+fewer of them.
+
+For comparison, the JSON backend loading the same indexes cost 1 896 MB and
+3 786 MB (`res_json.json`, `res5k_json.json`), roughly 11,8× the file and
+linear in it. Startup is 45 s including the one-off migration and 0,97 s on a
+later start at the 153 MB scale — that 0,97 s is a single warm-cache reading
+at one size, not a measured property of every start.
+
+The database/JSON ratio is **1,55×**, not the 1,34× budgeted from the synthetic
+fixture — confirmed at both sizes — so a full-size migration needs ~715 MB, not
+620. The 463 MB criterion **stays open**; 321 MB is 69% of it.
 
 ## Accented queries are broken on the SQLite backend
 
@@ -223,23 +252,30 @@ zotero/zotero#6012 already does.
 
 ## Next action
 
-**The author's own library is the remaining gate.** Four exit criteria across
-0001, 0003, 0004 and 0005 need the real 7 540-item corpus and cannot be
-fabricated; the commands are in each ticket. In order:
+**The chantier's code is complete** — fork `bac5d62` on `fts5-storage`, 679
+tests, tsc and eslint clean. 0002–0006 are closed; 0007–0012 are open.
 
-1. Migrate the existing `search-index.json` (0005) — watch peak RSS, which
-   should *not* scale with file size.
-2. Full build on the sqlite backend (0003) — build time, peak RSS, on-disk
-   size, and that the server serves with no `--max-old-space-size`.
-3. Embedding pass (0004) — bytes/passage and semantic query latency.
-   `bench/build_index.py` hardcodes `ZOTEUS_EMBEDDINGS: "off"`; that one key
-   needs changing first.
-4. Old-vs-new result comparison on the same corpus (0001), then the findings
-   go on oscardvs/zoteus#10.
+The measurement work that needed the real library is now done: the full build
+(0003) and the migration (0005) are both measured and their artifacts
+committed. What remains is not more measurement but three decisions.
 
-Then commit the fork branch, and consider 0008 (binary quantization: measured
-13x faster, 24x smaller) before the #10 writeup, since it changes the numbers
-that writeup would quote.
+1. **Fix the accented-query defect (0009).** It is the only known way the
+   SQLite backend returns *wrong* answers, and the fix is small and known:
+   fold in JS on both sides, widen the token class to `/[\p{L}\p{N}]+/u`.
+   Nothing should be quoted upstream while this is live.
+2. **Decide what the #10 report may claim about memory.** The at-rest ratio is
+   not currently quotable — see the caveats on the table above: the FTS5 side
+   excludes page cache, and the 5 370 MB baseline was never measured by this
+   repo. Re-measuring the JSON backend with `VmHWM` closes it, and it is the
+   number most likely to be lifted verbatim.
+3. **Settle 0007 with one PDF.** Open one in Zotero, look for
+   `.zotero-sdt-cache`. That decides whether structure-aware chunking is
+   reachable at all.
+
+Two criteria remain open and are not blockers: the 463 MB migration at full
+size (0005 — 321 MB reached, 69%), and 0008's re-measure on the real vector
+index, where the anisotropy risk is the thing to test.
+
 
 ## Gates
 

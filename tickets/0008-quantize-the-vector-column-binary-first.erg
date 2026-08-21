@@ -53,8 +53,9 @@ transcription slip. The ratios below are computed within this run only:
 | int8 (`vec_quantize_int8`, 'unit') | 156 MB | 345,6 ms | 408 B |
 | **binary (`vec_quantize_binary`)** | **25 MB** | **41,5 ms** | **65 B** |
 
-**13x faster and 24x smaller.** Still O(N) -- the constant collapses, it does
-not become sub-linear. Note int8 buys only 1,6x against 3,8x less data: the
+**13x faster and 24x smaller** -- *at `k=30`, which is the whole trouble; see
+"Result" below, where this figure does not survive being asked for a pool.*
+Still O(N) -- the constant collapses, it does not become sub-linear. Note int8 buys only 1,6x against 3,8x less data: the
 scan is not purely I/O-bound, there is real per-vector arithmetic, and binary
 removes the arithmetic (Hamming distance is a popcount) rather than only the
 bytes. That asymmetry is the reason to go to binary rather than stopping at

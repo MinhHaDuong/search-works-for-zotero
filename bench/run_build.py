@@ -60,7 +60,12 @@ def main():
     ap.add_argument("--max-wait", type=float, default=5400.0)
     ap.add_argument("--max-items", default="5000")
     ap.add_argument("--max-chars", default="200000")
-    ap.add_argument("--node-options", default="--max-old-space-size=8192")
+    # Default EMPTY. Whether the server survives on a stock heap is itself an
+    # exit criterion of ticket 0003, so the flag under test must never be the
+    # default -- a run with defaults would pass the criterion without
+    # exercising it. Pass it explicitly when driving the JSON backend, which
+    # genuinely needs it.
+    ap.add_argument("--node-options", default="")
     ap.add_argument("--build", action="store_true", help="kick off a build; otherwise only start+status")
     a = ap.parse_args()
 
