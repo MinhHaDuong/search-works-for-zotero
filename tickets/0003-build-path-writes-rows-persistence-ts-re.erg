@@ -1,0 +1,34 @@
+%erg 0.1
+Title: Build path writes rows; persistence.ts retires
+Created: 2026-08-21
+Author: minh
+Blocked-by: 0002
+
+--- log ---
+2026-08-21T13:48Z minh created
+
+--- body ---
+## Context
+
+`buildIncremental` accumulates passages in memory and snapshots them through
+`saveIndex`. With rows in a table the accumulation disappears: each item's
+passages are inserted as they are chunked, inside a transaction, and there is
+nothing left to serialise. `persistence.ts` retires with it. Tracker: 0001.
+
+## Actions
+
+1. Insert per item rather than accumulate; commit every N items.
+2. Drop `saveIndex`/`loadIndex` from the SQLite path; the database is the state.
+3. Keep `IndexBuildStatus` bookkeeping intact, including `itemsAvailable` and
+   `truncationNotice` from the upstream PR MinhHaDuong:index-max-items-runtime.
+
+## Verification
+
+- [ ] Whole library, no character cap, builds and is queryable immediately after
+- [ ] Peak RSS stays within a few hundred MB, against 6,48 GB today
+- [ ] Server restarts and serves without `--max-old-space-size`
+
+## Exit criteria
+
+- [ ] `persistence.ts` unused by the SQLite path
+- [ ] Build of the full library measured and recorded in `bench/`

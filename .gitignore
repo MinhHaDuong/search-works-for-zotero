@@ -1,0 +1,9 @@
+# The zoteus fork is its own checkout, cloned by bootstrap.sh — not a submodule,
+# not vendored. Nothing under it belongs to this repo's history.
+fork/
+
+# Measurement artefacts: regenerable, and large.
+bench/*.sqlite
+bench/*.sqlite-*
+bench/data/
+*.log

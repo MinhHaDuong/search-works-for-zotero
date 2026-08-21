@@ -1,0 +1,85 @@
+%erg 0.1
+Title: Replace the resident JS index with SQLite/FTS5 behind SearchIndex
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T13:48Z minh created
+
+--- body ---
+## Context
+
+zoteus keeps its whole search index resident in JS objects and snapshots it with
+a single `JSON.stringify`. Measured on a 7 540-item Zotero library, uncapped
+full text:
+
+| | zoteus (resident JS) | FTS5 via `node:sqlite` |
+|---|---|---|
+| passages | 477 511 | 408 628 |
+| build | 337 s | 46,6 s |
+| RSS at rest | 5 370 MB | 162 MB |
+| on disk | 546 MB (write fails) | 762 MB |
+| reload | OOM on stock Node | opens the file |
+| query | 0,37–0,5 s | 1–76 ms |
+
+Three walls, all silent, all consequences of the same choice:
+
+- `JSON.stringify` cannot exceed V8's max string length (536 870 888 chars).
+  Past it `saveIndex` throws, `startIndexBuild` swallows it into a warning, and
+  the build still reports `state: "done"` over a stale file.
+- `loadIndex` OOMs at Node's ~4 GB default heap on an index that wrote fine —
+  so zoteus writes an index it cannot read back. Reached around 260 000
+  passages.
+- `buildIncremental` calls `reset()`: a full rebuild is the only update path,
+  because applying a three-item delta would mean rewriting the whole file.
+
+Filed upstream as oscardvs/zoteus#10, with SQLite proposed there as direction
+(d). No maintainer response yet. This tracker covers building it as a prototype
+in the fork, without opening a merge request — the posture stated in the issue
+comment.
+
+## Blast radius
+
+`SearchIndex` is the seam: `build.ts`, `semantic-search.ts` and every tool go
+through its methods, so a SQLite-backed implementation behind the same
+interface is contained. Touched: `bm25.ts` and `tokenize.ts` become FTS5 DDL
+plus two queries, `persistence.ts` disappears (the database is the state),
+`vector-store.ts` moves to a BLOB column, `index-manager.ts` keeps its build
+bookkeeping. Roughly 300–400 lines.
+
+## Architectural decisions to settle in 0002
+
+Taken once, in the first child, because everything after depends on them:
+schema and its indices, tokenizer configuration, where the database file lives
+relative to `ZOTEUS_DATA_DIR`, and whether `SqliteSearchIndex` shadows or
+replaces the existing class.
+
+## Children
+
+- 0002 — schema and keyword-only implementation (the only one carrying design risk)
+- 0003 — build path writes rows; `persistence.ts` retires
+- 0004 — vectors in a BLOB column, RRF rescoring
+- 0005 — migration from an existing `search-index.json`
+- 0006 — incremental update via the library version watermark
+
+Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
+0006 depends on cheap partial writes, so it cannot go upstream alone.
+
+## Invariants
+
+- Upstream's own suite is the gate: `npx vitest run`, `tsc --noEmit`, `eslint`.
+  This project's Python and prose rules do not apply to a TypeScript repo.
+- **Same corpus in, same results out.** A storage swap is a pure refactor: it
+  is validated by comparing search results between the old and new index on the
+  same library, not by a green suite. Green tests pass on a refactor that
+  quietly changed ranking.
+- Nothing under `fork/` is committed here, and no `tickets/` directory is ever
+  added to the fork — it would appear in any diff sent upstream.
+
+## Exit criteria
+
+- [ ] All children closed
+- [ ] The whole library indexes with no character cap, writes, and reloads on a
+      stock Node with no `--max-old-space-size`
+- [ ] Old-vs-new result comparison documented in `bench/`
+- [ ] Findings reported on oscardvs/zoteus#10

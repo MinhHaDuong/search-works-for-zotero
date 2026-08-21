@@ -1,0 +1,49 @@
+%erg 0.1
+Title: SqliteSearchIndex: schema and keyword-only implementation of the SearchIndex interface
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T13:48Z minh created
+
+--- body ---
+## Context
+
+The first child, and the only one carrying design risk: everything after it
+depends on the schema and on how `SqliteSearchIndex` relates to the existing
+class. Tracker: 0001.
+
+## Decisions to take here
+
+- **Schema.** One row per passage: body, item key, ordinal, source (metadata or
+  fulltext). FTS5 external-content table over a plain table, or a contentless
+  one? External content keeps the text once and lets us `DELETE` by rowid,
+  which 0006 needs.
+- **Tokenizer.** `unicode61 remove_diacritics 2` folds accents, verified.
+  No stemming: FTS5's `porter` is English-only and the corpus is not.
+- **Query semantics.** zoteus's BM25 ORs its terms; FTS5's `MATCH` defaults to
+  an implicit AND. This must be matched deliberately or ranking changes under
+  us — it is exactly the trap the invariant in 0001 guards against.
+- **File location** relative to `ZOTEUS_DATA_DIR`, beside `search-index.json`
+  rather than replacing it, so both can coexist during 0005.
+- **Shadow or replace.** Prefer a second implementation selected by config, so
+  the old path stays runnable for the result comparison.
+
+## Relevant files
+
+- `fork/src/features/search/index-manager.ts` — the `SearchIndex` interface to satisfy
+- `fork/src/features/search/bm25.ts`, `tokenize.ts` — what FTS5 replaces
+- `bench/fts5_bench.mjs` — the standalone prototype the schema comes from
+
+## Test
+
+Red step: run upstream's existing search tests against `SqliteSearchIndex`
+instead of `SearchIndex`. They fail on the unimplemented methods first, then
+pass as each lands. No new test fixtures — reusing upstream's is the point.
+
+## Exit criteria
+
+- [ ] `SqliteSearchIndex` satisfies the `SearchIndex` interface, keyword-only
+- [ ] Upstream's suite passes against it
+- [ ] Query semantics match the current BM25 on a shared sample of queries
+- [ ] `tsc --noEmit` and `eslint` clean

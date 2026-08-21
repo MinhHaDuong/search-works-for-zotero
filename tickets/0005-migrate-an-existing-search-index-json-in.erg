@@ -1,0 +1,32 @@
+%erg 0.1
+Title: Migrate an existing search-index.json into the database
+Created: 2026-08-21
+Author: minh
+Blocked-by: 0003
+
+--- log ---
+2026-08-21T13:48Z minh created
+
+--- body ---
+## Context
+
+Existing installs hold a `search-index.json`. Rebuilding from scratch is
+correct but slow, and on a large library it is precisely what fails today.
+Tracker: 0001.
+
+## Actions
+
+1. Detect a `search-index.json` beside the database with no database present.
+2. Stream it in rather than `JSON.parse` the whole file — a file large enough
+   to matter is a file too large to parse, which is issue #10's own trap.
+3. Leave the JSON in place, untouched, so the migration is reversible.
+
+## Verification
+
+- [ ] A migrated index answers the same queries as the JSON it came from
+- [ ] Migration of a file above V8's string limit succeeds, or fails with a
+      message naming the cause rather than silently falling back to "no index"
+
+## Exit criteria
+
+- [ ] Migration path tested on the 463 MB index in `bench/`
