@@ -105,8 +105,20 @@ however many of its 42 962 passages match. The idf distortion is real in the
 corpus statistics and largely cancels in the ranking, because idf scales every
 candidate for a given term alike.
 
-**Recommendation: record, do not bound.** The measurement that would have
-justified a per-item ceiling did not find one. What remains worth doing is
+**Recommendation revised the same day: bound it, for memory rather than
+ranking.** The ranking argument for a ceiling did not survive measurement --
+the effect cancels, as above. But 0011's step-0 test then found a different
+one: capping characters at 2 000 000, which truncates this document and no
+other, cuts peak build RSS from **2 085 MiB to 404 MiB**, a 5,2x reduction.
+
+So the ceiling is worth having and the reason is not the one this ticket was
+filed on. That distinction matters for what gets built: a *ranking* fix would
+want per-item passage quotas or score damping; a *memory* fix is one character
+cap, already implemented as `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`, needing only a
+sensible default and the honesty to say what it truncates.
+
+The original recommendation, kept for the record: *the measurement that would
+have justified a per-item ceiling did not find one.* What remains worth doing is
 making the concentration visible, so the next reader does not rediscover it,
 and keeping the memory question -- which is 0011's, not a ranking question --
 separate.
@@ -155,7 +167,9 @@ surfaces the concentration instead.
 - [ ] Per-item concentration visible from `status()` or a documented query
 - [x] Ranking distortion measured on corpus statistics: idf depressed 20-28%
       for HET vocabulary, inflated 2-5% for climate terms
-- [x] Order-level effect measured: the dictionary takes one de-duplicated slot
-      and the rest of the order is near-unchanged; recommendation is to record
-      the concentration, not to bound it -- author's call to accept or reject
+- [x] Order-level effect measured: negligible, so ranking does not justify a
+      ceiling
+- [x] A memory justification found instead (0011): a 2 M-char cap cuts peak
+      build RSS 5,2x
+- [ ] Default cap value chosen, and what it truncates documented
 - [ ] 0011's cheap experiment run and its result recorded there

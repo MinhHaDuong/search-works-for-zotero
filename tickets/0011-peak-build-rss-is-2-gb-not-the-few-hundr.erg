@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-08-21T19:25Z minh created
+2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the New Palgrave and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
 
 --- body ---
 ## Context
@@ -59,6 +60,39 @@ guess is cheap to test by varying `fulltextConcurrency` and page size and
 re-reading `VmHWM`. Do that before changing anything -- the failure mode here
 is fixing the wrong thing because the shape looked familiar.
 
+## Cause isolated 2026-08-22
+
+Step 0 ran, and one document accounts for the peak.
+
+Rebuilt the full library changing exactly one variable:
+`ZOTEUS_INDEX_FULLTEXT_MAX_CHARS` from 0 to 2 000 000. The next-largest
+`.zotero-ft-cache` is 1 908 743 B, so that truncates precisely one document --
+`DH8EXSVA`, the New Palgrave, 44 906 152 characters -- and leaves every other
+document in the library untouched.
+
+| | passages | peak build `VmHWM` | elapsed |
+|---|---|---|---|
+| uncapped chars | 477 511 | **2 085 MiB** | 339 s |
+| 2 M-char cap | 436 463 | **404 MiB** | 201 s |
+
+**Peak RSS falls 5,2x.** So the ~2 GB is that single 44,9 MB string, not a
+generic property of `buildIncremental`'s page loop. The hypothesis this ticket
+recorded -- "100 uncapped full texts live simultaneously" -- was the right
+shape and the wrong magnitude: it is one text, not a hundred.
+
+The concurrency sweep this ticket planned is therefore unnecessary as a
+diagnostic. It may still be worth running as a tuning exercise, but it is no
+longer the way to find the cause.
+
+Artifact: `bench/results/0011-rss/capped-vs-uncapped.json`.
+
+**What this does to the headline.** "Peak ~2 GB during build" is true of this
+library at uncapped chars and is not a property of the backend. With a cap that
+touches one book, the same 7 541 items build at 404 MiB -- comfortably inside
+the "few hundred MB" this ticket was filed for missing. The honest statement
+for #10 is that build peak is governed by the largest single document, and
+name the number both ways.
+
 ## Actions
 
 0. **Cheapest first, added 2026-08-22:** one item (`DH8EXSVA`, the New Palgrave
@@ -88,9 +122,9 @@ this is a measurement, and a memory assertion in CI would be machine-dependent.
 
 ## Exit criteria
 
-- [ ] Cause of the ~2 GB peak isolated, or explicitly recorded as not isolated
-      after the exclude-0013 test and then the concurrency/page-size sweep
-- [ ] If reducible, reduced and re-measured; if not, the number documented as
-      inherent
+- [x] Cause isolated: one 44,9 MB document; capping it cuts peak 5,2x
+- [x] Reducible and re-measured: 404 MiB at a 2 M-char cap
+- [ ] Decide whether zoteus ships such a cap by default -- shared with 0013,
+      which now has a memory argument its ranking evidence lacked
 - [ ] "A few hundred MB" corrected to the measured figure in STATE, 0001, and
       the #10 report

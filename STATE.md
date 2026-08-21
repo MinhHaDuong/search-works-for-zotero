@@ -102,11 +102,16 @@ user experiences; the middle column's 33–339 ms is. Of that, 200–300 ms on a
 cold query is 0006's Zotero freshness probe, not FTS5: with
 `ZOTEUS_INDEX_AUTO_REFRESH=false` the fastest query measured 32,7 ms.
 
-**Two claims not to overstate.** Peak RSS *during the build* is ~2 GB, not the
-"few hundred MB" ticket 0003 anticipated — reproduced across both runs, filed
-as ticket 0011. The at-rest figure, which is the one the chantier turns on, is
-unaffected at 121–135 MiB. And the build is API-bound, not SQLite-bound: run 2
-spent 113 s of its 339 s on the first page of full text.
+**The ~2 GB build peak is one document, and capping it costs almost nothing.**
+Ticket 0003 anticipated "a few hundred MB" and the measured peak was 2 085 MiB,
+which is why 0011 exists. 0011's cause is now isolated: rebuilding with
+`ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=2000000` — which truncates the New Palgrave
+and no other document, the next-largest cache being 1,9 MB — gives **404 MiB
+peak, a 5,2× reduction**, over 436 463 passages instead of 477 511. So build
+peak is governed by the largest single document rather than by the backend, and
+`#10` should say it both ways. At-rest is unaffected either way at 121–135 MiB.
+Also: the build is API-bound, not SQLite-bound — run 2 spent 113 s of its 339 s
+on the first page of full text.
 
 Three things to settle before the #10 writeup, all established 2026-08-21.
 
