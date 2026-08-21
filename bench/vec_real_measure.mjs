@@ -55,24 +55,57 @@ const passages = db.prepare('SELECT count(*) AS n FROM passage_meta').get().n;
 // ---- on disk -----------------------------------------------------------------------
 // Page counts per table rather than a guess from dim x 4: vec0 stores its vectors in
 // chunk tables and the overhead is what the ticket asked about.
-const pagesOf = (t) => {
+/**
+ * Bytes for a logical component, summed over EVERY shadow table it owns.
+ *
+ * Both `vec0` and `fts5` spread one logical table across several physical ones — chunks,
+ * rowids, info, and for FTS5 the content/idx/docsize/config set. Charging a component
+ * only its `*_vector_chunks00` or `*_data` table undercounts it, and the components then
+ * cannot be checked against the file size, which is the one arithmetic that catches a
+ * miscount. So each pattern is matched against `sqlite_master` and the accounting is
+ * reported with its own residual.
+ */
+const tables = db
+  .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
+  .all()
+  .map((r) => r.name);
+const pagesOf = (predicate) => {
+  const names = tables.filter(predicate);
+  if (names.length === 0) return { bytes: null, tables: [] };
   try {
-    return db.prepare('SELECT sum(pgsize) AS b FROM dbstat WHERE name = ?').get(t)?.b ?? null;
+    const q = db.prepare(
+      `SELECT sum(pgsize) AS b FROM dbstat WHERE name IN (${names.map(() => '?').join(',')})`,
+    );
+    return { bytes: q.get(...names)?.b ?? null, tables: names };
   } catch {
-    return null; // dbstat is a compile-time option; absent is not a failure here.
+    // dbstat is a compile-time option; absent is a gap in the report, not a failure.
+    return { bytes: null, tables: names };
   }
 };
-const pageSize = db.prepare('PRAGMA page_size').get().page_size;
+const isBin = (t) => t.startsWith('passage_vectors_bin');
+const f32 = pagesOf((t) => t.startsWith('passage_vectors') && !isBin(t));
+const bin = pagesOf(isBin);
+const fts = pagesOf((t) => t === 'passages' || t.startsWith('passages_'));
+const meta = pagesOf((t) => t === 'passage_meta' || t === 'index_meta');
 const sizes = {
   file_bytes: statSync(opt.db).size,
-  page_size: pageSize,
-  float32_bytes: pagesOf('passage_vectors_vector_chunks00'),
-  binary_bytes: pagesOf('passage_vectors_bin_vector_chunks00'),
-  fts5_bytes: pagesOf('passages_data'),
-  meta_bytes: pagesOf('passage_meta'),
+  page_size: db.prepare('PRAGMA page_size').get().page_size,
+  float32_bytes: f32.bytes,
+  float32_tables: f32.tables,
+  binary_bytes: bin.bytes,
+  binary_tables: bin.tables,
+  fts5_bytes: fts.bytes,
+  fts5_tables: fts.tables,
+  meta_bytes: meta.bytes,
 };
-if (sizes.float32_bytes) sizes.float32_bytes_per_vector = +(sizes.float32_bytes / n).toFixed(1);
-if (sizes.binary_bytes) sizes.binary_bytes_per_vector = +(sizes.binary_bytes / n).toFixed(1);
+const accounted = [f32.bytes, bin.bytes, fts.bytes, meta.bytes].reduce((a, b) => a + (b ?? 0), 0);
+sizes.accounted_bytes = accounted || null;
+// Freelist, the schema itself and page slack are not any component's; naming the residual
+// is what turns "these four numbers" into an accounting that can be checked.
+sizes.unaccounted_bytes = accounted ? sizes.file_bytes - accounted : null;
+if (f32.bytes) sizes.float32_bytes_per_vector = +(f32.bytes / n).toFixed(1);
+if (bin.bytes) sizes.binary_bytes_per_vector = +(bin.bytes / n).toFixed(1);
+if (f32.bytes && bin.bytes) sizes.float32_over_binary = +(f32.bytes / bin.bytes).toFixed(2);
 
 // ---- read the vectors out, for the distribution questions ---------------------------
 const rows = db.prepare('SELECT rowid, embedding FROM passage_vectors').all();
@@ -127,19 +160,32 @@ for (let i = 0; i < PROBES; i++) probeIdx.push(Math.floor(rnd() * vecs.length));
 const codesZero = vecs.map((v) => bits(v, null));
 const codesCentred = vecs.map((v) => bits(v, mean));
 
-/** Recall@topK of a binary-first pool reranked exactly, against the exact ranking. */
+/**
+ * Recall@topK of a binary-first pool reranked exactly, against the exact ranking.
+ *
+ * **Leave-one-out.** The probe is a real passage drawn from the corpus, which is the
+ * point — its embedding has the distribution under test, where a synthesised query would
+ * not. But it is also IN the index, so without excluding it every ranking begins with a
+ * cosine of 1,0 against itself, at Hamming distance 0, in both regimes. That self-match
+ * is free recall, it is free in exactly the same amount for the coarse and the exact
+ * pass, and it therefore hides the degradation this driver exists to detect. At topK=30
+ * it would inflate every figure by up to 1/30 and mask a first-pass failure at pool 1x
+ * almost entirely. The forge review seat caught this before the run landed.
+ */
 function recallAt(pool, codes, centre) {
   let hit = 0;
   for (const p of probeIdx) {
     const q = vecs[p];
     const exact = vecs
       .map((v, i) => [cosine(q, v), i])
+      .filter((x) => x[1] !== p)
       .sort((a, b) => b[0] - a[0])
       .slice(0, TOPK)
       .map((x) => x[1]);
     const qc = bits(q, centre);
     const coarse = codes
       .map((c, i) => [hamming(qc, c), i])
+      .filter((x) => x[1] !== p)
       .sort((a, b) => a[0] - b[0])
       .slice(0, pool)
       .map((x) => x[1]);
@@ -152,6 +198,33 @@ function recallAt(pool, codes, centre) {
     hit += reranked.filter((i) => want.has(i)).length / TOPK;
   }
   return +(hit / probeIdx.length).toFixed(4);
+}
+
+/**
+ * How much of a probe's exact top-K comes from its OWN item.
+ *
+ * Reported rather than filtered. Chunk overlap is 150 characters, so a passage's nearest
+ * neighbours are genuinely its own siblings — that is the corpus, not an artifact, and
+ * removing it would measure a corpus nobody has. But it does make the retrieval task
+ * easier than a real query's, so the number belongs beside the recall figures rather than
+ * inside them.
+ */
+function sameItemShare() {
+  const itemOf = new Map(
+    db.prepare('SELECT rowid, item FROM passage_meta').all().map((r) => [r.rowid, r.item]),
+  );
+  let share = 0;
+  for (const p of probeIdx) {
+    const q = vecs[p];
+    const mine = itemOf.get(rowids[p]);
+    const exact = vecs
+      .map((v, i) => [cosine(q, v), i])
+      .filter((x) => x[1] !== p)
+      .sort((a, b) => b[0] - a[0])
+      .slice(0, TOPK);
+    share += exact.filter(([, i]) => itemOf.get(rowids[i]) === mine).length / TOPK;
+  }
+  return +(share / probeIdx.length).toFixed(4);
 }
 
 const POOLS = [TOPK, TOPK * 2, TOPK * 4, TOPK * 8, TOPK * 16];
@@ -203,6 +276,17 @@ const out = {
   },
   recall,
   latency_ms: latency,
+  probe_design: {
+    note:
+      'Probes are real indexed passages, leave-one-out: a probe never retrieves itself. ' +
+      'Without that exclusion every ranking starts with a free self-match, identical in ' +
+      'both regimes, which inflates recall and hides the degradation under test.',
+    exact_topk_from_the_probe_own_item: sameItemShare(),
+    note_on_that:
+      'Chunk overlap is 150 characters, so a passage neighbours its own siblings. Reported ' +
+      'rather than filtered: it is the corpus, but it makes retrieval easier than a real ' +
+      "query's, so the recall figures should be read next to it.",
+  },
 };
 writeFileSync(opt.output, JSON.stringify(out, null, 1));
 db.close();
