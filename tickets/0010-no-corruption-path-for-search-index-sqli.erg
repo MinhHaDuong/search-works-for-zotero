@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-08-21T19:18Z minh created
+2026-08-22T03:10Z minh decided a corrupt index refuses and reports; it does not rebuild itself. Rationale: this is an agentic tool.
 
 --- body ---
 ## Context
@@ -63,12 +64,34 @@ cheaper and catches the cases that actually matter. Decide explicitly, and if
 you check at open, measure the cost on a full-size index rather than assuming
 it is negligible.
 
-**Rebuild automatically, or refuse and report?** An automatic rebuild of the
-author's library is a long operation started without asking. Recovering
-silently is friendly right up until it isn't. A middle position -- discard the
-corrupt file, serve an empty index, and report the cause plus the one command
-that rebuilds -- may be the honest one. This is a judgement call for the
-author, not the implementer.
+**Settled 2026-08-22: refuse and report. Do not rebuild.** The author's reason
+is short and decides more than this ticket: *this is an agentic tool.*
+
+An MCP server's caller is a language model in the middle of a task, not a
+person watching a progress bar. A silent rebuild of a 7 540-item library would
+hold a tool call open for minutes, consume the agent's budget on work nobody
+asked for, likely exceed whatever timeout the client applies, and produce an
+empty or partial index in the meantime -- all without anyone able to consent,
+because the only party present cannot. A clear refusal naming the cause and the
+command is *more* useful to an agent than to a human: an agent can relay it,
+decide, or ask, and it can do so in a second rather than a minute.
+
+So: recognise the corruption, discard the unusable file and its sidecars, clear
+`index_meta` with them, and return an error naming the cause and the rebuild
+command. Do not serve an empty index silently either -- that reads as an empty
+library, which is the failure mode this ticket already rejects elsewhere.
+
+**Where else the principle bites, recorded rather than ticketed.** 0006's
+query-time refresh already starts unrequested work: a change set over 500 items
+(50 with full text) becomes a **background rebuild**. That is not the same
+offence -- the query returns promptly and the rebuild runs out of band, so no
+tool call is held open and no agent is blocked. But an agentic caller is not
+told it happened; it would have to poll `zotero_index action:"status"` and
+notice `state: "building"`. Under the same reasoning that settled this ticket,
+the honest shape is for the refresh to *say* it started a rebuild in whatever
+it returns, so the caller can relay or wait deliberately. Below the severity
+floor and left as a note here rather than a fourteenth ticket; worth folding
+into whichever change next touches `delta.ts`.
 
 **The JSON backend is out of scope.** `loadIndex` already swallows every error
 and returns `false`, which is its own defect but a different one.
@@ -78,7 +101,8 @@ and returns `false`, which is its own defect but a different one.
 1. Classify SQLite errors at the store boundary; recognise `SQLITE_CORRUPT`
    and `SQLITE_NOTADB` distinctly from ordinary failures.
 2. Recovery: discard the database and its `-wal`/`-shm` sidecars, **clear
-   `index_meta` with them**, and take the decided position on rebuild.
+   `index_meta` with them**, and refuse -- return an error, never a rebuild and
+   never a silent empty index.
 3. Name the cause in the message, with the rebuild command. A corruption error
    the user cannot act on is the current behaviour and the thing to remove.
 4. Decide the detect-at-open question; if checking, measure on a full index.
@@ -96,5 +120,8 @@ throws out of `query()`. Assert instead that it is recognised, recovered, and
 - [ ] A corrupt index is recognised, not propagated as an opaque error
 - [ ] Recovery clears `index_meta`, pinned by a test asserting the next
       freshness check rebuilds rather than serving an empty index as current
-- [ ] The rebuild-vs-report position is decided by the author and implemented
+- [x] The rebuild-vs-report position decided by the author 2026-08-22: refuse
+      and report
+- [ ] Implemented that way, with a test asserting the error names cause and
+      command and that no rebuild is attempted
 - [ ] Message names the cause and the command
