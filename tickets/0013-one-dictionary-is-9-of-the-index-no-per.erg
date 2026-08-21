@@ -6,6 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T20:21Z minh created
 2026-08-22T02:50Z claude note distortion measured, and it is systematic: the dictionary suppresses idf for HET vocabulary (keynes -28%, walras -25%) while inflating it for climate terms
+2026-08-22T03:30Z claude note order test run: the dictionary takes the top slot on HET queries and the rest is near-unchanged; recommends recording rather than bounding
 
 --- body ---
 ## Context
@@ -79,13 +80,36 @@ characteristic query of the HET work this library serves -- is ranked with a
 weight depressed by a single book, and the depression is largest exactly where
 the library is most specialised.
 
-**What this does not yet establish:** whether the depressed idf changes the
-*order* of results a user sees, as opposed to their scores. idf enters BM25
-multiplicatively per term, so a single-term query's ranking is unaffected --
-every candidate is scaled alike. It bites on **multi-term queries**, where the
-relative weight of terms decides which document wins. That is the experiment to
-run next, and it is cheap: a handful of two- and three-term HET queries, ranked
-with and without the item indexed, compared by result order rather than score.
+## The order test, and it argues against changing anything
+
+Ranked four multi-term queries under both idf regimes, replicating `bm25.ts`'s
+formula over the built index rather than rebuilding
+(`bench/bm25_idf_effect.mjs`, no rebuild needed).
+
+| query | top-10 overlap | top-1 | rest of the order |
+|---|---|---|---|
+| `walras general equilibrium` | 9/10 | changes | one genuine swap below the top |
+| `keynes uncertainty expectations` | 9/10 | changes | **pure shift** -- unchanged |
+| `cournot duopoly competition` | 9/10 | changes | **pure shift** -- unchanged |
+| `carbon tax revenue recycling` | 10/10 | same | identical |
+
+**The whole measured effect is that the dictionary takes one slot.** On each
+HET query it ranks first; remove it and, in two of three, every other result
+keeps its relative order exactly. Only `walras` reorders below the top, and by
+one position. The climate query is untouched, as the idf table predicted.
+
+**And taking that slot is arguably right.** For `walras general equilibrium`,
+the New Palgrave's entry on Walras is a good answer, not noise. Results are
+de-duplicated by `itemKey`, so the dictionary occupies **one** result of ten
+however many of its 42 962 passages match. The idf distortion is real in the
+corpus statistics and largely cancels in the ranking, because idf scales every
+candidate for a given term alike.
+
+**Recommendation: record, do not bound.** The measurement that would have
+justified a per-item ceiling did not find one. What remains worth doing is
+making the concentration visible, so the next reader does not rediscover it,
+and keeping the memory question -- which is 0011's, not a ranking question --
+separate.
 
 ## What zoteus does not currently do
 
@@ -131,6 +155,7 @@ surfaces the concentration instead.
 - [ ] Per-item concentration visible from `status()` or a documented query
 - [x] Ranking distortion measured on corpus statistics: idf depressed 20-28%
       for HET vocabulary, inflated 2-5% for climate terms
-- [ ] Order-level effect measured on multi-term queries, and the decision to
-      bound or not to bound taken on that
+- [x] Order-level effect measured: the dictionary takes one de-duplicated slot
+      and the rest of the order is near-unchanged; recommendation is to record
+      the concentration, not to bound it -- author's call to accept or reject
 - [ ] 0011's cheap experiment run and its result recorded there
