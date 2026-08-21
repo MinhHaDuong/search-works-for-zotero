@@ -5,8 +5,8 @@ Author: minh
 
 --- log ---
 2026-08-21T19:15Z minh created
-2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
 2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
+2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
 
 --- body ---
 ## Severity, corrected 2026-08-21 on real-library evidence
