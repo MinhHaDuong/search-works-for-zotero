@@ -2,10 +2,10 @@
 Title: Chunk geometry is three hardcoded constants; make it configurable
 Created: 2026-08-21
 Blocked-by: 0006
-Author: Minh Ha-Duong
+Author: minh
 
 --- log ---
-2026-08-21T16:56Z Minh Ha-Duong created
+2026-08-21T16:56Z minh created
 
 --- body ---
 ## Context
@@ -18,8 +18,8 @@ Three chunk geometries exist, none reachable from configuration:
 
 | where | geometry | how set |
 |---|---|---|
-| metadata passages, `index-manager.ts:374` and `:587` | 512 / 64 overlap | bare `chunkText()` defaults |
-| attachment full text, `index-manager.ts:602` | 1200 / 150 | `FULLTEXT_CHUNK_SIZE`, exported const |
+| metadata passages, `index-manager.ts:560` and `:875` | 512 / 64 overlap | bare `chunkText()` defaults |
+| attachment full text, `index-manager.ts:890` | 1200 / 150 | `FULLTEXT_CHUNK_SIZE`, exported const |
 | passage locators, `fulltext/passages.ts:72` | 800 / 100 | bare `chunkWithOffsets()` defaults |
 
 `grep -n "chunk" src/config.ts` returns nothing. `chunkText` is a free
@@ -110,7 +110,7 @@ default silently changes the index is worse than a constant.
 
 - [ ] Chunk size and overlap reachable from configuration, defaults unchanged
 - [ ] Default-path passage count byte-identical to today on a fixture
-- [ ] `STATE.md`'s measurement table caption states that the 477 511 and
+- [x] `STATE.md`'s measurement table caption states that the 477 511 and
       408 628 passage counts are different corpora (metadata included or not,
       overlap or not), so the row is not read as like-for-like
 - [ ] Size/overlap tradeoff measured and recorded in `bench/`

@@ -6,8 +6,8 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
-2026-08-21T19:05Z claude note implemented and verified: 612 passed 7 skipped, tsc and eslint clean; 600 MB fixture migrates at 150 MB peak RSS
 2026-08-21T15:48Z claude note planned: hand-rolled incremental scan of the chunks array, no dependency; the file that needs migrating is the file JSON.parse cannot read
+2026-08-21T19:05Z claude note implemented and verified: 612 passed 7 skipped, tsc and eslint clean; 600 MB fixture migrates at 150 MB peak RSS
 
 --- body ---
 ## Context

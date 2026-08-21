@@ -6,8 +6,8 @@ Blocked-by: 0002
 
 --- log ---
 2026-08-21T13:48Z minh created
-2026-08-21T18:40Z claude note implemented and verified: 592 passed 7 skipped, tsc and eslint clean; commit-on-exit sabotage-checked
 2026-08-21T15:45Z claude note planned against 0002's PassageStore port: persist() becomes a transaction boundary on the port, backend selected by ZOTEUS_SEARCH_BACKEND
+2026-08-21T18:40Z claude note implemented and verified: 592 passed 7 skipped, tsc and eslint clean; commit-on-exit sabotage-checked
 
 --- body ---
 ## Context
@@ -105,9 +105,15 @@ construct a plain `SearchIndex` with an injected `Fts5PassageStore`, not a
 backend's identity. Nothing had to be moved or weakened.
 
 Residual, stated plainly: a bare `SearchIndex` handed an `Fts5PassageStore`
-still round-trips through JSON. No production path does that -- `grep 'new
-Fts5PassageStore' src/` returns exactly one site, `SqliteSearchIndex`'s
-constructor, confirmed at the wave gate. Pushing the refusal down to the port
+still round-trips through JSON. No production path does that. The evidence first recorded here -- that
+`grep -r 'new Fts5PassageStore' src/` returns one site -- was true at 0003's
+wave gate and is **no longer**: 0005 added two more (`migrate-json.ts:436` and
+`:473`). Neither wraps the store in a bare `SearchIndex`, so the conclusion
+survives, but the command that proved it does not. The claim that actually
+holds, and the one to re-run: `grep -rn 'new SearchIndex(' src/` returns
+exactly one site, `server.ts:116`, which branches on the backend. Caught by
+review 2026-08-21 -- a citation that ages out is worse than none, because it
+reads as checked. Pushing the refusal down to the port
 would need either SQLite vocabulary in `index-manager.ts` or a capability flag,
 and it would guard nothing real: `values()` returns every row, so the
 data-loss case the ticket feared (a silent empty `toJSON`) does not exist. The

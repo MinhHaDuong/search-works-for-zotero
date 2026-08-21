@@ -74,7 +74,14 @@ fits but discards 61% of the text, 200 000 writes but needs
 
 All five children of 0001 are implemented in the fork and gate-verified.
 Upstream's suite went **477 → 668 tests**, `tsc --noEmit` and `eslint` clean at
-every wave. Nothing is committed in `fork/` yet — the author owns those commits.
+every wave. Committed on the fork's **`fts5-storage`** branch (off `fts5-base`)
+as `b2fd0f0`, 36 files, +4 738/−139, pushed to `origin/fts5-storage`.
+
+One commit rather than five: the waves overlapped on `index-manager.ts` and a
+faithful per-ticket split is not reconstructible from the result. The
+consequence is that **only the final 668 is checkable against the tree** — the
+per-wave counts below are as reported wave to wave, with no commit boundary to
+verify them against.
 
 | ticket | what | suite after |
 |---|---|---|

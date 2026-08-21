@@ -5,8 +5,8 @@ Author: minh
 
 --- log ---
 2026-08-21T13:48Z minh created
-2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
 2026-08-21T19:40Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
+2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
 
 --- body ---
 ## Context

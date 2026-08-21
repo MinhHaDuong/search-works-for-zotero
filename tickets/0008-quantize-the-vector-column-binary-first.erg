@@ -2,10 +2,10 @@
 Title: Quantize the vector column: binary first pass, exact rerank
 Created: 2026-08-21
 Blocked-by: 0004
-Author: Minh Ha-Duong
+Author: minh
 
 --- log ---
-2026-08-21T17:41Z Minh Ha-Duong created
+2026-08-21T17:41Z minh created
 
 --- body ---
 ## Context
@@ -27,6 +27,8 @@ median of 25 probes:
 | 200 000 | 314,85 ms | 157,43 |
 | 400 000 | 567,28 ms | 141,82 |
 
+Reproduce with `bench/vec_scaling.mjs`.
+
 Flat cost per vector across a 40x range -- 40,2x the time for 40x the data.
 O(N), not debatable.
 
@@ -39,7 +41,10 @@ quantization as the lever instead.
 
 ## The measurement that motivates this
 
-400 000 vectors, 384 dims, k=30, same corpus and probes:
+400 000 vectors, 384 dims, k=30, `bench/vec_quantize.mjs`. **A separate run
+from the sweep above**, with its own seed -- which is why float32 reads 548,0 ms
+here against 567,28 ms there, a 3,5% spread between runs rather than a
+transcription slip. The ratios below are computed within this run only:
 
 | variant | on disk | median query | per vector |
 |---|---|---|---|

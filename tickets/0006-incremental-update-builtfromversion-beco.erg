@@ -6,8 +6,8 @@ Blocked-by: 0003
 
 --- log ---
 2026-08-21T13:48Z minh created
-2026-08-21T21:10Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
 2026-08-21T15:49Z claude note planned: watermark persists in a meta table with its backend label; deleteByItem lands on the port in 0002
+2026-08-21T21:10Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
 
 --- body ---
 ## Context
@@ -134,6 +134,7 @@ here, left alone.
 
 - [x] Add a document, query, find it, without a manual rebuild
 - [x] Delete a document, query, do not find it
-- [x] Add an attachment and open it in Zotero, then find its text --
-      covered by fixture; the real-Zotero pass is in the handover list
+- [ ] Add an attachment and open it in Zotero, then find its text -- BLOCKED on
+      a real Zotero pass. Fixture coverage exists and is not the same thing
+      (review 2026-08-21)
 - [x] Watermark check costs one local request -- pinned by a call-count test
