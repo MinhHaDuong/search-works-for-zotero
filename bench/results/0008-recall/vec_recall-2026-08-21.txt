@@ -1,0 +1,69 @@
+Ticket 0008 — recall of the two-stage vector query against the exact float32 ranking.
+
+Produced by:  npx tsx bench/vec_recall.ts --n 100000 --probes 100 --dim 384 --topk 30
+Date:         2026-08-21
+Machine:      Linux x86-64, Node v22.23.1, sqlite-vec 0.1.9, SQLite default 2 MB page cache.
+              Two other measurement jobs were running concurrently; the milliseconds carry
+              that contention, the recall figures do not.
+
+Reading it
+----------
+recall@k  fraction of the exact float32 top-30 that the two-stage query also returned.
+          This is the ticket's acceptance criterion.
+sim kept  fraction of the exact top-30's total cosine that the returned list carries.
+          Reported beside recall because recall alone cannot tell a real miss from a tie,
+          and in a corpus whose top-30 are near-ties almost every miss is a tie. Recall
+          sagging while this holds at 1,000 means ties are being exchanged; both sagging
+          means passages are being lost.
+probes    held-out queries drawn from the corpus's own generator, never members of it.
+
+
+### uniform random unit vectors (conservative)  N=100000 dim=384 topK=30 probes=100
+database 170 MB (float32 + binary columns, FTS5 and metadata included)
+pool                      recall@k   sim kept   median query
+exact float32 (before)       1.000      1.000     138.7 ms
+binary only, no rerank       0.693      0.976      10.2 ms
+two-stage, pool=30    (  1k)   0.693      0.976      21.8 ms
+two-stage, pool=60    (  2k)   0.727      0.986      35.2 ms
+two-stage, pool=120   (  4k)   0.770      0.992      66.2 ms
+two-stage, pool=240   (  8k)   0.815      0.995     124.7 ms
+two-stage, pool=480   ( 16k)   0.866      0.998     239.6 ms
+two-stage, pool=960   ( 32k)   0.915      0.999     485.2 ms
+
+### clustered, 200 centroids (realistic)  N=100000 dim=384 topK=30 probes=100
+database 170 MB (float32 + binary columns, FTS5 and metadata included)
+pool                      recall@k   sim kept   median query
+exact float32 (before)       1.000      1.000     110.1 ms
+binary only, no rerank       0.256      0.970       8.3 ms
+two-stage, pool=30    (  1k)   0.256      0.970      19.3 ms
+two-stage, pool=60    (  2k)   0.422      0.987      34.7 ms
+two-stage, pool=120   (  4k)   0.628      0.994      66.3 ms
+two-stage, pool=240   (  8k)   0.862      0.999     128.3 ms
+two-stage, pool=480   ( 16k)   0.998      1.000     272.1 ms
+two-stage, pool=960   ( 32k)   1.000      1.000     579.4 ms
+
+vec0 KNN cost against k, same corpus, same machine (measured separately, warm cache)
+------------------------------------------------------------------------------------
+binary bit[384] scan      k=30   7,7 ms     k=240   35,0 ms     k=960   216,8 ms
+                          k=60  11,0 ms     k=480   83,6 ms     k=1920  238,2 ms
+                          k=120 18,2 ms
+exact float32 scan        k=30 121   ms
+
+Per-candidate rerank cost (rowid point query + cosine, pool 480)
+---------------------------------------------------------------
+warm (256 MB page cache)   45 µs      of which the passage_meta id lookup is 5 µs
+cold (2 MB, the default)  310 µs
+
+Verdict
+-------
+The pool that preserves the ranking is not a speedup, and the pool that is a speedup does
+not preserve the ranking. Binary quantization is 13x faster than float32 AT k=30; asked for
+the pool a rerank needs, it is not, because vec0's k-best structure costs more than linearly
+in k. Ranking quality is nevertheless retained even where recall is not — sim kept is 0,994
+at a pool of 4x, where recall is 0,628 — so the passages returned are near-substitutes, not
+junk. Whether that is an acceptable trade is a decision about real embeddings, and these
+fixtures only bracket them: `vec_quantize_binary` thresholds at zero, and a sentence
+embedder's anisotropy would make the first pass worse on real data than on these zero-mean
+fixtures unless the corpus mean is subtracted first.
+
+The two-stage path therefore ships built, tested, and off by default (VEC_TWO_STAGE_DEFAULT).

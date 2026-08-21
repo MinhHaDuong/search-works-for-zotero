@@ -1,0 +1,200 @@
+%erg 0.1
+Title: Accented queries return confident noise on the SQLite backend
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T19:15Z minh created
+2026-08-21T23:05Z claude note severity raised on real-library evidence: this is not reduced recall, it is 20 wrong hits -- theorie fragments to "th" OR "orie" and matches English text
+2026-08-22T00:20Z claude note fix revised after reading Zotero's own solution: fold in JS on BOTH sides and widen the token class to \p{L}\p{N}; the NFD-in-front-of-tokenize plan was half of it
+
+--- body ---
+## Severity, corrected 2026-08-21 on real-library evidence
+
+**Filed as a recall enhancement. It is a correctness defect.** The 0005
+migration run compared both backends over 16 queries on a 5 000-item slice of
+the real library, and the accented cases do not merely retrieve less -- they
+retrieve *wrongly*, with confidence.
+
+    SQLITE  "théorie" -> 20 hits: Do conservation contests work? /
+                                  Graphical Economics /
+                                  Optimal Transport Networks in Spatial Equilibrium
+    JSON    "théorie" -> 14 hits: Théorie économique, réalité industrielle... /
+                                  Éléments d'économie politique pure... /
+                                  Antoine-Augustin Cournot (1801-1877)
+
+Jaccard between the two result sets: **0,00**. Not one item in common.
+
+The mechanism is the one described below, and its consequence is worse than
+the empty result the original ticket imagined. `toMatchQuery` tokenises with
+`/[a-z0-9]+/g`, so `théorie` becomes the fragments `"th" OR "orie"`, and `"th"`
+matches ordinary English text across the corpus. FTS5 then ranks that noise and
+returns twenty plausible-looking, entirely irrelevant results. A user cannot
+tell this from a real answer.
+
+Measured across the accented set, jaccard between backends: `théorie` 0,00,
+`mathématiques` 0,03, `mathematiques` 0,05, `theorie` 0,13, `probabilità` 0,14,
+`probabilita` 0,50. Against 0,48-1,00 for every ASCII query.
+
+**The divergence is a shift, not a widening.** SQLite's answer to the
+*unaccented* query is the JSON backend's answer to the *accented* one -- the
+same top three, jaccard 0,58 between those two lists. So the index is fine and
+the accent folding works; it is the query path alone that is broken.
+
+**One case shows the fix is also a real gain**, not only a repair: only SQLite,
+and only via `probabilita`, retrieves *Sul significato soggettivo della
+probabilità*. The JSON backend never finds it at all, from either spelling.
+
+For a library that is substantially French and Italian, this is not an edge
+case. Raw comparison data: `bench/results/0005-migration/cmp5k.json`.
+
+## Context
+
+Tracker: 0001. Repairing a defect 0002 recorded as an acceptable divergence, using a pattern
+Zotero itself adopted -- released the same week in its FTS5 rewrite, whose
+notes say several tables "gained accent-normalized shadow columns (e.g.
+`nameNormalized` on tags) to support accent-insensitive search".
+
+0002's finding: FTS5 folds the **document** side via
+`tokenize='unicode61 remove_diacritics 2'`, so an ASCII query finds an accented
+document. The reverse fails. `toMatchQuery` tokenises with the index's own
+`tokenize()`, whose `[a-z0-9]+` shreds an accented query before FTS5 ever sees
+it. 0002 concluded that fixing it "means diverging the query tokeniser from the
+index tokeniser, which is the one thing the shared-tokenizer decision exists to
+prevent", and left it as a documented limitation with its own named test.
+
+That conclusion assumed only two options: diverge, or accept. Zotero's answer is
+a third -- **normalise, do not diverge**. Fold accents in front of the shared
+tokeniser and both sides see the same folded text, so the tokenisers stay
+identical and the asymmetry disappears.
+
+Measured before writing this ticket, `unicode61 remove_diacritics 2`, one
+document reading `un élève très appliqué`:
+
+| query | today | with the fold |
+|---|---|---|
+| `eleve` | 1 hit | 1 hit |
+| `élève` | **0 hits** | 1 hit |
+
+The mechanism, visible directly:
+
+    tokenize('élève')        -> ['ve']
+    tokenize(fold('élève'))  -> ['eleve']
+
+where `fold = s => s.normalize('NFD').replace(/\p{M}/gu, '')`.
+
+## Why this is worth more than the one query
+
+The fold belongs **inside `tokenize()`**, not inside `toMatchQuery`. Both
+backends already share that function, at index time and at query time, so one
+change makes the memory backend accent-insensitive too. That does not merely
+fix the FTS5 query side -- it **removes the divergence between the two
+backends**, which 0001's "same corpus in, same results out" invariant currently
+has to carry as a stated exception, and which 0002's parity suite works around
+by giving its accented fixture both spellings.
+
+For a French and Vietnamese corpus this is not cosmetic. `élève`, `Etat`,
+`réseau`, `Việt` typed either way should reach the same passages.
+
+## The thing to be careful about
+
+Folding inside `tokenize()` **changes the JS backend's index**, so it is not a
+pure refactor and cannot be validated by the same-results-out gate -- it is a
+deliberate behaviour change, and existing JSON indexes were built with the
+unfolded tokeniser. An index built before this change and queried after it will
+miss accented terms until rebuilt. Decide and state: either bump a stored index
+version and force a rebuild, or fold only the query side on the JSON backend
+and accept a narrower fix there. Do not leave it implicit.
+
+Check Vietnamese specifically before shipping. NFD-stripping combining marks
+turns `Việt` into `Viet`, which is wanted, but `đ` is a distinct letter and not
+a combining form -- it survives the fold and then dies on `[a-z0-9]+`. Whether
+that is acceptable is a real question for this library, not a detail.
+
+## The fix, revised 2026-08-22 after reading Zotero's
+
+Zotero was checked for this same defect and **does not have it**, which is more
+useful than if it did. It pre-tokenises the query in JS exactly as we do -- so
+"pass the raw string to MATCH" is not the answer -- and avoids the bug by
+construction instead:
+
+| | zoteus today | Zotero |
+|---|---|---|
+| where the fold lives | inside SQLite, `remove_diacritics 2` | **in JS, `Zotero.Utilities.Internal.normalizeForSearch()`** |
+| applied to | the document side only | **both sides, the same function** |
+| token class | `/[a-z0-9]+/` | **`/[\p{L}\p{N}]+/u`** |
+
+`normalizeForSearch` is NFKD, strip `[\u0300-\u036f]`, lowercase, a hand map
+for letters that do not decompose (`ø œ æ ł đ ð þ ß ı`), fold typographic
+quotes and dashes, NFC. Its docstring states the invariant: *"This is the form
+stored in the normalized search columns and applied to search terms."* Their
+word-token regex carries a comment saying it deliberately mirrors what
+`unicode61` would produce.
+
+**Three things to take, and the second is the one this ticket originally
+missed.**
+
+1. **One function, both sides.** Our fold happens inside SQLite, where the
+   query path cannot reach it -- the asymmetry is structural, not accidental.
+   Moving it into JS and calling it at index *and* query time makes the
+   symmetry hold by construction.
+2. **Widen the token class to `/[\p{L}\p{N}]+/u`.** The original plan --
+   NFD-fold in front of `tokenize()` -- fixes Latin accents and leaves every
+   non-Latin script shredded exactly as before: Greek, Cyrillic, Vietnamese
+   `đ`, and the CJK blind spot already recorded in 0007. `\p{L}\p{N}` handles
+   all of them in one change, and would on its own have prevented this defect
+   even without folding, because `théorie` would have stayed a single token
+   and missed cleanly instead of fragmenting into a high-frequency stopword.
+3. **Version the fold with the data.** Zotero's docstring requires a
+   migration step when the normalizer changes, and `fulltext.js` carries a
+   content-index version whose comment notes a tokenizer change needs a bump.
+   That is the concrete form of the stale-index question this ticket already
+   raises.
+
+**A simplification falls out.** Once the fold is in JS, nothing accented ever
+reaches SQLite, so whether the FTS5 declaration says `remove_diacritics 0`, `1`
+or `2` stops mattering. 0002 chose `2` and reasoned carefully about it; that
+reasoning becomes moot rather than wrong -- and it is why Zotero can run
+`unicode61` for content and `trigram` for notes, with opposite folding
+defaults, without either being a bug.
+
+**Measured on the author's own index**, as the counterfactual: the fragments
+our regex produces, `th` and `orie`, match **1 904** and **13** documents.
+`th` alone hits about eleven times the correct answer set -- the mechanism
+behind the twenty confident wrong hits, quantified.
+
+Also confirmed by direct measurement, not assumption: `unicode61`'s default is
+`remove_diacritics 1` and `trigram`'s is `0`.
+
+## Actions
+
+1. A `normalizeForSearch`-equivalent helper, applied at the head of
+   `tokenize()` so it runs on both the index and the query side.
+2. **Widen the token class to `/[\p{L}\p{N}]+/u`** -- not only NFD folding.
+3. Confirm both backends now answer the accented query, and that 0002's
+   named divergence test -- which currently asserts the JS index returns
+   nothing where FTS5 returns the item -- is inverted or retired deliberately,
+   not deleted quietly.
+4. Decide the stale-index question above and implement it.
+5. Check `đ` and the Vietnamese case; record the verdict either way.
+6. Update 0001's invariant note: the exception it carries may be removable.
+
+## Test
+
+Red step: assert `élève` finds a document containing `élève` on **both**
+stores. That fails today on FTS5 (query shredded to `ve`) and on the JS index
+(index and query both unfolded, so `élève` matches itself -- meaning the JS
+side passes for the wrong reason). Assert the cross case too: `eleve` finds
+`élève` and `élève` finds `eleve`, on both stores. Only the cross case pins the
+fold.
+
+## Exit criteria
+
+- [ ] Fold applied inside `tokenize()`, both backends accent-insensitive
+- [ ] Token class widened to `/[\p{L}\p{N}]+/u`, so non-Latin scripts stop
+      being shredded (covers 0007's recorded CJK blind spot too)
+- [ ] Cross-spelling queries agree on both stores, pinned by test
+- [ ] Stale-index behaviour decided, implemented, and stated in the ticket
+- [ ] Vietnamese `đ` case checked and recorded
+- [ ] 0002's divergence test deliberately updated, and 0001's stated exception
+      re-examined

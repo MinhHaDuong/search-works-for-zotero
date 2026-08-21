@@ -1,0 +1,90 @@
+%erg 0.1
+Title: Peak build RSS is ~2 GB, not the few hundred MB 0003 assumed
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T19:25Z minh created
+
+--- body ---
+## Context
+
+Tracker: 0001. 0003 is closed, and its verification line
+
+    - [ ] Peak RSS stays within a few hundred MB, against 6,48 GB today
+
+has now been measured on the real library and is **not met**. Filed as its own
+ticket rather than reopening 0003, whose other criteria did pass.
+
+Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, stock
+Node with no heap flag. Two runs, one under concurrent load and one clean,
+byte-identical in every content figure:
+
+| | run 1 (contended) | run 2 (clean) |
+|---|---|---|
+| build wall clock | 374 s | 339 s |
+| **peak RSS** (`VmHWM`) | 1 892 MiB | **2 085 MiB** |
+| RSS at end of build | 382 MiB | 327 MiB |
+| RSS serving, after 8 queries | — | **135 MiB** |
+
+Peak RSS is per-process, so contention did not cause it: it reproduced.
+
+## What this does and does not damage
+
+**The chantier's headline survives intact.** The claim that matters is
+resident memory *at rest* -- 5 370 MB for the JS index against **121-135 MiB**
+here, and an index that reloads on stock Node instead of OOMing. That is
+measured and holds.
+
+**What fails is the build-time claim**, and only by comparison with the
+ticket's own wording. 2 085 MiB is still 2,6x below the 5 370 MB resident
+figure and 3,2x below the 6,48 GB build peak 0003 cites. It is not a
+regression against zoteus; it is a promise this chantier should not have made
+in that form. The honest headline is **"~2 GB peak during build, ~130 MB at
+rest"**, and every place that currently says "a few hundred MB" needs to say
+that instead.
+
+## The hypothesis, which is not yet a finding
+
+The RSS curve climbs monotonically to its peak at t≈253 s, collapses to
+~220 MiB, then sawtooths 240-400 MiB to the end. That shape is consistent with
+V8 old-space growing until a major GC rather than with a leak.
+
+A candidate cause: `buildIncremental`'s page loop resolves full text for a
+whole page before chunking any of it, so 100 uncapped attachment texts are
+live simultaneously. At this library's sizes that is plausibly a gigabyte.
+
+**This has not been isolated.** It is an observation plus a guess, and the
+guess is cheap to test by varying `fulltextConcurrency` and page size and
+re-reading `VmHWM`. Do that before changing anything -- the failure mode here
+is fixing the wrong thing because the shape looked familiar.
+
+## Actions
+
+1. Vary `fulltextConcurrency` (currently defaults to 4) and the page size,
+   measure `VmHWM` for each, and establish whether the page loop is in fact
+   the cause.
+2. If it is: stream the page rather than holding it -- chunk and insert each
+   item's text as it arrives, so a page's worth is never simultaneously live.
+   The rows already go to disk per item; it is the *source text* that
+   accumulates.
+3. Re-measure and record.
+4. Correct the wording everywhere it appears: `STATE.md`, ticket 0001's
+   claims, and whatever goes into the oscardvs/zoteus#10 report. **The #10
+   number must be the measured one**, not the one this chantier hoped for.
+
+## Test
+
+Read `VmHWM` from `/proc/<pid>/status` after a build, not a sampled `VmRSS`:
+the kernel's high-water mark cannot miss a peak between samples. `bench/run_build.py`
+does this already and is the reference. Assert nothing in the unit suite --
+this is a measurement, and a memory assertion in CI would be machine-dependent.
+
+## Exit criteria
+
+- [ ] Cause of the ~2 GB peak isolated, or explicitly recorded as not isolated
+      after the concurrency/page-size sweep
+- [ ] If reducible, reduced and re-measured; if not, the number documented as
+      inherent
+- [ ] "A few hundred MB" corrected to the measured figure in STATE, 0001, and
+      the #10 report

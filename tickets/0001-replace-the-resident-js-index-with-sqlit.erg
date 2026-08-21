@@ -7,6 +7,11 @@ Author: minh
 2026-08-21T13:48Z minh created
 2026-08-21T19:40Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
 2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
+2026-08-21T21:40Z claude note 0009 filed: Zotero's accent-normalized shadow columns show a third option 0002 missed; measured fix removes the backend divergence
+2026-08-21T21:55Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
+2026-08-21T22:20Z claude note full-library build measured: 477 511 passages, 949,5 MiB, stock Node, 135 MiB serving; peak build RSS ~2 GB misses 0003's line, filed as 0011
+2026-08-21T22:50Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
+2026-08-21T23:05Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
 
 --- body ---
 ## Context
@@ -14,6 +19,11 @@ Author: minh
 zoteus keeps its whole search index resident in JS objects and snapshots it with
 a single `JSON.stringify`. Measured on a 7 540-item Zotero library, uncapped
 full text:
+
+**The table below is the filing-time comparison and has been superseded.** It
+compares different corpora at different chunk geometries; `STATE.md` carries
+the like-for-like measurement (477 511 passages both sides) and the caveats
+that came with it. Kept as the record of why this chantier was opened.
 
 | | zoteus (resident JS) | FTS5 via `node:sqlite` |
 |---|---|---|
@@ -65,11 +75,66 @@ replaces the existing class.
 - 0006 — incremental update via the library version watermark
 - 0007 — chunk geometry becomes configurable (filed 2026-08-21, after 0006:
   changing it changes results, so it cannot overlap the storage comparison)
-- 0008 — quantize the vector column (filed 2026-08-21, after 0004: measured
-  13x query speedup and 24x smaller vectors, pending a recall check)
+- 0008 — quantize the vector column: implemented, measured, and shipped OFF by
+  default. The 13x was a k=30 figure that does not survive being asked for a
+  pool; recall at any affordable pool is 0,63-0,86.
+- 0009 — fold accents in `tokenize()` (filed 2026-08-21): may remove the
+  accented-query exception the invariant below currently carries
+- 0010 — corruption path for the database (filed 2026-08-21): none exists, and
+  a naive rebuild would leave 0006's watermark claiming an empty index is current
+- 0011 — peak build RSS is ~2 GB (filed 2026-08-21): 0003's "few hundred MB"
+  verification line measured and not met; the at-rest claim is unaffected
+- 0012 — does a Zotero re-extraction bump anything the watermark sees? (filed
+  2026-08-21): an open question, one experiment from being answered
+
+Migration measured 2026-08-21 on two real indexes (153 MB and 321 MB, the
+463 MB file no longer existing): peak RSS 80,7 -> 97,0 MiB while the file grew
+3,05x -- strongly sublinear, not flat, and re-measured after review found the
+first figures unbacked. The JSON backend it replaces went
+1 896 MB -> 3 786 MB over the same two, about 11,8x the file. Startup 45 s
+including the one-off migration, then 0,97 s on every later start, against
+30,8 s every time for JSON. Database/JSON ratio 1,55x, consistently above the
+1,34x budgeted from the synthetic fixture. Artifacts in
+`bench/results/0005-migration/`; the full 463 MB case stays untested.
 
 Wave order is 0002, then 0003, then 0004 and 0005 in parallel, then 0006.
 0006 depends on cheap partial writes, so it cannot go upstream alone.
+
+## What the local API documentation settles
+
+Read 2026-08-21 (`zotero.org/support/dev/web_api/v3/local_api`), against
+decisions this chantier had taken by inference or by probing.
+
+**0006's backend label is documented, not inferred.** The design recorded there
+was that local and cloud version sequences are unrelated integers, so a
+watermark must carry which backend produced it or a backend switch either skips
+a delta or replays the library. The documentation states it outright: local
+versions are maintained locally and have **"no relation to Web API versions"**,
+incrementing per library per transaction regardless of change source. That
+decision now has a citation rather than an argument.
+
+**The three endpoints 0006 depends on are supported**: `?since=` filtering,
+`Last-Modified-Version`, and `?format=versions` are all named. `/deleted` is
+not in the supported list, consistent with the 404 measured on this machine --
+so 0006's key-set reconcile through `?format=versions` is the documented route,
+not a workaround.
+
+**Reads need no authentication**; writes do, from Zotero 10 on, via a key from
+`POST /api/local/authorize` plus a `Zotero-Server-ID` header. The warning that
+matters for an MCP server: because reads are unauthenticated, anything running
+locally can read the library, and the port must never be forwarded.
+
+**Two differences worth carrying into the #10 report.** Results are
+**unpaginated by default** on the local API, where the Web API pages -- zoteus
+pages 100 at a time regardless, which is safe but leaves throughput on the
+table for a local build. And sort order, quicksearch matching and JSON output
+"may differ subtly from the Web API", which bears directly on 0001's
+old-vs-new comparison: run both sides of that comparison through the *same*
+backend, or the difference measured is partly the API's, not the index's.
+
+**One capability the Web API lacks**, noted for elsewhere: the local API
+executes saved searches at `<userOrGroupPrefix>/searches/<searchKey>/items`.
+Nothing in this chantier uses it.
 
 ## Invariants
 

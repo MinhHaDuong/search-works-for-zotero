@@ -7,7 +7,108 @@ Author: minh
 2026-08-21T16:56Z minh created
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
+2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
+2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
+2026-08-21T23:50Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
 --- body ---
+## Correction 2026-08-21: the premise below is wrong
+
+The section "What Zotero 10 does and does not give us" concludes that Zotero
+exposes no in-text structure. **That is true of `.zotero-ft-cache` and false of
+Zotero.** The investigation read one file and generalised from it.
+
+Zotero ships a *second* extraction, `Zotero.SDT`, and it is in the installed
+build here -- Zotero **10.0**, BuildID **20260817151751**:
+
+    chrome/content/zotero/xpcom/sdt.js                      16 011 B
+    resource/document-worker/structured-document-text.js    23 496 B
+
+Its per-attachment `.zotero-sdt-cache` pack carries exactly what this ticket
+assumed was unavailable: **`pageIndex` and `pageLabel`** (real labels -- `'ix'`,
+`'15'` -- falling back to ordinal), reader-navigable **`position`**,
+**`flowClass`** with running heads and page numbers marked as excluded flows,
+**`outlinePath`**, and a **`reference` flag** for bibliography entries.
+
+So the chunker question is not "structure is unavailable, therefore tune two
+constants". It is "structure exists; can we reach it?"
+
+**Three obstacles, and the first is decisive.** No pack has been generated on
+this library: **zero `.zotero-sdt-cache` files across 13 631 attachments**.
+
+Two readings of that were attempted before the right one, and both failed the
+same way -- `BuildID=20260817151751` is when Zotero *compiled* the release, and
+it was used as the date the author *installed* it. The install is
+`/opt/zotero7/app/omni.ja`, **2026-08-21 14:26**.
+
+| | | |
+|---|---|---|
+| `746J4UL3/.zotero-reader-state` | 2026-08-17 15:45 | before install |
+| `TB28BNW2/.zotero-reader-state` | 2026-08-20 21:52 | before install |
+| local install | **2026-08-21 14:26** | |
+| 1 036 `.zotero-ft-cache` rewritten | 14:27 onward | bulk re-index |
+| reader sessions since install | **0** | |
+
+Counts recorded in `bench/results/0007-sdt-probe.txt`, with the commands that
+produced them. **There is no positive control**: nothing here demonstrates the
+probe would find a `.zotero-sdt-cache` if one existed, because none does. A
+check whose all-clear cannot be distinguished from "I could not look" is not a
+check, so treat the zero as provisional until the one-PDF experiment below
+produces a pack the same probe then finds.
+
+So **no PDF has been opened in the reader since the upgrade**, and the
+confident conclusion drawn from the second reading -- that the reader path does
+not invoke SDT -- is *unsupported*: that path has not run once. The 14:38
+`.zotero-ft-cache` that looked like a reader session belongs to the bulk
+re-index, consistent with the FTS5 rewrite in Zotero's release notes.
+
+What the evidence does support is narrower: **the bulk full-text re-index
+produced no SDT packs**, which rules out that path and only that path.
+
+**The experiment that settles it costs one minute**: open a single PDF in
+Zotero and check whether a `.zotero-sdt-cache` appears beside its
+`.zotero-ft-cache`. Until it is run, whether SDT can be triggered on a stock
+install is **open**, and this ticket assumes neither answer.
+
+Second, the pack is an **undocumented binary
+format** (magic + `SDT_PACK_VERSION` + independently compressed block groups)
+read through a bundled module; using it externally means porting that reader
+from in-tree AGPL source. Third, it is **not exposed over the local API**, so an
+HTTP client cannot ask for it at all -- only a process with filesystem access to
+the Zotero data directory.
+
+## Calibration available for free
+
+zotero/zotero#6012 chunks for embedding with constants worth reading against
+this ticket's, and they are measured rather than guessed:
+
+| | zoteus today | Zotero #6012 |
+|---|---|---|
+| unit | characters | **model tokens**, counted with the model's own tokenizer |
+| metadata / notes | 512 / 64 overlap | 120 min, **768 max**, 48 overlap |
+| attachment text | 1200 / 150 | same budget, **section-aware** |
+| structure | none | chunks respect section boundaries; each chunk's embed text is prefixed with its **outline path** ("Methods > Participants"), charged against the budget and dropped if it would exceed a quarter of it |
+
+Two things to take from that even if SDT stays out of reach. A **token** budget
+is the honest unit when the consumer is an embedder with a token limit -- 768 is
+a ceiling there, not a target, so chunks come out paragraph-sized. And
+**captions and image descriptions are always their own chunk** regardless of
+size, which a fixed window cannot express.
+
+## Revised actions
+
+1. **Open one PDF in Zotero and look for `.zotero-sdt-cache`.** One minute,
+   and it decides the ticket. A pack appears: SDT is reachable, and what
+   remains is the binary format and whether porting the reader is
+   proportionate. No pack: extraction is gated behind something unshipped or
+   disabled, and SDT is a *future* option. Record which -- it is the difference
+   between "not possible" and "not attempted".
+2. Config knobs as originally planned (`ZOTEUS_INDEX_CHUNK_SIZE` /
+   `_OVERLAP` and the full-text pair), defaults unchanged.
+3. Consider a token budget rather than a character budget, following #6012.
+   This is not cosmetic: the consumer is an embedder with a hard token limit,
+   and characters are a proxy for tokens that varies by language.
+4. Measure at two or three geometries and record in `bench/`.
+
 ## Context
 
 Tracker: 0001, but landing after it -- changing chunk geometry changes results,
@@ -108,9 +209,10 @@ default silently changes the index is worse than a constant.
 
 ## Exit criteria
 
+- [ ] SDT reachability determined and recorded, either way
 - [ ] Chunk size and overlap reachable from configuration, defaults unchanged
 - [ ] Default-path passage count byte-identical to today on a fixture
-- [x] `STATE.md`'s measurement table caption states that the 477 511 and
-      408 628 passage counts are different corpora (metadata included or not,
-      overlap or not), so the row is not read as like-for-like
+- [x] `STATE.md`'s measurement table distinguishes the corpora -- superseded
+      2026-08-21 by a like-for-like run: at zoteus's own geometry the FTS5
+      column is 477 511 too, and STATE now carries three columns
 - [ ] Size/overlap tradeoff measured and recorded in `bench/`

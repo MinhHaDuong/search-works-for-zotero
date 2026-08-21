@@ -43,7 +43,14 @@ def main():
     ap.add_argument("--max-wait", type=float, default=3600.0)
     ap.add_argument("--max-items", default="5000")
     ap.add_argument("--max-chars", default="40000")
-    ap.add_argument("--node-options", default="--max-old-space-size=10240")
+    # Default EMPTY, deliberately. This used to default to
+    # "--max-old-space-size=10240", which is precisely the flag whose necessity
+    # ticket 0003 exists to test: a run with defaults would raise the heap,
+    # succeed, and report the criterion met without anyone having exercised it.
+    # A check whose all-clear is indistinguishable from "I could not look" is
+    # not a check. Pass the flag explicitly when measuring the JSON backend,
+    # which genuinely needs it.
+    ap.add_argument("--node-options", default="")
     a = ap.parse_args()
 
     env = {"ZOTEUS_EMBEDDINGS": "off", "ZOTEUS_INDEX_FULLTEXT": "1",

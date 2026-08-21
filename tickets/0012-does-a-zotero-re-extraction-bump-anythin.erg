@@ -1,0 +1,66 @@
+%erg 0.1
+Title: Does a Zotero re-extraction bump anything our watermark sees?
+Created: 2026-08-21
+Author: minh
+
+--- log ---
+2026-08-21T19:28Z minh created
+
+--- body ---
+## Context
+
+Tracker: 0001. **An open question, not an asserted defect** -- it needs one
+experiment before it is either.
+
+0006 keeps a library-version watermark and applies deltas via `?since=`. That
+tracks *item* changes. It is not obvious that it tracks a change in the
+**extracted text of an unchanged item**, and that case is real: Zotero
+re-extracts an attachment when its extractor improves, and the item's own
+metadata does not change when it does.
+
+zotero/zotero#6012 shows Zotero treating this as a first-class problem.
+`Zotero.SDT.getProcessorVersion()` returns an identity like `'pdf/3/1'` and its
+in-tree comment says it exists **"for consumers that store data derived from
+packs, to fold into their staleness keys"**. Zotero also hashes each chunk's
+source text (`sourceHash`) so an unchanged item is skipped and a changed one is
+re-embedded regardless of why it changed. Both mechanisms exist because item
+version alone is not sufficient.
+
+zoteus stores data derived from Zotero's extraction. If the extractor changes
+what a PDF yields, our index holds text that no longer matches what Zotero
+would return -- silently, and until a manual rebuild.
+
+## Why this is a question and not yet a finding
+
+0006's ticket records that `fullTextSince` "already exists on both clients", so
+there **may** already be a full-text version channel separate from item
+versions, and the delta may already consult it. I have not read that path, and
+`fulltext.sqlite` carries its own `fulltextIndexState(itemID, version)`
+independent of `zotero.sqlite`'s item versions -- which suggests the two
+sequences are genuinely separate.
+
+So: establish the behaviour before designing anything. State the observation,
+hold the cause.
+
+## The experiment
+
+1. Build an index over a small library including one PDF attachment.
+2. Force Zotero to re-extract that attachment's full text without touching the
+   item's metadata (delete `.zotero-ft-cache` and reopen in Zotero, or use
+   Zotero's own re-index action).
+3. Read `Last-Modified-Version` and `?since=` before and after. Does either
+   surface the item?
+4. Read `/items/<key>/fulltext` and check whether its own version moved.
+5. Run zoteus's delta and check whether the passage text updated.
+
+If the delta already picks it up, close this ticket with the evidence -- that is
+a valuable negative result and the ticket has done its job. If it does not,
+the fix follows Zotero's shape: fold an extraction identity into the staleness
+key, and prefer a content hash over a version comparison, since a hash is
+robust to *why* the text changed.
+
+## Exit criteria
+
+- [ ] The behaviour is established by experiment and recorded, either way
+- [ ] If the delta misses a re-extraction: a staleness key that catches it,
+      with a test that re-extracts and asserts the passage text updated

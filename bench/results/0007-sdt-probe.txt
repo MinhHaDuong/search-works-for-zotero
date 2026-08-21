@@ -1,0 +1,20 @@
+SDT probe — zoteus-fts5 ticket 0007, recorded 2026-08-21T20:07Z
+Zotero: Version=10.0 BuildID=20260817151751
+Local install (mtime of app/omni.ja): 2026-08-21 14:26:44.783081866 +0200
+
+$ find $STORAGE -name '.zotero-sdt-cache' | wc -l
+0
+$ find $STORAGE -name '.zotero-ft-cache' | wc -l
+13631
+$ find $STORAGE -name '.zotero-ft-cache' -newermt '2026-08-21 14:26' | wc -l   # post-install re-index
+1036
+$ find $STORAGE -name '.zotero-reader-state' -newermt '2026-08-21 14:26' | wc -l   # reader sessions since install
+0
+
+SDT modules present in the installed build:
+  16011 bytes  chrome/content/zotero/xpcom/sdt.js
+  23496 bytes  resource/document-worker/structured-document-text.js
+
+NO POSITIVE CONTROL. Nothing here shows the probe would find a pack if one
+existed, because none does. Treat the zero as provisional until one PDF is
+opened in Zotero and this same probe is re-run against it.

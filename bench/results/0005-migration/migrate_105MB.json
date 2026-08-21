@@ -1,0 +1,19 @@
+{
+ "node_options": "",
+ "node_version": "v22.23.1",
+ "jsonPath": "/home/haduong/.claude/jobs/a481da3c/tmp/remeasure0005/small.json",
+ "json_bytes": 105302472,
+ "db_bytes": 162332672,
+ "ratio_db_over_json": 1.5416,
+ "wall_ms": 13695,
+ "peak_rss_kB_VmHWM": 82628,
+ "final_rss_kB_VmRSS": 82232,
+ "sidecars_left": [],
+ "result": {
+  "chunks": 79000,
+  "vectorsSkipped": 0,
+  "builtFromVersion": 200,
+  "bytes": 105302472,
+  "ms": 13593
+ }
+}

@@ -44,27 +44,82 @@ an `install -D` used while splitting the patches had marked every touched
 Zotero library of 7 540 top-level items, 0,86 GB of text already extracted by
 Zotero into `.zotero-ft-cache`.
 
-| | zoteus (resident JS) | FTS5 via `node:sqlite` |
-|---|---|---|
-| passages | 477 511 | 408 628 |
-| build | 337 s | 46,6 s |
-| RSS at rest | 5 370 MB | 162 MB |
-| on disk | 546 MB (write fails) | 762 MB |
-| reload | OOM on stock Node | opens the file |
-| query | 0,37–0,5 s | 1–76 ms |
+| | zoteus (resident JS) | FTS5, same geometry | FTS5 prototype bench |
+|---|---|---|---|
+| passages | 477 511 | **477 511** | 408 628 |
+| build | 337 s | **339–374 s** | 46,6 s |
+| RSS peak during build | 6,48 GB | **1 892–2 085 MiB** | — |
+| RSS at rest / serving | 5 370 MB | **121–135 MiB** | 162 MB |
+| on disk | 546 MB (write fails) | **949,5 MiB** | 762 MB |
+| reload | OOM on stock Node | **opens the file, stock Node** | opens the file |
+| query | 0,37–0,5 s | **33–339 ms** (MCP round trip) | 1–76 ms (bare SQLite) |
 
-**The `passages` row is not like-for-like** and should not be read as one:
-`bench/fts5_bench.mjs` chunks attachment full text only, at 1200 with no
-overlap, while zoteus indexes metadata at 512/64 *plus* full text at 1200/150.
-Three independent differences before storage enters the picture. Build time,
-disk and RSS still hold — the resident-JS column is measuring a larger corpus,
-which if anything understates the win. Ticket 0007 carries the fix.
+**Two caveats on the memory column, both raised at review and both load-bearing
+for anything quoted externally.** The FTS5 figure is process RSS, and SQLite
+uses default buffered I/O with no `mmap_size` — so the kernel page cache
+holding up to 949,5 MiB of database file is *not* in it. The resident-JS
+figure has no such hidden remainder: every byte it needs is JS heap, which RSS
+sees. Read as total memory implicated, the win is nearer 5x than 40x. And the
+5 370 MB baseline itself **was never measured by this repo** — it predates the
+first commit, with no recorded instrument or method, while every FTS5 number
+here comes from `VmHWM`. One half of the ratio is reproducible from committed
+artifacts and the other is inherited. Re-measuring the JSON backend with the
+same instrument would close it; until then the *direction* is solid (the
+write-fails and reload-OOM walls are structural) and the *ratio* is not
+quotable.
 
-Also worth knowing before the #10 writeup: **Zotero 10 already runs FTS5
-itself** (`fulltext.sqlite`: `fulltextContent USING fts5(text,
-tokenize='unicode61', content='')`), but the table is *contentless* — matchable,
-not readable — which is why zoteus reads the cache and why "just reuse Zotero's
-index" is not available.
+Measured 2026-08-21 on the 7 540-item library, uncapped, full text on, no
+`--max-old-space-size` at any point. Raw artifacts in
+`bench/results/0003-full-build/`; drivers are `bench/run_build.py`,
+`run_serve.py`, `run_serve2.py`. Two runs, byte-identical in every content
+figure. Also recorded: `fulltextItems` 5 562, `fulltextPassages` 465 110,
+`fulltextPendingItems` 429 (attachments Zotero has not extracted yet, which
+bounds the corpus).
+
+**Read the columns carefully — only the first two are comparable.** The middle
+column runs the server's own chunker at zoteus's geometry (512/64 metadata plus
+1200/150 full text), which is why its passage count lands on 477 511 exactly,
+to the unit. The third column is `bench/fts5_bench.mjs`, a direct SQLite
+benchmark at 1200-no-overlap over attachment text only — a different corpus and
+no MCP framing, no RRF, no snippet extraction. Its 1–76 ms is not the number a
+user experiences; the middle column's 33–339 ms is. Of that, 200–300 ms on a
+cold query is 0006's Zotero freshness probe, not FTS5: with
+`ZOTEUS_INDEX_AUTO_REFRESH=false` the fastest query measured 32,7 ms.
+
+**Two claims not to overstate.** Peak RSS *during the build* is ~2 GB, not the
+"few hundred MB" ticket 0003 anticipated — reproduced across both runs, filed
+as ticket 0011. The at-rest figure, which is the one the chantier turns on, is
+unaffected at 121–135 MiB. And the build is API-bound, not SQLite-bound: run 2
+spent 113 s of its 339 s on the first page of full text.
+
+Three things to settle before the #10 writeup, all established 2026-08-21.
+
+**Zotero 10 already runs FTS5 itself** (`fulltext.sqlite`, attached as
+`ftindex`: `fulltextContent USING fts5(text, tokenize='unicode61',
+content='')`), but the tables are *contentless* — matchable, not readable. That
+is why zoteus keeps its own copy of the text, and it forecloses "just reuse
+Zotero's index" before someone proposes it. Their release notes make the
+rewrite sound more reusable than it is.
+
+**Zotero is building semantic search** — zotero/zotero#6012, draft, two core
+developers, active daily, superseding its own predecessor #5984. It does
+**not** expose anything over the local API: no file under `xpcom/server/` is
+touched and no endpoint is contemplated, so zoteus cannot delegate and the
+vector work here stands. Notably they *declined* `sqlite-vec` and score with
+brute-force JS dot products, which puts this prototype's `vec0` KNN ahead of
+theirs rather than behind. They fuse keyword and vector with RRF at `k = 60` —
+the same constant this prototype picked independently.
+
+**Zotero ships structure extraction we did not know about.** `Zotero.SDT`
+(`sdt.js` + `structured-document-text.js`, in the installed build) writes a
+per-attachment `.zotero-sdt-cache` pack carrying page labels, outline paths,
+reader positions and running-head exclusion. An earlier finding here said
+Zotero exposes no in-text structure; that was true of `.zotero-ft-cache` and
+wrong about Zotero. Whether it is *reachable* is open: zero packs exist, and
+the one path known not to produce them is the post-install bulk full-text
+re-index. No PDF has been opened in the reader since the 2026-08-21 14:26
+install, so the reader path is untested rather than ruled out — one PDF opened
+in Zotero decides it. Ticket 0007 carries the correction and the experiment.
 
 No current setting both writes and reads this library back: 40 000 chars/item
 fits but discards 61% of the text, 200 000 writes but needs
@@ -99,30 +154,128 @@ overlap, since FTS5 and the JS BM25 cannot agree on scores (0002); and the
 extensions, and zoteus already carries two optional dependencies on the same
 graceful-degradation pattern.
 
-Two behavioural divergences from upstream, both deliberate and both tested:
-FTS5 **out-recalls** the JS index on accented queries (`remove_diacritics 2`
-folds the document side), and the SQLite backend refuses `toJSON`/`loadFromJSON`
-rather than materialising 408 628 passages into the heap.
+One deliberate divergence from upstream: the SQLite backend refuses
+`toJSON`/`loadFromJSON` rather than materialising 477 511 passages into the
+heap. A second was recorded here as deliberate — "FTS5 out-recalls the JS index
+on accented queries" — and **that was wrong**. Measurement on the real library
+showed accented queries returning confident noise, not extra recall; it is a
+correctness defect, ticket 0009, and the section below carries the evidence.
+
+## Migration, measured 2026-08-21
+
+The 463 MB index no longer exists. Two points were measured on real data,
+because the claim under test is how migration memory grows with file size and
+one point cannot show that. Both are re-runs: the figures first published here
+came from an agent's uncaptured stdout and were not reproducible from any
+committed artifact — a review caught it, and these replace them.
+
+| | 105 MB JSON | 321 MB JSON |
+|---|---|---|
+| migration, isolated | 13,7 s | 42,7 s |
+| **peak RSS** (`VmHWM`) | **80,7 MiB** | **97,0 MiB** |
+| resulting database | 162,3 MB | 498,7 MB |
+| ratio to JSON | 1,5416 | 1,5522 |
+
+**File ×3,05, memory ×1,20 — strongly sublinear, not flat.** Linear would have
+been ×3,05. An earlier reading claimed flat (×2,10 file, ×1,02 memory); that
+was the unbacked one. The streaming scanner does bound memory well, and there
+is a real size-dependent component on top of it.
+
+Artifacts `bench/results/0005-migration/migrate_{105,321}MB.json`, driver
+`bench/migrate_measure.mjs`, which records `NODE_OPTIONS`, Node version, both
+file sizes and `VmHWM` into its own output so this cannot recur. The smaller
+index was cut from the larger with `bench/slice_index.mjs` — real passages,
+fewer of them.
+
+For comparison, the JSON backend loading the same indexes cost 1 896 MB and
+3 786 MB (`res_json.json`, `res5k_json.json`), roughly 11,8× the file and
+linear in it. Startup is 45 s including the one-off migration and 0,97 s on a
+later start at the 153 MB scale — that 0,97 s is a single warm-cache reading
+at one size, not a measured property of every start.
+
+The database/JSON ratio is **1,55×**, not the 1,34× budgeted from the synthetic
+fixture — confirmed at both sizes — so a full-size migration needs ~715 MB, not
+620. The 463 MB criterion **stays open**; 321 MB is 69% of it.
+
+## Accented queries are broken on the SQLite backend
+
+Found by that comparison and now ticket 0009, raised from enhancement to
+defect. `toMatchQuery` tokenises with `/[a-z0-9]+/g`, so `théorie` becomes the
+fragments `"th" OR "orie"` while FTS5 has folded the document side to
+`theorie`. The two never meet, and `"th"` matches English prose:
+
+    SQLITE  "théorie" -> 20 hits: Do conservation contests work? / Graphical Economics / …
+    JSON    "théorie" -> 14 hits: Théorie économique… / Éléments d'économie politique pure… / Cournot
+
+Jaccard 0,00. Twenty confident, plausible, entirely wrong results — worse than
+an empty answer, because a user cannot tell. Across the accented set: 0,00 to
+0,50, against 0,48–1,00 for every ASCII query. The index is fine; the query
+path alone is broken.
+
+Zotero was checked for the same defect and does not have it, which gave a
+better fix than the one first filed. It pre-tokenises in JS exactly as we do,
+and avoids the bug by keeping the fold **in JS, applied to both sides by one
+function**, with a Unicode-aware token class `/[\p{L}\p{N}]+/u`. Our fold sits
+inside SQLite where only the document side passes through it. Widening the
+token class matters as much as folding: it fixes non-Latin scripts, Vietnamese
+`đ` and the CJK blind spot in one change, and would alone have prevented this
+defect by keeping `théorie` a single token. Once the fold is in JS the FTS5
+`remove_diacritics` setting stops mattering — which is why Zotero can run
+`unicode61` for content and `trigram` for notes, with opposite defaults, and
+neither is wrong.
+
+Quantified on the real index: the fragments our regex produces, `th` and
+`orie`, match 1 904 and 13 documents — `th` alone about eleven times the
+correct answer set.
+
+## Binary quantization: measured, and rejected for now
+
+Ticket 0008 proposed it on a measured 13x speedup. That figure was taken at
+`k=30` and does not survive being asked for a *pool*: vec0's k-best structure
+costs more than linearly in `k` (7,7 ms at k=30, 83,6 at k=480, 216,8 at
+k=960, against 121 ms for the whole exact float32 scan). So the pool that
+preserves the ranking is slower than the scan it would replace.
+
+Recall@30 at N=100 000, dim 384, clustered fixture: 0,256 binary-only, 0,628
+at a 4x pool, 0,862 at 8x, 0,998 at 16x — and the 16x pool costs 272 ms
+against 110 ms exact. Recall was the acceptance criterion, so the two-stage
+path ships **off by default**. Both columns are maintained on every insert, so
+enabling it later is a one-line flip, not a reindex. float32 stays mandatory.
+
+The lesson is the same one this chantier keeps paying for: a ratio measured at
+one operating point is not a property of the system. The real-library
+re-measure stays open, and the risk to test there is anisotropy —
+`vec_quantize_binary` thresholds at zero, real sentence embeddings are not
+zero-mean, and the first pass could be worse on real data than on these
+fixtures. Centring on the corpus mean is the remedy, and is what
+zotero/zotero#6012 already does.
 
 ## Next action
 
-**The author's own library is the remaining gate.** Four exit criteria across
-0001, 0003, 0004 and 0005 need the real 7 540-item corpus and cannot be
-fabricated; the commands are in each ticket. In order:
+**The chantier's code is complete** — fork `bac5d62` on `fts5-storage`, 679
+tests, tsc and eslint clean. 0002–0006 are closed; 0007–0012 are open.
 
-1. Migrate the existing `search-index.json` (0005) — watch peak RSS, which
-   should *not* scale with file size.
-2. Full build on the sqlite backend (0003) — build time, peak RSS, on-disk
-   size, and that the server serves with no `--max-old-space-size`.
-3. Embedding pass (0004) — bytes/passage and semantic query latency.
-   `bench/build_index.py` hardcodes `ZOTEUS_EMBEDDINGS: "off"`; that one key
-   needs changing first.
-4. Old-vs-new result comparison on the same corpus (0001), then the findings
-   go on oscardvs/zoteus#10.
+The measurement work that needed the real library is now done: the full build
+(0003) and the migration (0005) are both measured and their artifacts
+committed. What remains is not more measurement but three decisions.
 
-Then commit the fork branch, and consider 0008 (binary quantization: measured
-13x faster, 24x smaller) before the #10 writeup, since it changes the numbers
-that writeup would quote.
+1. **Fix the accented-query defect (0009).** It is the only known way the
+   SQLite backend returns *wrong* answers, and the fix is small and known:
+   fold in JS on both sides, widen the token class to `/[\p{L}\p{N}]+/u`.
+   Nothing should be quoted upstream while this is live.
+2. **Decide what the #10 report may claim about memory.** The at-rest ratio is
+   not currently quotable — see the caveats on the table above: the FTS5 side
+   excludes page cache, and the 5 370 MB baseline was never measured by this
+   repo. Re-measuring the JSON backend with `VmHWM` closes it, and it is the
+   number most likely to be lifted verbatim.
+3. **Settle 0007 with one PDF.** Open one in Zotero, look for
+   `.zotero-sdt-cache`. That decides whether structure-aware chunking is
+   reachable at all.
+
+Two criteria remain open and are not blockers: the 463 MB migration at full
+size (0005 — 321 MB reached, 69%), and 0008's re-measure on the real vector
+index, where the anisotropy risk is the thing to test.
+
 
 ## Gates
 
