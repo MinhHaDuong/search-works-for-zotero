@@ -8,6 +8,8 @@ Author: minh
 
 2026-08-21T14:08Z decisions reviewed with author: schema revised to FTS5 + indexed side table (362ms vs 0ms measured), query sanitisation named, makeSnippet retained
 2026-08-21T15:30Z claude note raid round: three open questions settled with author -- store port over duplicate class, engines floor left at >=20.19 with lazy import, match gate is top-k item-set overlap
+2026-08-21T18:05Z claude note implemented; gates verified independently: 581 passed 7 skipped (477 baseline + 104), tsc and eslint clean
+2026-08-21T18:20Z claude note gate verified by sabotage, not by its own green: reversed ORDER BY reddens the graded-corpus ranking test alone, un-negated bm25() reddens the positive-score contract test; file restored byte-identical after both
 --- body ---
 ## Context
 
@@ -142,13 +144,54 @@ Red step: run upstream's existing search tests against `SqliteSearchIndex`
 instead of `SearchIndex`. They fail on the unimplemented methods first, then
 pass as each lands. No new test fixtures — reusing upstream's is the point.
 
+## Findings from the implementation
+
+Three things the ticket did not anticipate. Recorded because two of them
+change what a later child may assume.
+
+**The comparison gate as first specified did not bite.** On a topical fixture
+corpus, "top-3 a subset of top-5" plus the non-emptiness check stayed green
+even with the store's `ORDER BY` reversed -- each query matched only two or
+three items, so the subset relation held whatever the order was. An all-clear
+indistinguishable from "could not look". The fix is a graded-relevance corpus:
+eight same-length passages repeating the query term eight times down to once,
+so every passage matches and only ranking separates them. Verified by sabotage
+in both directions, and re-verified independently at the wave gate.
+
+**`remove_diacritics 2` folds one way only, and the shared-tokenizer rule is
+why.** FTS5 folds the *document* side, so the ASCII query `eleve` finds
+`élève` -- the direction the ticket verified. The reverse fails: `toMatchQuery`
+tokenises with the index's own `tokenize()`, whose `[a-z0-9]+` shreds an
+accented query (`élève` becomes `ve`) before FTS5 ever sees it. Fixing that
+means diverging the query tokeniser from the index tokeniser, which is the one
+thing the shared-tokenizer decision exists to prevent. Left as a documented
+limitation in a named test rather than worked around.
+
+**So FTS5 out-recalls the JS index, which the parity gate had to be told
+about.** `eleve` against a purely accented passage returns a hit on FTS5 and
+nothing on the JS side -- a literal violation of "no query empty on one side
+and non-empty on the other". This is a real behavioural divergence, and an
+improvement, not a regression: it is what `remove_diacritics 2` is for. The
+shared corpus gives its accented item both spellings so parity holds honestly,
+and the divergence lives in its own test that asserts the JS index returns
+nothing where FTS5 returns the item. **0001's "same corpus in, same results
+out" invariant should be read with this exception**, and the old-vs-new
+comparison in `bench/` will show it on any accented query.
+
+Two smaller ones, both fixed: `add()` needed explicit replace semantics, since
+the `Map` the memory store wraps is last-write-wins on a repeated id while a
+`UNIQUE` index is not -- without it a second `loadFromJSON` into a file-backed
+store throws. And `MemoryPassageStore.size` reads `bm25.size` rather than
+`chunks.size`; the two diverge on a duplicate id, and every caller
+(`status().documents`, `isEmpty`) has always read the BM25 figure.
+
 ## Exit criteria
 
-- [ ] `SqliteSearchIndex` satisfies the `SearchIndex` interface, keyword-only
-- [ ] The default (memory) path is unchanged: upstream's suite green before any
-      SQLite code exists
-- [ ] Upstream's suite passes against it
-- [ ] Query semantics match the current BM25 on a shared sample of queries:
+- [x] `SqliteSearchIndex` satisfies the `SearchIndex` interface, keyword-only
+- [x] The default (memory) path is unchanged: upstream's suite green before any
+      SQLite code exists -- checkpointed at exactly 477 passed, 7 skipped
+- [x] Upstream's suite passes against it -- parameterised over both stores
+- [x] Query semantics match the current BM25 on a shared sample of queries:
       every query's top-3 items a subset of the JS index's top-5, no query empty
       on one side and non-empty on the other
-- [ ] `tsc --noEmit` and `eslint` clean
+- [x] `tsc --noEmit` and `eslint` clean
