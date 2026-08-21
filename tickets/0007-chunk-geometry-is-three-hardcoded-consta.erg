@@ -1,12 +1,12 @@
 %erg 0.1
 Title: Chunk geometry is three hardcoded constants; make it configurable
 Created: 2026-08-21
-Blocked-by: 0006
 Author: minh
 
 --- log ---
 2026-08-21T16:56Z minh created
 
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
 --- body ---
 ## Context
 

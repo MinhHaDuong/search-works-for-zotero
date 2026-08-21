@@ -2,13 +2,15 @@
 Title: Build path writes rows; persistence.ts retires
 Created: 2026-08-21
 Author: minh
-Blocked-by: 0002
+Closed: autoclosed — PR #1
 
 --- log ---
 2026-08-21T13:48Z minh created
 2026-08-21T15:45Z claude note planned against 0002's PassageStore port: persist() becomes a transaction boundary on the port, backend selected by ZOTEUS_SEARCH_BACKEND
 2026-08-21T18:40Z claude note implemented and verified: 592 passed 7 skipped, tsc and eslint clean; commit-on-exit sabotage-checked
 
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0002 closed — Blocked-by removed.
+2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
 --- body ---
 ## Context
 

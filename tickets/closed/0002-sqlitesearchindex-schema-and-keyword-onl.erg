@@ -2,6 +2,7 @@
 Title: SqliteSearchIndex: schema and keyword-only implementation of the SearchIndex interface
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #1
 
 --- log ---
 2026-08-21T13:48Z minh created
@@ -10,6 +11,7 @@ Author: minh
 2026-08-21T15:30Z claude note raid round: three open questions settled with author -- store port over duplicate class, engines floor left at >=20.19 with lazy import, match gate is top-k item-set overlap
 2026-08-21T18:05Z claude note implemented; gates verified independently: 581 passed 7 skipped (477 baseline + 104), tsc and eslint clean
 2026-08-21T18:20Z claude note gate verified by sabotage, not by its own green: reversed ORDER BY reddens the graded-corpus ranking test alone, un-negated bm25() reddens the positive-score contract test; file restored byte-identical after both
+2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1
 --- body ---
 ## Context
 
