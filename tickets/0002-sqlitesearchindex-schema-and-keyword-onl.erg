@@ -6,6 +6,7 @@ Author: minh
 --- log ---
 2026-08-21T13:48Z minh created
 
+2026-08-21T14:08Z decisions reviewed with author: schema revised to FTS5 + indexed side table (362ms vs 0ms measured), query sanitisation named, makeSnippet retained
 --- body ---
 ## Context
 
@@ -13,21 +14,55 @@ The first child, and the only one carrying design risk: everything after it
 depends on the schema and on how `SqliteSearchIndex` relates to the existing
 class. Tracker: 0001.
 
-## Decisions to take here
+## Decisions taken (reviewed 2026-08-21)
 
-- **Schema.** One row per passage: body, item key, ordinal, source (metadata or
-  fulltext). FTS5 external-content table over a plain table, or a contentless
-  one? External content keeps the text once and lets us `DELETE` by rowid,
-  which 0006 needs.
-- **Tokenizer.** `unicode61 remove_diacritics 2` folds accents, verified.
-  No stemming: FTS5's `porter` is English-only and the corpus is not.
-- **Query semantics.** zoteus's BM25 ORs its terms; FTS5's `MATCH` defaults to
-  an implicit AND. This must be matched deliberately or ranking changes under
-  us — it is exactly the trap the invariant in 0001 guards against.
-- **File location** relative to `ZOTEUS_DATA_DIR`, beside `search-index.json`
-  rather than replacing it, so both can coexist during 0005.
-- **Shadow or replace.** Prefer a second implementation selected by config, so
-  the old path stays runnable for the result comparison.
+**Schema — a plain FTS5 table plus an indexed side table.** Not external
+content, and not FTS5 alone. An `UNINDEXED` FTS5 column is not indexed, so a
+per-item lookup is a full scan: measured on the 408 628-passage bench,
+**362 ms by item against 0 ms for an indexed MATCH**. Ticket 0006 deletes by
+item on every delta, so a fifty-item delta would cost eighteen seconds.
+
+    CREATE VIRTUAL TABLE passages USING fts5(
+      body, tokenize='unicode61 remove_diacritics 2');
+    CREATE TABLE passage_meta(
+      rowid INTEGER PRIMARY KEY,   -- = passages.rowid
+      item TEXT NOT NULL, ord INTEGER NOT NULL,
+      title TEXT, source TEXT      -- NULL for metadata, 'fulltext' otherwise
+    );
+    CREATE INDEX passage_meta_item ON passage_meta(item);
+
+FTS5 carries only the text; everything else sits in an ordinary table with a
+real index on `item`. That side table is also where 0004's vector BLOB goes.
+
+**Tokenizer** `unicode61 remove_diacritics 2`, verified to fold accents. No
+stemming: FTS5's `porter` is English-only and the corpus is not. Do **not**
+add `prefix='2 3'` here — it would make prefix queries cheap, and prefix is the
+only morphology available in French, but zoteus issues no prefix queries today,
+so enabling it changes behaviour nothing asked to change.
+
+**Query sanitisation is a named piece of work, not a detail.** `MATCH` takes a
+query *language*: `"`, `*`, `NEAR`, `OR`, `-`, `(` are syntax there. zoteus's
+`BM25Index.search(q)` receives the raw string and tokenises it itself, so any
+input is safe today. Passing `args.q` to `MATCH` would turn a user query
+containing an apostrophe into a SQLite syntax error surfaced as a tool failure.
+Tokenise the query with the same tokenizer as the index, quote each term, join
+with `OR` — zoteus's BM25 ORs its terms, while FTS5 defaults to an implicit AND,
+so this also settles the semantics.
+
+**Keep `makeSnippet`, do not adopt FTS5's `snippet()`.** `query()` calls
+`makeSnippet(rec.text, q)` and so needs the passage text at query time; return
+`body` from the row. FTS5's `snippet()` is better — it knows token offsets
+rather than searching for a substring — and that is exactly why it is out of
+scope here: it would change the output and break the same-results-out
+comparison that is this chantier's load-bearing gate. Switching to it later is
+a deliberate, separate change.
+
+**File location** `<ZOTEUS_DATA_DIR>/search-index.sqlite`, beside
+`search-index.json`, so both coexist during 0005.
+
+**Shadow, do not replace.** `SqliteSearchIndex` is a second implementation
+selected by config, defaulting to the existing path. Without both live at once
+there is nothing to compare, and the comparison is the gate.
 
 ## Relevant files
 

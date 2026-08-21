@@ -45,8 +45,13 @@ fits but discards 61% of the text, 200 000 writes but needs
 
 ## Next action
 
-Ticket 0002 — schema and keyword-only `SqliteSearchIndex`. It is the only child
-carrying design risk; 0003–0006 follow from it.
+**Ticket 0002 — schema and keyword-only `SqliteSearchIndex`.** Its design
+decisions were reviewed with the author on 2026-08-21 and are settled in the
+ticket body; no code written yet. Start by implementing the schema and the
+query-sanitisation piece, then point upstream's existing search tests at the
+new class.
+
+0002 is the only child carrying design risk; 0003–0006 follow from it.
 
 ## Gates
 
