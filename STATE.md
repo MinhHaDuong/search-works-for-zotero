@@ -291,24 +291,62 @@ ruled out as a trigger. The reader-tab path is *narrowed, not disproven*, and
 cannot be tested from here — the local API exposes no way to open a reader tab,
 so it needs one human to open one PDF and re-run the probe.
 
-## Binary quantization: measured, and off by default (0008)
+## Binary quantization, now measured on real vectors (0008)
 
-Proposed on a measured 13x speedup taken at `k=30`, which does not survive being
-asked for a *pool*: vec0's k-best structure costs more than linearly in `k`
-(7,7 ms at k=30, 216,8 at k=960, against 121 ms for the whole exact float32
-scan). The pool that preserves the ranking is slower than the scan it replaces.
+Proposed on a measured 13x speedup taken at `k=30`, which did not survive being
+asked for a *pool*: vec0's k-best structure costs more than linearly in `k`. On
+a clustered fixture the pool that preserved the ranking (16x) was slower than
+the exact scan it replaced, so the two-stage path shipped **off by default**.
 
-Recall@30 at N=100 000, dim 384, on a clustered fixture: 0,256 binary-only,
-0,628 at a 4x pool, 0,862 at 8x, 0,998 at 16x — and the 16x pool costs 272 ms
-against 110 ms exact. Recall was the acceptance criterion, so the two-stage path
-ships **off by default**. Both columns are maintained on every insert, so
-enabling it later is a one-line flip rather than a reindex.
+**93 022 real passages, embedded by the shipped on-device model, settle the
+criterion that stayed open** (`bench/results/0008-real-vectors/`, driver
+`bench/vec_real_measure.mjs`):
 
-*A real-vector re-measure is running as of 2026-08-22 and its result is not yet
-here.* The risk it tests is anisotropy: `vec_quantize_binary` thresholds at
-zero and real sentence embeddings are not zero-mean, so the first pass could be
-worse on real data than on these fixtures. Centring on the corpus mean is the
-remedy, and is what zotero/zotero#6012 already does.
+| pool | fixture | **real** | centred | two-stage | vs exact (103,3 ms) |
+|---|---|---|---|---|---|
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,4 ms | **~3,0x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 61,5 ms | **~1,7x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 120,7 ms | ~0,85x — slower |
+
+On disk: **1 563,2 B per float32 vector against 71,1 B per binary code, 22x**.
+
+Latencies are timed round robin rather than in per-candidate blocks. Blocks gave
+interquartile spreads of 25-137% of the median, which cannot support an
+ordering; interleaving and shuffling brought them to 1,8-10,0%, and all three
+rows are separated from the exact scan by non-overlapping interquartile ranges
+in every one of four recorded runs (4x pool 2,99/3,01/2,98/3,00x).
+
+**The anisotropy risk is refuted, and it ran the other way.** The fear was that
+`vec_quantize_binary`, thresholding at zero, would find real embeddings sitting
+off the origin with dimensions where every vector agrees. Measured: corpus mean
+norm **0,406**, and **2 of 384 dimensions** more than 95% one-sided — and those
+two are dimensions the model never activates, mean |x| of 5,5e-8 and 5,7e-33
+against a median 3,9e-2, so their sign is float noise rather than corpus
+geometry. Among dimensions carrying signal, one-sidedness tops out at **0,909**.
+Centring on the corpus mean buys 0,5 to 3,4 points depending on the pool. Real embeddings are
+*easier* to quantize than the clustered fixture at every pool below 16x — the
+fixture was a harder problem than real data, not a conservative stand-in for it.
+
+**So the original ruling was narrow rather than wrong.** At 16x, the pool the
+fixture demanded, the two-stage path is still slower on real data. Real data
+does not need 16x: it reaches 0,953 at 8x, where the path is ~1,7x faster. The
+same mistake this chantier keeps paying for — a ratio at one operating point
+read as a property of the system — with the sign reversed.
+
+**Nothing shipped has changed and the default is not flipped here.** Turning the
+path on trades about 5% of vector recall for ~1,7x latency, which is a product
+decision the author owns. Both columns are maintained on every insert, so it
+stays a one-line flip.
+
+Two caveats, both making the recall column optimistic: 52% of a probe's exact
+top-30 is its own item's sibling chunks (chunk overlap is 150 characters), so
+the task is easier than a real query's; and recall is against the exact *vector*
+ranking, where the shipped path fuses keyword and vector with RRF.
+
+One observation for whoever revisits it: the first pass is not what costs. At 8x
+it is 30,4 ms of the 61,5, and the rest is the rerank issuing one round trip per
+pooled rowid. Batching that would put 8x near 35 ms — about 3x faster than exact
+at 0,953 recall.
 
 ## What Zotero itself is doing
 
@@ -353,27 +391,20 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The implementation work is done; two tickets stay open.** This wave closes
-0007, 0009, 0010, 0011, 0012 and 0013, which joins 0002–0006 already closed —
-eleven of the twelve children. Still open:
+**The chantier is complete in substance.** All twelve children are closed; the
+tracker 0001 closes after its integration review — re-reading the children's
+diffs as one change, running the full suite against the merged result, and
+checking 0001's own criteria against that rather than against twelve separately
+green children. What remains beyond it is not work this repo owes anyone:
 
-- **0008**, whose one remaining criterion is marked BLOCKED: the real-vector
-  re-measure below has not returned. What ships is settled either way.
-- **0001**, the tracker, which by the tracking-ticket convention closes after
-  the integration review — every child closed, child diffs re-read, exit
-  criteria verified — and not on the bare event of the last child merging. Four
-  of its criteria are still unchecked.
-
-What remains beyond those is not work this repo owes anyone:
-
-1. **0008's real-vector re-measure** was launched 2026-08-22 and its result is
-   not in yet; it appends to the section above when it lands. It cannot change
-   what ships — the two-stage path is already off by default — only what is
-   known about why.
-2. **One PDF opened in a Zotero reader tab** would close 0007's last residual.
-   It needs a human; the local API cannot do it.
+1. **Whether to turn the two-stage vector path on** is now a decision with
+   numbers behind it rather than a blocked measurement (0008 above). It is the
+   author's call, and nothing waits on it.
+2. **One PDF opened in a Zotero reader tab** would close 0007's last residual —
+   whether the reader path writes an SDT pack. It needs a human; the local API
+   cannot open a reader tab.
 3. **Nothing goes upstream** unless the maintainer answers #10. That is the
-   posture, and dropping the report criterion made it explicit.
+   posture, and dropping 0001's report criterion made it explicit.
 
 ## Gates
 

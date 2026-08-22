@@ -1,0 +1,314 @@
+%erg 0.1
+Title: Quantize the vector column: binary first pass, exact rerank
+Created: 2026-08-21
+Author: minh
+Closed: autoclosed — PR #4
+
+--- log ---
+2026-08-21T17:41Z minh created
+2026-08-21T23:55Z claude note implemented and measured; the premise does not hold -- vec0's k-best cost grows faster than linearly in k, so the pool that preserves recall is slower than the exact scan. Ships off by default.
+
+2026-08-21T18:46Z Minh Ha-Duong note blocker 0004 closed — Blocked-by removed.
+2026-08-22T06:26Z Minh Ha-Duong closed — autoclosed — PR #4
+--- body ---
+## Context
+
+Tracker: 0001. 0004 stores embeddings as `float32` in a `vec0` table, faithful
+to its amended body, which specified a BLOB column and said nothing about
+quantization. That leaves a large, cheap win on the table.
+
+`sqlite-vec` 0.1.9 has **no ANN index**: `vec0` KNN is a brute-force scan, in C,
+over the on-disk table. Measured here, 384 dims, k=30, file-backed, warm,
+median of 25 probes:
+
+| N | median query | ms per 100 k |
+|---|---|---|
+| 10 000 | 14,12 ms | 141,21 |
+| 25 000 | 35,21 ms | 140,82 |
+| 50 000 | 70,56 ms | 141,11 |
+| 100 000 | 140,01 ms | 140,01 |
+| 200 000 | 314,85 ms | 157,43 |
+| 400 000 | 567,28 ms | 141,82 |
+
+Reproduce with `bench/vec_scaling.mjs`.
+
+Flat cost per vector across a 40x range -- 40,2x the time for 40x the data.
+O(N), not debatable.
+
+**This is a deliberate trade by the library, not an oversight.** `sqlite-vec`
+is the same author's successor to `sqlite-vss`, which *did* carry ANN via
+Faiss/IVF. `sqlite-vss-linux-x64` unpacks to 5 324 662 bytes;
+`sqlite-vec-linux-x64` to 160 160 -- 33x smaller, pure C, no dependencies,
+builds anywhere. He traded the ANN index for portability and offers
+quantization as the lever instead.
+
+## The measurement that motivates this
+
+400 000 vectors, 384 dims, k=30, `bench/vec_quantize.mjs`. **A separate run
+from the sweep above**, with its own seed -- which is why float32 reads 548,0 ms
+here against 567,28 ms there, a 3,5% spread between runs rather than a
+transcription slip. The ratios below are computed within this run only:
+
+| variant | on disk | median query | per vector |
+|---|---|---|---|
+| float32 (what 0004 built) | 596 MB | 548,0 ms | 1 563 B |
+| int8 (`vec_quantize_int8`, 'unit') | 156 MB | 345,6 ms | 408 B |
+| **binary (`vec_quantize_binary`)** | **25 MB** | **41,5 ms** | **65 B** |
+
+**13x faster and 24x smaller** -- *at `k=30`, which is the whole trouble; see
+"Result" below, where this figure does not survive being asked for a pool.*
+Still O(N) -- the constant collapses, it does not become sub-linear. Note int8 buys only 1,6x against 3,8x less data: the
+scan is not purely I/O-bound, there is real per-vector arithmetic, and binary
+removes the arithmetic (Hamming distance is a popcount) rather than only the
+bytes. That asymmetry is the reason to go to binary rather than stopping at
+int8.
+
+At the library's 408 628 passages this is roughly **0,5 s -> 0,05 s** per
+semantic query, and ~650 MB -> ~27 MB of vectors.
+
+## Result 2026-08-21: the premise does not survive the measurement
+
+Implemented, measured, and **shipped off by default**. Fork commit `bac5d62`,
+679 tests passing, `tsc` and `eslint` clean.
+
+**Where the 13x figure came from and why it does not apply.** It was measured
+at `k=30` and is real at `k=30`. The two-stage design does not need the binary
+pass to be cheap at `k`; it needs it cheap at a **pool**. vec0's k-best
+structure costs more than linearly in `k`:
+
+| | binary scan |
+|---|---|
+| k=30 | 7,7 ms |
+| k=120 | 18,2 ms |
+| k=480 | 83,6 ms |
+| k=960 | 216,8 ms |
+| *exact float32 scan, k=30* | *121 ms* |
+
+So the pool that preserves the ranking is not a speedup, and the pool that is
+a speedup does not preserve the ranking. This ticket was filed on an
+extrapolation from one operating point, and the extrapolation was wrong.
+
+**Recall@30, 100 probes, N=100 000, dim 384**, on a clustered fixture chosen to
+resemble sentence-embedder geometry (exact scan = 110 ms):
+
+| pool | recall@30 | sim kept | median |
+|---|---|---|---|
+| binary only | 0,256 | 0,970 | 8,3 ms |
+| 4x | 0,628 | 0,994 | 66,3 ms |
+| 8x | 0,862 | 0,999 | 128,3 ms |
+| **16x** | **0,998** | 1,000 | **272,1 ms** |
+
+Recall was the acceptance criterion, not latency, and recall at any affordable
+pool is 0,63-0,86. So the path ships behind `VEC_TWO_STAGE_DEFAULT = false`.
+
+> **These are the FIXTURE's numbers and the real corpus does better at every
+> pool below 16x** -- 0,884 against 0,628 at 4x. Read "## The real-vector
+> measurement" below before quoting anything in this section. The shipped
+> default is unchanged, but the reason it was chosen no longer holds in the form
+> stated here.
+**Both columns are maintained on every insert**, so enabling it later is a
+one-line flip rather than a reindex -- which keeps the option alive for the
+real-library re-measure without shipping a regression now.
+
+**float32 stays mandatory.** Binary-only recall is 0,256. The binary code
+finds the neighbourhood -- it retains 0,970 of the exact top-30's total cosine
+-- and cannot order within it. Dropping float32 for 25 MB is not offerable.
+
+**A consolation worth recording:** the misses are near-ties, not junk. At a 4x
+pool, recall is 0,628 while similarity retained is 0,994. If a use case ever
+tolerates approximate ordering among near-equivalent passages, the trade is
+better than the recall figure alone suggests.
+
+## Implementation notes
+
+`vec_quantize_binary` refuses widths not divisible by 8, so the dim-3 and
+dim-4 fixtures in the existing suites fall back to the exact scan; every real
+model (384/768/1024) qualifies. And the obvious rerank shape,
+`rowid IN (SELECT value FROM json_each(?))`, plans as a full virtual-table
+scan because vec0 claims only rowid *equality* -- 61 ms against 15 ms for 480
+point queries, and exactly the O(N) pass stage one exists to avoid.
+
+## Still open
+
+The real-library re-measure, and one specific risk to test there before this
+verdict is final: `vec_quantize_binary` thresholds at zero, and sentence
+embeddings are anisotropic, so most vectors may share a sign pattern and the
+first pass could be **worse** on real data than on these zero-mean fixtures.
+Centring on the corpus mean is the standard remedy -- and is what
+zotero/zotero#6012 already does with its `modelCalibration.meanVector`.
+
+## Actions
+
+1. Add a `bit[N]` vec0 table beside the float32 one, populated with
+   `vec_quantize_binary` at insert.
+2. Two-stage query: binary KNN for a coarse pool (say 10-20x the limit), then
+   rerank that pool exactly against the float32 vectors. Keep both columns --
+   binary alone loses accuracy, and the rerank is what buys it back.
+3. Measure recall of the two-stage result against the current exact ranking on
+   a shared query sample. **Recall is the acceptance criterion, not latency**:
+   a 13x speedup that quietly drops relevant passages is a regression wearing a
+   benchmark's clothes.
+4. Decide whether float32 stays mandatory or becomes optional. Dropping it
+   (binary only) gives 25 MB and no rerank, at an accuracy cost that must be
+   measured before it is offered.
+
+## Test
+
+Red step: assert the two-stage result equals the exact float32 ranking on a
+fixture where the two-stage pool is deliberately too small, and watch it fail
+-- that pins the pool size as the accuracy knob rather than leaving it a
+magic number.
+
+## Exit criteria
+
+- [x] Binary first pass with exact rerank, both columns maintained
+- [x] Recall against the current exact ranking measured and recorded --
+      `bench/vec_recall.ts`, `bench/results/0008-recall/`
+- [x] Pool size justified by that measurement
+- [x] Latency and on-disk size re-measured on the real library, 2026-08-22 --
+      `bench/results/0008-real-vectors/real-93022.json`, driver
+      `bench/vec_real_measure.mjs`. The anisotropy risk this criterion was held
+      open for is **refuted**, and the ranking answer is conditional rather than
+      the flat "no" the fixture gave. See below.
+
+## The real-vector measurement, 2026-08-22
+
+93 022 passages of the real library embedded by the shipped on-device model
+(384 dims), against the clustered fixture's N = 100 000 -- close enough that the
+recall columns are comparable on N. The build took **7 549,9 s wall clock**,
+recorded in `bench/results/0008-real-vectors/build.json`: wall clock and not CPU
+time, since it fetches from the Zotero API and embeds in the same process. It is
+embedding-bound at this geometry — the keyword-only build of the whole
+7 541-item library took 371,6 s.
+
+| pool | fixture | **real** | real, mean-centred | two-stage latency | vs exact scan |
+|---|---|---|---|---|---|
+| 1x (k=30) | 0,256 | **0,592** | 0,607 | — | — |
+| 2x (k=60) | 0,422 | **0,776** | 0,810 | — | — |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,4 ms | **~3,0x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 61,5 ms | **~1,7x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 120,7 ms | ~0,85x — slower |
+
+Exact float32 scan at k=30: **103,3 ms**. The speedups are given to two figures
+because that is what the runs support, and **all four runs are recorded in the
+one artifact** rather than reconstructed from git history: 2,99/3,01/2,98/3,00
+at the 4x pool, 1,69/1,68/1,66/1,68 at 8x, 0,85/0,85/0,85/0,86 at 16x. Quoting a
+third figure would be quoting the run rather than the system. On disk: **1 563,2 B per float32
+vector against 71,1 B per binary code, 22x**; the component accounting now closes to
+**8 192 bytes** of a 343 MB file, once indexes are charged as their own
+component rather than left in the residual.
+
+**How those latencies were made trustworthy, because the first attempt was
+not.** Timing each candidate in a block of consecutive repetitions produced
+interquartile spreads of **25 to 137%** of the median -- wide enough that no
+ordering could be read off them. Blocks are the reason: a transient on the
+machine lands wholly inside whichever candidate is running, so it presents as a
+property of that candidate rather than as noise. Timed **round robin**, one
+repetition each per pass over 100 passes, the spreads fell to **1,8-10,0%**
+across all nine candidates and **2,9-7,5%** across the three two-stage rows --
+both read out of the artifact rather than recalled -- and all three rows above
+are separated from the exact scan by non-overlapping
+interquartile ranges.
+
+**Candidate order is also shuffled per pass**, seeded, not merely interleaved: a
+fixed round robin spreads transients but not *position*, so every candidate
+would always follow the same predecessor's cache state. Four runs, recorded together in
+one artifact, agree within 2% on every latency (2,99/3,01/2,98/3,00x at the 4x
+pool; 1,69/1,68/1,66/1,68x at 8x) while every non-latency figure is
+byte-identical across them -- recall at all five pools, the mean norm, the
+per-vector sizes. That agreement is the evidence the order effect is immaterial
+here, and it is worth more than either run alone.
+
+**One inference retracted along the way, and it is the more useful half.** The
+block-timed run put 16x at 206 ms, and an explanation was to hand: a review had
+just found that the bench statements omitted the `JOIN passage_meta` the shipped
+rerank performs *per pooled rowid*, which would cost more at larger pools. It
+fit. Fixing the statements and interleaving the timing returned 16x to ~124 ms,
+essentially where it had been. So the missing join was a real fidelity defect in
+the harness -- worth fixing, and fixed -- and it was **not** the cause of that
+number. Contention was. Observation and cause, kept apart.
+
+## The anisotropy risk did not materialise, and the fixture was the pessimist
+
+This criterion was held open on a specific fear: `vec_quantize_binary`
+thresholds every dimension at zero, real sentence embeddings are not zero-mean,
+and a corpus sitting off the origin would have dimensions where every vector
+agrees -- dead bits carrying no information. Measured: **corpus mean norm 0,406, and only 2 of 384 dimensions more than 95%
+one-sided** (3 above 90%) -- and those two turn out not to count at all. Pairing
+one-sidedness with magnitude shows both are dimensions the model never
+activates: mean |x| of **5,5e-8 and 5,7e-33** against a median dimension's
+3,9e-2. Their sign is float noise, not corpus geometry, and reading them as
+anisotropy would be reading noise as evidence. Among dimensions that carry
+signal, one-sidedness tops out at **0,909**. Centring
+on the corpus mean buys between **0,5 and 3,4 points** of recall depending on the
+pool (+1,6 at 1x, +3,4 at 2x and 4x, +1,6 at 8x, +0,5 at 16x) -- a help, not a
+rescue.
+
+So the risk ran the other way from the one recorded. Real embeddings are
+**substantially easier** to quantize than the clustered fixture at every pool
+below 16x -- 0,884 against 0,628 at 4x. The fixture was not a conservative
+stand-in for real data; it was a harder problem than real data, and reading its
+recall curve as a lower bound was wrong in the safe direction by luck rather
+than by design.
+
+## What that does to the decision, and what it does not
+
+**The original ruling holds exactly where it was measured and fails elsewhere.**
+0008 shipped the path off because "the pool that preserves the ranking is slower
+than the scan it replaces". At 16x -- the pool the fixture said was needed --
+that is still true on real data: 120,7 ms against 103,3 ms. But real data does
+not need 16x. It reaches 0,953 at 8x, where the two-stage path is **~1,7x
+faster**, and 0,884 at 4x, where it is **~3,0x faster**.
+
+So the premise was not wrong, it was *narrow*: it was a statement about the pool
+the fixture required, presented as a statement about the mechanism. The same
+mistake this chantier has now made four times -- a ratio at one operating point
+read as a property of the system -- with the sign reversed.
+
+**The default is not flipped here, and that is deliberate.** Turning the
+two-stage path on changes what every user's semantic search returns: it trades
+about 5% of vector recall for ~1,7x latency. That is a product decision the
+author owns, not a consequence of this ticket's own criteria, and nothing about
+the shipped behaviour needed to change for this criterion to close. Both columns
+are maintained on every insert, so it stays a one-line flip.
+
+**Two caveats on the recall figures, both of which make them optimistic.**
+
+*Probes are passages, and passages neighbour their own siblings.* Chunk overlap
+is 150 characters, so **52,1% of a probe's exact top-30 comes from its own item**.
+That is the corpus rather than an artifact -- filtering it would measure a
+corpus nobody has -- but it makes the retrieval task easier than a real query's,
+and the recall column should be read next to it. Probes are leave-one-out: an
+earlier version of the driver let each probe retrieve itself, which hid exactly
+the degradation the run existed to detect, and a review caught it before the
+numbers landed.
+
+*The coarse pool is computed here, not by vec0.* The Hamming ranking is
+recomputed in JS so both regimes see identical inputs, and that is a
+reimplementation: `bits()` matches `vec_quantize_binary`, but Hamming distances
+tie in large groups and two implementations need not break those ties the same
+way. So "the same pool" is a claim, and it is checked rather than asserted --
+the recall is recomputed with the pool taken from the shipped
+`stmtVecBinSearch` itself, everything downstream unchanged. **The largest
+difference across the five pools is 0,0013** (0,8840 against 0,8853 at 4x;
+identical at 16x), recorded in `coarse_pool_fidelity`. The figures stand; the
+caveat is kept because the word "same" needed evidence.
+
+*Recall here is against the exact VECTOR ranking, not against relevance.* The
+shipped path fuses keyword and vector with RRF, so 0,95 vector recall does not
+translate into 0,95 of the answer quality a user sees -- in either direction.
+
+## The thing to try next, recorded rather than ticketed
+
+The first pass is not what costs. At 8x it is 30,4 ms of the 61,5; the other
+31,1 ms is the **rerank, which issues one prepared-statement round trip per pooled
+rowid** -- 240 of them. Batching that into a single statement over the pooled
+rowids would plausibly put 8x near 35 ms, which would be about **3x faster than
+the exact scan at 0,953 recall** and would change the trade-off materially.
+Below the bar for its own ticket: nothing is broken, the path is off by default,
+and the measurement above is what a future session needs to decide it.
+
+## Closing note, 2026-08-22
+
+Closed. The criterion asked for latency and size on the real library and got
+both, plus an answer to the risk it named. What ships is unchanged.
