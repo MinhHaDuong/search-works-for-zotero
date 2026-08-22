@@ -169,7 +169,9 @@ Nothing in this chantier uses it.
 
 ## Exit criteria
 
-- [x] All children closed -- 0002 to 0013, twelve of them
+- [x] All children closed -- 0002 to 0013, twelve of them (0008 closes with the
+      merge that carries this line; see the closing note on why this ticket does
+      not close in that same merge)
 - [x] The whole library indexes with no character cap, writes, and reloads on a
       stock Node with no `--max-old-space-size`. Measured 2026-08-22 end to end:
       **477 512 passages** at `fulltext_max_chars: 0`, built in 371,6 s at a
@@ -249,7 +251,16 @@ guards carefully against comparing unrelated version sequences across backends,
 and then compared two unrelated sequences inside one backend (0012). The guard
 was right and its scope was an accident of where the author had been looking.
 
-## Closed 2026-08-22
+## Closing, 2026-08-22 -- after the integration review, not with the last child
+
+Held open deliberately for one more step. The convention for a tracking ticket
+is that it closes after an **integration review** -- all children closed, then
+re-read their diffs together, run the full suite, and check the exit criteria
+against the result -- rather than on the bare event of the last child merging.
+Those are different events, and collapsing them is how a tracker gets closed on
+the strength of twelve individually-green children that were never looked at as
+one thing. 0008 closes with the merge that carries this text; 0001 closes after
+that review runs against the merged result.
 
 Twelve children, all closed. The prototype does what the tracker was opened to
 find out: the same library that costs the resident-JS index 5 759,6 MiB and
