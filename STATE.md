@@ -281,15 +281,30 @@ shipped, pinned against their literal values. The geometry is stamped beside the
 watermark and a mismatch rebuilds: otherwise one environment variable makes the
 index a silent mixture of two populations.
 
-**Structure-aware chunking stays out of reach.** Zotero 10 ships `Zotero.SDT`
-(`sdt.js`, `structured-document-text.js`) writing a `.zotero-sdt-cache` pack
-with page labels, outline paths and running-head exclusion — everything the
-ticket assumed was unavailable. Probed three times over ten hours
-(`bench/results/0007-sdt-probe.txt`): **zero packs library-wide**, including
-after opening a PDF that Zotero reported as indexed. Full-text extraction is
-ruled out as a trigger. The reader-tab path is *narrowed, not disproven*, and
-cannot be tested from here — the local API exposes no way to open a reader tab,
-so it needs one human to open one PDF and re-run the probe.
+**Structure-aware chunking is reachable, on one trigger only.** Zotero 10 ships
+`Zotero.SDT` (`sdt.js`, `structured-document-text.js`) writing a
+`.zotero-sdt-cache` pack with page labels, outline paths and running-head
+exclusion. Three probes over ten hours found **zero packs**, and a fourth —
+after the author opened two PDFs in the reader on 2026-08-22 — found **two,
+within a minute, for exactly those two items**
+(`bench/results/0007-sdt-probe.txt`).
+
+So: **full-text extraction never produces a pack** (1 036 post-install
+extractions, zero packs) and **the reader does**. The earlier reading, that
+extraction is ruled out and the reader path is merely "narrowed", implied a
+verdict on SDT that was wrong; the correction is at the end of closed ticket
+0007. That fourth probe is also the first with a **positive control** —
+`.zotero-reader-state` appears for both items, so the probe demonstrably sees
+the path it is testing, where the first three could not distinguish "no packs"
+from "could not look".
+
+Two things bound what this opens. Packs are lazy and per reading session:
+**2 of 13 631 attachments** with extracted text have one, and no bulk operation
+this project can invoke will make more — so SDT is an *enrichment* for papers a
+user actually reads, never a general chunking input. And the pack is not JSON
+but a custom binary container (magic `89 53 44 54 0d 0a 1a 0a`, a u32 offset
+table, sections that are not raw deflate and carry no printable text); reading
+one means vendoring or reimplementing Zotero's own decoder. Neither costed.
 
 ## Binary quantization, now measured on real vectors (0008)
 
@@ -400,9 +415,9 @@ anyone:
 1. **Whether to turn the two-stage vector path on** is now a decision with
    numbers behind it rather than a blocked measurement (0008 above). It is the
    author's call, and nothing waits on it.
-2. **One PDF opened in a Zotero reader tab** would close 0007's last residual —
-   whether the reader path writes an SDT pack. It needs a human; the local API
-   cannot open a reader tab.
+2. **0007's last residual is settled** — the author opened two PDFs on
+   2026-08-22 and the reader wrote a pack for each. What it opens is bounded
+   (see above) and nothing is filed against it: an opportunity, not a defect.
 3. **Nothing goes upstream** unless the maintainer answers #10. That is the
    posture, and dropping 0001's report criterion made it explicit.
 

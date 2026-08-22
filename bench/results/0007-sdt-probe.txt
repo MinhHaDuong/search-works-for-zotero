@@ -48,3 +48,34 @@ none has run since. Extraction is ruled out as an SDT trigger. The reader tab
 remains untested rather than disproven, and it cannot be tested from here: the
 local API exposes no way to open a reader tab, so this needs one human to open
 one PDF in Zotero and re-run the probe above.
+
+--- fourth probe, 2026-08-22T06:55Z: THE READER PATH, RUN AT LAST ---
+Two PDFs opened in Zotero's reader by the author (the one step the local API
+cannot perform). This is the experiment the three probes above were waiting on.
+
+$ find $STORAGE -name '.zotero-sdt-cache' -printf '%TY-%Tm-%Td %TH:%TM %10s %h\n'
+2026-08-22 08:53      140215  GMAP993G
+2026-08-22 08:54      345539  BSMCQ6BM
+$ find $STORAGE -name '.zotero-reader-state' -newermt '2026-08-21 14:26'
+2026-08-22 08:54  GMAP993G
+2026-08-22 08:54  BSMCQ6BM
+
+THE POSITIVE CONTROL FIRES. Every earlier probe lacked one: it reported zero
+packs and could not show it would have seen a pack if one existed. Here the two
+reader-state files appear for exactly the two items opened, so the probe
+demonstrably sees the reader path -- and the two SDT packs appear with them.
+
+RESULT: the reader path DOES invoke SDT. Library-wide count went 0 -> 2, and the
+two are precisely the two items opened. Full-text extraction does not produce a
+pack (probes 1-3, 1 036 post-install extractions, zero packs); opening a PDF in
+the reader does, within a minute.
+
+Coverage as of this probe: ft-cache 13631, sdt-cache 2. Packs are created per
+reading session, lazily, for what a human actually opens -- not by any bulk
+operation this project can invoke.
+
+FORMAT: not JSON. A custom binary container, magic 89 53 44 54 0d 0a 1a 0a
+("\x89SDT\r\n\x1a\n", PNG-style), a u32 offset table, and payload sections that
+are not raw deflate at those offsets and contain no printable text. Reading one
+needs Zotero's own decoder, resource/document-worker/structured-document-text.js
+in the installed build. Not attempted here.
