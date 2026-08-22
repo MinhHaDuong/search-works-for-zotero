@@ -2,6 +2,7 @@
 Title: Replace the resident JS index with SQLite/FTS5 behind SearchIndex
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #5
 
 --- log ---
 2026-08-21T13:48Z minh created
@@ -13,6 +14,7 @@ Author: minh
 2026-08-21T22:50Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
 2026-08-21T23:05Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
 
+2026-08-22T06:30Z Minh Ha-Duong closed — autoclosed — PR #5
 --- body ---
 ## Context
 
