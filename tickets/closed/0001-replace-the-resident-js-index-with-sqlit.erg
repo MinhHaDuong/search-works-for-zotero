@@ -2,6 +2,7 @@
 Title: Replace the resident JS index with SQLite/FTS5 behind SearchIndex
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #5
 
 --- log ---
 2026-08-21T13:48Z minh created
@@ -13,6 +14,7 @@ Author: minh
 2026-08-21T22:50Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
 2026-08-21T23:05Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
 
+2026-08-22T06:30Z Minh Ha-Duong closed — autoclosed — PR #5
 --- body ---
 ## Context
 
@@ -251,16 +253,40 @@ guards carefully against comparing unrelated version sequences across backends,
 and then compared two unrelated sequences inside one backend (0012). The guard
 was right and its scope was an accident of where the author had been looking.
 
-## Closing, 2026-08-22 -- after the integration review, not with the last child
+## Integration review, 2026-08-22
 
-Held open deliberately for one more step. The convention for a tracking ticket
-is that it closes after an **integration review** -- all children closed, then
-re-read their diffs together, run the full suite, and check the exit criteria
-against the result -- rather than on the bare event of the last child merging.
-Those are different events, and collapsing them is how a tracker gets closed on
-the strength of twelve individually-green children that were never looked at as
-one thing. 0008 closes with the merge that carries this text; 0001 closes after
-that review runs against the merged result.
+Run after 0008 merged, against merged `main` and the fork at `bae82a7` -- the
+step this ticket stayed open for. Twelve children were each green on their own;
+this is the one reading of them as a single change.
+
+**The chantier as one diff**: `fts5-base..HEAD`, **42 files, +6 772/-147**.
+Upstream's suite **477 -> 757 tests**, `tsc --noEmit` clean, `eslint` clean.
+
+**The four criteria, re-checked against the merged result rather than against
+the twelve tickets that claimed them:**
+
+1. *All children closed* -- twelve in `tickets/closed/`, none open.
+2. *Uncapped end to end on a stock Node* -- `uncapped_stock_node.json`:
+   **477 512 passages reopened in 1,47 s at 124,5 MiB**, `NODE_OPTIONS` empty.
+   The JSON backend holds the same passages at 8 691,5 MiB and cannot write them.
+3. *Old-vs-new comparison in `bench/`* -- `bench/results/0001-old-vs-new/`,
+   both backends over one corpus of 360 811 passages.
+4. *Upstream report* -- dropped by the author.
+
+**What reading them together showed that reading them apart did not.** Two of
+the twelve are corrections to earlier children rather than new work: 0009 repairs
+a divergence 0002 had recorded as acceptable, and 0012 repairs a comparison 0006
+made while guarding against exactly that class. A per-ticket reading calls those
+two closed tickets; the integration reading calls them one design idea --
+*two version sequences must never be compared* -- that took three attempts to
+apply consistently. That is the shape a tracker exists to see.
+
+## Closed, 2026-08-22
+
+The review above is that step, and it is why this ticket did not close with its
+last child: those are different events, and collapsing them is how a tracker
+gets closed on the strength of twelve individually-green children that nobody
+looked at as one thing.
 
 Twelve children, all closed. The prototype does what the tracker was opened to
 find out: the same library that costs the resident-JS index 5 759,6 MiB and
