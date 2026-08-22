@@ -391,11 +391,11 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The chantier is complete in substance.** All twelve children are closed; the
-tracker 0001 closes after its integration review — re-reading the children's
-diffs as one change, running the full suite against the merged result, and
-checking 0001's own criteria against that rather than against twelve separately
-green children. What remains beyond it is not work this repo owes anyone:
+**The chantier is complete.** All twelve children are closed and 0001 closed
+2026-08-22 after its integration review — the children read as one change
+(`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four criteria
+re-checked against the merged result. What remains is not work this repo owes
+anyone:
 
 1. **Whether to turn the two-stage vector path on** is now a decision with
    numbers behind it rather than a blocked measurement (0008 above). It is the
