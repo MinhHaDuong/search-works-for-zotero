@@ -29,5 +29,7 @@
  "probe": "ticket 0008 — the vector index build that the real-vector measurement runs against",
  "driver": "bench/run_build.py --backend sqlite --embeddings local --max-items 2100 --max-chars 200000",
  "note": "Wall clock, not CPU time: the build fetches from the Zotero local API and embeds on CPU in the same process. It is embedding-bound at this geometry — the keyword-only build of the whole 7 541-item library took 371,6 s, against 7 549,9 s here for 2 100 items with the embedder on.",
- "node_version": "v22.23.1"
+ "node_version": "v22.23.1",
+ "environment": null,
+ "environment_note": "NOT CAPTURED. This build ran before the driver recorded its environment, and the field is left explicitly null rather than backfilled: anything written now would be a later session's environment wearing this build's name, which is the defect class this branch spent three review rounds removing. Node was v22.23.1 on the same host per the measurement artifact beside it, but that is an inference from context and is recorded here as one rather than as a field."
 }
