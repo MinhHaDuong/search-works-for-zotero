@@ -2,12 +2,14 @@
 Title: Quantize the vector column: binary first pass, exact rerank
 Created: 2026-08-21
 Author: minh
+Closed: autoclosed — PR #4
 
 --- log ---
 2026-08-21T17:41Z minh created
 2026-08-21T23:55Z claude note implemented and measured; the premise does not hold -- vec0's k-best cost grows faster than linearly in k, so the pool that preserves recall is slower than the exact scan. Ships off by default.
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0004 closed — Blocked-by removed.
+2026-08-22T06:26Z Minh Ha-Duong closed — autoclosed — PR #4
 --- body ---
 ## Context
 
