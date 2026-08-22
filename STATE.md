@@ -1,5 +1,7 @@
 # STATE — zoteus-fts5
 
+*Housekeeping sweep: 2026-08-22T07:06Z — 13 tickets closed, 0 open, gates green (`make check`).*
+
 Prototype work: replace zoteus's resident JS search index with SQLite/FTS5.
 
 ## What this repo is
