@@ -32,14 +32,20 @@ def payload(resp: dict) -> dict:
 
 
 def vmhwm_kb(pid: int) -> int:
-    try:
-        with open(f"/proc/{pid}/status") as fh:
-            for line in fh:
-                if line.startswith("VmHWM:"):
-                    return int(line.split()[1])
-    except OSError:
-        pass
-    return 0
+    """Peak RSS from the kernel high-water mark. Raises rather than returning 0.
+
+    It used to swallow OSError and return 0, which made an unreadable /proc entry
+    indistinguishable from a measurement of zero. Three of the five call sites take a
+    max(), where a spurious 0 is harmless; two record the value directly into the
+    artifact, and there a failed read would have been published as a memory figure. The
+    numbers this harness exists to produce are exactly the ones that must not be
+    silently invented, so the failure is raised and the run stops.
+    """
+    with open(f"/proc/{pid}/status") as fh:
+        for line in fh:
+            if line.startswith("VmHWM:"):
+                return int(line.split()[1])
+    raise RuntimeError(f"/proc/{pid}/status has no VmHWM line — cannot report peak RSS")
 
 
 def dir_listing(path: str) -> dict[str, int]:
