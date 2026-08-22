@@ -302,19 +302,19 @@ the exact scan it replaced, so the two-stage path shipped **off by default**.
 criterion that stayed open** (`bench/results/0008-real-vectors/`, driver
 `bench/vec_real_measure.mjs`):
 
-| pool | fixture | **real** | centred | two-stage | vs exact (101,4 ms) |
+| pool | fixture | **real** | centred | two-stage | vs exact (103,3 ms) |
 |---|---|---|---|---|---|
-| 4x (k=120) | 0,628 | **0,884** | 0,918 | 33,1 ms | **~3,0x faster** |
-| 8x (k=240) | 0,862 | **0,953** | 0,969 | 59,6 ms | **~1,7x faster** |
-| 16x (k=480) | 0,998 | 0,986 | 0,991 | 118,8 ms | ~0,85x — slower |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,4 ms | **~3,0x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 61,5 ms | **~1,7x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 120,7 ms | ~0,85x — slower |
 
 On disk: **1 563,2 B per float32 vector against 71,1 B per binary code, 22x**.
 
 Latencies are timed round robin rather than in per-candidate blocks. Blocks gave
 interquartile spreads of 25-137% of the median, which cannot support an
-ordering; interleaving and shuffling brought them to 0,5-9,2%, and all three
+ordering; interleaving and shuffling brought them to 1,8-10,0%, and all three
 rows are separated from the exact scan by non-overlapping interquartile ranges
-in every one of four recorded runs (4x pool 2,95/3,02/2,92/3,03x).
+in every one of four recorded runs (4x pool 2,99/3,01/2,98/3,00x).
 
 **The anisotropy risk is refuted, and it ran the other way.** The fear was that
 `vec_quantize_binary`, thresholding at zero, would find real embeddings sitting
@@ -344,7 +344,7 @@ the task is easier than a real query's; and recall is against the exact *vector*
 ranking, where the shipped path fuses keyword and vector with RRF.
 
 One observation for whoever revisits it: the first pass is not what costs. At 8x
-it is 29,8 ms of the 59,9, and the rest is the rerank issuing one round trip per
+it is 30,4 ms of the 61,5, and the rest is the rerank issuing one round trip per
 pooled rowid. Batching that would put 8x near 35 ms — about 3x faster than exact
 at 0,953 recall.
 

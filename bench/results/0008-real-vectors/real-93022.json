@@ -9,7 +9,7 @@
   "cpus": 8,
   "totalmem_gib": 23.4,
   "node_options": "",
-  "finished_utc": "2026-08-22T01:31:35.110Z"
+  "finished_utc": "2026-08-22T02:27:22.983Z"
  },
  "corpus": {
   "vectors": 93022,
@@ -74,7 +74,7 @@
    0.8384
   ],
   "median_dimension_mean_abs": 0.03935,
-  "live_dimension_threshold": 3.935e-05,
+  "live_dimension_threshold": 0.00003935,
   "dimensions_one_sided_but_dead": [
    {
     "dim": 223,
@@ -85,8 +85,8 @@
    {
     "dim": 319,
     "one_sided": 1,
-    "mean_abs": 5.54e-08,
-    "ratio_to_median": 1.4e-06
+    "mean_abs": 5.54e-8,
+    "ratio_to_median": 0.0000014
    }
   ],
   "most_one_sided_LIVE_dimension": {
@@ -94,7 +94,7 @@
    "one_sided": 0.9089,
    "mean_abs": 0.0728
   },
-  "reading": "On THIS corpus every dimension above 95% one-sided is one the model never activates — mean magnitude a millionth or less of the median dimension, so its sign is float noise rather than corpus geometry — and among dimensions that carry signal one-sidedness tops out at most_one_sided_LIVE_dimension. Nothing forces that coincidence: a corpus could be genuinely one-sided in a live dimension, and the two fields are reported separately so a future run shows it rather than inheriting this sentence. Here, a sign-threshold quantizer has nothing to fear, which is the risk 0008 was held open for."
+  "reading": "On THIS corpus every dimension above 95% one-sided is one the model never activates — mean magnitude a millionth or less of the median dimension, so its sign is float noise rather than corpus geometry — and among dimensions that carry signal one-sidedness tops out at 0.9089 (dimension 79). Nothing forces that coincidence: a corpus could be genuinely one-sided in a live dimension, and the two fields are reported separately so a future run shows it rather than inheriting this sentence. Here, a sign-threshold quantizer has nothing to fear, which is the risk 0008 was held open for."
  },
  "recall": [
   {
@@ -160,338 +160,338 @@
  },
  "latency_ms": {
   "exact_k30": {
-   "median_ms": 101.42,
-   "min_ms": 98.74,
-   "p25_ms": 99.88,
-   "p75_ms": 102.6,
+   "median_ms": 103.31,
+   "min_ms": 98.81,
+   "p25_ms": 101.54,
+   "p75_ms": 105.11,
    "reps": 100
   },
   "binary_first_pass_k30": {
-   "median_ms": 6.66,
-   "min_ms": 6.28,
-   "p25_ms": 6.47,
-   "p75_ms": 6.97,
+   "median_ms": 6.98,
+   "min_ms": 6.38,
+   "p25_ms": 6.56,
+   "p75_ms": 7.2,
    "reps": 100
   },
   "binary_first_pass_k120": {
-   "median_ms": 15.27,
-   "min_ms": 14.77,
-   "p25_ms": 15.01,
-   "p75_ms": 15.88,
+   "median_ms": 15.9,
+   "min_ms": 14.91,
+   "p25_ms": 15.13,
+   "p75_ms": 16.52,
    "reps": 100
   },
   "binary_first_pass_k240": {
-   "median_ms": 29.76,
-   "min_ms": 29.34,
-   "p25_ms": 29.52,
-   "p75_ms": 30.37,
+   "median_ms": 30.36,
+   "min_ms": 29.42,
+   "p25_ms": 29.71,
+   "p75_ms": 31.63,
    "reps": 100
   },
   "binary_first_pass_k480": {
-   "median_ms": 69.74,
-   "min_ms": 68.92,
-   "p25_ms": 69.27,
-   "p75_ms": 70.18,
+   "median_ms": 70.8,
+   "min_ms": 69.11,
+   "p25_ms": 69.71,
+   "p75_ms": 71.99,
    "reps": 100
   },
   "binary_first_pass_k960": {
-   "median_ms": 177.2,
-   "min_ms": 176.4,
-   "p25_ms": 176.79,
-   "p75_ms": 177.64,
+   "median_ms": 179.2,
+   "min_ms": 176.8,
+   "p25_ms": 177.82,
+   "p75_ms": 182.57,
    "reps": 100
   },
   "two_stage_pool_4x": {
-   "median_ms": 33.15,
-   "min_ms": 32.37,
-   "p25_ms": 32.75,
-   "p75_ms": 34.35,
+   "median_ms": 34.4,
+   "min_ms": 32.07,
+   "p25_ms": 33.02,
+   "p75_ms": 35.52,
    "reps": 100
   },
   "two_stage_pool_8x": {
-   "median_ms": 59.65,
-   "min_ms": 58.64,
-   "p25_ms": 59.16,
-   "p75_ms": 60.42,
+   "median_ms": 61.49,
+   "min_ms": 58.52,
+   "p25_ms": 59.76,
+   "p75_ms": 63,
    "reps": 100
   },
   "two_stage_pool_16x": {
-   "median_ms": 118.76,
-   "min_ms": 117.04,
-   "p25_ms": 117.97,
-   "p75_ms": 120.6,
+   "median_ms": 120.68,
+   "min_ms": 116.78,
+   "p25_ms": 119.36,
+   "p75_ms": 123.06,
    "reps": 100
   }
  },
  "latency_runs": [
   {
-   "loadavg_1min_at_start": 0.68,
+   "loadavg_1min_at_start": 0.57,
    "timings": {
     "exact_k30": {
-     "median_ms": 102.18,
-     "min_ms": 98.52,
-     "p25_ms": 100.01,
-     "p75_ms": 104.05,
+     "median_ms": 103.34,
+     "min_ms": 99.76,
+     "p25_ms": 102.16,
+     "p75_ms": 104.53,
      "reps": 100
     },
     "binary_first_pass_k30": {
-     "median_ms": 6.92,
-     "min_ms": 6.26,
-     "p25_ms": 6.53,
-     "p75_ms": 7.17,
+     "median_ms": 6.99,
+     "min_ms": 6.37,
+     "p25_ms": 6.58,
+     "p75_ms": 7.22,
      "reps": 100
     },
     "binary_first_pass_k120": {
-     "median_ms": 15.72,
-     "min_ms": 14.86,
-     "p25_ms": 15.1,
-     "p75_ms": 16.23,
+     "median_ms": 15.79,
+     "min_ms": 14.97,
+     "p25_ms": 15.13,
+     "p75_ms": 16.56,
      "reps": 100
     },
     "binary_first_pass_k240": {
-     "median_ms": 30.41,
+     "median_ms": 30.87,
      "min_ms": 29.44,
-     "p25_ms": 29.71,
-     "p75_ms": 31.92,
+     "p25_ms": 29.88,
+     "p75_ms": 31.98,
      "reps": 100
     },
     "binary_first_pass_k480": {
-     "median_ms": 70.04,
-     "min_ms": 68.87,
-     "p25_ms": 69.5,
-     "p75_ms": 71.45,
+     "median_ms": 70.6,
+     "min_ms": 68.96,
+     "p25_ms": 69.89,
+     "p75_ms": 71.6,
      "reps": 100
     },
     "binary_first_pass_k960": {
-     "median_ms": 178.47,
-     "min_ms": 176.43,
-     "p25_ms": 177.24,
-     "p75_ms": 182.62,
+     "median_ms": 179.08,
+     "min_ms": 176.66,
+     "p25_ms": 177.87,
+     "p75_ms": 181.1,
      "reps": 100
     },
     "two_stage_pool_4x": {
-     "median_ms": 34.33,
-     "min_ms": 32.46,
-     "p25_ms": 33.16,
-     "p75_ms": 35.51,
+     "median_ms": 34.6,
+     "min_ms": 32.22,
+     "p25_ms": 33.14,
+     "p75_ms": 35.75,
      "reps": 100
     },
     "two_stage_pool_8x": {
-     "median_ms": 60.25,
-     "min_ms": 58.58,
-     "p25_ms": 59.46,
-     "p75_ms": 62.45,
+     "median_ms": 61.06,
+     "min_ms": 58.42,
+     "p25_ms": 59.82,
+     "p75_ms": 63.05,
      "reps": 100
     },
     "two_stage_pool_16x": {
-     "median_ms": 120.43,
-     "min_ms": 117.1,
-     "p25_ms": 118.63,
-     "p75_ms": 123.69,
+     "median_ms": 121.49,
+     "min_ms": 117.75,
+     "p25_ms": 119.65,
+     "p75_ms": 123.22,
      "reps": 100
     }
    }
   },
   {
-   "loadavg_1min_at_start": 1.07,
+   "loadavg_1min_at_start": 0.92,
    "timings": {
     "exact_k30": {
-     "median_ms": 101.7,
-     "min_ms": 97.39,
-     "p25_ms": 100.23,
-     "p75_ms": 102.8,
+     "median_ms": 103.61,
+     "min_ms": 99.23,
+     "p25_ms": 102.17,
+     "p75_ms": 104.94,
      "reps": 100
     },
     "binary_first_pass_k30": {
-     "median_ms": 6.84,
-     "min_ms": 6.33,
-     "p25_ms": 6.51,
-     "p75_ms": 7.13,
+     "median_ms": 7.03,
+     "min_ms": 6.31,
+     "p25_ms": 6.53,
+     "p75_ms": 7.23,
      "reps": 100
     },
     "binary_first_pass_k120": {
-     "median_ms": 15.27,
-     "min_ms": 14.77,
-     "p25_ms": 15.02,
-     "p75_ms": 16.05,
+     "median_ms": 15.64,
+     "min_ms": 14.85,
+     "p25_ms": 15.08,
+     "p75_ms": 16.45,
      "reps": 100
     },
     "binary_first_pass_k240": {
-     "median_ms": 30.05,
-     "min_ms": 29.4,
-     "p25_ms": 29.58,
-     "p75_ms": 30.57,
+     "median_ms": 30.77,
+     "min_ms": 29.38,
+     "p25_ms": 29.74,
+     "p75_ms": 31.68,
      "reps": 100
     },
     "binary_first_pass_k480": {
-     "median_ms": 69.75,
-     "min_ms": 68.9,
-     "p25_ms": 69.2,
-     "p75_ms": 70.39,
+     "median_ms": 70.41,
+     "min_ms": 69.04,
+     "p25_ms": 69.61,
+     "p75_ms": 71.97,
      "reps": 100
     },
     "binary_first_pass_k960": {
-     "median_ms": 177.71,
-     "min_ms": 176.43,
-     "p25_ms": 176.99,
-     "p75_ms": 180.34,
+     "median_ms": 178.59,
+     "min_ms": 176.79,
+     "p25_ms": 177.51,
+     "p75_ms": 180.64,
      "reps": 100
     },
     "two_stage_pool_4x": {
-     "median_ms": 33.31,
-     "min_ms": 32.32,
-     "p25_ms": 32.78,
-     "p75_ms": 34.53,
+     "median_ms": 34.39,
+     "min_ms": 32.42,
+     "p25_ms": 33.17,
+     "p75_ms": 35.27,
      "reps": 100
     },
     "two_stage_pool_8x": {
-     "median_ms": 60.82,
-     "min_ms": 58.3,
-     "p25_ms": 59.51,
-     "p75_ms": 62.35,
+     "median_ms": 61.85,
+     "min_ms": 58.95,
+     "p25_ms": 60.14,
+     "p75_ms": 63.7,
      "reps": 100
     },
     "two_stage_pool_16x": {
-     "median_ms": 120.41,
+     "median_ms": 121.71,
      "min_ms": 117.31,
-     "p25_ms": 118.74,
-     "p75_ms": 121.99,
+     "p25_ms": 119.61,
+     "p75_ms": 123.85,
      "reps": 100
     }
    }
   },
   {
-   "loadavg_1min_at_start": 1.02,
+   "loadavg_1min_at_start": 1.13,
    "timings": {
     "exact_k30": {
-     "median_ms": 101.05,
-     "min_ms": 97.95,
-     "p25_ms": 99.49,
-     "p75_ms": 102.17,
+     "median_ms": 103.59,
+     "min_ms": 99.89,
+     "p25_ms": 102.02,
+     "p75_ms": 105.13,
      "reps": 100
     },
     "binary_first_pass_k30": {
-     "median_ms": 6.7,
-     "min_ms": 6.24,
-     "p25_ms": 6.47,
-     "p75_ms": 7.04,
+     "median_ms": 6.99,
+     "min_ms": 6.38,
+     "p25_ms": 6.54,
+     "p75_ms": 7.2,
      "reps": 100
     },
     "binary_first_pass_k120": {
-     "median_ms": 15.62,
-     "min_ms": 14.78,
-     "p25_ms": 15.1,
-     "p75_ms": 15.99,
+     "median_ms": 16.27,
+     "min_ms": 14.84,
+     "p25_ms": 15.44,
+     "p75_ms": 16.71,
      "reps": 100
     },
     "binary_first_pass_k240": {
-     "median_ms": 29.86,
-     "min_ms": 29.28,
-     "p25_ms": 29.57,
-     "p75_ms": 30.37,
+     "median_ms": 31.28,
+     "min_ms": 29.45,
+     "p25_ms": 29.99,
+     "p75_ms": 32.18,
      "reps": 100
     },
     "binary_first_pass_k480": {
-     "median_ms": 69.78,
-     "min_ms": 68.95,
-     "p25_ms": 69.33,
-     "p75_ms": 70.49,
+     "median_ms": 70.98,
+     "min_ms": 69.11,
+     "p25_ms": 69.99,
+     "p75_ms": 72.71,
      "reps": 100
     },
     "binary_first_pass_k960": {
-     "median_ms": 177.56,
-     "min_ms": 176.42,
-     "p25_ms": 177.12,
-     "p75_ms": 178.89,
+     "median_ms": 179.18,
+     "min_ms": 176.93,
+     "p25_ms": 177.9,
+     "p75_ms": 182.81,
      "reps": 100
     },
     "two_stage_pool_4x": {
-     "median_ms": 33.4,
-     "min_ms": 32.15,
-     "p25_ms": 32.74,
-     "p75_ms": 34.64,
+     "median_ms": 34.72,
+     "min_ms": 32.4,
+     "p25_ms": 33.43,
+     "p75_ms": 35.95,
      "reps": 100
     },
     "two_stage_pool_8x": {
-     "median_ms": 59.6,
-     "min_ms": 58.36,
-     "p25_ms": 58.92,
-     "p75_ms": 60.68,
+     "median_ms": 62.23,
+     "min_ms": 58.53,
+     "p25_ms": 60.66,
+     "p75_ms": 63.86,
      "reps": 100
     },
     "two_stage_pool_16x": {
-     "median_ms": 118.98,
-     "min_ms": 117.04,
-     "p25_ms": 117.89,
-     "p75_ms": 120.55,
+     "median_ms": 121.7,
+     "min_ms": 117.65,
+     "p25_ms": 119.75,
+     "p75_ms": 124.23,
      "reps": 100
     }
    }
   },
   {
-   "loadavg_1min_at_start": 1.18,
+   "loadavg_1min_at_start": 1.35,
    "timings": {
     "exact_k30": {
-     "median_ms": 101.42,
-     "min_ms": 98.74,
-     "p25_ms": 99.88,
-     "p75_ms": 102.6,
+     "median_ms": 103.31,
+     "min_ms": 98.81,
+     "p25_ms": 101.54,
+     "p75_ms": 105.11,
      "reps": 100
     },
     "binary_first_pass_k30": {
-     "median_ms": 6.66,
-     "min_ms": 6.28,
-     "p25_ms": 6.47,
-     "p75_ms": 6.97,
+     "median_ms": 6.98,
+     "min_ms": 6.38,
+     "p25_ms": 6.56,
+     "p75_ms": 7.2,
      "reps": 100
     },
     "binary_first_pass_k120": {
-     "median_ms": 15.27,
-     "min_ms": 14.77,
-     "p25_ms": 15.01,
-     "p75_ms": 15.88,
+     "median_ms": 15.9,
+     "min_ms": 14.91,
+     "p25_ms": 15.13,
+     "p75_ms": 16.52,
      "reps": 100
     },
     "binary_first_pass_k240": {
-     "median_ms": 29.76,
-     "min_ms": 29.34,
-     "p25_ms": 29.52,
-     "p75_ms": 30.37,
+     "median_ms": 30.36,
+     "min_ms": 29.42,
+     "p25_ms": 29.71,
+     "p75_ms": 31.63,
      "reps": 100
     },
     "binary_first_pass_k480": {
-     "median_ms": 69.74,
-     "min_ms": 68.92,
-     "p25_ms": 69.27,
-     "p75_ms": 70.18,
+     "median_ms": 70.8,
+     "min_ms": 69.11,
+     "p25_ms": 69.71,
+     "p75_ms": 71.99,
      "reps": 100
     },
     "binary_first_pass_k960": {
-     "median_ms": 177.2,
-     "min_ms": 176.4,
-     "p25_ms": 176.79,
-     "p75_ms": 177.64,
+     "median_ms": 179.2,
+     "min_ms": 176.8,
+     "p25_ms": 177.82,
+     "p75_ms": 182.57,
      "reps": 100
     },
     "two_stage_pool_4x": {
-     "median_ms": 33.15,
-     "min_ms": 32.37,
-     "p25_ms": 32.75,
-     "p75_ms": 34.35,
+     "median_ms": 34.4,
+     "min_ms": 32.07,
+     "p25_ms": 33.02,
+     "p75_ms": 35.52,
      "reps": 100
     },
     "two_stage_pool_8x": {
-     "median_ms": 59.65,
-     "min_ms": 58.64,
-     "p25_ms": 59.16,
-     "p75_ms": 60.42,
+     "median_ms": 61.49,
+     "min_ms": 58.52,
+     "p25_ms": 59.76,
+     "p75_ms": 63,
      "reps": 100
     },
     "two_stage_pool_16x": {
-     "median_ms": 118.76,
-     "min_ms": 117.04,
-     "p25_ms": 117.97,
-     "p75_ms": 120.6,
+     "median_ms": 120.68,
+     "min_ms": 116.78,
+     "p25_ms": 119.36,
+     "p75_ms": 123.06,
      "reps": 100
     }
    }
@@ -502,46 +502,46 @@
   "note": "Every run is kept, in this one artifact, because the claim being made is that the ordering survives run-to-run variation. An earlier version wrote one artifact to a fixed path, so each run destroyed the last and the agreement could only be reconstructed from git history — a claim its own evidence could not hold.",
   "speedup_vs_exact_per_run": {
    "two_stage_pool_4x": [
+    2.99,
+    3.01,
     2.98,
-    3.05,
-    3.03,
-    3.06
+    3
    ],
    "two_stage_pool_8x": [
-    1.7,
-    1.67,
-    1.7,
-    1.7
+    1.69,
+    1.68,
+    1.66,
+    1.68
    ],
    "two_stage_pool_16x": [
     0.85,
-    0.84,
     0.85,
-    0.85
+    0.85,
+    0.86
    ]
   },
   "iqr_pct_range_all_candidates": [
-   0.5,
-   9.2
+   1.8,
+   10
   ],
   "iqr_pct_range_two_stage": [
-   2.1,
-   6.8
+   2.9,
+   7.5
   ]
  },
  "latency_query": "One fixed vector (probe 0) for every candidate and every run — see the comment at its definition. A vec0 scan is exhaustive, so latency does not depend on which vector is asked about; this therefore measures no query-dependence, by design.",
  "latency_method": "Candidates are timed round robin, one repetition each per pass, so a transient on the machine is spread across all of them instead of landing inside one. Median with p25/p75; min is the closest reading to uncontended. Two candidates are only ordered where their interquartile ranges do not overlap — see latency_ordering.",
  "latency_ordering": {
   "two_stage_pool_4x": {
-   "speedup_vs_exact_median": 3.06,
+   "speedup_vs_exact_median": 3,
    "separated_from_exact": true
   },
   "two_stage_pool_8x": {
-   "speedup_vs_exact_median": 1.7,
+   "speedup_vs_exact_median": 1.68,
    "separated_from_exact": true
   },
   "two_stage_pool_16x": {
-   "speedup_vs_exact_median": 0.85,
+   "speedup_vs_exact_median": 0.86,
    "separated_from_exact": true
   }
  },

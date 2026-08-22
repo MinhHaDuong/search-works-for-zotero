@@ -14,3 +14,8 @@ __pycache__/
 
 # Per-session agent runtime state, not project state.
 .claude/
+
+# Credential selection for the review seats. Names a variable, holds no secret —
+# gitignored anyway, because a .env at a repo root must never become committable
+# by someone later putting a value in it.
+.env

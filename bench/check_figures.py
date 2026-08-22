@@ -76,6 +76,11 @@ def render_value(value, places: int, pct: bool = False) -> str:
     """
     if isinstance(value, list) and len(value) == 2:
         return f"{rendered(value[0], places, pct)}-{rendered(value[1], places, pct)}"
+    if isinstance(value, list):
+        # A per-run sequence, written a/b/c/d. Declared because the sentence quoting it
+        # claims the runs are read from the artifact rather than reconstructed from git
+        # history — and it was, twice, quoting the previous run while saying so.
+        return "/".join(rendered(v, places, pct) for v in value)
     return rendered(value, places, pct)
 
 
@@ -93,6 +98,8 @@ def rendered(value: float, places: int, pct: bool = False) -> str:
 
 def display(value, places: int, pct: bool = False) -> str:
     """How it reads in the documents, for messages only."""
+    if isinstance(value, list) and len(value) > 2:
+        return "/".join(display(v, places, pct) for v in value)
     if isinstance(value, list) and len(value) == 2:
         return f"{display(value[0], places, pct)}-{display(value[1], places, pct)}"
     if pct:
@@ -119,7 +126,7 @@ FIGURES = [
     ("0008-real-vectors/real-93022.json", "latency_ms.two_stage_pool_16x.median_ms", 1,
      {"t0008": "| 0,991 | {} ms |", "state": "| 0,991 | {} ms |"}),
     ("0008-real-vectors/real-93022.json", "anisotropy.corpus_mean_norm", 3,
-     {"t0008": "mean norm {}", "state": "norm **{}**"}),
+     {"t0008": "mean norm {}, and", "state": "norm **{}**"}),
     ("0008-real-vectors/real-93022.json", "anisotropy.most_one_sided_LIVE_dimension.one_sided", 3,
      {"t0008": "tops out at **{}**", "state": "tops out at **{}**"}),
     ("0008-real-vectors/real-93022.json", "on_disk.float32_bytes_per_vector", 1,
@@ -129,6 +136,12 @@ FIGURES = [
     ("0008-real-vectors/real-93022.json", "probe_design.exact_topk_from_the_probe_own_item", 1,
      {"t0008": "**{}% of a probe's exact top-30"}, "pct"),
     ("0008-real-vectors/build.json", "elapsed_s", 1, {"t0008": "**{} s wall clock**"}),
+    ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_4x", 2,
+     {"t0008": "git history: {}\nat the 4x pool", "state": "(4x pool {}x)"}),
+    ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_8x", 2,
+     {"t0008": "at the 4x pool, {} at 8x"}),
+    ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_16x", 2,
+     {"t0008": "at 8x, {} at 16x"}),
     # The headline recall column — the most-quoted numbers in the ticket, and unreachable
     # until dig() learned to walk lists. Anchored on the table rows they live in.
     ("0008-real-vectors/real-93022.json", "recall.2.recall_threshold_zero", 3,
@@ -183,6 +196,28 @@ FIGURES = [
 ]
 
 
+def _validate_anchors() -> None:
+    """An anchor must delimit its slot on BOTH sides.
+
+    With an empty tail the slot has no right-hand boundary, so the match runs on into
+    whatever follows the number — a trailing comma, the next word. That is not a style
+    preference: the fixer this file used to carry produced `0,406,406,406and` from exactly
+    such an anchor and the checker, then a substring test, certified the file it had
+    broken. The fixer is gone; the trap that fed it is refused here.
+    """
+    bad = [
+        (path, key, anchor)
+        for entry in FIGURES
+        for key, anchor in entry[3].items()
+        if anchor is not None and not anchor.partition("{}")[2].strip()
+        for path in [entry[1]]
+    ]
+    if bad:
+        for path, key, anchor in bad:
+            log.error("BAD ANCHOR %s in %s: %r has nothing after the slot", path, key, anchor)
+        raise SystemExit(2)
+
+
 def dig(obj, path: str):
     """Walk a dotted key path, through lists as well as dicts.
 
@@ -206,16 +241,25 @@ def dig(obj, path: str):
     return obj
 
 
+def main_for_test(results_dir: str, verbose: bool = False) -> int:
+    """The check, callable without argv. Exists so `tests/test_check_figures.py` drives the
+    real code path rather than a copy of it — a test that reimplements the check tests the
+    reimplementation."""
+    return run(results_dir, verbose=verbose, listing=False)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results", default=str(REPO / "bench" / "results"))
     ap.add_argument("--verbose", action="store_true", help="name every presence-only pair")
-    ap.add_argument("--fix", action="store_true", help="rewrite anchored slots from the artifacts")
     ap.add_argument("--list", action="store_true", help="print every declared figure and its current value")
     a = ap.parse_args()
-    if a.fix:
-        return fix(a.results)
+    _validate_anchors()
+    return run(a.results, verbose=a.verbose, listing=a.list)
 
+
+def run(results_dir: str, verbose: bool = False, listing: bool = False) -> int:
+    _validate_anchors()
     cache: dict[str, dict] = {}
     text: dict[str, str] = {}
     failures: list[str] = []
@@ -226,7 +270,7 @@ def main() -> int:
     for entry in FIGURES:
         artifact, path, places, prose_keys = entry[:4]
         pct = len(entry) > 4 and entry[4] == "pct"
-        f = Path(a.results) / artifact
+        f = Path(results_dir) / artifact
         if not f.exists():
             failures.append(f"MISSING ARTIFACT {artifact} (declared for {path})")
             continue
@@ -237,7 +281,7 @@ def main() -> int:
             failures.append(f"MISSING KEY {artifact}:{path}")
             continue
         want = render_value(value, places, pct)
-        if a.list:
+        if listing:
             log.info("%-46s %-58s %s", artifact, path, display(value, places, pct))
         for key, anchor in prose_keys.items():
             doc = REPO / PROSE[key]
@@ -252,17 +296,34 @@ def main() -> int:
                 unanchored.append(f"{artifact}:{path} in {PROSE[key]}")
             else:
                 anchored += 1
-                # Positional: the slot must hold this value. A stale duplicate elsewhere
-                # in the document cannot mask it.
-                ok = despace(anchor.replace("{}", want)) in text[key]
-                where = f"at anchor {anchor!r} in"
+                # Positional, and the slot's content compared rather than merely found.
+                #
+                # The corruption that motivated this — a slot holding `0,406,406,406`
+                # passing a check for `0,406` — required an anchor with an EMPTY tail, and
+                # `_validate_anchors` now refuses those. So with the tails delimited this
+                # is equivalent to the substring test it replaced: sabotaging it leaves the
+                # suite green, which is recorded in the test rather than hidden. Kept as
+                # defence in depth against an anchor whose tail begins with a digit-like
+                # character, not claimed as the load-bearing guard.
+                head, _, tail = despace(anchor).partition("{}")
+                pattern = re.compile(
+                    # `/` so a per-run sequence (2,99/3,01/…) is one slot, `-` so a
+                    # range (1,8-10,0) is one slot.
+                    re.escape(head) + r"(?P<slot>[0-9,./\-]+)" + re.escape(tail)
+                )
+                found = [m.group("slot") for m in pattern.finditer(text[key])]
+                ok = want in found
+                where = (
+                    f"at anchor {anchor!r} (slot holds {found!r}) in" if found
+                    else f"at anchor {anchor!r} (no slot matched) in"
+                )
             if not ok:
                 failures.append(
                     f"STALE  {artifact}:{path} = {display(value, places, pct)} not found "
                     f"{where} {PROSE[key]}"
                 )
 
-    if a.list:
+    if listing:
         return 0
     for line in failures:
         log.error("%s", line)
@@ -275,97 +336,10 @@ def main() -> int:
         "%d pairs checked: %d anchored (positional), %d presence-only (maskable), %d stale",
         checked, anchored, len(unanchored), len(failures),
     )
-    if unanchored and a.verbose:
+    if unanchored and verbose:
         for u in unanchored:
             log.info("  presence-only: %s", u)
     return 1 if failures else 0
-
-
-#: `--fix` rewrites the slot an anchor names, from the artifact.
-#:
-#: Only anchored figures, and only where the anchor matches exactly once — an anchor that
-#: matches twice names no single slot, and guessing which one is meant is how an automatic
-#: edit corrupts a document. Presence-only figures are never touched: there is no slot to
-#: write into, so there is nothing an automaton can safely do but report them.
-#:
-#: This is the end state the anchors were for. Hand-transcribing a figure from an artifact
-#: into six documents is the operation that failed five times on this branch; it is not a
-#: discipline problem, it is a copying problem, and copying is what a machine is for.
-def fix(results_dir: str) -> int:
-    cache: dict[str, dict] = {}
-    edits = 0
-    refused: list[str] = []
-    for entry in FIGURES:
-        artifact, path, places, prose_keys = entry[:4]
-        pct = len(entry) > 4 and entry[4] == "pct"
-        f = Path(results_dir) / artifact
-        if not f.exists():
-            continue
-        if artifact not in cache:
-            cache[artifact] = json.loads(f.read_text())
-        value = dig(cache[artifact], path)
-        if value is None:
-            continue
-        want = render_value(value, places, pct)
-        for key, anchor in prose_keys.items():
-            if anchor is None:
-                continue
-            doc = REPO / PROSE[key]
-            if not doc.exists():
-                continue
-            body = doc.read_text()
-            # De-spaced exactly as the check does, or an anchor whose literal text
-            # contains a separated thousand ("of 1 301 agreeing") matches in the check and
-            # not in the fixer — two mechanisms disagreeing about the same anchor.
-            head, _, tail = despace(anchor).partition("{}")
-            pattern = re.compile(
-                re.escape(head) + r"([0-9" + SEPARATORS + r",.\-]+?)" + re.escape(tail)
-            )
-            hits = pattern.findall(despace(body))
-            if len(hits) != 1:
-                refused.append(f"{PROSE[key]}: anchor {anchor!r} matched {len(hits)} slots")
-                continue
-            new_body = re.sub(
-                pattern, lambda _m: head + want + tail, despace(body), count=1
-            )
-            if new_body != despace(body):
-                # Written back de-spaced only where the slot was; the rest of the document
-                # keeps its own separators because only this span was rebuilt.
-                doc.write_text(rewrite_slot(body, pattern, head + want + tail))
-                edits += 1
-    for r in refused:
-        log.warning("REFUSED %s", r)
-    log.info("%d slot(s) rewritten, %d refused", edits, len(refused))
-    return 0
-
-
-def rewrite_slot(body: str, pattern: re.Pattern, replacement: str) -> str:
-    """Apply `pattern` to the de-spaced body, then map the edit back onto the original.
-
-    Matching has to happen de-spaced (the documents separate thousands, the artifact does
-    not), but writing has to happen on the original text or every other separator in the
-    file would be silently stripped. So: find the span de-spaced, find the same span in the
-    original by walking both in step, and replace only that.
-    """
-    flat = despace(body)
-    m = pattern.search(flat)
-    if not m:
-        return body
-    # Walk the original alongside the flattened text to locate the same span.
-    i = j = 0
-    start = end = None
-    while i < len(body) and j <= len(flat):
-        if j == m.start() and start is None:
-            start = i
-        if j == m.end():
-            end = i
-            break
-        if j < len(flat) and body[i] == flat[j]:
-            j += 1
-        i += 1
-    if start is None or end is None:
-        return body
-    return body[:start] + replacement + body[end:]
 
 
 if __name__ == "__main__":
