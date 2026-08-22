@@ -11,7 +11,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { statSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { cpus, hostname, totalmem } from 'node:os';
+import { cpus, hostname, loadavg, totalmem } from 'node:os';
 
 const { values: opt } = parseArgs({
   options: {
@@ -60,7 +60,8 @@ function mulberry32(a) {
 }
 const rnd = mulberry32(Number(opt.seed));
 
-const toBlobEarly = (v) => Buffer.from(new Float32Array(v).buffer);
+/** Float32 vector -> the BLOB the vec0 statements take. One definition; see toBlob's old twin. */
+const toBlob = (v) => Buffer.from(new Float32Array(v).buffer);
 const db = new DatabaseSync(opt.db, { allowExtension: true });
 // The same loader the server uses, so this measures the shipped extension rather than
 // whatever happens to be on the system.
@@ -78,7 +79,6 @@ const sqliteVecVersion = (() => {
 })();
 // Read before the run rather than after: what the machine was doing when timing started
 // is the number that explains a contended result.
-const { loadavg } = await import('node:os');
 
 const dim = Number(db.prepare("SELECT value FROM index_meta WHERE key = 'vectorDim'").get().value);
 const n = db.prepare('SELECT count(*) AS n FROM passage_vectors').get().n;
@@ -339,17 +339,19 @@ const binStmt = db.prepare(
     ' WHERE v.embedding MATCH vec_quantize_binary(?) AND v.k = ? ORDER BY v.distance',
 );
 
+/** rowid -> index into `vecs`. Built once: it does not depend on the probe or the pool. */
+const byRowid = new Map(rowids.map((rid, i) => [rid, i]));
+
 function recallViaVec0(pool) {
   let hit = 0;
   for (const p of probeIdx) {
     const { top, scored } = exactTop.get(p);
     const want = new Set(top);
     const ids = binStmt
-      .all(toBlobEarly(vecs[p]), pool + 1)
+      .all(toBlob(vecs[p]), pool + 1)
       .map((r) => r.rowid)
       .filter((rid) => rid !== rowids[p])
       .slice(0, pool);
-    const byRowid = new Map(rowids.map((rid, i) => [rid, i]));
     const reranked = ids
       .map((rid) => byRowid.get(rid))
       .filter((i) => i !== undefined)
@@ -369,8 +371,6 @@ const recall = POOLS.map((pool) => ({
 }));
 
 // ---- latency, through the shipped SQL ------------------------------------------------
-const toBlob = (v) => Buffer.from(new Float32Array(v).buffer);
-
 // The three statements below are `Fts5PassageStore`'s own, copied verbatim rather than
 // paraphrased. An earlier version dropped the `JOIN passage_meta` from the exact search
 // and the rerank, on the reasoning that a join on an INTEGER PRIMARY KEY is free. Even if
@@ -574,7 +574,8 @@ const out = {
       'On THIS corpus every dimension above 95% one-sided is one the model never ' +
       'activates — mean magnitude a millionth or less of the median dimension, so its ' +
       'sign is float noise rather than corpus geometry — and among dimensions that carry ' +
-      'signal one-sidedness tops out at most_one_sided_LIVE_dimension. Nothing forces that ' +
+      `signal one-sidedness tops out at ${worstLive.one_sided} (dimension ${worstLive.dim}). ` +
+      'Nothing forces that ' +
       'coincidence: a corpus could be genuinely one-sided in a live dimension, and the ' +
       'two fields are reported separately so a future run shows it rather than inheriting ' +
       'this sentence. Here, a sign-threshold quantizer has nothing to fear, which is the ' +

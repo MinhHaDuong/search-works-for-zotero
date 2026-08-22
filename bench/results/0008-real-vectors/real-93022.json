@@ -9,7 +9,7 @@
   "cpus": 8,
   "totalmem_gib": 23.4,
   "node_options": "",
-  "finished_utc": "2026-08-22T00:53:02.785Z"
+  "finished_utc": "2026-08-22T01:31:35.110Z"
  },
  "corpus": {
   "vectors": 93022,
@@ -74,7 +74,7 @@
    0.8384
   ],
   "median_dimension_mean_abs": 0.03935,
-  "live_dimension_threshold": 0.00003935,
+  "live_dimension_threshold": 3.935e-05,
   "dimensions_one_sided_but_dead": [
    {
     "dim": 223,
@@ -85,8 +85,8 @@
    {
     "dim": 319,
     "one_sided": 1,
-    "mean_abs": 5.54e-8,
-    "ratio_to_median": 0.0000014
+    "mean_abs": 5.54e-08,
+    "ratio_to_median": 1.4e-06
    }
   ],
   "most_one_sided_LIVE_dimension": {
@@ -160,338 +160,338 @@
  },
  "latency_ms": {
   "exact_k30": {
-   "median_ms": 101.2,
-   "min_ms": 97.73,
-   "p25_ms": 99.84,
-   "p75_ms": 102.67,
+   "median_ms": 101.42,
+   "min_ms": 98.74,
+   "p25_ms": 99.88,
+   "p75_ms": 102.6,
    "reps": 100
   },
   "binary_first_pass_k30": {
-   "median_ms": 6.68,
-   "min_ms": 6.32,
-   "p25_ms": 6.53,
-   "p75_ms": 7.06,
+   "median_ms": 6.66,
+   "min_ms": 6.28,
+   "p25_ms": 6.47,
+   "p75_ms": 6.97,
    "reps": 100
   },
   "binary_first_pass_k120": {
-   "median_ms": 15.6,
-   "min_ms": 14.98,
-   "p25_ms": 15.29,
-   "p75_ms": 16.38,
+   "median_ms": 15.27,
+   "min_ms": 14.77,
+   "p25_ms": 15.01,
+   "p75_ms": 15.88,
    "reps": 100
   },
   "binary_first_pass_k240": {
-   "median_ms": 30.31,
-   "min_ms": 29.79,
-   "p25_ms": 30.04,
-   "p75_ms": 30.81,
+   "median_ms": 29.76,
+   "min_ms": 29.34,
+   "p25_ms": 29.52,
+   "p75_ms": 30.37,
    "reps": 100
   },
   "binary_first_pass_k480": {
-   "median_ms": 70.7,
-   "min_ms": 69.58,
-   "p25_ms": 70.07,
-   "p75_ms": 72.01,
+   "median_ms": 69.74,
+   "min_ms": 68.92,
+   "p25_ms": 69.27,
+   "p75_ms": 70.18,
    "reps": 100
   },
   "binary_first_pass_k960": {
-   "median_ms": 179.39,
-   "min_ms": 178.2,
-   "p25_ms": 178.84,
-   "p75_ms": 181.42,
+   "median_ms": 177.2,
+   "min_ms": 176.4,
+   "p25_ms": 176.79,
+   "p75_ms": 177.64,
    "reps": 100
   },
   "two_stage_pool_4x": {
-   "median_ms": 33.43,
-   "min_ms": 32.33,
-   "p25_ms": 32.7,
-   "p75_ms": 34.49,
+   "median_ms": 33.15,
+   "min_ms": 32.37,
+   "p25_ms": 32.75,
+   "p75_ms": 34.35,
    "reps": 100
   },
   "two_stage_pool_8x": {
-   "median_ms": 59.85,
-   "min_ms": 58.33,
-   "p25_ms": 59.01,
-   "p75_ms": 61.7,
+   "median_ms": 59.65,
+   "min_ms": 58.64,
+   "p25_ms": 59.16,
+   "p75_ms": 60.42,
    "reps": 100
   },
   "two_stage_pool_16x": {
-   "median_ms": 119.18,
-   "min_ms": 116.82,
-   "p25_ms": 117.76,
-   "p75_ms": 121.59,
+   "median_ms": 118.76,
+   "min_ms": 117.04,
+   "p25_ms": 117.97,
+   "p75_ms": 120.6,
    "reps": 100
   }
  },
  "latency_runs": [
   {
-   "loadavg_1min_at_start": 0.78,
+   "loadavg_1min_at_start": 0.68,
    "timings": {
     "exact_k30": {
-     "median_ms": 103.45,
-     "min_ms": 99.41,
-     "p25_ms": 102.42,
-     "p75_ms": 104.83,
+     "median_ms": 102.18,
+     "min_ms": 98.52,
+     "p25_ms": 100.01,
+     "p75_ms": 104.05,
      "reps": 100
     },
     "binary_first_pass_k30": {
-     "median_ms": 7,
-     "min_ms": 6.38,
-     "p25_ms": 6.55,
-     "p75_ms": 7.24,
-     "reps": 100
-    },
-    "binary_first_pass_k120": {
-     "median_ms": 16.02,
-     "min_ms": 15.11,
-     "p25_ms": 15.33,
-     "p75_ms": 16.85,
-     "reps": 100
-    },
-    "binary_first_pass_k240": {
-     "median_ms": 31.55,
-     "min_ms": 29.94,
-     "p25_ms": 30.37,
-     "p75_ms": 32.43,
-     "reps": 100
-    },
-    "binary_first_pass_k480": {
-     "median_ms": 71.97,
-     "min_ms": 69.69,
-     "p25_ms": 70.64,
-     "p75_ms": 73.52,
-     "reps": 100
-    },
-    "binary_first_pass_k960": {
-     "median_ms": 180.98,
-     "min_ms": 178.41,
-     "p25_ms": 179.62,
-     "p75_ms": 183.68,
-     "reps": 100
-    },
-    "two_stage_pool_4x": {
-     "median_ms": 35.05,
-     "min_ms": 32.57,
-     "p25_ms": 33.4,
-     "p75_ms": 36.09,
-     "reps": 100
-    },
-    "two_stage_pool_8x": {
-     "median_ms": 62.06,
-     "min_ms": 58.61,
-     "p25_ms": 60.19,
-     "p75_ms": 63.89,
-     "reps": 100
-    },
-    "two_stage_pool_16x": {
-     "median_ms": 123.16,
-     "min_ms": 118.26,
-     "p25_ms": 120.71,
-     "p75_ms": 125.13,
-     "reps": 100
-    }
-   }
-  },
-  {
-   "loadavg_1min_at_start": 0.93,
-   "timings": {
-    "exact_k30": {
-     "median_ms": 103.15,
-     "min_ms": 99.34,
-     "p25_ms": 101.65,
-     "p75_ms": 104.65,
-     "reps": 100
-    },
-    "binary_first_pass_k30": {
-     "median_ms": 6.94,
-     "min_ms": 6.28,
-     "p25_ms": 6.57,
-     "p75_ms": 7.21,
-     "reps": 100
-    },
-    "binary_first_pass_k120": {
-     "median_ms": 16.04,
-     "min_ms": 15.03,
-     "p25_ms": 15.4,
-     "p75_ms": 16.71,
-     "reps": 100
-    },
-    "binary_first_pass_k240": {
-     "median_ms": 31.04,
-     "min_ms": 29.94,
-     "p25_ms": 30.2,
-     "p75_ms": 32.27,
-     "reps": 100
-    },
-    "binary_first_pass_k480": {
-     "median_ms": 71.5,
-     "min_ms": 69.82,
-     "p25_ms": 70.38,
-     "p75_ms": 72.43,
-     "reps": 100
-    },
-    "binary_first_pass_k960": {
-     "median_ms": 182.24,
-     "min_ms": 178.54,
-     "p25_ms": 179.87,
-     "p75_ms": 184.97,
-     "reps": 100
-    },
-    "two_stage_pool_4x": {
-     "median_ms": 34.11,
-     "min_ms": 32.55,
-     "p25_ms": 33.01,
-     "p75_ms": 35.52,
-     "reps": 100
-    },
-    "two_stage_pool_8x": {
-     "median_ms": 62.74,
-     "min_ms": 58.65,
-     "p25_ms": 60.88,
-     "p75_ms": 64.21,
-     "reps": 100
-    },
-    "two_stage_pool_16x": {
-     "median_ms": 122.77,
-     "min_ms": 118.08,
-     "p25_ms": 120.82,
-     "p75_ms": 125.25,
-     "reps": 100
-    }
-   }
-  },
-  {
-   "loadavg_1min_at_start": 1.15,
-   "timings": {
-    "exact_k30": {
-     "median_ms": 103.33,
-     "min_ms": 99.74,
-     "p25_ms": 102.14,
-     "p75_ms": 104.74,
-     "reps": 100
-    },
-    "binary_first_pass_k30": {
-     "median_ms": 6.88,
-     "min_ms": 6.28,
-     "p25_ms": 6.57,
-     "p75_ms": 7.21,
-     "reps": 100
-    },
-    "binary_first_pass_k120": {
-     "median_ms": 16.4,
-     "min_ms": 15.08,
-     "p25_ms": 15.41,
-     "p75_ms": 16.96,
-     "reps": 100
-    },
-    "binary_first_pass_k240": {
-     "median_ms": 30.97,
-     "min_ms": 29.76,
-     "p25_ms": 30.26,
-     "p75_ms": 32.52,
-     "reps": 100
-    },
-    "binary_first_pass_k480": {
-     "median_ms": 71.46,
-     "min_ms": 69.85,
-     "p25_ms": 70.7,
-     "p75_ms": 72.9,
-     "reps": 100
-    },
-    "binary_first_pass_k960": {
-     "median_ms": 181.73,
-     "min_ms": 178.61,
-     "p25_ms": 179.7,
-     "p75_ms": 183.65,
-     "reps": 100
-    },
-    "two_stage_pool_4x": {
-     "median_ms": 35.33,
-     "min_ms": 32.51,
-     "p25_ms": 33.31,
-     "p75_ms": 36.63,
-     "reps": 100
-    },
-    "two_stage_pool_8x": {
-     "median_ms": 61.9,
-     "min_ms": 58.93,
-     "p25_ms": 60.31,
-     "p75_ms": 63.87,
-     "reps": 100
-    },
-    "two_stage_pool_16x": {
-     "median_ms": 121.99,
-     "min_ms": 118.33,
-     "p25_ms": 120.36,
-     "p75_ms": 124.73,
-     "reps": 100
-    }
-   }
-  },
-  {
-   "loadavg_1min_at_start": 1.05,
-   "timings": {
-    "exact_k30": {
-     "median_ms": 101.2,
-     "min_ms": 97.73,
-     "p25_ms": 99.84,
-     "p75_ms": 102.67,
-     "reps": 100
-    },
-    "binary_first_pass_k30": {
-     "median_ms": 6.68,
-     "min_ms": 6.32,
+     "median_ms": 6.92,
+     "min_ms": 6.26,
      "p25_ms": 6.53,
-     "p75_ms": 7.06,
+     "p75_ms": 7.17,
      "reps": 100
     },
     "binary_first_pass_k120": {
-     "median_ms": 15.6,
-     "min_ms": 14.98,
-     "p25_ms": 15.29,
-     "p75_ms": 16.38,
+     "median_ms": 15.72,
+     "min_ms": 14.86,
+     "p25_ms": 15.1,
+     "p75_ms": 16.23,
      "reps": 100
     },
     "binary_first_pass_k240": {
-     "median_ms": 30.31,
-     "min_ms": 29.79,
-     "p25_ms": 30.04,
-     "p75_ms": 30.81,
+     "median_ms": 30.41,
+     "min_ms": 29.44,
+     "p25_ms": 29.71,
+     "p75_ms": 31.92,
      "reps": 100
     },
     "binary_first_pass_k480": {
-     "median_ms": 70.7,
-     "min_ms": 69.58,
-     "p25_ms": 70.07,
-     "p75_ms": 72.01,
+     "median_ms": 70.04,
+     "min_ms": 68.87,
+     "p25_ms": 69.5,
+     "p75_ms": 71.45,
      "reps": 100
     },
     "binary_first_pass_k960": {
-     "median_ms": 179.39,
-     "min_ms": 178.2,
-     "p25_ms": 178.84,
-     "p75_ms": 181.42,
+     "median_ms": 178.47,
+     "min_ms": 176.43,
+     "p25_ms": 177.24,
+     "p75_ms": 182.62,
      "reps": 100
     },
     "two_stage_pool_4x": {
-     "median_ms": 33.43,
-     "min_ms": 32.33,
-     "p25_ms": 32.7,
-     "p75_ms": 34.49,
+     "median_ms": 34.33,
+     "min_ms": 32.46,
+     "p25_ms": 33.16,
+     "p75_ms": 35.51,
      "reps": 100
     },
     "two_stage_pool_8x": {
-     "median_ms": 59.85,
-     "min_ms": 58.33,
-     "p25_ms": 59.01,
-     "p75_ms": 61.7,
+     "median_ms": 60.25,
+     "min_ms": 58.58,
+     "p25_ms": 59.46,
+     "p75_ms": 62.45,
      "reps": 100
     },
     "two_stage_pool_16x": {
-     "median_ms": 119.18,
-     "min_ms": 116.82,
-     "p25_ms": 117.76,
-     "p75_ms": 121.59,
+     "median_ms": 120.43,
+     "min_ms": 117.1,
+     "p25_ms": 118.63,
+     "p75_ms": 123.69,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 1.07,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 101.7,
+     "min_ms": 97.39,
+     "p25_ms": 100.23,
+     "p75_ms": 102.8,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.84,
+     "min_ms": 6.33,
+     "p25_ms": 6.51,
+     "p75_ms": 7.13,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 15.27,
+     "min_ms": 14.77,
+     "p25_ms": 15.02,
+     "p75_ms": 16.05,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 30.05,
+     "min_ms": 29.4,
+     "p25_ms": 29.58,
+     "p75_ms": 30.57,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 69.75,
+     "min_ms": 68.9,
+     "p25_ms": 69.2,
+     "p75_ms": 70.39,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 177.71,
+     "min_ms": 176.43,
+     "p25_ms": 176.99,
+     "p75_ms": 180.34,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 33.31,
+     "min_ms": 32.32,
+     "p25_ms": 32.78,
+     "p75_ms": 34.53,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 60.82,
+     "min_ms": 58.3,
+     "p25_ms": 59.51,
+     "p75_ms": 62.35,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 120.41,
+     "min_ms": 117.31,
+     "p25_ms": 118.74,
+     "p75_ms": 121.99,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 1.02,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 101.05,
+     "min_ms": 97.95,
+     "p25_ms": 99.49,
+     "p75_ms": 102.17,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.7,
+     "min_ms": 6.24,
+     "p25_ms": 6.47,
+     "p75_ms": 7.04,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 15.62,
+     "min_ms": 14.78,
+     "p25_ms": 15.1,
+     "p75_ms": 15.99,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 29.86,
+     "min_ms": 29.28,
+     "p25_ms": 29.57,
+     "p75_ms": 30.37,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 69.78,
+     "min_ms": 68.95,
+     "p25_ms": 69.33,
+     "p75_ms": 70.49,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 177.56,
+     "min_ms": 176.42,
+     "p25_ms": 177.12,
+     "p75_ms": 178.89,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 33.4,
+     "min_ms": 32.15,
+     "p25_ms": 32.74,
+     "p75_ms": 34.64,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 59.6,
+     "min_ms": 58.36,
+     "p25_ms": 58.92,
+     "p75_ms": 60.68,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 118.98,
+     "min_ms": 117.04,
+     "p25_ms": 117.89,
+     "p75_ms": 120.55,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 1.18,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 101.42,
+     "min_ms": 98.74,
+     "p25_ms": 99.88,
+     "p75_ms": 102.6,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.66,
+     "min_ms": 6.28,
+     "p25_ms": 6.47,
+     "p75_ms": 6.97,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 15.27,
+     "min_ms": 14.77,
+     "p25_ms": 15.01,
+     "p75_ms": 15.88,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 29.76,
+     "min_ms": 29.34,
+     "p25_ms": 29.52,
+     "p75_ms": 30.37,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 69.74,
+     "min_ms": 68.92,
+     "p25_ms": 69.27,
+     "p75_ms": 70.18,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 177.2,
+     "min_ms": 176.4,
+     "p25_ms": 176.79,
+     "p75_ms": 177.64,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 33.15,
+     "min_ms": 32.37,
+     "p25_ms": 32.75,
+     "p75_ms": 34.35,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 59.65,
+     "min_ms": 58.64,
+     "p25_ms": 59.16,
+     "p75_ms": 60.42,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 118.76,
+     "min_ms": 117.04,
+     "p25_ms": 117.97,
+     "p75_ms": 120.6,
      "reps": 100
     }
    }
@@ -502,41 +502,42 @@
   "note": "Every run is kept, in this one artifact, because the claim being made is that the ordering survives run-to-run variation. An earlier version wrote one artifact to a fixed path, so each run destroyed the last and the agreement could only be reconstructed from git history — a claim its own evidence could not hold.",
   "speedup_vs_exact_per_run": {
    "two_stage_pool_4x": [
-    2.95,
-    3.02,
-    2.92,
-    3.03
+    2.98,
+    3.05,
+    3.03,
+    3.06
    ],
    "two_stage_pool_8x": [
+    1.7,
     1.67,
-    1.64,
-    1.67,
-    1.69
+    1.7,
+    1.7
    ],
    "two_stage_pool_16x": [
-    0.84,
+    0.85,
     0.84,
     0.85,
     0.85
    ]
   },
   "iqr_pct_range_all_candidates": [
-   1.4,
-   9.9
+   0.5,
+   9.2
   ],
   "iqr_pct_range_two_stage": [
-   3.2,
-   9.4
+   2.1,
+   6.8
   ]
  },
+ "latency_query": "One fixed vector (probe 0) for every candidate and every run — see the comment at its definition. A vec0 scan is exhaustive, so latency does not depend on which vector is asked about; this therefore measures no query-dependence, by design.",
  "latency_method": "Candidates are timed round robin, one repetition each per pass, so a transient on the machine is spread across all of them instead of landing inside one. Median with p25/p75; min is the closest reading to uncontended. Two candidates are only ordered where their interquartile ranges do not overlap — see latency_ordering.",
  "latency_ordering": {
   "two_stage_pool_4x": {
-   "speedup_vs_exact_median": 3.03,
+   "speedup_vs_exact_median": 3.06,
    "separated_from_exact": true
   },
   "two_stage_pool_8x": {
-   "speedup_vs_exact_median": 1.69,
+   "speedup_vs_exact_median": 1.7,
    "separated_from_exact": true
   },
   "two_stage_pool_16x": {
