@@ -228,12 +228,10 @@ default silently changes the index is worse than a constant.
 
 ## Exit criteria
 
-- [x] SDT reachability determined and recorded: probed three times over ten
-      hours, zero packs library-wide, including after a PDF Zotero reported as
-      indexed. Full-text extraction is ruled out as a trigger. The reader-tab
-      path is narrowed and NOT disproven, and cannot be settled from here --
-      the local API exposes no way to open a reader tab. Recorded as a residual
-      needing one human action, in `bench/results/0007-sdt-probe.txt`.
+- [x] SDT reachability determined and recorded. **The answer changed on
+      2026-08-22 when the residual was finally run -- see the correction at the
+      end of this ticket.** The reader path DOES produce packs; extraction does
+      not. Artifact: `bench/results/0007-sdt-probe.txt`, fourth probe.
 - [x] Chunk size and overlap reachable from configuration, defaults unchanged:
       `ZOTEUS_CHUNK_SIZE`, `ZOTEUS_CHUNK_OVERLAP`, `ZOTEUS_FULLTEXT_CHUNK_SIZE`,
       `ZOTEUS_FULLTEXT_CHUNK_OVERLAP`
@@ -258,3 +256,47 @@ Closed with one residual that is not this repo's to close: whether Zotero's
 reader tab writes an SDT pack. Everything reachable from a local API has been
 probed. If a future session wants it, the whole experiment is: open one PDF in
 Zotero's reader, then re-run the probe in `bench/results/0007-sdt-probe.txt`.
+
+## Correction, 2026-08-22: the reader path produces packs after all
+
+This ticket closed with one residual it could not settle from here -- whether
+Zotero's *reader* writes a `.zotero-sdt-cache` pack, where bulk extraction
+demonstrably does not. The author opened two PDFs. It does.
+
+    2026-08-22 08:53   140 215 B   GMAP993G/.zotero-sdt-cache
+    2026-08-22 08:54   345 539 B   BSMCQ6BM/.zotero-sdt-cache
+
+Library-wide count 0 -> 2, and the two are exactly the two items opened.
+
+**The positive control fires, which is what makes this different from the three
+probes before it.** Each of those reported zero and could not show it would have
+seen a pack if one existed -- an all-clear indistinguishable from "I could not
+look", flagged in the artifact at the time. Here `.zotero-reader-state` appears
+for both items, so the probe demonstrably sees the reader path, and the packs
+appear beside it.
+
+**What the ticket recorded was therefore wrong in its implication.** "Extraction
+runs, SDT does not, so structure-aware chunking is a future option" was accurate
+about extraction and read naturally as a verdict on SDT. It was not: SDT runs, on
+a different trigger, and the wording did not distinguish "this path does not
+invoke it" from "nothing does". Quoted rather than deleted, the way 0009's
+retraction is handled here.
+
+**What it does and does not open.** Packs are created lazily, per reading
+session, for what a human opens: **2 of 13 631 attachments with extracted text**.
+So SDT cannot be a general chunking input -- there is no bulk operation this
+project can invoke to produce them, and the coverage of a research library will
+always be the subset someone has read. What it could support is *enrichment* of
+exactly those items: real page labels and outline paths for the papers a user
+actually works with, on top of the proportional page estimate the index carries
+today.
+
+**And reaching the content is its own problem.** The pack is not JSON. It is a
+custom binary container -- magic `89 53 44 54 0d 0a 1a 0a`, a u32 offset table,
+payload sections that are not raw deflate at those offsets and hold no printable
+text. Zotero ships the decoder (`resource/document-worker/structured-document-text.js`);
+we would be reimplementing or vendoring it. Not attempted, and not costed.
+
+No ticket filed. This is an opportunity rather than a defect, nothing is broken,
+and the severity floor says report it here rather than mint work nobody has
+asked for.
