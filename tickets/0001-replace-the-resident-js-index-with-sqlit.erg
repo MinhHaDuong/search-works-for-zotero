@@ -77,7 +77,11 @@ replaces the existing class.
   changing it changes results, so it cannot overlap the storage comparison)
 - 0008 — quantize the vector column: implemented, measured, and shipped OFF by
   default. The 13x was a k=30 figure that does not survive being asked for a
-  pool; recall at any affordable pool is 0,63-0,86.
+  pool on a synthetic fixture. **Superseded 2026-08-22 by the real-vector
+  measurement**: on 93 022 real embeddings recall is 0,884 at a 4x pool and
+  0,953 at 8x, where the two-stage path is ~3,0x and ~1,7x faster than the exact
+  scan. The fixture was a harder problem than real data. Shipped default
+  unchanged; see 0008 for why that is now a decision rather than a verdict.
 - 0009 — fold accents in `tokenize()`: **fixed 2026-08-22**, fork `50b3f15`.
   Both backends now fold, so the accented-query exception the invariant below
   carried is gone — the divergence was a defect, not the extra recall it was

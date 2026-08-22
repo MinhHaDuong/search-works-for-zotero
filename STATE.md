@@ -302,11 +302,11 @@ the exact scan it replaced, so the two-stage path shipped **off by default**.
 criterion that stayed open** (`bench/results/0008-real-vectors/`, driver
 `bench/vec_real_measure.mjs`):
 
-| pool | fixture | **real** | centred | two-stage | vs exact (104,0 ms) |
+| pool | fixture | **real** | centred | two-stage | vs exact (103,3 ms) |
 |---|---|---|---|---|---|
-| 4x (k=120) | 0,628 | **0,884** | 0,918 | 35,2 ms | **2,96x faster** |
-| 8x (k=240) | 0,862 | **0,953** | 0,969 | 62,6 ms | **1,66x faster** |
-| 16x (k=480) | 0,998 | 0,986 | 0,991 | 123,6 ms | 0,84x — slower |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,1 ms | **~3,0x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 61,1 ms | **~1,7x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 121,4 ms | ~0,85x — slower |
 
 On disk: **1 563,2 B per float32 vector against 71,1 B per binary code, 22x**.
 
@@ -318,19 +318,22 @@ from the exact scan by non-overlapping interquartile ranges.
 **The anisotropy risk is refuted, and it ran the other way.** The fear was that
 `vec_quantize_binary`, thresholding at zero, would find real embeddings sitting
 off the origin with dimensions where every vector agrees. Measured: corpus mean
-norm **0,406**, and **2 of 384 dimensions** more than 95% one-sided. Centring on
-the corpus mean buys 2-4 points of recall, not a rescue. Real embeddings are
+norm **0,406**, and **2 of 384 dimensions** more than 95% one-sided — and those
+two are dimensions the model never activates, mean |x| of 5,5e-8 and 5,7e-33
+against a median 3,9e-2, so their sign is float noise rather than corpus
+geometry. Among dimensions carrying signal, one-sidedness tops out at **0,909**.
+Centring on the corpus mean buys 0,5 to 3,4 points depending on the pool. Real embeddings are
 *easier* to quantize than the clustered fixture at every pool below 16x — the
 fixture was a harder problem than real data, not a conservative stand-in for it.
 
 **So the original ruling was narrow rather than wrong.** At 16x, the pool the
 fixture demanded, the two-stage path is still slower on real data. Real data
-does not need 16x: it reaches 0,953 at 8x, where the path is 1,66x faster. The
+does not need 16x: it reaches 0,953 at 8x, where the path is ~1,7x faster. The
 same mistake this chantier keeps paying for — a ratio at one operating point
 read as a property of the system — with the sign reversed.
 
 **Nothing shipped has changed and the default is not flipped here.** Turning the
-path on trades about 5% of vector recall for 1,66x latency, which is a product
+path on trades about 5% of vector recall for ~1,7x latency, which is a product
 decision the author owns. Both columns are maintained on every insert, so it
 stays a one-line flip.
 
@@ -340,7 +343,7 @@ the task is easier than a real query's; and recall is against the exact *vector*
 ranking, where the shipped path fuses keyword and vector with RRF.
 
 One observation for whoever revisits it: the first pass is not what costs. At 8x
-it is 32,2 ms of the 62,6, and the rest is the rerank issuing one round trip per
+it is ~32 ms of the ~61, and the rest is the rerank issuing one round trip per
 pooled rowid. Batching that would put 8x near 35 ms — about 3x faster than exact
 at 0,953 recall.
 

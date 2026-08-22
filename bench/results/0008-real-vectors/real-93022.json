@@ -1,6 +1,17 @@
 {
  "probe": "ticket 0008 — binary quantization on the REAL vector index",
  "db": "/home/haduong/data/projets/zoteus-bench/vec-real/search-index.sqlite",
+ "environment": {
+  "node": "v22.23.1",
+  "sqlite_vec": "v0.1.9",
+  "sqlite": "3.51.3",
+  "host": "doudou",
+  "cpus": 8,
+  "totalmem_gib": 23.4,
+  "loadavg_1min": 0.46,
+  "node_options": "",
+  "finished_utc": "2026-08-22T00:17:17.454Z"
+ },
  "corpus": {
   "vectors": 93022,
   "passages": 93022,
@@ -61,7 +72,29 @@
    0.8658,
    0.8441,
    0.8384
-  ]
+  ],
+  "median_dimension_mean_abs": 0.03935,
+  "live_dimension_threshold": 0.00003935,
+  "dimensions_one_sided_but_dead": [
+   {
+    "dim": 223,
+    "one_sided": 0.9689,
+    "mean_abs": 5.66e-33,
+    "ratio_to_median": 1.4e-31
+   },
+   {
+    "dim": 319,
+    "one_sided": 1,
+    "mean_abs": 5.54e-8,
+    "ratio_to_median": 0.0000014
+   }
+  ],
+  "most_one_sided_LIVE_dimension": {
+   "dim": 79,
+   "one_sided": 0.9089,
+   "mean_abs": 0.0728
+  },
+  "reading": "Every dimension above 95% one-sided is one the model never activates — its mean magnitude is a millionth or less of the median dimension, so its sign is float noise rather than corpus geometry. Among dimensions that carry signal, one-sidedness tops out well below that. The corpus is not meaningfully anisotropic for a sign-threshold quantizer, which is the risk 0008 was held open for."
  },
  "recall": [
   {
@@ -97,81 +130,81 @@
  ],
  "latency_ms": {
   "exact_k30": {
-   "median_ms": 103.98,
-   "min_ms": 99.31,
-   "p25_ms": 102.26,
-   "p75_ms": 106.17,
+   "median_ms": 103.33,
+   "min_ms": 99.28,
+   "p25_ms": 101.79,
+   "p75_ms": 104.31,
    "reps": 100
   },
   "binary_first_pass_k30": {
-   "median_ms": 6.95,
-   "min_ms": 6.4,
-   "p25_ms": 6.59,
-   "p75_ms": 7.31,
+   "median_ms": 6.93,
+   "min_ms": 6.41,
+   "p25_ms": 6.58,
+   "p75_ms": 7.21,
    "reps": 100
   },
   "binary_first_pass_k120": {
-   "median_ms": 16.04,
-   "min_ms": 15.17,
-   "p25_ms": 15.47,
-   "p75_ms": 16.7,
+   "median_ms": 16.01,
+   "min_ms": 14.98,
+   "p25_ms": 15.2,
+   "p75_ms": 16.57,
    "reps": 100
   },
   "binary_first_pass_k240": {
-   "median_ms": 32.21,
-   "min_ms": 29.8,
-   "p25_ms": 30.65,
-   "p75_ms": 33.11,
+   "median_ms": 30.76,
+   "min_ms": 29.59,
+   "p25_ms": 29.93,
+   "p75_ms": 31.99,
    "reps": 100
   },
   "binary_first_pass_k480": {
-   "median_ms": 71.36,
-   "min_ms": 69.48,
-   "p25_ms": 70.32,
-   "p75_ms": 72.75,
+   "median_ms": 70.54,
+   "min_ms": 69.03,
+   "p25_ms": 69.9,
+   "p75_ms": 72.51,
    "reps": 100
   },
   "binary_first_pass_k960": {
-   "median_ms": 182.24,
-   "min_ms": 177.43,
-   "p25_ms": 179.39,
-   "p75_ms": 185.21,
+   "median_ms": 179.67,
+   "min_ms": 176.47,
+   "p25_ms": 177.72,
+   "p75_ms": 181.3,
    "reps": 100
   },
   "two_stage_pool_4x": {
-   "median_ms": 35.15,
-   "min_ms": 32.56,
-   "p25_ms": 33.87,
-   "p75_ms": 36.49,
+   "median_ms": 34.12,
+   "min_ms": 32.17,
+   "p25_ms": 32.97,
+   "p75_ms": 35.72,
    "reps": 100
   },
   "two_stage_pool_8x": {
-   "median_ms": 62.59,
-   "min_ms": 59.08,
-   "p25_ms": 60.59,
-   "p75_ms": 65.34,
+   "median_ms": 61.08,
+   "min_ms": 58.25,
+   "p25_ms": 59.39,
+   "p75_ms": 62.36,
    "reps": 100
   },
   "two_stage_pool_16x": {
-   "median_ms": 123.61,
-   "min_ms": 118.22,
-   "p25_ms": 121.64,
-   "p75_ms": 126.84,
+   "median_ms": 121.35,
+   "min_ms": 117.03,
+   "p25_ms": 119.61,
+   "p75_ms": 124.45,
    "reps": 100
   }
  },
  "latency_method": "Candidates are timed round robin, one repetition each per pass, so a transient on the machine is spread across all of them instead of landing inside one. Median with p25/p75; min is the closest reading to uncontended. Two candidates are only ordered where their interquartile ranges do not overlap — see latency_ordering.",
  "latency_ordering": {
   "two_stage_pool_4x": {
-   "speedup_vs_exact_median": 2.96,
+   "speedup_vs_exact_median": 3.03,
    "separated_from_exact": true
   },
   "two_stage_pool_8x": {
-   "speedup_vs_exact_median": 1.66,
+   "speedup_vs_exact_median": 1.69,
    "separated_from_exact": true
   },
   "two_stage_pool_16x": {
-   "speedup_vs_exact_median": 0.84,
+   "speedup_vs_exact_median": 0.85,
    "separated_from_exact": true
   }
  },

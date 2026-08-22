@@ -1,0 +1,33 @@
+{
+ "elapsed_s": 7549.9,
+ "peak_rss_kb": 2718432,
+ "status": {
+  "documents": 93022,
+  "vectors": 93022,
+  "items": 2100,
+  "embedder": "local",
+  "embedderConfigured": "local",
+  "embedderActive": true,
+  "fulltextEnabled": true,
+  "fulltextItems": 1531,
+  "fulltextPassages": 89674,
+  "builtFromVersion": 410,
+  "indexBackend": "local",
+  "fulltextPendingItems": 429,
+  "passages": 93022,
+  "state": "done",
+  "itemsFetched": 2100,
+  "itemsTotal": 2100,
+  "itemsAvailable": 7541
+ },
+ "files": {
+  "search-index.sqlite": 343068672,
+  "search-index.sqlite-wal": 33198992,
+  "search-index.sqlite-shm": 65536,
+  "update-check.json": 120
+ },
+ "probe": "ticket 0008 — the vector index build that the real-vector measurement runs against",
+ "driver": "bench/run_build.py --backend sqlite --embeddings local --max-items 2100 --max-chars 200000",
+ "note": "Wall clock, not CPU time: the build fetches from the Zotero local API and embeds on CPU in the same process. It is embedding-bound at this geometry — the keyword-only build of the whole 7 541-item library took 371,6 s, against 7 549,9 s here for 2 100 items with the embedder on.",
+ "node_version": "v22.23.1"
+}

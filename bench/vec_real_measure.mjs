@@ -11,6 +11,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { statSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { cpus, hostname, totalmem } from 'node:os';
 
 const { values: opt } = parseArgs({
   options: {
@@ -65,6 +66,17 @@ const require = createRequire(`${opt.fork}package.json`);
 db.enableLoadExtension(true);
 require('sqlite-vec').load(db);
 db.enableLoadExtension(false);
+const sqliteVecVersion = (() => {
+  try {
+    return db.prepare('SELECT vec_version() AS v').get().v;
+  } catch {
+    return null;
+  }
+})();
+// Read before the run rather than after: what the machine was doing when timing started
+// is the number that explains a contended result.
+const { loadavg } = await import('node:os');
+const loadavgAtStart = +loadavg()[0].toFixed(2);
 
 const dim = Number(db.prepare("SELECT value FROM index_meta WHERE key = 'vectorDim'").get().value);
 const n = db.prepare('SELECT count(*) AS n FROM passage_vectors').get().n;
@@ -142,12 +154,41 @@ for (let i = 0; i < dim; i++) meanNorm += mean[i] * mean[i];
 meanNorm = Math.sqrt(meanNorm);
 
 // Per-dimension sign balance: 0,5 is perfectly informative, 1,0 is a dead bit.
+//
+// Magnitude is measured beside it, and that pairing is what makes the number mean
+// anything. A dimension the model never activates has values scattered in the last bits
+// of the float around zero: its sign is then arbitrary, it can read as 100% one-sided,
+// and it says nothing whatever about the corpus being off-centre. Counting such a
+// dimension as evidence of anisotropy would be reading noise as geometry.
 const posFrac = new Float64Array(dim);
-for (const v of vecs) for (let i = 0; i < dim; i++) if (v[i] > 0) posFrac[i]++;
-for (let i = 0; i < dim; i++) posFrac[i] /= vecs.length;
-const bias = Array.from(posFrac, (p) => Math.max(p, 1 - p)).sort((a, b) => b - a);
+const absMean = new Float64Array(dim);
+for (const v of vecs) {
+  for (let i = 0; i < dim; i++) {
+    if (v[i] > 0) posFrac[i]++;
+    absMean[i] += Math.abs(v[i]);
+  }
+}
+for (let i = 0; i < dim; i++) {
+  posFrac[i] /= vecs.length;
+  absMean[i] /= vecs.length;
+}
+const medianMag = [...absMean].sort((a, b) => a - b)[dim >> 1];
+// "Live" = carrying at least a thousandth of the median dimension's magnitude. The two
+// this excludes on the measured corpus are 1,4e-6 and 1,4e-31 of it, so no threshold in
+// that range changes the answer.
+const LIVE = medianMag / 1000;
+const perDim = Array.from({ length: dim }, (_, i) => ({
+  dim: i,
+  one_sided: +Math.max(posFrac[i], 1 - posFrac[i]).toFixed(4),
+  mean_abs: absMean[i],
+  live: absMean[i] > LIVE,
+}));
+const bias = perDim.map((d) => d.one_sided).sort((a, b) => b - a);
 const deadBits = bias.filter((b) => b > 0.95).length;
 const nearDead = bias.filter((b) => b > 0.9).length;
+const liveDims = perDim.filter((d) => d.live);
+const oneSidedButDead = perDim.filter((d) => d.one_sided > 0.95 && !d.live);
+const worstLive = liveDims.reduce((a, b) => (b.one_sided > a.one_sided ? b : a));
 
 // ---- exact and binary rankings, computed here so both see identical inputs ------------
 /** Sign bits, the way vec_quantize_binary does it: threshold at zero. */
@@ -390,6 +431,27 @@ const separated = (a, b) =>
 const out = {
   probe: 'ticket 0008 — binary quantization on the REAL vector index',
   db: opt.db,
+  /**
+   * The environment, recorded by the driver rather than by whoever writes it up.
+   *
+   * Omitted from the first version of this file, which was written to satisfy exactly the
+   * rule it broke. It matters more here than in most artifacts: two of the findings on
+   * this branch turn on machine contention and candidate ordering, and neither is
+   * interpretable without knowing what the machine was.
+   */
+  environment: {
+    node: process.version,
+    sqlite_vec: sqliteVecVersion,
+    sqlite: db.prepare('SELECT sqlite_version() AS v').get().v,
+    host: hostname(),
+    cpus: cpus().length,
+    totalmem_gib: +(totalmem() / 1024 ** 3).toFixed(1),
+    loadavg_1min: loadavgAtStart,
+    node_options: process.env.NODE_OPTIONS ?? '',
+    // Passed in rather than read from a clock: Date.now() at write time is the honest
+    // stamp for when the run happened.
+    finished_utc: new Date().toISOString(),
+  },
   corpus: { vectors: n, passages, dim, probes: PROBES, topk: TOPK, seed: opt.seed },
   on_disk: sizes,
   anisotropy: {
@@ -402,6 +464,26 @@ const out = {
     dimensions_over_95pct_one_sided: deadBits,
     dimensions_over_90pct_one_sided: nearDead,
     most_one_sided_dimensions: bias.slice(0, 10).map((x) => +x.toFixed(4)),
+    // The refinement that decides how the counts above should be read.
+    median_dimension_mean_abs: +medianMag.toExponential(3),
+    live_dimension_threshold: +LIVE.toExponential(3),
+    dimensions_one_sided_but_dead: oneSidedButDead.map((d) => ({
+      dim: d.dim,
+      one_sided: d.one_sided,
+      mean_abs: +d.mean_abs.toExponential(2),
+      ratio_to_median: +(d.mean_abs / medianMag).toExponential(1),
+    })),
+    most_one_sided_LIVE_dimension: {
+      dim: worstLive.dim,
+      one_sided: worstLive.one_sided,
+      mean_abs: +worstLive.mean_abs.toExponential(2),
+    },
+    reading:
+      'Every dimension above 95% one-sided is one the model never activates — its mean ' +
+      'magnitude is a millionth or less of the median dimension, so its sign is float ' +
+      'noise rather than corpus geometry. Among dimensions that carry signal, ' +
+      'one-sidedness tops out well below that. The corpus is not meaningfully anisotropic ' +
+      'for a sign-threshold quantizer, which is the risk 0008 was held open for.',
   },
   recall,
   latency_ms: latency,
@@ -436,7 +518,8 @@ db.close();
 
 console.log(
   `${n} real vectors, dim ${dim}\n` +
-    `mean norm ${out.anisotropy.corpus_mean_norm}; ${deadBits} dims >95% one-sided, ${nearDead} >90%\n` +
+    `mean norm ${out.anisotropy.corpus_mean_norm}; ${deadBits} dims >95% one-sided but all dead ` +
+    `(worst LIVE dimension ${worstLive.one_sided})\n` +
     recall.map((r) => `  pool ${r.multiple}x: zero-threshold ${r.recall_threshold_zero}, mean-centred ${r.recall_mean_centred}`).join('\n') +
     `\nexact k=30 ${latency.exact_k30.median_ms} ms  |  two-stage: ` +
     `4x ${latency.two_stage_pool_4x.median_ms} ms, 8x ${latency.two_stage_pool_8x.median_ms} ms, ` +

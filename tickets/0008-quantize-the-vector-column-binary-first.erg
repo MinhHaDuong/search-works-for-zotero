@@ -98,6 +98,12 @@ resemble sentence-embedder geometry (exact scan = 110 ms):
 
 Recall was the acceptance criterion, not latency, and recall at any affordable
 pool is 0,63-0,86. So the path ships behind `VEC_TWO_STAGE_DEFAULT = false`.
+
+> **These are the FIXTURE's numbers and the real corpus does better at every
+> pool below 16x** -- 0,884 against 0,628 at 4x. Read "## The real-vector
+> measurement" below before quoting anything in this section. The shipped
+> default is unchanged, but the reason it was chosen no longer holds in the form
+> stated here.
 **Both columns are maintained on every insert**, so enabling it later is a
 one-line flip rather than a reindex -- which keeps the option alive for the
 real-library re-measure without shipping a regression now.
@@ -166,18 +172,25 @@ magic number.
 ## The real-vector measurement, 2026-08-22
 
 93 022 passages of the real library embedded by the shipped on-device model
-(384 dims, 2 h 6 min of CPU), against the clustered fixture's N = 100 000 --
-close enough that the recall columns are comparable on N.
+(384 dims), against the clustered fixture's N = 100 000 -- close enough that the
+recall columns are comparable on N. The build took **7 549,9 s wall clock**,
+recorded in `bench/results/0008-real-vectors/build.json`: wall clock and not CPU
+time, since it fetches from the Zotero API and embeds in the same process. It is
+embedding-bound at this geometry — the keyword-only build of the whole
+7 541-item library took 371,6 s.
 
 | pool | fixture | **real** | real, mean-centred | two-stage latency | vs exact scan |
 |---|---|---|---|---|---|
 | 1x (k=30) | 0,256 | **0,592** | 0,607 | — | — |
 | 2x (k=60) | 0,422 | **0,776** | 0,810 | — | — |
-| 4x (k=120) | 0,628 | **0,884** | 0,918 | 35,2 ms | **2,96x faster** |
-| 8x (k=240) | 0,862 | **0,953** | 0,969 | 62,6 ms | **1,66x faster** |
-| 16x (k=480) | 0,998 | 0,986 | 0,991 | 123,6 ms | 0,84x — slower |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,1 ms | **~3,0x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 61,1 ms | **~1,7x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 121,4 ms | ~0,85x — slower |
 
-Exact float32 scan at k=30: **104,0 ms**. On disk: **1 563,2 B per float32
+Exact float32 scan at k=30: **103,3 ms**. The speedups are given to two figures
+because that is what four runs support: they came in at 3,07/2,96/3,00/3,03 for
+the 4x pool and 1,68/1,66/1,69/1,69 for 8x. Quoting a third figure would be
+quoting the run rather than the system. On disk: **1 563,2 B per float32
 vector against 71,1 B per binary code, 22x**; the component accounting closes to
 98,1% of the file.
 
@@ -193,10 +206,10 @@ interquartile ranges.
 
 **Candidate order is also shuffled per pass**, seeded, not merely interleaved: a
 fixed round robin spreads transients but not *position*, so every candidate
-would always follow the same predecessor's cache state. Two full runs, one at
-fixed order and one shuffled, agree within 4% on every latency (3,07x and 2,96x
-at the 4x pool; 1,68x and 1,66x at 8x) while every non-latency figure is
-byte-identical between them -- recall at all five pools, the mean norm, the
+would always follow the same predecessor's cache state. Four full runs, at fixed and at
+shuffled order, agree within 4% on every latency (3,07/2,96/3,00/3,03x at the 4x
+pool; 1,68/1,66/1,69/1,69x at 8x) while every non-latency figure is
+byte-identical across all of them -- recall at all five pools, the mean norm, the
 per-vector sizes. That agreement is the evidence the order effect is immaterial
 here, and it is worth more than either run alone.
 
@@ -214,9 +227,16 @@ number. Contention was. Observation and cause, kept apart.
 This criterion was held open on a specific fear: `vec_quantize_binary`
 thresholds every dimension at zero, real sentence embeddings are not zero-mean,
 and a corpus sitting off the origin would have dimensions where every vector
-agrees -- dead bits carrying no information. Measured: **corpus mean norm 0,406,
-and only 2 of 384 dimensions more than 95% one-sided** (3 above 90%). Centring
-on the corpus mean buys 2 to 4 points of recall, not a rescue.
+agrees -- dead bits carrying no information. Measured: **corpus mean norm 0,406, and only 2 of 384 dimensions more than 95%
+one-sided** (3 above 90%) -- and those two turn out not to count at all. Pairing
+one-sidedness with magnitude shows both are dimensions the model never
+activates: mean |x| of **5,5e-8 and 5,7e-33** against a median dimension's
+3,9e-2. Their sign is float noise, not corpus geometry, and reading them as
+anisotropy would be reading noise as evidence. Among dimensions that carry
+signal, one-sidedness tops out at **0,909**. Centring
+on the corpus mean buys between **0,5 and 3,4 points** of recall depending on the
+pool (+1,6 at 1x, +3,4 at 2x and 4x, +1,6 at 8x, +0,5 at 16x) -- a help, not a
+rescue.
 
 So the risk ran the other way from the one recorded. Real embeddings are
 **substantially easier** to quantize than the clustered fixture at every pool
@@ -230,9 +250,9 @@ than by design.
 **The original ruling holds exactly where it was measured and fails elsewhere.**
 0008 shipped the path off because "the pool that preserves the ranking is slower
 than the scan it replaces". At 16x -- the pool the fixture said was needed --
-that is still true on real data: 123,6 ms against 104,0 ms. But real data does
-not need 16x. It reaches 0,953 at 8x, where the two-stage path is **1,66x
-faster**, and 0,884 at 4x, where it is **2,96x faster**.
+that is still true on real data: 121,4 ms against 103,3 ms. But real data does
+not need 16x. It reaches 0,953 at 8x, where the two-stage path is **~1,7x
+faster**, and 0,884 at 4x, where it is **~3,0x faster**.
 
 So the premise was not wrong, it was *narrow*: it was a statement about the pool
 the fixture required, presented as a statement about the mechanism. The same
@@ -241,7 +261,7 @@ read as a property of the system -- with the sign reversed.
 
 **The default is not flipped here, and that is deliberate.** Turning the
 two-stage path on changes what every user's semantic search returns: it trades
-about 5% of vector recall for 1,66x latency. That is a product decision the
+about 5% of vector recall for ~1,7x latency. That is a product decision the
 author owns, not a consequence of this ticket's own criteria, and nothing about
 the shipped behaviour needed to change for this criterion to close. Both columns
 are maintained on every insert, so it stays a one-line flip.
@@ -257,14 +277,21 @@ earlier version of the driver let each probe retrieve itself, which hid exactly
 the degradation the run existed to detect, and a review caught it before the
 numbers landed.
 
+*The coarse pool is computed here, not by vec0.* The Hamming ranking is
+recomputed in JS so that both regimes see identical inputs, and it does not
+reproduce vec0's pool exactly -- Hamming distances tie in large groups and the
+two break ties differently, giving 7 to 17 of 25 identical members. Recall moves
+by **±0,0008** between them, so the figures stand; the caveat is recorded because
+"the same pool" would have been the wrong word.
+
 *Recall here is against the exact VECTOR ranking, not against relevance.* The
 shipped path fuses keyword and vector with RRF, so 0,95 vector recall does not
 translate into 0,95 of the answer quality a user sees -- in either direction.
 
 ## The thing to try next, recorded rather than ticketed
 
-The first pass is not what costs. At 8x it is 32,2 ms of the 62,6; the other
-32 ms is the **rerank, which issues one prepared-statement round trip per pooled
+The first pass is not what costs. At 8x it is ~32 ms of the ~61; the other
+~29 ms is the **rerank, which issues one prepared-statement round trip per pooled
 rowid** -- 240 of them. Batching that into a single statement over the pooled
 rowids would plausibly put 8x near 35 ms, which would be about **3x faster than
 the exact scan at 0,953 recall** and would change the trade-off materially.
