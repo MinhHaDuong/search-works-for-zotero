@@ -20,6 +20,7 @@ const { values: opt } = parseArgs({
     probes: { type: 'string', default: '100' },
     topk: { type: 'string', default: '30' },
     seed: { type: 'string', default: '20260822' },
+    reps: { type: 'string', default: '100' },
   },
 });
 if (!opt.db || !opt.output) {
@@ -132,11 +133,6 @@ const deadBits = bias.filter((b) => b > 0.95).length;
 const nearDead = bias.filter((b) => b > 0.9).length;
 
 // ---- exact and binary rankings, computed here so both see identical inputs ------------
-function cosine(a, b) {
-  let d = 0, na = 0, nb = 0;
-  for (let i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
-  return d / (Math.sqrt(na) * Math.sqrt(nb) || 1);
-}
 /** Sign bits, the way vec_quantize_binary does it: threshold at zero. */
 function bits(v, centre) {
   const out = new Uint8Array(v.length >> 3);
@@ -262,46 +258,103 @@ const recall = POOLS.map((pool) => ({
 
 // ---- latency, through the shipped SQL ------------------------------------------------
 const toBlob = (v) => Buffer.from(new Float32Array(v).buffer);
+
+// The three statements below are `Fts5PassageStore`'s own, copied verbatim rather than
+// paraphrased. An earlier version dropped the `JOIN passage_meta` from the exact search
+// and the rerank, on the reasoning that a join on an INTEGER PRIMARY KEY is free. Even if
+// it is nearly free, dropping it was not symmetric: the exact path pays ONE join over its
+// k rows, while the two-stage path pays one per pooled rowid, so the omission scaled with
+// the pool on exactly the arm under test and flattered it. A review seat caught it.
+// Measuring a paraphrase of the shipped query measures the paraphrase.
 const exactStmt = db.prepare(
-  'SELECT v.rowid FROM passage_vectors v WHERE v.embedding MATCH ? AND v.k = ? ORDER BY v.distance',
+  'SELECT m.id AS id, 1.0 - v.distance AS score' +
+    ' FROM passage_vectors v JOIN passage_meta m ON m.rowid = v.rowid' +
+    ' WHERE v.embedding MATCH ? AND v.k = ? ORDER BY v.distance',
 );
 const binStmt = db.prepare(
-  'SELECT v.rowid FROM passage_vectors_bin v WHERE v.embedding MATCH vec_quantize_binary(?) AND v.k = ? ORDER BY v.distance',
+  'SELECT v.rowid AS rowid FROM passage_vectors_bin v' +
+    ' WHERE v.embedding MATCH vec_quantize_binary(?) AND v.k = ? ORDER BY v.distance',
 );
-function timeIt(fn, reps = 20) {
-  fn();
-  const t = [];
-  for (let i = 0; i < reps; i++) { const s = performance.now(); fn(); t.push(performance.now() - s); }
-  t.sort((a, b) => a - b);
-  return { median_ms: +t[t.length >> 1].toFixed(2), min_ms: +t[0].toFixed(2), max_ms: +t[t.length - 1].toFixed(2) };
+/**
+ * Time several candidates by INTERLEAVING their repetitions, not by running each in a
+ * block.
+ *
+ * The first version ran 20 consecutive reps per candidate, and its spreads came back at
+ * 25-137% of the median — wide enough that the ordering it reported was not supported by
+ * it. Consecutive blocks are the reason: any transient on this machine (a page-cache
+ * eviction, another process waking) lands wholly inside whichever candidate happened to
+ * be running, so it appears as a property of that candidate rather than as noise. Round
+ * robin spreads every transient across all of them, which is what makes the *comparison*
+ * meaningful even while the absolute numbers stay noisy.
+ *
+ * Reported as median with an interquartile range, plus the minimum. Min is the closest
+ * thing to an uncontended reading and is the honest "how fast can this go"; the IQR is
+ * what says whether two candidates can be ordered at all. Max is dropped — on a shared
+ * machine it measures the worst thing that happened to the OS, not the query.
+ */
+function interleavedTimings(candidates, reps) {
+  const names = Object.keys(candidates);
+  const samples = Object.fromEntries(names.map((k) => [k, []]));
+  for (const k of names) candidates[k](); // warm every one before any is timed
+  for (let r = 0; r < reps; r++) {
+    for (const k of names) {
+      const t0 = performance.now();
+      candidates[k]();
+      samples[k].push(performance.now() - t0);
+    }
+  }
+  const q = (a, p) => a[Math.min(a.length - 1, Math.floor(a.length * p))];
+  return Object.fromEntries(
+    names.map((k) => {
+      const a = samples[k].sort((x, y) => x - y);
+      return [
+        k,
+        {
+          median_ms: +q(a, 0.5).toFixed(2),
+          min_ms: +a[0].toFixed(2),
+          p25_ms: +q(a, 0.25).toFixed(2),
+          p75_ms: +q(a, 0.75).toFixed(2),
+          reps: a.length,
+        },
+      ];
+    }),
+  );
 }
+
 const q = toBlob(vecs[probeIdx[0]]);
 // The rerank the shipped two-stage path performs: one exact cosine per pooled rowid,
 // through the same prepared statement `Fts5PassageStore.vectorSearch` uses.
 const rerankStmt = db.prepare(
-  'SELECT 1.0 - vec_distance_cosine(v.embedding, ?) AS score FROM passage_vectors v WHERE v.rowid = ?',
+  'SELECT m.id AS id, 1.0 - vec_distance_cosine(v.embedding, ?) AS score' +
+    ' FROM passage_vectors v JOIN passage_meta m ON m.rowid = v.rowid WHERE v.rowid = ?',
 );
 /** End to end: binary first pass at `pool`, then exact rerank of what it returned. */
 const twoStage = (pool) => () => {
   const ids = binStmt.all(q, pool);
   for (const r of ids) rerankStmt.get(q, r.rowid);
 };
-const latency = {
-  // The baseline the two-stage path has to beat.
-  exact_k30: timeIt(() => exactStmt.all(q, 30)),
-  // First pass alone, to show where the cost sits.
-  binary_first_pass_k30: timeIt(() => binStmt.all(q, 30)),
-  binary_first_pass_k120: timeIt(() => binStmt.all(q, 120)),
-  binary_first_pass_k240: timeIt(() => binStmt.all(q, 240)),
-  binary_first_pass_k480: timeIt(() => binStmt.all(q, 480)),
-  binary_first_pass_k960: timeIt(() => binStmt.all(q, 960)),
-  // What a caller actually waits for, at the pools whose recall is measured above.
-  // Measured rather than interpolated: this chantier's recurring mistake is reading a
-  // curve off two of its points, and the operating point that matters is 8x.
-  two_stage_pool_4x: timeIt(twoStage(TOPK * 4)),
-  two_stage_pool_8x: timeIt(twoStage(TOPK * 8)),
-  two_stage_pool_16x: timeIt(twoStage(TOPK * 16)),
-};
+const latency = interleavedTimings(
+  {
+    // The baseline the two-stage path has to beat.
+    exact_k30: () => exactStmt.all(q, 30),
+    // First pass alone, to show where the cost sits.
+    binary_first_pass_k30: () => binStmt.all(q, 30),
+    binary_first_pass_k120: () => binStmt.all(q, 120),
+    binary_first_pass_k240: () => binStmt.all(q, 240),
+    binary_first_pass_k480: () => binStmt.all(q, 480),
+    // What a caller actually waits for, at the pools whose recall is measured above.
+    // Measured rather than interpolated: this chantier's recurring mistake is reading a
+    // curve off two of its points, and the operating point that matters is 8x.
+    two_stage_pool_4x: twoStage(TOPK * 4),
+    two_stage_pool_8x: twoStage(TOPK * 8),
+    two_stage_pool_16x: twoStage(TOPK * 16),
+  },
+  Number(opt.reps),
+);
+
+/** Ordered only where the interquartile ranges do not overlap. */
+const separated = (a, b) =>
+  latency[a].p75_ms < latency[b].p25_ms || latency[b].p75_ms < latency[a].p25_ms;
 
 const out = {
   probe: 'ticket 0008 — binary quantization on the REAL vector index',
@@ -321,6 +374,20 @@ const out = {
   },
   recall,
   latency_ms: latency,
+  latency_method:
+    'Candidates are timed round robin, one repetition each per pass, so a transient on ' +
+    'the machine is spread across all of them instead of landing inside one. Median with ' +
+    'p25/p75; min is the closest reading to uncontended. Two candidates are only ordered ' +
+    'where their interquartile ranges do not overlap — see latency_ordering.',
+  latency_ordering: Object.fromEntries(
+    ['two_stage_pool_4x', 'two_stage_pool_8x', 'two_stage_pool_16x'].map((k) => [
+      k,
+      {
+        speedup_vs_exact_median: +(latency.exact_k30.median_ms / latency[k].median_ms).toFixed(2),
+        separated_from_exact: separated(k, 'exact_k30'),
+      },
+    ]),
+  ),
   probe_design: {
     note:
       'Probes are real indexed passages, leave-one-out: a probe never retrieves itself. ' +

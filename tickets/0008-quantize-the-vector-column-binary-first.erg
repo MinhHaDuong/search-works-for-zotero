@@ -173,13 +173,32 @@ close enough that the recall columns are comparable on N.
 |---|---|---|---|---|---|
 | 1x (k=30) | 0,256 | **0,592** | 0,607 | — | — |
 | 2x (k=60) | 0,422 | **0,776** | 0,810 | — | — |
-| 4x (k=120) | 0,628 | **0,884** | 0,918 | 35,5 ms | **2,93x faster** |
-| 8x (k=240) | 0,862 | **0,953** | 0,969 | 63,0 ms | **1,65x faster** |
-| 16x (k=480) | 0,998 | 0,986 | 0,991 | 124,4 ms | 0,84x — slower |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,6 ms | **3,07x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 63,1 ms | **1,68x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 125,6 ms | 0,84x — slower |
 
-Exact float32 scan at k=30: **104,2 ms**. On disk: **1 563,2 B per float32
+Exact float32 scan at k=30: **106,1 ms**. On disk: **1 563,2 B per float32
 vector against 71,1 B per binary code, 22x**; the component accounting closes to
 98,1% of the file.
+
+**How those latencies were made trustworthy, because the first attempt was
+not.** Timing each candidate in a block of consecutive repetitions produced
+interquartile spreads of **25 to 137%** of the median -- wide enough that no
+ordering could be read off them. Blocks are the reason: a transient on the
+machine lands wholly inside whichever candidate is running, so it presents as a
+property of that candidate rather than as noise. Timed **round robin**, one
+repetition each per pass over 100 passes, the spreads fell to **4-11%**, and all
+three rows above are separated from the exact scan by non-overlapping
+interquartile ranges.
+
+**One inference retracted along the way, and it is the more useful half.** The
+block-timed run put 16x at 206 ms, and an explanation was to hand: a review had
+just found that the bench statements omitted the `JOIN passage_meta` the shipped
+rerank performs *per pooled rowid*, which would cost more at larger pools. It
+fit. Fixing the statements and interleaving the timing returned 16x to 125,6 ms,
+essentially where it had been. So the missing join was a real fidelity defect in
+the harness -- worth fixing, and fixed -- and it was **not** the cause of that
+number. Contention was. Observation and cause, kept apart.
 
 ## The anisotropy risk did not materialise, and the fixture was the pessimist
 
@@ -202,9 +221,9 @@ than by design.
 **The original ruling holds exactly where it was measured and fails elsewhere.**
 0008 shipped the path off because "the pool that preserves the ranking is slower
 than the scan it replaces". At 16x -- the pool the fixture said was needed --
-that is still true on real data: 124,4 ms against 104,2 ms. But real data does
-not need 16x. It reaches 0,953 at 8x, where the two-stage path is **1,65x
-faster**, and 0,884 at 4x, where it is **2,93x faster**.
+that is still true on real data: 125,6 ms against 106,1 ms. But real data does
+not need 16x. It reaches 0,953 at 8x, where the two-stage path is **1,68x
+faster**, and 0,884 at 4x, where it is **3,07x faster**.
 
 So the premise was not wrong, it was *narrow*: it was a statement about the pool
 the fixture required, presented as a statement about the mechanism. The same
@@ -213,7 +232,7 @@ read as a property of the system -- with the sign reversed.
 
 **The default is not flipped here, and that is deliberate.** Turning the
 two-stage path on changes what every user's semantic search returns: it trades
-about 5% of vector recall for 1,65x latency. That is a product decision the
+about 5% of vector recall for 1,68x latency. That is a product decision the
 author owns, not a consequence of this ticket's own criteria, and nothing about
 the shipped behaviour needed to change for this criterion to close. Both columns
 are maintained on every insert, so it stays a one-line flip.
@@ -235,7 +254,7 @@ translate into 0,95 of the answer quality a user sees -- in either direction.
 
 ## The thing to try next, recorded rather than ticketed
 
-The first pass is not what costs. At 8x it is 31,0 ms of the 63,0; the other
+The first pass is not what costs. At 8x it is 31,3 ms of the 63,1; the other
 32 ms is the **rerank, which issues one prepared-statement round trip per pooled
 rowid** -- 240 of them. Batching that into a single statement over the pooled
 rowids would plausibly put 8x near 35 ms, which would be about **3x faster than
