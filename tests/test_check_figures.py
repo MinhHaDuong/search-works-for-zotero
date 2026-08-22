@@ -110,7 +110,7 @@ def test_a_corrupted_slot_fails(tmp_path, monkeypatch):
     doc = tmp_path / "DOC.md"
 
     monkeypatch.setattr(cf, "REPO", tmp_path)
-    monkeypatch.setattr(cf, "PROSE", {"doc": "DOC.md"})
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
     monkeypatch.setattr(cf, "FIGURES", [("a.json", "norm", 3, {"doc": "mean norm {}, and"})])
 
     doc.write_text("Measured: mean norm 0,406, and only 2 of 384.\n")
@@ -131,7 +131,7 @@ def test_a_stale_duplicate_elsewhere_cannot_mask_an_anchored_figure(tmp_path, mo
     doc = tmp_path / "DOC.md"
 
     monkeypatch.setattr(cf, "REPO", tmp_path)
-    monkeypatch.setattr(cf, "PROSE", {"doc": "DOC.md"})
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
     monkeypatch.setattr(cf, "FIGURES", [("a.json", "ms", 1, {"doc": "| 0,969 | {} ms |"})])
 
     # The right value in the slot, and a stale copy of an older value further down.
@@ -146,7 +146,7 @@ def test_a_stale_duplicate_elsewhere_cannot_mask_an_anchored_figure(tmp_path, mo
 def test_a_missing_artifact_is_reported_rather_than_passing(tmp_path, monkeypatch):
     # A check whose all-clear is indistinguishable from "I could not look" is not a check.
     monkeypatch.setattr(cf, "REPO", tmp_path)
-    monkeypatch.setattr(cf, "PROSE", {"doc": "DOC.md"})
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
     monkeypatch.setattr(cf, "FIGURES", [("nope.json", "k", 1, {"doc": "x {} y"})])
     (tmp_path / "DOC.md").write_text("nothing here\n")
     assert cf.main_for_test(str(tmp_path)) == 1
@@ -157,3 +157,37 @@ def test_a_missing_artifact_is_reported_rather_than_passing(tmp_path, monkeypatc
 def test_the_repo_declarations_are_all_current():
     """The live check, so a stale figure fails the suite and not only a manual run."""
     assert cf.main_for_test(str(REPO / "bench" / "results")) == 0
+
+
+def test_a_ticket_is_found_whether_open_or_archived(tmp_path, monkeypatch):
+    """Closing a ticket moves it to `closed/`; its declarations must follow it.
+
+    The first version listed the two paths as separate keys and skipped whichever did not
+    exist, so archiving ticket 0008 dropped 23 checks and the run still reported 0 stale —
+    at exactly the moment the document became permanent.
+    """
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"n": 42}))
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"t": ["tickets/x.erg", "tickets/closed/x.erg"]})
+    monkeypatch.setattr(cf, "FIGURES", [("a.json", "n", 0, {"t": "holds {} rows"})])
+
+    (tmp_path / "tickets" / "closed").mkdir(parents=True)
+    open_path = tmp_path / "tickets" / "x.erg"
+    closed_path = tmp_path / "tickets" / "closed" / "x.erg"
+
+    open_path.write_text("it holds 42 rows\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0
+
+    # Archived, still correct: found at its new path rather than skipped.
+    open_path.rename(closed_path)
+    assert cf.main_for_test(str(artifact.parent)) == 0
+
+    # Archived and stale: must fail, not silently vanish from the count.
+    closed_path.write_text("it holds 41 rows\n")
+    assert cf.main_for_test(str(artifact.parent)) == 1
+
+    # Gone entirely: reported, never skipped.
+    closed_path.unlink()
+    assert cf.main_for_test(str(artifact.parent)) == 1

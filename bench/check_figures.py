@@ -43,14 +43,34 @@ log = logging.getLogger("figures")
 REPO = Path(__file__).resolve().parent.parent
 
 #: Files that must carry a figure, by short name.
+#: A ticket is named by its FILENAME, not its directory, because closing one moves it from
+#: `tickets/` to `tickets/closed/`. The first version listed both paths as separate keys
+#: and skipped whichever did not exist — so archiving ticket 0008 silently dropped its 23
+#: declarations, coverage fell from 68 pairs to 45, and nothing failed. A check whose
+#: all-clear is indistinguishable from "I could not look" is not a check, and a guard
+#: against stale figures that quietly stops guarding the moment a ticket closes is the
+#: worst version of it: the document becomes permanent at exactly that moment.
 PROSE = {
-    "state": "STATE.md",
-    "t0008": "tickets/0008-quantize-the-vector-column-binary-first.erg",
-    "t0008c": "tickets/closed/0008-quantize-the-vector-column-binary-first.erg",
-    "t0001": "tickets/0001-replace-the-resident-js-index-with-sqlit.erg",
-    "t0001c": "tickets/closed/0001-replace-the-resident-js-index-with-sqlit.erg",
-    "readme": "README.md",
+    "state": ["STATE.md"],
+    "readme": ["README.md"],
+    "t0008": [
+        "tickets/0008-quantize-the-vector-column-binary-first.erg",
+        "tickets/closed/0008-quantize-the-vector-column-binary-first.erg",
+    ],
+    "t0001": [
+        "tickets/0001-replace-the-resident-js-index-with-sqlit.erg",
+        "tickets/closed/0001-replace-the-resident-js-index-with-sqlit.erg",
+    ],
 }
+
+
+def resolve(key: str) -> Path | None:
+    """The one path that exists for this document, or None if it has genuinely vanished."""
+    for candidate in PROSE[key]:
+        path = REPO / candidate
+        if path.exists():
+            return path
+    return None
 
 #: Every character that has been used as a thousands separator in these documents.
 #: ASCII space is what they actually contain; the others are here because a narrow
@@ -284,16 +304,22 @@ def run(results_dir: str, verbose: bool = False, listing: bool = False) -> int:
         if listing:
             log.info("%-46s %-58s %s", artifact, path, display(value, places, pct))
         for key, anchor in prose_keys.items():
-            doc = REPO / PROSE[key]
-            if not doc.exists():
-                continue  # a ticket archived under closed/ is checked at its closed path
+            doc = resolve(key)
+            if doc is None:
+                # Reported, never skipped. Skipping is how 23 checks disappeared when a
+                # ticket was archived and the run still said "0 stale".
+                failures.append(
+                    f"MISSING DOCUMENT {key}: none of {PROSE[key]} exists "
+                    f"(declared for {artifact}:{path})"
+                )
+                continue
             if key not in text:
                 text[key] = despace(doc.read_text())
             checked += 1
             if anchor is None:
                 ok = want in text[key]
                 where = "anywhere in"
-                unanchored.append(f"{artifact}:{path} in {PROSE[key]}")
+                unanchored.append(f"{artifact}:{path} in {doc.relative_to(REPO)}")
             else:
                 anchored += 1
                 # Positional, and the slot's content compared rather than merely found.
@@ -320,7 +346,7 @@ def run(results_dir: str, verbose: bool = False, listing: bool = False) -> int:
             if not ok:
                 failures.append(
                     f"STALE  {artifact}:{path} = {display(value, places, pct)} not found "
-                    f"{where} {PROSE[key]}"
+                    f"{where} {doc.relative_to(REPO)}"
                 )
 
     if listing:
