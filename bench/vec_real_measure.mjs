@@ -533,8 +533,9 @@ const out = {
     cpus: cpus().length,
     totalmem_gib: +(totalmem() / 1024 ** 3).toFixed(1),
     node_options: process.env.NODE_OPTIONS ?? '',
-  // Passed in rather than read from a clock: Date.now() at write time is the honest
-  // stamp for when the run happened.
+    // When this artifact was written, which is the only timestamp the driver can
+    // honestly supply: it is not the build's time, and it is not the machine's time at
+    // any earlier step.
     finished_utc: new Date().toISOString(),
   },
   corpus: { vectors: n, passages, dim, probes: PROBES, topk: TOPK, seed: opt.seed },
@@ -635,8 +636,9 @@ db.close();
 
 console.log(
   `${n} real vectors, dim ${dim}\n` +
-    `mean norm ${out.anisotropy.corpus_mean_norm}; ${deadBits} dims >95% one-sided but all dead ` +
-    `(worst LIVE dimension ${worstLive.one_sided})\n` +
+    `mean norm ${out.anisotropy.corpus_mean_norm}; ${deadBits} dims >95% one-sided, ` +
+    `of which ${oneSidedButDead.length} carry no signal; worst LIVE dimension ` +
+    `${worstLive.one_sided}\n` +
     recall.map((r) => `  pool ${r.multiple}x: zero-threshold ${r.recall_threshold_zero}, mean-centred ${r.recall_mean_centred}`).join('\n') +
     `\nexact k=30 ${latency.exact_k30.median_ms} ms  |  two-stage: ` +
     `4x ${latency.two_stage_pool_4x.median_ms} ms, 8x ${latency.two_stage_pool_8x.median_ms} ms, ` +

@@ -202,8 +202,10 @@ interquartile spreads of **25 to 137%** of the median -- wide enough that no
 ordering could be read off them. Blocks are the reason: a transient on the
 machine lands wholly inside whichever candidate is running, so it presents as a
 property of that candidate rather than as noise. Timed **round robin**, one
-repetition each per pass over 100 passes, the spreads fell to **4-11%**, and all
-three rows above are separated from the exact scan by non-overlapping
+repetition each per pass over 100 passes, the spreads fell to **1,4-9,9%**
+across all nine candidates and **3,2-9,4%** across the three two-stage rows --
+both read out of the artifact rather than recalled -- and all three rows above
+are separated from the exact scan by non-overlapping
 interquartile ranges.
 
 **Candidate order is also shuffled per pass**, seeded, not merely interleaved: a
@@ -271,7 +273,7 @@ are maintained on every insert, so it stays a one-line flip.
 **Two caveats on the recall figures, both of which make them optimistic.**
 
 *Probes are passages, and passages neighbour their own siblings.* Chunk overlap
-is 150 characters, so **52% of a probe's exact top-30 comes from its own item**.
+is 150 characters, so **52,1% of a probe's exact top-30 comes from its own item**.
 That is the corpus rather than an artifact -- filtering it would measure a
 corpus nobody has -- but it makes the retrieval task easier than a real query's,
 and the recall column should be read next to it. Probes are leave-one-out: an
