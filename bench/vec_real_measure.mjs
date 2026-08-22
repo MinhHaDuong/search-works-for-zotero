@@ -27,8 +27,25 @@ if (!opt.db || !opt.output) {
   console.error('usage: node bench/vec_real_measure.mjs --db <search-index.sqlite> --output <f.json>');
   process.exit(2);
 }
-const TOPK = Number(opt.topk);
-const PROBES = Number(opt.probes);
+/**
+ * Validate before anything expensive runs.
+ *
+ * The recall computation costs about two minutes on this corpus, and it happens before
+ * the first timing. A bad `--reps` used to surface as a TypeError from the quantile
+ * arithmetic *after* that was already paid, on an empty sample array. Cheap to check, and
+ * the failure it prevents is a wasted run rather than a wrong number.
+ */
+function positiveInt(name, raw) {
+  const v = Number(raw);
+  if (!Number.isInteger(v) || v < 1) {
+    console.error(`--${name} must be a positive integer, got ${JSON.stringify(raw)}`);
+    process.exit(2);
+  }
+  return v;
+}
+const TOPK = positiveInt('topk', opt.topk);
+const PROBES = positiveInt('probes', opt.probes);
+const REPS = positiveInt('reps', opt.reps);
 
 function mulberry32(a) {
   return function () {
@@ -297,7 +314,18 @@ function interleavedTimings(candidates, reps) {
   const samples = Object.fromEntries(names.map((k) => [k, []]));
   for (const k of names) candidates[k](); // warm every one before any is timed
   for (let r = 0; r < reps; r++) {
-    for (const k of names) {
+    // Order is shuffled per pass, not just interleaved. Round robin at a FIXED order
+    // spreads transients but not position: every candidate would always see the same
+    // predecessor's cache state, and the first would always follow the largest pool.
+    // That residual cannot explain a 3x, but an order effect is a defect class this
+    // chantier has already been bitten by once (0013), and the guard belongs in the
+    // harness rather than in a note saying it probably does not matter.
+    const order = names.slice();
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    for (const k of order) {
       const t0 = performance.now();
       candidates[k]();
       samples[k].push(performance.now() - t0);
@@ -342,6 +370,9 @@ const latency = interleavedTimings(
     binary_first_pass_k120: () => binStmt.all(q, 120),
     binary_first_pass_k240: () => binStmt.all(q, 240),
     binary_first_pass_k480: () => binStmt.all(q, 480),
+    // Kept because it is the point where vec0's superlinear k-best cost is unmistakable,
+    // which is the observation 0008 was filed on.
+    binary_first_pass_k960: () => binStmt.all(q, 960),
     // What a caller actually waits for, at the pools whose recall is measured above.
     // Measured rather than interpolated: this chantier's recurring mistake is reading a
     // curve off two of its points, and the operating point that matters is 8x.
@@ -349,7 +380,7 @@ const latency = interleavedTimings(
     two_stage_pool_8x: twoStage(TOPK * 8),
     two_stage_pool_16x: twoStage(TOPK * 16),
   },
-  Number(opt.reps),
+  REPS,
 );
 
 /** Ordered only where the interquartile ranges do not overlap. */

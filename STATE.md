@@ -302,11 +302,11 @@ the exact scan it replaced, so the two-stage path shipped **off by default**.
 criterion that stayed open** (`bench/results/0008-real-vectors/`, driver
 `bench/vec_real_measure.mjs`):
 
-| pool | fixture | **real** | centred | two-stage | vs exact (106,1 ms) |
+| pool | fixture | **real** | centred | two-stage | vs exact (104,0 ms) |
 |---|---|---|---|---|---|
-| 4x (k=120) | 0,628 | **0,884** | 0,918 | 34,6 ms | **3,07x faster** |
-| 8x (k=240) | 0,862 | **0,953** | 0,969 | 63,1 ms | **1,68x faster** |
-| 16x (k=480) | 0,998 | 0,986 | 0,991 | 125,6 ms | 0,84x — slower |
+| 4x (k=120) | 0,628 | **0,884** | 0,918 | 35,2 ms | **2,96x faster** |
+| 8x (k=240) | 0,862 | **0,953** | 0,969 | 62,6 ms | **1,66x faster** |
+| 16x (k=480) | 0,998 | 0,986 | 0,991 | 123,6 ms | 0,84x — slower |
 
 On disk: **1 563,2 B per float32 vector against 71,1 B per binary code, 22x**.
 
@@ -325,12 +325,12 @@ fixture was a harder problem than real data, not a conservative stand-in for it.
 
 **So the original ruling was narrow rather than wrong.** At 16x, the pool the
 fixture demanded, the two-stage path is still slower on real data. Real data
-does not need 16x: it reaches 0,953 at 8x, where the path is 1,68x faster. The
+does not need 16x: it reaches 0,953 at 8x, where the path is 1,66x faster. The
 same mistake this chantier keeps paying for — a ratio at one operating point
 read as a property of the system — with the sign reversed.
 
 **Nothing shipped has changed and the default is not flipped here.** Turning the
-path on trades about 5% of vector recall for 1,68x latency, which is a product
+path on trades about 5% of vector recall for 1,66x latency, which is a product
 decision the author owns. Both columns are maintained on every insert, so it
 stays a one-line flip.
 
@@ -340,7 +340,7 @@ the task is easier than a real query's; and recall is against the exact *vector*
 ranking, where the shipped path fuses keyword and vector with RRF.
 
 One observation for whoever revisits it: the first pass is not what costs. At 8x
-it is 31,3 ms of the 63,1, and the rest is the rerank issuing one round trip per
+it is 32,2 ms of the 62,6, and the rest is the rerank issuing one round trip per
 pooled rowid. Batching that would put 8x near 35 ms — about 3x faster than exact
 at 0,953 recall.
 
