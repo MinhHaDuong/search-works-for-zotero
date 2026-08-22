@@ -8,9 +8,8 @@
   "host": "doudou",
   "cpus": 8,
   "totalmem_gib": 23.4,
-  "loadavg_1min": 0.46,
   "node_options": "",
-  "finished_utc": "2026-08-22T00:17:17.454Z"
+  "finished_utc": "2026-08-22T00:53:02.785Z"
  },
  "corpus": {
   "vectors": 93022,
@@ -49,8 +48,9 @@
    "passages_config"
   ],
   "meta_bytes": 11079680,
-  "accounted_bytes": 336461824,
-  "unaccounted_bytes": 6610944,
+  "index_bytes": 6602752,
+  "accounted_bytes": 343064576,
+  "unaccounted_bytes": 8192,
   "float32_bytes_per_vector": 1563.2,
   "binary_bytes_per_vector": 71.1,
   "float32_over_binary": 22
@@ -61,7 +61,7 @@
   "note_on_scale": "Embeddings are unit-normalised, so a mean norm near 1 would mean the corpus barely spreads at all; near 0 means it is centred.",
   "dimensions_over_95pct_one_sided": 2,
   "dimensions_over_90pct_one_sided": 3,
-  "most_one_sided_dimensions": [
+  "highest_one_sidedness_values": [
    1,
    0.9689,
    0.9089,
@@ -94,7 +94,7 @@
    "one_sided": 0.9089,
    "mean_abs": 0.0728
   },
-  "reading": "Every dimension above 95% one-sided is one the model never activates — its mean magnitude is a millionth or less of the median dimension, so its sign is float noise rather than corpus geometry. Among dimensions that carry signal, one-sidedness tops out well below that. The corpus is not meaningfully anisotropic for a sign-threshold quantizer, which is the risk 0008 was held open for."
+  "reading": "On THIS corpus every dimension above 95% one-sided is one the model never activates — mean magnitude a millionth or less of the median dimension, so its sign is float noise rather than corpus geometry — and among dimensions that carry signal one-sidedness tops out at most_one_sided_LIVE_dimension. Nothing forces that coincidence: a corpus could be genuinely one-sided in a live dimension, and the two fields are reported separately so a future run shows it rather than inheriting this sentence. Here, a sign-threshold quantizer has nothing to fear, which is the risk 0008 was held open for."
  },
  "recall": [
   {
@@ -128,70 +128,406 @@
    "recall_mean_centred": 0.991
   }
  ],
+ "coarse_pool_fidelity": {
+  "question": "The recall column takes its coarse pool from a JS Hamming ranking so both regimes see identical inputs. That is a reimplementation of what vec0 does, and Hamming distances tie in large groups, so the two need not select the same pool. This is the check on the word \"same\".",
+  "recall_via_vec0_pool": [
+   {
+    "multiple": 1,
+    "via_js_pool": 0.5917,
+    "via_vec0_pool": 0.5923
+   },
+   {
+    "multiple": 2,
+    "via_js_pool": 0.7763,
+    "via_vec0_pool": 0.777
+   },
+   {
+    "multiple": 4,
+    "via_js_pool": 0.884,
+    "via_vec0_pool": 0.8853
+   },
+   {
+    "multiple": 8,
+    "via_js_pool": 0.9527,
+    "via_vec0_pool": 0.9523
+   },
+   {
+    "multiple": 16,
+    "via_js_pool": 0.986,
+    "via_vec0_pool": 0.986
+   }
+  ]
+ },
  "latency_ms": {
   "exact_k30": {
-   "median_ms": 103.33,
-   "min_ms": 99.28,
-   "p25_ms": 101.79,
-   "p75_ms": 104.31,
+   "median_ms": 101.2,
+   "min_ms": 97.73,
+   "p25_ms": 99.84,
+   "p75_ms": 102.67,
    "reps": 100
   },
   "binary_first_pass_k30": {
-   "median_ms": 6.93,
-   "min_ms": 6.41,
-   "p25_ms": 6.58,
-   "p75_ms": 7.21,
+   "median_ms": 6.68,
+   "min_ms": 6.32,
+   "p25_ms": 6.53,
+   "p75_ms": 7.06,
    "reps": 100
   },
   "binary_first_pass_k120": {
-   "median_ms": 16.01,
+   "median_ms": 15.6,
    "min_ms": 14.98,
-   "p25_ms": 15.2,
-   "p75_ms": 16.57,
+   "p25_ms": 15.29,
+   "p75_ms": 16.38,
    "reps": 100
   },
   "binary_first_pass_k240": {
-   "median_ms": 30.76,
-   "min_ms": 29.59,
-   "p25_ms": 29.93,
-   "p75_ms": 31.99,
+   "median_ms": 30.31,
+   "min_ms": 29.79,
+   "p25_ms": 30.04,
+   "p75_ms": 30.81,
    "reps": 100
   },
   "binary_first_pass_k480": {
-   "median_ms": 70.54,
-   "min_ms": 69.03,
-   "p25_ms": 69.9,
-   "p75_ms": 72.51,
+   "median_ms": 70.7,
+   "min_ms": 69.58,
+   "p25_ms": 70.07,
+   "p75_ms": 72.01,
    "reps": 100
   },
   "binary_first_pass_k960": {
-   "median_ms": 179.67,
-   "min_ms": 176.47,
-   "p25_ms": 177.72,
-   "p75_ms": 181.3,
+   "median_ms": 179.39,
+   "min_ms": 178.2,
+   "p25_ms": 178.84,
+   "p75_ms": 181.42,
    "reps": 100
   },
   "two_stage_pool_4x": {
-   "median_ms": 34.12,
-   "min_ms": 32.17,
-   "p25_ms": 32.97,
-   "p75_ms": 35.72,
+   "median_ms": 33.43,
+   "min_ms": 32.33,
+   "p25_ms": 32.7,
+   "p75_ms": 34.49,
    "reps": 100
   },
   "two_stage_pool_8x": {
-   "median_ms": 61.08,
-   "min_ms": 58.25,
-   "p25_ms": 59.39,
-   "p75_ms": 62.36,
+   "median_ms": 59.85,
+   "min_ms": 58.33,
+   "p25_ms": 59.01,
+   "p75_ms": 61.7,
    "reps": 100
   },
   "two_stage_pool_16x": {
-   "median_ms": 121.35,
-   "min_ms": 117.03,
-   "p25_ms": 119.61,
-   "p75_ms": 124.45,
+   "median_ms": 119.18,
+   "min_ms": 116.82,
+   "p25_ms": 117.76,
+   "p75_ms": 121.59,
    "reps": 100
   }
+ },
+ "latency_runs": [
+  {
+   "loadavg_1min_at_start": 0.78,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 103.45,
+     "min_ms": 99.41,
+     "p25_ms": 102.42,
+     "p75_ms": 104.83,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 7,
+     "min_ms": 6.38,
+     "p25_ms": 6.55,
+     "p75_ms": 7.24,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 16.02,
+     "min_ms": 15.11,
+     "p25_ms": 15.33,
+     "p75_ms": 16.85,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 31.55,
+     "min_ms": 29.94,
+     "p25_ms": 30.37,
+     "p75_ms": 32.43,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 71.97,
+     "min_ms": 69.69,
+     "p25_ms": 70.64,
+     "p75_ms": 73.52,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 180.98,
+     "min_ms": 178.41,
+     "p25_ms": 179.62,
+     "p75_ms": 183.68,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 35.05,
+     "min_ms": 32.57,
+     "p25_ms": 33.4,
+     "p75_ms": 36.09,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 62.06,
+     "min_ms": 58.61,
+     "p25_ms": 60.19,
+     "p75_ms": 63.89,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 123.16,
+     "min_ms": 118.26,
+     "p25_ms": 120.71,
+     "p75_ms": 125.13,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 0.93,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 103.15,
+     "min_ms": 99.34,
+     "p25_ms": 101.65,
+     "p75_ms": 104.65,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.94,
+     "min_ms": 6.28,
+     "p25_ms": 6.57,
+     "p75_ms": 7.21,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 16.04,
+     "min_ms": 15.03,
+     "p25_ms": 15.4,
+     "p75_ms": 16.71,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 31.04,
+     "min_ms": 29.94,
+     "p25_ms": 30.2,
+     "p75_ms": 32.27,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 71.5,
+     "min_ms": 69.82,
+     "p25_ms": 70.38,
+     "p75_ms": 72.43,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 182.24,
+     "min_ms": 178.54,
+     "p25_ms": 179.87,
+     "p75_ms": 184.97,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 34.11,
+     "min_ms": 32.55,
+     "p25_ms": 33.01,
+     "p75_ms": 35.52,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 62.74,
+     "min_ms": 58.65,
+     "p25_ms": 60.88,
+     "p75_ms": 64.21,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 122.77,
+     "min_ms": 118.08,
+     "p25_ms": 120.82,
+     "p75_ms": 125.25,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 1.15,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 103.33,
+     "min_ms": 99.74,
+     "p25_ms": 102.14,
+     "p75_ms": 104.74,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.88,
+     "min_ms": 6.28,
+     "p25_ms": 6.57,
+     "p75_ms": 7.21,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 16.4,
+     "min_ms": 15.08,
+     "p25_ms": 15.41,
+     "p75_ms": 16.96,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 30.97,
+     "min_ms": 29.76,
+     "p25_ms": 30.26,
+     "p75_ms": 32.52,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 71.46,
+     "min_ms": 69.85,
+     "p25_ms": 70.7,
+     "p75_ms": 72.9,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 181.73,
+     "min_ms": 178.61,
+     "p25_ms": 179.7,
+     "p75_ms": 183.65,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 35.33,
+     "min_ms": 32.51,
+     "p25_ms": 33.31,
+     "p75_ms": 36.63,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 61.9,
+     "min_ms": 58.93,
+     "p25_ms": 60.31,
+     "p75_ms": 63.87,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 121.99,
+     "min_ms": 118.33,
+     "p25_ms": 120.36,
+     "p75_ms": 124.73,
+     "reps": 100
+    }
+   }
+  },
+  {
+   "loadavg_1min_at_start": 1.05,
+   "timings": {
+    "exact_k30": {
+     "median_ms": 101.2,
+     "min_ms": 97.73,
+     "p25_ms": 99.84,
+     "p75_ms": 102.67,
+     "reps": 100
+    },
+    "binary_first_pass_k30": {
+     "median_ms": 6.68,
+     "min_ms": 6.32,
+     "p25_ms": 6.53,
+     "p75_ms": 7.06,
+     "reps": 100
+    },
+    "binary_first_pass_k120": {
+     "median_ms": 15.6,
+     "min_ms": 14.98,
+     "p25_ms": 15.29,
+     "p75_ms": 16.38,
+     "reps": 100
+    },
+    "binary_first_pass_k240": {
+     "median_ms": 30.31,
+     "min_ms": 29.79,
+     "p25_ms": 30.04,
+     "p75_ms": 30.81,
+     "reps": 100
+    },
+    "binary_first_pass_k480": {
+     "median_ms": 70.7,
+     "min_ms": 69.58,
+     "p25_ms": 70.07,
+     "p75_ms": 72.01,
+     "reps": 100
+    },
+    "binary_first_pass_k960": {
+     "median_ms": 179.39,
+     "min_ms": 178.2,
+     "p25_ms": 178.84,
+     "p75_ms": 181.42,
+     "reps": 100
+    },
+    "two_stage_pool_4x": {
+     "median_ms": 33.43,
+     "min_ms": 32.33,
+     "p25_ms": 32.7,
+     "p75_ms": 34.49,
+     "reps": 100
+    },
+    "two_stage_pool_8x": {
+     "median_ms": 59.85,
+     "min_ms": 58.33,
+     "p25_ms": 59.01,
+     "p75_ms": 61.7,
+     "reps": 100
+    },
+    "two_stage_pool_16x": {
+     "median_ms": 119.18,
+     "min_ms": 116.82,
+     "p25_ms": 117.76,
+     "p75_ms": 121.59,
+     "reps": 100
+    }
+   }
+  }
+ ],
+ "latency_run_agreement": {
+  "runs": 4,
+  "note": "Every run is kept, in this one artifact, because the claim being made is that the ordering survives run-to-run variation. An earlier version wrote one artifact to a fixed path, so each run destroyed the last and the agreement could only be reconstructed from git history — a claim its own evidence could not hold.",
+  "speedup_vs_exact_per_run": {
+   "two_stage_pool_4x": [
+    2.95,
+    3.02,
+    2.92,
+    3.03
+   ],
+   "two_stage_pool_8x": [
+    1.67,
+    1.64,
+    1.67,
+    1.69
+   ],
+   "two_stage_pool_16x": [
+    0.84,
+    0.84,
+    0.85,
+    0.85
+   ]
+  },
+  "iqr_pct_range_all_candidates": [
+   1.4,
+   9.9
+  ],
+  "iqr_pct_range_two_stage": [
+   3.2,
+   9.4
+  ]
  },
  "latency_method": "Candidates are timed round robin, one repetition each per pass, so a transient on the machine is spread across all of them instead of landing inside one. Median with p25/p75; min is the closest reading to uncontended. Two candidates are only ordered where their interquartile ranges do not overlap — see latency_ordering.",
  "latency_ordering": {

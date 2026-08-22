@@ -22,6 +22,7 @@ const { values: opt } = parseArgs({
     topk: { type: 'string', default: '30' },
     seed: { type: 'string', default: '20260822' },
     reps: { type: 'string', default: '100' },
+    runs: { type: 'string', default: '4' },
   },
 });
 if (!opt.db || !opt.output) {
@@ -47,6 +48,7 @@ function positiveInt(name, raw) {
 const TOPK = positiveInt('topk', opt.topk);
 const PROBES = positiveInt('probes', opt.probes);
 const REPS = positiveInt('reps', opt.reps);
+const RUNS = positiveInt('runs', opt.runs);
 
 function mulberry32(a) {
   return function () {
@@ -58,6 +60,7 @@ function mulberry32(a) {
 }
 const rnd = mulberry32(Number(opt.seed));
 
+const toBlobEarly = (v) => Buffer.from(new Float32Array(v).buffer);
 const db = new DatabaseSync(opt.db, { allowExtension: true });
 // The same loader the server uses, so this measures the shipped extension rather than
 // whatever happens to be on the system.
@@ -76,7 +79,6 @@ const sqliteVecVersion = (() => {
 // Read before the run rather than after: what the machine was doing when timing started
 // is the number that explains a contended result.
 const { loadavg } = await import('node:os');
-const loadavgAtStart = +loadavg()[0].toFixed(2);
 
 const dim = Number(db.prepare("SELECT value FROM index_meta WHERE key = 'vectorDim'").get().value);
 const n = db.prepare('SELECT count(*) AS n FROM passage_vectors').get().n;
@@ -99,8 +101,8 @@ const tables = db
   .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
   .all()
   .map((r) => r.name);
-const pagesOf = (predicate) => {
-  const names = tables.filter(predicate);
+const pagesOf = (predicate, pool = tables) => {
+  const names = pool.filter(predicate);
   if (names.length === 0) return { bytes: null, tables: [] };
   try {
     const q = db.prepare(
@@ -108,7 +110,7 @@ const pagesOf = (predicate) => {
     );
     return { bytes: q.get(...names)?.b ?? null, tables: names };
   } catch {
-    // dbstat is a compile-time option; absent is a gap in the report, not a failure.
+  // dbstat is a compile-time option; absent is a gap in the report, not a failure.
     return { bytes: null, tables: names };
   }
 };
@@ -117,6 +119,15 @@ const f32 = pagesOf((t) => t.startsWith('passage_vectors') && !isBin(t));
 const bin = pagesOf(isBin);
 const fts = pagesOf((t) => t === 'passages' || t.startsWith('passages_'));
 const meta = pagesOf((t) => t === 'passage_meta' || t === 'index_meta');
+// Indexes are their own pages and are NOT charged to the table they index. Left out of
+// the first version, whose comment then blamed the residual on freelist and page slack —
+// measured, the indexes were 6 602 752 B of a 6 610 944 B residual, so the comment named
+// the wrong cause for 99,9% of it. An accounting that does not close is a hypothesis.
+const indexNames = db
+  .prepare("SELECT name FROM sqlite_master WHERE type = 'index'")
+  .all()
+  .map((r) => r.name);
+const idx = pagesOf((t) => indexNames.includes(t), indexNames);
 const sizes = {
   file_bytes: statSync(opt.db).size,
   page_size: db.prepare('PRAGMA page_size').get().page_size,
@@ -127,11 +138,15 @@ const sizes = {
   fts5_bytes: fts.bytes,
   fts5_tables: fts.tables,
   meta_bytes: meta.bytes,
+  index_bytes: idx.bytes,
 };
-const accounted = [f32.bytes, bin.bytes, fts.bytes, meta.bytes].reduce((a, b) => a + (b ?? 0), 0);
+const accounted = [f32.bytes, bin.bytes, fts.bytes, meta.bytes, idx.bytes].reduce(
+  (a, b) => a + (b ?? 0),
+  0,
+);
 sizes.accounted_bytes = accounted || null;
-// Freelist, the schema itself and page slack are not any component's; naming the residual
-// is what turns "these four numbers" into an accounting that can be checked.
+// What is left after every table AND every index: the freelist, the schema, page slack.
+// Naming the residual is what turns "some numbers" into an accounting that can be checked.
 sizes.unaccounted_bytes = accounted ? sizes.file_bytes - accounted : null;
 if (f32.bytes) sizes.float32_bytes_per_vector = +(f32.bytes / n).toFixed(1);
 if (bin.bytes) sizes.binary_bytes_per_vector = +(bin.bytes / n).toFixed(1);
@@ -306,6 +321,45 @@ function sameItemShare() {
   return +(share / probeIdx.length).toFixed(4);
 }
 
+/**
+ * The same recall, but with the coarse pool taken from **vec0 itself** rather than from
+ * the JS Hamming ranking above.
+ *
+ * The JS pass exists so both regimes see identical inputs, and it is a reimplementation:
+ * `bits()` matches `vec_quantize_binary`, but Hamming distances tie in large groups and
+ * two implementations need not break those ties the same way. So "the same pool" is a
+ * claim, and this is the check on it — the shipped `stmtVecBinSearch` selects the pool,
+ * everything downstream is unchanged, and the difference in recall is what the caveat is
+ * allowed to say.
+ *
+ * Necessarily zero-threshold only: vec0 quantizes internally and has no mean-centred mode.
+ */
+const binStmt = db.prepare(
+  'SELECT v.rowid AS rowid FROM passage_vectors_bin v' +
+    ' WHERE v.embedding MATCH vec_quantize_binary(?) AND v.k = ? ORDER BY v.distance',
+);
+
+function recallViaVec0(pool) {
+  let hit = 0;
+  for (const p of probeIdx) {
+    const { top, scored } = exactTop.get(p);
+    const want = new Set(top);
+    const ids = binStmt
+      .all(toBlobEarly(vecs[p]), pool + 1)
+      .map((r) => r.rowid)
+      .filter((rid) => rid !== rowids[p])
+      .slice(0, pool);
+    const byRowid = new Map(rowids.map((rid, i) => [rid, i]));
+    const reranked = ids
+      .map((rid) => byRowid.get(rid))
+      .filter((i) => i !== undefined)
+      .sort((a, b) => scored[b] - scored[a])
+      .slice(0, TOPK);
+    hit += reranked.filter((i) => want.has(i)).length / TOPK;
+  }
+  return +(hit / probeIdx.length).toFixed(4);
+}
+
 const POOLS = [TOPK, TOPK * 2, TOPK * 4, TOPK * 8, TOPK * 16];
 const recall = POOLS.map((pool) => ({
   pool,
@@ -329,10 +383,6 @@ const exactStmt = db.prepare(
     ' FROM passage_vectors v JOIN passage_meta m ON m.rowid = v.rowid' +
     ' WHERE v.embedding MATCH ? AND v.k = ? ORDER BY v.distance',
 );
-const binStmt = db.prepare(
-  'SELECT v.rowid AS rowid FROM passage_vectors_bin v' +
-    ' WHERE v.embedding MATCH vec_quantize_binary(?) AND v.k = ? ORDER BY v.distance',
-);
 /**
  * Time several candidates by INTERLEAVING their repetitions, not by running each in a
  * block.
@@ -355,12 +405,12 @@ function interleavedTimings(candidates, reps) {
   const samples = Object.fromEntries(names.map((k) => [k, []]));
   for (const k of names) candidates[k](); // warm every one before any is timed
   for (let r = 0; r < reps; r++) {
-    // Order is shuffled per pass, not just interleaved. Round robin at a FIXED order
-    // spreads transients but not position: every candidate would always see the same
-    // predecessor's cache state, and the first would always follow the largest pool.
-    // That residual cannot explain a 3x, but an order effect is a defect class this
-    // chantier has already been bitten by once (0013), and the guard belongs in the
-    // harness rather than in a note saying it probably does not matter.
+  // Order is shuffled per pass, not just interleaved. Round robin at a FIXED order
+  // spreads transients but not position: every candidate would always see the same
+  // predecessor's cache state, and the first would always follow the largest pool.
+  // That residual cannot explain a 3x, but an order effect is a defect class this
+  // chantier has already been bitten by once (0013), and the guard belongs in the
+  // harness rather than in a note saying it probably does not matter.
     const order = names.slice();
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(rnd() * (i + 1));
@@ -402,31 +452,67 @@ const twoStage = (pool) => () => {
   const ids = binStmt.all(q, pool);
   for (const r of ids) rerankStmt.get(q, r.rowid);
 };
-const latency = interleavedTimings(
-  {
-    // The baseline the two-stage path has to beat.
-    exact_k30: () => exactStmt.all(q, 30),
-    // First pass alone, to show where the cost sits.
-    binary_first_pass_k30: () => binStmt.all(q, 30),
-    binary_first_pass_k120: () => binStmt.all(q, 120),
-    binary_first_pass_k240: () => binStmt.all(q, 240),
-    binary_first_pass_k480: () => binStmt.all(q, 480),
-    // Kept because it is the point where vec0's superlinear k-best cost is unmistakable,
-    // which is the observation 0008 was filed on.
-    binary_first_pass_k960: () => binStmt.all(q, 960),
-    // What a caller actually waits for, at the pools whose recall is measured above.
-    // Measured rather than interpolated: this chantier's recurring mistake is reading a
-    // curve off two of its points, and the operating point that matters is 8x.
-    two_stage_pool_4x: twoStage(TOPK * 4),
-    two_stage_pool_8x: twoStage(TOPK * 8),
-    two_stage_pool_16x: twoStage(TOPK * 16),
-  },
-  REPS,
-);
+/**
+ * Repeat the whole timing block `--runs` times and keep every run.
+ *
+ * The claim this exists to support is that the ordering survives run-to-run variation,
+ * and the previous version could not support it *by construction*: it wrote one artifact
+ * to a fixed path, so run N's numbers were destroyed by run N+1 and "four runs agree" was
+ * archaeology across git commits rather than anything a reader could check. A review
+ * caught the claim before it caught the structure; the structure was the real defect.
+ *
+ * Runs are separated in time by nothing in particular, which is the point — they sample
+ * whatever the machine is doing.
+ */
+function timingRuns(candidates, reps, runs) {
+  const out = [];
+  for (let r = 0; r < runs; r++) {
+    out.push({
+      // Read per run, immediately before the timings it describes. The first version
+      // captured it once, minutes earlier, next to a recall computation it did not
+      // describe at all.
+      loadavg_1min_at_start: +loadavg()[0].toFixed(2),
+      timings: interleavedTimings(candidates, reps),
+    });
+  }
+  return out;
+}
 
-/** Ordered only where the interquartile ranges do not overlap. */
+const candidates = {
+  // The baseline the two-stage path has to beat.
+  exact_k30: () => exactStmt.all(q, 30),
+  // First pass alone, to show where the cost sits.
+  binary_first_pass_k30: () => binStmt.all(q, 30),
+  binary_first_pass_k120: () => binStmt.all(q, 120),
+  binary_first_pass_k240: () => binStmt.all(q, 240),
+  binary_first_pass_k480: () => binStmt.all(q, 480),
+  // Kept because it is the point where vec0's superlinear k-best cost is unmistakable,
+  // which is the observation 0008 was filed on.
+  binary_first_pass_k960: () => binStmt.all(q, 960),
+  // What a caller actually waits for, at the pools whose recall is measured above.
+  // Measured rather than interpolated: this chantier's recurring mistake is reading a
+  // curve off two of its points, and the operating point that matters is 8x.
+  two_stage_pool_4x: twoStage(TOPK * 4),
+  two_stage_pool_8x: twoStage(TOPK * 8),
+  two_stage_pool_16x: twoStage(TOPK * 16),
+};
+
+const runs = timingRuns(candidates, REPS, RUNS);
+// The headline block is the LAST run; every run is kept beside it under `latency_runs`.
+const latency = runs[runs.length - 1].timings;
+
+/** Ordered only where the interquartile ranges do not overlap, in every run. */
 const separated = (a, b) =>
-  latency[a].p75_ms < latency[b].p25_ms || latency[b].p75_ms < latency[a].p25_ms;
+  runs.every(
+    ({ timings: t }) => t[a].p75_ms < t[b].p25_ms || t[b].p75_ms < t[a].p25_ms,
+  );
+
+/** The spread actually present in the artifact, so the prose can quote it rather than recall it. */
+const iqrPct = (t, k) => ((t[k].p75_ms - t[k].p25_ms) / t[k].median_ms) * 100;
+const allIqr = runs.flatMap(({ timings: t }) => Object.keys(t).map((k) => iqrPct(t, k)));
+const twoStageKeys = ['two_stage_pool_4x', 'two_stage_pool_8x', 'two_stage_pool_16x'];
+const twoStageIqr = runs.flatMap(({ timings: t }) => twoStageKeys.map((k) => iqrPct(t, k)));
+const range = (a) => [+Math.min(...a).toFixed(1), +Math.max(...a).toFixed(1)];
 
 const out = {
   probe: 'ticket 0008 — binary quantization on the REAL vector index',
@@ -446,10 +532,9 @@ const out = {
     host: hostname(),
     cpus: cpus().length,
     totalmem_gib: +(totalmem() / 1024 ** 3).toFixed(1),
-    loadavg_1min: loadavgAtStart,
     node_options: process.env.NODE_OPTIONS ?? '',
-    // Passed in rather than read from a clock: Date.now() at write time is the honest
-    // stamp for when the run happened.
+  // Passed in rather than read from a clock: Date.now() at write time is the honest
+  // stamp for when the run happened.
     finished_utc: new Date().toISOString(),
   },
   corpus: { vectors: n, passages, dim, probes: PROBES, topk: TOPK, seed: opt.seed },
@@ -463,8 +548,8 @@ const out = {
     note_on_scale: 'Embeddings are unit-normalised, so a mean norm near 1 would mean the corpus barely spreads at all; near 0 means it is centred.',
     dimensions_over_95pct_one_sided: deadBits,
     dimensions_over_90pct_one_sided: nearDead,
-    most_one_sided_dimensions: bias.slice(0, 10).map((x) => +x.toFixed(4)),
-    // The refinement that decides how the counts above should be read.
+    highest_one_sidedness_values: bias.slice(0, 10).map((x) => +x.toFixed(4)),
+  // The refinement that decides how the counts above should be read.
     median_dimension_mean_abs: +medianMag.toExponential(3),
     live_dimension_threshold: +LIVE.toExponential(3),
     dimensions_one_sided_but_dead: oneSidedButDead.map((d) => ({
@@ -479,14 +564,46 @@ const out = {
       mean_abs: +worstLive.mean_abs.toExponential(2),
     },
     reading:
-      'Every dimension above 95% one-sided is one the model never activates — its mean ' +
-      'magnitude is a millionth or less of the median dimension, so its sign is float ' +
-      'noise rather than corpus geometry. Among dimensions that carry signal, ' +
-      'one-sidedness tops out well below that. The corpus is not meaningfully anisotropic ' +
-      'for a sign-threshold quantizer, which is the risk 0008 was held open for.',
+      'On THIS corpus every dimension above 95% one-sided is one the model never ' +
+      'activates — mean magnitude a millionth or less of the median dimension, so its ' +
+      'sign is float noise rather than corpus geometry — and among dimensions that carry ' +
+      'signal one-sidedness tops out at most_one_sided_LIVE_dimension. Nothing forces that ' +
+      'coincidence: a corpus could be genuinely one-sided in a live dimension, and the ' +
+      'two fields are reported separately so a future run shows it rather than inheriting ' +
+      'this sentence. Here, a sign-threshold quantizer has nothing to fear, which is the ' +
+      'risk 0008 was held open for.',
   },
   recall,
+  coarse_pool_fidelity: {
+    question:
+      'The recall column takes its coarse pool from a JS Hamming ranking so both regimes ' +
+      'see identical inputs. That is a reimplementation of what vec0 does, and Hamming ' +
+      'distances tie in large groups, so the two need not select the same pool. This is ' +
+      'the check on the word "same".',
+    recall_via_vec0_pool: POOLS.map((pool) => ({
+      multiple: pool / TOPK,
+      via_js_pool: recall.find((r) => r.pool === pool).recall_threshold_zero,
+      via_vec0_pool: recallViaVec0(pool),
+    })),
+  },
   latency_ms: latency,
+  latency_runs: runs,
+  latency_run_agreement: {
+    runs: runs.length,
+    note:
+      'Every run is kept, in this one artifact, because the claim being made is that the ' +
+      'ordering survives run-to-run variation. An earlier version wrote one artifact to a ' +
+      'fixed path, so each run destroyed the last and the agreement could only be ' +
+      'reconstructed from git history — a claim its own evidence could not hold.',
+    speedup_vs_exact_per_run: Object.fromEntries(
+      twoStageKeys.map((k) => [
+        k,
+        runs.map(({ timings: t }) => +(t.exact_k30.median_ms / t[k].median_ms).toFixed(2)),
+      ]),
+    ),
+    iqr_pct_range_all_candidates: range(allIqr),
+    iqr_pct_range_two_stage: range(twoStageIqr),
+  },
   latency_method:
     'Candidates are timed round robin, one repetition each per pass, so a transient on ' +
     'the machine is spread across all of them instead of landing inside one. Median with ' +
