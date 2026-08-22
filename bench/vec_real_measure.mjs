@@ -440,6 +440,12 @@ function interleavedTimings(candidates, reps) {
   );
 }
 
+// ONE fixed query vector for every latency candidate, and the same one across runs.
+// Disclosed rather than varied: a vec0 KNN scan is exhaustive, so its cost does not
+// depend on which vector is asked about, and holding it fixed removes a source of
+// variation from a comparison whose whole content is the ratio between candidates
+// measured on identical input. What it therefore does NOT measure is any dependence of
+// latency on the query — if that is ever the question, this is the line to change.
 const q = toBlob(vecs[probeIdx[0]]);
 // The rerank the shipped two-stage path performs: one exact cosine per pooled rowid,
 // through the same prepared statement `Fts5PassageStore.vectorSearch` uses.
@@ -605,6 +611,10 @@ const out = {
     iqr_pct_range_all_candidates: range(allIqr),
     iqr_pct_range_two_stage: range(twoStageIqr),
   },
+  latency_query:
+    'One fixed vector (probe 0) for every candidate and every run — see the comment at its ' +
+    'definition. A vec0 scan is exhaustive, so latency does not depend on which vector is asked ' +
+    'about; this therefore measures no query-dependence, by design.',
   latency_method:
     'Candidates are timed round robin, one repetition each per pass, so a transient on ' +
     'the machine is spread across all of them instead of landing inside one. Median with ' +
