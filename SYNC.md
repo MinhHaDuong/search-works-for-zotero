@@ -259,7 +259,9 @@ it must land before any re-measurement, or the harness will silently measure
 | archive tag | **not pushed** — the credential relay answers `HTTP 403` on tag pushes (branch pushes are fine). Cosmetic: `origin/fts5-storage` already pins `bae82a7`, so nothing is at risk |
 | §1 accent fold | **[oscardvs/zoteus#19](https://github.com/oscardvs/zoteus/pull/19)**, open |
 | §3 corruption path | branch `corrupt-index`, 3 commits, gates green — PR body drafted, not yet opened |
-| §2 migration, §4 delta, §5 measurements | not started |
+| §2 migration | **skipped by decision** (2026-08-26): not worth reversing his documented 200 MB cap |
+| §4 delta | issue drafted, ready to file |
+| §5 measurements | reshaped — see below — issue drafted, ready to file |
 
 Two things the corruption work changed about §3's own description above. The defect is worse
 than "no corruption path": the server **fails to start at all**, so the 29 tools that never
@@ -267,6 +269,18 @@ read the search index die with it. And the fix turned up two adjacent holes wort
 entries — `keywordSearch`'s catch swallows `disk I/O error` and `no such table` into an empty
 result set, and the JSON backend's `loadIndex(...).catch(() => false)` does the same for a
 truncated artifact. Both are in the PR as questions rather than in the diff.
+
+**§5 is a correction, not a contribution.** `docs/semantic-search.md` already carries the
+JSON-side figures, cited to issue #10 — which is ours. What is left to offer is three
+corrections rather than new numbers: the build column reads as a 7x speedup where the build
+is API-bound (our own uncapped SQLite build took 371.6 s against the 337 s the JSON row
+reports); the memory ratio omits that RSS excludes the page cache holding the database file,
+which is 45x against 6.8x depending on which question is asked; and "past roughly 250k
+passages" understates a build that completes and then cannot write its artifact at 477,512.
+
+The SQLite figures cannot be offered as measurements of *his* backend — they are the fork's
+prototype — so the issue says so in as many words. That is also why §5 stopped being a docs
+PR: editing his prose with numbers measured on other code is not something to do quietly.
 
 **Order of operations.**
 
