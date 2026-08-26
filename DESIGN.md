@@ -61,3 +61,20 @@ Semantic path at 650k vectors inside 3 s (scan / BM25-candidate rerank / int8 �
 is unmeasured and gets an experiment with a decision rule, not a hope); CJK ambition; the
 STOPWORDS deletion; queue fairness against the monster doc; process vs worker vs async loop
 per stage; the coverage sentence an agent sees.
+
+## Ratification log
+
+**2026-08-26 — the unit of answer is the entry.** The full sheet delta (19 candidate
+requirements, 11 decisions, from the elicitation panel; held in the session record) awaits
+ratification. One ruling made ahead of it, by the author: the panel's "one item, one hit"
+is rejected as framed. The monster document is encyclopedic — a collection of entries —
+and an unsplit multi-chapter book is a collection of chapters, so the retrieval and dedup
+unit is the **section**, not the Zotero item. An encyclopedic item may legitimately yield
+several distinct hits; a focused article yields one.
+
+Consequences accepted with it: the monster-weight decision dissolves (thousands of peer
+entries, not one over-weighted item); section identity becomes a derivation-graph concern —
+`/fulltext` delivers flat text, so a heuristic segmenter (its identity folded into the
+chunker key) stands in until structured extraction is ever served over the local API; the
+citeable locator is the entry heading where one is known. Platform-aligned: Zotero's own
+chunking already treats the section as the topic unit and carries outline paths.
