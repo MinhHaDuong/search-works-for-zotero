@@ -29,11 +29,11 @@ interface plus `SearchIndexBase`; ours was a `PassageStore` port under the one
 index. Same problem, same absence of a new dependency, different cut.
 
 So the storage layer here is superseded, and the prototype has done its job: it
-was the argument, not the shipping code. **Read `SYNC.md`** — it is the current
-plan of record: what upstream took, what is still missing there (the accented
-query is a live defect in v1.7.0), what to port, what to retire, and the harness
-rename that must land before any number in this file is quoted about upstream
-(`ZOTEUS_SEARCH_BACKEND` here, `ZOTEUS_INDEX_BACKEND` there).
+was the argument, not the shipping code. The plan of record is **DESIGN.md §4
+as ratified in DECISIONS.md, executed through tickets 0014–0035**; **SYNC.md**
+tracks upstream — what he took, what is still missing there (the accented
+query is a live defect in v1.7.0), and the harness rename that must land
+before any number in this file is quoted about upstream (ticket 0030).
 
 Everything below this line was measured against `bae82a7` on the pre-merge base
 and stands as that tree's record. None of it has been re-measured against v1.7.0.
@@ -43,14 +43,8 @@ and stands as that tree's record. None of it has been re-measured against v1.7.0
 Cycle 2 verified against head `edf2748`, v1.7.0 (released 2026-08-25). The
 tree has already moved past it: v1.7.1 shipped 2026-08-26 (`80f8aa0` fixing
 #18, `2cde6a7`) without touching open PRs #19/#20 — see
-panel/cycle2/review-political.md. The table below describes the baseline.
-
-| | state |
-|---|---|
-| [oscardvs/zoteus#10](https://github.com/oscardvs/zoteus/issues/10) | **closed** by `eee1000` — his own SQLite/FTS5 backend, `ZOTEUS_INDEX_BACKEND=auto\|sqlite\|memory` |
-| [#11](https://github.com/oscardvs/zoteus/pull/11) | **merged** 2026-08-25 (`5230c03`), authorship preserved, + his follow-up `58943ef` |
-| [#12](https://github.com/oscardvs/zoteus/pull/12) | **merged** 2026-08-25 (`5a0659c`), "a carefully argued PR", + his follow-up `8dead91` |
-| [#17](https://github.com/oscardvs/zoteus/pull/17) | his integration PR carrying all of the above, plus incremental updates (#16) and desktop settings |
+panel/cycle2/review-political.md. What upstream took and built is SYNC.md's
+table ("What happened upstream"), stated once there.
 
 ## The comparison, on one corpus
 
@@ -420,11 +414,15 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The work programme is complete.** All twelve children are closed and 0001 closed
-2026-08-22 after its integration review — the children read as one change
-(`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four criteria
-re-checked against the merged result. What remains is not work this repo owes
-anyone:
+**Live (2026-08-26): the plan of record is DESIGN.md §4, ratified in
+DECISIONS.md and executed through tickets 0014–0035 — `erg ready` is the
+queue.** Everything below records the prototype phase's close-out as it stood
+before that plan existed.
+
+**The prototype work programme is complete.** All twelve children are closed and
+0001 closed 2026-08-22 after its integration review — the children read as one
+change (`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four
+criteria re-checked against the merged result. What remained then:
 
 1. **Whether to turn the two-stage vector path on** is now a decision with
    numbers behind it rather than a blocked measurement (0008 above). It is the
@@ -433,10 +431,9 @@ anyone:
    2026-08-22 and the reader wrote a pack for each. What it opens is bounded
    (see above) and nothing is filed against it: an opportunity, not a defect.
 3. **Nothing goes upstream** unless the maintainer answers #10. That was the
-   posture, and dropping 0001's report criterion made it explicit.
-   *Superseded 2026-08-26: he answered (SYNC.md) — #10 closed by his own
-   backend, PRs #19/#20 opened from here, and the re-formed train of
-   DESIGN.md §4 now governs what goes upstream.*
+   posture then. *Superseded 2026-08-26: he answered (SYNC.md) — #10 closed by
+   his own backend, PRs #19/#20 opened from here, and the ratified train
+   governs what goes upstream.*
 
 ## Gates
 

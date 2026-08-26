@@ -27,8 +27,8 @@ purpose, so the issue names the alternative reading rather than treating it
 as an oversight); the legacy-JSON custody paragraph (R15: a stale
 search-index.json retains deleted items' text forever — the folded I-4); and
 the D5 query-semantics work riding along or waiting for demand (the verified
-repro: "general equilibrium" retrieves either-word today; item-scope
-statement per the implementation review). Absorbs the content of closed
+repro: "general equilibrium" retrieves either-word today; interim item scope
+per DESIGN.md §2.6). Absorbs the content of closed
 tickets 0020, 0021, 0023.
 
 ## Exit criteria

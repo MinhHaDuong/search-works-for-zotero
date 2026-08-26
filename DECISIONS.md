@@ -107,6 +107,6 @@ here, not in any issue text):
   says "against the 44.9 MB dictionary"; the committable gate necessarily uses
   a synthetic surrogate of its measured size and structure, because the
   dictionary itself is copyrighted library content that cannot enter a public
-  repo — the real-document run remains X3 on the author's machine. Ratify the
+  repo — the real-document run remains X3a on the author's machine. Ratify the
   surrogate as satisfying R20's intent, or keep R20's letter and accept that
   the gate half of it lives only on the author's machine.

@@ -86,11 +86,8 @@ scheduling rule: **foreground always beats background**.
 - pipeline peak ≤ ~500 MB regardless of document size
 - embed worker killable/restartable at any time with zero index damage
 
-*Open ratification question (cycle 2, concurrency critique M5):* the 300 MB
-figure was ratified against a single-server picture; under the normal N-server
-deployment (one zoteus per MCP client) the whole-machine figure at two clients
-is ~690 MB steady. Whether the budget binds per process or per machine is the
-author's call, not the panel's — both figures are stated in DESIGN.md §2.9.
+*The 300 MB figure's scoping under N processes is awaiting the author's
+ratification — the question is stated once, in DECISIONS.md.*
 
 ## C4 — status answers from counters
 

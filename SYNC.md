@@ -140,6 +140,9 @@ than quietly rewriting it.
 
 ### 2. Streaming migration past 200 MB
 
+*Settled 2026-08-26: **skipped by decision** — not worth reversing his
+documented 200 MB cap. The section stands as the record of the measurement.*
+
 `sqlite-index.ts` sets `MAX_MIGRATION_BYTES = 200 * 1024 * 1024` and refuses to
 parse above it — "that parse is the OOM" — reporting `storageNotice` and asking
 for a rebuild. The reasoning is right and the conclusion is avoidable: the parse
@@ -163,28 +166,11 @@ account of it in `0013425`.
 **Port:** `migrate-json.ts` (522) + `search-migrate-json.test.ts` (385), sink
 swapped from `PassageStore` to his insert path.
 
-**Form: a PR with the table in its body — reversing what this file first said.**
-The argument for an issue was politeness: the 200 MB cap is a deliberate,
-documented decision of his, and a patch reversing it unannounced is a patch that
-sits. The argument against it is #10. A well-argued storage-design issue is
-exactly the input that produced his own implementation last time, and this is the
-same kind of input: a documented decision, a measurement contradicting its
-premise, and no code he has to accept. Send it as an issue and the likely outcome
-is his own streaming migrator.
-
-So the choice is not procedural, it is what you are optimising:
-
-- **The software gets fixed, sooner** → issue with the table. He is faster at his
-  own codebase than a review round trip, and #10 proves he will act.
-- **This migrator gets in** → PR. It changes one constant and adds a streaming
-  reader with no dependency, which is a smaller ask than its 522 lines suggest,
-  and he has twice reviewed contributed code rather than rejecting it. The risk
-  he closes it for his own version is real and is the price.
-
-Either way the three-point table is the payload; the code is the part that is
-optional.
-
 ### 3. No corruption path
+
+*Shipped as PR #20, hardened; the corruption-work notes under Mechanics found
+the defect worse than described here (the server fails to start at all) and
+two adjacent swallowed-error holes — read them with this section.*
 
 `grep -rn "corrupt\|SQLITE_" src/features/search/` upstream returns two comments
 and no handler. `SQLITE_CORRUPT` propagates out of the constructor as SQLite's own
@@ -206,8 +192,9 @@ So: does a Zotero re-extraction bump the parent item's version? If it does not, 
 update never sees newly extracted text until someone forces a full rebuild. We
 have not measured that direction — 0012 was the mirror-image bug, this branch
 handing an item-sequence number to a full-text-sequence endpoint. **Form: an
-issue** — it is a question with an artifact rather than a finding, and there is no
-code here to defend.
+issue.** Upgraded from question to finding in cycle 2: `startIndexUpdate` keys
+on `libraryVersion` alone, so post-build extraction is invisible to
+`action:"update"` — I-1 in ticket 0024 carries it, X6 its empirical annex.
 
 ### 5. The measurements
 
@@ -252,35 +239,20 @@ it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees
 (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Progress, 2026-08-26 (design cycle 2).**
+**Status, end of 2026-08-26** (one table; the day's earlier states are in git
+history).
 
 | | |
 |---|---|
-| Design cycle 2 | run against sheet v2: six lens-architects (derivation, corpus, custody, concurrency, query, operator), each adversarially critiqued, one synthesis. Recorded as **DESIGN.md** ("The Instrumented Ledger"). Every load-bearing code claim re-verified against upstream `edf2748` this session |
-| §4 delta caveat | upgraded from question to **finding** during the cycle: `startIndexUpdate` keys on `libraryVersion` alone, so post-build extraction is invisible to `action:"update"`; the drafted issue (I-1) carries it, X6 is its empirical annex |
-| Next | the increment train of DESIGN.md §4, *as re-formed on the panel reviews (DECISIONS.md 2026-08-26)*: PRs #19/#20 at the head; a contained-PR budget of six beyond them (stopwords follow-up, PR-1..5, two in flight ever); PR-7/PR-10 in reserve; issues I-1..3 (I-4 folded into scoped issue A); experiments X1–X7 before their dependents; then the harness offer and scoped issues A/B/C in place of the mega-RFC |
-
-**Progress, 2026-08-26 (end of session).**
-
-| | |
-|---|---|
-| PR #19 accent fold | open, hardened by adversarial review (4 commits, head `4c4c2ef`): generated 445-codepoint case set, NFC snippet fix, µ/μ. Body edit pending (owner pastes) |
-| PR #20 corrupt index | open, hardened (4 commits, head `dd1605a`): errcode/errstr classifier, mid-flight conversion, embedder unblamed. All 9 review findings fixed |
-| §4 full-text caveat | issue drafted FINAL, ready to file — settled by his own docs + API docs + Zotero source; census-intersect is the only safe close on local (mixed-sequence trap) |
-| §5 measurement docs | issue drafted FINAL, ready to file |
-| Redesign | sheet v2 ratified (DESIGN.md + DESIGN-DELTA.md), design v1 recorded (DESIGN-V1.md), scout findings (SCOUTS.md). Next: cycle 2 |
-
-**Progress, 2026-08-26 (mid-session).**
-
-| | |
-|---|---|
-| fork `main` | fast-forwarded to `edf2748` and pushed |
-| archive tag | **not pushed** — the credential relay answers `HTTP 403` on tag pushes (branch pushes are fine). Cosmetic: `origin/fts5-storage` already pins `bae82a7`, so nothing is at risk |
-| §1 accent fold | **[oscardvs/zoteus#19](https://github.com/oscardvs/zoteus/pull/19)**, open |
-| §3 corruption path | branch `corrupt-index`, 3 commits, gates green — PR body drafted, not yet opened |
-| §2 migration | **skipped by decision** (2026-08-26): not worth reversing his documented 200 MB cap |
-| §4 delta | issue drafted, ready to file |
-| §5 measurements | reshaped — see below — issue drafted, ready to file |
+| PR #19 accent fold | open upstream, hardened by adversarial review (4 commits, head `4c4c2ef`). Body edit pending (owner pastes). Not touched by his v1.7.1 release |
+| PR #20 corrupt index | open upstream, hardened (4 commits, head `dd1605a`), all 9 review findings fixed. Not touched by v1.7.1 |
+| upstream | moved past the cycle-2 baseline: v1.7.1 released 2026-08-26 (`80f8aa0`, `2cde6a7`) without touching either open PR — the batch pattern holding |
+| fork | `main` fast-forwarded to `edf2748` and pushed; archive tag not pushed (credential relay 403s tag pushes; cosmetic — `origin/fts5-storage` pins `bae82a7`) |
+| §2 migration | skipped by decision — see §2's head note |
+| §4 delta | upgraded from question to finding; I-1 in ticket 0024, X6 its annex |
+| §5 measurements | reshaped to an issue (see below); drafted FINAL, ready to file as I-2 |
+| redesign | cycle 2 closed: REQUIREMENTS/CONSTRAINTS/DESIGN/DECISIONS materialized, panel record in panel/cycle2/ (which carries the full account of how the cycle ran), work train re-formed on the panel reviews and ratified |
+| next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26); live state in tickets 0014–0035 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse
 than "no corruption path": the server **fails to start at all**, so the 29 tools that never
@@ -301,25 +273,9 @@ The SQLite figures cannot be offered as measurements of *his* backend — they a
 prototype — so the issue says so in as many words. That is also why §5 stopped being a docs
 PR: editing his prose with numbers measured on other code is not something to do quietly.
 
-**Order of operations.**
-
-1. `fork/`: `git fetch up && git checkout main && git merge --ff-only up/main`.
-   Tag the prototype `archive/fts5-storage-20260826`, delete `fts5-base`, and stop
-   developing on `fts5-storage`.
-2. Re-point the bench drivers at `ZOTEUS_INDEX_BACKEND`, then re-measure v1.7.0
-   stock. His tree, his seam, our harness — that is the first honest number about
-   the shipped implementation, and everything in §5 depends on it.
-3. Branch `accent-fold` off `up/main` → PR. Smallest, live, self-contained, and it
-   is the one that pays for itself while the rest is being discussed.
-4. PR: the corruption path. Same shape as the fold, and it can travel while the
-   migrator is being decided.
-5. The migration ceiling: **settled — skipped by decision** (2026-08-26, table
-   above): not worth reversing his documented 200 MB cap. No migration item
-   remains in the work train.
-6. Issue: the full-text delta question.
-7. Issue: the measurements, both numbers — reshaped from a docs PR per §5
-   above (numbers measured on other code are not edited into his prose
-   quietly).
+**Order of operations**: superseded — the plan of record is DESIGN.md §4 as
+ratified in DECISIONS.md, executed through tickets 0014–0035. The original
+seven-step list is in git history.
 
 **The gate.** 757 tests here were green against a tree that no longer exists. His
 suite is 594 passed / 7 skipped. Every ported test runs against *his* tree before

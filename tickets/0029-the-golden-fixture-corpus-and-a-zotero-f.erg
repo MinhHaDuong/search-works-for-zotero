@@ -14,9 +14,8 @@ answer-set artifact was measured against the author's private library, which
 cannot be committed. Needed: a committable multilingual document set (FR/DE/
 VI/EL/RU per R7), ~40 queries, pinned answer sets at k=10, and a harness that
 builds an index over it WITHOUT Zotero — drive the backend classes directly
-and call putPassage, per the review's note. 2-3 days. The thresholds the gate
-then enforces are already derived (0026: mean >= 0.8, <= 5% below 0.35,
-floor 0.2).
+and call putPassage, per the review's note. 2-3 days. The thresholds the
+gate then enforces live once in DESIGN.md §2.8.
 
 ## Exit criteria
 - [ ] fixture corpus committed, multilingual per R7's tested list

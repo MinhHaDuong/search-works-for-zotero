@@ -27,8 +27,11 @@ such remainder; charge SQLite the whole file and the win is 6,8x rather than
 - `bench/results/` — committed raw artifacts behind the figures in `STATE.md`
 - `fork/` — a checkout of the fork; git-ignored, cloned by hand
 
-See `STATE.md` for the prototype-phase record and `SYNC.md` for where things
-stand against upstream. The redesign is four documents and the tickets:
+Upstream shipped its own SQLite/FTS5 backend in v1.7.0 (closing #10, which
+this repo argued); the storage prototype above is superseded and the live work
+is the redesign. See `STATE.md` for the prototype-phase record and `SYNC.md`
+for where things stand against upstream. The redesign is four documents and
+the tickets:
 `REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
 imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
 ratification ledger), and tickets `0014`–`0035` (the work train as re-formed

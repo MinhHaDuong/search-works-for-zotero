@@ -14,7 +14,7 @@ the raw panel record is in panel/cycle2/.*
 now map onto — and the two numbers the critics disputed were recomputed from the artifacts:
 `bench/results/0013-concentration/uncapped-477512.json` random sample (n=60) has per-query
 Jaccard **minimum 0.25** (two queries below 0.5), which kills the proposed golden-gate floor;
-`bench/results/0012-fulltext-sequence/sequences.json` carries **584 of 8,037** fulltext
+`bench/results/0012-fulltext-sequence/sequences.json` carries **584 of 8 037** fulltext
 entries at version 0, which makes the version-0 freshness residue real, not hypothetical.
 Also re-confirmed live at edf2748: the broken query tokenizer (`tokenize.ts`,
 `/[a-z0-9]+/g` + 29 English stopwords), zero `busy_timeout`/`SQLITE_BUSY` handling anywhere
@@ -92,7 +92,7 @@ two processes — survived all six lenses and all six critics untouched.
    version-0 entries are the proof the loss is non-empty. v1 §2.5 is the one section of the
    incumbent that would have shipped the 0012 defect's mirror image.
 2. **Extract keyed "only by the counter"** (v1 §2.1) — killed by R11 (counter churn is not
-   change) and the fork's own shipped 92.7%-changed-forever defect. Replaced by the
+   change) and the fork's own shipped 92,7 %-changed-forever defect. Replaced by the
    signals-vs-keys split (§2.1), which survived its critique intact.
 3. **The two-column FTS split** (`meta_text`/`body_text`) — killed by the record ruling
    (fields keep identity) and by D5 (corpus-critic verified: with `'. '`-joined fields,
@@ -141,7 +141,7 @@ schedules *verification* (one fetch + one hash), never recompute. A *key* is
 `(content hash, tool identity)`; work is stale iff stored key ≠ current key. R11 falls out
 structurally: a resync flips signals, the verify pass re-hashes, hashes match, nothing
 downstream moves — and the R27 counters record thousands of `resync.noop`s and zero
-`resync.done`s, so the counter that once hid the 92.7% defect now proves its absence.
+`resync.done`s, so the counter that once hid the 92,7 % defect now proves its absence.
 Stage keys: record = field-tagged `record_hash` (canonicalization version folded into the
 tool identity, so a canon fix is a labeled key bump); extract = `text_hash` over the
 streamed bytes; chunk = `(text_hash, seg_id+ver, chunker_id+geometry)` — the segmenter
@@ -257,9 +257,8 @@ library:
    for the 0012 transposition. The per-scope qualifier is the derivation-critic's F1
    repair: v1's universal-census purity would have hammered api.zotero.org — **cloud
    scopes use an ordinary `?since=` cursor** on the genuinely monotonic web sequence, under
-   the politeness constraint (≤4 concurrent; honor `Backoff` on any response including 2xx;
-   429/`Retry-After` with exponential fallback — transport-scoped, from SCOUTS).
-   Census cost stated, not laundered (three critics): ~8,037 entries ≈ 120–200 KB
+   the web-transport politeness constraint (CONSTRAINTS.md, which states it once).
+   Census cost stated, not laundered (three critics): ~8 037 entries ≈ 120–200 KB
    serialized per tick, O(attachments) in memory, zero extra requests; if X7 measures the
    parse above 50 ms at 30k entries, the cadence backs off to every 5th tick — a decision
    rule, not a hope.
@@ -267,7 +266,7 @@ library:
    deletion latency; the `sync` verb forces it).
 
 **The version-0 residue, resolved across four findings** (derivation M1, custody F1,
-corpus M2, operator M3 — the one place all six documents collided): 584 of 8,037 measured
+corpus M2, operator M3 — the one place all six documents collided): 584 of 8 037 measured
 entries sit at version 0; a local re-extraction that stamps 0 again is invisible to
 equality, and on a never-synced library that could be *every* entry. The composite
 resolution, facts where they exist and an experiment where they don't: (i) **widen the
@@ -339,7 +338,10 @@ evaluate at *entry* scope**: one MATCH per hard term, id-lists joined on `eid` �
 every term hits ≥1 passage of the entry, NOT = no passage of the entry hits — a few id-set
 operations over lists the design already fetches, one extra MATCH per hard term, trivially
 inside R6. Passage-scope AND on a multi-chunk entry — the sheet-ratified hit unit — would
-silently exclude legitimate hits, and the critic's construction proved it. Memory-backend
+silently exclude legitimate hits, and the critic's construction proved it. **Until
+entries exist upstream, hard predicates ship at item scope — entry scope's conservative
+projection at today's granularity — and any upstream filing of this work says so out
+loud** (the interim form scoped issue A carries). Memory-backend
 parity (query-critic M2): the phrase/AND/NOT check runs against a **fold-only, unfiltered
 token stream** re-tokenized from stored text — the retained `tokenize()` arrays are
 stopword-stripped and would make `"war and peace"` match "war versus peace" — and the
@@ -513,7 +515,7 @@ stationary. Phase 2: edit one title → exactly `work.record.edit.done == 1`,
 identical-bytes resync → **zero recompute**: every `*.done` delta 0, the touched items
 appearing only under `work.*.resync.noop` (§2.1 says verification runs — the gate must
 permit exactly it and nothing downstream of it) — R11 measured by R27's own counters,
-the test that would have caught the shipped 92.7% defect. **Phase 3** (the
+the test that would have caught the shipped 92,7 % defect. **Phase 3** (the
 critic's demanded fixture): one quarantine, one monster, dateAdded ties — the harness must
 fail on the corpus that exercises its subtraction terms, not only pass on the gentle one.
 
@@ -528,9 +530,9 @@ fail on the corpus that exercises its subtraction terms, not only pass on the ge
 - **R20 RSS gate**: deterministic synthetic monster at the measured 44,906,152 chars,
   entry-structured (~43k headings) so segmenter and band cap are exercised; assert worker
   `VmHWM ≤ 500 MB`, server p95 ≤ 300 MB — the budgets verbatim, against the artifact that
-  measured 2,084.9 MiB when nobody was looking. The surrogate is a flagged deviation from
+  measured 2 084,9 MiB when nobody was looking. The surrogate is a flagged deviation from
   R20's letter ("against the 44.9 MB dictionary" — content that cannot be committed);
-  ratification pending in DECISIONS.md, the real-document run staying X3 on the author's
+  ratification pending in DECISIONS.md, the real-document run staying X3a on the author's
   machine.
 - **R21 golden gate, D11=set**: pinned multilingual fixture corpus, ~40 queries, answer
   *sets* at k=10. Thresholds re-derived from the artifact after the operator-critic's F1
@@ -562,9 +564,9 @@ Float32 fallback adds ~0.35 GB.
 RAM: P0 idle ≈ 70 (Node) + 32 (cache) ≈ ~100 MB; + ~120 MB query model on first semantic
 use ≈ ~220–250 MB; one P1 ≈ ~250 MB steady, ≤ 500 MB transient hard-kill. Whole-machine at
 two clients ≈ 2×220 + 250 ≈ **~690 MB steady** — stated, because "≤300 MB per process" is
-a *re-scoping* of a ratified single-server number and re-ratifying it is the author's
-call, not this panel's (concurrency-critic M5); the question is filed beside the scout
-candidates. Dual-embed no longer threatens the budget (lazy-load repair, §2.7).
+a *re-scoping* of a ratified single-server number — awaiting the author's ratification,
+stated once in DECISIONS.md. Dual-embed no longer threatens the budget (lazy-load
+repair, §2.7).
 
 Warm query: probe 0–1 request + embed 20–50 ms + FTS tens of ms + single-pass sidecar scan
 (X1) + fuse ≈ 300–700 ms typical, hard budget 3 s — unchanged, and now with the hidden
@@ -579,7 +581,9 @@ second scan deleted (§2.6).
   single-pass entry-heap making pool guarantees free.
 - **CJK** — committed: 2-gram twin tables, CJK-bearing passages only, backfilled from
   slabs, typed degradation meanwhile.
-- **STOPWORDS** — shipped via PR #19 + follow-up; X2's latency guard unchanged.
+- **STOPWORDS** — shipped via PR #19 + follow-up. **X2's guard**: stopword-less OR-query
+  p95 at 650k; above ~500 ms, add corpus-driven pruning of query terms with document
+  frequency above ~50% — language-neutral by construction.
 - **Fairness** — committed: record phase then two-band body, K derived (§2.3), smallest-
   first rejected on the record.
 - **Fraction-RRF** — conditional ship behind the golden gate; calibration deferred to its
@@ -591,13 +595,21 @@ second scan deleted (§2.6).
 - **Census cadence** — **X7 decides**: local census every tick unless parse > 50 ms at 30k
   entries, then every 5th tick.
 - **Constrained-MATCH threshold** — **X4 decides** (json_each, the mechanism that
-  actually exists): cost curve at 1k/5k/20k/100k rowids on the 477k corpus turns the ~20k
-  ladder step from an adjective into a constant.
-- **Segmenter** — **X5 gates scoped issue B**: seg/1 over the real 44.9 MB extraction, 50
-  hand-checked cut points; below acceptable precision the confidence gate rises and
-  synthetic entries carry more of the corpus, honestly labeled.
-- **Budget scoping under N processes** — deferred to the author as a ratification
-  question, both figures stated (§2.9).
+  actually exists): cost curve at 1k/5k/20k/100k rowids on the 477k corpus. **Rule**: the
+  ladder step sits at the largest measured scope whose constrained-MATCH p95 ≤ 150 ms
+  (the filter allowance inside the 300–700 ms typical budget); if even 1k exceeds it, no
+  constrained step ships and the ladder ends at the honest R18 give-up.
+- **Monster RSS** — **X3, split in two**: X3a, runnable before any new code, baselines
+  stock upstream on the uncapped 44.9 MB doc (the 2 084,9 MiB class) and feeds the
+  rss-gate fixture; X3b, the streamed-slab measurement against the 500 MB rule, travels
+  with the entries machinery that builds the chunker (scoped issue B).
+- **Segmenter** — **X5 gates scoped issue B**: seg/1 over the real 44.9 MB extraction; 50
+  cut points sampled uniformly at random (seeded, recorded) from accepted entry
+  boundaries, hand-scored against the printed dictionary. **Rule**: ≥ 45/50 correct ships
+  the entry story; 40–44 raises the confidence gate and re-runs; < 40 means synthetic
+  entries carry the corpus, labeled.
+- **Budget scoping under N processes** — awaiting the author's ratification
+  (DECISIONS.md), both figures stated there.
 
 **Rejected this cycle, for the record**: cursoring any fulltext sequence on the local
 transport (SCOUTS); a universal fulltext census across transports (derivation-critic F1);
@@ -618,63 +630,34 @@ history at `dba8cd6`.)*
 
 Root: `/home/user/oscardvs/zoteus/src/features/search/`. SYNC.md's measured asymmetry
 governs form: contained defect + failing test → **[PR]** (merged twice); design-sized →
-**[issue]** he builds (#10, two for two). **[X]** = measure first. Gates are repo-side, in
-this repo's Makefile, not PRs. The volume discipline is the political review's: the
-maintainer's measured review budget is two contained PRs per demand-triggered batch, so
-**at most two PRs in flight, ever**, and the whole campaign's contained-PR budget beyond
-#19/#20 is **six**.
+**[issue]** he builds (#10, two for two). **[X]** = measure first. Gates are repo-side,
+in this repo's Makefile, not PRs.
 
-1. **The open head**: **PR #19** (accent fold) and **PR #20** (corruption path). On #19's
-   merge: delete the fold-gate waiver; land the **stopwords follow-up** (Unicode split +
-   STOPWORDS deletion, X2's number in the body) as the next car.
-2. **The contained-PR budget** (two in flight, next pair waits for the current pair):
-   **PR-1** schema read-before-write + sideline (fixture: `schemaVersion=99`, assert not
-   re-stamped); **PR-2** `busy_timeout=5000` alone — the two-handle SQLITE_BUSY repro is
-   the failing test; the commit-cadence question (including the fulltext build's 500/60s
-   override) moves to scoped issue C, where he can adopt it in his own idiom; **PR-3**
-   cross-library wipe guard — stamp a canonical library identity first (`users/0`
-   normalized), quote his build.ts doc-comment, frame the guard as enforcing the
-   documented single-library assumption; **PR-4** `env.cacheDir` under dataDir (R28);
-   **PR-5** Gemini key to header (R10).
-3. **The reserve** (opened only on a warm batch or third-party demand — the #13/#14
-   pattern): **PR-7** R14 terminal recording + metadata-only counts (D1); **PR-10** child
-   notes + annotations crawl (R16, D7; source-label widening, not schema).
-4. **Issues**: **I-1** the fulltext-delta finding (`startIndexUpdate` keys on
-   `libraryVersion` alone, so post-build extraction is invisible to `action:"update"`;
-   X6 its empirical annex). **I-2** the measurements — framed as extending the citation
-   his docs already make to #10: lead with the offer, both numbers charged honestly; the
-   477,512 wall is not softened. **I-3** the 40k cap vs R9 — behind the #6012 checkpoint
-   (a random-access container moots the streaming ask). **I-4** is folded into scoped
-   issue A's custody paragraph, not filed alone.
-5. **The harness offer [the first design conversation]** — the convergence harness, fold
-   sweep, and golden set offered as an executable acceptance spec he can run against
-   whatever he builds. The one consistent fact about his reviews is that he writes tests;
-   this is the artifact that survives reimplementation by design, and it is a **one-time
-   transfer** — he vendors it or it stays here.
-6. **Three scoped issues [#10-shaped: a documented behavior, a reproduction, a
-   measurement, no code to accept]**, after the PR train so the conversation starts from
-   merged, reviewed pieces rather than from a specification: **A** — the
-   ledger/freshness/counters complex, with the pause defect (`auto_build` restarting on
-   the next query) and the serve-stale defect (`dropStaleVectors` zeroing semantic
-   coverage on a model change, at both drop sites) as motivating defects, the legacy-JSON
-   custody point (R15: deleted items' text retained on disk) as its custody paragraph,
-   and the D5 query-semantics work riding along or waiting for demand; **B** — entries +
-   segmenter (X5-gated, #6012-checkpointed; carries the per-attachment data model,
-   first-with-text, and the memory-backend and multi-tenant-filename decisions); **C** —
-   multi-process on one data dir (conductor sketch, per-page build commits, the
-   crash-only stdio reality stated in the lease design's favor). The contract survives
-   even if he reimplements the machinery in his own idiom — which is where C2 says the
-   durable value lives.
-7. **[X] before their dependents** (substrate map in ticket 0025 — X2/X3/X5/X6 and X1's
-   recall half need the author's machine): X1 before the sidecar work; X4 before any
-   constrained-MATCH ladder constant; X5 (with seg/1 built first, 0028) before issue B;
-   X6 with I-1; X7 before the tick cadence is documented; X3 feeds the rss-gate fixture.
-8. **Commitment bounds** (binding this side, so the plan's cost to the author is written
-   where a future reader can see it was the plan): two PRs in flight, ever; a three-week
-   sunset — any upstream item unaddressed after three weeks, or overtaken by his own
-   implementation, is closed from our side with one appreciative line and no
-   relitigation; the harness transfer is one-time; the fork's end state is **archived**
-   once the train resolves.
+This section carries the train's *shape*; the ratified terms (volume cap, cadence,
+commitment bounds) live once in DECISIONS.md's re-form entry, and each item's scope,
+evidence, and live state live in its ticket — the tickets are authoritative for content,
+this list for ordering.
+
+1. **The open head** — PR #19 (accent fold) and #20 (corruption path); the stopwords
+   follow-up rides #19's merge (ticket 0014).
+2. **The contained-PR budget, six beyond the head** — schema read-before-write (0015),
+   `busy_timeout` alone and the wipe guard (0016), cacheDir and key-to-header (0017).
+3. **The reserve, demand-triggered** — terminal states (0019), own words (0022).
+4. **Issues I-1..I-3** (0024) — the fulltext-delta finding, the measurements as an
+   extension of his own #10 citation, the 40k cap behind the #6012 checkpoint; I-4 is
+   folded into scoped issue A, not filed.
+5. **The harness offer, the first design conversation** (0032) — the acceptance spec he
+   can run against whatever he builds; a one-time transfer.
+6. **Three #10-shaped scoped issues, after the train and the offer** — A
+   ledger/freshness/counters (0033), B entries + segmenter (0034), C multi-process
+   (0035). The contract survives even if he reimplements the machinery in his own idiom —
+   which is where C2 says the durable value lives.
+7. **Experiments before their dependents** (0025, which carries the substrate map; rules
+   in §3): X1 before the sidecar work; X4 before any ladder constant; X5 (seg/1 built
+   first, 0028) before issue B; X6 with I-1; X7 before the tick cadence is documented;
+   X3a feeds the rss-gate fixture, X3b travels with issue B.
+8. **Commitment bounds** — per DECISIONS.md's re-form entry, verbatim and binding; the
+   fork's end state is **archived** once the train resolves.
 
 ---
 

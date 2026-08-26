@@ -26,7 +26,8 @@ different bookkeeping, different sentence.
 - [ ] PR opened upstream; outcome recorded here
 
 ## Amendments (implementation review, 2026-08-26)
-Feasible independently of 0018 at item granularity (a small
-fulltext_state(item_key, reason) table / snapshot map), but both tickets
-rewrite the same forty lines of fulltext-source.ts (the warn-once is
-failures++ === 0 at :132) — hence Blocked-by 0018, sequenced not concurrent.
+Feasible independently at item granularity (a small
+fulltext_state(item_key, reason) table / snapshot map); the warn-once is
+failures++ === 0 at fulltext-source.ts:132. The old sequencing concern
+(shared lines with PR-6) is moot: 0018 closed into scoped issue B, so no
+concurrent PR touches this region.

@@ -59,7 +59,7 @@ Each stated as the testable property the harness or a reader can check.
   the unit of invalidation is (item × stage).
 - **R11 — counter churn is not change.** A resync or extractor upgrade that
   advances versions on identical bytes re-embeds nothing whose content is
-  unchanged. (The 92.7%-changed-forever defect this project itself shipped is
+  unchanged. (The 92,7 %-changed-forever defect this project itself shipped is
   the cautionary artifact.)
 - **R27 — edit one, count one.** Every stage reports what it processed and
   which input triggered it; one edited item shows as one.

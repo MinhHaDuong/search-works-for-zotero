@@ -29,4 +29,4 @@ repo does not promise to track his tree with it.
       mock local API exist — 0026's two-pile split)
 - [ ] offer posted upstream as one issue: what it asserts, how to run it, what
       green means, no code he has to accept
-- [ ] his response recorded here; sunset rule applies (three weeks)
+- [ ] his response recorded here; sunset per DECISIONS.md's commitment bounds

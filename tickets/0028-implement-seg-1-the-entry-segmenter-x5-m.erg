@@ -12,14 +12,10 @@ Author: claude
 ## Context
 Missing work the implementation review surfaced (panel/cycle2/
 review-implementation.md §5.1): X5 gates scoped issue B (0034, which
-supersedes the RFC 0027) on the segmenter's measured precision, and seg/1 —
-line classification, heading candidates (numbering patterns, case shape,
-headword rhythm: median gap and MAD over candidate spacing), entry cut at
-accepted headings, confidence = fraction of text inside confirmed entries,
-fallback below 0.5 to synthetic ~6k-token entries at paragraph boundaries,
-labeled — has no implementation anywhere. Days of new
-code standing between 0025's X5 and 0034, priced nowhere until now. Spec:
-DESIGN.md §2.2. Political-review checkpoint applies: check zotero#6012's state
+supersedes the RFC 0027) on the segmenter's measured precision, and seg/1
+had no implementation anywhere — days of new code standing between 0025's X5
+and 0034, priced nowhere until now. The spec lives once, in DESIGN.md §2.2;
+build to it, not to a paraphrase. Political-review checkpoint applies: check zotero#6012's state
 before building — structured extraction landing upstream makes heuristic
 segmentation a fallback at best (panel/cycle2/review-political.md finding 5).
 
