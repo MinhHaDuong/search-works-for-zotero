@@ -1,6 +1,7 @@
 # STATE — zoteus-fts5
 
 *Housekeeping sweep: 2026-08-22T07:06Z — 13 tickets closed, 0 open, gates green (`make check`).*
+*Upstream sync: 2026-08-26 — #11 and #12 merged, #10 closed by the maintainer's own SQLite backend. See `SYNC.md`.*
 
 Prototype work: replace zoteus's resident JS search index with SQLite/FTS5.
 
@@ -14,31 +15,39 @@ would show up in any diff sent upstream.
 
 ## The fork checkout
 
-`fork/` sits on branch **`fts5-storage`**, off `fts5-base` = PR #11 ⊕ PR #12
-merged, not upstream `main`. Both are prerequisites for measuring anything:
-without #11's configurable cap the library never indexes past 5 000 items, and
-without #12 the ASEAN group library is invisible. Current head **`bae82a7`**,
-**757 tests**, `tsc --noEmit` and `eslint` clean, pushed to
-`origin/fts5-storage`.
+`fork/` sits on branch **`fts5-storage`**, head **`bae82a7`**, **757 tests**,
+`tsc --noEmit` and `eslint` clean — off `fts5-base` = PR #11 ⊕ PR #12, which
+**upstream has since merged**. That base is now redundant history: `fts5-storage`
+is 5 ahead / 12 behind `oscardvs/zoteus@main`, merge-base `40bccc5`.
 
-## Posture
+## Posture — the maintainer answered on 2026-08-25
 
-The maintainer has not yet answered. Work proceeds as a **prototype in the
-fork, with no merge request opened** for the storage layer — the posture stated
-in the comment on oscardvs/zoteus#10. If he picks direction (d), this becomes
-the PR; if he picks (a) or declines, it is a usable fork.
+He merged #11 and #12 (both with review follow-ups that found real defects in
+them), and then **built the SQLite/FTS5 backend himself**, closing #10 and
+shipping it in v1.7.0 with incremental updates on top. His seam is a `SearchIndex`
+interface plus `SearchIndexBase`; ours was a `PassageStore` port under the one
+index. Same problem, same absence of a new dependency, different cut.
 
-**Nothing has been reported upstream, and that is now a decision rather than a
-pending action.** 0001's "report findings on #10" criterion was dropped by the
-author 2026-08-22. The measurements below stand as the fork's own record.
+So the storage layer here is superseded, and the prototype has done its job: it
+was the argument, not the shipping code. **Read `SYNC.md`** — it is the current
+plan of record: what upstream took, what is still missing there (the accented
+query is a live defect in v1.7.0), what to port, what to retire, and the harness
+rename that must land before any number in this file is quoted about upstream
+(`ZOTEUS_SEARCH_BACKEND` here, `ZOTEUS_INDEX_BACKEND` there).
 
-## Upstream, as of 2026-08-22
+Everything below this line was measured against `bae82a7` on the pre-merge base
+and stands as that tree's record. None of it has been re-measured against v1.7.0.
+
+## Upstream, as of 2026-08-26
+
+Upstream head `edf2748`, v1.7.0 released 2026-08-25.
 
 | | state |
 |---|---|
-| [oscardvs/zoteus#10](https://github.com/oscardvs/zoteus/issues/10) | open — persistence ceiling, + comment proposing SQLite as direction (d) |
-| [#11](https://github.com/oscardvs/zoteus/pull/11) | open, no review — item cap configurable + `truncationNotice` |
-| [#12](https://github.com/oscardvs/zoteus/pull/12) | open, no review — group libraries served locally on Zotero 10 |
+| [oscardvs/zoteus#10](https://github.com/oscardvs/zoteus/issues/10) | **closed** by `eee1000` — his own SQLite/FTS5 backend, `ZOTEUS_INDEX_BACKEND=auto\|sqlite\|memory` |
+| [#11](https://github.com/oscardvs/zoteus/pull/11) | **merged** 2026-08-25 (`5230c03`), authorship preserved, + his follow-up `58943ef` |
+| [#12](https://github.com/oscardvs/zoteus/pull/12) | **merged** 2026-08-25 (`5a0659c`), "a carefully argued PR", + his follow-up `8dead91` |
+| [#17](https://github.com/oscardvs/zoteus/pull/17) | his integration PR carrying all of the above, plus incremental updates (#16) and desktop settings |
 
 ## The comparison, on one corpus
 
