@@ -27,7 +27,13 @@ such remainder; charge SQLite the whole file and the win is 6,8x rather than
 - `bench/results/` — committed raw artifacts behind the figures in `STATE.md`
 - `fork/` — a checkout of the fork; git-ignored, cloned by hand
 
-See `STATE.md` for current status and `tickets/0001-*` for the plan.
+See `STATE.md` for the prototype-phase record and `SYNC.md` for where things
+stand against upstream. The redesign lives in: `REQUIREMENTS.md` (what the
+system promises), `CONSTRAINTS.md` (what the world imposes), `DESIGN-V2.md`
+(the current design; `DESIGN.md`/`DESIGN-DELTA.md`/`DESIGN-V1.md` are the
+ratification record behind it, `SCOUTS.md` the upstream findings,
+`panel/cycle2/` the raw panel record), and tickets `0014`–`0027` (the work
+train).
 
 ## Bench
 
