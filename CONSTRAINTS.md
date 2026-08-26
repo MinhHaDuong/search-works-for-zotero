@@ -15,8 +15,11 @@ the chunker key, per the boundary ruling); extracted text ← (attachment file,
 extractor). Staleness = stored key ≠ current key; invalidation propagates
 downstream only. Extractor identity is in-process only — the observable proxy
 over HTTP is the `/fulltext?since=` counter, which Zotero bumps on
-re-extraction. Items and full-text extraction are numbered on two unrelated
-sequences (measured: 410 vs 0..25,036).
+re-extraction of synced content; whether a *local* re-extraction re-stamps
+version 0 (leaving the counter blind) is an open measurement — X6, ticket
+0025, and DESIGN.md §2.4 designs for both answers. Items and full-text
+extraction are numbered on two unrelated sequences (measured: 410 vs
+0..25,036).
 
 **Sharpenings (scouts, binding):**
 

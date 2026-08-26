@@ -139,8 +139,8 @@ version counter, scoped by server identity, only ever equality-compared; a misma
 schedules *verification* (one fetch + one hash), never recompute. A *key* is
 `(content hash, tool identity)`; work is stale iff stored key ≠ current key. R11 falls out
 structurally: a resync flips signals, the verify pass re-hashes, hashes match, nothing
-downstream moves — and the R27 counters record thousands of `signal-noop`s and zero
-`content-change`s, so the counter that once hid the 92.7% defect now proves its absence.
+downstream moves — and the R27 counters record thousands of `resync.noop`s and zero
+`resync.done`s, so the counter that once hid the 92.7% defect now proves its absence.
 Stage keys: record = field-tagged `record_hash` (canonicalization version folded into the
 tool identity, so a canon fix is a labeled key bump); extract = `text_hash` over the
 streamed bytes; chunk = `(text_hash, seg_id+ver, chunker_id+geometry)` — the segmenter
@@ -375,13 +375,17 @@ pairs, cross-item as unrelated: the library is the corpus), because as adopted i
 data source and left `frac_vec` undefined at minute zero (query-critic M3). Ship gate
 (D11): golden-set Jaccard ≥ the §2.8 thresholds against plain-RRF, both behind one flag.
 
-**R24 locator**: every hit carries `{itemKey, attachmentKey, entry heading/path (primary,
-per the ruling), charStart/End (exact), pageEstimate + pageIsEstimate: true}` — the
-estimate computed within its attachment from per-attachment totals that extraction now
-records instead of discarding (verified: upstream keeps only `content` and concatenates,
-destroying the offset→attachment mapping). `pageIsEstimate` is unconditional until a
-verified exact mapping exists; the "concatenation caused the error" excuse is dropped
-(query-critic m2) — the label is the honesty mechanism, not the excuse.
+**R24 locator**, discriminated by the hit's entry kind (a record or note hit has no
+attachment and no page, and the reply never fabricates either): a **body** hit carries
+`{itemKey, attachmentKey, entry heading/path (primary, per the ruling), charStart/End
+(exact), pageEstimate + pageIsEstimate: true}` — the estimate computed within its
+attachment from per-attachment totals that extraction now records instead of discarding
+(verified: upstream keeps only `content` and concatenates, destroying the
+offset→attachment mapping); `pageIsEstimate` is unconditional until a verified exact
+mapping exists; the "concatenation caused the error" excuse is dropped (query-critic m2)
+— the label is the honesty mechanism, not the excuse. A **record** hit carries
+`{itemKey, field}`; a **note/annotation** hit `{itemKey, sourceKey}` (the annotation's
+parent attachment and page, when Zotero supplies them, pass through as exact).
 
 **R18**: an empty result names its scope in one of three disjoint sentences ("not indexed
 yet (0 of 947)" / "partial: 812 of 947 — the miss may be coverage" / "fully covered —
@@ -467,39 +471,48 @@ arithmetic — the four returned privacy lines stay dead.
 covered with reason, sections only ever the partial qualifier:
 
 > "All 7,541 items are record-searchable (titles, abstracts, keywords — 100%, newest
-> first). Body text: 5,562 of 6,100 items with attachments extracted and
+> first). Body text: 5,561 of 6,100 items with attachments extracted and
 > keyword-searchable back to 2016-04-11; 538 covered as metadata-only (no extractable
 > text). Semantic: 2,101 items fully embedded back to 2019-09-02, newest first; 1
 > partially embedded (record + 214 of ~1,850 entries — The New Palgrave). Building in
 > background at idle priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 
-(The flagship example's own arithmetic is now consistent — operator-critic m1 — and
+(The flagship example's own arithmetic is now consistent — 5,561 extracted + 538
+metadata-only + 1 quarantined = 6,100, the states disjoint — operator-critic m1 — and
 "covered at extract" is defined once: items with no attachments are vacuously covered, the
 "of 6,100" clause scopes the with-attachments subset, so `covered.embed == items.total` is
 stateable on a real library.)
 
 **Counters (C4)**: `counters(name, value)` updated **in the same transaction as the
 ledger transition it describes**; per-stage `covered/empty/partial/outOfBand/quarantined`,
-`work.<stage>.<cause>` with cause vocabulary `{new, signal-noop, content-change, key-bump,
-prefix-stale, retry, delete}` (the derivation-critic's m3 addition included); idle
-reconciliation recomputes with real COUNTs, fixes, and increments a **surfaced** `drift`
-counter the harness fails on — a counter that drifts is a status that lies. Status point
-reads are sub-ms against the measured 374 ms cold scan. The accounting is the
-operator-critic's M1 repair, verbatim: the boundary cursor passes **settled** states
-(`done|empty|quarantined|band0-done`), `outOfBand` is pure set-membership (covered items
-older than the boundary, decremented as it sweeps), edit work counts only in
-`work.*.edit`, and the record stage counts its own edits.
+and work counters on two axes — `work.<stage>.<trigger>.<outcome>`, trigger ∈ `{new,
+edit, re-extract, resync, key-bump, prefix-stale, retry, delete}` (R27's "which input"),
+outcome ∈ `{noop, done}` (`noop` = signals moved, keys verified unchanged, nothing
+recomputed; `done` = recomputed) — R27 needs both what triggered work and what became of
+it, and one flat vocabulary cannot say both; the derivation-critic's m3 signal-noop
+accounting lands as the `resync.noop` cell. Idle reconciliation recomputes with real
+COUNTs, fixes, and increments a **surfaced** `drift` counter the harness fails on — a
+counter that drifts is a status that lies. Status point reads are sub-ms against the
+measured 374 ms cold scan. The accounting is the operator-critic's M1 repair, verbatim:
+the boundary cursor is the **total-order key `(dateAdded, lib, itemKey)`**, never the
+bare date — a tie group must be partially passable — and passes **settled** states
+(`done|empty|quarantined|band0-done`); `outOfBand` is pure set-membership (covered items
+older than the boundary, decremented as it sweeps); edit work counts only under the
+`edit` trigger, and the record stage counts its own edits.
 
 **The convergence harness (R26/R27)**: fixture library, empty dataDir, status polls at
 1 Hz touching nothing else (R1 needs no asking). Asserts: status ≤ 50 ms; monotone
 coverage; **prefix arithmetic per stage at the granularity §2.3 states** — `covered ==
-|{dateAdded ≥ boundary}| − partial − quarantined + outOfBand` with the repaired
-definitions; terminal = all stages at total, drift 0, `pipeline: idle` (the #6012
-engine-shutdown observable), work stationary. Phase 2: edit one title → exactly
-`work.record.edit == 1`, `work.embed.edit == sections(record)`, everything else 0; then a
-simulated identical-bytes resync → **all work deltas 0** — R11 measured by R27's own
-counters, the test that would have caught the shipped 92.7% defect. **Phase 3** (the
+|{(dateAdded, lib, itemKey) ≥ boundary}| − partial − quarantined + outOfBand`, the
+boundary being the total-order key above, with the repaired definitions; terminal = all
+stages at total, drift 0, `pipeline: idle` (the #6012 engine-shutdown observable), work
+stationary. Phase 2: edit one title → exactly `work.record.edit.done == 1`,
+`work.embed.edit.done == sections(record)`, everything else 0; then a simulated
+identical-bytes resync → **zero recompute**: every `*.done` delta 0, the touched items
+appearing only under `work.*.resync.noop` (§2.1 says verification runs — the gate must
+permit exactly it and nothing downstream of it) — R11 measured by R27's own counters,
+the test that would have caught the shipped 92.7% defect. **Phase 3** (the
 critic's demanded fixture): one quarantine, one monster, dateAdded ties — the harness must
 fail on the corpus that exercises its subtraction terms, not only pass on the gentle one.
 
