@@ -13,7 +13,7 @@ cache (env.cacheDir) under dataDir before constructing the pipeline — the
 default lands weights outside dataDir, breaking uninstall-by-deleting-dataDir;
 one line now versus gigabytes of surprise later. PR-5: the Gemini embedder key
 travels in the URL query string (embeddings.ts) — move it to the header.
-Cheapest custody wins; they also build merge history before the RFC (0027).
+Cheapest custody wins.
 
 ## Exit criteria
 - [ ] PR-4: weights land under dataDir; uninstall test deletes everything

@@ -628,7 +628,7 @@ of the train.
    refuses with a notice naming both, instead of `clearStore()` (the verified
    build.ts→reset→clearStore chain is the repro). The guard, not the feature.
 6. **PR-4 [PR]** — pin `env.cacheDir` under dataDir (R28). **PR-5 [PR]** — Gemini key to
-   header (R10). Cheapest custody wins; build merge history before the RFC.
+   header (R10). Cheapest custody wins.
 7. **PR-6 [PR]** — per-attachment fulltext: stop concatenating, keep per-attachment
    `totalChars`/`totalPages`, deterministic first-with-text + stored skip reasons (D6,
    R24's load-bearing prerequisite).
@@ -656,8 +656,9 @@ of the train.
     store under the new filename, the conductor protocol with both F-repairs in the text,
     record-first frontier, dual-embed migration, counters + the convergence harness
     offered as the acceptance spec he can run against whatever he builds. Opened after the
-    PR train establishes credibility; the contract survives even if he reimplements the
-    machinery in his own idiom — which is where C2 says the durable value lives.
+    PR train, so the conversation starts from merged, reviewed pieces rather than from a
+    specification; the contract survives even if he reimplements the machinery in his own
+    idiom — which is where C2 says the durable value lives.
 15. **[X] before their dependents**: X1 (vector layout/int8) before the sidecar work; X4
     (json_each cost) before PR-11's ladder constant; X5 (segmenter) before the RFC's
     numbers; X6 (version-0 dynamics) with I-1; X7 (census parse) before the tick cadence
@@ -685,8 +686,7 @@ but ugly amendment to the freshness contract. *Falsifier:* X6 — re-extract one
 on a synced and a never-synced profile, watch the census and the item version; an
 afternoon, and I-1 is already drafted to carry the answer upstream.
 
-**Risk 3 — the maintainer reimplements the core underneath us, faster than the RFC
-converses.** Sharpened since v1: he built #10's answer himself in days, and #6012's
+**Risk 3 — upstream ships its own core before the RFC conversation completes.** Sharpened since v1: he built #10's answer himself in days, and #6012's
 saved-search serialization is the first crack through which platform semantic results will
 leak into the local API. *Falsifier:* the RFC issue itself, after the PR train — one
 thread settles fork-vs-upstream for the cost of writing it; the hedge is structural (every

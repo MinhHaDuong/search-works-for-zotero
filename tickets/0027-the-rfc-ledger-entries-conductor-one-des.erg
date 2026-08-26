@@ -29,7 +29,8 @@ exits on stdin EOF + lease-holder check; lease renewal on a timer, renewed
 before any long fetch), record-first frontier with the derived band cap K,
 dual-embed migration with the lazy-load repair, and the counters + convergence
 harness offered as the acceptance spec he can run against whatever he builds.
-Opened AFTER the PR train establishes credibility (0014-0023). Per C2 the
+Opened AFTER the PR train (0014-0023), so the conversation starts from
+merged, reviewed pieces rather than from a specification. Per C2 the
 contract survives even if he reimplements the machinery in his own idiom —
 that is where the durable value lives. Include the two ratification questions
 for the author: R26's prefix granularity reading, and the 300 MB budget's
