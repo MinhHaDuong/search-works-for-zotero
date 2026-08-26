@@ -1,0 +1,55 @@
+%erg 0.1
+Title: The RFC: ledger, entries, conductor -- one design conversation upstream
+Created: 2026-08-26
+Author: claude
+Blocked-by: 0014
+Blocked-by: 0015
+Blocked-by: 0016
+Blocked-by: 0017
+Blocked-by: 0019
+Blocked-by: 0022
+Blocked-by: 0025
+Closed: superseded by the harness offer (0032) and scoped issues A/B/C (0033-0035) per DECISIONS.md 2026-08-26; the mega-RFC form was the measured-asymmetry failure mode
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:40Z claude note Copilot review on fts5#10: the PR-train prerequisite (0014-0023) is now mechanized as Blocked-by, not just prose
+2026-08-26T16:53Z Claude note blocker 0018 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0020 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0021 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0023 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude closed — superseded by the harness offer (0032) and scoped issues A/B/C (0033-0035) per DECISIONS.md 2026-08-26; the mega-RFC form was the measured-asymmetry failure mode
+--- body ---
+## Context
+DESIGN.md §4 item 14. One design conversation upstream, not four: the ledger
+with signals-vs-keys (§2.1), the entries schema + slab references + segmenter
+(§2.2, X5-gated), the lib-keyed store under the NEW FILENAME
+search-index-v2.sqlite (concurrency F1: no protocol binds binaries that
+predate it), the conductor protocol with both F-repairs in the text (worker
+exits on stdin EOF + lease-holder check; lease renewal on a timer, renewed
+before any long fetch), record-first frontier with the derived band cap K,
+dual-embed migration with the lazy-load repair, and the counters + convergence
+harness offered as the acceptance spec he can run against whatever he builds.
+Opened AFTER the PR train (0014-0023), so the conversation starts from
+merged, reviewed pieces rather than from a specification. Per C2 the
+contract survives even if he reimplements the machinery in his own idiom —
+that is where the durable value lives. Include the two ratification questions
+for the author: R26's prefix granularity reading, and the 300 MB budget's
+scoping under N processes (both flagged in DESIGN.md).
+
+## Exit criteria
+- [ ] X5 verdict in hand before the RFC quotes segmenter numbers
+- [ ] RFC issue opened with the PR train's merge history attached
+- [ ] both ratification questions resolved with the author BEFORE filing — they are internal governance and stay out of the upstream text (political review, finding 2)
+- [ ] his response recorded here; fork-vs-upstream decision taken on it
+
+## Amendments (implementation review, 2026-08-26)
+Two decisions the RFC text must carry that DESIGN.md underprices: (a) the
+memory backend's fate under the per-field FTS schema — per-field BM25 with
+column weights is a rewrite of bm25.ts's flat token stream, and "sqlite-only
+for v2" is a decision nobody has made out loud; (b) the v2 filename must
+mirror multi-tenant suffixing (search-index-<zoteroUserId> today) or N tenants
+share one file. Also noted: on the stdio path upstream installs no shutdown
+handlers at all (src/index.ts:73-76) — crash-only is the reality, which is an
+argument FOR the lease design, stated in the RFC's favor.

@@ -1,0 +1,32 @@
+%erg 0.1
+Title: The harness offer: acceptance spec as the first upstream design conversation
+Created: 2026-08-26
+Author: claude
+Blocked-by: 0026
+Blocked-by: 0029
+
+--- log ---
+2026-08-26T16:52Z claude created
+
+2026-08-26T17:11Z claude note Copilot round 4: dependency edges mechanized (0026, 0029); the exit criterion distinguishes runnable gates from later-executable specs
+--- body ---
+## Context
+DESIGN.md §4 item 5, per the ratified re-form (DECISIONS.md 2026-08-26; the
+political review's finding 2). The first upstream design conversation is not a
+specification but an executable acceptance spec: the convergence harness, the
+fold sweep, and the golden set, offered as tests he can run against whatever
+he builds — the one artifact that survives reimplementation by design, aimed
+at the one consistent fact about his reviews (he writes tests). Depends on
+0026's buildable-now pile and 0029's fixture corpus. Terms are the commitment
+bounds: this is a ONE-TIME transfer — he vendors it or it stays here; this
+repo does not promise to track his tree with it.
+
+## Exit criteria
+- [ ] the buildable gates (fold, golden, RSS pre-form) run against stock
+      upstream with honest red/waiver states; the convergence harness and
+      soak travel as written specs with their runnable-when conditions
+      stated (they execute only once the scoped-issue machinery and the
+      mock local API exist — 0026's two-pile split)
+- [ ] offer posted upstream as one issue: what it asserts, how to run it, what
+      green means, no code he has to accept
+- [ ] his response recorded here; sunset per DECISIONS.md's commitment bounds

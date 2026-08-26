@@ -1,0 +1,46 @@
+%erg 0.1
+Title: Query semantics: phrase AND NOT at entry scope; fraction-RRF behind a flag
+Created: 2026-08-26
+Author: claude
+Blocked-by: 0014
+Blocked-by: 0025
+Closed: folded into scoped issue A (0033): query semantics ride along or wait for demand; item-scope statement travels with it
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:53Z Claude closed — folded into scoped issue A (0033): query semantics ride along or wait for demand; item-scope statement travels with it
+--- body ---
+## Context
+DESIGN.md §4 PR-11 and PR-12, honoring D5, with the query critique's repairs.
+PR-11 (after #19): the query compiler — quoted phrases and NOT/AND as hard
+filters, bare terms soft OR. Phrases evaluate per passage (FTS5-native); AND
+and NOT evaluate at ENTRY scope (one MATCH per hard term, id-lists joined on
+the hit unit) — passage-scope AND on a multi-chunk entry silently kills
+legitimate hits (critique M1). Memory-backend parity via a fold-only,
+UNFILTERED token stream (the retained tokenize() arrays are stopword-stripped
+— "war and peace" would match "war versus peace"; critique M2), predicate
+pushed inside search() before its top-k slice. Failing test: "general
+equilibrium" retrieves either-word today. X4 (0025) supplies the
+constrained-MATCH ladder constant via json_each (carray does not exist in
+node:sqlite — verified).
+PR-12: fraction-weighted RRF k=60 behind a flag — v1's rejection overturned by
+verified arithmetic (FTS5 clamps idf; all four seams strictly positive;
+frac in [0,1] bounds every contribution by plain RRF). Seam invariant
+("every ranked list higher-better, strictly positive") as a unit test; golden
+Jaccard vs plain-RRF in the PR body (gate thresholds in 0026).
+
+## Exit criteria
+- [ ] phrase/AND/NOT per D5 on both backends, entry-scope join, parity stream unfiltered
+- [ ] X4's measured threshold in the ladder, not an adjective
+- [ ] fraction-RRF flagged, seam-invariant test, golden numbers in the body
+- [ ] PRs opened upstream; outcomes recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Upstream has no entries: the hit unit is the item (query() collapses on
+seen.has(rec.itemKey), index-manager.ts:906). Pre-RFC, PR-11 ships hard
+predicates at ITEM scope — entry scope's conservative projection at today's
+granularity — and the PR body must say so explicitly, or it re-ships the
+framing v1's PR6 died for. X4's ladder constant as worded needs the 477k
+corpus on the author's machine (see 0025's substrate map); a synthetic 477k
+corpus is the honest in-container substitute if the artifact says so.

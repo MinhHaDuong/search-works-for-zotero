@@ -1,0 +1,31 @@
+%erg 0.1
+Title: Scoped issue C: multi-process on one data dir
+Created: 2026-08-26
+Author: claude
+Blocked-by: 0014
+Blocked-by: 0015
+Blocked-by: 0016
+Blocked-by: 0017
+Blocked-by: 0032
+
+--- log ---
+2026-08-26T16:52Z claude created
+
+2026-08-26T17:11Z claude note Copilot round 4: train + harness-offer ordering mechanized as Blocked-by
+--- body ---
+## Context
+DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).
+One #10-shaped issue for N zoteus on one data dir (R13): the empirical
+SQLITE_BUSY reproduction (two handles, default timeout 0, immediate throw —
+measured this cycle) beyond what PR-2's busy_timeout alone fixes; the
+fulltext build's 500-item/60 s persist override (build.ts:321) holding the
+write lock past any timeout — the per-page commit-cadence question moved here
+from PR-2 so he can adopt it in his own idiom, with his update-path
+single-transaction rollback explicitly respected; the conductor/lease sketch
+(DESIGN §2.5) with the crash-only stdio reality stated in its favor (no
+shutdown handlers on the stdio path, src/index.ts:73-76). Absorbs the
+commit-cadence half of ticket 0016's original scope.
+
+## Exit criteria
+- [ ] issue drafted: repro + measurement + the cadence question, no code to accept
+- [ ] filed after the PR train resolves; response recorded here; sunset applies

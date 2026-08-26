@@ -1,0 +1,26 @@
+%erg 0.1
+Title: Implement seg/1, the entry segmenter X5 measures
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T16:46Z claude created
+
+2026-08-26T17:05Z claude note X5's dependent repointed (code review): the RFC (0027) is superseded; X5 gates scoped issue B (0034)
+
+--- body ---
+## Context
+Missing work the implementation review surfaced (panel/cycle2/
+review-implementation.md §5.1): X5 gates scoped issue B (0034, which
+supersedes the RFC 0027) on the segmenter's measured precision, and seg/1
+had no implementation anywhere — days of new code standing between 0025's X5
+and 0034, priced nowhere until now. The spec lives once, in DESIGN.md §2.2;
+build to it, not to a paraphrase. Political-review checkpoint applies: check zotero#6012's state
+before building — structured extraction landing upstream makes heuristic
+segmentation a fallback at best (panel/cycle2/review-political.md finding 5).
+
+## Exit criteria
+- [ ] #6012 checkpoint recorded here before implementation starts
+- [ ] seg/1 runnable over flat /fulltext text, emitting entries + confidence
+- [ ] deterministic on fixture text; identity string (seg/1) for the chunker key
+- [ ] X5 (0025) can consume it on the author's machine

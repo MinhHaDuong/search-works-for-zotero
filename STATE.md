@@ -1,12 +1,13 @@
 # STATE — zoteus-fts5
 
 *Housekeeping sweep: 2026-08-22T07:06Z — 13 tickets closed, 0 open, gates green (`make check`).*
+*Upstream sync: 2026-08-26 — #11 and #12 merged, #10 closed by the maintainer's own SQLite backend. See `SYNC.md`.*
 
 Prototype work: replace zoteus's resident JS search index with SQLite/FTS5.
 
 ## What this repo is
 
-Ticket store, measurement harness, and notes for a chantier whose code lives in
+Ticket store, measurement harness, and notes for a work programme whose code lives in
 a **fork of someone else's project**. `fork/` is a plain checkout of
 `MinhHaDuong/zoteus` (upstream `oscardvs/zoteus`) and is git-ignored here — it
 has its own history, and a `tickets/` directory must never appear in it, or it
@@ -14,31 +15,36 @@ would show up in any diff sent upstream.
 
 ## The fork checkout
 
-`fork/` sits on branch **`fts5-storage`**, off `fts5-base` = PR #11 ⊕ PR #12
-merged, not upstream `main`. Both are prerequisites for measuring anything:
-without #11's configurable cap the library never indexes past 5 000 items, and
-without #12 the ASEAN group library is invisible. Current head **`bae82a7`**,
-**757 tests**, `tsc --noEmit` and `eslint` clean, pushed to
-`origin/fts5-storage`.
+`fork/` sits on branch **`fts5-storage`**, head **`bae82a7`**, **757 tests**,
+`tsc --noEmit` and `eslint` clean — off `fts5-base` = PR #11 ⊕ PR #12, which
+**upstream has since merged**. That base is now redundant history: `fts5-storage`
+is 5 ahead / 12 behind `oscardvs/zoteus@main`, merge-base `40bccc5`.
 
-## Posture
+## Posture — the maintainer answered on 2026-08-25
 
-The maintainer has not yet answered. Work proceeds as a **prototype in the
-fork, with no merge request opened** for the storage layer — the posture stated
-in the comment on oscardvs/zoteus#10. If he picks direction (d), this becomes
-the PR; if he picks (a) or declines, it is a usable fork.
+He merged #11 and #12 (both with review follow-ups that found real defects in
+them), and then **built the SQLite/FTS5 backend himself**, closing #10 and
+shipping it in v1.7.0 with incremental updates on top. His seam is a `SearchIndex`
+interface plus `SearchIndexBase`; ours was a `PassageStore` port under the one
+index. Same problem, same absence of a new dependency, different cut.
 
-**Nothing has been reported upstream, and that is now a decision rather than a
-pending action.** 0001's "report findings on #10" criterion was dropped by the
-author 2026-08-22. The measurements below stand as the fork's own record.
+So the storage layer here is superseded, and the prototype has done its job: it
+was the argument, not the shipping code. The plan of record is **DESIGN.md §4
+as ratified in DECISIONS.md, executed through tickets 0014–0035**; **SYNC.md**
+tracks upstream — what he took, what is still missing there (the accented
+query is a live defect in v1.7.0), and the harness rename that must land
+before any number in this file is quoted about upstream (ticket 0030).
 
-## Upstream, as of 2026-08-22
+Everything below this line was measured against `bae82a7` on the pre-merge base
+and stands as that tree's record. None of it has been re-measured against v1.7.0.
 
-| | state |
-|---|---|
-| [oscardvs/zoteus#10](https://github.com/oscardvs/zoteus/issues/10) | open — persistence ceiling, + comment proposing SQLite as direction (d) |
-| [#11](https://github.com/oscardvs/zoteus/pull/11) | open, no review — item cap configurable + `truncationNotice` |
-| [#12](https://github.com/oscardvs/zoteus/pull/12) | open, no review — group libraries served locally on Zotero 10 |
+## Upstream, at the cycle-2 verification baseline
+
+Cycle 2 verified against head `edf2748`, v1.7.0 (released 2026-08-25). The
+tree has already moved past it: v1.7.1 shipped 2026-08-26 (`80f8aa0` fixing
+#18, `2cde6a7`) without touching open PRs #19/#20 — see
+panel/cycle2/review-political.md. What upstream took and built is SYNC.md's
+table ("What happened upstream"), stated once there.
 
 ## The comparison, on one corpus
 
@@ -89,7 +95,7 @@ Measured 2026-08-21/22 on a ladder of geometries, `bench/results/json-baseline/`
 | all items, 200 000 chars | 360 811 | 6 862,0 MiB | 5 673,5 MiB | yes |
 | all items, **uncapped** | 477 512 | **8 691,5 MiB** | — | **no — `Invalid string length`, x3** |
 
-The uncapped rung is the structural wall this chantier exists for: the build
+The uncapped rung is the structural wall this work exists for: the build
 completes, holds 477 512 passages in the heap, and then cannot write them.
 `Invalid string length` is Node's `RangeError` for a string past V8's maximum
 (536 870 888 characters), and `saveIndex` builds one with `JSON.stringify`.
@@ -127,7 +133,7 @@ change.
 ## Peak build memory is ~1,85 GB, and it is one book (0011)
 
 0003 anticipated "a few hundred MB" and that is **not met** — a promise this
-chantier should not have made in that form. The honest headline is **~1,85 GB
+work programme should not have made in that form. The honest headline is **~1,85 GB
 peak during build, ~128 MiB at rest**, and every place that said otherwise now
 says this.
 
@@ -276,7 +282,7 @@ empty-index-claims-current trap rather than having to guard against it.
 ## Chunk geometry is configuration (0007)
 
 Three hardcoded constants and a pair of default arguments decided every passage
-count this chantier ever reported. They are `ZOTEUS_CHUNK_SIZE`,
+count this work ever reported. They are `ZOTEUS_CHUNK_SIZE`,
 `ZOTEUS_CHUNK_OVERLAP`, `ZOTEUS_FULLTEXT_CHUNK_SIZE` and
 `ZOTEUS_FULLTEXT_CHUNK_OVERLAP` now, with defaults byte-identical to what
 shipped, pinned against their literal values. The geometry is stamped beside the
@@ -347,7 +353,7 @@ fixture was a harder problem than real data, not a conservative stand-in for it.
 **So the original ruling was narrow rather than wrong.** At 16x, the pool the
 fixture demanded, the two-stage path is still slower on real data. Real data
 does not need 16x: it reaches 0,953 at 8x, where the path is ~1,7x faster. The
-same mistake this chantier keeps paying for — a ratio at one operating point
+same mistake this work keeps paying for — a ratio at one operating point
 read as a property of the system — with the sign reversed.
 
 **Nothing shipped has changed and the default is not flipped here.** Turning the
@@ -408,11 +414,15 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The chantier is complete.** All twelve children are closed and 0001 closed
-2026-08-22 after its integration review — the children read as one change
-(`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four criteria
-re-checked against the merged result. What remains is not work this repo owes
-anyone:
+**Live (2026-08-26): the plan of record is DESIGN.md §4, ratified in
+DECISIONS.md and executed through tickets 0014–0035 — `erg ready` is the
+queue.** Everything below records the prototype phase's close-out as it stood
+before that plan existed.
+
+**The prototype work programme is complete.** All twelve children are closed and
+0001 closed 2026-08-22 after its integration review — the children read as one
+change (`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four
+criteria re-checked against the merged result. What remained then:
 
 1. **Whether to turn the two-stage vector path on** is now a decision with
    numbers behind it rather than a blocked measurement (0008 above). It is the
@@ -420,8 +430,10 @@ anyone:
 2. **0007's last residual is settled** — the author opened two PDFs on
    2026-08-22 and the reader wrote a pack for each. What it opens is bounded
    (see above) and nothing is filed against it: an opportunity, not a defect.
-3. **Nothing goes upstream** unless the maintainer answers #10. That is the
-   posture, and dropping 0001's report criterion made it explicit.
+3. **Nothing goes upstream** unless the maintainer answers #10. That was the
+   posture then. *Superseded 2026-08-26: he answered (SYNC.md) — #10 closed by
+   his own backend, PRs #19/#20 opened from here, and the ratified train
+   governs what goes upstream.*
 
 ## Gates
 

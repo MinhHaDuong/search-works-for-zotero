@@ -1,0 +1,36 @@
+%erg 0.1
+Title: Serve-stale minimal: keep vectors, pin the query embedder
+Created: 2026-08-26
+Author: claude
+Closed: folded into scoped issue A (0033) as the serve-stale motivating defect, both drop sites
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:53Z Claude closed — folded into scoped issue A (0033) as the serve-stale motivating defect, both drop sites
+--- body ---
+## Context
+DESIGN.md §4 PR-9, honoring D3 in the contained scope the derivation critique
+forced (M3): upstream's one global embedderId cannot support mixed spaces, so
+the small PR is keep-vectors + pin the query-side embedder to the stored
+vectorEmbedderId until a rebuild switches both. The verified violation dies:
+dropStaleVectors -> clearVectors() at open silently zeroes semantic coverage
+on any model change. Dual-embed migration stays in the RFC (0027). Failing
+test: open a db under a different ZOTEUS_EMBEDDING_MODEL, watch semantic
+coverage survive.
+
+## Exit criteria
+- [ ] vectors survive a model switch; query embedder pinned to stored id
+- [ ] coverage/status names the pinned model
+- [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+The violation has TWO sites, both to neuter: reconcileVectorProvenance ->
+dropStaleVectors -> clearVectors() at open (index-manager.ts:286-308), and the
+query-time dimension check that drops again (:889-892). "Pin" = construct the
+provider from the stored identity string (name:model, embeddings.ts:29-31);
+same-provider model pins are clean, and the PR must specify the cross-provider
+degradation when the old provider is unconstructible (serve keyword + typed
+reason, never drop). Political review (finding 4): the body must present the
+failing test as a regression-in-effect and name the alternative reading —
+dropStaleVectors was written on purpose.

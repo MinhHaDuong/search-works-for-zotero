@@ -1,0 +1,23 @@
+%erg 0.1
+Title: Bench drivers: ZOTEUS_SEARCH_BACKEND to ZOTEUS_INDEX_BACKEND
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T16:46Z claude created
+
+--- body ---
+## Context
+SYNC.md §Mechanics, carried by no ticket until now (review-implementation.md
+§5.4): five drivers hardcode ZOTEUS_SEARCH_BACKEND (query.py,
+run_build.py:87, run_serve.py, run_serve2.py, and the recorded env in
+results/json-baseline/emit.py — Copilot caught run_build missing from the
+enumeration);
+upstream's knob is ZOTEUS_INDEX_BACKEND=auto|sqlite|memory. Until the rename
+lands, any re-measurement silently measures `auto` and reports whatever the
+flag said. One line per driver. Precondition for X2 and X4 re-measurement
+(0025).
+
+## Exit criteria
+- [ ] all five drivers set ZOTEUS_INDEX_BACKEND explicitly
+- [ ] each driver's recorded provenance names the env var it set

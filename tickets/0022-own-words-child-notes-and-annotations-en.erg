@@ -1,0 +1,31 @@
+%erg 0.1
+Title: Own words: child notes and annotations enter the corpus
+Created: 2026-08-26
+Author: claude
+Label: deferred
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:53Z Claude label deferred
+2026-08-26T16:53Z claude note reserve list per the ratified re-form: open only on a warm batch or third-party demand
+--- body ---
+## Context
+DESIGN.md §4 PR-10, honoring R16 and D7 (both notes and annotations). Verified
+gap at edf2748: builds crawl top:true only — standalone notes are indexed,
+child notes and annotations are not, so the researcher's own words are
+invisible while zoteus can create annotations it can never find again. The PR:
+an itemType-filtered second crawl pass for child notes + annotations, #6012
+eligibility cited (they embed both as first-class).
+
+## Exit criteria
+- [ ] child notes and annotations indexed; failing test shows today's blindness
+- [ ] record-core ruling respected: own words extend, never dilute — via source label widening (`source: 'note'|'annotation'`); per-field columns stay with the entries machinery (0034)
+- [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Scope correction: "own field/column" cannot mean an FTS column upstream — the
+schema has one text column. It means a source: 'note'|'annotation' label
+extending the existing source: 'fulltext' pattern (backend.ts:38 widens). The
+crawl pattern to copy is fulltext-source.ts:87-92 (itemType: 'attachment');
+the local client passes itemType through (local-client.ts:99-101).

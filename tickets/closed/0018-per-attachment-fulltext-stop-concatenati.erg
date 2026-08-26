@@ -1,0 +1,35 @@
+%erg 0.1
+Title: Per-attachment fulltext: stop concatenating, first-with-text, skip reasons
+Created: 2026-08-26
+Author: claude
+Blocked-by: 0015
+Closed: folded into scoped issue B (0034) per the ratified re-form; the verified per-attachment findings travel with it
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:53Z Claude closed — folded into scoped issue B (0034) per the ratified re-form; the verified per-attachment findings travel with it
+--- body ---
+## Context
+DESIGN.md §4 PR-6, honoring D6 (first-with-text) and R24's prerequisite.
+Verified at edf2748: extraction concatenates attachment texts and keeps only
+the joined content, destroying the offset->attachment mapping and the
+per-attachment totals a page estimate needs. The PR: keep per-attachment
+totalChars/totalPages; deterministic first-with-text (ascending dateAdded, key
+tie-break, must appear in the fulltext census); skipped attachments get a
+stored reason ("identical text, suppressed" / "different text, not indexed
+under first-with-text"). Convergent when a later extraction changes the choice
+function's output.
+
+## Exit criteria
+- [ ] per-attachment totals recorded, no concatenation across attachments
+- [ ] deterministic first-with-text with stored skip reasons
+- [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Largest pre-query PR in the train (~600+ lines): per-attachment provenance
+ripples through ChunkRecord (backend.ts:32-39), both backends' putPassage, the
+passages schema (the first real SCHEMA_VERSION bump — hence Blocked-by 0015),
+and the memory backend's snapshot. Split into (a) per-attachment records +
+totals, (b) first-with-text policy + stored skip reasons. Sequenced before
+0019: both rewrite fulltext-source.ts:119-146.

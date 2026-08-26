@@ -1,0 +1,24 @@
+%erg 0.1
+Title: Upstream schema self-description: read before write, sideline never delete
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN.md §4 PR-1, honoring R23. Verified defect at edf2748: createSchema
+re-stamps SCHEMA_VERSION via INSERT OR REPLACE (sqlite-index.ts:26,153) before
+loadMeta ever reads it — the stamp is written and read nowhere, so a downgrade
+destroys the evidence of skew at the moment it matters. The PR: read
+meta.schemaVersion before any DDL or write; unknown/newer -> sideline the file
+(.incompatible-<ts>, never delete), fresh build, one notice. Failing test: open
+a fixture stamped schemaVersion=99, assert it is not re-stamped and is
+sidelined. Form: PR, no issue (contained defect + failing test — merged twice
+per SYNC.md). Send after #20 (same file family).
+
+## Exit criteria
+- [ ] failing test demonstrates the re-stamp on a version-99 fixture
+- [ ] read-before-write + sideline protocol in the PR, tests green on his tree
+- [ ] PR opened upstream; outcome recorded here

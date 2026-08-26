@@ -53,6 +53,17 @@ REPO = Path(__file__).resolve().parent.parent
 PROSE = {
     "state": ["STATE.md"],
     "readme": ["README.md"],
+    "sync": ["SYNC.md"],
+    "design": ["DESIGN.md"],
+    "requirements": ["REQUIREMENTS.md"],
+    "t0025": [
+        "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
+        "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
+    ],
+    "t0026": [
+        "tickets/0026-repo-side-gates-fold-golden-rss-converge.erg",
+        "tickets/closed/0026-repo-side-gates-fold-golden-rss-converge.erg",
+    ],
     "t0008": [
         "tickets/0008-quantize-the-vector-column-binary-first.erg",
         "tickets/closed/0008-quantize-the-vector-column-binary-first.erg",
@@ -185,18 +196,19 @@ FIGURES = [
      {"t0008": "At 8x it is {} ms of the", "state": "it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
-     {"t0001": None, "state": None, "readme": "one corpus of {} passages"}),
+     {"t0001": None, "state": None, "readme": "one corpus of {} passages", "sync": "of {} passages read"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
      {"t0001": "| startup to first answer | {} s |", "state": "| startup to first answer | **{} s**",
-      "readme": "**{} s\nagainst"}),
-    ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2, {"t0001": None, "state": None, "readme": None}),
+      "readme": "**{} s\nagainst", "sync": "and {} s against"}),
+    ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2,
+     {"t0001": None, "state": None, "readme": None, "sync": "against {} s to first answer"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.json_after_16_queries", 1,
      {"t0001": "| resident after 16 queries | {} MiB |", "state": "| resident after 16 queries | **{} MiB**",
-      "readme": "**{} MiB against"}),
+      "readme": "**{} MiB against", "sync": "{} MiB against"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.sqlite_after_16_queries", 1,
-     {"t0001": None, "state": None, "readme": None}),
+     {"t0001": None, "state": None, "readme": None, "sync": "{} MiB resident and"}),
     ("0001-old-vs-new/SUMMARY.json", "memory_caveat.conservative_ratio", 1,
-     {"state": "a\n**{}x** win", "readme": "win is {}x rather"}),
+     {"state": "a\n**{}x** win", "readme": "win is {}x rather", "sync": "{}x rather than 45x"}),
     ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None, "state": None}),
     # ---- 0005, the migration ----
     ("0005-migration/migrate_463MB.json", "ratio_db_over_json", 4, {"state": None}),
@@ -206,7 +218,14 @@ FIGURES = [
     # ---- 0012, the two version sequences ----
     ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0, {"state": None}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0, {"state": None}),
-    ("0012-fulltext-sequence/sequences.json", "fulltext_entries_total", 0, {"state": None}),
+    ("0012-fulltext-sequence/sequences.json", "fulltext_entries_total", 0,
+     {"state": None, "design": None}),
+    ("0012-fulltext-sequence/sequences.json",
+     "fraction_of_library_reported_new_at_library_version", 1,
+     {"design": None, "requirements": None}, "pct"),
+    # ---- 0011, the uncapped-build RSS — quoted by the redesign's gate and experiments ----
+    ("0011-rss/capped-vs-uncapped.json", "baseline_uncapped_chars.peak_MiB", 1,
+     {"design": None, "t0025": None, "t0026": None}),
     # ---- 0013, concentration ----
     ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
     ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,

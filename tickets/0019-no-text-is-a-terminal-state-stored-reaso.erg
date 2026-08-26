@@ -1,0 +1,33 @@
+%erg 0.1
+Title: No text is a terminal state: stored reasons, metadata-only coverage
+Created: 2026-08-26
+Author: claude
+Label: deferred
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+2026-08-26T16:53Z Claude note blocker 0018 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude label deferred
+2026-08-26T16:53Z claude note reserve list per the ratified re-form: open only on a warm batch or third-party demand (the 13/14 pattern); Blocked-by 0018 is moot now that PR-6 goes issue-form
+--- body ---
+## Context
+DESIGN.md §4 PR-7, honoring R14 and D1. Upstream logs a no-text attachment
+once and re-encounters it forever (fulltext-source.ts) — no terminal state, so
+coverage can never honestly reach 100% on a library with scanned PDFs. The PR:
+the warn-once becomes a stored reason; the item counts covered as
+metadata-only; metadata-only counts enter status per D1 (denominator = items,
+metadata-only included, with reason). Terminal `empty` is done, not failed —
+different bookkeeping, different sentence.
+
+## Exit criteria
+- [ ] no-text is a recorded terminal state, never retried until content changes
+- [ ] status reports metadata-only counts per D1
+- [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Feasible independently at item granularity (a small
+fulltext_state(item_key, reason) table / snapshot map); the warn-once is
+failures++ === 0 at fulltext-source.ts:132. The old sequencing concern
+(shared lines with PR-6) is moot: 0018 closed into scoped issue B, so no
+concurrent PR touches this region.
