@@ -31,7 +31,8 @@ See `STATE.md` for the prototype-phase record and `SYNC.md` for where things
 stand against upstream. The redesign is four documents and the tickets:
 `REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
 imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
-ratification ledger), and tickets `0014`–`0027` (the work train).
+ratification ledger), and tickets `0014`–`0035` (the work train as re-formed
+by the panel reviews; closed tickets in `tickets/closed/`).
 `panel/cycle2/` holds the raw panel record behind the design. Superseded
 documents live in git history, not in the tree.
 

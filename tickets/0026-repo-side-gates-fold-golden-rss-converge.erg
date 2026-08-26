@@ -62,7 +62,10 @@ The five gates sort into two piles, and the exit criteria read accordingly:
   cannot run before the machinery exists, and they also need a mock Zotero
   local API (everything in bench/ talks to live Zotero) — an unticketed
   prerequisite (~2-3 days) that lands with them.
-Also flagged (Copilot round 2): the rss-gate's slow-suite placement weakens
-R20's letter ("asserted on every check"); the cadence question is now on
-DECISIONS.md's awaiting-ratification list — build the gate either way, wire
-it per the ruling.
+Also flagged (Copilot rounds 2-3): the rss-gate deviates from R20's letter
+twice — the slow-suite placement (vs "asserted on every check") and the
+synthetic surrogate fixture (vs "against the 44.9 MB dictionary", which is
+copyrighted library content a public repo cannot carry; the real-document
+run is X3a on the author's machine). Both readings are on DECISIONS.md's
+awaiting-ratification list — build the gate either way, wire it per the
+ruling.

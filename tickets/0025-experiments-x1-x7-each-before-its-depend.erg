@@ -18,9 +18,13 @@ harness; artifacts land in bench/results/ with provenance, per house rules.
   recall@30 >= 0.98, pool <= 32xtopK, scan+rerank <= 400 ms at 650k; float32
   slab is the permanent fallback. Feeds the sidecar work in the RFC.
 - X2 stopword-less OR latency at 650k. Rule in ticket 0014.
-- X3 monster RSS with streamed slab chunking on the uncapped 44.9 MB doc.
-  Rule: worker peak <= 500 MB or the fuse threshold moves. Feeds the rss-gate
-  fixture (0026).
+- X3 monster RSS, in two honest halves (Copilot round 3: the streamed slab
+  chunker it originally measured is unowned pre-RFC code). X3a, runnable
+  before any new code: baseline RSS of stock upstream on the uncapped
+  44.9 MB doc — reproduces 0011's 2,084.9 MiB class and feeds the rss-gate
+  fixture (0026). X3b, the streamed-slab measurement with the 500 MB rule,
+  runs when that chunker exists — it is built with scoped issue B's
+  machinery (0034) and X3b travels with it, not with a pre-RFC ticket.
 - X4 json_each constrained-MATCH cost at 1k/5k/20k/100k rowids on the 477k
   corpus. Rule: the ladder step is set at the largest measured scope whose
   constrained-MATCH p95 <= 150 ms (the filter allowance inside the 300-700 ms
@@ -54,9 +58,9 @@ is reachable only through the author's live Zotero. Per experiment:
 - container-runnable today: X7; X4 if honestly rescoped to a synthetic 477k
   corpus (the cost curve's shape is structural — say so in the artifact);
   X1's layout/scan-timing half (vec_scaling.mjs is synthetic, needs sqlite-vec).
-- author's machine required: X2 (650k FTS index), X3 (real 44.9 MB doc — and
-  it measures the streamed slab chunker, which is RFC-scope code nobody has
-  built), X5 (real extraction + a human checking 50 cuts + seg/1 itself,
+- author's machine required: X2 (650k FTS index), X3a (real 44.9 MB doc;
+  X3b's streamed-slab chunker is owned by scoped issue B's machinery, 0034),
+  X5 (real extraction + a human checking 50 cuts + seg/1 itself,
   built by 0028), X6 (two live Zotero profiles), and X1's int8-recall half
   (the anisotropy a symmetric synthetic fixture cannot exhibit —
   real-93022.json says why).

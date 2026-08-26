@@ -9,8 +9,10 @@ Author: claude
 --- body ---
 ## Context
 SYNC.md §Mechanics, carried by no ticket until now (review-implementation.md
-§5.4): five drivers hardcode ZOTEUS_SEARCH_BACKEND (query.py, run_serve.py,
-run_serve2.py, and the recorded env in results/json-baseline/emit.py);
+§5.4): five drivers hardcode ZOTEUS_SEARCH_BACKEND (query.py,
+run_build.py:87, run_serve.py, run_serve2.py, and the recorded env in
+results/json-baseline/emit.py — Copilot caught run_build missing from the
+enumeration);
 upstream's knob is ZOTEUS_INDEX_BACKEND=auto|sqlite|memory. Until the rename
 lands, any re-measurement silently measures `auto` and reports whatever the
 flag said. One line per driver. Precondition for X2 and X4 re-measurement

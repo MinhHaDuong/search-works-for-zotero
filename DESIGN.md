@@ -527,7 +527,10 @@ fail on the corpus that exercises its subtraction terms, not only pass on the ge
 - **R20 RSS gate**: deterministic synthetic monster at the measured 44,906,152 chars,
   entry-structured (~43k headings) so segmenter and band cap are exercised; assert worker
   `VmHWM ≤ 500 MB`, server p95 ≤ 300 MB — the budgets verbatim, against the artifact that
-  measured 2,084.9 MiB when nobody was looking.
+  measured 2,084.9 MiB when nobody was looking. The surrogate is a flagged deviation from
+  R20's letter ("against the 44.9 MB dictionary" — content that cannot be committed);
+  ratification pending in DECISIONS.md, the real-document run staying X3 on the author's
+  machine.
 - **R21 golden gate, D11=set**: pinned multilingual fixture corpus, ~40 queries, answer
   *sets* at k=10. Thresholds re-derived from the artifact after the operator-critic's F1
   kill (the proposed 0.5 floor sat above the measured legitimate minimum of 0.25):

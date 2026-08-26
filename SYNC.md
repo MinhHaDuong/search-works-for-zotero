@@ -244,8 +244,9 @@ the one place this work becomes visible upstream.
 ## Mechanics
 
 **Before quoting a single number about v1.7.0.** Five bench drivers hardcode
-`ZOTEUS_SEARCH_BACKEND=json|sqlite` (`query.py`, `run_serve.py`, `run_serve2.py`,
-and the recorded env in `results/json-baseline/emit.py`). Upstream's knob is
+`ZOTEUS_SEARCH_BACKEND=json|sqlite` (`query.py`, `run_build.py`, `run_serve.py`,
+`run_serve2.py`, and the recorded env in `results/json-baseline/emit.py`).
+Upstream's knob is
 `ZOTEUS_INDEX_BACKEND=auto|sqlite|memory`. It is a one-line change per driver and
 it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees

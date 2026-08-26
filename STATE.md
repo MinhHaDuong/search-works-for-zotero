@@ -38,9 +38,12 @@ rename that must land before any number in this file is quoted about upstream
 Everything below this line was measured against `bae82a7` on the pre-merge base
 and stands as that tree's record. None of it has been re-measured against v1.7.0.
 
-## Upstream, as of 2026-08-26
+## Upstream, at the cycle-2 verification baseline
 
-Upstream head `edf2748`, v1.7.0 released 2026-08-25.
+Cycle 2 verified against head `edf2748`, v1.7.0 (released 2026-08-25). The
+tree has already moved past it: v1.7.1 shipped 2026-08-26 (`80f8aa0` fixing
+#18, `2cde6a7`) without touching open PRs #19/#20 — see
+panel/cycle2/review-political.md. The table below describes the baseline.
 
 | | state |
 |---|---|
