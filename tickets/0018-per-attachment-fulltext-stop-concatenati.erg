@@ -2,6 +2,7 @@
 Title: Per-attachment fulltext: stop concatenating, first-with-text, skip reasons
 Created: 2026-08-26
 Author: claude
+Blocked-by: 0015
 
 --- log ---
 2026-08-26T15:43Z claude created
@@ -22,3 +23,11 @@ function's output.
 - [ ] per-attachment totals recorded, no concatenation across attachments
 - [ ] deterministic first-with-text with stored skip reasons
 - [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Largest pre-query PR in the train (~600+ lines): per-attachment provenance
+ripples through ChunkRecord (backend.ts:32-39), both backends' putPassage, the
+passages schema (the first real SCHEMA_VERSION bump — hence Blocked-by 0015),
+and the memory backend's snapshot. Split into (a) per-attachment records +
+totals, (b) first-with-text policy + stored skip reasons. Sequenced before
+0019: both rewrite fulltext-source.ts:119-146.

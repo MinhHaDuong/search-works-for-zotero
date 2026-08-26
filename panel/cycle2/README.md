@@ -26,6 +26,15 @@ from `bench/results/` artifacts.
 | query & ranking | `design-query.md` | `critique-query.md` | 0 FATAL / 4 MAJOR / 5 MINOR |
 | operator & gates | `design-operator.md` | `critique-operator.md` | 1 FATAL / 4 MAJOR / 6 MINOR |
 
+Two post-cycle reviews sit beside the panel record: `review-political.md` (the
+stakeholder/upstream-relations audit of the work train — volume, form, tone,
+the RFC bet, platform risk, the author's commitment bounds) and
+`review-implementation.md` (the feasibility audit against `edf2748` — per-PR
+verdicts and efforts, the experiments' substrate map, the gates' real
+ordering, and the missing work that became tickets 0028–0031). Their applied
+consequences are logged in the tickets they amended; their structural
+recommendations await the author's ruling in DECISIONS.md terms.
+
 **How to read these.** The memos are inputs, not conclusions: several of their
 design points were killed or repaired by their critiques, and the critiques
 themselves were arbitrated in the synthesis (two of their disputes were settled

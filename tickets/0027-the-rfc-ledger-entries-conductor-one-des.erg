@@ -39,5 +39,15 @@ scoping under N processes (both flagged in DESIGN.md).
 ## Exit criteria
 - [ ] X5 verdict in hand before the RFC quotes segmenter numbers
 - [ ] RFC issue opened with the PR train's merge history attached
-- [ ] both ratification questions put to the author
+- [ ] both ratification questions resolved with the author BEFORE filing — they are internal governance and stay out of the upstream text (political review, finding 2)
 - [ ] his response recorded here; fork-vs-upstream decision taken on it
+
+## Amendments (implementation review, 2026-08-26)
+Two decisions the RFC text must carry that DESIGN.md underprices: (a) the
+memory backend's fate under the per-field FTS schema — per-field BM25 with
+column weights is a rewrite of bm25.ts's flat token stream, and "sqlite-only
+for v2" is a decision nobody has made out loud; (b) the v2 filename must
+mirror multi-tenant suffixing (search-index-<zoteroUserId> today) or N tenants
+share one file. Also noted: on the stdio path upstream installs no shutdown
+handlers at all (src/index.ts:73-76) — crash-only is the reality, which is an
+argument FOR the lease design, stated in the RFC's favor.

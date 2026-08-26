@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:47Z claude note gates split into buildable-now vs RFC-acceptance-spec per the implementation review
 --- body ---
 ## Context
 DESIGN.md §2.8 gates, honoring R19-R21, R26/R27, and v1's Risk-3 soak — repo-
@@ -40,5 +41,23 @@ convergence soak`.
 - [ ] fold gate in `make check`, red-by-classification against stock upstream, waiver documented
 - [ ] golden gate with the re-derived thresholds and a committed pinned set
 - [ ] rss gate asserting the ratified budgets against the synthetic monster
-- [ ] convergence harness phases 1-3 runnable; resync phase asserts zero work
-- [ ] soak scripted with the five assertions; results committed to bench/results/
+- [ ] convergence harness + soak specified as the RFC's acceptance spec now; runnable once its machinery and the mock local API exist (see amendments)
+- [ ] fold/golden/RSS(pre-RFC form) in the Makefile with honest red/waiver states
+
+## Amendments (implementation review, 2026-08-26)
+The five gates sort into two piles, and the exit criteria read accordingly:
+- BUILDABLE NOW: the fold gate (fold_sweep.mjs today always exits 0, prints a
+  WARNING, and crashes on stock upstream by importing the absent
+  normalizeForSearch — the gate needs the classification fallback, nonzero
+  exit codes, and a writable built checkout, since none exists in-repo); the
+  golden gate once 0029 delivers its fixture corpus; the RSS gate in its
+  pre-RFC form — server-only against stock upstream, red-with-waiver (0011
+  measured 2,084.9 MiB), the worker assertion joining post-RFC.
+- THE RFC'S ACCEPTANCE SPEC: the convergence harness and the soak assert
+  counters, prefix arithmetic, drift, pipeline:idle, lease migration, and
+  double-commits — observables of a ledger and conductor that exist only once
+  the RFC's machinery is BUILT (not merely filed). They are the executable
+  spec the political review says to lead the upstream conversation with; they
+  cannot run before the machinery exists, and they also need a mock Zotero
+  local API (everything in bench/ talks to live Zotero) — an unticketed
+  prerequisite (~2-3 days) that lands with them.

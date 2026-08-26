@@ -2,6 +2,7 @@
 Title: No text is a terminal state: stored reasons, metadata-only coverage
 Created: 2026-08-26
 Author: claude
+Blocked-by: 0018
 
 --- log ---
 2026-08-26T15:43Z claude created
@@ -20,3 +21,9 @@ different bookkeeping, different sentence.
 - [ ] no-text is a recorded terminal state, never retried until content changes
 - [ ] status reports metadata-only counts per D1
 - [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Feasible independently of 0018 at item granularity (a small
+fulltext_state(item_key, reason) table / snapshot map), but both tickets
+rewrite the same forty lines of fulltext-source.ts (the warn-once is
+failures++ === 0 at :132) — hence Blocked-by 0018, sequenced not concurrent.

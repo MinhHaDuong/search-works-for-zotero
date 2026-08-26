@@ -33,3 +33,12 @@ Jaccard vs plain-RRF in the PR body (gate thresholds in 0026).
 - [ ] X4's measured threshold in the ladder, not an adjective
 - [ ] fraction-RRF flagged, seam-invariant test, golden numbers in the body
 - [ ] PRs opened upstream; outcomes recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Upstream has no entries: the hit unit is the item (query() collapses on
+seen.has(rec.itemKey), index-manager.ts:906). Pre-RFC, PR-11 ships hard
+predicates at ITEM scope — entry scope's conservative projection at today's
+granularity — and the PR body must say so explicitly, or it re-ships the
+framing v1's PR6 died for. X4's ladder constant as worded needs the 477k
+corpus on the author's machine (see 0025's substrate map); a synthetic 477k
+corpus is the honest in-container substitute if the artifact says so.

@@ -19,3 +19,10 @@ eligibility cited (they embed both as first-class).
 - [ ] child notes and annotations indexed; failing test shows today's blindness
 - [ ] record-core ruling respected: own words extend, never dilute (own field/column)
 - [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Scope correction: "own field/column" cannot mean an FTS column upstream — the
+schema has one text column. It means a source: 'note'|'annotation' label
+extending the existing source: 'fulltext' pattern (backend.ts:38 widens). The
+crawl pattern to copy is fulltext-source.ts:87-92 (itemType: 'attachment');
+the local client passes itemType through (local-client.ts:99-101).

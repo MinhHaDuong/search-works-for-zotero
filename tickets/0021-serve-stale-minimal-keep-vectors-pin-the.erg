@@ -21,3 +21,14 @@ coverage survive.
 - [ ] vectors survive a model switch; query embedder pinned to stored id
 - [ ] coverage/status names the pinned model
 - [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+The violation has TWO sites, both to neuter: reconcileVectorProvenance ->
+dropStaleVectors -> clearVectors() at open (index-manager.ts:286-308), and the
+query-time dimension check that drops again (:889-892). "Pin" = construct the
+provider from the stored identity string (name:model, embeddings.ts:29-31);
+same-provider model pins are clean, and the PR must specify the cross-provider
+degradation when the old provider is unconstructible (serve keyword + typed
+reason, never drop). Political review (finding 4): the body must present the
+failing test as a regression-in-effect and name the alternative reading —
+dropStaleVectors was written on purpose.

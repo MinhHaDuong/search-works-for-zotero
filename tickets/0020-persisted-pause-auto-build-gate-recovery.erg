@@ -24,3 +24,12 @@ resolved in the user's favor, disclosed: "paused since <date>".
 - [ ] status says "paused since <date>"
 - [ ] confirm-token verbs (`reset`, `rebuild`, `purge`) with quoted costs
 - [ ] PR opened upstream; outcome recorded here
+
+## Amendments (implementation review, 2026-08-26)
+Rescoped in two: the pause row + auto_build gate is the contained PR (~1 day —
+one meta row, read in index-tool build/update and semantic-search auto_build).
+The verbs are NOT a rider: reset is not in today's action enum
+(index-tool.ts:21 — build|refresh|update|status|stop), purge and confirm
+tokens are new tool-contract surface, and "purge = checkpoint + VACUUM +
+compaction" references a sidecar upstream does not have. Verbs go as a
+follow-up PR or into the RFC conversation.

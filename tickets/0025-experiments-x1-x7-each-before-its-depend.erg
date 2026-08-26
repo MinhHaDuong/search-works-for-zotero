@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:47Z claude note substrate map added: X2/X3/X5/X6 + X1-recall need the author's machine; X7/X4-synthetic/X1-timing run in-container
 --- body ---
 ## Context
 DESIGN.md §4 item 15 and §3. Each experiment runs BEFORE its dependent and
@@ -36,3 +37,22 @@ harness; artifacts land in bench/results/ with provenance, per house rules.
 - [ ] each X has a committed artifact in bench/results/ with provenance
 - [ ] each decision rule evaluated in writing here (ship / fallback / never-build)
 - [ ] no dependent (0023, 0026, 0027) proceeds past its gate before its X lands
+
+## Substrate map (implementation review, 2026-08-26)
+The corpora are NOT in the repo: bench/results/ holds JSON summaries; the
+93,022 real vectors (343 MB sqlite) and the 477k-passage index live on the
+author's machine (host doudou, /home/haduong/...), and the 44.9 MB extraction
+is reachable only through the author's live Zotero. Per experiment:
+- container-runnable today: X7; X4 if honestly rescoped to a synthetic 477k
+  corpus (the cost curve's shape is structural — say so in the artifact);
+  X1's layout/scan-timing half (vec_scaling.mjs is synthetic, needs sqlite-vec).
+- author's machine required: X2 (650k FTS index), X3 (real 44.9 MB doc — and
+  it measures the streamed slab chunker, which is RFC-scope code nobody has
+  built), X5 (real extraction + a human checking 50 cuts + seg/1 itself,
+  built by 0028), X6 (two live Zotero profiles), and X1's int8-recall half
+  (the anisotropy a symmetric synthetic fixture cannot exhibit —
+  real-93022.json says why).
+Preconditions: 0030 (bench drivers still set the pre-v1.7 env var — until it
+lands, X2/X4 re-measurement silently measures `auto`); 0028 before X5.
+Political review: check zotero#6012's state before spending X5 — structured
+extraction upstream obsoletes the segmenter bet first.

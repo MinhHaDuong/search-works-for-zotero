@@ -1,0 +1,25 @@
+%erg 0.1
+Title: The golden fixture corpus and a Zotero-free index harness
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T16:46Z claude created
+
+--- body ---
+## Context
+Unticketed prerequisite of 0026's golden gate (review-implementation.md §3):
+no pinned fixture corpus exists — bench/queries.txt is 16 queries, and every
+answer-set artifact was measured against the author's private library, which
+cannot be committed. Needed: a committable multilingual document set (FR/DE/
+VI/EL/RU per R7), ~40 queries, pinned answer sets at k=10, and a harness that
+builds an index over it WITHOUT Zotero — drive the backend classes directly
+and call putPassage, per the review's note. 2-3 days. The thresholds the gate
+then enforces are already derived (0026: mean >= 0.8, <= 5% below 0.35,
+floor 0.2).
+
+## Exit criteria
+- [ ] fixture corpus committed, multilingual per R7's tested list
+- [ ] Zotero-free index-build harness in bench/
+- [ ] ~40 queries with pinned answer sets, re-pin procedure documented
+- [ ] 0026's golden gate consumes it in make check
