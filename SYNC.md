@@ -221,7 +221,7 @@ three times.
 
 Both numbers belong in any claim, which is the discipline this repo imposed on
 itself and the reason the figures are worth offering at all. Low effort, and it is
-the one place the chantier becomes visible upstream.
+the one place this work becomes visible upstream.
 
 ## What to retire, deliberately
 

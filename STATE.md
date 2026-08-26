@@ -7,7 +7,7 @@ Prototype work: replace zoteus's resident JS search index with SQLite/FTS5.
 
 ## What this repo is
 
-Ticket store, measurement harness, and notes for a chantier whose code lives in
+Ticket store, measurement harness, and notes for a work programme whose code lives in
 a **fork of someone else's project**. `fork/` is a plain checkout of
 `MinhHaDuong/zoteus` (upstream `oscardvs/zoteus`) and is git-ignored here — it
 has its own history, and a `tickets/` directory must never appear in it, or it
@@ -98,7 +98,7 @@ Measured 2026-08-21/22 on a ladder of geometries, `bench/results/json-baseline/`
 | all items, 200 000 chars | 360 811 | 6 862,0 MiB | 5 673,5 MiB | yes |
 | all items, **uncapped** | 477 512 | **8 691,5 MiB** | — | **no — `Invalid string length`, x3** |
 
-The uncapped rung is the structural wall this chantier exists for: the build
+The uncapped rung is the structural wall this work exists for: the build
 completes, holds 477 512 passages in the heap, and then cannot write them.
 `Invalid string length` is Node's `RangeError` for a string past V8's maximum
 (536 870 888 characters), and `saveIndex` builds one with `JSON.stringify`.
@@ -136,7 +136,7 @@ change.
 ## Peak build memory is ~1,85 GB, and it is one book (0011)
 
 0003 anticipated "a few hundred MB" and that is **not met** — a promise this
-chantier should not have made in that form. The honest headline is **~1,85 GB
+work programme should not have made in that form. The honest headline is **~1,85 GB
 peak during build, ~128 MiB at rest**, and every place that said otherwise now
 says this.
 
@@ -285,7 +285,7 @@ empty-index-claims-current trap rather than having to guard against it.
 ## Chunk geometry is configuration (0007)
 
 Three hardcoded constants and a pair of default arguments decided every passage
-count this chantier ever reported. They are `ZOTEUS_CHUNK_SIZE`,
+count this work ever reported. They are `ZOTEUS_CHUNK_SIZE`,
 `ZOTEUS_CHUNK_OVERLAP`, `ZOTEUS_FULLTEXT_CHUNK_SIZE` and
 `ZOTEUS_FULLTEXT_CHUNK_OVERLAP` now, with defaults byte-identical to what
 shipped, pinned against their literal values. The geometry is stamped beside the
@@ -356,7 +356,7 @@ fixture was a harder problem than real data, not a conservative stand-in for it.
 **So the original ruling was narrow rather than wrong.** At 16x, the pool the
 fixture demanded, the two-stage path is still slower on real data. Real data
 does not need 16x: it reaches 0,953 at 8x, where the path is ~1,7x faster. The
-same mistake this chantier keeps paying for — a ratio at one operating point
+same mistake this work keeps paying for — a ratio at one operating point
 read as a property of the system — with the sign reversed.
 
 **Nothing shipped has changed and the default is not flipped here.** Turning the
@@ -417,7 +417,7 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**The chantier is complete.** All twelve children are closed and 0001 closed
+**The work programme is complete.** All twelve children are closed and 0001 closed
 2026-08-22 after its integration review — the children read as one change
 (`fts5-base..HEAD`, 42 files, +6 772/−147, 477 → 757 tests), the four criteria
 re-checked against the merged result. What remains is not work this repo owes
