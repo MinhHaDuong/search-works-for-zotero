@@ -1,43 +1,48 @@
 # zoteus-fts5
 
-Work tracking for a storage-layer prototype in [zoteus](https://github.com/oscardvs/zoteus),
-an MCP server over a local Zotero library.
+Work tracking for the search redesign of [zoteus](https://github.com/oscardvs/zoteus),
+an MCP server over a local Zotero library. The TypeScript under discussion
+lives upstream and in the author's fork, not in this repo.
 
-zoteus holds its search index resident in JS objects and snapshots it with one
-`JSON.stringify`. On a 7 541-item library that costs gigabytes of RAM, fails to
-serialise past V8's string limit, and cannot be reloaded by a stock Node. The
-same corpus in SQLite/FTS5 serves from about 128 MiB of process memory and
-reloads on a stock Node — which is the point. It does **not** build faster:
-measured at the same chunk geometry, through the same Zotero API, the build
-takes about as long either way, because it is bound by fetching from Zotero
-rather than by indexing.
-
-Measured over **one corpus of 360 811 passages read by both backends** — the
-same crawl's `search-index.json`, migrated in place, rather than two crawls that
-ought to agree: **5 759,6 MiB against 128,0 MiB** resident, and **90,87 s
-against 3,86 s** to first answer.
-
-Read `STATE.md` before quoting any of that. The memory figure excludes the
-kernel page cache holding the database file, where the JS heap figure has no
-such remainder; charge SQLite the whole file and the win is 6,8x rather than
-45x. Both numbers are measured and both belong in any external claim.
+Upstream ships its own SQLite/FTS5 backend since v1.7.0 (closing
+[#10](https://github.com/oscardvs/zoteus/issues/10), which this repo argued).
+The storage-layer prototype this repo was started for is therefore superseded,
+and the live work is the redesign — four documents and the tickets:
+`REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
+imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
+ratification ledger), and tickets `0014`–`0035` (the work train as re-formed
+by the panel reviews; closed tickets in `tickets/closed/`).
+`panel/cycle2/` holds the raw panel record behind the design; `SYNC.md` says
+where things stand against upstream. Superseded documents live in git history,
+not in the tree.
 
 - `tickets/` — the work, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg)
 - `bench/` — the measurement harness (below)
 - `bench/results/` — committed raw artifacts behind the figures in `STATE.md`
 - `fork/` — a checkout of the fork; git-ignored, cloned by hand
 
-Upstream shipped its own SQLite/FTS5 backend in v1.7.0 (closing #10, which
-this repo argued); the storage prototype above is superseded and the live work
-is the redesign. See `STATE.md` for the prototype-phase record and `SYNC.md`
-for where things stand against upstream. The redesign is four documents and
-the tickets:
-`REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
-imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
-ratification ledger), and tickets `0014`–`0035` (the work train as re-formed
-by the panel reviews; closed tickets in `tickets/closed/`).
-`panel/cycle2/` holds the raw panel record behind the design. Superseded
-documents live in git history, not in the tree.
+## The prototype phase, kept as the record of the argument
+
+Before v1.7.0, zoteus held its search index resident in JS objects and
+snapshotted it with one `JSON.stringify`. On a 7 541-item library that cost
+gigabytes of RAM, failed to serialise past V8's string limit, and could not be
+reloaded by a stock Node. The same corpus in SQLite/FTS5 served from about
+128 MiB of process memory and reloaded on a stock Node — which was the point.
+It did **not** build faster: measured at the same chunk geometry, through the
+same Zotero API, the build took about as long either way, because it is bound
+by fetching from Zotero rather than by indexing.
+
+Measured over **one corpus of 360 811 passages read by both backends** — the
+same crawl's `search-index.json`, migrated in place, rather than two crawls that
+ought to agree: **5 759,6 MiB against 128,0 MiB** resident, and **90,87 s
+against 3,86 s** to first answer.
+
+Read `STATE.md` (the prototype phase's measurement record) before quoting any
+of that. The memory figure excludes the kernel page cache holding the database
+file, where the JS heap figure has no such remainder; charge SQLite the whole
+file and the win is 6,8x rather than 45x. Both numbers are measured and both
+belong in any external claim. The figures are measurements of the fork's
+prototype, not of upstream's backend.
 
 ## Bench
 
