@@ -78,3 +78,13 @@ entries, not one over-weighted item); section identity becomes a derivation-grap
 chunker key) stands in until structured extraction is ever served over the local API; the
 citeable locator is the entry heading where one is known. Platform-aligned: Zotero's own
 chunking already treats the section as the topic unit and carries outline paths.
+
+**2026-08-26 — the record is the semantic core.** Title, abstract, and keywords are the
+key semantic targets. Verified against upstream: they are indexed today but flattened into
+one joined string (`[title, abstract, creators, tags, date, publication, book, note]`)
+chunked at a fixed stride — fields lose identity, so a tag match scores like a title match
+and a long abstract can separate the tags from their title. The ruling: every item's
+record is indexed before any body text; fields keep their identity for ranking; notes,
+annotations and body text extend the core, never dilute it. Feeds D1 (record coverage is
+the first 100%) and fixes the phase order: record for everyone, newest first — body text
+after.
