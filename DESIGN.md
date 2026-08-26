@@ -88,3 +88,19 @@ record is indexed before any body text; fields keep their identity for ranking; 
 annotations and body text extend the core, never dilute it. Feeds D1 (record coverage is
 the first 100%) and fixes the phase order: record for everyone, newest first — body text
 after.
+
+**2026-08-26 — chunking respects entry boundaries; context is prepended.** Two further
+rulings: chunk boundaries align to section/entry boundaries where structure is detectable
+(never straddling two entries), and each chunk's embedded text is prefixed with its context
+(entry heading / outline path / item title) — prior art in Zotero's own chunker, which
+never lets two sections share a chunk and charges the outline-path prefix to the budget.
+
+**2026-08-26 — the delta is ratified by delegation.** The author validated the presented
+recommendations wholesale: additions R10–R28 (as amended by the rulings above) and C4
+enter the sheet; decisions resolve as D1 items (+metadata-only counts), D2 hosted-out,
+D3 serve-stale, D4 merged, D5 phrase, D6 first-with-text, D7 notes+annotations,
+D8 leave-room (OCR out today), D9 dissolved by the entry ruling, D10 labeled-estimate,
+D11 set; the seven out-of-scope declarations stand; the 22 kills stand. Any line remains
+vetoable on later reading. Scout findings (mixed full-text sequence, Server-ID
+partitioning, web politeness, R5's MATCH nuance, R2/smallest-first composition) are
+sheet-candidate sharpenings recorded in the session and folded into cycle 2's input.
