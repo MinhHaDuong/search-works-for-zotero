@@ -251,6 +251,23 @@ it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees
 (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
+**Progress, 2026-08-26.**
+
+| | |
+|---|---|
+| fork `main` | fast-forwarded to `edf2748` and pushed |
+| archive tag | **not pushed** — the credential relay answers `HTTP 403` on tag pushes (branch pushes are fine). Cosmetic: `origin/fts5-storage` already pins `bae82a7`, so nothing is at risk |
+| §1 accent fold | **[oscardvs/zoteus#19](https://github.com/oscardvs/zoteus/pull/19)**, open |
+| §3 corruption path | branch `corrupt-index`, 3 commits, gates green — PR body drafted, not yet opened |
+| §2 migration, §4 delta, §5 measurements | not started |
+
+Two things the corruption work changed about §3's own description above. The defect is worse
+than "no corruption path": the server **fails to start at all**, so the 29 tools that never
+read the search index die with it. And the fix turned up two adjacent holes worth their own
+entries — `keywordSearch`'s catch swallows `disk I/O error` and `no such table` into an empty
+result set, and the JSON backend's `loadIndex(...).catch(() => false)` does the same for a
+truncated artifact. Both are in the PR as questions rather than in the diff.
+
 **Order of operations.**
 
 1. `fork/`: `git fetch up && git checkout main && git merge --ff-only up/main`.
