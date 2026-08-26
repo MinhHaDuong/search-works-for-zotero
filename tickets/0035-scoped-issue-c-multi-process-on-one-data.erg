@@ -2,10 +2,16 @@
 Title: Scoped issue C: multi-process on one data dir
 Created: 2026-08-26
 Author: claude
+Blocked-by: 0014
+Blocked-by: 0015
+Blocked-by: 0016
+Blocked-by: 0017
+Blocked-by: 0032
 
 --- log ---
 2026-08-26T16:52Z claude created
 
+2026-08-26T17:11Z claude note Copilot round 4: train + harness-offer ordering mechanized as Blocked-by
 --- body ---
 ## Context
 DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).
