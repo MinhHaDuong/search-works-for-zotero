@@ -59,6 +59,44 @@ The prototype was not wasted; it was the argument. But the code that carried the
 argument is now the code upstream already has, written by the person who maintains
 it, and that is the better outcome for everything except our diff.
 
+## How upstream takes contributions
+
+`CONTRIBUTING.md` asks for no issue first: fork, topic branch, change with tests
+and docs, `npm run typecheck && npm run lint && npm test` green, then "open a PR
+describing the change and the motivation". Issues are listed separately, for
+reporting bugs and features. There is no PR template and no linked-issue
+requirement. Conventional-commit prefixes are "appreciated"; the house rules are
+tests-first Vitest, `.js` on relative ESM imports, and consolidated `zotero_*`
+tools over thin endpoint mirrors.
+
+**The history says more than the rule does.** Both PRs sent from here carried no
+issue and were merged with authorship preserved. What they did do is sit for four
+days:
+
+| | |
+|---|---|
+| Aug 21 | we open **#10** (issue) and **#11**, **#12** (PRs) — then silence |
+| Aug 25 | **#13** "MAX_ITEMS = 5000" and **#14** "Multiple groups" filed by another user |
+| Aug 25 | he sweeps **#9, #13, #14, #15, #16** *and* both our PRs into integration PR #17 |
+
+#13 and #14 are, in substance, the issues for #11 and #12 — filed by someone else,
+four days later, describing the same two problems from the user side. He works in
+batches, and the batch was triggered by demand rather than by our patches. So an
+issue is not a gate, and silence is not rejection; expect days, and expect them to
+end all at once.
+
+**The asymmetry that should decide the form of each contribution.** Two for two in
+each direction:
+
+- A **contained defect with a PR** — #11, #12 — gets reviewed, corrected and
+  merged as ours.
+- A **design-sized problem as an issue** — #10 — gets him to build it himself.
+  Our three proposed directions, his fourth, his implementation, issue closed.
+
+That is not a complaint: #10 is his call to make, and his backend is a good one.
+It is a fact about what each form produces, and it is why the recommendations
+below name a form for every item.
+
 ## What is still ours, and still missing upstream
 
 ### 1. Accent folding on the query side — a live defect in v1.7.0
@@ -90,6 +128,9 @@ query is untested and broken.
 fold emulates `unicode61 remove_diacritics 2` rather than Zotero's harder
 `normalizeForSearch`. One chokepoint, both backends, no other file touched.
 
+**Form: a PR, no issue.** A defect with a one-file fix whose failing test is
+itself the reproduction — the shape that was merged twice.
+
 **The one thing he has to agree to:** the fix changes the JSON backend too (both
 its sides shred today, so it is symmetrically degraded rather than wrong), which
 makes the last assertion of his parity test — `expect(await memory.query('Bronte',
@@ -120,9 +161,28 @@ full re-crawl and re-embed — ten-plus minutes and real API spend by his own
 account of it in `0013425`.
 
 **Port:** `migrate-json.ts` (522) + `search-migrate-json.test.ts` (385), sink
-swapped from `PassageStore` to his insert path. **Form: an issue with the table
-first, not a PR.** The 200 MB cap is a deliberate, documented decision of his; a
-patch that reverses it before he has seen the measurement is a patch that sits.
+swapped from `PassageStore` to his insert path.
+
+**Form: a PR with the table in its body — reversing what this file first said.**
+The argument for an issue was politeness: the 200 MB cap is a deliberate,
+documented decision of his, and a patch reversing it unannounced is a patch that
+sits. The argument against it is #10. A well-argued storage-design issue is
+exactly the input that produced his own implementation last time, and this is the
+same kind of input: a documented decision, a measurement contradicting its
+premise, and no code he has to accept. Send it as an issue and the likely outcome
+is his own streaming migrator.
+
+So the choice is not procedural, it is what you are optimising:
+
+- **The software gets fixed, sooner** → issue with the table. He is faster at his
+  own codebase than a review round trip, and #10 proves he will act.
+- **This migrator gets in** → PR. It changes one constant and adds a streaming
+  reader with no dependency, which is a smaller ask than its 522 lines suggest,
+  and he has twice reviewed contributed code rather than rejecting it. The risk
+  he closes it for his own version is real and is the price.
+
+Either way the three-point table is the payload; the code is the part that is
+optional.
 
 ### 3. No corruption path
 
@@ -132,7 +192,8 @@ sentence, and the server does not survive it — though item lookups and
 bibliographies never touch the index and could. `corruption.ts` (146) +
 `search-corruption.test.ts` (181) do this, and the typed error names the file, its
 sidecars and the command to run. Small and uncontroversial; check the sidecar list
-against his single-file layout before sending.
+against his single-file layout before sending. **Form: a PR, no issue** — same
+shape as the accent fold.
 
 ### 4. A question about his delta, with an artifact attached
 
@@ -144,8 +205,9 @@ versions 0..25 036** — two independently numbered sequences.
 So: does a Zotero re-extraction bump the parent item's version? If it does not, an
 update never sees newly extracted text until someone forces a full rebuild. We
 have not measured that direction — 0012 was the mirror-image bug, this branch
-handing an item-sequence number to a full-text-sequence endpoint. **File it as a
-question with the artifact, not as a finding.**
+handing an item-sequence number to a full-text-sequence endpoint. **Form: an
+issue** — it is a question with an artifact rather than a finding, and there is no
+code here to defend.
 
 ### 5. The measurements
 
@@ -199,9 +261,11 @@ it must land before any re-measurement, or the harness will silently measure
    the shipped implementation, and everything in §5 depends on it.
 3. Branch `accent-fold` off `up/main` → PR. Smallest, live, self-contained, and it
    is the one that pays for itself while the rest is being discussed.
-4. Issue: the migration ceiling, with the three-point table. PR only if he says
-   yes.
-5. PR: the corruption path.
+4. PR: the corruption path. Same shape as the fold, and it can travel while the
+   migrator is being decided.
+5. The migration ceiling: PR with the table if the migrator itself is the point,
+   issue with the table if the fix is. Decide before writing, not after — the two
+   forms want different bodies.
 6. Issue: the full-text delta question.
 7. Docs PR: the measurements, both numbers.
 
