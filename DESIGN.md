@@ -124,8 +124,9 @@ two processes — survived all six lenses and all six critics untouched.
    no protocol can bind binaries that predate it: a v1.7.0 sibling reaching `clearStore()`
    against an in-place upgraded file would erase every library. `search-index-v2.sqlite`
    makes old binaries coexist on the old file and downgrade-keeps-serving falls out free.
-10. **v1's PR6 (item-collapse) and PR1** — PR6 dies into the entries RFC (shipping
-    item-collapse now would ship the ruling's rejected framing); PR1 is superseded by open
+10. **v1's PR6 (item-collapse) and PR1** — PR6 dies into the entries conversation, now
+    scoped issue B (§4): shipping
+    item-collapse now would ship the ruling's rejected framing. PR1 is superseded by open
     PR #19.
 
 ---
@@ -208,8 +209,8 @@ fraction of text inside confirmed entries, fallback below 0.5 to **synthetic ~6k
 entries** cut at paragraph boundaries, labeled. Palgrave arithmetic (input assumption
 labeled, unmeasured): 44.9 MB / ~1,850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each —
 the monster becomes ~1,850 first-class peers, which is the entry ruling's whole point.
-**The segmenter is the design's biggest unmeasured bet and is gated by X5 before the RFC
-ships numbers** (§5, risk 1).
+**The segmenter is the design's biggest unmeasured bet and is gated by X5 before scoped
+issue B (§4) ships numbers** (§5, risk 1).
 
 ### 2.3 Discovery and fairness: records for everyone, then bodies, newest-first throughout
 
@@ -444,7 +445,7 @@ cold-load spike). At most two generations; storage worst case 2× sidecar, discl
 *small PR* version of D3 is rescoped per the derivation-critic's M3: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is keep-vectors +
 **pin the query-side embedder to the stored id** until a rebuild switches both; dual-embed
-lives in the RFC.
+lives in the scoped-issue conversation (issue A, §4).
 
 **R23** — the open protocol: read `meta.schemaVersion` **before any DDL or write**
 (verified defect: `createSchema` re-stamps via `INSERT OR REPLACE` before `loadMeta`, so
@@ -592,7 +593,7 @@ second scan deleted (§2.6).
 - **Constrained-MATCH threshold** — **X4 decides** (json_each, the mechanism that
   actually exists): cost curve at 1k/5k/20k/100k rowids on the 477k corpus turns the ~20k
   ladder step from an adjective into a constant.
-- **Segmenter** — **X5 gates the RFC**: seg/1 over the real 44.9 MB extraction, 50
+- **Segmenter** — **X5 gates scoped issue B**: seg/1 over the real 44.9 MB extraction, 50
   hand-checked cut points; below acceptable precision the confidence gate rises and
   synthetic entries carry more of the corpus, honestly labeled.
 - **Budget scoping under N processes** — deferred to the author as a ratification
@@ -685,8 +686,8 @@ seg/1's error rate on flat `/fulltext` text, which has never touched the real 44
 extraction; its failure mode is *silent plausible-looking entries* — wrong citeable
 locators and wrong dedup units, worse than honest synthetic ones. Both the corpus and
 query lenses confessed it; both critics ratified it as the genuine top risk. *Falsifier:*
-X5 — run seg/1 over the real extraction, hand-check 50 cut points; half a day, before the
-RFC claims numbers. Below acceptable precision, the design degrades gracefully to labeled
+X5 — run seg/1 over the real extraction, hand-check 50 cut points; half a day, before
+scoped issue B claims numbers. Below acceptable precision, the design degrades gracefully to labeled
 synthetic entries — the contract survives, the "1,850 peers" story does not.
 
 **Risk 2 — the version-0 freshness residue could be the whole story, not the residue.**
@@ -697,10 +698,11 @@ but ugly amendment to the freshness contract. *Falsifier:* X6 — re-extract one
 on a synced and a never-synced profile, watch the census and the item version; an
 afternoon, and I-1 is already drafted to carry the answer upstream.
 
-**Risk 3 — upstream ships its own core before the RFC conversation completes.** Sharpened since v1: he built #10's answer himself in days, and #6012's
+**Risk 3 — upstream ships its own core before the design conversation completes.** Sharpened since v1: he built #10's answer himself in days, and #6012's
 saved-search serialization is the first crack through which platform semantic results will
-leak into the local API. *Falsifier:* the RFC issue itself, after the PR train — one
-thread settles fork-vs-upstream for the cost of writing it; the hedge is structural (every
+leak into the local API. *Falsifier:* the harness offer and scoped issues themselves,
+after the PR train — those
+threads settle fork-vs-upstream for the cost of writing them; the hedge is structural (every
 stage behind a key; the contract, counters, and harness are ours whoever writes the
 machinery).
 

@@ -432,8 +432,11 @@ anyone:
 2. **0007's last residual is settled** — the author opened two PDFs on
    2026-08-22 and the reader wrote a pack for each. What it opens is bounded
    (see above) and nothing is filed against it: an opportunity, not a defect.
-3. **Nothing goes upstream** unless the maintainer answers #10. That is the
+3. **Nothing goes upstream** unless the maintainer answers #10. That was the
    posture, and dropping 0001's report criterion made it explicit.
+   *Superseded 2026-08-26: he answered (SYNC.md) — #10 closed by his own
+   backend, PRs #19/#20 opened from here, and the re-formed train of
+   DESIGN.md §4 now governs what goes upstream.*
 
 ## Gates
 

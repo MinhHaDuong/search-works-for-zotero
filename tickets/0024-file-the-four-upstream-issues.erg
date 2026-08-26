@@ -7,9 +7,11 @@ Author: claude
 2026-08-26T15:43Z claude created
 
 2026-08-26T16:53Z claude note per the ratified re-form: I-2 framed as extending his existing #10 citation; I-3 behind the 6012 checkpoint; I-4 folded into scoped issue A (0033), not filed alone
+
+2026-08-26T17:05Z claude note body reconciled with the re-form (code review): I-4 bullet and exit criterion removed, §4 item renumbered
 --- body ---
 ## Context
-DESIGN.md §4 item 13. Form per SYNC.md's measured asymmetry: design-sized
+DESIGN.md §4 item 4. Form per SYNC.md's measured asymmetry: design-sized
 problems go as issues he builds himself (#10, two for two).
 - I-1: the fulltext-delta / mixed-sequence question — drafted FINAL in the
   cycle-1 session, upgraded to a FINDING in cycle 2: startIndexUpdate keys on
@@ -20,12 +22,11 @@ problems go as issues he builds himself (#10, two for two).
 - I-3: the 40k truncation cap vs R9 — DEFAULT_FULLTEXT_MAX_CHARS = 40_000
   truncates the 44.9 MB living example ~1,100-fold; design-sized (streaming),
   his to build.
-- I-4: legacy search-index.json retirement — left in place forever today;
-  reverses a documented decision, so an issue, not a PR.
+- I-4 (legacy search-index.json retirement) is NOT filed alone: folded into
+  scoped issue A's custody paragraph (0033) per the ratified re-form.
 
 ## Exit criteria
 - [ ] I-1 filed with the finding wording and the 0012 artifact linked
 - [ ] I-2 filed with both numbers stated
-- [ ] I-3 filed citing the measured truncation
-- [ ] I-4 filed
+- [ ] I-3 filed citing the measured truncation (after the #6012 checkpoint)
 - [ ] responses recorded here as they land

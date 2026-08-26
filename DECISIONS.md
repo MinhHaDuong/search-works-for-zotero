@@ -85,8 +85,10 @@ applied the political and implementation reviews' structural recommendations
 
 ## Awaiting ratification
 
-Two readings cycle 2 could not decide on the sheet's text alone (flagged in
-DESIGN.md §2.3 and §2.9; the RFC ticket 0027 puts both to the author):
+Three readings cycle 2 could not decide on the sheet's text alone (flagged in
+DESIGN.md §2.3, §2.8 and §2.9; put to the author directly — the re-formed
+train keeps internal governance out of upstream filings, so they are resolved
+here, not in any issue text):
 
 - **R26's prefix granularity.** The panel asserts newest-first prefix-ness at
   stated granularities — record coverage as a strict newest-first prefix; body

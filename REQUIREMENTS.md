@@ -141,7 +141,11 @@ Each stated as the testable property the harness or a reader can check.
   cannot hold; the 1,301-codepoint sweep runs on every check, not in a closed
   ticket.
 - **R20 — RAM budgets are gates.** C3's numbers are asserted by the harness
-  against the 44.9 MB dictionary on every check, not measured once.
+  against the 44.9 MB dictionary on every check, not measured once. (Two
+  readings of this letter — every-check vs slow-suite cadence, and the
+  committable synthetic surrogate vs the copyrighted dictionary itself — are
+  on DECISIONS.md's awaiting-ratification list; DESIGN.md §2.8 states the
+  deviations.)
 - **R21 — same corpus in, same answers out.** A pinned query set with golden
   answers gates every change. (D11: the golden pins the answer **set**, not the
   order.)

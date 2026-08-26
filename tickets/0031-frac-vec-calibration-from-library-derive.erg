@@ -8,6 +8,8 @@ Label: deferred
 2026-08-26T16:46Z claude created
 
 2026-08-26T16:46Z Claude label deferred
+
+2026-08-26T17:05Z claude note deferral condition repointed (code review): 0023's PR-12 is closed into scoped issue A (0033)
 --- body ---
 ## Context
 DESIGN.md §2.6 defers #6012-style calibration (mean centering, noise floor =
@@ -16,8 +18,9 @@ model whose matched-median <= null-p99) "to its own ticket with a stated
 pair-generation protocol" — this is that ticket. Protocol: matched pairs =
 title<->abstract of one item; unrelated pairs = cross-item; the library is the
 corpus. Until built, frac_vec defaults to list-local max-normalization.
-Deferred: only worth building if fraction-RRF (0023's PR-12) ships and the
-golden gate shows the default normalization losing.
+Deferred: only worth building if fraction-RRF ships (the query-semantics work
+riding scoped issue A, 0033 — formerly 0023's PR-12) and the golden gate shows
+the default normalization losing.
 
 ## Exit criteria
 - [ ] calibration block computed per model-version from library-derived pairs

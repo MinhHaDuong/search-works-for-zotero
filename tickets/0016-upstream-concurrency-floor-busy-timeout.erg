@@ -7,6 +7,8 @@ Author: claude
 2026-08-26T15:43Z claude created
 
 2026-08-26T16:53Z claude note PR-2 rescoped to busy_timeout alone per the ratified re-form; the commit-cadence half moved to scoped issue C (0035)
+
+2026-08-26T17:05Z claude note body reconciled with the rescope (code review): per-page-commit wording removed from PR-2's scope; the cadence amendment now points at 0035
 --- body ---
 ## Context
 DESIGN.md §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero
@@ -15,9 +17,10 @@ this cycle — two handles on one db, default timeout 0, the second handle's
 first write throws "database is locked" in 0 ms. And the build path reaches
 clearStore() (build.ts), so a build for one library wipes another's index —
 the R12 hazard DESIGN-DELTA cites.
-PR-2: busy_timeout=5000 on every connection + per-page commits on the BUILD
-path only — explicitly preserving the update path's single-transaction
-rollback (upstream's comment is right: a half-applied delta is a wrong index).
+PR-2: busy_timeout=5000 on every connection, alone — the per-page
+commit-cadence question (BUILD path only; the update path's single-transaction
+rollback is his, and right: a half-applied delta is a wrong index) moved to
+scoped issue C (0035), where he can adopt it in his own idiom.
 PR-3: a build for a different library than stamped refuses with a notice
 naming both, instead of clearStore(). The guard, not the multi-library feature.
 
@@ -29,8 +32,11 @@ naming both, instead of clearStore(). The guard, not the multi-library feature.
 ## Amendments (implementation review, 2026-08-26)
 PR-2: the persist cadence already exists (index-manager.ts:472-473, 200
 items/10 s) BUT crawlOptions overrides it to 500 items/60 s on every fulltext
-build (build.ts:321) — the longest-held lock on the path that matters. The PR
-must lower that override too, or its own repro still fails under fulltext.
+build (build.ts:321) — the longest-held lock on the path that matters. Per the
+re-form that override travels with the cadence question to scoped issue C
+(0035); PR-2 stays busy_timeout alone, and its repro is scoped to the
+zero-timeout throw the pragma fixes (the fulltext hold window is 0035's
+evidence, not this PR's).
 PR-3 rescoped: no library identity is persisted today, and build.ts:185-197
 deliberately avoids keying by routed library id (users/0 locally aliases
 users/<id> on cloud). The PR must (a) stamp a canonical {type,id} with the

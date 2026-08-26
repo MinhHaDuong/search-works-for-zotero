@@ -8,9 +8,11 @@ Author: claude
 
 2026-08-26T16:47Z claude note substrate map added: X2/X3/X5/X6 + X1-recall need the author's machine; X7/X4-synthetic/X1-timing run in-container
 2026-08-26T16:53Z claude note X4's PR-11 dependent moved to scoped issue A; X5's dependent is now scoped issue B (0034)
+
+2026-08-26T17:05Z claude note body reconciled with the re-form (code review): dependents renamed to 0033/0034, §4 item renumbered
 --- body ---
 ## Context
-DESIGN.md §4 item 15 and §3. Each experiment runs BEFORE its dependent and
+DESIGN.md §4 item 7 and §3. Each experiment runs BEFORE its dependent and
 carries a decision rule, not a hope. Drivers extend bench/ and the 0008
 harness; artifacts land in bench/results/ with provenance, per house rules.
 - X1 vector layout + int8: contiguous slab scan vs per-row at 100k/650k;
@@ -29,14 +31,15 @@ harness; artifacts land in bench/results/ with provenance, per house rules.
   corpus. Rule: the ladder step is set at the largest measured scope whose
   constrained-MATCH p95 <= 150 ms (the filter allowance inside the 300-700 ms
   typical query budget); if even 1k exceeds it, no constrained step ships and
-  the ladder ends at the honest R18 give-up. Turns PR-11's ~20k adjective
-  into a constant (0023).
+  the ladder ends at the honest R18 give-up. Turns the constrained-MATCH
+  ladder's ~20k adjective into a constant for the query-semantics work riding
+  scoped issue A (0033).
 - X5 segmenter seg/1 over the real 44.9 MB extraction, 50 cut points sampled
   uniformly at random (seeded, recorded) from seg/1's accepted entry
   boundaries, each hand-scored correct/incorrect against the printed
   dictionary's structure. Rule: >= 45/50 correct ships the entry story;
   40-44 raises the confidence gate and re-runs; < 40 means synthetic entries
-  carry the corpus, labeled. GATES the RFC (0027).
+  carry the corpus, labeled. GATES scoped issue B (0034).
 - X6 version-0 dynamics: re-extract one attachment on a synced and a
   never-synced profile; watch the census and the item version. Rule: if
   re-extraction re-stamps 0, build the bounded re-verify sweep; if anything
@@ -48,7 +51,7 @@ harness; artifacts land in bench/results/ with provenance, per house rules.
 ## Exit criteria
 - [ ] each X has a committed artifact in bench/results/ with provenance
 - [ ] each decision rule evaluated in writing here (ship / fallback / never-build)
-- [ ] no dependent (0023, 0026, 0027) proceeds past its gate before its X lands
+- [ ] no dependent (0026, 0033, 0034) proceeds past its gate before its X lands
 
 ## Substrate map (implementation review, 2026-08-26)
 The corpora are NOT in the repo: bench/results/ holds JSON summaries; the
