@@ -251,7 +251,17 @@ it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees
 (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Progress, 2026-08-26.**
+**Progress, 2026-08-26 (end of session).**
+
+| | |
+|---|---|
+| PR #19 accent fold | open, hardened by adversarial review (4 commits, head `4c4c2ef`): generated 445-codepoint case set, NFC snippet fix, µ/μ. Body edit pending (owner pastes) |
+| PR #20 corrupt index | open, hardened (4 commits, head `dd1605a`): errcode/errstr classifier, mid-flight conversion, embedder unblamed. All 9 review findings fixed |
+| §4 full-text caveat | issue drafted FINAL, ready to file — settled by his own docs + API docs + Zotero source; census-intersect is the only safe close on local (mixed-sequence trap) |
+| §5 measurement docs | issue drafted FINAL, ready to file |
+| Redesign | sheet v2 ratified (DESIGN.md + DESIGN-DELTA.md), design v1 recorded (DESIGN-V1.md), scout findings (SCOUTS.md). Next: cycle 2 |
+
+**Progress, 2026-08-26 (mid-session).**
 
 | | |
 |---|---|
