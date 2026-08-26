@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-9, honoring D3 in the contained scope the derivation critique
+DESIGN.md §4 PR-9, honoring D3 in the contained scope the derivation critique
 forced (M3): upstream's one global embedderId cannot support mixed spaces, so
 the small PR is keep-vectors + pin the query-side embedder to the stored
 vectorEmbedderId until a rebuild switches both. The verified violation dies:

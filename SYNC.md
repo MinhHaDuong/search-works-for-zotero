@@ -255,9 +255,9 @@ it must land before any re-measurement, or the harness will silently measure
 
 | | |
 |---|---|
-| Design cycle 2 | run against sheet v2: six lens-architects (derivation, corpus, custody, concurrency, query, operator), each adversarially critiqued, one synthesis. Recorded as **DESIGN-V2.md** ("The Instrumented Ledger"). Every load-bearing code claim re-verified against upstream `edf2748` this session |
+| Design cycle 2 | run against sheet v2: six lens-architects (derivation, corpus, custody, concurrency, query, operator), each adversarially critiqued, one synthesis. Recorded as **DESIGN.md** ("The Instrumented Ledger"). Every load-bearing code claim re-verified against upstream `edf2748` this session |
 | §4 delta caveat | upgraded from question to **finding** during the cycle: `startIndexUpdate` keys on `libraryVersion` alone, so post-build extraction is invisible to `action:"update"`; the drafted issue (I-1) carries it, X6 is its empirical annex |
-| Next | the increment train of DESIGN-V2 §4 — PRs #19/#20 at the head, then PR-1..12, issues I-1..4, experiments X1–X7 before their dependents, the RFC after the PR train |
+| Next | the increment train of DESIGN.md §4 — PRs #19/#20 at the head, then PR-1..12, issues I-1..4, experiments X1–X7 before their dependents, the RFC after the PR train |
 
 **Progress, 2026-08-26 (end of session).**
 

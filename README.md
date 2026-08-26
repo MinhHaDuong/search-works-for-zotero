@@ -28,12 +28,12 @@ such remainder; charge SQLite the whole file and the win is 6,8x rather than
 - `fork/` — a checkout of the fork; git-ignored, cloned by hand
 
 See `STATE.md` for the prototype-phase record and `SYNC.md` for where things
-stand against upstream. The redesign lives in: `REQUIREMENTS.md` (what the
-system promises), `CONSTRAINTS.md` (what the world imposes), `DESIGN-V2.md`
-(the current design; `DESIGN.md`/`DESIGN-DELTA.md`/`DESIGN-V1.md` are the
-ratification record behind it, `SCOUTS.md` the upstream findings,
-`panel/cycle2/` the raw panel record), and tickets `0014`–`0027` (the work
-train).
+stand against upstream. The redesign is four documents and the tickets:
+`REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
+imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
+ratification ledger), and tickets `0014`–`0027` (the work train).
+`panel/cycle2/` holds the raw panel record behind the design. Superseded
+documents live in git history, not in the tree.
 
 ## Bench
 

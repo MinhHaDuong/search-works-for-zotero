@@ -1,13 +1,13 @@
 # REQUIREMENTS — what the system promises, consolidated
 
 *The user-requirements memo: R1–R28 in their current form, with the ratified
-decisions applied and the rulings folded in. Consolidated 2026-08-26 from
-DESIGN.md (R1–R9 and the ratification log) and DESIGN-DELTA.md (R10–R28,
-ratified by delegation). Those two files remain the ratification record and the
-authority on provenance; this memo is the readable current statement. Any line
-here remains vetoable by the author on later reading — a veto edits the record
-first, then this memo. Constraints live in CONSTRAINTS.md; the design that
-honors all of this is DESIGN-V2.md.*
+decisions applied and the rulings folded in. Consolidated 2026-08-26 from the
+ratified sheet and its delta (superseded, in git history); the rulings
+themselves are recorded in DECISIONS.md, which is the authority on what was
+ratified. This memo is the readable current statement. Any line here remains
+vetoable by the author on later reading — a veto lands in DECISIONS.md first,
+then this memo follows. Constraints live in CONSTRAINTS.md; the design that
+honors all of this is DESIGN.md.*
 
 ## The three rulings that shape everything
 
@@ -50,7 +50,7 @@ Each stated as the testable property the harness or a reader can check.
 - **R26 — convergence is watched, not trusted.** From empty, touching nothing
   but status, the harness sees 100% arrive unattended, and every poll's indexed
   set is a most-recent-first prefix. (The granularity at which prefix-ness is
-  asserted is a design reading — DESIGN-V2 §2.3 — flagged for author veto.)
+  asserted is a design reading — DESIGN.md §2.3 — flagged for author veto.)
 
 **Change and cost**
 
@@ -132,7 +132,7 @@ Each stated as the testable property the harness or a reader can check.
   facet.)
 - **R13 — second process.** Two zoteus on one data dir both answer, neither
   corrupts the index, and no passage is extracted or embedded twice. (Honest
-  restatement accepted in DESIGN-V2 §2.5: never committed twice; duplicate
+  restatement accepted in DESIGN.md §2.5: never committed twice; duplicate
   *compute* bounded at one micro-batch per failover.)
 
 **Operator gates**

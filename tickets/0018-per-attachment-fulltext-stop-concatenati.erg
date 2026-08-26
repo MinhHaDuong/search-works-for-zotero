@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-6, honoring D6 (first-with-text) and R24's prerequisite.
+DESIGN.md §4 PR-6, honoring D6 (first-with-text) and R24's prerequisite.
 Verified at edf2748: extraction concatenates attachment texts and keeps only
 the joined content, destroying the offset->attachment mapping and the
 per-attachment totals a page estimate needs. The PR: keep per-attachment

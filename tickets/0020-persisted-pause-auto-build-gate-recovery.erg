@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-8, honoring R22 (+ verbs residue from v1 §2.8). Verified:
+DESIGN.md §4 PR-8, honoring R22 (+ verbs residue from v1 §2.8). Verified:
 today's stop cancels one job and auto_build (default true) starts a fresh
 build on the next query — the user has no durable veto. The PR: one persisted
 pause row, written by `pause`, read before any scheduling decision — gates

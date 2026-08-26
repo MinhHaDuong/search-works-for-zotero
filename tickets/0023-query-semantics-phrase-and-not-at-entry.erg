@@ -10,7 +10,7 @@ Blocked-by: 0025
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-11 and PR-12, honoring D5, with the query critique's repairs.
+DESIGN.md §4 PR-11 and PR-12, honoring D5, with the query critique's repairs.
 PR-11 (after #19): the query compiler — quoted phrases and NOT/AND as hard
 filters, bare terms soft OR. Phrases evaluate per passage (FTS5-native); AND
 and NOT evaluate at ENTRY scope (one MATCH per hard term, id-lists joined on

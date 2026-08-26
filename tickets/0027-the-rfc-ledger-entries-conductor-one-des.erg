@@ -9,7 +9,7 @@ Blocked-by: 0025
 
 --- body ---
 ## Context
-DESIGN-V2 §4 item 14. One design conversation upstream, not four: the ledger
+DESIGN.md §4 item 14. One design conversation upstream, not four: the ledger
 with signals-vs-keys (§2.1), the entries schema + slab references + segmenter
 (§2.2, X5-gated), the lib-keyed store under the NEW FILENAME
 search-index-v2.sqlite (concurrency F1: no protocol binds binaries that
@@ -22,7 +22,7 @@ Opened AFTER the PR train establishes credibility (0014-0023). Per C2 the
 contract survives even if he reimplements the machinery in his own idiom —
 that is where the durable value lives. Include the two ratification questions
 for the author: R26's prefix granularity reading, and the 300 MB budget's
-scoping under N processes (both flagged in DESIGN-V2).
+scoping under N processes (both flagged in DESIGN.md).
 
 ## Exit criteria
 - [ ] X5 verdict in hand before the RFC quotes segmenter numbers

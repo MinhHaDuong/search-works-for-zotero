@@ -1,11 +1,11 @@
 # CONSTRAINTS — what the world imposes, consolidated
 
 *The constraints memo: C1–C4, the ratified budgets, and the scout sharpenings
-that bind the design, in their current form. Consolidated 2026-08-26 from
-DESIGN.md (C1–C3, budgets), DESIGN-DELTA.md (C4), and SCOUTS.md (sharpenings
-folded into cycle 2 as binding input). Those files remain the record; this memo
-is the readable current statement. Requirements live in REQUIREMENTS.md; the
-design that operates under all of this is DESIGN-V2.md.*
+that bind the design, in their current form. Consolidated 2026-08-26 from the
+ratified sheet, its delta, and the scout report (superseded, in git history);
+ratifications are recorded in DECISIONS.md. This memo is the readable current
+statement. Requirements live in REQUIREMENTS.md; the design that operates
+under all of this is DESIGN.md.*
 
 ## C1 — the derivation graph
 
@@ -84,7 +84,7 @@ scheduling rule: **foreground always beats background**.
 figure was ratified against a single-server picture; under the normal N-server
 deployment (one zoteus per MCP client) the whole-machine figure at two clients
 is ~690 MB steady. Whether the budget binds per process or per machine is the
-author's call, not the panel's — both figures are stated in DESIGN-V2 §2.9.
+author's call, not the panel's — both figures are stated in DESIGN.md §2.9.
 
 ## C4 — status answers from counters
 
@@ -107,4 +107,4 @@ Three asynchronous processes — extract, chunk, embed — independently paced,
 queued between. Two justifications found: keyword availability never waits on
 embedding, and an OS process can be nice'd, observed, and restarted. Panels
 take it seriously, not as gospel. (Cycle 2's answer: two OS processes, three
-ledger-paced loops — DESIGN-V2 §2.5.)
+ledger-paced loops — DESIGN.md §2.5.)

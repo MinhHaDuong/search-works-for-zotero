@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 items 1-2. The head of the upstream train: oscardvs/zoteus#19
+DESIGN.md §4 items 1-2. The head of the upstream train: oscardvs/zoteus#19
 (accent fold, 4 commits, hardened) and #20 (corruption path, 4 commits, all 9
 review findings fixed) are open. SYNC.md: expect days of silence, then a batch.
 On #19's merge, the fold-gate waiver (ticket 0026) is deleted and the STOPWORDS

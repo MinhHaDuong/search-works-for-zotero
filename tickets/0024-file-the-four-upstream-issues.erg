@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 item 13. Form per SYNC.md's measured asymmetry: design-sized
+DESIGN.md §4 item 13. Form per SYNC.md's measured asymmetry: design-sized
 problems go as issues he builds himself (#10, two for two).
 - I-1: the fulltext-delta / mixed-sequence question — drafted FINAL in the
   cycle-1 session, upgraded to a FINDING in cycle 2: startIndexUpdate keys on

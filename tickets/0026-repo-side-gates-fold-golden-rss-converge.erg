@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §2.8 gates, honoring R19-R21, R26/R27, and v1's Risk-3 soak — repo-
+DESIGN.md §2.8 gates, honoring R19-R21, R26/R27, and v1's Risk-3 soak — repo-
 side work in this repo's Makefile and bench/, not upstream PRs. Target shape:
 `check: lint figures fold-gate golden check-fast`; `check-slow: check rss-gate
 convergence soak`.
@@ -26,7 +26,7 @@ convergence soak`.
   300 MB. Fixture informed by X3 (0025).
 - R26/R27 convergence harness: fixture library, empty dataDir, 1 Hz status
   polls touching nothing else; asserts status <= 50 ms, monotone coverage,
-  prefix arithmetic per stage at DESIGN-V2 §2.3's granularities; then
+  prefix arithmetic per stage at DESIGN.md §2.3's granularities; then
   edit-one-count-one and the identical-bytes resync with all work deltas 0 —
   the test that would have caught the shipped 92.7% defect. Phase 3 fixture:
   one quarantine, one monster, dateAdded ties.

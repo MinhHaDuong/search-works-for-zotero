@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-10, honoring R16 and D7 (both notes and annotations). Verified
+DESIGN.md §4 PR-10, honoring R16 and D7 (both notes and annotations). Verified
 gap at edf2748: builds crawl top:true only — standalone notes are indexed,
 child notes and annotations are not, so the researcher's own words are
 invisible while zoteus can create annotations it can never find again. The PR:

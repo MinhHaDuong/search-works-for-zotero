@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-4 and PR-5, honoring R28 and R10. PR-4: pin the transformers
+DESIGN.md §4 PR-4 and PR-5, honoring R28 and R10. PR-4: pin the transformers
 cache (env.cacheDir) under dataDir before constructing the pipeline — the
 default lands weights outside dataDir, breaking uninstall-by-deleting-dataDir;
 one line now versus gigabytes of surprise later. PR-5: the Gemini embedder key

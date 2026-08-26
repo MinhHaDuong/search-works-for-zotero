@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 item 15 and §3. Each experiment runs BEFORE its dependent and
+DESIGN.md §4 item 15 and §3. Each experiment runs BEFORE its dependent and
 carries a decision rule, not a hope. Drivers extend bench/ and the 0008
 harness; artifacts land in bench/results/ with provenance, per house rules.
 - X1 vector layout + int8: contiguous slab scan vs per-row at 100k/650k;

@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-1, honoring R23. Verified defect at edf2748: createSchema
+DESIGN.md §4 PR-1, honoring R23. Verified defect at edf2748: createSchema
 re-stamps SCHEMA_VERSION via INSERT OR REPLACE (sqlite-index.ts:26,153) before
 loadMeta ever reads it — the stamp is written and read nowhere, so a downgrade
 destroys the evidence of skew at the moment it matters. The PR: read

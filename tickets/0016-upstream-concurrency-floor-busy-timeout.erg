@@ -8,7 +8,7 @@ Author: claude
 
 --- body ---
 ## Context
-DESIGN-V2 §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero
+DESIGN.md §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero
 busy_timeout or SQLITE_BUSY handling anywhere in src/; empirically reproduced
 this cycle — two handles on one db, default timeout 0, the second handle's
 first write throws "database is locked" in 0 ms. And the build path reaches
