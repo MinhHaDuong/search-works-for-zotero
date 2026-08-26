@@ -4,7 +4,7 @@ Work tracking for the search redesign of [zoteus](https://github.com/oscardvs/zo
 an MCP server over a local Zotero library. The TypeScript under discussion
 lives upstream and in the author's fork, not in this repo.
 
-Upstream ships its own SQLite/FTS5 backend since v1.7.0 (closing
+Upstream has shipped its own SQLite/FTS5 backend since v1.7.0 (closing
 [#10](https://github.com/oscardvs/zoteus/issues/10), which this repo argued).
 The storage-layer prototype this repo was started for is therefore superseded,
 and the live work is the redesign — four documents and the tickets:
