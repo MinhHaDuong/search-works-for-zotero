@@ -1,0 +1,24 @@
+%erg 0.1
+Title: Per-attachment fulltext: stop concatenating, first-with-text, skip reasons
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-6, honoring D6 (first-with-text) and R24's prerequisite.
+Verified at edf2748: extraction concatenates attachment texts and keeps only
+the joined content, destroying the offset->attachment mapping and the
+per-attachment totals a page estimate needs. The PR: keep per-attachment
+totalChars/totalPages; deterministic first-with-text (ascending dateAdded, key
+tie-break, must appear in the fulltext census); skipped attachments get a
+stored reason ("identical text, suppressed" / "different text, not indexed
+under first-with-text"). Convergent when a later extraction changes the choice
+function's output.
+
+## Exit criteria
+- [ ] per-attachment totals recorded, no concatenation across attachments
+- [ ] deterministic first-with-text with stored skip reasons
+- [ ] PR opened upstream; outcome recorded here

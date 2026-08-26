@@ -1,0 +1,22 @@
+%erg 0.1
+Title: No text is a terminal state: stored reasons, metadata-only coverage
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-7, honoring R14 and D1. Upstream logs a no-text attachment
+once and re-encounters it forever (fulltext-source.ts) — no terminal state, so
+coverage can never honestly reach 100% on a library with scanned PDFs. The PR:
+the warn-once becomes a stored reason; the item counts covered as
+metadata-only; metadata-only counts enter status per D1 (denominator = items,
+metadata-only included, with reason). Terminal `empty` is done, not failed —
+different bookkeeping, different sentence.
+
+## Exit criteria
+- [ ] no-text is a recorded terminal state, never retried until content changes
+- [ ] status reports metadata-only counts per D1
+- [ ] PR opened upstream; outcome recorded here

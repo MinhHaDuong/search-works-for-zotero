@@ -1,0 +1,23 @@
+%erg 0.1
+Title: Serve-stale minimal: keep vectors, pin the query embedder
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-9, honoring D3 in the contained scope the derivation critique
+forced (M3): upstream's one global embedderId cannot support mixed spaces, so
+the small PR is keep-vectors + pin the query-side embedder to the stored
+vectorEmbedderId until a rebuild switches both. The verified violation dies:
+dropStaleVectors -> clearVectors() at open silently zeroes semantic coverage
+on any model change. Dual-embed migration stays in the RFC (0027). Failing
+test: open a db under a different ZOTEUS_EMBEDDING_MODEL, watch semantic
+coverage survive.
+
+## Exit criteria
+- [ ] vectors survive a model switch; query embedder pinned to stored id
+- [ ] coverage/status names the pinned model
+- [ ] PR opened upstream; outcome recorded here

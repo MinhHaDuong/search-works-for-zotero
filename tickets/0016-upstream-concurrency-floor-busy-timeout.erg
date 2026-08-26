@@ -1,0 +1,26 @@
+%erg 0.1
+Title: Upstream concurrency floor: busy_timeout, per-page build commits, cross-library wipe guard
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero
+busy_timeout or SQLITE_BUSY handling anywhere in src/; empirically reproduced
+this cycle — two handles on one db, default timeout 0, the second handle's
+first write throws "database is locked" in 0 ms. And the build path reaches
+clearStore() (build.ts), so a build for one library wipes another's index —
+the R12 hazard DESIGN-DELTA cites.
+PR-2: busy_timeout=5000 on every connection + per-page commits on the BUILD
+path only — explicitly preserving the update path's single-transaction
+rollback (upstream's comment is right: a half-applied delta is a wrong index).
+PR-3: a build for a different library than stamped refuses with a notice
+naming both, instead of clearStore(). The guard, not the multi-library feature.
+
+## Exit criteria
+- [ ] PR-2: two-handle SQLITE_BUSY repro as the failing test; update rollback untouched
+- [ ] PR-3: cross-library refusal with both libraries named; clearStore chain as repro
+- [ ] both PRs opened upstream; outcomes recorded here

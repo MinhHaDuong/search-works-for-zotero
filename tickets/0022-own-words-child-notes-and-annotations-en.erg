@@ -1,0 +1,21 @@
+%erg 0.1
+Title: Own words: child notes and annotations enter the corpus
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-10, honoring R16 and D7 (both notes and annotations). Verified
+gap at edf2748: builds crawl top:true only — standalone notes are indexed,
+child notes and annotations are not, so the researcher's own words are
+invisible while zoteus can create annotations it can never find again. The PR:
+an itemType-filtered second crawl pass for child notes + annotations, #6012
+eligibility cited (they embed both as first-class).
+
+## Exit criteria
+- [ ] child notes and annotations indexed; failing test shows today's blindness
+- [ ] record-core ruling respected: own words extend, never dilute (own field/column)
+- [ ] PR opened upstream; outcome recorded here

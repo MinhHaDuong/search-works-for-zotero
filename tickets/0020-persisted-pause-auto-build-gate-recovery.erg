@@ -1,0 +1,26 @@
+%erg 0.1
+Title: Persisted pause, auto_build gate, recovery verbs
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §4 PR-8, honoring R22 (+ verbs residue from v1 §2.8). Verified:
+today's stop cancels one job and auto_build (default true) starts a fresh
+build on the next query — the user has no durable veto. The PR: one persisted
+pause row, written by `pause`, read before any scheduling decision — gates
+build, auto_build, and background work; does not gate queries, deletions, or
+explicit verbs (a `build` while paused asks). Survives restart by
+construction; carried into a fresh file on sideline. Plus the verbs residue:
+`purge`, and confirm tokens that quote cost (rebuild confirm carries the item
+count so a stale confirmation cannot authorize a bigger job). R1-vs-R22
+resolved in the user's favor, disclosed: "paused since <date>".
+
+## Exit criteria
+- [ ] pause survives restart and gates auto_build; queries still answer
+- [ ] status says "paused since <date>"
+- [ ] confirm-token verbs (`reset`, `rebuild`, `purge`) with quoted costs
+- [ ] PR opened upstream; outcome recorded here

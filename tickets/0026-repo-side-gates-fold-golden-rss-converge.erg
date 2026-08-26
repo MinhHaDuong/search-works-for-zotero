@@ -1,0 +1,42 @@
+%erg 0.1
+Title: Repo-side gates: fold, golden, RSS, convergence, soak
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T15:43Z claude created
+
+--- body ---
+## Context
+DESIGN-V2 §2.8 gates, honoring R19-R21, R26/R27, and v1's Risk-3 soak — repo-
+side work in this repo's Makefile and bench/, not upstream PRs. Target shape:
+`check: lint figures fold-gate golden check-fast`; `check-slow: check rss-gate
+convergence soak`.
+- R19 fold gate: fold_sweep.mjs repointed at the tree under test; against
+  stock upstream it is red BY CLASSIFICATION (recorded miss count), not by
+  crash; waiver keyed to PR #19's URL, deleted on merge (0014).
+- R21 golden gate, D11=set: pinned multilingual fixture corpus, ~40 queries,
+  answer sets at k=10. Thresholds re-derived after the operator critique's F1
+  kill (0013's legitimate minimum is 0.25, not above 0.5): mean Jaccard >=
+  0.8; <= 5% of queries below 0.35; hard floor 0.2. Order deliberately
+  ungated. Re-pins are commits whose set diff is the review artifact; re-pin
+  at entry granularity when entries exist.
+- R20 RSS gate: deterministic synthetic monster at 44,906,152 chars, entry-
+  structured (~43k headings); assert worker VmHWM <= 500 MB, server p95 <=
+  300 MB. Fixture informed by X3 (0025).
+- R26/R27 convergence harness: fixture library, empty dataDir, 1 Hz status
+  polls touching nothing else; asserts status <= 50 ms, monotone coverage,
+  prefix arithmetic per stage at DESIGN-V2 §2.3's granularities; then
+  edit-one-count-one and the identical-bytes resync with all work deltas 0 —
+  the test that would have caught the shipped 92.7% defect. Phase 3 fixture:
+  one quarantine, one monster, dateAdded ties.
+- R13 soak: three P0s, full 10k drain, 1 query/s each, kill -9 the conductor
+  twice; p95 <= 1.5 s, zero SQLITE_BUSY surfacing, WAL <= 256 MB, lease
+  migration < 30 s, zero double-commits.
+
+## Exit criteria
+- [ ] fold gate in `make check`, red-by-classification against stock upstream, waiver documented
+- [ ] golden gate with the re-derived thresholds and a committed pinned set
+- [ ] rss gate asserting the ratified budgets against the synthetic monster
+- [ ] convergence harness phases 1-3 runnable; resync phase asserts zero work
+- [ ] soak scripted with the five assertions; results committed to bench/results/
