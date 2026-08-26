@@ -17,7 +17,7 @@ eligibility cited (they embed both as first-class).
 
 ## Exit criteria
 - [ ] child notes and annotations indexed; failing test shows today's blindness
-- [ ] record-core ruling respected: own words extend, never dilute (own field/column)
+- [ ] record-core ruling respected: own words extend, never dilute — via source label widening (`source: 'note'|'annotation'`); per-field columns stay RFC-scope
 - [ ] PR opened upstream; outcome recorded here
 
 ## Amendments (implementation review, 2026-08-26)

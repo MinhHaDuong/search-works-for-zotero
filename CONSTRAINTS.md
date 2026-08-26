@@ -57,8 +57,11 @@ rebuildable, never silently wrong.
 - No `/deleted` endpoint on the local API; key-set diff (`format=versions`,
   unpaginated) is the documented deletion route.
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression per
-  row — seconds at library scale (#6012's measurement). MATCH runs
-  unconstrained; scoping is enforced elsewhere.
+  row — seconds at library scale (#6012's measurement). MATCH therefore runs
+  unconstrained on the general path, with scoping enforced elsewhere; the one
+  permitted exception is the disclosed small-scope fallback of DESIGN.md §2.6
+  (a constrained MATCH on scopes below a threshold X4 measures, never the
+  default path).
 - The SDT pack (zotero/structured-document-text) is the concrete adapter path
   if the local API ever serves structured extraction: random-access container,
   reader contract `{byteLength, read(offset,length)}`, self-describing with

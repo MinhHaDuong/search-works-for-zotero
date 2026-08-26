@@ -312,11 +312,13 @@ PR: editing his prose with numbers measured on other code is not something to do
    is the one that pays for itself while the rest is being discussed.
 4. PR: the corruption path. Same shape as the fold, and it can travel while the
    migrator is being decided.
-5. The migration ceiling: PR with the table if the migrator itself is the point,
-   issue with the table if the fix is. Decide before writing, not after — the two
-   forms want different bodies.
+5. The migration ceiling: **settled — skipped by decision** (2026-08-26, table
+   above): not worth reversing his documented 200 MB cap. No migration item
+   remains in the work train.
 6. Issue: the full-text delta question.
-7. Docs PR: the measurements, both numbers.
+7. Issue: the measurements, both numbers — reshaped from a docs PR per §5
+   above (numbers measured on other code are not edited into his prose
+   quietly).
 
 **The gate.** 757 tests here were green against a tree that no longer exists. His
 suite is 594 passed / 7 skipped. Every ported test runs against *his* tree before

@@ -21,10 +21,17 @@ harness; artifacts land in bench/results/ with provenance, per house rules.
   Rule: worker peak <= 500 MB or the fuse threshold moves. Feeds the rss-gate
   fixture (0026).
 - X4 json_each constrained-MATCH cost at 1k/5k/20k/100k rowids on the 477k
-  corpus. Turns PR-11's ~20k ladder step into a constant (0023).
-- X5 segmenter seg/1 over the real 44.9 MB extraction, 50 hand-checked cut
-  points. Rule: below acceptable precision the confidence gate rises and
-  synthetic entries carry more of the corpus, labeled. GATES the RFC (0027).
+  corpus. Rule: the ladder step is set at the largest measured scope whose
+  constrained-MATCH p95 <= 150 ms (the filter allowance inside the 300-700 ms
+  typical query budget); if even 1k exceeds it, no constrained step ships and
+  the ladder ends at the honest R18 give-up. Turns PR-11's ~20k adjective
+  into a constant (0023).
+- X5 segmenter seg/1 over the real 44.9 MB extraction, 50 cut points sampled
+  uniformly at random (seeded, recorded) from seg/1's accepted entry
+  boundaries, each hand-scored correct/incorrect against the printed
+  dictionary's structure. Rule: >= 45/50 correct ships the entry story;
+  40-44 raises the confidence gate and re-runs; < 40 means synthetic entries
+  carry the corpus, labeled. GATES the RFC (0027).
 - X6 version-0 dynamics: re-extract one attachment on a synced and a
   never-synced profile; watch the census and the item version. Rule: if
   re-extraction re-stamps 0, build the bounded re-verify sweep; if anything

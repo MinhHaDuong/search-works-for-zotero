@@ -67,3 +67,8 @@ DESIGN.md §2.3 and §2.9; the RFC ticket 0027 puts both to the author):
   single-server picture; the normal deployment is one zoteus per MCP client,
   ~690 MB whole-machine steady at two clients. Per process or per machine is
   the author's call; both figures stated in DESIGN.md §2.9.
+- **R20's cadence.** The sheet says the RAM budgets are asserted "on every
+  check"; the design places the RSS gate in the slow suite (`check-slow`)
+  because its fixture is a 44.9M-char synthetic monster, and names the
+  weakening in Risk 5. Every-check (slower `make check`) or slow-suite (the
+  letter of R20 weakened, on the record) is the author's call.

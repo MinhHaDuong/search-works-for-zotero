@@ -61,3 +61,7 @@ The five gates sort into two piles, and the exit criteria read accordingly:
   cannot run before the machinery exists, and they also need a mock Zotero
   local API (everything in bench/ talks to live Zotero) — an unticketed
   prerequisite (~2-3 days) that lands with them.
+Also flagged (Copilot round 2): the rss-gate's slow-suite placement weakens
+R20's letter ("asserted on every check"); the cadence question is now on
+DECISIONS.md's awaiting-ratification list — build the gate either way, wire
+it per the ruling.
