@@ -245,8 +245,8 @@ history).
 | | |
 |---|---|
 | PR #19 accent fold | open upstream, hardened by adversarial review (4 commits, head `4c4c2ef`). Body edit pending (owner pastes). Not touched by his v1.7.1 release |
-| PR #20 corrupt index | open upstream, hardened (4 commits, head `dd1605a`), all 9 review findings fixed. Not touched by v1.7.1 |
-| upstream | moved past the cycle-2 baseline: v1.7.1 released 2026-08-26 (`80f8aa0`, `2cde6a7`) without touching either open PR — the batch pattern holding |
+| PR #20 corrupt index | open upstream, hardened (4 commits + merge, head `331b037`), all 9 review findings fixed. #18's rewrite of `open()` conflicted with the corruption `try/catch`; resolved by merging upstream `main` into `corrupt-index` (keep #18's `busy_timeout` and tolerant WAL pragma, wrap the body in the corruption catch; the WAL catch re-throws corruption errors so classification survives). tsc and the 616-test suite green |
+| upstream | moved past the cycle-2 baseline: v1.7.1 released 2026-08-26 (`80f8aa0`, `2cde6a7`) without touching either open PR — the batch pattern holding. `80f8aa0` (#18) touched `sqlite-index.ts`, making #20 unmergeable until the merge above; #19 still merges clean |
 | fork | `main` fast-forwarded to `edf2748` and pushed; archive tag not pushed (credential relay 403s tag pushes; cosmetic — `origin/fts5-storage` pins `bae82a7`) |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta | upgraded from question to finding; I-1 in ticket 0024, X6 its annex |
