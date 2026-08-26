@@ -2,10 +2,12 @@
 Title: Persisted pause, auto_build gate, recovery verbs
 Created: 2026-08-26
 Author: claude
+Closed: folded into scoped issue A (0033) as the pause motivating defect; verbs go with the same conversation
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z Claude closed — folded into scoped issue A (0033) as the pause motivating defect; verbs go with the same conversation
 --- body ---
 ## Context
 DESIGN.md §4 PR-8, honoring R22 (+ verbs residue from v1 §2.8). Verified:

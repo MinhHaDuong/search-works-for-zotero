@@ -2,11 +2,14 @@
 Title: No text is a terminal state: stored reasons, metadata-only coverage
 Created: 2026-08-26
 Author: claude
-Blocked-by: 0018
+Label: deferred
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z Claude note blocker 0018 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude label deferred
+2026-08-26T16:53Z claude note reserve list per the ratified re-form: open only on a warm batch or third-party demand (the 13/14 pattern); Blocked-by 0018 is moot now that PR-6 goes issue-form
 --- body ---
 ## Context
 DESIGN.md §4 PR-7, honoring R14 and D1. Upstream logs a no-text attachment

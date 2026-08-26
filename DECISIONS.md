@@ -53,6 +53,36 @@ out-of-scope declarations stand; the 22 kills stand. Scout findings (mixed
 full-text sequence, Server-ID partitioning, web politeness, R5's MATCH nuance,
 R2/smallest-first composition) folded into cycle 2's input as binding.
 
+**2026-08-26 — the work train is re-formed on the panel reviews.** The author
+applied the political and implementation reviews' structural recommendations
+(panel/cycle2/review-political.md, review-implementation.md) wholesale:
+
+- **Volume**: at most **two upstream PRs in flight, ever**; the contained-PR
+  budget beyond #19/#20 is **six** — the stopwords follow-up, PR-1 (schema
+  read-before-write), PR-2 reduced to `busy_timeout` alone, PR-3 (wipe guard,
+  identity stamped first), PR-4 (cacheDir), PR-5 (key to header). Cadence is
+  demand-triggered: the next pair waits for the current pair to resolve, and
+  silence is queueing, not a signal to add more.
+- **Reserve** (opened only on a warm batch or third-party demand, the #13/#14
+  pattern): PR-7 (terminal states), PR-10 (own words).
+- **The mega-RFC is replaced** by the **acceptance-harness offer first** — the
+  convergence harness, fold sweep, and golden set as an executable spec he can
+  run against whatever he builds — followed by **three #10-shaped scoped
+  issues**: A ledger/freshness/counters (pause and serve-stale as motivating
+  defects; the query-semantics work rides here or waits for demand), B
+  entries/segmenter (X5-gated, #6012-checkpointed), C multi-process on one
+  data dir (absorbs the per-page-commit question). The bet stands: his
+  machinery under our contract is a good ending.
+- **Issue forms**: I-2 framed as extending the citation his docs already make
+  to #10; I-4 folded into scoped issue A's custody paragraph; I-1 and I-3
+  stand (I-3 behind the #6012 checkpoint).
+- **Commitment bounds** (binding on this repo's side): two PRs in flight;
+  a three-week sunset — any upstream item unaddressed after three weeks, or
+  overtaken by his own implementation, is closed from our side with one
+  appreciative line and no relitigation; the harness is a one-time artifact
+  transfer, not a tracking duty; the fork's end state is **archived** once the
+  train resolves.
+
 ## Awaiting ratification
 
 Two readings cycle 2 could not decide on the sheet's text alone (flagged in

@@ -7,6 +7,7 @@ Author: claude
 2026-08-26T15:43Z claude created
 
 2026-08-26T16:47Z claude note gates split into buildable-now vs RFC-acceptance-spec per the implementation review
+2026-08-26T16:53Z claude note the RFC's acceptance-spec pile now serves the harness offer (0032)
 --- body ---
 ## Context
 DESIGN.md §2.8 gates, honoring R19-R21, R26/R27, and v1's Risk-3 soak — repo-

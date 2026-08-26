@@ -608,61 +608,69 @@ filename (concurrency-critic F1); pause gating deletions (custody-critic M3); th
 
 ## 4. The increment sequence from v1.7.0
 
+*(As re-formed 2026-08-26 by the political and implementation reviews,
+panel/cycle2/, ratified in DECISIONS.md. The original fifteen-step train is in git
+history at `dba8cd6`.)*
+
 Root: `/home/user/oscardvs/zoteus/src/features/search/`. SYNC.md's measured asymmetry
 governs form: contained defect + failing test → **[PR]** (merged twice); design-sized →
 **[issue]** he builds (#10, two for two). **[X]** = measure first. Gates are repo-side, in
-this repo's Makefile, not PRs. PR #19 and #20 are already open upstream and are the head
-of the train.
+this repo's Makefile, not PRs. The volume discipline is the political review's: the
+maintainer's measured review budget is two contained PRs per demand-triggered batch, so
+**at most two PRs in flight, ever**, and the whole campaign's contained-PR budget beyond
+#19/#20 is **six**.
 
-1. **PR #19** (open) — accent fold. On merge: delete the fold-gate waiver; land the
-   STOPWORDS deletion + full Unicode split as its follow-up PR with X2's number.
-2. **PR #20** (open) — corruption path.
-3. **PR-1 [PR]** — schema read-before-write + conductor-aware sideline (§2.7 R23): open a
-   `schemaVersion=99` fixture, assert not re-stamped and sidelined. After #20 (same file
-   family).
-4. **PR-2 [PR]** — `busy_timeout=5000` + per-page commits on the **build path only**,
-   explicitly preserving the update path's single-transaction rollback (the
-   concurrency-critic's M1 rescope; the two-handle SQLITE_BUSY repro is the failing test —
-   reproduced empirically this cycle: default timeout 0, immediate throw).
-5. **PR-3 [PR]** — cross-library wipe guard: a build for a different library than stamped
-   refuses with a notice naming both, instead of `clearStore()` (the verified
-   build.ts→reset→clearStore chain is the repro). The guard, not the feature.
-6. **PR-4 [PR]** — pin `env.cacheDir` under dataDir (R28). **PR-5 [PR]** — Gemini key to
-   header (R10). Cheapest custody wins.
-7. **PR-6 [PR]** — per-attachment fulltext: stop concatenating, keep per-attachment
-   `totalChars`/`totalPages`, deterministic first-with-text + stored skip reasons (D6,
-   R24's load-bearing prerequisite).
-8. **PR-7 [PR]** — R14 terminal recording: the warn-once becomes a stored reason;
-   metadata-only counts enter status (D1).
-9. **PR-8 [PR]** — persisted pause + `auto_build` gate + verbs residue (`purge`, confirm
-   tokens) — the piece users feel first.
-10. **PR-9 [PR]** — D3 minimal serve-stale: keep vectors, pin query embedder to the stored
-    `vectorEmbedderId` until rebuild (the honest scope under one global key; failing test =
-    open a db under a different `ZOTEUS_EMBEDDING_MODEL`, watch semantic coverage survive).
-11. **PR-10 [PR]** — child notes + annotations crawl, itemType-filtered second pass (R16,
-    D7), #6012 eligibility cited.
-12. **PR-11 [PR]** — D5 query compiler with entry-scope AND/NOT and the fold-only parity
-    stream (after #19; the failing test proves `"general equilibrium"` retrieves
-    either-word today). **PR-12 [PR]** — fraction-RRF behind a flag, seam-invariant test,
-    golden Jaccard in the body.
-13. **Issues, filed early**: **I-1** the fulltext-delta/mixed-sequence question (drafted
-    FINAL per SYNC — now upgraded from question to finding: `startIndexUpdate` keys on
-    `libraryVersion` alone, so post-build extraction is invisible to `action:"update"`;
-    X6 is its empirical annex). **I-2** the measurement corrections (drafted FINAL).
-    **I-3** the 40k cap vs R9 (design-sized: streaming; #10's history says he builds it).
-    **I-4** legacy JSON retirement (reverses a documented decision — issue, not PR).
-14. **The RFC [issue]** — one design conversation, not four: the ledger with signals-vs-
-    keys, the entries schema + slab references + segmenter (X5-gated), the lib-keyed
-    store under the new filename, the conductor protocol with both F-repairs in the text,
-    record-first frontier, dual-embed migration, counters + the convergence harness
-    offered as the acceptance spec he can run against whatever he builds. Opened after the
-    PR train, so the conversation starts from merged, reviewed pieces rather than from a
-    specification; the contract survives even if he reimplements the machinery in his own
-    idiom — which is where C2 says the durable value lives.
-15. **[X] before their dependents**: X1 (vector layout/int8) before the sidecar work; X4
-    (json_each cost) before PR-11's ladder constant; X5 (segmenter) before the RFC's
-    numbers; X6 (version-0 dynamics) with I-1; X7 (census parse) before the tick cadence
-    is documented. X3 (monster RSS) feeds the rss-gate fixture.
+1. **The open head**: **PR #19** (accent fold) and **PR #20** (corruption path). On #19's
+   merge: delete the fold-gate waiver; land the **stopwords follow-up** (Unicode split +
+   STOPWORDS deletion, X2's number in the body) as the next car.
+2. **The contained-PR budget** (two in flight, next pair waits for the current pair):
+   **PR-1** schema read-before-write + sideline (fixture: `schemaVersion=99`, assert not
+   re-stamped); **PR-2** `busy_timeout=5000` alone — the two-handle SQLITE_BUSY repro is
+   the failing test; the commit-cadence question (including the fulltext build's 500/60s
+   override) moves to scoped issue C, where he can adopt it in his own idiom; **PR-3**
+   cross-library wipe guard — stamp a canonical library identity first (`users/0`
+   normalized), quote his build.ts doc-comment, frame the guard as enforcing the
+   documented single-library assumption; **PR-4** `env.cacheDir` under dataDir (R28);
+   **PR-5** Gemini key to header (R10).
+3. **The reserve** (opened only on a warm batch or third-party demand — the #13/#14
+   pattern): **PR-7** R14 terminal recording + metadata-only counts (D1); **PR-10** child
+   notes + annotations crawl (R16, D7; source-label widening, not schema).
+4. **Issues**: **I-1** the fulltext-delta finding (`startIndexUpdate` keys on
+   `libraryVersion` alone, so post-build extraction is invisible to `action:"update"`;
+   X6 its empirical annex). **I-2** the measurements — framed as extending the citation
+   his docs already make to #10: lead with the offer, both numbers charged honestly; the
+   477,512 wall is not softened. **I-3** the 40k cap vs R9 — behind the #6012 checkpoint
+   (a random-access container moots the streaming ask). **I-4** is folded into scoped
+   issue A's custody paragraph, not filed alone.
+5. **The harness offer [the first design conversation]** — the convergence harness, fold
+   sweep, and golden set offered as an executable acceptance spec he can run against
+   whatever he builds. The one consistent fact about his reviews is that he writes tests;
+   this is the artifact that survives reimplementation by design, and it is a **one-time
+   transfer** — he vendors it or it stays here.
+6. **Three scoped issues [#10-shaped: a documented behavior, a reproduction, a
+   measurement, no code to accept]**, after the PR train so the conversation starts from
+   merged, reviewed pieces rather than from a specification: **A** — the
+   ledger/freshness/counters complex, with the pause defect (`auto_build` restarting on
+   the next query) and the serve-stale defect (`dropStaleVectors` zeroing semantic
+   coverage on a model change, at both drop sites) as motivating defects, the legacy-JSON
+   custody point (R15: deleted items' text retained on disk) as its custody paragraph,
+   and the D5 query-semantics work riding along or waiting for demand; **B** — entries +
+   segmenter (X5-gated, #6012-checkpointed; carries the per-attachment data model,
+   first-with-text, and the memory-backend and multi-tenant-filename decisions); **C** —
+   multi-process on one data dir (conductor sketch, per-page build commits, the
+   crash-only stdio reality stated in the lease design's favor). The contract survives
+   even if he reimplements the machinery in his own idiom — which is where C2 says the
+   durable value lives.
+7. **[X] before their dependents** (substrate map in ticket 0025 — X2/X3/X5/X6 and X1's
+   recall half need the author's machine): X1 before the sidecar work; X4 before any
+   constrained-MATCH ladder constant; X5 (with seg/1 built first, 0028) before issue B;
+   X6 with I-1; X7 before the tick cadence is documented; X3 feeds the rss-gate fixture.
+8. **Commitment bounds** (binding this side, so the plan's cost to the author is written
+   where a future reader can see it was the plan): two PRs in flight, ever; a three-week
+   sunset — any upstream item unaddressed after three weeks, or overtaken by his own
+   implementation, is closed from our side with one appreciative line and no
+   relitigation; the harness transfer is one-time; the fork's end state is **archived**
+   once the train resolves.
 
 ---
 

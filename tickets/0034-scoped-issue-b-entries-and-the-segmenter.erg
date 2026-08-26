@@ -1,0 +1,26 @@
+%erg 0.1
+Title: Scoped issue B: entries and the segmenter
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T16:52Z claude created
+
+--- body ---
+## Context
+DESIGN.md §4 item 6-B, per the ratified re-form (DECISIONS.md 2026-08-26).
+One #10-shaped issue for the entry unit: the entries schema + slab references
+(DESIGN §2.2), the segmenter (measured by X5, built by 0028), the
+per-attachment data model + first-with-text + stored skip reasons (absorbed
+from closed ticket 0018 — the verified concatenation defect at
+fulltext-source.ts:119-146 is the reproduction), and the two decisions the
+implementation review says the text must carry: the memory backend's fate
+under a per-field schema, and multi-tenant suffixing of the v2 filename.
+DOUBLE-GATED: X5's verdict (0025) AND the #6012 checkpoint — structured
+extraction landing upstream makes this issue's segmenter half obsolete and
+its data-model half an adapter question; check before drafting, not after.
+
+## Exit criteria
+- [ ] #6012 checkpoint recorded here before drafting
+- [ ] X5 verdict in hand before any segmenter number is quoted
+- [ ] issue drafted and filed per DESIGN §4 ordering; response recorded here

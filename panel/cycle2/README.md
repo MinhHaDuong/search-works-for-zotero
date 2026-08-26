@@ -33,7 +33,11 @@ the RFC bet, platform risk, the author's commitment bounds) and
 verdicts and efforts, the experiments' substrate map, the gates' real
 ordering, and the missing work that became tickets 0028–0031). Their applied
 consequences are logged in the tickets they amended; their structural
-recommendations await the author's ruling in DECISIONS.md terms.
+recommendations were ratified wholesale by the author on 2026-08-26 (the
+DECISIONS.md entry "the work train is re-formed on the panel reviews") and
+applied to DESIGN.md §4 and the ticket corpus — the harness offer and scoped
+issues live as tickets 0032–0035, the folded tickets are closed in
+tickets/closed/ with their reasons.
 
 **How to read these.** The memos are inputs, not conclusions: several of their
 design points were killed or repaired by their critiques, and the critiques

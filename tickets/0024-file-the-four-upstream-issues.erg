@@ -1,11 +1,12 @@
 %erg 0.1
-Title: File the four upstream issues
+Title: File the upstream issues (I-1..I-3; I-4 folded into 0033)
 Created: 2026-08-26
 Author: claude
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z claude note per the ratified re-form: I-2 framed as extending his existing #10 citation; I-3 behind the 6012 checkpoint; I-4 folded into scoped issue A (0033), not filed alone
 --- body ---
 ## Context
 DESIGN.md §4 item 13. Form per SYNC.md's measured asymmetry: design-sized

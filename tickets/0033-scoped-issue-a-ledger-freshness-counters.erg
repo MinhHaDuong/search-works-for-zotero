@@ -1,0 +1,31 @@
+%erg 0.1
+Title: Scoped issue A: ledger, freshness, counters -- pause and serve-stale as the motivating defects
+Created: 2026-08-26
+Author: claude
+
+--- log ---
+2026-08-26T16:52Z claude created
+
+--- body ---
+## Context
+DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).
+One #10-shaped issue: documented behaviors, reproductions, measurements, no
+code to accept. Carries: the ledger/freshness/counters complex (DESIGN §2.1,
+§2.4, §2.8); the PAUSE defect as motivation (verified: stop cancels one job,
+auto_build default-on restarts on the next query — index-tool.ts:56-65,
+semantic-search.ts:48-65; the R22 violation); the SERVE-STALE defect as
+motivation (verified: dropStaleVectors -> clearVectors() at open,
+index-manager.ts:286-308, plus the query-time dimension drop at :889-892 —
+semantic coverage zeroed by an upgrade; dropStaleVectors was written on
+purpose, so the issue names the alternative reading rather than treating it
+as an oversight); the legacy-JSON custody paragraph (R15: a stale
+search-index.json retains deleted items' text forever — the folded I-4); and
+the D5 query-semantics work riding along or waiting for demand (the verified
+repro: "general equilibrium" retrieves either-word today; item-scope
+statement per the implementation review). Absorbs the content of closed
+tickets 0020, 0021, 0023.
+
+## Exit criteria
+- [ ] issue drafted: behaviors + repros + measurements, no code to accept
+- [ ] filed after the PR train resolves (DESIGN §4 ordering)
+- [ ] response recorded here; sunset rule applies

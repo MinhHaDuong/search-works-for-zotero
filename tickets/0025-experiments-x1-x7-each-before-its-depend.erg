@@ -7,6 +7,7 @@ Author: claude
 2026-08-26T15:43Z claude created
 
 2026-08-26T16:47Z claude note substrate map added: X2/X3/X5/X6 + X1-recall need the author's machine; X7/X4-synthetic/X1-timing run in-container
+2026-08-26T16:53Z claude note X4's PR-11 dependent moved to scoped issue A; X5's dependent is now scoped issue B (0034)
 --- body ---
 ## Context
 DESIGN.md §4 item 15 and §3. Each experiment runs BEFORE its dependent and

@@ -1,11 +1,12 @@
 %erg 0.1
-Title: Upstream concurrency floor: busy_timeout, per-page build commits, cross-library wipe guard
+Title: Upstream concurrency floor: busy_timeout and the cross-library wipe guard
 Created: 2026-08-26
 Author: claude
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z claude note PR-2 rescoped to busy_timeout alone per the ratified re-form; the commit-cadence half moved to scoped issue C (0035)
 --- body ---
 ## Context
 DESIGN.md §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero

@@ -3,10 +3,12 @@ Title: Per-attachment fulltext: stop concatenating, first-with-text, skip reason
 Created: 2026-08-26
 Author: claude
 Blocked-by: 0015
+Closed: folded into scoped issue B (0034) per the ratified re-form; the verified per-attachment findings travel with it
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z Claude closed — folded into scoped issue B (0034) per the ratified re-form; the verified per-attachment findings travel with it
 --- body ---
 ## Context
 DESIGN.md §4 PR-6, honoring D6 (first-with-text) and R24's prerequisite.

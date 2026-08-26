@@ -6,18 +6,20 @@ Blocked-by: 0014
 Blocked-by: 0015
 Blocked-by: 0016
 Blocked-by: 0017
-Blocked-by: 0018
 Blocked-by: 0019
-Blocked-by: 0020
-Blocked-by: 0021
 Blocked-by: 0022
-Blocked-by: 0023
 Blocked-by: 0025
+Closed: superseded by the harness offer (0032) and scoped issues A/B/C (0033-0035) per DECISIONS.md 2026-08-26; the mega-RFC form was the measured-asymmetry failure mode
 
 --- log ---
 2026-08-26T15:43Z claude created
 
 2026-08-26T16:40Z claude note Copilot review on fts5#10: the PR-train prerequisite (0014-0023) is now mechanized as Blocked-by, not just prose
+2026-08-26T16:53Z Claude note blocker 0018 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0020 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0021 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude note blocker 0023 closed — Blocked-by removed.
+2026-08-26T16:53Z Claude closed — superseded by the harness offer (0032) and scoped issues A/B/C (0033-0035) per DECISIONS.md 2026-08-26; the mega-RFC form was the measured-asymmetry failure mode
 --- body ---
 ## Context
 DESIGN.md §4 item 14. One design conversation upstream, not four: the ledger

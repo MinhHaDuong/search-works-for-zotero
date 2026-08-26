@@ -4,10 +4,12 @@ Created: 2026-08-26
 Author: claude
 Blocked-by: 0014
 Blocked-by: 0025
+Closed: folded into scoped issue A (0033): query semantics ride along or wait for demand; item-scope statement travels with it
 
 --- log ---
 2026-08-26T15:43Z claude created
 
+2026-08-26T16:53Z Claude closed — folded into scoped issue A (0033): query semantics ride along or wait for demand; item-scope statement travels with it
 --- body ---
 ## Context
 DESIGN.md §4 PR-11 and PR-12, honoring D5, with the query critique's repairs.
