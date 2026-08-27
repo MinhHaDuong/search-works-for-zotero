@@ -267,14 +267,16 @@ the one place this work becomes visible upstream.
 
 ## Mechanics
 
-**Before quoting a single number about v1.7.0 or anything after it.** Five bench drivers hardcode
-`ZOTEUS_SEARCH_BACKEND=json|sqlite` (`query.py`, `run_build.py`, `run_serve.py`,
-`run_serve2.py`, and the recorded env in `results/json-baseline/emit.py`).
-Upstream's knob is
-`ZOTEUS_INDEX_BACKEND=auto|sqlite|memory`. It is a one-line change per driver and
-it must land before any re-measurement, or the harness will silently measure
-`auto` and report it as whatever the flag said. The database path agrees
-(`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
+**Before quoting a single number about v1.7.0 or anything after it.** The five
+bench drivers (`query.py`, `run_build.py`, `run_serve.py`, `run_serve2.py`, and
+the recorded env in `results/json-baseline/emit.py`) used the fork's old knob,
+`ZOTEUS_SEARCH_BACKEND=json|sqlite`; upstream's is
+`ZOTEUS_INDEX_BACKEND=auto|sqlite|memory`. *Landed 2026-08-27 (ticket 0030):
+all five now set `ZOTEUS_INDEX_BACKEND` explicitly — `memory` is the JSON
+backend's upstream name — and `--backend` refuses anything outside
+`sqlite|memory`, because upstream's v1.7.3 config warn-and-defaults an unknown
+value to `auto` and the harness would silently measure it.* The database path
+agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
 **Status, end of 2026-08-27** (one table; earlier states are in git history).
 

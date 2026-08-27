@@ -2,10 +2,12 @@
 Title: Bench drivers: ZOTEUS_SEARCH_BACKEND to ZOTEUS_INDEX_BACKEND
 Created: 2026-08-26
 Author: claude
+Closed: all five drivers renamed to ZOTEUS_INDEX_BACKEND; landed 2026-08-27
 
 --- log ---
 2026-08-26T16:46Z claude created
 
+2026-08-27T18:08Z Claude closed — all five drivers renamed to ZOTEUS_INDEX_BACKEND; landed 2026-08-27
 --- body ---
 ## Context
 SYNC.md §Mechanics, carried by no ticket until now (review-implementation.md
@@ -19,5 +21,5 @@ flag said. One line per driver. Precondition for X2 and X4 re-measurement
 (0025).
 
 ## Exit criteria
-- [ ] all five drivers set ZOTEUS_INDEX_BACKEND explicitly
-- [ ] each driver's recorded provenance names the env var it set
+- [x] all five drivers set ZOTEUS_INDEX_BACKEND explicitly ("memory" is the JSON backend's upstream name; --backend refuses values outside sqlite|memory since v1.7.3 config would warn-and-default a stale value to auto)
+- [x] each driver's recorded provenance names the env var it set (the env dict lands in each driver's output record; emit.py names it directly)
