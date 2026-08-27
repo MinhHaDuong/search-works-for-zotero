@@ -1,0 +1,61 @@
+%erg 0.1
+Title: Rewrite REQUIREMENTS, CONSTRAINTS and DESIGN in plain language
+Created: 2026-08-27
+Author: claude
+
+--- log ---
+2026-08-27T06:44Z claude created
+
+2026-08-27T06:50Z claude note author-flagged priority
+
+2026-08-27T07:05Z claude note author: also purify the requirements list (D-entries mixed in) and replace the preambles with intros
+
+--- body ---
+## Context
+The three documents came out of the design panel and read like it:
+compressed, allusive, full of internal jargon ("corpus-critic M4", "graft",
+"kill 9") that only makes sense with panel/cycle2/ open beside them. The
+author's verdict (2026-08-27): "the house style is purely llm at the moment,
+not my voice yet." Rewrite REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md so
+that a newcomer — or the author in six months — can read each one top to
+bottom on its own.
+
+What plain means here:
+- Short sentences, common words, every term of art defined where it first
+  appears.
+- The cycle-2 forensics (which critic killed what, the verdict on v1) leave
+  the main line. DESIGN.md §1 compresses to a short "what changed since v1
+  and why"; git and panel/cycle2/ keep the full record.
+- Structure stays recognizable: R-numbers, C-numbers, D-numbers and section
+  numbers survive, because tickets and DECISIONS.md point into them.
+- Purify the requirements list (author, 2026-08-27): the list under
+  "Requirements" holds R-items only. The D-entries mixed into it (D5 under
+  Query, D6 under Corpus) move down to the resolved-decisions table, which
+  already exists; where an R-item depends on one, it points to the D-number.
+- Each document's italic front-matter preamble is replaced by a short plain
+  "Intro" section: what this document is, who owns what, where the
+  authorities are — in normal sentences, not a parenthetical block.
+
+What must not change:
+- Meaning. Every requirement, threshold, budget, decision rule and disclosed
+  residue keeps its substance. This is a rewording, not a re-design; anything
+  that reads like a new ruling goes through DECISIONS.md first, not here.
+- The numbers: decimal comma, space thousands; the figure guard's anchors
+  must be updated to the new sentences (the guard names every site).
+- DECISIONS.md itself is out of scope — it is the append-only ledger, not
+  prose to restyle.
+
+If 0037's ratified amendments land first, they are rewritten here with the
+rest; if this lands first, 0037 writes its amendments in the new voice.
+
+## Exit criteria
+- [ ] REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md read cleanly without
+      panel/cycle2/ open
+- [ ] The requirements list carries R-items only; D-entries live in the
+      resolved-decisions table
+- [ ] Every preamble replaced by an Intro section
+- [ ] No requirement, threshold, budget or decision changed in substance
+      (diff reviewed against DECISIONS.md)
+- [ ] Figure-guard anchors follow the new wording; make check green
+- [ ] The author reads all three and accepts the voice; any veto lands in
+      DECISIONS.md first
