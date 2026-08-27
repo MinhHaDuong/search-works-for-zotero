@@ -254,6 +254,13 @@ FIGURES = [
      {"t0025": "slab {} ms, int8"}),
     ("0025-x1-timing/slab-vs-rows.json", "rows.0.int8.median_ms", 1,
      {"t0025": "int8 scans in {} ms. DECISION"}),
+    # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
+     {"t0025": "whole corpus costs {} ms median"}),
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.1.median_ms", 0,
+     {"t0025": "constrained query costs {} ms median"}),
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.4.median_ms", 0,
+     {"t0025": "reaching {} ms median at"}),
 ]
 
 

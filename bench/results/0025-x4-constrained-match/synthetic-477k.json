@@ -1,0 +1,40 @@
+{
+  "probe": "ticket 0025 X4 — json_each-constrained MATCH cost by rowid-set scope, on a synthetic 477k corpus",
+  "rule": "DESIGN.md §3 X4: ladder step at the largest scope with constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step ships",
+  "substrate": "SYNTHETIC corpus: 477,512 passages of 60 Zipf(1.0)-distributed words over a 50k vocabulary, external-content FTS5, unicode61 remove_diacritics 2, OR-of-quoted-terms probes mixing common/mid/rare df. The cost curve SHAPE is structural in these; the absolute numbers are indicative until the workstation re-runs this on the real index.",
+  "host": "session container (weaker substrate than the workstation: a pass here is conservative)",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "node": "v22.22.2",
+  "timestamp_utc": "2026-08-27T22:37:20.634Z",
+  "passages": 477512,
+  "db_mb": 239,
+  "build_s": null,
+  "probes_per_scope": 12,
+  "rows": [
+    {
+      "scope": "unconstrained",
+      "median_ms": 138.4,
+      "p95_ms": 231
+    },
+    {
+      "scope": 1000,
+      "median_ms": 3863,
+      "p95_ms": 7764.5
+    },
+    {
+      "scope": 5000,
+      "median_ms": 9413.1,
+      "p95_ms": 58401.2
+    },
+    {
+      "scope": 20000,
+      "median_ms": 41665,
+      "p95_ms": 147710.6
+    },
+    {
+      "scope": 100000,
+      "median_ms": 731584.2,
+      "p95_ms": 1128037
+    }
+  ]
+}
