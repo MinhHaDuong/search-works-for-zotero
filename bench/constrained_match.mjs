@@ -17,6 +17,12 @@
 // corpus confirms before any ladder constant is pinned.
 //
 //   node bench/constrained_match.mjs > bench/results/0025-x4-constrained-match/synthetic-477k.json
+//   node bench/constrained_match.mjs <existing.sqlite>   # probe an already-built corpus
+//
+// No `optimize` after the build, deliberately: upstream never issues one, so the index
+// under test is the incrementally-built shape a real library actually has — and the merge
+// of a 28.6M-token index is an hour of single-threaded work that measures nothing the
+// rule asks about.
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync, unlinkSync, statSync } from 'node:fs';
 import { execSync } from 'node:child_process';
@@ -26,7 +32,8 @@ const WORDS_PER_PASSAGE = 60;
 const VOCAB = 50_000;
 const SCOPES = [1_000, 5_000, 20_000, 100_000];
 const PROBES = 20;
-const DBPATH = '/tmp/x4-constrained-bench.sqlite';
+const DBPATH = process.argv[2] ?? '/tmp/x4-constrained-bench.sqlite';
+const PROBE_ONLY = process.argv[2] !== undefined;
 
 // mulberry32 — see census_parse.mjs for why not a bare LCG.
 let seed = 47751247;
@@ -65,35 +72,44 @@ function passage() {
   return parts.join(' ');
 }
 
-for (const f of [DBPATH, `${DBPATH}-wal`, `${DBPATH}-shm`]) if (existsSync(f)) unlinkSync(f);
-const db = new DatabaseSync(DBPATH);
-db.exec('PRAGMA journal_mode = WAL');
-db.exec('PRAGMA synchronous = NORMAL');
-db.exec(`
-  CREATE TABLE passages (pid INTEGER PRIMARY KEY, text TEXT NOT NULL);
-  CREATE VIRTUAL TABLE passages_fts USING fts5(
-    text,
-    content='passages',
-    content_rowid='pid',
-    tokenize='unicode61 remove_diacritics 2'
-  );
-`);
-const insP = db.prepare('INSERT INTO passages (pid, text) VALUES (?, ?)');
-const insF = db.prepare('INSERT INTO passages_fts (rowid, text) VALUES (?, ?)');
-const tBuild = performance.now();
-db.exec('BEGIN');
-for (let pid = 1; pid <= N; pid++) {
-  const t = passage();
-  insP.run(pid, t);
-  insF.run(pid, t);
-  if (pid % 20_000 === 0) {
-    db.exec('COMMIT');
-    db.exec('BEGIN');
+let db;
+let build_s = null;
+if (PROBE_ONLY) {
+  db = new DatabaseSync(DBPATH);
+  const have = db.prepare('SELECT count(*) AS n FROM passages').get().n;
+  if (Number(have) !== N) throw new Error(`corpus at ${DBPATH} holds ${have} passages, expected ${N}`);
+  console.error(`probe-only: reusing ${DBPATH}`);
+} else {
+  for (const f of [DBPATH, `${DBPATH}-wal`, `${DBPATH}-shm`]) if (existsSync(f)) unlinkSync(f);
+  db = new DatabaseSync(DBPATH);
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec('PRAGMA synchronous = NORMAL');
+  db.exec(`
+    CREATE TABLE passages (pid INTEGER PRIMARY KEY, text TEXT NOT NULL);
+    CREATE VIRTUAL TABLE passages_fts USING fts5(
+      text,
+      content='passages',
+      content_rowid='pid',
+      tokenize='unicode61 remove_diacritics 2'
+    );
+  `);
+  const insP = db.prepare('INSERT INTO passages (pid, text) VALUES (?, ?)');
+  const insF = db.prepare('INSERT INTO passages_fts (rowid, text) VALUES (?, ?)');
+  const tBuild = performance.now();
+  db.exec('BEGIN');
+  for (let pid = 1; pid <= N; pid++) {
+    const t = passage();
+    insP.run(pid, t);
+    insF.run(pid, t);
+    if (pid % 20_000 === 0) {
+      db.exec('COMMIT');
+      db.exec('BEGIN');
+      console.error(`built ${pid}/${N}`);
+    }
   }
+  db.exec('COMMIT');
+  build_s = +((performance.now() - tBuild) / 1000).toFixed(1);
 }
-db.exec('COMMIT');
-db.exec("INSERT INTO passages_fts(passages_fts) VALUES ('optimize')");
-const build_s = +((performance.now() - tBuild) / 1000).toFixed(1);
 
 // Upstream's query shape: quoted terms, OR-ed. Probes mix document frequencies the way a
 // real query does — one common word, one mid, one rare.
@@ -132,6 +148,7 @@ const rows = [];
     const t = performance.now();
     unconstrained.all(q);
     times.push(performance.now() - t);
+    console.error(`unconstrained probe ${p + 1}/${PROBES}: ${times[times.length - 1].toFixed(0)} ms`);
   }
   rows.push({ scope: 'unconstrained', ...quantiles(times) });
 }
@@ -144,13 +161,15 @@ for (const scope of SCOPES) {
     const t = performance.now();
     constrained.all(q, sets[p]);
     times.push(performance.now() - t);
+    console.error(`scope ${scope} probe ${p - 2}/${PROBES}: ${times[times.length - 1].toFixed(0)} ms`);
   }
   rows.push({ scope, ...quantiles(times) });
 }
 
 const db_mb = +(statSync(DBPATH).size / 2 ** 20).toFixed(0);
 db.close();
-for (const f of [DBPATH, `${DBPATH}-wal`, `${DBPATH}-shm`]) if (existsSync(f)) unlinkSync(f);
+// Probe-only keeps the corpus for the next rerun; a fresh build cleans up after itself.
+if (!PROBE_ONLY) for (const f of [DBPATH, `${DBPATH}-wal`, `${DBPATH}-shm`]) if (existsSync(f)) unlinkSync(f);
 
 const out = {
   probe: 'ticket 0025 X4 — json_each-constrained MATCH cost by rowid-set scope, on a synthetic 477k corpus',
