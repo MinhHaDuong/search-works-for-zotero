@@ -281,7 +281,7 @@ it must land before any re-measurement, or the harness will silently measure
 | PR #19 accent fold | **merged** 2026-08-27 as `4f61b2a` (squash, authorship + co-author trailer preserved, zero maintainer edits); shipped in v1.7.2, credited "thanks @MinhHaDuong" |
 | PR #20 corrupt index | **merged** 2026-08-27 as `6e4637b`, same form; final head `331b037` (rebased onto v1.7.1's `busy_timeout` work — supersedes the `dd1605a` recorded earlier) |
 | #21 his follow-up | filed by **him**, off #20's review questions; fixed same day in `2f453d6` with #22/#23 (@StianOby) and shipped as **v1.8.0** (`309204b`). The two swallowed-error holes are closed upstream — closed from our side per the sunset rule (DECISIONS.md 2026-08-27) |
-| upstream | v1.7.2, v1.7.3 (the #18 desktop/config train), v1.8.0 — four releases 2026-08-26/27; the batch pattern confirmed a second time |
+| upstream | v1.7.1 (#18 desktop/config train), v1.7.2, v1.7.3, v1.8.0 — four releases 2026-08-26/27; the batch pattern confirmed a second time |
 | the train | both in-flight slots empty; the head is the STOPWORDS follow-up (0014), next pair from 0015/0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta / I-1 | finding re-verified standing at v1.8.0 (see §4's tail note); I-1 in ticket 0024, X6 its annex |
