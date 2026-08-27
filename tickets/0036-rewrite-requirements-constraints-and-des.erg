@@ -1,0 +1,49 @@
+%erg 0.1
+Title: Rewrite REQUIREMENTS, CONSTRAINTS and DESIGN in plain language
+Created: 2026-08-27
+Author: claude
+
+--- log ---
+2026-08-27T06:44Z claude created
+
+2026-08-27T06:50Z claude note author-flagged priority
+
+--- body ---
+## Context
+The three documents came out of the design panel and read like it:
+compressed, allusive, full of internal jargon ("corpus-critic M4", "graft",
+"kill 9") that only makes sense with panel/cycle2/ open beside them. The
+author's verdict (2026-08-27): "the house style is purely llm at the moment,
+not my voice yet." Rewrite REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md so
+that a newcomer — or the author in six months — can read each one top to
+bottom on its own.
+
+What plain means here:
+- Short sentences, common words, every term of art defined where it first
+  appears.
+- The cycle-2 forensics (which critic killed what, the verdict on v1) leave
+  the main line. DESIGN.md §1 compresses to a short "what changed since v1
+  and why"; git and panel/cycle2/ keep the full record.
+- Structure stays recognizable: R-numbers, C-numbers, D-numbers and section
+  numbers survive, because tickets and DECISIONS.md point into them.
+
+What must not change:
+- Meaning. Every requirement, threshold, budget, decision rule and disclosed
+  residue keeps its substance. This is a rewording, not a re-design; anything
+  that reads like a new ruling goes through DECISIONS.md first, not here.
+- The numbers: decimal comma, space thousands; the figure guard's anchors
+  must be updated to the new sentences (the guard names every site).
+- DECISIONS.md itself is out of scope — it is the append-only ledger, not
+  prose to restyle.
+
+If 0037's ratified amendments land first, they are rewritten here with the
+rest; if this lands first, 0037 writes its amendments in the new voice.
+
+## Exit criteria
+- [ ] REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md read cleanly without
+      panel/cycle2/ open
+- [ ] No requirement, threshold, budget or decision changed in substance
+      (diff reviewed against DECISIONS.md)
+- [ ] Figure-guard anchors follow the new wording; make check green
+- [ ] The author reads all three and accepts the voice; any veto lands in
+      DECISIONS.md first

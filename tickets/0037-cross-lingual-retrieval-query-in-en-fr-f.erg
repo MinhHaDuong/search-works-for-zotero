@@ -1,0 +1,78 @@
+%erg 0.1
+Title: Cross-lingual retrieval: query in EN/FR finds Vietnamese content
+Created: 2026-08-27
+Author: claude
+
+--- log ---
+2026-08-27T06:44Z claude created
+
+2026-08-27T06:50Z claude note author-flagged priority; body carries the proposal awaiting ratification
+
+--- body ---
+## Context
+The library holds Vietnamese-language content; the author queries in English
+or French. R7 promises "multilingual by default", but that is each language
+working in its own lane: nothing today promises that an English query finds a
+Vietnamese document. That is a different property — cross-lingual retrieval.
+This ticket formulates the requirement, the constraints, and the design
+amendment. The documents are edited only after the author's ruling lands in
+DECISIONS.md; until then the proposal lives here.
+
+## Proposed requirement
+**R29 — the query language is not the document language.** A query in
+English or French retrieves relevant Vietnamese content without the user
+translating anything. Testable form: the R21 golden fixture gains a
+cross-lingual slice — EN and FR queries whose golden answer sets are
+Vietnamese entries — gated separately from the monolingual queries, so a
+regression names the promise it broke. And when the semantic path is down
+(keyword-only degradation, DESIGN.md §2.7), the reply says cross-language
+matching is unavailable instead of returning a silent miss — an R18
+extension.
+
+## Constraints the world imposes
+- Keyword search cannot cross languages. FTS5/BM25 has no path from
+  "hydropower" or "hydroélectricité" to "thủy điện". The embedding space is
+  the only cross-lingual channel; the requirement stands or falls on the
+  embedder.
+- R10 (local by default) rules out translation services on the default path,
+  and a local translation model would add weight and latency for one
+  language pair. Query translation is out of scope, said out loud.
+- Cross-lingual alignment is a property of the embedder's training and
+  varies by pair (EN-VI is typically weaker than EN-FR). It must be measured
+  on the real library, not read off a model card — starting with verifying
+  what upstream's default embedder actually is at HEAD.
+- Vietnamese itself already rides the existing machinery: space-separated
+  syllables tokenize under unicode61 (no CJK-style n-gram table needed), and
+  remove_diacritics 2 folds tone marks — recall-friendly, with a disclosed
+  precision cost (tone-stripped syllables collide). Same-language VI keyword
+  search is served today; the gap is only cross-lingual.
+- The fusion seam: on a cross-lingual query the keyword list is empty or
+  noise, so ranking must not require keyword confirmation before a semantic
+  hit can surface. This is the frac_vec question ticket 0031 already owns;
+  the cross-lingual slice becomes its hardest test case.
+
+## Proposed design (amendments; land only after ratification)
+- No new machinery on the query path: cross-lingual retrieval rides the
+  semantic path (DESIGN.md §2.6) on the multilingual embedder. What changes
+  is that the promise becomes measured and gated instead of assumed.
+- New experiment **X8**, on the author's machine (real VI content; substrate
+  map in 0025): a pinned set of EN and FR queries with known-relevant VI
+  entries; measure recall@10 for the default embedder and one or two local
+  alternatives. Rule: the best local model meeting the golden thresholds
+  ships as the default; if none does, the promise degrades to a typed
+  disclosure (CROSS_LINGUAL_DEGRADED — the CJK posture of §2.6, transposed)
+  and any bigger-model opt-in becomes an explicit decision, never silent.
+- The golden fixture corpus (0029) gains VI documents and the cross-lingual
+  query slice.
+- R18's empty-result sentences gain the keyword-only disclosure above.
+
+## Exit criteria
+- [ ] Proposal put to the author; the ruling (ratify, amend, or veto) lands
+      in DECISIONS.md
+- [ ] On ratification: REQUIREMENTS.md gains R29, CONSTRAINTS.md the
+      sharpenings, DESIGN.md §2.6/§2.8/§3 the amendments; this body becomes
+      pointers
+- [ ] X8 and its decision rule recorded in DESIGN.md §3 and in 0025's
+      substrate map
+- [ ] 0029's scope extended with the cross-lingual slice
+- [ ] make check green
