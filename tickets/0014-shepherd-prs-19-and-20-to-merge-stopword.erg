@@ -5,19 +5,22 @@ Author: claude
 
 --- log ---
 2026-08-26T15:42Z claude created
+2026-08-27T15:48Z claude note the batch came: #19 merged as 4f61b2a and #20 as 6e4637b (2026-08-27, squash, authorship + co-author trailer preserved, zero maintainer edits — SYNC.md status table). #20's final head was 331b037 (rebased onto v1.7.1), not the dd1605a recorded earlier. Fold-gate waiver prose removed (0026, DESIGN.md §2.8). Remaining scope: the STOPWORDS follow-up PR — both in-flight slots are free
 
 --- body ---
 ## Context
 DESIGN.md §4 items 1-2. The head of the upstream train: oscardvs/zoteus#19
-(accent fold, 4 commits, hardened) and #20 (corruption path, 4 commits, all 9
-review findings fixed) are open. SYNC.md: expect days of silence, then a batch.
-On #19's merge, the fold-gate waiver (ticket 0026) is deleted and the STOPWORDS
-deletion + full Unicode query split ships as its follow-up PR, carrying X2's
-latency number (stopword-less OR-queries at 650k; guard: if p95 keyword > ~500ms,
-add df-driven pruning > 50% — language-neutral by construction).
+(accent fold) and #20 (corruption path), both merged 2026-08-27 — the batch
+SYNC.md predicted. On #19's merge the fold-gate waiver (ticket 0026) was
+deleted; what remains is the STOPWORDS deletion + full Unicode query split as
+#19's follow-up PR, carrying X2's latency number (stopword-less OR-queries at
+650k; guard: if p95 keyword > ~500ms, add df-driven pruning > 50% —
+language-neutral by construction). Draft it against v1.8.0 (`309204b`) —
+`tokenize.ts` is byte-identical to the merged #19, so the follow-up's base is
+clean.
 
 ## Exit criteria
-- [ ] #19 merged or closed with the reason recorded here
-- [ ] #20 merged or closed with the reason recorded here
+- [x] #19 merged 2026-08-27 as `4f61b2a` (v1.7.2, "thanks @MinhHaDuong")
+- [x] #20 merged 2026-08-27 as `6e4637b` (v1.7.2; his follow-up #21 fixed in v1.8.0)
 - [ ] STOPWORDS follow-up PR opened after #19, X2 number in the body
-- [ ] fold-gate waiver removed in this repo on #19's merge
+- [x] fold-gate waiver removed in this repo on #19's merge (2026-08-27)

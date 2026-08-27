@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-26T15:43Z claude created
+2026-08-27T15:49Z claude note the after-#20 gate lifted (#20 merged 2026-08-27) and a slot is free. But 2f453d6 (v1.8.0) rewrote sqlite-index.ts and persistence.ts under this ticket — re-verify the createSchema re-stamp evidence at 309204b before drafting; the edf2748 line numbers below are stale
 
 --- body ---
 ## Context
@@ -16,7 +17,9 @@ meta.schemaVersion before any DDL or write; unknown/newer -> sideline the file
 (.incompatible-<ts>, never delete), fresh build, one notice. Failing test: open
 a fixture stamped schemaVersion=99, assert it is not re-stamped and is
 sidelined. Form: PR, no issue (contained defect + failing test — merged twice
-per SYNC.md). Send after #20 (same file family).
+per SYNC.md). #20 merged 2026-08-27; re-verify the evidence at v1.8.0 first —
+`2f453d6` moved this file family (store-faults.ts, repair.ts, the narrowed
+catches).
 
 ## Exit criteria
 - [ ] failing test demonstrates the re-stamp on a version-99 fixture

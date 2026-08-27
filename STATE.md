@@ -30,10 +30,11 @@ index. Same problem, same absence of a new dependency, different cut.
 
 So the storage layer here is superseded, and the prototype has done its job: it
 was the argument, not the shipping code. The plan of record is **DESIGN.md §4
-as ratified in DECISIONS.md, executed through tickets 0014–0035**; **SYNC.md**
-tracks upstream — what he took, what is still missing there (the accented
-query is a live defect in v1.7.0), and the harness rename that must land
-before any number in this file is quoted about upstream (ticket 0030).
+as ratified in DECISIONS.md, executed through tickets 0014–0037**; **SYNC.md**
+tracks upstream — what he took, what is still missing there (the accented-query
+defect, live in v1.7.0, was fixed by PR #19's merge in v1.7.2), and the harness
+rename that must land before any number in this file is quoted about upstream
+(ticket 0030).
 
 Everything below this line was measured against `bae82a7` on the pre-merge base
 and stands as that tree's record. None of it has been re-measured against v1.7.0.
@@ -42,9 +43,9 @@ and stands as that tree's record. None of it has been re-measured against v1.7.0
 
 Cycle 2 verified against head `edf2748`, v1.7.0 (released 2026-08-25). The
 tree has already moved past it: v1.7.1 shipped 2026-08-26 (`80f8aa0` fixing
-#18, `2cde6a7`) without touching open PRs #19/#20 — see
-panel/cycle2/review-political.md. What upstream took and built is SYNC.md's
-table ("What happened upstream"), stated once there.
+#18, `2cde6a7`) without touching then-open PRs #19/#20; on 2026-08-27 both
+merged and v1.7.2/v1.7.3/v1.8.0 followed in one day. What upstream took and
+built is SYNC.md's account, stated once there.
 
 ## The comparison, on one corpus
 
@@ -415,7 +416,7 @@ One deliberate divergence from upstream: the SQLite backend refuses
 ## Next action
 
 **Live (2026-08-26): the plan of record is DESIGN.md §4, ratified in
-DECISIONS.md and executed through tickets 0014–0035 — `erg ready` is the
+DECISIONS.md and executed through tickets 0014–0037 — `erg ready` is the
 queue.** Everything below records the prototype phase's close-out as it stood
 before that plan existed.
 
@@ -432,8 +433,8 @@ criteria re-checked against the merged result. What remained then:
    (see above) and nothing is filed against it: an opportunity, not a defect.
 3. **Nothing goes upstream** unless the maintainer answers #10. That was the
    posture then. *Superseded 2026-08-26: he answered (SYNC.md) — #10 closed by
-   his own backend, PRs #19/#20 opened from here, and the ratified train
-   governs what goes upstream.*
+   his own backend, PRs #19/#20 opened from here (merged 2026-08-27), and the
+   ratified train governs what goes upstream.*
 
 ## Gates
 

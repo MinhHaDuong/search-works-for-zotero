@@ -15,7 +15,7 @@ and in the author's fork, not here.
   here FIRST; the other documents are edited to match. Owns the process
   bounds (PR volume cap, sunset rule) and the awaiting-ratification
   questions. Never edit a ratified entry.
-- Tickets `0014`–`0035` (`tickets/`, git-erg) — the executable work train;
+- Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
@@ -46,9 +46,10 @@ and in the author's fork, not here.
 
 ## Upstream relations (binding, ratified in DECISIONS.md)
 
-At most two upstream PRs in flight, ever; six contained PRs beyond the open
-#19/#20; design-sized asks go as issues the maintainer builds himself (the
-measured two-for-two asymmetry, SYNC.md); a three-week sunset on unaddressed
+At most two upstream PRs in flight, ever; the contained-PR budget beyond the
+merged #19/#20 is six ratified, five live (DECISIONS.md 2026-08-27);
+design-sized asks go as issues the maintainer builds himself (the
+measured asymmetry, SYNC.md); a three-week sunset on unaddressed
 items; the acceptance harness is a one-time transfer. Never put this repo's
 internal governance or strategy-about-the-maintainer into upstream text — the
 repo is public and he reads it.

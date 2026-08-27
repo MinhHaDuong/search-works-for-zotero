@@ -1,5 +1,5 @@
 %erg 0.1
-Title: Upstream concurrency floor: busy_timeout and the cross-library wipe guard
+Title: Upstream concurrency floor: the cross-library wipe guard (busy_timeout overtaken upstream)
 Created: 2026-08-26
 Author: claude
 
@@ -9,25 +9,27 @@ Author: claude
 2026-08-26T16:53Z claude note PR-2 rescoped to busy_timeout alone per the ratified re-form; the commit-cadence half moved to scoped issue C (0035)
 
 2026-08-26T17:05Z claude note body reconciled with the rescope (code review): per-page-commit wording removed from PR-2's scope; the cadence amendment now points at 0035
+2026-08-27T15:50Z claude note PR-2 closed by the sunset rule, overtaken by his own implementation: v1.7.1 (80f8aa0, #18) ships BUSY_TIMEOUT_MS = 10_000 with PRAGMA busy_timeout on every open plus WAL tolerance — more than PR-2 proposed. DECISIONS.md 2026-08-27. PR-3 verified still live at v1.8.0 (309204b): clearStore() still reached from the build path (index-manager.ts:462), no library identity stamped; 2f453d6's router pinning holds the backend still per crawl but stamps nothing
 --- body ---
 ## Context
-DESIGN.md §4 PR-2 and PR-3, honoring R13 and R12. Verified at edf2748: zero
-busy_timeout or SQLITE_BUSY handling anywhere in src/; empirically reproduced
-this cycle — two handles on one db, default timeout 0, the second handle's
-first write throws "database is locked" in 0 ms. And the build path reaches
-clearStore() (build.ts), so a build for one library wipes another's index —
-the R12 hazard DESIGN-DELTA cites.
-PR-2: busy_timeout=5000 on every connection, alone — the per-page
-commit-cadence question (BUILD path only; the update path's single-transaction
-rollback is his, and right: a half-applied delta is a wrong index) moved to
-scoped issue C (0035), where he can adopt it in his own idiom.
-PR-3: a build for a different library than stamped refuses with a notice
-naming both, instead of clearStore(). The guard, not the multi-library feature.
+DESIGN.md §4 PR-3 (originally PR-2 and PR-3), honoring R13 and R12.
+PR-2 (busy_timeout=5000 on every connection, alone) is CLOSED by the sunset
+rule: v1.7.1's `80f8aa0` ships `busy_timeout = 10 s` on every open with WAL
+tolerance — overtaken by his own implementation, no PR to send (DECISIONS.md
+2026-08-27). The edf2748 evidence (zero busy_timeout anywhere in src/; the
+0 ms "database is locked" repro) stands as the record of why it mattered. The
+per-page commit-cadence question remains with scoped issue C (0035).
+PR-3 stands, verified live at v1.8.0: the build path still reaches
+clearStore() (index-manager.ts:462) with no library identity stamped, so a
+build for one library wipes another's index — the R12 hazard DESIGN-DELTA
+cites. The PR: a build for a different library than stamped refuses with a
+notice naming both, instead of clearStore(). The guard, not the multi-library
+feature.
 
 ## Exit criteria
-- [ ] PR-2: two-handle SQLITE_BUSY repro as the failing test; update rollback untouched
+- [x] PR-2 resolved without a PR: overtaken by upstream `80f8aa0` (v1.7.1, busy_timeout 10 s) — sunset-closed 2026-08-27
 - [ ] PR-3: cross-library refusal with both libraries named; clearStore chain as repro
-- [ ] both PRs opened upstream; outcomes recorded here
+- [ ] PR-3 opened upstream; outcome recorded here
 
 ## Amendments (implementation review, 2026-08-26)
 PR-2: the persist cadence already exists (index-manager.ts:472-473, 200

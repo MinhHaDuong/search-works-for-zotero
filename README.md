@@ -10,7 +10,7 @@ The storage-layer prototype this repo was started for is therefore superseded,
 and the live work is the redesign — four documents and the tickets:
 `REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
 imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
-ratification ledger), and tickets `0014`–`0035` (the work train as re-formed
+ratification ledger), and tickets `0014`–`0037` (the work train as re-formed
 by the panel reviews; closed tickets in `tickets/closed/`).
 `panel/cycle2/` holds the raw panel record behind the design; `SYNC.md` says
 where things stand against upstream. Superseded documents live in git history,

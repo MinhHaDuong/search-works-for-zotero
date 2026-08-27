@@ -83,6 +83,32 @@ applied the political and implementation reviews' structural recommendations
   transfer, not a tracking duty; the fork's end state is **archived** once the
   train resolves.
 
+**2026-08-27 — the head resolved; the sunset rule's first executions.** An
+event record, not a new ruling: the 2026-08-26 bounds firing on upstream's
+second batch (the evidence is SYNC.md's, stated once there — #19/#20 merged
+unmodified with authorship preserved; the maintainer filed follow-up #21
+himself off #20's review questions and shipped its fix with #22/#23 as v1.8.0
+the same day). Each consequence is the mechanical application of a ratified
+line, vetoable as ever:
+
+- **Both in-flight slots are empty**; the demand-triggered cadence admits the
+  next pair. The measured asymmetry the train's form rests on strengthens to
+  four-for-four (contained PRs merged as ours) and two-for-two (design-sized
+  built by him) — #21, filed and fixed by him with the finding still credited,
+  is its strongest data point yet.
+- **"Overtaken by his own implementation" fires twice.** The two
+  swallowed-error items (`keywordSearch`'s catch, JSON `loadIndex`) — closed,
+  fixed upstream via his #21, with appreciation and no relitigation. And
+  **PR-2** (`busy_timeout` alone) — closed: v1.7.1's `80f8aa0` ships a 10 s
+  `busy_timeout` with WAL tolerance. The contained-PR budget's live remainder
+  is five; ticket 0016 narrows to PR-3, whose wipe-guard hazard is verified
+  still live at v1.8.0.
+- **The reserve's warm-batch condition is met** (0019, 0022 eligible per the
+  #13/#14 clause); opening them stays a choice, not an obligation.
+- **I-1 and I-2 stand, re-verified at v1.8.0** (SYNC.md §4/§5 notes); the
+  internal I-labels never assumed upstream numbers, and #21–#23 are now
+  consumed.
+
 ## Awaiting ratification
 
 Three readings cycle 2 could not decide on the sheet's text alone (flagged in
