@@ -18,7 +18,9 @@ adversarially critiqued, and this synthesis assembles what survived, plus
 the named repairs. Every load-bearing claim about upstream code was
 re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0), and the
 disputed numbers were recomputed from the committed artifacts in
-`bench/results/`.
+`bench/results/`. Two process bounds held throughout: decisions and rulings
+already ratified were not reopened, and the scout findings entered as
+binding input.
 
 Facts verified live at edf2748 and relied on below: the query tokenizer is
 broken for non-English text (`tokenize.ts`: `/[a-z0-9]+/g` plus 29 English
@@ -28,9 +30,11 @@ and never read; `DEFAULT_FULLTEXT_MAX_CHARS = 40_000` truncates the 44.9 MB
 living example roughly 1 100-fold; changing embedder drops every vector at
 open (`dropStaleVectors` → `clearVectors()`); builds crawl `top:true` only;
 and `clearStore()` sits in the build path. Two artifact recomputations
-decided disputes: the golden-answer stability sample (n=60, from
+decided disputes: the golden-answer stability sample (60 queries with
+pinned known-correct results, from
 `bench/results/0013-concentration/uncapped-477512.json`) has a per-query
-Jaccard minimum of 0.25, and
+Jaccard minimum of 0.25 under legitimate perturbation (two of the 60 fall
+below 0.5), and
 `bench/results/0012-fulltext-sequence/sequences.json` carries 584 of 8 037
 fulltext entries at version 0.
 
@@ -44,15 +48,19 @@ control through a pipe, durable work through the database; a write-free
 query path; two OS processes. R13 (second process), R22 (durable pause) and
 R27 (work counters) each turn out to *want* that skeleton — every one is a
 one-row concern on a substrate that already exists. Also carried over:
-census-seeded newest-first discovery; the failure policy
-(transient/persistent split, bisection quarantine, reachability gating,
-backpressure counted in items) — with two amendments: quarantine auto-clear
+census-seeded newest-first discovery (a census is a full listing — every
+item, or every fulltext version — fetched whole rather than paged); the
+failure policy (transient/persistent split, bisection quarantine,
+reachability gating, backpressure counted in items; mechanism spec unchanged
+from v1 §2.6, in git history) — with two amendments: quarantine auto-clear
 keys on the *content* signal chain, not on raw counter movement, so a resync
 cannot mass-replay every poison input; and R14's terminal states (`empty`)
 are *done*, not failures — different bookkeeping, different sentence in
 status; micro-batch commits; the int8 vector plan
-with its X1 gate; the stored-norm dot product; slabs; the derived sidecar;
-probe-don't-fix; sideline-never-delete; and the recovery-verb grammar. The
+with its X1 gate; the stored-norm dot product; slabs; the derived vector
+sidecar (vectors live in a file beside the database, derived from it);
+probe-don't-fix; sideline-never-delete (an unreadable index file is moved
+aside, never deleted); and the recovery-verb grammar. The
 stopwords/tokenizer fix stopped being a plan: it is open PR #19.
 
 Three forces changed the rest.
@@ -60,36 +68,42 @@ Three forces changed the rest.
 1. **The rulings changed the units.** The unit of answer is the entry, not
    the item; the record is the semantic core and indexes first; chunks
    respect entry boundaries and carry their context. This killed v1's
-   two-column FTS layout (replaced by per-field columns, §2.2), its
+   two-column FTS layout (FTS: SQLite's full-text search engine; replaced by
+   per-field columns, §2.2), its
    collapse-to-items ranking (replaced by entry collapse, §2.6), and its
    single-figure coverage (replaced by the coverage sentence and counters,
    §2.8).
 
 2. **Observability became the requirement.** v1 designed an engine whose
    promises — convergence, newest-first, budgets, edit costs, custody — were
-   mostly unobservable. Sheet v2 makes observability itself the requirement,
-   so v2 designs the instrument panel and the gates beside the engine.
+   mostly unobservable. Sheet v2 — the consolidated requirements and
+   constraints, now REQUIREMENTS.md and CONSTRAINTS.md — makes observability
+   itself the requirement, so v2 designs the instrument panel and the gates
+   beside the engine.
 
 3. **Two measured facts killed v1 machinery.** The local `/fulltext`
    sequence is mixed and must never be cursored — v1's ascending-sweep
    freshness would have silently lost locally-extracted text (the 584
    measured version-0 entries prove the loss non-empty); census-equality
    replaces it (§2.4). And constraining FTS5 MATCH costs seconds at library
-   scale, so v1's filter pushdown dies as worded; unconstrained MATCH plus a
+   scale (FTS5 evaluates a rowid-constrained MATCH once per row), so v1's
+   filter pushdown dies as worded; unconstrained MATCH plus a
    guaranteed-fill bitmap filter replaces it (§2.6).
 
 Other reversals worth naming, each with its reason. Extract is no longer
 keyed by the version counter alone — R11 and the shipped
 92,7 %-changed-forever defect killed that; signals and keys are now separate
-(§2.1). Fraction-weighted RRF is adopted — v1's rejection rested on wrong
-arithmetic, verified empirically — behind the golden gate (§2.6). Pause is a
+(§2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted — v1's
+rejection rested on wrong arithmetic, verified empirically — behind the
+golden gate (§2.6). Pause is a
 durable row, not a pipe message — verified: today's `stop` cancels one job
 and `auto_build` restarts on the next query (§2.7). Unknown-schema handling
 is read-compatibility gating plus a **new filename**
 (`search-index-v2.sqlite`), because no protocol can bind binaries that
 predate it: a v1.7.0 sibling reaching `clearStore()` against an in-place
-upgraded file would erase every library (§2.7). v1's item-collapse PR died
-into the entries conversation (scoped issue B, §4).
+upgraded file would erase every library (§2.7). And v1's item-collapse PR is
+folded into the entries conversation (scoped issue B, §4): shipping
+item-collapse now would ship exactly the framing the entry ruling rejected.
 
 The full verdict-by-verdict record — what survived, what was amended by
 which critique, what died and what killed it — is in git history (this file
@@ -127,7 +141,8 @@ The stage keys:
 - **embed**: `embed_hash`, the hash of the **full embedded text including
   the context prefix** — hashing the chunk text alone would let a vector
   computed under an old heading silently keep serving under a new one — with
-  an EXISTS guard on shared-hash deletes.
+  an EXISTS guard on deletes, so removing one row never removes a vector
+  another row with the same hash still references.
 
 Honest restatement of the R11 benefit: *unchanged regions never re-embed*. A
 segmenter bump re-embeds what it actually touched, no more. And one
@@ -171,8 +186,12 @@ not.
 
 **FTS.** FTS5 with per-field columns, tokenizer `unicode61
 remove_diacritics 2`: `fts(title, abstract, creators, tags, pub, ctx, own,
-body)`. Record rows fill the field columns, so a tag match no longer scores
-like a title match — the record ruling's exact complaint. Body rows put
+body)`. Per-field columns replace v1's two joined columns for two reasons:
+fields keep their identity for ranking — a tag match no longer scores like a
+title match, the record ruling's exact complaint — and joined fields break
+phrase search: with `'. '`-joined fields, unicode61 treats `.` as a
+separator, so a quoted phrase can falsely match across the seam between two
+fields. Body rows put
 chunk text in `body` and the heading path plus item title in `ctx`, so
 context matches count (weighted) without polluting `body`'s document
 frequencies or phrase positions. The *embedded* text is
@@ -199,7 +218,7 @@ ruling, not on that comparison.)
 
 - classify lines, and collect heading candidates from numbering patterns,
   case shape, and the dictionary's headword *rhythm* — the median gap and
-  MAD over candidate spacing;
+  median absolute deviation (MAD) over candidate spacing;
 - cut entries at accepted headings;
 - confidence = the fraction of text inside confirmed entries;
 - below confidence 0.5, fall back to **synthetic entries of ~6k tokens** cut
@@ -234,18 +253,19 @@ The phase order follows the record ruling.
   chunking the measured median was 63 passages/item, giving K = 64; under
   the token geometry above the median item is ~25 passages.)
 
-**Newest-first versus smallest-first, stated honestly.** #6012 orders
-attachments smallest-first; our ratified R2 is newest-first, so
+**Newest-first versus smallest-first, stated honestly.** #6012 — the draft
+PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2) —
+orders attachments smallest-first; our ratified R2 is newest-first, so
 smallest-first is rejected at item granularity on R2's own text. The R26
-observable is then asserted at stated granularities: record coverage is a
-strict newest-first prefix; body coverage is a newest-first prefix for
-band 0, with band 1 as disclosed residue — because the two-band cap itself
-breaks a strict full-coverage prefix by construction, and one standard must
-bind both our design and the rejected alternative. This granularity split is
-the one resolution in v2 made by interpretive reading rather than verified
-fact: R26's sentence does not specify its own granularity, and the author
-can veto the reading (flagged in DECISIONS.md). The band cap does the
-anti-monopoly work that smallest-first does for #6012.
+observable is then asserted per phase. Record coverage is a strict
+newest-first prefix. Body coverage is a newest-first prefix for band 0 only;
+band 1 is disclosed residue — the band cap itself makes a strict
+full-coverage prefix impossible, and the same standard must bind both our
+design and the rejected alternative. This split is v2's one resolution made
+by interpretive reading rather than verified fact: R26's sentence does not
+specify its own granularity, and the author can veto the reading (flagged in
+DECISIONS.md). The band cap does the anti-monopoly work that smallest-first
+does for #6012.
 
 **D6, first-with-text.** Per item, exactly one attachment is indexed for
 body text: the deterministic first (ascending `dateAdded`, key tie-break)
@@ -266,33 +286,36 @@ backoff when Zotero is unreachable, and does three things per library:
    local/cloud label is verified insufficient, and the header machinery to
    lift already exists upstream at `local-writes.ts`.
 2. **Full text, local scope**: fetch the full `/fulltext?since=0` census and
-   equality-diff it per attachment against stored versions. **No fulltext
-   watermark column exists for any local scope** — the mixed-sequence trap
-   (C1) is made unrepresentable in the schema. Cloud scopes are different:
-   the web sequence genuinely is monotonic, so **cloud scopes use an
-   ordinary `?since=` cursor**, under the web politeness constraint
-   (CONSTRAINTS.md states it once). The census cost is stated, not hidden:
-   ~8 037 entries ≈ 120–200 KB serialized per tick, O(attachments) in
-   memory, zero extra requests. If X7 measures the parse above 50 ms at 30k
-   entries, the cadence backs off to every 5th tick — a decision rule, not a
-   hope.
+   equality-diff it per attachment against stored versions. The local
+   sequence is mixed — one attachment's version may be a web sync stamp, a
+   local client version, or 0 for locally extracted text (C1) — so **no
+   fulltext watermark column exists for any local scope**: the
+   mixed-sequence trap is made unrepresentable in the schema. Cloud scopes
+   are different: the web sequence genuinely is monotonic, so **cloud scopes
+   use an ordinary `?since=` cursor**, under the web politeness constraint
+   (CONSTRAINTS.md states it once). The census cost: ~8 037 entries ≈
+   120–200 KB serialized per tick, O(attachments) in memory, zero extra
+   requests. If X7 measures the parse above 50 ms at 30k entries, the
+   cadence backs off to every 5th tick — a decision rule, not a hope.
 3. **Deletions**: item-census subtraction every 10th tick (≤ ~10 min
-   disclosed deletion latency; the `sync` verb forces it immediately).
+   disclosed deletion latency; the `sync` verb forces it immediately). The
+   local API has no `/deleted` endpoint (CONSTRAINTS.md C2); census
+   subtraction is the only local deletion route.
 
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to
 equality comparison — and on a never-synced library that could be *every*
-entry. The resolution is composite: (i) **widen the extract signal to
-`(fulltext version, attachment item md5/version)`** — replacing a file bumps
+entry. The resolution has three parts. (i) **Widen the extract signal to
+`(fulltext version, attachment item md5/version)`**: replacing a file bumps
 the attachment item in the item sequence the tick already sweeps, so
-file-driven re-extraction is caught for free; (ii) the remaining residue —
+file-driven re-extraction is caught for free. (ii) The remaining case —
 re-extraction with no file change — is **disclosed in the contract** as
-platform-aligned accepted staleness ("version-0 text refreshes on file
-change or rebuild"; Zotero's own embeddings layer documents the same
-residue); (iii) a bounded idle re-verify sweep is **built only if X6 shows
-local re-extraction genuinely re-stamps 0** — the experiment (re-extract one
-attachment on a synced and on a never-synced profile, watch the census) runs
-before the machinery is written.
+accepted staleness ("version-0 text refreshes on file change or rebuild");
+Zotero's own embeddings layer documents the same residue. (iii) A bounded
+idle re-verify sweep is **built only if X6 shows local re-extraction
+genuinely re-stamps 0**; the experiment (re-extract one attachment on a
+synced and on a never-synced profile, watch the census and the attachment
+item's version) runs before the machinery is written.
 
 **The query path** is unchanged from v1: zero Zotero requests when the tick
 ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that
@@ -300,10 +323,11 @@ reports and nudges rather than blocks; `probedMsAgo` in replies.
 
 ### 2.5 Topology and concurrency: N servers, one conductor, one worker
 
-The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
-default data directory (verified). Every P0 answers queries — WAL readers on
-a write-free query path. Exactly one P0 is the **conductor**, elected
-through a lease row:
+Two kinds of process appear below: P0, a query-serving zoteus server, and
+P1, the single background pipeline worker. The normal deployment is N × P0:
+one zoteus per MCP client, all on one fixed default data directory
+(verified). Every P0 answers queries — WAL readers on a write-free query
+path. Exactly one P0 is the **conductor**, elected through a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
     WHERE name='conductor' AND (holder=:uuid OR expires_at < :now)
@@ -316,8 +340,8 @@ gate. The conductor runs the reconcile tick and owns the single P1 worker
 (`nice 19`, three ledger-paced loops), so the pipeline budget does not
 multiply with N.
 
-Two orphan repairs are mandatory — without them "exactly one P1" is a hope,
-not a mechanism. The worker **exits on stdin EOF** (parent death) and
+Two orphan repairs are mandatory — without them nothing actually enforces
+"exactly one P1". The worker **exits on stdin EOF** (parent death) and
 re-verifies `leases.holder == parent-uuid` between micro-batches, exiting on
 mismatch. And lease renewal runs on a **timer decoupled from batch progress,
 renewed immediately before any long fetch** — the 44.9 MB single-GET monster
@@ -371,11 +395,11 @@ stopword-stripped and would make `"war and peace"` match "war versus peace"
 vector scan, the bitmap applies before the dot product — genuine pushdown,
 since that loop is ours. On the keyword side, MATCH runs **unconstrained**
 (C2's measured economics; upstream already does this) with pool
-`max(8×limit, 256)`, and the bitmap is applied to the candidate stream
-**with a fill guarantee**: the ladder refetches deeper (4 096); then, for
-scopes of roughly ≤ 20k passages, issues a constrained MATCH via `json_each`
-(`carray` does not exist in `node:sqlite`), with the actual threshold
-measured by X4, not trusted; then stops and answers honestly through R18's
+`max(8×limit, 256)`, and the bitmap filters the candidate stream. A ladder
+guarantees the result fills up: first refetch deeper (4 096); then, for
+scopes of roughly ≤ 20k passages, run a constrained MATCH via `json_each`
+(`carray` does not exist in `node:sqlite`) — the actual threshold is
+measured by X4, not trusted; then stop and answer honestly through R18's
 `scope{}` block. No path ever post-filters a top-k and *claims completeness*
 — the give-up is disclosed, which is what R5 and R18 jointly demand.
 
@@ -394,12 +418,13 @@ list crossing the fusion seam is higher-is-better and strictly positive — is
 a unit-tested contract at the four verified lines (SQLite clamps idf;
 `-r.rank` stays positive); `frac ∈ [0,1]` bounds every contribution above by
 plain RRF, and frac = 0 is noise-suppressed, stated. `frac_vec` defaults to
-**list-local max-normalization**; #6012-style calibration (mean centering,
-noise floor = p99 unrelated, ceiling = median matched, reject bad models
-outright) is deferred to its own ticket (0031) with a stated pair-generation
-protocol — title↔abstract of one item as matched pairs, cross-item pairs as
-unrelated: the library is the corpus — because as first adopted it had no
-data source and left `frac_vec` undefined at minute zero. Ship gate (D11):
+**list-local max-normalization**. #6012-style calibration (mean centering;
+noise floor = p99 of unrelated pairs; ceiling = median of matched pairs;
+reject bad models outright) is deferred to ticket 0031, because as first
+adopted it had no data source and left `frac_vec` undefined at minute zero;
+meta reserves a calibration block for it. The ticket states the
+pair-generation protocol: one item's title and abstract form a matched pair,
+cross-item pairs are unrelated — the library is the corpus. Ship gate (D11):
 golden-set Jaccard at or above §2.8's thresholds against plain RRF, both
 behind one flag.
 
@@ -407,13 +432,14 @@ behind one flag.
 note hit has no attachment and no page, and the reply never fabricates
 either:
 
-- a **body** hit carries `{itemKey, attachmentKey, entry heading/path (the
-  primary locator, per the ruling), charStart/End (exact), pageEstimate +
-  pageIsEstimate: true}` — the estimate computed within its attachment, from
-  per-attachment totals that extraction now records instead of discarding
-  (verified: upstream keeps only `content` and concatenates, destroying the
-  offset→attachment mapping); `pageIsEstimate` stays unconditional until a
-  verified exact mapping exists — the label is the honesty mechanism;
+- a **body** hit carries `{itemKey, attachmentKey, entry heading/path,
+  charStart/End, pageEstimate, pageIsEstimate: true}`. The heading path is
+  the primary locator (per the ruling); the char offsets are exact. The page
+  is estimated within its attachment, from per-attachment totals that
+  extraction now records instead of discarding (verified: upstream keeps
+  only `content` and concatenates, destroying the offset→attachment
+  mapping). `pageIsEstimate` stays true until a verified exact mapping
+  exists — the label is the honesty mechanism;
 - a **record** hit carries `{itemKey, field}`;
 - a **note/annotation** hit carries `{itemKey, sourceKey}`; the annotation's
   parent attachment and page, when Zotero supplies them, pass through as
@@ -447,16 +473,24 @@ a cost and require an explicit go-ahead per index generation. One hygiene
 PR: the Gemini key moves from the URL query string to a header.
 
 **R15 — deleted means gone.** Deletion rides the census tick, and every copy
-has a named removal path: rows; the FTS delete protocol (upstream's correct
-discipline, kept); passages; vectors; slabs (keyed per attachment/source,
-never shared); sidecar tombstone bitmaps across **all** generations; ledger
-rows (a worker committing on a deleted item fails its guard); WAL and free
-pages (`auto_vacuum=INCREMENTAL` actually set — §2.2 — plus idle checkpoint,
-plus the `purge` verb = checkpoint + VACUUM + compaction); and the legacy
-`search-index.json`, which upstream leaves in place forever — renamed
-`.migrated-<ts>` after the first post-migration save and swept at 30 days or
-on `purge` (an *issue*, not a PR, because it reverses his documented
-decision). **Pause never gates removal**: deletion propagation is classified
+of the text has a named removal path:
+
+- item and entry rows;
+- the FTS index, via its delete protocol (upstream's correct discipline,
+  kept);
+- passages;
+- vectors;
+- slabs (keyed per attachment/source, never shared);
+- sidecar tombstone bitmaps, across **all** generations;
+- ledger rows (a worker committing on a deleted item fails its guard);
+- WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§2.2), plus
+  idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction;
+- the legacy `search-index.json`, which upstream leaves in place forever —
+  renamed `.migrated-<ts>` after the first post-migration save and swept at
+  30 days or on `purge` (an *issue*, not a PR, because it reverses his
+  documented decision).
+
+**Pause never gates removal**: deletion propagation is classified
 as removal, not derivation — one branch in the tick — because otherwise a
 paused index serves deleted text for months. The acceptance test
 decompresses slabs before grepping (`strings` on gzip proves nothing).
@@ -465,7 +499,8 @@ negotiated reading of R15, for the author to veto.
 
 **R22 — pause stays paused.** One meta row, written by `pause`, read before
 any scheduling decision. It gates worker spawn (a paused pipeline is zero
-processes — drain, then shut down), the tick's build side, and `auto_build`
+processes — drain, then shut down, a #6012 pattern), the tick's build side,
+and `auto_build`
 (verified: today any query against an empty index starts a build). It does
 not gate queries, the probe, deletions, or explicit verbs (`build` while
 paused asks). It survives restart by construction, and survives *sideline*
@@ -476,11 +511,11 @@ favor, disclosed: "paused since <date>".
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys; on a
 model switch nothing drops; re-embedding drains newest-first; during the
 window, queries **dual-embed**, each row scored in its own space. The old
-model is **lazy-loaded only when old-generation rows are in the pool, and
-evicted after ~60 s idle**, falling back to labeled keyword-anchored fusion
-under memory pressure — two resident models (~240 MB + 70 + 32–64) would
-bust the ratified 300 MB for a days-long window, so the budget stays honest
-at the price of a disclosed cold-load spike. At most two generations;
+model is **lazy-loaded only while old-generation rows are in the pool, and
+evicted after ~60 s idle**; under memory pressure, queries fall back to
+labeled keyword-anchored fusion. Two resident models (~240 MB + 70 + 32–64)
+would bust the ratified 300 MB for a days-long window; lazy-loading keeps
+the budget honest at the price of a disclosed cold-load spike. At most two generations;
 worst-case storage 2× sidecar, disclosed. The *small PR* version of D3 is
 narrower: upstream's one global `embedderId` cannot support mixed spaces, so
 the contained fix is keep-vectors plus **pin the query-side embedder to the
@@ -491,7 +526,9 @@ A (§4).
 `meta.schemaVersion` **before any DDL or write** (verified defect:
 `createSchema` re-stamps via `INSERT OR REPLACE` before `loadMeta`, so today
 a downgrade destroys the evidence of skew at the moment it matters). A newer
-file → conductor-only sideline (never delete), fresh build, notice. An older
+file → sideline (never delete), fresh build, notice — and only the conductor
+may sideline, because under N processes an unconditional per-server sideline
+would let one stale install repeatedly sideline a fresh one's index. An older
 file → versioned migrations. `min_reader_version` lets a too-old-but-aware
 server keep serving everything that never touches the index, and answer
 search with a typed `SCHEMA_NEWER {remedy}`. The ping-pong-downgrade hybrid
@@ -542,12 +579,14 @@ verified unchanged, nothing recomputed; `done` means recomputed. R27 needs
 both what triggered work and what became of it, and one flat vocabulary
 cannot say both. Idle reconciliation recomputes the counters with real
 COUNTs, fixes them, and increments a **surfaced** `drift` counter the
-harness fails on — a counter that drifts is a status that lies. Status point
-reads are sub-ms, against the measured 374 ms cold scan.
+harness fails on — if the counters can drift silently, every status answer
+built on them is suspect. Status point reads are sub-ms, against the
+measured 374 ms cold scan.
 
 The prefix accounting: the boundary cursor is the **total-order key
-`(dateAdded, lib, itemKey)`**, never the bare date — a tie group must be
-partially passable — and it passes **settled** states
+`(dateAdded, lib, itemKey)`**, never the bare date — several items can share
+a `dateAdded`, and the boundary must be able to stop partway through such a
+tie group. It passes **settled** states
 (`done | empty | quarantined | band0-done`). `outOfBand` is pure set
 membership: covered items older than the boundary, decremented as the
 boundary sweeps past them. Edit work counts only under the `edit` trigger,
@@ -555,11 +594,17 @@ and the record stage counts its own edits.
 
 **The convergence harness (R26/R27).** A fixture library, an empty data
 directory, status polls at 1 Hz touching nothing else (R1 needs no asking).
-It asserts: status ≤ 50 ms; monotone coverage; prefix arithmetic per stage
-at the granularity §2.3 states — `covered == |{(dateAdded, lib, itemKey) ≥
-boundary}| − partial − quarantined + outOfBand`, with the definitions above
-— and a terminal state: all stages at total, drift 0, `pipeline: idle` (the
-#6012 engine-shutdown observable), work counters stationary. Phase 2: edit
+It asserts four things:
+
+- status answers in ≤ 50 ms;
+- coverage is monotone;
+- the per-stage prefix arithmetic holds, at the granularity §2.3 states:
+  `covered == |{(dateAdded, lib, itemKey) ≥ boundary}| − partial −
+  quarantined + outOfBand`, with the definitions above;
+- the terminal state arrives: all stages at total, drift 0, `pipeline: idle`
+  (the #6012 engine-shutdown observable), work counters stationary.
+
+Phase 2: edit
 one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
 sections(record)`, everything else 0; then a simulated identical-bytes
 resync → **zero recompute**: every `*.done` delta 0, the touched items
@@ -581,8 +626,8 @@ subtraction terms, not only pass on the gentle one.
 - **R20, the RSS gate.** A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: worker `VmHWM ≤ 500 MB`, server p95 ≤
-  300 MB — the ratified budgets verbatim, against the artifact class that
-  measured 2 084,9 MiB when nobody was looking. The surrogate is a flagged
+  300 MB — the ratified budgets verbatim, against the document class whose
+  uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from R20's letter ("against the 44.9 MB dictionary" — content
   that cannot be committed to a public repo); ratification is pending in
   DECISIONS.md, and the real-document run stays X3a on the author's machine.
@@ -594,7 +639,8 @@ subtraction terms, not only pass on the gentle one.
   0.2** — below the observed legitimate minimum, far above the failure
   class's measured 0.00. Order is deliberately ungated (`identical_ordered`
   was 22/60 under legitimate perturbation — an order gate flakes, gets
-  turned off, and that is how the 0009 defect happened). Re-pins are commits
+  turned off, and that is how ticket 0009's defect happened). Re-pins are
+  commits
   whose set diff is the review artifact. The golden set is re-pinned at
   **entry granularity** when entries exist; until then it gates item
   projections and says so.
@@ -696,7 +742,8 @@ is in git history at `dba8cd6`.)*
 Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
 SYNC.md's measured asymmetry governs the form each item takes: a contained
 defect with a failing test goes as a **[PR]** (merged twice); anything
-design-sized goes as an **[issue]** he builds himself (#10, two for two).
+design-sized goes as an **[issue]** he builds himself (the precedent is
+upstream issue #10; two for two).
 **[X]** means measure first. Gates are repo-side, in this repo's Makefile,
 never PRs.
 
@@ -774,7 +821,7 @@ is information, not noise.
 **Risk 5 — gate decay.** The fold gate runs red-with-waiver until #19
 merges; the rss and convergence gates sit in `check-slow`; a 14-day-stale
 WARN is advisory. This is the normalization-of-deviance channel that
-produced the 0011 defect, reintroduced at a slower time constant with better
+produced ticket 0011's defect, reintroduced at a slower time constant with better
 signage — designed around, not away, and named so the author can choose to
 tighten it. *Falsifier:* none needed — the risk is organizational; the
 mitigation is that every gate threshold cites the artifact that justifies
@@ -782,11 +829,10 @@ it, so re-pins and waivers leave evidence.
 
 ---
 
-The bet, in one sentence: the same ledger still makes every failure boring
-and the same contract still makes every answer honest — what cycle 2 adds is
-that the units are now the ones the author ratified (entries, records,
-items), the freshness protocol can no longer be fooled by the counter it
-watches, N processes are a designed state instead of an accident, and every
-promise is either watched by a gate whose threshold cites its artifact or
-named as an experiment with a decision rule (§3), each falsifiable for less
-than a day before the expensive code exists.
+The bet: the ledger keeps failures boring, and the contract keeps answers
+honest. Cycle 2 adds four things. The units are now the ones the author
+ratified (entries, records, items). The freshness protocol can no longer be
+fooled by the counter it watches. N processes are a designed state, not an
+accident. And every promise is either watched by a gate whose threshold
+cites its artifact, or named as an experiment with a decision rule (§3) —
+each falsifiable in under a day, before the expensive code exists.

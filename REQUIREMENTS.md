@@ -4,7 +4,10 @@
 
 This document lists the user requirements, R1 to R28. Each is written as a
 testable property: something the test harness, or a careful reader, can
-check. They were agreed with the author and consolidated on 2026-08-26.
+check. They were agreed with the author and consolidated on 2026-08-26; the
+documents they were consolidated from are superseded and live only in git
+history. A "stage" below is one step of the indexing pipeline: record,
+extract, chunk, embed.
 
 Authority works like this: the author's rulings are recorded in DECISIONS.md
 first, and this document is then edited to match. Any line here can still be
@@ -23,8 +26,8 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
 2. **The record is the semantic core.** Title, abstract, and keywords are
    the main semantic targets. Every item's record is indexed before any body
    text. Fields keep their identity for ranking: a tag match must not score
-   like a title match. Notes, annotations, and body text extend the core;
-   they never dilute it.
+   like a title match. Notes, annotations, and body text are added on top of
+   the core; they must not weaken the ranking weight of the record fields.
 
 3. **Chunking respects entry boundaries; context is prepended.** Where
    document structure is detectable, chunk boundaries align to section and
@@ -48,17 +51,19 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
   indistinguishable from a complete one.
 - **R14 — no text is a terminal state.** An attachment that yields no text
   is *done*, not retried forever. It counts as covered ("metadata-only"),
-  the reason is recorded, and the coverage report says so. (Per D8, OCR is
-  out for now, but the stage keys leave room for a future extractor.)
+  the reason is recorded, and the coverage report says so. (Per D8 — the
+  resolved decisions are tabled below — OCR is out for now, but the stage
+  keys leave room for a future extractor.)
 - **R17 — coverage in one sentence.** "How much of my library is
   searchable?" gets a human answer: N of M **items** (per D1), per stage,
   with the most-recent-covered date. Metadata-only items count toward the
   denominator, with their reason.
-- **R26 — convergence is watched, not trusted.** Starting from an empty
-  index and touching nothing but the status endpoint, the harness sees
-  coverage reach 100 % unattended, and at every poll the indexed set is a
-  most-recent-first prefix. (The granularity at which "prefix" is asserted
-  is a design reading — DESIGN.md §2.3 — flagged for author veto.)
+- **R26 — convergence is watched, not trusted.** The harness starts from an
+  empty index and only polls the status endpoint. Coverage must reach 100 %
+  with no other intervention, and at every poll the indexed set must be a
+  most-recent-first prefix: the newest N items, never a gap in the middle.
+  (The granularity at which "prefix" is asserted is a design reading —
+  DESIGN.md §2.3 — flagged for author veto.)
 
 ### Change and cost
 
@@ -66,7 +71,7 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
   proportional to the change, not to the library. Recompute exactly what is
   downstream of a changed input; the unit of invalidation is (item × stage).
 - **R11 — counter churn is not change.** A resync or extractor upgrade that
-  advances version counters over identical bytes re-embeds nothing. (This
+  advances version counters re-embeds nothing whose bytes are unchanged. (This
   project itself once shipped a defect that re-marked 92,7 % of the library
   as changed, forever — the cautionary example.)
 - **R27 — edit one, count one.** Every stage reports what it processed and
@@ -87,12 +92,13 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
 ### Query
 
 - **R5 — filters are good to have.** Scoping by collection, tag, item type,
-  or date is enforced before any answer is truncated — never by
-  post-filtering a top-k list that claims to be complete. One correction
-  from the scouts: "pushed into SQL" must not be read as constraining the
-  FTS5 MATCH operator itself, which measures at seconds per query at library
-  scale. The obligation is on the honesty of the result, not on which
-  operator enforces it.
+  or date is enforced before any answer is truncated — never by filtering,
+  after the fact, a top-k list (the k best-scoring results) that claims to
+  be complete. One correction from the scouts (the pre-design code-reading
+  and measurement passes): "pushed into SQL" must not be read as
+  constraining the MATCH operator of SQLite's FTS5 full-text engine, which
+  measures at seconds per query at library scale. The obligation is on the
+  honesty of the result, not on which operator enforces it.
 - **R6 — a sufficient reply in 3 s beats the optimum in 3 min.** Freshness
   work on the query path is limited to O(1) requests; anything bigger is
   scheduled, never awaited.
@@ -104,8 +110,8 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
   locator is the entry heading (ruling 1).
 - **R25 — one entry, one hit.** As amended by ruling 1 (D9 dissolved):
   deduplication is per section, and no single document may crowd other items
-  out of the candidate pool before that deduplication happens. Concentration
-  is disclosed.
+  out of the candidate pool before that deduplication happens. When many of
+  the returned hits come from one document, the result says so.
 
 ### Multilingual
 
@@ -113,8 +119,9 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
   German, Vietnamese, Greek and Russian with no configuration. The default
   embedder is multilingual. The English stopword list is a known ranking
   bias whose deletion is already decided (the move is ratified into the
-  plan). Any CJK ambition is decided explicitly, never silently. (Arabic and
-  Hebrew ride the default path untested — see "Out of scope".)
+  plan). Any Chinese/Japanese/Korean (CJK) ambition is decided explicitly,
+  never silently. (Arabic and Hebrew use the default path but are not tested
+  — see "Out of scope".)
 
 ### Custody and lifecycle
 
@@ -138,7 +145,7 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
 
 - **R12 — group libraries.** Group libraries are searchable like my own, and
   indexing one library never erases another. (Per D4: one merged index, with
-  the library as an R5 filter facet.)
+  the library as one more R5 filter, like collection or tag.)
 - **R13 — second process.** Two zoteus processes on one data directory both
   answer queries, neither corrupts the index, and no passage is extracted or
   embedded twice. (Honest restatement accepted in DESIGN.md §2.5: never
@@ -147,28 +154,31 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
 
 ### Operator gates
 
-- **R19 — the fold sweep is a gate.** No query token may point where the
-  index cannot hold. The 1 301-codepoint sweep runs on every check, not once
-  in a closed ticket.
-- **R20 — RAM budgets are gates.** The C3 budgets are asserted by the
-  harness against the 44.9 MB dictionary on every check, not measured once.
-  (Two readings of this letter — every-check versus slow-suite cadence, and
-  a committable synthetic surrogate versus the copyrighted dictionary itself
-  — are on DECISIONS.md's awaiting-ratification list; DESIGN.md §2.8 states
-  the deviations.)
+- **R19 — the fold sweep is a gate.** Every token the query normalizer
+  produces must be one the index normalizer can also produce — otherwise
+  that query term can never match anything. The character-folding sweep that
+  checks this agreement, over 1 301 codepoints, runs on every check, not
+  once in a closed ticket.
+- **R20 — RAM budgets are gates.** The RAM budgets of constraint C3
+  (CONSTRAINTS.md) are asserted by the harness against the 44.9 MB
+  dictionary on every check, not measured once. (This rule can be read two
+  ways: run on every check, or only in the slow suite; and test against the
+  real copyrighted dictionary, or a synthetic stand-in that can be
+  committed. Both questions await the author's ruling in DECISIONS.md;
+  DESIGN.md §2.8 says what the design currently does.)
 - **R21 — same corpus in, same answers out.** A pinned query set with golden
-  answers gates every change. (Per D11, the golden set pins the answer
-  **set**, not the order.)
+  (known-correct) answers gates every change. (Per D11, the golden set pins
+  the answer **set**, not the order.)
 
 ## The resolved decisions (ratified by delegation, 2026-08-26)
 
 | | resolution |
 |---|---|
 | D1 denominator | Coverage counts **items**; metadata-only items count, with their reason. |
-| D2 hosted mode | **Out.** The redesign binds the desktop; the four contingent privacy lines stay dead. |
-| D3 embedder change | **Serve-stale.** Yesterday's vectors keep answering, labeled, until re-embedding overtakes them newest-first; semantic coverage never drops to zero at open. |
+| D2 hosted mode | **Out.** The redesign binds the desktop; the four privacy requirements that only applied to hosted mode are dropped. |
+| D3 embedder change | **Serve-stale.** The old model's vectors keep answering, labeled, until re-embedding overtakes them newest-first; semantic coverage never drops to zero at the moment the new embedder is adopted. |
 | D4 group shape | One **merged** index; the library is a filter facet. |
-| D5 query semantics | A quoted **phrase** matches as a phrase, and AND/NOT are honored, on both backends; bare terms stay recall-friendly. |
+| D5 query semantics | A quoted **phrase** matches as a phrase, and AND/NOT are honored, on both backends (keyword and semantic); bare terms stay recall-friendly. |
 | D6 twin attachments | **First-with-text.** Per item, one attachment is indexed for body text; skipped ones get a recorded reason. |
 | D7 own-words scope | **Both** notes and annotations. |
 | D8 image-only PDFs | **Leave room** (OCR is out today). |
@@ -178,7 +188,8 @@ CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
 
 ## Out of scope, said out loud
 
-So that silence does not read as a promise, seven declarations stand:
+These seven things are deliberately not promised, so that silence does not
+read as a promise:
 
 - **Work does not travel.** The index is per-machine; a second machine
   re-earns it unattended via R1. Vector export and sync are out of scope.
@@ -189,7 +200,7 @@ So that silence does not read as a promise, seven declarations stand:
 - **OCR is out.** Image-only attachments converge as metadata-only.
 - **Hosted mode is out.** The redesign binds the desktop; the OAuth server
   keeps today's behavior.
-- **Arabic and Hebrew are untested.** Expected to ride the default path,
-  outside R7's tested matrix.
+- **Arabic and Hebrew are untested.** Expected to work on the default path,
+  but outside R7's tested matrix.
 - **No enumeration.** Semantic search returns a bounded page; exhaustiveness
   is the job of R5 narrowing, not of paging.

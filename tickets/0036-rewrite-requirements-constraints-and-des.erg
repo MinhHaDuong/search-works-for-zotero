@@ -13,6 +13,7 @@ Label: needs-human
 
 2026-08-27T08:37Z claude note rewrite landed: all three documents rewritten plain, R-list purified (D3/D5/D6 to the decisions table), preambles replaced by Intros; make check green; awaiting the author's read
 2026-08-27T08:37Z Claude label needs-human
+2026-08-27T11:25Z claude note prose review (3 independent reviewers vs pre-rewrite versions): 8 drift repairs (field-seam defect, /deleted route, sideline rationale, R11 qualifier, provenance lines, X6 protocol, kill-10 reason, calibration meta), ~20 jargon glosses, 10 long sentences split, tics flattened; #6012 gloss corrected against STATE.md
 --- body ---
 ## Context
 The three documents came out of the design panel and read like it:
