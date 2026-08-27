@@ -31,7 +31,7 @@ const N = 477_512; // the measured real corpus size (bench/results/0013-concentr
 const WORDS_PER_PASSAGE = 60;
 const VOCAB = 50_000;
 const SCOPES = [1_000, 5_000, 20_000, 100_000];
-const PROBES = 20;
+const PROBES = Number(process.env.X4_PROBES ?? 20);
 const DBPATH = process.argv[2] ?? '/tmp/x4-constrained-bench.sqlite';
 const PROBE_ONLY = process.argv[2] !== undefined;
 
