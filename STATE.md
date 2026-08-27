@@ -1,9 +1,10 @@
 # STATE — zoteus-fts5
 
-*Housekeeping sweep: 2026-08-22T07:06Z — 13 tickets closed, 0 open, gates green (`make check`).*
-*Upstream sync: 2026-08-26 — #11 and #12 merged, #10 closed by the maintainer's own SQLite backend. See `SYNC.md`.*
+*Repository state reconciled 2026-08-27 — 18 tickets closed, 19 open; fork
+`main` aligned with upstream v1.8.0; superseded implementation archived at
+`archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
 
-Prototype work: replace zoteus's resident JS search index with SQLite/FTS5.
+Research and work tracking for the search redesign of zoteus.
 
 ## What this repo is
 
@@ -13,12 +14,18 @@ a **fork of someone else's project**. `fork/` is a plain checkout of
 has its own history, and a `tickets/` directory must never appear in it, or it
 would show up in any diff sent upstream.
 
-## The fork checkout
+## The upstream baseline and archived implementation
 
-`fork/` sits on branch **`fts5-storage`**, head **`bae82a7`**, **757 tests**,
-`tsc --noEmit` and `eslint` clean — off `fts5-base` = PR #11 ⊕ PR #12, which
-**upstream has since merged**. That base is now redundant history: `fts5-storage`
-is 5 ahead / 12 behind `oscardvs/zoteus@main`, merge-base `40bccc5`.
+`UPSTREAM` records the reviewed upstream baseline, currently **`309204b`**
+(v1.8.0). `make upstream-status` detects movement beyond it;
+`make upstream-checkout` recreates the git-ignored `fork/` with `origin` set to
+`MinhHaDuong/zoteus`, `upstream` set to `oscardvs/zoteus`, and a detached
+checkout at the exact reviewed SHA.
+
+The superseded implementation is preserved on
+**`archive/fts5-storage-2026-08-21`**, head **`bae82a7`**, where **757 tests**,
+`tsc --noEmit` and `eslint` were clean. Its base combined PR #11 and PR #12,
+which upstream has since merged; it is evidence, not a working branch.
 
 ## Posture — the maintainer answered on 2026-08-25
 
@@ -28,7 +35,7 @@ shipping it in v1.7.0 with incremental updates on top. His seam is a `SearchInde
 interface plus `SearchIndexBase`; ours was a `PassageStore` port under the one
 index. Same problem, same absence of a new dependency, different cut.
 
-So the storage layer here is superseded, and the prototype has done its job: it
+So the storage layer here is superseded, and the experiment has done its job: it
 was the argument, not the shipping code. The plan of record is **DESIGN.md §4
 as ratified in DECISIONS.md, executed through tickets 0014–0037**; **SYNC.md**
 tracks upstream — what he took, what is still missing there (the accented-query

@@ -1,9 +1,10 @@
 # SYNC — the fork against upstream v1.8.0
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
-against `309204b` (`oscardvs/zoteus`, v1.8.0) and fork `bae82a7`
-(`MinhHaDuong/zoteus`, branch `fts5-storage`; fork `main` at `edf2748`, 14
-behind).*
+against `309204b` (`oscardvs/zoteus`, v1.8.0). Fork `main` is aligned at the
+same SHA; the superseded implementation is preserved at `bae82a7` on
+`archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
+baseline.*
 
 ## What happened upstream
 
@@ -46,9 +47,10 @@ FTS5 forces (`unicode61 remove_diacritics 2`, `bm25()`, OR-ed terms, WAL).
 
 ## What that costs this repo
 
-`fts5-base` is dead — both its ingredients are in upstream `main`. The fork's
-`main` is 0 ahead / 14 behind; `fts5-storage` is 5 ahead / 12 behind, merge-base
-`40bccc5`.
+`fts5-base` is retired and deleted — both its ingredients are in upstream
+`main`. The fork's `main` is aligned with upstream at `309204b`. The historical
+storage tree remains reachable only through
+`archive/fts5-storage-2026-08-21` (`bae82a7`, merge-base `40bccc5`).
 
 **A rebase is not the operation.** Upstream rewrote `index-manager.ts` (474 lines)
 into an interface plus a base class; this branch rewrote the same file (609 lines)
@@ -287,7 +289,7 @@ it must land before any re-measurement, or the harness will silently measure
 | §4 delta / I-1 | finding re-verified standing at v1.8.0 (see §4's tail note); I-1 in ticket 0024, X6 its annex |
 | §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL, ready to file as I-2. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
-| fork | `main` at `edf2748`, 14 behind `309204b`; fast-forward pending (author's operation). Archive tag still unpushed (credential relay 403s tag pushes; cosmetic — `origin/fts5-storage` pins `bae82a7`) |
+| fork | `main` aligned with upstream at `309204b`; merged branches deleted; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7`; active branches `schema-read-before-write` and `stopwords-follow-up` both start at `309204b` |
 | next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse

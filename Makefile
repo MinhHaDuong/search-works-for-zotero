@@ -10,13 +10,17 @@
 # every future healthcheck would have said "no tests" and skipped them. A suite
 # nothing knows how to run is a suite nobody runs.
 
-.PHONY: check check-fast lint figures help
+include UPSTREAM
+
+.PHONY: check check-fast lint figures help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
 	@echo "make check-fast  — the tests alone"
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
+	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
+	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
 check: lint figures check-fast
 
@@ -32,3 +36,21 @@ lint:
 # it is the one to run after any re-measurement.
 figures:
 	python3 bench/check_figures.py
+
+upstream-status:
+	@set -eu; \
+	remote="$$(git ls-remote "$(UPSTREAM_REPOSITORY)" "refs/heads/$(UPSTREAM_BRANCH)" | awk 'NR == 1 { print $$1 }')"; \
+	test -n "$$remote" || { echo "Could not resolve upstream $(UPSTREAM_BRANCH)" >&2; exit 2; }; \
+	echo "reviewed  $(UPSTREAM_REVIEWED_SHA) ($(UPSTREAM_REVIEWED_VERSION), $(UPSTREAM_REVIEWED_DATE))"; \
+	echo "upstream  $$remote ($(UPSTREAM_BRANCH))"; \
+	if test -d fork/.git; then echo "checkout  $$(git -C fork rev-parse HEAD)"; else echo "checkout  absent"; fi; \
+	test "$$remote" = "$(UPSTREAM_REVIEWED_SHA)" || { echo "STALE: upstream has moved; review before changing UPSTREAM" >&2; exit 1; }; \
+	echo "OK: reviewed baseline is current"
+
+upstream-checkout:
+	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }
+	git clone --no-checkout "$(FORK_REPOSITORY)" fork
+	git -C fork remote add upstream "$(UPSTREAM_REPOSITORY)"
+	git -C fork fetch upstream "$(UPSTREAM_BRANCH)"
+	git -C fork checkout --detach "$(UPSTREAM_REVIEWED_SHA)"
+	@echo "fork/ recreated at $(UPSTREAM_REVIEWED_SHA); origin is the author fork, upstream is oscardvs/zoteus"

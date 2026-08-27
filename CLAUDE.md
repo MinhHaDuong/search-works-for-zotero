@@ -56,9 +56,10 @@ repo is public and he reads it.
 
 ## Environment notes
 
-- Upstream checkout for verification: clone `oscardvs/zoteus` read-only
-  (cycle 2 verified at `edf2748`). The fork convention is a git-ignored
-  `fork/` dir, cloned by hand.
+- `UPSTREAM` owns the reviewed upstream SHA and repository URLs.
+  `make upstream-status` detects upstream movement; `make upstream-checkout`
+  recreates the git-ignored `fork/` at that exact SHA with both `origin` and
+  `upstream` remotes. Do not overwrite an existing checkout.
 - The measurement corpora are NOT in this repo: real vectors, the 477k index,
   and the 44.9 MB extraction live on the author's machine; `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which

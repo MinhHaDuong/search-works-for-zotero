@@ -6,8 +6,8 @@ lives upstream and in the author's fork, not in this repo.
 
 Upstream has shipped its own SQLite/FTS5 backend since v1.7.0 (closing
 [#10](https://github.com/oscardvs/zoteus/issues/10), which this repo argued).
-The storage-layer prototype this repo was started for is therefore superseded,
-and the live work is the redesign — four documents and the tickets:
+The original storage-layer experiment is therefore complete, and the live work
+is the redesign — four documents and the tickets:
 `REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
 imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
 ratification ledger), and tickets `0014`–`0037` (the work train as re-formed
@@ -19,7 +19,14 @@ not in the tree.
 - `tickets/` — the work, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg)
 - `bench/` — the measurement harness (below)
 - `bench/results/` — committed raw artifacts behind the figures in `STATE.md`
-- `fork/` — a checkout of the fork; git-ignored, cloned by hand
+- `UPSTREAM` — the machine-readable upstream review baseline
+- `fork/` — a git-ignored checkout recreated at that baseline by
+  `make upstream-checkout`
+
+`make upstream-status` compares the reviewed SHA in `UPSTREAM` with current
+upstream `main` and reports the local checkout SHA when `fork/` exists. It exits
+nonzero when upstream has moved, making staleness visible without automating any
+review decision.
 
 ## The prototype phase, kept as the record of the argument
 
