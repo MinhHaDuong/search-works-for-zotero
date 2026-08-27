@@ -1,7 +1,9 @@
-# SYNC — the fork against upstream v1.7.0
+# SYNC — the fork against upstream v1.8.0
 
-*Written 2026-08-26, against upstream `edf2748` (`oscardvs/zoteus`, v1.7.0 released
-2026-08-25) and fork `bae82a7` (`MinhHaDuong/zoteus`, branch `fts5-storage`).*
+*Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
+against `309204b` (`oscardvs/zoteus`, v1.8.0) and fork `bae82a7`
+(`MinhHaDuong/zoteus`, branch `fts5-storage`; fork `main` at `edf2748`, 14
+behind).*
 
 ## What happened upstream
 
@@ -78,20 +80,26 @@ days:
 | Aug 21 | we open **#10** (issue) and **#11**, **#12** (PRs) — then silence |
 | Aug 25 | **#13** "MAX_ITEMS = 5000" and **#14** "Multiple groups" filed by another user |
 | Aug 25 | he sweeps **#9, #13, #14, #15, #16** *and* both our PRs into integration PR #17 |
+| Aug 26 | **#19**, **#20** open from here; v1.7.1 ships (#18) without touching either |
+| Aug 27 | **#22**, **#23** filed by @StianOby; he merges **#19** and **#20** (v1.7.2), files **#21** himself off #20's review questions, fixes #21+#22+#23 in `2f453d6`, ships v1.7.3 and **v1.8.0** — three releases in one day |
 
 #13 and #14 are, in substance, the issues for #11 and #12 — filed by someone else,
 four days later, describing the same two problems from the user side. He works in
 batches, and the batch was triggered by demand rather than by our patches. So an
 issue is not a gate, and silence is not rejection; expect days, and expect them to
-end all at once.
+end all at once. The Aug 27 row is the pattern's second confirmation — again
+third-party demand (#22/#23) triggering the sweep that carried our PRs with it.
 
-**The asymmetry that should decide the form of each contribution.** Two for two in
-each direction:
+**The asymmetry that should decide the form of each contribution.** Now four for
+four and two for two:
 
-- A **contained defect with a PR** — #11, #12 — gets reviewed, corrected and
-  merged as ours.
-- A **design-sized problem as an issue** — #10 — gets him to build it himself.
-  Our three proposed directions, his fourth, his implementation, issue closed.
+- A **contained defect with a PR** — #11, #12, #19, #20 — gets reviewed and
+  merged as ours (#19/#20 without a single line changed; the earlier pair
+  corrected in review).
+- A **design-sized problem as an issue** — #10, and now #21 — gets him to build
+  it himself. #21 is the strongest form of the pattern: he filed the follow-up
+  to our own PR *himself* and shipped the fix the same day, still crediting the
+  finding ("#21, thanks @MinhHaDuong").
 
 That is not a complaint: #10 is his call to make, and his backend is a good one.
 It is a fact about what each form produces, and it is why the recommendations
@@ -100,6 +108,14 @@ below name a form for every item.
 ## What is still ours, and still missing upstream
 
 ### 1. Accent folding on the query side — a live defect in v1.7.0
+
+*Fixed 2026-08-27: PR #19 squash-merged as `4f61b2a`, authorship and co-author
+trailer preserved, not one contributed line altered (the only head-vs-merge
+diffs are base drift from v1.7.1's #18 work). `tokenize.ts` and
+`accent-folding.test.ts` are byte-identical at v1.8.0 HEAD. The parity-test
+rewrite flagged below was accepted as "what the case should have said in the
+first place". v1.7.2 changelog: "Accented queries reach the passages they name
+(#19, thanks @MinhHaDuong)". The section stands as the record of the defect.*
 
 Upstream's `tokenize.ts` is byte-identical to the version this branch replaced:
 `text.toLowerCase().match(/[a-z0-9]+/g)`. `SqliteSearchIndex.keywordSearch` feeds
@@ -168,9 +184,16 @@ swapped from `PassageStore` to his insert path.
 
 ### 3. No corruption path
 
-*Shipped as PR #20, hardened; the corruption-work notes under Mechanics found
-the defect worse than described here (the server fails to start at all) and
-two adjacent swallowed-error holes — read them with this section.*
+*Merged 2026-08-27: PR #20 squash-merged as `6e4637b` 51 seconds after #19,
+same form, zero maintainer edits. The final head was `331b037` — the PR was
+rebased onto v1.7.1 to reconcile `open()` with its new `busy_timeout`/WAL
+handling — not the `dd1605a` the earlier status recorded. v1.7.2 changelog:
+"A damaged search index no longer stops the server from starting (#20, thanks
+@MinhHaDuong)", closing with his own forward reference: "Repairing it
+automatically is deliberately not in this release (#21)." He then filed #21
+himself and extended the work in `2f453d6` (v1.8.0) — see the corruption-work
+notes under Mechanics for what that closed. The section stands as the record
+of the defect; the swallowed-error holes it names are now fixed upstream.*
 
 `grep -rn "corrupt\|SQLITE_" src/features/search/` upstream returns two comments
 and no handler. `SQLITE_CORRUPT` propagates out of the constructor as SQLite's own
@@ -196,7 +219,19 @@ issue.** Upgraded from question to finding in cycle 2: `startIndexUpdate` keys
 on `libraryVersion` alone, so post-build extraction is invisible to
 `action:"update"` — I-1 in ticket 0024 carries it, X6 its empirical annex.
 
+*Re-verified standing at v1.8.0: the update path still keys `since` on
+`buildStatus().libraryVersion` (`build.ts:280`). #23's metadata-first rework
+withholds the version stamp from interrupted crawls and counts unreadable
+attachments, but never revisits an unchanged item whose text Zotero extracted
+after the build — the finding survives his closest work to it, and I-1's text
+should say so, citing #22/#23 as its neighbors.*
+
 ### 5. The measurements
+
+*Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first
+sections of `docs/semantic-search.md` and left every measurement claim
+untouched (the 337 s build row, the memory ratio, "past roughly 250k
+passages"). I-2 stands, ready to file — ticket 0024.*
 
 `docs/semantic-search.md` upstream now makes ceiling and memory claims with no
 numbers behind them. Ours are on a real 7 541-item library: 5 759,6 MiB against
@@ -230,7 +265,7 @@ the one place this work becomes visible upstream.
 
 ## Mechanics
 
-**Before quoting a single number about v1.7.0.** Five bench drivers hardcode
+**Before quoting a single number about v1.7.0 or anything after it.** Five bench drivers hardcode
 `ZOTEUS_SEARCH_BACKEND=json|sqlite` (`query.py`, `run_build.py`, `run_serve.py`,
 `run_serve2.py`, and the recorded env in `results/json-baseline/emit.py`).
 Upstream's knob is
@@ -239,20 +274,21 @@ it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees
 (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Status, end of 2026-08-26** (one table; the day's earlier states are in git
-history).
+**Status, end of 2026-08-27** (one table; earlier states are in git history).
 
 | | |
 |---|---|
-| PR #19 accent fold | open upstream, hardened by adversarial review (4 commits, head `4c4c2ef`). Body edit pending (owner pastes). Not touched by his v1.7.1 release |
-| PR #20 corrupt index | open upstream, hardened (4 commits, head `dd1605a`), all 9 review findings fixed. Not touched by v1.7.1 |
-| upstream | moved past the cycle-2 baseline: v1.7.1 released 2026-08-26 (`80f8aa0`, `2cde6a7`) without touching either open PR — the batch pattern holding |
-| fork | `main` fast-forwarded to `edf2748` and pushed; archive tag not pushed (credential relay 403s tag pushes; cosmetic — `origin/fts5-storage` pins `bae82a7`) |
+| PR #19 accent fold | **merged** 2026-08-27 as `4f61b2a` (squash, authorship + co-author trailer preserved, zero maintainer edits); shipped in v1.7.2, credited "thanks @MinhHaDuong" |
+| PR #20 corrupt index | **merged** 2026-08-27 as `6e4637b`, same form; final head `331b037` (rebased onto v1.7.1's `busy_timeout` work — supersedes the `dd1605a` recorded earlier) |
+| #21 his follow-up | filed by **him**, off #20's review questions; fixed same day in `2f453d6` with #22/#23 (@StianOby) and shipped as **v1.8.0** (`309204b`). The two swallowed-error holes are closed upstream — closed from our side per the sunset rule (DECISIONS.md 2026-08-27) |
+| upstream | v1.7.2, v1.7.3 (the #18 desktop/config train), v1.8.0 — four releases 2026-08-26/27; the batch pattern confirmed a second time |
+| the train | both in-flight slots empty; the head is the STOPWORDS follow-up (0014), next pair from 0015/0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
-| §4 delta | upgraded from question to finding; I-1 in ticket 0024, X6 its annex |
-| §5 measurements | reshaped to an issue (see below); drafted FINAL, ready to file as I-2 |
-| redesign | cycle 2 closed: REQUIREMENTS/CONSTRAINTS/DESIGN/DECISIONS materialized, panel record in panel/cycle2/ (which carries the full account of how the cycle ran), work train re-formed on the panel reviews and ratified |
-| next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26); live state in tickets 0014–0035 — `erg ready` is the queue |
+| §4 delta / I-1 | finding re-verified standing at v1.8.0 (see §4's tail note); I-1 in ticket 0024, X6 its annex |
+| §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL, ready to file as I-2. Upstream numbers #21–#23 are consumed — I-labels stay internal |
+| gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
+| fork | `main` at `edf2748`, 14 behind `309204b`; fast-forward pending (author's operation). Archive tag still unpushed (credential relay 403s tag pushes; cosmetic — `origin/fts5-storage` pins `bae82a7`) |
+| next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse
 than "no corruption path": the server **fails to start at all**, so the 29 tools that never
@@ -260,6 +296,23 @@ read the search index die with it. And the fix turned up two adjacent holes wort
 entries — `keywordSearch`'s catch swallows `disk I/O error` and `no such table` into an empty
 result set, and the JSON backend's `loadIndex(...).catch(() => false)` does the same for a
 truncated artifact. Both are in the PR as questions rather than in the diff.
+
+*Superseded 2026-08-27: he took both questions himself — issue #21, filed by him
+the day he merged #20 — and closed them in `2f453d6` (v1.8.0), still crediting
+the finding ("#21, thanks @MinhHaDuong"). What #21 built, in his idiom but on
+#20's seams: the error vocabulary moved verbatim from `corruption.ts` into a new
+`store-faults.ts` (breaking an import cycle; `CorruptSearchIndex` stays);
+`repair.ts` lets an explicit `action:"build"` — and only that call, never
+startup, never a query, one attempt never a loop — delete exactly the files the
+refusal named (sidecars first, database last) behind a new
+`ToolContext.reopenSearchIndex` seam; the `keywordSearch` catch narrowed to true
+FTS5 syntax errors, so disk I/O, `no such table`, locked and interrupted now
+propagate, and mid-query corruption sticks via `noteStoreFault`; the JSON parse
+failure throws a typed `SearchIndexUnreadableError` with the artifact left
+exactly as found — plus a third hole he found beyond the questions: valid JSON
+that is not a Zoteus index loaded as empty and was written back over the file on
+the next clean shutdown. The contributed corruption test survives at HEAD except
+one assertion string (the remedy text now leads with the tool call).*
 
 **§5 is a correction, not a contribution.** `docs/semantic-search.md` already carries the
 JSON-side figures, cited to issue #10 — which is ours. What is left to offer is three
@@ -278,5 +331,7 @@ ratified in DECISIONS.md, executed through tickets 0014–0035. The original
 seven-step list is in git history.
 
 **The gate.** 757 tests here were green against a tree that no longer exists. His
-suite is 594 passed / 7 skipped. Every ported test runs against *his* tree before
-it is sent, and the count that matters from now on is his.
+suite was 594 passed / 7 skipped at the cycle-2 baseline and has grown since
+(86 test files at v1.8.0; `2f453d6` alone added three). Every ported test runs
+against *his* tree before it is sent, and the count that matters from now on is
+his — re-counted there at send time, never quoted from here.

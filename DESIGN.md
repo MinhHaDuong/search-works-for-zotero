@@ -16,8 +16,10 @@ through one lens (derivation, corpus, custody, concurrency, query, operator)
 against the consolidated requirements and constraints; each result was
 adversarially critiqued, and this synthesis assembles what survived, plus
 the named repairs. Every load-bearing claim about upstream code was
-re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0), and the
-disputed numbers were recomputed from the committed artifacts in
+re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0; upstream
+has since moved to v1.8.0 `309204b` — SYNC.md characterizes the deltas, and
+each ticket re-verifies its own evidence on moved files before acting), and
+the disputed numbers were recomputed from the committed artifacts in
 `bench/results/`. Two process bounds held throughout: decisions and rulings
 already ratified were not reopened, and the scout findings entered as
 binding input.
@@ -61,7 +63,8 @@ with its X1 gate; the stored-norm dot product; slabs; the derived vector
 sidecar (vectors live in a file beside the database, derived from it);
 probe-don't-fix; sideline-never-delete (an unreadable index file is moved
 aside, never deleted); and the recovery-verb grammar. The
-stopwords/tokenizer fix stopped being a plan: it is open PR #19.
+stopwords/tokenizer fix stopped being a plan: it is PR #19, merged upstream
+2026-08-27 (`4f61b2a`).
 
 Three forces changed the rest.
 
@@ -535,8 +538,9 @@ search with a typed `SCHEMA_NEWER {remedy}`. The ping-pong-downgrade hybrid
 state carries its own tamper evidence: `stamp==1 && v2 tables present` means
 an old binary wrote here — the response is not "migrate" but
 **reconcile-heal**: mark derived stages stale, census-diff, let R1 re-earn.
-The retroactive limit is stated plainly: binaries ≤ 1.7.0 are unreachable by
-any protocol; the new filename (§1) is what actually protects against them.
+The retroactive limit is stated plainly: binaries that predate the protocol
+(every release through v1.8.0 today) are unreachable by it; the new filename
+(§1) is what actually protects against them.
 
 **R28 — uninstall.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per
@@ -620,9 +624,11 @@ subtraction terms, not only pass on the gentle one.
 
 - **R19, the fold gate.** `fold_sweep.mjs`, repointed at the tree under
   test. The query side falls back to `tokenize`-only when
-  `normalizeForSearch` is absent, so against stock upstream the gate is red
+  `normalizeForSearch` is absent, so against a pre-fold tree the gate is red
   *by classification* (a recorded miss count), not red by crash. The waiver
-  is keyed to PR #19's URL and deleted on its merge.
+  keyed to PR #19's URL retired with its merge (2026-08-27): stock ≥v1.7.2
+  ships `normalizeForSearch`, so against current upstream the gate runs
+  green by right.
 - **R20, the RSS gate.** A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: worker `VmHWM ≤ 500 MB`, server p95 ≤
@@ -686,7 +692,8 @@ single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget 3 s
   free.
 - **CJK — committed.** 2-gram twin tables, CJK-bearing passages only,
   backfilled from slabs; typed degradation meanwhile.
-- **Stopwords — shipping** via PR #19 and its follow-up. **X2 guards it**:
+- **Stopwords** — PR #19 merged (`4f61b2a`); the deletion itself ships in
+  its follow-up (0014, now the train's head). **X2 guards it**:
   measure stopword-less OR-query p95 at 650k; above ~500 ms, add
   corpus-driven pruning of query terms whose document frequency exceeds
   ~50 % — language-neutral by construction.
@@ -752,10 +759,12 @@ cap, cadence, commitment bounds) live once in DECISIONS.md's re-form entry,
 and each item's scope, evidence, and live state live in its ticket — the
 tickets are authoritative for content, this list for ordering.
 
-1. **The open head** — PR #19 (accent fold) and #20 (corruption path); the
-   stopwords follow-up rides #19's merge (ticket 0014).
-2. **The contained-PR budget, six beyond the head** — schema
-   read-before-write (0015), `busy_timeout` alone and the wipe guard (0016),
+1. **The head, resolved** — PR #19 (accent fold) and #20 (corruption path)
+   merged 2026-08-27 (`4f61b2a`, `6e4637b`); the stopwords follow-up
+   (ticket 0014) is now the head.
+2. **The contained-PR budget — six ratified, five live** — schema
+   read-before-write (0015), the wipe guard (0016; `busy_timeout`
+   sunset-closed, overtaken by v1.7.1 — DECISIONS.md 2026-08-27),
    cacheDir and key-to-header (0017).
 3. **The reserve, demand-triggered** — terminal states (0019), own words
    (0022).
@@ -801,7 +810,9 @@ amendment to the freshness contract. *Falsifier:* X6 — an afternoon, and I-1
 is already drafted to carry the answer upstream.
 
 **Risk 3 — upstream ships its own core before the design conversation
-completes.** Sharpened since v1: he built #10's answer himself in days, and
+completes.** Sharpened since v1: he built #10's answer himself in days — and
+the risk materialized a second time on 2026-08-27, when he filed and fixed
+his own follow-up to PR #20 (#21, with #22/#23) inside one day — and
 #6012's saved-search serialization is the first crack through which platform
 semantic results will leak into the local API. *Falsifier:* the harness
 offer and the scoped issues themselves, after the PR train — those threads
@@ -818,8 +829,8 @@ filesystem mtime granularity and WAL growth are folklore until soaked.
 assertions are constants the protocol can arithmetically meet, so a failure
 is information, not noise.
 
-**Risk 5 — gate decay.** The fold gate runs red-with-waiver until #19
-merges; the rss and convergence gates sit in `check-slow`; a 14-day-stale
+**Risk 5 — gate decay.** The fold gate's waiver retired with #19's merge
+(2026-08-27); the rss and convergence gates sit in `check-slow`; a 14-day-stale
 WARN is advisory. This is the normalization-of-deviance channel that
 produced ticket 0011's defect, reintroduced at a slower time constant with better
 signage — designed around, not away, and named so the author can choose to

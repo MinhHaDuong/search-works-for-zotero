@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-26T15:43Z claude created
+2026-08-27T15:51Z claude note slots free (#19/#20 merged 2026-08-27). Evidence intact at v1.8.0: embeddings.ts untouched since edf2748 (checked 309204b). Adjacent drift only: config.ts reworked in v1.7.3 (warn-and-default for knobs, refuse for non-knobs) — read it before drafting PR-4/PR-5 so the PRs speak to current config semantics
 
 --- body ---
 ## Context
