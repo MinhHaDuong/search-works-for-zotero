@@ -115,10 +115,10 @@ diffs are base drift from v1.7.1's #18 work). `tokenize.ts` and
 `accent-folding.test.ts` are byte-identical at v1.8.0 HEAD. The parity-test
 rewrite flagged below was accepted as "what the case should have said in the
 first place". v1.7.2 changelog: "Accented queries reach the passages they name
-(#19, thanks @MinhHaDuong)". The section stands as the record of the defect.*
+(#19, thanks @MinhHaDuong)". The remainder below describes the v1.7.0 defect for the record.*
 
-Upstream's `tokenize.ts` is byte-identical to the version this branch replaced:
-`text.toLowerCase().match(/[a-z0-9]+/g)`. `SqliteSearchIndex.keywordSearch` feeds
+At `edf2748` (v1.7.0), upstream's `tokenize.ts` was byte-identical to the version this branch replaced:
+`text.toLowerCase().match(/[a-z0-9]+/g)`. `SqliteSearchIndex.keywordSearch` fed
 it straight into `MATCH`. The document side is folded by SQLite. Run against
 upstream's own function:
 
