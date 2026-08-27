@@ -232,6 +232,15 @@ FIGURES = [
      {"state": "holds **{} of 477 512"}),
     ("0013-concentration/uncapped-477512.json", "next_largest_passages", 0,
      {"state": "against {} for the next largest"}),
+    # ---- 0025 X7, census parse cost (synthetic wire shape, container CPU) ----
+    ("0025-x7-census/parse-cost.json", "rows.1.median_ms", 2,
+     {"t0025": "at 30 000 entries median {} ms and"}),
+    ("0025-x7-census/parse-cost.json", "rows.1.p95_ms", 2,
+     {"t0025": "and p95 {} ms — under the 50 ms rule"}),
+    ("0025-x7-census/parse-cost.json", "rows.0.median_ms", 2,
+     {"t0025": "8 037 entries the tick costs {} ms;"}),
+    ("0025-x7-census/parse-cost.json", "rows.2.median_ms", 2,
+     {"t0025": "it reaches {} ms median, where the rule"}),
 ]
 
 

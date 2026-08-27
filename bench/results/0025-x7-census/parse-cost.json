@@ -1,0 +1,36 @@
+{
+  "probe": "ticket 0025 X7 — census parse+diff cost per tick, at the sizes that decide the cadence",
+  "rule": "DESIGN.md §3: local census every tick unless parse > 50 ms at 30k entries, then every 5th tick",
+  "substrate": "SYNTHETIC census bodies in the measured wire shape (flat {key: version}, 8-char keys, versions 0..25036 per bench/results/0012-fulltext-sequence). The shape is fixed by the API and the cost structural in it; no library content is needed for this number.",
+  "tick_definition": "JSON.parse of the serialized census + full diff against the previous map (changed/new/removed)",
+  "host": "session container (weaker substrate than the workstation: a pass here is conservative)",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "node": "v22.22.2",
+  "timestamp_utc": "2026-08-27T18:55:30.960Z",
+  "rows": [
+    {
+      "entries": 8037,
+      "serialized_bytes": 133122,
+      "ticks_measured": 50,
+      "median_ms": 4.61,
+      "p95_ms": 6.61,
+      "max_ms": 7.97
+    },
+    {
+      "entries": 30000,
+      "serialized_bytes": 496709,
+      "ticks_measured": 50,
+      "median_ms": 23.83,
+      "p95_ms": 36.05,
+      "max_ms": 39.15
+    },
+    {
+      "entries": 100000,
+      "serialized_bytes": 1655682,
+      "ticks_measured": 50,
+      "median_ms": 108.41,
+      "p95_ms": 165.81,
+      "max_ms": 198.18
+    }
+  ]
+}

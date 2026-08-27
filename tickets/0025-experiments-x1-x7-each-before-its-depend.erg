@@ -11,6 +11,7 @@ Author: claude
 
 2026-08-26T17:05Z claude note body reconciled with the re-form (code review): dependents renamed to 0033/0034, §4 item renumbered
 2026-08-26T17:19Z claude note simplify pass: decision rules deduplicated to DESIGN §3 (single authority); this ticket keeps work, substrate, ordering
+2026-08-27T19:55Z claude note X7 MEASURED (bench/census_parse.mjs -> bench/results/0025-x7-census/parse-cost.json, synthetic wire-shape bodies, container CPU — the weaker substrate, so a pass is conservative). Parse+diff per tick: at 30 000 entries median 23,83 ms and p95 36,05 ms — under the 50 ms rule, so the DECISION is every-tick census; the 5th-tick back-off is never built. At the real library's 8 037 entries the tick costs 4,61 ms; at 100 000 entries it reaches 108,41 ms median, where the rule would engage — recorded as the scale at which the cadence question reopens
 --- body ---
 ## Context
 DESIGN.md §4 item 7 and §3. Each experiment runs BEFORE its dependent and
