@@ -2,6 +2,7 @@
 Title: Rewrite REQUIREMENTS, CONSTRAINTS and DESIGN in plain language
 Created: 2026-08-27
 Author: claude
+Label: needs-human
 
 --- log ---
 2026-08-27T06:44Z claude created
@@ -10,6 +11,9 @@ Author: claude
 
 2026-08-27T07:05Z claude note author: also purify the requirements list (D-entries mixed in) and replace the preambles with intros
 
+2026-08-27T08:37Z claude note rewrite landed: all three documents rewritten plain, R-list purified (D3/D5/D6 to the decisions table), preambles replaced by Intros; make check green; awaiting the author's read
+2026-08-27T08:37Z Claude label needs-human
+2026-08-27T11:25Z claude note prose review (3 independent reviewers vs pre-rewrite versions): 8 drift repairs (field-seam defect, /deleted route, sideline rationale, R11 qualifier, provenance lines, X6 protocol, kill-10 reason, calibration meta), ~20 jargon glosses, 10 long sentences split, tics flattened; #6012 gloss corrected against STATE.md
 --- body ---
 ## Context
 The three documents came out of the design panel and read like it:
@@ -49,13 +53,13 @@ If 0037's ratified amendments land first, they are rewritten here with the
 rest; if this lands first, 0037 writes its amendments in the new voice.
 
 ## Exit criteria
-- [ ] REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md read cleanly without
+- [x] REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md read cleanly without
       panel/cycle2/ open
-- [ ] The requirements list carries R-items only; D-entries live in the
+- [x] The requirements list carries R-items only; D-entries live in the
       resolved-decisions table
-- [ ] Every preamble replaced by an Intro section
-- [ ] No requirement, threshold, budget or decision changed in substance
+- [x] Every preamble replaced by an Intro section
+- [x] No requirement, threshold, budget or decision changed in substance
       (diff reviewed against DECISIONS.md)
-- [ ] Figure-guard anchors follow the new wording; make check green
+- [x] Figure-guard anchors follow the new wording; make check green
 - [ ] The author reads all three and accepts the voice; any veto lands in
       DECISIONS.md first
