@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-26T15:42Z claude created
 2026-08-27T15:48Z claude note the batch came: #19 merged as 4f61b2a and #20 as 6e4637b (2026-08-27, squash, authorship + co-author trailer preserved, zero maintainer edits — SYNC.md status table). #20's final head was 331b037 (rebased onto v1.7.1), not the dd1605a recorded earlier. Fold-gate waiver prose removed (0026, DESIGN.md §2.8). Remaining scope: the STOPWORDS follow-up PR — both in-flight slots are free
+2026-08-27T18:21Z claude note STOPWORDS follow-up drafted against v1.8.0 and pushed to the fork as branch stopwords-follow-up (4a5e554): stoplist deleted, tokenize doc rewritten, the two pinning tests rewritten as the defect's repro (both red on stock), suite 727 passed / 7 skipped, typecheck+lint clean. HELD for X2's p95 (author's machine; 0030's rename landed, command handed to the author) — the number goes in the PR body before it opens, per this ticket's exit criterion
 
 --- body ---
 ## Context

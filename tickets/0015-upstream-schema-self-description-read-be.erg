@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-26T15:43Z claude created
 2026-08-27T15:49Z claude note the after-#20 gate lifted (#20 merged 2026-08-27) and a slot is free. But 2f453d6 (v1.8.0) rewrote sqlite-index.ts and persistence.ts under this ticket — re-verify the createSchema re-stamp evidence at 309204b before drafting; the edf2748 line numbers below are stale
+2026-08-27T18:21Z claude note evidence re-verified at v1.8.0: stamp written at sqlite-index.ts:200 (constant :27), read nowhere — defect intact. PR built against 309204b and pushed to the fork as branch schema-read-before-write (e29fda0): read stamp before any DDL/write; unknown/newer/unparseable/unstamped-nonempty -> sideline .incompatible-<ts> (sidecars too, db last, never delete), fresh index, one storageNotice; unmovable-but-readable becomes SearchIndexCorruptError so the server survives and action:"build" can clear it (his #21 idiom). 7 new tests (5 red on stock), suite 733 passed / 7 skipped, typecheck+lint clean, docs paragraph added. Awaiting the author's real-index verification (recipe handed over) before the PR opens
 
 --- body ---
 ## Context
