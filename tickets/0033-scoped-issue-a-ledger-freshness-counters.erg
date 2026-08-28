@@ -12,6 +12,9 @@ Blocked-by: 0032
 2026-08-26T16:52Z claude created
 
 2026-08-26T17:11Z claude note Copilot round 4: train + harness-offer ordering mechanized as Blocked-by
+2026-08-28T06:55Z codex note upstream #24 is direct third-party demand for the resume slice: a stopped local-API build restarts from zero. Use that existing thread for a testable resume contract (durable committed progress, version stamp not used as the work cursor, idempotent convergence); do not file a duplicate. The broader scoped issue A still carries the remaining ledger/freshness/counters, pause, serve-stale, custody and query-semantics work
+2026-08-28T07:06Z codex note v1.8.0 code seam for the #24 comment: buildIncremental already makes partial work durable every 200 items or 10 s in metadata, 500 items or 60 s in full text, and reloads it queryably, but each new full build calls reset() and sets start=0. Suggest a separate persisted build checkpoint, not the full ledger. Performance contract: redo at most the last uncommitted batch; never re-embed committed passages; no full passage scan merely to resume
+2026-08-28T07:08Z codex note resume contract posted on upstream #24: https://github.com/oscardvs/zoteus/issues/24#issuecomment-5449540874
 --- body ---
 ## Context
 DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).
@@ -31,7 +34,29 @@ repro: "general equilibrium" retrieves either-word today; interim item scope
 per DESIGN.md §2.6). Absorbs the content of closed
 tickets 0020, 0021, 0023.
 
+Upstream [#24](https://github.com/oscardvs/zoteus/issues/24), filed by
+@StianOby on 2026-08-27, now owns the user-visible resume slice: after a
+stopped local-API build, the missing/invalid library version stamp sends the
+next run back to zero. Do not open a competing issue. Offer #24 the behavioral
+contract this design needs: already committed work survives stop and process
+restart; the Zotero version stamp is a freshness signal, not the work cursor;
+repeating an interrupted unit is safe; and resumed and uninterrupted builds
+converge to the same index. The maintainer remains free to implement that
+without this repo's full ledger design.
+
+At v1.8.0 the narrow implementation seam is already visible:
+`buildIncremental()` persists partial work (every 200 items or 10 seconds in
+the metadata pass; every 500 items or 60 seconds in the full-text pass), and
+the reloaded partial index is queryable, but a new full build unconditionally
+calls `reset()` and initializes its page cursor at zero.
+A small persisted build checkpoint beside the committed rows could carry the
+phase and progress identity without overloading `libraryVersion`. The useful
+performance bounds are: redo no more than the last uncommitted batch; never
+re-embed a committed passage merely because the process restarted; and do not
+scan every stored passage merely to find the resume point.
+
 ## Exit criteria
 - [ ] issue drafted: behaviors + repros + measurements, no code to accept
+- [x] #24 comment offers the resume contract; posted 2026-08-28, response pending
 - [ ] filed after the PR train resolves (DESIGN §4 ordering)
 - [ ] response recorded here; sunset rule applies
