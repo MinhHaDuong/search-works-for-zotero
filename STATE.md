@@ -20,9 +20,9 @@ at the current baseline.
 - [Upstream PR #25](https://github.com/oscardvs/zoteus/pull/25), implementing
   ticket 0015, was **merged 2026-08-28**, the same day it was filed — `fd51659`
   sits in upstream `main` verbatim, and v1.9.0 ships it. Ticket 0015 is closed;
-  fork `main` was re-aligned to `bb414df` the same day. The merged
-  `schema-read-before-write` branch remains only because the session proxy
-  refuses branch deletion — one click for the author (SYNC.md).
+  fork `main` was re-aligned to `bb414df` and the merged
+  `schema-read-before-write` branch deleted the same day. The fork carries
+  only `main`, `stopwords-follow-up`, and the archive branch (SYNC.md).
 - [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
   existing thread for ticket 0033's resume slice. Our requirements/performance
   comment is already the only reply; do not add another unless the maintainer
