@@ -7,6 +7,7 @@ Author: claude
 2026-08-26T15:43Z claude created
 2026-08-27T15:49Z claude note the after-#20 gate lifted (#20 merged 2026-08-27) and a slot is free. But 2f453d6 (v1.8.0) rewrote sqlite-index.ts and persistence.ts under this ticket — re-verify the createSchema re-stamp evidence at 309204b before drafting; the edf2748 line numbers below are stale
 
+2026-08-28T06:25Z claude note lot inspection: fork branch schema-read-before-write (e29fda0, one commit atop 309204b) re-verified in-container against his tree — typecheck and lint clean, suite 733 passed / 7 skipped. Counter-proof done: the new test file run against unpatched v1.8.0 main fails 5 of 7 (the two passing pin unchanged behavior — current-version and empty-file), so the re-stamp evidence stands at 309204b and the exit criterion's failing test is the reproduction. sidecarsOf order re-checked (database last, as the sideline comment claims). Ready to open when a slot is spent
 --- body ---
 ## Context
 DESIGN.md §4 PR-1, honoring R23. Verified defect at edf2748: createSchema

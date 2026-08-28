@@ -7,6 +7,7 @@ Author: claude
 2026-08-26T15:42Z claude created
 2026-08-27T15:48Z claude note the batch came: #19 merged as 4f61b2a and #20 as 6e4637b (2026-08-27, squash, authorship + co-author trailer preserved, zero maintainer edits — SYNC.md status table). #20's final head was 331b037 (rebased onto v1.7.1), not the dd1605a recorded earlier. Fold-gate waiver prose removed (0026, DESIGN.md §2.8). Remaining scope: the STOPWORDS follow-up PR — both in-flight slots are free
 
+2026-08-28T06:25Z claude note lot inspection: fork branch stopwords-follow-up (4a5e554, one commit atop 309204b) re-verified in-container against his tree — typecheck and lint clean, suite 727 passed / 7 skipped, matching the commit's claim. Two blockers before opening: the X2 p95 number (author's machine, 650k index — bench/results/ has no X2 yet) and the bracketed X2 placeholder in the commit message, which must be amended out (internal experiment label; the number goes in the PR body unlabeled)
 --- body ---
 ## Context
 DESIGN.md §4 items 1-2. The head of the upstream train: oscardvs/zoteus#19
