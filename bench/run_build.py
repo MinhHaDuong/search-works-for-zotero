@@ -61,7 +61,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--server", required=True)
     ap.add_argument("--data-dir", required=True)
-    ap.add_argument("--backend", default="json")
+    # Upstream vocabulary (>= v1.7.0): the JSON backend is "memory", and the
+    # default is explicit rather than inherited — upstream's config
+    # warn-and-defaults unknown knob values to "auto" (v1.7.3), so anything
+    # less than an exact value silently measures auto (ticket 0030).
+    ap.add_argument("--backend", default="memory", choices=("sqlite", "memory"))
     ap.add_argument("--poll", type=float, default=15.0)
     ap.add_argument("--max-wait", type=float, default=5400.0)
     ap.add_argument("--max-items", default="5000")
@@ -84,7 +88,7 @@ def main():
     env = {"ZOTEUS_EMBEDDINGS": a.embeddings,
            "ZOTEUS_INDEX_FULLTEXT": "1",
            "ZOTEUS_DATA_DIR": a.data_dir,
-           "ZOTEUS_SEARCH_BACKEND": a.backend,
+           "ZOTEUS_INDEX_BACKEND": a.backend,
            "ZOTEUS_INDEX_MAX_ITEMS": a.max_items,
            "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": a.max_chars,
            "ZOTEUS_INDEX_AUTO_REFRESH": "false",

@@ -301,14 +301,16 @@ the one place this work becomes visible upstream.
 
 ## Mechanics
 
-**Before quoting a single number about v1.7.0 or anything after it.** Five bench drivers hardcode
-`ZOTEUS_SEARCH_BACKEND=json|sqlite` (`query.py`, `run_build.py`, `run_serve.py`,
-`run_serve2.py`, and the recorded env in `results/json-baseline/emit.py`).
-Upstream's knob is
-`ZOTEUS_INDEX_BACKEND=auto|sqlite|memory`. It is a one-line change per driver and
-it must land before any re-measurement, or the harness will silently measure
-`auto` and report it as whatever the flag said. The database path agrees
-(`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
+**Before quoting a single number about v1.7.0 or anything after it.** The five
+bench drivers (`query.py`, `run_build.py`, `run_serve.py`, `run_serve2.py`, and
+the recorded env in `results/json-baseline/emit.py`) used the fork's old knob,
+`ZOTEUS_SEARCH_BACKEND=json|sqlite`; upstream's is
+`ZOTEUS_INDEX_BACKEND=auto|sqlite|memory`. *Landed 2026-08-27 (ticket 0030):
+all five now set `ZOTEUS_INDEX_BACKEND` explicitly — `memory` is the JSON
+backend's upstream name — and `--backend` refuses anything outside
+`sqlite|memory`, because upstream's v1.7.3 config warn-and-defaults an unknown
+value to `auto` and the harness would silently measure it.* The database path
+agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
 **Status, 2026-08-28** (one table; earlier states are in git history).
 
@@ -323,7 +325,7 @@ it must land before any re-measurement, or the harness will silently measure
 | the train | **both in-flight slots free** (#25 merged); the contained-PR budget's live remainder is four (of the five counted at DECISIONS.md 2026-08-27). STOPWORDS follow-up (0014) still waits on X2, then 0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes); open and unanswered at v1.9.0, like #24 — neither thread shows a maintainer reply. Ticket 0024 carries the response when it lands |
-| §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL, ready to file as I-2. Upstream numbers #21–#23 are consumed — I-labels stay internal |
+| §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL. Reconcile before filing: the author's 2026-08-27 ruling (ticket 0024) requires trunk-measured numbers, not fork-prototype figures — RUNBOOK.md step 4 is that measurement. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
 | fork | `main` **re-aligned to `bb414df`** 2026-08-28, fast-forward pushed; `schema-read-before-write` deleted by the author the same day (its one commit is `main`'s own `fd51659`; session proxies cannot delete branches — 403 — so this step is always the author's); `stopwords-follow-up` (`94d994d`, amended 2026-08-28) stays one commit atop `309204b`, now one release behind `main`; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
 | next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |

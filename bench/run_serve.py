@@ -41,7 +41,7 @@ def procmem(pid):
 def main():
     env = {"ZOTEUS_EMBEDDINGS": "off", "ZOTEUS_INDEX_FULLTEXT": "1",
            "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0", "ZOTEUS_INDEX_MAX_ITEMS": "1000000",
-           "ZOTEUS_SEARCH_BACKEND": "sqlite", "ZOTEUS_DATA_DIR": DATA_DIR,
+           "ZOTEUS_INDEX_BACKEND": "sqlite", "ZOTEUS_DATA_DIR": DATA_DIR,
            "NODE_OPTIONS": ""}
     out = {"env": env, "queries": []}
     t_boot = time.monotonic()
