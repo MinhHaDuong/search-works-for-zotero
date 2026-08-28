@@ -68,3 +68,9 @@ repo is public and he reads it.
   pushes from Claude sessions — in a remote session, attach it with `add_repo`
   (push access) rather than reporting it unreachable. The upstream repository
   is read-only, always.
+- Upstream API actions (filing an issue; the author authorizes each one) cannot
+  run in a session bound to this repo — cross-owner repos do not attach. The
+  working technique (issue #26, 2026-08-28): spawn a dedicated sibling session
+  with the upstream repository as its initial source (`create_session` with
+  `source_url`), hand it the exact text and nothing else to do, then verify the
+  result publicly (the issue/PR page) before recording it here.
