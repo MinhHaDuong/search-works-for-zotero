@@ -12,15 +12,17 @@ successors, is an equally important influence point.
 
 ## Current handoff — 2026-08-28
 
-This work session is safe to close. The tracking repository is clean on `main`;
-the ignored upstream checkout is clean on `schema-read-before-write` at
-`fd51659`.
+This work session is safe to close. The tracking repository is clean on `main`.
+The ignored upstream checkout was last left on `schema-read-before-write` at
+`fd51659` — since merged upstream; `make upstream-checkout` recreates `fork/`
+at the current baseline.
 
 - [Upstream PR #25](https://github.com/oscardvs/zoteus/pull/25), implementing
   ticket 0015, was **merged 2026-08-28**, the same day it was filed — `fd51659`
   sits in upstream `main` verbatim, and v1.9.0 ships it. Ticket 0015 is closed;
-  the fork's `schema-read-before-write` branch can be deleted at the next fork
-  maintenance, together with re-aligning fork `main` to `bb414df` (SYNC.md).
+  fork `main` was re-aligned to `bb414df` the same day. The merged
+  `schema-read-before-write` branch remains only because the session proxy
+  refuses branch deletion — one click for the author (SYNC.md).
 - [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
   existing thread for ticket 0033's resume slice. Our requirements/performance
   comment is already the only reply; do not add another unless the maintainer

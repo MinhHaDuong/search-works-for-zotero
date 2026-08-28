@@ -2,10 +2,10 @@
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
 against `309204b` (v1.8.0); updated 2026-08-28 against `bb414df`
-(`oscardvs/zoteus`, v1.9.0). Fork `main` sits at `309204b`, one release
-behind — re-align now that #25 is merged. The superseded implementation is
-preserved at `bae82a7` on `archive/fts5-storage-2026-08-21`. `UPSTREAM` is
-the machine-readable review baseline.*
+(`oscardvs/zoteus`, v1.9.0). Fork `main` is re-aligned at the same SHA. The
+superseded implementation is preserved at `bae82a7` on
+`archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
+baseline.*
 
 ## What happened upstream
 
@@ -49,8 +49,8 @@ FTS5 forces (`unicode61 remove_diacritics 2`, `bm25()`, OR-ed terms, WAL).
 ## What that costs this repo
 
 `fts5-base` is retired and deleted — both its ingredients are in upstream
-`main`. The fork's `main` was re-aligned with upstream at `309204b` (one
-release behind since v1.9.0 — see the status table). The historical
+`main`. The fork's `main` was re-aligned with upstream at `309204b`, and
+again at `bb414df` after v1.9.0 (see the status table). The historical
 storage tree remains reachable only through
 `archive/fts5-storage-2026-08-21` (`bae82a7`, merge-base `40bccc5`).
 
@@ -319,13 +319,13 @@ it must land before any re-measurement, or the harness will silently measure
 | #21 his follow-up | filed by **him**, off #20's review questions; fixed same day in `2f453d6` with #22/#23 (@StianOby) and shipped as **v1.8.0** (`309204b`). The two swallowed-error holes are closed upstream — closed from our side per the sunset rule (DECISIONS.md 2026-08-27) |
 | #24 local-API resume | **open**, filed 2026-08-27 by @StianOby: stopping a local-only build leaves no usable resume stamp, so the next run starts from zero. Existing upstream thread for 0033's resume slice; contribute a resume contract there rather than file a duplicate |
 | PR #25 schema read-before-write | **merged** 2026-08-28, the same day it was filed: `fd51659` is in upstream `main` verbatim — SHA, authorship and committer date preserved, zero maintainer edits. He wrote the changelog entry himself (`84eeade`, "the fix landed without its entry"; credit "#25, thanks @MinhHaDuong") and shipped it in v1.9.0. Ticket 0015 closed |
-| upstream | **v1.9.0** (`bb414df`, 2026-08-28): the #25 fix plus `zotero_annotate` placing highlights from the passage text itself (`87e06c0` — `pdf-locate.ts` on optional `pdfjs-dist`, files read via the local API's `/file` 302 to `file://`, nothing written on a doubtful match). The search layer is untouched: no file under `src/features/search/` and not a line of `docs/semantic-search.md` changed, so I-2's targets stand. Earlier: v1.7.1–v1.8.0, four releases 2026-08-26/27 |
+| upstream | **v1.9.0** (`bb414df`, 2026-08-28): the #25 fix plus `zotero_annotate` placing highlights from the passage text itself (`87e06c0` — `pdf-locate.ts` on optional `pdfjs-dist`, files read via the local API's `/file` 302 to `file://`, nothing written on a doubtful match). His new feature leaves the search layer alone; the release's only changes under `src/features/search/` and to `docs/semantic-search.md` are PR #25's own (`sqlite-index.ts` plus a nine-line sideline section in the doc), and every measurement claim I-2 targets is untouched, so I-2 stands. Earlier: v1.7.1–v1.8.0, four releases 2026-08-26/27 |
 | the train | **both in-flight slots free** (#25 merged); the contained-PR budget's live remainder is four (of the five counted at DECISIONS.md 2026-08-27). STOPWORDS follow-up (0014) still waits on X2, then 0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes); open and unanswered at v1.9.0, like #24 — neither thread shows a maintainer reply. Ticket 0024 carries the response when it lands |
 | §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL, ready to file as I-2. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
-| fork | `main` at `309204b`, one release behind — re-align to `bb414df` and delete `schema-read-before-write` (merged, its commit now in upstream `main`); `stopwords-follow-up` (`94d994d`, amended 2026-08-28) stays one commit atop `309204b`; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
+| fork | `main` **re-aligned to `bb414df`** 2026-08-28, fast-forward pushed. `schema-read-before-write` is fully merged and inert — its one commit is `main`'s own `fd51659` — but the session proxy refuses branch deletion (403 on the git and API paths both), so removing it is one click for the author on the branches page; `stopwords-follow-up` (`94d994d`, amended 2026-08-28) stays one commit atop `309204b`, now one release behind `main`; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
 | next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse
