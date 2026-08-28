@@ -109,6 +109,18 @@ line, vetoable as ever:
   internal I-labels never assumed upstream numbers, and #21–#23 are now
   consumed.
 
+**2026-08-28 — the project becomes Search Works for Zotero.** The author
+renamed `zoteus-fts5` to `search-works-for-zotero` and repositioned it as an
+independent public statement and open workshop for advancing semantic retrieval
+in Zotero. Zoteus remains the current reference implementation and upstream
+contribution target, but it is one implementation among others and is not the
+project's destination by definition. Zotero core — beginning with
+[zotero/zotero#6012](https://github.com/zotero/zotero/pull/6012) and its
+successors — is an equally important surface to study and influence. An
+upstream change, a reusable retrieval contract or acceptance harness, a
+reproducible experiment, or evidence that kills a proposal all count as project
+outcomes; shipping a Zoteus implementation is only one possible outcome.
+
 ## Awaiting ratification
 
 Three readings cycle 2 could not decide on the sheet's text alone (flagged in
