@@ -228,6 +228,15 @@ attachments, but never revisits an unchanged item whose text Zotero extracted
 after the build — the finding survives his closest work to it, and I-1's text
 should say so, citing #22/#23 as its neighbors.*
 
+*2026-08-28: [#24](https://github.com/oscardvs/zoteus/issues/24) (@StianOby,
+2026-08-27) asks to resume an interrupted local-API build instead of full
+rebuilding — "no valid library version stamp was recorded". Third-party demand
+on the same versioning seam, the trigger his batches respond to (#13/#14,
+#22/#23). #24 is the resume symptom; I-1 is the distinct defect on the same
+seam (a completed build never sees post-build extraction). Cite #24 as a
+neighbor in I-1's text; whether I-1 is filed standalone or folded into #24's
+thread is the author's call — ticket 0024 carries it.*
+
 ### 5. The measurements
 
 *Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first

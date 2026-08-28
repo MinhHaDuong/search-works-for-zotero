@@ -10,6 +10,7 @@ Author: claude
 
 2026-08-26T17:05Z claude note body reconciled with the re-form (code review): I-4 bullet and exit criterion removed, §4 item renumbered
 2026-08-27T15:52Z claude note re-verified at v1.8.0 (309204b): I-1 STANDS — action:"update" still keys since on libraryVersion (build.ts:280); 2f453d6's metadata-first work (#23) withholds the stamp from interrupted crawls but never revisits unchanged items with post-build extraction. I-1's text should cite #22/#23 as neighbors (his own follow-up territory) — SYNC.md §4 tail note. I-2 STANDS — 2f453d6 rewrote the repair and metadata-first doc sections, measurement claims untouched. Upstream numbers #21-#23 are consumed; the I-labels stay internal and assume no numbers
+2026-08-28T08:06Z claude note upstream #24 (@StianOby, 2026-08-27, resume interrupted local-API build — no usable library version stamp) is third-party demand on I-1's seam, the batch trigger per SYNC.md's pattern. Cite #24 as a neighbor in I-1's text alongside #22/#23. Open question for the author: file I-1 standalone (the ratified form) or fold it as an annotation on #24's thread — distinct defects (resume vs post-build extraction invisibility), so a fold risks the finding reading as a footnote to someone else's symptom; SYNC.md §4 records the same
 --- body ---
 ## Context
 DESIGN.md §4 item 4. Form per SYNC.md's measured asymmetry: design-sized
