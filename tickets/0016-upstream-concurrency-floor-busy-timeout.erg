@@ -11,6 +11,7 @@ Author: claude
 2026-08-26T17:05Z claude note body reconciled with the rescope (code review): per-page-commit wording removed from PR-2's scope; the cadence amendment now points at 0035
 2026-08-27T15:50Z claude note PR-2 closed by the sunset rule, overtaken by his own implementation: v1.7.1 (80f8aa0, #18) ships BUSY_TIMEOUT_MS = 10_000 with PRAGMA busy_timeout on every open plus WAL tolerance — more than PR-2 proposed. DECISIONS.md 2026-08-27. PR-3 verified still live at v1.8.0 (309204b): clearStore() still reached from the build path (index-manager.ts:462), no library identity stamped; 2f453d6's router pinning holds the backend still per crawl but stamps nothing
 2026-08-28T17:55Z claude note feasibility re-check at v1.9.0 (bb414df, 2026-08-28): PR-3's hazard verified still live — clearStore() still reached from the build path (index-manager.ts:462), no library identity stamped anywhere in src/features/search/, and the delta since 309204b (our #25 as fd51659; annotate feature 87e06c0) touches nothing under src/features/search/. Line drift: the single-library doc-comment to quote now sits at build.ts:205. #25 merged and shipped in v1.9.0, so both in-flight slots are free and the contained-PR budget's live remainder is four. Launchable now
+2026-08-28T18:45Z claude note PR-3 BUILT and pushed to the fork as cross-library-guard (61a0e38, one commit atop bb414df/v1.9.0). The stamp: canonical token (user | group:<id>, personal library one token across the users/0 / cloud-id seam) written with the first rows, persisted in the SQLite meta table and the JSON snapshot, reported as status.library. The guard: assertLibrary refuses a build or update for a different library naming both, asserted synchronously in startIndexBuild/startIndexUpdate (fire-and-forget jobs only log rejections) and again in the engine before reset(). Unstamped legacy indexes refuse nothing; first stamped build adopts them. His doc-comment quoted and the guard framed as enforcing it (political review finding 4). Gates on his tree: typecheck, lint, build clean; 754 passed / 7 skipped (his 745 + 9 new in search-library-guard.test.ts). Counter-proof on stock v1.9.0: the tool-path repro shows a group build silently replacing a 6-item personal index (items 6->4, first hit G0, state done, no notice); the guard file fails 9 of 9 there. CHANGELOG entry under Unreleased and a docs paragraph included (the #25 lesson). Pre-filled PR form in RUNBOOK.md (PR B) — ready to open whenever the author spends the slot
 --- body ---
 ## Context
 DESIGN.md §4 PR-3 (originally PR-2 and PR-3), honoring R13 and R12.
@@ -29,7 +30,7 @@ feature.
 
 ## Exit criteria
 - [x] PR-2 resolved without a PR: overtaken by upstream `80f8aa0` (v1.7.1, busy_timeout 10 s) — sunset-closed 2026-08-27
-- [ ] PR-3: cross-library refusal with both libraries named; clearStore chain as repro
+- [x] PR-3: cross-library refusal with both libraries named; clearStore chain as repro (built 2026-08-28: fork branch cross-library-guard at 61a0e38, gates green 754/7 — see log)
 - [ ] PR-3 opened upstream; outcome recorded here
 
 ## Amendments (implementation review, 2026-08-26)

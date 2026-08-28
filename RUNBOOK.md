@@ -2,7 +2,7 @@
 
 *Written 2026-08-27 at session close-out; trimmed 2026-08-28 after events
 overtook it. Self-sunsetting: execute, hand the JSONs to the next session,
-then DELETE this file — its durable state lives in tickets 0014/0024/0025
+then DELETE this file — its durable state lives in tickets 0014/0016/0024/0025
 and SYNC.md, per the one-statement-per-fact rule. Already executed and
 removed from this file: step 1 (PR B became upstream #25, hardened in
 review, merged 2026-08-28, shipped in v1.9.0 — ticket 0015 closed) and
@@ -119,10 +119,21 @@ already passed in-container — ticket 0025). → JSON to
   I-1 is filed ([#26](https://github.com/oscardvs/zoteus/issues/26)); step 3's
   measured answer goes on its thread.
 
-## The pre-filled PR form
+## The pre-filled PR forms
 
-The form opens with title and body already filled; press the green button
-after X2, filling the two REPLACE lines in-form.
+Each form opens with title and body already filled. PR B is complete —
+press the green button as-is, any time a slot is free. PR A waits on X2 and
+has two REPLACE lines to fill in-form.
+
+## PR B — cross-library wipe guard (ready NOW; no measurements pending)
+
+Ticket 0016 (PR-3). Branch `cross-library-guard` (`61a0e38`, one commit atop
+`bb414df`) is on the fork, validated on his gates: typecheck, lint, build
+clean; 754 passed / 7 skipped (his 745 + 9 new). The repro on stock v1.9.0:
+a group build silently replaces the personal index and reports done. Body
+frames the guard as enforcing his own `startIndexBuild` doc-comment.
+
+https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:cross-library-guard?quick_pull=1&title=Refuse%20to%20build%20one%20library%27s%20index%20over%20another%27s&body=%23%23%20The%20defect%0A%0AThe%20index%20file%20is%20keyed%20by%20the%20data%20dir%2C%20never%20by%20the%20library%20%E2%80%94%20which%20is%20right%2C%20and%0Adocumented%20on%20%60startIndexBuild%60%20%E2%80%94%20but%20the%20build%20path%20clears%20the%20store%20before%20crawling%0A%28%60reset%28%29%60%20%E2%86%92%20%60clearStore%28%29%60%29%2C%20and%20nothing%20records%20which%20library%20the%20rows%20belong%20to.%20So%0A%60zotero_index%60%20pointed%20at%20a%20group%20library%20silently%20replaces%20the%20personal%20library%27s%20index%0A%28or%20any%20group%27s%29%2C%20reports%20%60done%60%2C%20and%20says%20nothing.%20Reproduced%20on%20v1.9.0%3A%20build%20the%0Apersonal%20library%2C%20then%20%60zotero_index%60%20with%20a%20group%27s%20%60library_id%60%20%E2%80%94%20the%20index%20now%20holds%0Athe%20group%27s%20items%2C%20the%20personal%20rows%20are%20gone%2C%20and%20no%20notice%20was%20ever%20shown.%0A%0A%23%23%20The%20fix%0A%0AThe%20guard%20on%20the%20documented%20single-library%20assumption%20%E2%80%94%20not%20a%20multi-library%20feature.%0A%0A-%20The%20index%20stamps%20the%20canonical%20identity%20of%20the%20library%20it%20holds%20%28%60user%60%2C%20or%0A%20%20%60group%3A%3Cid%3E%60%29%20with%20the%20first%20rows%20written%2C%20riding%20the%20existing%20seams%3A%20the%20%60meta%60%20table%0A%20%20on%20SQLite%2C%20the%20JSON%20snapshot%20on%20memory%2C%20%60library%60%20in%20status%20output.%0A-%20A%20build%20or%20update%20for%20a%20different%20library%20than%20stamped%20refuses%20up%20front%2C%20naming%20both%0A%20%20and%20the%20way%20forward%20%28a%20separate%20%60ZOTEUS_DATA_DIR%60%20per%20library%2C%20or%20delete%20the%20index%20file%0A%20%20to%20hand%20the%20data%20dir%20over%29%2C%20instead%20of%20reaching%20%60clearStore%28%29%60.%20The%20refusal%20is%20asserted%0A%20%20synchronously%20in%20%60startIndexBuild%60%2F%60startIndexUpdate%60%20%E2%80%94%20the%20job%20is%20fire-and-forget%2C%20so%0A%20%20a%20rejection%20inside%20it%20only%20reaches%20the%20log%20%E2%80%94%20and%20the%20engine%20asserts%20again%20before%0A%20%20anything%20is%20cleared.%0A-%20The%20personal%20library%20is%20one%20token%20with%20no%20id%3A%20the%20desktop%20app%20serves%20it%20as%20%60users%2F0%60%0A%20%20while%20the%20cloud%20names%20the%20real%20user%20id%2C%20and%20the%20%60startIndexBuild%60%20doc-comment%20promises%0A%20%20that%20seam%20never%20splits%20the%20index%20%E2%80%94%20so%20it%20must%20never%20split%20the%20stamp%20either.%20A%20rebuild%0A%20%20of%20the%20personal%20library%20across%20the%20local%2Fcloud%20seam%20is%20tested%20to%20never%20refuse.%0A-%20An%20index%20persisted%20before%20the%20stamp%20existed%20refuses%20nothing%3A%20there%20is%20no%20way%20to%20know%0A%20%20whose%20rows%20it%20holds%2C%20and%20refusing%20would%20strand%20every%20existing%20index%20behind%20an%20error%20no%0A%20%20rebuild%20could%20clear.%20Its%20first%20stamped%20build%20%28or%20completed%20update%29%20adopts%20it.%0A%0A%23%23%20Testing%0A%0ANine%20new%20cases%20in%20%60tests%2Ffeatures%2Fsearch-library-guard.test.ts%60%3A%20token%20normalization%0A%28both%20%60users%2F0%60%20and%20cloud-id%20addressing%20of%20the%20personal%20library%29%2C%20the%20engine%20guard%20on%0Abuild%20and%20update%2C%20stamp%20persistence%20across%20a%20JSON%20save%2Fload%20and%20an%20SQLite%20close%2Freopen%2C%0Athe%20synchronous%20tool-path%20refusal%20with%20the%20index%20left%20intact%2C%20and%20the%20local%2Fcloud%20seam%0Athat%20must%20never%20refuse.%20Run%20without%20the%20fix%2C%20the%20repro%20shows%20the%20silent%20erase.%20Full%20suite%0Aon%20this%20branch%3A%20754%20passed%20%2F%207%20skipped%3B%20typecheck%2C%20lint%20and%20build%20clean.
 
 ## PR A — stopwords follow-up (open AFTER X2; fill the two REPLACE lines in the form)
 
@@ -130,5 +141,7 @@ https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:stopwords-f
 
 ## Order if time is short
 
-2 (X2 + PR A, 10 min) → 4 (trunk numbers, the I-2 gate) → 3 (X6, for the
-#26 thread) → 6 → 5 → 7.
+PR B (one click, nothing to measure) → 2 (X2 + PR A, 10 min) → 4 (trunk
+numbers, the I-2 gate) → 3 (X6, for the #26 thread) → 6 → 5 → 7. Opening
+both PRs fills both in-flight slots — that is the ratified cap, working
+as intended.

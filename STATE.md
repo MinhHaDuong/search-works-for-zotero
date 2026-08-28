@@ -24,7 +24,8 @@ at the current baseline.
   sits in upstream `main` verbatim, and v1.9.0 ships it. Ticket 0015 is closed;
   fork `main` was re-aligned to `bb414df` and the merged
   `schema-read-before-write` branch deleted the same day. The fork carries
-  only `main`, `stopwords-follow-up`, and the archive branch (SYNC.md).
+  `main`, `stopwords-follow-up`, `cross-library-guard`, and the archive
+  branch (SYNC.md).
 - [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
   existing thread for ticket 0033's resume slice. Our requirements/performance
   comment is already the only reply; do not add another unless the maintainer
@@ -36,10 +37,12 @@ at the current baseline.
 - `origin/stopwords-follow-up` is at `94d994d`; its tree is unchanged from
   `4a5e554`. Ticket 0014 still requires the X2 650k latency measurement before
   opening that PR.
-- Both permitted upstream PR slots are free again (#25 merged). Ticket 0016's
-  PR-3 hazard is re-verified live at v1.9.0 (its log carries the evidence and
-  the line drift), so PR-3 is launchable. The next session can draft PR-3,
-  inspect #24/#26 for maintainer replies, or run X2.
+- Both permitted upstream PR slots are free again (#25 merged), and ticket
+  0016's PR-3 is **built**: fork branch `cross-library-guard` (`61a0e38`, one
+  commit atop `bb414df`), validated on upstream's own gates (typecheck, lint,
+  build; 754 passed / 7 skipped). The pre-filled PR form is RUNBOOK.md's PR B —
+  open it any time; no measurement gates it. The next session can also inspect
+  #24/#26 for maintainer replies, or run X2.
 - The local `.venv` is not reusable (`python` is missing and `ruff` segfaults).
   Recreate it before changing the harness. The figure guard was run separately
   at handoff: 80 pairs checked, 0 stale; pytest and ruff could not be rerun in
