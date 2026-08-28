@@ -13,6 +13,7 @@ Author: claude
 2026-08-28T08:06Z claude note upstream #24 (@StianOby, 2026-08-27, resume interrupted local-API build — no usable library version stamp) is third-party demand on I-1's seam, the batch trigger per SYNC.md's pattern. Cite #24 as a neighbor in I-1's text alongside #22/#23. Open question for the author: file I-1 standalone (the ratified form) or fold it as an annotation on #24's thread — distinct defects (resume vs post-build extraction invisibility), so a fold risks the finding reading as a footnote to someone else's symptom; SYNC.md §4 records the same
 2026-08-28T08:19Z claude note the comment on #24 (from here) read and verified accurate at 309204b: reset() unconditional at index-manager.ts:546, start=0 at :578, cadences 200/10s and 500/60s confirmed. It stays inside #24's scope — keeps libraryVersion as the freshness signal, does not surface I-1. Recalibration: the fold option is moot (the comment exists and withholds the finding); its checkpoint/freshness separation makes I-1 sharper as a standalone issue — once resume is decoupled, the remaining freshness hole IS I-1. Recommendation stands: file I-1 citing #24 and the comment's separation
 2026-08-28T08:23Z claude note I-1 text prepared FINAL (2026-08-28) and delivered in-session, ready to file: mechanism cited at 309204b (build.ts:280 since=libraryVersion with top:true; updateIncremental fulltextFor only for the changed set, index-manager.ts:790), the 0012 artifact linked (410 vs 0..25036, since=410 returns 93% of text), the unmeasured direction offered as a verification protocol, #23/#24 and the checkpoint separation cited as neighbors, a narrow fulltext-cursor option sketched, regression test included. No internal labels in the text
+2026-08-28T08:34Z claude note I-1 FILED 2026-08-28 as oscardvs/zoteus#26, verbatim from the prepared text, via a dedicated sibling session (this session cannot reach the upstream API). Body verified publicly: all sections, the 0012 artifact link, build.ts:280-284 and index-manager.ts:790 citations intact; author MinhHaDuong. Exit criterion checked. Remaining: I-2 (ready), I-3 (behind the 6012 checkpoint); record his response here when it lands
 --- body ---
 ## Context
 DESIGN.md §4 item 4. Form per SYNC.md's measured asymmetry: design-sized
@@ -30,7 +31,7 @@ problems go as issues he builds himself (#10, two for two).
   scoped issue A's custody paragraph (0033) per the ratified re-form.
 
 ## Exit criteria
-- [ ] I-1 filed with the finding wording and the 0012 artifact linked
+- [x] I-1 filed 2026-08-28 as upstream #26 (finding wording, 0012 artifact linked, #23/#24 cited)
 - [ ] I-2 filed with both numbers stated
 - [ ] I-3 filed citing the measured truncation (after the #6012 checkpoint)
 - [ ] responses recorded here as they land

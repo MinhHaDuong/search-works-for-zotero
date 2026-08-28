@@ -249,6 +249,12 @@ the persistence cadence (200 items/10 s metadata, 500/60 s full text —
 checkpoint/freshness separation it proposes is precisely what leaves I-1
 standing as its own issue once resume is fixed.*
 
+*Filed 2026-08-28 as
+[#26](https://github.com/oscardvs/zoteus/issues/26): the finding wording,
+the 0012 artifact linked, the unmeasured direction offered as a verification
+protocol, #23 and #24's checkpoint separation cited as the stamp's other
+duties. The I-label stays internal.*
+
 ### 5. The measurements
 
 *Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first
