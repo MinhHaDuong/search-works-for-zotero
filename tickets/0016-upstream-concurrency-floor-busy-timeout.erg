@@ -10,6 +10,7 @@ Author: claude
 
 2026-08-26T17:05Z claude note body reconciled with the rescope (code review): per-page-commit wording removed from PR-2's scope; the cadence amendment now points at 0035
 2026-08-27T15:50Z claude note PR-2 closed by the sunset rule, overtaken by his own implementation: v1.7.1 (80f8aa0, #18) ships BUSY_TIMEOUT_MS = 10_000 with PRAGMA busy_timeout on every open plus WAL tolerance — more than PR-2 proposed. DECISIONS.md 2026-08-27. PR-3 verified still live at v1.8.0 (309204b): clearStore() still reached from the build path (index-manager.ts:462), no library identity stamped; 2f453d6's router pinning holds the backend still per crawl but stamps nothing
+2026-08-28T17:55Z claude note feasibility re-check at v1.9.0 (bb414df, 2026-08-28): PR-3's hazard verified still live — clearStore() still reached from the build path (index-manager.ts:462), no library identity stamped anywhere in src/features/search/, and the delta since 309204b (our #25 as fd51659; annotate feature 87e06c0) touches nothing under src/features/search/. Line drift: the single-library doc-comment to quote now sits at build.ts:205. #25 merged and shipped in v1.9.0, so both in-flight slots are free and the contained-PR budget's live remainder is four. Launchable now
 --- body ---
 ## Context
 DESIGN.md §4 PR-3 (originally PR-2 and PR-3), honoring R13 and R12.

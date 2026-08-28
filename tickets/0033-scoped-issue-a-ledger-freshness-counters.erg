@@ -3,7 +3,6 @@ Title: Scoped issue A: ledger, freshness, counters -- pause and serve-stale as t
 Created: 2026-08-26
 Author: claude
 Blocked-by: 0014
-Blocked-by: 0015
 Blocked-by: 0016
 Blocked-by: 0017
 Blocked-by: 0032
@@ -15,6 +14,7 @@ Blocked-by: 0032
 2026-08-28T06:55Z codex note upstream #24 is direct third-party demand for the resume slice: a stopped local-API build restarts from zero. Use that existing thread for a testable resume contract (durable committed progress, version stamp not used as the work cursor, idempotent convergence); do not file a duplicate. The broader scoped issue A still carries the remaining ledger/freshness/counters, pause, serve-stale, custody and query-semantics work
 2026-08-28T07:06Z codex note v1.8.0 code seam for the #24 comment: buildIncremental already makes partial work durable every 200 items or 10 s in metadata, 500 items or 60 s in full text, and reloads it queryably, but each new full build calls reset() and sets start=0. Suggest a separate persisted build checkpoint, not the full ledger. Performance contract: redo at most the last uncommitted batch; never re-embed committed passages; no full passage scan merely to resume
 2026-08-28T07:08Z codex note resume contract posted on upstream #24: https://github.com/oscardvs/zoteus/issues/24#issuecomment-5449540874
+2026-08-28T17:55Z Claude note blocker 0015 closed — Blocked-by removed.
 --- body ---
 ## Context
 DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).

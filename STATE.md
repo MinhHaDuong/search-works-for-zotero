@@ -1,9 +1,9 @@
 # STATE — Search Works for Zotero
 
-*Repository state reconciled 2026-08-28 — 18 tickets closed, 19 open; reviewed
-upstream baseline v1.8.0 (`309204b`); PR #25 open, mergeable and green;
-superseded implementation archived at `archive/fts5-storage-2026-08-21`. See
-`SYNC.md`.*
+*Repository state reconciled 2026-08-28 (later same day) — 19 tickets closed,
+18 open; reviewed upstream baseline v1.9.0 (`bb414df`); PR #25 merged and
+shipped in v1.9.0, both in-flight slots free; superseded implementation
+archived at `archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
 
 Operational handoff and measurement record for the open workshop on semantic
 retrieval in Zotero. Zoteus is the current reference implementation and
@@ -17,8 +17,9 @@ the ignored upstream checkout is clean on `schema-read-before-write` at
 `fd51659`.
 
 - [Upstream PR #25](https://github.com/oscardvs/zoteus/pull/25), implementing
-  ticket 0015, is open and mergeable. Its Node 20/22 CI is green. Keep the
-  branch until the maintainer merges or closes it.
+  ticket 0015, was merged 2026-08-28 — `fd51659` taken onto `main` verbatim,
+  credited in his changelog commit `84eeade`, shipped in v1.9.0. Ticket 0015
+  is closed; the fork's `schema-read-before-write` branch is deleted.
 - [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
   existing thread for ticket 0033's resume slice. Our requirements/performance
   comment is already the only reply; do not add another unless the maintainer
@@ -30,9 +31,10 @@ the ignored upstream checkout is clean on `schema-read-before-write` at
 - `origin/stopwords-follow-up` is at `94d994d`; its tree is unchanged from
   `4a5e554`. Ticket 0014 still requires the X2 650k latency measurement before
   opening that PR.
-- One of the two permitted upstream PR slots is occupied by #25; one remains
-  free. The next session should first inspect #25/#24, then either answer review
-  feedback, inspect #26, or run X2.
+- Both permitted upstream PR slots are free (#25 merged). Ticket 0016's PR-3
+  hazard is re-verified live at v1.9.0 (its log has the evidence and line
+  drift) and is launchable. The next session can draft PR-3, inspect #24/#26,
+  or run X2.
 - The local `.venv` is not reusable (`python` is missing and `ruff` segfaults).
   Recreate it before changing the harness. The figure guard was run separately
   at handoff: 80 pairs checked, 0 stale; pytest and ruff could not be rerun in
@@ -49,8 +51,8 @@ would show up in any diff sent upstream.
 
 ## The upstream baseline and archived implementation
 
-`UPSTREAM` records the reviewed upstream baseline, currently **`309204b`**
-(v1.8.0). `make upstream-status` detects movement beyond it;
+`UPSTREAM` records the reviewed upstream baseline, currently **`bb414df`**
+(v1.9.0). `make upstream-status` detects movement beyond it;
 `make upstream-checkout` recreates the git-ignored `fork/` with `origin` set to
 `MinhHaDuong/zoteus`, `upstream` set to `oscardvs/zoteus`, and a detached
 checkout at the exact reviewed SHA.

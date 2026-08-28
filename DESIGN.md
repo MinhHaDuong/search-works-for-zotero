@@ -17,7 +17,7 @@ against the consolidated requirements and constraints; each result was
 adversarially critiqued, and this synthesis assembles what survived, plus
 the named repairs. Every load-bearing claim about upstream code was
 re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0; upstream
-has since moved to v1.8.0 `309204b` — SYNC.md characterizes the deltas, and
+has since moved to v1.9.0 `bb414df` — SYNC.md characterizes the deltas, and
 each ticket re-verifies its own evidence on moved files before acting), and
 the disputed numbers were recomputed from the committed artifacts in
 `bench/results/`. Two process bounds held throughout: decisions and rulings
