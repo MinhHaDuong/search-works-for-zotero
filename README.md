@@ -1,32 +1,106 @@
-# zoteus-fts5
+# Search Works for Zotero
 
-Work tracking for the search redesign of [zoteus](https://github.com/oscardvs/zoteus),
-an MCP server over a local Zotero library. The TypeScript under discussion
-lives upstream and in the author's fork, not in this repo.
+*An independent open workshop for advancing semantic retrieval in Zotero.*
 
-Upstream has shipped its own SQLite/FTS5 backend since v1.7.0 (closing
-[#10](https://github.com/oscardvs/zoteus/issues/10), which this repo argued).
-The original storage-layer experiment is therefore complete, and the live work
-is the redesign — four documents and the tickets:
-`REQUIREMENTS.md` (what the system promises), `CONSTRAINTS.md` (what the world
-imposes), `DESIGN.md` (the current design), `DECISIONS.md` (the append-only
-ratification ledger), and tickets `0014`–`0037` (the work train as re-formed
-by the panel reviews; closed tickets in `tickets/closed/`).
-`panel/cycle2/` holds the raw panel record behind the design; `SYNC.md` says
-where things stand against upstream. Superseded documents live in git history,
-not in the tree.
+Search should work across a whole scholarly library: records, notes,
+annotations, articles, books, and very large reference works. It should find
+meaning rather than merely matching strings, while remaining inspectable,
+resource-bounded, current, and honest about what has and has not been indexed.
 
-- `tickets/` — the work, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg)
-- `bench/` — the measurement harness (below)
-- `bench/results/` — committed raw artifacts behind the figures in `STATE.md`
-- `UPSTREAM` — the machine-readable upstream review baseline
-- `fork/` — a git-ignored checkout recreated at that baseline by
-  `make upstream-checkout`
+This repository is a public statement of that direction and a place to do the
+work. It develops requirements, constraints, designs, executable experiments,
+acceptance tests, and upstream contributions. It is not the home of a single
+product and it does not assume that one implementation should win.
 
-`make upstream-status` compares the reviewed SHA in `UPSTREAM` with current
-upstream `main` and reports the local checkout SHA when `fork/` exists. It exits
-nonzero when upstream has moved, making staleness visible without automating any
-review decision.
+## The proposition
+
+The lasting result should be a retrieval contract that the Zotero ecosystem can
+implement in more than one way. Success may mean a change in Zotero itself, a
+change in an independent server or plugin, a reusable test harness, or evidence
+that causes a design to be abandoned. Shipping code here is one means, not the
+definition of success.
+
+Three work surfaces therefore have equal standing:
+
+1. **Zotero itself.** [zotero/zotero#6012](https://github.com/zotero/zotero/pull/6012)
+   and its successors are first-class design and influence points. Their result
+   locations, saved-search representation, lifecycle, local-API surface, and
+   retrieval semantics may decide which machinery outside Zotero remains
+   necessary.
+2. **Independent implementations.** [zoteus](https://github.com/oscardvs/zoteus)
+   is the current working vehicle and upstream contribution target, not the
+   project identity. Other servers, plugins, and future adapters are legitimate
+   implementations of the same contract.
+3. **The implementation-neutral workshop.** Requirements, measurements,
+   fixtures, gates, and decision records live here so that claims can survive a
+   change of implementation.
+
+## What is already decided
+
+The current design begins from three ratified rulings:
+
+- **The unit of answer is the entry or section**, not necessarily the Zotero
+  item. A dictionary is one item and many legitimate answers.
+- **The bibliographic record is the semantic core.** Title, abstract, keywords,
+  notes, annotations, and body text retain their identities rather than being
+  flattened into an undifferentiated string.
+- **Chunking respects document structure and carries context.** A chunk does not
+  cross a detectable entry boundary; its heading path and item title travel
+  with it.
+
+Around those rulings, the system must converge without manual rebuilds, expose
+honest coverage, avoid recomputing unchanged content, filter before truncating
+answers, survive very large documents, and operate within explicit CPU and
+memory budgets. These are testable requirements, not branding claims.
+
+## How the workshop is organised
+
+| Document or directory | Role |
+|---|---|
+| [`REQUIREMENTS.md`](REQUIREMENTS.md) | Testable promises made to users |
+| [`CONSTRAINTS.md`](CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
+| [`DESIGN.md`](DESIGN.md) | Current design and experiment decision rules |
+| [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
+| [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
+| [`STATE.md`](STATE.md) | Operational handoff and measurement record |
+| [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
+| [`bench/`](bench/) | Executable probes and acceptance-harness work |
+| [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
+| [`panel/cycle2/`](panel/cycle2/) | Preserved adversarial design-review record |
+| [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
+
+The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
+constraints state the contract; `DESIGN.md` must satisfy it; experiments and
+tickets test or implement it. Panel documents are inputs, not conclusions, and
+superseded documents remain available in git history.
+
+## How to engage
+
+Useful contributions include a counterexample to a requirement, a sharper
+constraint from Zotero behaviour, a reproducible measurement, an alternative
+design, an executable acceptance test, or a contained upstream patch. A
+proposal need not use Zoteus, SQLite, FTS5, or the current vector machinery.
+Claims should identify their corpus and provenance; implementation-specific
+choices should not be smuggled into the implementation-neutral contract.
+
+## Current posture
+
+Zoteus has shipped its own SQLite/FTS5 backend since v1.7.0, closing
+[#10](https://github.com/oscardvs/zoteus/issues/10), which the prototype and
+measurements here helped argue. The original storage-layer experiment is
+complete. Its code is archived as evidence; the live work is the broader
+retrieval design, its acceptance harness, scoped upstream contributions, and
+the checkpoint against Zotero PR #6012.
+
+Tickets `0014`–`0037` contain the current work train as re-formed by the panel
+reviews; completed work is under `tickets/closed/`. `make upstream-status`
+compares the reviewed zoteus SHA in `UPSTREAM` with current upstream `main` and
+reports the local checkout SHA when the git-ignored `fork/` exists. It exits
+nonzero when upstream has moved, making staleness visible without automating a
+review decision. `make upstream-checkout` recreates that checkout.
+
+This is an independent project and is not affiliated with or endorsed by the
+Zotero project.
 
 ## The prototype phase, kept as the record of the argument
 
