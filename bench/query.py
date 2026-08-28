@@ -52,7 +52,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--server", required=True)
     ap.add_argument("--data-dir", required=True)
-    ap.add_argument("--backend", required=True)
+    # Upstream vocabulary (>= v1.7.0): the JSON backend is "memory". The old
+    # "json" value must fail loudly here: upstream's config warn-and-defaults
+    # unknown knob values to "auto" (v1.7.3), so a stale value would silently
+    # measure auto and report it as whatever the flag said (ticket 0030).
+    ap.add_argument("--backend", required=True, choices=("sqlite", "memory"))
     ap.add_argument("--queries-file", required=True)
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--out", required=True)
@@ -67,7 +71,7 @@ def main():
     env = {"ZOTEUS_EMBEDDINGS": "off",
            "ZOTEUS_INDEX_FULLTEXT": "1",
            "ZOTEUS_DATA_DIR": a.data_dir,
-           "ZOTEUS_SEARCH_BACKEND": a.backend,
+           "ZOTEUS_INDEX_BACKEND": a.backend,
            "ZOTEUS_INDEX_AUTO_REFRESH": "false",
            "NODE_OPTIONS": a.node_options}
 

@@ -1,0 +1,46 @@
+{
+  "probe": "ticket 0025 X1 (timing half) — full-scan top-30 cost per vector layout",
+  "rule": "DESIGN.md §3 X1 timing clause: scan+rerank <= 400 ms at 650k; float32 slab is the permanent fallback",
+  "not_measured_here": "the recall clause (int8 recall@30 >= 0.98 at pool <= 32x topK) — synthetic isotropic vectors cannot exhibit the anisotropy that decides it; it runs on the workstation against the 93,022 real vectors (bench/results/0008-real-vectors).",
+  "substrate": "SYNTHETIC unit vectors, dim 384, deterministic seed; stored-norm dot in all layouts",
+  "host": "session container (weaker substrate than the workstation: a pass here is conservative)",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "node": "v22.22.2",
+  "timestamp_utc": "2026-08-27T18:58:17.847Z",
+  "k": 30,
+  "probes_per_variant": 15,
+  "rows": [
+    {
+      "N": 100000,
+      "rows": {
+        "median_ms": 466.9,
+        "p95_ms": 569.5
+      },
+      "slab": {
+        "median_ms": 43.2,
+        "p95_ms": 57.5
+      },
+      "int8": {
+        "median_ms": 41.1,
+        "p95_ms": 51.6
+      },
+      "slab_rows_top30_identical": true
+    },
+    {
+      "N": 650000,
+      "rows": {
+        "median_ms": 3622.6,
+        "p95_ms": 3926.1
+      },
+      "slab": {
+        "median_ms": 351.1,
+        "p95_ms": 369.8
+      },
+      "int8": {
+        "median_ms": 310.4,
+        "p95_ms": 325.3
+      },
+      "slab_rows_top30_identical": true
+    }
+  ]
+}

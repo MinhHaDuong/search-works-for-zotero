@@ -1,9 +1,11 @@
 # STATE — Search Works for Zotero
 
-*Repository state reconciled 2026-08-28 (later same day) — 19 tickets closed,
-18 open; reviewed upstream baseline v1.9.0 (`bb414df`); PR #25 merged and
-shipped in v1.9.0, both in-flight slots free; superseded implementation
-archived at `archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
+*Repository state reconciled 2026-08-28 — 20 tickets closed, 17 open; reviewed
+upstream baseline v1.9.0 (`bb414df`); PR #25 merged the day it was filed; the
+in-container half of 0025 is measured and decided (X7, X1-timing, X4 —
+verdicts in that ticket); the remaining workstation steps live in
+`RUNBOOK.md` (self-sunsetting); superseded implementation archived at
+`archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
 
 Operational handoff and measurement record for the open workshop on semantic
 retrieval in Zotero. Zoteus is the current reference implementation and
@@ -12,14 +14,17 @@ successors, is an equally important influence point.
 
 ## Current handoff — 2026-08-28
 
-This work session is safe to close. The tracking repository is clean on `main`;
-the ignored upstream checkout is clean on `schema-read-before-write` at
-`fd51659`.
+This work session is safe to close. The tracking repository is clean on `main`.
+The ignored upstream checkout was last left on `schema-read-before-write` at
+`fd51659` — since merged upstream; `make upstream-checkout` recreates `fork/`
+at the current baseline.
 
 - [Upstream PR #25](https://github.com/oscardvs/zoteus/pull/25), implementing
-  ticket 0015, was merged 2026-08-28 — `fd51659` taken onto `main` verbatim,
-  credited in his changelog commit `84eeade`, shipped in v1.9.0. Ticket 0015
-  is closed; the fork's `schema-read-before-write` branch is deleted.
+  ticket 0015, was **merged 2026-08-28**, the same day it was filed — `fd51659`
+  sits in upstream `main` verbatim, and v1.9.0 ships it. Ticket 0015 is closed;
+  fork `main` was re-aligned to `bb414df` and the merged
+  `schema-read-before-write` branch deleted the same day. The fork carries
+  only `main`, `stopwords-follow-up`, and the archive branch (SYNC.md).
 - [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
   existing thread for ticket 0033's resume slice. Our requirements/performance
   comment is already the only reply; do not add another unless the maintainer
@@ -31,10 +36,10 @@ the ignored upstream checkout is clean on `schema-read-before-write` at
 - `origin/stopwords-follow-up` is at `94d994d`; its tree is unchanged from
   `4a5e554`. Ticket 0014 still requires the X2 650k latency measurement before
   opening that PR.
-- Both permitted upstream PR slots are free (#25 merged). Ticket 0016's PR-3
-  hazard is re-verified live at v1.9.0 (its log has the evidence and line
-  drift) and is launchable. The next session can draft PR-3, inspect #24/#26,
-  or run X2.
+- Both permitted upstream PR slots are free again (#25 merged). Ticket 0016's
+  PR-3 hazard is re-verified live at v1.9.0 (its log carries the evidence and
+  the line drift), so PR-3 is launchable. The next session can draft PR-3,
+  inspect #24/#26 for maintainer replies, or run X2.
 - The local `.venv` is not reusable (`python` is missing and `ruff` segfaults).
   Recreate it before changing the harness. The figure guard was run separately
   at handoff: 80 pairs checked, 0 stale; pytest and ruff could not be rerun in
@@ -457,10 +462,13 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**Live (2026-08-26): the plan of record is DESIGN.md §4, ratified in
+**Live (2026-08-28): the plan of record is DESIGN.md §4, ratified in
 DECISIONS.md and executed through tickets 0014–0037 — `erg ready` is the
-queue.** Everything below records the prototype phase's close-out as it stood
-before that plan existed.
+queue. The immediate next step is the workstation session `RUNBOOK.md`
+scripts: X2 opens the stopwords PR (0014), the trunk re-measurement unblocks
+I-2, X6 feeds the #26 thread; everything they need is committed.** Everything
+below records the prototype phase's close-out as it stood before that plan
+existed.
 
 **The prototype work programme is complete.** All twelve children are closed and
 0001 closed 2026-08-22 after its integration review — the children read as one

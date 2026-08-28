@@ -232,6 +232,35 @@ FIGURES = [
      {"state": "holds **{} of 477 512"}),
     ("0013-concentration/uncapped-477512.json", "next_largest_passages", 0,
      {"state": "against {} for the next largest"}),
+    # ---- 0025 X7, census parse cost (synthetic wire shape, container CPU) ----
+    ("0025-x7-census/parse-cost.json", "rows.1.median_ms", 2,
+     {"t0025": "at 30 000 entries median {} ms and"}),
+    ("0025-x7-census/parse-cost.json", "rows.1.p95_ms", 2,
+     {"t0025": "a p95 of {} ms — under the 50 ms rule"}),
+    ("0025-x7-census/parse-cost.json", "rows.0.median_ms", 2,
+     {"t0025": "8 037 entries the tick costs {} ms;"}),
+    ("0025-x7-census/parse-cost.json", "rows.2.median_ms", 2,
+     {"t0025": "it reaches {} ms median, where the rule"}),
+    # ---- 0025 X1 timing half, slab vs rows (synthetic vectors, container CPU) ----
+    ("0025-x1-timing/slab-vs-rows.json", "rows.1.rows.median_ms", 1,
+     {"t0025": "per-row BLOB rows cost {} ms median"}),
+    ("0025-x1-timing/slab-vs-rows.json", "rows.1.slab.median_ms", 1,
+     {"t0025": "the float32 slab costs {} ms and"}),
+    ("0025-x1-timing/slab-vs-rows.json", "rows.1.int8.median_ms", 1,
+     {"t0025": "the int8 slab {} ms, both under"}),
+    ("0025-x1-timing/slab-vs-rows.json", "rows.0.rows.median_ms", 1,
+     {"t0025": "rows {} ms, slab"}),
+    ("0025-x1-timing/slab-vs-rows.json", "rows.0.slab.median_ms", 1,
+     {"t0025": "slab {} ms, int8"}),
+    ("0025-x1-timing/slab-vs-rows.json", "rows.0.int8.median_ms", 1,
+     {"t0025": "int8 scans in {} ms. DECISION"}),
+    # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
+     {"t0025": "whole corpus costs {} ms median"}),
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.1.median_ms", 0,
+     {"t0025": "constrained query costs {} ms median"}),
+    ("0025-x4-constrained-match/synthetic-477k.json", "rows.4.median_ms", 0,
+     {"t0025": "reaching {} ms median at"}),
 ]
 
 

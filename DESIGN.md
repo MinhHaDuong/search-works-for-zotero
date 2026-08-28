@@ -539,8 +539,10 @@ state carries its own tamper evidence: `stamp==1 && v2 tables present` means
 an old binary wrote here — the response is not "migrate" but
 **reconcile-heal**: mark derived stages stale, census-diff, let R1 re-earn.
 The retroactive limit is stated plainly: binaries that predate the protocol
-(every release through v1.8.0 today) are unreachable by it; the new filename
-(§1) is what actually protects against them.
+(every release through v1.8.0; v1.9.0 ships the read-before-write + sideline
+slice via PR #25, but not the conductor rule or `min_reader_version`) are
+unreachable by it; the new filename (§1) is what actually protects against
+them.
 
 **R28 — uninstall.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per

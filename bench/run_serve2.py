@@ -26,7 +26,7 @@ def payload(resp):
 
 env = {"ZOTEUS_EMBEDDINGS": "off", "ZOTEUS_INDEX_FULLTEXT": "1",
        "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0", "ZOTEUS_INDEX_MAX_ITEMS": "1000000",
-       "ZOTEUS_SEARCH_BACKEND": "sqlite", "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-bench-0003",
+       "ZOTEUS_INDEX_BACKEND": "sqlite", "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-bench-0003",
        "ZOTEUS_INDEX_AUTO_REFRESH": "false", "NODE_OPTIONS": ""}
 s = Server(["node", SERVER], env, 600)
 s.handshake()

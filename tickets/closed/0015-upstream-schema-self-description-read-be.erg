@@ -2,17 +2,18 @@
 Title: Upstream schema self-description: read before write, sideline never delete
 Created: 2026-08-26
 Author: claude
-Closed: merged upstream as fd51659, shipped in v1.9.0
+Closed: PR #25 merged upstream 2026-08-28 verbatim (fd51659 in main), shipped in v1.9.0
 
 --- log ---
 2026-08-26T15:43Z claude created
 2026-08-27T15:49Z claude note the after-#20 gate lifted (#20 merged 2026-08-27) and a slot is free. But 2f453d6 (v1.8.0) rewrote sqlite-index.ts and persistence.ts under this ticket — re-verify the createSchema re-stamp evidence at 309204b before drafting; the edf2748 line numbers below are stale
+2026-08-27T18:21Z claude note evidence re-verified at v1.8.0: stamp written at sqlite-index.ts:200 (constant :27), read nowhere — defect intact. PR built against 309204b and pushed to the fork as branch schema-read-before-write (e29fda0): read stamp before any DDL/write; unknown/newer/unparseable/unstamped-nonempty -> sideline .incompatible-<ts> (sidecars too, db last, never delete), fresh index, one storageNotice; unmovable-but-readable becomes SearchIndexCorruptError so the server survives and action:"build" can clear it (his #21 idiom). 7 new tests (5 red on stock), suite 733 passed / 7 skipped, typecheck+lint clean, docs paragraph added. Awaiting the author's real-index verification (recipe handed over) before the PR opens
 2026-08-28T08:22Z codex note PR #25 opened at fd51659 after review. Review caught and fixed two pre-stamp writes/error-classification defects: journal_mode=WAL now follows a read-only probe, and transient SQLite errors no longer masquerade as an absent stamp. Upstream CI run 76 is green on Node 20 and 22 (typecheck, lint, build, tests); PR remains open for maintainer review
 
 2026-08-28T06:25Z claude note lot inspection: fork branch schema-read-before-write (e29fda0, one commit atop 309204b) re-verified in-container against his tree — typecheck and lint clean, suite 733 passed / 7 skipped. Counter-proof done: the new test file run against unpatched v1.8.0 main fails 5 of 7 (the two passing pin unchanged behavior — current-version and empty-file), so the re-stamp evidence stands at 309204b and the exit criterion's failing test is the reproduction. sidecarsOf order re-checked (database last, as the sideline comment claims). Ready to open when a slot is spent
 2026-08-28T08:45Z claude note PR OPENED by the author 2026-08-28 as oscardvs/zoteus#25, retitled 'read the schema stamp before opening SQLite writable'. Head amended e29fda0 -> fd51659 before opening, a real hardening: the probe is a genuinely read-only handle opened before any writable one (journal_mode=WAL can rewrite header bytes), and storedSchemaVersion inspects PRAGMA table_info(meta) instead of swallowing SELECT failures, so locks and I/O errors propagate rather than sidelining a healthy database. Gate re-run on fd51659: typecheck and lint clean, 733/7. Verified on the PR page: head MinhHaDuong:schema-read-before-write, base main, body carries sideline-never-delete, the narrownesses, and the 5-of-7 reproduction
-2026-08-28T17:54Z claude note MERGED upstream 2026-08-28: fd51659 taken onto main verbatim (same SHA as the PR head, zero maintainer edits, no squash); changelog entry added by him in 84eeade ('thanks @MinhHaDuong'), shipped in v1.9.0 (bb414df). Fork branch schema-read-before-write deleted, fork main synced to bb414df. Slot freed: zero upstream PRs in flight
-2026-08-28T17:55Z Claude closed — merged upstream as fd51659, shipped in v1.9.0
+2026-08-28T16:24Z PR #25 MERGED 2026-08-28: fd51659 is in upstream main verbatim (SHA, authorship, committer date preserved — fast-forward, zero maintainer edits), between 10:21 and 14:49 CEST, same day as filed, no batch and no third-party trigger. He wrote the changelog entry himself (84eeade, 'the fix landed without its entry'; credit '#25, thanks @MinhHaDuong') and shipped it in v1.9.0 (bb414df). Exit criteria complete; slot returns to the train
+2026-08-28T16:24Z Claude closed — PR #25 merged upstream 2026-08-28 verbatim (fd51659 in main), shipped in v1.9.0
 --- body ---
 ## Context
 DESIGN.md §4 PR-1, honoring R23. Verified defect at edf2748: createSchema
@@ -30,4 +31,4 @@ catches).
 ## Exit criteria
 - [x] failing test demonstrates the re-stamp on a version-99 fixture (5 of 7 fail on unpatched v1.8.0 main)
 - [x] read-before-write + sideline protocol in the PR, tests green on his tree (fd51659: 733/7, typecheck+lint clean)
-- [x] PR opened upstream 2026-08-28 as #25 — merged 2026-08-28: fd51659 taken onto main verbatim, changelog credit in 84eeade, shipped in v1.9.0 (bb414df)
+- [x] PR opened upstream 2026-08-28 as #25 — open, CI green; record the outcome here when it lands

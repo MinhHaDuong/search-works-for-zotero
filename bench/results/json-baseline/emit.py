@@ -62,7 +62,7 @@ def main():
             "python_version": sys.version.split()[0],
             "platform": platform.platform(),
             "NODE_OPTIONS": a.node_options,
-            "ZOTEUS_SEARCH_BACKEND": "json",
+            "ZOTEUS_INDEX_BACKEND": "memory",
             "ZOTEUS_INDEX_MAX_ITEMS": a.max_items,
             "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": a.max_chars,
             "ZOTEUS_INDEX_FULLTEXT": "1",
