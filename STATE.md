@@ -1,11 +1,14 @@
-# STATE — zoteus-fts5
+# STATE — Search Works for Zotero
 
 *Repository state reconciled 2026-08-28 — 18 tickets closed, 19 open; reviewed
 upstream baseline v1.8.0 (`309204b`); PR #25 open, mergeable and green;
 superseded implementation archived at `archive/fts5-storage-2026-08-21`. See
 `SYNC.md`.*
 
-Research and work tracking for the search redesign of zoteus.
+Operational handoff and measurement record for the open workshop on semantic
+retrieval in Zotero. Zoteus is the current reference implementation and
+upstream contribution target; Zotero core, including PR #6012 and its
+successors, is an equally important influence point.
 
 ## Current handoff — 2026-08-28
 
@@ -37,8 +40,9 @@ the ignored upstream checkout is clean on `schema-read-before-write` at
 
 ## What this repo is
 
-Ticket store, measurement harness, and notes for a work programme whose code lives in
-a **fork of someone else's project**. `fork/` is a plain checkout of
+Public design record, ticket store, and measurement harness for an
+implementation-neutral work programme. The current reference code lives in a
+**fork of someone else's project**. `fork/` is a plain checkout of
 `MinhHaDuong/zoteus` (upstream `oscardvs/zoteus`) and is git-ignored here — it
 has its own history, and a `tickets/` directory must never appear in it, or it
 would show up in any diff sent upstream.
