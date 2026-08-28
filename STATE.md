@@ -1,10 +1,39 @@
 # STATE — zoteus-fts5
 
-*Repository state reconciled 2026-08-27 — 18 tickets closed, 19 open; fork
-`main` aligned with upstream v1.8.0; superseded implementation archived at
-`archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
+*Repository state reconciled 2026-08-28 — 18 tickets closed, 19 open; reviewed
+upstream baseline v1.8.0 (`309204b`); PR #25 open, mergeable and green;
+superseded implementation archived at `archive/fts5-storage-2026-08-21`. See
+`SYNC.md`.*
 
 Research and work tracking for the search redesign of zoteus.
+
+## Current handoff — 2026-08-28
+
+This work session is safe to close. The tracking repository is clean on `main`;
+the ignored upstream checkout is clean on `schema-read-before-write` at
+`fd51659`.
+
+- [Upstream PR #25](https://github.com/oscardvs/zoteus/pull/25), implementing
+  ticket 0015, is open and mergeable. Its Node 20/22 CI is green. Keep the
+  branch until the maintainer merges or closes it.
+- [Upstream issue #24](https://github.com/oscardvs/zoteus/issues/24) is the
+  existing thread for ticket 0033's resume slice. Our requirements/performance
+  comment is already the only reply; do not add another unless the maintainer
+  responds or the design changes materially.
+- [Upstream issue #26](https://github.com/oscardvs/zoteus/issues/26) now carries
+  ticket 0024's I-1 finding: post-build full-text extraction is invisible to an
+  update keyed only by `libraryVersion`. Await the maintainer's response before
+  extending it; I-2 remains ready, while I-3 stays behind its checkpoint.
+- `origin/stopwords-follow-up` is at `94d994d`; its tree is unchanged from
+  `4a5e554`. Ticket 0014 still requires the X2 650k latency measurement before
+  opening that PR.
+- One of the two permitted upstream PR slots is occupied by #25; one remains
+  free. The next session should first inspect #25/#24, then either answer review
+  feedback, inspect #26, or run X2.
+- The local `.venv` is not reusable (`python` is missing and `ruff` segfaults).
+  Recreate it before changing the harness. The figure guard was run separately
+  at handoff: 80 pairs checked, 0 stale; pytest and ruff could not be rerun in
+  this environment.
 
 ## What this repo is
 
