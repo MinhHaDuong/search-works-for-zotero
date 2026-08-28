@@ -2,7 +2,12 @@
 
 *Repository state reconciled 2026-08-27 — 18 tickets closed, 19 open; fork
 `main` aligned with upstream v1.8.0; superseded implementation archived at
-`archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
+`archive/fts5-storage-2026-08-21`. See `SYNC.md`. Session close-out the same
+day: the in-container half of 0025 is measured and decided (X7, X1-timing,
+X4 — verdicts in that ticket); PR branches `schema-read-before-write` and
+`stopwords-follow-up` are built and validated on the fork, gated on the
+workstation steps in `RUNBOOK.md`, which is the handoff and deletes itself
+once executed.*
 
 Research and work tracking for the search redesign of zoteus.
 
@@ -422,10 +427,12 @@ One deliberate divergence from upstream: the SQLite backend refuses
 
 ## Next action
 
-**Live (2026-08-26): the plan of record is DESIGN.md §4, ratified in
+**Live (2026-08-27): the plan of record is DESIGN.md §4, ratified in
 DECISIONS.md and executed through tickets 0014–0037 — `erg ready` is the
-queue.** Everything below records the prototype phase's close-out as it stood
-before that plan existed.
+queue. The immediate next step is the workstation session `RUNBOOK.md`
+scripts: it opens both held PRs and unblocks both issue filings; everything
+it needs is committed.** Everything below records the prototype phase's
+close-out as it stood before that plan existed.
 
 **The prototype work programme is complete.** All twelve children are closed and
 0001 closed 2026-08-22 after its integration review — the children read as one
