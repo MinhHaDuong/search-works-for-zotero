@@ -237,6 +237,18 @@ seam (a completed build never sees post-build extraction). Cite #24 as a
 neighbor in I-1's text; whether I-1 is filed standalone or folded into #24's
 thread is the author's call — ticket 0024 carries it.*
 
+*2026-08-28, later: a comment from here now sits on #24, scoped to #24's own
+defect and verified accurate at `309204b`: `buildIncremental` calls `reset()`
+unconditionally (`index-manager.ts:546`) then crawls from `start = 0` (`:578`);
+proposal, a separate build checkpoint (phase + progress identity) beside the
+committed rows instead of `libraryVersion` doing double duty as freshness stamp
+and resume cursor, with a seven-point regression test bounding redone work by
+the persistence cadence (200 items/10 s metadata, 500/60 s full text —
+`index-manager.ts:551-552`, `build.ts:362`). The comment deliberately leaves
+`libraryVersion` as the freshness signal and does not surface I-1 — the
+checkpoint/freshness separation it proposes is precisely what leaves I-1
+standing as its own issue once resume is fixed.*
+
 ### 5. The measurements
 
 *Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first
