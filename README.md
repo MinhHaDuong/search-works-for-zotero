@@ -74,14 +74,18 @@ constraints state the contract; `DESIGN.md` must satisfy it; experiments and
 tickets test or implement it. Panel documents are inputs, not conclusions, and
 superseded documents remain available in git history.
 
-## How to engage
+## How work leaves this repository
 
-Useful contributions include a counterexample to a requirement, a sharper
-constraint from Zotero behaviour, a reproducible measurement, an alternative
-design, an executable acceptance test, or a contained upstream patch. A
-proposal need not use Zoteus, SQLite, FTS5, or the current vector machinery.
-Claims should identify their corpus and provenance; implementation-specific
-choices should not be smuggled into the implementation-neutral contract.
+This is a personal working repository, made public so that its intentions,
+evidence, and unfinished reasoning can be inspected. It is not organised as a
+community project and no contribution workflow is implied.
+
+The deliverables land where they belong: as focused pull requests and issues in
+Zotero, Zoteus, or another affected repository. This repository keeps the
+longer argument, experiments, acceptance criteria, and decision record behind
+those upstream interventions. A proposal need not use Zoteus, SQLite, FTS5, or
+the current vector machinery; implementation-specific choices should not be
+smuggled into the implementation-neutral contract.
 
 ## Current posture
 
