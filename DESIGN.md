@@ -17,7 +17,7 @@ against the consolidated requirements and constraints; each result was
 adversarially critiqued, and this synthesis assembles what survived, plus
 the named repairs. Every load-bearing claim about upstream code was
 re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0; upstream
-has since moved to v1.8.0 `309204b` — SYNC.md characterizes the deltas, and
+has since moved to v1.9.0 `bb414df` — SYNC.md characterizes the deltas, and
 each ticket re-verifies its own evidence on moved files before acting), and
 the disputed numbers were recomputed from the committed artifacts in
 `bench/results/`. Two process bounds held throughout: decisions and rulings
@@ -539,8 +539,10 @@ state carries its own tamper evidence: `stamp==1 && v2 tables present` means
 an old binary wrote here — the response is not "migrate" but
 **reconcile-heal**: mark derived stages stale, census-diff, let R1 re-earn.
 The retroactive limit is stated plainly: binaries that predate the protocol
-(every release through v1.8.0 today) are unreachable by it; the new filename
-(§1) is what actually protects against them.
+(every release through v1.8.0; v1.9.0 ships the read-before-write + sideline
+slice via PR #25, but not the conductor rule or `min_reader_version`) are
+unreachable by it; the new filename (§1) is what actually protects against
+them.
 
 **R28 — uninstall.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per
