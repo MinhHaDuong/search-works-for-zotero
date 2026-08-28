@@ -28,7 +28,9 @@ check-fast:
 	python3 -m pytest tests/ -q
 
 lint:
-	ruff check bench/ tests/
+	# Ruff's default selection has changed across releases. Spell out the
+	# historical default so this gate means the same thing on every machine.
+	ruff check --select E4,E7,E9,F bench/ tests/
 
 # The guard against the defect this repo spent a session on: a figure updated in
 # an artifact and left stale in the paragraph quoting it. Also run by the test
