@@ -64,3 +64,7 @@ repo is public and he reads it.
   and the 44.9 MB extraction live on the author's machine; `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which
   experiments run where.
+- The author's fork (`FORK_REPOSITORY` in `UPSTREAM`) is authorized for direct
+  pushes from Claude sessions — in a remote session, attach it with `add_repo`
+  (push access) rather than reporting it unreachable. The upstream repository
+  is read-only, always.
