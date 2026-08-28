@@ -84,6 +84,7 @@ days:
 | Aug 25 | he sweeps **#9, #13, #14, #15, #16** *and* both our PRs into integration PR #17 |
 | Aug 26 | **#19**, **#20** open from here; v1.7.1 ships (#18) without touching either |
 | Aug 27 | **#22**, **#23** filed by @StianOby; he merges **#19** and **#20** (v1.7.2), files **#21** himself off #20's review questions, fixes #21+#22+#23 in `2f453d6`, ships v1.7.3 and **v1.8.0** — three releases in one day |
+| Aug 27 | @StianOby files **#24**: a stopped local-API build cannot resume and starts again from zero — direct third-party demand for the resume slice of scoped issue A (0033) |
 
 #13 and #14 are, in substance, the issues for #11 and #12 — filed by someone else,
 four days later, describing the same two problems from the user side. He works in
@@ -303,20 +304,22 @@ it must land before any re-measurement, or the harness will silently measure
 `auto` and report it as whatever the flag said. The database path agrees
 (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Status, end of 2026-08-28** (one table; earlier states are in git history).
+**Status, 2026-08-28** (one table; earlier states are in git history).
 
 | | |
 |---|---|
 | PR #19 accent fold | **merged** 2026-08-27 as `4f61b2a` (squash, authorship + co-author trailer preserved, zero maintainer edits); shipped in v1.7.2, credited "thanks @MinhHaDuong" |
 | PR #20 corrupt index | **merged** 2026-08-27 as `6e4637b`, same form; final head `331b037` (rebased onto v1.7.1's `busy_timeout` work — supersedes the `dd1605a` recorded earlier) |
 | #21 his follow-up | filed by **him**, off #20's review questions; fixed same day in `2f453d6` with #22/#23 (@StianOby) and shipped as **v1.8.0** (`309204b`). The two swallowed-error holes are closed upstream — closed from our side per the sunset rule (DECISIONS.md 2026-08-27) |
+| #24 local-API resume | **open**, filed 2026-08-27 by @StianOby: stopping a local-only build leaves no usable resume stamp, so the next run starts from zero. Existing upstream thread for 0033's resume slice; contribute a resume contract there rather than file a duplicate |
+| PR #25 schema read-before-write | **open**, filed 2026-08-28 from ticket 0015 at `fd51659`; review made the existing-file probe genuinely read-only (even `journal_mode=WAL` waits) and stopped transient SQLite errors from being classified as an absent stamp. CI run 76 green on Node 20/22 |
 | upstream | v1.7.1 (#18 desktop/config train), v1.7.2, v1.7.3, v1.8.0 — four releases 2026-08-26/27; the batch pattern confirmed a second time |
-| the train | **PR #25** (0015 schema read-before-write, head `fd51659`) opened 2026-08-28 — one slot in flight; **issue #26** (the delta/sequence finding, 0024) filed the same day; the second slot is held for the STOPWORDS follow-up (0014, `94d994d` on the fork, waiting on its latency number); next after those from 0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
+| the train | one in-flight slot occupied by PR #25 (0015), one free; STOPWORDS follow-up (0014) still waits on X2, then 0016/0017 — 0016 narrowed to the wipe guard alone (`busy_timeout` overtaken by v1.7.1's `80f8aa0`); the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes); ticket 0024 carries the response when it lands |
 | §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL, ready to file as I-2. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
-| fork | `main` aligned with upstream at `309204b`; merged branches deleted; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7`; active branches, both one commit atop `309204b`: `schema-read-before-write` (`fd51659`, PR #25's head) and `stopwords-follow-up` (`94d994d`, amended to drop the internal placeholder) |
+| fork | `main` aligned with upstream at `309204b`; merged branches deleted; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7`; active branches, both one commit atop `309204b`: `schema-read-before-write` (`fd51659`, PR #25) and `stopwords-follow-up` (`94d994d`, amended 2026-08-28) |
 | next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse
