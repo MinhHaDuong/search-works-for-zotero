@@ -1,0 +1,79 @@
+%erg 0.1
+Title: Recall at the deployed dtype, and the fused RRF delta
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0263
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 5 of tracker 0240. Two measurements the tracker keeps together because they answer the same question at two altitudes: what the user actually gets.
+
+--- body ---
+## Context
+
+Child 5 of tracker `tickets/0240`, which owns the rationale.
+
+Two things this repo has never measured, and the second has never been measured
+at all:
+
+**Recall does not survive quantization, so it must be measured at the rung that
+ships.** The tracker records what nomic-768 q8 did to its own fp32 vectors and
+why the recall figure in `task-recall.json` is an fp32 number that a q8
+deployment does not get. Fidelity
+to fp32 is a cheaper second signal; it is not a proxy for recall and must not be
+quoted as one.
+
+**The fused delta is what a user sees.** RRF over FTS5 plus vectors is the real
+surface, and a vector-arm gain can wash out against an unchanged keyword arm.
+This has never been measured — `bench/results/0070-cosine-fusion/` is loop
+fusion, a different thing, and saying so is part of the deliverable.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- the CPU-arm results from `tickets/0263`
+- `bench/vec_task_recall.mjs` — recall driver
+- `bench/quant_fidelity_score.py` — fidelity, the second signal
+- `bench/results/0070-cosine-fusion/` — loop fusion, not this
+- `bench/fts5_bench.mjs` — the keyword arm of the fusion
+
+## Actions
+
+1. Measure recall per candidate **at each surviving dtype**, on vectors that
+   dtype produced. No fp32 recall may stand in for a quantized configuration.
+2. Keep fidelity as the second, cheaper signal and as the quantization-robustness
+   criterion; report both columns side by side and label which is which.
+3. Measure the fused RRF delta: keyword arm alone, vector arm alone, fused. The
+   comparison the tracker asks for is fused-versus-fused, not vector-versus-vector.
+4. Report the vector-arm gain and the fused gain as two numbers. Where they
+   disagree, the fused one is the finding.
+5. Declare every quoted number in `bench/check_figures.py`.
+
+## Test
+
+- The fp32-against-itself control returns 1,0 in this campaign's output.
+- A test asserts no result file carries a recall figure whose vector dtype
+  differs from the cell's dtype — this is the tracker's sharpest failure mode
+  and it is mechanically checkable.
+
+## Verification
+
+- [ ] Recall figures come from vectors at the deployed dtype; no fp32 recall is
+      quoted for a quantized configuration anywhere
+- [ ] The fused delta is reported, with its keyword-alone and vector-alone
+      components
+- [ ] `0070-cosine-fusion/` is cited as loop fusion where a reader might mistake
+      it for this
+
+## Invariants
+
+- Fidelity never substitutes for recall
+- A gain smaller than the measured spread is not reported as an ordering
+- Existing artifacts are not deleted or rewritten
+
+## Exit criteria
+
+- [ ] Recall at deployed dtype for every surviving candidate and rung
+- [ ] Fidelity reported beside it as the robustness criterion
+- [ ] The fused RRF delta measured and reported
+- [ ] Every figure declared in the guard

@@ -1,0 +1,81 @@
+%erg 0.1
+Title: GPU arm on padme: same cells, and what auto actually selects
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0262
+Label: needs-human
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 4 of tracker 0240. Labelled needs-human on substrate, not on judgement: the working machine has no GPU at all (nvidia-smi absent, re-confirmed 2026-08-29), so nothing in this arm can be executed from a doudou session beyond the code path. The author decides how padme is reached.
+
+--- body ---
+## Context
+
+Child 4 of tracker `tickets/0240`, which owns the rationale.
+
+Same corpus, same probes, same driver as the CPU arm — the tracker is explicit
+that the two arms share everything but the hardware. What differs is that fp16
+is a live rung here and unloadable there, so the arms do not have the same shape
+and the report must say so rather than presenting one table.
+
+`gpu-feasibility.json`'s A4000 figures were derived from PyTorch run logs on
+another machine: upper bounds by projection, not measurements in the shipped
+runtime. This ticket replaces them with real ONNX numbers.
+
+**The load-bearing unexecuted claim.** That `auto` selects a GPU provider is
+today read from `src/backends/onnx.js`, not observed. Nobody has run it. That
+single observation is the reason this arm exists at all, and it is the first
+thing to record.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- `tickets/0220-...erg` — why device is `auto` and never a knob; its reading of
+  `deviceToExecutionProviders` is the claim under test here
+- the harness from `tickets/0262`
+- `bench/results/0025-x1-recall/gpu-feasibility.json` — the projections being
+  replaced
+- `bench/gpu_feasibility.py`
+
+## Actions
+
+1. Reach padme and stand the harness up there. Record the host, its GPU, its
+   driver and CUDA version alongside the results.
+2. **Observe what `auto` resolves to.** Record the execution provider actually
+   selected, from the runtime, not from source.
+3. Run the same cells as the CPU arm: fp32, fp16, q8, uint8 per candidate. fp16
+   is expected to load here; if it does not, that is a result.
+4. Probe the tracker's open engine questions on real hardware: whether `q4f16`
+   fails for the same reason as fp16 on CPU or a different one, and whether the
+   WebGPU path is usable from Node at all.
+5. Record the state of upstream `huggingface/transformers.js#945` at run time.
+   If it lands, the meaning of the default changes and every CPU baseline needs
+   re-reading.
+6. Report the CPU and GPU arms as two shapes, not one merged table.
+
+## Test
+
+- The harness's own tests (0262) gate the run.
+- The device recorded in each result file is the device selected, and a test
+  asserts it is read from the runtime rather than echoed from the request.
+
+## Verification
+
+- [ ] `auto` on padme is **observed** to select a GPU provider, with the provider
+      named — the claim is currently unexecuted
+- [ ] Each result file names its four engine versions and the host
+- [ ] fp16 recorded as loadable or not, with the error if not
+
+## Invariants
+
+- Same corpus, same probes, same driver as the CPU arm
+- Warm only; median over repeats with spread
+- No projected figure is presented beside a measured one without saying which
+
+## Exit criteria
+
+- [ ] GPU arm complete for every surviving candidate at fp32, fp16, q8, uint8
+- [ ] The provider `auto` selected is recorded from observation
+- [ ] `gpu-feasibility.json`'s projections are superseded in place, with the
+      supersession stated where they are cited

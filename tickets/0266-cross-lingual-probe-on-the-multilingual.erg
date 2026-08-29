@@ -1,0 +1,77 @@
+%erg 0.1
+Title: Cross-lingual probe on the multilingual vectors
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0263
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 6 of tracker 0240. Measured here because the vectors exist here; the requirement text stays 0037's.
+
+--- body ---
+## Context
+
+Child 6 of tracker `tickets/0240`, which owns the rationale.
+
+R7 is per-language lanes: each language works in its own. Ticket `0037` proposes
+the stronger property — an EN or FR query finding Vietnamese content. A
+multilingual embedder is the mechanism for both, so the tracker's ruling is to
+measure it here, while the vectors from the CPU arm are already on disk, rather
+than re-running the whole campaign later.
+
+**Division of ownership, and it matters.** `tickets/0037` owns the requirement
+text, the proposed R29 and its ratification. This ticket owns only the
+measurement. Do not write requirement prose here, and do not edit `0037`'s
+proposal — feed it evidence.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- `tickets/0037-cross-lingual-retrieval-query-in-en-fr-f.erg` — owns R29 and its
+  proposal; awaiting the author's ruling
+- the CPU-arm vectors from `tickets/0263`
+- `spec/REQUIREMENTS.md` R7 — the per-lane requirement, not this
+- the golden fixture work in `tickets/0029`, if it has landed
+
+## Actions
+
+1. Build the cross-lingual probe: EN and FR queries whose relevant answers are
+   Vietnamese, plus the other R7 languages the tracker names (German, Greek,
+   Russian) as far as the corpus supports them.
+2. Run it per candidate at the deployed dtype, on the vectors the CPU arm
+   produced.
+3. Report per-language-pair, not as one aggregate. A model that carries FR→VI and
+   drops EN→EL is a different finding from one that is uniformly mediocre.
+4. Report the monolingual lane figure beside the cross-lingual one, so R7 and R29
+   are separable in the result.
+5. Coordinate with `0037`: hand it the measurement, cite this ticket from there,
+   and do not duplicate its requirement text in either direction.
+
+## Test
+
+- A discriminating control: a query whose answer set is in the query's own
+  language must score high, and a deliberately unrelated pair must score low.
+  Without both, a null result cannot distinguish "no cross-lingual ability" from
+  "the probe cannot see it".
+- The probe is asserted to run against dtype-matched vectors, per `0265`.
+
+## Verification
+
+- [ ] Per-language-pair figures, not one aggregate
+- [ ] The monolingual lane is reported beside the cross-lingual one
+- [ ] The positive and negative controls both fired before any figure is quoted
+- [ ] `0037` cites this measurement; this ticket states no requirement
+
+## Invariants
+
+- Requirement text belongs to `0037`; this ticket measures
+- Corpus languages that are absent are recorded as untestable here, not as a
+  zero score
+- Every figure declared in `bench/check_figures.py`
+
+## Exit criteria
+
+- [ ] Cross-lingual probe built, with its controls
+- [ ] Run per surviving candidate at the deployed dtype
+- [ ] Per-pair results committed and declared
+- [ ] `0037` updated with a pointer to the evidence, its proposal untouched
