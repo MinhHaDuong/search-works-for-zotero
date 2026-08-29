@@ -1,0 +1,79 @@
+%erg 0.1
+Title: RUNBOOK measurements are undeclared in the figure guard
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T11:20Z claude created
+
+--- body ---
+## Context
+
+Found by the /roar sweep after PR #26. `/gaze` had just caught the same class
+one document over: `DECISIONS.md` was absent from `bench/check_figures.py`'s
+`PROSE` map, so a figure written into it drifted onto a superseded run within a
+day and nothing could see it. Fixing that instance prompted the question of
+which OTHER prose documents quote measurements without declaring them.
+
+`RUNBOOK.md` does, in five places, and it is not in the map:
+
+- line 36 — `warm p95 1 773,0 ms stopword-less against 392,3 ms on stock`
+- line 54 — `263,7 s and 1 755,6 MiB on doudou`
+- line 116 — `reproduces 0011's 2 084,9 MiB class`
+- line 171 — `a number that would read "1 773,0 ms"`
+
+These are this repo's own measurements, from `bench/results/`, quoted in prose.
+CLAUDE.md's rule is unconditional: *every measurement quoted in prose is
+declared there with an anchor; when you re-measure, the guard tells you every
+prose site to update.* RUNBOOK's sites are exactly the ones it would not tell
+you about.
+
+`CONSTRAINTS.md` was checked and quotes none — it is correctly absent.
+`FIELD-REVIEW.md` carries 24 measurement-shaped figures but they are OTHER
+projects' claimed numbers, not ours, and the guard has nothing to compare them
+against; it is out of scope here and is the reason 0161 asks for a rule that
+distinguishes the two rather than a grep that cannot.
+
+## Why this matters more than the count suggests
+
+RUNBOOK is an instruction document: its numbers are what an operator compares a
+fresh run against. A stale figure there does not merely misinform, it makes a
+correct run look like a regression, or a regression look correct.
+
+`1 773,0 ms` and `392,3 ms` are X2's verdict pair, and X2 was re-measured on
+2026-08-29 (0025's log). Whether these two survived that re-measurement is
+exactly the question the guard exists to answer mechanically, and here it cannot.
+
+## Actions
+
+1. Add `"runbook": ["RUNBOOK.md"]` to `PROSE` in `bench/check_figures.py`.
+2. Declare each of the four distinct figures against its artifact in
+   `bench/results/0025-x2-stopwordless/` and `bench/results/0011-rss/`.
+3. Where a figure has no artifact behind it, say so in the ticket rather than
+   inventing a declaration — an undeclarable number in an instruction document
+   is its own finding.
+
+## Test
+
+Red step: add the declarations, run `python3 bench/check_figures.py`, and watch
+it report STALE for any RUNBOOK figure that no longer matches its artifact.
+Then perturb one deliberately and confirm it is caught before restoring — an
+all-clear never seen to fail is not evidence.
+
+## Verification
+
+- [ ] `python3 bench/check_figures.py` reports 0 stale with RUNBOOK covered
+- [ ] the pair count rises by the number of declarations added
+- [ ] a planted wrong value in RUNBOOK.md produces STALE, then restores clean
+
+## Invariants
+
+- `make check` stays green.
+- No figure is edited to match an artifact without checking which of the two is
+  right: a guard failure can mean the prose drifted OR the artifact was
+  regenerated on a different substrate.
+
+## Exit criteria
+
+- RUNBOOK.md is in `PROSE` and every measurement it quotes is declared, or
+  recorded as undeclarable with the reason.
