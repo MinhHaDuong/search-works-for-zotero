@@ -10,7 +10,9 @@ panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
 and the scout report — are superseded and live in git history, last present at
 commit `6f7fcd1` as `DESIGN.md`, `DESIGN-DELTA.md`, `DESIGN-V1.md`,
 `SCOUTS.md`. The consolidated truth in the working tree replaces them; git is
-the archive.*
+the archive. The cycle-2 panel record that entries below cite by name — the
+memos, the critiques, the political and implementation reviews — is likewise
+in git history, last present at commit `e32afe3` as `panel/cycle2/`.*
 
 ## Ratified
 

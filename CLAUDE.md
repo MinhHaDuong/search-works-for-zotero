@@ -20,9 +20,10 @@ and in the author's fork, not here.
   §4` carries only the ordering.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
-- `panel/cycle2/` — verbatim session record (memos, critiques, the political
-  and implementation reviews). Archive: never edit, never treat as
-  authoritative; where it disagrees with DESIGN.md, DESIGN.md is the record.
+- The cycle-2 panel's verbatim session record (memos, critiques, the political
+  and implementation reviews) is in git history, last present at commit
+  `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
+  with DESIGN.md, DESIGN.md is the record.
 - Superseded documents are DELETED, not archived in the tree — git is the
   archive. Do not create `history/` directories or versioned doc copies.
 

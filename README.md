@@ -66,13 +66,13 @@ memory budgets. These are testable requirements, not branding claims.
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
 | [`bench/`](bench/) | Executable probes and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
-| [`panel/cycle2/`](panel/cycle2/) | Preserved adversarial design-review record |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 
 The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
-tickets test or implement it. Panel documents are inputs, not conclusions, and
-superseded documents remain available in git history.
+tickets test or implement it. Panel documents are inputs, not conclusions; the
+adversarial design-review record of cycle 2 is in git history, last present at
+commit `e32afe3` as `panel/cycle2/`, as are the other superseded documents.
 
 ## How work leaves this repository
 
