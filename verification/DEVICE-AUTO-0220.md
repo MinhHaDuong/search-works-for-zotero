@@ -182,6 +182,21 @@ against an implementation that had no degradation path at all.
 `fp16` is the value that actually throws, reproducing the graph-fusion failure the ticket
 documents on other models, and it is what the shipped test uses.
 
+**Why it is silent, read from the runtime rather than inferred from the one probe.**
+`dtype` selects a filename suffix — `DEFAULT_DTYPE_SUFFIX_MAPPING` maps q8 to `_quantized`,
+int8 to `_int8`, fp32 to the empty string — and `selectDtype` resolves the requested value
+first. Its final branch is unconditional: a string that is not a key of `DATA_TYPES` falls
+through to `DEFAULT_DEVICE_DTYPE_MAPPING[device] ?? fp32`, with no error and no return
+value distinguishing it from an explicit request for the default. `session.js` does carry
+`throw new Error('Invalid dtype: …')`, but it tests the value `selectDtype` already
+returned, so a bad user string can never reach it — by then it has been coerced to a valid
+one. And the function's `warn` callback fires for exactly one other case, a per-file dtype
+*object* missing the current file; an unrecognised string never sets it.
+
+So the absence of a warning is a property of the code, not of this machine or this probe,
+and the documentation's "ignored silently, with no signal at all" is exact. It also means
+no catch on our side could ever detect the case: there is nothing to catch.
+
 The user-facing residue is that a typo in `ZOTEUS_EMBEDDING_DTYPE` is silent: the user
 believes they are running quantised and are not. The branch does not add a local allowlist
 to catch it — the ticket forbids one, rightly, since it would rot against the runtime's
