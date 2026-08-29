@@ -1,0 +1,88 @@
+%erg 0.1
+Title: The governance guard's scanned set is hand-listed, so a new spec document is unguarded by default
+Created: 2026-08-29
+Author: Minh Ha-Duong
+Closed: autoclosed — PR #54
+
+--- log ---
+2026-08-29T13:13Z Minh Ha-Duong created
+
+2026-08-29T14:17Z claude note closed by PR 52 taking Action 3's reading (a discovered document in neither list fails and is named), not Action 1's auto-scan; the two specify opposite defaults, Action 3 matches the exit criterion, and it keeps 0053's MISSING DOCUMENT check that pure derivation would have dropped
+2026-08-29T14:20Z Minh Ha-Duong closed — autoclosed — PR #54
+--- body ---
+## Context
+
+`bench/check_governance.py` (ticket 0053, merged as PR #41) enforces the
+governance/specification split by reading a hand-listed `SCANNED` set:
+
+    SCANNED = ["README.md", "CLAUDE.md",
+               "spec/REQUIREMENTS.md", "spec/CONSTRAINTS.md", "spec/DESIGN.md"]
+
+The guard fails loudly when a listed document *vanishes*, which is the trap it
+was written against. It says nothing at all when a document *appears*. So a new
+specification document is unscanned by default, and its unscannedness is
+indistinguishable from having nothing to hide.
+
+This is 0161's shape exactly, one guard over: **the check validates what someone
+declared, so a document nobody declared looks like a document with nothing to
+declare.** 0161 records three independent instances of it in the figure guard,
+and CLAUDE.md already names the family as this repo's most expensive recurring
+defect. Filing it separately because the remedy differs — 0161's narrowing is by
+provenance against `bench/results/**`, which has no analogue here.
+
+The trap is live, not hypothetical: ticket 0051 adds `spec/TERMINOLOGY.md`, a
+new document in the scanned directory. Nothing in the tree or in 0051 would
+prompt whoever writes it to add a line to `SCANNED`, and `make check` stays green
+either way.
+
+The stake is not cosmetic. This guard is the one the author asked for so the
+disclosure hazard would be "enforced by a check, not by care" (0053's
+verification criterion) on a public repository the upstream maintainer reads.
+A guard that silently stops covering new documents has reverted to care while
+still reporting green.
+
+## Relevant files
+- `bench/check_governance.py` — `SCANNED`, and the `UNSCANNED_BY_DESIGN` list
+  that currently documents the exclusions without enforcing them
+- `tests/test_check_governance.py` — `build()` already constructs fixture repos
+  from `cg.SCANNED`, so it inherits the same blind spot
+- `tickets/0161-standing-guard-every-prose-doc-quoting-a.erg` — the same shape
+  in the figure guard; read its "why a grep is not the answer" section first
+- `tickets/0051-terminology-md-a-standalone-glossary-for.erg` — the document
+  that will walk into this
+
+## Actions
+1. Invert the default: discover the candidate set from the tree (the `.md`
+   files at the repository root plus `spec/`), and scan everything not named in
+   an explicit exclusion list.
+2. Promote `UNSCANNED_BY_DESIGN` from a comment into that enforced list, each
+   entry keeping the reason it carries today.
+3. Fail when a discovered document is in neither set — the point is that adding
+   a document forces a decision instead of defaulting to silence.
+
+## Test
+Red first: a fixture repository containing `spec/TERMINOLOGY.md`, which states a
+bound and appears in neither list. It must fail before the change and pass after
+the document is classified. Assert the failure names the document.
+
+A second test must confirm the exclusion list still excuses `spec/DECISIONS.md`
+and `SYNC.md` — the append-only ledger and the live record legitimately state
+bounds, and a fix that starts flagging them would be reverted within a day.
+
+## Verification
+- [ ] A new `.md` under `spec/` is scanned without anyone editing the guard
+- [ ] A document in neither list fails the build and is named in the message
+- [ ] `spec/DECISIONS.md` and `SYNC.md` stay excused, with their reasons in code
+- [ ] `make check` passes
+
+## Invariants
+- The guard keeps discriminating bounds from the actor: naming the maintainer
+  is not a finding, and `spec/CONSTRAINTS.md`'s measured asymmetry must survive
+  (0053 settled this; a fix that re-fires on "maintainer" is wrong).
+- No ratified `spec/DECISIONS.md` entry is edited.
+- Sabotage-check each new test, as `tests/test_check_figures.py` and
+  `tests/test_check_governance.py` both do.
+
+## Exit criteria
+- Adding a specification document forces a scan/exclude decision rather than
+  defaulting to unscanned, and the failure names the undeclared document.

@@ -1,0 +1,89 @@
+%erg 0.1
+Title: Propose C3's replacement value and re-pin R20's RSS gate
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0267
+Label: needs-human
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 8 of tracker 0240. Labelled needs-human because the exit criterion is a ratified ledger entry, and the ledger is the author's. The agent-side work is the proposal and the same-change gate re-pin; the ruling is his.
+
+--- body ---
+## Context
+
+Child 8 of tracker `tickets/0240`, which owns the rationale.
+
+The 2026-08-29 ruling made R7 hard and gave way on C3's memory ceiling
+(`spec/DECISIONS.md`). Every multilingual candidate measures above the old
+number, so the moment one is resident, R20's gate goes red — for the right
+reason. The tracker is emphatic that it stays red until this ticket, and that
+the fix is never to loosen the gate to make a measurement pass. That is how
+ticket `0009`'s defect happened.
+
+**The two edits are one change.** C3's replacement value and R20's re-pinned
+threshold land in the same commit, never separately: a re-pin without the
+ratified constraint is a gate with no owner, and a new constraint without the
+re-pin leaves the documents and the gate disagreeing — which is exactly the
+state the red gate exists to signal.
+
+**What the agent may do, and what it may not.** The proposal, the arithmetic
+from the chosen embedder's measured RSS, and the mechanical re-pin are agent
+work. Entering the ruling in `spec/DECISIONS.md` is the author's; the ledger is
+append-only and his rulings land there first, with the other documents edited to
+match.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- `tickets/0267` — the recommendation that names the chosen embedder
+- `spec/CONSTRAINTS.md` — C3, the memory budget
+- `spec/DESIGN.md` §2.8 — the gate thresholds, which own the number
+- `spec/DECISIONS.md` — the ledger; the author writes the ruling
+- the `check-slow` gate asserting `server p95 <= 300 MB`
+- `bench/results/` — the measured RSS the proposal is derived from
+
+## Actions
+
+1. Take the chosen embedder's measured RSS median and spread from `0263` (and
+   `0264` if the deployed arm differs).
+2. Propose C3's replacement value from it, showing the arithmetic — headroom
+   over the median, and how the spread enters. A derived number is labelled
+   derived.
+3. Put the proposal to the author as a ratification question, with the
+   alternatives argued, not as a menu.
+4. On his ruling: he enters it in `spec/DECISIONS.md`; then edit
+   `spec/CONSTRAINTS.md` C3 and `spec/DESIGN.md` §2.8 to match, and re-pin the
+   `check-slow` gate — all in one change.
+5. Verify the gate is green for the right reason: it passes because the
+   threshold now reflects a ratified constraint, not because it was relaxed to
+   fit a measurement.
+
+## Test
+
+- The gate fails against a candidate above the new threshold — run it against a
+  known-over configuration so its green is a check and not a null.
+- A hygiene check that C3, DESIGN §2.8 and the gate carry the same number, so
+  the three cannot drift apart again.
+
+## Verification
+
+- [ ] The ruling is in `spec/DECISIONS.md`, written by the author
+- [ ] C3, DESIGN §2.8 and the gate carry one number, in one commit
+- [ ] The gate was demonstrated red before and green after, with the over-budget
+      case still failing
+- [ ] The proposed value's arithmetic is shown and labelled derived
+
+## Invariants
+
+- The gate is never loosened to make a measurement pass
+- The re-pin and the constraint land together, never apart
+- `spec/DECISIONS.md` is append-only; no ratified entry is edited
+- One statement per fact: the number lives in its owning document and everywhere
+  else points at it
+
+## Exit criteria
+
+- [ ] C3's replacement value ratified and recorded
+- [ ] R20's gate re-pinned in the same change, and green for the right reason
+- [ ] Tracker `0240` closable on this

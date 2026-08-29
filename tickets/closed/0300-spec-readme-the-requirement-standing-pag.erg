@@ -1,0 +1,66 @@
+%erg 0.1
+Title: spec/README.md — the requirement standing page, and the guard that keeps it true
+Created: 2026-08-29
+Author: claude
+Closed: autoclosed — PR #55
+
+--- log ---
+2026-08-29T14:40Z claude created
+2026-08-29T14:40Z claude note ID chosen clear of the frontier (0269) rather than at the next free seat, per tickets/AGENTS.md; PR #51 is the only open merge request and touches neither tickets/03* nor spec/README.md
+
+2026-08-29T14:22Z Minh Ha-Duong closed — autoclosed — PR #55
+--- body ---
+## Context
+
+The author asked where the project stands against REQUIREMENTS.md, and no
+document answered. DESIGN.md maps requirements to design sections, eighteen
+tickets cite an R-number, and SYNC.md tracks upstream — but nothing joins them,
+so the standing of the twenty-eight promises had to be reconstructed from
+primary sources each time it was asked for. This ticket writes it down and
+guards it.
+
+The page carries a progress bar because that is what was asked for, and two
+of them because one would lie: almost every promise is designed and almost
+none is shipped, and a single bar averages those into a number describing
+neither. `designed` is the chain's own state; `delivered` means the promise
+holds on stock upstream, which is where the implementation lives.
+
+## Relevant files
+
+- `spec/README.md` — the page. Also `spec/`'s landing page on the forge.
+- `bench/check_progress.py` — the guard, in `make check`.
+- `tests/test_check_progress.py` — fixture-repository suite, every failure
+  case a positive control.
+- `bench/check_governance.py`, `bench/check_chain_dedup.py` — both have a
+  completeness check over `spec/`, and both fired on the new document. One
+  line each.
+
+## What the guard checks
+
+Coverage is read from `spec/REQUIREMENTS.md`, never from the page: a guard
+that reads only the document under guard cannot tell an omission from an
+absence. Every requirement gets exactly one row, under the sheet's own
+section, quoting the sheet's own title. Every bar is recomputed from the rows,
+so no status exists in one place alone. Every digit must be an address, on
+`check_terminology.py`'s rule and for the same reason.
+
+The promise cell is exempt from the digit rule (R9's title carries a page
+count) and the exemption is only safe while the quotation is exact, so
+exactness is checked rather than trusted.
+
+## Verification
+
+- [x] `make check` green: five guards, 97 tests
+- [x] the guard fires on the page as first written — it caught two hand-counted
+      bars and their headline, which is why the bars are computed now
+- [x] both completeness checks fired on the new document before it was
+      registered, confirming that channel works
+- [x] the reading-order table was cut when `check_chain_dedup.py` showed it
+      restated what `README.md` owns
+
+## Exit criteria
+
+- [x] `spec/README.md` states the standing of all twenty-eight requirements
+- [x] the bars cannot drift from the rows
+- [x] `make check` runs the guard
+- [x] no design number, threshold or measurement is restated on the page

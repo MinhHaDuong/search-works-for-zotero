@@ -2,6 +2,7 @@
 Title: Custody quick wins: model cache under dataDir, Gemini key out of the URL
 Created: 2026-08-26
 Author: claude
+Closed: PR-4 (#27) and PR-5 (#28) both merged verbatim upstream 2026-08-29 in v1.10.0, no follow-up commit on either; all three exit criteria met. Closed on the merge of PR #43, which carried the close claim.
 
 --- log ---
 2026-08-26T15:43Z claude created
@@ -9,6 +10,7 @@ Author: claude
 
 2026-08-29T06:08Z claude note PR-4 filed upstream as #27 (fork branch model-cache-under-datadir, 998865e), PR-5 as #28 (gemini-key-header, b6312e4) — both 2026-08-28, open, CI green, Copilot-reviewed, no maintainer response at 2026-08-29. Both in-flight slots spent (SYNC.md status table). Exit criteria stay open until outcomes land
 2026-08-29T13:16Z claude note BOTH MERGED VERBATIM 2026-08-29: #27 as 5ae398a, #28 as b2b8598, filed 2026-08-28, merged within a day and with no maintainer follow-up commit on either — the merge commits' file lists match the fork commits' exactly. First contributed pair to land unmodified (#11 and #12 each drew a review follow-up, #25 was hardened in review). Shipped in v1.10.0. Exit criteria met
+2026-08-29T14:07Z Minh Ha-Duong closed — PR-4 (#27) and PR-5 (#28) both merged verbatim upstream 2026-08-29 in v1.10.0, no follow-up commit on either; all three exit criteria met. Closed on the merge of PR #43, which carried the close claim.
 --- body ---
 ## Context
 DESIGN.md §4 PR-4 and PR-5, honoring R28 and R10. PR-4: pin the transformers

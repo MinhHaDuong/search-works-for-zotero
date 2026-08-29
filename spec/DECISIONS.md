@@ -1,8 +1,7 @@
 # DECISIONS — the ratification ledger
 
-*Append-only. The author's rulings land here first; REQUIREMENTS.md,
-CONSTRAINTS.md and DESIGN.md are then edited to match. Any ratified line
-remains vetoable on later reading — a veto is a new entry here.*
+*Append-only — this document is authority's chronological point of entry; its
+role in the full chain is stated once, in README.md.*
 
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
@@ -294,6 +293,127 @@ then proves only that the surrogate is cheap. Without the revalidation this is a
 check whose all-clear is indistinguishable from "I could not look".
 
 
+**2026-08-29 — R7 is hard; C3's memory ceiling gives way.** Multilingual is not
+negotiable against a resident-memory budget. Where the two conflict, the
+embedder stays multilingual and the 300 MB server ceiling moves. The author's
+ruling, on the measurement below.
+
+The conflict is real and structural rather than a property of one model. A
+multilingual embedder pays for its vocabulary in resident memory, and
+quantization does not recover it. `multilingual-e5-small` — Zotero core's own
+multilingual pick, and the smallest serious candidate — measures 404,4 MB
+resident at uint8, its cheapest loadable rung, against a ratified ceiling of
+300 MB (`bench/results/0025-x1-recall/dtype-ladder-multilingual-e5-small.json`).
+It is the *smaller* of the two models swept that day: 118M parameters at 384
+dimensions against nomic-768's 137M at 768, and yet 404,4 MB against 235,2 MB.
+
+Why multilingual costs this much is NOT established, and an earlier draft of
+this entry claimed it was. Vocabulary is the obvious suspect — e5 carries
+250 037 tokens against nomic's 30 528, so its embedding table is 366,3 MB at
+fp32 against 89,4 MB — and the *file* sizes fit that reading exactly. The
+*resident* sizes do not. Measured warm at q8, five fresh processes each, spread
+under 7 MB: nomic-768 234,2 MB, granite-embedding-97m-multilingual-r2
+407,8 MB, multilingual-e5-small 419,5 MB. Granite and e5 differ by 102,6 MB of
+embedding table and by 11,7 MB of resident memory. A predictor built on
+`vocab x dim` matched e5-small to a tenth of a megabyte — and it had been
+calibrated on e5-small; its first out-of-sample test, Granite, it missed by
+106 MB. So the mechanism is open, and the ruling does not depend on it.
+
+What the ruling rests on is the measurement, which is robust: every
+multilingual embedder measured sits between 405 and 420 MB at its cheapest
+loadable rung, against 234 MB for the English small-vocabulary model, and none
+of them fits 300 MB. Two independent candidates, repeated, agree on that.
+
+**What this entry does not settle.** It does not set the new number. C3's
+replacement ceiling is a consequence of which embedder ticket 0240 selects, so
+the number is ratified after that choice and not before — with one bound
+already known, that no multilingual candidate measured fits under ~400 MB, so
+any revised ceiling below that is unachievable on current evidence.
+`spec/CONSTRAINTS.md` C3 and `spec/DESIGN.md` §2.9 are edited to match once the
+figure exists; until then C3's 300 MB stands in the documents with this entry
+as its known exception, because editing a ratified constraint to an unknown
+value would be worse than leaving the conflict visible.
+
+Two consequences worth naming now. The RSS gate (R20, `check-slow`) asserts
+`server p95 <= 300 MB` verbatim and will fail the moment a multilingual
+embedder is resident, so it is re-pinned in the same change as C3, never
+before. And the pipeline peak (`<= 500 MB regardless of document size`) is a
+separate budget on the worker, untouched by this ruling — an embedder resident
+in the server does not license a larger extraction peak.
+
+**2026-08-29 — the plain-language rewrite is accepted, and its voice is the
+specification chain's standard.** Ticket 0036 rewrote REQUIREMENTS.md,
+CONSTRAINTS.md and DESIGN.md out of the cycle-2 panel's compressed idiom, on the
+author's verdict of 2026-08-27 that "the house style is purely llm at the
+moment, not my voice yet". The author read all three and accepted them; the veto
+route the ticket reserved into this ledger went unused. What this settles past
+those three files: prose entering the specification chain later is written in
+that voice rather than the panel's, which is the standard for 0050's normative
+keywords, 0051's glossary and 0052's security section. The rewrite's own bounds
+carry with it — R-, C-, D- and section numbers survive as the addressing scheme
+tickets point into, the requirements list holds R-items only, and each preamble
+is an Intro section.
+
+**2026-08-29 — the chunk budget is `min(500, modelMax) − specialTokens −
+prefix`, and the resolved budget is recorded in the chunker key.** §2.2 read
+120 / 768 / 48, "Zotero's geometry, adopted verbatim". That was wrong twice
+over: 768 is the platform's ceiling rather than its chunk size, and the
+platform pairs that ceiling with a minimum against the model's own window
+which we did not copy. We took a ceiling, used it as a target, and dropped the
+guard that made it safe, while the embedder truncates past its window in
+silence — ticket 0140 measures the identity and its positive control.
+
+Ratified against the two other constructions the ticket put up, and differing
+from both:
+
+- **The minimum stays**, rather than a bare constant below 512. A fixed number
+  is safe only against models at or above it: it covers the long-window case
+  the ticket worried about and fails silently on a short-window one, which
+  0140's first verification criterion does not check. Safety by construction
+  beats safety resting on a premise about which models exist.
+- **The ceiling is 500, not 768.** Every model in ticket 0240's candidate set,
+  plus the one zoteus loads today, declares a window above 500 — measured, not
+  assumed (`verification/probes/model-window-census.py`, artifact
+  `bench/results/0140-model-windows/candidate-windows.json`, 2026-08-29; the
+  figures are stated in DESIGN.md §2.2, which owns them). So the minimum never
+  binds across the candidate set, the budget resolves to one number whichever
+  model 0240 picks, and the chunk key is stable in fact. At 768 it would bind
+  at each model's own window instead, roughly half again as much text averaged
+  into one vector under a long-window model than under today's — in the
+  direction §2.2's standing caveat calls degradation, since one vector is a
+  fixed-size summary and a model accepting more text is not a reason to give
+  it more.
+- **The resolved budget goes in the chunker key.** The dependency on the
+  embedder is real in form even where it does not bind, and C1's staged
+  invalidation is worth more when a change that *does* move the budget
+  invalidates chunks loudly. This amends the invariant 0140 stated for itself,
+  "the chunk key does not depend on the embedder": it does, through the
+  resolved budget and nothing else, and that value is constant across every
+  candidate measured.
+
+**A field-selection problem the ballot did not see, and the second argument for
+the low ceiling.** "The model's limit" is not one number. One candidate
+declares four position-limit fields spanning a factor of four, the larger ones
+extrapolation past what was trained; another declares different limits in its
+config and its tokenizer config. Any construction reading `modelMax` must
+therefore name which field it reads, and that choice moves the budget. The
+census takes the minimum over every field a model declares, the only reading
+that cannot over-feed. At a ceiling of 500 the question stops mattering, which
+is an argument the ballot could not make because it had not measured.
+
+**Riding with the ruling:** the platform's quarter-rule, where a heading path
+costing more than a quarter of the budget is dropped entirely rather than
+truncated. The ceiling bounds the whole embedded sequence, heading path
+included, and `min(500, width) − affordances` is not `min(width − affordances,
+500)`.
+
+**Not settled here.** §2.9's passage count is recomputed from a measurement
+rather than divided; `truncation: true` on the embed call remains 0140's
+action 4, competing for upstream budget on its own merits. "Adopted verbatim"
+is replaced rather than made true: the construction is the platform's, the
+ceiling is ours, and §2.2 now says which is which.
+
+
 ## Awaiting ratification
 
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
@@ -361,3 +481,36 @@ here, not in any issue text):
   repo — the real-document run remains X3a on the author's machine. Ratify the
   surrogate as satisfying R20's intent, or keep R20's letter and accept that
   the gate half of it lives only on the author's machine.
+
+- **The device ruling of 2026-08-29 rests on a premise that measurement voids.**
+  The ruling — the device is always `auto`, never a knob — was made on the
+  reading that `auto` hands ONNX Runtime the whole provider list and that ORT's
+  own fallback walks past a provider it cannot use, so no escape hatch is
+  needed. That reading was taken from `src/backends/onnx.js` and never executed;
+  ticket 0220 said as much about its GPU claims, but the same gap covered the
+  half that needs no GPU to test.
+
+  Executed, `device: 'auto'` **fails** on a CPU-only linux-x64 machine:
+  `OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library`,
+  from `libcublasLt.so.12` being absent. Reproduced against a clean
+  `npm install @huggingface/transformers@4.2.0`, where the same call with no
+  device option loads and serves bit-identical vectors. There is no fallback
+  loop to rely on: `createInferenceSession` passes the provider list straight to
+  the binding, `onnxruntime-node` ships the CUDA provider on linux-x64
+  unconditionally, and the list is built from `process.platform` and
+  `process.arch` alone. Evidence and the mechanism:
+  `verification/DEVICE-AUTO-0220.md`; artifacts `bench/results/0220-device-dtype/`.
+
+  So the ordinary Linux desktop is the failing case, not the exotic one the
+  ruling set aside. Shipping `auto` unconditionally would end semantic search on
+  the default local path for every Linux user without a CUDA runtime.
+
+  The branch built for 0220 therefore passes **no** device and ships the dtype
+  half alone, which is behaviour-preserving everywhere and is the only shape
+  that neither regresses nor presumes a ruling. What needs the author is which
+  shape the device takes from here: keep passing none; pass `auto` and catch the
+  failure, which recovers the macOS/Windows accelerators at the price of a
+  native ORT error on stderr at every cold start for Linux users without CUDA;
+  or pass `cpu` explicitly, measured identical to today but foreclosing any
+  future improvement to the runtime's own default. The ruling's *intent* is
+  untouched by the measurement and no knob is proposed.

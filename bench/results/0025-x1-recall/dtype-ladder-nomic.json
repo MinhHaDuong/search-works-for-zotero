@@ -1,0 +1,84 @@
+{
+  "what": "cost of every published quantization rung, at query time (batch 1)",
+  "model": "nomic-ai/nomic-embed-text-v1.5",
+  "runtime": "@huggingface/transformers in Node (ONNX), the runtime zoteus ships",
+  "rungs": [
+    {
+      "dtype": "fp32",
+      "download_mb": 522.0,
+      "rss_delta_mb": 884.9,
+      "query_ms_median": 30.3,
+      "query_ms_p95": 44.1,
+      "load_ms": 1768.4,
+      "dim": 768
+    },
+    {
+      "dtype": "q8",
+      "download_mb": 130.9,
+      "rss_delta_mb": 235.2,
+      "query_ms_median": 18,
+      "query_ms_p95": 24,
+      "load_ms": 660.5,
+      "dim": 768
+    },
+    {
+      "dtype": "int8",
+      "download_mb": 130.9,
+      "rss_delta_mb": 232.9,
+      "query_ms_median": 13.7,
+      "query_ms_p95": 20.6,
+      "load_ms": 633.6,
+      "dim": 768
+    },
+    {
+      "dtype": "uint8",
+      "download_mb": 130.9,
+      "rss_delta_mb": 239.5,
+      "query_ms_median": 14,
+      "query_ms_p95": 22.3,
+      "load_ms": 616.4,
+      "dim": 768
+    },
+    {
+      "dtype": "q4",
+      "download_mb": 157.5,
+      "rss_delta_mb": 247.4,
+      "query_ms_median": 25.2,
+      "query_ms_p95": 33.2,
+      "load_ms": 591.8,
+      "dim": 768
+    },
+    {
+      "dtype": "bnb4",
+      "download_mb": 150.7,
+      "rss_delta_mb": 253.7,
+      "query_ms_median": 91.4,
+      "query_ms_p95": 111.3,
+      "load_ms": 517,
+      "dim": 768
+    }
+  ],
+  "would_not_load": [
+    "fp16",
+    "q4f16"
+  ],
+  "failure_note": "fp16 and q4f16 abort at session init on the ONNX Runtime CPU provider: 'Attempting to get index by a name which does not exist: InsertedPrecisionFreeCast_/emb_ln/Constant_output_0 for node /emb_ln/Mul/SimplifiedLayerNormFusion'. A graph-fusion failure, not a missing kernel; both fp16-bearing rungs are GPU-conditional in practice.",
+  "caveats": [
+    "One process per rung, warm cache: RSS is the total a fresh server process pays (ONNX Runtime and Node included), not the marginal cost of the weights. Loading a second model into a live process costs less, because the runtime is already there.",
+    "load_ms is warm \u2014 the weights were already downloaded. A first run also pays the download in the size column.",
+    "download_mb is the published ONNX file size on the Hugging Face repo, external data files included.",
+    "Cost, not quality. Read beside the fidelity ladder, never instead of it."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      1.65,
+      0.74,
+      0.5
+    ],
+    "node": "v22.23.1"
+  }
+}

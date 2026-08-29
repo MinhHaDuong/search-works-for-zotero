@@ -1,0 +1,399 @@
+%erg 0.1
+Title: Choose the multilingual embedder, on measurements taken at the deployed dtype
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0220
+
+--- log ---
+2026-08-29T20:10Z claude note decomposed into a tracker plus eight children (0261-0268). It failed every line of the monster-ticket checklist: eight actions across two hardware arms, one of which needs a host this machine is not; long real-data campaigns as exit criteria; and four separate author sign-off units bundled into one (the harness design, the candidate field, the recommendation, and C3's ratification). The partition follows the seams the Actions section already had. This body stays as the rationale every child points at -- children carry no restated numbers, per the repo's one-statement-per-fact convention. Tracker stays open until every child closes, and then closes only after the integration review.
+
+2026-08-29T16:40Z claude created
+2026-08-29T18:10Z claude note amended after the first candidate measurements. Four changes. (a) The author ruled R7 hard and C3's memory ceiling gives way (spec/DECISIONS.md 2026-08-29), so RSS is no longer a rejection gate here — it is a reported cost that sets the new ceiling. The old decision rule would have rejected every multilingual candidate. (b) The candidate field is now enumerated rather than hypothetical; a seed registry is in the body. (c) Two measurement disciplines were learned the hard way and are now requirements: warm runs only, and repeats. (d) e5-family models need "query: "/"passage: " prefixes, so the registry carries a per-model input template — without it the harness would under-measure e5 and conclude an English model retrieves better.
+2026-08-29T17:05Z claude note author added uint8 to the scope. Reason it is not a fourth rung for symmetry: on nomic-768 uint8 holds mean cosine 0,94793 against q8's 0,90031 and keeps 0,8406 of the top-30 against 0,7439, never losing the top-1 where q8 sometimes does — at identical download size and with RAM and latency inside the noise floor. The two 8-bit variants are the same price and not the same quality, so scoping to q8 alone would have picked one blind on every candidate. Whether that ordering generalises past nomic is untested and is now an explicit output of the study. Also folded in: q8 and int8 resolved to ONE file on nomic (md5 b65952d0..., vectors bit-identical to five decimals), which briefly produced a spurious "int8 is the fastest rung" out of measurement noise — so the harness must hash each resolved ONNX file and record a duplicate cell as a duplicate rather than spend a run on it.
+
+2026-08-29T15:05Z claude note the per-model input template needs a POOLING column beside the prefixes, and for the same reason. Zotero core's registry (zotero/zotero#6012, chrome/content/zotero/xpcom/embeddings.js) carries pooling per model and it varies: cls for bge-small-en/zh, bge-base, bge-m3; mean for multilingual-e5-small/base, all-MiniLM-L6-v2, jina-v2-small. zoteus hardcodes pooling:'mean' at src/features/search/embeddings.ts:284, so a harness copying it will silently mean-pool a cls model and under-measure it exactly as missing prefixes under-measure e5. NOT yet checked, and it is the one check that matters here: which pooling granite-embedding-97m/311m-r2, snowflake-arctic-embed-m-v2.0 and gte-multilingual-base each want — three of the four leading candidates. Read it off each model card before 0262 embeds anything; do not infer it. Same file also confirms two things this ticket already holds: dtype belongs in vector identity (their revision-bump comment names dtype first), and their pick for every one of eight shipped models is q8.
+--- body ---
+## This is a tracking ticket
+
+Decomposed 2026-08-29. This body is the rationale; the executable work is in the
+children below, each sized to one sign-off unit and each blocked by its real
+prerequisite, never by this tracker. The Actions section further down is the
+partition's source and is kept for the reasoning behind each step, not as a work
+queue.
+
+| child | scope | blocked by |
+|---|---|---|
+| `0261` | Enumerate multilingual ONNX candidates into a declared registry | -- |
+| `0262` | The registry-driven resumable sweep harness in `bench/` | 0261 |
+| `0263` | CPU arm: cost and fidelity, every candidate, every loadable dtype | 0262 |
+| `0264` | GPU arm on padme; what `auto` actually selects (needs-human: no GPU here) | 0262 |
+| `0265` | Recall at the deployed dtype, and the fused RRF delta | 0263 |
+| `0266` | Cross-lingual probe on the multilingual vectors | 0263 |
+| `0267` | The recommendation: evidence plus a decision rule | 0263 0264 0265 0266 |
+| `0268` | Propose C3's replacement value and re-pin R20's gate (needs-human: his ledger) | 0267 |
+
+Two children are labelled `needs-human` for different reasons, and neither is a
+judgement call deferred out of caution. `0264` needs padme: the working machine
+has no GPU at all, so nothing in that arm can be executed here beyond the code
+path. `0268` needs the author's ruling: its exit criterion is a ratified entry
+in `spec/DECISIONS.md`, and the ledger is his.
+
+This tracker closes after the integration review across all eight, not on the
+bare event of the last child merging.
+
+## Context
+
+**Every model measured in `0025-x1-recall/` is disqualified by R7.** The
+requirement is not new and not soft: "the default path works for French, German,
+Vietnamese, Greek and Russian with no configuration, and the default embedder is
+multilingual" (`spec/REQUIREMENTS.md` R7). `all-MiniLM-L6-v2` is English.
+`bge-small-en-v1.5` says so in its name. `nomic-embed-text-v1.5` is
+English-centric. So is `Qwen3-Embedding-0.6B` in the form we measured. The
+campaign that produced `task-recall.json`, `embed-feasibility.json`,
+`gpu-feasibility.json`, `query-cost*.json` and the dtype ladders benchmarked a
+field of candidates that R7 already excludes, and its recall column cannot
+select anything. That is the reason for this ticket, and it should be said
+plainly rather than discovered by the next reader.
+
+The one multilingual model anywhere in this repo's evidence is Zotero core's
+second model, `multilingual-e5-small` — and it has never been loaded here. It is
+a blank column, not a low score.
+
+Ticket 0220 makes dtype configurable and the device automatic. It deliberately
+ships no default. This ticket produces the evidence for one, and it must
+generate that evidence rather than inherit it, because of what the partial
+fidelity run already shows.
+
+**Recall measured at fp32 does not survive quantization.** nomic-768 q8 against
+its own ONNX fp32, 600 passages: mean cosine 0,90031, **zero** vectors reaching
+`cboulanger/zotero-rag`'s 0,999 compatibility threshold, overlap@30 of 0,7439
+with a p05 of 0,5667. The fp32 rung scored against itself returns 1,0000 on
+every column, so the probe discriminates and the q8 row is not an artifact of a
+broken scorer. The best single neighbour survives (top-1 kept 0,9950) while a
+quarter of the top-30 reshuffles. Consequence for this ticket: the 0,4639 in
+`task-recall.json` is an fp32 number, and a q8 deployment does not get it. Every
+recall figure here must be measured on vectors produced by the exact dtype that
+would ship.
+
+Whether that 0,90 is specific to nomic or general to 8-bit quantization is
+**unknown and worth knowing**. A mean cosine of 0,90 is low for 8-bit, where
+0,99+ is typical. Report the observation; do not adopt a cause. If some
+candidates quantize to 0,99 and others to 0,90, quantization robustness is
+itself a selection criterion, and nobody in the surveyed field measures it
+(`spec/FIELD-REVIEW.md`).
+
+## Scope
+
+**Quantization: fp32, fp16, q8, uint8. Nothing below.** Ruled by the author, and
+the measurements support the floor: on both models swept, q4 downloads larger
+than q8, holds more memory and runs slower, and bnb4 is 5,1x (nomic) and 8,7x
+(Qwen3) slower than q8 for lack of an optimised CPU kernel
+(`dtype-ladder-nomic.json`, `dtype-ladder-qwen3-06b.json`). A rung dominated on
+every cost axis cannot be rescued by quality, so measuring it wastes the run.
+
+**Both 8-bit variants are swept, and collapsing them to one would be a mistake
+made blind.** They are the same price and demonstrably not the same quality.
+On nomic-768 (`quant-fidelity-nomic.json`), uint8 holds mean cosine 0,94793
+against q8's 0,90031, keeps 0,8406 of the top-30 against 0,7439, and never loses
+the top-1 neighbour where q8 loses it sometimes — at a download of identical
+size and RAM and latency inside the ±2,3 MB / ±4,3 ms noise floor. Asymmetric
+quantization preserved that model's geometry better than symmetric, for free.
+Whether that ordering holds for any other model is UNTESTED, and that is exactly
+why both cells are run per candidate rather than one being assumed: the point is
+not that uint8 wins, it is that nobody can know which wins without measuring.
+
+**`q8` and `int8` may resolve to the same file, so `int8` is not a third cell —
+verify rather than assume.** On nomic they are one blob (md5 `b65952d0…`) and
+their vectors came out bit-identical to five decimals, so measuring both
+measured nothing twice over and briefly produced a spurious "int8 is the fastest
+rung" from pure noise. That is a per-repository property, not a rule. The
+harness must hash the resolved ONNX file per cell and, on a collision, record
+the cell as a duplicate of the one already measured instead of spending a run on
+it — which also stops the noise from ever being read as a difference again.
+
+Note the interaction with hardware, which is why fp16 is in scope despite
+failing here: **fp16 does not load on the ONNX CPU provider** — nomic aborts at
+session init with `Attempting to get index by a name which does not exist:
+InsertedPrecisionFreeCast_/emb_ln/Constant_output_0 for node
+/emb_ln/Mul/SimplifiedLayerNormFusion`, a graph-fusion failure rather than a
+missing kernel. fp16 is therefore a GPU-only rung, and the CPU and GPU arms of
+this study do not have the same shape. Do not silently drop it on CPU; record it
+as unloadable, which is a result.
+
+**Models: multilingual only.** An English-only model is rejected on R7 without
+being measured — that is the filter, applied before the benchmark rather than as
+a tiebreak after it. Candidates must also publish ONNX under the file names
+transformers.js resolves, which is a sharper constraint than it looks (below).
+
+**Memory is a reported cost, not a gate.** Ruled 2026-08-29
+(`spec/DECISIONS.md`): R7 is hard and C3's 300 MB ceiling gives way where the
+two conflict. That inverts what an RSS number does in this study. It does not
+reject a candidate — applied as a gate it would reject every multilingual model
+measured — it is reported, and the winner's figure becomes the input to C3's
+replacement value, which is ratified after this ticket and not before. So
+measure RSS carefully and rank on quality, not the reverse.
+
+Three cells are already measured, warm, five fresh processes each, q8, and they
+are the baseline this study extends rather than repeats:
+
+| model | RSS median | spread | note |
+|---|---|---|---|
+| `nomic-embed-text-v1.5` | 234,2 MB | 6,6 | English, R7-ineligible, kept as the contrast |
+| `granite-embedding-97m-multilingual-r2` | 407,8 MB | 2,5 | cheapest multilingual measured |
+| `multilingual-e5-small` | 419,5 MB | 6,9 | Zotero core's pick |
+
+The two multilingual figures are 11,7 MB apart against a spread of up to 6,9, so
+they are close and not ranked. Do not report an ordering between them without
+more runs than this.
+
+**This ticket will break the RSS gate, and that is expected.** R20's gate
+(`check-slow`, DESIGN §2.8) asserts `server p95 <= 300 MB` verbatim, against the
+budget C3 ratified. The 2026-08-29 ruling makes that number wrong for a
+multilingual default, and every candidate here measures 405 MB or more — so the
+first time one is resident the gate goes red for the right reason. Do NOT
+loosen or disable it while the study runs: a gate turned off to make a
+measurement pass is how ticket 0009's defect happened. Leave it red, and re-pin
+it in the SAME change that sets C3's replacement value, once the chosen
+embedder's figure exists. Until then the red gate is the reminder that C3 and
+the documents disagree.
+
+**Do not carry the vocabulary explanation forward.** An earlier reading of these
+numbers held that the embedding table sets the resident floor and quantization
+cannot shrink it, with a `vocab x dim` predictor to match. It was retracted:
+Granite and e5-small differ by 102,6 MB of fp32 embedding table and by 11,7 MB
+of resident memory, and the predictor missed Granite by 106 MB on its first
+out-of-sample test after matching e5-small to a tenth of a megabyte because it
+had been fitted on e5-small. File sizes still follow the table; resident sizes
+are unexplained. If this study wants a memory model, it must earn one — and it
+does not need one to pick a model.
+
+**Hardware: CPU here, GPU on padme.** Both arms, same corpus, same probes, same
+driver. `gpu-feasibility.json`'s A4000 figures were derived from PyTorch run
+logs on another machine and are upper bounds by projection, not measurements in
+the shipped runtime; this ticket replaces them with real ONNX numbers on the
+designated GPU host. NOTE: the working machine (`doudou`) has no GPU at all —
+`nvidia-smi` is absent — so nothing in the GPU arm can be developed and tested
+here beyond the code path.
+
+## Candidate field, enumerated 2026-08-29
+
+A search over open, small, genuinely multilingual embedders with ONNX under the
+filenames transformers.js resolves. Seed for the registry; not a shortlist, and
+not verified beyond what each column says.
+
+| model | repo to load | params | dim | max seq | licence | claimed score |
+|---|---|---|---|---|---|---|
+| granite-embedding-97m-multilingual-r2 | `onnx-community/granite-embedding-97m-multilingual-r2-ONNX` | 97,4M | 384 | 32 768 | Apache-2.0 (both repos) | 60,3 MTEB ML Retrieval (18) |
+| granite-embedding-311m-multilingual-r2 | `onnx-community/granite-embedding-311m-multilingual-r2-ONNX` | 311,7M | 768 MRL | 32 768 | Apache-2.0 (both) | 65,2 same benchmark |
+| snowflake-arctic-embed-m-v2.0 | `Snowflake/snowflake-arctic-embed-m-v2.0` (no mirror needed) | 305,4M | 768 MRL→256 | 8 192 | Apache-2.0 | MIRACL(4) nDCG@10 55,2 |
+| gte-multilingual-base | `onnx-community/gte-multilingual-base` | 305,4M | 768 MRL 128–768 | 8 192 | Apache-2.0 | charts only, no plain figure |
+| multilingual-e5-base | `Xenova/multilingual-e5-base` | 278,0M | 768 | 512 | MIT | none aggregate |
+| multilingual-e5-small | `Xenova/multilingual-e5-small` | 117,7M | 384 | 512 | MIT | 50,9, per IBM's card |
+| paraphrase-multilingual-mpnet-base-v2 | `Xenova/paraphrase-multilingual-mpnet-base-v2` | 278,0M | 768 | 128 | Apache-2.0 | none |
+| paraphrase-multilingual-MiniLM-L12-v2 | `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | 117,7M | 384 | 128 | Apache-2.0 | none |
+| distiluse-base-multilingual-cased-v2 | `Xenova/distiluse-base-multilingual-cased-v2` | 134,7M | 512 | 128 | Apache-2.0 | none |
+
+The 128-token ceiling on the three sentence-transformers entries is a hard
+disqualifier for passage retrieval at this project's chunk geometry; keep them
+in the registry as measured negatives rather than deleting them.
+
+Rejected with reasons: `google/embeddinggemma-300m` on licence (Gemma terms,
+not open) despite a clean technical fit; `jina-embeddings-v3` on licence
+(CC-BY-NC) and size; `bge-m3` (568M) and `snowflake-arctic-embed-l-v2.0`
+(567,8M) on size; both Granite **v1** variants because their declared language
+list is twelve and omits Greek, Vietnamese and Russian entirely — a reminder to
+read the language list rather than the word "multilingual".
+`jina-embeddings-v2-base-multilingual` is a **could-not-look**: gated, 401 to an
+unauthenticated fetch. `nomic-embed-text-v2-moe` is a confirmed absence — no
+ONNX anywhere, checked through the search endpoint rather than inferred from a
+401.
+
+**The claimed scores are vendor numbers and two of them come from the same
+card.** IBM's README reports both its own 60,3 and e5-small's 50,9. Use them to
+choose what to measure; never to choose what to ship.
+
+## The ONNX-naming constraint, which prunes the candidate list first
+
+`dtype` resolves through `DEFAULT_DTYPE_SUFFIX_MAPPING` to a specific filename,
+so a model is only sweepable if its repo publishes those names. Verified
+2026-08-29:
+
+- `intfloat/multilingual-e5-small` publishes `model.onnx`, `model_O4.onnx`,
+  `model_qint8_avx512_vnni.onnx` — **the transformers.js dtype knob cannot
+  address any of these but fp32.** The original author's repo is not usable for
+  a dtype sweep.
+- `Xenova/multilingual-e5-small` publishes the full conventional set
+  (`model_fp16`, `model_quantized`, `model_int8`, `model_uint8`, `model_q4`,
+  `model_q4f16`, `model_bnb4`), and so does
+  `Xenova/paraphrase-multilingual-MiniLM-L12-v2`.
+- `Alibaba-NLP/gte-multilingual-base` and `nomic-ai/nomic-embed-text-v2-moe`
+  publish **no ONNX at all**, so neither is a candidate today whatever its
+  quality.
+- `onnx-community/*` mirrors returned HTTP 401 to an unauthenticated query in
+  this session; that is a "could not look", not an absence. Re-probe before
+  concluding a mirror does not exist.
+
+So step one is enumeration, not benchmarking, and its output is a list of
+`(model, repo, available dtypes)` with the unavailable combinations recorded as
+unavailable rather than omitted. A candidate that only exists at fp32 is a
+finding about that candidate.
+
+## Infrastructure: the deliverable is a harness, not a table
+
+The explicit requirement is that adding a model later costs one line and a run,
+not a rewrite. Concretely:
+
+- **A declared candidate registry** — one file listing `(id, hf repo, dim,
+  languages, licence, MRL yes/no, notes)`. Adding a model means adding a record.
+  Nothing else in the harness names a model.
+- **Results keyed by `(model, dtype, device, corpus, driver version)`**, one
+  file per cell, written incrementally. A partial sweep is a valid state: the
+  scorer reads what exists and reports what is missing rather than failing. This
+  matters because the runs are long and will be interrupted.
+- **Idempotent and resumable** — a completed cell is skipped, so re-running
+  after adding a candidate measures only the new cells. The existing
+  `sweep.sh`/`fidsweep.sh` pattern (skip when the output exists) is the seed;
+  promote it into the repo instead of leaving it in a scratch directory.
+- **Reuse the existing drivers**: `bench/query_embed_cost.mjs` (RAM, latency,
+  batch 1), `bench/quant_fidelity.mjs` (vectors at a rung),
+  `bench/quant_fidelity_score.py` (fidelity and rank agreement),
+  `bench/merge_dtype_ladder.py` (cost ladder), `bench/vec_task_recall.mjs`
+  (recall). All four already take `--dtype`/`--device` or are dtype-agnostic.
+  Do not write a fifth thing that overlaps them.
+- **One process per cell**, as the ladder sweeps already do, so RSS is what a
+  fresh server pays rather than a delta against a warmed allocator. The existing
+  MiniLM and bge figures were taken sequentially in one process and are
+  therefore NOT comparable to nomic's; re-measure them rather than reusing them.
+- **Warm only, and never mix a cold run into a table.** A cold run pays the
+  weight download inside the measured window. Granite-97m read 364,8 MB at q8
+  cold against 410,2 warm, and 453,5 at uint8 cold against 404,9 warm — 45 to
+  49 MB of error, in both directions, which is larger than the differences this
+  study exists to resolve. The harness downloads first, then measures.
+- **Repeat every RSS cell and report the median with its spread.** Warm, over
+  five fresh processes, the spread is 2,5 to 6,9 MB. So a warm figure is good to
+  about 10 MB and no better, and any ranking that turns on less than that is
+  reading noise. Granite at 407,8 and e5-small at 419,5 are close, not ranked.
+- **A per-model input template in the registry.** e5 models require `query: `
+  and `passage: ` prefixes — its card says omitting them costs performance — and
+  other families need none. A harness that ignores this under-measures e5 and
+  would conclude an English model retrieves better. The template belongs beside
+  the model id, applied by the driver, and recorded in every result file.
+
+## Engine tracking: ONNX versions, limits, and where it is going
+
+A measurement here is only valid for the engine that produced it, and this
+engine moves. Record with every result, and investigate as its own deliverable:
+
+- **Versions**: `@huggingface/transformers` (4.2.0 here), `onnxruntime-node`
+  (1.24.3), `onnxruntime-web` (1.26.0-dev.20260416-b7804b056c),
+  `onnxruntime-common` (1.24.3). These are not one version; the web build is a
+  dev snapshot ahead of the node build, and a result can depend on which is
+  used.
+- **The engine documents its own support matrix in source.**
+  `src/backends/onnx.js` carries a table "updated as of ONNX Runtime
+  1.23.0-dev.20250612-70f14d7670": CUDA on Linux x64 only and CUDA v12 only, no
+  CUDA on Windows or macOS or arm64; DirectML on Windows only; CoreML on macOS
+  only; WebGPU everywhere but arm64 Linux and marked experimental. That table is
+  the honest statement of what `device: 'auto'` can reach, and it is versioned —
+  re-read it rather than citing this ticket.
+- **Known limits to characterise**: fp16 on the CPU provider (above); whether
+  `q4f16` fails for the same reason or a different one; whether the WebGPU path
+  is usable from Node at all; what `auto` actually selects on padme, observed
+  rather than inferred.
+- **Development plan**: upstream `huggingface/transformers.js#945` ("use cuda by
+  default and bump onnxruntime-node") was **open** at last check, its author
+  reporting ~10x and stating he could not run the tests. If it lands, the
+  meaning of the default changes and every CPU baseline here needs re-reading.
+  Track it and record its state with the results.
+
+## Actions
+
+1. Enumerate multilingual candidates with usable ONNX. Output the
+   `(model, repo, dtypes available)` registry described above, with 401s and
+   absences distinguished. Include `Xenova/multilingual-e5-small` (Zotero core's
+   own multilingual pick, the blank column) and
+   `Xenova/paraphrase-multilingual-MiniLM-L12-v2`; probe `bge-m3`,
+   `jina-embeddings-v3`, `snowflake-arctic-embed` and the `onnx-community`
+   mirrors with authentication before ruling them out.
+2. Build the registry-driven, resumable harness; promote the scratch sweep
+   scripts into `bench/`.
+3. Run the CPU arm per candidate: fp32, fp16 (expected unloadable — record it),
+   q8 and uint8. Cost first, since it is cheap and prunes. Hash each resolved
+   ONNX file and skip a cell whose file was already measured, recording it as a
+   duplicate.
+4. Run the GPU arm on padme, same cells. Record what `auto` selects.
+5. Measure recall **at each surviving dtype**, on vectors that dtype produced —
+   not fidelity-to-fp32 as a proxy for it. Fidelity stays as a second, cheaper
+   signal and as the quantization-robustness criterion.
+6. Measure the **fused** delta, not the vector-arm delta: RRF over FTS5 plus
+   vectors is what a user sees, and a vector-arm gain can wash out against an
+   unchanged keyword arm. This has never been measured
+   (`0070-cosine-fusion/` is loop fusion, a different thing).
+7. Add a cross-lingual probe. R7 is per-language lanes; ticket 0037 is the
+   stronger property (an EN or FR query finding Vietnamese content). A
+   multilingual embedder is the mechanism for both, so measure it here while the
+   vectors exist rather than re-running later. Coordinate with 0037; do not
+   duplicate its requirement text.
+8. Write the recommendation as evidence plus a decision rule, addressed to the
+   maintainer's choice, not as a patch to a default.
+
+## Test
+
+The harness gets tests before the campaign, because a benchmark that silently
+measures the wrong thing produces confident wrong answers for weeks:
+
+- The registry is the only place a model name appears — an adherence-style test
+  greps `bench/` for hard-coded model ids outside it.
+- A cell already present is skipped and NOT recomputed; a cell absent is run.
+  Assert both directions, since "skips everything" and "resumes correctly" look
+  identical on a full directory.
+- The scorer reports a missing cell as missing and still scores the rest, rather
+  than failing or silently reporting a short table.
+- Positive control on the fidelity scorer: fp32 against itself must return
+  cosine 1,0 and overlap 1,0. This is already how the nomic q8 result was known
+  to be real rather than a broken probe; make it an assertion.
+- A recorded engine-version mismatch between a result file and the running
+  environment is surfaced, not ignored.
+
+## Verification
+
+- [ ] Every English-only model is absent from the results, by the R7 filter, and
+      the registry records why rather than leaving a gap
+- [ ] Each result file names its four engine versions and the device actually
+      selected, not the device requested
+- [ ] `auto` on padme is observed to select a GPU provider — the claim that it
+      does is currently read from source and has never been executed
+- [ ] Adding one candidate to the registry and re-running measures only the new
+      cells; demonstrate it by adding one
+- [ ] Recall figures come from vectors at the deployed dtype; no fp32 recall is
+      quoted for a quantized configuration anywhere in the report
+- [ ] The fp32-against-itself control returns 1,0 in the shipped scorer
+
+## Invariants
+
+- R7 is a filter, not a tiebreak: no English-only model is benchmarked
+- R10 holds throughout: no API embedder enters the comparison, on any arm
+- No second embedding set is proposed — the field survey found 0 of ~20 projects
+  maintaining one, and the single coexistence implementation serves migration
+- Existing artifacts in `0025-x1-recall/` are not deleted or rewritten. They are
+  a valid record of an invalid candidate field, and the honest move is to say so
+  where they are cited
+- The recommendation does not set a default; it equips the maintainer to set
+  one, and states what evidence would overturn it
+
+## Exit criteria
+
+- [ ] Registry-driven resumable harness in `bench/`, tested as above
+- [ ] CPU and GPU arms complete for every surviving candidate at fp32, fp16, q8
+      and uint8, with unloadable combinations recorded as results and duplicate
+      files recorded as duplicates rather than re-measured
+- [ ] The q8-versus-uint8 ordering is reported per candidate, so the question of
+      whether nomic's result generalises is answered rather than assumed
+- [ ] Recall at deployed dtype, fidelity, and the fused delta measured
+- [ ] Engine versions, limits and the state of the upstream CUDA work recorded
+      with the results
+- [ ] A recommendation stating a decision rule, its evidence, and what would
+      overturn it
+- [ ] C3's replacement value proposed from the chosen embedder's measured RSS, with
+      R20's gate re-pinned in the same change — never before it, and never by
+      loosening the gate to make a measurement pass

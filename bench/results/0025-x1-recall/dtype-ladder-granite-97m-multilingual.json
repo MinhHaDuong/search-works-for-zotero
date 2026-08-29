@@ -1,0 +1,78 @@
+{
+  "what": "cost of every published quantization rung, at query time (batch 1)",
+  "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+  "runtime": "@huggingface/transformers in Node (ONNX), the runtime zoteus ships",
+  "rungs": [
+    {
+      "dtype": "fp32",
+      "download_mb": 371.9,
+      "rss_delta_mb": 684.8,
+      "query_ms_median": 10.6,
+      "query_ms_p95": 17.9,
+      "load_ms": 2848,
+      "dim": 384
+    },
+    {
+      "dtype": "q8",
+      "download_mb": 93.3,
+      "rss_delta_mb": 410.2,
+      "query_ms_median": 6.7,
+      "query_ms_p95": 8.9,
+      "load_ms": 1811.7,
+      "dim": 384
+    },
+    {
+      "dtype": "uint8",
+      "download_mb": 93.3,
+      "rss_delta_mb": 404.9,
+      "query_ms_median": 5.5,
+      "query_ms_p95": 8.5,
+      "load_ms": 1918.1,
+      "dim": 384
+    }
+  ],
+  "would_not_load": [],
+  "failure_note": "fp16/q4/q4f16/bnb4 not swept: fp16 fails on the CPU provider for both other models tested, and the rest are below the floor ratified for ticket 0240.",
+  "caveats": [
+    "Warm runs only. A cold run of this model, download in flight, read 364,8 MB at q8 and 453,5 MB at uint8 against warm 410,2 and 404,9 \u2014 a 45-49 MB error in both directions. Cold RSS is not comparable to warm and must never be mixed into a table.",
+    "One process per rung, warm cache: RSS is the total a fresh server process pays (ONNX Runtime and Node included), not the marginal cost of the weights. Loading a second model into a live process costs less, because the runtime is already there.",
+    "load_ms is warm \u2014 the weights were already downloaded. A first run also pays the download in the size column.",
+    "download_mb is the published ONNX file size on the Hugging Face repo, external data files included.",
+    "Cost, not quality. Read beside the fidelity ladder, never instead of it."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      2.38,
+      4.08,
+      6.24
+    ],
+    "node": "v22.23.1"
+  },
+  "why_this_model": "Surfaced by a candidate search over open, small, genuinely multilingual embedders with ONNX published under the filenames transformers.js resolves. The standout on paper: 97,4M parameters, 384 dimensions, 32k context, Apache-2.0 on both the original ibm-granite repo and this ONNX mirror, and the only candidate found carrying an apples-to-apples multilingual retrieval score.",
+  "claimed_quality": "60,3 on MTEB Multilingual Retrieval over 18 tasks, against 50,9 for multilingual-e5-small on the same benchmark. CLAIMED BY IBM in the model's own README, which is also the source of the e5-small comparison figure \u2014 a vendor reporting its own model beside a rival. Not independently verified and not measured here. Ticket 0240 measures recall on this repo's corpus; until then this number selects what to measure, never what to ship.",
+  "verdict": "Cheapest multilingual model measured, and only just. 407,8 MB at q8 against multilingual-e5-small's 419,5 MB \u2014 11,7 MB apart, where repeated measurement of a single cell spans 2,5-6,9 MB. Treat them as close, not as ranked. Both sit far above nomic-768's 234,2 MB and both exceed CONSTRAINTS.md C3's 300 MB, which the 2026-08-29 ruling resolves in R7's favour.",
+  "predictor_failed": "This model is why the vocab x dim resident-memory predictor was retracted. It predicted 302 MB from a 263,7 MB embedding table; the measurement is 407,8 MB, off by 106 MB. The predictor had matched e5-small to a tenth of a megabyte, having been calibrated on it. First out-of-sample test, first failure \u2014 see dtype-ladder-multilingual-e5-small.json.",
+  "repeated_measurement": {
+    "what": "q8 RSS over five fresh processes, warm",
+    "granite_97m_mb": {
+      "median": 407.8,
+      "min": 406.8,
+      "max": 409.3
+    },
+    "multilingual_e5_small_mb": {
+      "median": 419.5,
+      "min": 413.7,
+      "max": 420.6
+    },
+    "nomic_v1_5_mb": {
+      "median": 234.2,
+      "min": 231.1,
+      "max": 237.7
+    },
+    "note": "Warm single-run RSS is good to about 10 MB. Smaller differences are not differences."
+  }
+}

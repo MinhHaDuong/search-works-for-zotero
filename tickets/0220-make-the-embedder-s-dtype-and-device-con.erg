@@ -1,0 +1,266 @@
+%erg 0.1
+Title: Make the embedder's dtype configurable and its device automatic; defaults are the maintainer's
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T15:40Z claude created
+2026-08-29T16:05Z claude note author's ruling: the device is always auto, never a configurable option. Rewritten accordingly — ZOTEUS_EMBEDDING_DEVICE is gone, device: 'auto' is passed unconditionally, and a new section records what auto actually resolves to (read from src/backends/onnx.js: defaultDevices is ['cpu'] on Node, which IS upstream's current behaviour, while 'auto' returns the whole per-platform supportedDevices list and lets ORT's execution-provider fallback walk it). That grounds the ruling better than tidiness does: fallback moves into the runtime, so action 5's degradation is a dtype concern only, and macOS/Windows get CoreML/DirectML that no CUDA-shaped knob would have delivered. Two costs recorded rather than buried: this is the one non-behaviour-preserving part of the ticket (a GPU user silently moves off CPU on upgrade), and ORT's fallback does not cover a provider that registers then misbehaves, for which there is now no manual override — deliberately, until such a failure is actually observed.
+
+2026-08-29T14:22Z claude note device: 'auto' EXECUTED and it fails on CPU-only linux-x64 (OrtSessionOptionsAppendExecutionProvider_Cuda, libcublasLt.so.12 absent), reproduced on a clean install; the same call with no device option serves bit-identical vectors. No ORT fallback exists to rely on. The broken-CUDA case this ticket set aside IS the ordinary Linux desktop. Action 2 is therefore NOT implemented: the branch passes no device and ships the dtype half alone; the device shape returns to the author (DECISIONS.md, awaiting ratification). Second correction: q7 does not abort either, it loads bit-identical to the default, so the degradation test was rewritten against fp16, which does throw. Evidence: verification/DEVICE-AUTO-0220.md, bench/results/0220-device-dtype/. Branch MinhHaDuong/zoteus:embedding-dtype (8af4e09): 9 tests, 7 red on stock v1.10.0, typecheck/lint/build clean, 856 passed.
+2026-08-29T14:26Z claude note the failure is not about the CUDA download: a second clean install made with --onnxruntime-node-install=skip, holding no CUDA binaries at all, fails device: 'auto' identically on the absent libonnxruntime_providers_shared.so. On linux-x64 without a working CUDA runtime, auto fails whichever way the package was installed. Artifact: bench/results/0220-device-dtype/skipinstall-device-auto.json.
+2026-08-29T14:40Z claude note adversarial review found a real bug in action 5 as written. Degrading to the runtime default on a failed dtype load is unsafe here: SearchIndexBase.build stamps vectorEmbedderId from the provider identity BEFORE embedding, so a provider that changed precision mid-flight leaves the index labelled with a precision its vectors do not have — undetectable downstream, since quantisation does not change vector width and the identity string is the only check. Across sessions the stale label can later MATCH a genuinely quantised identity and mix two spaces silently. Fixed by removing the substitution: the precision is constant for the provider's life and an unloadable value throws, reaching noteEmbedFailure so the index degrades to keyword-only with a named reason — the same path a missing transformers package takes. Action 5's intent (do not take the server down) holds; its mechanism (fall back to default precision) does not, and that is the third premise correction on this ticket. Fork now 5dceeb1, 11 tests, 9 red on stock, 858 passed.
+2026-08-29T15:19Z claude note the silent-q7 behaviour now has a mechanism, not just a probe: selectDtype's final branch coerces any string outside DATA_TYPES to the device default unconditionally, session.js's 'Invalid dtype' throw only tests the already-coerced value so a bad user string cannot reach it, and the warn callback is reserved for a per-file dtype object missing the current file. The silence is a property of the code, so no catch on our side could detect the case. Recorded in verification/DEVICE-AUTO-0220.md; it is what makes the shipped doc wording exact rather than merely observed.
+2026-08-29T15:28Z claude note this ticket's Context is wrong where it says the model is already configurable, making dtype the only axis without a knob. On the LOCAL path neither is configurable: createEmbeddingProvider builds new LocalEmbeddingProvider(undefined, ...) so the model is hardcoded to Xenova/all-MiniLM-L6-v2, and ZOTEUS_EMBEDDING_MODEL reaches only the API providers, as its own comment says. That false claim had reached the upstream commit message, which would have opened an offer with a wrong statement about the maintainer's own code; the fork branch is squashed to one commit (0cdfe70) with a corrected message, tree byte-identical to the reviewed state and gates re-run. Fourth premise correction on this ticket. Exposing the local model is deliberately NOT added: pooling, prefixes and per-repo dtype availability are all per-model, so a bare knob degrades retrieval silently — it is a registry, hence design-sized, hence an issue rather than a contained PR.
+--- body ---
+## Context
+
+`LocalEmbeddingProvider` calls `pipeline('feature-extraction', this.model)` with
+no options object (`src/features/search/embeddings.ts:182`). transformers.js
+therefore applies its own defaults, and on Node those are `DEFAULT_DEVICE_DTYPE:
+"fp32"` and the CPU provider. The shipped local path runs
+`Xenova/all-MiniLM-L6-v2` at full precision on the CPU — the most expensive rung
+of the ladder, reached by omission rather than by choice. The model is already
+configurable (`ZOTEUS_EMBEDDING_MODEL`), so the asymmetry is the point: the axis
+that costs the most is the one with no knob.
+
+Measured on this repo's corpus, ONNX CPU, i5-8250U, batch 1, one process per
+rung (`bench/results/0025-x1-recall/dtype-ladder-nomic.json`):
+
+| dtype | download | RSS | query median |
+|-------|----------|-----|--------------|
+| fp32  | 522,0 MB | 884,9 MB | 30,3 ms |
+| q8    | 130,9 MB | 235,2 MB | 18,0 ms |
+| int8  | 130,9 MB | 232,9 MB | 13,7 ms |
+| uint8 | 130,9 MB | 239,5 MB | 14,0 ms |
+| q4    | 157,5 MB | 247,4 MB | 25,2 ms |
+| bnb4  | 150,7 MB | 253,7 MB | 91,4 ms |
+
+Three findings shape what this ticket should and should not do.
+
+**The ladder is not monotone, so "expose the knob" must not become "recommend
+the lowest rung".** q4's published file is LARGER than q8's, holds more memory,
+and is slower; bnb4 is 5,1x slower than q8 and 3x slower than full precision,
+having no optimised CPU kernel. The same shape reproduces on
+Qwen3-Embedding-0.6B (`dtype-ladder-qwen3-06b.json`): q4 at 871,8 MB downloaded
+and 1 355,8 MB resident against q8's 585,1 / 962,1, and bnb4 8,7x slower than
+q8. Two models, one shape, so this is a property of the ONNX CPU runtime rather
+than one model's graph. Eight bits is the knee and every rung below it is
+dominated on every axis.
+
+**`q8` and `int8` are the same file** on nomic-768 (md5 `b65952d0…`), where
+`uint8` is a genuinely distinct blob. Measuring both therefore measured one file
+twice and gives this campaign's noise floor directly: ±2,3 MB of RSS and ±4,3 ms
+of median latency. Any recommendation that leans on a difference smaller than
+that is reading noise.
+
+**Two rungs do not load at all on the CPU provider.** `fp16` and `q4f16` abort
+at session init with `Attempting to get index by a name which does not exist:
+InsertedPrecisionFreeCast_/emb_ln/Constant_output_0 for node
+/emb_ln/Mul/SimplifiedLayerNormFusion` — a graph-fusion failure, not a missing
+kernel. So a `dtype` knob that accepts the runtime's full enum will hand users a
+value that crashes on their hardware and works on someone else's, and the
+failure must degrade rather than abort the server.
+
+## Why device is not a knob
+
+> **SUPERSEDED IN PART, 2026-08-29.** The section below argues from ORT's
+> execution-provider fallback. That fallback was read from `onnx.js` and never
+> run; run, `device: 'auto'` FAILS on a CPU-only linux-x64 machine rather than
+> falling back. The ruling that device is never a knob is untouched — what is
+> void is the belief that `auto` is a safe unconditional value. Read
+> `verification/DEVICE-AUTO-0220.md` before acting on anything below, and see
+> DECISIONS.md's awaiting-ratification entry for the three shapes the device
+> can take from here. Action 2 is not implemented.
+
+Ruled by the author 2026-08-29: the device is always `auto` and is not
+configurable. Read `src/backends/onnx.js` in `@huggingface/transformers` 4.2.0
+for why that is the strong choice rather than merely the tidy one.
+
+`defaultDevices = ['cpu']` on Node. That single line is the whole of upstream's
+current behaviour: passing no options gets CPU, on every machine, forever.
+`deviceToExecutionProviders` then has `case 'auto': return supportedDevices`,
+and `supportedDevices` is built per platform — Linux x64 `['cuda', 'webgpu',
+'cpu']`, Windows `['dml', 'webgpu', 'cpu']`, macOS `['coreml', 'webgpu',
+'cpu']`.
+
+So `auto` does not resolve to one device. It hands ONNX Runtime the whole
+ordered provider list and lets ORT's own execution-provider fallback walk it.
+That is why no escape hatch is needed for the ordinary failure — an absent or
+unusable provider is skipped by the runtime, not by our code — and it is why
+action 5's degradation is a dtype concern only. It also means macOS gets CoreML
+and Windows DirectML for free, which no CUDA-shaped knob would have delivered.
+
+This is the axis where hardware changes what is reachable at all: the corpus
+that projects to 56,5 h of CPU embedding at nomic-768 projects to 0,34 h on an
+A4000 (`gpu-feasibility.json`). Note the asymmetry — the GPU is a BUILD lever,
+not a query lever, because at batch 1 a small encoder is already at a few
+milliseconds and there is nothing left to parallelise.
+
+**Two things this ruling costs, recorded so they are visible rather than
+discovered.** First, it is the one part of this ticket that is NOT
+behaviour-preserving: today every user is on CPU, and after this change a user
+with a GPU silently moves to it. Vectors shift in the last bits. That is
+tolerable precisely because device is identity-neutral (action 4), but it should
+be verified with the 0,999 probe and not assumed. Second, ORT's fallback covers
+"provider unavailable"; it does not cover "provider present, registers, and then
+misbehaves" — a broken CUDA install. With no knob there is no manual override
+for that case. Do not add one speculatively: if that failure is ever observed in
+the wild, it is the evidence that earns the knob.
+
+**The defaults are the maintainer's call, not ours.** This ticket ships the
+mechanism and the evidence and proposes nothing about what `ZOTEUS_EMBEDDING_*`
+should default to. Changing a default changes every existing user's index
+identity — vectors carry an embedder key, and a dtype change is a model change
+for that purpose — so it is a decision with a migration attached, and it belongs
+to him. Our contribution is that he can make it, and that the numbers to make it
+with are on the table.
+
+## Relevant files
+
+- `fork/src/features/search/embeddings.ts` — `LocalEmbeddingProvider.ensure()`
+  at ~:182 is the single call to change; `EmbedderKey`/vector-space identity
+  lives in the same file (~:25) and is what a dtype change must be reflected in
+- `fork/src/config.ts` — `ZOTEUS_EMBEDDING_MODEL` at :288 is the pattern to
+  follow for the one new variable; the zod schema at ~:151 is where it parses
+- `fork/src/features/search/limits.ts` — `DEFAULT_EMBED_BATCH_SIZE`, the
+  existing example of a tunable with a named default
+- `bench/query_embed_cost.mjs`, `bench/quant_fidelity.mjs`,
+  `bench/quant_fidelity_score.py`, `bench/merge_dtype_ladder.py` — the drivers
+  that produced the evidence; they already take `--dtype` and `--device`
+- `bench/results/0025-x1-recall/dtype-ladder-*.json`, `query-cost*.json` — the
+  evidence to link from the PR body
+- `RUNBOOK.md` — where the pre-filled PR form goes while the ticket waits for a
+  slot, following PR B's precedent
+
+## Actions
+
+1. Add `ZOTEUS_EMBEDDING_DTYPE` to the config
+   schema, optional, a plain pass-through string. Do NOT enumerate the valid
+   values in a local allowlist that will rot against the runtime's enum.
+2. Pass `device: 'auto'` unconditionally. It is NOT configurable, and there is
+   no `ZOTEUS_EMBEDDING_DEVICE` (author's ruling, 2026-08-29). See "Why device is
+   not a knob" above for what `auto` resolves to and why it needs no escape
+   hatch.
+3. Thread dtype into `pipeline('feature-extraction', model, opts)`, building the
+   options object so that an unset variable produces an ABSENT `dtype` key
+   rather than `undefined`.
+4. Make dtype part of the vector-space identity; do NOT make device part of it.
+   Two dtypes of one model do not produce interchangeable vectors, so the
+   embedder key must distinguish them or a dtype switch silently mixes spaces in
+   one index. Device is different in kind: the same graph at the same precision
+   on a different execution provider differs only in the last bits, far inside
+   `cboulanger/zotero-rag`'s 0,999 compatibility gate, so putting device in the
+   key would invalidate every vector whenever a GPU appears or goes away.
+   Confirm that with the 0,999 probe before relying on it.
+5. Degrade, do not abort, when a DTYPE will not load. `fp16` and `q4f16` throw at
+   session init on the CPU provider; catch it, name the offending value and the
+   model, and fall back to the runtime default with a warning rather than taking
+   the server down. This does not apply to device, which self-heals (below).
+6. Document the one variable where `ZOTEUS_EMBEDDING_MODEL` is documented, with
+   the measured ladder linked and NO recommended value. Say that the device is
+   chosen automatically and is not configurable.
+7. Do not open the PR yet. Build it on a fork branch, validate, and add the
+   pre-filled form to RUNBOOK.md. At filing there was no free slot: the in-flight
+   count stood above the volume bound on a granted exception, and the
+   contained-PR budget had a live remainder. Do not re-read those numbers from
+   this ticket — the bounds are `GOVERNANCE.md`'s and what is live against them
+   is `SYNC.md`'s, and both move. Check them before opening. This queues behind a
+   free slot exactly as 0016's PR-3 does.
+
+## Test
+
+Red first, and it is the test that would have caught the defect this ticket is
+about: with no environment set, the options object handed to `pipeline()` must
+carry `device: 'auto'` and NO `dtype` key at all. It fails against today's
+no-options call (no device), and it fails against the naive implementation that
+passes `{dtype: undefined}`. Those are two different wrong answers and the one
+assertion rejects both.
+
+Then, using the existing injectable `loadExtractor` seam so no model is
+downloaded in the unit tier:
+
+- `ZOTEUS_EMBEDDING_DTYPE=q8` reaches `pipeline()` as `{dtype: 'q8', device:
+  'auto'}`
+- no environment variable, and no combination of them, can produce a `device`
+  other than `'auto'` — assert on the absence of the knob, since a knob nobody
+  added is exactly the thing a later well-meaning patch adds back
+- an extractor factory that throws an init-time error yields a warning and a
+  retry with default options, not a propagated throw (action 5)
+- two dtypes of the same model produce different embedder keys, and the key is
+  unchanged across devices (action 4)
+
+Integration tier, marked accordingly: one real load at `q8` asserting the
+returned dimension, so the pass-through is proven against the actual runtime and
+not only against a mock that cannot disagree.
+
+## Verification
+
+- [x] Unset-environment test fails BOTH ways it can be wrong. All three run:
+      against today's no-options call it fails ("expected undefined to be
+      defined", in a worktree at b132f2d); against a `{dtype: this.activeDtype}`
+      implementation it fails ("expected true to be false", the `'dtype' in
+      options` assertion); it passes against the shipped one
+- [x] `ZOTEUS_EMBEDDING_DTYPE=q8` measurably changes resident memory on a real
+      load. Measured on the DEFAULT model, which the ladder above does not
+      cover: all-MiniLM-L6-v2 goes 143,7 MB → 69,1 MB of resident added by the
+      load, 230,6 → 165,6 MB resident after it. Direction matches; magnitude is
+      2,1x where nomic's was 3,8x, which is what a smaller model should do.
+      Warm runs — the cold pair measured the download and is discarded
+- [x] An invalid dtype degrades rather than aborting — but neither via the value
+      nor via the mechanism this ticket named. `q7` does not abort at all: it
+      loads bit-identical to the default, so the runtime ignores it silently and
+      the example was wrong. And the mechanism had to change: serving at the
+      default precision is unsafe here, because the index stamps the embedder
+      identity before it embeds (see the 2026-08-29 review log). An unloadable
+      value now throws into `noteEmbedFailure`, so the index degrades to
+      keyword-only with the value, the model and the remedy named — the server
+      stays up, which was action 5's actual intent
+- [x] `device: 'auto'` on a CPU-only machine behaves exactly as today's path —
+      FALSIFIED, and this is the ticket's main finding. It does not behave as
+      today's path; it fails to load at all. `device: 'cpu'` and today's
+      no-options call are the two that agree, bit for bit
+- [ ] `device: 'auto'` on a CUDA machine actually selects CUDA, and its vectors
+      score >= 0,999 cosine against the CPU vectors for the same model and
+      dtype. NOTE: UNVERIFIED and unverifiable here — this repo's machine has no
+      GPU (`nvidia-smi` absent), so no device value has ever been executed. Every
+      GPU claim in this ticket is read from `src/backends/onnx.js`, not observed.
+      Run it on the A4000 before the PR asserts anything about GPU behaviour
+- [x] Upstream's own test suite still passes unchanged: 856 passed / 7 skipped
+      against a 847 / 7 baseline on b132f2d, so the 9 added are the whole
+      difference; typecheck, lint and build clean
+
+## Invariants
+
+- Behaviour with `ZOTEUS_EMBEDDING_DTYPE` unset is identical to today ON A
+  CPU-ONLY MACHINE. It is deliberately NOT identical on a machine with a GPU,
+  which is the point of the ruling; that is the single intended behaviour change
+  and it is stated in the PR body rather than left for a user to discover
+- Device is never configurable and never enters the embedder key
+- R10 holds: the local path still makes exactly one external call, the one-time
+  model-weight download, and a dtype failure degrades toward keyword-only, never
+  toward an API embedder
+- No recommended dtype default ships in this PR, in code or in prose
+- The contained-PR budget and the in-flight cap are respected: built and queued,
+  not opened
+
+## Exit criteria
+
+- [x] `ZOTEUS_EMBEDDING_DTYPE` implemented, threaded, and covered by the tests
+      above; no device variable exists
+- [ ] ~~`device: 'auto'` passed unconditionally~~ — BLOCKED on the author, and
+      not by scheduling: measurement voids the premise (log 2026-08-29,
+      `verification/DEVICE-AUTO-0220.md`). No device is passed. This criterion
+      is reopened as a ratification question, not as work outstanding
+- [x] Dtype participates in vector-space identity; device does not. The
+      degradation clears the dtype as well, so a fallback cannot leave the index
+      labelled with a precision its vectors do not have
+- [x] An unloadable dtype degrades with a named message — to keyword-only, not
+      to another precision. Proven against `fp16`, which throws; `q7`, this
+      ticket's chosen example, does NOT throw and would have passed against an
+      implementation with no degradation path at all
+- [x] Documented with the measured ladder and no recommendation. The device
+      sentence says what measurement supports — none is passed, and none is
+      configurable — rather than that it is automatic
+- [x] Branch built and validated on the fork; pre-filled PR form in RUNBOOK.md
+- [ ] PR opened only once a slot frees, and the ticket closed by that PR

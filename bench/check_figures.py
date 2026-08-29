@@ -67,6 +67,7 @@ PROSE = {
     # which fails asymmetrically: removing a guarded file is loud, a new file ARRIVING
     # unguarded is silent. This one arrived 2026-08-29.
     "v30": ["verification/issue-30-thread.md"],
+    "v0220": ["verification/DEVICE-AUTO-0220.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -245,6 +246,13 @@ FIGURES = [
     # ---- 0011, the uncapped-build RSS — quoted by the redesign's gate and experiments ----
     ("0011-rss/capped-vs-uncapped.json", "baseline_uncapped_chars.peak_MiB", 1,
      {"design": None, "t0025": None, "t0026": None}),
+    # ---- 0140, the embedder window census. The 500 ceiling is worth its irregularity
+    # only while it sits below every candidate's window, so the tightest window is the
+    # figure the whole ruling rests on. Anchored rather than presence-only: 512 is also
+    # the embedder limit quoted elsewhere in this section, which is exactly the
+    # duplicate-value case a bare presence check cannot see.
+    ("0140-model-windows/candidate-windows.json", "min_window", 0,
+     {"design": "window is {} tokens, so the minimum never binds"}),
     # ---- 0013, concentration ----
     ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
     ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,
@@ -462,6 +470,70 @@ FIGURES = [
      {"t0070": "and {}x worst case"}),
     ("0070-cosine-fusion/insitu-255703.json", "equivalence.rows_checked", 0,
      {"t0070": "rather than a fixture: {} rows\nchecked, 0 mismatches"}),
+    # ---- The embedder cost campaign, 2026-08-29. These five sit in the ratification
+    # ledger's R7/C3 entry, which is where a stale figure is worst: an append-only entry
+    # is never edited again, so a wrong number there becomes permanent. The entry also
+    # argues FROM them — the ruling that C3 gives way rests on multilingual measuring far
+    # over 300 MB — so a drifted figure would leave a ratified ruling standing on a number
+    # that no longer exists.
+    ("0025-x1-recall/dtype-ladder-multilingual-e5-small.json", "rungs.2.rss_delta_mb", 1,
+     {"decisions": "measures {} MB\nresident at uint8"}),
+    ("0025-x1-recall/dtype-ladder-nomic.json", "rungs.1.rss_delta_mb", 1,
+     {"decisions": "and yet 404,4 MB against {} MB."}),
+    # The three repeated figures live in the Granite artifact because that is the run that
+    # produced them, one block for all three models. Anchor heads end in a non-digit: a
+    # head ending in a digit would be glued to the value by despace().
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.nomic_v1_5_mb.median", 1,
+     {"decisions": "under 7 MB: nomic-768{} MB"}),
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.granite_97m_mb.median", 1,
+     {"decisions": "{} MB, multilingual-e5-small"}),
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.multilingual_e5_small_mb.median", 1,
+     {"decisions": "multilingual-e5-small {} MB. Granite and e5"}),
+
+    # ---- 0220, the device/dtype probe. The cosine column is anchored per row because the
+    # report's whole argument is which rows are EQUAL: three variants share the value
+    # 0,9999996 and one does not, so a bare presence check would stay green with any of
+    # them wrong. Six places for the quantised row, seven for the normalisation floor —
+    # the floor's last digit is what says "bit-identical" rather than "close".
+    ("0220-device-dtype/summary.json", "variants.dtype-q8.cosine_vs_no_options", 6,
+     {"v0220": "| dtype-q8 | `{dtype: 'q8'}` | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.no-options.cosine_vs_no_options", 7,
+     {"v0220": "| no-options | *(none)* | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.device-cpu.cosine_vs_no_options", 7,
+     {"v0220": "| device-cpu | `{device: 'cpu'}` | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.dtype-q7.cosine_vs_no_options", 7,
+     {"v0220": "| dtype-q7 | `{dtype: 'q7'}` | loads | {} |"}),
+
+    # The default model's own numbers, anchored per cell. Two runs of this pair exist and
+    # only the warm one is reported; anchoring each cell is what stops the discarded cold
+    # figures from drifting back into the table, since both sets are plausible there.
+    #
+    # Each q8 anchor carries the fp32 cell that precedes it in the row, which is the
+    # coupling render_value's docstring calls avoidable — deliberately, and it is a
+    # different case. There the two figures were the independent ends of a RANGE, so
+    # fixing one broke the other for no reason. Here the left cell genuinely is the right
+    # cell's position: they are neighbours in one row, measured in one pair, and a
+    # re-measurement of fp32 SHOULD force both to be re-read. The failure is loud and
+    # names the slot, so it cannot become the silent trap this file exists to refuse.
+    ("0220-device-dtype/minilm-fp32.json", "models.0.rss_after_load_mb", 1,
+     {"v0220": "| resident after load | {} MB |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.rss_after_load_mb", 1,
+     {"v0220": "| resident after load | 230,6 MB | {} MB |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.rss_delta_mb", 1,
+     {"v0220": "| resident added by the load | {} MB |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.rss_delta_mb", 1,
+     {"v0220": "| resident added by the load | 143,7 MB | {} MB |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.load_ms", 1,
+     {"v0220": "| load | {} ms |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.load_ms", 1,
+     {"v0220": "| load | 415,2 ms | {} ms |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.query_ms_median", 1,
+     {"v0220": "| query median | {} ms |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.query_ms_median", 1,
+     {"v0220": "| query median | 4,2 ms | {} ms |"}),
 ]
 
 

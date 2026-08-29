@@ -1,0 +1,96 @@
+%erg 0.1
+Title: The figure guard's coverage can fall silently: ratchet the pair count
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T15:35Z claude created
+2026-08-29T15:35Z claude note POSITIVE CONTROL RUN, not reasoned. One declaration deleted from FIGURES: coverage fell 183 -> 181 pairs and check_figures.py exited 0. Restored, 183 again. The guard cannot tell "nothing is stale" from "I am no longer looking at this figure"
+
+--- body ---
+## Context
+
+`bench/check_figures.py` is the load-bearing guard of this repository
+(CLAUDE.md says so): every measurement quoted in prose is declared there with
+an anchor, and re-measuring tells you every prose site to update. Its scope is
+`FIGURES`, a hand-maintained list of declarations.
+
+A declaration that leaves that list takes its coverage with it, in silence.
+Measured today: deleting one entry moved the report from 183 pairs to 181 and
+the guard still exited 0. Nothing distinguishes "no figure is stale" from
+"that figure is no longer watched".
+
+The guard's own docstring already narrates this happening — archiving ticket
+0008 dropped 23 declarations and coverage fell from 68 pairs to 45, "and
+nothing failed". What was fixed then was that one **cause**: a ticket path
+that moved on close, repaired by listing both paths per key. The **class** was
+left open, and it is still open.
+
+## Why this is the class, not one guard's bug
+
+The distinction that matters is where a guard gets its scope:
+
+- **Derived scope cannot silently shrink.** `check_normative.py` reads its
+  R-items from `spec/REQUIREMENTS.md` and fails when it finds none;
+  `check_progress.py` reads coverage from the same sheet rather than from the
+  page it guards. Losing an item means the source lost it, which is loud.
+- **Hand-maintained scope shrinks quietly.** `FIGURES` is a Python list. Every
+  removal is invisible to the guard, whatever the reason — a refactor, a
+  merge resolution, a declaration deleted with the prose that quoted it.
+- **A zero-floor is not a ratchet.** `check_terminology.py` fails on an empty
+  glossary, which catches truncation to nothing and nothing else: 45 entries
+  falling to 3 passes.
+
+This is ticket 0221's asymmetry one level down. That ticket covered a
+*document* arriving or leaving a guard's scanned set; this is a *declaration*
+leaving a hand-maintained list inside a guard. Same shape, same silence.
+
+Related, from the session that found it: `check_progress.py` carried the same
+class twice — a summary row left in superseded glyphs, and a standing row
+missing a column. Both parsed as nothing, so both were skipped rather than
+failed, and the page reported the all-clear it would give if the row were
+absent. Both are now checked by looking; this ticket is the third instance and
+the first in a guard nobody was editing.
+
+## Relevant files
+
+- `bench/check_figures.py` — `FIGURES`, and the summary line at the end of
+  `run()` that reports the counts without asserting them.
+- `tests/test_check_figures.py` — where the ratchet's own test belongs.
+- `bench/check_terminology.py` — the zero-floor to upgrade, if the ratchet
+  proves cheap enough to generalise.
+
+## Test
+
+Red first, and it is already written above: delete one declaration from
+`FIGURES` and assert the guard exits non-zero. That test fails against today's
+code, which is what earns it a place.
+
+## Actions
+
+1. Record the expected pair count where the guard can read it, and fail when
+   the live count falls below it. A recorded integer is itself a figure that
+   drifts, so it belongs beside `FIGURES` with the reason it changed, and the
+   failure message must say "re-record it deliberately", not "update the
+   number".
+2. Let the count RISE freely — a ratchet, not an equality. Declaring a new
+   figure must never require touching a second place, or the guard becomes
+   something people route around.
+3. Decide whether `check_terminology.py`'s entry count joins the ratchet or
+   keeps its zero-floor. Its digit rule scans every line regardless of whether
+   the entry parses, so its exposure is genuinely smaller — a reason to leave
+   it alone, stated rather than assumed.
+
+## Invariants
+
+- No new prose figure is introduced by this ticket; the guard's own counts are
+  not measurements of the science and do not enter `bench/results/`.
+- `make check` stays green, and the ratchet must not fire on an ordinary
+  declaration being added.
+
+## Exit criteria
+
+- [ ] deleting one declaration from `FIGURES` fails `make check`
+- [ ] adding a declaration passes without editing anything else
+- [ ] the recorded count carries the reason it was last moved
+- [ ] a ruling on `check_terminology.py`, either way, written down

@@ -1,0 +1,98 @@
+%erg 0.1
+Title: Standing guard: every gate's scope is complete, including the Makefile's
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T00:00Z claude created
+2026-08-29T00:00Z claude note filed from the roar sweep after PR 52; the class fired three times in one session
+
+--- body ---
+## Context
+This repository keeps being bitten by one defect, at three different levels,
+and 0221 fixed it at only one of them. The shape: a gate's scope is a
+hand-written list, so a thing REMOVED breaks the build loudly while a thing
+ADDED is never looked at, and "all clear" is indistinguishable from "I never
+looked".
+
+Three instances in the single session that produced PR 52:
+
+1. `spec/FIELD-REVIEW.md` — 114 kB of public prose — had been sitting outside
+   `check_governance.py`'s `SCANNED` since it arrived. Found only because a
+   different ticket went looking for something else.
+2. `spec/TERMINOLOGY.md` landed on main *while* `check_chain_dedup.py` was
+   being written, straight into that guard's brand-new hand-written list.
+3. CLAUDE.md's own prose list of the guards named three when there were five.
+   The Makefile had gained two that the sentence had not.
+
+0221 closed the document axis for two guards, each with its own private
+completeness function. What remains unguarded is the level above, and it is
+the same defect wearing a different hat.
+
+## The two gaps that remain
+
+**The Makefile's guard list.** `make check` names its guards by hand. All five
+`bench/check_*.py` are wired today — verified 1:1, no script without a target
+and no target without a script. Nothing asserts it. A sixth guard whose author
+forgets the `.PHONY` line and the `check:` dependency exists, is never run, and
+`make check` exits 0. The guard would be dead on arrival and the build would
+say nothing.
+
+Partly, and only partly, mitigated by convention: four of the five guards'
+suites assert `run(REPO) == 0` against the real tree, so bare pytest re-checks
+the live repo even without Makefile wiring. That is a habit, not a structure,
+and it held for four guards out of five — the terminology guard had no such
+assertion until this ticket's own PR added one.
+
+**`check_figures.py` has no completeness function at all.** Its `PROSE` dict is
+hand-written and nothing discovers candidates. This one is not latent, it is
+live: `spec/CONSTRAINTS.md` quotes measured figures and is not in `PROSE`, and
+three `verification/*.md` files quote figures from outside it — one of them
+says so about itself in its own text. That axis is ticket 0161's, blocked by
+0160, and this ticket does not duplicate it. It is named here because it is the
+third instance and it is what makes the class worth a standing test rather than
+three separate repairs.
+
+## Relevant files
+- `Makefile` — the `check:` chain and the `.PHONY` line
+- `bench/check_governance.py` — `uncovered()`, the fixed pattern
+- `bench/check_chain_dedup.py` — `untriaged()`, the same pattern duplicated
+- `tests/` — no test asserts any cross-cutting completeness property
+- `tickets/0161-standing-guard-every-prose-doc-quoting-a.erg` — the figures axis
+- `tickets/0221-the-governance-guard-s-scanned-set-is-ha.erg` — the document axis
+
+## Actions
+1. Add a test asserting the set of `bench/check_*.py` scripts equals the set
+   invoked by the Makefile's `check` chain, so a guard cannot be added without
+   being wired in.
+2. Add a test asserting every guard's suite exercises the real repository, not
+   only `tmp_path` fixtures — the convention that saved four guards should be a
+   check rather than a habit.
+3. Consider whether the two private completeness functions
+   (`uncovered`, `untriaged`) want to become one shared helper. Weigh it against
+   the cost of coupling the guards; two small duplicated functions may be the
+   right answer, and "leave them" is an acceptable outcome of this action.
+
+## Test
+Red first, and the positive control is the whole point given what this ticket
+is about. Write a fixture that adds a `bench/check_nothing.py` absent from the
+Makefile and assert the test fails; write one whose suite has no real-repo
+assertion and assert the test fails. A completeness test that has never been
+seen to fail is the exact defect it was written against.
+
+## Verification
+- [ ] Adding a guard script without Makefile wiring fails the suite, and the
+      failure names the script
+- [ ] A guard suite that never touches the real repository fails, and the
+      failure names the suite
+- [ ] Both new tests were observed red before being made green
+- [ ] `make check` passes
+
+## Invariants
+- No existing guard changes behaviour. This ticket adds tests about the gates,
+  not new rules for the prose.
+- 0161's and 0221's axes are not re-opened or duplicated here.
+
+## Exit criteria
+- A guard that is added but not wired into `make check` fails the suite, and a
+  guard suite that never exercises the real repository fails the suite.
