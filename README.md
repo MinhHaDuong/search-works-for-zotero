@@ -60,6 +60,7 @@ memory budgets. These are testable requirements, not branding claims.
 | [`REQUIREMENTS.md`](REQUIREMENTS.md) | Testable promises made to users |
 | [`CONSTRAINTS.md`](CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
 | [`DESIGN.md`](DESIGN.md) | Current design and experiment decision rules |
+| [`FIELD-REVIEW.md`](FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Operational handoff and measurement record |
@@ -70,8 +71,11 @@ memory budgets. These are testable requirements, not branding claims.
 
 The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
-tickets test or implement it. Panel documents are inputs, not conclusions; the
-adversarial design-review record of cycle 2 is in git history, last present at
+tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
+than inside it: it surveys what already exists, owns no design number, and
+points at the owning document wherever it touches ours. Panel documents are
+inputs, not conclusions; the adversarial design-review record of cycle 2 is in
+git history, last present at
 commit `e32afe3` as `panel/cycle2/`, as are the other superseded documents.
 
 ## How work leaves this repository
