@@ -240,6 +240,43 @@ fails with `expected 1 to be +0`, that 1 being a vector written under a label th
 cannot honour. Without that control the test would have been an assertion nobody had seen
 fail.
 
+## What the pooling finding does to these numbers
+
+Ticket 0421 established that the drivers hardcode `pooling: 'mean'` while pooling is a
+per-model property, and that four of six sweep candidates want `cls`. Every figure above
+was produced through those drivers, so the exposure has to be stated rather than assumed
+away.
+
+**The cost figures cannot be affected, by construction.** Download size, resident memory,
+load time and query latency are properties of the graph and the weights. Pooling is a
+reduction applied to the model's output *after* the forward pass; it changes vector values
+and nothing else. So the dtype ladder stands whatever pooling was used to produce it —
+including the Qwen3-Embedding-0.6B arm, which ticket 0421 found is `lasttoken` and was
+driven at `mean`. Its *cost* numbers are sound; nothing here quotes a Qwen3 vector.
+
+**One figure here does depend on pooling, and it was checked.** The 0,992652 cosine between
+q8 and fp32 — the number the upstream branch ships to justify putting precision in the
+embedder identity — is a comparison of vectors, so a wrong pooling would place both sides
+in a space the model was never trained to emit. Read from the model's own
+`1_Pooling/config.json`, `all-MiniLM-L6-v2` declares
+`pooling_mode_mean_tokens: true` and `pooling_mode_cls_token: false`. Mean is correct for
+it, both arms used it, and the figure is in the trained space. The same applies to the
+bit-identity results for `device: 'cpu'` and `dtype: 'q7'`, measured on the same model.
+
+**No cross-arm comparison is exposed.** `quant_fidelity_score.py` can score an ONNX rung
+against a PyTorch reference, and that comparison would inherit the asymmetry ticket 0421
+names — sentence-transformers reads `1_Pooling/config.json` itself, so the PyTorch arm has
+always pooled correctly while the ONNX arm has not. No committed result under
+`bench/results/` carries a PyTorch reference, so the asymmetry is a hazard for 0263/0265
+rather than a defect in anything already measured.
+
+**One committed artifact IS affected and nothing rests on it.**
+`bench/results/0025-x1-recall/task-recall-bge.json` measures recall for
+`bge-small-en-v1.5`, which is a `cls` model driven at `mean`, so it understates that model
+by an unmeasured amount. Its caveat list does not mention pooling. No prose in this
+repository quotes a figure from it, so no conclusion is standing on it today — but a later
+reader would have no way to know, which is why it is named here.
+
 ## Reproducing
 
 ```bash
