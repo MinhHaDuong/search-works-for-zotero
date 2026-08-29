@@ -312,6 +312,20 @@ FIGURES = [
      {"t0025": "p95{} ms, against 392,3 ms stock"}),
     ("0025-x2-stopwordless/zotero-native-baseline.json", "matches_per_query.median", 0,
      {"t0025": "the median query matches {} items"}),
+    # ---- The library-derived droplist sweep. Three figures decide the design: the
+    # threshold DESIGN §3 names and does not reach the budget at, and the working policy's
+    # cost and fidelity. Every anchor head here ends in a non-digit on purpose — `p50 ` and
+    # `p95 ` would be glued to the value by despace(), per the note above.
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_50pct.p95_ms", 1,
+     {"t0025": "terms drop and p95 stays at {} ms"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p50_ms", 1,
+     {"t0025": "fallback): p50{} ms", "t0014": "gives p50{} ms"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p95_ms", 1,
+     {"t0025": "p95{} ms, 98% top-30 overlap", "t0014": "and p95{} ms with 98%"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json",
+     "recommended_policy.mean_top30_overlap_with_unfiltered", 0,
+     {"t0025": "ms, {}% top-30 overlap with the unfiltered",
+      "t0014": "with {}% of the unfiltered"}, "pct"),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),
