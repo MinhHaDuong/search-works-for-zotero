@@ -478,6 +478,64 @@ the CUDA shared library is unavailable" is a symptom rather than the condition.
 
 ## Awaiting ratification
 
+- **X4 fired, and the ladder loses its middle rung.** DESIGN.md §3 states the
+  rule as *"the ladder step sits at the largest measured scope whose
+  constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step
+  ships and the ladder ends at the honest R18 give-up."* The real-corpus arm ran
+  2026-08-29 on the 477 512-passage index
+  (`bench/results/0025-x4-constrained-match/real-477k.json`), and the smallest
+  rung fails by a wide margin: constrained p95 at a 1000-rowid scope is
+  **11 969,6 ms**. The rule's own second clause therefore fires. No constrained
+  step ships.
+
+  The result is stronger than "too slow", and the difference matters for any
+  retry. Ranking the **whole** corpus unconstrained costs **73,6 ms** median,
+  where constraining to a thousand rowids costs **585,7 ms** — so scoping via
+  `json_each` is not an optimisation that fell short of a budget, it is
+  dominated by not scoping at all. The synthetic arm reached the same verdict;
+  this is its confirmation on real text with a real vocabulary.
+
+  **What this changes in DESIGN.md §2, which is why it is here and not only in
+  the ticket.** The ladder is written there as three rungs — refetch deeper to
+  4 096; then, *"for scopes of roughly <= 20k passages"*, a constrained MATCH via
+  `json_each`; then the honest give-up. The middle rung is now void, and with it
+  the "roughly <= 20k passages" clause and its number, which were placeholders
+  for what X4 would measure. The surrounding sentence — *"the actual threshold is
+  measured by X4, not trusted"* — is still written in the future tense and now
+  reads as a promise already kept. Two rungs remain: refetch deeper, then
+  disclose.
+
+  **R5 does not fall with the mechanism, and should not be read as falling.**
+  R5's own text already refuses to read "pushed into SQL" as constraining FTS5's
+  MATCH, warns that doing so "measures at seconds per query at library scale",
+  and puts the obligation on *"the honesty of the result, not on which operator
+  enforces it"*. X4 confirms the scouts' correction with a number rather than
+  overturning anything. What R5 forbids is post-filtering a top-k that claims
+  completeness; a bounded deeper refetch that discloses its residue is legal by
+  construction.
+
+  **R18 is promoted by this, and it is the least-evidenced row in the area.**
+  With the middle rung gone, the `scope{}` block stops being the last resort and
+  becomes the primary answer whenever a narrow scope outruns the deeper refetch.
+  R18 stands at delivered `none`, evidence `inferred`, and spec/README's standing
+  sentence still says the decision it depends on sits in ticket 0025 — that
+  decision is this entry.
+
+  **The open question the verdict creates, and nobody has measured it.** How
+  often does rung 1 fail to fill k for a realistic scope — a collection, a tag —
+  now that nothing catches it? That frequency is what decides whether R5's
+  `partial` is benign or embarrassing, and it is a new experiment rather than a
+  retry of this one. Ticket 0025's log names the two candidate mechanisms if a
+  third rung is ever wanted (an indexed temp table; post-filtering a ranked
+  stream *before* truncation). Note the burden any such retry now carries: the
+  mechanism it replaces lost to doing nothing.
+
+  Three ways to rule. Delete the middle rung from §2 and record the ladder as
+  two, leaving the give-up frequency unmeasured; or the same, and commission the
+  frequency experiment before R5's row is called again; or commission the
+  indexed-temp-table experiment first, as a candidate third rung, and hold §2's
+  edit until it reports.
+
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
   states the rule as *"int8 ships if recall@30 >= 0.98, pool <= 32xtopK, and
   scan+rerank <= 400 ms at 650k; the float32 slab is the permanent fallback."*

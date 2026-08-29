@@ -588,6 +588,15 @@ FIGURES = [
      {"vsmoke": "`auto` query in {} ms."}),
     ("smoke-1.10.0/fresh-build.json", "peak_rss_mib", 0,
      {"vsmoke": "reached **{} MiB** (`VmHWM`)"}),
+    # ---- X4's real-corpus arm. Quoted in the ledger, which is append-only: a ratified
+    # entry is never edited again, so a wrong number there becomes permanent. The three
+    # that carry the argument are the failing rung and the two the domination rests on.
+    ("0025-x4-constrained-match/real-477k.json", "rows.1.p95_ms", 1,
+     {"decisions": "scope is\n  **{} ms**"}),
+    ("0025-x4-constrained-match/real-477k.json", "rows.0.median_ms", 1,
+     {"decisions": "unconstrained costs **{} ms** median"}),
+    ("0025-x4-constrained-match/real-477k.json", "rows.1.median_ms", 1,
+     {"decisions": "thousand rowids costs **{} ms**"}),
 ]
 
 
