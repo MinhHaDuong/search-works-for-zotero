@@ -39,6 +39,14 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("--batch", type=int, default=64)
     p.add_argument("--device", default=None, help="cuda / cpu; default: auto")
+    p.add_argument(
+        "--dtype",
+        default="float16",
+        choices=("float16", "bfloat16", "float32"),
+        help="compute dtype on GPU; sentence-transformers defaults to float32, which "
+        "doubles the memory and roughly halves the throughput for no gain here — the "
+        "embeddings are written as float32 either way",
+    )
     p.add_argument("--limit", type=int, default=0, help="embed only the first N lines (0 = all)")
     p.add_argument("--max-seq-length", type=int, default=0, help="override the model's own")
     return p.parse_args()
@@ -70,8 +78,16 @@ def main() -> None:
     from sentence_transformers import SentenceTransformer
 
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    logger.info("loading %s on %s", args.model, device)
-    model = SentenceTransformer(args.model, device=device, trust_remote_code=True)
+    # float16 is a GPU economy; on CPU it is emulated and slower than float32, so the
+    # request is honoured only where it pays.
+    dtype = getattr(torch, args.dtype) if device.startswith("cuda") else torch.float32
+    logger.info("loading %s on %s (%s)", args.model, device, dtype)
+    model = SentenceTransformer(
+        args.model,
+        device=device,
+        trust_remote_code=True,
+        model_kwargs={"torch_dtype": dtype},
+    )
     if args.max_seq_length:
         model.max_seq_length = args.max_seq_length
     dim = model.get_sentence_embedding_dimension()
