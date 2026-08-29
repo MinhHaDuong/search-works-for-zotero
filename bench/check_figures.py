@@ -68,6 +68,10 @@ PROSE = {
         "tickets/0008-quantize-the-vector-column-binary-first.erg",
         "tickets/closed/0008-quantize-the-vector-column-binary-first.erg",
     ],
+    "t0070": [
+        "tickets/0070-fuse-the-cosine-loop-upstream-s-vector-s.erg",
+        "tickets/closed/0070-fuse-the-cosine-loop-upstream-s-vector-s.erg",
+    ],
     "t0001": [
         "tickets/0001-replace-the-resident-js-index-with-sqlit.erg",
         "tickets/closed/0001-replace-the-resident-js-index-with-sqlit.erg",
@@ -261,6 +265,42 @@ FIGURES = [
      {"t0025": "constrained query costs {} ms median"}),
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.4.median_ms", 0,
      {"t0025": "reaching {} ms median at"}),
+    # ---- 0070, the cosine fusion. Two artifacts because they answer different questions:
+    # `shapes` isolates the arithmetic and separates its two causes, `insitu` measures the
+    # shipped function over a real scan and is the number the upstream PR quotes.
+    ("0070-cosine-fusion/shapes-3072.json", "two_pass_shared_norm.us_per_row", 2,
+     {"t0070": "shared `norm()` — upstream today | {} |"}),
+    ("0070-cosine-fusion/shapes-3072.json", "two_pass_monomorphic_norm.us_per_row", 2,
+     {"t0070": "two-pass, monomorphic `norm()` | {} |"}),
+    ("0070-cosine-fusion/shapes-3072.json", "fused.us_per_row", 2,
+     {"t0070": "| fused single traversal | {} |"}),
+    ("0070-cosine-fusion/shapes-3072.json", "speedup_total", 2,
+     {"t0070": "**{}x**, decomposing into"}),
+    ("0070-cosine-fusion/shapes-3072.json", "speedup_from_monomorphism", 2,
+     {"t0070": "decomposing into **{}x** from the polymorphic"}),
+    ("0070-cosine-fusion/shapes-3072.json", "speedup_from_fusion", 2,
+     {"t0070": "call site and **{}x**\nfrom the redundant traversal"}),
+    ("0070-cosine-fusion/insitu-255703.json", "rows", 0,
+     {"t0070": "exact geometry — {} rows, 3072 dims"}),
+    ("0070-cosine-fusion/insitu-255703.json", "two_pass.median_ms", 0,
+     {"t0070": "| two-pass (before) | {} ms |"}),
+    ("0070-cosine-fusion/insitu-255703.json", "two_pass.us_per_row", 2,
+     {"t0070": "| two-pass (before) | 8 606 ms | {} |"}),
+    ("0070-cosine-fusion/insitu-255703.json", "fused.median_ms", 0,
+     {"t0070": "| fused (shipped) | {} ms |"}),
+    ("0070-cosine-fusion/insitu-255703.json", "fused.us_per_row", 2,
+     {"t0070": "| fused (shipped) | 3 933 ms | {} |"}),
+    ("0070-cosine-fusion/insitu-255703.json", "marshalling_floor.median_ms", 0,
+     {"t0070": "no arithmetic | {} ms |"}),
+    ("0070-cosine-fusion/insitu-255703.json", "marshalling_floor.us_per_row", 2,
+     {"t0070": "no arithmetic | 2 559 ms | {} |"}),
+    # Anchored so neither carries the other's value: fixing one must not break the other.
+    ("0070-cosine-fusion/insitu-255703.json", "speedup_median", 2,
+     {"t0070": "**{}x median**"}),
+    ("0070-cosine-fusion/insitu-255703.json", "speedup_worst_case", 2,
+     {"t0070": "and {}x worst case"}),
+    ("0070-cosine-fusion/insitu-255703.json", "equivalence.rows_checked", 0,
+     {"t0070": "rather than a fixture: {} rows\nchecked, 0 mismatches"}),
 ]
 
 

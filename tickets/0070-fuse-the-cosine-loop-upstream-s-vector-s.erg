@@ -1,0 +1,150 @@
+%erg 0.1
+Title: Fuse the cosine loop: upstream's vector scan pays 2,2x for a redundant traversal and a polymorphic call site
+Created: 2026-08-29
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-29T00:00Z Minh Ha-Duong created
+2026-08-29T00:00Z Minh Ha-Duong note Author authorized a third in-flight upstream PR slot for this work; recorded in DECISIONS.md
+2026-08-29T00:00Z Minh Ha-Duong note Built on the fork at branch fuse-cosine-loop (999cb1c); suite, typecheck and lint green; 2,19x measured against dist/
+
+--- body ---
+## Context
+
+Upstream issue [#30](https://github.com/oscardvs/zoteus/issues/30) (Michael
+Logies) reports `zotero_semantic_search` at 90–105 s per query on a 255 703-passage
+index at 3072 dims, against ~13 s for a ChromaDB-backed competitor. His diagnosis is
+correct and measured: memory stays flat at ~110 MB, so the cost is a streaming,
+CPU-bound, O(N) scan in JavaScript, not an all-vectors-in-RAM problem.
+
+Reading that scan turned up a defect independent of the issue's own suggested
+directions. `cosine()` in `sqlite-index.ts` traverses each stored vector **twice** —
+once inside `norm(b)`, once for the dot product — and the `norm()` it calls is shared
+with the query-side call at `vectorSearch`, which passes a `number[]` where every row
+passes a `Float32Array`. One `number[]` observation makes that call site polymorphic
+for the life of the process, and it never recovers. The `ArrayLike<number>` signature
+is the tell.
+
+Both are removed by accumulating the dot product and the row's squared norm in one
+pass. The result is bit-identical: the same operations in the same order, so no
+rebuild, no migration, no test churn.
+
+Measured by `bench/cosine_fusion.mjs`, results in
+`bench/results/0070-cosine-fusion/`, Node v22.23.1 on Linux, five repetitions.
+
+Arithmetic in isolation, 3072 dims, per row (`--shapes`):
+
+| shape | µs/row |
+|---|---|
+| two-pass, shared `norm()` — upstream today | 23,90 |
+| two-pass, monomorphic `norm()` | 12,76 |
+| fused single traversal | 6,34 |
+
+**3,77x**, decomposing into **1,87x** from the polymorphic call site and **2,01x**
+from the redundant traversal. The middle row is the controlled comparison: same two
+passes, only the callee's monomorphism differs.
+
+In situ (`--insitu`), calling the *shipped* function out of a built `dist/`, at the
+issue's exact geometry — 255 703 rows, 3072 dims, a 3,4 GB fixture — with the two
+scans interleaved:
+
+| | median | µs/row |
+|---|---|---|
+| two-pass (before) | 8 606 ms | 33,66 |
+| fused (shipped) | 3 933 ms | 15,38 |
+| iterate + decode, no arithmetic | 2 559 ms | 10,01 |
+
+**2,19x median**, and 2,16x worst case — comparing the fastest before against the
+slowest after — with no dependency. Underneath sits an unmoved row fetch, which is
+why the in-situ figure is below the isolated 3,77x.
+
+Equivalence is checked over the whole store rather than a fixture: 255 703 rows
+checked, 0 mismatches, top-15 ids and scores identical.
+
+Two measurement traps caught here, both worth remembering, and both encoded in the
+driver so the next run cannot repeat them. A first harness ran both implementations
+through one `scan(f)` call site, which made *that* site polymorphic and blocked
+inlining for both, reading 1,61x where two direct call sites read 2,48x. And single
+runs disagreed by ±15%, enough to invent a 2,9x that repetition does not support —
+the fused path is stable to ±1% while the two-pass baseline, doing more work, swings
+several times that.
+
+One hypothesis was tested and refuted: `vector` is the last column of `passages`,
+after the passage `text`, so `SELECT id, vector` should have to read through the text
+to reach it — measured at 1,00x against a narrow id+vector table. The 12 KB vector
+dominates the overflow chain.
+
+`vector-store.ts` (memory backend) carries the same two-pass shape. Its `norm()` is
+monomorphic — both operands are `number[]` — so it gains the traversal half only,
+~2,0x. One idiom, both backends, no other file touched: the shape of PR #19.
+
+**What this ticket does not claim.** It does not close #30. The scan measured here
+is 8,6 s where he reports ~95 s, an 11x gap on his Windows/Node 24 machine that
+nothing measured here explains, and whose cause decides this change's value to him:
+a uniform CPU-side slowdown carries the ratio and puts him near 43 s, while a purely
+I/O-bound gap leaves the saving at ~5 s of 95. The one experiment that settles it is
+his, and it is one line — whether a second identical query, run immediately, is
+faster than the first. Say so in the PR body rather than letting the number imply a
+fix.
+
+**Contingent on direction.** Under the issue's option 1 (`sqlite-vec` `vec0`) the JS
+cosine is deleted outright and this work is discarded. It is worth landing only if
+the maintainer does not go that way.
+
+## Process note
+
+This PR exceeds the ratified two-in-flight cap (#27 and #28 both open). The author
+authorized a third slot on 2026-08-29 on the grounds that it is a clear code
+simplification; the ruling is recorded in DECISIONS.md, which is authoritative.
+
+## Relevant files
+
+- `src/features/search/sqlite-index.ts` — `cosine()`, `norm()`, `vectorSearch()`;
+  the two-pass traversal and the polymorphic call site
+- `src/features/search/vector-store.ts` — `cosine()`, `norm()`; the same two-pass
+  shape on the memory backend
+- `bench/` (this repo) — the drivers, once promoted with their results JSON and
+  figure-guard declarations
+
+## Actions
+
+1. Fuse `cosine()` in `sqlite-index.ts` to a single traversal accumulating both the
+   dot product and the row's squared norm; drop the row-side call to `norm()` so
+   that call site sees only `number[]`.
+2. Same fusion in `vector-store.ts`.
+3. Promote the measurement drivers into `bench/` with a results JSON under
+   `bench/results/`, and declare every figure quoted above in `bench/check_figures.py`.
+4. Open the upstream PR from the author's fork, with a body that states the measured
+   2,19x, the refuted wide-row hypothesis, and explicitly that this does not close #30.
+
+## Test
+
+- Red step: a case asserting `cosine` agrees with a two-pass reference to the last
+  bit over a fixture of non-unit vectors — it must pass before and after, since the
+  change is bit-identical, and it is what makes that claim mechanical rather than
+  asserted.
+- Upstream's existing vector-search suite must pass unchanged on both backends.
+
+## Verification
+
+- [x] `npm test` (752 passed, 7 skipped), `tsc --noEmit`, and lint clean in the fork
+- [x] Fused and two-pass cosine agree bit-for-bit on a non-unit-vector fixture, on
+      both backends, including zero rows, both directions of width mismatch, and NaN
+      propagation — 7 cases, `tests/features/vector-cosine-equivalence.test.ts`
+- [x] The test is a detector, not a decoration: deleting the width-mismatch path
+      fails it, and fails exactly the intended case
+- [x] Equivalence over the whole store, not a fixture: 255 703 rows, 0 mismatches,
+      top-15 ranking and scores identical
+- [x] Re-measured in situ against the built `dist/`: 2,19x median
+- [x] `make check` green in this repo (figure guard declares every number above)
+
+## Invariants
+
+- Ranking output is unchanged — this is a pure-refactor claim and is validated by
+  byte-comparing results, not by a green suite alone.
+- No new dependency, no schema change, no index rebuild.
+
+## Exit criteria
+
+- The upstream PR is open, its body carries the measurement and the explicit
+  non-claim about #30, and DECISIONS.md records the third-slot authorization.
