@@ -62,6 +62,11 @@ PROSE = {
     # written. An append-only ledger is the worst place for a stale figure: a ratified
     # entry is never edited again, so a wrong number there becomes permanent.
     "decisions": ["spec/DECISIONS.md"],
+    # verification/ reports settle a factual question and quote artifact figures to do
+    # it, so they need the guard as much as the tracker does. The map is hand-listed,
+    # which fails asymmetrically: removing a guarded file is loud, a new file ARRIVING
+    # unguarded is silent. This one arrived 2026-08-29.
+    "v30": ["verification/issue-30-thread.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -304,6 +309,20 @@ FIGURES = [
       "decisions": "the binary scan is **{} ms** against"}),
     ("0025-x1-recall/scan-shapes-255703x3072.json", "results.4.bytes_scanned", 0,
      {"t0025": "it now reads {}, equal to binary_3072"}),
+    # Which shape scan-shapes' baseline actually measures. All three declared, because the
+    # finding IS the ratio between them: a re-measurement that moved only one would leave the
+    # others true and the conclusion false. The mislabelled baseline is what put "more than
+    # twenty" into a public comment where the honest figure is about ten.
+    ("0025-x1-recall/scan-shape-attribution.json", "results.0.us_per_row", 3,
+     {"v30": "what v1.9.0 ran | {} |"}),
+    ("0025-x1-recall/scan-shape-attribution.json", "results.1.us_per_row", 3,
+     {"v30": "isolates the polymorphism | {} |"}),
+    ("0025-x1-recall/scan-shape-attribution.json", "results.2.us_per_row", 3,
+     {"v30": "what #31 shipped | {} |"}),
+    ("0025-x1-recall/scan-shape-attribution.json", "results.1.speedup_vs_v190", 2,
+     {"v30": "Of the 2,29x, {}x is the polymorphic call site"}),
+    ("0025-x1-recall/scan-shape-attribution.json", "results.2.speedup_vs_v190", 2,
+     {"v30": "| **{}x** |"}),
     # ---- 0025 X2, stopword-less OR p95 (REAL 477k index + stock control arm, doudou) ----
     # Both arms are declared, because the verdict is a comparison: a re-measurement that moved
     # only the control would leave the treatment figure true and the conclusion false.

@@ -1,0 +1,56 @@
+{
+  "what": "which shape bench/vec_scan_shapes.mjs's sqlite_float32 candidate actually measures",
+  "when": "2026-08-29T13:28:59.153Z",
+  "geometry": {
+    "vectors": 40000,
+    "dim": 3072
+  },
+  "reps": 5,
+  "vectors_are": "SYNTHETIC — scan latency depends on shape, not on meaning",
+  "equivalence": {
+    "distinct_results": 1,
+    "agree": true
+  },
+  "results": [
+    {
+      "name": "v190_two_pass_shared_norm",
+      "note": "what v1.9.0 ran: two traversals per row, norm() shared with the query-side call",
+      "median_ms": 3233,
+      "min_ms": 3112,
+      "max_ms": 3855.7,
+      "us_per_row": 80.826,
+      "speedup_vs_v190": 1
+    },
+    {
+      "name": "two_pass_monomorphic_norm",
+      "note": "two traversals still, but norm() sees only Float32Array — isolates polymorphism",
+      "median_ms": 2275.6,
+      "min_ms": 2143.1,
+      "max_ms": 2731.8,
+      "us_per_row": 56.889,
+      "speedup_vs_v190": 1.42
+    },
+    {
+      "name": "fused_inline",
+      "note": "what bench/vec_scan_shapes.mjs measures and labels 'v1.9.0 shape', and what PR #31 shipped",
+      "median_ms": 1414.4,
+      "min_ms": 1185.7,
+      "max_ms": 1814.3,
+      "us_per_row": 35.36,
+      "speedup_vs_v190": 2.29
+    }
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "free_mem_bytes_at_start": 14289551360,
+    "loadavg": [
+      8.82,
+      8.69,
+      8.7
+    ],
+    "node": "v22.23.1"
+  }
+}
