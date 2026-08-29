@@ -427,13 +427,16 @@ def test_a_candidate_with_pooling_but_no_source_fails(tmp_path):
 
 
 def test_a_pooling_mode_the_drivers_cannot_pass_fails(tmp_path):
-    """`lasttoken` is real and transformers.js cannot express it.
+    """`weightedmean` is real and transformers.js has no case for it.
 
-    Qwen3-Embedding-0.6B reads `lasttoken` from its own card. Coercing that to
-    `mean` to make a run proceed would be invisible in the results, so a candidate
-    carrying a mode the drivers cannot pass is a finding about the candidate.
+    The first version of this test used `lasttoken`, which was the wrong example:
+    the library accepts `last_token`/`eos`, and the throw it produced came from
+    this repository canonicalising the flag to a string with no underscore. The
+    rule is unchanged and the example now matches it — a mode with no case in
+    `feature-extraction.js`'s switch is a finding about the candidate, because
+    coercing it to `mean` to let a run proceed would be invisible in the results.
     """
-    record = dict(MINIMAL_RECORD, pooling="lasttoken")
+    record = dict(MINIMAL_RECORD, pooling="weightedmean")
     repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
     assert cm.run(repo) == 1
 

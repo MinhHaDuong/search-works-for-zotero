@@ -92,13 +92,16 @@ REQUIRED_KEYS = {
 
 STATUSES = ("candidate", "rejected")
 
-#: The pooling modes a driver can actually pass to transformers.js. A candidate
+#: The pooling modes a driver can actually pass to transformers.js, read from the
+#: `switch` in `src/pipelines/feature-extraction.js` rather than assumed: `mean`,
+#: `first_token`/`cls`, `last_token`/`eos`, with `default:` throwing. A candidate
 #: whose card names anything else is a finding about that candidate — it is not
-#: coerced into one of these, because the coercion would be invisible in the
-#: results. Measured 2026-08-29: four of the six candidates pool with `cls` while
-#: every driver hardcoded `mean`, so the hardcoded default was wrong for the
-#: majority of the field, including both Granite models.
-POOLINGS = {"mean", "cls"}
+#: coerced into one of these, because the coercion would be invisible in the results.
+#:
+#: Measured 2026-08-29: four of the six candidates pool with `cls` while every driver
+#: hardcoded `mean`, so the hardcoded default was wrong for the majority of the field,
+#: including both Granite models.
+POOLINGS = {"mean", "cls", "last_token"}
 
 #: A rejection names which filter caught it. `r7` is the language list, `licence`
 #: the terms, `size` the parameter count, `token-ceiling` the sequence length the

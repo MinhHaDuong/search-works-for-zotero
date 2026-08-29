@@ -1,5 +1,5 @@
 {
-  "probed_utc": "2026-08-29T15:56Z",
+  "probed_utc": "2026-08-29T16:12Z",
   "authenticated": true,
   "source_file": "1_Pooling/config.json",
   "controls": {
@@ -289,11 +289,11 @@
     {
       "repo": "Qwen/Qwen3-Embedding-0.6B",
       "state": "read",
-      "pooling": "lasttoken",
+      "pooling": "last_token",
       "http_status": 200,
       "normalize": true,
       "modes_set": [
-        "lasttoken"
+        "last_token"
       ],
       "detail": "",
       "id": "qwen3-embedding-06b"

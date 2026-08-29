@@ -51,17 +51,25 @@ from pathlib import Path
 
 DEFAULT_KEYFILE = Path.home() / ".config/keys/huggingface.env"
 
-#: sentence-transformers flag -> the name transformers.js uses for the same thing.
-#: `mean` and `cls` are the two the drivers can actually pass; the rest are recorded
-#: as themselves and left for a human, because a mode we cannot express is a finding
-#: about the candidate, not a value to coerce into one we can.
+#: sentence-transformers flag -> the literal string transformers.js accepts for it.
+#:
+#: The right-hand side is not a label of our own choosing: it is matched against the
+#: `switch` in `@huggingface/transformers/src/pipelines/feature-extraction.js`, whose
+#: cases are `mean`, `first_token`/`cls`, `last_token`/`eos`, and whose `default:`
+#: throws. So a value here that reads well but is not one of those literals produces a
+#: run-time throw that looks like a library limitation. The first draft wrote
+#: `lasttoken` and drew exactly that wrong conclusion about Qwen3.
+#:
+#: The modes with no case in that switch are recorded as themselves and left for a
+#: human — a mode the library genuinely cannot express is a finding about the
+#: candidate, not a value to coerce into one it can.
 POOLING_FLAGS = {
     "pooling_mode_cls_token": "cls",
     "pooling_mode_mean_tokens": "mean",
+    "pooling_mode_lasttoken": "last_token",
     "pooling_mode_max_tokens": "max",
     "pooling_mode_mean_sqrt_len_tokens": "mean_sqrt_len",
     "pooling_mode_weightedmean_tokens": "weightedmean",
-    "pooling_mode_lasttoken": "lasttoken",
 }
 
 POOLING_CONFIG = "1_Pooling/config.json"
