@@ -33,7 +33,7 @@ This is the one-statement-per-fact rule applied to vocabulary.
 
 ## Relevant files
 - `TERMINOLOGY.md` — new, at the repository root
-- `REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — inline glosses that
+- `spec/REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — inline glosses that
   become redundant may collapse to the term alone; a first-use gloss that
   carries argument stays
 - `CLAUDE.md`, `README.md` — document-set list and table

@@ -43,13 +43,13 @@ failure mode under real-time item churn — which is the constraint that
 killed the band approach and must not kill its replacement the same way.
 
 ## Relevant files
-- `REQUIREMENTS.md` — R26; check R2 and R4 for consequential wording
-- `DESIGN.md` §2.3 — the two-band frontier, band 0/band 1, the derived cap K,
+- `spec/REQUIREMENTS.md` — R26; check R2 and R4 for consequential wording
+- `spec/DESIGN.md` §2.3 — the two-band frontier, band 0/band 1, the derived cap K,
   and the "R26 observable is then asserted per phase" paragraph
-- `DESIGN.md` §2.8 — the convergence gate asserts prefix-ness today
-- `CONSTRAINTS.md` — C2's smallest-first comparison rests on the same
+- `spec/DESIGN.md` §2.8 — the convergence gate asserts prefix-ness today
+- `spec/CONSTRAINTS.md` — C2's smallest-first comparison rests on the same
   standard and must stay coherent
-- `DECISIONS.md` — the ruling; do not edit the entry
+- `spec/DECISIONS.md` — the ruling; do not edit the entry
 
 ## Actions
 1. Rewrite R26: state recency as an orientation, state the tier priority as

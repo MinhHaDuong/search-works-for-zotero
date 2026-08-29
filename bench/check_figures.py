@@ -54,14 +54,14 @@ PROSE = {
     "state": ["STATE.md"],
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
-    "design": ["DESIGN.md"],
-    "requirements": ["REQUIREMENTS.md"],
+    "design": ["spec/DESIGN.md"],
+    "requirements": ["spec/REQUIREMENTS.md"],
     # The ratification ledger quotes measured figures while a ruling is pending, and until
     # 2026-08-29 it was the one prose document with no entry here — so every number in it
     # was unguarded, and the X1 entry drifted onto a superseded run within a day of being
     # written. An append-only ledger is the worst place for a stale figure: a ratified
     # entry is never edited again, so a wrong number there becomes permanent.
-    "decisions": ["DECISIONS.md"],
+    "decisions": ["spec/DECISIONS.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",

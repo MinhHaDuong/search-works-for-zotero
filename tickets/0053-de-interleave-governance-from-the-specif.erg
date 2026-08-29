@@ -48,7 +48,7 @@ The transitional cost is accepted: process rulings live in two places for a
 while, resolved by the pointer rather than by a move.
 
 ## Relevant files
-- `DECISIONS.md` — the ratified entries, some technical, some process
+- `spec/DECISIONS.md` — the ratified entries, some technical, some process
 - `CLAUDE.md` — the binding upstream-relations paragraph
 - `SYNC.md` — upstream tracking, adjacent
 - `README.md` — the authoritative-chain sentence

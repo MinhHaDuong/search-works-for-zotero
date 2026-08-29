@@ -38,7 +38,7 @@ Scope note: this ticket edits the design record only. The upstream
 implementation is 0091, which is blocked on this.
 
 ## Relevant files
-- `DESIGN.md` §3 — owns the rule and its threshold. The only file that
+- `spec/DESIGN.md` §3 — owns the rule and its threshold. The only file that
   changes here.
 - `bench/results/0025-x2-stopwordless/df-droplist-sweep.json` — the sweep,
   the recommended policy, and the costs to weigh.

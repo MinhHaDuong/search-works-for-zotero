@@ -30,12 +30,12 @@ acceptance of the rewritten voice. Applying a keyword convention to prose
 that may still be vetoed would be redone.
 
 ## Relevant files
-- `REQUIREMENTS.md` — R1–R28, the main site
-- `CONSTRAINTS.md` — C1–C4; constraints are facts about the world, so most
+- `spec/REQUIREMENTS.md` — R1–R28, the main site
+- `spec/CONSTRAINTS.md` — C1–C4; constraints are facts about the world, so most
   should NOT take normative keywords; the design's obligations under them
   may
-- `DESIGN.md` — §2 architecture, §2.8 gates, §2.9 budgets
-- `DECISIONS.md` — out of scope, as in 0036: an append-only ledger, not
+- `spec/DESIGN.md` — §2 architecture, §2.8 gates, §2.9 budgets
+- `spec/DECISIONS.md` — out of scope, as in 0036: an append-only ledger, not
   prose to restyle
 
 ## Actions
