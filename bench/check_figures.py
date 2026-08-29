@@ -597,6 +597,20 @@ FIGURES = [
      {"decisions": "unconstrained costs **{} ms** median"}),
     ("0025-x4-constrained-match/real-477k.json", "rows.1.median_ms", 1,
      {"decisions": "thousand rowids costs **{} ms**"}),
+    # ---- the year-scope follow-up. The table's two columns are the whole argument: the
+    # same work, two mechanisms, and a reader who checks one cell checks the claim.
+    ("0025-year-scope/year-vs-json-each.json", "scopes.0.predicate.median_ms", 1,
+     {"decisions": "| one year (2020) | **{} ms** median"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.0.json_each_control.median_ms", 1,
+     {"decisions": "median | **{} ms** median |"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.1.predicate.median_ms", 1,
+     {"decisions": "| five years | {} ms median"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.2.predicate.median_ms", 1,
+     {"decisions": "| a decade | {} ms median"}),
+    ("0025-year-scope/year-vs-json-each.json", "baseline.0.median_ms", 0,
+     {"decisions": "no filter at all costs **{} ms** median"}),
+    ("0025-year-scope/year-vs-json-each.json", "column_and_index_build_ms", 0,
+     {"decisions": "cost **{} ms**, and Zotero's local API"}),
 ]
 
 

@@ -478,6 +478,52 @@ the CUDA shared library is unavailable" is a symptom rather than the condition.
 
 ## Awaiting ratification
 
+- **Scoping by a stored attribute is affordable, and the author wants years.**
+  The entry below reports X4 and concludes the ladder loses its middle rung.
+  That conclusion is about the mechanism X4 measured — an arbitrary rowid set
+  shipped through `json_each` — and it should not be read as "scoping is dead",
+  which is how it first reached the author. A **collection** or a **tag** needs
+  that mechanism, because their membership is a set the index does not store. A
+  **year** does not: it is an attribute of an item, so it can be a column with an
+  index on it and an ordinary predicate the planner pushes into the scan.
+
+  Measured 2026-08-29 on the real 477 512-passage index
+  (`bench/results/0025-year-scope/year-vs-json-each.json`), each scope run BOTH
+  ways over the same items and the same queries:
+
+  | scope | indexed predicate | `json_each`, same items |
+  |---|---|---|
+  | one year (2020) | **254,8 ms** median | **11 141,9 ms** median |
+  | five years | 181,3 ms median | not run — X4's curve |
+  | a decade | 196,1 ms median | not run — X4's curve |
+
+  Ranking the whole corpus with no filter at all costs **207 ms** median in the
+  same run. So the predicate is **43x** cheaper than the blob on identical work,
+  and its cost against no filter is nil to within this run's noise — a five-year
+  scope is *cheaper* than no scope, because the filter removes work rather than
+  adding any. Read the comparison within this run only; its baseline is not the
+  X4 arm's, which used a different probe set and a different file.
+
+  **The precondition is the finding that comes first.** The shipped index stores
+  no date: `items` is `(item_key, title)` and `passages` carries none either. So
+  year scoping today is not slow, it is *impossible*, and no latency verdict was
+  ever the obstacle. Adding the column and its two indexes over the whole index
+  cost **529 ms**, and Zotero's local API already returns `meta.parsedDate`, so
+  the build has the value in hand.
+
+  **What this does not license.** It says nothing about collections or tags,
+  whose arbitrary sets remain X4's territory, and nothing about a scope so narrow
+  that the ranked stream runs out before it fills k — the give-up frequency the
+  entry below leaves open. It generalises to stored attributes, item type
+  included, and no further.
+
+  Two ways to rule. Record a third ladder rung for stored-attribute filters,
+  distinct from the rowid-set rung X4 killed, and let R5's date and item-type
+  clauses stand on it; or hold until the give-up frequency is measured, on the
+  ground that a filter which is free per query can still empty a result set. The
+  upstream half — that `zotero_semantic_search` accepts no filters at all and the
+  index carries no date to filter on — is an upstream ask and is not filed.
+
 - **X4 fired, and the ladder loses its middle rung.** DESIGN.md §3 states the
   rule as *"the ladder step sits at the largest measured scope whose
   constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step

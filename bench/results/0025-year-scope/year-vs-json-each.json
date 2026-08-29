@@ -1,0 +1,88 @@
+{
+  "probe": "ticket 0025 — is a YEAR-scoped query affordable, where X4 found a rowid-set scope was not?",
+  "why": "X4 measured rowid-set scoping via json_each and found it dominated by not scoping at all. That is the mechanism a collection or tag needs. A year is a stored attribute, so it can be an indexed predicate instead — a different mechanism, and X4 says nothing about it. Each scope below is run BOTH ways against the same items, so the comparison isolates the mechanism from the scoping.",
+  "finding_before_any_number": "The shipped index stores NO date: `items` is (item_key, title) and `passages` carries no date either, so year scoping is not slow today, it is impossible. The years here were harvested from the Zotero local API and added to a COPY of the index. Adding the column is therefore a precondition of the capability, and its cost is reported below rather than assumed away.",
+  "db": "/home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite",
+  "passages": 477512,
+  "items_total": 7541,
+  "items_with_year": 7426,
+  "year_span": {
+    "lo": 1622,
+    "hi": 2026
+  },
+  "column_and_index_build_ms": 529,
+  "items_stamped": 7426,
+  "probes_per_arm": 12,
+  "topk": 30,
+  "rule": "DESIGN.md §3 X4: the filter allowance is p95 <= 150 ms inside the 300-700 ms typical budget",
+  "baseline": [
+    {
+      "arm": "unconstrained (whole corpus)",
+      "probes": 12,
+      "median_ms": 207,
+      "p95_ms": 641.1,
+      "max_ms": 641.1,
+      "mean_rows_returned": 30
+    }
+  ],
+  "scopes": [
+    {
+      "scope": "one year (2020)",
+      "passages_in_scope": 17422,
+      "predicate": {
+        "arm": "year predicate — one year (2020)",
+        "probes": 12,
+        "median_ms": 254.8,
+        "p95_ms": 323.1,
+        "max_ms": 323.1,
+        "mean_rows_returned": 30
+      },
+      "json_each_control": {
+        "arm": "json_each blob — one year (2020)",
+        "probes": 5,
+        "median_ms": 11141.9,
+        "p95_ms": 67069.4,
+        "max_ms": 67069.4,
+        "mean_rows_returned": 30
+      }
+    },
+    {
+      "scope": "five years (2016-2020)",
+      "passages_in_scope": 103099,
+      "predicate": {
+        "arm": "year predicate — five years (2016-2020)",
+        "probes": 12,
+        "median_ms": 181.3,
+        "p95_ms": 522.4,
+        "max_ms": 522.4,
+        "mean_rows_returned": 30
+      },
+      "json_each_control": {
+        "arm": "json_each blob — five years (2016-2020)",
+        "skipped": "scope holds 103099 rowids, above the 20000 cap this probe runs the control at. X4 measured that arm superlinear in scope size, so running it here would cost hours and would re-measure X4 rather than test anything new."
+      }
+    },
+    {
+      "scope": "a decade (2011-2020)",
+      "passages_in_scope": 206122,
+      "predicate": {
+        "arm": "year predicate — a decade (2011-2020)",
+        "probes": 12,
+        "median_ms": 196.1,
+        "p95_ms": 541.7,
+        "max_ms": 541.7,
+        "mean_rows_returned": 30
+      },
+      "json_each_control": {
+        "arm": "json_each blob — a decade (2011-2020)",
+        "skipped": "scope holds 206122 rowids, above the 20000 cap this probe runs the control at. X4 measured that arm superlinear in scope size, so running it here would cost hours and would re-measure X4 rather than test anything new."
+      }
+    }
+  ],
+  "host": "doudou",
+  "node": "v22.23.1",
+  "timestamp_utc": "2026-08-29T17:23:48.488Z",
+  "verdict": "YEAR SCOPING IS AFFORDABLE, and the control shows the cost was never the scoping. On the same scope, the same items and the same queries, the indexed predicate is 43x cheaper on the median than X4 json_each blob (254,8 ms against 11 141,9 ms). Against this run own unconstrained baseline the filter is free to within noise — 254,8 ms for one year and 181,3 ms for five, where ranking the whole corpus costs 207 ms — so a wider scope can even be CHEAPER than no scope, because the predicate removes work. Compare only within this run: the baseline here is not X4 73,6 ms, which was a different seed, a different probe set and a different file.",
+  "what_it_does_not_show": "That a COLLECTION or TAG scope is affordable. Their membership is an arbitrary set the index does not store, which is exactly what json_each exists to pass and what X4 condemned. This result is about STORED ATTRIBUTES — year, and by the same argument item type — and generalises no further.",
+  "precondition": "The shipped index stores no date at all: items is (item_key, title). The year column and its two indexes were added to a copy here and cost 529 ms over 477 512 passages, so the precondition is cheap, but it is a precondition and not a detail."
+}
