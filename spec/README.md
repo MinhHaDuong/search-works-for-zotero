@@ -44,6 +44,15 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 `█` shipped &nbsp;·&nbsp; `▓` partial &nbsp;·&nbsp; `░` not yet
 
+**These statuses are read, not run.** No suite tests a release against the
+requirements, so each one was assigned by reading the upstream source at the
+reviewed baseline and the ticket that carries the remainder. Only the
+arithmetic is mechanical: the bars are recomputed from the rows, never the
+rows from a measurement. Some rows do rest on something executed — the
+experiments, and the ten tests that fail on stock upstream under R12 — and
+those say so. Ticket 0026 is what would make this column derived rather than
+judged, by wiring the gates R19, R20 and R21 already demand.
+
 The two bars disagree on purpose, and the gap between them is the shape of
 the project rather than a backlog. What this repository produces is a
 specification, a measurement harness, and a small number of contained
