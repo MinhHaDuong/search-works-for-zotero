@@ -1,0 +1,65 @@
+%erg 0.1
+Title: Standing guard — external attributions carry a source coordinate
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0180
+
+--- log ---
+2026-08-29T16:05Z claude created
+2026-08-29T16:05Z claude note the regression half of 0180; /gaze is per-PR and cannot catch this class returning in an unrelated future change
+
+--- body ---
+## Context
+0180 corrects the external attributions that are wrong today. This ticket
+stops the class returning, which a per-PR review cannot do: the defect is a
+sentence that reads plausibly and is wrong about a repository nobody opens
+during review.
+
+The guard: a claim in the specification chain about Zotero, #6012 or zoteus
+must carry the coordinate that settles it — a file, a line, and the SHA it
+was read at. A claim with no coordinate is a claim nobody can re-check, and
+this repo has now produced four of them.
+
+Related but distinct: ticket 0161 guards that prose quoting **our own**
+measurements is covered by the figure guard. This one guards claims about
+**someone else's** code. Same discipline, different corpus, and neither
+subsumes the other — 0161 would pass a document full of uncited assertions
+about upstream, and this one would pass a document with a wrong number of
+our own.
+
+## Actions
+1. Decide the coordinate form and where it lives. Inline is noisy in prose;
+   a reference block at the foot of each document, keyed from the sentence,
+   is likely better. Weigh it — do not default to inline.
+2. Write the check. It must find attribution sentences by more than the
+   "verbatim / adopted / #6012's" vocabulary that seeded 0180, because a
+   claim can assert platform behaviour in plain words.
+3. Decide the failure mode. A hard fail on any uncited attribution will be
+   fought and then disabled; a report that lists uncited claims and fails
+   only on a *new* one is the ratchet shape this repo already uses
+   elsewhere.
+4. Add a staleness dimension: #6012 is an open draft. A coordinate read at a
+   SHA that upstream has moved past is a claim to re-check, not a claim to
+   trust. `make upstream-status` already detects movement.
+
+## Test
+The guard must fail against the tree as it stood on 2026-08-29 before 0180 —
+four uncited-or-wrong attributions were live then, so that is the positive
+control. A guard that has never been red has not been shown to be able to go
+red, and this repo has met that failure twice this session.
+
+## Verification
+- [ ] The check fails on the pre-0180 tree and passes after it
+- [ ] A newly added uncited attribution turns it red
+- [ ] It does not fire on prose that makes no external claim
+
+## Invariants
+- The guard reports; it does not edit prose.
+- It must not duplicate 0161's figure-guard coverage; if the two overlap,
+  say which owns what rather than letting both check the same line.
+- No new dependency for a check this small.
+
+## Exit criteria
+- [ ] The guard exists, with its positive control demonstrated
+- [ ] Its relationship to 0161 is stated, not left implicit
+- [ ] `make check` runs it and passes
