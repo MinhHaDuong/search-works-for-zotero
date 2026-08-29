@@ -16,13 +16,19 @@ in `spec/DECISIONS.md`). The remaining stopwords branch is on the fork at
 `309204b`-base, validated green on upstream's own gates; the tickets carry the
 full record.*
 
+Step 7 is also gone: X4's real-corpus arm **ran on 2026-08-29** once its driver
+was repaired, and the verdict holds — no constrained step ships, and on real text
+scoping costs more than ranking the whole corpus. Artifact
+`bench/results/0025-x4-constrained-match/real-477k.json`, reasoning on ticket 0025.*
+
 *A step here can rot in two ways, and both bit on 2026-08-29. It can be
 **overtaken** — step 6 was already measured, under a better framing. Or its
 premise can **move underneath it** while the command still runs: step 4 named
-trunk as v1.9.0 after `UPSTREAM` had advanced to v1.10.0, and step 7's X4
-command would have executed cleanly and returned a wrong number. Before running
-any step, check its version claims against `UPSTREAM` and its artifact
-directory against `bench/results/`.*
+trunk as v1.9.0 after `UPSTREAM` had advanced to v1.10.0, and step 7's X4 command
+would have executed cleanly and returned a wrong number, because it probed a real
+index with a synthetic vocabulary that matches almost nothing. Before running any
+step, check its version claims against `UPSTREAM` and its artifact directory
+against `bench/results/`.*
 
 Placeholders: `$FTS5` = your zoteus-fts5 checkout, `$FORK` = your MinhHaDuong/zoteus
 checkout, `$DATA650` = the data dir holding the big index — misnamed, it holds 477k
@@ -66,10 +72,8 @@ and any of them would bite a re-run:
   `passages` with `passages_fts` beside it and dies on open with `virtual tables
   may not be indexed`. Rebuild first — 263,7 s and 1 755,6 MiB on doudou,
   reproducing the geometry exactly. The rebuilt index is at
-  `/home/haduong/data/projets/zoteus-bench/x2-rebuild`, which clears the
-  *schema* obstacle in front of step 7's X4 arm without paying for it again.
-  That step is still blocked, on the probe vocabulary rather than the schema —
-  see step 7.
+  `/home/haduong/data/projets/zoteus-bench/x2-rebuild`, which is also the index
+  X4's real arm ran against, without paying for the rebuild again.
 - **The seed query list did not exist.** "In the PR handover" pointed at
   nothing. The population now lives in `bench/queries-x2.txt`, committed,
   because a p95 is a claim about a population.
@@ -140,49 +144,6 @@ Stock upstream, the uncapped 44,9 MB document's library, `run_serve`/`run_build`
 with `--max-chars 0`; record VmHWM (reproduces 0011's 2 084,9 MiB class on
 trunk). → feeds 0026's rss-gate fixture spec; commit JSON to
 `bench/results/0025-x3a-monster-rss/`.
-
-## 7. X4 confirmation on the real index — NOT RUNNABLE AS THIS STEP DESCRIBED IT
-
-*(Step 6, the X1 recall half, is gone — measured 2026-08-29, see the header.
-Numbers are not reused here: step 1 left the same gap when it was executed.)*
-
-**Do not run the command that stood here.** It would have produced a wrong
-number that no symptom distinguishes from a right one.
-
-The step verified that `constrained_match.mjs` queries `passages_fts` by name,
-so it needs a new-schema index, and stopped there. That check was necessary and
-not sufficient: the probe-only path also reuses `probeQuery()`, whose terms are
-the *synthetic* Zipf vocabulary (`"w5" OR "w1200" OR "w25000"`). Those terms are
-not absent from a real library — OCR debris and variable names put a few in — so
-nothing errors and no result is empty. The MATCH simply does almost no work.
-
-Measured on the real 477 512-passage index at `x2-rebuild`, 2026-08-29, by
-`verification/probes/x4_probe_vocabulary.py` → artifact
-`bench/results/0025-x4-constrained-match/real-477k-probe-vocabulary.json`:
-
-| arm | query | best of 3 |
-|---|---|---|
-| synthetic vocabulary | `"w5" OR "w1200" OR "w25000"` | 1,0 ms |
-| real vocabulary (control) | `"of" OR "steam" OR "095"` | 379,3 ms |
-
-The control is the point: it is drawn from the same three df bands the driver's
-comment says the cost depends on, and it could have come out fast. It did not —
-379x slower on the same index — so the synthetic arm's speed is the absence of
-work, not the presence of performance. Since X4's rule is an *upper bound* on
-latency, a vacuously fast arm does not merely mislead: it satisfies DESIGN §3's
-150 ms allowance and **inverts X4's no-ship verdict**.
-
-A synthetic vocabulary cannot carry a document-frequency spread into a real
-corpus, and the spread is the whole cost model. The real index holds 639 888
-distinct terms, of which 114 sit at df ≥ 10% (`of` at 84,96%), 8 195 between
-0,1% and 1%, and 356 124 below 0,1%.
-
-**Before this step can run**, `constrained_match.mjs` needs a probe-only path
-that samples those three bands from `fts5vocab` on the index under test,
-leaving the synthetic path byte-identical so `synthetic-477k.json` stays
-reproducible. The probe above already does the sampling and can be read for it;
-a full `fts5vocab(row)` scan costs 5,4 s warm here, paid once per run. X4-real
-is unrun and stays unrun until then; ticket 0025 carries the record.
 
 ## Not in this runbook, deliberately
 
@@ -277,11 +238,9 @@ until 0262/0263 have a candidate table under it.
 
 ## Order if time is short
 
-Step 2 is done, step 6 is done, PR A is held, and step 7 is blocked on a driver
-fix rather than on machine time — so the queue is: 4 (trunk numbers, the I-2
-gate) → 3 (X6, for the #26 thread) → 5. PR B waits on a free slot rather than on
-a measurement. Both slots are currently spent on #27 and #28 — that is the
-ratified cap, working as intended.
+Steps 2, 6 and 7 are done and PR A is held, so the queue is: 4 (trunk numbers,
+the I-2 gate) → 3 (X6, for the #26 thread) → 5. PR B waits on a free slot rather
+than on a measurement; SYNC.md reports what remains of the cap.
 
 Every remaining step that reads an existing index pays step 2's rebuild first;
 every step that builds its own does not.
