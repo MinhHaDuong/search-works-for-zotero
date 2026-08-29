@@ -119,6 +119,81 @@ already passed in-container — ticket 0025). → JSON to
   I-1 is filed ([#26](https://github.com/oscardvs/zoteus/issues/26)); step 3's
   measured answer goes on its thread.
 
+## Comment C — the vector-scan evidence for #30 (ready; paste after review)
+
+For [oscardvs/zoteus#30](https://github.com/oscardvs/zoteus/issues/30). A
+comment, not a PR — it spends no in-flight slot. Figures hand-transcribed
+2026-08-29 from `bench/results/0008-real-vectors/real-93022.json` and closed
+ticket 0008 (the `vec_scaling` sweep table); written in upstream's decimal
+style, so the guard deliberately does not cover this section — re-verify
+against the artifact if it sits unposted past a re-measure. After posting:
+record on SYNC.md's #29/#30 row and delete this section.
+
+---
+
+Your read of the mechanism matches what I measured on this seam during the
+prototype work behind #10 — the vectors were in SQLite there too, so the
+question was never which store but where the scan runs and over how many
+bytes per vector. All figures below are from that retired prototype at
+**384 dims** (the on-device model), on Linux — not v1.9.0's scan, not
+3072 dims — so treat them as the shape of the trade, not your numbers.
+Drivers and raw artifacts are public:
+[`bench/vec_scaling.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/vec_scaling.mjs),
+[`bench/vec_real_measure.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/vec_real_measure.mjs),
+[`bench/results/0008-real-vectors/real-93022.json`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/results/0008-real-vectors/real-93022.json).
+
+**On option 1: sqlite-vec's `vec0` is not an ANN index.** In 0.1.9 its KNN
+`MATCH` is a brute-force scan over the on-disk table, in C. Measured at
+384 dims, k=30, warm, median of 25 probes: 14.1 ms at N=10,000 rising to
+567.3 ms at N=400,000 — 40.2x the time for 40x the data, ~141 ms per 100k
+vectors. Still O(N), with a much smaller constant than a JS loop, and that
+constant is what it buys: naive scaling (255k vectors, 8x the dims) puts a
+`vec0` float32 scan at a few seconds per query instead of ~100 — a real
+win, but not an HNSW engine's asymptotics, and the gap re-opens as the
+corpus grows. The missing index is a deliberate trade by the library: it is
+the same author's successor to sqlite-vss, which carried Faiss ANN at
+~5.3 MB per platform binary; sqlite-vec is ~160 KB of dependency-free C,
+with quantization offered as the lever instead. One structural caveat:
+vec0's k-best cost grows faster than linearly in k — 7.0 / 15.9 / 30.4 /
+70.8 / 179.2 ms at k = 30/120/240/480/960 over 93k binary codes — which
+matters the moment you ask it for a pool rather than a top-k.
+
+**That quantization lever, measured on real vectors.** 93,022 passages of a
+real library, embedded by the on-device model. Two-stage = 1-bit codes
+scanned by Hamming distance (a popcount), then an exact float32 rerank of
+the pooled candidates. Baseline: exact float32 `vec0` scan at k=30,
+103.3 ms.
+
+| first-pass pool | recall@30 vs the exact ranking | median | vs the exact scan |
+|---|---|---|---|
+| 4x (k=120) | 0.884 | 34.4 ms | ~3.0x faster |
+| 8x (k=240) | 0.953 | 61.5 ms | ~1.7x faster |
+| 16x (k=480) | 0.986 | 120.7 ms | ~0.85x — slower |
+
+Binary-only, no rerank: recall 0.592 — the codes find the neighbourhood and
+cannot order within it, so the float32 column stays mandatory. On disk the
+codes cost 71.1 B/vector against 1,563.2 B for float32, 22x smaller; at
+your 3072 dims that is 384 B/vector, ~98 MB for 255k passages, against the
+~3 GB you computed for a float32 cache (option 2).
+
+Two smaller results from the same artifact. Mean-centring the corpus before
+thresholding buys +0.5 to +3.4 recall points depending on the pool —
+zotero/zotero#6012's `modelCalibration.meanVector` is this same centring.
+And at the 8x pool the first pass is only 30.4 ms of the 61.5: the rest is
+a rerank issuing one statement per pooled rowid, so batching it into one
+statement would plausibly land 8x near 35 ms — ~3x faster than the exact
+scan at 0.953 recall.
+
+Caveats that keep these numbers honest: recall is measured against the
+exact *vector* ranking, not against retrieval relevance; probes are indexed
+passages, leave-one-out, and with 150-character chunk overlap 52.1% of a
+probe's exact top-30 comes from its own item, which makes the task easier
+than a real query's; and everything above is 384 dims on Linux — the
+3072-dim Windows numbers would need their own run. The drivers take a
+`search-index.sqlite` path if they are useful to you.
+
+---
+
 ## The pre-filled PR forms
 
 Each form opens with title and body already filled. PR B is complete —
