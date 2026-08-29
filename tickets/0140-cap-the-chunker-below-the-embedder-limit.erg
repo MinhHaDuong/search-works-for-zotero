@@ -2,14 +2,14 @@
 Title: Cap the chunker below the embedder's token limit before seg/1 ships
 Created: 2026-08-29
 Author: claude
-Label: needs-human
 
 --- log ---
 2026-08-29T15:00Z claude created
 2026-08-29T15:00Z claude label needs-human
 
 2026-08-29T11:14Z claude note ballot corrected after reading #6012 at source: 768 is a CEILING not a chunk size, and the platform caps it with min(768, modelMax) - specialTokens - prefix; adopting the min() is now option (a), a fixed sub-512 constant is (b), and (c) takes the min but records the resolved budget in the chunker key so the C1 coupling is explicit rather than silent
-2026-08-29T11:21Z claude note option (a) specified in full from source (two nested caps plus a drop rule across embeddings.js:1642 and utilities_internal.js:3752/3797), and the quarter-rule promoted to an exit criterion for every option; code reuse ruled out — Zotero is AGPL-3.0 and zoteus is MIT, there is no runtime path from an external MCP server into Zotero.Utilities.Internal.Chunking, and #6012 is unmerged; the design is adoptable as specification, the source is not
+2026-08-29T11:21Z claude note option (a) specified in full from source (two nested caps plus a drop rule across embeddings.js:1642 and utilities_internal.js:3752/3797), and the quarter-rule promoted to an exit criterion for every option; code reuse ruled out — Zotero is AGPL-3.0 and zoteus is MIT, there is no runtime path from an external MCP server into Zotero.Utilities.Internal.Chunking, and #6012 is unmerged; the design is adoptable as specification, the source is not2026-08-29T18:00Z claude note author ratified option (c) with the ~500 ceiling (DECISIONS.md 2026-08-29): budget = min(500, modelMax) - specialTokens - prefix, resolved budget recorded in the chunker key. The premise the recommendation rested on was measured before ratifying rather than after: all nine 0240 candidates plus today's model declare a window above 500, tightest 512 (verification/probes/model-window-census.py, bench/results/0140-model-windows/candidate-windows.json), so the min never binds and the key is stable in fact. The census also found that 'the model's limit' is not one number - nomic-embed-text-v1.5 declares four position-limit fields spanning 4x, and v2-moe disagrees between config and tokenizer_config - so modelMax is defined as the minimum over every declared field. DESIGN.md 2.2 rewritten; 2.9's passage estimate flagged pending re-measurement rather than divided.
+
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted
@@ -246,13 +246,17 @@ or it cannot distinguish truncation from similarity.
 - [ ] `make check` green, figure-guard anchors updated
 
 ## Invariants
-- C1's stage separation holds: the chunk key does not depend on the embedder.
+- C1's stage separation holds in the form ratified 2026-08-29: the chunk key
+  depends on the embedder only through the resolved budget, which it records
+  explicitly, and which is constant across every candidate measured. The
+  original wording here — "the chunk key does not depend on the embedder" —
+  was false of the option that won and is corrected rather than left standing.
 - The entry as unit of answer (ratified 2026-08-26) is unchanged; this
   bounds chunk size within an entry, it does not redefine the entry.
 - Coverage honesty (R4, R17) is the point of the ticket, not a side effect.
 
 ## Exit criteria
-- [ ] The construction is ratified in DECISIONS.md and stated in §2.2,
+- [x] The construction is ratified in DECISIONS.md and stated in §2.2,
       with "adopted verbatim" either made true or replaced
 - [ ] §2.9 recomputed from a measurement
 - [ ] The regression test exists, with its positive control
