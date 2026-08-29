@@ -1,0 +1,25 @@
+{
+ "probe": "dot-vs-cosine-scan",
+ "what": "upper bound on what the vector scan saves by trusting stored vectors to be unit length",
+ "caveat": "arithmetic and memory only — no SQLite, no BLOB decode, no row iteration",
+ "dim": 384,
+ "rows": 160000,
+ "reps": 9,
+ "node": "v22.23.1",
+ "bytes_scanned_mb": 234.4,
+ "cosine": {
+  "median_ms": 269.739,
+  "min_ms": 141.315,
+  "max_ms": 293.088,
+  "spread_pct": 56.3,
+  "us_per_row": 1.686
+ },
+ "dot_only": {
+  "median_ms": 279.924,
+  "min_ms": 105.102,
+  "max_ms": 304.154,
+  "spread_pct": 71.1,
+  "us_per_row": 1.75
+ },
+ "speedup": 0.964
+}
