@@ -1,0 +1,710 @@
+{
+  "what": "Matryoshka truncation x binary quantization, decomposed, on real vectors",
+  "when": "2026-08-29T09:17:09.416Z",
+  "label": "nomic-embed-text-v1.5 (MRL), 93022 real passages",
+  "source": {
+    "kind": "float32-file",
+    "path": "/home/haduong/data/projets/zoteus-bench/mrl/nomic.f32"
+  },
+  "corpus": {
+    "vectors": 93022,
+    "full_dim": 768,
+    "widths": [
+      768,
+      384,
+      256,
+      128,
+      64
+    ]
+  },
+  "probes": {
+    "count": 100,
+    "topk": 30,
+    "seed": 20260822,
+    "leave_one_out": true
+  },
+  "scored_against": "the exact full-width float32 cosine ranking, which is what ships today",
+  "per_width": [
+    {
+      "width": 768,
+      "bytes_per_vector": {
+        "float32": 3072,
+        "binary": 96
+      },
+      "corpus_bytes": {
+        "float32": 285763584,
+        "binary": 8930112
+      },
+      "truncation_only_recall": 1,
+      "binary_recall": {
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.6543
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.833
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.9277
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.971
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.9893
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.6543
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.833
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.9277
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.971
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.9893
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.7137
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.89
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.962
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9907
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.997
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.7137
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.89
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.962
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9907
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.997
+            }
+          ]
+        }
+      }
+    },
+    {
+      "width": 384,
+      "bytes_per_vector": {
+        "float32": 1536,
+        "binary": 48
+      },
+      "corpus_bytes": {
+        "float32": 142881792,
+        "binary": 4465056
+      },
+      "truncation_only_recall": 0.848,
+      "binary_recall": {
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5103
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.6783
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.8047
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.895
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.9463
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5103
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.668
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.7633
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.815
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.837
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5987
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.7723
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.886
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9463
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.9773
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5987
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.7427
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.8097
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.837
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.8443
+            }
+          ]
+        }
+      }
+    },
+    {
+      "width": 256,
+      "bytes_per_vector": {
+        "float32": 1024,
+        "binary": 32
+      },
+      "corpus_bytes": {
+        "float32": 95254528,
+        "binary": 2976704
+      },
+      "truncation_only_recall": 0.7983,
+      "binary_recall": {
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.4203
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.566
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.695
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.8017
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.8847
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.4203
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.5597
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.6617
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.7237
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.7623
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5217
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.693
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.8127
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.902
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.949
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5217
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.6733
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.7433
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.7793
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.7883
+            }
+          ]
+        }
+      }
+    },
+    {
+      "width": 128,
+      "bytes_per_vector": {
+        "float32": 512,
+        "binary": 16
+      },
+      "corpus_bytes": {
+        "float32": 47627264,
+        "binary": 1488352
+      },
+      "truncation_only_recall": 0.6917,
+      "binary_recall": {
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.2633
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.367
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.475
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.591
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.703
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.2633
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.3643
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.4553
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.5323
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.5963
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.3817
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.522
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.6527
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.7647
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.8453
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.3817
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.5093
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.594
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.6393
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.666
+            }
+          ]
+        }
+      }
+    },
+    {
+      "width": 64,
+      "bytes_per_vector": {
+        "float32": 256,
+        "binary": 8
+      },
+      "corpus_bytes": {
+        "float32": 23813632,
+        "binary": 744176
+      },
+      "truncation_only_recall": 0.5427,
+      "binary_recall": {
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.1367
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.1937
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.263
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.3507
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.4637
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.1367
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.1933
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.253
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.318
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.39
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.225
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.3203
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.4277
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.5423
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.663
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.225
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.3127
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.3897
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.4523
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.498
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "scan_timings": [
+    {
+      "name": "exact_float32_full",
+      "median_ms": 149.63,
+      "iqr_pct_of_median": 5.7
+    },
+    {
+      "name": "binary_768bit_swar",
+      "median_ms": 8.97,
+      "iqr_pct_of_median": 6.3
+    },
+    {
+      "name": "binary_384bit_swar",
+      "median_ms": 4.96,
+      "iqr_pct_of_median": 7.9
+    },
+    {
+      "name": "binary_256bit_swar",
+      "median_ms": 3.67,
+      "iqr_pct_of_median": 10.4
+    },
+    {
+      "name": "binary_128bit_swar",
+      "median_ms": 2.22,
+      "iqr_pct_of_median": 17.1
+    },
+    {
+      "name": "binary_64bit_swar",
+      "median_ms": 1.56,
+      "iqr_pct_of_median": 11.5
+    }
+  ],
+  "same_item_share_of_exact_topk": 0.5767,
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg_at_start": [
+      2.8,
+      2.15,
+      1.52
+    ],
+    "node": "v22.23.1"
+  },
+  "caveats": [
+    "Recall is against the exact VECTOR ranking, not against relevance. The shipped path fuses keyword and vector with RRF, so a vector recall of 0,95 does not become 0,95 of the answer quality a user sees, in either direction.",
+    "Probes are indexed passages, leave-one-out. With chunk overlap a passage neighbours its own siblings, so the same-item share above belongs beside every recall figure — it makes the retrieval task easier than a real query.",
+    "Truncation is the raw prefix. Renormalizing is a positive per-vector scaling and changes neither the cosine ranking nor the zero-threshold sign bits; it would shift only the mean-centred variant, through the corpus mean.",
+    "The W = full row is a positive control against ticket 0008, not a finding."
+  ]
+}

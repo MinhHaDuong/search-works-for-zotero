@@ -1,0 +1,82 @@
+{
+  "what": "same-item retrieval quality: a model-independent target for comparing embedders",
+  "when": "2026-08-29T09:18:21.309Z",
+  "task": {
+    "relevant": "other passages of the probe's own Zotero item, at least 3 chunks away",
+    "excluded_from_candidates": "the probe's own item's passages within 3 chunks of it",
+    "why_the_gap": "the chunker overlaps by 150 characters, so adjacent chunks share text outright and any embedder retrieves them; without the gap this measures near-duplicate detection and saturates",
+    "topk": 30
+  },
+  "corpus": {
+    "passages": 93022,
+    "items": 2100,
+    "eligible_probes": 92033
+  },
+  "probes": {
+    "count": 400,
+    "seed": 20260829
+  },
+  "models": [
+    {
+      "name": "all-MiniLM-L6-v2 (384, non-MRL)",
+      "file": "/home/haduong/data/projets/zoteus-bench/mrl/minilm384.f32",
+      "full_dim": 384,
+      "at": [
+        {
+          "width": 384,
+          "bytes_per_vector": 1536,
+          "recall_at_topk": 0.4389,
+          "mrr": 0.7305
+        }
+      ]
+    },
+    {
+      "name": "Qwen3-Embedding-0.6B (1024, MRL)",
+      "file": "/home/haduong/data/projets/zoteus-bench/mrl/qwen06b.f32",
+      "full_dim": 1024,
+      "at": [
+        {
+          "width": 1024,
+          "bytes_per_vector": 4096,
+          "recall_at_topk": 0.4935,
+          "mrr": 0.7742
+        },
+        {
+          "width": 512,
+          "bytes_per_vector": 2048,
+          "recall_at_topk": 0.4821,
+          "mrr": 0.769
+        },
+        {
+          "width": 384,
+          "bytes_per_vector": 1536,
+          "recall_at_topk": 0.4781,
+          "mrr": 0.7657
+        },
+        {
+          "width": 256,
+          "bytes_per_vector": 1024,
+          "recall_at_topk": 0.4699,
+          "mrr": 0.7542
+        },
+        {
+          "width": 128,
+          "bytes_per_vector": 512,
+          "recall_at_topk": 0.438,
+          "mrr": 0.7417
+        }
+      ]
+    }
+  ],
+  "caveats": [
+    "Same-item relatedness is document-level topical coherence, not query-to-answer relevance. This proxy can show a model is too weak; it cannot certify one is good enough for a user’s real questions.",
+    "Recall is divided by min(relevant, topk), so an item with more than topk eligible siblings is not penalised for the ones that cannot fit.",
+    "Comparing two DIFFERENT models here conflates dimension with architecture, size and training data. Only the widths WITHIN one Matryoshka model isolate dimension."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "mem": 25079382016,
+    "node": "v22.23.1"
+  }
+}

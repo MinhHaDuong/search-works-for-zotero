@@ -296,6 +296,46 @@ check whose all-clear is indistinguishable from "I could not look".
 
 ## Awaiting ratification
 
+- **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
+  states the rule as *"int8 ships if recall@30 >= 0.98, pool <= 32xtopK, and
+  scan+rerank <= 400 ms at 650k; the float32 slab is the permanent fallback."*
+  The X1 recall half was measured with **1-bit** codes rather than int8, and the
+  substitution was justified in ticket 0025's log rather than here, which is the
+  wrong order — DESIGN.md owns the rule and the ruling lands in this ledger
+  first. Put to the author now rather than left in the log.
+
+  The substitution is not a convenience. Ticket 0008 measured both on real
+  vectors: int8 bought 1,6x against 3,8x less data, while binary bought 13x,
+  because Hamming distance is a popcount and removes the arithmetic rather than
+  only the bytes. Binary is the stronger member of the same family, and
+  measuring it subsumes the int8 question rather than dodging it.
+
+  Evaluated clause by clause on 93 022 real passages (Qwen3-Embedding-0.6B,
+  1 024 dims, `bench/results/`):
+  - *recall@30 >= 0.98* — **0,9973** at the 8x pool, full width. Holds.
+  - *pool <= 32xtopK* — the verdict is claimed at **8x**, well inside 32x.
+  - *scan+rerank <= 400 ms at 650k* — not measured at 650k. Measured at
+    255 703 x 3 072, where the binary scan is **87,6 ms** against the exact
+    scan's 4 893,9 ms. Both figures are the committed artifact's
+    (`bench/results/0025-x1-recall/scan-shapes-255703x3072.json`); three
+    independent invocations at that geometry gave exact 4 088,7 / 4 196,2 /
+    4 893,9 ms and binary 97,2 / 94,1 / 87,6 ms, and the upstream comment
+    deliberately quotes the most conservative of the three rather than this
+    one. The clause's own substrate is untested and the ship decision is
+    provisional on it.
+
+  **The pool multiple is load-bearing and was omitted from the log.** At the 8x
+  pool quoted throughout, nomic-768 scores **0,9710 — below the 0,98 bar**; it
+  clears at 16x (0,9893), still inside the 32x allowance. The rule passes, but
+  only once the pool is named, and a reader checking the headline against the
+  rule without it finds a failure. Any ratification should carry the pool.
+
+  Three ways to rule, and the third is available: extend the rule to read
+  "int8 or a narrower quantizer" and record the 1-bit evidence against it;
+  keep the rule int8-only and treat this as evidence for a separate binary
+  decision; or hold ratification until the 650k substrate clause is measured.
+
+
 Three readings cycle 2 could not decide on the sheet's text alone (flagged in
 DESIGN.md §2.3, §2.8 and §2.9; put to the author directly — the re-formed
 train keeps internal governance out of upstream filings, so they are resolved
