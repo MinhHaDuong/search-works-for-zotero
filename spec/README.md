@@ -36,13 +36,13 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`███████████████████████████░` &nbsp; 27 ratified · 1 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●○` &nbsp; 27 ratified · 1 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░` &nbsp; 1 shipped · 15 partial · 12 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 12 not yet
 
-`█` shipped &nbsp;·&nbsp; `▓` partial &nbsp;·&nbsp; `░` not yet
+`●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **These statuses are read, not run.** No suite tests a release against the
 requirements, so each one was assigned by reading the upstream source at the
@@ -63,14 +63,14 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 | section | designed | delivered |
 |---|---|---|
-| Coverage and convergence | `█████░` | `▓▓▓░░░` |
-| Change and cost | `███` | `▓▓░` |
-| Corpus | `███` | `▓░░` |
-| Query | `█████` | `▓▓▓░░` |
-| Multilingual | `█` | `▓` |
-| Custody and lifecycle | `█████` | `█▓▓▓░` |
-| Multi-library and multi-process | `██` | `▓░` |
-| Operator gates | `███` | `▓░░` |
+| Coverage and convergence | `●●●●●○` | `◐◐◐○○○` |
+| Change and cost | `●●●` | `◐◐○` |
+| Corpus | `●●●` | `◐○○` |
+| Query | `●●●●●` | `◐◐◐○○` |
+| Multilingual | `●` | `◐` |
+| Custody and lifecycle | `●●●●●` | `●◐◐◐○` |
+| Multi-library and multi-process | `●●` | `◐○` |
+| Operator gates | `●●●` | `◐○○` |
 
 ---
 

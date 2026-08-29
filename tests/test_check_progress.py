@@ -47,14 +47,14 @@ SHEET = """# REQUIREMENTS
 
 PAGE = """# The specification chain
 
-`██░` &nbsp; 2 ratified · 1 still open
+`●●○` &nbsp; 2 ratified · 1 still open
 
-`█▓░` &nbsp; 1 shipped · 1 partial · 1 not yet
+`●◐○` &nbsp; 1 shipped · 1 partial · 1 not yet
 
 | section | designed | delivered |
 |---|---|---|
-| Coverage | `█░` | `█▓` |
-| Corpus | `█` | `░` |
+| Coverage | `●○` | `●◐` |
+| Corpus | `●` | `○` |
 
 ### Coverage
 
@@ -155,7 +155,25 @@ def test_status_edited_in_the_table_but_not_the_bar(tmp_path):
 
 
 def test_section_bar_that_stopped_matching_its_rows(tmp_path):
-    page = PAGE.replace("| Coverage | `█░` | `█▓` |", "| Coverage | `█░` | `██` |")
+    page = PAGE.replace("| Coverage | `●○` | `●◐` |", "| Coverage | `●○` | `●●` |")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_section_bar_left_in_glyphs_the_vocabulary_dropped(tmp_path):
+    """A bar that stops parsing is invisible, not wrong, unless every section is named.
+
+    The page was first drawn in block shades and moved to circles when the
+    author could not tell shipped from partial. A row left behind in the old
+    glyphs matches no pattern, so without the completeness check the guard
+    passes it in silence — the all-clear it would give a page with no summary
+    table at all.
+    """
+    page = PAGE.replace("| Coverage | `●○` | `●◐` |", "| Coverage | `█░` | `█▓` |")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_section_with_no_summary_row(tmp_path):
+    page = PAGE.replace("| Corpus | `●` | `○` |\n", "")
     assert cp.run(build(tmp_path, page=page)) == 1
 
 
