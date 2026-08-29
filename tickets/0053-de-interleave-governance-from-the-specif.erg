@@ -2,11 +2,11 @@
 Title: De-interleave governance from the specification chain
 Created: 2026-08-29
 Author: claude
-Label: needs-human
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
+2026-08-29T12:00Z minh note split ratified: GOVERNANCE.md owns forward, ratified entries stay (DECISIONS.md 2026-08-29)
 
 --- body ---
 ## Context
@@ -35,36 +35,17 @@ text. Today that separation is enforced by the care of whoever is writing.
 A structural split makes it enforceable by a grep instead: strategy lives in
 one file, and a check can assert that no other document names it.
 
-## OPEN QUESTION FOR THE AUTHOR — the split
-The author asked whether this should be standalone.
+## The split — ratified 2026-08-29
+`GOVERNANCE.md` owns process rules going forward. Ratified process entries stay
+in DECISIONS.md where they are, and GOVERNANCE.md points at them rather than
+moving them. Relocating them was rejected: append-only is what makes the ledger
+evidence, and a record you may rewrite is a document, not a record. Tagging in
+place was rejected as not solving the disclosure problem. Promoting SYNC.md was
+rejected because SYNC.md is rewritten at every upstream movement, where
+governance should be stable. Grounds in full in DECISIONS.md.
 
-(a) Standalone GOVERNANCE.md, with DECISIONS.md keeping only technical
-    D-entries. Cleanest separation. Cost: DECISIONS.md is append-only and
-    ratified, so moving entries out of it is exactly the edit that document
-    forbids.
-
-(b) Standalone GOVERNANCE.md that OWNS the process rules going forward,
-    while ratified process entries stay in DECISIONS.md where they are,
-    with GOVERNANCE.md pointing at them. Nothing ratified is edited; the
-    ledger stays append-only; new process rulings land in the new document.
-
-(c) Leave the text where it is and mark it. A `[process]` tag on process
-    entries, and a section index. Cheapest, and it does not solve the
-    disclosure problem, since strategy is still interleaved with spec.
-
-Recommendation: (b). It is the only one of the three that respects the
-append-only rule, which is not a preference but the property that makes the
-ledger trustworthy. The cost is a transitional period where process rulings
-live in two places, resolved by the pointer rather than by a move.
-
-Note that SYNC.md already holds much of the maintainer-relationship
-material. The question is partly whether GOVERNANCE.md is a new document or
-whether SYNC.md is promoted to be it. SYNC.md is upstream *tracking* — it
-records what happened. Governance is what we have decided to do about it.
-Related but not the same, and SYNC.md is rewritten at each upstream
-movement while governance should be stable.
-
-Not to be decided by an agent — the ruling lands in DECISIONS.md first.
+The transitional cost is accepted: process rulings live in two places for a
+while, resolved by the pointer rather than by a move.
 
 ## Relevant files
 - `DECISIONS.md` — the ratified entries, some technical, some process
@@ -73,12 +54,11 @@ Not to be decided by an agent — the ruling lands in DECISIONS.md first.
 - `README.md` — the authoritative-chain sentence
 
 ## Actions
-1. Author rules on (a), (b) or (c), and on the SYNC.md question. Ratify.
-2. Inventory every process and strategy statement in the chain, with its
+1. Inventory every process and strategy statement in the chain, with its
    current location.
-3. Apply the ruling. Under (b), write GOVERNANCE.md as the owner going
-   forward and point back at the ratified entries rather than moving them.
-4. Update CLAUDE.md and README.md so the split is legible to a newcomer.
+2. Write GOVERNANCE.md as the owner going forward and point back at the
+   ratified entries rather than moving them.
+3. Update CLAUDE.md and README.md so the split is legible to a newcomer.
 
 ## Test
 A check that greps the specification documents for the governance
@@ -99,6 +79,6 @@ it must fire on the current tree.
 - Nothing about upstream strategy enters any text destined for upstream.
 
 ## Exit criteria
-- [ ] The split is ratified in DECISIONS.md
+- [x] The split is ratified in DECISIONS.md
 - [ ] Governance statements have one owner, reachable in one hop
 - [ ] The grep-level guard is in place and `make check` passes

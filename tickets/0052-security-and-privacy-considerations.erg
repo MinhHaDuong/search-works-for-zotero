@@ -3,11 +3,11 @@ Title: Security and privacy considerations for the specification chain
 Created: 2026-08-29
 Author: claude
 Blocked-by: 0036
-Label: needs-human
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
+2026-08-29T12:00Z minh note placement ratified: standalone SECURITY.md (DECISIONS.md 2026-08-29)
 
 --- body ---
 ## Context
@@ -35,42 +35,25 @@ that the chain is silent, and that silence is indistinguishable from
 "considered and found safe" to any reader — including the author in six
 months and any reviewer upstream.
 
-## OPEN QUESTION FOR THE AUTHOR — placement
-The author flagged placement as undecided. Three options:
-
-(a) A section in DESIGN.md. Cheapest. Fits if the content is mostly
-    "how the design responds", and it keeps the response beside the
-    architecture it constrains. Risk: DESIGN.md is already 7 460 words and
-    owns the design numbers; a considerations section is neither.
-
-(b) A section in CONSTRAINTS.md. Fits the document's meaning — C3 already
-    says the machine belongs to the user, which is a privacy statement in
-    resource clothing. Risk: constraints are facts the world imposes, and
-    some of this is obligations we take on, which is requirement-shaped.
-
-(c) Standalone SECURITY.md. Matches RFC practice and the forge convention
-    (a repository SECURITY.md is where a reporter looks). Cost: a fifth
-    document in the chain, and the chain is already four.
-
-Recommendation: (c), for one reason that is not aesthetic. The threat
-statement and the design's response have different lifetimes. Threats
-outlive designs, and this project expects to re-design (v1 to v2 already).
-A standalone document survives the next design cycle; a DESIGN.md section
-is rewritten with it. The forge convention is a secondary benefit.
-
-Not to be decided by an agent — the ruling lands in DECISIONS.md first.
+## Placement — ratified 2026-08-29
+Standalone `SECURITY.md`, not a section of DESIGN.md or CONSTRAINTS.md. The
+ruling and its grounds are in DECISIONS.md: threats outlive designs, a section
+inside DESIGN.md is rewritten with the design it sits in, and a threat model
+states obligations we take on where CONSTRAINTS.md states facts the world
+imposes. FIELD-REVIEW.md supplies the supporting evidence — of 39 surveyed
+projects none documents a threat model, and the survey records three live
+privacy failures of exactly this class.
 
 ## Actions
-1. Author rules on placement. Record in DECISIONS.md.
-2. Enumerate the assets: what the system holds that a user would mind
+1. Enumerate the assets: what the system holds that a user would mind
    losing or leaking. Be concrete about the derived index — it is a
    reconstruction of the library, not merely a pointer to it.
-3. Enumerate the surfaces: local database and its file permissions, the
+2. Enumerate the surfaces: local database and its file permissions, the
    query and status endpoints and what they bind to, any egress to
    embedding or LLM providers, credential storage, logs.
-4. For each, state the design's current answer — including "none yet", where
+3. For each, state the design's current answer — including "none yet", where
    that is the truth. An honest gap is the point of the document.
-5. Cross-reference R- and C-numbers rather than restating them.
+4. Cross-reference R- and C-numbers rather than restating them.
 
 ## Test
 No unit test fits a prose section. The check is a review-gate item: the
@@ -80,7 +63,7 @@ A positive control is required — seed a known egress and confirm the sweep
 finds it — otherwise "no egress found" and "I did not look" read alike.
 
 ## Verification
-- [ ] Placement ratified in DECISIONS.md before the text is written
+- [x] Placement ratified in DECISIONS.md before the text is written
 - [ ] Every egress point in DESIGN.md section 2 appears in the enumeration
 - [ ] Gaps stated as gaps, not smoothed over
 - [ ] No requirement or threshold restated; cross-references only
@@ -92,7 +75,7 @@ finds it — otherwise "no egress found" and "I did not look" read alike.
 - The D2 hosted-mode ruling is not reopened. Local-only is the scope.
 
 ## Exit criteria
-- [ ] Placement decided and ratified
+- [x] Placement decided and ratified (standalone SECURITY.md)
 - [ ] Assets, surfaces and current answers enumerated, gaps included
-- [ ] Registered in CLAUDE.md and README.md if standalone
+- [ ] Registered in CLAUDE.md and README.md
 - [ ] `make check` passes

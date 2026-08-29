@@ -2,11 +2,11 @@
 Title: Correct DESIGN §2.6 and CONSTRAINTS C2 against the Zotero 10 verification
 Created: 2026-08-29
 Author: claude
-Label: needs-human
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
+2026-08-29T12:00Z minh note both draft entries ratified (DECISIONS.md 2026-08-29); the 211/666 reading stays open
 
 --- body ---
 ## Context
@@ -108,7 +108,7 @@ is a released Zotero version or a read commit, never a draft PR summary.
   response, neither restates the other.
 
 ## Exit criteria
-- [ ] The two entries are ratified or vetoed
+- [x] The two entries are ratified or vetoed
 - [ ] §2.6's attribution names shipped Zotero 10
 - [ ] §2.6 states our divergence from exclusive routing
 - [ ] C2's boundary sentence is corrected
