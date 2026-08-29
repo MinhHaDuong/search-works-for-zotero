@@ -66,7 +66,11 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 - `make check` must be green before any commit: ruff, the figure guard
   (`bench/check_figures.py`), the governance guard
   (`bench/check_governance.py`), the terminology guard
-  (`bench/check_terminology.py`), pytest. The figure guard is load-bearing —
+  (`bench/check_terminology.py`), the chain-dedup guard
+  (`bench/check_chain_dedup.py`), the normative-language guard
+  (`bench/check_normative.py`), pytest. This list is prose and drifts: the
+  Makefile's `check` target is what actually runs, and it gained two guards
+  before this sentence did. The figure guard is load-bearing —
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
