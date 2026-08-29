@@ -65,6 +65,7 @@ stays at the top level.
 | [`spec/DESIGN.md`](spec/DESIGN.md) | Current design and experiment decision rules |
 | [`spec/FIELD-REVIEW.md`](spec/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`spec/DECISIONS.md`](spec/DECISIONS.md) | Append-only record of ratified choices and later vetoes |
+| [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Operational handoff and measurement record |
 | [`RUNBOOK.md`](RUNBOOK.md) | How to run the measurements, and on which substrate |
@@ -78,7 +79,10 @@ The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
 tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
 than inside it: it surveys what already exists, owns no design number, and
-points at the owning document wherever it touches ours. Panel documents are
+points at the owning document wherever it touches ours. `GOVERNANCE.md` sits
+outside the chain altogether: it holds the rules we set for our own upstream
+conduct, which the specification has no use for and a reader of the upstream
+relationship should not have to dig for. Panel documents are
 inputs, not conclusions; the adversarial design-review record of cycle 2 is in
 git history, last present at
 commit `e32afe3` as `panel/cycle2/`, as are the other superseded documents.
