@@ -2,6 +2,7 @@
 Title: Make the embedder's dtype configurable and its device automatic; defaults are the maintainer's
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #81
 
 --- log ---
 2026-08-29T15:40Z claude created
@@ -16,6 +17,7 @@ Author: claude
 2026-08-29T16:29Z claude note author withdrew the remedy: no precision knob goes upstream. The lesson is that we want a registry, not a knob. 0220's motivating asymmetry — model configurable, precision not — never existed, and every axis a precision knob would need beside it turned out per-model as well: pooling (four of six candidates cls against a hardcoded mean, 0421), the input template (e5 without prefixes measures worse than an English model), and dtype availability itself (a bet on one repo's filenames, 0261). A knob shipped alone would have to be unwound by the registry that follows it. Replacement ask filed as tickets/0440, an ISSUE not a PR, blocked-by 0263 so it carries a candidate table. The RUNBOOK's pre-filled PR C form is deleted rather than parked — a form is an invitation to file. Fork branch embedding-dtype (0cdfe70) stays as a prototype nobody is offering; its reusable part, that an entry's identity must derive from its vector-affecting fields rather than its id, is already in 0261's schema. The device finding is separable, costs no slot as an issue, and remains the one thing here the maintainer cannot easily find himself.
 2026-08-29T16:34Z claude note correction to the previous note: the device finding is NOT filed as an issue and there is nothing to file. Nobody passes device: 'auto' — zoteus passes no options object and transformers.js defaults to ['cpu'] on Node — so it is unreachable from the maintainer's code and an issue would report a problem he does not have. Where the defect lives it is already huggingface/transformers.js#1642, opened 2026-04-14 against 4.0.1, labelled bug, still open with zero comments; confirmed here still present at 4.2.0. The finding stays internal: it is why this fork passes no device, and it is a standing risk if transformers.js ever moves its Node default off ['cpu']. One datapoint is absent from #1642 if a corroborating comment is ever wanted — the --onnxruntime-node-install=skip case fails identically on libonnxruntime_providers_shared.so, so registration is attempted regardless of what is installed and that issue's title names a symptom rather than the condition.
 2026-08-29T16:46Z claude note author ruled: close only — no comment on transformers.js#1642 either. Superseded by tickets/0440. This ticket ends as an evidence record: four premise corrections, the device finding (internal, watched, already filed upstream as huggingface/transformers.js#1642 by someone else), the measured q8 numbers on the default model, and the fork prototype embedding-dtype (0cdfe70) left unoffered. Closed by the PR carrying this line.
+2026-08-29T16:47Z Minh Ha-Duong closed — autoclosed — PR #81
 --- body ---
 ## Context
 
