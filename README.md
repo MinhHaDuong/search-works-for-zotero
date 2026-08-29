@@ -55,25 +55,34 @@ memory budgets. These are testable requirements, not branding claims.
 
 ## How the workshop is organised
 
+The specification chain lives in [`spec/`](spec/); what changes week to week
+stays at the top level.
+
 | Document or directory | Role |
 |---|---|
-| [`REQUIREMENTS.md`](REQUIREMENTS.md) | Testable promises made to users |
-| [`CONSTRAINTS.md`](CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
-| [`DESIGN.md`](DESIGN.md) | Current design and experiment decision rules |
-| [`FIELD-REVIEW.md`](FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
-| [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
+| [`spec/REQUIREMENTS.md`](spec/REQUIREMENTS.md) | Testable promises made to users |
+| [`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
+| [`spec/DESIGN.md`](spec/DESIGN.md) | Current design and experiment decision rules |
+| [`spec/FIELD-REVIEW.md`](spec/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
+| [`spec/DECISIONS.md`](spec/DECISIONS.md) | Append-only record of ratified choices and later vetoes |
+| [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Operational handoff and measurement record |
+| [`RUNBOOK.md`](RUNBOOK.md) | How to run the measurements, and on which substrate |
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
 | [`bench/`](bench/) | Executable probes and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
+| [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 
 The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
 tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
 than inside it: it surveys what already exists, owns no design number, and
-points at the owning document wherever it touches ours. Panel documents are
+points at the owning document wherever it touches ours. `GOVERNANCE.md` sits
+outside the chain altogether: it holds the rules we set for our own upstream
+conduct, which the specification has no use for and a reader of the upstream
+relationship should not have to dig for. Panel documents are
 inputs, not conclusions; the adversarial design-review record of cycle 2 is in
 git history, last present at
 commit `e32afe3` as `panel/cycle2/`, as are the other superseded documents.

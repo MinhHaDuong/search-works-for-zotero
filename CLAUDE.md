@@ -7,18 +7,25 @@ and in the author's fork, not here.
 
 ## The document set, and who is authoritative for what
 
-- `REQUIREMENTS.md` / `CONSTRAINTS.md` — the sheet, materialized. Stable.
-- `DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
+The specification chain lives in `spec/`. What changes week to week — `STATE.md`,
+`SYNC.md`, `RUNBOOK.md` — stays at the top level, as do `README.md` and this file.
+
+- `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
+- `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
   every design number: gate thresholds (§2.8), experiment decision rules
   (§3), budgets (§2.9).
-- `DECISIONS.md` — append-only ratification ledger. The author's rulings land
-  here FIRST; the other documents are edited to match. Owns the process
-  bounds (PR volume cap, sunset rule) and the awaiting-ratification
+- `spec/DECISIONS.md` — append-only ratification ledger. The author's rulings land
+  here FIRST; the other documents are edited to match. Owns the record of
+  every ruling, technical and process alike, and the awaiting-ratification
   questions. Never edit a ratified entry.
+- `GOVERNANCE.md` — how this repo conducts itself upstream: the bounds on our
+  own conduct, going forward. It owns the rules; the ledger keeps the rulings
+  that made them, and `SYNC.md` keeps the live counts. Split ratified
+  2026-08-29.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
-- `FIELD-REVIEW.md` — the survey of prior art: what other people have already
+- `spec/FIELD-REVIEW.md` — the survey of prior art: what other people have already
   built for Zotero AI retrieval, what it teaches, and what is
   license-compatible to borrow. Authoritative for the inventory and for each
   project's observed state at its stated observation date. Owns no design
@@ -26,6 +33,7 @@ and in the author's fork, not here.
   points at the owning document. A dated snapshot, not a live tracker.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
+  `RUNBOOK.md` — how to run the measurements, and on which substrate.
 - The cycle-2 panel's verbatim session record (memos, critiques, the political
   and implementation reviews) is in git history, last present at commit
   `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
@@ -59,15 +67,18 @@ and in the author's fork, not here.
   owning document (above) and everywhere else is a pointer. Duplicated
   numbers drift — this repo's most expensive recurring defect.
 
-## Upstream relations (binding, ratified in DECISIONS.md)
+## Upstream relations
 
-At most two upstream PRs in flight, ever; the contained-PR budget beyond the
-merged #19/#20 is six ratified, five live (DECISIONS.md 2026-08-27);
-design-sized asks go as issues the maintainer builds himself (the
-measured asymmetry, SYNC.md); a three-week sunset on unaddressed
-items; the acceptance harness is a one-time transfer. Never put this repo's
-internal governance or strategy-about-the-maintainer into upstream text — the
-repo is public and he reads it.
+Binding, and stated once in `GOVERNANCE.md`: the volume bound, the budget, the
+form each item takes, the sunset, the harness transfer, the fork's end state.
+Read it before filing anything upstream. What remains live against those bounds
+is `SYNC.md`'s, never restated elsewhere.
+
+The one line worth repeating here, because it governs every outward action
+rather than a filing decision: never put this repo's internal governance or its
+reading of the maintainer into upstream text. The repo is public and he reads
+it. `bench/check_governance.py` enforces the separation on our side of the line;
+nothing enforces it on the text you send, so read what you send, as sent.
 
 ## Environment notes
 

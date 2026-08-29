@@ -764,18 +764,18 @@ upstream issue #10; two for two).
 **[X]** means measure first, and gates are repo-side, in this repo's
 Makefile, never PRs.
 
-This section carries the train's *shape* only: the ratified terms (volume
-cap, cadence, commitment bounds) live once in DECISIONS.md's re-form entry,
-and each item's scope, evidence, and live state live in its ticket — the
-tickets are authoritative for content, this list for ordering.
+This section carries the train's *shape* only. The terms it runs under live
+once in GOVERNANCE.md, which points at the entries that ratified them; each
+item's scope, evidence, and live state live in its ticket. The tickets are
+authoritative for content, this list for ordering.
 
 1. **The head, resolved** — PR #19 (accent fold) and #20 (corruption path)
    merged 2026-08-27 (`4f61b2a`, `6e4637b`); the stopwords follow-up
    (ticket 0014) is now the head.
-2. **The contained-PR budget — six ratified, five live** — schema
-   read-before-write (0015), the wipe guard (0016; `busy_timeout`
-   sunset-closed, overtaken by v1.7.1 — DECISIONS.md 2026-08-27),
-   cacheDir and key-to-header (0017).
+2. **The contained-PR items** (the budget is GOVERNANCE.md's, the live
+   remainder SYNC.md's) — schema read-before-write (0015), the wipe guard
+   (0016; `busy_timeout` closed under the sunset, overtaken by v1.7.1 —
+   DECISIONS.md 2026-08-27), cacheDir and key-to-header (0017).
 3. **The reserve, demand-triggered** — terminal states (0019), own words
    (0022).
 4. **Issues I-1..I-3** (0024) — the fulltext-delta finding, the measurements
@@ -794,8 +794,9 @@ tickets are authoritative for content, this list for ordering.
    constant, X5 (seg/1 built first, 0028) before issue B, X6 with I-1, X7
    before the tick cadence is documented, X3a feeding the rss-gate fixture,
    and X3b traveling with issue B.
-8. **Commitment bounds** — per DECISIONS.md's re-form entry, verbatim and
-   binding; the fork's end state is **archived** once the train resolves.
+8. **The commitment bounds** — stated in GOVERNANCE.md, ratified in
+   DECISIONS.md's re-form entry; the fork's end state is **archived** once
+   the train resolves.
 
 ---
 
