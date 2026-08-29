@@ -1,0 +1,49 @@
+{
+  "what": "GPU embedding throughput, derived from the logs of the runs that produced this directory's vectors",
+  "derived_not_measured": "Wall clock is taken between the 'loading' and 'done' lines of each run, so it includes model load and, on a first run, download. The per-passage cost is therefore an UPPER bound, which is the safe direction: it never flatters the GPU against the directly-measured CPU figures in embed-feasibility.json.",
+  "projection": "hours_to_index_projected scales each run's own wall clock to 255703 passages by simple proportion. An arithmetic projection, not a measurement; the factor used is recorded per run.",
+  "gpu": "NVIDIA RTX A4000, 16376 MiB",
+  "projected_to": 255703,
+  "runs": [
+    {
+      "model": "BAAI/bge-small-en-v1.5",
+      "device": "cuda",
+      "dtype": "torch.float16",
+      "dim": 384,
+      "rows": 93022,
+      "wall_seconds": 160.7,
+      "ms_per_passage": 1.73,
+      "passages_per_min": 34729,
+      "log": "bench/results/0025-x1-recall/bge.log",
+      "projection_factor": 2.749,
+      "hours_to_index_projected": 0.12
+    },
+    {
+      "model": "nomic-ai/nomic-embed-text-v1.5",
+      "device": "cuda",
+      "dtype": "torch.float16",
+      "dim": 768,
+      "rows": 93022,
+      "wall_seconds": 441.9,
+      "ms_per_passage": 4.75,
+      "passages_per_min": 12630,
+      "log": "bench/results/0025-x1-recall/nomic.log",
+      "projection_factor": 2.749,
+      "hours_to_index_projected": 0.34
+    },
+    {
+      "model": "Qwen/Qwen3-Embedding-0.6B",
+      "device": "cuda",
+      "dtype": "torch.float16",
+      "dim": 1024,
+      "rows": 93022,
+      "wall_seconds": 2069.8,
+      "ms_per_passage": 22.25,
+      "passages_per_min": 2697,
+      "log": "bench/results/0025-x1-recall/qwen06b.log",
+      "projection_factor": 2.749,
+      "hours_to_index_projected": 1.58
+    }
+  ],
+  "compare_with": "bench/results/0025-x1-recall/embed-feasibility.json (CPU, measured in the ONNX runtime zoteus ships; this file is PyTorch on CUDA, which is what the vectors were actually built with \u2014 a different stack, so read the CPU/GPU gap as an order of magnitude and not a ratio to two figures)"
+}

@@ -1,0 +1,346 @@
+{
+  "what": "Matryoshka truncation x binary quantization, decomposed, on real vectors",
+  "when": "2026-08-29T08:12:13.349Z",
+  "label": "non-MRL control: naive prefix truncation of all-MiniLM-L6-v2",
+  "source": {
+    "kind": "vec0",
+    "path": "/home/haduong/data/projets/zoteus-bench/vec-real/search-index.sqlite"
+  },
+  "corpus": {
+    "vectors": 93022,
+    "full_dim": 384,
+    "widths": [
+      384,
+      192,
+      96,
+      64
+    ]
+  },
+  "probes": {
+    "count": 100,
+    "topk": 30,
+    "seed": 20260822,
+    "leave_one_out": true
+  },
+  "scored_against": "the exact full-width float32 cosine ranking, which is what ships today",
+  "per_width": [
+    {
+      "width": 384,
+      "bytes_per_vector": {
+        "float32": 1536,
+        "binary": 48
+      },
+      "corpus_bytes": {
+        "float32": 142881792,
+        "binary": 4465056
+      },
+      "truncation_only_recall": 1,
+      "binary_recall": {
+        "threshold_zero": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.5917
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.7763
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.884
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.9527
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.986
+          }
+        ],
+        "mean_centred": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.6073
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.81
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.918
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.9687
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.991
+          }
+        ]
+      }
+    },
+    {
+      "width": 192,
+      "bytes_per_vector": {
+        "float32": 768,
+        "binary": 24
+      },
+      "corpus_bytes": {
+        "float32": 71440896,
+        "binary": 2232528
+      },
+      "truncation_only_recall": 0.7647,
+      "binary_recall": {
+        "threshold_zero": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.424
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.563
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.6943
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.7983
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.891
+          }
+        ],
+        "mean_centred": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.4593
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.6157
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.7537
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.853
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.9293
+          }
+        ]
+      }
+    },
+    {
+      "width": 96,
+      "bytes_per_vector": {
+        "float32": 384,
+        "binary": 12
+      },
+      "corpus_bytes": {
+        "float32": 35720448,
+        "binary": 1116264
+      },
+      "truncation_only_recall": 0.5907,
+      "binary_recall": {
+        "threshold_zero": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.2523
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.345
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.4573
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.559
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.6723
+          }
+        ],
+        "mean_centred": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.2973
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.3977
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.5187
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.6397
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.7513
+          }
+        ]
+      }
+    },
+    {
+      "width": 64,
+      "bytes_per_vector": {
+        "float32": 256,
+        "binary": 8
+      },
+      "corpus_bytes": {
+        "float32": 23813632,
+        "binary": 744176
+      },
+      "truncation_only_recall": 0.488,
+      "binary_recall": {
+        "threshold_zero": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.1777
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.251
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.3373
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.4347
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.5353
+          }
+        ],
+        "mean_centred": [
+          {
+            "pool": 30,
+            "multiple": 1,
+            "recall": 0.213
+          },
+          {
+            "pool": 60,
+            "multiple": 2,
+            "recall": 0.301
+          },
+          {
+            "pool": 120,
+            "multiple": 4,
+            "recall": 0.398
+          },
+          {
+            "pool": 240,
+            "multiple": 8,
+            "recall": 0.516
+          },
+          {
+            "pool": 480,
+            "multiple": 16,
+            "recall": 0.6243
+          }
+        ]
+      }
+    }
+  ],
+  "scan_timings": [
+    {
+      "name": "exact_float32_full",
+      "median_ms": 76.39,
+      "iqr_pct_of_median": 2.4
+    },
+    {
+      "name": "binary_384bit_swar",
+      "median_ms": 4.7,
+      "iqr_pct_of_median": 1.9
+    },
+    {
+      "name": "binary_192bit_swar",
+      "median_ms": 2.78,
+      "iqr_pct_of_median": 2.8
+    },
+    {
+      "name": "binary_96bit_swar",
+      "median_ms": 1.85,
+      "iqr_pct_of_median": 2.9
+    },
+    {
+      "name": "binary_64bit_swar",
+      "median_ms": 1.56,
+      "iqr_pct_of_median": 2.2
+    }
+  ],
+  "same_item_share_of_exact_topk": 0.521,
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg_at_start": [
+      1.56,
+      1.41,
+      1.89
+    ],
+    "node": "v22.23.1"
+  },
+  "caveats": [
+    "Recall is against the exact VECTOR ranking, not against relevance. The shipped path fuses keyword and vector with RRF, so a vector recall of 0,95 does not become 0,95 of the answer quality a user sees, in either direction.",
+    "Probes are indexed passages, leave-one-out. With chunk overlap a passage neighbours its own siblings, so the same-item share above belongs beside every recall figure — it makes the retrieval task easier than a real query.",
+    "Truncation is the raw prefix. Renormalizing is a positive per-vector scaling and changes neither the cosine ranking nor the zero-threshold sign bits; it would shift only the mean-centred variant, through the corpus mean.",
+    "The W = full row is a positive control against ticket 0008, not a finding."
+  ]
+}
