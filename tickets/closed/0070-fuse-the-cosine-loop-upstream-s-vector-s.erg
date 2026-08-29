@@ -2,12 +2,15 @@
 Title: Fuse the cosine loop: upstream's vector scan pays 2,2x for a redundant traversal and a polymorphic call site
 Created: 2026-08-29
 Author: Minh Ha-Duong
+Closed: upstream PR #31 open at 999cb1c; measurement, equivalence proof and the non-claim on #30 all filed
 
 --- log ---
 2026-08-29T00:00Z Minh Ha-Duong created
 2026-08-29T00:00Z Minh Ha-Duong note Author authorized a third in-flight upstream PR slot for this work; recorded in DECISIONS.md
 2026-08-29T00:00Z Minh Ha-Duong note Built on the fork at branch fuse-cosine-loop (999cb1c); suite, typecheck and lint green; 2,19x measured against dist/
 
+2026-08-29T08:28Z Minh-Ha-Duong note Upstream PR #31 opened 2026-08-29 from fuse-cosine-loop (999cb1c), mergeable. Filed body is the commit message, not bench/results/0070-cosine-fusion/upstream-pr-body.md: no driver/results links, no equivalence-test description, and the closing paragraph replaced by the author's own reading (5-10% overall, I/O dominates) — his call, recorded in SYNC.md, and not what the measurement here shows.
+2026-08-29T08:28Z Minh Ha-Duong closed — upstream PR #31 open at 999cb1c; measurement, equivalence proof and the non-claim on #30 all filed
 --- body ---
 ## Context
 
