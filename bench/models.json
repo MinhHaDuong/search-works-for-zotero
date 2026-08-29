@@ -1946,7 +1946,7 @@
       "hf_repo": "nomic-ai/nomic-embed-text-v2-moe",
       "upstream_repo": "nomic-ai/nomic-embed-text-v2-moe",
       "params": 475292928,
-      "dim": null,
+      "dim": 768,
       "max_seq": 512,
       "max_seq_source": "sentence_bert_config.json max_seq_length",
       "languages": {
@@ -2080,7 +2080,7 @@
         ],
         "detail": "queried authenticated; the listing carries no .onnx file at all."
       },
-      "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears.",
+      "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears. dim 768 read from 1_Pooling/config.json word_embedding_dimension on the upstream repo (2026-08-30, ticket 0422); it publishes no ONNX, so the record stays rejected.",
       "pooling": "mean",
       "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v2-moe (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
