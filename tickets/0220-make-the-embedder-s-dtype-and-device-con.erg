@@ -9,6 +9,7 @@ Author: claude
 
 2026-08-29T14:22Z claude note device: 'auto' EXECUTED and it fails on CPU-only linux-x64 (OrtSessionOptionsAppendExecutionProvider_Cuda, libcublasLt.so.12 absent), reproduced on a clean install; the same call with no device option serves bit-identical vectors. No ORT fallback exists to rely on. The broken-CUDA case this ticket set aside IS the ordinary Linux desktop. Action 2 is therefore NOT implemented: the branch passes no device and ships the dtype half alone; the device shape returns to the author (DECISIONS.md, awaiting ratification). Second correction: q7 does not abort either, it loads bit-identical to the default, so the degradation test was rewritten against fp16, which does throw. Evidence: verification/DEVICE-AUTO-0220.md, bench/results/0220-device-dtype/. Branch MinhHaDuong/zoteus:embedding-dtype (8af4e09): 9 tests, 7 red on stock v1.10.0, typecheck/lint/build clean, 856 passed.
 2026-08-29T14:26Z claude note the failure is not about the CUDA download: a second clean install made with --onnxruntime-node-install=skip, holding no CUDA binaries at all, fails device: 'auto' identically on the absent libonnxruntime_providers_shared.so. On linux-x64 without a working CUDA runtime, auto fails whichever way the package was installed. Artifact: bench/results/0220-device-dtype/skipinstall-device-auto.json.
+2026-08-29T14:40Z claude note adversarial review found a real bug in action 5 as written. Degrading to the runtime default on a failed dtype load is unsafe here: SearchIndexBase.build stamps vectorEmbedderId from the provider identity BEFORE embedding, so a provider that changed precision mid-flight leaves the index labelled with a precision its vectors do not have — undetectable downstream, since quantisation does not change vector width and the identity string is the only check. Across sessions the stale label can later MATCH a genuinely quantised identity and mix two spaces silently. Fixed by removing the substitution: the precision is constant for the provider's life and an unloadable value throws, reaching noteEmbedFailure so the index degrades to keyword-only with a named reason — the same path a missing transformers package takes. Action 5's intent (do not take the server down) holds; its mechanism (fall back to default precision) does not, and that is the third premise correction on this ticket. Fork now 5dceeb1, 11 tests, 9 red on stock, 858 passed.
 --- body ---
 ## Context
 
@@ -193,24 +194,39 @@ not only against a mock that cannot disagree.
 
 ## Verification
 
-- [ ] Unset-environment test fails BOTH ways it can be wrong — against today's
-      no-options call and against a `{dtype: undefined}` implementation — and
-      passes against the shipped one. Run all three, since a guard whose
-      all-clear is indistinguishable from "could not look" is not a guard
-- [ ] `ZOTEUS_EMBEDDING_DTYPE=q8` measurably changes resident memory on a real
-      load, in the direction and rough magnitude of the ladder above
-- [ ] An invalid dtype (`ZOTEUS_EMBEDDING_DTYPE=q7`, which exists in no runtime)
-      warns and serves, rather than aborting
-- [ ] `device: 'auto'` on a CPU-only machine behaves exactly as today's CPU-only
-      path: same vectors, same latency band. This is the cheap half of the
-      device check and it runs anywhere
+- [x] Unset-environment test fails BOTH ways it can be wrong. All three run:
+      against today's no-options call it fails ("expected undefined to be
+      defined", in a worktree at b132f2d); against a `{dtype: this.activeDtype}`
+      implementation it fails ("expected true to be false", the `'dtype' in
+      options` assertion); it passes against the shipped one
+- [x] `ZOTEUS_EMBEDDING_DTYPE=q8` measurably changes resident memory on a real
+      load. Measured on the DEFAULT model, which the ladder above does not
+      cover: all-MiniLM-L6-v2 goes 143,7 MB → 69,1 MB of resident added by the
+      load, 230,6 → 165,6 MB resident after it. Direction matches; magnitude is
+      2,1x where nomic's was 3,8x, which is what a smaller model should do.
+      Warm runs — the cold pair measured the download and is discarded
+- [x] An invalid dtype degrades rather than aborting — but neither via the value
+      nor via the mechanism this ticket named. `q7` does not abort at all: it
+      loads bit-identical to the default, so the runtime ignores it silently and
+      the example was wrong. And the mechanism had to change: serving at the
+      default precision is unsafe here, because the index stamps the embedder
+      identity before it embeds (see the 2026-08-29 review log). An unloadable
+      value now throws into `noteEmbedFailure`, so the index degrades to
+      keyword-only with the value, the model and the remedy named — the server
+      stays up, which was action 5's actual intent
+- [x] `device: 'auto'` on a CPU-only machine behaves exactly as today's path —
+      FALSIFIED, and this is the ticket's main finding. It does not behave as
+      today's path; it fails to load at all. `device: 'cpu'` and today's
+      no-options call are the two that agree, bit for bit
 - [ ] `device: 'auto'` on a CUDA machine actually selects CUDA, and its vectors
       score >= 0,999 cosine against the CPU vectors for the same model and
       dtype. NOTE: UNVERIFIED and unverifiable here — this repo's machine has no
       GPU (`nvidia-smi` absent), so no device value has ever been executed. Every
       GPU claim in this ticket is read from `src/backends/onnx.js`, not observed.
       Run it on the A4000 before the PR asserts anything about GPU behaviour
-- [ ] Upstream's own test suite still passes unchanged
+- [x] Upstream's own test suite still passes unchanged: 856 passed / 7 skipped
+      against a 847 / 7 baseline on b132f2d, so the 9 added are the whole
+      difference; typecheck, lint and build clean
 
 ## Invariants
 
@@ -237,9 +253,10 @@ not only against a mock that cannot disagree.
 - [x] Dtype participates in vector-space identity; device does not. The
       degradation clears the dtype as well, so a fallback cannot leave the index
       labelled with a precision its vectors do not have
-- [x] An unloadable dtype degrades with a named message. Proven against `fp16`,
-      which throws; `q7`, this ticket's chosen example, does NOT throw and would
-      have passed against an implementation with no degradation path at all
+- [x] An unloadable dtype degrades with a named message — to keyword-only, not
+      to another precision. Proven against `fp16`, which throws; `q7`, this
+      ticket's chosen example, does NOT throw and would have passed against an
+      implementation with no degradation path at all
 - [x] Documented with the measured ladder and no recommendation. The device
       sentence says what measurement supports — none is passed, and none is
       configurable — rather than that it is automatic

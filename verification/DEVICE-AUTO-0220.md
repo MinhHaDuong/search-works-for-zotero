@@ -108,8 +108,8 @@ unavailable'; it does not cover 'provider present, registers, and then misbehave
 broken CUDA install. With no knob there is no manual override for that case. Do not add
 one speculatively: if that failure is ever observed in the wild, it is the evidence that
 earns the knob." That case is not the rare one. On linux-x64 the provider is always
-present, because the package ships it, and it always registers. The ordinary Linux desktop
-IS the failing case.
+*attempted*, whether or not its binaries were fetched, and the attempt is what fails. The
+ordinary Linux desktop IS the failing case.
 
 ## Consequence for the ruling
 
@@ -137,6 +137,37 @@ a measured regression or a decision the author has not made. A knob is still not
 nothing here is evidence that the device should become configurable, only that `auto` is
 not a safe unconditional value.
 
+## What the knob buys on the model that actually ships
+
+The ladder in ticket 0220 is nomic-768 and Qwen3-0.6B. Neither is the default, and the
+default is a much smaller model, where a fixed overhead is a larger share of the total —
+so the ladder's ratios cannot simply be carried across. Measured here on
+`Xenova/all-MiniLM-L6-v2` (`minilm-fp32.json`, `minilm-q8.json`, same driver as the
+ladder, 12 reps over 5 queries, one process each):
+
+| | fp32 (default) | q8 |
+|---|---|---|
+| resident after load | 230,6 MB | 165,6 MB |
+| resident added by the load | 143,7 MB | 69,1 MB |
+| load | 415,2 ms | 191,1 ms |
+| query median | 4,2 ms | 2,3 ms |
+
+**Both runs are warm.** A first, cold pair read 170,5 MB against 104,3 MB of added
+resident and 3 523,6 ms against 1 291,3 ms to load — those load figures are the download,
+not the load, and the resident figures carry the download's buffers. The cold pair is
+discarded rather than reported, which is the whole reason to name the warmth.
+
+The direction matches the ladder and the magnitude does not: q8 halves the resident cost
+of the load here (2,1x) where it cut nomic's by 3,8x. That is what a smaller model should
+do, and it is the number a reader on the default path needs.
+
+Latency is the one column to hold loosely. A single warm run of this driver moves by more
+than the gap between some of these cells — the discarded cold pair put fp32 at 3,5 ms and
+q8 at 3,3 ms, against 4,2 and 2,3 warm — so the honest reading is that q8 is not slower,
+not that it is 1,8x faster. The memory column is large enough to survive that spread; the
+latency column is not, and at batch 1 a 384-dimension encoder has little arithmetic left
+to save.
+
 ## A second correction, smaller
 
 Ticket 0220's verification list expects an invalid dtype to abort, and names `q7` as the
@@ -158,6 +189,41 @@ enum and its failure mode is refusing a value that works. What it does instead i
 embedder identity truthful, so `zotero_index action:"status"` reports the precision
 actually in use, and say plainly in the documentation that an unrecognised value is
 ignored rather than implying a safety that is not there.
+
+## A third correction, from review rather than measurement
+
+Ticket 0220's action 5 says an unloadable dtype should "fall back to the runtime default
+with a warning rather than taking the server down". That was implemented, and adversarial
+review of the branch found it unsafe — not in the abstract, but through a call chain that
+is easy to check and was not checked when it was written.
+
+`SearchIndexBase.build` sets `vectorEmbedderId` from the provider's identity while the
+records are still unembedded (`index-manager.ts:550`, and the incremental path at `:687`),
+and the first `embed()` comes later (`:570`). A provider that downgraded its precision
+inside that first load therefore stamped one identity and produced vectors of another. The
+index ends up labelled with a precision its vectors do not have, and nothing downstream can
+notice: quantisation leaves the vector width unchanged, so the dimension check on the query
+path sees nothing wrong, and the identity string is the only defence there is.
+
+Two consequences, and the second outlives the session. In-session, `updateBlocker` compares
+the live identity against the stamped one, finds a mismatch, and refuses every incremental
+update with a message that has the story backwards. Across sessions the mislabel is
+persisted, so if that dtype ever does load later — a newer runtime, other hardware — the
+stale label now *matches* a genuinely quantised identity, and the old default-precision
+rows are ranked against new quantised queries with nothing objecting. The degradation
+designed to protect the user was corrupting the one record that protects the index.
+
+The fix removes the substitution rather than reordering around it: the precision is
+constant for a provider's life, and a value that will not load throws. That is still a
+degradation and not an abort — the throw reaches `noteEmbedFailure` like any other embedder
+failure, so the index falls back to keyword-only and reports the value, the model and the
+remedy, which is the path a missing `@huggingface/transformers` already takes. Action 5's
+intent survives; its mechanism does not.
+
+Confirmed by reinstating the downgrade behind a temporary flag: the new integration test
+fails with `expected 1 to be +0`, that 1 being a vector written under a label the index
+cannot honour. Without that control the test would have been an assertion nobody had seen
+fail.
 
 ## Reproducing
 

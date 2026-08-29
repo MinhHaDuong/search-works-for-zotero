@@ -191,10 +191,16 @@ https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:stopwords-f
 
 ## PR C — local embedder weight precision (built and validated; needs a slot AND a budget call)
 
-Ticket 0220. Branch `embedding-dtype` (`8af4e09`, one commit atop `b132f2d`) is
-on the fork, validated on his gates: typecheck, lint, build clean; 856 passed /
-7 skipped (his 847 + 9 new). Seven of the nine fail on stock v1.10.0; the two
+Ticket 0220. Branch `embedding-dtype` (`5dceeb1`, two commits atop `b132f2d`) is
+on the fork, validated on his gates: typecheck, lint, build clean; 858 passed /
+7 skipped (his 847 + 11 new). Nine of the eleven fail on stock v1.10.0; the two
 that pass on both sides are the backward-compatibility guards, which must.
+
+The second commit is a correction found by adversarial review, kept as its own
+commit because the reasoning is worth reading: the first version degraded to the
+runtime's default precision on a failed load, and that is unsafe here because the
+index stamps the embedder identity BEFORE it embeds. Squash before filing if he
+prefers one commit.
 
 **Two things to settle before this is filed, and only the first is scheduling.**
 The volume slot is SYNC.md's to report. The second is that the contained-PR
@@ -264,16 +270,25 @@ left alone, so nothing is invalidated on upgrade.
 Two failure modes, both measured on `@huggingface/transformers` 4.2.0, linux-x64:
 
 - `fp16` and `q4f16` throw at session init on the CPU provider — a graph-fusion
-  failure, not a missing kernel. Caught: warn naming the value and the model,
-  then serve at the runtime default. A typo in an environment variable should
-  not take a server down when the rest of it works. A failure with no dtype
-  requested still propagates, since swallowing it would turn a broken install
-  into an index of zero vectors with no explanation.
+  failure, not a missing kernel. That is reported, not worked around: the throw
+  reaches `noteEmbedFailure` like any other embedder failure, so the index falls
+  back to keyword-only and names the value, the model and the remedy in
+  `embedderReason` and in every search summary — the path a missing
+  `@huggingface/transformers` already takes.
+
+  Retrying at the default precision instead was the first thing built here, and
+  it is wrong. `SearchIndexBase.build` stamps `vectorEmbedderId` from the
+  provider's identity BEFORE the records are embedded, so a provider that
+  downgraded mid-flight would leave the index labelled with a precision its
+  vectors do not have — and nothing downstream can catch that, since
+  quantisation does not change the vector width and the identity string is the
+  only check there is. Worse across sessions: if that dtype ever does load
+  later, the stale label now matches, and old rows are ranked against new
+  quantised queries with nothing objecting.
 - An unrecognised value such as `q7` does NOT throw. The runtime ignores it and
-  serves the default, producing bit-identical vectors. So the catch above is not
-  a guard against typos, and the docs say so rather than implying a safety that
-  is not there — `zotero_index action:"status"` reports the precision actually
-  in use, which is where a typo becomes visible.
+  serves the default, producing bit-identical vectors, and nothing anywhere
+  reports it. So a typo in this variable is invisible, and the documentation
+  says exactly that rather than implying a safety that is not there.
 
 ## On `device`
 
@@ -307,13 +322,16 @@ measurement first.
 
 ## Testing
 
-Nine new cases in `tests/features/embedding-dtype.test.ts`, on the existing
+Eleven new cases in `tests/features/embedding-dtype.test.ts`, on the existing
 transformers-stub seam: the absent-key default, pass-through, a value no runtime
 knows (the allowlist that must not exist), the absence of any device key under
-every environment, the `fp16` fallback with its warning, the identity correction
-that follows it, a non-dtype failure still propagating, and both identity cases.
-Seven fail on stock v1.10.0. Full suite on this branch: 856 passed / 7 skipped;
-typecheck, lint and build clean.
+every environment, the `fp16` error and what it names, the identity holding
+constant across a failed load, a non-dtype failure still propagating, both
+identity cases, and one integration case on the real build path asserting that a
+refused precision leaves the index holding zero vectors rather than
+default-precision vectors under the wrong label. Nine fail on stock v1.10.0.
+Full suite on this branch: 858 passed / 7 skipped; typecheck, lint and build
+clean.
 
 `mcpb/manifest.json` is untouched: which settings the desktop bundle puts in
 front of a user is a separate call.

@@ -493,6 +493,34 @@ FIGURES = [
      {"v0220": "| device-cpu | `{device: 'cpu'}` | loads | {} |"}),
     ("0220-device-dtype/summary.json", "variants.dtype-q7.cosine_vs_no_options", 7,
      {"v0220": "| dtype-q7 | `{dtype: 'q7'}` | loads | {} |"}),
+
+    # The default model's own numbers, anchored per cell. Two runs of this pair exist and
+    # only the warm one is reported; anchoring each cell is what stops the discarded cold
+    # figures from drifting back into the table, since both sets are plausible there.
+    #
+    # Each q8 anchor carries the fp32 cell that precedes it in the row, which is the
+    # coupling render_value's docstring calls avoidable — deliberately, and it is a
+    # different case. There the two figures were the independent ends of a RANGE, so
+    # fixing one broke the other for no reason. Here the left cell genuinely is the right
+    # cell's position: they are neighbours in one row, measured in one pair, and a
+    # re-measurement of fp32 SHOULD force both to be re-read. The failure is loud and
+    # names the slot, so it cannot become the silent trap this file exists to refuse.
+    ("0220-device-dtype/minilm-fp32.json", "models.0.rss_after_load_mb", 1,
+     {"v0220": "| resident after load | {} MB |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.rss_after_load_mb", 1,
+     {"v0220": "| resident after load | 230,6 MB | {} MB |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.rss_delta_mb", 1,
+     {"v0220": "| resident added by the load | {} MB |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.rss_delta_mb", 1,
+     {"v0220": "| resident added by the load | 143,7 MB | {} MB |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.load_ms", 1,
+     {"v0220": "| load | {} ms |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.load_ms", 1,
+     {"v0220": "| load | 415,2 ms | {} ms |"}),
+    ("0220-device-dtype/minilm-fp32.json", "models.0.query_ms_median", 1,
+     {"v0220": "| query median | {} ms |"}),
+    ("0220-device-dtype/minilm-q8.json", "models.0.query_ms_median", 1,
+     {"v0220": "| query median | 4,2 ms | {} ms |"}),
 ]
 
 
