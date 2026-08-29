@@ -30,6 +30,14 @@ and in the author's fork, not here.
   and implementation reviews) is in git history, last present at commit
   `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
   with DESIGN.md, DESIGN.md is the record.
+- `verification/` — evidence, not authority. Reports that settle a factual
+  question (a platform probe, an acceptance dossier, a voice measurement) and
+  the scripts under `verification/probes/` that produced them. A report is
+  cited by path from the ticket it serves and never becomes a source of
+  truth: where it touches the design, the owning document above is the
+  record. Reports live here rather than in an agent worktree because an
+  uncommitted artifact dies with the worktree — the report about the work is
+  not the work.
 - Superseded documents are DELETED, not archived in the tree — git is the
   archive. Do not create `history/` directories or versioned doc copies.
 
