@@ -3,7 +3,6 @@ Title: Scoped issue A: ledger, freshness, counters -- pause and serve-stale as t
 Created: 2026-08-26
 Author: claude
 Blocked-by: 0016
-Blocked-by: 0017
 Blocked-by: 0032
 
 --- log ---
@@ -15,6 +14,7 @@ Blocked-by: 0032
 2026-08-28T07:08Z codex note resume contract posted on upstream #24: https://github.com/oscardvs/zoteus/issues/24#issuecomment-5449540874
 2026-08-28T16:24Z Claude note blocker 0015 closed — Blocked-by removed.
 2026-08-29T09:58Z Minh Ha-Duong note blocker 0014 closed — Blocked-by removed.
+2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
 --- body ---
 ## Context
 DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).
