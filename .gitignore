@@ -1,6 +1,12 @@
 # The zoteus fork is its own checkout, cloned by bootstrap.sh — not a submodule,
 # not vendored. Nothing under it belongs to this repo's history.
+#
+# The glob covers siblings deliberately. A second checkout at `fork-stock/`
+# appeared untracked, 225 MB of upstream source one `git add -A` away from the
+# history this rule exists to keep it out of — the pattern named one directory
+# where the reason applies to any of them.
 fork/
+fork-*/
 
 # Measurement artefacts: regenerable, and large.
 bench/*.sqlite
