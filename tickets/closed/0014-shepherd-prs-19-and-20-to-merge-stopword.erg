@@ -2,6 +2,7 @@
 Title: Shepherd PRs 19 and 20 to merge; stopwords follow-up
 Created: 2026-08-26
 Author: claude
+Closed: Done and superseded, not rejected: the shepherding succeeded (#19 and #20 merged 2026-08-27, fold-gate waiver removed), and the stopwords limb was answered by X2 rather than dropped — the measurement said do not open that PR, and the better fix it produced is reassigned to 0090 and 0091. The fork branch is kept for 0091 to build on.
 
 --- log ---
 2026-08-26T15:42Z claude created
@@ -15,6 +16,7 @@ Author: claude
 2026-08-29T08:43Z Read against the new Zotero-native baseline (0025), the case for spending an upstream slot on this PR is weak. The lexical layer's value is ranking and passage-level results — matching is what Zotero's own filter already does, slower and unranked. The stoplist question sits inside the half of the layer that is NOT where the value is: deletion changes 12% of the top-20 and costs 5,6x. Recommendation to the author: do not ship the deletion as its own PR. Either fold the degenerate-query fallback into a later change that touches tokenize() anyway, or drop it. The free slot is better spent on 0016's wipe guard, which fixes silent cross-library data loss
 2026-08-29T09:16Z The author's dynamic-droplist proposal supersedes both arms this ticket was choosing between, and it changes the recommendation logged earlier. Measured (0025): df>=30% plus a degeneracy fallback gives p50 274,2 ms and p95 536,9 ms with 98% of the unfiltered result set AND the degenerate query fixed, where the stoplist gives 86% and leaves it broken and the bare deletion costs 1 211,7 ms. So the PR's shape is now: derive the droplist from the library, keep a fallback on fewer-than-two surviving terms, and drop the hardcoded 29 words. That is a bigger diff than the deletion but a coherent one, and it is the version that actually delivers the language-neutrality the PR claims. It does not change the slot arithmetic: 0016's wipe guard still outranks it, since this remains work in the matching half whose value the Zotero-native baseline measured as the smaller one
 2026-08-29T09:50Z Recommendations 1-4 accepted by the author (2026-08-29). The factual error is FIXED at the source, not only noted: fork branch stopwords-follow-up is now ab89bbc (was 94d994d), correcting the tokenize.ts doc comment and the accent-folding test comment — typecheck clean, 65 tests pass — and RUNBOOK's pre-filled PR-A form carries the corrected wording, verified by decoding the URL. The claim now reads that the query survived the list as 'not' alone and answered as a one-term search with confident unrelated hits, which is worse than the empty result originally claimed. Successor work filed: 0090 (correct DESIGN §3's threshold) and 0091 (the droplist implementation, blocked by 0090). Disposition of this ticket — WONTMERGE close — is the author's call and is not taken here
+2026-08-29T09:58Z Minh Ha-Duong closed — Done and superseded, not rejected: the shepherding succeeded (#19 and #20 merged 2026-08-27, fold-gate waiver removed), and the stopwords limb was answered by X2 rather than dropped — the measurement said do not open that PR, and the better fix it produced is reassigned to 0090 and 0091. The fork branch is kept for 0091 to build on.
 --- body ---
 ## Context
 DESIGN.md §4 items 1-2. The head of the upstream train: oscardvs/zoteus#19
@@ -30,5 +32,16 @@ clean.
 ## Exit criteria
 - [x] #19 merged 2026-08-27 as `4f61b2a` (v1.7.2, "thanks @MinhHaDuong")
 - [x] #20 merged 2026-08-27 as `6e4637b` (v1.7.2; his follow-up #21 fixed in v1.8.0)
-- [ ] STOPWORDS follow-up PR opened after #19, X2 number in the body
+- [x] STOPWORDS follow-up: ANSWERED by X2 rather than delivered, and the answer
+      was not to open it. Warm p95 1 773,0 ms against the ~500 ms rule, 4,5x a
+      stock control arm on the same index, for an 88,1% identical top-20 — the
+      deletion costs 5,6x and buys almost no ranking, because bm25 already
+      down-weights the terms it restores. The measured replacement (a
+      library-derived droplist plus a degeneracy fallback) is reassigned to 0090
+      and 0091. Artifacts: bench/results/0025-x2-stopwordless/
+- [x] the false claim in the drafted PR body is corrected at source rather than
+      left standing: fork branch `stopwords-follow-up` is `ab89bbc`, and
+      RUNBOOK's pre-filled form carries the corrected wording. The branch is
+      KEPT — 0091 reuses its Unicode query split and its test scaffolding; only
+      the deletion itself is dropped
 - [x] fold-gate waiver removed in this repo on #19's merge (2026-08-27)
