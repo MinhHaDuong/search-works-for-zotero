@@ -1,8 +1,9 @@
 // Provenance control: is mrl/minilm384.f32 the same vector space as the model
-// zoteus's LocalEmbeddingProvider uses (Xenova/all-MiniLM-L6-v2)?
+// zoteus's LocalEmbeddingProvider uses (Xenova/all-MiniLM-L6-v2)? model-id-literal: prose
 // Embeds a handful of real passages with transformers.js and reports cosine
 // against the stored slab row. A match near 1 says same model; anything else says no.
 import { pipeline, env } from '@huggingface/transformers';
+import { resolveModel } from './registry.mjs';
 import { openSync, readSync, closeSync, readFileSync } from 'node:fs';
 
 env.cacheDir = '/home/haduong/data/cache/transformersjs';
@@ -27,7 +28,8 @@ function cos(a, b) {
   return d / Math.sqrt(na*nb);
 }
 
-const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+const { repo: MODEL } = resolveModel('all-minilm-l6-v2');
+const extractor = await pipeline('feature-extraction', MODEL);
 for (const r of rows) {
   const text = lines[r];
   const t = await extractor([text], { pooling: 'mean', normalize: true });

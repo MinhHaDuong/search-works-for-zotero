@@ -362,3 +362,39 @@ def test_the_same_content_in_valid_utf8_is_caught(tmp_path):
         {"bench/driver.mjs": "// un commentaire\nconst m = 'Fixture/fixture-embed-v1';\n"},
     )
     assert cm.run(repo) == 1
+
+
+# --- prose that must name its model, and the hole that exemption could become ----
+
+
+def test_a_line_marked_as_a_literal_is_not_flagged(tmp_path):
+    """Provenance prose carries the name on purpose; the guard's remedy can't reach it.
+
+    A docstring saying what was measured, or a result's own `what:` label, has to
+    hold the literal name -- "resolve it by registry id" is meaningless in prose,
+    and an anonymous provenance cell cannot be read a month later.
+    """
+    repo = build(
+        tmp_path,
+        {"bench/driver.mjs": "// measured with Fixture/fixture-embed-v1 model-id-literal: provenance\n"},
+    )
+    assert cm.run(repo) == 0
+
+
+def test_the_marker_does_not_exempt_the_rest_of_the_file(tmp_path):
+    """The exemption is per line, and this is the test that keeps it that way.
+
+    Exempting the whole file would be the cheap version and would hide real wiring
+    in the next driver that grows a comment. A marked comment beside an unmarked
+    `pipeline(...)` call must still fail.
+    """
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "// measured with Fixture/fixture-embed-v1 model-id-literal: provenance\n"
+                "const m = 'Fixture/fixture-embed-v1';\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 1

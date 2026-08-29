@@ -10,13 +10,13 @@ here carries a scratch directory in its source:
 | `ISSUE30_ROOT` | holds `v190/dist`, `v1100/dist`, `embed/` (a bare npm project with `@huggingface/transformers`) | `~/.claude/jobs/upstream30-latency` |
 | `ISSUE30_MASTER` | the one index both versions open | `…/zoteus-bench/issue30/master/search-index.sqlite` |
 | `ISSUE30_ARMS_DIR` | where the per-arm **copies** are made | `…/zoteus-bench/issue30` |
-| `ISSUE30_TRANSFORMERS` | directory `ZOTEUS_TRANSFORMERS_PATH` points at | `$ISSUE30_ROOT/embed` |
+| `ISSUE30_TRANSFORMERS` | directory `ZOTEUS_TRANSFORMERS_PATH` points at | `$ISSUE30_ROOT/embed` | <!-- model-id-literal: a filesystem path, not a model -->
 
 ## The drivers, in the order they run
 
 1. **`issue30_slab_provenance.mjs`** — the control that had to fire before anything
    else. Re-embeds five sampled passages of `vec-real/passages.txt` through
-   `Xenova/all-MiniLM-L6-v2` (the model zoteus's own `LocalEmbeddingProvider`
+   `Xenova/all-MiniLM-L6-v2` (the model zoteus's own `LocalEmbeddingProvider` <!-- model-id-literal: documentation -->
    loads) and reports cosine against the stored row of `mrl/minilm384.f32`. All
    five read 1.000000, which is what licenses calling the vectors real and the
    query space the same space. Without it the slab's model was an assumption.
