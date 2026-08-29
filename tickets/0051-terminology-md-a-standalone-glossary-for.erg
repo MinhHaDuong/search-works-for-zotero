@@ -9,6 +9,7 @@ Blocked-by: 0036
 2026-08-29T00:00Z claude created
 2026-08-29T16:30Z claude note raid 51 imagine+plan: premise re-checked (3 of 5 named examples are dead references purged by 0036); scope narrowed to consolidation; guard default-deny, pointer-does-not-excuse; path corrected to spec/ (filed pre-6ae3fe8); SCANNED line added per 0221/PR42
 
+2026-08-29T13:36Z claude note raid 51 execute: spec/TERMINOLOGY.md (45 entries, three marked buckets plus historical); bench/check_terminology.py default-deny guard, red-first against the seeded census entry; registered in README, CLAUDE.md, Makefile and check_governance.py SCANNED. Verification box 3 left unticked: sampling DESIGN.md section 2.6 found bitmap filter, top-k and the ladder unglossed, a reader-experience criterion the harvest does not settle by itself.
 --- body ---
 ## Context
 The specification chain has no terminology section. A reader entering
@@ -131,11 +132,11 @@ that; `verify-adherence` and human review cover it. A guard that guessed
 at prose numbers would produce noise.
 
 ## Verification
-- [ ] Every term in the glossary resolves to an owning document
-- [ ] No design number is restated in a definition
+- [x] Every term in the glossary resolves to an owning document
+- [x] No design number is restated in a definition
 - [ ] A reader can enter DESIGN.md at a random section and look up every
       unfamiliar term
-- [ ] `make check` green, including the new `terminology` target
+- [x] `make check` green, including the new `terminology` target
 
 ## Invariants
 - The glossary defines; it never decides. A definition that would settle an
@@ -145,12 +146,12 @@ at prose numbers would produce noise.
   check `bench/check_figures.py` still anchors.
 
 ## Exit criteria
-- [ ] `spec/TERMINOLOGY.md` exists, covering the chain's vocabulary and the
+- [x] `spec/TERMINOLOGY.md` exists, covering the chain's vocabulary and the
       inherited Zotero and SQLite/FTS5 vocabulary, each entry marked ours
       or inherited
-- [ ] Historical and panel-era terms marked as such with a git coordinate
-- [ ] Registered in CLAUDE.md and README.md
-- [ ] Added to `SCANNED` in `bench/check_governance.py` so it does not
+- [x] Historical and panel-era terms marked as such with a git coordinate
+- [x] Registered in CLAUDE.md and README.md
+- [x] Added to `SCANNED` in `bench/check_governance.py` so it does not
       arrive unguarded (0221's trigger case, closed for this document only)
-- [ ] The no-numbers guard is in place, red-first proven, and `make check`
+- [x] The no-numbers guard is in place, red-first proven, and `make check`
       passes
