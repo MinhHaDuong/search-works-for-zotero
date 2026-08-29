@@ -84,8 +84,9 @@ So the upstream ask is the entry, and the knob is its id.
 - No precision knob is proposed, in the issue or in any prototype it points at.
 - Nothing about this repository's internal governance enters the issue text
   (GOVERNANCE.md's disclosure rule). The repository is public and he reads it.
-- The device finding is not folded in. It is independent, costs no slot, and
-  travels on its own.
+- The device finding is not folded in, and it is not filed anywhere either.
+  Nobody passes `device: 'auto'`, so it is not a defect in the maintainer's code;
+  where it is a defect it is already huggingface/transformers.js#1642.
 
 ## Exit criteria
 

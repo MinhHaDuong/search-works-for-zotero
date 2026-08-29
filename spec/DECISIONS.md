@@ -447,6 +447,35 @@ that passes any device, so the question is now about this repository's fork
 rather than about an upstream offer.
 
 
+**2026-08-29 — correction: the device finding is not an upstream item, and there
+is nothing to file.** The entry above says it "travels as an issue at no slot
+cost". That was wrong, and wrong twice.
+
+Nobody passes `device: 'auto'`. zoteus passes no options object at all, and
+transformers.js defaults to `['cpu']` on Node, so the failure is unreachable from
+the maintainer's code. An issue reporting it would describe a problem he does not
+have, about a call he does not make — noise dressed as a finding, and the sort of
+filing the volume bound exists to prevent even when it is free.
+
+Where the defect does live it is already reported:
+**huggingface/transformers.js#1642**, opened 2026-04-14 against 4.0.1, labelled a
+bug, still open with no comments. Same error string, same platform, same
+mechanism. Confirmed here still present at 4.2.0.
+
+So the finding's value is entirely internal, and that is not a demotion. It is
+the reason this fork passes no device, it is the evidence that voided 0220's
+device ruling, and it is a standing risk to watch: if transformers.js ever
+changes its Node default away from `['cpu']`, the shipped local path acquires
+this failure without anyone editing zoteus.
+
+One datapoint here is genuinely absent from #1642, should a corroborating comment
+ever be wanted: installing with `--onnxruntime-node-install=skip`, so the CUDA
+provider is never fetched at all, fails identically on the absent
+`libonnxruntime_providers_shared.so`. That narrows the diagnosis — the
+registration is attempted regardless of what is installed, so the title's "when
+the CUDA shared library is unavailable" is a symptom rather than the condition.
+
+
 ## Awaiting ratification
 
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3

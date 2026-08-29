@@ -209,9 +209,15 @@ good model, and it would have to be unwound by the registry that follows it.
 What survives is evidence, not an offer:
 
 - `verification/DEVICE-AUTO-0220.md` — that `device: 'auto'` fails on an ordinary
-  CPU-only Linux desktop whichever way the package was installed. Independent of
-  all of the above, costs no slot as an issue, and is the one thing here the
-  maintainer cannot easily discover himself.
+  CPU-only Linux desktop whichever way the package was installed. **This is not
+  an upstream item and no issue is filed for it.** Nobody passes `auto`: zoteus
+  passes no options at all, and transformers.js defaults to `['cpu']` on Node, so
+  there is no defect in the maintainer's code and reporting one would be noise.
+  Where the defect does live — transformers.js hard-failing instead of falling
+  back — it is already reported as huggingface/transformers.js#1642, open since
+  2026-04-14 and confirmed here still present at 4.2.0. The finding's value is
+  internal: it is why this fork passes no device, and it is a standing risk to
+  watch if transformers.js ever changes its Node default away from `['cpu']`.
 - The measurements: on the default model, warm, q8 takes the load's resident cost
   from 143,7 MB to 69,1 MB and load time from 415,2 ms to 191,1 ms.
 - Fork branch `embedding-dtype` (`0cdfe70`), left in place as a prototype nobody
