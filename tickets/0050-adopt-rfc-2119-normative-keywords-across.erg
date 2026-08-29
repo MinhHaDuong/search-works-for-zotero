@@ -1,0 +1,75 @@
+%erg 0.1
+Title: Adopt RFC 2119 normative keywords across the specification chain
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0036
+
+--- log ---
+2026-08-29T00:00Z claude created
+
+--- body ---
+## Context
+Concatenated, the four specification-chain documents run 1 356 lines and
+11 862 words — RFC-sized. They carry zero uses of the uppercase RFC 2119
+convention (MUST, SHOULD, MAY, SHALL, REQUIRED, RECOMMENDED). Modal verbs
+do appear, on 24 lines, all lowercase: R26 says "Coverage must reach 100 %"
+in the same typography the surrounding narrative uses for emphasis.
+
+The cost is that an implementer cannot tell which lines are load-bearing.
+REQUIREMENTS.md calls each R-item "a testable property", but a property
+stated as plain assertion does not say whether it may be traded away under
+pressure. RFC 2119 exists for this: it separates the contract from the
+commentary, visibly to a reader and greppably to a script.
+
+This is a typography and phrasing pass over existing meaning. It changes no
+requirement, threshold or budget. Anything that reads like a new ruling
+goes through DECISIONS.md first, not here — the bound 0036 works under.
+
+Blocked by 0036: that ticket's last open criterion is the author's
+acceptance of the rewritten voice. Applying a keyword convention to prose
+that may still be vetoed would be redone.
+
+## Relevant files
+- `REQUIREMENTS.md` — R1–R28, the main site
+- `CONSTRAINTS.md` — C1–C4; constraints are facts about the world, so most
+  should NOT take normative keywords; the design's obligations under them
+  may
+- `DESIGN.md` — §2 architecture, §2.8 gates, §2.9 budgets
+- `DECISIONS.md` — out of scope, as in 0036: an append-only ledger, not
+  prose to restyle
+
+## Actions
+1. Add a short "Normative language" paragraph to REQUIREMENTS.md's Intro,
+   citing RFC 2119 and stating that the uppercase keywords carry contract
+   force and lowercase modal verbs do not.
+2. Pass over each R-item and decide its force. Most R-items are MUST. Some
+   are genuinely SHOULD (a preference with a stated escape) — say which,
+   and why, rather than inflating everything to MUST.
+3. Pass over DESIGN.md §2.8 gates and §2.9 budgets: a gate threshold is a
+   MUST, a budget is likelier a SHOULD with a measured escape.
+4. Leave CONSTRAINTS.md's statements of fact alone. A constraint is not an
+   obligation; only the design's response to it can be.
+
+## Test
+An adherence-style check that greps the spec chain for lowercase modal
+verbs inside R-item and gate lines and reports them, so the convention
+cannot silently erode. Red first: it must fire on the current text.
+
+## Verification
+- [ ] Every R-item's force is explicit and deliberate, not defaulted
+- [ ] No requirement changed in substance (diff reviewed against
+      DECISIONS.md)
+- [ ] `make check` green; figure-guard anchors follow any reworded sentence
+
+## Invariants
+- Meaning is preserved. This is a rewording.
+- Numbers keep decimal comma and space thousands.
+- R-, C- and D-numbers and section numbers survive: tickets and
+  DECISIONS.md point into them.
+
+## Exit criteria
+- [ ] The spec chain uses the uppercase convention, declared once in
+      REQUIREMENTS.md's Intro
+- [ ] Constraints stay descriptive; only obligations take keywords
+- [ ] A grep-level guard keeps the convention from eroding
+- [ ] `make check` passes

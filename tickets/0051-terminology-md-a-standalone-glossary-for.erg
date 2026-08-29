@@ -1,0 +1,77 @@
+%erg 0.1
+Title: TERMINOLOGY.md — a standalone glossary for the specification chain
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0036
+
+--- log ---
+2026-08-29T00:00Z claude created
+
+--- body ---
+## Context
+The specification chain has no terminology section. Terms of art are used
+without definition, or defined once in passing and then relied on far from
+that point: "the ledger", "graft", "kill 9", "corpus-critic M4", "the
+wall", "entry segmenter", "stage keys", "coverage", "metadata-only",
+"prefix" in R26's sense. A reader meeting one of these in a ticket has
+nowhere to look it up.
+
+0036 required that "every term of art [be] defined where it first appears",
+and its rewrite delivered roughly twenty jargon glosses. That is the right
+first move and it is not sufficient: a gloss at first appearance serves a
+reader going top to bottom, and nobody reads a specification that way twice.
+Tickets, reviews and forge threads enter the documents in the middle.
+
+The author's ruling (2026-08-29): a standalone document, not a section
+inside one of the three.
+
+Standalone also settles an ownership question the chain would otherwise
+have. A term used by REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md alike
+belongs to none of them; putting the glossary in any one would either
+duplicate definitions or make two documents depend on a third's internals.
+This is the one-statement-per-fact rule applied to vocabulary.
+
+## Relevant files
+- `TERMINOLOGY.md` — new, at the repository root
+- `REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — inline glosses that
+  become redundant may collapse to the term alone; a first-use gloss that
+  carries argument stays
+- `CLAUDE.md`, `README.md` — document-set list and table
+- `tickets/AGENTS.md` — no change expected
+
+## Actions
+1. Harvest the vocabulary. Sweep the chain plus the open tickets for terms
+   used as though defined. Include Zotero-side vocabulary the project
+   inherits (item, attachment, version cursor, fulltext cache) — a newcomer
+   does not know which words are ours and which are Zotero's, and that
+   distinction is worth marking per entry.
+2. Write each entry as: the term, one-sentence definition, and where it is
+   authoritative. Definitions POINT at the owning document for anything
+   numeric; the glossary owns no thresholds.
+3. Mark deprecated and panel-era terms explicitly as historical, with the
+   git coordinate, so a reader meeting one in an old ticket is not left
+   guessing whether it is live.
+4. Register the document in CLAUDE.md and README.md.
+
+## Test
+An adherence check that fails when a term listed in TERMINOLOGY.md carries
+a numeric threshold in its definition — the glossary must stay a pointer,
+not a second home for design numbers. Red first against a seeded entry.
+
+## Verification
+- [ ] Every term in the glossary resolves to an owning document
+- [ ] No design number is restated in a definition
+- [ ] A reader can enter DESIGN.md at a random section and look up every
+      unfamiliar term
+
+## Invariants
+- The glossary defines; it never decides. A definition that would settle an
+  open design question goes to DECISIONS.md first.
+- One statement per fact: no threshold, budget or rule is duplicated here.
+
+## Exit criteria
+- [ ] `TERMINOLOGY.md` exists, covering the chain's vocabulary and the
+      inherited Zotero vocabulary, each entry marked ours or Zotero's
+- [ ] Historical and panel-era terms marked as such with a git coordinate
+- [ ] Registered in CLAUDE.md and README.md
+- [ ] The no-numbers guard is in place and `make check` passes
