@@ -94,9 +94,28 @@ The scouts sharpened this constraint on five points:
   random-access container with a reader contract
   `{byteLength, read(offset,length)}`, describing itself with exactly the
   key shape of C1. Zotero's own chunker splits on structural boundaries,
-  measured in tokens (120 minimum, 768 maximum, 48 overlap), never crosses
-  a section, and embeds the heading path with the text. This is platform
-  prior art, and the boundary ruling aligns with it.
+  measured in tokens, and embeds the heading path with the text. Two details
+  of it are easy to state wrongly, and both were, so they are stated here in
+  the platform's terms (read at PR head `77e2c4b`, 2026-08-29).
+
+  The geometry is 120 minimum, 48 overlap, and a maximum of 768 that is
+  **a ceiling, not a chunk size**. The source says so in as many words:
+  "A ceiling rather than a target: chunks come out paragraph-sized, so this
+  decides only how long a text has to be before it's split at all." The
+  effective budget is a minimum against the live model, not the constant —
+  `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
+  count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
+  declare `maxTokens: 512`; the two at 8 192 (`jina-embeddings-v2-small-en`,
+  `bge-m3`) are labelled `test:`. So 768 never binds today, and exists to
+  stop a future long-window model from emitting 8 000-token chunks. A
+  consumer that copies 768 without the minimum copies a ceiling and uses it
+  as a target, which is the opposite of what the number is for.
+
+  The chunker also **does not** never cross a section: it merges sections
+  below the 120-token minimum forward into their neighbour, asserted by
+  #6012's own tests. It never merges two sections each able to stand alone.
+  Our boundary ruling is therefore stricter than the platform's, a
+  deliberate divergence rather than the alignment this bullet used to claim.
 - Once #6012's saved-search serialization merges, it will be the first
   place platform semantic results appear in the local API.
 

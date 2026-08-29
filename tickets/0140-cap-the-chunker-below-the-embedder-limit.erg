@@ -8,6 +8,7 @@ Label: needs-human
 2026-08-29T15:00Z claude created
 2026-08-29T15:00Z claude label needs-human
 
+2026-08-29T11:14Z claude note ballot corrected after reading #6012 at source: 768 is a CEILING not a chunk size, and the platform caps it with min(768, modelMax) - specialTokens - prefix; adopting the min() is now option (a), a fixed sub-512 constant is (b), and (c) takes the min but records the resolved budget in the chunker key so the C1 coupling is explicit rather than silent
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted
@@ -65,20 +66,78 @@ semantically, with nothing in the index, the logs or the coverage report
 saying so. That is an R4 and R17 violation invisible to any test that does
 not compare two vectors.
 
-## The architectural constraint on the fix
-Do not derive the chunker's maximum from the embedder's limit. Under C1,
-chunks derive from text plus **chunker** identity and geometry, and vectors
-derive from chunks plus **embedder** identity and model. If chunk geometry
-is a function of the model's limit, the chunk key depends on the embedder,
-so swapping models re-derives chunks, FTS rows and slabs rather than only
-vectors. That collapses a stage boundary C1 exists to keep clean, and the
-cost only appears the day the model changes.
+## What "Zotero's geometry, adopted verbatim" actually copied
+Read at PR head `77e2c4b`, 2026-08-29. DESIGN.md §2.2's phrase is wrong in
+a specific way, and correcting it changes the ballot below.
+
+768 is **a ceiling, not a chunk size**, and the platform says so itself:
+"A ceiling rather than a target: chunks come out paragraph-sized, so this
+decides only how long a text has to be before it's split at all, and how far
+a single oversized paragraph is split" (`embeddings.js:1527`). The module
+header adds that chunk size is "bounded by CHUNK_MAX_TOKENS, capped by the
+model's window".
+
+That cap is code, not commentary (`embeddings.js:1642`):
+
+    budget: Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens())
+        - specialTokens - (prefix ? count(prefix) : 0)
+
+Six of the eight registered models declare `maxTokens: 512`; the two at
+8 192 are labelled `test:`. So 768 never binds today. It exists to stop a
+future long-window model from emitting 8 000-token chunks — which is the
+same judgement as "a bigger window does not make bigger chunks good",
+already encoded by the platform.
+
+So we did not adopt Zotero's geometry verbatim. **We copied a ceiling, used
+it as a target, and dropped the minimum that made the ceiling safe.** Their
+chunker cannot over-feed its embedder by construction. Ours, at a flat 768,
+would.
+
+## The architectural constraint, and the platform's own answer to it
+Under C1, chunks derive from text plus **chunker** identity and geometry,
+and vectors derive from chunks plus **embedder** identity and model. If
+chunk geometry is a function of the model's limit, the chunk key depends on
+the embedder, so swapping models re-derives chunks, FTS rows and slabs
+rather than only vectors, collapsing a stage boundary C1 exists to keep
+clean.
+
+Zotero accepts exactly that coupling, and can afford to: it stamps its index
+with `localUserKey` and drops and rebuilds wholesale on mismatch (C1), so it
+never needs a chunk key stable across a model change. C1's staged
+invalidation is what we are buying instead. The divergence is defensible —
+but it is a divergence from a mechanism the platform chose deliberately, not
+a correction of an oversight, and the ballot has to weigh it that way.
 
 ## Actions
-1. Choose a fixed body budget plus heading-prefix budget summing below 512
-   tokens, stated as a constant. Record the ruling in DECISIONS.md before
-   DESIGN.md moves; 768 was ratified as "adopted verbatim" and replacing it
-   is a change to a ratified reading.
+1. Rule between two ways of never over-feeding the embedder. Both work; they
+   differ in what they cost, and the ruling goes to DECISIONS.md before
+   DESIGN.md moves, because 768 was ratified as "adopted verbatim" and
+   either option changes that reading.
+
+   **(a) Adopt the minimum, keeping 768 as the ceiling** — the platform's
+   own construction, `min(768, modelMax) - specialTokens - prefix`. *For:*
+   it is genuinely verbatim adoption, so the DESIGN.md phrase becomes true
+   rather than being replaced; no new constant needs justifying; it stays
+   correct automatically under a long-window model, where a fixed cap would
+   leave capacity unused; and it is the construction a reviewer of #6012
+   would recognise. *Against:* the chunk key becomes a function of the
+   embedder, so a model swap re-derives chunks, FTS rows and slabs rather
+   than only vectors — the C1 cost above, which the platform can ignore and
+   we cannot.
+
+   **(b) A fixed constant below 512, not derived from the model.** *For:*
+   the chunk key stays independent of the embedder, so C1's staged
+   invalidation survives a model change, and the passage count in §2.9
+   becomes computable from a stated number. *Against:* it is no longer
+   Zotero's geometry, so the DESIGN.md sentence must say what it is instead;
+   and it wastes window on a long-context model, capping at ~500 where 768
+   would be available and safe.
+
+   A third shape exists if the C1 cost is the only objection to (a): take the
+   minimum, but record the resolved budget in the chunker key so a model
+   change invalidates chunks *explicitly* rather than silently. That keeps
+   the platform's safety and makes the coupling visible instead of implicit.
+   Weigh it; do not assume it.
 2. State in §2.2 what binds and why, including that Zotero's own effective
    ceiling is not 768 either — so this is a divergence from a number, not
    from a geometry.
@@ -109,7 +168,8 @@ The test must assert its own positive control — head and tail dissimilar —
 or it cannot distinguish truncation from similarity.
 
 ## Verification
-- [ ] The cap is a stated constant, not derived from the model
+- [ ] The chosen construction cannot over-feed the embedder under any
+      registered model, including the 8 192-token ones
 - [ ] The regression test fails against a 768-token cap and passes at the new one
 - [ ] §2.9's passage count is measured at the new cap, not divided
 - [ ] `make check` green, figure-guard anchors updated
@@ -121,7 +181,8 @@ or it cannot distinguish truncation from similarity.
 - Coverage honesty (R4, R17) is the point of the ticket, not a side effect.
 
 ## Exit criteria
-- [ ] The cap is ratified in DECISIONS.md and stated in DESIGN.md §2.2
+- [ ] The construction is ratified in DECISIONS.md and stated in §2.2,
+      with "adopted verbatim" either made true or replaced
 - [ ] §2.9 recomputed from a measurement
 - [ ] The regression test exists, with its positive control
 - [ ] Blocks 0028: seg/1 is built to the settled geometry, never to 768
