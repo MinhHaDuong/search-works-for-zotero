@@ -8,9 +8,9 @@ They were consolidated on 2026-08-26 from three earlier documents (the
 ratified sheet, its delta, and the scout report), which are superseded and
 live only in git history. Where the scouts, code-reading and measurement
 passes over Zotero and upstream, sharpened a constraint, the sharpened form
-is stated here and is binding. Ratifications are recorded in DECISIONS.md;
-requirements are in REQUIREMENTS.md; the design that operates under all of
-this is DESIGN.md.
+is stated here and is binding.
+
+The authority chain is stated once, in README.md.
 
 ## C1 — everything the index stores is derived data
 

@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance chain-dedup help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -20,10 +20,11 @@ help:
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
 	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
+	@echo "make chain-dedup — the authority chain is described once, in README.md"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance check-fast
+check: lint figures governance chain-dedup check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -50,6 +51,13 @@ figures:
 # rule kept by care since the beginning. Ticket 0053, ratified 2026-08-29.
 governance:
 	python3 bench/check_governance.py
+
+# The third guard, against the same defect class as the two above but for a rule
+# rather than a number or a bound. The authority chain was described in its own
+# words in each of the five chain documents; CLAUDE.md's "one statement per fact"
+# says it belongs in one place. Ticket 0054.
+chain-dedup:
+	python3 bench/check_chain_dedup.py
 
 upstream-status:
 	@set -eu; \

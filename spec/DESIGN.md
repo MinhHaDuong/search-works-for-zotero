@@ -4,13 +4,12 @@
 
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
 every design number: the gate thresholds (§2.8), the experiment decision
-rules (§3), and the budgets (§2.9). The requirements it serves are in
-REQUIREMENTS.md, the constraints it operates under are in CONSTRAINTS.md,
-and the author's rulings are recorded in DECISIONS.md. The raw panel record
-is in git history, last present at commit `e32afe3` as `panel/cycle2/`; where
-it disagrees with this document, this document is the record. The predecessor
-design (cycle 1's "The Settled Ledger", called v1 below) is superseded and
-lives in git history.
+rules (§3), and the budgets (§2.9). Its place in the authority chain is
+stated once, in README.md. The raw panel record is in git history, last
+present at commit `e32afe3` as `panel/cycle2/`; where it disagrees with this
+document, this document is the record. The predecessor design (cycle 1's
+"The Settled Ledger", called v1 below) is superseded and lives in git
+history.
 
 How cycle 2 worked, in two sentences: six architects each re-ran the design
 through one lens (derivation, corpus, custody, concurrency, query, operator)

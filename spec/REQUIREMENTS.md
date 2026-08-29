@@ -9,11 +9,9 @@ documents they were consolidated from are superseded and live only in git
 history. A "stage" below is one step of the indexing pipeline: record,
 extract, chunk, embed.
 
-Authority works like this: the author's rulings are recorded in DECISIONS.md
-first, and this document is then edited to match. Any line here can still be
-vetoed by the author on a later reading: the veto lands in DECISIONS.md, and
-this document then follows. Constraints (what the world imposes) are in
-CONSTRAINTS.md. The design that honors all of this is DESIGN.md.
+The authority chain — how this document relates to DECISIONS.md,
+CONSTRAINTS.md, and DESIGN.md — is stated once, in README.md. Read it before
+treating a line here as final.
 
 ## The three rulings that shape everything
 
