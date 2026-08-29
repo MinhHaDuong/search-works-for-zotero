@@ -82,6 +82,13 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
+- One model name, one place, and now one pooling mode with it. `bench/models.json`
+  owns both; `bench/registry.py` / `.mjs` resolve them; `bench/check_models.py`
+  fails on an id hard-coded anywhere under `bench/` and on a candidate missing the
+  `pooling` / `pooling_source` pair. Read pooling off the model's own
+  `1_Pooling/config.json` — never infer it from a sibling. Four of six candidates
+  are `cls` where every driver had hardcoded `mean`, and wrong pooling degrades
+  retrieval silently, so it reads as the model being worse rather than as a bug.
 - Numbers use decimal comma and space thousands ("2 084,9 MiB", "360 811") —
   the guard cannot match US formatting.
 - Both numbers, always: any external memory claim carries the honest pair

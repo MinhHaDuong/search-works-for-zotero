@@ -68,19 +68,28 @@ const meanChars = Math.round(texts.reduce((a, t) => a + t.length, 0) / texts.len
 
 const models = [];
 for (const token of opt.models.split(',').map((s) => s.trim())) {
-  const { repo: model } = resolveModel(token);
+  const { repo: model, pooling } = resolveModel(token);
+  if (!pooling) {
+    // Never silently 'mean': that default is wrong for four of the six
+    // candidates, and wrong pooling reads as the model being worse.
+    throw new Error(
+      `[pooling] ${token} declares no pooling. Add it to models.json (read it from ` +
+        `the model's own 1_Pooling/config.json) before measuring with it.`,
+    );
+  }
+
   const t0 = performance.now();
   const extractor = await pipeline('feature-extraction', model);
   const loadMs = performance.now() - t0;
 
   // One warm batch before timing: the first call pays graph initialisation, which a user
   // pays once per session rather than once per passage.
-  await extractor(texts.slice(0, BATCH), { pooling: 'mean', normalize: true });
+  await extractor(texts.slice(0, BATCH), { pooling, normalize: true });
 
   const t1 = performance.now();
   let dim = 0;
   for (let i = 0; i < texts.length; i += BATCH) {
-    const out = await extractor(texts.slice(i, i + BATCH), { pooling: 'mean', normalize: true });
+    const out = await extractor(texts.slice(i, i + BATCH), { pooling, normalize: true });
     dim = out.dims[out.dims.length - 1];
   }
   const perRow = (performance.now() - t1) / texts.length;

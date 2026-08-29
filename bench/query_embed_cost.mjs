@@ -83,7 +83,16 @@ if (opt.device) pipelineOpts.device = opt.device;
 
 const models = [];
 for (const token of opt.models.split(',').map((s) => s.trim())) {
-  const { repo: model } = resolveModel(token);
+  const { repo: model, pooling } = resolveModel(token);
+  if (!pooling) {
+    // Never silently 'mean': that default is wrong for four of the six
+    // candidates, and wrong pooling reads as the model being worse.
+    throw new Error(
+      `[pooling] ${token} declares no pooling. Add it to models.json (read it from ` +
+        `the model's own 1_Pooling/config.json) before measuring with it.`,
+    );
+  }
+
   const rssBefore = process.memoryUsage().rss;
   const t0 = performance.now();
   const extractor = await pipeline('feature-extraction', model, pipelineOpts);
@@ -91,14 +100,14 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
 
   // One warm call before timing and before reading RSS: the first call pays graph
   // initialisation and allocates the arena, both of which a user pays once per session.
-  const warm = await extractor(QUERIES[0], { pooling: 'mean', normalize: true });
+  const warm = await extractor(QUERIES[0], { pooling, normalize: true });
   const rssAfter = process.memoryUsage().rss;
 
   const times = [];
   for (let rep = 0; rep < REPS; rep++) {
     for (const query of QUERIES) {
       const t = performance.now();
-      await extractor(query, { pooling: 'mean', normalize: true });
+      await extractor(query, { pooling, normalize: true });
       times.push(performance.now() - t);
     }
   }

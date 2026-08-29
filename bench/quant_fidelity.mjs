@@ -68,7 +68,14 @@ if (opt.device) pipelineOpts.device = opt.device;
 
 // The record keeps the repository, which is what was loaded, and the registry id, which
 // is what the run was asked for. They differ whenever a model is loaded from a mirror.
-const { id: modelId, repo: modelRepo } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, pooling } = resolveModel(opt.model);
+if (!pooling) {
+  // Never silently 'mean' — see registry.mjs. An undeclared pooling is a stop,
+  // not a default, because the wrong value is invisible in the results.
+  throw new Error(
+    `[pooling] ${opt.model} declares no pooling. Add it to models.json before measuring.`,
+  );
+}
 
 const t0 = performance.now();
 const extractor = await pipeline('feature-extraction', modelRepo, pipelineOpts);
@@ -87,7 +94,7 @@ const reportEvery = Math.max(1, Math.floor(texts.length / BATCH / 10));
 let batchNo = 0;
 for (let i = 0; i < texts.length; i += BATCH) {
   const batch = texts.slice(i, i + BATCH);
-  const tensor = await extractor(batch, { pooling: 'mean', normalize: false });
+  const tensor = await extractor(batch, { pooling, normalize: false });
   const data = tensor.data;
   dim = data.length / batch.length;
   chunks.push(Float32Array.from(data));
