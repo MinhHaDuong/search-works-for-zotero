@@ -11,9 +11,10 @@
  *    from the author's own Zotero library.
  *  - vectors: mrl/minilm384.f32, 93 022 x 384 float32, produced by all-MiniLM-L6-v2 --
  *    the same model zoteus's LocalEmbeddingProvider runs (verified: cosine 1.000000 on
- *    five sampled rows against Xenova/all-MiniLM-L6-v2 through transformers.js).
+ *    five sampled rows against Xenova/all-MiniLM-L6-v2 through transformers.js). model-id-literal: prose
  */
 import { createRequire } from 'node:module';
+import { resolveModel } from './registry.mjs';
 import { openSync, readSync, closeSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
@@ -30,7 +31,7 @@ const { SqliteSearchIndex } = await import(`${distDir}/features/search/sqlite-in
 const SRC = '/home/haduong/data/projets/zoteus-bench/vec-real/search-index.sqlite';
 const SLAB = '/home/haduong/data/projets/zoteus-bench/mrl/minilm384.f32';
 const DIM = 384;
-const MODEL = 'Xenova/all-MiniLM-L6-v2';
+const { repo: MODEL } = resolveModel('all-minilm-l6-v2');
 
 // A provider that never embeds: the vectors already exist. Its identity is what the index
 // stamps as embedderId, and it must be byte-identical to what the running server reports,

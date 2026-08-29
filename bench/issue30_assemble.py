@@ -50,7 +50,7 @@ geo["vectors_are"] = (
     "REAL. The 93 022 passages are the author's own Zotero library as exported to "
     "bench substrate vec-real/; the vectors are mrl/minilm384.f32, produced by "
     "all-MiniLM-L6-v2 over those exact passage strings. Provenance was confirmed rather "
-    "than assumed: five sampled rows re-embedded through Xenova/all-MiniLM-L6-v2 -- the "
+    "than assumed: five sampled rows re-embedded through Xenova/all-MiniLM-L6-v2 -- the "  # model-id-literal: result provenance
     "model zoteus's own LocalEmbeddingProvider loads -- return cosine 1.000000 against "
     "the stored row, so the query and the corpus live in one vector space and no "
     "embedder mismatch can silently drop the vectors. Nothing here is synthetic."

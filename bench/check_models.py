@@ -290,6 +290,19 @@ def check_registry(root: Path, failures: list[str]) -> None:
                 failures.append(f"{name}: unknown rejection criteria {unknown}")
 
 
+#: Prose that must name the model it describes, marked line by line.
+#:
+#: The guard's remedy — "declare it in the registry and resolve it by id" — is
+#: available to code and impossible in prose. A docstring explaining what was
+#: measured, or a result's own `what:` provenance label, has to carry the literal
+#: name: a cell whose provenance is anonymous cannot be read a month later, which
+#: is the same argument that exempts `bench/results/` wholesale. Exempting the
+#: file would be the cheap version and would hide a real wiring bug in the next
+#: driver that grows a comment. So the exemption is per line, carries its reason
+#: on the line, and greps out in one command.
+EXEMPT_MARKER = "model-id-literal:"
+
+
 def check_no_hard_coded_ids(root: Path, failures: list[str]) -> None:
     for path in scanned_files(root):
         try:
@@ -304,7 +317,10 @@ def check_no_hard_coded_ids(root: Path, failures: list[str]) -> None:
                 f"file is not a clean one."
             )
             continue
-        for model in sorted(model_ids_in(text)):
+        scannable = "\n".join(
+            line for line in text.splitlines() if EXEMPT_MARKER not in line
+        )
+        for model in sorted(model_ids_in(scannable)):
             failures.append(
                 f"{path.relative_to(root).as_posix()}: names the model {model!r}. "
                 f"Declare it in {REGISTRY} and resolve it by registry id."

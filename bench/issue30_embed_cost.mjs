@@ -35,7 +35,7 @@ const at = (pc) => samples[Math.max(0, Math.ceil((pc / 100) * samples.length) - 
 console.log(
   JSON.stringify(
     {
-      what: 'query-embedding cost alone, upstream LocalEmbeddingProvider, Xenova/all-MiniLM-L6-v2',
+      what: 'query-embedding cost alone, upstream LocalEmbeddingProvider, Xenova/all-MiniLM-L6-v2',  // model-id-literal: result provenance
       first_call_ms_includes_model_load: Math.round(firstMs * 10) / 10,
       warm: {
         n: samples.length,
