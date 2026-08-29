@@ -13,8 +13,9 @@ Following up on my last comment with numbers rather than opinions. I re-ran the 
 a real library — 93,022 passages out of a working Zotero collection, three embedding models,
 same passages and same probes throughout. Drivers and raw JSON are linked at the bottom.
 
-Short version: **one of your three options is much cheaper than it looks, there is a fourth
-option nobody has mentioned, and the two combine.**
+Short version: **all three of your options move something that is not your bottleneck. Two
+levers that do act on it are cheap, they multiply, and together they took the scan from
+4,089 ms to 27 ms at your geometry.**
 
 ## The frame that made the rest make sense
 
@@ -88,12 +89,10 @@ metric implied a 22-point collapse. Both numbers are correct; they answer differ
 questions. Rank agreement counts every reshuffle among near-equivalent neighbours as a
 loss, and a user does not experience a reshuffle among equivalents as a loss.
 
-A side result that may interest you more than the main one: **at equal width, which model
-you use matters more than how many dimensions you keep.** Qwen truncated to 384 scores
-0.478 against MiniLM's native 384-dimension 0.439 — 9% better on the same width and the
-same probes. Truncated all the way to 128 it still matches MiniLM. So a big model cut down
-beats a small model trained narrow, which is worth knowing before anyone concludes the fix
-is a smaller embedder.
+At equal width, which model you use matters more than how many dimensions you keep. Qwen
+truncated to 384 scores 0.478 against MiniLM's native 384-dimension 0.439, and truncated to
+128 it still matches it. A wide model cut down beats a narrow one trained that way — worth
+knowing before anyone concludes the fix for a slow scan is a smaller embedder.
 
 ## Put together, at your geometry
 
@@ -109,6 +108,48 @@ transient cannot land inside one candidate:
 
 The speedup is larger here than the 16x I measured at 1,024 dimensions, and for the reason
 above: the wider the vectors, the more binarization saves.
+
+## The other half of the trade: what a user can afford to compute
+
+Everything above is query cost. None of it matters to someone who cannot afford to build the
+index, so I measured that too — in `@huggingface/transformers`, the runtime zoteus embeds
+with, on CPU, since timing PyTorch would measure a stack nobody ships.
+
+| model | dims | per passage | to index 255,703 |
+|---|---|---|---|
+| all-MiniLM-L6-v2 — zoteus's local default | 384 | 78 ms | ~5.5 h |
+| bge-small-en-v1.5 — what Zotero's own work uses | 384 | 150 ms | ~10.7 h |
+| nomic-embed-text-v1.5 | 768 | 795 ms | ~56.5 h |
+
+Beside retrieval quality on the same corpus and probes:
+
+| model | dims | recall@30 | MRR |
+|---|---|---|---|
+| bge-small-en-v1.5 | 384 | 0.4346 | 0.7401 |
+| all-MiniLM-L6-v2 | 384 | 0.4389 | 0.7305 |
+| nomic-embed-text-v1.5 | 768 | 0.4639 | 0.7540 |
+| Qwen3-Embedding-0.6B | 1024 | 0.4935 | 0.7742 |
+
+Read together these say something the recall numbers alone do not. **Inside the locally
+runnable set, quality barely moves and moving it is ruinous**: nomic buys 5.7% over MiniLM
+for ten times the indexing time. The model that does buy quality — Qwen, +12.4% — is 600M
+parameters and takes days on a laptop, so the 0.997 figure I opened with belongs to a
+configuration no ordinary user can run. I would rather say that than let the number stand
+unqualified.
+
+It also puts your 90 s in a different light. Zoteus's *own* local default already needs
+about five and a half hours to index a library the size of yours. That is a plausible reason
+to reach for an API model, and reaching for one is how you arrived at 3,072 dimensions,
+which is what made the queries slow. The build wall and the query wall are connected.
+
+Which is worth one observation about design rather than measurement. Zotero's semantic
+search has to work for users with no API key at all, so 384-dimension local models are not a
+preference there, they are a constraint. An MCP server has a different user by construction
+— someone already running an LLM client. That legitimately opens the API path, and it is why
+zoteus can offer 3,072 dimensions where Zotero cannot. It does not make the choice free:
+embedding a library is a bulk, one-time export of the whole corpus to a third party, which
+is a different question from sending it a query, and it recurs on every rebuild. Worth
+deciding deliberately rather than by default, since the default is what produced this issue.
 
 ## Two things that will bite
 
@@ -157,10 +198,18 @@ and 1,024 dimensions — not at your 3,072, so read the trend rather than the ro
 scan time depends on how many bytes there are and what arithmetic runs over them, not on
 what the numbers mean. All of it is Linux, and none of it is Windows.
 
+One handicap bounds the model-versus-model rows. I embedded passages with no task prefix,
+and bge and nomic are trained to use one where MiniLM and Qwen are not, so those two are
+measured below their real ability — bge landing under MiniLM on recall while above it on
+MRR is what that looks like. Comparisons *within* one model across widths change only the
+truncation and carry none of this, so the Matryoshka results are unaffected; treat the
+between-model ordering as indicative and the width curves as measured.
+
 Drivers and artifacts, if useful:
 [`bench/vec_mrl_recall.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/vec_mrl_recall.mjs),
 [`bench/vec_task_recall.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/vec_task_recall.mjs),
 [`bench/vec_scan_shapes.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/vec_scan_shapes.mjs),
+[`bench/embed_feasibility.mjs`](https://github.com/MinhHaDuong/search-works-for-zotero/blob/main/bench/embed_feasibility.mjs),
 [`bench/results/0038-mrl-binary/`](https://github.com/MinhHaDuong/search-works-for-zotero/tree/main/bench/results/0038-mrl-binary).
 The recall driver reproduces my earlier 384-dimension figures exactly as a self-check, and
 it also detects the damage when truncating a model that is *not* Matryoshka-trained, so it
