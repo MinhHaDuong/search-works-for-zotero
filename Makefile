@@ -12,17 +12,18 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
 	@echo "make check-fast  — the tests alone"
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
+	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures check-fast
+check: lint figures governance check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -41,6 +42,14 @@ lint:
 # it is the one to run after any re-measurement.
 figures:
 	python3 bench/check_figures.py
+
+# The sibling guard, against a different drift. The figure guard keeps a number
+# from going stale where it is quoted; this one keeps a process rule from being
+# restated where it is not owned. The repository is public and the upstream
+# maintainer reads it, so "our governance never enters upstream text" had been a
+# rule kept by care since the beginning. Ticket 0053, ratified 2026-08-29.
+governance:
+	python3 bench/check_governance.py
 
 upstream-status:
 	@set -eu; \

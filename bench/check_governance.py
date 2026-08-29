@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""Governance vocabulary stays in its owning document.
+
+This repository is public and the upstream maintainer reads it. CLAUDE.md has
+always said that this repo's internal governance and its strategy about him must
+never enter text destined upstream — and until GOVERNANCE.md existed, that
+separation was enforced by the care of whoever happened to be writing. A rule
+kept by care is kept until the first tired afternoon.
+
+The split ratified 2026-08-29 (DECISIONS.md) gives process rules one owner.
+This guard is what makes the split hold: it reads the specification documents
+and the agent brief, and fails when a named process bound appears there without
+a pointer to the document that owns it.
+
+What it deliberately does NOT flag is the word "maintainer". CONSTRAINTS.md says
+that he merges small contained PRs and reimplements design-sized proposals, the
+asymmetry measured two-for-two — and that is a fact about the terrain, which is
+exactly what CONSTRAINTS.md is for. The hazard is not naming him; it is stating
+what we have decided to do about him. So the vocabulary below names process
+BOUNDS, not the actor. A guard that fired on "maintainer" would be loud, easy to
+write, and would push true constraints out of the document that owns them.
+
+Exit 0 when clean, 1 when a bound is stated outside its owner.
+"""
+
+import argparse
+import logging
+import re
+import sys
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("governance")
+
+REPO = Path(__file__).resolve().parent.parent
+
+#: The document that owns process rules going forward. A line in a scanned
+#: document may state a bound if it points here, which is how DESIGN.md §4 keeps
+#: naming the train's shape without restating the terms.
+OWNER = "GOVERNANCE.md"
+
+#: Scanned: the specification chain, plus the two documents a newcomer or an
+#: agent reads first. CLAUDE.md is in scope deliberately — it is where the
+#: binding paragraph used to live, so leaving it out would let the guard pass
+#: over the very text the split exists to move.
+SCANNED = [
+    "README.md",
+    "CLAUDE.md",
+    "spec/REQUIREMENTS.md",
+    "spec/CONSTRAINTS.md",
+    "spec/DESIGN.md",
+]
+
+#: Not scanned, and each for its own reason. GOVERNANCE.md owns the bounds.
+#: DECISIONS.md is the append-only ledger where the rulings were made — the
+#: record is evidence precisely because it is never rewritten. SYNC.md records
+#: what happened upstream, including the live tally the bounds are spent
+#: against. STATE.md and RUNBOOK.md are operational. Tickets carry the work.
+#:
+#: This list is documentation, not code: anything absent from SCANNED is already
+#: unscanned. It is written down because "why is SYNC.md not checked?" is the
+#: question that would otherwise be answered by adding it and breaking the
+#: build.
+UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.md", "RUNBOOK.md"]
+
+#: The named process bounds. Each is a rule the author ratified about how this
+#: repository conducts itself upstream — not a fact about the world, and not a
+#: design number.
+BOUNDS = {
+    "the in-flight cap": re.compile(r"\b(PRs?\s+in\s+flight|in-flight\s+(?:cap|slot)|two-in-flight)\b", re.I),
+    "the contained-PR budget": re.compile(r"\bcontained-PR\s+budget\b", re.I),
+    "the sunset rule": re.compile(r"\b(three-week\s+sunset|sunset\s+rule)\b", re.I),
+    "the harness as a one-time transfer": re.compile(r"\bone-time\s+transfer\b", re.I),
+    "the PR volume cap": re.compile(r"\bvolume\s+cap\b", re.I),
+    "the commitment bounds": re.compile(r"\bcommitment\s+bounds\b", re.I),
+}
+
+#: A line is excused when it points at the owner. The pointer must be on the
+#: line itself, not merely in the paragraph: a reader who lands on the sentence
+#: through a search sees one line, and a pointer they have to hunt for is a
+#: pointer that does not resolve.
+POINTER = re.compile(re.escape(OWNER))
+
+
+def scan(text: str) -> list[tuple[int, str, str]]:
+    """Every line stating a bound without pointing at the owner."""
+    findings = []
+    for n, line in enumerate(text.splitlines(), 1):
+        if POINTER.search(line):
+            continue
+        for name, pattern in BOUNDS.items():
+            if pattern.search(line):
+                findings.append((n, name, line.strip()))
+    return findings
+
+
+def run(repo: Path) -> int:
+    """Every scanned document under `repo`, checked. Returns a process exit code."""
+    failures = 0
+    checked = 0
+
+    owner = repo / OWNER
+    if not owner.exists():
+        log.error("MISSING OWNER: %s does not exist; the split has no home", OWNER)
+        failures += 1
+
+    for rel in SCANNED:
+        path = repo / rel
+        if not path.exists():
+            # A scanned document that vanished is not a pass. This guard's
+            # all-clear must never be reachable by failing to look.
+            log.error("MISSING DOCUMENT: %s is scanned for governance but does not exist", rel)
+            failures += 1
+            continue
+        checked += 1
+        for n, name, line in scan(path.read_text(encoding="utf-8")):
+            log.error("%s:%d states %s without pointing at %s\n    %s", rel, n, name, OWNER, line)
+            failures += 1
+
+    if failures:
+        log.error(
+            "\n%d governance statement(s) outside %s. Move the rule there, or "
+            "cite %s on the line that mentions it.",
+            failures,
+            OWNER,
+            OWNER,
+        )
+        return 1
+
+    log.info("%d documents scanned, %d bounds tracked: governance has one home", checked, len(BOUNDS))
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--repo", default=str(REPO), help="repository root to scan")
+    a = ap.parse_args()
+    return run(Path(a.repo))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
