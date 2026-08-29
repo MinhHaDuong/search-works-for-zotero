@@ -36,6 +36,7 @@ OWNER = "README.md"
 #: sweeping it in here would fail the build over a file ticket 0054 did not
 #: rewrite. Tracked as a follow-up instead of silently widened.
 SCANNED = [
+    "spec/README.md",
     "spec/REQUIREMENTS.md",
     "spec/CONSTRAINTS.md",
     "spec/DESIGN.md",

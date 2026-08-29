@@ -21,6 +21,7 @@ help:
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
 	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
 	@echo "make terminology — the glossary defines and points; it restates no design number"
+	@echo "make progress    — the status page covers every requirement, and its bars match its rows"
 	@echo "make chain-dedup — the authority chain is described once, in README.md"
 	@echo "make normative   — every R-item declares its RFC 2119 force"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
@@ -76,6 +77,15 @@ chain-dedup:
 # lowercase-modal grep structurally cannot see. Ticket 0050.
 normative:
 	python3 bench/check_normative.py
+
+# The fourth guard, over spec/README.md. The status page restates nothing —
+# every row is a status and an address — so the figure guard has nothing to
+# anchor there. What can rot instead is coverage and arithmetic: a requirement
+# added to the sheet and never given a row, or a status edited in the table and
+# not in the bar above it. Both are silent, and both leave the page looking
+# complete, which is worse than no page. Ticket 0300.
+progress:
+	python3 bench/check_progress.py
 
 upstream-status:
 	@set -eu; \
