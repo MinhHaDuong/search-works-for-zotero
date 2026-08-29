@@ -294,6 +294,20 @@ then proves only that the surrogate is cheap. Without the revalidation this is a
 check whose all-clear is indistinguishable from "I could not look".
 
 
+**2026-08-29 — the plain-language rewrite is accepted, and its voice is the
+specification chain's standard.** Ticket 0036 rewrote REQUIREMENTS.md,
+CONSTRAINTS.md and DESIGN.md out of the cycle-2 panel's compressed idiom, on the
+author's verdict of 2026-08-27 that "the house style is purely llm at the
+moment, not my voice yet". The author read all three and accepted them; the veto
+route the ticket reserved into this ledger went unused. What this settles past
+those three files: prose entering the specification chain later is written in
+that voice rather than the panel's, which is the standard for 0050's normative
+keywords, 0051's glossary and 0052's security section. The rewrite's own bounds
+carry with it — R-, C-, D- and section numbers survive as the addressing scheme
+tickets point into, the requirements list holds R-items only, and each preamble
+is an Intro section.
+
+
 ## Awaiting ratification
 
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3

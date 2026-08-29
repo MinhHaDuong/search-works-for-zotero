@@ -2,11 +2,11 @@
 Title: Collapse the repeated authority-chain paragraph to one pointer
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0036
 
 --- log ---
 2026-08-29T00:00Z claude created
 
+2026-08-29T13:47Z Minh Ha-Duong note blocker 0036 closed — Blocked-by removed.
 --- body ---
 ## Context
 Each document in the chain opens with an Intro that restates the authority
