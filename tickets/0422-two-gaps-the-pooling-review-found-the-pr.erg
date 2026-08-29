@@ -8,6 +8,8 @@ Author: claude
 2026-08-29T23:55Z claude note both found by adversarial review of PR #73, both demonstrated rather than argued, and both non-blocking there. Filed together because they are the same shape: a check that passes for a reason other than the thing being right.
 
 2026-08-29T16:15Z Minh Ha-Duong note blocker 0421 closed — Blocked-by removed.
+2026-08-30T00:20Z claude note both gaps closed, and the third action answered by retraction rather than parity. Gap 1: the probe now compares the pooling config's word_embedding_dimension against the record's declared dim, which catches a record pointed at another real model -- demonstrated against the reviewer's own attack (granite-97m -> e5-base) and it refuses to write. That check found a false positive on its first run and got narrower for it: distiluse has a 2_Dense module, so its pooling width (768) is not its output dim (512), and the two numbers are different quantities rather than a mismatch. Gap 2: a pooling literal at a call site is now a failure, reusing the existing per-line marker. Action 3: parity with input_template is retracted, not achieved -- a pooling mode is a keyword argument from a closed enum and scans quietly, while a template is a free-form prefix whose literals already occur five times in benign code under bench/, so the same scan would be red on arrival. The reason is recorded in check_models.py where a reader will find it.
+
 --- body ---
 ## Context
 

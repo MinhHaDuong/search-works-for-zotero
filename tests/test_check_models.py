@@ -452,3 +452,56 @@ def test_a_rejected_record_is_not_required_to_carry_pooling(tmp_path):
     del record["pooling_source"]
     repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
     assert cm.run(repo) == 0
+
+
+# --- the two gaps ticket 0422 closes ---------------------------------------------
+#
+# Both were demonstrated by adversarial review of 0421 rather than argued, and both
+# were the same shape: a check that passed for a reason other than the thing being
+# right. Model identity had a mechanical guard from the start; pooling did not.
+
+
+def test_a_hardcoded_pooling_literal_is_caught(tmp_path):
+    """The positive control. Reverting a driver to `pooling: 'mean'` used to pass.
+
+    The reviewer proved the gap by doing exactly this to quant_fidelity.mjs and
+    watching check_models, ruff and the whole suite stay green.
+    """
+    repo = build(
+        tmp_path,
+        {"bench/driver.mjs": "const t = await extractor(b, { pooling: 'mean' });\n"},
+    )
+    assert cm.run(repo) == 1
+
+
+def test_the_python_form_is_caught_too(tmp_path):
+    """`pooling="cls"` at a Python call site is the same defect in another syntax."""
+    repo = build(tmp_path, {"bench/driver.py": 'out = enc(b, pooling="cls")\n'})
+    assert cm.run(repo) == 1
+
+
+def test_resolving_pooling_from_the_registry_passes(tmp_path):
+    """The other side: the shape the drivers actually use must NOT be flagged.
+
+    Without this, a scan that flagged every line containing the word would look
+    identical on the failing case and be unusable on the real tree.
+    """
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "const { pooling } = resolveModel(token);\n"
+                "const t = await extractor(b, { pooling, normalize: true });\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 0
+
+
+def test_a_pooling_literal_can_be_exempted_per_line(tmp_path):
+    """Reuses the id scan's marker rather than inventing a second mechanism."""
+    repo = build(
+        tmp_path,
+        {"bench/driver.mjs": "// upstream passes pooling: 'mean' model-id-literal: quoting upstream\n"},
+    )
+    assert cm.run(repo) == 0

@@ -331,6 +331,60 @@ def check_registry(root: Path, failures: list[str]) -> None:
 EXEMPT_MARKER = "model-id-literal:"
 
 
+#: `pooling: 'mean'` or `pooling="cls"` — the mode as a literal at a call site.
+#:
+#: Model identity had a mechanical guard from the start; pooling did not, and the
+#: review of 0421 proved the difference by reverting one driver to a hardcoded
+#: `'mean'` and watching the whole gate pass. The literal is the whole defect: the
+#: value must come from the registry, because the model it is right for is a
+#: property of the model, not of the driver.
+#:
+#: Deliberately narrow. It matches an assignment to a bare `pooling` key, so
+#: `record["pooling"]`, `"pooling": null` in data, and the destructured
+#: `{ pooling, normalize }` at a fixed call site all pass — those are the shapes
+#: that read FROM the registry rather than around it.
+#: Why `input_template` does NOT get the same guard, decided under ticket 0422.
+#:
+#: 0421 framed pooling as "the input_template trap one axis over", which implied a
+#: parity of protection. That claim is retracted here rather than made true, and the
+#: reason is structural rather than effort. A pooling mode is a keyword argument
+#: drawn from a closed enum, so `pooling: 'mean'` is syntactically distinctive and a
+#: scan for it is quiet on a clean tree. A template is a free-form prefix
+#: concatenated into text, and its literals are ordinary words: `query: ` and
+#: `passage: ` already occur five times under `bench/` in `{ query: q }`, in
+#: `ms_per_passage:`, and inside a sentence about a semantic query. A substring scan
+#: for them is red on arrival, and a guard that cries wolf gets exempted rather than
+#: fixed — which would cost more than the hole.
+#:
+#: What protects the templates instead is weaker and should be read as weaker: the
+#: drivers destructure `template` from `resolveModel`, and nothing mechanical stops
+#: one from inlining a prefix. If that becomes a real defect rather than a
+#: hypothetical one, the tractable half is the two distinctive nomic prefixes
+#: (`search_document: `, `search_query: `), which collide with nothing.
+
+POOLING_LITERAL = re.compile(r"""\bpooling\s*[:=]\s*['"]""")
+
+
+def check_no_hard_coded_pooling(root: Path, failures: list[str]) -> None:
+    """A pooling mode written at a call site instead of resolved from the registry."""
+    for path in scanned_files(root):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            # Reported already by the id scan, which reads the same file set; a
+            # second identical failure per file would be noise, not information.
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            if EXEMPT_MARKER in line:
+                continue
+            if POOLING_LITERAL.search(line):
+                failures.append(
+                    f"{path.relative_to(root).as_posix()}:{number}: names a pooling "
+                    f"mode literally. Resolve it from {REGISTRY} — the right mode is a "
+                    f"property of the model, not of the driver."
+                )
+
+
 def check_no_hard_coded_ids(root: Path, failures: list[str]) -> None:
     for path in scanned_files(root):
         try:
@@ -359,12 +413,16 @@ def run(root: Path) -> int:
     failures: list[str] = []
     check_registry(root, failures)
     check_no_hard_coded_ids(root, failures)
+    check_no_hard_coded_pooling(root, failures)
     for failure in failures:
         logger.error("%s", failure)
     if failures:
         logger.error("%d failure(s)", len(failures))
         return 1
-    logger.info("OK: the registry is well formed and nothing else in bench/ names a model")
+    logger.info(
+        "OK: the registry is well formed, and nothing else in bench/ names a model "
+        "or a pooling mode"
+    )
     return 0
 
 

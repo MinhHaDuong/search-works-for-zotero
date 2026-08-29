@@ -143,6 +143,8 @@ def probe_repo(repo: str, token: str | None) -> dict:
         "repo": repo,
         "state": "could_not_look",
         "pooling": None,
+        "declared_dim": None,
+        "has_dense": None,
         "http_status": None,
         "normalize": None,
         "modes_set": [],
@@ -169,6 +171,10 @@ def probe_repo(repo: str, token: str | None) -> dict:
 
     modes = modes_from_config(config)
     record["modes_set"] = modes
+    # The width the pooling config itself declares. Carried so the caller can check
+    # the record is pointed at its own model: the controls below validate the fetch
+    # machinery against two fixed repos and say nothing about the 23 mappings.
+    record["declared_dim"] = config.get("word_embedding_dimension")
     if len(modes) == 1:
         record["state"] = "read"
         record["pooling"] = modes[0]
@@ -178,9 +184,14 @@ def probe_repo(repo: str, token: str | None) -> dict:
 
     status_m, modules, _ = fetch_file(repo, MODULES, token)
     if status_m == 200 and isinstance(modules, list):
-        record["normalize"] = any(
-            "Normalize" in str(module.get("type", "")) for module in modules
-        )
+        types = [str(module.get("type", "")) for module in modules]
+        record["normalize"] = any("Normalize" in t for t in types)
+        # A Dense module projects the pooled vector to a different width, so the
+        # pooling config's `word_embedding_dimension` is the width BEFORE it and is
+        # not the model's output dim. distiluse-base-multilingual-cased-v2 is the
+        # case here: 768 pooled, 512 out. The mapping check below must not read that
+        # as a wrong repository.
+        record["has_dense"] = any("Dense" in t for t in types)
     return record
 
 
@@ -197,7 +208,7 @@ def targets_from_registry(path: Path, candidates_only: bool = False) -> list[tup
     if not isinstance(models, list) or not models:
         raise ValueError(f"{path}: no 'models' list to read")
     return [
-        (m["id"], m["upstream_repo"])
+        (m["id"], m["upstream_repo"], m.get("dim"))
         for m in models
         if not candidates_only or m.get("status") == "candidate"
     ]
@@ -254,23 +265,46 @@ def main() -> None:
     if token is None:
         logger.warning("no HF_TOKEN; gated repos will read as could_not_look")
 
-    targets: list[tuple[str, str]] = []
+    targets: list[tuple[str, str, int | None]] = []
     if args.registry:
         targets.extend(targets_from_registry(args.registry, args.candidates_only))
-    targets.extend((repo, repo) for repo in args.repo)
+    targets.extend((repo, repo, None) for repo in args.repo)
     if not targets:
         raise SystemExit("nothing to probe: pass --registry or --repo")
 
     probed_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     results = []
     by_id = {}
-    for model_id, repo in targets:
+    mismatches = []
+    for model_id, repo, declared in targets:
         record = probe_repo(repo, token)
         record["id"] = model_id
+        record["registry_dim"] = declared
+        # The mapping check the controls cannot make. A record whose `upstream_repo`
+        # points at some other real model fetches cleanly, parses cleanly, and writes
+        # that model's pooling under this id -- with every control green. Widths
+        # rarely coincide across models, so comparing them catches the common case
+        # and turns a silent wrong value into a loud one.
+        found = record.get("declared_dim")
+        comparable = not record.get("has_dense")
+        if comparable and declared is not None and found is not None and declared != found:
+            mismatches.append(
+                f"{model_id}: registry declares dim {declared} but "
+                f"{repo}'s {POOLING_CONFIG} declares {found} — "
+                f"is upstream_repo pointed at the right model? "
+                f"(no Dense module, so the two widths are comparable)"
+            )
         results.append(record)
         by_id[model_id] = record
         logger.info("%s (%s): %s %s", model_id, repo, record["state"], record["pooling"])
         time.sleep(args.sleep)
+
+    if mismatches:
+        raise SystemExit(
+            "upstream_repo mapping is wrong for "
+            + f"{len(mismatches)} record(s); refusing to write:\n  "
+            + "\n  ".join(mismatches)
+        )
 
     controls = {}
     if args.controls:
