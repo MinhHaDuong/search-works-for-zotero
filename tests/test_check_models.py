@@ -505,3 +505,64 @@ def test_a_pooling_literal_can_be_exempted_per_line(tmp_path):
         {"bench/driver.mjs": "// upstream passes pooling: 'mean' model-id-literal: quoting upstream\n"},
     )
     assert cm.run(repo) == 0
+
+
+# --- input_template: the parity claim, made true rather than retracted -----------
+
+
+def test_a_hardcoded_input_template_is_caught(tmp_path):
+    """The positive control for the guard 0422's first pass wrongly declined to build.
+
+    The retraction priced a bare substring scan, which would have been red on
+    arrival. The quote-requiring shape the pooling scan already uses is quiet on the
+    real tree and still catches this.
+    """
+    record = dict(MINIMAL_RECORD, input_template={"query": "query: ", "passage": "passage: "})
+    repo = build(
+        tmp_path,
+        {"bench/driver.mjs": "const t = texts.map((x) => 'passage: ' + x);\n"},
+        models={"states": cm.STATES, "models": [record]},
+    )
+    assert cm.run(repo) == 1
+
+
+def test_the_words_alone_do_not_trip_the_template_scan(tmp_path):
+    """The anti-false-positive control, and the reason the retraction was wrong.
+
+    Four of the five real occurrences under bench/ are these shapes: a bare object
+    key, a prose sentence, and an identifier with the word embedded. None is a
+    quoted literal, so none is flagged.
+    """
+    record = dict(MINIMAL_RECORD, input_template={"query": "query: ", "passage": "passage: "})
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "return { query: q, ms_per_passage: 1 };\n"
+                "// a sentence about the first semantic query: 1 527,8 ms\n"
+            )
+        },
+        models={"states": cm.STATES, "models": [record]},
+    )
+    assert cm.run(repo) == 0
+
+
+def test_an_empty_template_declares_nothing_to_scan_for(tmp_path):
+    """An empty prefix must not become a literal that matches every line."""
+    record = dict(MINIMAL_RECORD, input_template={"query": "", "passage": ""})
+    repo = build(
+        tmp_path,
+        {"bench/driver.mjs": "const s = '';\nconst t = \"\";\n"},
+        models={"states": cm.STATES, "models": [record]},
+    )
+    assert cm.run(repo) == 0
+
+
+def test_a_quoted_pooling_key_is_caught(tmp_path):
+    """`{ "pooling": "mean" }` evaded the first version of the scan.
+
+    The shape is not hypothetical — bench/registry.py assigns through a quoted
+    "pooling" key — so a hardcoded value written that way would have passed.
+    """
+    repo = build(tmp_path, {"bench/driver.mjs": 'const o = { "pooling": "mean" };\n'})
+    assert cm.run(repo) == 1

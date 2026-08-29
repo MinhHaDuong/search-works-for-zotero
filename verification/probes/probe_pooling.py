@@ -282,18 +282,43 @@ def main() -> None:
         record["registry_dim"] = declared
         # The mapping check the controls cannot make. A record whose `upstream_repo`
         # points at some other real model fetches cleanly, parses cleanly, and writes
-        # that model's pooling under this id -- with every control green. Widths
-        # rarely coincide across models, so comparing them catches the common case
-        # and turns a silent wrong value into a loud one.
+        # that model's pooling under this id, with every control green.
+        #
+        # READ THE COVERAGE HONESTLY, because the first version of this comment did
+        # not. It said widths rarely coincide, and this registry falsifies that: the
+        # dims are 768 x9, 384 x7, 1024 x4, 512 x1, so 20 of 23 records sit in a
+        # same-dim group of four or more. Standard sentence-transformer sizes cluster
+        # by construction. So this catches a repointing ACROSS dim classes and is
+        # blind to one WITHIN a class -- and the within-class case is the likelier
+        # mistake, since a confusable repo id is usually a same-family, same-size
+        # sibling (granite-97m at 384 against granite-107m at 384). It is a partial
+        # check kept for being cheap, not a mapping proof. The residual is ticket
+        # 0422's own log entry, not a silent gap.
         found = record.get("declared_dim")
-        comparable = not record.get("has_dense")
-        if comparable and declared is not None and found is not None and declared != found:
+        if declared is None and record["state"] in ("read", "ambiguous"):
+            # 2 of 23 records carry dim: null, and the old condition skipped them
+            # silently -- zero mapping protection, invisibly. An unstated dim is a
+            # hole in the registry, so say so rather than pass.
             mismatches.append(
-                f"{model_id}: registry declares dim {declared} but "
-                f"{repo}'s {POOLING_CONFIG} declares {found} — "
-                f"is upstream_repo pointed at the right model? "
-                f"(no Dense module, so the two widths are comparable)"
+                f"{model_id}: registry declares no dim, so the mapping to {repo} "
+                f"cannot be checked at all. Declare dim on the record."
             )
+        elif declared is not None and found is not None and declared != found:
+            if record.get("has_dense") and found > declared:
+                # A Dense layer projects the pooled width DOWN to the output dim, so
+                # found > declared is the legitimate shape (distiluse: 768 pooled,
+                # 512 out). Narrowed from an unconditional skip, which let a wrong
+                # repo through whenever it happened to carry any Dense module.
+                logger.info(
+                    "%s: %d pooled -> %d out via Dense; widths not comparable",
+                    model_id, found, declared,
+                )
+            else:
+                mismatches.append(
+                    f"{model_id}: registry declares dim {declared} but "
+                    f"{repo}'s {POOLING_CONFIG} declares {found} — "
+                    f"is upstream_repo pointed at the right model?"
+                )
         results.append(record)
         by_id[model_id] = record
         logger.info("%s (%s): %s %s", model_id, repo, record["state"], record["pooling"])

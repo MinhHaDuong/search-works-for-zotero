@@ -339,11 +339,33 @@ EXEMPT_MARKER = "model-id-literal:"
 #: value must come from the registry, because the model it is right for is a
 #: property of the model, not of the driver.
 #:
-#: Deliberately narrow. It matches an assignment to a bare `pooling` key, so
-#: `record["pooling"]`, `"pooling": null` in data, and the destructured
-#: `{ pooling, normalize }` at a fixed call site all pass — those are the shapes
-#: that read FROM the registry rather than around it.
-#: Why `input_template` does NOT get the same guard, decided under ticket 0422.
+#: The optional quotes around the key are load-bearing. The first version required a
+#: bare `pooling`, so `{ "pooling": "mean" }` — a shape that already exists in
+#: `registry.py` — evaded it completely. `record["pooling"] = ...` still passes,
+#: because the `[` is consumed by the lookbehind's word/dot exclusion only when the
+#: key is followed by `]` rather than by a colon or equals.
+#:
+#: Still deliberately narrow, and the residue is documented rather than denied: a
+#: literal assembled by concatenation, held in a variable, or split across a
+#: continuation line evades any per-line literal scan. So does anything a
+#: sufficiently determined author writes. This catches the shape a tired author
+#: actually writes, which is the one that regressed.
+#: Why `input_template` DOES get the same guard, decided under ticket 0422 after a
+#: first pass here retracted it.
+#:
+#: The retraction argued the template literals are ordinary words already present in
+#: benign code. The count was right — `query: ` and `passage: ` occur five times
+#: under `bench/` — and the conclusion was wrong, because it priced a bare substring
+#: scan rather than the quote-requiring shape the pooling scan already uses. Under
+#: that shape four of the five are not literals at all (`{ query: q }`, a prose
+#: sentence, and `ms_per_passage:` twice, where `passage` is preceded by a word
+#: character), leaving one real site: `registry.mjs`'s own empty-template default, in
+#: the file that owns the value. One exemption in the owning file is the same trade
+#: already made for `REGISTRY` itself.
+#:
+#: Retracting a guard because the *cheap* version of it would be noisy is the mistake
+#: this note now records. What follows is the superseded reasoning, kept because the
+#: shape of the error is worth more than the conclusion was:
 #:
 #: 0421 framed pooling as "the input_template trap one axis over", which implied a
 #: parity of protection. That claim is retracted here rather than made true, and the
@@ -362,7 +384,62 @@ EXEMPT_MARKER = "model-id-literal:"
 #: hypothetical one, the tractable half is the two distinctive nomic prefixes
 #: (`search_document: `, `search_query: `), which collide with nothing.
 
-POOLING_LITERAL = re.compile(r"""\bpooling\s*[:=]\s*['"]""")
+POOLING_LITERAL = re.compile(r"""(?<![\w.])['"]?pooling['"]?\s*[:=]\s*['"]""")
+
+
+def template_literals(root: Path) -> set[str]:
+    """Every non-empty input_template value the registry declares."""
+    try:
+        registry = load_registry(root)
+    except (OSError, json.JSONDecodeError):
+        return set()
+    models = registry.get("models")
+    if not isinstance(models, list):
+        # A malformed registry is check_registry's failure to report, not this
+        # scan's to crash on. Iterating a dict here yields its keys and calls
+        # .get() on a string — which is exactly what the wrong-type test caught.
+        return set()
+    found = set()
+    for record in models:
+        if not isinstance(record, dict):
+            continue
+        for value in (record.get("input_template") or {}).values():
+            if isinstance(value, str) and value.strip():
+                found.add(value)
+    return found
+
+
+def check_no_hard_coded_templates(root: Path, failures: list[str]) -> None:
+    """A registry-declared prefix written as a literal instead of resolved.
+
+    Registry-derived, so it inherits the id scan's known asymmetry: it catches a
+    declared prefix being inlined and cannot catch a prefix for a model nobody has
+    declared yet. Weaker than the pooling scan, and written down as weaker rather
+    than implied to be equal.
+    """
+    literals = template_literals(root)
+    if not literals:
+        return
+    owners = {REGISTRY, "bench/check_models.py", "bench/registry.mjs", "bench/registry.py"}
+    for path in scanned_files(root):
+        rel = path.relative_to(root).as_posix()
+        if rel in owners:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            if EXEMPT_MARKER in line:
+                continue
+            for literal in sorted(literals):
+                if f"'{literal}'" in line or f'"{literal}"' in line:
+                    failures.append(
+                        f"{rel}:{number}: writes the input template {literal!r} "
+                        f"literally. Resolve it from {REGISTRY} — the prefix a model "
+                        f"needs is a property of the model, not of the driver."
+                    )
+                    break
 
 
 def check_no_hard_coded_pooling(root: Path, failures: list[str]) -> None:
@@ -414,14 +491,15 @@ def run(root: Path) -> int:
     check_registry(root, failures)
     check_no_hard_coded_ids(root, failures)
     check_no_hard_coded_pooling(root, failures)
+    check_no_hard_coded_templates(root, failures)
     for failure in failures:
         logger.error("%s", failure)
     if failures:
         logger.error("%d failure(s)", len(failures))
         return 1
     logger.info(
-        "OK: the registry is well formed, and nothing else in bench/ names a model "
-        "or a pooling mode"
+        "OK: the registry is well formed, and nothing else in bench/ names a model, "
+        "a pooling mode, or an input template"
     )
     return 0
 
