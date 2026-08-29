@@ -9,6 +9,7 @@ Label: needs-human
 2026-08-29T15:00Z claude label needs-human
 
 2026-08-29T11:14Z claude note ballot corrected after reading #6012 at source: 768 is a CEILING not a chunk size, and the platform caps it with min(768, modelMax) - specialTokens - prefix; adopting the min() is now option (a), a fixed sub-512 constant is (b), and (c) takes the min but records the resolved budget in the chunker key so the C1 coupling is explicit rather than silent
+2026-08-29T11:21Z claude note option (a) specified in full from source (two nested caps plus a drop rule across embeddings.js:1642 and utilities_internal.js:3752/3797), and the quarter-rule promoted to an exit criterion for every option; code reuse ruled out — Zotero is AGPL-3.0 and zoteus is MIT, there is no runtime path from an external MCP server into Zotero.Utilities.Internal.Chunking, and #6012 is unmerged; the design is adoptable as specification, the source is not
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted
@@ -115,7 +116,7 @@ a correction of an oversight, and the ballot has to weigh it that way.
    either option changes that reading.
 
    **(a) Adopt the minimum, keeping 768 as the ceiling** — the platform's
-   own construction, `min(768, modelMax) - specialTokens - prefix`. *For:*
+   own construction, specified in full below. *For:*
    it is genuinely verbatim adoption, so the DESIGN.md phrase becomes true
    rather than being replaced; no new constant needs justifying; it stays
    correct automatically under a long-window model, where a fixed cap would
@@ -138,6 +139,74 @@ a correction of an oversight, and the ballot has to weigh it that way.
    change invalidates chunks *explicitly* rather than silently. That keeps
    the platform's safety and makes the coupling visible instead of implicit.
    Weigh it; do not assume it.
+
+## Option (a) in full, because "adopt the min()" understates it
+Read at PR head `77e2c4b`. It is two nested caps and a drop rule, not one
+`min`, and the pieces are in two files.
+
+**The budget, once per model** (`embeddings.js:1642`):
+
+    budget = min(CHUNK_MAX_TOKENS, getModelMaxTokens())
+           - specialTokens                 // tokenizer.encode('').length, ~2
+           - count(getPassagePrefix())     // the MODEL's instruction prefix
+
+`getPassagePrefix()` is the model's own instruction string, fixed per model
+("passage: " for the e5 family, empty for bge-small-en). It is not the
+heading path.
+
+**The heading path, per chunk group** (`utilities_internal.js:3752`):
+
+    prefixSize = count(outlinePath + "\n\n")
+    if (prefixSize > budget / 4) { prefix = ""; prefixSize = 0 }
+
+**The body budget for that group** (`utilities_internal.js:3797`):
+
+    pieces = _chunkParagraphs(text, paragraphs, budget - prefixSize, metrics)
+    embedText = prefix + piece.text
+    size      = piece.size + prefixSize
+
+So the ceiling bounds the **whole embedded sequence**, heading path included,
+not the body alone. Ordering matters: `min(768, width) - affordances` is not
+`min(width - affordance, 768)`. The two agree at 512 and diverge at 8 192,
+where the first yields 768 total and the second 768 of body plus a prefix on
+top. The ceiling exists to bound how much text is averaged into one vector,
+and the path is part of what is averaged.
+
+**The quarter-rule is the part most likely to be lost.** A heading path
+costing more than a quarter of the budget is **dropped entirely, not
+truncated** — upstream's comment: "a pathological outline path that would eat
+a real share of the window hurts more than it helps". Our §2.2 says only "the
+prefix charged to the token budget" with no such guard. A 1 849-entry
+dictionary with deep nesting is precisely the pathological case, and without
+the rule a deeply-nested entry yields a chunk that is mostly breadcrumb.
+Whatever option wins, this rule should come with it.
+
+## Why we cannot simply reuse their code
+Asked directly, and it is a licence wall rather than a preference.
+
+- **Zotero is AGPL-3.0** (`embeddings.js` header, `COPYING`). **Zoteus is
+  MIT** (`LICENSE`, verified via the forge API, not a badge). Copying the
+  chunker into the contribution target would force the whole derived work to
+  AGPL. The maintainer will not relicense zoteus for a chunker.
+- **There is no runtime path either.** `Zotero.Utilities.Internal.Chunking`
+  lives inside the application process; zoteus is a separate MCP server that
+  reaches Zotero only over the local HTTP API, and no endpoint exposes
+  chunking.
+- **It is not shipped.** #6012 is an open draft. Zotero 10 ships the CJK
+  bigram path but not this chunker, so vendoring would mean vendoring
+  unmerged draft code.
+
+What *is* freely available is the design. Algorithms are not copyrightable;
+reading the source and reimplementing is the normal and lawful route, and it
+is what this ticket does — the constants, the two-level budget, the
+quarter-rule and the merge-forward policy are all adoptable as
+specification.
+
+The genuine reuse route is the fourth one, and it is not ours to take yet: if
+the local API ever serves structured extraction, we consume its *output*
+rather than its code. CONSTRAINTS.md C2 already names the SDT pack as the
+thing to adapt to, and records that nothing is exposed over the local API
+today.
 2. State in §2.2 what binds and why, including that Zotero's own effective
    ceiling is not 768 either — so this is a divergence from a number, not
    from a geometry.
@@ -170,6 +239,8 @@ or it cannot distinguish truncation from similarity.
 ## Verification
 - [ ] The chosen construction cannot over-feed the embedder under any
       registered model, including the 8 192-token ones
+- [ ] The heading path is dropped, not truncated, when it would exceed a
+      quarter of the budget, whichever option wins
 - [ ] The regression test fails against a 768-token cap and passes at the new one
 - [ ] §2.9's passage count is measured at the new cap, not divided
 - [ ] `make check` green, figure-guard anchors updated
