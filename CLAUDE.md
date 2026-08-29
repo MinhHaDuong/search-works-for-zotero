@@ -18,11 +18,18 @@ and in the author's fork, not here.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
+- `FIELD-REVIEW.md` — the survey of prior art: what other people have already
+  built for Zotero AI retrieval, what it teaches, and what is
+  license-compatible to borrow. Authoritative for the inventory and for each
+  project's observed state at its stated observation date. Owns no design
+  number, no requirement, and no threshold; where it touches our design it
+  points at the owning document. A dated snapshot, not a live tracker.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
-- `panel/cycle2/` — verbatim session record (memos, critiques, the political
-  and implementation reviews). Archive: never edit, never treat as
-  authoritative; where it disagrees with DESIGN.md, DESIGN.md is the record.
+- The cycle-2 panel's verbatim session record (memos, critiques, the political
+  and implementation reviews) is in git history, last present at commit
+  `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
+  with DESIGN.md, DESIGN.md is the record.
 - Superseded documents are DELETED, not archived in the tree — git is the
   archive. Do not create `history/` directories or versioned doc copies.
 

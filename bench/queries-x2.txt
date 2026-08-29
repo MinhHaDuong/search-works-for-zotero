@@ -1,0 +1,47 @@
+# X2 (ticket 0014, DESIGN §3) — the query population for the stopword-less OR p95.
+#
+# What this measures. Deleting the stoplist means every one of these 29 English words
+# now reaches the OR-query instead of being thrown away:
+#
+#   the a an and or of to in on for with is are was were be by as at that this it from
+#   we our their its these those
+#
+# They are the highest-document-frequency terms in an English corpus, so they are exactly
+# the postings the deletion asks FTS5 to walk. The cost of that walk is the one thing to
+# check before shipping the deletion, and it is what this file exercises.
+#
+# How it is built. Twenty natural-language queries a researcher would actually type in
+# this library — climate and energy economics, the history of economic thought, Vietnam —
+# each carrying at least three of the words above, several carrying six or more. They are
+# questions, not keyword stacks, because the figure has to describe what a user pays.
+#
+# `a` is not exercised on its own: `tokenize()` keeps its one-character drop, so `a`
+# never reaches the query either way. The other 28 do.
+#
+# Line 4 is the PR's own example, kept because it is the case that tokenized to nothing
+# at all before the deletion — every one of its words was on the list.
+#
+# Committed rather than written to /tmp: the query population is provenance. A p95 is a
+# statement about a population, and a population nobody can reproduce makes the figure
+# unfalsifiable.
+
+the role of the state in the energy transition
+what is the social cost of carbon
+the effect of a carbon tax on household income
+to be or not to be
+the origins of index numbers in economics
+models that are used for integrated assessment of climate
+the price of electricity in Vietnam
+it is the marginal cost that matters and not the average
+these results are robust to the choice of a discount rate
+from theory to policy in the climate negotiations
+the demand for energy in developing countries
+our estimates of the rebound effect and their limits
+this is the standard model of optimal growth
+the history of mathematical economics as a discipline
+capture and storage of carbon in the atmosphere
+the distribution of income and wealth in the long run
+as measured by the elasticity of substitution
+their contribution to the equilibrium of the market
+on the theory of value and of distribution
+was the transition to renewables in these countries inevitable

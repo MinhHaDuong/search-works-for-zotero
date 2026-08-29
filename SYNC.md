@@ -2,7 +2,9 @@
 
 *Written 2026-08-26 against upstream `edf2748` (v1.7.0); updated 2026-08-27
 against `309204b` (v1.8.0); updated 2026-08-28 against `bb414df`
-(`oscardvs/zoteus`, v1.9.0). Fork `main` is re-aligned at the same SHA. The
+(`oscardvs/zoteus`, v1.9.0); tracker pass 2026-08-29 — code unmoved at
+`bb414df`, the movement is all in the tracker (#27–#30, see the status
+table). Fork `main` is re-aligned at the same SHA. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*
@@ -88,6 +90,7 @@ days:
 | Aug 27 | **#22**, **#23** filed by @StianOby; he merges **#19** and **#20** (v1.7.2), files **#21** himself off #20's review questions, fixes #21+#22+#23 in `2f453d6`, ships v1.7.3 and **v1.8.0** — three releases in one day |
 | Aug 27 | @StianOby files **#24**: a stopped local-API build cannot resume and starts again from zero — direct third-party demand for the resume slice of scoped issue A (0033) |
 | Aug 28 | **#25** opens from here at 10:21 and is merged **the same day**, before 14:49, `fd51659` in `main` verbatim; he writes the changelog entry himself (`84eeade`), builds passage-anchored highlights (`87e06c0`), ships **v1.9.0** |
+| Aug 28 | **#27**, **#28** open from here — ticket 0017's custody pair, both in-flight slots spent; **#29** (local fulltext-extraction fallback) and **#30** (semantic search ~100 s per query, the per-row JS vector scan) filed by @Michael-Logies — the third third-party demand wave, this time aimed at the extraction seam and the vector scan |
 
 #13 and #14 are, in substance, the issues for #11 and #12 — filed by someone else,
 four days later, describing the same two problems from the user side. He works in
@@ -291,7 +294,8 @@ the one place this work becomes visible upstream.
   against 121 ms for the exact float32 scan at k=30), and recall@30 runs 0,256
   binary-only to 0,998 only at a 16x pool costing 272 ms against 110. Upstream
   scans `Float32` BLOBs linearly in JS, which is the right thing at this size.
-  Keep the measurement for the day someone opens an ANN issue.
+  Keep the measurement for the day someone opens an ANN issue — which
+  arrived 2026-08-28 as #30 (see the status table).
 - **Chunk-geometry stamping (0007).** Not applicable: his `chunker.ts` still takes
   hardcoded defaults (`size = 512, overlap = 64`; `800, 100`) and `config.ts` has
   no chunk knob, so there is no geometry to mismatch. `c0bfae6` surfaced the item
@@ -312,7 +316,7 @@ backend's upstream name — and `--backend` refuses anything outside
 value to `auto` and the harness would silently measure it.* The database path
 agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 
-**Status, 2026-08-28** (one table; earlier states are in git history).
+**Status, 2026-08-29** (one table; earlier states are in git history).
 
 | | |
 |---|---|
@@ -321,13 +325,16 @@ agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 | #21 his follow-up | filed by **him**, off #20's review questions; fixed same day in `2f453d6` with #22/#23 (@StianOby) and shipped as **v1.8.0** (`309204b`). The two swallowed-error holes are closed upstream — closed from our side per the sunset rule (DECISIONS.md 2026-08-27) |
 | #24 local-API resume | **open**, filed 2026-08-27 by @StianOby: stopping a local-only build leaves no usable resume stamp, so the next run starts from zero. Existing upstream thread for 0033's resume slice; contribute a resume contract there rather than file a duplicate |
 | PR #25 schema read-before-write | **merged** 2026-08-28, the same day it was filed: `fd51659` is in upstream `main` verbatim — SHA, authorship and committer date preserved, zero maintainer edits. He wrote the changelog entry himself (`84eeade`, "the fix landed without its entry"; credit "#25, thanks @MinhHaDuong") and shipped it in v1.9.0. Ticket 0015 closed |
+| PRs #27 + #28 custody pair | **open**, both filed 2026-08-28 — ticket 0017's PR-4/PR-5. [#27](https://github.com/oscardvs/zoteus/pull/27) pins the `@huggingface/transformers` model cache under the data directory (uninstall-by-deleting-dataDir made true); [#28](https://github.com/oscardvs/zoteus/pull/28) moves the Gemini API key from the URL query string to the `x-goog-api-key` header. Fork branches `model-cache-under-datadir` (`998865e`) and `gemini-key-header` (`b6312e4`); CI green on both, Copilot-reviewed, **no maintainer response at 2026-08-29** — inside the observed latency, where silence is not rejection |
+| #29 + #30 third-party demand | **open**, both filed 2026-08-28 by @Michael-Logies (a 10k-item library, running zoteus as primary). [#29](https://github.com/oscardvs/zoteus/issues/29): extract full text locally from any PDF/EPUB instead of only Zotero-indexed attachments — demand on the extraction seam, neighbor to #24/#26. [#30](https://github.com/oscardvs/zoteus/issues/30): `zotero_semantic_search` at ~100 s per query on a 255k-passage index, correctly self-diagnosed as the per-row JS vector scan, proposing sqlite-vec/`vec0`, an in-memory vector cache, or an HNSW sidecar — **the ANN issue the retired 0008 measurement was kept for** ("What to retire" below): `vec0`'s worse-than-linear k-best cost and the binary-only recall floor are measured answers to his first proposal. Demand-triggered batches followed such filings twice (#13/#14, #22/#23); no maintainer response on either yet. A comment carrying the 0008 evidence now sits on #30 (posted 2026-08-29 on the author's instruction, via a dedicated sibling session per the #26 technique; the poster re-verified it through the API — the rendered issue page does not expose comment sections to this session's fetcher, on any issue): the `vec0` O(N) sweep, the real-vector two-stage table with the 4x/8x/16x honest pairs, the mean-centring and rerank-batching results, provenance and caveats stated, artifacts linked. A comment spends no in-flight slot |
 | upstream | **v1.9.0** (`bb414df`, 2026-08-28): the #25 fix plus `zotero_annotate` placing highlights from the passage text itself (`87e06c0` — `pdf-locate.ts` on optional `pdfjs-dist`, files read via the local API's `/file` 302 to `file://`, nothing written on a doubtful match). His new feature leaves the search layer alone; the release's only changes under `src/features/search/` and to `docs/semantic-search.md` are PR #25's own (`sqlite-index.ts` plus a nine-line sideline section in the doc), and every measurement claim I-2 targets is untouched, so I-2 stands. Earlier: v1.7.1–v1.8.0, four releases 2026-08-26/27 |
-| the train | **both in-flight slots free** (#25 merged); the contained-PR budget's live remainder is four (of the five counted at DECISIONS.md 2026-08-27). PR-3 (0016, the wipe guard alone — `busy_timeout` overtaken by v1.7.1's `80f8aa0`) is **built and validated** on fork branch `cross-library-guard`, pre-filled form in RUNBOOK.md (PR B), ready whenever the author spends the slot; STOPWORDS follow-up (0014) still waits on X2, then 0017; the reserve's warm-batch condition (0019/0022) is live |
+| the train | **both in-flight slots spent** (#27/#28, filed 2026-08-28); the contained-PR budget's live remainder is two (of the five counted at DECISIONS.md 2026-08-27 — #25 merged, #27/#28 in flight). PR-3 (0016, the wipe guard alone — `busy_timeout` overtaken by v1.7.1's `80f8aa0`) is **built and validated** on fork branch `cross-library-guard`, pre-filled form in RUNBOOK.md (PR B), queued behind a free slot; STOPWORDS follow-up (0014) still waits on X2; the reserve's warm-batch condition (0019/0022) is live |
 | §2 migration | skipped by decision — see §2's head note |
-| §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes); open and unanswered at v1.9.0, like #24 — neither thread shows a maintainer reply. Ticket 0024 carries the response when it lands |
+| §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes); open and unanswered at v1.9.0, like #24 — neither thread shows a maintainer reply (re-checked 2026-08-29). Ticket 0024 carries the response when it lands |
 | §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL. Reconcile before filing: the author's 2026-08-27 ruling (ticket 0024) requires trunk-measured numbers, not fork-prototype figures — RUNBOOK.md step 4 is that measurement. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
-| fork | `main` **re-aligned to `bb414df`** 2026-08-28, fast-forward pushed; `schema-read-before-write` deleted by the author the same day (its one commit is `main`'s own `fd51659`; session proxies cannot delete branches — 403 — so this step is always the author's); `stopwords-follow-up` (`94d994d`, amended 2026-08-28) stays one commit atop `309204b`, now one release behind `main`; `cross-library-guard` (`61a0e38`, 2026-08-28) is one commit atop `bb414df` — ticket 0016's PR-3, unopened; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
+| fork | `main` **re-aligned to `bb414df`** 2026-08-28, fast-forward pushed; `schema-read-before-write` deleted by the author the same day (its one commit is `main`'s own `fd51659`; session proxies cannot delete branches — 403 — so this step is always the author's); `stopwords-follow-up` (`94d994d`, amended 2026-08-28) stays one commit atop `309204b`, now one release behind `main`; `cross-library-guard` (`61a0e38`, 2026-08-28) is one commit atop `bb414df` — ticket 0016's PR-3, unopened; `model-cache-under-datadir` (`998865e`) and `gemini-key-header` (`b6312e4`) carry PRs #27/#28; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
+| Zotero core | tracked as a surface per DECISIONS.md 2026-08-28. [zotero/zotero#6012](https://github.com/zotero/zotero/pull/6012) — dstillman's **draft** semantic-search PR (opened 2026-08-05, last activity 2026-08-26): local ONNX models via Firefox's runtime, RRF hybrid ranking, **sqlite-vec** for vectors — the same extension #30 proposes for zoteus. Added to the watch 2026-08-29 at the author's request: [zotero/zotero#1610](https://github.com/zotero/zotero/issues/1610) — dstillman's issue (2018-12-19, **closed**), "Undelete and overwrite items in target library trash for repeat cross-library copy", part of the cross-library overhaul around zotero#140; trash/undelete behavior on repeat cross-library copies sits under what the local API serves group-library indexing (#12). The rendered page does not surface the close date or closing commit — verify before citing either |
 | next | the train of DESIGN.md §4 as ratified (DECISIONS.md 2026-08-26, event record 2026-08-27); live state in tickets 0014–0037 — `erg ready` is the queue |
 
 Two things the corruption work changed about §3's own description above. The defect is worse

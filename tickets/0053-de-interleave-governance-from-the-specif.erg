@@ -1,0 +1,104 @@
+%erg 0.1
+Title: De-interleave governance from the specification chain
+Created: 2026-08-29
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-08-29T00:00Z claude created
+2026-08-29T00:00Z claude label needs-human
+
+--- body ---
+## Context
+The chain mixes two kinds of statement that have different audiences,
+different lifetimes and different disclosure risk.
+
+Specification: what the system promises (R-numbers), what the world imposes
+(C-numbers), how the design answers (DESIGN.md), and which technical
+questions are settled (the D-entries in DECISIONS.md).
+
+Governance: at most two upstream PRs in flight; the contained-PR budget of
+six ratified and five live; design-sized asks go as issues the maintainer
+builds himself; the three-week sunset on unaddressed items; the acceptance
+harness as a one-time transfer; the reading of the maintainer's behaviour
+that justifies each of those.
+
+The IETF separates these deliberately — process in BCPs, protocol in RFCs —
+and the reason is not tidiness. A reader who wants to implement the system
+has no use for the PR cap, and a reader who wants to understand the upstream
+relationship should not have to read 7 460 words of architecture to find it.
+
+There is a second reason, specific to this repository. CLAUDE.md already
+warns that this repo is public and the maintainer reads it, and that
+governance and strategy-about-the-maintainer must never enter upstream
+text. Today that separation is enforced by the care of whoever is writing.
+A structural split makes it enforceable by a grep instead: strategy lives in
+one file, and a check can assert that no other document names it.
+
+## OPEN QUESTION FOR THE AUTHOR — the split
+The author asked whether this should be standalone.
+
+(a) Standalone GOVERNANCE.md, with DECISIONS.md keeping only technical
+    D-entries. Cleanest separation. Cost: DECISIONS.md is append-only and
+    ratified, so moving entries out of it is exactly the edit that document
+    forbids.
+
+(b) Standalone GOVERNANCE.md that OWNS the process rules going forward,
+    while ratified process entries stay in DECISIONS.md where they are,
+    with GOVERNANCE.md pointing at them. Nothing ratified is edited; the
+    ledger stays append-only; new process rulings land in the new document.
+
+(c) Leave the text where it is and mark it. A `[process]` tag on process
+    entries, and a section index. Cheapest, and it does not solve the
+    disclosure problem, since strategy is still interleaved with spec.
+
+Recommendation: (b). It is the only one of the three that respects the
+append-only rule, which is not a preference but the property that makes the
+ledger trustworthy. The cost is a transitional period where process rulings
+live in two places, resolved by the pointer rather than by a move.
+
+Note that SYNC.md already holds much of the maintainer-relationship
+material. The question is partly whether GOVERNANCE.md is a new document or
+whether SYNC.md is promoted to be it. SYNC.md is upstream *tracking* — it
+records what happened. Governance is what we have decided to do about it.
+Related but not the same, and SYNC.md is rewritten at each upstream
+movement while governance should be stable.
+
+Not to be decided by an agent — the ruling lands in DECISIONS.md first.
+
+## Relevant files
+- `DECISIONS.md` — the ratified entries, some technical, some process
+- `CLAUDE.md` — the binding upstream-relations paragraph
+- `SYNC.md` — upstream tracking, adjacent
+- `README.md` — the authoritative-chain sentence
+
+## Actions
+1. Author rules on (a), (b) or (c), and on the SYNC.md question. Ratify.
+2. Inventory every process and strategy statement in the chain, with its
+   current location.
+3. Apply the ruling. Under (b), write GOVERNANCE.md as the owner going
+   forward and point back at the ratified entries rather than moving them.
+4. Update CLAUDE.md and README.md so the split is legible to a newcomer.
+
+## Test
+A check that greps the specification documents for the governance
+vocabulary (PR cap, sunset, maintainer, upstream strategy) and fails when it
+appears outside the governing document and its explicit pointers. Red first:
+it must fire on the current tree.
+
+## Verification
+- [ ] No ratified DECISIONS.md entry is edited
+- [ ] A reader can find every process bound in one place
+- [ ] The public-disclosure hazard is enforced by a check, not by care
+
+## Invariants
+- DECISIONS.md stays append-only. This is the binding constraint on the
+  whole ticket.
+- No governance content is weakened or dropped in the move; this is
+  relocation, not revision.
+- Nothing about upstream strategy enters any text destined for upstream.
+
+## Exit criteria
+- [ ] The split is ratified in DECISIONS.md
+- [ ] Governance statements have one owner, reachable in one hop
+- [ ] The grep-level guard is in place and `make check` passes

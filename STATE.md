@@ -35,18 +35,29 @@ at the current baseline.
   update keyed only by `libraryVersion`. Await the maintainer's response before
   extending it; I-2 remains ready, while I-3 stays behind its checkpoint.
 - `origin/stopwords-follow-up` is at `94d994d`; its tree is unchanged from
-  `4a5e554`. Ticket 0014 still requires the X2 650k latency measurement before
-  opening that PR.
-- Both permitted upstream PR slots are free again (#25 merged), and ticket
-  0016's PR-3 is **built**: fork branch `cross-library-guard` (`61a0e38`, one
-  commit atop `bb414df`), validated on upstream's own gates (typecheck, lint,
-  build; 754 passed / 7 skipped). The pre-filled PR form is RUNBOOK.md's PR B —
-  open it any time; no measurement gates it. The next session can also inspect
-  #24/#26 for maintainer replies, or run X2.
-- The local `.venv` is not reusable (`python` is missing and `ruff` segfaults).
-  Recreate it before changing the harness. The figure guard was run separately
-  at handoff: 80 pairs checked, 0 stale; pytest and ruff could not be rerun in
-  this environment.
+  `4a5e554`. **X2 ran on 2026-08-29 and the branch failed it.** On the real
+  477 512-passage index the stopword-less warm p95 is 1 773,0 ms against the
+  ~500 ms rule, while a stock-v1.9.0 control arm on the same index and the same
+  twenty queries answers at 392,3 ms — so the deletion is the cause (4,5× on
+  p95, 5,7× on the median) and DESIGN §3 requires df-driven pruning inside this
+  PR rather than after it. Two further blockers, independent of the number: the
+  PR body's claim that `to be or not to be` tokenizes to nothing is false
+  (`tokenize()` returns `["not"]` on stock, since `not` was never on the
+  29-word list), and both in-flight slots are spent. Artifacts:
+  `bench/results/0025-x2-stopwordless/`; the reasoning is on tickets 0014/0025.
+- **Both in-flight upstream slots are spent**, on #27 and #28 (filed
+  2026-08-28, both open). The bullet that used to sit here said they were free
+  again after #25 merged; that reading predates those two filings, and SYNC.md's
+  status table has carried the correct state since. Ticket 0016's PR-3 is
+  **built** and waiting on a slot, not on a measurement: fork branch
+  `cross-library-guard` (`61a0e38`, one commit atop `bb414df`), validated on
+  upstream's own gates (typecheck, lint, build; 754 passed / 7 skipped),
+  pre-filled form at RUNBOOK.md's PR B.
+- The harness runs on the system interpreter on doudou: `make check` is green
+  (ruff clean, 106 figure pairs / 0 stale, 24 tests), with ruff 0.15.21 and
+  pytest 9.0.2 on PATH. No `.venv` exists in the repo and none is needed. The
+  earlier note here — that the venv was unusable because `python` was missing
+  and `ruff` segfaulted — described the handoff container, not this machine.
 
 ## What this repo is
 
