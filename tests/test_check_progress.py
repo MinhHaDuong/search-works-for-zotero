@@ -53,6 +53,8 @@ Measured against upstream v1.10.0, the reviewed baseline.
 
 `●◐○` &nbsp; 1 shipped · 1 partial · 1 not yet
 
+1 measured · 1 read in the source · 1 inferred
+
 | section | designed | delivered |
 |---|---|---|
 | Coverage | `●○` | `●◐` |
@@ -60,16 +62,16 @@ Measured against upstream v1.10.0, the reviewed baseline.
 
 ### Coverage
 
-| | promise | designed | delivered | standing |
-|---|---|---|---|---|
-| R1 | eventually the whole library is indexed | ratified | shipped | Landed upstream. |
-| R2 | most recent first | open | partial | Under revision in ticket 0080. |
+| | promise | designed | delivered | evidence | standing |
+|---|---|---|---|---|---|
+| R1 | eventually the whole library is indexed | ratified | shipped | code | Landed upstream. |
+| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |
 
 ### Corpus
 
-| | promise | designed | delivered | standing |
-|---|---|---|---|---|
-| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |
+| | promise | designed | delivered | evidence | standing |
+|---|---|---|---|---|---|
+| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |
 """
 
 
@@ -124,9 +126,9 @@ def test_requirement_added_to_the_sheet_and_not_the_page(tmp_path):
 
 def test_requirement_the_sheet_does_not_declare(tmp_path):
     page = PAGE.replace(
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |",
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |\n"
-        "| R7 | multilingual by default | ratified | none | Invented. |",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |\n"
+        "| R7 | multilingual by default | ratified | none | code | Invented. |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -134,12 +136,12 @@ def test_requirement_the_sheet_does_not_declare(tmp_path):
 def test_row_filed_under_the_wrong_section(tmp_path):
     """Sections are the sheet's, not the page's; a row that migrates is a finding."""
     page = PAGE.replace(
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |\n",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |\n",
         "",
     ).replace(
-        "| R2 | most recent first | open | partial | Under revision in ticket 0080. |",
-        "| R2 | most recent first | open | partial | Under revision in ticket 0080. |\n"
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |",
+        "| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |",
+        "| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |\n"
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -195,7 +197,7 @@ def test_headline_count_that_stopped_matching_its_bar(tmp_path):
 
 
 def test_status_word_outside_the_vocabulary(tmp_path):
-    page = PAGE.replace("| ratified | shipped |", "| ratified | done |")
+    page = PAGE.replace("| ratified | shipped | code |", "| ratified | done | code |")
     assert cp.run(build(tmp_path, page=page)) == 1
 
 
@@ -250,3 +252,38 @@ def test_upstream_absent_is_loud(tmp_path):
 
 def test_upstream_declaring_no_version_is_loud(tmp_path):
     assert cp.run(build(tmp_path, upstream="UPSTREAM_REVIEWED_SHA=b132f2d\n")) == 1
+
+
+def test_evidence_word_outside_the_vocabulary(tmp_path):
+    """`evidence` is a closed vocabulary: measured, code, inferred."""
+    page = PAGE.replace("| ratified | shipped | code |", "| ratified | shipped | probably |")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_evidence_tally_that_stopped_matching_its_rows(tmp_path):
+    """The tally is the guard's, recomputed like every other count on the page."""
+    page = PAGE.replace(
+        "1 measured · 1 read in the source · 1 inferred",
+        "2 measured · 1 read in the source · 0 inferred",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_verdict_may_be_downgraded_to_inferred(tmp_path):
+    """Evidence is independent of status: re-grading how we know it is not a status change."""
+    page = PAGE.replace(
+        "| ratified | shipped | code |", "| ratified | shipped | inferred |"
+    ).replace(
+        "1 measured · 1 read in the source · 1 inferred",
+        "1 measured · 0 read in the source · 2 inferred",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
+def test_a_standing_row_that_no_longer_parses(tmp_path):
+    """A row missing a column is invisible, not wrong — the same hole as a stale bar."""
+    page = PAGE.replace(
+        "| R2 | most recent first | open | partial | inferred |",
+        "| R2 | most recent first | open | partial |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
