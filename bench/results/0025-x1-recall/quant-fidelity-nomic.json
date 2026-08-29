@@ -1,0 +1,75 @@
+{
+  "what": "quantization ladder scored against its own ONNX fp32 rung",
+  "model": "nomic-ai/nomic-embed-text-v1.5",
+  "rows": 600,
+  "dim": 768,
+  "topk": 30,
+  "runtime": "@huggingface/transformers in Node (ONNX)",
+  "rungs": [
+    {
+      "dtype": "fp32",
+      "ms_per_passage": 1217.85,
+      "load_ms": 1458.4,
+      "cos_mean": 1.0,
+      "cos_p05": 1.0,
+      "cos_min": 1.0,
+      "cos_ge_0999_frac": 1.0,
+      "overlap_at_30_mean": 1.0,
+      "overlap_at_30_p05": 1.0,
+      "top1_kept_frac": 1.0
+    },
+    {
+      "dtype": "q8",
+      "ms_per_passage": 868.45,
+      "load_ms": 773.4,
+      "cos_mean": 0.900315,
+      "cos_p05": 0.85735,
+      "cos_min": 0.635104,
+      "cos_ge_0999_frac": 0.0,
+      "overlap_at_30_mean": 0.7439,
+      "overlap_at_30_p05": 0.5667,
+      "top1_kept_frac": 0.995
+    },
+    {
+      "dtype": "int8",
+      "ms_per_passage": 704.17,
+      "load_ms": 956,
+      "cos_mean": 0.900315,
+      "cos_p05": 0.85735,
+      "cos_min": 0.635104,
+      "cos_ge_0999_frac": 0.0,
+      "overlap_at_30_mean": 0.7439,
+      "overlap_at_30_p05": 0.5667,
+      "top1_kept_frac": 0.995
+    },
+    {
+      "dtype": "uint8",
+      "ms_per_passage": 844.17,
+      "load_ms": 678.1,
+      "cos_mean": 0.947931,
+      "cos_p05": 0.933454,
+      "cos_min": 0.90749,
+      "cos_ge_0999_frac": 0.0,
+      "overlap_at_30_mean": 0.8406,
+      "overlap_at_30_p05": 0.7333,
+      "top1_kept_frac": 1.0
+    }
+  ],
+  "caveats": [
+    "600-row pool: top-30 is 5% of candidates, a demanding test whose ABSOLUTE overlap will not transfer to a 93k corpus. Read the rungs against each other, not as corpus recall.",
+    "nomic-embed-text-v1.5 is an English-centric model, disqualified as a DEFAULT by R7 (spec/REQUIREMENTS.md). This file measures quantization behaviour, not a shippable candidate.",
+    "Absolute overlap on a sample pool is not full-corpus recall: a small pool is an easier retrieval problem. Read rungs against each other.",
+    "fp32 means ONNX fp32 from this same driver, so the ladder isolates quantization and not the PyTorch-versus-ONNX stack difference.",
+    "Cost, not quality, is in query-cost*.json; recall is in task-recall*.json. This file is neither: it is the damage a dtype does relative to fp32."
+  ],
+  "finding": "uint8 beats q8/int8 on retrieval at indistinguishable cost. q8 and int8 produce BIT-IDENTICAL output here (every column equal to five decimals), independently confirming the md5 result that they are one file; so the real 8-bit choice is that file versus uint8. uint8 holds mean cosine 0,94793 against q8/int8 0,90031, overlap@30 0,8406 against 0,7439, p05 overlap 0,7333 against 0,5667, and never loses the top-1 neighbour (1,0000 against 0,9950). On cost the two are inside the noise floor (239,5 vs 232,9 MB, 14,0 vs 13,7 ms). Asymmetric quantization preserves this model geometry better than symmetric at the same price.",
+  "positive_control": "The fp32 rung is scored against itself and returns 1,0 on every column, so a non-unit row is a real difference and not a broken probe.",
+  "not_established": "Why mean cosine sits at 0,90 for 8-bit where 0,99+ is typical is NOT explained. Could be this model architecture, could be the quality of the published quantized export. Observation only; no cause adopted. Whether the symmetric/asymmetric gap generalises to other models is untested \u2014 it is a hypothesis for ticket 0240, not a result.",
+  "rungs_not_scored": [
+    "q4",
+    "bnb4",
+    "fp16",
+    "q4f16"
+  ],
+  "rungs_not_scored_note": "q4 and bnb4 were still embedding when this was written and are dominated on every cost axis anyway; fp16 and q4f16 do not load on the CPU provider."
+}

@@ -1,0 +1,83 @@
+{
+  "what": "cost of every published quantization rung, at query time (batch 1)",
+  "model": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+  "runtime": "@huggingface/transformers in Node (ONNX), the runtime zoteus ships",
+  "rungs": [
+    {
+      "dtype": "fp32",
+      "download_mb": 2289.4,
+      "rss_delta_mb": 2012.7,
+      "query_ms_median": 240.5,
+      "query_ms_p95": 419.3,
+      "load_ms": 75988.4,
+      "dim": 1024
+    },
+    {
+      "dtype": "q8",
+      "download_mb": 585.1,
+      "rss_delta_mb": 962.1,
+      "query_ms_median": 107.4,
+      "query_ms_p95": 207.7,
+      "load_ms": 29147.5,
+      "dim": 1024
+    },
+    {
+      "dtype": "int8",
+      "download_mb": 585.1,
+      "rss_delta_mb": 956,
+      "query_ms_median": 189.3,
+      "query_ms_p95": 439,
+      "load_ms": 54533.4,
+      "dim": 1024
+    },
+    {
+      "dtype": "uint8",
+      "download_mb": 585.1,
+      "rss_delta_mb": 1002.9,
+      "query_ms_median": 242.7,
+      "query_ms_p95": 460.9,
+      "load_ms": 42921.9,
+      "dim": 1024
+    },
+    {
+      "dtype": "q4",
+      "download_mb": 871.8,
+      "rss_delta_mb": 1355.8,
+      "query_ms_median": 128.9,
+      "query_ms_p95": 245.6,
+      "load_ms": 37204.3,
+      "dim": 1024
+    },
+    {
+      "dtype": "bnb4",
+      "download_mb": 845.5,
+      "rss_delta_mb": 1209.5,
+      "query_ms_median": 937.5,
+      "query_ms_p95": 1295.3,
+      "load_ms": 31695.1,
+      "dim": 1024
+    }
+  ],
+  "would_not_load": [],
+  "failure_note": "All six CPU-viable rungs completed before the run was stopped; fp16 and q4f16 were never attempted on this model (they abort on the CPU provider for nomic-768, and the model was ruled out before the question mattered).",
+  "caveats": [
+    "LATENCY HERE IS CONTENDED AND MUST NOT BE CITED: these runs shared eight cores with a concurrent fidelity sweep, and each load also includes a cold download. RSS carries the verdict and is not corrupted the same way; the millisecond columns are kept only so the file is not silently missing them.",
+    "One process per rung, warm cache: RSS is the total a fresh server process pays (ONNX Runtime and Node included), not the marginal cost of the weights. Loading a second model into a live process costs less, because the runtime is already there.",
+    "load_ms is warm \u2014 the weights were already downloaded. A first run also pays the download in the size column.",
+    "download_mb is the published ONNX file size on the Hugging Face repo, external data files included.",
+    "Cost, not quality. Read beside the fidelity ladder, never instead of it."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      12.57,
+      9.35,
+      4.65
+    ],
+    "node": "v22.23.1"
+  },
+  "verdict": "Ruled out for the default local path. The cheapest rung measured holds 956,0 MB, 3,2x the 300 MB server ceiling ratified in CONSTRAINTS.md C3, and quantization bought only 2,1x here (fp32 to q8) against 3,8x on nomic-768 \u2014 so no lower rung recovers a further 3x. Its 0,4935 same-item recall (task-recall.json), 3,0 points above nomic, is unbuyable at this memory cost."
+}

@@ -1,0 +1,71 @@
+{
+  "what": "query-time embedding cost at batch 1 — the cost every semantic query pays",
+  "when": "2026-08-29T12:36:06.346Z",
+  "why": "DESIGN.md §2.9 budgets 20–50 ms and ~120 MB for the query model; a model that misses either bound is unshippable on the default path however well it retrieves",
+  "runtime": "@huggingface/transformers in Node (ONNX), the runtime zoteus ships",
+  "batch": 1,
+  "reps": 12,
+  "queries": 5,
+  "models": [
+    {
+      "model": "Xenova/all-MiniLM-L6-v2",
+      "dim": 384,
+      "dtype": "q8",
+      "device": "(runtime default)",
+      "load_ms": 1274.8,
+      "rss_before_mb": 91.6,
+      "rss_after_load_mb": 196.5,
+      "rss_delta_mb": 104.9,
+      "query_ms_min": 1.7,
+      "query_ms_median": 2.3,
+      "query_ms_p95": 3.9,
+      "n": 60
+    },
+    {
+      "model": "Xenova/bge-small-en-v1.5",
+      "dim": 384,
+      "dtype": "q8",
+      "device": "(runtime default)",
+      "load_ms": 1815.3,
+      "rss_before_mb": 199.8,
+      "rss_after_load_mb": 246.1,
+      "rss_delta_mb": 46.2,
+      "query_ms_min": 3,
+      "query_ms_median": 4.2,
+      "query_ms_p95": 7.2,
+      "n": 60
+    },
+    {
+      "model": "nomic-ai/nomic-embed-text-v1.5",
+      "dim": 768,
+      "dtype": "q8",
+      "device": "(runtime default)",
+      "load_ms": 4503.4,
+      "rss_before_mb": 246.1,
+      "rss_after_load_mb": 412.5,
+      "rss_delta_mb": 166.4,
+      "query_ms_min": 9.8,
+      "query_ms_median": 14.2,
+      "query_ms_p95": 21.4,
+      "n": 60
+    }
+  ],
+  "caveats": [
+    "RSS is a marginal delta measured in one process, models loaded in sequence, so later models see a warmed allocator arena. Read it as a ceiling on the resident cost, not as a precise figure.",
+    "Wall clock on one machine. A laptop has fewer cores and will be slower.",
+    "Cost, not quality. Read it beside the recall artifacts in 0025-x1-recall/, never instead of them.",
+    "Load time is a one-off per session and is reported apart from the per-query cost."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      0.98,
+      0.68,
+      0.51
+    ],
+    "node": "v22.23.1"
+  }
+}
