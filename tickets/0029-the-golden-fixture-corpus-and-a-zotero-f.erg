@@ -8,8 +8,9 @@ Author: claude
 
 --- body ---
 ## Context
-Unticketed prerequisite of 0026's golden gate (review-implementation.md §3):
-no pinned fixture corpus exists — bench/queries.txt is 16 queries, and every
+Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
+in git history at `e32afe3` under panel/cycle2/): no pinned fixture corpus
+exists — bench/queries.txt is 16 queries, and every
 answer-set artifact was measured against the author's private library, which
 cannot be committed. Needed: a committable multilingual document set (FR/DE/
 VI/EL/RU per R7), ~40 queries, pinned answer sets at k=10, and a harness that
