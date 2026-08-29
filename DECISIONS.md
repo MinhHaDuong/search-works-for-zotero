@@ -219,6 +219,81 @@ nothing-about-the-maintainer-in-upstream-text rule becomes a check rather than
 a habit. Ticket 0053 carries the work.
 
 
+**2026-08-29 — R26 is rejected as written: newest-first is an orientation, not
+a strict order.** The requirement asserted that at every poll the indexed set
+is a most-recent-first prefix, "the newest N items, never a gap in the middle".
+The author rejects the sentence, on three grounds. Recency orients the work; it
+does not impose a verifiable total order. Items enter and leave the library in
+real time, so any invariant asserted over a positional prefix is asserted over
+a set that has already changed. And the two-band frontier that was to carry the
+observable does not survive that motion: a band partition of a moving set is
+not a stable thing to assert.
+
+What replaces it is priority by content type, not position in a queue.
+Embedding an item's title, keywords, abstract and notes takes priority over
+embedding its body content. That ordering is checkable at any instant without
+reference to a snapshot of the library, which is what R26 was reaching for and
+could not have.
+
+Consequences: R26 is rewritten to state the orientation and the tier priority,
+and to drop the prefix observable. DESIGN.md §2.3's two-band frontier (band 0,
+band 1, the derived cap K) loses its justification as an observable and is
+reworked. §2.3's "the R26 observable is then asserted per phase" paragraph
+goes with it, and with it the interpretive reading that cycle 2 flagged for
+veto — the veto is this entry. The convergence harness stops asserting
+prefix-ness and asserts the tier ordering instead.
+
+One consequence is **not** settled here and is carried by ticket 0080: the band
+cap did anti-monopoly work that the tier ordering only partly replaces. Tiers
+stop a monster delaying every other item's record, because records all precede
+body content. They do not stop a monster monopolizing the body tier once it is
+reached. Whether that needs a mechanism, and which, is open.
+
+**2026-08-29 — notes belong to the record tier.** Amends the ratified entry of
+2026-08-26 ("the record is the semantic core"), which grouped notes with
+annotations and body text as material that extends the core. The author places
+notes with title, keywords and abstract: they are embedded before body content,
+not after it. The earlier entry is not edited — this is the amendment, per the
+ledger's own rule. Annotations are not addressed here and stay where the
+2026-08-26 entry put them.
+
+**2026-08-29 — the RAM budget is per process, and the machine total is stated
+beside it.** The 300 MB was ratified against a single-server picture; the normal
+deployment is one zoteus per MCP client. Ratified: the budget binds per process,
+because that is the only scope a process can measure and therefore the only one
+a gate can assert — an unenforceable budget is an aspiration, and Risk 5 is
+about exactly that decay. The whole-machine figure is stated alongside it rather
+than dropped: ≈ 250 MB fixed for the single background worker plus ≈ 220 MB per
+P0 the user chooses to run, ≈ 690 MB at two clients. Stating it this way makes
+the total legible without pretending a process can enforce it. FIELD-REVIEW.md
+records that no project among the 39 surveyed publishes a memory or CPU budget
+of any kind, so there is no external norm here to defer to and enforceability is
+the right criterion.
+
+**2026-08-29 — the RSS gate runs in the slow suite, with a mechanism proxy in
+the fast tier.** R20's letter says the budgets are asserted on every check. Read
+literally it puts a 44,9 MB fixture with ~43 000 headings in the fast loop,
+which is how a gate gets disabled — the normalization-of-deviance channel
+DESIGN.md Risk 5 names, and the one that produced ticket 0011's defect. Ratified
+instead: the budget assertion stays in `check-slow`, and a cheap fixture in the
+fast tier asserts the *mechanism* — that the cap engages and resident memory
+stays flat — without the monster. The two failure modes are different and get
+different tests: "the mechanism stopped engaging" is cheap to detect
+continuously, "the budget regressed" needs the real fixture and can run per PR.
+
+**2026-08-29 — the synthetic surrogate satisfies R20's intent, conditional on
+periodic revalidation.** R20's letter names the 44,9 MB dictionary, which is
+copyrighted library content and cannot enter a public repository; keeping the
+letter would put the only memory gate on one machine, where no reviewer and no
+CI can observe it. Ratified: the deterministic synthetic monster at the measured
+44 906 152 chars, entry-structured, satisfies R20's intent. The condition is not
+optional. X3a on the real dictionary is re-run at each release and the surrogate
+is revalidated against that measurement, because a surrogate whose fidelity is
+never re-measured drifts silently from the document it stands for, and its pass
+then proves only that the surrogate is cheap. Without the revalidation this is a
+check whose all-clear is indistinguishable from "I could not look".
+
+
 ## Awaiting ratification
 
 Three readings cycle 2 could not decide on the sheet's text alone (flagged in
