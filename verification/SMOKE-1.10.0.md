@@ -108,16 +108,6 @@ not query cost, and must never be quoted as latency. `auto` costs several times
 `semantic` because BM25 runs beside the vector path — the shape ticket 0025
 measured, where `auto` improves 12,2x against `semantic`'s 49,3x.
 
-## Provenance and honest gaps
-
-- The queried index was built at library version 410 while the live library is
-  at 418, so results reflect an index eight versions stale.
-- Every latency here is n=1 in one session on a fanless i5-8250U, the machine
-  whose thermal drift ticket 0025 recorded. They locate an order of magnitude
-  and nothing finer.
-- The five subjects were chosen by the agent from the library's evident
-  domains, and relevance was judged by reading the hits. That is a smoke test,
-  not a recall measurement.
 ## The end-to-end path, built fresh from the live library
 
 The queries above ran against a pre-built index. To close that gap a second
@@ -147,3 +137,14 @@ build that had already written. The predicate folded two states the server
 distinguishes — the trap `rules/coding-bash.md` names for `is-active`, here in
 Python. The lesson is the general one: before reporting that a process is
 stuck, check that your liveness test can express the state it actually reached.
+
+## Provenance and honest gaps
+
+- The queried index was built at library version 410 while the live library is
+  at 418, so results reflect an index eight versions stale.
+- Every latency here is n=1 in one session on a fanless i5-8250U, the machine
+  whose thermal drift ticket 0025 recorded. They locate an order of magnitude
+  and nothing finer.
+- The five subjects were chosen by the agent from the library's evident
+  domains, and relevance was judged by reading the hits. That is a smoke test,
+  not a recall measurement.
