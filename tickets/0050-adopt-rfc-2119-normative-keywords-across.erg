@@ -2,11 +2,11 @@
 Title: Adopt RFC 2119 normative keywords across the specification chain
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0036
 
 --- log ---
 2026-08-29T00:00Z claude created
 
+2026-08-29T13:47Z Minh Ha-Duong note blocker 0036 closed — Blocked-by removed.
 --- body ---
 ## Context
 Concatenated, the four specification-chain documents run 1 356 lines and
