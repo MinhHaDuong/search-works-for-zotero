@@ -294,10 +294,16 @@ OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library
 ```
 
 where the same call with no device option loads and serves — and both produce
-bit-identical vectors. Since `onnxruntime-node` ships the CUDA provider binary
-on linux-x64 unconditionally, that is what an ordinary Linux desktop gets, not
-an exotic install. The documentation carries this so the next person to reach
-for `auto` finds the measurement first.
+bit-identical vectors.
+
+This does not depend on the CUDA binaries being present. `onnxruntime-node`
+fetches them in `postinstall` on linux/x64, the one platform whose install
+manifest requires anything; installing with `--onnxruntime-node-install=skip`
+leaves them out, and `auto` then fails identically, on the absent
+`libonnxruntime_providers_shared.so` instead. Either way, an ordinary Linux
+desktop without a CUDA runtime cannot load the model with `auto`. The
+documentation carries this so the next person to reach for it finds the
+measurement first.
 
 ## Testing
 

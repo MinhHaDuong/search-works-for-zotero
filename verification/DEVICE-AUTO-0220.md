@@ -36,7 +36,9 @@ probing it would measure something no user can reach.
 
 Measured on `@huggingface/transformers` 4.2.0, linux-x64, node v22.23.1, model
 `Xenova/all-MiniLM-L6-v2`, against a clean `npm install` of that exact version in an empty
-directory. No NVIDIA runtime is present on this machine.
+directory. No NVIDIA runtime is present on this machine. One further variant,
+`skipinstall-device-auto`, uses a second clean install made with
+`--onnxruntime-node-install=skip`; see Mechanism for what it settles.
 
 ## Result
 
@@ -82,9 +84,24 @@ whole list. `createInferenceSession` then passes it straight to
 So the fallback the ruling relied on is not in transformers.js. Whatever tolerance exists
 belongs to ONNX Runtime, and ORT-node does not skip a listed provider whose shared library
 will not load: it registers CUDA, the load of `libcublasLt.so.12` fails, and the session
-fails with it. `onnxruntime-node` bundles the CUDA provider binary on linux-x64
-unconditionally, so this is not an exotic install — it is what a Linux user without an
-NVIDIA driver gets from `npm install`.
+fails with it.
+
+**The failure does not depend on the CUDA binaries being there.** They are not in the npm
+tarball — too large for the registry — but `onnxruntime-node`'s `postinstall` fetches them
+by default on linux/x64, which is the only platform whose install manifest requires
+anything (`cuda12`; every other platform's list is empty). A user opts out with
+`npm install --onnxruntime-node-install=skip`, and the tempting inference is that such an
+install has nothing to register and would therefore fall back cleanly.
+
+It does not. Measured on a second clean install made with that flag, whose `bin/` holds
+only `libonnxruntime.so.1` and the binding, `device: 'auto'` fails exactly as before —
+`OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library` — this time
+because `libonnxruntime_providers_shared.so` is absent
+(`skipinstall-device-auto.json`). Only the name of the missing library changes.
+
+So on linux-x64 without a working CUDA runtime, `auto` fails whichever way the package was
+installed. This is what an ordinary Linux desktop gets, not an exotic install, and the
+315 MB download is a side issue rather than the cause.
 
 The ticket anticipated this shape and set it aside: "ORT's fallback covers 'provider
 unavailable'; it does not cover 'provider present, registers, and then misbehaves' — a

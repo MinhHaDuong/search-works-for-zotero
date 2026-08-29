@@ -17,6 +17,13 @@ run() {
   node "$PROBE" "${args[@]}" "$@" >"$HERE/$label.json" 2>"$HERE/$label.err" || true
 }
 
+# The second install shape, run separately because it needs its own PKG_ROOT:
+#   npm install @huggingface/transformers@4.2.0 --onnxruntime-node-install=skip
+#   PKG_ROOT=<that dir> ... run skipinstall-device-auto --device auto
+# On linux/x64 the default install downloads the CUDA execution provider (it is the one
+# platform whose install manifest requires cuda12); the skip flag is how a user opts out.
+# `device: 'auto'` fails either way, which is why the finding is not about that download.
+
 run no-options
 run device-auto --device auto
 run device-cpu --device cpu
