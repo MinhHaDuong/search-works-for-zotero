@@ -287,6 +287,18 @@ FIGURES = [
      {"t0025": "{} s and 1 755,6 MiB on doudou"}),
     ("0025-x2-stopwordless/x2-verdict.json", "rebuild.peak_rss_mib", 1,
      {"t0025": "263,7 s and {} MiB on doudou"}),
+    # ---- 0025 X2 mechanism annex: where the cost comes from, and what it buys ----
+    ("0025-x2-stopwordless/x2-mechanism.json", "corpus.stopword_share_of_tokens", 1,
+     {"t0025": "and {}% of all token occurrences"}, "pct"),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.postings_ratio", 1,
+     {"t0025": "a factor of {}, while time rises"}),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.ns_per_posting_stock", 1,
+     {"t0025": "per entry ({} ns ->"}),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.ns_per_posting_new", 1,
+     {"t0025": "-> {} ns), so this is a design cost"}),
+    # The number that decides whether the deletion is worth its cost at all.
+    ("0025-x2-stopwordless/x2-mechanism.json", "what_it_buys.mean_top20_overlap", 1,
+     {"t0025": "overlap between the arms is {}%", "t0014": "{}% identical top-20"}, "pct"),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),
