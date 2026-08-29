@@ -115,6 +115,17 @@ The two multilingual figures are 11,7 MB apart against a spread of up to 6,9, so
 they are close and not ranked. Do not report an ordering between them without
 more runs than this.
 
+**This ticket will break the RSS gate, and that is expected.** R20's gate
+(`check-slow`, DESIGN §2.8) asserts `server p95 <= 300 MB` verbatim, against the
+budget C3 ratified. The 2026-08-29 ruling makes that number wrong for a
+multilingual default, and every candidate here measures 405 MB or more — so the
+first time one is resident the gate goes red for the right reason. Do NOT
+loosen or disable it while the study runs: a gate turned off to make a
+measurement pass is how ticket 0009's defect happened. Leave it red, and re-pin
+it in the SAME change that sets C3's replacement value, once the chosen
+embedder's figure exists. Until then the red gate is the reminder that C3 and
+the documents disagree.
+
 **Do not carry the vocabulary explanation forward.** An earlier reading of these
 numbers held that the embedding table sets the resident floor and quantization
 cannot shrink it, with a `vocab x dim` predictor to match. It was retracted:
@@ -352,3 +363,6 @@ measures the wrong thing produces confident wrong answers for weeks:
       with the results
 - [ ] A recommendation stating a decision rule, its evidence, and what would
       overturn it
+- [ ] C3's replacement value proposed from the chosen embedder's measured RSS, with
+      R20's gate re-pinned in the same change — never before it, and never by
+      loosening the gate to make a measurement pass

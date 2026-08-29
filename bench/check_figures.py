@@ -430,6 +430,28 @@ FIGURES = [
      {"t0070": "and {}x worst case"}),
     ("0070-cosine-fusion/insitu-255703.json", "equivalence.rows_checked", 0,
      {"t0070": "rather than a fixture: {} rows\nchecked, 0 mismatches"}),
+    # ---- The embedder cost campaign, 2026-08-29. These five sit in the ratification
+    # ledger's R7/C3 entry, which is where a stale figure is worst: an append-only entry
+    # is never edited again, so a wrong number there becomes permanent. The entry also
+    # argues FROM them — the ruling that C3 gives way rests on multilingual measuring far
+    # over 300 MB — so a drifted figure would leave a ratified ruling standing on a number
+    # that no longer exists.
+    ("0025-x1-recall/dtype-ladder-multilingual-e5-small.json", "rungs.2.rss_delta_mb", 1,
+     {"decisions": "measures {} MB\nresident at uint8"}),
+    ("0025-x1-recall/dtype-ladder-nomic.json", "rungs.1.rss_delta_mb", 1,
+     {"decisions": "and yet 404,4 MB against {} MB."}),
+    # The three repeated figures live in the Granite artifact because that is the run that
+    # produced them, one block for all three models. Anchor heads end in a non-digit: a
+    # head ending in a digit would be glued to the value by despace().
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.nomic_v1_5_mb.median", 1,
+     {"decisions": "under 7 MB: nomic-768{} MB"}),
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.granite_97m_mb.median", 1,
+     {"decisions": "{} MB, multilingual-e5-small"}),
+    ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
+     "repeated_measurement.multilingual_e5_small_mb.median", 1,
+     {"decisions": "multilingual-e5-small {} MB. Granite and e5"}),
 ]
 
 
