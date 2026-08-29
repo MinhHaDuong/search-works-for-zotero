@@ -98,6 +98,58 @@ Every value here was correct, declared to the figure guard, anchored, and
 reconciled across three runs — the guard checks that a number matches its
 artifact, and cannot check that the artifact measures what its label claims.
 
+## v1.9.0 against v1.10.0, measured here
+
+The issue was closed on a prediction — "a few hundred ms" — that nobody had
+tested. Measured on a real index of the author's library (93 022 passages,
+384 dimensions, real vectors from `all-MiniLM-L6-v2`, provenance controlled by
+re-embedding five sampled rows and getting cosine 1,000000 against the stored
+row), three arms interleaved, 100 warm samples each
+(`bench/results/0025-upstream-v190-vs-v1100/`):
+
+| arm | p50 | p95 | `vectorScan` |
+|---|---|---|---|
+| v1.9.0 `bb414df` | 1 069,1 ms | 1 363,5 ms | field does not exist |
+| v1.10.0, `ZOTEUS_INDEX_ANN=false` | 814,6 ms | 1 084,7 ms | `exact` ×100 |
+| v1.10.0 stock | **21,7 ms** | **39,1 ms** | `codes` ×100 |
+
+**49,3x on the median**, reproduced independently at 49,3x a second time. The
+`vectorScan` field reads `codes` on every warm sample of the default arm and
+`exact` on every sample of the `ANN=false` arm, so it is a control that can come
+out the other way rather than a reading taken once.
+
+The decomposition is the part worth keeping. **#31's fused loop contributes
+1,31x; the two-stage contributes the remaining 37,5x.** #31's own commit
+measured 2,19x at 255 703 × 3 072, and the gap is consistent with the model that
+commit states — a width-proportional arithmetic saving sitting on a per-row
+fetch cost that does not shrink with it, and these vectors are eight times
+narrower. Consistent, not established: this run did not isolate it.
+
+The approximation is close to free at this size. Same first hit on 20 of 20
+queries, identical top-10 order on 17 of 20, mean overlap 9,65 of 10. The
+one-time code build costs about 1,5 s, measured apart from the model download
+that confounded it in the first attempt.
+
+**The absolutes are soft and the ratio is not.** Every arm is slower warm than
+cold — v1.9.0 963,8 → 1 069,7 ms, the exact arm 692,7 → 815,0, the two-stage
+20,6 → 21,8 — and the same drift appears in the second run. That is the opposite
+of cache warming, so something degrades across a ten-minute run; a fanless 15 W
+i5-8250U throttling is the obvious candidate and nothing here measured CPU
+frequency, so it stays a candidate. What matters is that it moves all three arms
+the same way: the median ratio reproduced at 49,18x and 49,11x, while the p95
+ratio did not (34,9x then 40,0x, the exact arm's tail moving). Quote the median
+ratio; treat the absolute latencies as this machine's, and do not quote a p95
+ratio at all.
+
+Two things this does **not** license. `mode:"auto"`, the hybrid default a user
+actually gets, improves 12,2x rather than 49x — the BM25 side is untouched by
+either change and the residual is about 70 ms. And nothing here bridges to the
+reporter's 95 s: this machine's v1.9.0 baseline is 1,07 s where his is ~95 s,
+his index reads 3,1 GB of vectors per query against our 143 MB, and the
+difference between the two machines is the same open question `999cb1c`
+flagged. 49x is a floor for his geometry rather than a ceiling, and it is not a
+prediction of what he will see.
+
 ## What the thread leaves open
 
 **The remaining gap, now roughly 10x.** The reporter answered the two-run

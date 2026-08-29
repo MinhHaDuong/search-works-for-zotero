@@ -331,6 +331,19 @@ FIGURES = [
      {"v30": "Of the 2,29x, {}x is the polymorphic call site"}),
     ("0025-x1-recall/scan-shape-attribution.json", "results.2.speedup_vs_v190", 2,
      {"v30": "| **{}x** |"}),
+    # v1.9.0 against v1.10.0 on a real 93k index. All three arms declared plus the
+    # decomposition, because the finding is the split: the total says the release works,
+    # the split says which of the two merged changes did it. A re-measurement that moved
+    # only the total would leave the attribution true and wrong.
+    ("0025-upstream-v190-vs-v1100/v190-vs-v1100-semantic-latency-93022x384.json",
+     "results.semantic_mode.arms.v1\\.9\\.0.warm.p50_ms", 1,
+     {"v30": "| v1.9.0 `bb414df` | {} ms |"}),
+    ("0025-upstream-v190-vs-v1100/v190-vs-v1100-semantic-latency-93022x384.json",
+     "results.semantic_mode.arms.v1\\.10\\.0-exact.warm.p50_ms", 1,
+     {"v30": "`ZOTEUS_INDEX_ANN=false` | {} ms |"}),
+    ("0025-upstream-v190-vs-v1100/v190-vs-v1100-semantic-latency-93022x384.json",
+     "results.semantic_mode.arms.v1\\.10\\.0-default.warm.p50_ms", 1,
+     {"v30": "| v1.10.0 stock | **{} ms** |"}),
     # ---- 0025 X2, stopword-less OR p95 (REAL 477k index + stock control arm, doudou) ----
     # Both arms are declared, because the verdict is a comparison: a re-measurement that moved
     # only the control would leave the treatment figure true and the conclusion false.
@@ -553,8 +566,16 @@ def dig(obj, path: str):
     naming one silently resolved to None and was reported as a missing key. The headline
     recall figures live in a list, which is how the ticket's most-quoted numbers came to be
     the ones the checker could not see.
+
+    A key containing a dot was unreachable for the same reason, and version numbers are
+    exactly that: an artifact keyed by arm name (`v1.9.0`, `v1.10.0-default`) could not be
+    declared at all. Escape the dots that belong to the key — `v1\\.9\\.0` — and only the
+    unescaped ones separate levels. Renaming the artifact's keys to suit the checker was
+    the alternative, and it is the wrong way round: the measurement names its arms after
+    the releases it measured.
     """
-    for part in path.split("."):
+    for part in re.split(r"(?<!\\)\.", path):
+        part = part.replace("\\.", ".")
         if obj is None:
             return None
         if isinstance(obj, list):
