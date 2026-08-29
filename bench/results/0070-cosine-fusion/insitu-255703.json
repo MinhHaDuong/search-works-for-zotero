@@ -1,0 +1,33 @@
+{
+  "mode": "insitu",
+  "dim": 3072,
+  "rows": 255703,
+  "reps": 5,
+  "node": "v22.23.1",
+  "fixture_bytes": 3408953344,
+  "equivalence": {
+    "rows_checked": 255703,
+    "mismatches": 0,
+    "top15_ranking_identical": true
+  },
+  "two_pass": {
+    "median_ms": 8606.123629,
+    "min_ms": 8507.422037,
+    "max_ms": 8939.696978,
+    "us_per_row": 33.656717476916576
+  },
+  "fused": {
+    "median_ms": 3933.300573,
+    "min_ms": 3882.576753,
+    "max_ms": 3934.880276,
+    "us_per_row": 15.38230123619981
+  },
+  "marshalling_floor": {
+    "median_ms": 2558.679131,
+    "min_ms": 2511.025341,
+    "max_ms": 2560.609717,
+    "us_per_row": 10.006449400280795
+  },
+  "speedup_median": 2.1880157565573364,
+  "speedup_worst_case": 2.1620535925550994
+}

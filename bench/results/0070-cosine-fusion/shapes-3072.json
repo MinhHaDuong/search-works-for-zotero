@@ -1,0 +1,28 @@
+{
+  "mode": "shapes",
+  "dim": 3072,
+  "rows": 20000,
+  "reps": 5,
+  "node": "v22.23.1",
+  "two_pass_shared_norm": {
+    "median_ms": 477.921913,
+    "min_ms": 470.919855,
+    "max_ms": 490.174276,
+    "us_per_row": 23.89609565
+  },
+  "two_pass_monomorphic_norm": {
+    "median_ms": 255.119717,
+    "min_ms": 252.062351,
+    "max_ms": 257.770463,
+    "us_per_row": 12.75598585
+  },
+  "fused": {
+    "median_ms": 126.834074,
+    "min_ms": 124.558601,
+    "max_ms": 132.129613,
+    "us_per_row": 6.3417037
+  },
+  "speedup_total": 3.768087690694222,
+  "speedup_from_monomorphism": 1.8733240951345207,
+  "speedup_from_fusion": 2.0114446296190094
+}
