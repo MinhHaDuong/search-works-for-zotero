@@ -10,14 +10,15 @@ Author: claude
 
 --- body ---
 ## Context
-Missing work the implementation review surfaced (panel/cycle2/
-review-implementation.md §5.1): X5 gates scoped issue B (0034, which
-supersedes the RFC 0027) on the segmenter's measured precision, and seg/1
+Missing work the implementation review surfaced (§5.1; the review is in git
+history at `e32afe3`, panel/cycle2/review-implementation.md): X5 gates scoped
+issue B (0034, which supersedes the RFC 0027) on the segmenter's measured precision, and seg/1
 had no implementation anywhere — days of new code standing between 0025's X5
 and 0034, priced nowhere until now. The spec lives once, in DESIGN.md §2.2;
 build to it, not to a paraphrase. Political-review checkpoint applies: check zotero#6012's state
 before building — structured extraction landing upstream makes heuristic
-segmentation a fallback at best (panel/cycle2/review-political.md finding 5).
+segmentation a fallback at best (political review finding 5, same commit,
+panel/cycle2/review-political.md).
 
 ## Exit criteria
 - [ ] #6012 checkpoint recorded here before implementation starts

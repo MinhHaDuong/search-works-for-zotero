@@ -1,0 +1,84 @@
+%erg 0.1
+Title: Collapse the repeated authority-chain paragraph to one pointer
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0036
+
+--- log ---
+2026-08-29T00:00Z claude created
+
+--- body ---
+## Context
+Each document in the chain opens with an Intro that restates the authority
+chain: rulings land in DECISIONS.md first, the other documents are edited to
+match, DESIGN.md owns the design numbers, and so on. Read one document at a
+time this is orientation. Read end to end — which is how a newcomer, a
+reviewer, or the author in six months reads it — the same paragraph appears
+four times, soon five once FIELD-REVIEW.md joins.
+
+The repository's own rule names this defect: "One statement per fact:
+thresholds, rules, and open questions live in their owning document and
+everywhere else is a pointer. Duplicated numbers drift — this repo's most
+expensive recurring defect." The authority chain is a rule, so it falls
+under that sentence, and four copies of it can drift the same way four
+copies of a number can.
+
+The author's reading (2026-08-29): the shared part should probably become a
+pointer to README.md, which already carries the authoritative-chain
+sentence.
+
+## The tension with 0036, stated plainly
+0036 has a ticked exit criterion: "Every preamble replaced by an Intro
+section." That was the right move and this ticket does not reverse it. The
+Intro sections stay. What moves out of them is only the portion that is
+identical across documents — the description of the chain as a whole. What
+stays is the portion specific to that document: what THIS document owns,
+what it does not own, and where its own authority ends.
+
+A useful test for each Intro sentence: would it be equally true if pasted
+into a sibling document? If yes, it is chain description and belongs in one
+place. If no, it is this document's own statement and stays.
+
+Blocked by 0036 because 0036's last criterion is the author's acceptance of
+the rewritten voice, and these are the same paragraphs.
+
+## Relevant files
+- `README.md` — the "authoritative chain is:" sentence, the canonical site
+- `REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — Intro sections
+- `DECISIONS.md` — its italic front matter states the chain too; the front
+  matter is NOT a ratified entry and may be edited, unlike the entries below
+- `FIELD-REVIEW.md` — the newest Intro; include it
+
+## Actions
+1. Diff the four Intros against each other and mark each sentence as
+   chain-description or document-specific, using the paste test above.
+2. Confirm README.md's sentence is the best canonical statement, and improve
+   it if the Intros contain a sharper phrasing worth promoting.
+3. Replace the duplicated portion with a one-line pointer. The pointer must
+   name README.md by file, so it survives a reader entering mid-document.
+4. Keep each Intro's document-specific half intact and readable standing
+   alone. An Intro reduced to nothing but a pointer has gone too far — a
+   reader entering at DESIGN.md still needs to learn what DESIGN.md owns
+   without leaving the file.
+
+## Test
+A check that fails when the same sentence, normalised, appears in more than
+one chain document. Red first: it must fire on the current tree, which is
+the positive control for the whole ticket.
+
+## Verification
+- [ ] Each Intro still tells a mid-document arrival what that document owns
+- [ ] The chain is described once, in README.md
+- [ ] No pointer is a bare cross-reference with no local context
+
+## Invariants
+- 0036's Intro sections survive as sections; only their shared paragraph
+  moves.
+- No ratified DECISIONS.md entry is edited; its front matter is fair game.
+- Authority itself is unchanged. This is deduplication, not a re-assignment
+  of who owns what.
+
+## Exit criteria
+- [ ] The authority chain is stated once and pointed at from each Intro
+- [ ] The duplicate-sentence guard is in place and fires on regression
+- [ ] `make check` passes
