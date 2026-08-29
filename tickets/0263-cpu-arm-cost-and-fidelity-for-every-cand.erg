@@ -41,7 +41,8 @@ would pick one blind on every candidate.
 4. Report the q8-versus-uint8 ordering per candidate. Answer the tracker's open
    question — does nomic's result generalise — rather than assuming it.
 5. Report quantization robustness as its own column. Nobody in the surveyed field
-   measures it; if candidates split between 0,99 and 0,90 it is a selection
+   measures it; if candidates split between typical 8-bit fidelity and the
+   tracker's low outlier, it is a selection
    criterion.
 6. Declare every quoted number in `bench/check_figures.py` with its anchor.
 

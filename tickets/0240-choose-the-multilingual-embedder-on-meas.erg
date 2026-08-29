@@ -12,6 +12,34 @@ Blocked-by: 0220
 2026-08-29T17:05Z claude note author added uint8 to the scope. Reason it is not a fourth rung for symmetry: on nomic-768 uint8 holds mean cosine 0,94793 against q8's 0,90031 and keeps 0,8406 of the top-30 against 0,7439, never losing the top-1 where q8 sometimes does — at identical download size and with RAM and latency inside the noise floor. The two 8-bit variants are the same price and not the same quality, so scoping to q8 alone would have picked one blind on every candidate. Whether that ordering generalises past nomic is untested and is now an explicit output of the study. Also folded in: q8 and int8 resolved to ONE file on nomic (md5 b65952d0..., vectors bit-identical to five decimals), which briefly produced a spurious "int8 is the fastest rung" out of measurement noise — so the harness must hash each resolved ONNX file and record a duplicate cell as a duplicate rather than spend a run on it.
 
 --- body ---
+## This is a tracking ticket
+
+Decomposed 2026-08-29. This body is the rationale; the executable work is in the
+children below, each sized to one sign-off unit and each blocked by its real
+prerequisite, never by this tracker. The Actions section further down is the
+partition's source and is kept for the reasoning behind each step, not as a work
+queue.
+
+| child | scope | blocked by |
+|---|---|---|
+| `0261` | Enumerate multilingual ONNX candidates into a declared registry | -- |
+| `0262` | The registry-driven resumable sweep harness in `bench/` | 0261 |
+| `0263` | CPU arm: cost and fidelity, every candidate, every loadable dtype | 0262 |
+| `0264` | GPU arm on padme; what `auto` actually selects (needs-human: no GPU here) | 0262 |
+| `0265` | Recall at the deployed dtype, and the fused RRF delta | 0263 |
+| `0266` | Cross-lingual probe on the multilingual vectors | 0263 |
+| `0267` | The recommendation: evidence plus a decision rule | 0263 0264 0265 0266 |
+| `0268` | Propose C3's replacement value and re-pin R20's gate (needs-human: his ledger) | 0267 |
+
+Two children are labelled `needs-human` for different reasons, and neither is a
+judgement call deferred out of caution. `0264` needs padme: the working machine
+has no GPU at all, so nothing in that arm can be executed here beyond the code
+path. `0268` needs the author's ruling: its exit criterion is a ratified entry
+in `spec/DECISIONS.md`, and the ledger is his.
+
+This tracker closes after the integration review across all eight, not on the
+bare event of the last child merging.
+
 ## Context
 
 **Every model measured in `0025-x1-recall/` is disqualified by R7.** The

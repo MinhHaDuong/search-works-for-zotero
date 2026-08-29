@@ -18,7 +18,8 @@ at all:
 
 **Recall does not survive quantization, so it must be measured at the rung that
 ships.** The tracker records what nomic-768 q8 did to its own fp32 vectors and
-why the existing 0,4639 is an fp32 number a q8 deployment does not get. Fidelity
+why the recall figure in `task-recall.json` is an fp32 number that a q8
+deployment does not get. Fidelity
 to fp32 is a cheaper second signal; it is not a proxy for recall and must not be
 quoted as one.
 
