@@ -1,0 +1,83 @@
+%erg 0.1
+Title: The registry needs a pooling column beside the input template
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T22:30Z claude created
+2026-08-29T22:30Z claude note raised by the sibling 0220 session against PR #59 and filed rather than folded into it: the values must be read off each model card, not inferred, and guessing is precisely how the e5 prefix trap nearly landed. That is measured work with its own review, not a schema tweak.
+
+2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Child of tracker `tickets/0240`. `tickets/0261` gave the registry a per-model
+`input_template` because e5 needs `query: ` / `passage: ` prefixes and a harness
+that ignores them under-measures e5 — it would have concluded an English model
+retrieves better.
+
+**Pooling is the same trap, one axis over, and the registry does not carry it.**
+`pooling` appears zero times in `bench/models.json`. The drivers call
+`extractor(batch, {pooling: 'mean'})` and zoteus hardcodes the same
+(`embeddings.ts:284`), so a harness that reads the template from the registry and
+then hardcodes pooling gets one axis right and the other wrong.
+
+**Why it matters more than it looks.** Wrong pooling degrades retrieval
+*silently*. It reads as the model being worse, not as a bug — so `0262`'s sweep
+could reject a good candidate on it and record a confident wrong number. That is
+this study's standing failure mode: a measurement that is wrong rather than
+missing.
+
+It is not uniform across models. Zotero core's own registry
+(`zotero/zotero#6012`, `chrome/content/zotero/xpcom/embeddings.js`) carries
+pooling per model and it varies — `cls` for the bge family, `mean` for the e5
+family and all-MiniLM. So a single hardcoded value is wrong for roughly half the
+field by construction.
+
+## Relevant files
+
+- `bench/models.json` — the registry
+- `bench/registry.py` / `bench/registry.mjs` — the readers
+- `bench/check_models.py` — the guard
+- the drivers that call `extractor(batch, {pooling: ...})`
+
+## Actions
+
+1. Add a named `pooling` field with a `pooling_source` beside it, in the style of
+   the existing `max_seq` / `max_seq_source` pair. Not an options bag: the
+   named-field-with-provenance shape is exactly why the prefix trap was caught
+   and pooling was not.
+2. **Read the value off each model card. Do not infer it, and do not carry a
+   value over from a sibling model because the families look alike.** Where a
+   card does not state it, record that as unknown with the source saying so — an
+   unknown is a finding, a guess is a defect.
+3. Apply it in the drivers from the registry, alongside the input template.
+4. Make the guard require the pair on every candidate record, so a new model
+   cannot arrive without it.
+
+## Test
+
+- A record missing `pooling` or `pooling_source` fails the guard. Run it against
+  the current registry first, which lacks both — a guard that cannot go red on
+  today's tree is not yet a guard.
+- A driver that hardcodes a pooling literal is caught, the same way a hardcoded
+  model id is.
+
+## Verification
+
+- [ ] Every candidate record carries `pooling` and `pooling_source`
+- [ ] Each value traces to its own model card, quoted in the source field
+- [ ] No driver names a pooling mode; all read it from the registry
+- [ ] Unknowns are recorded as unknown, never defaulted to `mean`
+
+## Invariants
+
+- Provenance beside every value; a value with no source is not recorded
+- `0262`'s sweep should not run before this lands, or its numbers carry an
+  unmeasured axis
+
+## Exit criteria
+
+- [ ] `pooling` + `pooling_source` on every candidate, read from cards
+- [ ] Drivers resolve pooling through the registry
+- [ ] Guard requires the pair; `make check` green

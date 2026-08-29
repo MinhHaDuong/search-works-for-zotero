@@ -2,12 +2,12 @@
 Title: The registry-driven resumable sweep harness in bench/
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0261
 
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 2 of tracker 0240. The deliverable is the harness, tested before any campaign runs on it — a benchmark that silently measures the wrong thing produces confident wrong answers for weeks.
 
+2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
 --- body ---
 ## Context
 
