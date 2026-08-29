@@ -262,6 +262,37 @@ FIGURES = [
      {"t0025": "slab {} ms, int8"}),
     ("0025-x1-timing/slab-vs-rows.json", "rows.0.int8.median_ms", 1,
      {"t0025": "int8 scans in {} ms. DECISION"}),
+    # ---- 0025 X1 recall half (REAL vectors, 93 022 passages, doudou) ----
+    # The timing half above was declared from the start; the recall half was not, and the
+    # asymmetry was the finding: `make check` stayed green because the guard validates only
+    # what someone declared, so an undeclared figure drifts in silence. Same experiment,
+    # same treatment now.
+    ("0025-x1-recall/qwen3-06b-1024.json",
+     "per_width.0.binary_recall.threshold_zero.rerank_full_width.3.recall", 4,
+     {"t0025": "full width reads {} recall@30"}),
+    ("0025-x1-recall/nomic-v15-768.json",
+     "per_width.0.binary_recall.threshold_zero.rerank_full_width.3.recall", 4,
+     {"t0025": "nomic-768 reads {} at 8x"}),
+    ("0025-x1-recall/nomic-v15-768.json",
+     "per_width.0.binary_recall.threshold_zero.rerank_full_width.4.recall", 4,
+     {"t0025": "clearing only at 16x ({})"}),
+    # Both rerank targets, because the conclusion IS the gap between them: a re-measurement
+    # that moved only one would leave the other figure true and the finding false.
+    ("0025-x1-recall/qwen3-06b-1024.json",
+     "per_width.1.binary_recall.threshold_zero.rerank_full_width.3.recall", 4,
+     {"t0025": "reranking narrow scores 0,8603 against {} full"}),
+    ("0025-x1-recall/qwen3-06b-1024.json",
+     "per_width.1.binary_recall.threshold_zero.rerank_at_width.3.recall", 4,
+     {"t0025": "reranking narrow scores {} against"}),
+    # The scan shapes. Declared at the run the artifact holds; the ticket log records the
+    # three-invocation spread these sit inside, and why the upstream comment quotes the
+    # most conservative of them rather than this one.
+    ("0025-x1-recall/scan-shapes-255703x3072.json", "results.0.median_ms", 1,
+     {"t0025": "4 196,2 / {} ms and binary_3072"}),
+    ("0025-x1-recall/scan-shapes-255703x3072.json", "results.2.median_ms", 1,
+     {"t0025": "97,2 / 94,1 / {} ms"}),
+    ("0025-x1-recall/scan-shapes-255703x3072.json", "results.4.bytes_scanned", 0,
+     {"t0025": "it now reads {}, equal to binary_3072"}),
     # ---- 0025 X2, stopword-less OR p95 (REAL 477k index + stock control arm, doudou) ----
     # Both arms are declared, because the verdict is a comparison: a re-measurement that moved
     # only the control would leave the treatment figure true and the conclusion false.

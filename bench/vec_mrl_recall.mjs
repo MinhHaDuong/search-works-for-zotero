@@ -118,7 +118,17 @@ if (opt.db) {
   const n = bytes / rowBytes;
   const buf = Buffer.allocUnsafe(bytes);
   let off = 0;
-  while (off < bytes) off += readSync(fd, buf, off, Math.min(1 << 24, bytes - off), off);
+  // A short read is normal; a ZERO-byte read is EOF, and treating it as "keep going" spins
+  // forever on a file that was truncated under us rather than reporting the truncation.
+  while (off < bytes) {
+    const got = readSync(fd, buf, off, Math.min(1 << 24, bytes - off), off);
+    if (got === 0) {
+      closeSync(fd);
+      console.error(`${opt.f32}: file ended after ${off} of ${bytes} bytes`);
+      process.exit(2);
+    }
+    off += got;
+  }
   closeSync(fd);
   const all = new Float32Array(buf.buffer, buf.byteOffset, bytes / 4);
   vecs = Array.from({ length: n }, (_, i) => all.subarray(i * DIM, (i + 1) * DIM));
@@ -189,12 +199,12 @@ function selectAscending(dist, cap, exclude) {
   return idx.subarray(0, size);
 }
 
-const norms = vecs.map((v) => {
-  let s = 0;
-  for (let i = 0; i < v.length; i++) s += v[i] * v[i];
-  return Math.sqrt(s) || 1;
-});
-/** Cosine of every vector against `q` over the first `w` dimensions, as a DISTANCE. */
+/**
+ * Cosine of every vector against `q` over the first `w` dimensions, as a DISTANCE.
+ *
+ * Norms are recomputed here rather than precomputed once: a full-width norm is the wrong
+ * denominator for a prefix, and every width needs its own.
+ */
 function cosineDistances(q, w) {
   const out = new Float64Array(N);
   let qn = 0;
@@ -228,9 +238,10 @@ for (const p of probeIdx) {
  *
  * Ticket 0008 packed into bytes and scanned with a 256-entry lookup table. Words and the
  * SWAR popcount below are the same codes read four bytes at a time, and the difference is
- * not cosmetic: measured at this corpus's geometry a BigInt popcount runs 4x SLOWER than
- * the exact float scan it is supposed to replace, so the implementation choice decides
- * whether the whole approach is a speedup at all.
+ * not cosmetic — but the evidence for that lives in bench/vec_scan_shapes.mjs, which times
+ * a BigInt popcount at upstream #30's geometry and finds it 4,6x SLOWER than the exact
+ * float scan it is meant to replace. This file measures recall and times nothing of the
+ * kind, so it cites that result rather than restating it.
  */
 function bitsPacked(v, w, centre) {
   const words = w >> 5;

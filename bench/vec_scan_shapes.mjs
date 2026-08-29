@@ -102,12 +102,22 @@ if (WANT.has('sqlite_float32') || WANT.has('sqlite_prenorm')) {
     ins.run(`p${r}`, Buffer.from(row.buffer.slice(0)), Math.sqrt(s));
   }
   db.exec('COMMIT');
-  bytes.sqlite_vector_column = N * DIM * 4;
+  // Both SQLite shapes read the whole vector column; name each one, because a shape that
+  // reports null for bytes it demonstrably reads is only marginally better than the
+  // neighbour's figure this used to substitute.
+  bytes.sqlite_float32 = N * DIM * 4;
+  bytes.sqlite_prenorm = N * DIM * 4;
 
+  // The misaligned branch must copy THIS row's bytes, not the whole backing buffer:
+  // `buf.slice()` on a Uint8Array view is a copy of the view, but `.buffer` on the result
+  // of the older `Buffer.prototype.slice` is the shared pool, so spelling it out is what
+  // keeps the fallback decoding the same bytes the fast path does.
   const toFloats = (buf) =>
     buf.byteOffset % 4 === 0
       ? new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4)
-      : new Float32Array(buf.slice().buffer);
+      : new Float32Array(
+          buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+        );
 
   if (WANT.has('sqlite_float32')) {
     const st = db.prepare('SELECT id, vector FROM passages WHERE vector IS NOT NULL');
@@ -186,6 +196,10 @@ if (WANT.has('memory_float32')) {
 
 // ---- the binary codes -------------------------------------------------------------------
 function makeCodes(width) {
+  if (width % 32 !== 0) {
+    console.error(`width ${width} is not a multiple of 32; sign bits pack into 32-bit words`);
+    process.exit(2);
+  }
   const words = width >> 5;
   const codes = new Uint32Array(N * words);
   for (let r = 0; r < N; r++) {
@@ -220,6 +234,7 @@ for (const [flag, width] of [['binary_3072', DIM], ['binary_768', MRL]]) {
 if (WANT.has('bigint_3072')) {
   const words = DIM / 64;
   const codes = new BigUint64Array(N * words);
+  bytes.bigint_3072 = codes.byteLength;
   for (let r = 0; r < N; r++) codes[r * words] = BigInt(r % 65536);
   const qc = new BigUint64Array(words);
   for (let i = 0; i < words; i++) qc[i] = 0x0f0f0f0f0f0f0f0fn;
@@ -268,7 +283,7 @@ const results = candidates.map((c, i) => ({
   note: c.note,
   median_ms: +q(samples[i], 0.5).toFixed(1),
   iqr_pct_of_median: +(((q(samples[i], 0.75) - q(samples[i], 0.25)) / q(samples[i], 0.5)) * 100).toFixed(1),
-  bytes_scanned: bytes[c.name] ?? bytes.sqlite_vector_column ?? null,
+  bytes_scanned: bytes[c.name] ?? null,
 }));
 const base = results.find((r) => r.name === 'sqlite_float32') ?? results[0];
 for (const r of results) r.speedup_vs_baseline = +(base.median_ms / r.median_ms).toFixed(2);

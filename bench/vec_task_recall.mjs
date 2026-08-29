@@ -118,7 +118,17 @@ function loadVectors(path, dim) {
   }
   const buf = Buffer.allocUnsafe(bytes);
   let off = 0;
-  while (off < bytes) off += readSync(fd, buf, off, Math.min(1 << 24, bytes - off), off);
+  // A short read is normal; a ZERO-byte read is EOF, and treating it as "keep going" spins
+  // forever on a file that was truncated under us rather than reporting the truncation.
+  while (off < bytes) {
+    const got = readSync(fd, buf, off, Math.min(1 << 24, bytes - off), off);
+    if (got === 0) {
+      closeSync(fd);
+      console.error(`${path}: file ended after ${off} of ${bytes} bytes`);
+      process.exit(2);
+    }
+    off += got;
+  }
   closeSync(fd);
   const all = new Float32Array(buf.buffer, buf.byteOffset, bytes / 4);
   return Array.from({ length: n }, (_, i) => all.subarray(i * dim, (i + 1) * dim));
