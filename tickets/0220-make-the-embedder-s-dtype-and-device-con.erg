@@ -13,6 +13,7 @@ Author: claude
 2026-08-29T15:19Z claude note the silent-q7 behaviour now has a mechanism, not just a probe: selectDtype's final branch coerces any string outside DATA_TYPES to the device default unconditionally, session.js's 'Invalid dtype' throw only tests the already-coerced value so a bad user string cannot reach it, and the warn callback is reserved for a per-file dtype object missing the current file. The silence is a property of the code, so no catch on our side could detect the case. Recorded in verification/DEVICE-AUTO-0220.md; it is what makes the shipped doc wording exact rather than merely observed.
 2026-08-29T15:28Z claude note this ticket's Context is wrong where it says the model is already configurable, making dtype the only axis without a knob. On the LOCAL path neither is configurable: createEmbeddingProvider builds new LocalEmbeddingProvider(undefined, ...) so the model is hardcoded to Xenova/all-MiniLM-L6-v2, and ZOTEUS_EMBEDDING_MODEL reaches only the API providers, as its own comment says. That false claim had reached the upstream commit message, which would have opened an offer with a wrong statement about the maintainer's own code; the fork branch is squashed to one commit (0cdfe70) with a corrected message, tree byte-identical to the reviewed state and gates re-run. Fourth premise correction on this ticket. Exposing the local model is deliberately NOT added: pooling, prefixes and per-repo dtype availability are all per-model, so a bare knob degrades retrieval silently — it is a registry, hence design-sized, hence an issue rather than a contained PR.
 2026-08-29T16:01Z claude note pooling exposure assessed after ticket 0421. Cost figures (download, resident, load, latency) cannot be affected: pooling is a reduction applied after the forward pass and changes vector values only, so the dtype ladder stands including the Qwen3 arm that 0421 found is lasttoken driven at mean. The one pooling-dependent figure this ticket ships upstream, the 0,992652 q8-vs-fp32 cosine, is on all-MiniLM-L6-v2, whose own 1_Pooling/config.json declares pooling_mode_mean_tokens true and pooling_mode_cls_token false — mean is correct for it and both arms used it. No committed result under bench/results/ carries a PyTorch reference, so the cross-arm asymmetry 0421 flags is a hazard for 0263/0265 rather than a defect in measured evidence. One artifact IS affected: task-recall-bge.json drove a cls model at mean and its caveat list omits pooling; no prose quotes it, so nothing rests on it. Recorded in verification/DEVICE-AUTO-0220.md.
+2026-08-29T16:29Z claude note author withdrew the remedy: no precision knob goes upstream. The lesson is that we want a registry, not a knob. 0220's motivating asymmetry — model configurable, precision not — never existed, and every axis a precision knob would need beside it turned out per-model as well: pooling (four of six candidates cls against a hardcoded mean, 0421), the input template (e5 without prefixes measures worse than an English model), and dtype availability itself (a bet on one repo's filenames, 0261). A knob shipped alone would have to be unwound by the registry that follows it. Replacement ask filed as tickets/0440, an ISSUE not a PR, blocked-by 0263 so it carries a candidate table. The RUNBOOK's pre-filled PR C form is deleted rather than parked — a form is an invitation to file. Fork branch embedding-dtype (0cdfe70) stays as a prototype nobody is offering; its reusable part, that an entry's identity must derive from its vector-affecting fields rather than its id, is already in 0261's schema. The device finding is separable, costs no slot as an issue, and remains the one thing here the maintainer cannot easily find himself.
 --- body ---
 ## Context
 
@@ -21,9 +22,18 @@ no options object (`src/features/search/embeddings.ts:182`). transformers.js
 therefore applies its own defaults, and on Node those are `DEFAULT_DEVICE_DTYPE:
 "fp32"` and the CPU provider. The shipped local path runs
 `Xenova/all-MiniLM-L6-v2` at full precision on the CPU — the most expensive rung
-of the ladder, reached by omission rather than by choice. The model is already
+of the ladder, reached by omission rather than by choice. ~~The model is already
 configurable (`ZOTEUS_EMBEDDING_MODEL`), so the asymmetry is the point: the axis
-that costs the most is the one with no knob.
+that costs the most is the one with no knob.~~
+
+> **THE STRUCK SENTENCE IS FALSE, and it was this ticket's whole motivation.**
+> The local path hardcodes `Xenova/all-MiniLM-L6-v2`;
+> `ZOTEUS_EMBEDDING_MODEL` reaches only the API providers, as the comment at that
+> call site says. Neither axis has a knob, so the asymmetry never existed and the
+> remedy it justified — a standalone precision knob — is withdrawn (log
+> 2026-08-29, `tickets/0440`). The first sentence above survives: the shipped path
+> does run at the most expensive rung by omission, and that is worth fixing. The
+> fix is a model registry, not a knob.
 
 Measured on this repo's corpus, ONNX CPU, i5-8250U, batch 1, one process per
 rung (`bench/results/0025-x1-recall/dtype-ladder-nomic.json`):
@@ -247,6 +257,12 @@ not only against a mock that cannot disagree.
 
 ## Exit criteria
 
+> **THE REMEDY IS WITHDRAWN, 2026-08-29 (author).** No precision knob is offered
+> upstream. The criteria below are kept as the record of what was built and
+> measured, not as work outstanding — every box that names the upstream filing is
+> void, and `tickets/0440` carries the ask that replaces it. This ticket now
+> closes on its evidence being recorded, which it is.
+
 - [x] `ZOTEUS_EMBEDDING_DTYPE` implemented, threaded, and covered by the tests
       above; no device variable exists
 - [ ] ~~`device: 'auto'` passed unconditionally~~ — BLOCKED on the author, and
@@ -263,5 +279,12 @@ not only against a mock that cannot disagree.
 - [x] Documented with the measured ladder and no recommendation. The device
       sentence says what measurement supports — none is passed, and none is
       configurable — rather than that it is automatic
-- [x] Branch built and validated on the fork; pre-filled PR form in RUNBOOK.md
-- [ ] PR opened only once a slot frees, and the ticket closed by that PR
+- [x] Branch built and validated on the fork. The pre-filled PR form is DELETED
+      from RUNBOOK.md rather than kept: a form is an invitation to file, and this
+      must not be filed
+- [x] ~~PR opened once a slot frees, and the ticket closed by that PR~~ — void.
+      No PR is offered. The branch stays on the fork as a prototype nobody is
+      offering, and the ask that replaces it is `tickets/0440`, an issue held
+      until 0262/0263 have a candidate table under it
+- [x] The device finding is separable and recorded, so it can travel on its own
+      at no slot cost: `verification/DEVICE-AUTO-0220.md`
