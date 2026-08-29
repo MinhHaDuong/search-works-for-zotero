@@ -2,11 +2,13 @@
 Title: The governance guard's scanned set is hand-listed, so a new spec document is unguarded by default
 Created: 2026-08-29
 Author: Minh Ha-Duong
+Closed: autoclosed — PR #54
 
 --- log ---
 2026-08-29T13:13Z Minh Ha-Duong created
 
 2026-08-29T14:17Z claude note closed by PR 52 taking Action 3's reading (a discovered document in neither list fails and is named), not Action 1's auto-scan; the two specify opposite defaults, Action 3 matches the exit criterion, and it keeps 0053's MISSING DOCUMENT check that pure derivation would have dropped
+2026-08-29T14:20Z Minh Ha-Duong closed — autoclosed — PR #54
 --- body ---
 ## Context
 
