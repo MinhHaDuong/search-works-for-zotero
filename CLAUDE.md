@@ -82,23 +82,22 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
-- One model name, one place, and now one pooling mode with it. `bench/models.json`
-  owns both; `bench/registry.py` / `.mjs` resolve them; `bench/check_models.py`
-  fails on an id hard-coded anywhere under `bench/` and on a candidate missing the
-  `pooling` / `pooling_source` pair. Read pooling off the model's own
-  `1_Pooling/config.json` — never infer it from a sibling. Four of six candidates
-  are `cls` where every driver had hardcoded `mean`, and wrong pooling degrades
+- One model name, one place: `bench/models.json`, and the same for the two things
+  that decide what a measurement means. Every driver names a model by registry id
+  and resolves it — plus its `pooling` mode and its `input_template` prefixes —
+  through `bench/registry.mjs` or `bench/registry.py`, which also decide whether the
+  run wants the ONNX mirror or the author's own repository. Adding a model means
+  adding a record. `bench/check_models.py` fails on any of the three written
+  literally anywhere else under `bench/`: a model id, including one it has never
+  heard of; a pooling mode; a declared input template. It also fails on a candidate
+  missing the `pooling` / `pooling_source` pair. Read pooling off the model's own
+  `1_Pooling/config.json` — never infer it from a sibling: four of six candidates
+  are `cls` where every driver had hardcoded `mean`, and a wrong pooling degrades
   retrieval silently, so it reads as the model being worse rather than as a bug.
 - Numbers use decimal comma and space thousands ("2 084,9 MiB", "360 811") —
   the guard cannot match US formatting.
 - Both numbers, always: any external memory claim carries the honest pair
   (e.g. 45x and 6,8x) — see README.
-- One model name, one place: `bench/models.json`. Every driver names a model by
-  registry id and resolves it through `bench/registry.mjs` or `bench/registry.py`,
-  which also decide whether the run wants the ONNX mirror or the author's own
-  repository. Adding a model means adding a record; `bench/check_models.py`
-  fails on an id hard-coded anywhere else under `bench/`, including one it has
-  never heard of.
 - Tickets: `./tickets/erg` (check / ready / new / close / log). Rules in
   `tickets/AGENTS.md`. `erg check` must pass; `erg ready` is the work queue;
   sequencing is machine-readable `Blocked-by`, not prose.
