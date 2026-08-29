@@ -1,0 +1,87 @@
+%erg 0.1
+Title: Enumerate multilingual ONNX candidates into a declared registry
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 1 of tracker 0240. Unblocked: this is enumeration, not benchmarking, and it runs before the harness because the harness is registry-driven.
+
+--- body ---
+## Context
+
+Child 1 of tracker `tickets/0240`, which owns the rationale, the R7 filter, the
+seed candidate table and the ONNX-naming constraint. Do not restate its numbers
+here; cite it.
+
+The tracker's own conclusion is that step one is enumeration rather than
+benchmarking, because `dtype` resolves through
+`DEFAULT_DTYPE_SUFFIX_MAPPING` to a specific filename and a model is only
+sweepable if its repo publishes those names. Several seed candidates fail that
+test and the failures were discovered one at a time. This ticket turns that into
+one declared artifact.
+
+The output is the file every later child reads. Nothing else in `bench/` may
+name a model.
+
+## Relevant files
+
+- `tickets/0240-choose-the-multilingual-embedder-on-meas.erg` — the tracker; the
+  seed candidate table and the rejection reasons live there
+- `bench/` — where the registry lands
+- `~/.config/keys/huggingface.env` — the token; the tracker's 401s were
+  unauthenticated probes and must be re-run with it
+
+## Actions
+
+1. Choose the registry format and place it in `bench/`. One record per model:
+   `id`, `hf repo`, `params`, `dim`, `max seq`, `languages`, `licence`,
+   `MRL yes/no`, `input template` (the e5 `query: ` / `passage: ` prefixes
+   belong here, per the tracker), `available dtypes`, `status`, `notes`.
+2. Probe each seed candidate's repo file listing **with authentication** and
+   record which of the `DEFAULT_DTYPE_SUFFIX_MAPPING` filenames exist.
+3. Re-probe the tracker's could-not-looks with the token: every
+   `onnx-community/*` mirror, `jina-embeddings-v2-base-multilingual`, plus
+   `bge-m3`, `jina-embeddings-v3` and the `snowflake-arctic-embed` family.
+4. Record three distinct states, never collapsed into a gap: **available**,
+   **confirmed absent** (queried, not published), **could not look** (401, gated,
+   network). A rejection carries its reason — R7 language list, licence, size,
+   token ceiling, or no ONNX.
+5. Keep the tracker's measured negatives (the three 128-token
+   sentence-transformers entries) as records with their disqualifying reason,
+   not as deletions.
+
+## Test
+
+- The registry parses, and every record carries every required key.
+- An adherence-style test greps `bench/` for hard-coded model ids outside the
+  registry and fails on a hit. This is the tracker's own first test and it
+  belongs here, where the registry is born.
+- The three states above are distinguishable in the schema — a test asserts that
+  "confirmed absent" and "could not look" do not serialise to the same value.
+
+## Verification
+
+- [ ] Every English-only model named in the tracker is present with an R7
+      rejection reason, not missing
+- [ ] Every 401 in the tracker was re-probed with the token, and the outcome
+      recorded either way
+- [ ] `Xenova/multilingual-e5-small` and
+      `Xenova/paraphrase-multilingual-MiniLM-L12-v2` carry their full dtype list
+- [ ] The e5 input template is in the registry, not in a driver
+
+## Invariants
+
+- R7 is a filter, not a tiebreak: an English-only model is recorded and rejected,
+  never benchmarked
+- R10: no API embedder enters the registry
+- A vendor-claimed score may be recorded as a claim; it never becomes a
+  measurement
+
+## Exit criteria
+
+- [ ] One registry file in `bench/`, covering every seed candidate and every
+      re-probed could-not-look
+- [ ] Availability recorded per `(model, dtype)`, with absence distinguished
+      from could-not-look
+- [ ] The no-hard-coded-model-id test passes

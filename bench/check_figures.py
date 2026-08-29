@@ -246,6 +246,13 @@ FIGURES = [
     # ---- 0011, the uncapped-build RSS — quoted by the redesign's gate and experiments ----
     ("0011-rss/capped-vs-uncapped.json", "baseline_uncapped_chars.peak_MiB", 1,
      {"design": None, "t0025": None, "t0026": None}),
+    # ---- 0140, the embedder window census. The 500 ceiling is worth its irregularity
+    # only while it sits below every candidate's window, so the tightest window is the
+    # figure the whole ruling rests on. Anchored rather than presence-only: 512 is also
+    # the embedder limit quoted elsewhere in this section, which is exactly the
+    # duplicate-value case a bare presence check cannot see.
+    ("0140-model-windows/candidate-windows.json", "min_window", 0,
+     {"design": "window is {} tokens, so the minimum never binds"}),
     # ---- 0013, concentration ----
     ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
     ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,

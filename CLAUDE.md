@@ -29,6 +29,11 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   own conduct, going forward. It owns the rules; the ledger keeps the rulings
   that made them, and `SYNC.md` keeps the live counts. Split ratified
   2026-08-29.
+- `SECURITY.md` — what the system holds, where it can leak, and what the design
+  currently says about each point. It describes and discloses; it decides
+  nothing, so closing a gap it names is a ruling in `spec/DECISIONS.md` and then
+  a requirement in `spec/REQUIREMENTS.md`. Standalone by ratification,
+  2026-08-29.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
@@ -61,7 +66,11 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 - `make check` must be green before any commit: ruff, the figure guard
   (`bench/check_figures.py`), the governance guard
   (`bench/check_governance.py`), the terminology guard
-  (`bench/check_terminology.py`), pytest. The figure guard is load-bearing —
+  (`bench/check_terminology.py`), the chain-dedup guard
+  (`bench/check_chain_dedup.py`), the normative-language guard
+  (`bench/check_normative.py`), pytest. This list is prose and drifts: the
+  Makefile's `check` target is what actually runs, and it gained two guards
+  before this sentence did. The figure guard is load-bearing —
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.

@@ -67,6 +67,7 @@ stays at the top level.
 | [`spec/FIELD-REVIEW.md`](spec/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`spec/DECISIONS.md`](spec/DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
+| [`SECURITY.md`](SECURITY.md) | What this system holds, where it can leak, and the design's current answer for each |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Operational handoff and measurement record |
 | [`RUNBOOK.md`](RUNBOOK.md) | How to run the measurements, and on which substrate |
@@ -76,7 +77,10 @@ stays at the top level.
 | [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
 | [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
 
-The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
+The authoritative chain is: rulings enter `DECISIONS.md` first, and
+`REQUIREMENTS.md`, `CONSTRAINTS.md` and `DESIGN.md` are edited to match. A
+ratified line stays open to a later veto; the veto lands in `DECISIONS.md` as
+a new entry, and the other documents then follow. Requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
 tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
 than inside it: it surveys what already exists, owns no design number, and
@@ -87,10 +91,26 @@ enforces that, since a glossary is the easiest place to leave a second copy of a
 threshold. `GOVERNANCE.md` sits
 outside the chain altogether: it holds the rules we set for our own upstream
 conduct, which the specification has no use for and a reader of the upstream
-relationship should not have to dig for. Panel documents are
-inputs, not conclusions; the adversarial design-review record of cycle 2 is in
-git history, last present at
-commit `e32afe3` as `panel/cycle2/`, as are the other superseded documents.
+relationship should not have to dig for. `SECURITY.md` sits outside it as
+well: it discloses what the system holds and where that can leak, and it
+decides nothing, so a gap it names closes as a ruling like any other. Panel
+documents are inputs, not conclusions; the adversarial design-review record of
+cycle 2 is in git history, last present at commit `e32afe3` as `panel/cycle2/`,
+as are the other superseded documents.
+
+Each document in the chain has its own organising principle, and the chain
+requires this. `DECISIONS.md` reads chronologically, because ratification
+happens in time and the record must show what came before what.
+`REQUIREMENTS.md` and `CONSTRAINTS.md` read enumeratively, as checklists (R1
+to R28, C1 to C4), because a reader needs to check off one promise or one
+fact about the world, not follow an argument. `DESIGN.md` reads
+architecturally, by section and subsystem, because architecture has structure
+that a chronological or enumerative spine would flatten. This follows from
+the authority split above: a document organised around when something was
+decided cannot also be organised around what it does. Forcing one spine on
+all four would cost the property that makes the chain worth having, which is
+each document readable the way its own content demands. A reader arriving
+mid-chain should expect the difference rather than read it as inconsistency.
 
 ## How work leaves this repository
 

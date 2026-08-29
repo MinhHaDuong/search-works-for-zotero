@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance terminology help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance terminology chain-dedup normative help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -21,10 +21,13 @@ help:
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
 	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
 	@echo "make terminology — the glossary defines and points; it restates no design number"
+	@echo "make progress    — the status page covers every requirement, and its bars match its rows"
+	@echo "make chain-dedup — the authority chain is described once, in README.md"
+	@echo "make normative   — every R-item declares its RFC 2119 force"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance terminology check-fast
+check: lint figures governance terminology chain-dedup normative check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -60,6 +63,29 @@ governance:
 # does not excuse it. Ticket 0051.
 terminology:
 	python3 bench/check_terminology.py
+
+# The fourth guard, for a rule rather than a number or a bound. The authority
+# chain was described in its own words in each of the five chain documents;
+# CLAUDE.md's "one statement per fact" says it belongs in one place. Ticket 0054.
+chain-dedup:
+	python3 bench/check_chain_dedup.py
+
+# The fifth guard. RFC 2119 only pays if the convention holds: an R-item
+# written next year with a lowercase "must" reads exactly like the ones that
+# carry force. Two checks, failing in opposite directions — a stray lowercase
+# modal inside a contract line, and an R-item with no keyword at all, which a
+# lowercase-modal grep structurally cannot see. Ticket 0050.
+normative:
+	python3 bench/check_normative.py
+
+# The fourth guard, over spec/README.md. The status page restates nothing —
+# every row is a status and an address — so the figure guard has nothing to
+# anchor there. What can rot instead is coverage and arithmetic: a requirement
+# added to the sheet and never given a row, or a status edited in the table and
+# not in the bar above it. Both are silent, and both leave the page looking
+# complete, which is worse than no page. Ticket 0300.
+progress:
+	python3 bench/check_progress.py
 
 upstream-status:
 	@set -eu; \

@@ -147,3 +147,14 @@ def test_a_bare_number_is_not_admitted_by_any_class(tmp_path):
     ):
         repo = build(tmp_path / f"near_miss_{n}", "# T\n\n" + line + "\n")
         assert ct.run(repo) == 1, f"not flagged: {line!r}"
+
+
+def test_the_repo_itself_is_clean():
+    """The guard's own subject, which every sibling guard's suite asserts.
+
+    Without this the terminology guard was reachable only through the Makefile:
+    `make check-fast` re-validates the live tree for the other four guards and
+    was blind to this one, so a stale glossary would have survived a bare pytest
+    run. Parity, one line, and it costs nothing.
+    """
+    assert ct.run(REPO) == 0

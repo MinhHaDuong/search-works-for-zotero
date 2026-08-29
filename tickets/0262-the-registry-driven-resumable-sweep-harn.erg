@@ -1,0 +1,95 @@
+%erg 0.1
+Title: The registry-driven resumable sweep harness in bench/
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0261
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 2 of tracker 0240. The deliverable is the harness, tested before any campaign runs on it — a benchmark that silently measures the wrong thing produces confident wrong answers for weeks.
+
+--- body ---
+## Context
+
+Child 2 of tracker `tickets/0240`, which owns the rationale. The tracker's
+explicit requirement: adding a model later costs one line and a run, not a
+rewrite.
+
+Two measurement disciplines were learned the hard way and are requirements, not
+preferences — warm runs only, and repeats with a reported spread. The tracker
+records what a cold run cost and what the warm spread is; cite it rather than
+repeating the figures.
+
+This ticket ships no measurements. It ships the thing that takes them, plus the
+tests that say it is taking the right ones.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- the registry from `tickets/0261`
+- `bench/query_embed_cost.mjs` — RAM, latency, batch 1
+- `bench/quant_fidelity.mjs` — vectors at a rung
+- `bench/quant_fidelity_score.py` — fidelity and rank agreement
+- `bench/merge_dtype_ladder.py` — cost ladder
+- `bench/vec_task_recall.mjs` — recall
+- the scratch `sweep.sh` / `fidsweep.sh` pattern, to be promoted into `bench/`
+
+## Actions
+
+1. Promote the scratch sweep scripts into `bench/` as one registry-driven runner.
+   Reuse the five drivers above; do not write a sixth thing that overlaps them.
+2. Key each result file on `(model, dtype, device, corpus, driver version)`, one
+   file per cell, written incrementally. A partial sweep is a valid state.
+3. Make it idempotent and resumable: a completed cell is skipped, an absent cell
+   is run. The runs are long and will be interrupted.
+4. One process per cell, so RSS is what a fresh server pays rather than a delta
+   against a warmed allocator.
+5. Download first, then measure. Never let a cold run enter a table.
+6. Repeat every RSS cell over five fresh processes; report median with spread.
+7. Hash the resolved ONNX file per cell. On a collision with a cell already
+   measured, record the cell as a duplicate rather than spending a run on it.
+8. Apply the registry's per-model input template in the driver, and record it in
+   every result file.
+9. Record the four engine versions and the device actually selected — not the
+   device requested — in every result file.
+10. Make the scorer read what exists: report a missing cell as missing and score
+    the rest, rather than failing or silently reporting a short table.
+
+## Test
+
+Written before the campaign, per the tracker:
+
+- A cell already present is skipped and NOT recomputed; a cell absent IS run.
+  Assert both directions — "skips everything" and "resumes correctly" look
+  identical on a full directory. This is the positive control that makes the
+  skip test a check rather than a null.
+- The scorer reports a missing cell as missing and still scores the rest.
+- Positive control on the fidelity scorer: fp32 against itself returns cosine
+  1,0 and overlap 1,0.
+- A duplicate ONNX hash is recorded as a duplicate, and no second run is spent.
+  Drive it with two registry entries pointing at one known-identical file.
+- A recorded engine-version mismatch between a result file and the running
+  environment is surfaced, not ignored.
+- A model unloadable at a dtype is recorded as a result, not as an absent cell —
+  the two must not serialise the same way.
+
+## Verification
+
+- [ ] Adding one candidate to the registry and re-running measures only the new
+      cells; demonstrate it by adding one
+- [ ] `make check` green
+- [ ] No model id appears in `bench/` outside the registry
+
+## Invariants
+
+- The registry stays the only place a model name appears
+- Existing artifacts in `bench/results/0025-x1-recall/` are not deleted or
+  rewritten
+- R20's RSS gate is NOT loosened or disabled to make a run pass — it goes red for
+  the right reason and is re-pinned only in `tickets/0268`
+
+## Exit criteria
+
+- [ ] Registry-driven resumable harness in `bench/`, with every test above
+- [ ] The five existing drivers are reused, not duplicated
+- [ ] A demonstrated resume: one added candidate measures only its own cells

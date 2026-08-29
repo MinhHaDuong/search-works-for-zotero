@@ -1,0 +1,69 @@
+%erg 0.1
+Title: Stale sentences the RFC 2119 pass could not fix
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T00:00Z claude created
+2026-08-29T00:00Z claude note surfaced by ticket 0050's planning pass; filed on 0050's PR branch
+
+--- body ---
+## Context
+Ticket 0050 assigned an RFC 2119 force to every R-item. Its own bound is that
+it changes no requirement, threshold or budget: anything reading like a new
+ruling goes through DECISIONS.md first. Planning that pass turned up four
+sentences that are simply out of date against rulings ratified on 2026-08-29,
+and correcting them is a substance change 0050 does not own. They are listed
+here so the debt is visible rather than buried in a commit message.
+
+Keywording stale text produces a plausible-looking wrong artifact — a sentence
+that now carries contract force and says something the author has already
+overruled. That is why 0050 held these back instead of tidying them in passing.
+
+## The four sentences
+
+1. `spec/REQUIREMENTS.md` R20's parenthetical still says the two questions
+   "await the author's ruling in DECISIONS.md". Both were ratified 2026-08-29:
+   the RSS gate runs in the slow suite with a fast-tier mechanism proxy, and
+   the synthetic surrogate satisfies R20's intent conditional on periodic
+   revalidation. 0050 already dropped "on every check" from R20's main
+   sentence, which the first of those rulings made false; the parenthetical
+   below it was left alone.
+
+2. `spec/DESIGN.md` §2.9's RAM paragraph says "It awaits the author's
+   ratification, stated once in DECISIONS.md". The per-process scoping was
+   ratified the same day.
+
+3. `spec/DESIGN.md` §2.8's R20 gate bullet closes with "ratification is pending
+   in DECISIONS.md". Same ruling, same staleness. The "conditional on periodic
+   revalidation" clause in that ratification is a textbook RFC 2119 escape and
+   should be recorded as SHOULD once the text is corrected.
+
+4. `spec/CONSTRAINTS.md` C3's ratified-budgets list gives "server steady-state
+   RSS ≤ ~300 MB" without the per-process scoping the 2026-08-29 entry added.
+
+## Two open questions for the author, not decisions to take
+
+- §2.9's disk budget (≈ 0,8–0,9 GB) carries no keyword. No gate in §2.8 asserts
+  it, so MUST would invent a gate and SHOULD would invent an escape the author
+  never granted. It reads as an estimate. Confirm, or say which it is.
+- C2's constrained-MATCH permission took MAY in 0050. The behaviour is arguably
+  owned by DESIGN §2.6 under "one statement per fact", in which case the
+  keyword belongs there and C2's line becomes a pointer.
+
+## Also left undone, deliberately
+
+C3's ratified-budgets bullets and the Politeness section state obligations as
+bare declaratives with no modal verb, so `bench/check_normative.py` cannot see
+them — it scopes to R-items. Giving them keywords is defensible under 0050's
+exit criterion ("only obligations take keywords") and was held back because
+0050's Action 4 says to leave CONSTRAINTS.md's statements of fact alone. The
+same is true of the three rulings above the R-item list in REQUIREMENTS.md,
+which carry lowercase "must not" in what are plainly obligations.
+
+## Exit criteria
+- [ ] The four sentences say what DECISIONS.md ratified on 2026-08-29
+- [ ] The two open questions are answered, in DECISIONS.md if either is a ruling
+- [ ] A decision is recorded on whether C3's bare-declarative obligations and
+      the three rulings take keywords, and the guard's scope follows it
+- [ ] `make check` passes

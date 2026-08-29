@@ -1,8 +1,7 @@
 # DECISIONS — the ratification ledger
 
-*Append-only. The author's rulings land here first; REQUIREMENTS.md,
-CONSTRAINTS.md and DESIGN.md are then edited to match. Any ratified line
-remains vetoable on later reading — a veto is a new entry here.*
+*Append-only — this document is authority's chronological point of entry; its
+role in the full chain is stated once, in README.md.*
 
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
@@ -341,6 +340,78 @@ embedder is resident, so it is re-pinned in the same change as C3, never
 before. And the pipeline peak (`<= 500 MB regardless of document size`) is a
 separate budget on the worker, untouched by this ruling — an embedder resident
 in the server does not license a larger extraction peak.
+
+**2026-08-29 — the plain-language rewrite is accepted, and its voice is the
+specification chain's standard.** Ticket 0036 rewrote REQUIREMENTS.md,
+CONSTRAINTS.md and DESIGN.md out of the cycle-2 panel's compressed idiom, on the
+author's verdict of 2026-08-27 that "the house style is purely llm at the
+moment, not my voice yet". The author read all three and accepted them; the veto
+route the ticket reserved into this ledger went unused. What this settles past
+those three files: prose entering the specification chain later is written in
+that voice rather than the panel's, which is the standard for 0050's normative
+keywords, 0051's glossary and 0052's security section. The rewrite's own bounds
+carry with it — R-, C-, D- and section numbers survive as the addressing scheme
+tickets point into, the requirements list holds R-items only, and each preamble
+is an Intro section.
+
+**2026-08-29 — the chunk budget is `min(500, modelMax) − specialTokens −
+prefix`, and the resolved budget is recorded in the chunker key.** §2.2 read
+120 / 768 / 48, "Zotero's geometry, adopted verbatim". That was wrong twice
+over: 768 is the platform's ceiling rather than its chunk size, and the
+platform pairs that ceiling with a minimum against the model's own window
+which we did not copy. We took a ceiling, used it as a target, and dropped the
+guard that made it safe, while the embedder truncates past its window in
+silence — ticket 0140 measures the identity and its positive control.
+
+Ratified against the two other constructions the ticket put up, and differing
+from both:
+
+- **The minimum stays**, rather than a bare constant below 512. A fixed number
+  is safe only against models at or above it: it covers the long-window case
+  the ticket worried about and fails silently on a short-window one, which
+  0140's first verification criterion does not check. Safety by construction
+  beats safety resting on a premise about which models exist.
+- **The ceiling is 500, not 768.** Every model in ticket 0240's candidate set,
+  plus the one zoteus loads today, declares a window above 500 — measured, not
+  assumed (`verification/probes/model-window-census.py`, artifact
+  `bench/results/0140-model-windows/candidate-windows.json`, 2026-08-29; the
+  figures are stated in DESIGN.md §2.2, which owns them). So the minimum never
+  binds across the candidate set, the budget resolves to one number whichever
+  model 0240 picks, and the chunk key is stable in fact. At 768 it would bind
+  at each model's own window instead, roughly half again as much text averaged
+  into one vector under a long-window model than under today's — in the
+  direction §2.2's standing caveat calls degradation, since one vector is a
+  fixed-size summary and a model accepting more text is not a reason to give
+  it more.
+- **The resolved budget goes in the chunker key.** The dependency on the
+  embedder is real in form even where it does not bind, and C1's staged
+  invalidation is worth more when a change that *does* move the budget
+  invalidates chunks loudly. This amends the invariant 0140 stated for itself,
+  "the chunk key does not depend on the embedder": it does, through the
+  resolved budget and nothing else, and that value is constant across every
+  candidate measured.
+
+**A field-selection problem the ballot did not see, and the second argument for
+the low ceiling.** "The model's limit" is not one number. One candidate
+declares four position-limit fields spanning a factor of four, the larger ones
+extrapolation past what was trained; another declares different limits in its
+config and its tokenizer config. Any construction reading `modelMax` must
+therefore name which field it reads, and that choice moves the budget. The
+census takes the minimum over every field a model declares, the only reading
+that cannot over-feed. At a ceiling of 500 the question stops mattering, which
+is an argument the ballot could not make because it had not measured.
+
+**Riding with the ruling:** the platform's quarter-rule, where a heading path
+costing more than a quarter of the budget is dropped entirely rather than
+truncated. The ceiling bounds the whole embedded sequence, heading path
+included, and `min(500, width) − affordances` is not `min(width − affordances,
+500)`.
+
+**Not settled here.** §2.9's passage count is recomputed from a measurement
+rather than divided; `truncation: true` on the embed call remains 0140's
+action 4, competing for upstream budget on its own merits. "Adopted verbatim"
+is replaced rather than made true: the construction is the platform's, the
+ceiling is ours, and §2.2 now says which is which.
 
 
 ## Awaiting ratification

@@ -9,9 +9,9 @@ being derived without knowing what had been derived already.
 
 Authority: this document owns the inventory, and each project's observed state
 at the date its entry gives. It owns no design number, no requirement, and no
-threshold. Rulings are in DECISIONS.md, the contract in REQUIREMENTS.md and
-CONSTRAINTS.md, every design number in DESIGN.md; where a finding below bears
-on ours, it points at the owning document rather than restating it.
+threshold — the chain that does is named once, in README.md. Where a finding
+below bears on ours, it points at the owning document rather than restating
+it.
 
 Three rules bind every line.
 

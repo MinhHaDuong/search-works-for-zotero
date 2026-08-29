@@ -4,13 +4,12 @@
 
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
 every design number: the gate thresholds (§2.8), the experiment decision
-rules (§3), and the budgets (§2.9). The requirements it serves are in
-REQUIREMENTS.md, the constraints it operates under are in CONSTRAINTS.md,
-and the author's rulings are recorded in DECISIONS.md. The raw panel record
-is in git history, last present at commit `e32afe3` as `panel/cycle2/`; where
-it disagrees with this document, this document is the record. The predecessor
-design (cycle 1's "The Settled Ledger", called v1 below) is superseded and
-lives in git history.
+rules (§3), and the budgets (§2.9). Its place in the authority chain is
+stated once, in README.md. The raw panel record is in git history, last
+present at commit `e32afe3` as `panel/cycle2/`; where it disagrees with this
+document, this document is the record. The predecessor design (cycle 1's
+"The Settled Ledger", called v1 below) is superseded and lives in git
+history.
 
 How cycle 2 worked, in two sentences: six architects each re-ran the design
 through one lens (derivation, corpus, custody, concurrency, query, operator)
@@ -212,11 +211,48 @@ it is re-pinned at entry granularity, not before. Contentless FTS
 external-content layout is the probed fallback, chosen once and recorded in
 meta.
 
-**Chunking.** Tokens on structural boundaries: 120 minimum / 768 maximum /
-48 overlap (Zotero's geometry, adopted verbatim), never across entries,
-with overlap only inside a split paragraph. (For the record: the claim that
-upstream chunks below Zotero's minimum holds only for its 512-char
-*metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
+**Chunking.** Tokens on structural boundaries: 120 minimum / 48 overlap,
+never across entries, with overlap only inside a split paragraph. The maximum
+is not a constant but a budget, resolved once per model (ratified 2026-08-29):
+
+    budget = min(500, modelMax) − specialTokens − count(passagePrefix)
+
+and the resolved budget is recorded in the chunker key, so a model change that
+moves it invalidates chunks explicitly rather than silently. The construction
+is the platform's; the ceiling is ours, and the difference is deliberate.
+Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with this
+same minimum against the model's window. Cycle 2 copied the ceiling, used it as
+a target, and dropped the minimum — which is what left a 768-token chunk
+unreadable by a 512-token embedder with nothing raised.
+
+The ceiling is 500 because it sits below every window in play. Across the nine
+embedders of ticket 0240 plus the one zoteus loads today, the tightest declared
+window is 512 tokens, so the minimum never binds: the budget resolves to the
+same number under every candidate, which is what keeps the chunk key stable
+across a model swap. Measured, not assumed
+(`verification/probes/model-window-census.py`, artifact
+`bench/results/0140-model-windows/candidate-windows.json`). A ceiling of 768
+would bind at each model's own window instead, giving roughly half again as
+much text per vector under a long-window model. That is not free capacity: one
+vector is a fixed-size summary, and averaging more text into it degrades
+retrieval whatever window the model advertises.
+
+`modelMax` means the minimum over every position-limit field the model
+declares. The fields disagree: one candidate declares four of them spanning a
+factor of four, the largest being extrapolation past what it was trained on,
+and another declares different limits in its config and its tokenizer config.
+A construction naming no field is therefore underspecified. At this ceiling the
+ambiguity never bites, and the rule is stated so it stays that way should the
+ceiling ever move.
+
+The heading path is charged to this budget, and dropped entirely rather than
+truncated when it would cost more than a quarter of it — a deeply nested entry
+should not yield a chunk that is mostly breadcrumb. Ordering matters: the
+budget bounds the whole embedded sequence, path included, so
+`min(500, width) − affordances` is not `min(width − affordances, 500)`.
+
+(For the record: the claim that upstream chunks below Zotero's minimum holds
+only for its 512-char *metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
 inside the band. The move to token-structural chunking rests on the boundary
 ruling, not on that comparison.)
 
@@ -599,7 +635,7 @@ measured 374 ms cold scan.
 
 The prefix accounting: the boundary cursor is the total-order key
 `(dateAdded, lib, itemKey)`, never the bare date, because several items can
-share a `dateAdded` and the boundary must be able to stop partway through
+share a `dateAdded` and the boundary MUST be able to stop partway through
 such a tie group. It passes settled states
 (`done | empty | quarantined | band0-done`). `outOfBand` is pure set
 membership: covered items older than the boundary, decremented as the
@@ -623,10 +659,10 @@ one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
 sections(record)`, everything else 0; then a simulated identical-bytes
 resync → zero recompute: every `*.done` delta 0, the touched items
 appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
-the gate must permit exactly that and nothing downstream of it). This is
+the gate MUST permit exactly that and nothing downstream of it). This is
 R11 measured by R27's own counters, the test that would have caught the
 shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
-monster, dateAdded ties. The harness must fail on the corpus that exercises
+monster, dateAdded ties. The harness MUST fail on the corpus that exercises
 its subtraction terms, not only pass on the gentle one.
 
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
@@ -670,10 +706,17 @@ instead of silently duplicating work.
 
 ### 2.9 Budgets, recomputed and honestly scoped
 
-**Disk** at the design point, under the token geometry (both counts stated):
-768-token chunks give ≈ 250–300k passages from the same corpus that yields
+**Disk** at the design point, under the token geometry (both counts stated).
+**The passage count is pending re-measurement.** The ≈ 250–300k figure was
+derived at a 768-token maximum, which the 2026-08-29 ruling replaced with
+`min(500, modelMax) − affordances` (§2.2); a smaller budget yields more
+passages, not fewer, so every disk figure in this paragraph is an
+underestimate until it lands. Ticket 0140 recomputes it by measuring, not by
+scaling this number: under structural chunking the maximum rarely binds, since
+an entry shorter than the budget yields one chunk whatever the ceiling, so
+arithmetic on the ratio would overstate the correction. The same corpus yields
 650k under the old 1 200-char stride; bench comparability keeps the old
-count, and the budgets use the new. FTS ~0.3–0.4 GB + gzip slabs ~0.23 GB
+count. FTS ~0.3–0.4 GB + gzip slabs ~0.23 GB
 (680 MB raw at ~3:1) + int8 sidecar ~0.1 GB (300k × 384) + metadata/ledger
 ~0.1 GB ≈ ~0.8–0.9 GB, under v1's 2.3 GB, because passage text is no
 longer stored twice (passages are references into slabs) and the chunks are
@@ -689,8 +732,11 @@ in DECISIONS.md. Dual-embed no longer threatens the budget (the lazy-load
 rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
-single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget
-3 s, unchanged, and now without the hidden second scan (§2.6).
+single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in
+≈ 300–700 ms, and MUST stay inside the hard budget of 3 s (R6), unchanged and
+now without the hidden second scan (§2.6). The typical figure is the
+preference; the hard budget is the escape, which is what makes this a SHOULD
+rather than a MUST.
 
 ---
 

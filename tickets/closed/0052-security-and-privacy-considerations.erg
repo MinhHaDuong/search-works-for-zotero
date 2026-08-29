@@ -2,13 +2,15 @@
 Title: Security and privacy considerations for the specification chain
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0036
+Closed: autoclosed — PR #52
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
 2026-08-29T12:00Z minh note placement ratified: standalone SECURITY.md (DECISIONS.md 2026-08-29)
 
+2026-08-29T13:47Z Minh Ha-Duong note blocker 0036 closed — Blocked-by removed.
+2026-08-29T14:12Z Minh Ha-Duong closed — autoclosed — PR #52
 --- body ---
 ## Context
 Every IETF RFC carries a mandatory Security Considerations section. The

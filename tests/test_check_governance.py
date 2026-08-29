@@ -105,3 +105,44 @@ def test_every_bound_is_detected(tmp_path):
         repo = tmp_path / name.replace(" ", "_")
         build(repo, {"spec/DESIGN.md": phrase + "\n"})
         assert cg.run(repo) == 1, f"{name} was not detected in {phrase!r}"
+
+
+def test_an_arriving_document_must_be_triaged(tmp_path):
+    """The positive control for the completeness check.
+
+    This is the half of the scope problem that used to fail silently. A document
+    that leaves breaks the build at the missing-document check; a document that
+    arrives was simply never read, and nothing said so. FIELD-REVIEW.md sat
+    unscanned that way. The fixture drops in a new root-level document listed
+    nowhere, and the guard must refuse it.
+    """
+    repo = build(tmp_path, {})
+    (repo / "THREATS.md").write_text("A new document nobody triaged.\n")
+    assert cg.run(repo) == 1
+
+
+def test_an_arriving_spec_document_must_be_triaged(tmp_path):
+    """Same defect one directory down, where FIELD-REVIEW.md actually landed."""
+    repo = build(tmp_path, {})
+    (repo / "spec" / "GLOSSARY.md").write_text("Also untriaged.\n")
+    assert cg.run(repo) == 1
+
+
+def test_a_triaged_document_is_accepted(tmp_path):
+    """Listing the arrival in either list clears it. Otherwise the check is a wall."""
+    repo = build(tmp_path, {})
+    (repo / "STATE.md").write_text("Operational, and listed as unscanned by design.\n")
+    assert cg.run(repo) == 0
+
+
+def test_verification_reports_are_out_of_scope(tmp_path):
+    """Evidence, not authority: a different object class, deliberately unglobbed."""
+    repo = build(tmp_path, {})
+    (repo / "verification").mkdir()
+    (repo / "verification" / "ACCEPTANCE-9999.md").write_text("A report.\n")
+    assert cg.run(repo) == 0
+
+
+def test_the_repo_itself_is_fully_triaged():
+    """Every document in the real tree is in exactly one list."""
+    assert cg.uncovered(REPO) == set()
