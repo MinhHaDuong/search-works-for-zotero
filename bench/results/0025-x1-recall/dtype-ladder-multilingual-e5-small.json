@@ -1,0 +1,62 @@
+{
+  "what": "cost of every published quantization rung, at query time (batch 1)",
+  "model": "Xenova/multilingual-e5-small",
+  "runtime": "@huggingface/transformers in Node (ONNX), the runtime zoteus ships",
+  "rungs": [
+    {
+      "dtype": "fp32",
+      "download_mb": 448.5,
+      "rss_delta_mb": 756.9,
+      "query_ms_median": 10.8,
+      "query_ms_p95": 17.9,
+      "load_ms": 2556.1,
+      "dim": 384
+    },
+    {
+      "dtype": "q8",
+      "download_mb": 112.8,
+      "rss_delta_mb": 421.4,
+      "query_ms_median": 5.7,
+      "query_ms_p95": 9.9,
+      "load_ms": 1685.7,
+      "dim": 384
+    },
+    {
+      "dtype": "uint8",
+      "download_mb": 112.6,
+      "rss_delta_mb": 404.4,
+      "query_ms_median": 7.9,
+      "query_ms_p95": 11.7,
+      "load_ms": 1560.8,
+      "dim": 384
+    }
+  ],
+  "would_not_load": [
+    "fp16"
+  ],
+  "failure_note": "fp16 aborts at session init on the CPU provider, with the SAME failure as nomic-768 on a different architecture: 'Attempting to get index by a name which does not exist: InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0 for node /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion'. nomic is a BERT variant, e5 is XLM-R; two unrelated graphs, one optimizer pass. This is an ONNX Runtime graph-optimizer defect in SimplifiedLayerNormFusion under fp16, not a model quirk. q4/q4f16/bnb4 were not swept: below the floor ratified for ticket 0240.",
+  "caveats": [
+    "RSS from a COLD run, with a download in flight, moved by up to 49 MB against the same cell warm. Only warm runs are comparable. Re-measured warm over five fresh processes, the spread is 2,5-6,9 MB, so warm figures are good to about 10 MB and no better. The e5-small rungs in this file are warm single runs; the repeated q8 figure is 419,5 MB against the 421,4 recorded below, which is inside that band.",
+    "One process per rung, warm cache: RSS is the total a fresh server process pays (ONNX Runtime and Node included), not the marginal cost of the weights. Loading a second model into a live process costs less, because the runtime is already there.",
+    "load_ms is warm \u2014 the weights were already downloaded. A first run also pays the download in the size column.",
+    "download_mb is the published ONNX file size on the Hugging Face repo, external data files included.",
+    "Cost, not quality. Read beside the fidelity ladder, never instead of it."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      3.81,
+      5.96,
+      7.56
+    ],
+    "node": "v22.23.1"
+  },
+  "why_this_model": "Zotero core's multilingual pick (spec/FIELD-REVIEW.md), and the only R7-eligible model with any evidence in this repo. Loaded from Xenova/multilingual-e5-small, not intfloat/multilingual-e5-small: the original repo publishes model_O4.onnx and model_qint8_avx512_vnni.onnx, which the transformers.js dtype knob cannot address beyond fp32.",
+  "verdict": "Does NOT fit CONSTRAINTS.md C3. Its cheapest rung holds 404,4 MB resident, 1,35x the ratified 300 MB server ceiling, and no rung measured comes close. Note this is the SMALLER model of the two compared: 118M parameters and 384 dimensions against nomic-768's 137M and 768, yet 404,4 MB against nomic's 235,2 MB.",
+  "why_the_inversion": "RETRACTED as a mechanism. This field previously asserted that the embedding table sets the resident floor and that quantization does not shrink it in memory. The FILE arithmetic still fits that reading. The RESIDENT arithmetic does not survive a second multilingual model: granite-embedding-97m-multilingual-r2 has a 263,7 MB fp32 table against e5-small's 366,3 MB \u2014 102,6 MB apart \u2014 and measures 407,8 MB against 419,5 MB, 11,7 MB apart (warm, q8, five fresh processes each, spread under 7 MB). A vocab x dim predictor matched e5-small to a tenth of a megabyte because it had been calibrated on e5-small, and missed Granite by 106 MB on its first out-of-sample test. Cause unknown; do not carry the vocabulary explanation forward without measuring it.",
+  "design_consequence": "Multilingual costs roughly 405-420 MB resident at its cheapest loadable rung, against 234,2 MB for nomic-768 (English, 30k vocabulary). Two independent multilingual candidates agree. None fits CONSTRAINTS.md C3's 300 MB. Ruled 2026-08-29 (spec/DECISIONS.md): R7 is hard and C3's ceiling gives way; the replacement number follows the embedder that ticket 0240 selects. The reason to state this as a measurement rather than as a law is that the mechanism behind it is not established \u2014 see why_the_inversion.",
+  "prefix_requirement": "e5 models require 'query: ' and 'passage: ' prefixes. The model card FAQ: 'Do I need to add the prefix...? Yes, this is how the model is trained, otherwise you will see a performance degradation.' The drivers here add NO prefix. That leaves cost and dtype-vs-dtype fidelity valid, and would make any RECALL figure wrong and unfairly low against models needing no prefix. 0240's registry must carry a per-model input template."
+}
