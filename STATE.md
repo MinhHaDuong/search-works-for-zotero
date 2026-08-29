@@ -371,10 +371,12 @@ from "could not look".
 Two things bound what this opens. Packs are lazy and per reading session:
 **2 of 13 631 attachments** with extracted text have one, and no bulk operation
 this project can invoke will make more — so SDT is an *enrichment* for papers a
-user actually reads, never a general chunking input. And the pack is not JSON
-but a custom binary container (magic `89 53 44 54 0d 0a 1a 0a`, a u32 offset
-table, sections that are not raw deflate and carry no printable text); reading
-one means vendoring or reimplementing Zotero's own decoder. Neither costed.
+user actually reads, never a general chunking input. The second bound is now
+retired: the pack is a custom binary container (magic
+`89 53 44 54 0d 0a 1a 0a`, a u32 offset table), but its sections **are** raw
+deflate, and reading one needs neither vendoring nor reimplementing Zotero's
+decoder. `bench/sdt_read.py` is that reader, ~200 lines with tests, and it
+parses both packs on this machine. Cost known, not estimated.
 
 ## Binary quantization, now measured on real vectors (0008)
 

@@ -131,6 +131,56 @@ def test_truncated_pack_is_refused(tmp_path):
         read_pack(path)
 
 
+@pytest.mark.parametrize("cut", [16, 20, 24, 28, 36])
+def test_truncation_inside_the_index_region_raises_sdterror(tmp_path, cut):
+    # Every count below the header derives from the index, so a slice that ran
+    # off the end used to shorten silently and surface as struct.error or
+    # IndexError -- outside the error contract a caller can catch.
+    full = build_pack(METADATA, CATALOG, [BLOCKS])
+    path = _write(tmp_path, full[:cut])
+    with pytest.raises(SDTError):
+        read_pack(path)
+
+
+def _patch_u32(pack: bytes, offset: int, value: int) -> bytes:
+    return pack[:offset] + struct.pack("<I", value) + pack[offset + 4:]
+
+
+# The index sits at byte 16: metadataLength, catalogLength, then the two u32
+# series. With one content chunk each series has two entries.
+_BYTE_OFFSETS_AT = 16 + 8
+_BLOCK_STARTS_AT = _BYTE_OFFSETS_AT + 4 * 2
+
+
+def test_block_starts_that_report_no_blocks_are_refused(tmp_path):
+    # THE defect this reader exists to prevent. Flattening the block series
+    # makes every chunk hold zero blocks: the pack parses, raises nothing, and
+    # returns an empty document. A probe reading zero would mean nothing, which
+    # is the failure the ticket log records this project already having hit.
+    clean = build_pack(METADATA, CATALOG, [BLOCKS])
+    assert len(read_pack(_write(tmp_path, clean))["blocks"]) == 3
+
+    path = _write(tmp_path, _patch_u32(clean, _BLOCK_STARTS_AT + 4, 0))
+    with pytest.raises(SDTError, match="strictly increasing"):
+        read_pack(path)
+
+
+def test_index_series_must_start_at_zero(tmp_path):
+    clean = build_pack(METADATA, CATALOG, [BLOCKS])
+    with pytest.raises(SDTError, match="first chunk block start"):
+        read_pack(_write(tmp_path, _patch_u32(clean, _BLOCK_STARTS_AT, 1)))
+    with pytest.raises(SDTError, match="first chunk offset"):
+        read_pack(_write(tmp_path, _patch_u32(clean, _BYTE_OFFSETS_AT, 4)))
+
+
+def test_zero_length_metadata_or_catalog_is_refused(tmp_path):
+    clean = build_pack(METADATA, CATALOG, [BLOCKS])
+    with pytest.raises(SDTError, match="metadata length"):
+        read_pack(_write(tmp_path, _patch_u32(clean, 16, 0)))
+    with pytest.raises(SDTError, match="catalog length"):
+        read_pack(_write(tmp_path, _patch_u32(clean, 20, 0)))
+
+
 def test_block_text_joins_runs_and_block_page_reads_the_rectangle():
     assert block_text(BLOCKS[1]) == "Author(s): Lionel W. McKenzie"
     assert block_page(BLOCKS[0]) == 0

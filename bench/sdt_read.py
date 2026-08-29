@@ -67,6 +67,30 @@ def _inflate(buf: bytes) -> bytes:
     raise SDTError("range is not deflate-compressed")
 
 
+def _validate_index(path: Path, metadata_length: int, catalog_length: int,
+                    byte_offsets: list[int], block_starts: list[int]) -> None:
+    """Mirror `validateIndexShape` from the shipped module.
+
+    Without this a corrupt index does not raise — it *under-reports*. Zeroing
+    `block_starts[0]`'s successor yields a pack that parses cleanly and returns
+    no blocks, which is the one failure this reader exists to prevent: a probe
+    that reads zero and means nothing.
+    """
+    if metadata_length <= 0:
+        raise SDTError(f"{path}: invalid metadata length {metadata_length}")
+    if catalog_length <= 0:
+        raise SDTError(f"{path}: invalid catalog length {catalog_length}")
+    if not byte_offsets or len(byte_offsets) != len(block_starts):
+        raise SDTError(f"{path}: invalid chunk index shape")
+    if byte_offsets[0] != 0:
+        raise SDTError(f"{path}: first chunk offset is {byte_offsets[0]}, not 0")
+    if block_starts[0] != 0:
+        raise SDTError(f"{path}: first chunk block start is {block_starts[0]}, not 0")
+    for name, series in (("chunkByteOffsets", byte_offsets), ("chunkBlockStarts", block_starts)):
+        if len(series) > 1 and any(b <= a for a, b in zip(series, series[1:])):
+            raise SDTError(f"{path}: {name} is not strictly increasing")
+
+
 def read_pack(path: Path) -> dict:
     """Parse a pack into {header, metadata, catalog, blocks}."""
     raw = path.read_bytes()
@@ -81,17 +105,23 @@ def read_pack(path: Path) -> dict:
     index_length = _u32(raw, 12)
     if index_length < INDEX_FIXED_SIZE + U32 * 2 or (index_length - INDEX_FIXED_SIZE) % (U32 * 2):
         raise SDTError(f"{path}: invalid index length {index_length}")
+    # Guard before slicing, not after. A slice past the end shortens silently,
+    # and every count below derives from the index, so a truncated file would
+    # otherwise escape as struct.error or IndexError instead of SDTError.
+    if len(raw) < HEADER_SIZE + index_length:
+        raise SDTError(f"{path}: truncated inside the index region")
 
     index = raw[HEADER_SIZE:HEADER_SIZE + index_length]
     metadata_length, catalog_length = _u32(index, 0), _u32(index, 4)
-    n = (len(index) - INDEX_FIXED_SIZE) // (U32 * 2)
+    n = (index_length - INDEX_FIXED_SIZE) // (U32 * 2)
     byte_offsets = [_u32(index, INDEX_FIXED_SIZE + U32 * i) for i in range(n)]
     block_starts = [_u32(index, INDEX_FIXED_SIZE + U32 * n + U32 * i) for i in range(n)]
+    _validate_index(path, metadata_length, catalog_length, byte_offsets, block_starts)
 
     meta_at = HEADER_SIZE + index_length
     catalog_at = meta_at + metadata_length
     content_at = catalog_at + catalog_length
-    if content_at + byte_offsets[-1] != len(raw):
+    if content_at > len(raw) or content_at + byte_offsets[-1] != len(raw):
         raise SDTError(f"{path}: declared layout does not match file length")
 
     metadata = json.loads(_inflate(raw[meta_at:catalog_at]))

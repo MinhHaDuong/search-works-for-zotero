@@ -137,9 +137,12 @@ measurements in the log of ticket 0120.
   form-feed count equals `fulltextItems.indexedPages` for 4 471 of the
   4 708. The current path is `Zotero.PDFWorker.getFullText` writing straight
   through; nothing in the shipped app writes the older `.zotero-ft-info`
-  sidecars, of which 2 788 survive on disk. Zotero does not re-extract on
-  upgrade, so both generations are permanent and page boundaries cannot be
-  assumed.
+  sidecars, of which 2 788 survive on disk. What is observed is that caches
+  written between 2019 and 2024 are still present on a machine now running
+  10.0, so upgrading did not rewrite them; that no upgrade ever re-extracts
+  is an inference from it, untested here. `rebuildIndex()` in `fulltext.js`
+  would re-extract and has no caller in the shipped app. Either way both
+  generations are live today, so page boundaries cannot be assumed.
 - It is readable while Zotero runs, and fast. A read-only open of the live
   file returned a count in 7 ms and a `MATCH` in 8 ms with the application
   up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
