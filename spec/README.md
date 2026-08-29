@@ -59,9 +59,10 @@ executed at all — merged pull requests, design documents, reasoning. The
 was checked from one that was argued.
 
 Only the arithmetic is mechanical: every bar and every tally is recomputed
-from the rows, never a row from a measurement. Ticket 0026 is what converts
-the delivered column from argued to derived, by wiring the gates R19, R20 and
-R21 already demand.
+from the rows, never a row from a measurement. Closing the gap is tracked in
+ticket 0400, whose unit is the MUST clause rather than the requirement, and
+whose first children already exist: the fixture corpus in ticket 0029 and the
+gates in ticket 0026, two of which — R19 and R20 — demand a check that runs.
 
 Nothing recomputes a status when upstream ships, so the page is invalidated
 instead: the moment the reviewed baseline in [`../UPSTREAM`](../UPSTREAM)
