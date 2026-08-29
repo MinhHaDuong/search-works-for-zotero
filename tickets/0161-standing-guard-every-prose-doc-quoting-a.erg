@@ -18,12 +18,12 @@ Three times in one session a prose document quoting this repo's own measurements
 turned out to sit outside `bench/check_figures.py`'s `PROSE` map, so its figures
 could drift with nothing able to see it:
 
-- `DECISIONS.md` — caught by `/gaze` on PR #26. The entry drifted onto a
+- `spec/DECISIONS.md` — caught by `/gaze` on PR #26. The entry drifted onto a
   superseded run (97,2 / 4 088,7 ms against the artifact's 87,6 / 4 893,9)
   within a day of being written. Worst possible home for the defect: a ratified
   entry is never edited again, so the wrong number becomes permanent.
 - `RUNBOOK.md` — caught by the /roar sweep, eight values over six sites (0160).
-- `CONSTRAINTS.md` — caught by review of 0160, which had recorded it as a clean
+- `spec/CONSTRAINTS.md` — caught by review of 0160, which had recorded it as a clean
   negative. Its figures carry space thousands and no decimal comma, so the
   decimal-comma grep that cleared it could not see them.
 

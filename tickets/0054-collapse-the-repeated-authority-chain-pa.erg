@@ -44,10 +44,10 @@ the rewritten voice, and these are the same paragraphs.
 
 ## Relevant files
 - `README.md` — the "authoritative chain is:" sentence, the canonical site
-- `REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — Intro sections
-- `DECISIONS.md` — its italic front matter states the chain too; the front
+- `spec/REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — Intro sections
+- `spec/DECISIONS.md` — its italic front matter states the chain too; the front
   matter is NOT a ratified entry and may be edited, unlike the entries below
-- `FIELD-REVIEW.md` — the newest Intro; include it
+- `spec/FIELD-REVIEW.md` — the newest Intro; include it
 
 ## Actions
 1. Diff the four Intros against each other and mark each sentence as

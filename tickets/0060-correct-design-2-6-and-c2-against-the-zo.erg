@@ -76,9 +76,9 @@ edited to match. That order is the chain's rule, and this ticket does not
 get to skip it — which is why it carries `needs-human`.
 
 ## Relevant files
-- `DESIGN.md` §2.6, and lines 211 and 666
-- `CONSTRAINTS.md` C1, C2
-- `DECISIONS.md` — the two entries land here first
+- `spec/DESIGN.md` §2.6, and lines 211 and 666
+- `spec/CONSTRAINTS.md` C1, C2
+- `spec/DECISIONS.md` — the two entries land here first
 - `verification/VERIFY-FULLTEXT-SQLITE.md` — the evidence
 
 ## Actions
