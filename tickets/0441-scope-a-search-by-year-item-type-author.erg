@@ -1,0 +1,124 @@
+%erg 0.1
+Title: Scope a search by year, item type, author and title
+Created: 2026-08-29
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-29T17:41Z Minh Ha-Duong created
+
+2026-08-29T17:42Z claude note filed at the author's request after the year-scope measurement. Two of the four facets he named are R5 clauses (date, item type) and two are not (creator, title), so action 1 is a ruling rather than code — R5 enumerates collection, tag, item type and date, and building a creator filter against a requirement that does not name one is how a sheet drifts. Title is the odd one: it is already stored on both items and passages and already searchable as text, so filtering by it may mean a field restriction rather than a scope, which is a different feature. Blocked-by is deliberately NOT set on the ratification entries: they are questions to the author rather than work items, and a Blocked-by pointing at a ledger entry would be unresolvable by any executor
+--- body ---
+## Context
+The author asked to search his library scoped by **year**, and named
+**author**, **title** and **doctype** alongside it. Two measurements already
+bear on this and they point opposite ways, so the first job of this ticket is
+to keep them apart.
+
+**X4 does not block this.** X4 measured one mechanism — an arbitrary rowid set
+shipped through `json_each` — and found it dominated by not scoping at all. That
+is the mechanism a *collection* or a *tag* needs, because their membership is a
+set the index does not store. It was reported to the author as though it closed
+the door on scoping generally; it does not, and that misreading is what this
+ticket exists to correct in code.
+
+**A stored attribute is affordable, measured.** `bench/results/0025-year-scope/`
+runs each scope both ways over the same items and the same queries on the real
+477 512-passage index: an indexed year predicate answers where the `json_each`
+blob is 43x slower, and against the same run's unconstrained baseline the filter
+is free to within noise — a five-year and a ten-year scope both come out
+*cheaper* than no filter, because the predicate removes work.
+
+**The blocker is not latency. The index stores no date.** `items` is
+`(item_key, title)`; `passages` carries `(pid, id, item_key, title, text,
+source, vector)`. There is no date, no creator, no item type. So three of the
+four facets asked for are not slow today — they are impossible. Adding a year
+column and its indexes over the whole index cost 529 ms in the probe, and
+Zotero's local API already returns `meta.parsedDate` and `data.itemType`, so the
+build has the values in hand.
+
+**Upstream takes no filters at all.** `zotero_semantic_search`'s input schema is
+`q`, `limit`, `mode`, `auto_build` — nothing else — and its own description
+redirects field filtering to `zotero_search_items`, which filters but does not
+rank semantically and which measured at seconds per query, unranked
+(ticket 0025). So the capability needs an API surface as well as a column.
+
+## Where each facet stands against the sheet
+This matters because two of the four are R5 clauses and two are not, and the
+difference is the author's to rule on rather than ours to assume.
+
+| facet | in R5's letter? | stored today? |
+|---|---|---|
+| year / date | **yes** — R5 names date | no |
+| item type (doctype) | **yes** — R5 names item type | no |
+| author / creator | **no** | no |
+| title | **no** | yes, on both `items` and `passages` |
+
+R5 enumerates "collection, tag, item type, or date". Author and title are
+outside its letter. Title is already stored and already searchable as text, so
+"filter by title" may mean something different from the other three — a field
+restriction rather than a scope — and that should be settled before it is built.
+Extending R5 to name creator, or filing a sibling requirement, is a ruling for
+`spec/DECISIONS.md` and is NOT decided here.
+
+R5's constraint on *how* is already satisfied by the measured shape: the filter
+is applied while ranking, so truncation happens after it, which is what R5's
+"before any answer is truncated" demands. R5 forbids post-filtering a top-k that
+claims completeness; it does not require constraining MATCH, and says so.
+
+## Relevant files
+- `bench/year_scope.mjs` — the measurement, both mechanisms, with the control.
+- `bench/harvest_years.py` — pulls `meta.parsedDate` from the local API.
+- `bench/results/0025-year-scope/year-vs-json-each.json` — the artifact.
+- `spec/DECISIONS.md` — carries both awaiting-ratification entries: X4's ladder
+  consequence, and the stored-attribute entry this ticket implements.
+- `spec/REQUIREMENTS.md` R5 — the promise; R18 — what an empty scope must say.
+- Upstream `src/features/search/sqlite-index.ts` (schema), `build.ts` (where item
+  metadata is written), `src/tools/semantic-search.ts` (the input schema).
+
+## Actions
+1. Settle the scope question first, since two facets are unratified: put the
+   author/title reading to the author and record the ruling. Do not build a
+   creator filter against a requirement that does not name one.
+2. Add the columns the facets need to the index schema — at minimum `year` and
+   `item_type` on `items`, `creator` if ruling 1 admits it — populated at build
+   time from data the crawl already fetches. Note this is a schema change, and
+   upstream has no migration path (issue #34): every user re-embeds unless that
+   is addressed first, which is an argument for landing this *with* a migration
+   rather than before one.
+3. Extend the query path to take an optional filter and apply it while ranking,
+   never after truncation.
+4. Surface the filter on `zotero_semantic_search`'s input schema.
+5. Answer R18 honestly for a scoped query: when the ranked stream is exhausted
+   before k is filled, say "this scope is not indexed yet" or "nothing matches"
+   *for the scope asked about*. This is the rung that catches what the filter
+   cannot, and X4's verdict made it load-bearing.
+
+## Test
+Red first, on a fixture index carrying two items of different years: a query
+scoped to the year of the non-matching item must return zero hits AND a
+`scope{}` block saying which — not an empty list. That test fails today for the
+strongest possible reason, which is that no filter argument exists to write.
+
+## Verification
+- [ ] A year-scoped query returns only items of that year, on the real library
+- [ ] The filter is applied before truncation, shown by a case where an
+      unscoped top-k contains none of the in-scope hits
+- [ ] p95 for a scoped query stays within the unscoped baseline's band on the
+      real index (the probe measured no marginal cost; this re-checks it in the
+      server rather than in SQL)
+- [ ] An empty scoped result carries R18's distinction
+- [ ] `make check` green
+
+## Invariants
+- X4's verdict stands: no `json_each` rowid-set step ships. This ticket adds a
+  different mechanism, it does not retry that one.
+- R5's "before any answer is truncated" is not weakened to a post-filter.
+- Coverage honesty (R4, R17) survives: a scoped answer must not read as complete
+  when the scope is only partly indexed.
+- Nothing here is filed upstream without the author's authorization.
+
+## Exit criteria
+- [ ] The author/title reading is ruled on in `spec/DECISIONS.md`
+- [ ] Year and item-type scoping work end to end against the real library
+- [ ] R18's scope block answers an exhausted scope
+- [ ] The stored-attribute ledger entry is ratified and DESIGN.md edited to match
