@@ -1,11 +1,24 @@
 # STATE — Search Works for Zotero
 
-*Repository state reconciled 2026-08-28 — 20 tickets closed, 17 open; reviewed
+*Repository state reconciled 2026-08-30 — 35 tickets closed, 42 open; reviewed
 upstream baseline v1.9.0 (`bb414df`); PR #25 merged the day it was filed; the
 in-container half of 0025 is measured and decided (X7, X1-timing, X4 —
 verdicts in that ticket); the remaining workstation steps live in
 `RUNBOOK.md` (self-sunsetting); superseded implementation archived at
 `archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
+
+*Embedder study, 2026-08-29/30: ticket 0240 was decomposed into a tracker plus
+eight children (0261–0268) — it is the work train for choosing a multilingual
+embedder, and only 0261 has landed. `bench/models.json` is now the registry, and
+it owns three things a measurement depends on: the model id, the `pooling` mode,
+and the `input_template` prefixes. Each has a guard in `bench/check_models.py`
+with a demonstrated red state. The finding that motivated the pooling column:
+four of the six candidates pool with `cls` while every driver had hardcoded
+`mean`, so a sweep run before 0421 would have scored four candidates low —
+including both Granite models — and it would have read as evidence rather than a
+bug. Next on the train is 0262, the resumable sweep harness. 0264 (GPU arm) and
+0268 (C3's replacement value) are labelled `needs-human`: the first needs padme,
+the second needs a ruling in `spec/DECISIONS.md`.*
 
 Operational handoff and measurement record for the open workshop on semantic
 retrieval in Zotero. Zoteus is the current reference implementation and
@@ -511,3 +524,14 @@ covers the harness. The load-bearing check is not the suite but **same corpus
 in, same results out** against the current index — a green suite passes on a
 refactor that quietly changed ranking, which is why the comparison at the top of
 this file is run rather than assumed.
+
+## Status
+<!-- generated 2026-08-29T18:06Z · as of 16c2c67 -->
+
+**Tickets:** 23 ready · 19 blocked · 2 awaiting author — `erg ready tickets/` for full list
+  next: 0016 Upstream concurrency floor: the cross-library w… · 0024 File the upstream issues (I-1..I-3; I-4 folded …
+**In flight:** no open PRs
+**Recent (first-parent):**
+  16c2c67 Merge pull request #82 from MinhHaDuong/doc-one-statement-per-fact
+  1cffd4d Merge pull request #74 from MinhHaDuong/worktree-explore-zoteus-library
+  292aed1 Merge pull request #80 from MinhHaDuong/t0422-close-pooling-gaps
