@@ -299,6 +299,19 @@ FIGURES = [
     # The number that decides whether the deletion is worth its cost at all.
     ("0025-x2-stopwordless/x2-mechanism.json", "what_it_buys.mean_top20_overlap", 1,
      {"t0025": "overlap between the arms is {}%", "t0014": "{}% identical top-20"}, "pct"),
+    # ---- Zotero's own search: the null alternative, and the baseline every latency
+    # figure here lacked. One pass per query, so declared but coarse by construction.
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "latency_ms.median", 1,
+     {"t0025": "median {} ms, p95"}),
+    # No space after `p95` on purpose. Anchors are matched against the DESPACED text, and
+    # `p95` ends in a digit, so the separator before the figure sits between two digits and
+    # despace() glues them: `p95 4 198,5` compares as `p954198,5`. An anchor head ending in
+    # a digit must therefore drop the space the prose actually has. The guard caught this
+    # as a stale figure, which is the right refusal for the wrong-looking reason.
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "latency_ms.p95", 1,
+     {"t0025": "p95{} ms, against 392,3 ms stock"}),
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "matches_per_query.median", 0,
+     {"t0025": "the median query matches {} items"}),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),
