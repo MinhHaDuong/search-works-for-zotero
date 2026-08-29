@@ -1,0 +1,106 @@
+%erg 0.1
+Title: Standing guard: every prose doc quoting a measurement is in PROSE
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0160
+
+--- log ---
+2026-08-29T11:20Z claude created
+2026-08-29T13:10Z claude note /gaze REROLL 1: CONSTRAINTS.md is a third instance, not the clean negative recorded here. Action 1's scope widened from top-level *.md to every tracked prose file plus tickets/**/*.erg, since three verification/ files quote artifact figures today; added a non-top-level fixture checkbox, the mechanism for obtaining the pre-0160 tree, and the reconciliation with check_figures.py's no-scanning docstring.
+
+--- body ---
+## Context
+
+Blocked-by 0160, which fixes the instance. This is the class.
+
+Three times in one session a prose document quoting this repo's own measurements
+turned out to sit outside `bench/check_figures.py`'s `PROSE` map, so its figures
+could drift with nothing able to see it:
+
+- `DECISIONS.md` — caught by `/gaze` on PR #26. The entry drifted onto a
+  superseded run (97,2 / 4 088,7 ms against the artifact's 87,6 / 4 893,9)
+  within a day of being written. Worst possible home for the defect: a ratified
+  entry is never edited again, so the wrong number becomes permanent.
+- `RUNBOOK.md` — caught by the /roar sweep, eight values over six sites (0160).
+- `CONSTRAINTS.md` — caught by review of 0160, which had recorded it as a clean
+  negative. Its figures carry space thousands and no decimal comma, so the
+  decimal-comma grep that cleared it could not see them.
+
+Three independent instances of one shape is a class, and the shape is specific:
+**the guard validates what someone declared, so a document nobody declared is
+indistinguishable from a document with nothing to declare.** `make check` was
+green throughout all three. That is the same "all-clear indistinguishable from
+I-could-not-look" failure CLAUDE.md already names as this repo's most expensive
+recurring defect, one level up — at the level of which documents are in scope
+rather than which figures are.
+
+## What makes this hard, and why a grep is not the answer
+
+`FIELD-REVIEW.md` carries 24 measurement-shaped figures and belongs OUTSIDE the
+guard: they are other projects' claimed numbers, surveyed, with no artifact of
+ours behind them. So the rule cannot be "every .md with a decimal comma must be
+in PROSE" — that fires on the survey and teaches everyone to silence it, which
+is worse than no guard. The opposite rule fails too: the decimal-comma grep that
+cleared `CONSTRAINTS.md` returned zero on figures written with space thousands,
+and reported that as an all-clear.
+
+The distinguishing property is provenance, not shape: a figure that MATCHES a
+value in `bench/results/**` is one of ours. That is checkable — the guard already
+walks those artifacts.
+
+That provenance narrowing is also what reconciles this with `check_figures.py`'s
+own docstring, which refuses to scan prose and attribute numbers because "a
+check that guesses produces noise until someone turns it off". This scan does
+not guess: it fires only on an exact match against a value the guard already
+reads, and it reports scope, not correctness. Where the match is coincidental —
+`FIELD-REVIEW.md` will collide with `bench/results/**` values by accident — a
+whole-file allowlist entry may be too blunt, and the allowlist should be able to
+name a file-and-figure pair with its reason.
+
+## Actions
+
+1. Add an adherence test that, for every tracked prose file not in `PROSE` —
+   `*.md` at any depth, `tickets/**/*.erg` included — extracts
+   measurement-shaped figures and fails if any matches a value present in
+   `bench/results/**` at the guard's own rendering (decimal comma, space
+   thousands, and the same digits without separators). Top-level `*.md` is too
+   narrow to deliver the exit criterion: `verification/ACCEPTANCE-0036.md`,
+   `verification/VOICE-PASS.md` and `verification/VOICE-PILOT.md` each quote
+   `584 of 8 037` or `2 084,9 MiB` today, and `PROSE` already declares six
+   ticket files, so tickets are established territory — these two tickets among
+   them.
+2. Give it an explicit allowlist with a REASON per entry, so excluding
+   `FIELD-REVIEW.md` is a recorded decision rather than a silent omission.
+3. Make the failure message name the file, the figure and the artifact it
+   matched, so the fix is mechanical.
+
+## Test
+
+Red step first, and it is the whole point: run the new test against the tree as
+it stood BEFORE 0160 landed and confirm it flags RUNBOOK.md. A guard written
+after the fact that has never seen its own defect is not known to work. Take
+that tree by reading the pre-0160 map with
+`git show <pre-0160-ref>:bench/check_figures.py`, which means the test must
+accept the `PROSE` map as a parameter rather than importing the module global.
+Then confirm it stays silent on FIELD-REVIEW.md.
+
+## Verification
+
+- [ ] the test fails on the pre-0160 tree, naming RUNBOOK.md and CONSTRAINTS.md
+- [ ] the test passes on the current tree
+- [ ] it reaches `verification/ACCEPTANCE-0036.md` — a non-top-level file
+      quoting `2 084,9 MiB` and `584 of 8 037` — so the scope cannot narrow
+      back to top-level `*.md` unnoticed
+- [ ] FIELD-REVIEW.md does not trigger it, and its allowlist entry states why
+- [ ] a new prose doc quoting an artifact figure trips it
+
+## Invariants
+
+- The existing 160 declared pairs keep passing.
+- No change to what `check_figures.py` does for declared documents; this adds a
+  scope check above it, it does not alter the anchor logic.
+
+## Exit criteria
+
+- A prose document that quotes one of this repo's measurements cannot sit
+  outside the figure guard without an allowlist entry giving the reason.
