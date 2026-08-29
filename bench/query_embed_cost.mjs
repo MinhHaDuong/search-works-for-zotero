@@ -106,7 +106,11 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
   const at = (q) => Number(times[Math.min(times.length - 1, Math.floor(times.length * q))].toFixed(1));
 
   models.push({
+    // The repository is what was loaded; the registry id is what the run was asked
+    // for. They differ whenever a model is loaded from a mirror, and a cell that
+    // records only the first cannot be traced back to its record.
     model,
+    model_id: token,
     dim: warm.data.length,
     dtype: opt.dtype ?? '(runtime default)',
     device: opt.device ?? '(runtime default)',

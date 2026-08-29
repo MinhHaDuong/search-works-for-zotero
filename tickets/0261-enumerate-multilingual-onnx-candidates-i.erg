@@ -7,6 +7,7 @@ Author: claude
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 1 of tracker 0240. Unblocked: this is enumeration, not benchmarking, and it runs before the harness because the harness is registry-driven.
 
+2026-08-29T14:51Z claude note Registry, guard, readers, probe and its artifact are in bench/ and verification/probes/ — see Artifacts produced. Three states are carried by real records, not only by the schema: the gte upstream repo is a confirmed absence, the jina v2 multilingual id a could-not-look whose rejection rests on a separate query. The probe runs a positive and a negative control every time, so a confirmed_absent beside them is a finding rather than a blind grep.
 --- body ---
 ## Context
 
@@ -31,6 +32,17 @@ name a model.
 - `bench/` — where the registry lands
 - `~/.config/keys/huggingface.env` — the token; the tracker's 401s were
   unauthenticated probes and must be re-run with it
+
+## Artifacts produced
+
+- `bench/models.json` — the registry
+- `bench/check_models.py` — the guard, run by `make models` and by `make check`
+- `bench/registry.py`, `bench/registry.mjs` — the readers every driver resolves through
+- `tests/test_check_models.py` — the tests, including the declared-boundary one
+- `verification/probes/probe_onnx_dtypes.py` — the authenticated probe, with its
+  positive and negative controls
+- `bench/results/0261-onnx-registry/onnx-availability.json` — its output
+- `bench/results/0261-onnx-registry/probed-repos.txt` — the repo list that run read
 
 ## Actions
 

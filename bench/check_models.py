@@ -27,10 +27,10 @@ than a pass.
     python3 bench/check_models.py [repo-root]
 """
 
+import argparse
 import json
 import logging
 import re
-import sys
 from pathlib import Path
 
 logger = logging.getLogger("check_models")
@@ -47,8 +47,10 @@ SCANNED_ROOT = "bench"
 #: Data, not code. A result record names the model it measured and must: a cell
 #: whose provenance is anonymous cannot be read a month later. Skipping the
 #: directory is the one place this guard trades coverage for meaning, and it is
-#: bounded — nothing under it is executable.
-SKIPPED = ("bench/results",)
+#: bounded — nothing under it is executable. The trailing slash is load-bearing:
+#: without it a sibling named `results_backup` or `results-2026` would inherit the
+#: exemption by prefix, and an exemption nobody granted is the one nobody audits.
+SKIPPED = ("bench/results/",)
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
 #: owner. This file holds the vocabulary by construction — the owner names below
@@ -123,6 +125,13 @@ KNOWN_OWNERS = {
 
 #: Model-family words. These make `owner/name` a model id whatever the owner is,
 #: which is how a publisher nobody has heard of yet still gets caught.
+#:
+#: The boundary is real and it is declared rather than papered over: an id from an
+#: unlisted publisher whose name carries none of these words escapes — a Russian or a
+#: fashion-retrieval model would. Widening the pattern until nothing escapes turns
+#: every `owner/name` string in a comment into a failure, and a guard that cries wolf
+#: gets exempted rather than fixed. `test_the_heuristic_boundary_is_declared` pins
+#: what escapes today, so the hole is a known size instead of an assumption.
 FAMILY = re.compile(
     r"embed|e5|bge|gte|minilm|mpnet|distiluse|arctic|granite|nomic|jina|labse|"
     r"gemma|qwen|multilingual|paraphrase|instructor|stella",
@@ -290,10 +299,21 @@ def run(root: Path) -> int:
     return 0
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "root",
+        nargs="?",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent,
+        help="repository root to check (default: this file's repository)",
+    )
+    return parser.parse_args()
+
+
 def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
-    return run(root)
+    return run(parse_args().root)
 
 
 if __name__ == "__main__":

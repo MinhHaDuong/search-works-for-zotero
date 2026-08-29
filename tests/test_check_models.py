@@ -228,3 +228,58 @@ def test_the_e5_input_template_lives_in_the_registry():
 def test_exemptions_are_only_the_registry_and_the_guard():
     """Every exemption is a hole; two are argued in the guard, a third is not."""
     assert cm.EXEMPT == {cm.REGISTRY, "bench/check_models.py"}
+
+
+def test_the_data_exemption_does_not_extend_to_siblings_by_prefix():
+    """`bench/results_backup/` is not `bench/results/`, and must not inherit its pass."""
+    assert cm.SKIPPED == ("bench/results/",)
+
+
+def test_the_heuristic_boundary_is_declared():
+    """What escapes the grep today, pinned so the hole is a size and not a surprise.
+
+    Catching every conceivable repo id would mean treating every `owner/name` string
+    in every comment as a model, and a guard that cries wolf gets exempted rather
+    than fixed. These are real embedding models whose publisher is unlisted and whose
+    name carries no family word: they would slip past. Anyone who widens the pattern
+    should watch this test go red and delete the entry, not the test.
+    """
+    escapes = ["sergeyzh/rubert-tiny-turbo", "ai-forever/ru-en-RoSBERTa"]
+    for model in escapes:
+        assert not cm.model_ids_in(f"const m = '{model}';"), f"{model} is now caught"
+    # And the boundary is a boundary, not a blanket: an unlisted publisher with a
+    # family word in the name is still caught.
+    assert cm.model_ids_in("const m = 'acme-labs/super-bge-v9';")
+
+
+def test_the_registry_agrees_with_the_probe_artifact():
+    """Availability is observed once and copied; a copy that drifts is the defect.
+
+    The registry's blocks are written by the probe. Nothing stops a hand edit, and a
+    hand-edited availability is exactly the "read a 401 as an absence" mistake coming
+    back through a different door.
+    """
+    registry = cm.load_registry(REPO)
+    artifact = json.loads(
+        (REPO / registry["probe"]["artifact"]).read_text(encoding="utf-8")
+    )
+    probed = {record["repo"]: record for record in artifact["results"]}
+    for record in registry["models"]:
+        observed = probed.get(record["hf_repo"])
+        assert observed, f"{record['id']}: {record['hf_repo']} is in no probe run"
+        assert record["availability"]["state"] == observed["state"], record["id"]
+        assert record["availability"]["http_status"] == observed["http_status"], record["id"]
+        assert record["availability"]["dtypes"] == (observed.get("dtypes") or {}), record["id"]
+
+
+def test_a_pytorch_loader_resolves_the_upstream_repository():
+    """The mirror publishes ONNX; the author's repo publishes the weights.
+
+    A sentence-transformers loader handed the ONNX mirror benchmarks a different
+    artifact and says nothing about it, so the pairing is checked rather than trusted.
+    """
+    for path in sorted((REPO / "bench").glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        if "SentenceTransformer(" not in source or "resolve_model" not in source:
+            continue
+        assert 'kind="upstream"' in source, f"{path.name} loads PyTorch weights from a mirror"

@@ -86,7 +86,10 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
   const perRow = (performance.now() - t1) / texts.length;
 
   const row = {
+    // The repository is what was loaded; the registry id is what the run was asked
+    // for. They differ whenever a model is loaded from a mirror.
     model,
+    model_id: token,
     dim,
     load_ms: +loadMs.toFixed(0),
     ms_per_passage: +perRow.toFixed(1),
