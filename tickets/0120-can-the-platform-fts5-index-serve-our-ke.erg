@@ -1,0 +1,99 @@
+%erg 0.1
+Title: Can the platform FTS5 index serve our keyword path?
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T14:00Z claude created
+2026-08-29T14:00Z minh note filed after the fulltext.sqlite probe; the author calls this an important gate
+
+--- body ---
+## Context
+Zotero 10 ships a finished keyword index that zoteus does not use. The
+platform facts are verified and recorded in CONSTRAINTS.md C2; this ticket
+decides what, if anything, we do about them.
+
+What is on disk today, measured on the author's machine 2026-08-29:
+`fulltext.sqlite`, four contentless FTS5 tables, 13 090 content documents.
+`fulltextContent.rowid` is the local `itemID`, joined 13 090 of 13 090. A
+read-only open of the live file answered a count in 7 ms and a `MATCH` in
+8 ms with Zotero running.
+
+What zoteus does instead: it reads `/items/<key>/fulltext` and
+`/fulltext?since=` over the local API and builds its own keyword index from
+the text. That is why the Zotero 10 move did not break it, where the field
+review found three projects broken by reading `zotero.sqlite` directly.
+
+So the keyword half of retrieval may already exist, for free, with no
+extraction pass, no build time and no memory budget. That is the gate.
+
+## What makes it a real question and not an obvious win
+Three things cut against it, and any recommendation has to answer all three.
+
+**The text does not come back.** The tables are contentless. `MATCH` says
+which items match; `snippet()` and the stored column return nothing,
+measured. Our unit of answer is the entry (ratified 2026-08-26), and
+locating an entry needs the text. So the platform index can serve "which
+items", never "which passage" — at best it replaces part of the keyword
+path, not the path.
+
+**It is undocumented and it moves.** No release note names `fulltext.sqlite`,
+FTS5, or the split; the 10.0 changelog says only "Much faster full-text
+content searches". It already moved once, silently, at userdata step 127.
+Depending on an internal file is exactly the exposure C2 exists to describe.
+
+**Concurrency is weaker than ours.** `journal_mode` is `delete`, not WAL, so
+a writer takes an exclusive lock. Reads are cheap but not guaranteed
+available, and we do not control when Zotero writes.
+
+## Actions
+1. Establish what a hybrid would actually buy. Measure our own keyword build
+   (wall time, peak RSS, disk) against zero for the platform path, on the
+   same library. A saving nobody measured is not a saving.
+2. Determine what the platform index cannot answer that R-items require.
+   Work from REQUIREMENTS.md, not from intuition: entry-level location (the
+   ratified unit), coverage honesty (R4, R17), the filters, accent and CJK
+   behaviour. Anything on that list the index cannot serve is a hard bound
+   on how much of the keyword path it can take.
+3. Test availability under real write load. Run reads while Zotero indexes a
+   large attachment and record failures and latencies. A positive control is
+   required: force a writer to hold the lock and confirm the probe reports
+   the failure rather than silently returning stale or empty.
+4. Compare the tokenizers. `fulltextContent` is unicode61 where ours is
+   configured for our own folding rules; state where the two disagree, since
+   a difference changes which queries match and is not a performance detail.
+5. Price the coupling. If we read it, name what breaks when Zotero moves it
+   again, and how we would detect that before a user does. SYNC.md's watch
+   on `fulltext.js` and `userdata.sql` (ticket 0060) is the detection half.
+6. Recommend, with the reasoning: use it, ignore it, or use it behind a
+   fallback that rebuilds our own index when the file is absent, locked, or
+   schema-shifted.
+
+## Test
+An experiment, not a unit test. Build the comparison in the bench harness so
+the numbers land in `bench/results/` and can be declared in the figure
+guard. Every figure quoted in prose from this work gets an anchor.
+
+## Verification
+- [ ] The saving is measured on the real library, not estimated
+- [ ] Every R-item the platform index cannot serve is named
+- [ ] The availability probe has a positive control that fires
+- [ ] The recommendation states what breaks on the next platform move
+
+## Invariants
+- The entry as unit of answer is ratified and not reopened here. If the
+  platform index cannot serve it, that bounds the ticket's scope; it does
+  not reopen the ruling.
+- Coverage honesty (R4, R17) survives whatever is decided. An index we did
+  not build is still an index we must report on truthfully, including its
+  staleness, which we do not control.
+- C1 holds: anything derived from the platform index is derived data and
+  carries a key, the platform's own `localUserKey` included.
+- Nothing here is filed upstream. The PR budget is untouched.
+
+## Exit criteria
+- [ ] The measured comparison exists in bench/results/
+- [ ] The bound (what it cannot answer) is stated against REQUIREMENTS.md
+- [ ] Availability under write load is measured, with a positive control
+- [ ] A recommendation is recorded, and if it changes the design it goes to
+      DECISIONS.md first

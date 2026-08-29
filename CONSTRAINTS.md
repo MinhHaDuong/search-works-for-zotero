@@ -100,6 +100,41 @@ The scouts sharpened this constraint on five points:
 - Once #6012's saved-search serialization merges, it will be the first
   place platform semantic results appear in the local API.
 
+Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
+author's own installation (10.0, build 20260817151751) and the shipped
+`fulltext.js` of that build; the evidence is in
+`verification/VERIFY-FULLTEXT-SQLITE.md`.
+
+- The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
+  and `fulltextItemWords` and moved the keyword index into a separate
+  attached database, `fulltext.sqlite`. Upstream commit `7c2a1d1`,
+  2026-06-30, tagged in 10.0.0 and 10.0.1 only.
+- The schema is four contentless FTS5 tables plus their bookkeeping:
+  `fulltextContent` (unicode61), `fulltextContentCJK` (ascii, fed
+  overlapping 2-grams), `fulltextNotes` (trigram), `fulltextNotesCJK`,
+  with `fulltextIndexState`, `noteText` and `fulltextIndexMeta`. On the
+  author's library: 13 090 content documents, 386 CJK, 1 200 notes.
+- A row identifies an item directly. `fulltextContent.rowid` is the local
+  `itemID`, joined 13 090 of 13 090 against `fulltextIndexState`.
+- Contentless means the text does not come back. `MATCH` answers which
+  items match. `snippet()` and the stored column both return nothing,
+  measured. Zotero keeps the text in the `.zotero-ft-cache` files, not in
+  the index.
+- It is readable while Zotero runs, and fast. A read-only open of the live
+  file returned a count in 7 ms and a `MATCH` in 8 ms with the application
+  up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
+  WAL, so a writer takes an exclusive lock and a reader is cheap but not
+  guaranteed available.
+- Nothing documents any of this. The 10.0 changelog says only "Much faster
+  full-text content searches", naming neither the file, nor FTS5, nor the
+  split. This is an internal implementation file that has already moved
+  once without announcement, which is the C2 risk in its purest form.
+- Zoteus does not read it. It reaches full text over the local API
+  (`/items/<key>/fulltext` and `/fulltext?since=`), so the move did not
+  break it, and the platform's finished keyword index currently goes
+  unused. Whether to depend on it is a design question, carried by ticket
+  0120.
+
 ## C3 — the machine belongs to the user
 
 Background work runs at leftover priority. The RAM ceiling is independent
