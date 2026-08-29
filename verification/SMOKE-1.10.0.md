@@ -118,9 +118,32 @@ measured, where `auto` improves 12,2x against `semantic`'s 49,3x.
 - The five subjects were chosen by the agent from the library's evident
   domains, and relevance was judged by reading the hits. That is a smoke test,
   not a recall measurement.
-- A fresh build from the live library was started under
-  `ZOTEUS_INDEX_MAX_ITEMS=30` to exercise the path end to end. It had not
-  finished when this report was written, holding 2,02 GiB resident — the
-  RSS class ticket 0011 recorded for the uncapped monster document, reached
-  here at a 30-item cap. Unfinished, so no verdict; the observation is
-  recorded because the cap was expected to bound it.
+## The end-to-end path, built fresh from the live library
+
+The queries above ran against a pre-built index. To close that gap a second
+server built one from scratch under `ZOTEUS_INDEX_MAX_ITEMS=30`, against the
+live library at version 418. It completed: 30 of 30 items, **671 passages** and
+671 vectors, of which 619 passages came from the 18 items carrying full text,
+in roughly three minutes. A semantic query then answered in 36,0 ms and an
+`auto` query in 17,5 ms. So install, index, and query all work against the
+author's own library, not only against an index this repo had lying around.
+
+Two observations, neither a verdict:
+
+- Peak resident memory reached **2 245 MiB** (`VmHWM`) for a thirty-item build.
+  That is the class ticket 0011 recorded for the uncapped 44,9 MB document,
+  reached here under a cap that was expected to bound it. Whether one large
+  attachment in the first thirty items explains it is untested; X3a is the
+  step that would settle it.
+- The build reports `builtFromVersion: 30` while the library is at 418 — the
+  item cap appearing where a library version belongs. Read once, not chased.
+
+**A correction worth recording, because it was nearly published as a finding
+about zoteus.** This report first said the fresh build had stalled: no CPU, no
+database growth, zero passages. It had in fact finished. The driver's poll loop
+waited for `state == "idle"` where the server reports `state == "done"`, so it
+spun to its own timeout on completed work, and the flat database file was a
+build that had already written. The predicate folded two states the server
+distinguishes — the trap `rules/coding-bash.md` names for `is-active`, here in
+Python. The lesson is the general one: before reporting that a process is
+stuck, check that your liveness test can express the state it actually reached.

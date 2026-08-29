@@ -574,6 +574,20 @@ FIGURES = [
      {"vsmoke": "0,015873 | {} | 0,015385"}),
     ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.4", 6,
      {"vsmoke": "0,015625 | {} |\n| 1/(60+rank)"}),
+    # The fresh build from the live library — the half that proves the whole path, and the
+    # half this report first got wrong by calling a finished build stalled.
+    ("smoke-1.10.0/fresh-build.json", "passages", 0,
+     {"vsmoke": "items, **{} passages** and"}),
+    ("smoke-1.10.0/fresh-build.json", "fulltext_passages", 0,
+     {"vsmoke": "of which {} passages came from"}),
+    ("smoke-1.10.0/fresh-build.json", "fulltext_items", 0,
+     {"vsmoke": "from the {} items carrying"}),
+    ("smoke-1.10.0/fresh-build.json", "query_semantic_ms", 1,
+     {"vsmoke": "answered in {} ms and an"}),
+    ("smoke-1.10.0/fresh-build.json", "query_auto_ms", 1,
+     {"vsmoke": "`auto` query in {} ms."}),
+    ("smoke-1.10.0/fresh-build.json", "peak_rss_mib", 0,
+     {"vsmoke": "reached **{} MiB** (`VmHWM`)"}),
 ]
 
 

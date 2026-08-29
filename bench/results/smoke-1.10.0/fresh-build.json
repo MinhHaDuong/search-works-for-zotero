@@ -1,0 +1,23 @@
+{
+  "probe": "v1.10.0 builds an index from the LIVE Zotero library and answers queries on it",
+  "upstream_version": "v1.10.0",
+  "upstream_sha": "b132f2dcdf646424a236e5ede4ec68ab8a33adc6",
+  "host": "doudou",
+  "date": "2026-08-29",
+  "max_items": 30,
+  "state": "done",
+  "items_fetched": 30,
+  "items_total": 30,
+  "passages": 671,
+  "vectors": 671,
+  "fulltext_items": 18,
+  "fulltext_passages": 619,
+  "library_version": 418,
+  "built_from_version_field": 30,
+  "embedder_model": "Xenova/all-MiniLM-L6-v2",
+  "peak_rss_mib": 2245.0,
+  "query_semantic_ms": 36.0,
+  "query_auto_ms": 17.5,
+  "build_seconds_field_is_the_poll_timeout": 1502.3,
+  "build_seconds_note": "the driver's poll loop waited for state=='idle' where the server reports 'done', so it ran to its own 1500 s timeout on a build that had already finished; the build itself took about three minutes, bounded by the index file's write times, and is NOT measured precisely here"
+}

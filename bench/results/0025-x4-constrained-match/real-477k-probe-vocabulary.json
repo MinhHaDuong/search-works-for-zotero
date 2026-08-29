@@ -1,0 +1,42 @@
+{
+  "probe": "X4's real-corpus arm cannot use the driver's synthetic probe vocabulary",
+  "db": "/home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite",
+  "passages": 477512,
+  "synthetic_arm": {
+    "query": "\"w5\" OR \"w1200\" OR \"w25000\"",
+    "rows_returned": 30,
+    "best_ms": 1.0
+  },
+  "real_vocabulary_control": {
+    "query": "\"of\" OR \"steam\" OR \"095\"",
+    "rows_returned": 30,
+    "best_ms": 379.3
+  },
+  "vocabulary": {
+    "distinct_terms": 639888,
+    "vocab_scan_s": 5.4,
+    "band_counts": {
+      "common": 114,
+      "mid": 8195,
+      "rare": 356124
+    },
+    "sampled": {
+      "common": {
+        "term": "of",
+        "df": 405701,
+        "df_pct": 84.96
+      },
+      "mid": {
+        "term": "steam",
+        "df": 4766,
+        "df_pct": 1.0
+      },
+      "rare": {
+        "term": "095",
+        "df": 476,
+        "df_pct": 0.1
+      }
+    }
+  },
+  "verdict": "DEMONSTRATED: the synthetic arm is fast because it matches almost nothing, and the real-vocabulary control on the same index is far slower"
+}

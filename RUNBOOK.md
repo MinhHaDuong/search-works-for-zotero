@@ -8,8 +8,21 @@ removed from this file: step 1 (PR B became upstream #25, hardened in
 review, merged 2026-08-28, shipped in v1.9.0 — ticket 0015 closed) and
 I-1's filing (upstream #26, with X6's direction offered as a verification
 protocol — step 3's measurement now feeds that thread instead of gating the
-filing). The remaining stopwords branch is on the fork at `309204b`-base,
-validated green on upstream's own gates; the tickets carry the full record.*
+filing), and the X1 recall half, which was measured 2026-08-29 on the real
+vectors and answered a stronger question than the step asked: 1-bit binary
+codes plus an exact rerank, which subsume int8 (artifacts
+`bench/results/0025-x1-recall/`, verdict and pool multiple on ticket 0025 and
+in `spec/DECISIONS.md`). The remaining stopwords branch is on the fork at
+`309204b`-base, validated green on upstream's own gates; the tickets carry the
+full record.*
+
+*A step here can rot in two ways, and both bit on 2026-08-29. It can be
+**overtaken** — step 6 was already measured, under a better framing. Or its
+premise can **move underneath it** while the command still runs: step 4 named
+trunk as v1.9.0 after `UPSTREAM` had advanced to v1.10.0, and step 7's X4
+command would have executed cleanly and returned a wrong number. Before running
+any step, check its version claims against `UPSTREAM` and its artifact
+directory against `bench/results/`.*
 
 Placeholders: `$FTS5` = your zoteus-fts5 checkout, `$FORK` = your MinhHaDuong/zoteus
 checkout, `$DATA650` = the data dir holding the big index — misnamed, it holds 477k
@@ -53,8 +66,10 @@ and any of them would bite a re-run:
   `passages` with `passages_fts` beside it and dies on open with `virtual tables
   may not be indexed`. Rebuild first — 263,7 s and 1 755,6 MiB on doudou,
   reproducing the geometry exactly. The rebuilt index is at
-  `/home/haduong/data/projets/zoteus-bench/x2-rebuild`, which also unblocks
-  step 7's X4 arm without paying for it again.
+  `/home/haduong/data/projets/zoteus-bench/x2-rebuild`, which clears the
+  *schema* obstacle in front of step 7's X4 arm without paying for it again.
+  That step is still blocked, on the probe vocabulary rather than the schema —
+  see step 7.
 - **The seed query list did not exist.** "In the PR handover" pointed at
   nothing. The population now lives in `bench/queries-x2.txt`, committed,
   because a p95 is a claim about a population.
@@ -89,21 +104,30 @@ bumps-something → md5 signal suffices), and post the measured answer on the
 
 ## 4. Trunk re-measurement (~30-45 min) → unblocks I-2
 
-All on `upstream-main` (his code, not the fork), embeddings off. Trunk is now
-v1.9.0 (`bb414df`); its search layer differs from v1.8.0 only by #25's own
-fix, so measure there and name the results dir `trunk-1.9.0/`:
+All on `upstream-main` (his code, not the fork), embeddings off.
+
+**Re-read the baseline before running this.** When this step was written trunk
+was v1.9.0 (`bb414df`) and the results dir it names, `trunk-1.9.0/`, was
+current. `UPSTREAM` now records **v1.10.0 (`b132f2d`)**, whose search layer is
+not a near-copy of v1.8.0 — it carries the two-stage ANN scan that ticket 0025
+measured at 49,3x on the median. Measuring "trunk" into a directory named for
+the version it is no longer is how a figure outlives its subject. Take the
+version from `UPSTREAM` at run time and name the directory for it.
 
 ```bash
 cd $FORK && git checkout upstream-main && npm ci && npm run build
+# Name the results dir for the version actually under test, read from UPSTREAM.
+TRUNK=$FTS5/bench/results/trunk-$(sed -n 's/^UPSTREAM_REVIEWED_VERSION=v//p' $FTS5/UPSTREAM)
+mkdir -p "$TRUNK"
 # 4a. build wall-time + peak RSS, both backends, real library:
 python3 $FTS5/bench/run_build.py --server dist/index.js --data-dir $(mktemp -d) \
-  --backend sqlite --build > $FTS5/bench/results/trunk-1.9.0/build-sqlite.json
+  --backend sqlite --build > "$TRUNK/build-sqlite.json"
 python3 $FTS5/bench/run_build.py --server dist/index.js --data-dir $(mktemp -d) \
-  --backend memory --build > $FTS5/bench/results/trunk-1.9.0/build-memory.json
+  --backend memory --build > "$TRUNK/build-memory.json"
 # 4b. the wall, on trunk: uncapped fulltext build on the memory backend
 python3 $FTS5/bench/run_build.py --server dist/index.js --data-dir $(mktemp -d) \
   --backend memory --build --max-items 1000000 --max-chars 0 \
-  > $FTS5/bench/results/trunk-1.9.0/build-memory-uncapped.json
+  > "$TRUNK/build-memory-uncapped.json"
 # 4c. warm query + resident memory: run_serve.py against each dir
 ```
 
@@ -117,26 +141,48 @@ with `--max-chars 0`; record VmHWM (reproduces 0011's 2 084,9 MiB class on
 trunk). → feeds 0026's rss-gate fixture spec; commit JSON to
 `bench/results/0025-x3a-monster-rss/`.
 
-## 6. X1 recall half — int8 on the 93,022 real vectors (~15 min)
+## 7. X4 confirmation on the real index — NOT RUNNABLE AS THIS STEP DESCRIBED IT
 
-```bash
-node $FTS5/bench/vec_real_measure.mjs --db <path-to-real-vector-search-index.sqlite> \
-  --output $FTS5/bench/results/0025-x1-recall/real-93022-int8.json
-```
+*(Step 6, the X1 recall half, is gone — measured 2026-08-29, see the header.
+Numbers are not reused here: step 1 left the same gap when it was executed.)*
 
-Rule: int8 ships only if recall@30 ≥ 0,98 at pool ≤ 32×topK (the timing clause
-already passed in-container — ticket 0025). → JSON to
-`bench/results/0025-x1-recall/`.
+**Do not run the command that stood here.** It would have produced a wrong
+number that no symptom distinguishes from a right one.
 
-## 7. Optional same-visit extra
+The step verified that `constrained_match.mjs` queries `passages_fts` by name,
+so it needs a new-schema index, and stopped there. That check was necessary and
+not sufficient: the probe-only path also reuses `probeQuery()`, whose terms are
+the *synthetic* Zipf vocabulary (`"w5" OR "w1200" OR "w25000"`). Those terms are
+not absent from a real library — OCR debris and variable names put a few in — so
+nothing errors and no result is empty. The MATCH simply does almost no work.
 
-- **X4 confirmation on the real index** — the driver takes a db path, and it
-  queries `passages_fts` by name, so it needs a NEW-schema index. Step 2's
-  rebuild is one: `node $FTS5/bench/constrained_match.mjs
-  /home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite
-  > $FTS5/bench/results/0025-x4-constrained-match/real-477k.json`
-  The synthetic verdict (ticket 0025) was never-build; this is its formality.
-  Budget for it: the synthetic run reached 731 584 ms median at 100k rowids.
+Measured on the real 477 512-passage index at `x2-rebuild`, 2026-08-29, by
+`verification/probes/x4_probe_vocabulary.py` → artifact
+`bench/results/0025-x4-constrained-match/real-477k-probe-vocabulary.json`:
+
+| arm | query | best of 3 |
+|---|---|---|
+| synthetic vocabulary | `"w5" OR "w1200" OR "w25000"` | 1,0 ms |
+| real vocabulary (control) | `"of" OR "steam" OR "095"` | 379,3 ms |
+
+The control is the point: it is drawn from the same three df bands the driver's
+comment says the cost depends on, and it could have come out fast. It did not —
+379x slower on the same index — so the synthetic arm's speed is the absence of
+work, not the presence of performance. Since X4's rule is an *upper bound* on
+latency, a vacuously fast arm does not merely mislead: it satisfies DESIGN §3's
+150 ms allowance and **inverts X4's no-ship verdict**.
+
+A synthetic vocabulary cannot carry a document-frequency spread into a real
+corpus, and the spread is the whole cost model. The real index holds 639 888
+distinct terms, of which 114 sit at df ≥ 10% (`of` at 84,96%), 8 195 between
+0,1% and 1%, and 356 124 below 0,1%.
+
+**Before this step can run**, `constrained_match.mjs` needs a probe-only path
+that samples those three bands from `fts5vocab` on the index under test,
+leaving the synthetic path byte-identical so `synthetic-477k.json` stays
+reproducible. The probe above already does the sampling and can be read for it;
+a full `fts5vocab(row)` scan costs 5,4 s warm here, paid once per run. X4-real
+is unrun and stays unrun until then; ticket 0025 carries the record.
 
 ## Not in this runbook, deliberately
 
@@ -370,10 +416,11 @@ front of a user is a separate call.
 
 ## Order if time is short
 
-Step 2 is done and PR A is held, so the queue is: 4 (trunk numbers, the I-2
-gate) → 3 (X6, for the #26 thread) → 6 → 5 → 7. PR B waits on a free slot
-rather than on a measurement. Both slots are currently spent on #27 and #28 —
-that is the ratified cap, working as intended.
+Step 2 is done, step 6 is done, PR A is held, and step 7 is blocked on a driver
+fix rather than on machine time — so the queue is: 4 (trunk numbers, the I-2
+gate) → 3 (X6, for the #26 thread) → 5. PR B waits on a free slot rather than on
+a measurement. Both slots are currently spent on #27 and #28 — that is the
+ratified cap, working as intended.
 
 Every remaining step that reads an existing index pays step 2's rebuild first;
 every step that builds its own does not.
