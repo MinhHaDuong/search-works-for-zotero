@@ -414,6 +414,39 @@ is replaced rather than made true: the construction is the platform's, the
 ceiling is ours, and §2.2 now says which is which.
 
 
+**2026-08-29 — no precision knob goes upstream; the ask is a registry.** Ticket
+0220 proposed `ZOTEUS_EMBEDDING_DTYPE`, a standalone precision knob, on the
+reading that the model was already configurable and precision was the one axis
+without one. The local path configures neither: it hardcodes
+`Xenova/all-MiniLM-L6-v2`, and `ZOTEUS_EMBEDDING_MODEL` reaches only the API
+providers. The asymmetry the ticket argued from never existed, and the remedy is
+withdrawn.
+
+What replaces it is one registry whose knob is an entry id, filed as ticket 0440
+and held until 0262/0263 have a candidate table under it. The ground is that
+precision cannot travel alone. `dtype` resolves to a filename, so it is a bet on
+one repo's naming that some repos lose outright; pooling is per-model, and four
+of six sweep candidates want `cls` where the drivers hardcode `mean`; input
+templates are per-model, and e5 without its prefixes measures worse than an
+English model that never needed any. A user given a precision knob and none of
+the rest has a setting whose likeliest outcome is a wrong conclusion about a good
+model — and the knob would then have to be unwound by the registry that follows
+it. Zotero core reached the same shape independently: those fields are properties
+of a curated model entry, the preference names the entry, and no precision knob
+is exposed anywhere.
+
+Two things this does not retire. The observation stands — the shipped local path
+runs at full precision by omission, measured on the default model at 143,7 MB
+against 69,1 MB resident — and it is what the registry ask leads with. And the
+device finding is separable: `device: 'auto'` fails on an ordinary CPU-only Linux
+desktop whichever way the package was installed
+(`verification/DEVICE-AUTO-0220.md`), which travels as an issue at no slot cost
+and does not wait for the registry. The device-shape entry below, awaiting
+ratification, is thereby narrowed rather than answered: nothing is being filed
+that passes any device, so the question is now about this repository's fork
+rather than about an upstream offer.
+
+
 ## Awaiting ratification
 
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
