@@ -123,6 +123,21 @@ upstream change, a reusable retrieval contract or acceptance harness, a
 reproducible experiment, or evidence that kills a proposal all count as project
 outcomes; shipping a Zoteus implementation is only one possible outcome.
 
+**2026-08-29 — a third in-flight slot, granted once, for the cosine fusion.**
+The author authorized opening a third upstream PR while #27 and #28 are both
+open, on the grounds that the change is a clear code simplification: one
+traversal per vector instead of two, and a `norm()` call site that stops being
+polymorphic. Ticket 0070 carries the measurement (2,19x on a 255 703-row index
+at 3072 dimensions, scores bit-identical, no dependency and no rebuild).
+
+This is a grant, not an amendment. The **two-in-flight cap stands** as ratified
+2026-08-26, and the contained-PR budget is untouched — this PR is not drawn from
+the five live items, because it is not one of them: it came out of reading
+upstream issue #30, which the budget predates. The exception's ground is that a
+simplification carrying its own equivalence proof costs the maintainer's
+attention differently from a design ask. Read it as precedent only for that
+shape of change, and only one at a time.
+
 ## Awaiting ratification
 
 Three readings cycle 2 could not decide on the sheet's text alone (flagged in
