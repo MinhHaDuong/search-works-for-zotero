@@ -1,0 +1,174 @@
+%erg 0.1
+Title: Make the embedder's dtype and device configurable, and let the maintainer choose the defaults
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T15:40Z claude created
+
+--- body ---
+## Context
+
+`LocalEmbeddingProvider` calls `pipeline('feature-extraction', this.model)` with
+no options object (`src/features/search/embeddings.ts:182`). transformers.js
+therefore applies its own defaults, and on Node those are `DEFAULT_DEVICE_DTYPE:
+"fp32"` and the CPU provider. The shipped local path runs
+`Xenova/all-MiniLM-L6-v2` at full precision on the CPU — the most expensive rung
+of the ladder, reached by omission rather than by choice. The model is already
+configurable (`ZOTEUS_EMBEDDING_MODEL`), so the asymmetry is the point: the axis
+that costs the most is the one with no knob.
+
+Measured on this repo's corpus, ONNX CPU, i5-8250U, batch 1, one process per
+rung (`bench/results/0025-x1-recall/dtype-ladder-nomic.json`):
+
+| dtype | download | RSS | query median |
+|-------|----------|-----|--------------|
+| fp32  | 522,0 MB | 884,9 MB | 30,3 ms |
+| q8    | 130,9 MB | 235,2 MB | 18,0 ms |
+| int8  | 130,9 MB | 232,9 MB | 13,7 ms |
+| uint8 | 130,9 MB | 239,5 MB | 14,0 ms |
+| q4    | 157,5 MB | 247,4 MB | 25,2 ms |
+| bnb4  | 150,7 MB | 253,7 MB | 91,4 ms |
+
+Three findings shape what this ticket should and should not do.
+
+**The ladder is not monotone, so "expose the knob" must not become "recommend
+the lowest rung".** q4's published file is LARGER than q8's, holds more memory,
+and is slower; bnb4 is 5,1x slower than q8 and 3x slower than full precision,
+having no optimised CPU kernel. The same shape reproduces on
+Qwen3-Embedding-0.6B (`dtype-ladder-qwen3-06b.json`): q4 at 871,8 MB downloaded
+and 1 355,8 MB resident against q8's 585,1 / 962,1, and bnb4 8,7x slower than
+q8. Two models, one shape, so this is a property of the ONNX CPU runtime rather
+than one model's graph. Eight bits is the knee and every rung below it is
+dominated on every axis.
+
+**`q8` and `int8` are the same file** on nomic-768 (md5 `b65952d0…`), where
+`uint8` is a genuinely distinct blob. Measuring both therefore measured one file
+twice and gives this campaign's noise floor directly: ±2,3 MB of RSS and ±4,3 ms
+of median latency. Any recommendation that leans on a difference smaller than
+that is reading noise.
+
+**Two rungs do not load at all on the CPU provider.** `fp16` and `q4f16` abort
+at session init with `Attempting to get index by a name which does not exist:
+InsertedPrecisionFreeCast_/emb_ln/Constant_output_0 for node
+/emb_ln/Mul/SimplifiedLayerNormFusion` — a graph-fusion failure, not a missing
+kernel. So a `dtype` knob that accepts the runtime's full enum will hand users a
+value that crashes on their hardware and works on someone else's, and the
+failure must degrade rather than abort the server.
+
+On the device axis, `@huggingface/transformers` 4.2.0 accepts
+`auto|cpu|gpu|cuda|webgpu|coreml|dml|webnn`. `auto` is literally "GPU if
+available". This is the axis where a GPU changes what is reachable: the same
+corpus that projects to 56,5 h of CPU embedding at nomic-768 projects to 0,34 h
+on an A4000 (`gpu-feasibility.json`). Note the asymmetry — the GPU is a BUILD
+lever, not a query lever, because at batch 1 a small encoder is already at a few
+milliseconds and there is nothing left to parallelise.
+
+**The defaults are the maintainer's call, not ours.** This ticket ships the
+mechanism and the evidence and proposes nothing about what `ZOTEUS_EMBEDDING_*`
+should default to. Changing a default changes every existing user's index
+identity — vectors carry an embedder key, and a dtype change is a model change
+for that purpose — so it is a decision with a migration attached, and it belongs
+to him. Our contribution is that he can make it, and that the numbers to make it
+with are on the table.
+
+## Relevant files
+
+- `fork/src/features/search/embeddings.ts` — `LocalEmbeddingProvider.ensure()`
+  at ~:182 is the single call to change; `EmbedderKey`/vector-space identity
+  lives in the same file (~:25) and is what a dtype change must be reflected in
+- `fork/src/config.ts` — `ZOTEUS_EMBEDDING_MODEL` at :288 is the pattern to
+  follow for the two new variables; the zod schema at ~:151 is where they parse
+- `fork/src/features/search/limits.ts` — `DEFAULT_EMBED_BATCH_SIZE`, the
+  existing example of a tunable with a named default
+- `bench/query_embed_cost.mjs`, `bench/quant_fidelity.mjs`,
+  `bench/quant_fidelity_score.py`, `bench/merge_dtype_ladder.py` — the drivers
+  that produced the evidence; they already take `--dtype` and `--device`
+- `bench/results/0025-x1-recall/dtype-ladder-*.json`, `query-cost*.json` — the
+  evidence to link from the PR body
+- `RUNBOOK.md` — where the pre-filled PR form goes while the ticket waits for a
+  slot, following PR B's precedent
+
+## Actions
+
+1. Add `ZOTEUS_EMBEDDING_DTYPE` and `ZOTEUS_EMBEDDING_DEVICE` to the config
+   schema, both optional, both plain pass-through strings. Do NOT enumerate the
+   valid values in a local allowlist that will rot against the runtime's enum.
+2. Thread them into `pipeline('feature-extraction', model, opts)`, building the
+   options object so that an unset variable produces an ABSENT key rather than
+   `undefined` — passing `{dtype: undefined}` must remain byte-identical in
+   behaviour to today's no-options call.
+3. Make dtype part of the vector-space identity. Two dtypes of one model do not
+   produce interchangeable vectors, so the embedder key must distinguish them or
+   a dtype switch will silently mix spaces in one index.
+4. Degrade, do not abort, when a dtype or device will not load. The `fp16`
+   failure above is an init-time throw; catch it, name the offending value and
+   the model in the message, and fall back to the runtime default with a warning
+   rather than taking the server down. State in the message that some rungs are
+   GPU-conditional.
+5. Document the two variables in the same place `ZOTEUS_EMBEDDING_MODEL` is
+   documented, with the measured ladder linked and NO recommended value.
+6. Do not open the PR yet. Build it on a fork branch, validate, and add the
+   pre-filled form to RUNBOOK.md. At filing there was no free slot: the in-flight
+   count stood above the volume bound on a granted exception, and the
+   contained-PR budget had a live remainder. Do not re-read those numbers from
+   this ticket — the bounds are `GOVERNANCE.md`'s and what is live against them
+   is `SYNC.md`'s, and both move. Check them before opening. This queues behind a
+   free slot exactly as 0016's PR-3 does.
+
+## Test
+
+Red first, and the first one is the one that would have caught the defect this
+ticket is about: assert that with no environment set, the options object handed
+to `pipeline()` has no `dtype` and no `device` key at all. That test fails
+against a naive implementation which passes `{dtype: undefined, device:
+undefined}` and passes against today's behaviour, so it pins the no-regression
+property before any knob exists.
+
+Then, using the existing injectable `loadExtractor` seam so no model is
+downloaded in the unit tier:
+
+- `ZOTEUS_EMBEDDING_DTYPE=q8` reaches `pipeline()` as `{dtype: 'q8'}`
+- `ZOTEUS_EMBEDDING_DEVICE=auto` reaches it as `{device: 'auto'}`
+- both set reach it together
+- an extractor factory that throws an init-time error yields a warning and a
+  retry with default options, not a propagated throw (action 4)
+- two dtypes of the same model produce different embedder keys (action 3)
+
+Integration tier, marked accordingly: one real load at `q8` asserting the
+returned dimension, so the pass-through is proven against the actual runtime and
+not only against a mock that cannot disagree.
+
+## Verification
+
+- [ ] Unset-environment test fails against a `{dtype: undefined}` implementation
+      and passes against the shipped one — run it both ways, since a guard whose
+      all-clear is indistinguishable from "could not look" is not a guard
+- [ ] `ZOTEUS_EMBEDDING_DTYPE=q8` measurably changes resident memory on a real
+      load, in the direction and rough magnitude of the ladder above
+- [ ] An invalid dtype (`ZOTEUS_EMBEDDING_DTYPE=q7`, which exists in no runtime)
+      warns and serves, rather than aborting
+- [ ] `ZOTEUS_EMBEDDING_DEVICE=cuda` on a machine with no CUDA degrades with a
+      named message. NOTE: unverified here — this repo's machine has no GPU
+      (`nvidia-smi` absent), so the device path has never been executed. Treat
+      every device claim as untested until someone runs it on the A4000
+- [ ] Upstream's own test suite still passes unchanged
+
+## Invariants
+
+- Default behaviour is byte-identical to today when neither variable is set
+- R10 holds: the local path still makes exactly one external call, the one-time
+  model-weight download, and a device or dtype failure degrades toward
+  keyword-only, never toward an API embedder
+- No recommended default ships in this PR, in code or in prose
+- The contained-PR budget and the in-flight cap are respected: built and queued,
+  not opened
+
+## Exit criteria
+
+- [ ] Both variables implemented, threaded, and covered by the tests above
+- [ ] Dtype participates in vector-space identity
+- [ ] An unloadable dtype or device degrades with a named message
+- [ ] Documented with the measured ladder linked and no recommendation
+- [ ] Branch built and validated on the fork; pre-filled PR form in RUNBOOK.md
+- [ ] PR opened only once a slot frees, and the ticket closed by that PR

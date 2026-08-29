@@ -69,15 +69,29 @@ const loadMs = performance.now() - t0;
 
 // Raw vectors, not normalised: the scorer computes its own norms, matching the convention of
 // the committed corpora (see their meta: "the recall driver computes its own norms").
+// Progress to stderr every ~10%: an fp32 rung over a few hundred passages runs for many
+// minutes, and a driver that prints nothing until it finishes cannot be told apart from one
+// that has hung. The ETA is a linear extrapolation of the batches done so far, which is
+// honest for a uniform sample and would mislead on a skewed one.
 const t1 = performance.now();
 let dim = 0;
 const chunks = [];
+const reportEvery = Math.max(1, Math.floor(texts.length / BATCH / 10));
+let batchNo = 0;
 for (let i = 0; i < texts.length; i += BATCH) {
   const batch = texts.slice(i, i + BATCH);
   const tensor = await extractor(batch, { pooling: 'mean', normalize: false });
   const data = tensor.data;
   dim = data.length / batch.length;
   chunks.push(Float32Array.from(data));
+  if (++batchNo % reportEvery === 0) {
+    const done = Math.min(i + BATCH, texts.length);
+    const elapsed = (performance.now() - t1) / 1000;
+    const eta = (elapsed / done) * (texts.length - done);
+    console.error(
+      `  ${done}/${texts.length} in ${elapsed.toFixed(0)}s (${((elapsed * 1000) / done).toFixed(0)} ms/passage, ~${eta.toFixed(0)}s left)`,
+    );
+  }
 }
 const embedMs = performance.now() - t1;
 
