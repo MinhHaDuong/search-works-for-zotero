@@ -130,6 +130,17 @@ queries, identical top-10 order on 17 of 20, mean overlap 9,65 of 10. The
 one-time code build costs about 1,5 s, measured apart from the model download
 that confounded it in the first attempt.
 
+**The absolutes are soft and the ratio is not.** Every arm is slower warm than
+cold — v1.9.0 963,8 → 1 069,7 ms, the exact arm 692,7 → 815,0, the two-stage
+20,6 → 21,8 — and the same drift appears in the second run. That is the opposite
+of cache warming, so something degrades across a ten-minute run; a fanless 15 W
+i5-8250U throttling is the obvious candidate and nothing here measured CPU
+frequency, so it stays a candidate. What matters is that it moves all three arms
+the same way: the median ratio reproduced at 49,18x and 49,11x, while the p95
+ratio did not (34,9x then 40,0x, the exact arm's tail moving). Quote the median
+ratio; treat the absolute latencies as this machine's, and do not quote a p95
+ratio at all.
+
 Two things this does **not** license. `mode:"auto"`, the hybrid default a user
 actually gets, improves 12,2x rather than 49x — the BM25 side is untouched by
 either change and the residual is about 70 ms. And nothing here bridges to the
