@@ -71,7 +71,7 @@ GLOSSARY = "spec/TERMINOLOGY.md"
 
 #: An entry: a list item whose first element is a bolded term. The bolded span
 #: is the term slot, exempt from the digit rule because a name is not a number.
-ENTRY = re.compile(r"^\s*[-*]\s+\*\*(?P<term>.+?)\*\*")
+ENTRY = re.compile(r"^\s*[-*]\s+\*\*.+?\*\*")
 
 #: Digits that are addresses, not quantities. Each span is deleted from the line
 #: before the digit test, so what remains is whatever the author wrote as a
