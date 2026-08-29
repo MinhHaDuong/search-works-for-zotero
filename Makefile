@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance terminology chain-dedup normative help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance terminology chain-dedup normative models help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -24,10 +24,11 @@ help:
 	@echo "make progress    — the status page covers every requirement, and its bars match its rows"
 	@echo "make chain-dedup — the authority chain is described once, in README.md"
 	@echo "make normative   — every R-item declares its RFC 2119 force"
+	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance terminology chain-dedup normative check-fast
+check: lint figures governance terminology chain-dedup normative models check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -77,6 +78,15 @@ chain-dedup:
 # lowercase-modal grep structurally cannot see. Ticket 0050.
 normative:
 	python3 bench/check_normative.py
+
+# The sixth guard, over bench/models.json. The embedder study's candidate field was
+# discovered one repository at a time and the discoveries did not survive: a mirror
+# ruled out on an unauthenticated 401 publishes the full dtype set. The registry
+# holds each of those facts once, with the state it was observed in; this checks that
+# it stays well formed and that no driver keeps a second copy of a model name.
+# Ticket 0261.
+models:
+	python3 bench/check_models.py
 
 # The fourth guard, over spec/README.md. The status page restates nothing —
 # every row is a status and an address — so the figure guard has nothing to

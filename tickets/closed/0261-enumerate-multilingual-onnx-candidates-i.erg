@@ -2,11 +2,14 @@
 Title: Enumerate multilingual ONNX candidates into a declared registry
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #59
 
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 1 of tracker 0240. Unblocked: this is enumeration, not benchmarking, and it runs before the harness because the harness is registry-driven.
 
+2026-08-29T14:51Z claude note Registry, guard, readers, probe and its artifact are in bench/ and verification/probes/ — see Artifacts produced. Three states are carried by real records, not only by the schema: the gte upstream repo is a confirmed absence, the jina v2 multilingual id a could-not-look whose rejection rests on a separate query. The probe runs a positive and a negative control every time, so a confirmed_absent beside them is a finding rather than a blind grep.
+2026-08-29T15:42Z Minh Ha-Duong closed — autoclosed — PR #59
 --- body ---
 ## Context
 
@@ -31,6 +34,17 @@ name a model.
 - `bench/` — where the registry lands
 - `~/.config/keys/huggingface.env` — the token; the tracker's 401s were
   unauthenticated probes and must be re-run with it
+
+## Artifacts produced
+
+- `bench/models.json` — the registry
+- `bench/check_models.py` — the guard, run by `make models` and by `make check`
+- `bench/registry.py`, `bench/registry.mjs` — the readers every driver resolves through
+- `tests/test_check_models.py` — the tests, including the declared-boundary one
+- `verification/probes/probe_onnx_dtypes.py` — the authenticated probe, with its
+  positive and negative controls
+- `bench/results/0261-onnx-registry/onnx-availability.json` — its output
+- `bench/results/0261-onnx-registry/probed-repos.txt` — the repo list that run read
 
 ## Actions
 
@@ -62,13 +76,13 @@ name a model.
 
 ## Verification
 
-- [ ] Every English-only model named in the tracker is present with an R7
+- [x] Every English-only model named in the tracker is present with an R7
       rejection reason, not missing
-- [ ] Every 401 in the tracker was re-probed with the token, and the outcome
+- [x] Every 401 in the tracker was re-probed with the token, and the outcome
       recorded either way
-- [ ] `Xenova/multilingual-e5-small` and
+- [x] `Xenova/multilingual-e5-small` and
       `Xenova/paraphrase-multilingual-MiniLM-L12-v2` carry their full dtype list
-- [ ] The e5 input template is in the registry, not in a driver
+- [x] The e5 input template is in the registry, not in a driver
 
 ## Invariants
 
@@ -80,8 +94,8 @@ name a model.
 
 ## Exit criteria
 
-- [ ] One registry file in `bench/`, covering every seed candidate and every
+- [x] One registry file in `bench/`, covering every seed candidate and every
       re-probed could-not-look
-- [ ] Availability recorded per `(model, dtype)`, with absence distinguished
+- [x] Availability recorded per `(model, dtype)`, with absence distinguished
       from could-not-look
-- [ ] The no-hard-coded-model-id test passes
+- [x] The no-hard-coded-model-id test passes

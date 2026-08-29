@@ -27,15 +27,18 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { cpus, hostname, loadavg, totalmem } from 'node:os';
+import { resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
     'pkg-root': { type: 'string' },
     corpus: { type: 'string' },
     output: { type: 'string' },
+    // Registry ids, resolved through bench/models.json. A literal owner/name still
+    // works and warns, so an ad-hoc run stays possible without a record.
     models: {
       type: 'string',
-      default: 'Xenova/all-MiniLM-L6-v2,Xenova/bge-small-en-v1.5,nomic-ai/nomic-embed-text-v1.5',
+      default: 'all-minilm-l6-v2,bge-small-en-v15,nomic-embed-text-v15',
     },
     rows: { type: 'string', default: '200' },
     batch: { type: 'string', default: '8' },
@@ -64,7 +67,8 @@ const texts = Array.from({ length: ROWS }, (_, i) => all[i * step]).filter(Boole
 const meanChars = Math.round(texts.reduce((a, t) => a + t.length, 0) / texts.length);
 
 const models = [];
-for (const model of opt.models.split(',').map((s) => s.trim())) {
+for (const token of opt.models.split(',').map((s) => s.trim())) {
+  const { repo: model } = resolveModel(token);
   const t0 = performance.now();
   const extractor = await pipeline('feature-extraction', model);
   const loadMs = performance.now() - t0;
@@ -82,7 +86,10 @@ for (const model of opt.models.split(',').map((s) => s.trim())) {
   const perRow = (performance.now() - t1) / texts.length;
 
   const row = {
+    // The repository is what was loaded; the registry id is what the run was asked
+    // for. They differ whenever a model is loaded from a mirror.
     model,
+    model_id: token,
     dim,
     load_ms: +loadMs.toFixed(0),
     ms_per_passage: +perRow.toFixed(1),

@@ -26,7 +26,9 @@ from pathlib import Path
 
 logger = logging.getLogger("gpu_feasibility")
 
-# `2026-08-29 10:32:38,743 INFO loading Qwen/Qwen3-Embedding-0.6B on cuda (torch.float16)`
+# `2026-08-29 10:32:38,743 INFO loading <owner>/<model> on cuda (torch.float16)`
+# The repository is whatever embed_corpus.py resolved from bench/models.json; this
+# parser reads whichever one the log names and never assumes a particular model.
 LOAD = re.compile(
     r"^(?P<ts>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d,\d{3}) INFO loading (?P<model>\S+) on (?P<device>\S+) \((?P<dtype>[^)]+)\)"
 )
