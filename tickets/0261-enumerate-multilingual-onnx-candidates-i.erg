@@ -62,13 +62,13 @@ name a model.
 
 ## Verification
 
-- [ ] Every English-only model named in the tracker is present with an R7
+- [x] Every English-only model named in the tracker is present with an R7
       rejection reason, not missing
-- [ ] Every 401 in the tracker was re-probed with the token, and the outcome
+- [x] Every 401 in the tracker was re-probed with the token, and the outcome
       recorded either way
-- [ ] `Xenova/multilingual-e5-small` and
+- [x] `Xenova/multilingual-e5-small` and
       `Xenova/paraphrase-multilingual-MiniLM-L12-v2` carry their full dtype list
-- [ ] The e5 input template is in the registry, not in a driver
+- [x] The e5 input template is in the registry, not in a driver
 
 ## Invariants
 
@@ -80,8 +80,8 @@ name a model.
 
 ## Exit criteria
 
-- [ ] One registry file in `bench/`, covering every seed candidate and every
+- [x] One registry file in `bench/`, covering every seed candidate and every
       re-probed could-not-look
-- [ ] Availability recorded per `(model, dtype)`, with absence distinguished
+- [x] Availability recorded per `(model, dtype)`, with absence distinguished
       from could-not-look
-- [ ] The no-hard-coded-model-id test passes
+- [x] The no-hard-coded-model-id test passes

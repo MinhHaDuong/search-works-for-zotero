@@ -35,14 +35,17 @@ import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { cpus, hostname, loadavg, totalmem } from 'node:os';
+import { resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
     'pkg-root': { type: 'string' },
     output: { type: 'string' },
+    // Registry ids, resolved through bench/models.json. A literal owner/name still
+    // works and warns, so an ad-hoc run stays possible without a record.
     models: {
       type: 'string',
-      default: 'Xenova/all-MiniLM-L6-v2,Xenova/bge-small-en-v1.5,nomic-ai/nomic-embed-text-v1.5',
+      default: 'all-minilm-l6-v2,bge-small-en-v15,nomic-embed-text-v15',
     },
     dtype: { type: 'string' },
     device: { type: 'string' },
@@ -79,7 +82,8 @@ if (opt.dtype) pipelineOpts.dtype = opt.dtype;
 if (opt.device) pipelineOpts.device = opt.device;
 
 const models = [];
-for (const model of opt.models.split(',').map((s) => s.trim())) {
+for (const token of opt.models.split(',').map((s) => s.trim())) {
+  const { repo: model } = resolveModel(token);
   const rssBefore = process.memoryUsage().rss;
   const t0 = performance.now();
   const extractor = await pipeline('feature-extraction', model, pipelineOpts);

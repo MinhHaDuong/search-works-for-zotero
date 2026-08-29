@@ -78,6 +78,12 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   the guard cannot match US formatting.
 - Both numbers, always: any external memory claim carries the honest pair
   (e.g. 45x and 6,8x) — see README.
+- One model name, one place: `bench/models.json`. Every driver names a model by
+  registry id and resolves it through `bench/registry.mjs` or `bench/registry.py`,
+  which also decide whether the run wants the ONNX mirror or the author's own
+  repository. Adding a model means adding a record; `bench/check_models.py`
+  fails on an id hard-coded anywhere else under `bench/`, including one it has
+  never heard of.
 - Tickets: `./tickets/erg` (check / ready / new / close / log). Rules in
   `tickets/AGENTS.md`. `erg check` must pass; `erg ready` is the work queue;
   sequencing is machine-readable `Blocked-by`, not prose.

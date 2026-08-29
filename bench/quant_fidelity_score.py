@@ -107,7 +107,7 @@ def score_pytorch(prefix: Path, pytorch_f32: Path, dim: int) -> dict:
     picked = np.asarray(committed[meta["row_index"], :], dtype=np.float32)
     result = compare(ref_vectors, picked, 30)
     result["note"] = (
-        "ONNX fp32 versus sentence-transformers/PyTorch on the same rows. A different "
+        "ONNX fp32 versus sentence-transformers under PyTorch on the same rows. A different "
         "question from the dtype ladder: it asks whether the committed corpora are in the "
         "space the shipped runtime produces."
     )

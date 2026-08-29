@@ -1,0 +1,2534 @@
+{
+  "schema": "search-works-for-zotero embedder registry, v1",
+  "ticket": "tickets/0261-enumerate-multilingual-onnx-candidates-i.erg",
+  "tracker": "tickets/0240-choose-the-multilingual-embedder-on-meas.erg",
+  "purpose": "The one place in bench/ where a model is named. Every child of the embedder study reads a model from here; adding a model means adding a record. Enforced by bench/check_models.py.",
+  "states": {
+    "available": "listing read; at least one addressable ONNX file",
+    "confirmed_absent": "listing read; no addressable ONNX file",
+    "could_not_look": "listing not read (401, gated, 404, network)"
+  },
+  "dtype_addressing": "A dtype is addressable when the repo publishes model<suffix>.onnx for the suffix DEFAULT_DTYPE_SUFFIX_MAPPING gives it (@huggingface/transformers 4.2.0, src/utils/dtypes.js). A repo can hold ONNX and address nothing: see multilingual-e5-small-intfloat.",
+  "probe": {
+    "script": "verification/probes/probe_onnx_dtypes.py",
+    "artifact": "bench/results/0261-onnx-registry/onnx-availability.json",
+    "refresh": "python3 verification/probes/probe_onnx_dtypes.py --registry bench/models.json --update-registry --output bench/results/0261-onnx-registry/onnx-availability.json",
+    "authentication": "HF_TOKEN, from the environment or ~/.config/keys/huggingface.env. Without it every gated repo reads as could-not-look, which is how the tracker's first pass mistook a published mirror for a missing one."
+  },
+  "field_notes": {
+    "params": "safetensors parameter total declared by the repo named in the source, null when none is declared",
+    "dim": "the width of the vector the model emits",
+    "max_seq": "see max_seq_source per record: a positional capacity and a truncation length are different numbers",
+    "languages": "the repo's own declared list; R7 is checked against it mechanically",
+    "input_template": "prefixes the driver applies. Empty strings mean none, which is a measured fact and not a default",
+    "mrl": "a vendor claim, recorded as a claim; no measurement here",
+    "availability": "observed, refreshed by the probe above; everything else is hand-maintained"
+  },
+  "probed_utc": "2026-08-29T14:33Z",
+  "models": [
+    {
+      "id": "granite-97m-multilingual-r2",
+      "hf_repo": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+      "upstream_repo": "ibm-granite/granite-embedding-97m-multilingual-r2",
+      "params": 97441152,
+      "dim": 384,
+      "max_seq": 32768,
+      "max_seq_source": "config.json max_position_embeddings on the mirror; upstream declares the same",
+      "languages": {
+        "codes": [
+          "ar",
+          "az",
+          "bg",
+          "bn",
+          "ca",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fa",
+          "fi",
+          "fr",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "ka",
+          "kk",
+          "km",
+          "ko",
+          "lt",
+          "lv",
+          "mr",
+          "ms",
+          "nl",
+          "no",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "sk",
+          "sl",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "zh"
+        ],
+        "count": 52,
+        "source": "cardData.language on onnx-community/granite-embedding-97m-multilingual-r2-ONNX"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "upstream card comparison table records no Matryoshka dimensions"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "The tracker filed every onnx-community mirror as a could-not-look on an unauthenticated 401. Authenticated, this one publishes the conventional set. Prefixes are empty in the upstream config_sentence_transformers.json."
+    },
+    {
+      "id": "granite-311m-multilingual-r2",
+      "hf_repo": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+      "upstream_repo": "ibm-granite/granite-embedding-311m-multilingual-r2",
+      "params": 311664384,
+      "dim": 768,
+      "max_seq": 8192,
+      "max_seq_source": "config.json max_position_embeddings on the mirror. The upstream repo declares four times that. The mirror is what the harness loads, so the mirror's value is recorded; which one the exported graph honours is unverified and worth one check before a long-context run.",
+      "languages": {
+        "codes": [
+          "ar",
+          "az",
+          "bg",
+          "bn",
+          "ca",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fa",
+          "fi",
+          "fr",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "ka",
+          "kk",
+          "km",
+          "ko",
+          "lt",
+          "lv",
+          "mr",
+          "ms",
+          "nl",
+          "no",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "sk",
+          "sl",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "zh"
+        ],
+        "count": 52,
+        "source": "cardData.language on onnx-community/granite-embedding-311m-multilingual-r2-ONNX"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "upstream card: truncation to 512, 384, 256 or 128"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "Same family as the 97m, one size up. Also a could-not-look in the tracker."
+    },
+    {
+      "id": "arctic-embed-m-v2",
+      "hf_repo": "Snowflake/snowflake-arctic-embed-m-v2.0",
+      "upstream_repo": "Snowflake/snowflake-arctic-embed-m-v2.0",
+      "params": 305368320,
+      "dim": 768,
+      "max_seq": 8192,
+      "max_seq_source": "config.json max_position_embeddings",
+      "languages": {
+        "codes": [
+          "af",
+          "ar",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "ca",
+          "ceb",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "ht",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ky",
+          "lo",
+          "lt",
+          "lv",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "my",
+          "ne",
+          "nl",
+          "pa",
+          "pl",
+          "pt",
+          "qu",
+          "ro",
+          "ru",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "vi",
+          "yo",
+          "zh"
+        ],
+        "count": 74,
+        "source": "cardData.language on Snowflake/snowflake-arctic-embed-m-v2.0"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: MRL truncation, 3x smaller vectors"
+      },
+      "input_template": {
+        "query": "query: ",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "Publishes the conventional set in its own repo, so no mirror is needed. The query prefix is not decoration: config_sentence_transformers.json declares a query prompt and no document prompt, and a harness that ignores it measures a different model."
+    },
+    {
+      "id": "gte-multilingual-base",
+      "hf_repo": "onnx-community/gte-multilingual-base",
+      "upstream_repo": "Alibaba-NLP/gte-multilingual-base",
+      "params": 305369089,
+      "dim": 768,
+      "max_seq": 8192,
+      "max_seq_source": "config.json max_position_embeddings; the mirror and upstream agree",
+      "languages": {
+        "codes": [
+          "af",
+          "ar",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "ca",
+          "ceb",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "ht",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ky",
+          "lo",
+          "lt",
+          "lv",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "pa",
+          "pl",
+          "pt",
+          "qu",
+          "ro",
+          "ru",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "vi",
+          "yo",
+          "zh"
+        ],
+        "count": 75,
+        "source": "cardData.language on Alibaba-NLP/gte-multilingual-base — the mirror declares none"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "upstream card: elastic dense embedding, output in [128, 768]"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "The tracker ruled this model out because Alibaba-NLP publishes no ONNX. That much holds — see the gte-multilingual-base-upstream record — but the mirror publishes the conventional set, so the model is sweepable after all."
+    },
+    {
+      "id": "multilingual-e5-small",
+      "hf_repo": "Xenova/multilingual-e5-small",
+      "upstream_repo": "intfloat/multilingual-e5-small",
+      "params": 117654272,
+      "dim": 384,
+      "max_seq": 512,
+      "max_seq_source": "config.json max_position_embeddings on the mirror",
+      "languages": {
+        "codes": [
+          "af",
+          "am",
+          "ar",
+          "as",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "br",
+          "bs",
+          "ca",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "eo",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "fy",
+          "ga",
+          "gd",
+          "gl",
+          "gu",
+          "ha",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ku",
+          "ky",
+          "la",
+          "lo",
+          "lt",
+          "lv",
+          "mg",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "om",
+          "or",
+          "pa",
+          "pl",
+          "ps",
+          "pt",
+          "ro",
+          "ru",
+          "sa",
+          "sd",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "su",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "ug",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "xh",
+          "yi",
+          "zh"
+        ],
+        "count": 94,
+        "source": "cardData.language on intfloat/multilingual-e5-small — the mirror declares none"
+      },
+      "licence": "mit",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "query: ",
+        "passage": "passage: "
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "Zotero core's own multilingual model, and a blank column in this repo rather than a low score. The prefixes are mandatory: the upstream card says every input starts with one, even in other languages."
+    },
+    {
+      "id": "multilingual-e5-base",
+      "hf_repo": "Xenova/multilingual-e5-base",
+      "upstream_repo": "intfloat/multilingual-e5-base",
+      "params": 278044162,
+      "dim": 768,
+      "max_seq": 514,
+      "max_seq_source": "config.json max_position_embeddings on the upstream repo",
+      "languages": {
+        "codes": [
+          "af",
+          "am",
+          "ar",
+          "as",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "br",
+          "bs",
+          "ca",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "eo",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "fy",
+          "ga",
+          "gd",
+          "gl",
+          "gu",
+          "ha",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ku",
+          "ky",
+          "la",
+          "lo",
+          "lt",
+          "lv",
+          "mg",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "om",
+          "or",
+          "pa",
+          "pl",
+          "ps",
+          "pt",
+          "ro",
+          "ru",
+          "sa",
+          "sd",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "su",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "ug",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "xh",
+          "yi",
+          "zh"
+        ],
+        "count": 94,
+        "source": "cardData.language on intfloat/multilingual-e5-base — the mirror declares none"
+      },
+      "licence": "mit",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "query: ",
+        "passage": "passage: "
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "candidate",
+      "notes": "The e5 sibling one size up, same prefixes."
+    },
+    {
+      "id": "paraphrase-multilingual-mpnet-base-v2",
+      "hf_repo": "Xenova/paraphrase-multilingual-mpnet-base-v2",
+      "upstream_repo": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "params": 278044162,
+      "dim": 768,
+      "max_seq": 128,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo. The architecture's positional capacity is larger; this is the length the model truncates to, and it is the one a retrieval run lives under.",
+      "languages": {
+        "codes": [
+          "ar",
+          "bg",
+          "ca",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "it",
+          "ja",
+          "ka",
+          "ko",
+          "ku",
+          "lt",
+          "lv",
+          "mk",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "nb",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "sk",
+          "sl",
+          "sq",
+          "sr",
+          "sv",
+          "th",
+          "tr",
+          "uk",
+          "ur",
+          "vi"
+        ],
+        "count": 50,
+        "source": "cardData.language on sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "token-ceiling"
+        ],
+        "detail": "truncates far below this project's chunk geometry. Kept as a record rather than deleted: the mirror publishes the full dtype set, so the rejection is about the model and not about its packaging."
+      },
+      "notes": "Measured negative, per the tracker's instruction to keep it visible."
+    },
+    {
+      "id": "paraphrase-multilingual-minilm-l12-v2",
+      "hf_repo": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+      "upstream_repo": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "params": 117654272,
+      "dim": 384,
+      "max_seq": 128,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo. The architecture's positional capacity is larger; this is the length the model truncates to, and it is the one a retrieval run lives under.",
+      "languages": {
+        "codes": [
+          "ar",
+          "bg",
+          "ca",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "it",
+          "ja",
+          "ka",
+          "ko",
+          "ku",
+          "lt",
+          "lv",
+          "mk",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "nb",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "sk",
+          "sl",
+          "sq",
+          "sr",
+          "sv",
+          "th",
+          "tr",
+          "uk",
+          "ur",
+          "vi"
+        ],
+        "count": 50,
+        "source": "cardData.language on sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "token-ceiling"
+        ],
+        "detail": "truncates far below this project's chunk geometry. Kept as a record rather than deleted: the mirror publishes the full dtype set, so the rejection is about the model and not about its packaging."
+      },
+      "notes": "Measured negative, per the tracker's instruction to keep it visible."
+    },
+    {
+      "id": "distiluse-base-multilingual-cased-v2",
+      "hf_repo": "Xenova/distiluse-base-multilingual-cased-v2",
+      "upstream_repo": "sentence-transformers/distiluse-base-multilingual-cased-v2",
+      "params": 134734080,
+      "dim": 512,
+      "max_seq": 128,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo",
+      "languages": {
+        "codes": [
+          "ar",
+          "bg",
+          "ca",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "it",
+          "ja",
+          "ka",
+          "ko",
+          "ku",
+          "lt",
+          "lv",
+          "mk",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "nb",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "sk",
+          "sl",
+          "sq",
+          "sr",
+          "sv",
+          "th",
+          "tr",
+          "uk",
+          "ur",
+          "vi"
+        ],
+        "count": 50,
+        "source": "cardData.language on sentence-transformers/distiluse-base-multilingual-cased-v2"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "token-ceiling"
+        ],
+        "detail": "truncates far below this project's chunk geometry."
+      },
+      "notes": "The 512 output width comes from a sentence-transformers Dense module (2_Dense/config.json, 768 in, 512 out), not from the transformer, whose hidden size is 768. Whether the ONNX export carries that module is unverified. Moot while the token ceiling stands, and a trap if the model is ever revisited."
+    },
+    {
+      "id": "granite-107m-multilingual-v1",
+      "hf_repo": "ibm-granite/granite-embedding-107m-multilingual",
+      "upstream_repo": "ibm-granite/granite-embedding-107m-multilingual",
+      "params": 106994304,
+      "dim": 384,
+      "max_seq": 512,
+      "max_seq_source": "sentence_bert_config.json max_seq_length",
+      "languages": {
+        "codes": [
+          "ar",
+          "cs",
+          "de",
+          "en",
+          "es",
+          "fr",
+          "it",
+          "ja",
+          "ko",
+          "nl",
+          "pt",
+          "zh"
+        ],
+        "count": 12,
+        "source": "cardData.language on ibm-granite/granite-embedding-107m-multilingual"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "model.onnx"
+          ]
+        },
+        "onnx_files": [
+          "model.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7",
+          "unsweepable-dtypes"
+        ],
+        "detail": "the declared language list omits three of R7's five. The repo also publishes only the fp32 filename, so the dtype knob could address nothing but fp32 even if the languages held."
+      },
+      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7."
+    },
+    {
+      "id": "granite-278m-multilingual-v1",
+      "hf_repo": "ibm-granite/granite-embedding-278m-multilingual",
+      "upstream_repo": "ibm-granite/granite-embedding-278m-multilingual",
+      "params": 278043648,
+      "dim": 768,
+      "max_seq": 512,
+      "max_seq_source": "sentence_bert_config.json max_seq_length",
+      "languages": {
+        "codes": [
+          "ar",
+          "cs",
+          "de",
+          "en",
+          "es",
+          "fr",
+          "it",
+          "ja",
+          "ko",
+          "nl",
+          "pt",
+          "zh"
+        ],
+        "count": 12,
+        "source": "cardData.language on ibm-granite/granite-embedding-278m-multilingual"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "model.onnx"
+          ]
+        },
+        "onnx_files": [
+          "model.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7",
+          "unsweepable-dtypes"
+        ],
+        "detail": "the declared language list omits three of R7's five. The repo also publishes only the fp32 filename, so the dtype knob could address nothing but fp32 even if the languages held."
+      },
+      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7."
+    },
+    {
+      "id": "bge-m3",
+      "hf_repo": "onnx-community/bge-m3-ONNX",
+      "upstream_repo": "BAAI/bge-m3",
+      "params": null,
+      "dim": 1024,
+      "max_seq": 8192,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo",
+      "languages": {
+        "codes": null,
+        "count": 0,
+        "source": "cardData.language on BAAI/bge-m3 — neither repo declares one"
+      },
+      "licence": "mit",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "size"
+        ],
+        "detail": "rejected on size by the tracker's ruling. Neither repo publishes a parameter count this registry can read back, so the figure behind that ruling is the tracker's and is not restated here."
+      },
+      "notes": "A re-probe the tracker asked for. The mirror publishes the conventional set, so the rejection rests on size alone; the upstream repo addresses only fp32."
+    },
+    {
+      "id": "arctic-embed-l-v2",
+      "hf_repo": "Snowflake/snowflake-arctic-embed-l-v2.0",
+      "upstream_repo": "Snowflake/snowflake-arctic-embed-l-v2.0",
+      "params": 567754752,
+      "dim": 1024,
+      "max_seq": 8194,
+      "max_seq_source": "config.json max_position_embeddings",
+      "languages": {
+        "codes": [
+          "af",
+          "ar",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "ca",
+          "ceb",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "ht",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ky",
+          "lo",
+          "lt",
+          "lv",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "my",
+          "ne",
+          "nl",
+          "pa",
+          "pl",
+          "pt",
+          "qu",
+          "ro",
+          "ru",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "vi",
+          "yo",
+          "zh"
+        ],
+        "count": 74,
+        "source": "cardData.language on Snowflake/snowflake-arctic-embed-l-v2.0"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: MRL truncation"
+      },
+      "input_template": {
+        "query": "query: ",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_O4.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "size"
+        ],
+        "detail": "the large sibling of the m variant."
+      },
+      "notes": "Publishes the conventional set in-repo; the rejection is size, not packaging."
+    },
+    {
+      "id": "jina-embeddings-v3",
+      "hf_repo": "jinaai/jina-embeddings-v3",
+      "upstream_repo": "jinaai/jina-embeddings-v3",
+      "params": 572310396,
+      "dim": 1024,
+      "max_seq": 8194,
+      "max_seq_source": "config.json max_position_embeddings",
+      "languages": {
+        "codes": [
+          "af",
+          "am",
+          "ar",
+          "as",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "br",
+          "bs",
+          "ca",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "eo",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "fy",
+          "ga",
+          "gd",
+          "gl",
+          "gu",
+          "ha",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ku",
+          "ky",
+          "la",
+          "lo",
+          "lt",
+          "lv",
+          "mg",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "om",
+          "or",
+          "pa",
+          "pl",
+          "ps",
+          "pt",
+          "ro",
+          "ru",
+          "sa",
+          "sd",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "su",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "ug",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "xh",
+          "yi",
+          "zh"
+        ],
+        "count": 94,
+        "source": "cardData.language on jinaai/jina-embeddings-v3"
+      },
+      "licence": "cc-by-nc-4.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: task LoRA and truncatable output"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_fp16.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "licence",
+          "size"
+        ],
+        "detail": "non-commercial terms, which R-item aside is a licence this project cannot ship."
+      },
+      "notes": "A re-probe the tracker asked for. Readable without authentication trouble, and it publishes two dtypes rather than the conventional set: fp32 and fp16 only."
+    },
+    {
+      "id": "embeddinggemma-300m",
+      "hf_repo": "onnx-community/embeddinggemma-300m-ONNX",
+      "upstream_repo": "google/embeddinggemma-300m",
+      "params": 302863104,
+      "dim": 768,
+      "max_seq": 2048,
+      "max_seq_source": "config.json max_position_embeddings on the mirror",
+      "languages": {
+        "codes": null,
+        "count": 0,
+        "source": "cardData.language on google/embeddinggemma-300m — neither repo declares one"
+      },
+      "licence": "gemma",
+      "mrl": {
+        "claimed": true,
+        "source": "card: Matryoshka output"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_no_gather_q4.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "licence"
+        ],
+        "detail": "the Gemma terms are not an open licence, and the mirror inherits them."
+      },
+      "notes": "Two states in one model, which is why both repos were probed. The source repo is gated and publishes no ONNX; the mirror is ungated and publishes five dtypes. The licence follows the weights, so the mirror's openness changes nothing."
+    },
+    {
+      "id": "gte-multilingual-base-upstream",
+      "hf_repo": "Alibaba-NLP/gte-multilingual-base",
+      "upstream_repo": "Alibaba-NLP/gte-multilingual-base",
+      "params": 305369089,
+      "dim": 768,
+      "max_seq": 8192,
+      "max_seq_source": "config.json max_position_embeddings",
+      "languages": {
+        "codes": [
+          "af",
+          "ar",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "ca",
+          "ceb",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "gl",
+          "gu",
+          "he",
+          "hi",
+          "hr",
+          "ht",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ky",
+          "lo",
+          "lt",
+          "lv",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "pa",
+          "pl",
+          "pt",
+          "qu",
+          "ro",
+          "ru",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "uk",
+          "ur",
+          "vi",
+          "yo",
+          "zh"
+        ],
+        "count": 75,
+        "source": "cardData.language on Alibaba-NLP/gte-multilingual-base"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: elastic dense embedding, output in [128, 768]"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "confirmed_absent",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {},
+        "onnx_files": [],
+        "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "no-onnx"
+        ],
+        "detail": "queried authenticated; the listing carries no .onnx file at all."
+      },
+      "notes": "The model itself is a candidate through the mirror. This record exists so the absence is a finding with a date on it rather than a gap, and so a later reader does not re-run the same query."
+    },
+    {
+      "id": "nomic-embed-text-v2-moe",
+      "hf_repo": "nomic-ai/nomic-embed-text-v2-moe",
+      "upstream_repo": "nomic-ai/nomic-embed-text-v2-moe",
+      "params": 475292928,
+      "dim": null,
+      "max_seq": 512,
+      "max_seq_source": "sentence_bert_config.json max_seq_length",
+      "languages": {
+        "codes": [
+          "af",
+          "am",
+          "ar",
+          "az",
+          "ba",
+          "be",
+          "bg",
+          "bn",
+          "bs",
+          "ca",
+          "ce",
+          "co",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "dv",
+          "el",
+          "en",
+          "eo",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "fy",
+          "ga",
+          "gd",
+          "gl",
+          "gn",
+          "gu",
+          "gv",
+          "ha",
+          "he",
+          "hi",
+          "hr",
+          "ht",
+          "hu",
+          "hy",
+          "id",
+          "ig",
+          "it",
+          "ja",
+          "jv",
+          "km",
+          "kn",
+          "ko",
+          "ku",
+          "ky",
+          "la",
+          "lo",
+          "lt",
+          "lv",
+          "mg",
+          "mi",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "my",
+          "nl",
+          "nn",
+          "no",
+          "ny",
+          "pa",
+          "pl",
+          "ps",
+          "pt",
+          "ro",
+          "ru",
+          "sd",
+          "si",
+          "sk",
+          "sl",
+          "sm",
+          "sn",
+          "so",
+          "sq",
+          "st",
+          "su",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "tg",
+          "th",
+          "tl",
+          "tn",
+          "tr",
+          "ug",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "xh",
+          "yi",
+          "yo",
+          "zh",
+          "zu"
+        ],
+        "count": 101,
+        "source": "cardData.language on nomic-ai/nomic-embed-text-v2-moe"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: Matryoshka to 256"
+      },
+      "input_template": {
+        "query": "search_query: ",
+        "passage": "search_document: "
+      },
+      "availability": {
+        "state": "confirmed_absent",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {},
+        "onnx_files": [],
+        "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "no-onnx"
+        ],
+        "detail": "queried authenticated; the listing carries no .onnx file at all."
+      },
+      "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears."
+    },
+    {
+      "id": "jina-embeddings-v2-base-multilingual",
+      "hf_repo": "jinaai/jina-embeddings-v2-base-multilingual",
+      "upstream_repo": "jinaai/jina-embeddings-v2-base-multilingual",
+      "params": null,
+      "dim": null,
+      "max_seq": null,
+      "max_seq_source": "not read: the repo id does not resolve",
+      "languages": {
+        "codes": null,
+        "count": 0,
+        "source": "not read: the repo id does not resolve"
+      },
+      "licence": null,
+      "mrl": {
+        "claimed": null,
+        "source": "not read: the repo id does not resolve"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "could_not_look",
+        "http_status": 404,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {},
+        "onnx_files": null,
+        "reason": "{\"error\":\"Repository not found\"}"
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "unresolved-id"
+        ],
+        "detail": "nothing answers to this repo id."
+      },
+      "notes": "The tracker records this id as gated on a 401. Authenticated it returns 404, and so does a repo id invented for the run's negative control, so the code alone cannot tell a wrong id from a private repo. What settles it is a different query: listing the publisher's own repos returns an English model and three bilingual ones, and no multilingual v2 at any size. The state stays could-not-look because that is what the file listing gives; the rejection is the id, not the model."
+    },
+    {
+      "id": "multilingual-e5-small-intfloat",
+      "hf_repo": "intfloat/multilingual-e5-small",
+      "upstream_repo": "intfloat/multilingual-e5-small",
+      "params": 117654272,
+      "dim": 384,
+      "max_seq": 512,
+      "max_seq_source": "sentence_bert_config.json max_seq_length",
+      "languages": {
+        "codes": [
+          "af",
+          "am",
+          "ar",
+          "as",
+          "az",
+          "be",
+          "bg",
+          "bn",
+          "br",
+          "bs",
+          "ca",
+          "cs",
+          "cy",
+          "da",
+          "de",
+          "el",
+          "en",
+          "eo",
+          "es",
+          "et",
+          "eu",
+          "fa",
+          "fi",
+          "fr",
+          "fy",
+          "ga",
+          "gd",
+          "gl",
+          "gu",
+          "ha",
+          "he",
+          "hi",
+          "hr",
+          "hu",
+          "hy",
+          "id",
+          "is",
+          "it",
+          "ja",
+          "jv",
+          "ka",
+          "kk",
+          "km",
+          "kn",
+          "ko",
+          "ku",
+          "ky",
+          "la",
+          "lo",
+          "lt",
+          "lv",
+          "mg",
+          "mk",
+          "ml",
+          "mn",
+          "mr",
+          "ms",
+          "multilingual",
+          "my",
+          "ne",
+          "nl",
+          "no",
+          "om",
+          "or",
+          "pa",
+          "pl",
+          "ps",
+          "pt",
+          "ro",
+          "ru",
+          "sa",
+          "sd",
+          "si",
+          "sk",
+          "sl",
+          "so",
+          "sq",
+          "sr",
+          "su",
+          "sv",
+          "sw",
+          "ta",
+          "te",
+          "th",
+          "tl",
+          "tr",
+          "ug",
+          "uk",
+          "ur",
+          "uz",
+          "vi",
+          "xh",
+          "yi",
+          "zh"
+        ],
+        "count": 94,
+        "source": "cardData.language on intfloat/multilingual-e5-small"
+      },
+      "licence": "mit",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the card"
+      },
+      "input_template": {
+        "query": "query: ",
+        "passage": "passage: "
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_O4.onnx",
+          "onnx/model_qint8_avx512_vnni.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "unsweepable-dtypes"
+        ],
+        "detail": "the author's own repo publishes ONNX under names the dtype knob cannot address, so only fp32 resolves. The mirror record carries the sweepable copy of this model."
+      },
+      "notes": "Kept because the trap is the interesting part: the repo has ONNX, the model is the right model, and the sweep would still have run one rung."
+    },
+    {
+      "id": "all-minilm-l6-v2",
+      "hf_repo": "Xenova/all-MiniLM-L6-v2",
+      "upstream_repo": "sentence-transformers/all-MiniLM-L6-v2",
+      "params": 22713728,
+      "dim": 384,
+      "max_seq": 256,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo",
+      "languages": {
+        "codes": [
+          "en"
+        ],
+        "count": 1,
+        "source": "cardData.language on sentence-transformers/all-MiniLM-L6-v2"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7"
+        ],
+        "detail": "English only, by its own declared language list."
+      },
+      "notes": "Measured in the earlier campaign; kept so its absence from the study is legible."
+    },
+    {
+      "id": "bge-small-en-v15",
+      "hf_repo": "Xenova/bge-small-en-v1.5",
+      "upstream_repo": "BAAI/bge-small-en-v1.5",
+      "params": 33360512,
+      "dim": 384,
+      "max_seq": 512,
+      "max_seq_source": "sentence_bert_config.json max_seq_length on the upstream repo",
+      "languages": {
+        "codes": [
+          "en"
+        ],
+        "count": 1,
+        "source": "cardData.language on BAAI/bge-small-en-v1.5"
+      },
+      "licence": "mit",
+      "mrl": {
+        "claimed": false,
+        "source": "no Matryoshka claim on the upstream card"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7"
+        ],
+        "detail": "English only, and it says so in its name."
+      },
+      "notes": "Measured in the earlier campaign."
+    },
+    {
+      "id": "nomic-embed-text-v15",
+      "hf_repo": "nomic-ai/nomic-embed-text-v1.5",
+      "upstream_repo": "nomic-ai/nomic-embed-text-v1.5",
+      "params": 136731648,
+      "dim": 768,
+      "max_seq": 2048,
+      "max_seq_source": "config.json max_position_embeddings",
+      "languages": {
+        "codes": [
+          "en"
+        ],
+        "count": 1,
+        "source": "cardData.language on nomic-ai/nomic-embed-text-v1.5"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: Matryoshka to 256 and below"
+      },
+      "input_template": {
+        "query": "search_query: ",
+        "passage": "search_document: "
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7"
+        ],
+        "detail": "English-centric, by its own declared language list."
+      },
+      "notes": "The dtype ladder and the quantization-fidelity work were done on this model, so it is the contrast arm rather than a competitor. R7 keeps it out of the comparison; nothing keeps it out of the baseline."
+    },
+    {
+      "id": "qwen3-embedding-06b",
+      "hf_repo": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "upstream_repo": "Qwen/Qwen3-Embedding-0.6B",
+      "params": 595776512,
+      "dim": 1024,
+      "max_seq": 32768,
+      "max_seq_source": "config.json max_position_embeddings on the mirror",
+      "languages": {
+        "codes": null,
+        "count": 0,
+        "source": "cardData.language on Qwen/Qwen3-Embedding-0.6B — neither repo declares one"
+      },
+      "licence": "apache-2.0",
+      "mrl": {
+        "claimed": true,
+        "source": "card: user-defined output dimension"
+      },
+      "input_template": {
+        "query": "",
+        "passage": ""
+      },
+      "availability": {
+        "state": "available",
+        "http_status": 200,
+        "probed_utc": "2026-08-29T14:33Z",
+        "dtypes": {
+          "fp32": [
+            "onnx/model.onnx"
+          ],
+          "fp16": [
+            "onnx/model_fp16.onnx"
+          ],
+          "int8": [
+            "onnx/model_int8.onnx"
+          ],
+          "uint8": [
+            "onnx/model_uint8.onnx"
+          ],
+          "q8": [
+            "onnx/model_quantized.onnx"
+          ],
+          "q4": [
+            "onnx/model_q4.onnx"
+          ],
+          "q4f16": [
+            "onnx/model_q4f16.onnx"
+          ],
+          "bnb4": [
+            "onnx/model_bnb4.onnx"
+          ]
+        },
+        "onnx_files": [
+          "onnx/model.onnx",
+          "onnx/model_bnb4.onnx",
+          "onnx/model_fp16.onnx",
+          "onnx/model_int8.onnx",
+          "onnx/model_q4.onnx",
+          "onnx/model_q4f16.onnx",
+          "onnx/model_quantized.onnx",
+          "onnx/model_uint8.onnx"
+        ],
+        "reason": ""
+      },
+      "status": "rejected",
+      "rejection": {
+        "criteria": [
+          "r7",
+          "size"
+        ],
+        "detail": "the tracker rejects it on R7 for the configuration that was measured. This registry cannot derive that verdict: neither repo declares a language list, and the card claims broad coverage. The R7 criterion here is inherited, not measured, and it is the only one in this file that is. Size is derivable and stands on its own: heavier than every model rejected for size above."
+      },
+      "notes": "Measured in the earlier campaign through the mirror. The source repo publishes no ONNX; the mirror publishes the conventional set. Re-screening the language claim is the tracker's call, not this registry's."
+    }
+  ]
+}

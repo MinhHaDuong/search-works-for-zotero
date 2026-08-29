@@ -23,13 +23,16 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { cpus, hostname } from 'node:os';
+import { resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
     'pkg-root': { type: 'string' },
     corpus: { type: 'string' },
     'out-prefix': { type: 'string' },
-    model: { type: 'string', default: 'nomic-ai/nomic-embed-text-v1.5' },
+    // A registry id, resolved through bench/models.json. A literal owner/name still
+    // works and warns, so an ad-hoc run stays possible without a record.
+    model: { type: 'string', default: 'nomic-embed-text-v15' },
     dtype: { type: 'string' },
     device: { type: 'string' },
     rows: { type: 'string', default: '400' },
@@ -63,8 +66,12 @@ const pipelineOpts = {};
 if (opt.dtype) pipelineOpts.dtype = opt.dtype;
 if (opt.device) pipelineOpts.device = opt.device;
 
+// The record keeps the repository, which is what was loaded, and the registry id, which
+// is what the run was asked for. They differ whenever a model is loaded from a mirror.
+const { id: modelId, repo: modelRepo } = resolveModel(opt.model);
+
 const t0 = performance.now();
-const extractor = await pipeline('feature-extraction', opt.model, pipelineOpts);
+const extractor = await pipeline('feature-extraction', modelRepo, pipelineOpts);
 const loadMs = performance.now() - t0;
 
 // Raw vectors, not normalised: the scorer computes its own norms, matching the convention of
@@ -107,7 +114,8 @@ writeFileSync(
   `${opt['out-prefix']}.json`,
   `${JSON.stringify(
     {
-      model: opt.model,
+      model: modelRepo,
+      model_id: modelId,
       dtype: opt.dtype ?? '(runtime default)',
       device: opt.device ?? '(runtime default)',
       dim,
@@ -129,6 +137,6 @@ writeFileSync(
   )}\n`,
 );
 console.error(
-  `${opt.model} ${opt.dtype ?? 'default'}: ${texts.length}x${dim} in ${(embedMs / 1000).toFixed(1)}s ` +
+  `${modelRepo} ${opt.dtype ?? 'default'}: ${texts.length}x${dim} in ${(embedMs / 1000).toFixed(1)}s ` +
     `(${(embedMs / texts.length).toFixed(0)} ms/passage)`,
 );

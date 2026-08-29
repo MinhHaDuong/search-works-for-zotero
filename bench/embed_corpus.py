@@ -25,6 +25,8 @@ import logging
 import os
 from pathlib import Path
 
+from registry import resolve_model
+
 logger = logging.getLogger("embed_corpus")
 
 
@@ -34,8 +36,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--output", type=Path, required=True, help="flat float32, N x dim")
     p.add_argument(
         "--model",
-        default="Qwen/Qwen3-Embedding-0.6B",
-        help="a Matryoshka-trained sentence-transformers model",
+        default="qwen3-embedding-06b",
+        help=(
+            "a registry id from bench/models.json, resolved to its upstream repository "
+            "because this driver loads through sentence-transformers rather than ONNX. "
+            "A literal owner/name still works and warns."
+        ),
     )
     p.add_argument("--batch", type=int, default=64)
     p.add_argument("--device", default=None, help="cuda / cpu; default: auto")
@@ -81,9 +87,10 @@ def main() -> None:
     # float16 is a GPU economy; on CPU it is emulated and slower than float32, so the
     # request is honoured only where it pays.
     dtype = getattr(torch, args.dtype) if device.startswith("cuda") else torch.float32
-    logger.info("loading %s on %s (%s)", args.model, device, dtype)
+    repo = resolve_model(args.model, kind="upstream")["repo"]
+    logger.info("loading %s on %s (%s)", repo, device, dtype)
     model = SentenceTransformer(
-        args.model,
+        repo,
         device=device,
         trust_remote_code=True,
         model_kwargs={"torch_dtype": dtype},
@@ -106,7 +113,8 @@ def main() -> None:
         logger.info("resuming at row %d of %d", start, len(lines))
 
     meta = {
-        "model": args.model,
+        "model": repo,
+        "model_id": args.model,
         "dim": dim,
         "rows": len(lines),
         "input": str(args.input),
