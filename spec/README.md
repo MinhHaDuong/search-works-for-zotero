@@ -1,9 +1,8 @@
 # The specification chain
 
-Four documents, read in this order, plus a glossary that serves them and a
-survey of what other people built. This file is the entry point, and it owns
-one thing the others do not: **where each of the twenty-eight promises
-actually stands** — designed, shipped, or neither.
+This is the entry point to the chain, and it owns one thing the other
+documents do not: **where each of the twenty-eight promises actually
+stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
 repository lives in exactly one document, and a status page is the most
