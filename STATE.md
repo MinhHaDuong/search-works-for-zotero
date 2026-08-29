@@ -54,7 +54,7 @@ at the current baseline.
   upstream's own gates (typecheck, lint, build; 754 passed / 7 skipped),
   pre-filled form at RUNBOOK.md's PR B.
 - The harness runs on the system interpreter on doudou: `make check` is green
-  (ruff clean, 106 figure pairs / 0 stale, 24 tests), with ruff 0.15.21 and
+  (ruff clean, 160 figure pairs / 0 stale, 38 tests), with ruff 0.15.21 and
   pytest 9.0.2 on PATH. No `.venv` exists in the repo and none is needed. The
   earlier note here — that the venv was unusable because `python` was missing
   and `ruff` segfaulted — described the handoff container, not this machine.

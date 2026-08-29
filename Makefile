@@ -30,7 +30,10 @@ check-fast:
 lint:
 	# Ruff's default selection has changed across releases. Spell out the
 	# historical default so this gate means the same thing on every machine.
-	ruff check --select E4,E7,E9,F bench/ tests/
+	# verification/probes/ is in scope too: a probe script that produced a
+	# committed figure is code we depend on, and moving one out of bench/
+	# must not move it out of the lint gate.
+	ruff check --select E4,E7,E9,F bench/ tests/ verification/probes/
 
 # The guard against the defect this repo spent a session on: a figure updated in
 # an artifact and left stale in the paragraph quoting it. Also run by the test
