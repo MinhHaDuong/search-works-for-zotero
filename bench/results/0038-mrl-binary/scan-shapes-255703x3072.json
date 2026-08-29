@@ -1,0 +1,68 @@
+{
+  "what": "scan cost per semantic query at upstream #30's geometry, by representation",
+  "when": "2026-08-29T09:26:03.135Z",
+  "geometry": {
+    "vectors": 255703,
+    "dim": 3072,
+    "mrl_prefix": 768
+  },
+  "baseline": "sqlite_float32",
+  "vectors_are": "SYNTHETIC — scan latency depends on shape, not on meaning. Recall is measured on real embeddings in bench/vec_mrl_recall.mjs and never here.",
+  "results": [
+    {
+      "name": "sqlite_float32",
+      "note": "v1.9.0 shape: BLOB per row, row norm recomputed every query",
+      "median_ms": 4088.7,
+      "iqr_pct_of_median": 16.4,
+      "bytes_scanned": 3142078464,
+      "speedup_vs_baseline": 1
+    },
+    {
+      "name": "sqlite_prenorm",
+      "note": "the same, with the row norm stored rather than recomputed per query",
+      "median_ms": 6009.4,
+      "iqr_pct_of_median": 7.3,
+      "bytes_scanned": 3142078464,
+      "speedup_vs_baseline": 0.68
+    },
+    {
+      "name": "binary_3072",
+      "note": "1-bit codes at width 3072, SWAR popcount over Uint32Array",
+      "median_ms": 97.2,
+      "iqr_pct_of_median": 12.3,
+      "bytes_scanned": 98189952,
+      "speedup_vs_baseline": 42.06
+    },
+    {
+      "name": "binary_768",
+      "note": "1-bit codes at width 768, SWAR popcount over Uint32Array",
+      "median_ms": 26.7,
+      "iqr_pct_of_median": 8.3,
+      "bytes_scanned": 24547488,
+      "speedup_vs_baseline": 153.13
+    },
+    {
+      "name": "bigint_3072",
+      "note": "the OBVIOUS JS Hamming implementation — measured because it loses",
+      "median_ms": 18635.6,
+      "iqr_pct_of_median": 6.8,
+      "bytes_scanned": 3142078464,
+      "speedup_vs_baseline": 0.22
+    }
+  ],
+  "open_question": "Issue #30 reports 90-105 s. The exact scan here is far below that on this machine, and nothing measured here explains the difference. The experiment that would settle it costs one minute on the reporter’s machine: run the same query twice in a row. Much faster the second time means the cost is getting the bytes off disk; the same both times means it is arithmetic. Until then the gap is unattributed.",
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "free_mem_bytes_at_start": 18804301824,
+    "loadavg": [
+      1.67,
+      1.67,
+      1.48
+    ],
+    "node": "v22.23.1"
+  },
+  "reps": 9
+}
