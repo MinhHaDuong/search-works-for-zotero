@@ -68,6 +68,7 @@ PROSE = {
     # unguarded is silent. This one arrived 2026-08-29.
     "v30": ["verification/issue-30-thread.md"],
     "v0220": ["verification/DEVICE-AUTO-0220.md"],
+    "vsmoke": ["verification/SMOKE-1.10.0.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -534,6 +535,82 @@ FIGURES = [
      {"v0220": "| query median | {} ms |"}),
     ("0220-device-dtype/minilm-q8.json", "models.0.query_ms_median", 1,
      {"v0220": "| query median | 4,2 ms | {} ms |"}),
+    # ---- the v1.10.0 smoke test. Its numbers are n=1 session observations rather than a
+    # benchmark, which is exactly why they are declared: an indicative figure quoted twice
+    # drifts as readily as a measured one, and this report states the live library's size
+    # and the warm-latency band that a reader will carry away.
+    ("smoke-1.10.0/queries.json", "live_library.total_results", 0,
+     {"vsmoke": "returned **{} results** at"}),
+    ("smoke-1.10.0/queries.json", "live_library.library_version", 0,
+     {"vsmoke": "version **{}** — the live number"}),
+    ("smoke-1.10.0/queries.json", "index.passages", 0,
+     {"vsmoke": "index it queried holds {} passages** with"}),
+    ("smoke-1.10.0/queries.json", "index.items", 0,
+     {"vsmoke": "over\n{} items, of which"}),
+    ("smoke-1.10.0/queries.json", "index.fulltext_items", 0,
+     {"vsmoke": "of which {} carry full text"}),
+    ("smoke-1.10.0/queries.json", "index.fulltext_passages", 0,
+     {"vsmoke": "contributing {} passages;"}),
+    ("smoke-1.10.0/queries.json", "latency_ms.first_semantic_query_includes_model_load", 1,
+     {"vsmoke": "| `semantic` | {} ms |"}),
+    ("smoke-1.10.0/queries.json", "latency_ms.warm_semantic_min", 1,
+     {"vsmoke": "ms | {} ms to"}),
+    ("smoke-1.10.0/queries.json", "latency_ms.warm_semantic_max", 1,
+     {"vsmoke": "ms to {} ms |\n| `auto`"}),
+    ("smoke-1.10.0/queries.json", "latency_ms.auto_min", 1,
+     {"vsmoke": "| — | {} ms to"}),
+    ("smoke-1.10.0/queries.json", "latency_ms.auto_max", 1,
+     {"vsmoke": "ms to {} ms |\n\nThe first figure"}),
+    # The RRF table is the report's load-bearing claim: the score is a relabelled rank.
+    # Anchored per cell, because the whole finding is that these five values recur
+    # unchanged across unrelated queries — a stale cell would destroy exactly that.
+    ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.0", 6,
+     {"vsmoke": "| observed | {} |"}),
+    ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.1", 6,
+     {"vsmoke": "| {} | 0,015873"}),
+    ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.2", 6,
+     {"vsmoke": "0,016129 | {} | 0,015625"}),
+    ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.3", 6,
+     {"vsmoke": "0,015873 | {} | 0,015385"}),
+    ("smoke-1.10.0/queries.json", "score_semantics.expected_1_over_60_plus_rank.4", 6,
+     {"vsmoke": "0,015625 | {} |\n| 1/(60+rank)"}),
+    # The fresh build from the live library — the half that proves the whole path, and the
+    # half this report first got wrong by calling a finished build stalled.
+    ("smoke-1.10.0/fresh-build.json", "passages", 0,
+     {"vsmoke": "items, **{} passages** and"}),
+    ("smoke-1.10.0/fresh-build.json", "fulltext_passages", 0,
+     {"vsmoke": "of which {} passages came from"}),
+    ("smoke-1.10.0/fresh-build.json", "fulltext_items", 0,
+     {"vsmoke": "from the {} items carrying"}),
+    ("smoke-1.10.0/fresh-build.json", "query_semantic_ms", 1,
+     {"vsmoke": "answered in {} ms and an"}),
+    ("smoke-1.10.0/fresh-build.json", "query_auto_ms", 1,
+     {"vsmoke": "`auto` query in {} ms."}),
+    ("smoke-1.10.0/fresh-build.json", "peak_rss_mib", 0,
+     {"vsmoke": "reached **{} MiB** (`VmHWM`)"}),
+    # ---- X4's real-corpus arm. Quoted in the ledger, which is append-only: a ratified
+    # entry is never edited again, so a wrong number there becomes permanent. The three
+    # that carry the argument are the failing rung and the two the domination rests on.
+    ("0025-x4-constrained-match/real-477k.json", "rows.1.p95_ms", 1,
+     {"decisions": "scope is\n  **{} ms**"}),
+    ("0025-x4-constrained-match/real-477k.json", "rows.0.median_ms", 1,
+     {"decisions": "unconstrained costs **{} ms** median"}),
+    ("0025-x4-constrained-match/real-477k.json", "rows.1.median_ms", 1,
+     {"decisions": "thousand rowids costs **{} ms**"}),
+    # ---- the year-scope follow-up. The table's two columns are the whole argument: the
+    # same work, two mechanisms, and a reader who checks one cell checks the claim.
+    ("0025-year-scope/year-vs-json-each.json", "scopes.0.predicate.median_ms", 1,
+     {"decisions": "| one year (2020) | **{} ms** median"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.0.json_each_control.median_ms", 1,
+     {"decisions": "median | **{} ms** median |"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.1.predicate.median_ms", 1,
+     {"decisions": "| five years | {} ms median"}),
+    ("0025-year-scope/year-vs-json-each.json", "scopes.2.predicate.median_ms", 1,
+     {"decisions": "| a decade | {} ms median"}),
+    ("0025-year-scope/year-vs-json-each.json", "baseline.0.median_ms", 0,
+     {"decisions": "no filter at all costs **{} ms** median"}),
+    ("0025-year-scope/year-vs-json-each.json", "column_and_index_build_ms", 0,
+     {"decisions": "cost **{} ms**, and Zotero's local API"}),
 ]
 
 
