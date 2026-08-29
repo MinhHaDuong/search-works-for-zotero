@@ -41,7 +41,18 @@ SCANNED = [
     "spec/DESIGN.md",
     "spec/FIELD-REVIEW.md",
     "spec/DECISIONS.md",
+    "spec/TERMINOLOGY.md",
 ]
+
+#: Empty, and the list exists anyway. A hand-kept scope fails in one direction
+#: only: a document removed breaks the build loudly, a document added is never
+#: read and nothing says so. That asymmetry is ticket 0221's subject, and it bit
+#: twice in one session -- FIELD-REVIEW.md had been sitting outside the
+#: governance guard, and TERMINOLOGY.md arrived while this guard was being
+#: written. So the spec directory is checked for completeness rather than
+#: trusted: a document there fails the build until it is in one list or the
+#: other, which costs one line at the only moment anyone has the context.
+OUT_OF_SCOPE = []
 
 #: Each entry is a phrase one of the five Intros used to describe the chain.
 CHAIN_MARKERS = {
@@ -63,16 +74,48 @@ CHAIN_MARKERS = {
 POINTER = re.compile(re.escape(OWNER))
 
 
+#: Only the head of each document is scanned: the title block, any italic front
+#: matter, and an `## Intro` section. That is where the duplication lived, and
+#: scanning further costs more than it buys. A ratified DECISIONS.md entry says
+#: "CONSTRAINTS.md and DESIGN.md are edited to match" about one specific ruling,
+#: which is the phrase working correctly rather than a restatement of the chain
+#: — and DECISIONS.md is append-only, so a guard able to demand an edit to an
+#: entry is wrong however it phrases the complaint. Stopping at the first
+#: section heading that is not the Intro removes that whole class.
+HEAD_ENDS = re.compile(r"^##\s+(?!Intro\s*$)")
+
+
+def head(text: str) -> list[tuple[int, str]]:
+    """The document's head, as (line number, line) pairs."""
+    lines = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if HEAD_ENDS.match(line):
+            break
+        lines.append((number, line))
+    return lines
+
+
 def scan(text: str) -> list[tuple[int, str, str]]:
     """Return (line number, marker name, line) for every unexcused restatement."""
     hits = []
-    for number, line in enumerate(text.splitlines(), start=1):
+    for number, line in head(text):
         if POINTER.search(line):
             continue
         for name, pattern in CHAIN_MARKERS.items():
             if pattern.search(line):
                 hits.append((number, name, line.strip()))
     return hits
+
+
+def untriaged(repo: Path) -> set[str]:
+    """Documents in the spec directory that appear in neither list."""
+    listed = set(SCANNED) | set(OUT_OF_SCOPE)
+    found = {
+        path.relative_to(repo).as_posix()
+        for path in (repo / "spec").glob("*.md")
+        if path.is_file()
+    }
+    return found - listed
 
 
 def run(repo: Path) -> int:
@@ -82,6 +125,15 @@ def run(repo: Path) -> int:
 
     failures = 0
     scanned = 0
+    for relative in sorted(untriaged(repo)):
+        # Not a warning. An unlisted document is one nobody decided about.
+        print(
+            f"{relative} is in neither SCANNED nor OUT_OF_SCOPE; add it to one "
+            f"of them in bench/check_chain_dedup.py",
+            file=sys.stderr,
+        )
+        failures += 1
+
     for relative in SCANNED:
         path = repo / relative
         if not path.exists():

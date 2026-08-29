@@ -104,6 +104,63 @@ def test_every_marker_has_a_phrase_that_fires():
         assert any(hit[1] == name for hit in hits), f"{name} matched nothing"
 
 
+def test_a_ratified_entry_below_the_intro_is_not_a_finding(tmp_path):
+    """The false positive that scoping to the head exists to prevent.
+
+    A ratified DECISIONS.md entry legitimately says CONSTRAINTS.md and DESIGN.md
+    "are edited to match" about one specific ruling. That is the chain working,
+    not a restatement of it — and DECISIONS.md is append-only, so a guard able to
+    demand an edit to an entry is wrong however it phrases the complaint.
+    """
+    repo = build(
+        tmp_path,
+        {
+            "spec/DECISIONS.md": (
+                "*Append-only. Its role is stated once, in README.md.*\n"
+                "\n"
+                "## Ratified\n"
+                "\n"
+                "**2026-08-29 — the RAM budget is per process.** CONSTRAINTS.md C3\n"
+                "and DESIGN.md 2.9 are edited to match once the measurement lands.\n"
+            )
+        },
+    )
+    assert ccd.run(repo) == 0
+
+
+def test_a_restatement_inside_the_intro_still_fires(tmp_path):
+    """Head-scoping must not have bought its silence by looking nowhere."""
+    repo = build(
+        tmp_path,
+        {
+            "spec/DECISIONS.md": (
+                "*The author's rulings land here first.*\n"
+                "\n"
+                "## Ratified\n"
+                "\n"
+                "Nothing yet.\n"
+            )
+        },
+    )
+    assert ccd.run(repo) == 1
+
+
+def test_an_arriving_spec_document_must_be_triaged(tmp_path):
+    """The other half of a hand-kept scope, and the half that fails silently.
+
+    FIELD-REVIEW.md sat outside the governance guard this way, and TERMINOLOGY.md
+    arrived while this guard was being written.
+    """
+    repo = build(tmp_path, {})
+    (repo / "spec" / "ONTOLOGY.md").write_text("A new chain document nobody triaged.\n")
+    assert ccd.run(repo) == 1
+
+
 def test_the_repo_itself_is_clean():
     """The guard's own subject. Red before ticket 0054, green after."""
     assert ccd.run(REPO) == 0
+
+
+def test_the_repo_itself_is_fully_triaged():
+    """Every document in the spec directory is in exactly one list."""
+    assert ccd.untriaged(REPO) == set()

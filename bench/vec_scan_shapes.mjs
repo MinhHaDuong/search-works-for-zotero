@@ -12,8 +12,18 @@
 //
 // The shapes, in the order the argument needs them:
 //
-//   sqlite_float32   what v1.9.0 does: one BLOB per row out of SQLite, decoded to a
-//                    Float32Array, cosine with the row norm recomputed every query.
+//   sqlite_float32   one BLOB per row out of SQLite, decoded to a Float32Array, dot and
+//                    row norm accumulated in ONE traversal with no shared norm() call.
+//                    NOT what v1.9.0 ran, though this file said so until 2026-08-29: that
+//                    is the shape upstream PR #31 created. v1.9.0 walked each row twice
+//                    through a norm() shared with the query-side call, and so polymorphic.
+//                    Measured directly, one process, one table: the fused shape here is
+//                    2,29x faster than the v1.9.0 shape, of which 1,42x is the
+//                    monomorphism alone (verification/probes/scan-shape-v190-vs-fused.mjs,
+//                    bench/results/0025-x1-recall/scan-shape-attribution.json), matching
+//                    ticket 0070's 2,19x measured in situ on the real store. So every
+//                    speedup below is against a POST-#31 baseline: correct for v1.10.0,
+//                    and roughly half the true ratio against v1.9.0.
 //   sqlite_prenorm   the same, with the row norm stored instead of recomputed. The
 //                    difference is one full pass over 3 072 floats per row, per query,
 //                    over a value that cannot change.
@@ -123,7 +133,7 @@ if (WANT.has('sqlite_float32') || WANT.has('sqlite_prenorm')) {
     const st = db.prepare('SELECT id, vector FROM passages WHERE vector IS NOT NULL');
     candidates.push({
       name: 'sqlite_float32',
-      note: 'v1.9.0 shape: BLOB per row, row norm recomputed every query',
+      note: 'post-#31 fused shape: BLOB per row, dot and row norm in one traversal (NOT v1.9.0, which walked each row twice through a shared, polymorphic norm() — 2,29x slower)',
       run: () => {
         let best = -2;
         for (const r of st.iterate()) {

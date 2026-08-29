@@ -14,6 +14,13 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 - `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
   every design number: gate thresholds (§2.8), experiment decision rules
   (§3), budgets (§2.9).
+- `spec/TERMINOLOGY.md` — the glossary, alphabetical, in three marked buckets
+  (ours, inherited from Zotero, inherited from SQLite) plus a historical
+  section. Authoritative for what a word means and for which document owns it.
+  Owns no design number and settles no open question: it points at the owner
+  instead, and `bench/check_terminology.py` fails on any digit that is not an
+  address. Serves the chain without being in it — enter a document in the
+  middle and look the vocabulary up here.
 - `spec/DECISIONS.md` — append-only ratification ledger. The author's rulings land
   here FIRST; the other documents are edited to match. Owns the record of
   every ruling, technical and process alike, and the awaiting-ratification
@@ -57,7 +64,9 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 ## Conventions
 
 - `make check` must be green before any commit: ruff, the figure guard
-  (`bench/check_figures.py`), pytest. The figure guard is load-bearing —
+  (`bench/check_figures.py`), the governance guard
+  (`bench/check_governance.py`), the terminology guard
+  (`bench/check_terminology.py`), pytest. The figure guard is load-bearing —
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.

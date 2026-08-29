@@ -293,6 +293,68 @@ then proves only that the surrogate is cheap. Without the revalidation this is a
 check whose all-clear is indistinguishable from "I could not look".
 
 
+**2026-08-29 — R7 is hard; C3's memory ceiling gives way.** Multilingual is not
+negotiable against a resident-memory budget. Where the two conflict, the
+embedder stays multilingual and the 300 MB server ceiling moves. The author's
+ruling, on the measurement below.
+
+The conflict is real and structural rather than a property of one model. A
+multilingual embedder pays for its vocabulary in resident memory, and
+quantization does not recover it. `multilingual-e5-small` — Zotero core's own
+multilingual pick, and the smallest serious candidate — measures 404,4 MB
+resident at uint8, its cheapest loadable rung, against a ratified ceiling of
+300 MB (`bench/results/0025-x1-recall/dtype-ladder-multilingual-e5-small.json`).
+It is the *smaller* of the two models swept that day: 118M parameters at 384
+dimensions against nomic-768's 137M at 768, and yet 404,4 MB against 235,2 MB.
+
+Why multilingual costs this much is NOT established, and an earlier draft of
+this entry claimed it was. Vocabulary is the obvious suspect — e5 carries
+250 037 tokens against nomic's 30 528, so its embedding table is 366,3 MB at
+fp32 against 89,4 MB — and the *file* sizes fit that reading exactly. The
+*resident* sizes do not. Measured warm at q8, five fresh processes each, spread
+under 7 MB: nomic-768 234,2 MB, granite-embedding-97m-multilingual-r2
+407,8 MB, multilingual-e5-small 419,5 MB. Granite and e5 differ by 102,6 MB of
+embedding table and by 11,7 MB of resident memory. A predictor built on
+`vocab x dim` matched e5-small to a tenth of a megabyte — and it had been
+calibrated on e5-small; its first out-of-sample test, Granite, it missed by
+106 MB. So the mechanism is open, and the ruling does not depend on it.
+
+What the ruling rests on is the measurement, which is robust: every
+multilingual embedder measured sits between 405 and 420 MB at its cheapest
+loadable rung, against 234 MB for the English small-vocabulary model, and none
+of them fits 300 MB. Two independent candidates, repeated, agree on that.
+
+**What this entry does not settle.** It does not set the new number. C3's
+replacement ceiling is a consequence of which embedder ticket 0240 selects, so
+the number is ratified after that choice and not before — with one bound
+already known, that no multilingual candidate measured fits under ~400 MB, so
+any revised ceiling below that is unachievable on current evidence.
+`spec/CONSTRAINTS.md` C3 and `spec/DESIGN.md` §2.9 are edited to match once the
+figure exists; until then C3's 300 MB stands in the documents with this entry
+as its known exception, because editing a ratified constraint to an unknown
+value would be worse than leaving the conflict visible.
+
+Two consequences worth naming now. The RSS gate (R20, `check-slow`) asserts
+`server p95 <= 300 MB` verbatim and will fail the moment a multilingual
+embedder is resident, so it is re-pinned in the same change as C3, never
+before. And the pipeline peak (`<= 500 MB regardless of document size`) is a
+separate budget on the worker, untouched by this ruling — an embedder resident
+in the server does not license a larger extraction peak.
+
+**2026-08-29 — the plain-language rewrite is accepted, and its voice is the
+specification chain's standard.** Ticket 0036 rewrote REQUIREMENTS.md,
+CONSTRAINTS.md and DESIGN.md out of the cycle-2 panel's compressed idiom, on the
+author's verdict of 2026-08-27 that "the house style is purely llm at the
+moment, not my voice yet". The author read all three and accepted them; the veto
+route the ticket reserved into this ledger went unused. What this settles past
+those three files: prose entering the specification chain later is written in
+that voice rather than the panel's, which is the standard for 0050's normative
+keywords, 0051's glossary and 0052's security section. The rewrite's own bounds
+carry with it — R-, C-, D- and section numbers survive as the addressing scheme
+tickets point into, the requirements list holds R-items only, and each preamble
+is an Intro section.
+
+
 ## Awaiting ratification
 
 - **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
