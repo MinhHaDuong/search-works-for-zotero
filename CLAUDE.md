@@ -29,6 +29,11 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   own conduct, going forward. It owns the rules; the ledger keeps the rulings
   that made them, and `SYNC.md` keeps the live counts. Split ratified
   2026-08-29.
+- `SECURITY.md` — what the system holds, where it can leak, and what the design
+  currently says about each point. It describes and discloses; it decides
+  nothing, so closing a gap it names is a ruling in `spec/DECISIONS.md` and then
+  a requirement in `spec/REQUIREMENTS.md`. Standalone by ratification,
+  2026-08-29.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.

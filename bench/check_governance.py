@@ -45,15 +45,18 @@ OWNER = "GOVERNANCE.md"
 #: over the very text the split exists to move. TERMINOLOGY.md joined the list
 #: with the file itself (ticket 0051): a glossary is where a bound gets restated
 #: as a definition, and a specification document that arrives unscanned is
-#: indistinguishable from one with nothing to hide. This list is hand-kept and
-#: fails asymmetrically — a document removed breaks loudly, a document added
-#: goes unnoticed — which is ticket 0221's subject, still open.
+#: indistinguishable from one with nothing to hide. FIELD-REVIEW.md joined the
+#: same way, late: it had arrived unscanned and stayed that way, which is the
+#: asymmetry ticket 0221 named — a document removed breaks loudly, a document
+#: added goes unnoticed. The completeness check below closes it.
 SCANNED = [
     "README.md",
     "CLAUDE.md",
+    "SECURITY.md",
     "spec/REQUIREMENTS.md",
     "spec/CONSTRAINTS.md",
     "spec/DESIGN.md",
+    "spec/FIELD-REVIEW.md",
     "spec/TERMINOLOGY.md",
 ]
 
@@ -68,6 +71,21 @@ SCANNED = [
 #: question that would otherwise be answered by adding it and breaking the
 #: build.
 UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.md", "RUNBOOK.md"]
+
+#: Where the two lists above must, between them, account for every document.
+#: A hand-written scope fails asymmetrically: a document that LEAVES breaks the
+#: build loudly at the missing-document check below, while a document that
+#: ARRIVES is simply never read, and nothing says so. FIELD-REVIEW.md arrived
+#: that way and sat unscanned — 114 kB of public, newcomer-facing prose outside
+#: the gate — until ticket 0052 went looking. The completeness check turns the
+#: silent half into the loud half: a new document here fails the build until
+#: someone puts it in one list or the other, which takes one line and one
+#: moment's thought at the only time anybody has the context to spend it.
+#:
+#: verification/ is deliberately outside this scope. CLAUDE.md classifies it as
+#: evidence rather than authority, a different object class from the documents
+#: whose governance vocabulary this guard polices.
+COVERED_GLOBS = ["*.md", "spec/*.md"]
 
 #: The named process bounds. Each is a rule the author ratified about how this
 #: repository conducts itself upstream — not a fact about the world, and not a
@@ -100,6 +118,17 @@ def scan(text: str) -> list[tuple[int, str, str]]:
     return findings
 
 
+def uncovered(repo: Path) -> set[str]:
+    """Documents under COVERED_GLOBS that appear in neither list."""
+    listed = set(SCANNED) | set(UNSCANNED_BY_DESIGN)
+    found = set()
+    for glob in COVERED_GLOBS:
+        for path in repo.glob(glob):
+            if path.is_file():
+                found.add(path.relative_to(repo).as_posix())
+    return found - listed
+
+
 def run(repo: Path) -> int:
     """Every scanned document under `repo`, checked. Returns a process exit code."""
     failures = 0
@@ -108,6 +137,16 @@ def run(repo: Path) -> int:
     owner = repo / OWNER
     if not owner.exists():
         log.error("MISSING OWNER: %s does not exist; the split has no home", OWNER)
+        failures += 1
+
+    for rel in sorted(uncovered(repo)):
+        # Not a warning. An unlisted document is one nobody decided about, and
+        # the decision is cheap exactly now, while the file is new.
+        log.error(
+            "UNTRIAGED DOCUMENT: %s is in neither SCANNED nor UNSCANNED_BY_DESIGN; "
+            "add it to one of them in bench/check_governance.py",
+            rel,
+        )
         failures += 1
 
     for rel in SCANNED:

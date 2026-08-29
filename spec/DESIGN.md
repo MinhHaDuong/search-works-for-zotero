@@ -4,13 +4,12 @@
 
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
 every design number: the gate thresholds (§2.8), the experiment decision
-rules (§3), and the budgets (§2.9). The requirements it serves are in
-REQUIREMENTS.md, the constraints it operates under are in CONSTRAINTS.md,
-and the author's rulings are recorded in DECISIONS.md. The raw panel record
-is in git history, last present at commit `e32afe3` as `panel/cycle2/`; where
-it disagrees with this document, this document is the record. The predecessor
-design (cycle 1's "The Settled Ledger", called v1 below) is superseded and
-lives in git history.
+rules (§3), and the budgets (§2.9). Its place in the authority chain is
+stated once, in README.md. The raw panel record is in git history, last
+present at commit `e32afe3` as `panel/cycle2/`; where it disagrees with this
+document, this document is the record. The predecessor design (cycle 1's
+"The Settled Ledger", called v1 below) is superseded and lives in git
+history.
 
 How cycle 2 worked, in two sentences: six architects each re-ran the design
 through one lens (derivation, corpus, custody, concurrency, query, operator)
@@ -636,7 +635,7 @@ measured 374 ms cold scan.
 
 The prefix accounting: the boundary cursor is the total-order key
 `(dateAdded, lib, itemKey)`, never the bare date, because several items can
-share a `dateAdded` and the boundary must be able to stop partway through
+share a `dateAdded` and the boundary MUST be able to stop partway through
 such a tie group. It passes settled states
 (`done | empty | quarantined | band0-done`). `outOfBand` is pure set
 membership: covered items older than the boundary, decremented as the
@@ -660,10 +659,10 @@ one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
 sections(record)`, everything else 0; then a simulated identical-bytes
 resync → zero recompute: every `*.done` delta 0, the touched items
 appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
-the gate must permit exactly that and nothing downstream of it). This is
+the gate MUST permit exactly that and nothing downstream of it). This is
 R11 measured by R27's own counters, the test that would have caught the
 shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
-monster, dateAdded ties. The harness must fail on the corpus that exercises
+monster, dateAdded ties. The harness MUST fail on the corpus that exercises
 its subtraction terms, not only pass on the gentle one.
 
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
@@ -733,8 +732,11 @@ in DECISIONS.md. Dual-embed no longer threatens the budget (the lazy-load
 rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
-single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget
-3 s, unchanged, and now without the hidden second scan (§2.6).
+single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in
+≈ 300–700 ms, and MUST stay inside the hard budget of 3 s (R6), unchanged and
+now without the hidden second scan (§2.6). The typical figure is the
+preference; the hard budget is the escape, which is what makes this a SHOULD
+rather than a MUST.
 
 ---
 

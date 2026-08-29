@@ -1,8 +1,7 @@
 # DECISIONS — the ratification ledger
 
-*Append-only. The author's rulings land here first; REQUIREMENTS.md,
-CONSTRAINTS.md and DESIGN.md are then edited to match. Any ratified line
-remains vetoable on later reading — a veto is a new entry here.*
+*Append-only — this document is authority's chronological point of entry; its
+role in the full chain is stated once, in README.md.*
 
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
