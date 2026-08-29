@@ -36,14 +36,29 @@ export function resolveModel(token, options = {}) {
   const record = registry.models.find((entry) => entry.id === token);
   if (record) {
     const repo = kind === 'upstream' ? record.upstream_repo : record.hf_repo;
-    return { id: record.id, repo, template: record.input_template, record };
+    return {
+      id: record.id,
+      repo,
+      template: record.input_template,
+      pooling: record.pooling ?? null,
+      record,
+    };
   }
   if (token.includes('/')) {
     console.warn(
       `[registry] ${token} is not declared in models.json; the run is undeclared. ` +
         'Add a record rather than passing a repository id.',
     );
-    return { id: token, repo: token, template: { query: '', passage: '' }, record: null };
+    // `pooling: null` is deliberate and is not a default. An undeclared model's
+    // pooling is unknown, and the wrong value degrades retrieval silently — so the
+    // caller is handed the absence to deal with, not a plausible guess.
+    return {
+      id: token,
+      repo: token,
+      template: { query: '', passage: '' },
+      pooling: null,
+      record: null,
+    };
   }
   const known = registry.models.map((entry) => entry.id).join(', ');
   throw new Error(`[registry] unknown model ${token}. Declared ids: ${known}`);

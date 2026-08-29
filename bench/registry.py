@@ -36,6 +36,7 @@ def resolve_model(token: str, registry: dict | None = None, kind: str = "onnx") 
                 "id": record["id"],
                 "repo": repo,
                 "template": record["input_template"],
+                "pooling": record.get("pooling"),
                 "record": record,
             }
     if "/" in token:
@@ -45,7 +46,16 @@ def resolve_model(token: str, registry: dict | None = None, kind: str = "onnx") 
             token,
             REGISTRY_PATH.name,
         )
-        return {"id": token, "repo": token, "template": {"query": "", "passage": ""}, "record": None}
+        # `pooling: None` is deliberate and is not a default. An undeclared model's
+        # pooling is unknown, and the wrong value degrades retrieval silently -- so the
+        # caller is handed the absence to deal with, not a plausible guess.
+        return {
+            "id": token,
+            "repo": token,
+            "template": {"query": "", "passage": ""},
+            "pooling": None,
+            "record": None,
+        }
     known = ", ".join(record["id"] for record in registry["models"])
     raise KeyError(f"unknown model {token}. Declared ids: {known}")
 

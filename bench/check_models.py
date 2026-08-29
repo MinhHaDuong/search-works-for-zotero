@@ -92,6 +92,14 @@ REQUIRED_KEYS = {
 
 STATUSES = ("candidate", "rejected")
 
+#: The pooling modes a driver can actually pass to transformers.js. A candidate
+#: whose card names anything else is a finding about that candidate — it is not
+#: coerced into one of these, because the coercion would be invisible in the
+#: results. Measured 2026-08-29: four of the six candidates pool with `cls` while
+#: every driver hardcoded `mean`, so the hardcoded default was wrong for the
+#: majority of the field, including both Granite models.
+POOLINGS = {"mean", "cls"}
+
 #: A rejection names which filter caught it. `r7` is the language list, `licence`
 #: the terms, `size` the parameter count, `token-ceiling` the sequence length the
 #: model truncates to, `no-onnx` a repo publishing none, `unsweepable-dtypes` a repo
@@ -280,6 +288,23 @@ def check_registry(root: Path, failures: list[str]) -> None:
                 failures.append(
                     f"{name}: candidate does not declare R7's languages "
                     f"(missing {sorted(r7 - codes)})"
+                )
+            # Required on candidates only, and required in a pair. Pooling is the
+            # input_template trap one axis over: a wrong value degrades retrieval
+            # silently, so it reads as the model being worse rather than as a bug,
+            # and a sweep can reject a good candidate on it. The `_source` half is
+            # what stops the value from being a plausible guess — it names the file
+            # it was read from.
+            if record.get("pooling") not in POOLINGS:
+                failures.append(
+                    f"{name}: candidate pooling is {record.get('pooling')!r}, "
+                    f"not one of {sorted(POOLINGS)}. Read it from the model's own "
+                    f"1_Pooling/config.json; do not infer it from a sibling model."
+                )
+            if not (record.get("pooling_source") or "").strip():
+                failures.append(
+                    f"{name}: pooling carries no pooling_source. A value with no "
+                    f"provenance cannot be told from a guess."
                 )
         else:
             criteria = record.get("rejection", {}).get("criteria") or []

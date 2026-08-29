@@ -1,0 +1,302 @@
+{
+  "probed_utc": "2026-08-29T15:56Z",
+  "authenticated": true,
+  "source_file": "1_Pooling/config.json",
+  "controls": {
+    "positive": {
+      "repo": "intfloat/multilingual-e5-small",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "expected": "mean"
+    },
+    "negative": {
+      "repo": "search-works-for-zotero/no-such-repo-negative-control",
+      "state": "could_not_look",
+      "pooling": null,
+      "http_status": 404,
+      "normalize": null,
+      "modes_set": [],
+      "detail": "repo itself is not readable (404 on 1_Pooling/config.json and on metadata)"
+    }
+  },
+  "results": [
+    {
+      "repo": "ibm-granite/granite-embedding-97m-multilingual-r2",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "granite-97m-multilingual-r2"
+    },
+    {
+      "repo": "ibm-granite/granite-embedding-311m-multilingual-r2",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "granite-311m-multilingual-r2"
+    },
+    {
+      "repo": "Snowflake/snowflake-arctic-embed-m-v2.0",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "arctic-embed-m-v2"
+    },
+    {
+      "repo": "Alibaba-NLP/gte-multilingual-base",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "gte-multilingual-base"
+    },
+    {
+      "repo": "intfloat/multilingual-e5-small",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "multilingual-e5-small"
+    },
+    {
+      "repo": "intfloat/multilingual-e5-base",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "multilingual-e5-base"
+    },
+    {
+      "repo": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": false,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "paraphrase-multilingual-mpnet-base-v2"
+    },
+    {
+      "repo": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": false,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "paraphrase-multilingual-minilm-l12-v2"
+    },
+    {
+      "repo": "sentence-transformers/distiluse-base-multilingual-cased-v2",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": false,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "distiluse-base-multilingual-cased-v2"
+    },
+    {
+      "repo": "ibm-granite/granite-embedding-107m-multilingual",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "granite-107m-multilingual-v1"
+    },
+    {
+      "repo": "ibm-granite/granite-embedding-278m-multilingual",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "granite-278m-multilingual-v1"
+    },
+    {
+      "repo": "BAAI/bge-m3",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "bge-m3"
+    },
+    {
+      "repo": "Snowflake/snowflake-arctic-embed-l-v2.0",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "arctic-embed-l-v2"
+    },
+    {
+      "repo": "jinaai/jina-embeddings-v3",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "jina-embeddings-v3"
+    },
+    {
+      "repo": "google/embeddinggemma-300m",
+      "state": "could_not_look",
+      "pooling": null,
+      "http_status": 403,
+      "normalize": null,
+      "modes_set": [],
+      "detail": "Access to model google/embeddinggemma-300m is restricted and you are not in the authorized list. Visit https://huggingface.co/google/embeddinggemma-300m to ask for access.",
+      "id": "embeddinggemma-300m"
+    },
+    {
+      "repo": "Alibaba-NLP/gte-multilingual-base",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "gte-multilingual-base-upstream"
+    },
+    {
+      "repo": "nomic-ai/nomic-embed-text-v2-moe",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "nomic-embed-text-v2-moe"
+    },
+    {
+      "repo": "jinaai/jina-embeddings-v2-base-multilingual",
+      "state": "could_not_look",
+      "pooling": null,
+      "http_status": 404,
+      "normalize": null,
+      "modes_set": [],
+      "detail": "repo itself is not readable (404 on 1_Pooling/config.json and on metadata)",
+      "id": "jina-embeddings-v2-base-multilingual"
+    },
+    {
+      "repo": "intfloat/multilingual-e5-small",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "multilingual-e5-small-intfloat"
+    },
+    {
+      "repo": "sentence-transformers/all-MiniLM-L6-v2",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "all-minilm-l6-v2"
+    },
+    {
+      "repo": "BAAI/bge-small-en-v1.5",
+      "state": "read",
+      "pooling": "cls",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "cls"
+      ],
+      "detail": "",
+      "id": "bge-small-en-v15"
+    },
+    {
+      "repo": "nomic-ai/nomic-embed-text-v1.5",
+      "state": "read",
+      "pooling": "mean",
+      "http_status": 200,
+      "normalize": false,
+      "modes_set": [
+        "mean"
+      ],
+      "detail": "",
+      "id": "nomic-embed-text-v15"
+    },
+    {
+      "repo": "Qwen/Qwen3-Embedding-0.6B",
+      "state": "read",
+      "pooling": "lasttoken",
+      "http_status": 200,
+      "normalize": true,
+      "modes_set": [
+        "lasttoken"
+      ],
+      "detail": "",
+      "id": "qwen3-embedding-06b"
+    }
+  ]
+}

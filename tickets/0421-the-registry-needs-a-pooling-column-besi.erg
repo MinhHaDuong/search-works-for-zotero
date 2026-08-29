@@ -8,6 +8,8 @@ Author: claude
 2026-08-29T22:30Z claude note raised by the sibling 0220 session against PR #59 and filed rather than folded into it: the values must be read off each model card, not inferred, and guessing is precisely how the e5 prefix trap nearly landed. That is measured work with its own review, not a schema tweak.
 
 2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
+2026-08-29T23:40Z claude note measured. Four of the six candidates pool with cls, not mean, including both Granite models -- so the hardcoded default was wrong for the majority of the field, and a sweep would have made four candidates look worse than they are. Two findings past the candidates: bge-small-en-v1.5 is cls and Qwen3-Embedding-0.6B is lasttoken, which transformers.js cannot express at all, so two arms of the earlier campaign ran with the wrong pooling. Also: embed_corpus.py drives sentence-transformers, which reads 1_Pooling/config.json itself, so the PyTorch arm was always right while the ONNX arm was not -- an asymmetry that matters for any cross-arm comparison, left for 0263/0265. The probe's own negative control caught the probe collapsing 'repo publishes no pooling config' into 'repo does not exist'; both answer 404, and telling them apart needs a second call.
+
 --- body ---
 ## Context
 
@@ -54,6 +56,32 @@ field by construction.
 3. Apply it in the drivers from the registry, alongside the input template.
 4. Make the guard require the pair on every candidate record, so a new model
    cannot arrive without it.
+
+## Artifacts produced
+
+- `verification/probes/probe_pooling.py` — reads `1_Pooling/config.json` from each
+  record's `upstream_repo`, since the ONNX mirrors publish the graph and nothing
+  else. Four outcomes, never collapsed. Controls are **enforced**: it refuses to
+  write an artifact if the positive control (a value attested in Zotero core) or
+  the negative control comes back wrong.
+- `bench/results/0421-pooling/pooling.json` — the measurement, with its controls.
+
+## Measured, 2026-08-29
+
+| candidate | pooling |
+|---|---|
+| granite-97m-multilingual-r2 | cls |
+| granite-311m-multilingual-r2 | cls |
+| arctic-embed-m-v2 | cls |
+| gte-multilingual-base | cls |
+| multilingual-e5-small | mean |
+| multilingual-e5-base | mean |
+
+Four of six are `cls`. Every transformers.js driver hardcoded `mean`.
+
+All six also carry a `Normalize` module, recorded in the artifact. Whether the
+drivers' `normalize:` flag matches per model is a second axis and is NOT settled
+here — noted for `0262`.
 
 ## Test
 
