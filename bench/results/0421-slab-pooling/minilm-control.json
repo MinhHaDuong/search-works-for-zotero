@@ -1,0 +1,21 @@
+{
+ "probe": "slab-pooling-provenance",
+ "slab": "/home/haduong/data/projets/zoteus-bench/mrl/minilm384.f32",
+ "model": "Xenova/all-MiniLM-L6-v2",
+ "dim": 384,
+ "rows": 8,
+ "per_pooling": {
+  "mean": {
+   "min": 1,
+   "median": 1,
+   "max": 1
+  },
+  "cls": {
+   "min": 0.335306,
+   "median": 0.440759,
+   "max": 0.523599
+  }
+ },
+ "verdict": "mean",
+ "margin": 0.559241
+}
