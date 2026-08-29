@@ -1,0 +1,106 @@
+%erg 0.1
+Title: A timed window must not contain a one-time cost, and the artifact must say which
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T19:10Z claude created
+
+--- body ---
+## Context
+
+This class has already cost a retraction from the ratification ledger, which is
+the most expensive place in the repo to be wrong: an append-only entry is never
+edited again.
+
+On 2026-08-29 a set of embedder resident-memory figures was taken on each
+model's **first** load, so the weight download sat inside the measured window.
+`granite-embedding-97m-multilingual-r2` read 364,8 MB at q8 cold against
+410,2 MB warm, and 453,5 MB at uint8 against 404,9 MB — 45 to 49 MB of error,
+in *both* directions, so it does not even bias consistently. That was four
+times larger than the 11,7 MB difference the numbers were being used to argue
+about. On those numbers a `vocab x dim` memory model was built, calibrated on
+`multilingual-e5-small`, reproducing it to a tenth of a megabyte; its first
+out-of-sample test missed by 106 MB. The mechanism reached
+`spec/DECISIONS.md` before the second measurement retracted it.
+
+Re-measured warm over five fresh processes, the spread is 2,5 to 6,9 MB. So the
+instrument is fine and the protocol was not.
+
+## The defect, stated generally
+
+A benchmark driver times a window that contains a cost paid once — a model
+download, a graph initialisation, a cache fill, a JIT warm-up — and reports the
+result as a per-unit rate. The first run is then wrong by the one-time cost
+divided by the unit count, and nothing in the artifact says which kind of run it
+was. A reader cannot tell a cold number from a warm one, and neither can a later
+comparison that puts them in the same table.
+
+Most drivers here already avoid it. `embed_feasibility.mjs` runs a warm batch
+before timing and reports `load_ms` apart from the per-passage cost;
+`query_embed_cost.mjs` does the same. The discipline exists in the repo as a
+habit, held per-author, enforced nowhere.
+
+## Relevant files
+
+- `bench/quant_fidelity.mjs` — the known instance. Times `embed_ms` from the
+  first batch, so graph initialisation and, on an uncached model, the download
+  land inside `ms_per_passage`. Its headline outputs are cosine and overlap and
+  are unaffected, which is exactly why this went unnoticed
+- `bench/embed_feasibility.mjs`, `bench/query_embed_cost.mjs` — the correct
+  pattern to copy: warm call before the clock, one-time costs reported separately
+- `bench/results/**/*.json` — no artifact currently records whether its run was
+  warm
+- `tickets/0240-choose-the-multilingual-embedder-on-meas.erg` — carries
+  "warm only, and repeat every cell" as prose the executor is asked to follow.
+  Prose is what failed here; this ticket is the mechanical form
+
+## Actions
+
+1. Give `quant_fidelity.mjs` a warm call before its timing window, matching
+   `embed_feasibility.mjs`, and report load and download apart from
+   `ms_per_passage`.
+2. Add a required `warm` boolean to every timing artifact this repo writes, set
+   by the driver from whether it did a warm pass, never hand-set. An artifact
+   that cannot say is as bad as one that lies.
+3. Add an adherence test asserting that every `bench/*.mjs` which reports a
+   per-unit rate performs a warm call before its timing window. Source
+   inspection, not execution — the drivers need corpora that are not in the repo.
+4. Extend `check_figures.py`'s declaration to refuse a figure drawn from an
+   artifact whose `warm` is false. A cold number must not be quotable in prose.
+
+## Test
+
+Red first, and it must fail against today's tree: point the adherence test at
+`quant_fidelity.mjs` as it stands and watch it fail, then again after action 1
+and watch it pass. A guard written after the fix, never seen failing, is
+indistinguishable from one that cannot look — which is the same defect class as
+the bug it guards.
+
+Then: an artifact with `"warm": false` is rejected by the figure checker; one
+with `"warm": true` is accepted; one with the key absent is rejected rather than
+assumed warm.
+
+## Verification
+
+- [ ] The adherence test fails on the pre-fix `quant_fidelity.mjs` and passes
+      after — both directions run and recorded
+- [ ] A cold and a warm run of the same cell produce artifacts differing in
+      `warm`, and the checker accepts only one of them
+- [ ] No existing artifact is retro-stamped `warm: true` by hand. The ones taken
+      before this ticket do not know what they were; mark them `null` and
+      re-measure anything a document quotes
+
+## Invariants
+
+- No existing measurement is deleted. The cold figures are a record of how the
+  error looked, and `dtype-ladder-granite-97m-multilingual.json` cites them
+  deliberately
+- `make check` stays green throughout; the new adherence test joins `make lint`
+
+## Exit criteria
+
+- [ ] `quant_fidelity.mjs` warms before timing
+- [ ] Every timing artifact carries `warm`
+- [ ] The adherence test exists, and was seen failing before it passed
+- [ ] The figure checker refuses a cold-sourced figure
