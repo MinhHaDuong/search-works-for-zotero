@@ -103,7 +103,8 @@ The scouts sharpened this constraint on five points:
 Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
 author's own installation (10.0, build 20260817151751) and the shipped
 `fulltext.js` of that build; the evidence is in
-`verification/VERIFY-FULLTEXT-SQLITE.md`.
+`verification/VERIFY-FULLTEXT-SQLITE.md`, and for the vocabulary and cache
+measurements in the log of ticket 0120.
 
 - The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
   and `fulltextItemWords` and moved the keyword index into a separate
@@ -116,10 +117,29 @@ author's own installation (10.0, build 20260817151751) and the shipped
   author's library: 13 090 content documents, 386 CJK, 1 200 notes.
 - A row identifies an item directly. `fulltextContent.rowid` is the local
   `itemID`, joined 13 090 of 13 090 against `fulltextIndexState`.
-- Contentless means the text does not come back. `MATCH` answers which
-  items match. `snippet()` and the stored column both return nothing,
-  measured. Zotero keeps the text in the `.zotero-ft-cache` files, not in
-  the index.
+- Contentless means the source text is discarded, not that the index is
+  opaque. The stored column and `snippet()` both return nothing, measured,
+  so a document cannot be printed back. What survives is the whole inverted
+  index, and `fts5vocab` reads it: 670 680 distinct terms, 19 139 711
+  (term, document) pairs, 135 973 731 occurrences with their positions.
+  Constrained by term, `fts5vocab(…, 'instance')` returns the pair
+  `(itemID, token offset)` in under a millisecond; constrained by document
+  it is a 7,0 s full scan, so reconstructing a document works but is not a
+  route. The bound is weaker than "which items, never which passage": a
+  query term locates itself inside an item. Turning that token offset into
+  a character position means reproducing Zotero's own tokenization, which
+  an approximation did not — occurrence counts matched exactly on three
+  documents while token indices drifted +13, +2 and 0.
+- The extracted text lives in `.zotero-ft-cache`, one file per indexed
+  attachment: 13 631 files, 819,4 MiB, plain UTF-8 carrying no markup. It
+  is two extractor generations. Of 8 590 PDF caches, 4 708 carry form-feed
+  page separators and 3 882 do not, split by mtime at roughly 2024, and the
+  form-feed count equals `fulltextItems.indexedPages` for 4 471 of the
+  4 708. The current path is `Zotero.PDFWorker.getFullText` writing straight
+  through; nothing in the shipped app writes the older `.zotero-ft-info`
+  sidecars, of which 2 788 survive on disk. Zotero does not re-extract on
+  upgrade, so both generations are permanent and page boundaries cannot be
+  assumed.
 - It is readable while Zotero runs, and fast. A read-only open of the live
   file returned a count in 7 ms and a `MATCH` in 8 ms with the application
   up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
