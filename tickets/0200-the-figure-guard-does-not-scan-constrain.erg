@@ -1,0 +1,80 @@
+%erg 0.1
+Title: The figure guard does not scan CONSTRAINTS.md
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T11:47Z claude created
+2026-08-29T11:47Z claude note surfaced by the /gaze round on PR 33, graded a non-blocking nit there because it is pre-existing rather than introduced by that branch; filed separately per the "loophole found, offer to plug it" rule. Numbered clear of the frontier (0182 at filing) per tickets/AGENTS.md.
+
+--- body ---
+## Context
+CLAUDE.md states the rule plainly: "every measurement quoted in prose is
+declared there with an anchor; when you quote a number from `bench/results/`,
+declare it; when you re-measure, the guard tells you every prose site to
+update." The guard is `bench/check_figures.py`, and it walks a declared map
+of prose files.
+
+`CONSTRAINTS.md` is not in that map. It is not in `PROSE` at all, so no
+figure it carries is checked, and none can be — declaring one today would
+fail on a missing key rather than protect anything.
+
+That is a gap between a promise and a mechanism, and C2 is where it costs
+most. C2 is the owning document for platform facts, and platform facts are
+mostly numbers: after PR 33 it carries roughly a dozen, among them 670 680
+distinct terms, 19 139 711 (term, document) pairs, 135 973 731 occurrences,
+13 090 content documents, 13 631 cache files, 819,4 MiB, the 4 708 / 3 882
+extractor-generation split, and 4 471 of 4 708 form-feed agreements. None of
+them is guarded. Several were measured this session and will be re-measured.
+
+The repo's own CLAUDE.md names the failure mode this invites: "Duplicated
+numbers drift — this repo's most expensive recurring defect."
+
+## What makes this more than bookkeeping
+The guard's docstring argues, correctly, that it should not scan prose for
+numbers and attribute them: that direction has no ground truth and produces
+noise until someone turns it off. So the fix is not "make the guard clever
+about CONSTRAINTS.md". It is to decide which of C2's figures are
+load-bearing, give each an artifact and an anchor, and declare those.
+
+Which means the real question this ticket has to answer first: **most of C2's
+numbers have no `bench/results/` artifact at all.** They came from ad-hoc
+probes of a live Zotero installation that no committed driver reproduces.
+A figure with no artifact cannot be declared, so either the probes become
+drivers that emit JSON, or those figures are knowingly left unguarded and
+the promise in CLAUDE.md is narrowed to say so.
+
+## Actions
+1. Inventory the figures in CONSTRAINTS.md, C2 first, and mark each as
+   backed by a `bench/results/` artifact, backed by a committed probe that
+   could emit one, or unreproducible as written.
+2. For the platform probes, decide whether `verification/probes/` scripts
+   should emit JSON into `bench/results/` so their figures become
+   declarable. `verification/probes/sdt_read.py` is the live example: it
+   reproduces its numbers on demand but writes no artifact.
+3. Add `CONSTRAINTS.md` to `PROSE` in `bench/check_figures.py` and declare
+   the figures that have artifacts, with anchors, not presence-only.
+4. If some figures stay unguarded by decision, say so in CLAUDE.md rather
+   than leaving the general promise standing over an exception.
+
+## Test
+The guard's own suite (`tests/test_check_figures.py`) is the place. A
+declared CONSTRAINTS.md figure whose artifact value is changed must fail the
+guard; verify by sabotage, as the anchor mechanism itself was verified.
+
+## Verification
+- [ ] A deliberately stale CONSTRAINTS.md figure fails `make figures`
+- [ ] The inventory names every C2 figure and its backing, including the
+      ones that have none
+
+## Invariants
+- The guard keeps its declared-map design. No scanning prose for numbers.
+- C2 stays the owning document for platform facts; this ticket changes how
+  its numbers are checked, never who owns them.
+
+## Exit criteria
+- [ ] CONSTRAINTS.md is in the guard's map and its declarable figures are
+      declared with anchors
+- [ ] Every C2 figure without an artifact is either given one or recorded as
+      knowingly unguarded
+- [ ] `make check` green
