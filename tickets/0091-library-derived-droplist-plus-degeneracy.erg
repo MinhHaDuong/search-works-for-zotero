@@ -1,0 +1,115 @@
+%erg 0.1
+Title: Library-derived droplist plus degeneracy fallback, upstream
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0090
+
+--- log ---
+2026-08-29T10:06Z claude created
+2026-08-29T10:10Z claude note the update-cadence question is ANSWERED by measurement, not left open — see "The cadence question, settled" in the body. FTS5 does not give the high-df terms for free: the vocabulary scan costs ~3,4 s warm and 7,5 s cold over 639 888 terms, so the droplist is derived state and needs a home, but it is 23 terms and 53 bytes and the index build already costs 263,7 s, which makes the build the obvious and only recompute point
+
+--- body ---
+## Context
+The measured replacement for the stoplist deletion that failed X2 (ticket
+0014). The author's proposal, swept on the real 477 512-passage index:
+**drop query terms whose document frequency exceeds the DESIGN §3 threshold,
+and fall back to the raw token set when fewer than two terms survive.**
+
+Measured, direct-SQL, against the two arms the abandoned PR was choosing
+between:
+
+| policy | p50 | p95 | matches unfiltered | degenerate query |
+|---|---|---|---|---|
+| stoplist (upstream today) | 215,2 ms | 365,8 ms | 86% | broken, 10% |
+| stoplist deleted (the held PR) | 1 055,3 ms | 1 211,7 ms | 100% | fixed |
+| droplist + degeneracy fallback | 274,2 ms | 536,9 ms | 98% | fixed |
+
+It dominates both. It is also the only form that is well posed against a
+shared token space: a per-language stoplist would have to drop German `die`
+while keeping English `die`, an intent the index cannot see, whereas asking
+what a string costs in *this* corpus has one answer
+(`multilingual-cost.json`).
+
+## The cadence question, settled
+
+FTS5 does **not** hand over the high-df terms for free, which was the open
+question. `fts5vocab` is a virtual table over the existing index — no
+migration, no rebuild, nothing stored — but a df threshold needs a full scan
+of it, because the table is ordered by term and not by document count. On
+the real index that scan costs **~3,4 s warm and 7,5 s cold over 639 888
+terms**. Too slow for query time, and too slow to pay at every server start.
+
+So the droplist is derived state and needs somewhere to live. Everything
+else about it is small: at the 30% threshold it is **23 terms and 53 bytes**,
+and `meta` (key/value) already exists in the schema and already holds
+`schemaVersion` and PR-3's library stamp.
+
+That fixes the cadence with no new machinery and no invalidation rule:
+
+- **Recompute at the end of every full build.** The build already walks the
+  whole corpus and costs 263,7 s; a 3,4 s scan is 1,3% on top, invisible.
+- **Do not recompute on every incremental update.** A handful of new items
+  cannot move a 30% threshold, and paying 3,4 s on a small update is the one
+  way this becomes user-visible. Store the passage count alongside the
+  droplist and rescan only when it has moved by more than ~10% since, so the
+  cost is amortised against the drift that could actually change the list.
+- **An index with no stored droplist behaves exactly as today**, filtering
+  nothing, and adopts one on its first build. Same shape as PR-3's stamp
+  adoption, and it means no existing index is stranded.
+
+There is therefore no staleness question left for the author to rule on, and
+no cadence knob to expose.
+
+## Relevant files (upstream tree)
+- `src/features/search/tokenize.ts` — holds the 29-word literal today.
+  `tokenize()` must stay pure and language-agnostic; the droplist is a
+  parameter, not a new global.
+- `src/features/search/sqlite-index.ts` — `keyword()` at ~line 466 builds the
+  MATCH string and already dedupes with `[...new Set(tokenize(q))]`; the
+  `meta` helpers and `createSchema` are here.
+- `src/features/search/bm25.ts` — `addDoc()` runs `tokenize()` over the
+  DOCUMENT, so the memory backend must not silently inherit query-side
+  filtering. Decide and test which side each policy applies to.
+- `src/features/search/index-manager.ts` — `makeSnippet()` also tokenizes the
+  query and centres on the earliest matching token, which is how the deletion
+  broke snippets; whatever ships must be checked against that.
+
+## Actions
+1. Derive the droplist at the end of a build (and on the >10% drift
+   condition) with one `fts5vocab` scan; persist terms plus the passage count
+   in `meta`.
+2. Apply it query-side only, after tokenize and before the MATCH string, with
+   the degeneracy fallback at fewer than two surviving terms.
+3. Delete the 29-word literal.
+4. Decide the memory backend explicitly: it re-derives postings on load, and
+   `addDoc` shares `tokenize()`, so state whether the droplist applies there
+   and test the parity case either way.
+5. Re-check snippets: with high-df terms dropped, `makeSnippet` should centre
+   on content again — assert it.
+
+## Test
+Red first, on stock: a query of function words returns one incidental term
+and unrelated hits. Then the fallback case, the parity case between backends,
+the adoption case (no stored droplist filters nothing), and a snippet case.
+
+## Verification
+- [ ] p95 on the 477k index inside the DESIGN §3 budget, re-measured with
+      `bench/query.py --repeat 6`, not asserted
+- [ ] degenerate query returns the same hits as an unfiltered query
+- [ ] an index built before this change filters nothing until rebuilt
+- [ ] snippets centre on content, not on the passage opening
+- [ ] upstream's own gates: typecheck, lint, full suite
+
+## Invariants
+- DESIGN.md §3 owns the threshold (0090). This ticket implements it and
+  restates no number.
+- `tokenize()` stays language-agnostic: no language detection, ever — the
+  homograph measurement is why.
+- No existing index is stranded or silently re-ranked without a rebuild.
+
+## Exit criteria
+- Implemented on the fork, green on upstream's gates, p95 re-measured inside
+  budget, and an upstream slot free. **The slot is the real gate**: ticket
+  0016's cross-library wipe guard fixes silent data loss and outranks this,
+  and the Zotero-native baseline showed matching to be the lower-value half
+  of the layer. Do not spend a slot here while 0016 is queued.

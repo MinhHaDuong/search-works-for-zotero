@@ -1,0 +1,136 @@
+{
+  "probe": "A library-derived (document-frequency) droplist, swept over its threshold on the real 477 512-passage index. Author's proposal, 2026-08-29, and the concrete form of what DESIGN §3 calls df-driven pruning.",
+  "method": "The exact statement sqlite-index.ts prepares (bm25 over passages_fts joined back to passages, ORDER BY rank LIMIT 30) run directly against the measured index with the term set each policy produces, warmed then timed four times per query. Direct SQL, so these sit slightly below the end-to-end MCP figures — stock reads 365,8 ms here against 392,3 ms through the server. Compare them with each other, not with x2-verdict.json.",
+  "threshold_sweep": {
+    "df_ge_50pct": {
+      "terms_dropped": 9,
+      "of_which_english_stopwords": 9,
+      "p50_ms": 473.7,
+      "p95_ms": 820.7,
+      "queries_emptied": 0
+    },
+    "df_ge_30pct": {
+      "terms_dropped": 23,
+      "of_which_english_stopwords": 19,
+      "p50_ms": 297.6,
+      "p95_ms": 463.5,
+      "queries_emptied": 0,
+      "others_caught": [
+        "1",
+        "2",
+        "s",
+        "3"
+      ]
+    },
+    "df_ge_20pct": {
+      "terms_dropped": 37,
+      "of_which_english_stopwords": 21,
+      "p50_ms": 258.8,
+      "p95_ms": 526.8,
+      "queries_emptied": 1,
+      "others_caught": [
+        "1",
+        "2",
+        "s",
+        "3",
+        "4",
+        "5",
+        "not",
+        "which",
+        "energy",
+        "have",
+        "can",
+        "other",
+        "more",
+        "has"
+      ]
+    },
+    "df_ge_10pct": {
+      "terms_dropped": 114,
+      "of_which_english_stopwords": 27,
+      "p50_ms": 192.1,
+      "p95_ms": 287.6,
+      "queries_emptied": 1
+    },
+    "df_ge_05pct": {
+      "terms_dropped": 340,
+      "of_which_english_stopwords": 29,
+      "p50_ms": 61.8,
+      "p95_ms": 143.4,
+      "queries_emptied": 3
+    }
+  },
+  "the_working_window_is_narrow": "About 25-35%. Above it the droplist does not recover the budget: at the 50% threshold DESIGN §3 itself names, only 9 terms drop and p95 is still 820,7 ms — 1,6x over the ~500 ms allowance. So the design's own prescribed number does not solve the problem it is prescribed for, and that is a correction DESIGN §3 needs. Below the window the droplist starts eating content: `energy` sits at 26,2% df in this library and is dropped at 20%, which is a catastrophic answer to a query about energy.",
+  "why_a_hard_threshold_is_the_wrong_shape_and_still_worth_it": "bm25's idf already down-weights common terms continuously; a df cutoff is a step function approximating it badly, and the 20% row is what bad looks like — it cannot distinguish 'carries no information' from 'this library is about energy'. The justification is therefore never ranking quality, which the cutoff can only harm. It is cost: a term you drop is a posting list you do not walk. Judge it on latency alone and keep the threshold high.",
+  "the_trap": {
+    "finding": "A df droplist does NOT fix the degenerate query on its own, and an empty-set fallback does not either. At a 30% threshold `to be or not to be` keeps exactly one term — `not`, at 27,3% df — so the set is never empty, the fallback never fires, and the policy reproduces the stock defect precisely: 1 term, 10% result overlap with the unfiltered query.",
+    "fix": "Trigger the fallback on DEGENERACY, not emptiness: fewer than two terms surviving sends the raw token set. Measured over the twenty queries this fires on exactly one.",
+    "a_rejected_variant": "Also firing when the filter ate more than half the terms is too aggressive — it fired on two healthy queries ('as measured by the elasticity of substitution', 'on the theory of value and of distribution') and pushed p95 to 1 084,8 ms. Dropped."
+  },
+  "recommended_policy": {
+    "rule": "drop terms with df >= 30% of passages; if fewer than two terms survive, use the raw token set instead",
+    "p50_ms": 274.2,
+    "p95_ms": 536.9,
+    "mean_top30_overlap_with_unfiltered": 0.98,
+    "fallback_fired_on": 1,
+    "of_queries": 20,
+    "degenerate_query": {
+      "terms": [
+        "to",
+        "be",
+        "or",
+        "not"
+      ],
+      "ms": 914,
+      "overlap_with_unfiltered": 1.0
+    }
+  },
+  "comparison": {
+    "stoplist_stock": {
+      "p50_ms": 215.2,
+      "p95_ms": 365.8,
+      "overlap_with_unfiltered": 0.86,
+      "degenerate_query_overlap": 0.1
+    },
+    "no_filter_the_pr": {
+      "p50_ms": 1055.3,
+      "p95_ms": 1211.7,
+      "overlap_with_unfiltered": 1.0,
+      "degenerate_query_overlap": 1.0
+    },
+    "df30_plus_fallback": {
+      "p50_ms": 274.2,
+      "p95_ms": 536.9,
+      "overlap_with_unfiltered": 0.98,
+      "degenerate_query_overlap": 1.0
+    },
+    "reading": "The droplist keeps 98% of what deleting the stoplist buys, at roughly the stock cost, and it is the only one of the three that also fixes the degenerate query. It dominates both arms the PR was choosing between."
+  },
+  "language_neutrality": {
+    "measured_df": {
+      "the": 0.8442,
+      "of": 0.8496,
+      "la": 0.0943,
+      "va": 0.0699,
+      "le": 0.0662,
+      "cua": 0.0515,
+      "des": 0.0504,
+      "les": 0.0454,
+      "dans": 0.0352,
+      "une": 0.0347,
+      "che": 0.0156,
+      "der": 0.0085,
+      "und": 0.0046,
+      "die": 0.0043
+    },
+    "finding": "At a 30% threshold the droplist drops only English function words in THIS library — no French, Vietnamese, German or Italian term comes close.",
+    "why_that_is_not_the_old_unfairness": "The rule is uniform and the outcome is asymmetric only because the corpus is. English words are dropped because they are in 84% of the passages and therefore cost the most and discriminate the least; `le` is kept because at 6,6% it is both cheap and informative here. In a French-majority library `le` and `de` would be dropped automatically and `the` would not. That is exactly the principled version of what the hardcoded list was trying to be, and it is what makes this proposal better than either arm of the PR."
+  },
+  "costs_to_weigh": [
+    "The droplist is corpus-derived state, so results shift as the library grows: a term crossing the threshold silently changes ranking. When it is recomputed, and whether a user is told, are design questions the stoplist never raised.",
+    "One threshold tuned on one library. n=1 — nothing here shows 30% travels to a library of a different size or language mix, and the working window is narrow enough that it might not.",
+    "It adds a second query-time lookup and a maintained table where the stoplist was a literal, which is a real increase in what an upstream maintainer is asked to own."
+  ],
+  "substrate": "REAL: the author's library, 477 512 passages, the index built for X2. host doudou.",
+  "date": "2026-08-29"
+}

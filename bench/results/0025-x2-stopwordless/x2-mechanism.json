@@ -1,0 +1,297 @@
+{
+  "probe": "ticket 0025 X2, mechanism annex — where the 4,5x on p95 comes from, and what it buys in results. Same index and same two arms as x2-verdict.json.",
+  "method": "Each query's term set is rebuilt exactly as each arm's tokenize() produces it (fold, split on non-alphanumerics, drop 1-char tokens, drop the stoplist on the control only, dedupe as sqlite-index.ts:466 does), then every term is looked up in the fts5vocab table of the measured index. No cost model and no fitted constant: the posting counts are the work FTS5 has to do, and they sit beside the measured time.",
+  "corpus": {
+    "passages": 477512,
+    "tokens": 92623305,
+    "distinct_terms": 639888,
+    "stopword_tokens": 20153505,
+    "stopword_share_of_tokens": 0.2176,
+    "note": "The 29 stoplist words are 29 of 639 888 distinct terms — 0,005% of the vocabulary — and 21,8% of all token occurrences. That concentration is the whole phenomenon: a rounding error in the dictionary, a fifth of the corpus."
+  },
+  "most_frequent": {
+    "the": {
+      "docs": 403131,
+      "occurrences": 3901759,
+      "share_of_passages": 0.844
+    },
+    "of": {
+      "docs": 405701,
+      "occurrences": 2638320,
+      "share_of_passages": 0.85
+    },
+    "and": {
+      "docs": 403563,
+      "occurrences": 2232226,
+      "share_of_passages": 0.845
+    },
+    "energy": {
+      "docs": 125198,
+      "occurrences": 394760,
+      "share_of_passages": 0.262
+    },
+    "carbon": {
+      "docs": 43397,
+      "occurrences": 85518,
+      "share_of_passages": 0.091
+    },
+    "elasticity": {
+      "docs": 2800,
+      "occurrences": 4593,
+      "share_of_passages": 0.006
+    }
+  },
+  "totals": {
+    "postings_stock": 4207588,
+    "postings_new": 155751186,
+    "postings_ratio": 37.0,
+    "warm_median_sum_ms_stock": 4476.1,
+    "warm_median_sum_ms_new": 24858.4,
+    "time_ratio": 5.6,
+    "ns_per_posting_stock": 1063.8,
+    "ns_per_posting_new": 159.6
+  },
+  "sublinearity": "Work rises 37,0x and time only 5,6x, so FTS5 walks a long posting list far more cheaply per entry than a short one (1 063,8 ns -> 159,6 ns). The engine is not behaving badly; it is being asked to do 37 times more work and doing it efficiently. That is why the deletion is a design problem rather than a bug to optimise away.",
+  "what_it_buys": {
+    "mean_top20_overlap": 0.881,
+    "queries_with_same_top1": 19,
+    "queries_measured": 20,
+    "queries_with_identical_top20": 11,
+    "reading": "88% of the top-20 is unchanged, 19 of 20 queries keep the same first hit, and 11 of 20 return an identical list. The PR's own justification explains this and cuts against it: bm25 already down-weights ubiquitous terms, so adding them buys almost no ranking while costing 5,6x the time. The single query whose results genuinely change is `to be or not to be` (25% overlap) — the degenerate case, which is where the whole value sits."
+  },
+  "collateral_costs_not_in_the_pr": {
+    "memory_backend_index_growth": "bm25.ts addDoc() runs tokenize() over the DOCUMENT too, so on the memory backend the deletion is symmetric and the in-memory postings grow by the stopword share: 21,8% more tokens, tf entries and df entries. Not measured here (X2 ran on sqlite), and material for a project whose uncapped build already peaks near 1,8 GiB.",
+    "snippet_regression": "makeSnippet() centres the excerpt on the EARLIEST position of any query token. `the` occurs near the start of almost every passage, so with the stoplist gone the excerpt collapses onto the passage opening instead of the matched content. Demonstrated on a synthetic passage: stock returns the sentence containing 'elasticity of substitution'; the deleted arm returns the paper's boilerplate first sentence."
+  },
+  "lexical_semantic_interaction": {
+    "fusion": "index-manager.ts:1131 — rrf([keyword, vector]), Reciprocal Rank Fusion with k=60 over a pool of 3x the requested limit. Rank-based, so bm25 scores never reach the fusion; only the ORDER of the keyword list matters.",
+    "consequence_for_x2": "Because RRF reads order and the order is 88% preserved, the fused result moves even less than the lexical result does. The deletion buys less in hybrid mode than in keyword mode, at the same cost.",
+    "stoplist_touches_only_the_lexical_path": "The semantic path embeds the raw query string (`embedder.embed([q])`); tokenize() is never applied to it. So the stoplist has no effect on semantic retrieval either way.",
+    "the_two_run_in_sequence": "keywordSearch() is synchronous and completes before `await embedder.embed(...)` begins, so in the default `auto` mode the keyword latency ADDS to the embed-plus-vector latency. X2 measured mode:'keyword' with embeddings off, which is correct for isolating the deletion — but it means 1 773,0 ms is a FLOOR for what a default-mode user would wait, not a ceiling.",
+    "the_degenerate_case_is_already_covered": "A query made only of function words is exactly the case the semantic path handles well: it embeds the whole string, function words included. So in `auto` mode with an embedder configured, the failure the deletion exists to fix is largely already handled. REASONED FROM THE CODE, NOT MEASURED — X2 ran with embeddings off. Worth one measurement before anyone leans on it."
+  },
+  "cheaper_alternative_worth_weighing": "Keep the stoplist and fall back to the unfiltered token set when filtering leaves too few terms. Normal queries pay nothing — the 88%-identical results stay identical at 392,3 ms — and the degenerate query is fixed, paying its ~900 ms only when it occurs. df-driven pruning, which DESIGN §3 names, solves a problem this repo has now measured as mostly not worth solving: it would spend real complexity to make a 5,6x regression smaller, where the fallback avoids incurring it. Both are language- neutral. The fallback is also a far smaller diff to ask an upstream maintainer to take.",
+  "per_query": [
+    {
+      "q": "capture and storage of carbon in the atmosphere",
+      "terms_stock": 4,
+      "terms_new": 8,
+      "postings_stock": 179120,
+      "postings_new": 10552068,
+      "warm_median_ms_stock": 165.8,
+      "warm_median_ms_new": 1365.7,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "the distribution of income and wealth in the long run",
+      "terms_stock": 5,
+      "terms_new": 9,
+      "postings_stock": 145842,
+      "postings_new": 10518790,
+      "warm_median_ms_stock": 219.9,
+      "warm_median_ms_new": 1335.1,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "on the theory of value and of distribution",
+      "terms_stock": 3,
+      "terms_new": 7,
+      "postings_stock": 127620,
+      "postings_new": 9369005,
+      "warm_median_ms_stock": 184.2,
+      "warm_median_ms_new": 1411.3,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "our estimates of the rebound effect and their limits",
+      "terms_stock": 4,
+      "terms_new": 9,
+      "postings_stock": 54202,
+      "postings_new": 8969350,
+      "warm_median_ms_stock": 108.5,
+      "warm_median_ms_new": 1236.3,
+      "top20_overlap": 0.65,
+      "same_top1": true
+    },
+    {
+      "q": "these results are robust to the choice of a discount rate",
+      "terms_stock": 5,
+      "terms_new": 10,
+      "postings_stock": 129398,
+      "postings_new": 8714589,
+      "warm_median_ms_stock": 195.3,
+      "warm_median_ms_new": 1271.1,
+      "top20_overlap": 0.8,
+      "same_top1": true
+    },
+    {
+      "q": "the role of the state in the energy transition",
+      "terms_stock": 4,
+      "terms_new": 7,
+      "postings_stock": 496471,
+      "postings_new": 8637193,
+      "warm_median_ms_stock": 348.1,
+      "warm_median_ms_new": 1386.0,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "the price of electricity in Vietnam",
+      "terms_stock": 3,
+      "terms_new": 6,
+      "postings_stock": 260048,
+      "postings_new": 8400770,
+      "warm_median_ms_stock": 229.5,
+      "warm_median_ms_new": 1157.3,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "their contribution to the equilibrium of the market",
+      "terms_stock": 3,
+      "terms_new": 7,
+      "postings_stock": 105315,
+      "postings_new": 8270033,
+      "warm_median_ms_stock": 146.7,
+      "warm_median_ms_new": 1161.5,
+      "top20_overlap": 0.611,
+      "same_top1": true
+    },
+    {
+      "q": "the origins of index numbers in economics",
+      "terms_stock": 4,
+      "terms_new": 7,
+      "postings_stock": 92844,
+      "postings_new": 8233566,
+      "warm_median_ms_stock": 124.5,
+      "warm_median_ms_new": 1166.5,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "it is the marginal cost that matters and not the average",
+      "terms_stock": 5,
+      "terms_new": 10,
+      "postings_stock": 347633,
+      "postings_new": 7973960,
+      "warm_median_ms_stock": 406.0,
+      "warm_median_ms_new": 1313.7,
+      "top20_overlap": 0.95,
+      "same_top1": true
+    },
+    {
+      "q": "this is the standard model of optimal growth",
+      "terms_stock": 4,
+      "terms_new": 8,
+      "postings_stock": 179746,
+      "postings_new": 7787960,
+      "warm_median_ms_stock": 220.0,
+      "warm_median_ms_new": 1203.9,
+      "top20_overlap": 0.9,
+      "same_top1": true
+    },
+    {
+      "q": "from theory to policy in the climate negotiations",
+      "terms_stock": 4,
+      "terms_new": 8,
+      "postings_stock": 281805,
+      "postings_new": 7650235,
+      "warm_median_ms_stock": 274.6,
+      "warm_median_ms_new": 1209.4,
+      "top20_overlap": 0.85,
+      "same_top1": true
+    },
+    {
+      "q": "what is the social cost of carbon",
+      "terms_stock": 4,
+      "terms_new": 7,
+      "postings_stock": 272542,
+      "postings_new": 7558937,
+      "warm_median_ms_stock": 304.8,
+      "warm_median_ms_new": 1279.4,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "was the transition to renewables in these countries inevitable",
+      "terms_stock": 4,
+      "terms_new": 9,
+      "postings_stock": 135366,
+      "postings_new": 7431493,
+      "warm_median_ms_stock": 179.6,
+      "warm_median_ms_new": 1571.1,
+      "top20_overlap": 0.65,
+      "same_top1": true
+    },
+    {
+      "q": "as measured by the elasticity of substitution",
+      "terms_stock": 3,
+      "terms_new": 7,
+      "postings_stock": 17042,
+      "postings_new": 7417967,
+      "warm_median_ms_stock": 38.0,
+      "warm_median_ms_new": 1167.9,
+      "top20_overlap": 0.95,
+      "same_top1": true
+    },
+    {
+      "q": "the effect of a carbon tax on household income",
+      "terms_stock": 5,
+      "terms_new": 8,
+      "postings_stock": 196440,
+      "postings_new": 7205599,
+      "warm_median_ms_stock": 221.7,
+      "warm_median_ms_new": 1335.3,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "the history of mathematical economics as a discipline",
+      "terms_stock": 4,
+      "terms_new": 7,
+      "postings_stock": 87945,
+      "postings_new": 7065635,
+      "warm_median_ms_stock": 111.3,
+      "warm_median_ms_new": 1072.2,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "the demand for energy in developing countries",
+      "terms_stock": 4,
+      "terms_new": 7,
+      "postings_stock": 578315,
+      "postings_new": 6908574,
+      "warm_median_ms_stock": 369.9,
+      "warm_median_ms_new": 1120.8,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "models that are used for integrated assessment of climate",
+      "terms_stock": 5,
+      "terms_new": 9,
+      "postings_stock": 324907,
+      "postings_new": 4713512,
+      "warm_median_ms_stock": 339.1,
+      "warm_median_ms_new": 1160.7,
+      "top20_overlap": 1.0,
+      "same_top1": true
+    },
+    {
+      "q": "to be or not to be",
+      "terms_stock": 1,
+      "terms_new": 4,
+      "postings_stock": 194987,
+      "postings_new": 2371950,
+      "warm_median_ms_stock": 288.6,
+      "warm_median_ms_new": 933.2,
+      "top20_overlap": 0.25,
+      "same_top1": false
+    }
+  ],
+  "date": "2026-08-29"
+}

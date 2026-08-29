@@ -1,0 +1,80 @@
+%erg 0.1
+Title: Correct DESIGN §3's stopword rule: the 50% threshold does not reach its own budget
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T09:49Z claude created
+2026-08-29T10:05Z claude note filed at 0090 rather than the next free id (0081): the frontier is the most contended seat under parallel sessions, and open PRs already hold 0014, 0025, 0054 and 0060
+
+--- body ---
+## Context
+X2 measured the stoplist deletion and it failed the DESIGN §3 gate by 3,5x
+(ticket 0014, `bench/results/0025-x2-stopwordless/`). Following that
+measurement to its own remedy exposed a second defect, in the rule rather
+than in the code: **§3's prescribed threshold does not reach the budget §3
+sets.**
+
+At df >= 50%, the number §3 names, only nine terms drop from the query and
+p95 stays at 820,7 ms against the ~500 ms allowance. The working window is
+about 25-35%: at 30% the droplist catches 23 terms and p95 falls to 463,5 ms,
+while at 20% it begins dropping `energy` (26,2% document frequency in the
+author's library), which is a catastrophic answer to a query about energy.
+
+Two further corrections belong in the same edit, both measured:
+
+- **A df droplist alone does not fix the degenerate query, and neither does
+  an empty-set fallback.** At 30%, `to be or not to be` keeps exactly one
+  term — `not`, at 27,3% df — so the set is never empty and the stock defect
+  is reproduced precisely. The fallback must trigger on degeneracy: fewer
+  than two surviving terms sends the raw token set.
+- **The rule's justification is cost, never ranking.** A df cutoff is a step
+  function approximating what bm25's idf already does continuously, and it
+  cannot distinguish "carries no information" from "this library is about
+  energy". §3 should say so, because it is what keeps the threshold high when
+  someone later notices that lowering it is faster.
+
+Scope note: this ticket edits the design record only. The upstream
+implementation is 0091, which is blocked on this.
+
+## Relevant files
+- `DESIGN.md` §3 — owns the rule and its threshold. The only file that
+  changes here.
+- `bench/results/0025-x2-stopwordless/df-droplist-sweep.json` — the sweep,
+  the recommended policy, and the costs to weigh.
+- `bench/results/0025-x2-stopwordless/multilingual-cost.json` — why a
+  per-language stoplist is ill-defined and a corpus-derived droplist is the
+  only well-posed form.
+- `bench/check_figures.py` — every figure quoted below is declared there.
+
+## Actions
+1. Replace §3's `~50%` with the measured window, stating 30% as the working
+   point and naming both edges: above ~35% the budget is not reached, below
+   ~25% content words are eaten.
+2. Add the degeneracy fallback to the rule — fewer than two surviving terms
+   sends the raw token set — and record that an empty-set fallback is
+   insufficient, with `to be or not to be` as the worked case.
+3. State that the cutoff is justified by cost and not by ranking quality.
+4. Declare in `check_figures.py` any figure the new §3 text quotes.
+
+## Test
+No code changes, so the gate is `make check`: the figure guard must show 0
+stale after the §3 rewrite, which is what catches a number transcribed wrong
+into the prose.
+
+## Verification
+- [ ] §3 no longer names 50% as the threshold
+- [ ] §3 names the degeneracy fallback, not an empty-set one
+- [ ] `make check` green, figure guard 0 stale
+- [ ] every new figure in §3 is declared in `check_figures.py` with an anchor
+
+## Invariants
+- DESIGN.md remains the single owner of the threshold: 0091 and the tickets
+  point at it, never restate it.
+- The X2 artifacts are not edited. They are the measurement; §3 is the
+  decision taken from it.
+
+## Exit criteria
+- DESIGN §3 states a threshold that the measurement supports, with the
+  degeneracy fallback and the cost-not-ranking justification, and `make
+  check` is green.
