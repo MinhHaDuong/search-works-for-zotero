@@ -25,10 +25,10 @@ Layout, read from the shipped `structured-document-text.js`:
     content  : per chunk, deflate -> blockOffsets(u32 * count) then block JSON
 
 Usage:
-    python3 bench/sdt_read.py PACK                    # metadata + block summary
-    python3 bench/sdt_read.py PACK --headings         # every block typed heading
-    python3 bench/sdt_read.py PACK --blocks 5         # dump the first 5 blocks
-    python3 bench/sdt_read.py PACK --json             # whole pack as JSON
+    python3 verification/probes/sdt_read.py PACK                    # metadata + block summary
+    python3 verification/probes/sdt_read.py PACK --headings         # every block typed heading
+    python3 verification/probes/sdt_read.py PACK --blocks 5         # dump the first 5 blocks
+    python3 verification/probes/sdt_read.py PACK --json             # whole pack as JSON
 """
 import argparse
 import collections

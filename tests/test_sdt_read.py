@@ -1,4 +1,4 @@
-"""Tests for bench/sdt_read.py.
+"""Tests for verification/probes/sdt_read.py.
 
 The packs this reads are not in the repo — they live on the author's machine,
 two of them, and only for PDFs opened in Zotero's reader. So the fixture is
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bench"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "verification" / "probes"))
 
 from sdt_read import (  # noqa: E402
     MAGIC,

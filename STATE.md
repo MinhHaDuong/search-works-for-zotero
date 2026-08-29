@@ -375,7 +375,7 @@ user actually reads, never a general chunking input. The second bound is now
 retired: the pack is a custom binary container (magic
 `89 53 44 54 0d 0a 1a 0a`, a u32 offset table), but its sections **are** raw
 deflate, and reading one needs neither vendoring nor reimplementing Zotero's
-decoder. `bench/sdt_read.py` is that reader, ~200 lines with tests, and it
+decoder. `verification/probes/sdt_read.py` is that reader, ~200 lines with tests, and it
 parses both packs on this machine. Cost known, not estimated.
 
 ## Binary quantization, now measured on real vectors (0008)
