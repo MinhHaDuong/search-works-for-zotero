@@ -42,13 +42,19 @@ OWNER = "GOVERNANCE.md"
 #: Scanned: the specification chain, plus the two documents a newcomer or an
 #: agent reads first. CLAUDE.md is in scope deliberately — it is where the
 #: binding paragraph used to live, so leaving it out would let the guard pass
-#: over the very text the split exists to move.
+#: over the very text the split exists to move. TERMINOLOGY.md joined the list
+#: with the file itself (ticket 0051): a glossary is where a bound gets restated
+#: as a definition, and a specification document that arrives unscanned is
+#: indistinguishable from one with nothing to hide. This list is hand-kept and
+#: fails asymmetrically — a document removed breaks loudly, a document added
+#: goes unnoticed — which is ticket 0221's subject, still open.
 SCANNED = [
     "README.md",
     "CLAUDE.md",
     "spec/REQUIREMENTS.md",
     "spec/CONSTRAINTS.md",
     "spec/DESIGN.md",
+    "spec/TERMINOLOGY.md",
 ]
 
 #: Not scanned, and each for its own reason. GOVERNANCE.md owns the bounds.

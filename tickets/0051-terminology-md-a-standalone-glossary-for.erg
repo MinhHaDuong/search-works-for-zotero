@@ -5,22 +5,35 @@ Author: claude
 Blocked-by: 0036
 
 --- log ---
-2026-08-29T00:00Z claude created
 
+2026-08-29T00:00Z claude created
+2026-08-29T16:30Z claude note raid 51 imagine+plan: premise re-checked (3 of 5 named examples are dead references purged by 0036); scope narrowed to consolidation; guard default-deny, pointer-does-not-excuse; path corrected to spec/ (filed pre-6ae3fe8); SCANNED line added per 0221/PR42
+
+2026-08-29T13:36Z claude note raid 51 execute: spec/TERMINOLOGY.md (45 entries, three marked buckets plus historical); bench/check_terminology.py default-deny guard, red-first against the seeded census entry; registered in README, CLAUDE.md, Makefile and check_governance.py SCANNED. Verification box 3 left unticked: sampling DESIGN.md section 2.6 found bitmap filter, top-k and the ladder unglossed, a reader-experience criterion the harvest does not settle by itself.
 --- body ---
 ## Context
-The specification chain has no terminology section. Terms of art are used
-without definition, or defined once in passing and then relied on far from
-that point: "the ledger", "graft", "kill 9", "corpus-critic M4", "the
-wall", "entry segmenter", "stage keys", "coverage", "metadata-only",
-"prefix" in R26's sense. A reader meeting one of these in a ticket has
-nowhere to look it up.
+The specification chain has no terminology section. A reader entering
+`spec/DESIGN.md` at §2.5 meets "conductor", "slabs", "the ledger" and
+"stage keys" with nowhere to look them up.
 
 0036 required that "every term of art [be] defined where it first appears",
-and its rewrite delivered roughly twenty jargon glosses. That is the right
-first move and it is not sufficient: a gloss at first appearance serves a
-reader going top to bottom, and nobody reads a specification that way twice.
-Tickets, reviews and forge threads enter the documents in the middle.
+and its rewrite delivered that: `census` is glossed at DESIGN.md §2.1,
+the four stage keys at §2.2, the entry layer at §2.3. That is the right
+first move and it is not sufficient, for the reason 0036 could not address:
+a gloss at first appearance serves a reader going top to bottom, and nobody
+reads a specification that way twice. Tickets, reviews and forge threads
+enter the documents in the middle.
+
+Raid 51's Imagine pass (2026-08-29) re-checked this ticket's premise and
+narrowed it. The original Context named `graft`, `kill 9` and
+`corpus-critic M4` as undefined jargon a reader would meet. They are not:
+0036's rewrite purged all three, and they now appear nowhere in the tree
+except inside 0036 (which cites them as jargon it removed) and this
+ticket, which copied them. So this ticket is NOT rescuing undefined
+jargon — that job is done. It is consolidating already-good definitions
+into one alphabetical entry point for the mid-document reader. Executing
+against the old example list would send an agent hunting terms that do
+not exist.
 
 The author's ruling (2026-08-29): a standalone document, not a section
 inside one of the three.
@@ -32,46 +45,113 @@ duplicate definitions or make two documents depend on a third's internals.
 This is the one-statement-per-fact rule applied to vocabulary.
 
 ## Relevant files
-- `TERMINOLOGY.md` — new, at the repository root
-- `spec/REQUIREMENTS.md`, `CONSTRAINTS.md`, `DESIGN.md` — inline glosses that
-  become redundant may collapse to the term alone; a first-use gloss that
-  carries argument stays
-- `CLAUDE.md`, `README.md` — document-set list and table
-- `tickets/AGENTS.md` — no change expected
+- `spec/TERMINOLOGY.md` — new. The ticket was filed at 09:26 on 2026-08-29
+  saying "at the repository root"; the `spec/` reorganisation landed at
+  15:01 the same day (commit `6ae3fe8`), so "root" meant "beside the chain"
+  and now resolves to `spec/`. Sibling ticket 0221 (PR #42) already assumes
+  this path.
+- `bench/check_governance.py` — add `spec/TERMINOLOGY.md` to `SCANNED`.
+  Ticket 0221 names this ticket as its live trigger: a new specification
+  document is unscanned by default, and unscanned is indistinguishable
+  from having nothing to hide. This is the one-line stopgap, NOT 0221's
+  fix (which inverts the default); 0221 stays open.
+- `bench/check_terminology.py`, `tests/test_check_terminology.py`,
+  `Makefile` — the new guard and its gate.
+- `spec/REQUIREMENTS.md`, `spec/CONSTRAINTS.md`, `spec/DESIGN.md` — inline
+  glosses that become redundant may collapse to the term alone; a first-use
+  gloss that carries argument stays. Prefer leaving them: the figure guard
+  anchors on sentences, and churn here is not what this ticket buys.
+- `CLAUDE.md`, `README.md` — document-set list and table.
 
 ## Actions
-1. Harvest the vocabulary. Sweep the chain plus the open tickets for terms
-   used as though defined. Include Zotero-side vocabulary the project
-   inherits (item, attachment, version cursor, fulltext cache) — a newcomer
-   does not know which words are ours and which are Zotero's, and that
-   distinction is worth marking per entry.
+1. Harvest the vocabulary from the chain (`spec/REQUIREMENTS.md`,
+   `spec/CONSTRAINTS.md`, `spec/DESIGN.md`). Open tickets are a spot-check
+   only, not an independent harvest pass: the Imagine sweep found no live
+   ticket vocabulary that does not trace back to the chain. Roughly 25–30
+   entries, in three marked buckets:
+   - **ours** — ledger, stage keys (record/extract/chunk/embed), entries,
+     slabs, passages, census, watermark, reconcile tick, conductor/P0/P1,
+     custody string, quarantine, segmenter (seg/1), band 0 / band 1,
+     sideline-never-delete, probe-don't-fix, first-with-text, fraction-RRF
+     / entry collapse, the locator, the four gates, coverage, metadata-only,
+     prefix in R2/R26's sense.
+   - **inherited, Zotero** — item, attachment, library / `libraryVersion`,
+     `Last-Modified-Version`, the `?since=` version cursor, the `/fulltext`
+     census endpoint, `Zotero-Server-ID`, local API, `dateAdded`.
+   - **inherited, SQLite/FTS5** — FTS5, unicode61, bm25, WAL. In scope:
+     each appears in the chain (FTS5 four times in DESIGN.md, five in
+     CONSTRAINTS.md) and a newcomer cannot tell which words this project
+     coined. Marking the bucket is the point.
+   Excluded, deliberately: "the wall", which lives only in `STATE.md` —
+   outside the chain per CLAUDE.md's document-set list, and outside this
+   ticket's own verification criterion, which is scoped to DESIGN.md.
 2. Write each entry as: the term, one-sentence definition, and where it is
    authoritative. Definitions POINT at the owning document for anything
    numeric; the glossary owns no thresholds.
 3. Mark deprecated and panel-era terms explicitly as historical, with the
-   git coordinate, so a reader meeting one in an old ticket is not left
-   guessing whether it is live.
-4. Register the document in CLAUDE.md and README.md.
+   git coordinate. Three terms — `graft`, `kill 9`, `corpus-critic M4` —
+   plus `v1` / "The Settled Ledger", all sharing one coordinate:
+   `panel/cycle2/` at commit `e32afe3`. A short subsection, not a research
+   project.
+4. Register the document in CLAUDE.md and README.md, and add it to
+   `SCANNED` in `bench/check_governance.py`.
 
 ## Test
-An adherence check that fails when a term listed in TERMINOLOGY.md carries
-a numeric threshold in its definition — the glossary must stay a pointer,
-not a second home for design numbers. Red first against a seeded entry.
+`bench/check_terminology.py` + `tests/test_check_terminology.py`, following
+the `check_governance.py` precedent in shape (`run(root)` returning an exit
+code, fixture repositories under `tmp_path`) but INVERTING two of its
+choices, deliberately:
+
+- **Default-deny, not default-allow.** `check_governance.py` hunts named
+  bound-phrases because it scans thousands of lines of legitimate design
+  prose where digits are the norm. TERMINOLOGY.md is one small hand-authored
+  file where every digit was deliberately typed, so the safe rule is: any
+  digit in a definition fails, unless it matches a narrow allowlist — git
+  SHA, ISO date, `[RCDX]\d+` reference code, `§` section mark, version
+  string (`v1.9.0`, `Zotero 10`, `SQLite 3.43`), ticket ID.
+- **A pointer does NOT excuse a number.** This is the opposite semantic from
+  `test_pointer_on_the_line_excuses_it`. This ticket's invariant is "the
+  glossary owns no thresholds", so `"refreshes every 60 s (DESIGN.md §2.4)"`
+  must still fail — the number is restated regardless of the citation.
+  Copying the governance guard verbatim would silently weaken the invariant.
+
+Red first, against this seeded entry:
+
+    - **census** — a full listing of every item, refetched every 60 s.
+      Authoritative: DESIGN.md §2.4.
+
+Required tests: the positive control above; a clean fixture passing; each
+allowlist class admitted individually (so none is dead vocabulary); and a
+missing-file test — if `spec/TERMINOLOGY.md` is absent the guard must fail
+loudly, never report "0 entries, 0 violations, clean".
+
+Known and documented limitation, stated in the guard's docstring the way
+`check_figures.py` states its own: a threshold restated in words
+("roughly every minute") carries no digit and passes. Regex cannot close
+that; `verify-adherence` and human review cover it. A guard that guessed
+at prose numbers would produce noise.
 
 ## Verification
-- [ ] Every term in the glossary resolves to an owning document
-- [ ] No design number is restated in a definition
+- [x] Every term in the glossary resolves to an owning document
+- [x] No design number is restated in a definition
 - [ ] A reader can enter DESIGN.md at a random section and look up every
       unfamiliar term
+- [x] `make check` green, including the new `terminology` target
 
 ## Invariants
 - The glossary defines; it never decides. A definition that would settle an
   open design question goes to DECISIONS.md first.
 - One statement per fact: no threshold, budget or rule is duplicated here.
+- The figure guard's 160 pairs stay green: if an inline gloss is collapsed,
+  check `bench/check_figures.py` still anchors.
 
 ## Exit criteria
-- [ ] `TERMINOLOGY.md` exists, covering the chain's vocabulary and the
-      inherited Zotero vocabulary, each entry marked ours or Zotero's
-- [ ] Historical and panel-era terms marked as such with a git coordinate
-- [ ] Registered in CLAUDE.md and README.md
-- [ ] The no-numbers guard is in place and `make check` passes
+- [x] `spec/TERMINOLOGY.md` exists, covering the chain's vocabulary and the
+      inherited Zotero and SQLite/FTS5 vocabulary, each entry marked ours
+      or inherited
+- [x] Historical and panel-era terms marked as such with a git coordinate
+- [x] Registered in CLAUDE.md and README.md
+- [x] Added to `SCANNED` in `bench/check_governance.py` so it does not
+      arrive unguarded (0221's trigger case, closed for this document only)
+- [x] The no-numbers guard is in place, red-first proven, and `make check`
+      passes

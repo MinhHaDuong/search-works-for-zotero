@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance terminology help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -20,10 +20,11 @@ help:
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
 	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
+	@echo "make terminology — the glossary defines and points; it restates no design number"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance check-fast
+check: lint figures governance terminology check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -50,6 +51,15 @@ figures:
 # rule kept by care since the beginning. Ticket 0053, ratified 2026-08-29.
 governance:
 	python3 bench/check_governance.py
+
+# The third guard, against the same drift as the figure guard but from the other
+# side. That one keeps a quoted number current where the prose quotes it; this
+# one keeps the glossary from quoting a number at all, since a definition is the
+# most inviting place to leave a second copy of a threshold that nobody will
+# remember to update. Default-deny on digits, and a citation beside a number
+# does not excuse it. Ticket 0051.
+terminology:
+	python3 bench/check_terminology.py
 
 upstream-status:
 	@set -eu; \
