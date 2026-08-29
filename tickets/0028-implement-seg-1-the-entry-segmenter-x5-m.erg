@@ -2,12 +2,14 @@
 Title: Implement seg/1, the entry segmenter X5 measures
 Created: 2026-08-26
 Author: claude
+Blocked-by: 0140
 
 --- log ---
 2026-08-26T16:46Z claude created
 
 2026-08-26T17:05Z claude note X5's dependent repointed (code review): the RFC (0027) is superseded; X5 gates scoped issue B (0034)
 
+2026-08-29T11:04Z claude note blocked by 0140: the chunker's token cap is unsettled and 768 tokens exceeds the embedder's measured 512-token limit; seg/1 must be built to the settled geometry, not to 768
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; the review is in git
