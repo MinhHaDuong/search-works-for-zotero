@@ -144,7 +144,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "The tracker filed every onnx-community mirror as a could-not-look on an unauthenticated 401. Authenticated, this one publishes the conventional set. Prefixes are empty in the upstream config_sentence_transformers.json."
+      "notes": "The tracker filed every onnx-community mirror as a could-not-look on an unauthenticated 401. Authenticated, this one publishes the conventional set. Prefixes are empty in the upstream config_sentence_transformers.json.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-97m-multilingual-r2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "granite-311m-multilingual-r2",
@@ -264,7 +266,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "Same family as the 97m, one size up. Also a could-not-look in the tracker."
+      "notes": "Same family as the 97m, one size up. Also a could-not-look in the tracker.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-311m-multilingual-r2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "arctic-embed-m-v2",
@@ -406,7 +410,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "Publishes the conventional set in its own repo, so no mirror is needed. The query prefix is not decoration: config_sentence_transformers.json declares a query prompt and no document prompt, and a harness that ignores it measures a different model."
+      "notes": "Publishes the conventional set in its own repo, so no mirror is needed. The query prefix is not decoration: config_sentence_transformers.json declares a query prompt and no document prompt, and a harness that ignores it measures a different model.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-m-v2.0 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "gte-multilingual-base",
@@ -549,7 +555,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "The tracker ruled this model out because Alibaba-NLP publishes no ONNX. That much holds — see the gte-multilingual-base-upstream record — but the mirror publishes the conventional set, so the model is sweepable after all."
+      "notes": "The tracker ruled this model out because Alibaba-NLP publishes no ONNX. That much holds — see the gte-multilingual-base-upstream record — but the mirror publishes the conventional set, so the model is sweepable after all.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "multilingual-e5-small",
@@ -711,7 +719,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "Zotero core's own multilingual model, and a blank column in this repo rather than a low score. The prefixes are mandatory: the upstream card says every input starts with one, even in other languages."
+      "notes": "Zotero core's own multilingual model, and a blank column in this repo rather than a low score. The prefixes are mandatory: the upstream card says every input starts with one, even in other languages.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "multilingual-e5-base",
@@ -873,7 +883,9 @@
         "reason": ""
       },
       "status": "candidate",
-      "notes": "The e5 sibling one size up, same prefixes."
+      "notes": "The e5 sibling one size up, same prefixes.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "paraphrase-multilingual-mpnet-base-v2",
@@ -997,7 +1009,9 @@
         ],
         "detail": "truncates far below this project's chunk geometry. Kept as a record rather than deleted: the mirror publishes the full dtype set, so the rejection is about the model and not about its packaging."
       },
-      "notes": "Measured negative, per the tracker's instruction to keep it visible."
+      "notes": "Measured negative, per the tracker's instruction to keep it visible.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "paraphrase-multilingual-minilm-l12-v2",
@@ -1121,7 +1135,9 @@
         ],
         "detail": "truncates far below this project's chunk geometry. Kept as a record rather than deleted: the mirror publishes the full dtype set, so the rejection is about the model and not about its packaging."
       },
-      "notes": "Measured negative, per the tracker's instruction to keep it visible."
+      "notes": "Measured negative, per the tracker's instruction to keep it visible.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "distiluse-base-multilingual-cased-v2",
@@ -1245,7 +1261,9 @@
         ],
         "detail": "truncates far below this project's chunk geometry."
       },
-      "notes": "The 512 output width comes from a sentence-transformers Dense module (2_Dense/config.json, 768 in, 512 out), not from the transformer, whose hidden size is 768. Whether the ONNX export carries that module is unverified. Moot while the token ceiling stands, and a trap if the model is ever revisited."
+      "notes": "The 512 output width comes from a sentence-transformers Dense module (2_Dense/config.json, 768 in, 512 out), not from the transformer, whose hidden size is 768. Whether the ONNX export carries that module is unverified. Moot while the token ceiling stands, and a trap if the model is ever revisited.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/distiluse-base-multilingual-cased-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "granite-107m-multilingual-v1",
@@ -1304,7 +1322,9 @@
         ],
         "detail": "the declared language list omits three of R7's five. The repo also publishes only the fp32 filename, so the dtype knob could address nothing but fp32 even if the languages held."
       },
-      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7."
+      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-107m-multilingual (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "granite-278m-multilingual-v1",
@@ -1363,7 +1383,9 @@
         ],
         "detail": "the declared language list omits three of R7's five. The repo also publishes only the fp32 filename, so the dtype knob could address nothing but fp32 even if the languages held."
       },
-      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7."
+      "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-278m-multilingual (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "bge-m3",
@@ -1436,7 +1458,9 @@
         ],
         "detail": "rejected on size by the tracker's ruling. Neither repo publishes a parameter count this registry can read back, so the figure behind that ruling is the tracker's and is not restated here."
       },
-      "notes": "A re-probe the tracker asked for. The mirror publishes the conventional set, so the rejection rests on size alone; the upstream repo addresses only fp32."
+      "notes": "A re-probe the tracker asked for. The mirror publishes the conventional set, so the rejection rests on size alone; the upstream repo addresses only fp32.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on BAAI/bge-m3 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "arctic-embed-l-v2",
@@ -1585,7 +1609,9 @@
         ],
         "detail": "the large sibling of the m variant."
       },
-      "notes": "Publishes the conventional set in-repo; the rejection is size, not packaging."
+      "notes": "Publishes the conventional set in-repo; the rejection is size, not packaging.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-l-v2.0 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "jina-embeddings-v3",
@@ -1730,7 +1756,9 @@
         ],
         "detail": "non-commercial terms, which R-item aside is a licence this project cannot ship."
       },
-      "notes": "A re-probe the tracker asked for. Readable without authentication trouble, and it publishes two dtypes rather than the conventional set: fp32 and fp16 only."
+      "notes": "A re-probe the tracker asked for. Readable without authentication trouble, and it publishes two dtypes rather than the conventional set: fp32 and fp16 only.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on jinaai/jina-embeddings-v3 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "embeddinggemma-300m",
@@ -1792,7 +1820,9 @@
         ],
         "detail": "the Gemma terms are not an open licence, and the mirror inherits them."
       },
-      "notes": "Two states in one model, which is why both repos were probed. The source repo is gated and publishes no ONNX; the mirror is ungated and publishes five dtypes. The licence follows the weights, so the mirror's openness changes nothing."
+      "notes": "Two states in one model, which is why both repos were probed. The source repo is gated and publishes no ONNX; the mirror is ungated and publishes five dtypes. The licence follows the weights, so the mirror's openness changes nothing.",
+      "pooling": null,
+      "pooling_source": "could_not_look: Access to model google/embeddinggemma-300m is restricted and you are not in the authorized list. Visit https://huggingface.co/google/embeddinggemma-300m to ask for access. (google/embeddinggemma-300m, 2026-08-29T16:12Z)"
     },
     {
       "id": "gte-multilingual-base-upstream",
@@ -1907,7 +1937,9 @@
         ],
         "detail": "queried authenticated; the listing carries no .onnx file at all."
       },
-      "notes": "The model itself is a candidate through the mirror. This record exists so the absence is a finding with a date on it rather than a gap, and so a later reader does not re-run the same query."
+      "notes": "The model itself is a candidate through the mirror. This record exists so the absence is a finding with a date on it rather than a gap, and so a later reader does not re-run the same query.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "nomic-embed-text-v2-moe",
@@ -2048,7 +2080,9 @@
         ],
         "detail": "queried authenticated; the listing carries no .onnx file at all."
       },
-      "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears."
+      "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v2-moe (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "jina-embeddings-v2-base-multilingual",
@@ -2087,7 +2121,9 @@
         ],
         "detail": "nothing answers to this repo id."
       },
-      "notes": "The tracker records this id as gated on a 401. Authenticated it returns 404, and so does a repo id invented for the run's negative control, so the code alone cannot tell a wrong id from a private repo. What settles it is a different query: listing the publisher's own repos returns an English model and three bilingual ones, and no multilingual v2 at any size. The state stays could-not-look because that is what the file listing gives; the rejection is the id, not the model."
+      "notes": "The tracker records this id as gated on a 401. Authenticated it returns 404, and so does a repo id invented for the run's negative control, so the code alone cannot tell a wrong id from a private repo. What settles it is a different query: listing the publisher's own repos returns an English model and three bilingual ones, and no multilingual v2 at any size. The state stays could-not-look because that is what the file listing gives; the rejection is the id, not the model.",
+      "pooling": null,
+      "pooling_source": "could_not_look: repo itself is not readable (404 on 1_Pooling/config.json and on metadata) (jinaai/jina-embeddings-v2-base-multilingual, 2026-08-29T16:12Z)"
     },
     {
       "id": "multilingual-e5-small-intfloat",
@@ -2229,7 +2265,9 @@
         ],
         "detail": "the author's own repo publishes ONNX under names the dtype knob cannot address, so only fp32 resolves. The mirror record carries the sweepable copy of this model."
       },
-      "notes": "Kept because the trap is the interesting part: the repo has ONNX, the model is the right model, and the sweep would still have run one rung."
+      "notes": "Kept because the trap is the interesting part: the repo has ONNX, the model is the right model, and the sweep would still have run one rung.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "all-minilm-l6-v2",
@@ -2304,7 +2342,9 @@
         ],
         "detail": "English only, by its own declared language list."
       },
-      "notes": "Measured in the earlier campaign; kept so its absence from the study is legible."
+      "notes": "Measured in the earlier campaign; kept so its absence from the study is legible.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/all-MiniLM-L6-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "bge-small-en-v15",
@@ -2379,7 +2419,9 @@
         ],
         "detail": "English only, and it says so in its name."
       },
-      "notes": "Measured in the earlier campaign."
+      "notes": "Measured in the earlier campaign.",
+      "pooling": "cls",
+      "pooling_source": "1_Pooling/config.json on BAAI/bge-small-en-v1.5 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "nomic-embed-text-v15",
@@ -2454,7 +2496,9 @@
         ],
         "detail": "English-centric, by its own declared language list."
       },
-      "notes": "The dtype ladder and the quantization-fidelity work were done on this model, so it is the contrast arm rather than a competitor. R7 keeps it out of the comparison; nothing keeps it out of the baseline."
+      "notes": "The dtype ladder and the quantization-fidelity work were done on this model, so it is the contrast arm rather than a competitor. R7 keeps it out of the comparison; nothing keeps it out of the baseline.",
+      "pooling": "mean",
+      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v1.5 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     },
     {
       "id": "qwen3-embedding-06b",
@@ -2528,7 +2572,9 @@
         ],
         "detail": "the tracker rejects it on R7 for the configuration that was measured. This registry cannot derive that verdict: neither repo declares a language list, and the card claims broad coverage. The R7 criterion here is inherited, not measured, and it is the only one in this file that is. Size is derivable and stands on its own: heavier than every model rejected for size above."
       },
-      "notes": "Measured in the earlier campaign through the mirror. The source repo publishes no ONNX; the mirror publishes the conventional set. Re-screening the language claim is the tracker's call, not this registry's."
+      "notes": "Measured in the earlier campaign through the mirror. The source repo publishes no ONNX; the mirror publishes the conventional set. Re-screening the language claim is the tracker's call, not this registry's.",
+      "pooling": "last_token",
+      "pooling_source": "1_Pooling/config.json on Qwen/Qwen3-Embedding-0.6B (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
     }
   ]
 }

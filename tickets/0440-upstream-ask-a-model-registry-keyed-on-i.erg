@@ -1,0 +1,96 @@
+%erg 0.1
+Title: Upstream ask: a model registry keyed on id, not a precision knob
+Created: 2026-08-29
+Author: Minh Ha-Duong
+Blocked-by: 0263
+
+--- log ---
+2026-08-29T16:27Z Minh Ha-Duong created
+2026-08-29T16:40Z claude note replaces ticket 0220's remedy, which is withdrawn. 0220 proposed ZOTEUS_EMBEDDING_DTYPE on the reading that the model was already configurable and precision was the one axis without a knob. The model is NOT configurable on the local path, so that asymmetry never existed, and every other axis the knob would have needed alongside it — pooling, input template, per-repo dtype availability — turned out to be per-model too. The ask is one registry, not three knobs.
+
+--- body ---
+## Context
+
+Ticket 0220 asked upstream for `ZOTEUS_EMBEDDING_DTYPE`, a global precision
+knob. That ask is withdrawn. Its motivating premise was false and its shape was
+wrong, and both were established by measurement rather than by argument — see
+0220's log and `verification/DEVICE-AUTO-0220.md`.
+
+What survives 0220 is the observation, not the remedy: the shipped local path
+runs at full precision because nobody passes an options object, not because
+anyone chose fp32. Measured on the default model, `all-MiniLM-L6-v2`, warm: the
+resident cost of the load falls 143,7 MB to 69,1 MB at q8, and load time 415,2 ms
+to 191,1 ms. The problem is real. A standalone env var is not the answer to it.
+
+**Why not a knob.** Precision cannot travel alone. `dtype` resolves through
+`DEFAULT_DTYPE_SUFFIX_MAPPING` to a filename, so it is a bet on one repo's naming
+that some repos lose outright (`intfloat/multilingual-e5-small` publishes nothing
+the knob can address but fp32, verified in 0261). Pooling is per-model and four
+of six sweep candidates want `cls` where the drivers hardcode `mean` (0421).
+Input templates are per-model, and e5 without its prefixes measures worse than an
+English model that never needed any. A user handed a precision knob and none of
+the rest gets a setting whose most likely outcome is a wrong conclusion about a
+good model.
+
+Zotero core reached the same place independently: `dtype`, `pooling`,
+`queryPrefix`, `passagePrefix` and `maxTokens` are fields of a curated model
+entry, the preference names the entry, and there is no user-facing precision knob
+anywhere (`zotero/zotero#6012`).
+
+So the upstream ask is the entry, and the knob is its id.
+
+## Relevant files
+
+- `tickets/0220-...erg` — the withdrawn ask, its four premise corrections, and the
+  measurements that survive
+- `verification/DEVICE-AUTO-0220.md` — the device finding, which travels
+  separately and is not part of this ask
+- `bench/models.json` + `bench/registry.mjs` / `registry.py` — this repo's own
+  registry, the shape being proposed
+- `GOVERNANCE.md` — form: design-sized work goes as an issue he builds, five for
+  five
+
+## Actions
+
+1. Wait for the measurements. This ask is only worth making with a table behind
+   it, which is what 0262/0263 produce. Filing it earlier spends his attention on
+   a design argument with no evidence under it.
+2. Draft it as an ISSUE, not a pull request. It decides which models the project
+   supports and what its configuration surface looks like — design-sized by
+   GOVERNANCE.md's test, and the asymmetry there reads five for five.
+3. Lead with the defect, not the design: the local path is pinned to one model
+   that Zotero core files under "Models for testing", so a non-English library
+   cannot be served at all. Precision is a consequence of the registry, never its
+   headline.
+4. Carry the per-model evidence: for each candidate, dtype availability probed
+   against the repo, pooling read off its own `1_Pooling/config.json`, input
+   template, max sequence, licence, and the measured cost and recall.
+5. Point at a prototype rather than offering one, per the issue #33 precedent.
+6. Say what the registry must NOT be: an untyped options bag. Every field in one
+   degrades retrieval silently when wrong, which reads as the model being worse
+   rather than as a bug.
+
+## Test
+
+- The claim that a non-English library is unserved is checked before it is sent:
+  the local model is hardcoded, `ZOTEUS_EMBEDDING_MODEL` reaches only the API
+  providers, and the comment at that call site says so.
+- Every per-model value in the issue traces to a probe or a model card, none
+  inferred. This is the discipline 0421 established after four of six candidates
+  came out `cls` against an assumption of `mean`.
+
+## Invariants
+
+- No precision knob is proposed, in the issue or in any prototype it points at.
+- Nothing about this repository's internal governance enters the issue text
+  (GOVERNANCE.md's disclosure rule). The repository is public and he reads it.
+- The device finding is not folded in, and it is not filed anywhere either.
+  Nobody passes `device: 'auto'`, so it is not a defect in the maintainer's code;
+  where it is a defect it is already huggingface/transformers.js#1642.
+
+## Exit criteria
+
+- [ ] 0262/0263 have produced the candidate table this ask rests on
+- [ ] Issue drafted, read as sent, and shown to the author before anything is
+      filed
+- [ ] Filed upstream, or explicitly deferred with the reason recorded here

@@ -235,184 +235,45 @@ one returning confident noise does not.
 
 https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:stopwords-follow-up?quick_pull=1&title=Delete%20the%20stoplist%3A%20no%20language%20loses%20its%20function%20words&body=%23%23%20The%20defect%0A%0AThe%20tokenizer%20carries%20a%2029-word%20English%20stoplist%2C%20which%20penalizes%20exactly%20one%0Alanguage%3A%20%22the%22%20is%20dropped%20while%20%22le%22%2C%20%22der%22%20and%20%22v%C3%A0%22%20pass.%20It%20is%20also%0Aasymmetric%20by%20construction%20%E2%80%94%20the%20FTS5%20document%20side%20%28%60unicode61%60%29%20has%20no%0Astoplist%2C%20so%20the%20index%20holds%20the%20very%20tokens%20the%20query%20side%20throws%20away.%20And%20it%0Aproduces%20queries%20that%20cannot%20say%20what%20they%20mean%2C%20in%20the%20way%20that%20is%0Ahardest%20to%20notice%3A%20%60to%20be%20or%20not%20to%20be%60%20comes%20through%20the%20list%20as%20%60not%60%0Aalone%2C%20the%20one%20word%20of%20it%20the%20list%20happens%20to%20omit%2C%20so%20the%20search%20becomes%20a%0Aone-term%20query%20for%20an%20incidental%20function%20word%20and%20answers%20it%20with%20twenty%0Aconfidently%20ranked%20passages%20about%20nothing%20in%20particular.%20bm25%20already%20down-weights%0Aubiquitous%20terms%2C%20which%20is%20the%20honest%20version%20of%20what%20a%20stoplist%20approximates.%0A%0A%23%23%20The%20fix%0A%0ADelete%20the%20list.%20%60tokenize%28%29%60%20keeps%20its%20Unicode%20token%20class%20and%20the%20one-char%0Adrop%2C%20nothing%20else.%20Existing%20indexes%20need%20no%20rebuild%3A%20terms%20are%20OR-ed%2C%20so%0Aevery%20query%20keeps%20matching%20through%20its%20content%20words%3B%20the%20SQLite%20index%20always%0Acontained%20the%20function%20words%20%28unicode61%20indexed%20them%20from%20day%20one%29%3B%20the%20JSON%0Abackend%20re-derives%20its%20postings%20from%20raw%20passage%20text%20on%20every%20load.%0A%0A%23%23%20The%20cost%2C%20measured%0A%0AThe%20OR-cost%20of%20high-frequency%20terms%20is%20the%20one%20thing%20to%20check%20before%20deleting%0Aa%20stoplist.%20Measured%20on%20a%20real%20%5B650k%5D-passage%20index%3A%20stopword-less%20OR-query%0Akeyword%20p95%20%3D%20%5BX%20ms%5D%20over%2020%20natural-language%20queries%20carrying%20function%20words.%0A%5BREPLACE%3A%20one%20sentence%20%E2%80%94%20comfortably%20under%20/%20near%20the%20~500%20ms%20where%0Acorpus-driven%20pruning%20of%20%3E50%25-document-frequency%20terms%20would%20be%20the%20follow-up.%5D%0A%0A%23%23%20Testing%0A%0A-%20%60tokenize%60%20cases%20updated%20to%20pin%20the%20new%20contract%20%28function%20words%20kept%20in%0A%20%20every%20language%2C%20one-char%20tokens%20still%20dropped%2C%20%22to%20be%20or%20not%20to%20be%22%20is%20a%0A%20%20searchable%20query%29%3B%20backend-parity%20case%20now%20asserts%20both%20backends%20answer%0A%20%20function-word%20queries%20identically.%0A-%20Full%20suite%3A%20727%20passed%20/%207%20skipped%3B%20typecheck%20and%20lint%20clean.
 
-## PR C — local embedder weight precision (built and validated; needs a slot AND a budget call)
+## PR C — WITHDRAWN, 2026-08-29. Not a knob; the ask is a registry
 
-Ticket 0220. Branch `embedding-dtype` (`0cdfe70`, ONE commit atop `b132f2d`) is
-on the fork, validated on his gates: typecheck, lint, build clean; 858 passed /
-7 skipped (his 847 + 11 new). Nine of the eleven fail on stock v1.10.0; the two
-that pass on both sides are the backward-compatibility guards, which must.
+Ticket 0220's `ZOTEUS_EMBEDDING_DTYPE` is no longer offered upstream, and the
+pre-filled form that stood here is deleted rather than kept, because a form is an
+invitation to file and this must not be filed.
 
-Squashed from two on 2026-08-29, and not for tidiness. The first commit's message
-opened by saying the axis that costs most was the one with no knob "while the
-model already had one" — false on the local path, which hardcodes
-`Xenova/all-MiniLM-L6-v2`; `ZOTEUS_EMBEDDING_MODEL` reaches only the API
-providers. That sentence would have opened an upstream offer with a wrong claim
-about the maintainer's own code, and a commit message cannot be corrected in
-place by a later commit. The tree is byte-identical to the reviewed two-commit
-state (`git diff 5dceeb1..0cdfe70` is empty) and the gates were re-run on it.
+Its motivating premise was false. The ticket argued an asymmetry — the model has
+a knob, precision does not — and the local path has neither: it hardcodes
+`Xenova/all-MiniLM-L6-v2`, and `ZOTEUS_EMBEDDING_MODEL` reaches only the API
+providers. Every axis the knob would have needed beside it turned out per-model
+too: pooling, where four of six sweep candidates want `cls` against a hardcoded
+`mean` (0421); the input template, where e5 without its prefixes measures worse
+than an English model; and dtype availability itself, which is a bet on one
+repo's filenames that some repos lose outright (0261). A precision knob shipped
+alone would be a setting whose likeliest outcome is a wrong conclusion about a
+good model, and it would have to be unwound by the registry that follows it.
 
-**Two things to settle before this is filed, and only the first is scheduling.**
-The volume slot is SYNC.md's to report. The second is that the contained-PR
-budget's live remainder is earmarked for the 0014 stopwords follow-up, which is
-held by its own failed evidence — spending it here instead is the author's call,
-not a sequencing question.
+What survives is evidence, not an offer:
 
-**What it does NOT contain, deliberately.** Two omissions, and the second is the
-more interesting one.
+- `verification/DEVICE-AUTO-0220.md` — that `device: 'auto'` fails on an ordinary
+  CPU-only Linux desktop whichever way the package was installed. **This is not
+  an upstream item and no issue is filed for it.** Nobody passes `auto`: zoteus
+  passes no options at all, and transformers.js defaults to `['cpu']` on Node, so
+  there is no defect in the maintainer's code and reporting one would be noise.
+  Where the defect does live — transformers.js hard-failing instead of falling
+  back — it is already reported as huggingface/transformers.js#1642, open since
+  2026-04-14 and confirmed here still present at 4.2.0. The finding's value is
+  internal: it is why this fork passes no device, and it is a standing risk to
+  watch if transformers.js ever changes its Node default away from `['cpu']`.
+- The measurements: on the default model, warm, q8 takes the load's resident cost
+  from 143,7 MB to 69,1 MB and load time from 415,2 ms to 191,1 ms.
+- Fork branch `embedding-dtype` (`0cdfe70`), left in place as a prototype nobody
+  is offering. Its integration test — a refused precision must leave the index
+  holding zero vectors rather than default-precision vectors under the wrong
+  label — is the reusable part, and its lesson is already in 0261's schema: an
+  entry's identity derives from its vector-affecting fields, never from its id.
 
-`device: 'auto'`, which ticket 0220 ruled and which measurement then voided
-(`verification/DEVICE-AUTO-0220.md`, DECISIONS.md awaiting ratification). The
-branch passes no device. The body below carries the measurement as a warning to
-the reader, which is a contribution in its own right, and proposes no device
-knob.
-
-**A local model knob**, which is the obvious next ask and is not ours to file as
-a PR. The local path hardcodes `Xenova/all-MiniLM-L6-v2` — Zotero core's registry
-files that same model under "Models for testing" — and the plumbing to change it
-already exists, since `LocalEmbeddingProvider`'s first constructor argument is the
-model and the embedder identity already carries it. So the change is small, and
-that is exactly what makes it misleading.
-
-A bare model-name knob without per-model handling is a footgun. Pooling is
-per-model — Zotero uses `cls` for the bge family and `mean` for e5, MiniLM and
-jina — while zoteus hardcodes `pooling: 'mean'` at `embeddings.ts:284`. Prefixes
-are per-model: e5 needs `query: ` / `passage: ` and zoteus sends none. Dtype
-availability is per-repo: `dtype` resolves to a filename suffix, so
-`intfloat/multilingual-e5-small` cannot be addressed at any precision but fp32
-(ticket 0240, verified 2026-08-29). Point a free-text knob at any of those and
-retrieval degrades silently, which is indistinguishable from the model being
-worse — the same failure this repo has already had to guard twice.
-
-So the knob is not a knob, it is a registry, and a registry decides which models
-the project supports. That is design-sized by GOVERNANCE.md's test, and the
-asymmetry there reads five for five on design-sized work built by him. It goes as
-an issue carrying the evidence, not as a contained PR from here — and 0240/0262
-are building the registry we would need to argue it well.
-
-To file, once authorized:
-
-```bash
-gh pr create --repo oscardvs/zoteus \
-  --head MinhHaDuong:embedding-dtype --base main \
-  --title "Make the local embedder's weight precision configurable" \
-  --body-file <the body below>
-```
-
-Read what you are about to send, as sent — no trailers, no internal governance.
-
----
-
-## The defect
-
-The local path runs at full precision because nobody passes an options object,
-not because anyone chose fp32. `pipeline('feature-extraction', this.model)` takes
-the runtime's defaults, and on Node those are the CPU provider and fp32 — note
-that `DEFAULT_DEVICE_DTYPE_MAPPING` maps only `wasm` to q8, so the precision the
-local path gets is a consequence of running on Node rather than a decision.
-
-Measured on ONNX CPU (i5-8250U, batch 1, one process per rung,
-`nomic-ai/nomic-embed-text-v1.5`; the same shape reproduces on
-Qwen3-Embedding-0.6B):
-
-| dtype | download | resident | query median |
-|---|---|---|---|
-| fp32 | 522.0 MB | 884.9 MB | 30.3 ms |
-| q8 | 130.9 MB | 235.2 MB | 18.0 ms |
-| int8 | 130.9 MB | 232.9 MB | 13.7 ms |
-| uint8 | 130.9 MB | 239.5 MB | 14.0 ms |
-| q4 | 157.5 MB | 247.4 MB | 25.2 ms |
-| bnb4 | 150.7 MB | 253.7 MB | 91.4 ms |
-
-The ladder is not monotone, which is why this PR proposes no value: q4's
-published file is larger than q8's, holds more memory and is slower, and bnb4
-has no optimised CPU kernel. Eight bits is the knee. On this model q8 and int8
-are the same published file, so the gap between those two rows is the noise
-floor rather than a difference.
-
-## The fix
-
-`ZOTEUS_EMBEDDING_DTYPE` passes a precision through verbatim. The valid set is
-the runtime's, not a local allowlist that would rot against it and whose failure
-mode is refusing a value that works. An unset variable leaves the key ABSENT
-rather than undefined, since `{dtype: undefined}` is a third call shape whose
-behaviour depends on how the runtime reads an explicit undefined.
-
-Precision joins the stored embedder identity, for the same reason the model is
-in it: on `all-MiniLM-L6-v2`, q8 scores 0.992652 cosine against the fp32
-default. Close, but far enough that ranking one against the other is quietly
-worse. An index built before this option existed carries no precision and is
-left alone, so nothing is invalidated on upgrade.
-
-Two failure modes, both measured on `@huggingface/transformers` 4.2.0, linux-x64:
-
-- `fp16` and `q4f16` throw at session init on the CPU provider — a graph-fusion
-  failure, not a missing kernel. That is reported, not worked around: the throw
-  reaches `noteEmbedFailure` like any other embedder failure, so the index falls
-  back to keyword-only and names the value, the model and the remedy in
-  `embedderReason` and in every search summary — the path a missing
-  `@huggingface/transformers` already takes.
-
-  Retrying at the default precision instead was the first thing built here, and
-  it is wrong. `SearchIndexBase.build` stamps `vectorEmbedderId` from the
-  provider's identity BEFORE the records are embedded, so a provider that
-  downgraded mid-flight would leave the index labelled with a precision its
-  vectors do not have — and nothing downstream can catch that, since
-  quantisation does not change the vector width and the identity string is the
-  only check there is. Worse across sessions: if that dtype ever does load
-  later, the stale label now matches, and old rows are ranked against new
-  quantised queries with nothing objecting.
-- An unrecognised value such as `q7` does NOT throw. The runtime ignores it and
-  serves the default, producing bit-identical vectors, and nothing anywhere
-  reports it. So a typo in this variable is invisible, and the documentation
-  says exactly that rather than implying a safety that is not there.
-
-## On `device`
-
-No device is passed, and this PR adds no way to configure one. Worth recording
-why, because `device: 'auto'` looks like the obvious companion to this change and
-is not safe as an unconditional value.
-
-`auto` hands ONNX Runtime the whole per-platform provider list. On linux-x64
-that list always begins with CUDA, selected on `process.platform` and
-`process.arch` alone, with nothing consulted about whether CUDA is usable, and
-`createInferenceSession` passes the list straight to the binding with no
-per-provider loop. On a clean install with no NVIDIA runtime present, the
-session fails outright:
-
-```
-OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library
-... libcublasLt.so.12: cannot open shared object file: No such file or directory
-```
-
-where the same call with no device option loads and serves — and both produce
-bit-identical vectors.
-
-This does not depend on the CUDA binaries being present. `onnxruntime-node`
-fetches them in `postinstall` on linux/x64, the one platform whose install
-manifest requires anything; installing with `--onnxruntime-node-install=skip`
-leaves them out, and `auto` then fails identically, on the absent
-`libonnxruntime_providers_shared.so` instead. Either way, an ordinary Linux
-desktop without a CUDA runtime cannot load the model with `auto`. The
-documentation carries this so the next person to reach for it finds the
-measurement first.
-
-## Testing
-
-Eleven new cases in `tests/features/embedding-dtype.test.ts`, on the existing
-transformers-stub seam: the absent-key default, pass-through, a value no runtime
-knows (the allowlist that must not exist), the absence of any device key under
-every environment, the `fp16` error and what it names, the identity holding
-constant across a failed load, a non-dtype failure still propagating, both
-identity cases, and one integration case on the real build path asserting that a
-refused precision leaves the index holding zero vectors rather than
-default-precision vectors under the wrong label. Nine fail on stock v1.10.0.
-Full suite on this branch: 858 passed / 7 skipped; typecheck, lint and build
-clean.
-
-`mcpb/manifest.json` is untouched: which settings the desktop bundle puts in
-front of a user is a separate call.
-
----
+The replacement ask is `tickets/0440`, an issue rather than a pull request, held
+until 0262/0263 have a candidate table under it.
 
 ## Order if time is short
 

@@ -1,0 +1,99 @@
+%erg 0.1
+Title: Two gaps the pooling review found: the probe trusts its mapping, and no guard catches a re-hardcoded literal
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T23:55Z claude created
+2026-08-29T23:55Z claude note both found by adversarial review of PR #73, both demonstrated rather than argued, and both non-blocking there. Filed together because they are the same shape: a check that passes for a reason other than the thing being right.
+
+2026-08-29T16:15Z Minh Ha-Duong note blocker 0421 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Child of tracker `tickets/0240`, follow-up to `tickets/0421`. Neither gap is a
+live defect — every value in the registry was independently verified correct at
+the time of filing — so both are about the next re-run and the next edit, not
+about today's numbers.
+
+## Gap 1: the probe's controls validate the mechanism, not the mapping
+
+`verification/probes/probe_pooling.py` enforces a positive and a negative control
+and refuses to write an artifact when either fails. That is real, and it caught a
+genuine defect on its first run. But the review demonstrated what it does **not**
+cover: pointing a record's `upstream_repo` at a different real repository makes
+the probe write `pooling: "mean"` for `granite-97m-multilingual-r2` — whose true
+value is `cls` — with **both controls green and exit 0**.
+
+The controls prove the fetch, parse and 404-disambiguation machinery works against
+two fixed reference repos. They say nothing about whether each of the 23 targets
+is pointed at its own model. So a wrong or stale `upstream_repo` is a silent
+wrong-value path, and the "controls enforced" framing reads stronger than what is
+actually guarded.
+
+Worth noting the asymmetry that makes this bite: a wrong mapping does not look
+wrong. The artifact is well formed, the states are sensible, and the value is a
+legal pooling mode — just the other model's.
+
+## Gap 2: nothing catches a driver re-hardcoding a pooling literal
+
+The review reverted `bench/quant_fidelity.mjs` to a hardcoded `pooling: 'mean'`
+and ran the whole gate: `check_models.py` OK, ruff clean, 143 tests passing.
+
+So pooling correctness in the drivers rests on trust that the code calls
+`resolveModel().pooling`, where model *identity* has a real mechanical guard. The
+same hole exists for `input_template`'s prefixes and predates this work. `0421`'s
+framing — "pooling is the input_template trap one axis over" — implies a parity of
+protection that does not exist, and this ticket is where that is either made true
+or written down as deliberate.
+
+## Relevant files
+
+- `verification/probes/probe_pooling.py` — the controls
+- `bench/check_models.py` — the guard, and its existing hard-coded-id scan
+- `bench/models.json` — `upstream_repo` per record
+- the four transformers.js drivers that now resolve pooling
+
+## Actions
+
+1. For gap 1, tie each record's `upstream_repo` to something the probe can check
+   rather than assume. Candidates: assert the fetched config's
+   `word_embedding_dimension` equals the record's declared `dim` (a wrong repo of a
+   different width then fails loudly), and cross-check the repo's declared model
+   name against the record id. Neither is complete; both convert a silent wrong
+   value into a loud one for the common case.
+2. For gap 2, extend the hard-coded-id scan to pooling literals: a `pooling:` key
+   assigned a string literal in `bench/` is a finding, the same way a model id is.
+   The `model-id-literal:` per-line exemption marker already exists for prose and
+   should be reused rather than a second mechanism invented.
+3. Decide explicitly whether `input_template` gets the same treatment, and record
+   the decision either way — the parity claim should be true or retracted.
+
+## Test
+
+- Gap 1: point a fixture record's `upstream_repo` at a real repository of a
+  different dimension and assert the probe fails rather than writing a value. Run
+  it against the current probe first, which writes happily — a check that cannot
+  go red on today's code is not yet a check.
+- Gap 2: re-hardcode a pooling literal in a fixture driver and assert the guard
+  fails; assert a driver resolving through the registry passes. Both directions,
+  since "catches everything" and "catches nothing" look alike on a clean tree.
+
+## Verification
+
+- [ ] A wrong `upstream_repo` of a different width fails the probe
+- [ ] A hardcoded pooling literal in `bench/` fails the guard
+- [ ] The exemption marker is reused, not duplicated
+- [ ] The `input_template` parity decision is written down
+
+## Invariants
+
+- No committed measurement is rewritten
+- The guard is never loosened to make a run pass
+- An exemption is per line and carries its reason
+
+## Exit criteria
+
+- [ ] Both gaps closed, or explicitly declined with the reason recorded
+- [ ] Each new check demonstrated red before green
+- [ ] `make check` green
