@@ -12,6 +12,7 @@ Blocked-by: 0220
 2026-08-29T17:05Z claude note author added uint8 to the scope. Reason it is not a fourth rung for symmetry: on nomic-768 uint8 holds mean cosine 0,94793 against q8's 0,90031 and keeps 0,8406 of the top-30 against 0,7439, never losing the top-1 where q8 sometimes does — at identical download size and with RAM and latency inside the noise floor. The two 8-bit variants are the same price and not the same quality, so scoping to q8 alone would have picked one blind on every candidate. Whether that ordering generalises past nomic is untested and is now an explicit output of the study. Also folded in: q8 and int8 resolved to ONE file on nomic (md5 b65952d0..., vectors bit-identical to five decimals), which briefly produced a spurious "int8 is the fastest rung" out of measurement noise — so the harness must hash each resolved ONNX file and record a duplicate cell as a duplicate rather than spend a run on it.
 
 2026-08-29T14:42Z claude note Child 0261 lands the registry at bench/models.json; it now owns the per-model field values this body's seed table carries, and the availability of every repo probed. Three of this body's could-not-looks were wrong: read with a token, both onnx-community Granite mirrors and the gte-multilingual-base mirror publish the conventional dtype set, so gte is sweepable through the mirror after all. The jina v2 multilingual repo id resolves to nothing, gated or otherwise. Snowflake publishes ONNX in its own repos, so no mirror is needed there.
+2026-08-29T15:05Z claude note the per-model input template needs a POOLING column beside the prefixes, and for the same reason. Zotero core's registry (zotero/zotero#6012, chrome/content/zotero/xpcom/embeddings.js) carries pooling per model and it varies: cls for bge-small-en/zh, bge-base, bge-m3; mean for multilingual-e5-small/base, all-MiniLM-L6-v2, jina-v2-small. zoteus hardcodes pooling:'mean' at src/features/search/embeddings.ts:284, so a harness copying it will silently mean-pool a cls model and under-measure it exactly as missing prefixes under-measure e5. NOT yet checked, and it is the one check that matters here: which pooling granite-embedding-97m/311m-r2, snowflake-arctic-embed-m-v2.0 and gte-multilingual-base each want — three of the four leading candidates. Read it off each model card before 0262 embeds anything; do not infer it. Same file also confirms two things this ticket already holds: dtype belongs in vector identity (their revision-bump comment names dtype first), and their pick for every one of eight shipped models is q8.
 --- body ---
 ## This is a tracking ticket
 
@@ -184,10 +185,10 @@ not verified beyond what each column says.
 | model | repo to load | params | dim | max seq | licence | claimed score |
 |---|---|---|---|---|---|---|
 | granite-embedding-97m-multilingual-r2 | `onnx-community/granite-embedding-97m-multilingual-r2-ONNX` | 97,4M | 384 | 32 768 | Apache-2.0 (both repos) | 60,3 MTEB ML Retrieval (18) |
-| granite-embedding-311m-multilingual-r2 | `onnx-community/granite-embedding-311m-multilingual-r2-ONNX` | 311,7M | 768 MRL | 32 768 | Apache-2.0 (both) | 65,2 same benchmark |
+| granite-embedding-311m-multilingual-r2 | `onnx-community/granite-embedding-311m-multilingual-r2-ONNX` | 311,7M | 768 MRL | measured: see registry | Apache-2.0 (both) | 65,2 same benchmark |
 | snowflake-arctic-embed-m-v2.0 | `Snowflake/snowflake-arctic-embed-m-v2.0` (no mirror needed) | 305,4M | 768 MRL→256 | 8 192 | Apache-2.0 | MIRACL(4) nDCG@10 55,2 |
 | gte-multilingual-base | `onnx-community/gte-multilingual-base` | 305,4M | 768 MRL 128–768 | 8 192 | Apache-2.0 | charts only, no plain figure |
-| multilingual-e5-base | `Xenova/multilingual-e5-base` | 278,0M | 768 | 512 | MIT | none aggregate |
+| multilingual-e5-base | `Xenova/multilingual-e5-base` | 278,0M | 768 | measured: see registry | MIT | none aggregate |
 | multilingual-e5-small | `Xenova/multilingual-e5-small` | 117,7M | 384 | 512 | MIT | 50,9, per IBM's card |
 | paraphrase-multilingual-mpnet-base-v2 | `Xenova/paraphrase-multilingual-mpnet-base-v2` | 278,0M | 768 | 128 | Apache-2.0 | none |
 | paraphrase-multilingual-MiniLM-L12-v2 | `Xenova/paraphrase-multilingual-MiniLM-L12-v2` | 117,7M | 384 | 128 | Apache-2.0 | none |
@@ -211,6 +212,13 @@ ONNX anywhere, checked through the search endpoint rather than inferred from a
 **The claimed scores are vendor numbers and two of them come from the same
 card.** IBM's README reports both its own 60,3 and e5-small's 50,9. Use them to
 choose what to measure; never to choose what to ship.
+
+**The `max seq` column is superseded by the registry.** Child `0261` measured
+these from each repository's own `config.json`, and two cells of this seed table
+were wrong: the 311m mirror declares a quarter of what its upstream repo does,
+and e5-base declares 514 rather than 512. Both cells above now point at
+`bench/models.json`, which owns the measured value and records where it was read.
+The remaining columns of this table stay as filed — a seed, not a measurement.
 
 ## The ONNX-naming constraint, which prunes the candidate list first
 

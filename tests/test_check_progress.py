@@ -47,9 +47,13 @@ SHEET = """# REQUIREMENTS
 
 PAGE = """# The specification chain
 
+Measured against upstream v1.10.0, the reviewed baseline.
+
 `●●○` &nbsp; 2 ratified · 1 still open
 
 `●◐○` &nbsp; 1 shipped · 1 partial · 1 not yet
+
+1 measured · 1 read in the source · 1 inferred
 
 | section | designed | delivered |
 |---|---|---|
@@ -58,20 +62,28 @@ PAGE = """# The specification chain
 
 ### Coverage
 
-| | promise | designed | delivered | standing |
-|---|---|---|---|---|
-| R1 | eventually the whole library is indexed | ratified | shipped | Landed upstream. |
-| R2 | most recent first | open | partial | Under revision in ticket 0080. |
+| | promise | designed | delivered | evidence | standing |
+|---|---|---|---|---|---|
+| R1 | eventually the whole library is indexed | ratified | shipped | code | Landed upstream. |
+| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |
 
 ### Corpus
 
-| | promise | designed | delivered | standing |
-|---|---|---|---|---|
-| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |
+| | promise | designed | delivered | evidence | standing |
+|---|---|---|---|---|---|
+| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |
 """
 
 
-def build(root: Path, page: str | None = PAGE, sheet: str | None = SHEET) -> Path:
+UPSTREAM = "UPSTREAM_REVIEWED_SHA=b132f2d\nUPSTREAM_REVIEWED_VERSION=v1.10.0\n"
+
+
+def build(
+    root: Path,
+    page: str | None = PAGE,
+    sheet: str | None = SHEET,
+    upstream: str | None = UPSTREAM,
+) -> Path:
     """A fixture repository, with either document optionally absent."""
     (root / "spec").mkdir(parents=True, exist_ok=True)
     (root / "tickets" / "closed").mkdir(parents=True, exist_ok=True)
@@ -80,6 +92,8 @@ def build(root: Path, page: str | None = PAGE, sheet: str | None = SHEET) -> Pat
     # citation must survive the move.
     (root / "tickets" / "0080-rewrite-r26.erg").write_text("%erg 0.1\n", encoding="utf-8")
     (root / "tickets" / "closed" / "0024-file-the-issues.erg").write_text("%erg 0.1\n", encoding="utf-8")
+    if upstream is not None:
+        (root / "UPSTREAM").write_text(upstream, encoding="utf-8")
     if page is not None:
         (root / "spec" / "README.md").write_text(page, encoding="utf-8")
     if sheet is not None:
@@ -112,9 +126,9 @@ def test_requirement_added_to_the_sheet_and_not_the_page(tmp_path):
 
 def test_requirement_the_sheet_does_not_declare(tmp_path):
     page = PAGE.replace(
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |",
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |\n"
-        "| R7 | multilingual by default | ratified | none | Invented. |",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |\n"
+        "| R7 | multilingual by default | ratified | none | code | Invented. |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -122,12 +136,12 @@ def test_requirement_the_sheet_does_not_declare(tmp_path):
 def test_row_filed_under_the_wrong_section(tmp_path):
     """Sections are the sheet's, not the page's; a row that migrates is a finding."""
     page = PAGE.replace(
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |\n",
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |\n",
         "",
     ).replace(
-        "| R2 | most recent first | open | partial | Under revision in ticket 0080. |",
-        "| R2 | most recent first | open | partial | Under revision in ticket 0080. |\n"
-        "| R9 | 15 000-page documents are included | ratified | none | Ticket 0024 carries the filing. |",
+        "| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |",
+        "| R2 | most recent first | open | partial | inferred | Under revision in ticket 0080. |\n"
+        "| R9 | 15 000-page documents are included | ratified | none | measured | Ticket 0024 carries the filing. |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -183,7 +197,7 @@ def test_headline_count_that_stopped_matching_its_bar(tmp_path):
 
 
 def test_status_word_outside_the_vocabulary(tmp_path):
-    page = PAGE.replace("| ratified | shipped |", "| ratified | done |")
+    page = PAGE.replace("| ratified | shipped | code |", "| ratified | done | code |")
     assert cp.run(build(tmp_path, page=page)) == 1
 
 
@@ -211,3 +225,65 @@ def test_addresses_are_not_measurements(tmp_path):
 def test_the_real_page_passes_its_own_guard(tmp_path):
     """The shipped documents, not a fixture — the wiring the fixtures cannot see."""
     assert cp.run(REPO) == 0
+
+
+def test_the_baseline_moved_and_the_page_did_not(tmp_path):
+    """The question this check answers: nothing recomputes a status when upstream ships.
+
+    `make upstream-status` fires when upstream moves. This fires at the next
+    moment — the baseline is bumped to the new release and the page still
+    describes the one before it, every bar still arithmetically perfect. That
+    is when a status page starts lying while looking correct.
+    """
+    upstream = UPSTREAM.replace("v1.10.0", "v1.11.0")
+    assert cp.run(build(tmp_path, upstream=upstream)) == 1
+
+
+def test_a_row_read_against_some_other_release(tmp_path):
+    """A status read against one release is not evidence about another."""
+    page = PAGE.replace("Landed upstream.", "Landed upstream in v1.7.1.")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_upstream_absent_is_loud(tmp_path):
+    """Nothing dates the standing, so the page cannot be believed about any release."""
+    assert cp.run(build(tmp_path, upstream=None)) == 1
+
+
+def test_upstream_declaring_no_version_is_loud(tmp_path):
+    assert cp.run(build(tmp_path, upstream="UPSTREAM_REVIEWED_SHA=b132f2d\n")) == 1
+
+
+def test_evidence_word_outside_the_vocabulary(tmp_path):
+    """`evidence` is a closed vocabulary: measured, code, inferred."""
+    page = PAGE.replace("| ratified | shipped | code |", "| ratified | shipped | probably |")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_evidence_tally_that_stopped_matching_its_rows(tmp_path):
+    """The tally is the guard's, recomputed like every other count on the page."""
+    page = PAGE.replace(
+        "1 measured · 1 read in the source · 1 inferred",
+        "2 measured · 1 read in the source · 0 inferred",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_verdict_may_be_downgraded_to_inferred(tmp_path):
+    """Evidence is independent of status: re-grading how we know it is not a status change."""
+    page = PAGE.replace(
+        "| ratified | shipped | code |", "| ratified | shipped | inferred |"
+    ).replace(
+        "1 measured · 1 read in the source · 1 inferred",
+        "1 measured · 0 read in the source · 2 inferred",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
+def test_a_standing_row_that_no_longer_parses(tmp_path):
+    """A row missing a column is invisible, not wrong — the same hole as a stale bar."""
+    page = PAGE.replace(
+        "| R2 | most recent first | open | partial | inferred |",
+        "| R2 | most recent first | open | partial |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1

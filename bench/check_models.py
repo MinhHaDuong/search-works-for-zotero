@@ -50,7 +50,12 @@ SCANNED_ROOT = "bench"
 #: bounded — nothing under it is executable. The trailing slash is load-bearing:
 #: without it a sibling named `results_backup` or `results-2026` would inherit the
 #: exemption by prefix, and an exemption nobody granted is the one nobody audits.
-SKIPPED = ("bench/results/",)
+#: `__pycache__` joins it for a different reason: the bytecode is generated from
+#: source this guard already scans, so reading it buys nothing, and it is binary —
+#: which, now that an undecodable file is a failure rather than a silent skip, would
+#: turn every `make check` after a test run red. Generated-and-binary is exempt;
+#: authored-and-undecodable is a finding.
+SKIPPED = ("bench/results/", "bench/__pycache__/")
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
 #: owner. This file holds the vocabulary by construction — the owner names below
@@ -244,7 +249,19 @@ def check_registry(root: Path, failures: list[str]) -> None:
         failures.append(str(error))
         return
 
-    for record in registry.get("models", []):
+    models = registry.get("models")
+    if not isinstance(models, list) or not models:
+        # An all-clear here would be indistinguishable from "I could not look":
+        # a bad merge or a half-written regeneration leaves the payload empty,
+        # and every record-level check below then passes vacuously.
+        failures.append(
+            f"{REGISTRY}: no 'models' list to check "
+            f"(got {type(models).__name__}). A registry with no records is a "
+            f"failure to read it, not a clean sheet."
+        )
+        return
+
+    for record in models:
         name = record.get("id", "<no id>")
         missing = sorted(REQUIRED_KEYS - set(record))
         if missing:
@@ -277,7 +294,15 @@ def check_no_hard_coded_ids(root: Path, failures: list[str]) -> None:
     for path in scanned_files(root):
         try:
             text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+        except (OSError, UnicodeDecodeError) as error:
+            # Skipping silently would exempt the whole file from the invariant,
+            # and a single stray byte is enough to do it. Unreadable is a
+            # failure to look, which this guard reports rather than swallows.
+            failures.append(
+                f"{path.relative_to(root).as_posix()}: cannot be scanned for "
+                f"model ids ({error}). Fix the file's encoding; an unreadable "
+                f"file is not a clean one."
+            )
             continue
         for model in sorted(model_ids_in(text)):
             failures.append(

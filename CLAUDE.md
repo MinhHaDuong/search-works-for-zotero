@@ -10,6 +10,13 @@ and in the author's fork, not here.
 The specification chain lives in `spec/`. What changes week to week — `STATE.md`,
 `SYNC.md`, `RUNBOOK.md` — stays at the top level, as do `README.md` and this file.
 
+- `spec/README.md` — the chain's entry point, and `spec/`'s landing page on the
+  forge. Owns one thing nothing else does: where each of the twenty-eight
+  requirements stands, on two axes — designed, and delivered on stock upstream
+  at the reviewed baseline — plus an `evidence` column saying how each verdict
+  was established. It owns no threshold and no design number; the standing is
+  read from the upstream source, never computed, and `bench/check_progress.py`
+  fails the build when the reviewed baseline moves past it. Tracker: 0400.
 - `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
 - `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
   every design number: gate thresholds (§2.8), experiment decision rules
@@ -68,7 +75,8 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   (`bench/check_governance.py`), the terminology guard
   (`bench/check_terminology.py`), the chain-dedup guard
   (`bench/check_chain_dedup.py`), the normative-language guard
-  (`bench/check_normative.py`), pytest. This list is prose and drifts: the
+  (`bench/check_normative.py`), the progress guard
+  (`bench/check_progress.py`), pytest. This list is prose and drifts: the
   Makefile's `check` target is what actually runs, and it gained two guards
   before this sentence did. The figure guard is load-bearing —
   every measurement quoted in prose is declared there with an anchor; when

@@ -1,0 +1,92 @@
+%erg 0.1
+Title: TRACKER — every requirement verdict earns its evidence: 22 of 28 are not yet measured
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T15:10Z claude created
+2026-08-29T15:10Z claude note ID chosen clear of the frontier (0320, which moved twice during the session) per tickets/AGENTS.md, and scanned against the one open merge request, which touches no tickets/04*. Tracker only: no child is filed here, per the author's "leave benching the rest for another day"
+
+--- body ---
+## Context
+
+`spec/README.md` states where each of the twenty-eight requirements stands,
+and its `evidence` column says how each verdict was established. Today that
+column reads **6 measured, 14 read in the source, 8 inferred**: only six
+verdicts rest on something that ran.
+
+This is not a defect in the requirements. Since the RFC 2119 pass they are
+enumerable — forty MUST and MUST NOT clauses across the twenty-eight, each a
+property a harness could assert. The gap is that the harness does not exist,
+so a status page has to be read rather than computed, and a reader has to
+trust the reader.
+
+This tracker exists so that gap stays visible while the work is deferred. It
+closes when `evidence` reads all-measured, or when the author rules that some
+rows will stay read-only and says which.
+
+## The unit of work
+
+The forty MUST clauses, not the twenty-eight requirements. A requirement is
+compound — R12 is two clauses, R24 is three, R13 is three — and grading a
+compound as one token is exactly what made `partial` ambiguous before the
+evidence column split it. One assertion per clause makes `delivered` a count
+rather than a judgement.
+
+Two clauses need care rather than a test:
+
+- **R26 carries no MUST at all.** The RFC 2119 pass left it declarative;
+  ticket 0269 covers the stale sentences that pass could not reach. Its
+  wording is also under revision in ticket 0080, so settle the text before
+  writing its assertion.
+- **R17's single MUST has a conjunctive payload** (N of M, per stage, with
+  the most-recent-covered date, metadata-only counted with its reason). That
+  is four assertions behind one MUST, so the clause count is a floor.
+
+## Children, already filed — this tracker adds none
+
+Per the author's deferral, no new child is filed. What exists:
+
+- `tickets/0029` — the golden fixture corpus and a Zotero-free index harness.
+  The precondition for nearly every clause: no fixture library, no assertion.
+- `tickets/0026` — repo-side gates: fold, golden, RSS, convergence, soak.
+  Directly converts R19, R20, R21 and R26 from unwatched to gated, and R19
+  and R20 are the two whose own text demands a check that RUNS.
+- `tickets/0032` — the harness offer, the acceptance spec handed upstream.
+  The same assertions, in a form the maintainer can run against whatever he
+  builds; the durable value if he reimplements the machinery in his own idiom.
+
+Neither `Blocked-by` nor blocking: a tracker is not a prerequisite of its
+children (tickets/AGENTS.md), and each child already carries its own.
+
+## Where the twenty-two sit
+
+`inferred` (8) — R13, R14, R15, R18, R21, R25, R26, R27. Nothing was opened
+or run; the verdicts rest on merged pull requests, design documents and
+reasoning. These are the rows to distrust first.
+
+`code` (14) — R1, R2, R3, R4, R8, R9, R10, R11, R16, R17, R22, R23, R24, R28.
+The upstream source was read at the reviewed baseline. Better than inferred,
+and still not a test: reading that a cap exists is not the same as watching a
+monster document get truncated.
+
+## Invariants
+
+- The evidence vocabulary stays closed (`measured`, `code`, `inferred`) and
+  `bench/check_progress.py` keeps recomputing the tally. A row may not be
+  upgraded to `measured` without the artifact that measured it.
+- Upgrading a row is a claim about a release, so it is re-read when the
+  reviewed baseline moves — the guard already fails the build on that.
+- No design number, threshold or measurement enters `spec/README.md`; the
+  artifacts live in `bench/results/` and the thresholds in DESIGN.md.
+
+## Exit criteria
+
+- [ ] every MUST clause of the twenty-eight has an assertion, or an explicit
+      ruling that it will not
+- [ ] `spec/README.md`'s evidence tally reads all-measured, or names the
+      exceptions and why
+- [ ] the delivered column is derived from the clause results rather than
+      assigned by a reader
+- [ ] children 0026, 0029 and 0032 closed, and the integration review of
+      tickets/AGENTS.md run over their combined diff

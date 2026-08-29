@@ -191,16 +191,19 @@ https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:stopwords-f
 
 ## PR C — local embedder weight precision (built and validated; needs a slot AND a budget call)
 
-Ticket 0220. Branch `embedding-dtype` (`5dceeb1`, two commits atop `b132f2d`) is
+Ticket 0220. Branch `embedding-dtype` (`0cdfe70`, ONE commit atop `b132f2d`) is
 on the fork, validated on his gates: typecheck, lint, build clean; 858 passed /
 7 skipped (his 847 + 11 new). Nine of the eleven fail on stock v1.10.0; the two
 that pass on both sides are the backward-compatibility guards, which must.
 
-The second commit is a correction found by adversarial review, kept as its own
-commit because the reasoning is worth reading: the first version degraded to the
-runtime's default precision on a failed load, and that is unsafe here because the
-index stamps the embedder identity BEFORE it embeds. Squash before filing if he
-prefers one commit.
+Squashed from two on 2026-08-29, and not for tidiness. The first commit's message
+opened by saying the axis that costs most was the one with no knob "while the
+model already had one" — false on the local path, which hardcodes
+`Xenova/all-MiniLM-L6-v2`; `ZOTEUS_EMBEDDING_MODEL` reaches only the API
+providers. That sentence would have opened an upstream offer with a wrong claim
+about the maintainer's own code, and a commit message cannot be corrected in
+place by a later commit. The tree is byte-identical to the reviewed two-commit
+state (`git diff 5dceeb1..0cdfe70` is empty) and the gates were re-run on it.
 
 **Two things to settle before this is filed, and only the first is scheduling.**
 The volume slot is SYNC.md's to report. The second is that the contained-PR
@@ -208,11 +211,37 @@ budget's live remainder is earmarked for the 0014 stopwords follow-up, which is
 held by its own failed evidence — spending it here instead is the author's call,
 not a sequencing question.
 
-**What it does NOT contain, deliberately:** `device: 'auto'`, which ticket 0220
-ruled and which measurement then voided (`verification/DEVICE-AUTO-0220.md`,
-DECISIONS.md awaiting ratification). The branch passes no device. The body below
-carries the measurement as a warning to the reader, which is a contribution in
-its own right, and proposes no device knob.
+**What it does NOT contain, deliberately.** Two omissions, and the second is the
+more interesting one.
+
+`device: 'auto'`, which ticket 0220 ruled and which measurement then voided
+(`verification/DEVICE-AUTO-0220.md`, DECISIONS.md awaiting ratification). The
+branch passes no device. The body below carries the measurement as a warning to
+the reader, which is a contribution in its own right, and proposes no device
+knob.
+
+**A local model knob**, which is the obvious next ask and is not ours to file as
+a PR. The local path hardcodes `Xenova/all-MiniLM-L6-v2` — Zotero core's registry
+files that same model under "Models for testing" — and the plumbing to change it
+already exists, since `LocalEmbeddingProvider`'s first constructor argument is the
+model and the embedder identity already carries it. So the change is small, and
+that is exactly what makes it misleading.
+
+A bare model-name knob without per-model handling is a footgun. Pooling is
+per-model — Zotero uses `cls` for the bge family and `mean` for e5, MiniLM and
+jina — while zoteus hardcodes `pooling: 'mean'` at `embeddings.ts:284`. Prefixes
+are per-model: e5 needs `query: ` / `passage: ` and zoteus sends none. Dtype
+availability is per-repo: `dtype` resolves to a filename suffix, so
+`intfloat/multilingual-e5-small` cannot be addressed at any precision but fp32
+(ticket 0240, verified 2026-08-29). Point a free-text knob at any of those and
+retrieval degrades silently, which is indistinguishable from the model being
+worse — the same failure this repo has already had to guard twice.
+
+So the knob is not a knob, it is a registry, and a registry decides which models
+the project supports. That is design-sized by GOVERNANCE.md's test, and the
+asymmetry there reads five for five on design-sized work built by him. It goes as
+an issue carrying the evidence, not as a contained PR from here — and 0240/0262
+are building the registry we would need to argue it well.
 
 To file, once authorized:
 
@@ -231,8 +260,9 @@ Read what you are about to send, as sent — no trailers, no internal governance
 
 The local path runs at full precision because nobody passes an options object,
 not because anyone chose fp32. `pipeline('feature-extraction', this.model)` takes
-the runtime's defaults, so the axis that costs the most is the one axis with no
-knob, while the model already has one.
+the runtime's defaults, and on Node those are the CPU provider and fp32 — note
+that `DEFAULT_DEVICE_DTYPE_MAPPING` maps only `wasm` to q8, so the precision the
+local path gets is a consequence of running on Node rather than a decision.
 
 Measured on ONNX CPU (i5-8250U, batch 1, one process per rung,
 `nomic-ai/nomic-embed-text-v1.5`; the same shape reproduces on
