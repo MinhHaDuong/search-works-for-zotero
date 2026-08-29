@@ -64,6 +64,10 @@ PROSE = {
         "tickets/0026-repo-side-gates-fold-golden-rss-converge.erg",
         "tickets/closed/0026-repo-side-gates-fold-golden-rss-converge.erg",
     ],
+    "t0014": [
+        "tickets/0014-shepherd-prs-19-and-20-to-merge-stopword.erg",
+        "tickets/closed/0014-shepherd-prs-19-and-20-to-merge-stopword.erg",
+    ],
     "t0008": [
         "tickets/0008-quantize-the-vector-column-binary-first.erg",
         "tickets/closed/0008-quantize-the-vector-column-binary-first.erg",
@@ -254,6 +258,35 @@ FIGURES = [
      {"t0025": "slab {} ms, int8"}),
     ("0025-x1-timing/slab-vs-rows.json", "rows.0.int8.median_ms", 1,
      {"t0025": "int8 scans in {} ms. DECISION"}),
+    # ---- 0025 X2, stopword-less OR p95 (REAL 477k index + stock control arm, doudou) ----
+    # Both arms are declared, because the verdict is a comparison: a re-measurement that moved
+    # only the control would leave the treatment figure true and the conclusion false.
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_p95_ms.stopword_less", 1,
+     {"t0025": "Warm p95 stopword-less = {} ms against the ~500 ms rule",
+      "t0014": "Warm p95 stopword-less = {} ms at 477 512 passages",
+      "state": "warm p95 is {} ms against the"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_p95_ms.stock_with_stoplist", 1,
+     {"t0025": "answers them at a warm p95 of {} ms, inside the allowance",
+      "t0014": "same index and queries answers at {} ms",
+      "state": "twenty queries answers at {} ms"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "ratio_p95", 1,
+     {"t0025": "the deletion multiplies p95 by {} and", "t0014": "({}x on p95",
+      "state": "({}\u00d7 on\n  p95"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "ratio_p50", 1,
+     {"t0025": "the median by {} (1 233,2 vs 215,7 ms)", "t0014": "{}x on the median)",
+      "state": "{}\u00d7 on the median)"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_p50_ms.stopword_less", 1,
+     {"t0025": "({} vs 215,7 ms)"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_p50_ms.stock_with_stoplist", 1,
+     {"t0025": "(1 233,2 vs {} ms)"}),
+    # The floor, not the tail: this is the number that says no query in the population made
+    # the budget, which is what rules out a re-run with a gentler query set.
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_min_ms.stopword_less", 1,
+     {"t0025": "The cheapest of the twenty still costs {} ms"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "rebuild.elapsed_s", 1,
+     {"t0025": "{} s and 1 755,6 MiB on doudou"}),
+    ("0025-x2-stopwordless/x2-verdict.json", "rebuild.peak_rss_mib", 1,
+     {"t0025": "263,7 s and {} MiB on doudou"}),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),
