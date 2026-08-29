@@ -63,6 +63,7 @@ stays at the top level.
 | [`spec/REQUIREMENTS.md`](spec/REQUIREMENTS.md) | Testable promises made to users |
 | [`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
 | [`spec/DESIGN.md`](spec/DESIGN.md) | Current design and experiment decision rules |
+| [`spec/TERMINOLOGY.md`](spec/TERMINOLOGY.md) | Glossary of the chain's vocabulary, marked ours or inherited |
 | [`spec/FIELD-REVIEW.md`](spec/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`spec/DECISIONS.md`](spec/DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
@@ -79,7 +80,11 @@ The authoritative chain is: rulings enter `DECISIONS.md`; requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
 tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
 than inside it: it surveys what already exists, owns no design number, and
-points at the owning document wherever it touches ours. `GOVERNANCE.md` sits
+points at the owning document wherever it touches ours. `TERMINOLOGY.md` serves
+the chain without joining it: it defines the words the three documents share and
+names their owner, it owns no design number, and it never decides. A guard
+enforces that, since a glossary is the easiest place to leave a second copy of a
+threshold. `GOVERNANCE.md` sits
 outside the chain altogether: it holds the rules we set for our own upstream
 conduct, which the specification has no use for and a reader of the upstream
 relationship should not have to dig for. Panel documents are
