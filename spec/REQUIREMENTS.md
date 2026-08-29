@@ -13,6 +13,16 @@ The authority chain — how this document relates to DECISIONS.md,
 CONSTRAINTS.md, and DESIGN.md — is stated once, in README.md. Read it before
 treating a line here as final.
 
+**Normative language.** The R-items below follow RFC 2119. MUST, and its
+synonym SHALL, marks a firm requirement. SHOULD marks a preference that may be
+set aside for a stated reason. MAY marks something optional. These words bind
+only in upper case. The same words in lower case are ordinary prose and carry
+no such force, which is what lets the surrounding narrative use them freely.
+
+One R-item carries no keyword yet. R26 was rejected as written on 2026-08-29
+(DECISIONS.md) and ticket 0080 owns its rewrite; giving it a force now would
+record rejected text as contract.
+
 ## The three rulings that shape everything
 
 1. **The unit of answer is the entry.** A dictionary or encyclopedia is one
@@ -39,23 +49,23 @@ treating a line here as final.
 ### Coverage and convergence
 
 - **R1 — eventually the whole library is indexed.** With no further edits,
-  coverage reaches 100 % without anyone asking, and no state ever needs a
-  manual rebuild.
-- **R2 — most recent first.** Coverage grows newest-first: the
+  coverage MUST reach 100 % without anyone asking, and the system MUST NOT
+  require a manual rebuild of any state.
+- **R2 — most recent first.** Coverage MUST grow newest-first: the
   crawler works through a priority order, not a page cursor, and recency
   orders *coverage*, not answers (see "Out of scope").
-- **R4 — something partial is better than nothing.** The index answers
+- **R4 — something partial is better than nothing.** The index MUST answer
   queries at every moment of its life, including during the first build.
   This obliges honest coverage reporting; otherwise a partial index is
   indistinguishable from a complete one.
 - **R14 — no text is a terminal state.** An attachment that yields no text
-  is *done*, not retried forever. It counts as covered ("metadata-only"),
-  the reason is recorded, and the coverage report says so. (Per D8, in the
+  MUST be treated as *done*, not retried forever. It counts as covered
+  ("metadata-only"), the reason is recorded, and the coverage report says so. (Per D8, in the
   resolved decisions tabled below, OCR is out for now, but the stage keys
   leave room for a future extractor.)
 - **R17 — coverage in one sentence.** "How much of my library is
-  searchable?" gets a human answer: N of M items (per D1), per stage, with
-  the most-recent-covered date. Metadata-only items count toward the
+  searchable?" MUST get a human answer: N of M items (per D1), per stage,
+  with the most-recent-covered date. Metadata-only items count toward the
   denominator, with their reason.
 - **R26 — convergence is watched, not trusted.** The harness starts from an
   empty index and only polls the status endpoint. Coverage must reach 100 %
@@ -66,58 +76,58 @@ treating a line here as final.
 
 ### Change and cost
 
-- **R3 — avoid unnecessary rebuild.** The cost of staying current is
+- **R3 — avoid unnecessary rebuild.** The cost of staying current MUST be
   proportional to the change, not to the library. Recompute exactly what is
   downstream of a changed input; the unit of invalidation is (item ×
   stage).
 - **R11 — counter churn is not change.** A resync or extractor upgrade that
-  advances version counters re-embeds nothing whose bytes are unchanged.
+  advances version counters MUST re-embed nothing whose bytes are unchanged.
   (This project itself once shipped a defect that re-marked 92,7 % of the
   library as changed, forever; it is the cautionary example.)
-- **R27 — edit one, count one.** Every stage reports what it processed and
-  which input triggered it, and one edited item shows up as one.
+- **R27 — edit one, count one.** Every stage MUST report what it processed
+  and which input triggered it, and one edited item MUST show up as one.
 
 ### Corpus
 
 - **R8 — 10k documents is not much.** The design point is at least 10 000
-  documents with full text, and the known red zone is that a full vector
-  scan approaches 1 s at that size.
-- **R9 — 15 000-page documents are included.** Monster documents are
+  documents with full text, and the system MUST work at that size. The known
+  red zone is that a full vector scan approaches 1 s there.
+- **R9 — 15 000-page documents are included.** Monster documents MUST be
   first-class input, not an outlier to cap away (the 44.9 MB dictionary is
   the living example). Under ruling 1, a monster is a collection of entries
   among peers.
-- **R16 — my own words.** Notes *and* annotations are part of the corpus
-  (per D7), not just the papers.
+- **R16 — my own words.** Notes *and* annotations MUST be part of the
+  corpus (per D7), not just the papers.
 
 ### Query
 
 - **R5 — filters are good to have.** Scoping by collection, tag, item type,
-  or date is enforced before any answer is truncated, never by filtering
+  or date MUST be enforced before any answer is truncated, never by filtering
   after the fact a top-k list (the k best-scoring results) that claims to
   be complete. One correction from the scouts (the pre-design code-reading
-  and measurement passes): "pushed into SQL" must not be read as
+  and measurement passes): "pushed into SQL" MUST NOT be read as
   constraining the MATCH operator of SQLite's FTS5 full-text engine, which
   measures at seconds per query at library scale. The obligation is on the
   honesty of the result, not on which operator enforces it.
 - **R6 — a sufficient reply in 3 s beats the optimum in 3 min.** Freshness
-  work on the query path is limited to O(1) requests; anything bigger is
-  scheduled, never awaited.
-- **R18 — an empty result says which.** The answer is "nothing matches" or
-  "this scope is not indexed yet", stated for the scope the query asked
+  work on the query path MUST be limited to O(1) requests; anything bigger
+  MUST be scheduled, never awaited.
+- **R18 — an empty result says which.** The answer MUST be "nothing matches"
+  or "this scope is not indexed yet", stated for the scope the query asked
   about, not for the library as a whole.
-- **R24 — a citeable page in one step.** A full-text hit leads to its page,
-  an estimated page number says it is an estimate (per D10), and the
-  primary locator is the entry heading (ruling 1).
+- **R24 — a citeable page in one step.** A full-text hit MUST lead to its
+  page, an estimated page number MUST say it is an estimate (per D10), and
+  the primary locator MUST be the entry heading (ruling 1).
 - **R25 — one entry, one hit.** As amended by ruling 1 (D9 dissolved):
-  deduplication is per section, and no single document may crowd other
+  deduplication is per section, and a single document MUST NOT crowd other
   items out of the candidate pool before that deduplication happens. When
   many of the returned hits come from one document, the result says so.
 
 ### Multilingual
 
-- **R7 — multilingual by default.** The default path works for French,
+- **R7 — multilingual by default.** The default path MUST work for French,
   German, Vietnamese, Greek and Russian with no configuration, and the
-  default embedder is multilingual. The English stopword list is a known
+  default embedder MUST be multilingual. The English stopword list is a known
   ranking bias whose deletion is already decided (the move is ratified into
   the plan). Any Chinese/Japanese/Korean (CJK) ambition is decided
   explicitly, never silently. (Arabic and Hebrew use the default path but
@@ -125,49 +135,49 @@ treating a line here as final.
 
 ### Custody and lifecycle
 
-- **R10 — local by default.** Without an explicit opt-in, no library text
-  and no query text leaves the machine. The default build and query path
+- **R10 — local by default.** Without an explicit opt-in, library text and
+  query text MUST NOT leave the machine. The default build and query path
   make zero external calls; the one-time model-weight download is the sole
   exception, and it is named.
-- **R15 — deleted means gone.** Deleting an item in Zotero removes its text
-  from every stage's store and from the queues between them, not merely
+- **R15 — deleted means gone.** Deleting an item in Zotero MUST remove its
+  text from every stage's store and from the queues between them, not merely
   from search results.
-- **R22 — pause stays paused.** There is one obvious way to stop all
-  background work, and it holds across restarts.
+- **R22 — pause stays paused.** There MUST be one obvious way to stop all
+  background work, and it MUST hold across restarts.
 - **R23 — upgrade and downgrade.** A zoteus with a different schema version
-  opens the old file and ends up serving, in either direction, without
+  MUST open the old file and end up serving, in either direction, without
   anyone deleting files by hand.
-- **R28 — uninstall.** Deleting the data directory is the whole uninstall;
-  no index state, queue, watermark, or downloaded model survives anywhere
-  else.
+- **R28 — uninstall.** Deleting the data directory MUST be the whole
+  uninstall. Index state, queues, watermarks, and downloaded models MUST NOT
+  survive anywhere else.
 
 ### Multi-library and multi-process
 
-- **R12 — group libraries.** Group libraries are searchable like my own,
-  and indexing one library never erases another. (Per D4: one merged index,
+- **R12 — group libraries.** Group libraries MUST be searchable like my
+  own, and indexing one library MUST NOT erase another. (Per D4: one merged index,
   with the library as one more R5 filter, like collection or tag.)
-- **R13 — second process.** Two zoteus processes on one data directory both
-  answer queries, neither corrupts the index, and no passage is extracted
-  or embedded twice. (Honest restatement accepted in DESIGN.md §2.5: never
+- **R13 — second process.** Two zoteus processes on one data directory MUST
+  both answer queries, MUST NOT corrupt the index, and MUST NOT extract or
+  embed any passage twice. (Honest restatement accepted in DESIGN.md §2.5: never
   *committed* twice; duplicate *compute* is bounded at one micro-batch per
   failover.)
 
 ### Operator gates
 
 - **R19 — the fold sweep is a gate.** Every token the query normalizer
-  produces must be one the index normalizer can also produce; otherwise
+  produces MUST be one the index normalizer can also produce; otherwise
   that query term can never match anything. The character-folding sweep
-  that checks this agreement, over 1 301 codepoints, runs on every check,
-  not once in a closed ticket.
+  that checks this agreement, over 1 301 codepoints, MUST run on every
+  check, not once in a closed ticket.
 - **R20 — RAM budgets are gates.** The RAM budgets of constraint C3
-  (CONSTRAINTS.md) are asserted by the harness against the 44.9 MB
-  dictionary on every check, not measured once. (This rule can be read two
+  (CONSTRAINTS.md) MUST be asserted by the harness against the 44.9 MB
+  dictionary, not measured once. (This rule can be read two
   ways: run on every check, or only in the slow suite; and test against the
   real copyrighted dictionary, or a synthetic stand-in that can be
   committed. Both questions await the author's ruling in DECISIONS.md;
   DESIGN.md §2.8 says what the design currently does.)
 - **R21 — same corpus in, same answers out.** A pinned query set with
-  golden (known-correct) answers gates every change. (Per D11, the golden
+  golden (known-correct) answers MUST gate every change. (Per D11, the golden
   set pins the answer set, not the order.)
 
 ## The resolved decisions (ratified by delegation, 2026-08-26)

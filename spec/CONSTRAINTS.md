@@ -46,7 +46,7 @@ The scouts sharpened this constraint on three points:
   entries at version 0 on the reference library.)
 - Version validity is scoped by the `Zotero-Server-ID` header. A different
   server ID means a different database, different versions, different keys;
-  stored state must therefore be partitioned by server ID. A local/cloud
+  stored state MUST therefore be partitioned by server ID. A local/cloud
   label is not enough, because two local profiles share the label and share
   nothing else.
 - Even Zotero accepts a staleness residue here: their embeddings layer
@@ -88,7 +88,7 @@ The scouts sharpened this constraint on five points:
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. One exception is permitted and disclosed in DESIGN.md
   §2.6: on scopes smaller than a threshold, to be measured by experiment
-  X4, MATCH may run constrained. That fallback is never the default path.
+  X4, MATCH MAY run constrained. That fallback is never the default path.
 - If the local API ever serves structured extraction, the SDT pack
   (zotero/structured-document-text) is the concrete thing to adapt to: a
   random-access container with a reader contract
@@ -182,7 +182,7 @@ measurements in the log of ticket 0120.
 Background work runs at leftover priority. The RAM ceiling is independent
 of library and document size: extraction and chunking stream, so peak
 memory is proportional to a section batch, not to the document. The embed
-stage is the core-hog and must be isolatable. One scheduling rule covers
+stage is the core-hog and MUST be isolatable. One scheduling rule covers
 everything: foreground always beats background.
 
 ### Ratified budgets (2026-08-26)
@@ -197,7 +197,7 @@ ratification; the question is stated once, in DECISIONS.md.
 
 ## C4 — status answers from counters
 
-Status must answer in a few milliseconds while all three queues run, and
+Status MUST answer in a few milliseconds while all three queues run, and
 never by scanning a table a stage is writing. Status is the only window
 into requirements R1 and R2, coverage and its newest-first order
 (REQUIREMENTS.md), and agents poll it every few seconds, forever. The
