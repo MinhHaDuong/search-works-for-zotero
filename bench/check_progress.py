@@ -21,6 +21,10 @@ only the document under guard cannot tell an omission from an absence.
    the same reason: a definition and a status line are the two most inviting
    places to leave a number that nobody will remember to update. The counts the
    guard computes are exempt, because the guard owns them.
+4. BASELINE. The page describes the release `UPSTREAM` declares reviewed, and
+   no other. Nothing here recomputes a status — they are read, not run — so
+   when the baseline moves the honest act is to invalidate the page rather than
+   to let it keep answering for a release it never saw.
 """
 
 import logging
@@ -35,6 +39,22 @@ REPO = Path(__file__).resolve().parent.parent
 
 SHEET = "spec/REQUIREMENTS.md"
 PAGE = "spec/README.md"
+
+#: The machine-readable review baseline, and the key naming the release the
+#: standing was read against.
+#:
+#: The delivered column is a claim about one upstream release, assigned by
+#: reading its source. Nothing can recompute it — a status is a judgement — so
+#: the most a guard can do is refuse to let a judgement outlive its subject.
+#: `make upstream-status` fires when upstream moves; this fires when the
+#: baseline is then bumped and the page still describes the release before it,
+#: which is the moment the page silently starts lying.
+UPSTREAM_FILE = "UPSTREAM"
+VERSION_KEY = "UPSTREAM_REVIEWED_VERSION"
+#: Any release the page names. Default-deny: every one must be the baseline.
+#: A row wanting to talk about an earlier release is talking about history,
+#: which is SYNC.md's, and widening this needs a test rather than a habit.
+PAGE_VERSION = re.compile(r"\bv\d+(?:\.\d+)+\b")
 
 #: The sheet's own section headings, inside its `## Requirements` block.
 SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
@@ -234,6 +254,41 @@ def check_bars(text: str, rows) -> list[str]:
     return findings
 
 
+def reviewed_version(repo: Path) -> str | None:
+    """The release `UPSTREAM` declares as reviewed, or None if it declares none."""
+    path = repo / UPSTREAM_FILE
+    if not path.exists():
+        return None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith(f"{VERSION_KEY}="):
+            return line.split("=", 1)[1].strip()
+    return None
+
+
+def check_baseline(repo: Path, text: str) -> list[str]:
+    """The page describes the reviewed release, and no other."""
+    version = reviewed_version(repo)
+    if version is None:
+        return [
+            f"BASELINE: {UPSTREAM_FILE} declares no {VERSION_KEY}, so nothing dates the "
+            f"standing; the page cannot be believed about any release"
+        ]
+
+    named = set(PAGE_VERSION.findall(text))
+    findings = []
+    if version not in named:
+        findings.append(
+            f"BASELINE: the page never names {version}, the release {UPSTREAM_FILE} declares "
+            f"reviewed. Read the standing against it before saying it holds."
+        )
+    for other in sorted(named - {version}):
+        findings.append(
+            f"BASELINE: the page names {other}, but the reviewed release is {version}. A status "
+            f"read against {other} is not evidence about {version} — re-read it, do not retype it."
+        )
+    return findings
+
+
 def check_tickets(repo: Path, rows) -> list[str]:
     """Every ticket the standing column cites resolves to a ticket that exists."""
     findings = []
@@ -298,6 +353,7 @@ def run(repo: Path) -> int:
         check_coverage(declared, rows, promises)
         + check_tokens(rows)
         + check_bars(text, rows)
+        + check_baseline(repo, text)
         + check_tickets(repo, rows)
         + check_digits(text, rows, promises)
     )

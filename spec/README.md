@@ -53,6 +53,12 @@ experiments, and the ten tests that fail on stock upstream under R12 — and
 those say so. Ticket 0026 is what would make this column derived rather than
 judged, by wiring the gates R19, R20 and R21 already demand.
 
+Nothing recomputes a status when upstream ships, so the page is invalidated
+instead: the moment the reviewed baseline in [`../UPSTREAM`](../UPSTREAM)
+names a release this page does not, `make check` fails and stays failing
+until each row has been read again. A judgement is not allowed to outlive
+the release it was made about.
+
 The two bars disagree on purpose, and the gap between them is the shape of
 the project rather than a backlog. What this repository produces is a
 specification, a measurement harness, and a small number of contained
