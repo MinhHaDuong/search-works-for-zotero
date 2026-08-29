@@ -1,0 +1,1 @@
+{"label":"device-auto-q8","model":"Xenova/all-MiniLM-L6-v2","options":{"device":"auto","dtype":"q8"},"transformers":"4.2.0","platform":"linux-x64","node":"v22.23.1","ok":false,"error":"OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library"}

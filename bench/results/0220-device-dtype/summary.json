@@ -1,0 +1,41 @@
+{
+  "transformers": "4.2.0",
+  "platform": "linux-x64",
+  "node": "v22.23.1",
+  "model": "Xenova/all-MiniLM-L6-v2",
+  "baseline": "no-options",
+  "variants": {
+    "no-options": {
+      "loads": true,
+      "cosine_vs_no_options": 0.9999996495901319,
+      "dim": 384
+    },
+    "device-cpu": {
+      "loads": true,
+      "cosine_vs_no_options": 0.9999996495901319,
+      "dim": 384
+    },
+    "device-auto": {
+      "loads": false,
+      "error": "OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library"
+    },
+    "device-auto-q8": {
+      "loads": false,
+      "error": "OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library"
+    },
+    "dtype-q8": {
+      "loads": true,
+      "cosine_vs_no_options": 0.9926517415691936,
+      "dim": 384
+    },
+    "dtype-fp16": {
+      "loads": false,
+      "error": "Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.5/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n"
+    },
+    "dtype-q7": {
+      "loads": true,
+      "cosine_vs_no_options": 0.9999996495901319,
+      "dim": 384
+    }
+  }
+}

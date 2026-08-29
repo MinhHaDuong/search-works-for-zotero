@@ -151,9 +151,17 @@ PR B is complete — press the green button as-is, once a slot is free. PR A is
 HELD: X2 failed on 2026-08-29 and its body now carries a false claim as well as
 an unfillable number (see step 2 and the PR A section).
 
-**Neither can open today.** Both ratified in-flight slots are spent, on #27 and
-#28, filed 2026-08-28. SYNC.md's status table has this; STATE.md's bullet saying
-the slots are free predates those filings.
+**Check the slot before opening any of them, and check it in SYNC.md.** The
+bound is GOVERNANCE.md's and what is live against it moves week to week; a count
+restated here goes stale the day after it is written, which is what the sentence
+that used to stand in this spot did — it still named #27 and #28 as the two
+in-flight after both had merged. SYNC.md's status table is the live one.
+
+**A form is body text, not a link to click.** The two URL-encoded compare links
+below predate that ruling and are kept as they are rather than rewritten. New
+forms carry the body in plain markdown with the command that files it: once the
+author authorizes a filing, the agent files it, and the round-trip through a
+browser paste is what put a stray indent and CRLF into #31's public body.
 
 ## PR B — cross-library wipe guard (ready NOW; no measurements pending)
 
@@ -180,6 +188,155 @@ one returning confident noise does not.
 
 
 https://github.com/oscardvs/zoteus/compare/main...MinhHaDuong:zoteus:stopwords-follow-up?quick_pull=1&title=Delete%20the%20stoplist%3A%20no%20language%20loses%20its%20function%20words&body=%23%23%20The%20defect%0A%0AThe%20tokenizer%20carries%20a%2029-word%20English%20stoplist%2C%20which%20penalizes%20exactly%20one%0Alanguage%3A%20%22the%22%20is%20dropped%20while%20%22le%22%2C%20%22der%22%20and%20%22v%C3%A0%22%20pass.%20It%20is%20also%0Aasymmetric%20by%20construction%20%E2%80%94%20the%20FTS5%20document%20side%20%28%60unicode61%60%29%20has%20no%0Astoplist%2C%20so%20the%20index%20holds%20the%20very%20tokens%20the%20query%20side%20throws%20away.%20And%20it%0Aproduces%20queries%20that%20cannot%20say%20what%20they%20mean%2C%20in%20the%20way%20that%20is%0Ahardest%20to%20notice%3A%20%60to%20be%20or%20not%20to%20be%60%20comes%20through%20the%20list%20as%20%60not%60%0Aalone%2C%20the%20one%20word%20of%20it%20the%20list%20happens%20to%20omit%2C%20so%20the%20search%20becomes%20a%0Aone-term%20query%20for%20an%20incidental%20function%20word%20and%20answers%20it%20with%20twenty%0Aconfidently%20ranked%20passages%20about%20nothing%20in%20particular.%20bm25%20already%20down-weights%0Aubiquitous%20terms%2C%20which%20is%20the%20honest%20version%20of%20what%20a%20stoplist%20approximates.%0A%0A%23%23%20The%20fix%0A%0ADelete%20the%20list.%20%60tokenize%28%29%60%20keeps%20its%20Unicode%20token%20class%20and%20the%20one-char%0Adrop%2C%20nothing%20else.%20Existing%20indexes%20need%20no%20rebuild%3A%20terms%20are%20OR-ed%2C%20so%0Aevery%20query%20keeps%20matching%20through%20its%20content%20words%3B%20the%20SQLite%20index%20always%0Acontained%20the%20function%20words%20%28unicode61%20indexed%20them%20from%20day%20one%29%3B%20the%20JSON%0Abackend%20re-derives%20its%20postings%20from%20raw%20passage%20text%20on%20every%20load.%0A%0A%23%23%20The%20cost%2C%20measured%0A%0AThe%20OR-cost%20of%20high-frequency%20terms%20is%20the%20one%20thing%20to%20check%20before%20deleting%0Aa%20stoplist.%20Measured%20on%20a%20real%20%5B650k%5D-passage%20index%3A%20stopword-less%20OR-query%0Akeyword%20p95%20%3D%20%5BX%20ms%5D%20over%2020%20natural-language%20queries%20carrying%20function%20words.%0A%5BREPLACE%3A%20one%20sentence%20%E2%80%94%20comfortably%20under%20/%20near%20the%20~500%20ms%20where%0Acorpus-driven%20pruning%20of%20%3E50%25-document-frequency%20terms%20would%20be%20the%20follow-up.%5D%0A%0A%23%23%20Testing%0A%0A-%20%60tokenize%60%20cases%20updated%20to%20pin%20the%20new%20contract%20%28function%20words%20kept%20in%0A%20%20every%20language%2C%20one-char%20tokens%20still%20dropped%2C%20%22to%20be%20or%20not%20to%20be%22%20is%20a%0A%20%20searchable%20query%29%3B%20backend-parity%20case%20now%20asserts%20both%20backends%20answer%0A%20%20function-word%20queries%20identically.%0A-%20Full%20suite%3A%20727%20passed%20/%207%20skipped%3B%20typecheck%20and%20lint%20clean.
+
+## PR C — local embedder weight precision (built and validated; needs a slot AND a budget call)
+
+Ticket 0220. Branch `embedding-dtype` (`5dceeb1`, two commits atop `b132f2d`) is
+on the fork, validated on his gates: typecheck, lint, build clean; 858 passed /
+7 skipped (his 847 + 11 new). Nine of the eleven fail on stock v1.10.0; the two
+that pass on both sides are the backward-compatibility guards, which must.
+
+The second commit is a correction found by adversarial review, kept as its own
+commit because the reasoning is worth reading: the first version degraded to the
+runtime's default precision on a failed load, and that is unsafe here because the
+index stamps the embedder identity BEFORE it embeds. Squash before filing if he
+prefers one commit.
+
+**Two things to settle before this is filed, and only the first is scheduling.**
+The volume slot is SYNC.md's to report. The second is that the contained-PR
+budget's live remainder is earmarked for the 0014 stopwords follow-up, which is
+held by its own failed evidence — spending it here instead is the author's call,
+not a sequencing question.
+
+**What it does NOT contain, deliberately:** `device: 'auto'`, which ticket 0220
+ruled and which measurement then voided (`verification/DEVICE-AUTO-0220.md`,
+DECISIONS.md awaiting ratification). The branch passes no device. The body below
+carries the measurement as a warning to the reader, which is a contribution in
+its own right, and proposes no device knob.
+
+To file, once authorized:
+
+```bash
+gh pr create --repo oscardvs/zoteus \
+  --head MinhHaDuong:embedding-dtype --base main \
+  --title "Make the local embedder's weight precision configurable" \
+  --body-file <the body below>
+```
+
+Read what you are about to send, as sent — no trailers, no internal governance.
+
+---
+
+## The defect
+
+The local path runs at full precision because nobody passes an options object,
+not because anyone chose fp32. `pipeline('feature-extraction', this.model)` takes
+the runtime's defaults, so the axis that costs the most is the one axis with no
+knob, while the model already has one.
+
+Measured on ONNX CPU (i5-8250U, batch 1, one process per rung,
+`nomic-ai/nomic-embed-text-v1.5`; the same shape reproduces on
+Qwen3-Embedding-0.6B):
+
+| dtype | download | resident | query median |
+|---|---|---|---|
+| fp32 | 522.0 MB | 884.9 MB | 30.3 ms |
+| q8 | 130.9 MB | 235.2 MB | 18.0 ms |
+| int8 | 130.9 MB | 232.9 MB | 13.7 ms |
+| uint8 | 130.9 MB | 239.5 MB | 14.0 ms |
+| q4 | 157.5 MB | 247.4 MB | 25.2 ms |
+| bnb4 | 150.7 MB | 253.7 MB | 91.4 ms |
+
+The ladder is not monotone, which is why this PR proposes no value: q4's
+published file is larger than q8's, holds more memory and is slower, and bnb4
+has no optimised CPU kernel. Eight bits is the knee. On this model q8 and int8
+are the same published file, so the gap between those two rows is the noise
+floor rather than a difference.
+
+## The fix
+
+`ZOTEUS_EMBEDDING_DTYPE` passes a precision through verbatim. The valid set is
+the runtime's, not a local allowlist that would rot against it and whose failure
+mode is refusing a value that works. An unset variable leaves the key ABSENT
+rather than undefined, since `{dtype: undefined}` is a third call shape whose
+behaviour depends on how the runtime reads an explicit undefined.
+
+Precision joins the stored embedder identity, for the same reason the model is
+in it: on `all-MiniLM-L6-v2`, q8 scores 0.992652 cosine against the fp32
+default. Close, but far enough that ranking one against the other is quietly
+worse. An index built before this option existed carries no precision and is
+left alone, so nothing is invalidated on upgrade.
+
+Two failure modes, both measured on `@huggingface/transformers` 4.2.0, linux-x64:
+
+- `fp16` and `q4f16` throw at session init on the CPU provider — a graph-fusion
+  failure, not a missing kernel. That is reported, not worked around: the throw
+  reaches `noteEmbedFailure` like any other embedder failure, so the index falls
+  back to keyword-only and names the value, the model and the remedy in
+  `embedderReason` and in every search summary — the path a missing
+  `@huggingface/transformers` already takes.
+
+  Retrying at the default precision instead was the first thing built here, and
+  it is wrong. `SearchIndexBase.build` stamps `vectorEmbedderId` from the
+  provider's identity BEFORE the records are embedded, so a provider that
+  downgraded mid-flight would leave the index labelled with a precision its
+  vectors do not have — and nothing downstream can catch that, since
+  quantisation does not change the vector width and the identity string is the
+  only check there is. Worse across sessions: if that dtype ever does load
+  later, the stale label now matches, and old rows are ranked against new
+  quantised queries with nothing objecting.
+- An unrecognised value such as `q7` does NOT throw. The runtime ignores it and
+  serves the default, producing bit-identical vectors, and nothing anywhere
+  reports it. So a typo in this variable is invisible, and the documentation
+  says exactly that rather than implying a safety that is not there.
+
+## On `device`
+
+No device is passed, and this PR adds no way to configure one. Worth recording
+why, because `device: 'auto'` looks like the obvious companion to this change and
+is not safe as an unconditional value.
+
+`auto` hands ONNX Runtime the whole per-platform provider list. On linux-x64
+that list always begins with CUDA, selected on `process.platform` and
+`process.arch` alone, with nothing consulted about whether CUDA is usable, and
+`createInferenceSession` passes the list straight to the binding with no
+per-provider loop. On a clean install with no NVIDIA runtime present, the
+session fails outright:
+
+```
+OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library
+... libcublasLt.so.12: cannot open shared object file: No such file or directory
+```
+
+where the same call with no device option loads and serves — and both produce
+bit-identical vectors.
+
+This does not depend on the CUDA binaries being present. `onnxruntime-node`
+fetches them in `postinstall` on linux/x64, the one platform whose install
+manifest requires anything; installing with `--onnxruntime-node-install=skip`
+leaves them out, and `auto` then fails identically, on the absent
+`libonnxruntime_providers_shared.so` instead. Either way, an ordinary Linux
+desktop without a CUDA runtime cannot load the model with `auto`. The
+documentation carries this so the next person to reach for it finds the
+measurement first.
+
+## Testing
+
+Eleven new cases in `tests/features/embedding-dtype.test.ts`, on the existing
+transformers-stub seam: the absent-key default, pass-through, a value no runtime
+knows (the allowlist that must not exist), the absence of any device key under
+every environment, the `fp16` error and what it names, the identity holding
+constant across a failed load, a non-dtype failure still propagating, both
+identity cases, and one integration case on the real build path asserting that a
+refused precision leaves the index holding zero vectors rather than
+default-precision vectors under the wrong label. Nine fail on stock v1.10.0.
+Full suite on this branch: 858 passed / 7 skipped; typecheck, lint and build
+clean.
+
+`mcpb/manifest.json` is untouched: which settings the desktop bundle puts in
+front of a user is a separate call.
+
+---
 
 ## Order if time is short
 
