@@ -2,12 +2,14 @@
 Title: Enumerate multilingual ONNX candidates into a declared registry
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #59
 
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 1 of tracker 0240. Unblocked: this is enumeration, not benchmarking, and it runs before the harness because the harness is registry-driven.
 
 2026-08-29T14:51Z claude note Registry, guard, readers, probe and its artifact are in bench/ and verification/probes/ — see Artifacts produced. Three states are carried by real records, not only by the schema: the gte upstream repo is a confirmed absence, the jina v2 multilingual id a could-not-look whose rejection rests on a separate query. The probe runs a positive and a negative control every time, so a confirmed_absent beside them is a finding rather than a blind grep.
+2026-08-29T15:42Z Minh Ha-Duong closed — autoclosed — PR #59
 --- body ---
 ## Context
 

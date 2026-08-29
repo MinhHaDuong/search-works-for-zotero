@@ -2,12 +2,12 @@
 Title: The registry needs a pooling column beside the input template
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0261
 
 --- log ---
 2026-08-29T22:30Z claude created
 2026-08-29T22:30Z claude note raised by the sibling 0220 session against PR #59 and filed rather than folded into it: the values must be read off each model card, not inferred, and guessing is precisely how the e5 prefix trap nearly landed. That is measured work with its own review, not a schema tweak.
 
+2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
 --- body ---
 ## Context
 
