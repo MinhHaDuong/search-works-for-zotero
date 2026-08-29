@@ -435,10 +435,11 @@ at 0,953 recall.
 
 ## What Zotero itself is doing
 
-**Zotero 10 already runs FTS5** (`fulltext.sqlite`, `fulltextContent USING
-fts5(text, tokenize='unicode61', content='')`) — but the tables are
-*contentless*: matchable, not readable. That is why zoteus keeps its own copy of
-the text, and it forecloses "just reuse Zotero's index".
+**Zotero 10 already runs FTS5**, in `fulltext.sqlite`. The platform facts — the
+schema, what the contentless tables do and do not yield, and the bound that sets
+on reusing them — are CONSTRAINTS.md C2's to state, and whether we depend on
+them is ticket 0120's. This prototype builds its own index over text it fetches
+from the local API.
 
 **Zotero is building semantic search** — zotero/zotero#6012, draft, two core
 developers. It exposes nothing over the local API, so zoteus cannot delegate.
