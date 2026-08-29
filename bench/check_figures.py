@@ -291,6 +291,60 @@ FIGURES = [
      {"t0025": "{} s and 1 755,6 MiB on doudou"}),
     ("0025-x2-stopwordless/x2-verdict.json", "rebuild.peak_rss_mib", 1,
      {"t0025": "263,7 s and {} MiB on doudou"}),
+    # ---- 0025 X2 mechanism annex: where the cost comes from, and what it buys ----
+    ("0025-x2-stopwordless/x2-mechanism.json", "corpus.stopword_share_of_tokens", 1,
+     {"t0025": "and {}% of all token occurrences"}, "pct"),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.postings_ratio", 1,
+     {"t0025": "a factor of {}, while time rises"}),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.ns_per_posting_stock", 1,
+     {"t0025": "per entry ({} ns ->"}),
+    ("0025-x2-stopwordless/x2-mechanism.json", "totals.ns_per_posting_new", 1,
+     {"t0025": "-> {} ns), so this is a design cost"}),
+    # The number that decides whether the deletion is worth its cost at all.
+    ("0025-x2-stopwordless/x2-mechanism.json", "what_it_buys.mean_top20_overlap", 1,
+     {"t0025": "overlap between the arms is {}%", "t0014": "{}% identical top-20"}, "pct"),
+    # ---- Zotero's own search: the null alternative, and the baseline every latency
+    # figure here lacked. One pass per query, so declared but coarse by construction.
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "latency_ms.median", 1,
+     {"t0025": "median {} ms, p95"}),
+    # No space after `p95` on purpose. Anchors are matched against the DESPACED text, and
+    # `p95` ends in a digit, so the separator before the figure sits between two digits and
+    # despace() glues them: `p95 4 198,5` compares as `p954198,5`. An anchor head ending in
+    # a digit must therefore drop the space the prose actually has. The guard caught this
+    # as a stale figure, which is the right refusal for the wrong-looking reason.
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "latency_ms.p95", 1,
+     {"t0025": "p95{} ms, against 392,3 ms stock"}),
+    ("0025-x2-stopwordless/zotero-native-baseline.json", "matches_per_query.median", 0,
+     {"t0025": "the median query matches {} items"}),
+    # ---- The library-derived droplist sweep. Three figures decide the design: the
+    # threshold DESIGN §3 names and does not reach the budget at, and the working policy's
+    # cost and fidelity. Every anchor head here ends in a non-digit on purpose — `p50 ` and
+    # `p95 ` would be glued to the value by despace(), per the note above.
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_50pct.p95_ms", 1,
+     {"t0025": "terms drop and p95 stays at {} ms"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p50_ms", 1,
+     {"t0025": "fallback): p50{} ms", "t0014": "gives p50{} ms"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p95_ms", 1,
+     {"t0025": "p95{} ms, 98% top-30 overlap", "t0014": "and p95{} ms with 98%"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json",
+     "recommended_policy.mean_top30_overlap_with_unfiltered", 0,
+     {"t0025": "ms, {}% top-30 overlap with the unfiltered",
+      "t0014": "with {}% of the unfiltered"}, "pct"),
+    # ---- Multilingual cost. The French/English pair is the claim; `in`'s frequency is
+    # the mechanism behind the German anomaly. Anchor heads end in non-digits, as above.
+    ("0025-x2-stopwordless/multilingual-cost.json", "latency_ms_median.French.no_filter", 0,
+     {"t0025": "a French query costs {} ms"}),
+    ("0025-x2-stopwordless/multilingual-cost.json", "latency_ms_median.English.no_filter", 0,
+     {"t0025": "matched English one costs {} ms"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.French.median_postings_unfiltered", 0,
+     {"t0025": "walking {} postings against"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.English.median_postings_unfiltered", 0,
+     {"t0025": "postings against {} — eighteen times cheaper"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.German.df30_plus_fallback", 0,
+     {"t0025": "the droplist gives {} ms"}),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),

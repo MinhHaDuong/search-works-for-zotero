@@ -1,0 +1,95 @@
+%erg 0.1
+Title: Rewrite R26 and rework the two-band frontier it justified
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T13:00Z claude created
+2026-08-29T13:00Z minh note R26 rejected as written; tier priority replaces the prefix observable (DECISIONS.md 2026-08-29)
+
+--- body ---
+## Context
+The author rejected R26 as written on 2026-08-29. The requirement asserted
+that at every poll the indexed set is a most-recent-first prefix — "the
+newest N items, never a gap in the middle". Three grounds, recorded in
+DECISIONS.md: recency orients the work rather than imposing a verifiable
+total order; items enter and leave the library in real time, so an invariant
+over a positional prefix is asserted over a set that has already moved; and
+a band partition of a moving set is not a stable thing to assert.
+
+What replaces it is priority by content type. An item's title, keywords,
+abstract and notes are embedded before its body content. That is checkable
+at any instant without a snapshot of the library, which is what the prefix
+observable was reaching for and could not have.
+
+This is not a rewording. R26 changes what it promises, the convergence
+harness changes what it asserts, and DESIGN.md §2.3 loses the justification
+for the machinery it describes.
+
+## The open question this ticket must answer
+The two-band frontier did anti-monopoly work. Band 0 carried each item's
+first K passages on the newest-first frontier; band 1 drained behind it, so
+one monster could not monopolize the pipeline. Tier priority replaces part
+of that: records all precede body content, so a monster can no longer delay
+every other item's *record*. It does not replace the rest — once the body
+tier is reached, a 1 849-entry dictionary can still monopolize it.
+
+Whether that needs a mechanism, and which, is open and is the substance of
+this ticket. Options to weigh, not a menu to pick from blind: per-item
+round-robin within the body tier; a per-item passage quantum; nothing at all
+if the tier ordering plus honest partial-coverage reporting is judged
+sufficient. Each has a different cost in ledger complexity and a different
+failure mode under real-time item churn — which is the constraint that
+killed the band approach and must not kill its replacement the same way.
+
+## Relevant files
+- `REQUIREMENTS.md` — R26; check R2 and R4 for consequential wording
+- `DESIGN.md` §2.3 — the two-band frontier, band 0/band 1, the derived cap K,
+  and the "R26 observable is then asserted per phase" paragraph
+- `DESIGN.md` §2.8 — the convergence gate asserts prefix-ness today
+- `CONSTRAINTS.md` — C2's smallest-first comparison rests on the same
+  standard and must stay coherent
+- `DECISIONS.md` — the ruling; do not edit the entry
+
+## Actions
+1. Rewrite R26: state recency as an orientation, state the tier priority as
+   the checkable promise, drop the prefix observable.
+2. Decide the intra-body-tier monopoly question above, with the reasoning
+   recorded. If it needs a new rule, that rule goes to DECISIONS.md first.
+3. Rework DESIGN.md §2.3 to match. The derived cap K exists to serve band 0;
+   if bands go, say what if anything K becomes.
+4. Change the convergence harness to assert the tier ordering instead of
+   prefix-ness.
+5. Re-read C2's smallest-first paragraph: the rejection of #6012's ordering
+   was argued on holding both designs to one standard, and that standard has
+   changed.
+
+## Test
+The convergence harness is the test and it is currently asserting the wrong
+thing. Write the tier-ordering assertion first and watch it fail against an
+index built body-text-first — a positive control, because an assertion that
+has never failed has not been shown to be able to.
+
+## Verification
+- [ ] R26's new text promises only what can be checked without a library
+      snapshot
+- [ ] No orphan machinery left in §2.3 — anything that existed only to serve
+      the band observable is gone or re-justified
+- [ ] The C2 smallest-first comparison still holds under the new standard
+- [ ] `make check` green, figure-guard anchors updated
+
+## Invariants
+- The 2026-08-26 record-tier ruling stands, as amended 2026-08-29 to place
+  notes in the record tier.
+- R2 (most recent first) is not repealed — it is recency as orientation,
+  which is what it always meant.
+- Partial coverage stays honestly reported (R4, R17); losing the prefix
+  observable must not become a reason to report less.
+
+## Exit criteria
+- [ ] R26 rewritten and consistent with R2 and R4
+- [ ] The intra-body-tier monopoly question answered, ratified if it needs a
+      rule
+- [ ] DESIGN.md §2.3 reworked with no orphan machinery
+- [ ] The convergence gate asserts the tier ordering
+- [ ] `make check` passes

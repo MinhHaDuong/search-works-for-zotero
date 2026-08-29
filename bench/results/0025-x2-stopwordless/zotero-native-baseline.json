@@ -1,0 +1,247 @@
+{
+  "probe": "Zotero's own full-text search (local API, qmode=everything) on the SAME twenty queries as X2 — the null alternative. Answers 'why maintain a lexical layer at all when the built-in filter exists'.",
+  "why_committed": "The question was asked directly and deserved a measurement rather than an argument. It also gives every future latency figure in this repo a baseline to be judged against, which none of them had.",
+  "method": "GET /api/users/0/items?q=<query>&qmode=everything&limit=20 against the running desktop app, one pass, same library and same moment as the X2 runs.",
+  "latency_ms": {
+    "median": 3216.9,
+    "p95": 4198.5,
+    "min": 1907.0,
+    "max": 4516.0
+  },
+  "comparison_warm_p95_ms": {
+    "zotero_native": 4198.5,
+    "zoteus_stock_v1.9.0_keyword": 392.3,
+    "zoteus_stopword_less_keyword": 1773.0,
+    "reading": "Zotero's own search is slower than BOTH zoteus arms — about 10,7x the stock keyword path. Whatever else the lexical layer is for, it is not redundant with the built-in filter on speed."
+  },
+  "it_does_not_rank": {
+    "finding": "The default result order is byte-identical to sort=dateModified, while sort=title reorders. So the built-in filter returns matches in modification-date order; there is no relevance ranking.",
+    "why_it_matters": "The median query matches 307 items. An LLM handed 307 items in date order has been handed the library, not an answer. Ranking to a top-K is the whole job, and it is the part the filter does not do."
+  },
+  "it_ands_terms": {
+    "measured": {
+      "carbon": 4610,
+      "carbon tax": 1479,
+      "carbon tax elasticity": 214,
+      "carbon tax elasticity Vietnam": 77,
+      "carbon tax elasticity Vietnam bicycle": 10
+    },
+    "finding": "Adding a term can only shrink the set. The filter is a conjunctive predicate, not a scorer.",
+    "why_it_matters": "A longer, more specific question degrades to zero results with no partial credit, where an OR-plus-bm25 layer returns its best partial matches and says how good they are. That is the opposite of what a natural-language question needs."
+  },
+  "it_returns_items_not_passages": "Results are items and attachments. A model that must quote and cite needs the passage, which is what zoteus's chunking and snippets exist to produce.",
+  "matches_per_query": {
+    "median": 307.0,
+    "max": 3374,
+    "note": "'to be or not to be' matches 3 374 items here — the same degenerate query, failing a different way: not empty, but undifferentiated."
+  },
+  "consequence_for_the_stopwords_work": "The lexical layer earns its place through RANKING, not through matching — matching is exactly what Zotero already does. Read against that, the stoplist question is marginal: X2's annex shows deletion changes 12% of the top-20 and costs 5,6x, and this baseline shows the surrounding layer's value lies elsewhere entirely. Spending an upstream slot on it is hard to justify beside ticket 0016's wipe guard, which fixes silent data loss.",
+  "caveat": "One pass per query, no warm-up, against a live desktop app doing other work. The gap is an order of magnitude, so it survives that imprecision, but these are not six-pass warm figures like X2's and should not be quoted as if they were.",
+  "per_query": [
+    {
+      "q": "the role of the state in the energy transition",
+      "ms": 4516.0,
+      "total_matches": 952,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "what is the social cost of carbon",
+      "ms": 2838.1,
+      "total_matches": 797,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "the effect of a carbon tax on household income",
+      "ms": 3507.8,
+      "total_matches": 330,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "to be or not to be",
+      "ms": 1907.0,
+      "total_matches": 3374,
+      "returned": 20,
+      "item_types": {
+        "attachment": 15,
+        "bookSection": 1,
+        "journalArticle": 2,
+        "manuscript": 2
+      },
+      "first_title": "PDF"
+    },
+    {
+      "q": "the origins of index numbers in economics",
+      "ms": 2951.4,
+      "total_matches": 47,
+      "returned": 20,
+      "item_types": {
+        "attachment": 19,
+        "note": 1
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "models that are used for integrated assessment of climate",
+      "ms": 3421.2,
+      "total_matches": 847,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "the price of electricity in Vietnam",
+      "ms": 2761.9,
+      "total_matches": 806,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "it is the marginal cost that matters and not the average",
+      "ms": 4198.5,
+      "total_matches": 181,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "these results are robust to the choice of a discount rate",
+      "ms": 3957.2,
+      "total_matches": 166,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "from theory to policy in the climate negotiations",
+      "ms": 3111.5,
+      "total_matches": 152,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "the demand for energy in developing countries",
+      "ms": 2876.8,
+      "total_matches": 1656,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "our estimates of the rebound effect and their limits",
+      "ms": 3568.0,
+      "total_matches": 57,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "this is the standard model of optimal growth",
+      "ms": 3459.0,
+      "total_matches": 487,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "the history of mathematical economics as a discipline",
+      "ms": 3100.9,
+      "total_matches": 68,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "capture and storage of carbon in the atmosphere",
+      "ms": 3190.1,
+      "total_matches": 469,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "the distribution of income and wealth in the long run",
+      "ms": 3921.7,
+      "total_matches": 216,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "as measured by the elasticity of substitution",
+      "ms": 2408.1,
+      "total_matches": 25,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "Paltsev-2005"
+    },
+    {
+      "q": "their contribution to the equilibrium of the market",
+      "ms": 3242.6,
+      "total_matches": 284,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "on the theory of value and of distribution",
+      "ms": 3191.2,
+      "total_matches": 837,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf"
+    },
+    {
+      "q": "was the transition to renewables in these countries inevitable",
+      "ms": 3426.8,
+      "total_matches": 58,
+      "returned": 20,
+      "item_types": {
+        "attachment": 20
+      },
+      "first_title": "IRGC-2009-regulation_carbon_capture_storage"
+    }
+  ],
+  "date": "2026-08-29"
+}
