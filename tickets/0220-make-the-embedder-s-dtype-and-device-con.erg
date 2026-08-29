@@ -7,6 +7,7 @@ Author: claude
 2026-08-29T15:40Z claude created
 2026-08-29T16:05Z claude note author's ruling: the device is always auto, never a configurable option. Rewritten accordingly — ZOTEUS_EMBEDDING_DEVICE is gone, device: 'auto' is passed unconditionally, and a new section records what auto actually resolves to (read from src/backends/onnx.js: defaultDevices is ['cpu'] on Node, which IS upstream's current behaviour, while 'auto' returns the whole per-platform supportedDevices list and lets ORT's execution-provider fallback walk it). That grounds the ruling better than tidiness does: fallback moves into the runtime, so action 5's degradation is a dtype concern only, and macOS/Windows get CoreML/DirectML that no CUDA-shaped knob would have delivered. Two costs recorded rather than buried: this is the one non-behaviour-preserving part of the ticket (a GPU user silently moves off CPU on upgrade), and ORT's fallback does not cover a provider that registers then misbehaves, for which there is now no manual override — deliberately, until such a failure is actually observed.
 
+2026-08-29T14:22Z claude note device: 'auto' EXECUTED and it fails on CPU-only linux-x64 (OrtSessionOptionsAppendExecutionProvider_Cuda, libcublasLt.so.12 absent), reproduced on a clean install; the same call with no device option serves bit-identical vectors. No ORT fallback exists to rely on. The broken-CUDA case this ticket set aside IS the ordinary Linux desktop. Action 2 is therefore NOT implemented: the branch passes no device and ships the dtype half alone; the device shape returns to the author (DECISIONS.md, awaiting ratification). Second correction: q7 does not abort either, it loads bit-identical to the default, so the degradation test was rewritten against fp16, which does throw. Evidence: verification/DEVICE-AUTO-0220.md, bench/results/0220-device-dtype/. Branch MinhHaDuong/zoteus:embedding-dtype (8af4e09): 9 tests, 7 red on stock v1.10.0, typecheck/lint/build clean, 856 passed.
 --- body ---
 ## Context
 
@@ -58,6 +59,15 @@ value that crashes on their hardware and works on someone else's, and the
 failure must degrade rather than abort the server.
 
 ## Why device is not a knob
+
+> **SUPERSEDED IN PART, 2026-08-29.** The section below argues from ORT's
+> execution-provider fallback. That fallback was read from `onnx.js` and never
+> run; run, `device: 'auto'` FAILS on a CPU-only linux-x64 machine rather than
+> falling back. The ruling that device is never a knob is untouched — what is
+> void is the belief that `auto` is a safe unconditional value. Read
+> `verification/DEVICE-AUTO-0220.md` before acting on anything below, and see
+> DECISIONS.md's awaiting-ratification entry for the three shapes the device
+> can take from here. Action 2 is not implemented.
 
 Ruled by the author 2026-08-29: the device is always `auto` and is not
 configurable. Read `src/backends/onnx.js` in `@huggingface/transformers` 4.2.0
@@ -217,12 +227,20 @@ not only against a mock that cannot disagree.
 
 ## Exit criteria
 
-- [ ] `ZOTEUS_EMBEDDING_DTYPE` implemented, threaded, and covered by the tests
+- [x] `ZOTEUS_EMBEDDING_DTYPE` implemented, threaded, and covered by the tests
       above; no device variable exists
-- [ ] `device: 'auto'` passed unconditionally
-- [ ] Dtype participates in vector-space identity; device does not
-- [ ] An unloadable dtype degrades with a named message
-- [ ] Documented with the measured ladder linked and no recommendation, saying
-      the device is automatic and not configurable
-- [ ] Branch built and validated on the fork; pre-filled PR form in RUNBOOK.md
+- [ ] ~~`device: 'auto'` passed unconditionally~~ — BLOCKED on the author, and
+      not by scheduling: measurement voids the premise (log 2026-08-29,
+      `verification/DEVICE-AUTO-0220.md`). No device is passed. This criterion
+      is reopened as a ratification question, not as work outstanding
+- [x] Dtype participates in vector-space identity; device does not. The
+      degradation clears the dtype as well, so a fallback cannot leave the index
+      labelled with a precision its vectors do not have
+- [x] An unloadable dtype degrades with a named message. Proven against `fp16`,
+      which throws; `q7`, this ticket's chosen example, does NOT throw and would
+      have passed against an implementation with no degradation path at all
+- [x] Documented with the measured ladder and no recommendation. The device
+      sentence says what measurement supports — none is passed, and none is
+      configurable — rather than that it is automatic
+- [x] Branch built and validated on the fork; pre-filled PR form in RUNBOOK.md
 - [ ] PR opened only once a slot frees, and the ticket closed by that PR

@@ -410,3 +410,36 @@ here, not in any issue text):
   repo — the real-document run remains X3a on the author's machine. Ratify the
   surrogate as satisfying R20's intent, or keep R20's letter and accept that
   the gate half of it lives only on the author's machine.
+
+- **The device ruling of 2026-08-29 rests on a premise that measurement voids.**
+  The ruling — the device is always `auto`, never a knob — was made on the
+  reading that `auto` hands ONNX Runtime the whole provider list and that ORT's
+  own fallback walks past a provider it cannot use, so no escape hatch is
+  needed. That reading was taken from `src/backends/onnx.js` and never executed;
+  ticket 0220 said as much about its GPU claims, but the same gap covered the
+  half that needs no GPU to test.
+
+  Executed, `device: 'auto'` **fails** on a CPU-only linux-x64 machine:
+  `OrtSessionOptionsAppendExecutionProvider_Cuda: Failed to load shared library`,
+  from `libcublasLt.so.12` being absent. Reproduced against a clean
+  `npm install @huggingface/transformers@4.2.0`, where the same call with no
+  device option loads and serves bit-identical vectors. There is no fallback
+  loop to rely on: `createInferenceSession` passes the provider list straight to
+  the binding, `onnxruntime-node` ships the CUDA provider on linux-x64
+  unconditionally, and the list is built from `process.platform` and
+  `process.arch` alone. Evidence and the mechanism:
+  `verification/DEVICE-AUTO-0220.md`; artifacts `bench/results/0220-device-dtype/`.
+
+  So the ordinary Linux desktop is the failing case, not the exotic one the
+  ruling set aside. Shipping `auto` unconditionally would end semantic search on
+  the default local path for every Linux user without a CUDA runtime.
+
+  The branch built for 0220 therefore passes **no** device and ships the dtype
+  half alone, which is behaviour-preserving everywhere and is the only shape
+  that neither regresses nor presumes a ruling. What needs the author is which
+  shape the device takes from here: keep passing none; pass `auto` and catch the
+  failure, which recovers the macOS/Windows accelerators at the price of a
+  native ORT error on stderr at every cold start for Linux users without CUDA;
+  or pass `cpu` explicitly, measured identical to today but foreclosing any
+  future improvement to the runtime's own default. The ruling's *intent* is
+  untouched by the measurement and no knob is proposed.

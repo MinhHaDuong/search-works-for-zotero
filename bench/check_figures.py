@@ -67,6 +67,7 @@ PROSE = {
     # which fails asymmetrically: removing a guarded file is loud, a new file ARRIVING
     # unguarded is silent. This one arrived 2026-08-29.
     "v30": ["verification/issue-30-thread.md"],
+    "v0220": ["verification/DEVICE-AUTO-0220.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -471,6 +472,20 @@ FIGURES = [
     ("0025-x1-recall/dtype-ladder-granite-97m-multilingual.json",
      "repeated_measurement.multilingual_e5_small_mb.median", 1,
      {"decisions": "multilingual-e5-small {} MB. Granite and e5"}),
+
+    # ---- 0220, the device/dtype probe. The cosine column is anchored per row because the
+    # report's whole argument is which rows are EQUAL: three variants share the value
+    # 0,9999996 and one does not, so a bare presence check would stay green with any of
+    # them wrong. Six places for the quantised row, seven for the normalisation floor —
+    # the floor's last digit is what says "bit-identical" rather than "close".
+    ("0220-device-dtype/summary.json", "variants.dtype-q8.cosine_vs_no_options", 6,
+     {"v0220": "| dtype-q8 | `{dtype: 'q8'}` | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.no-options.cosine_vs_no_options", 7,
+     {"v0220": "| no-options | *(none)* | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.device-cpu.cosine_vs_no_options", 7,
+     {"v0220": "| device-cpu | `{device: 'cpu'}` | loads | {} |"}),
+    ("0220-device-dtype/summary.json", "variants.dtype-q7.cosine_vs_no_options", 7,
+     {"v0220": "| dtype-q7 | `{dtype: 'q7'}` | loads | {} |"}),
 ]
 
 
