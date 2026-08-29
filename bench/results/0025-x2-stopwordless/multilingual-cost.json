@@ -1,0 +1,47 @@
+{
+  "probe": "What a non-English query actually costs in this library. The stoplist debate had been conducted entirely in English, while the claim under it — that the list penalises one language — is a claim about the others, and none had been measured.",
+  "method": "Five matched queries per language (the same five questions, translated), through the statement sqlite-index.ts prepares, under all three policies. Medians of three warmed runs. Direct SQL, comparable with df-droplist-sweep.json.",
+  "latency_ms_median": {
+    "English": {
+      "stoplist": 322,
+      "no_filter": 1144,
+      "df30_plus_fallback": 337,
+      "mean_terms": 7.2,
+      "median_postings_unfiltered": 8400770
+    },
+    "French": {
+      "stoplist": 257,
+      "no_filter": 250,
+      "df30_plus_fallback": 252,
+      "mean_terms": 8.0,
+      "median_postings_unfiltered": 462606
+    },
+    "Vietnamese": {
+      "stoplist": 138,
+      "no_filter": 138,
+      "df30_plus_fallback": 137,
+      "mean_terms": 8.4,
+      "median_postings_unfiltered": 352672
+    },
+    "German": {
+      "stoplist": 30,
+      "no_filter": 776,
+      "df30_plus_fallback": 82,
+      "mean_terms": 5.6,
+      "median_postings_unfiltered": 1607633
+    }
+  },
+  "headline": "Multilingualism is not what costs. A French query costs 250 ms where the matched English one costs 1 144 ms, and walks 462 606 postings against 8 400 770 — eighteen times cheaper. Vietnamese is cheaper still at 138 ms. For French and Vietnamese all three policies are within a few ms of each other, because the filter is a NO-OP for them: no French or Vietnamese term is on the English list, and none reaches a 30% document frequency here.",
+  "what_actually_costs": "Being the MAJORITY language costs. English function words are expensive because 84% of this corpus is English, so they are in almost every passage: long posting lists, near-zero idf. French function words are cheap here for the mirror-image reason — at 6% they are both short to walk and genuinely discriminating. Invert the corpus and the roles invert with it. Nothing about this is a property of the languages.",
+  "the_real_multilingual_price_is_homographs": {
+    "finding": "German is the exception in the table and the reason is instructive: its queries pay an ENGLISH price. FTS5 indexes strings, not words-of-a-language, so a German function word spelled like an English one inherits the English document frequency. `in` is the same string in both and sits at 79,01% here, which is the whole of German's 30 ms -> 776 ms swing when the filter is removed. `was` (German 'what') inherits 16,66% from the English past tense; `so` 13,67%.",
+    "french_pays_it_too": "`on` (French pronoun) inherits 52,71% from the English preposition, `or` 30,63%, `but` 17,27%.",
+    "why_it_is_irreducible": "One index, one token space. Two languages that share an alphabet will share strings, and no tokenizer that indexes strings can price them separately without knowing which language a given occurrence was."
+  },
+  "why_this_settles_the_shape_of_the_fix": "A per-language stoplist is not merely more work; it is ill-defined. To drop German `die` you must know the query is German, and `die` is also an English word — so the same string must be dropped and kept depending on an intent the index cannot see. A corpus-derived droplist asks the only question that is well posed against a shared token space: what does THIS string cost in THIS corpus, and how much does it discriminate. That is why the author's proposal is the right shape and the hardcoded list never was, independently of any latency number.",
+  "german_under_each_policy": "Worth reading as the summary of the whole argument. The English stoplist gives German 30 ms — by accident, because it happens to contain `in`. Deleting it costs German 776 ms, so the change made in the name of other languages is the one that hurts German most. The droplist gives 82 ms, dropping `in` because it is uninformative HERE while keeping `die`, `der`, `des` as the rare, discriminating terms they are in this corpus.",
+  "unmeasured_risk": "Minority-language function words become high-idf terms, so they act as strong signals. That is usually right — `energiewende` at 0,09% should dominate its query — but it interacts badly with homographs: a German query carrying `die` will rank English passages about mortality highly, and nothing here measures that precision cost. NOT MEASURED. It needs a relevance judgement, not a timer, which is a different experiment.",
+  "caveat": "Five queries per language, one library, one moment. The English/French gap is 18x on postings so it survives that imprecision; the German homograph mechanism is confirmed by the document frequencies rather than by the timings alone.",
+  "substrate": "REAL: the author's library, 477 512 passages, host doudou.",
+  "date": "2026-08-29"
+}

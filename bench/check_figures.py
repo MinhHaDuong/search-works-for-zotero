@@ -326,6 +326,21 @@ FIGURES = [
      "recommended_policy.mean_top30_overlap_with_unfiltered", 0,
      {"t0025": "ms, {}% top-30 overlap with the unfiltered",
       "t0014": "with {}% of the unfiltered"}, "pct"),
+    # ---- Multilingual cost. The French/English pair is the claim; `in`'s frequency is
+    # the mechanism behind the German anomaly. Anchor heads end in non-digits, as above.
+    ("0025-x2-stopwordless/multilingual-cost.json", "latency_ms_median.French.no_filter", 0,
+     {"t0025": "a French query costs {} ms"}),
+    ("0025-x2-stopwordless/multilingual-cost.json", "latency_ms_median.English.no_filter", 0,
+     {"t0025": "matched English one costs {} ms"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.French.median_postings_unfiltered", 0,
+     {"t0025": "walking {} postings against"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.English.median_postings_unfiltered", 0,
+     {"t0025": "postings against {} — eighteen times cheaper"}),
+    ("0025-x2-stopwordless/multilingual-cost.json",
+     "latency_ms_median.German.df30_plus_fallback", 0,
+     {"t0025": "the droplist gives {} ms"}),
     # ---- 0025 X4, json_each-constrained MATCH (synthetic corpus, container CPU) ----
     ("0025-x4-constrained-match/synthetic-477k.json", "rows.0.median_ms", 1,
      {"t0025": "whole corpus costs {} ms median"}),
