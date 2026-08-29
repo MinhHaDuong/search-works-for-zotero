@@ -46,6 +46,8 @@ MINIMAL_RECORD = {
     "licence": "apache-2.0",
     "mrl": {"claimed": False, "source": "fixture"},
     "input_template": {"query": "", "passage": ""},
+    "pooling": "mean",
+    "pooling_source": "fixture",
     "availability": {
         "state": "available",
         "http_status": 200,
@@ -398,3 +400,55 @@ def test_the_marker_does_not_exempt_the_rest_of_the_file(tmp_path):
         },
     )
     assert cm.run(repo) == 1
+
+
+# --- pooling: the input_template trap one axis over ------------------------------
+#
+# Measured 2026-08-29: four of the six candidates pool with `cls` while every
+# transformers.js driver hardcoded `mean`. Wrong pooling degrades retrieval
+# silently -- it reads as the model being worse rather than as a bug -- so a sweep
+# could have rejected a good candidate on it. These pin the guard that stops a
+# candidate arriving without the value, and the pair that stops it being a guess.
+
+
+def test_a_candidate_without_pooling_fails(tmp_path):
+    """The positive control: run it against a registry lacking the field."""
+    record = dict(MINIMAL_RECORD)
+    del record["pooling"]
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_candidate_with_pooling_but_no_source_fails(tmp_path):
+    """A value with no provenance cannot be told from a guess, so the pair is required."""
+    record = dict(MINIMAL_RECORD, pooling_source="   ")
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_pooling_mode_the_drivers_cannot_pass_fails(tmp_path):
+    """`weightedmean` is real and transformers.js has no case for it.
+
+    The first version of this test used `lasttoken`, which was the wrong example:
+    the library accepts `last_token`/`eos`, and the throw it produced came from
+    this repository canonicalising the flag to a string with no underscore. The
+    rule is unchanged and the example now matches it — a mode with no case in
+    `feature-extraction.js`'s switch is a finding about the candidate, because
+    coercing it to `mean` to let a run proceed would be invisible in the results.
+    """
+    record = dict(MINIMAL_RECORD, pooling="weightedmean")
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_rejected_record_is_not_required_to_carry_pooling(tmp_path):
+    """The requirement is scoped to candidates, and this is the other side of it.
+
+    Without this, the test above would pass just as well if the guard demanded
+    pooling of everything, which would be a different rule than the one intended.
+    """
+    record = dict(MINIMAL_RECORD, status="rejected", rejection={"criteria": ["r7"]})
+    del record["pooling"]
+    del record["pooling_source"]
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 0
