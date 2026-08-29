@@ -1,0 +1,77 @@
+%erg 0.1
+Title: Audit every external attribution in the chain against source
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T16:00Z claude created
+2026-08-29T16:00Z claude note filed from the roar sweep after two attribution defects were found and fixed the same day; 4 of 8 sampled claims were wrong
+
+--- body ---
+## Context
+The specification chain makes claims about what Zotero and #6012 do. Two of
+them were refuted at source on 2026-08-29 and a sweep of the rest found the
+error rate is not incidental.
+
+Sampled, with verdicts:
+
+| site | claim | verdict |
+|---|---|---|
+| DESIGN.md:216 | "Zotero's geometry, adopted verbatim" | refuted (0140) |
+| DESIGN.md:468 | "#6012's shipped geometry" (CJK 2-gram) | refuted (0060) |
+| CONSTRAINTS.md C2 | geometry, and "never crosses a section" | refuted, fixed |
+| DESIGN.md:417 | entry score is MAX over chunks, "#6012's rule" | holds |
+| DESIGN.md:206 | prefix charged to the budget, "Zotero's own prior art" | holds in part |
+| CONSTRAINTS.md:87 | rowid-constrained MATCH cost, "#6012's measurement" | unverified |
+| DESIGN.md:321 | "Zotero's own embeddings layer documents the same residue" | unverified |
+
+Four wrong out of eight. That is a class, not a run of bad luck, and the
+class has a shape worth naming: **a value or behaviour is read from an
+upstream summary, adopted as a constant, and cited as though the mechanism
+around it came too.** The geometry case is the clearest — 768 was copied as
+a chunk size when upstream uses it as a ceiling inside a `min()`, so the
+number arrived and the guard that made it safe did not.
+
+Why this is above the severity floor rather than a tidiness item. It bit the
+science twice in one day: DESIGN.md §2.2 would have shipped a chunker that
+silently truncates 60,6% of the corpus's text mass, and C2 told an
+implementer the platform never crosses a section when it merges short ones
+forward. It is also public text the upstream maintainer reads, and
+misattributing his work is a cost this repo cannot pay twice.
+
+## Actions
+1. Enumerate every claim in REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md
+   that asserts something about Zotero, #6012, or zoteus. The grep that
+   found the sample above is a start, not the method: it keys on
+   "verbatim / adopted / own / prior art / aligns with / #6012's" and will
+   miss a claim phrased without those words.
+2. For each, record the verdict and the coordinate that settles it — file,
+   line, and the SHA read. A claim verified against PR head `77e2c4b` on
+   2026-08-29 is verified *at that commit*, and #6012 is an open draft that
+   moves.
+3. Correct what is wrong. Anything that changes a ratified reading goes to
+   DECISIONS.md first.
+4. For the two unverified entries above, either verify or mark them as
+   unverified in the text. "Could not look" stated is better than a claim
+   the reader takes as established.
+
+## Test
+This is an audit, not code. Its check is that every surviving attribution
+carries a coordinate, which ticket 0181 turns into a standing guard.
+
+## Verification
+- [ ] Every external attribution has a verdict and a coordinate
+- [ ] Unverified claims say so in the text
+- [ ] Corrections that touch ratified readings went through DECISIONS.md
+
+## Invariants
+- Read source, not a summary. A WebFetch of a PR page is weaker evidence
+  than the file at a SHA, and the difference is what produced this ticket.
+- A null is not a refutation: a claim a grep cannot find may still be true
+  elsewhere in the tree. Mark unverified, not false.
+- Nothing here is filed upstream; the PR budget is untouched.
+
+## Exit criteria
+- [ ] The enumeration is complete and recorded
+- [ ] Every claim is verified, corrected, or marked unverified
+- [ ] `make check` passes
