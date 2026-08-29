@@ -141,6 +141,12 @@ ALLOWED = {
     "ISO date": re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
     "section mark": re.compile(r"§\s?\d+(?:\.\d+)*"),
     "git SHA": re.compile(r"\b(?![0-9]+\b)[0-9a-f]{7,40}\b"),
+    # A path into this repository is the most literal address there is, and a directory
+    # may legitimately carry a version in its name (`bench/results/smoke-1.10.0/`). Only
+    # paths rooted at a known top-level directory are admitted, so this cannot become a
+    # general exemption for a digit that merely sits near a slash: a bare quantity in
+    # prose still fails, and so does a path to somewhere this repository does not have.
+    "repo path": re.compile(r"\.{0,2}/?(?:bench|spec|tickets|verification)/[\w./-]+"),
 }
 
 DIGIT = re.compile(r"\d")

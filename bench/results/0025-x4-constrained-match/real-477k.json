@@ -1,0 +1,46 @@
+{
+  "probe": "ticket 0025 X4 — json_each-constrained MATCH cost by rowid-set scope, on a synthetic 477k corpus",
+  "rule": "DESIGN.md §3 X4: ladder step at the largest scope with constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step ships",
+  "substrate": "REAL corpus at /home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite: 477512 passages of the author's own library, probed with terms drawn from ITS OWN vocabulary via fts5vocab, one per df band (>=10%, 0,1-1%, <0,1%). The synthetic vocabulary is NOT used here: its terms are near-absent from a real index, so they would answer in about a millisecond and, X4 being an upper bound, read as a pass.",
+  "host": "workstation doudou, the real library",
+  "vocabulary": {
+    "source": "fts5vocab(main, passages_fts, row) on the index under test",
+    "scan_s": 6.1,
+    "terms_per_band": [
+      98,
+      377,
+      385
+    ],
+    "sample_per_band": [
+      "of",
+      "steam",
+      "co2eq"
+    ]
+  },
+  "cpu": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+  "node": "v22.23.1",
+  "timestamp_utc": "2026-08-29T16:42:53.172Z",
+  "passages": 477512,
+  "db_mb": 939,
+  "build_s": null,
+  "probes_per_scope": 20,
+  "rows": [
+    {
+      "scope": "unconstrained",
+      "median_ms": 73.6,
+      "p95_ms": 362.4
+    },
+    {
+      "scope": 1000,
+      "median_ms": 585.7,
+      "p95_ms": 11969.6
+    },
+    {
+      "scope": 5000,
+      "median_ms": 4406.2,
+      "p95_ms": 74577.3
+    }
+  ],
+  "scopes_note": "20k and 100k were deliberately NOT run. The rule turns on the SMALLEST scope — if even 1k exceeds the allowance no constrained step ships — and 1k exceeds it by 80x, so the verdict is settled. The larger rungs would only draw a curve already shown to be superlinear (5x the scope costs 7,5x the median), at a p95 of 74,6 s per probe at 5k and worse above.",
+  "verdict": "NO CONSTRAINED STEP SHIPS, confirmed on the real corpus. At a 1000-rowid scope the constrained p95 is 11 969,6 ms against the 150 ms allowance, and the constrained median (585,7 ms) is 8x the cost of ranking the whole 477 512-passage corpus unconstrained (73,6 ms). The synthetic arm reached the same verdict; this is its confirmation on real text and a real vocabulary."
+}
