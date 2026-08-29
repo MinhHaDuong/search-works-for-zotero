@@ -34,7 +34,8 @@
   "caveats": [
     "Same-item relatedness is document-level topical coherence, not query-to-answer relevance. This proxy can show a model is too weak; it cannot certify one is good enough for a user’s real questions.",
     "Recall is divided by min(relevant, topk), so an item with more than topk eligible siblings is not penalised for the ones that cannot fit.",
-    "Comparing two DIFFERENT models here conflates dimension with architecture, size and training data. Only the widths WITHIN one Matryoshka model isolate dimension."
+    "Comparing two DIFFERENT models here conflates dimension with architecture, size and training data. Only the widths WITHIN one Matryoshka model isolate dimension.",
+    "POOLING PROVENANCE UNVERIFIED (added 2026-08-29, ticket 0421). bge-small-en-v1.5 pools with cls: its own 1_Pooling/config.json sets pooling_mode_cls_token true. Every transformers.js driver in this repository passed a hardcoded pooling: 'mean' until 0421, while the PyTorch path (embed_corpus.py, via sentence-transformers) reads the model's own pooling and is therefore correct. Which produced this run's bge.f32 slab is NOT recorded: unlike nomic.f32 and qwen06b.f32, it has no sibling .meta.json, and it was written after the run that produced one. So if this slab came from the transformers.js path it understates the model by an unmeasured amount, and if it came from embed_corpus.py the figure stands. The observation is the missing provenance; the cause is not established. One experiment settles it: embed a few of the same passages at cls and at mean and see which matches the slab's corresponding rows. Note that the sibling task-recall.json is NOT in doubt -- its nomic and Qwen3 slabs both carry .meta.json from embed_corpus.py, so they were pooled per their cards, Qwen3's lasttoken included."
   ],
   "machine": {
     "host": "doudou",
