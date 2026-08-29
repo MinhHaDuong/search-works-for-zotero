@@ -54,7 +54,7 @@ at the current baseline.
   upstream's own gates (typecheck, lint, build; 754 passed / 7 skipped),
   pre-filled form at RUNBOOK.md's PR B.
 - The harness runs on the system interpreter on doudou: `make check` is green
-  (ruff clean, 106 figure pairs / 0 stale, 24 tests), with ruff 0.15.21 and
+  (ruff clean, 160 figure pairs / 0 stale, 38 tests), with ruff 0.15.21 and
   pytest 9.0.2 on PATH. No `.venv` exists in the repo and none is needed. The
   earlier note here — that the venv was unusable because `python` was missing
   and `ruff` segfaulted — described the handoff container, not this machine.
@@ -371,10 +371,12 @@ from "could not look".
 Two things bound what this opens. Packs are lazy and per reading session:
 **2 of 13 631 attachments** with extracted text have one, and no bulk operation
 this project can invoke will make more — so SDT is an *enrichment* for papers a
-user actually reads, never a general chunking input. And the pack is not JSON
-but a custom binary container (magic `89 53 44 54 0d 0a 1a 0a`, a u32 offset
-table, sections that are not raw deflate and carry no printable text); reading
-one means vendoring or reimplementing Zotero's own decoder. Neither costed.
+user actually reads, never a general chunking input. The second bound is now
+retired: the pack is a custom binary container (magic
+`89 53 44 54 0d 0a 1a 0a`, a u32 offset table), but its sections **are** raw
+deflate, and reading one needs neither vendoring nor reimplementing Zotero's
+decoder. `verification/probes/sdt_read.py` is that reader, ~200 lines with tests, and it
+parses both packs on this machine. Cost known, not estimated.
 
 ## Binary quantization, now measured on real vectors (0008)
 
@@ -435,10 +437,11 @@ at 0,953 recall.
 
 ## What Zotero itself is doing
 
-**Zotero 10 already runs FTS5** (`fulltext.sqlite`, `fulltextContent USING
-fts5(text, tokenize='unicode61', content='')`) — but the tables are
-*contentless*: matchable, not readable. That is why zoteus keeps its own copy of
-the text, and it forecloses "just reuse Zotero's index".
+**Zotero 10 already runs FTS5**, in `fulltext.sqlite`. The platform facts — the
+schema, what the contentless tables do and do not yield, and the bound that sets
+on reusing them — are CONSTRAINTS.md C2's to state, and whether we depend on
+them is ticket 0120's. This prototype builds its own index over text it fetches
+from the local API.
 
 **Zotero is building semantic search** — zotero/zotero#6012, draft, two core
 developers. It exposes nothing over the local API, so zoteus cannot delegate.
