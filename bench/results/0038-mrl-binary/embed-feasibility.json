@@ -1,0 +1,56 @@
+{
+  "what": "local embedding throughput in the runtime zoteus ships (@huggingface/transformers, ONNX, CPU)",
+  "when": "2026-08-29T09:45:54.782Z",
+  "why": "a recall figure is worthless to a user who cannot afford to compute the vectors",
+  "sample": {
+    "rows": 150,
+    "mean_chars": 1130,
+    "batch": 8,
+    "corpus": "/home/haduong/data/projets/zoteus-bench/vec-real/passages.txt"
+  },
+  "hours_to_index_is_for": 255703,
+  "models": [
+    {
+      "model": "Xenova/all-MiniLM-L6-v2",
+      "dim": 384,
+      "load_ms": 285,
+      "ms_per_passage": 77.6,
+      "passages_per_min": 773,
+      "hours_to_index": 5.51
+    },
+    {
+      "model": "Xenova/bge-small-en-v1.5",
+      "dim": 384,
+      "load_ms": 335,
+      "ms_per_passage": 150,
+      "passages_per_min": 400,
+      "hours_to_index": 10.65
+    },
+    {
+      "model": "nomic-ai/nomic-embed-text-v1.5",
+      "dim": 768,
+      "load_ms": 1174,
+      "ms_per_passage": 795,
+      "passages_per_min": 75,
+      "hours_to_index": 56.47
+    }
+  ],
+  "caveats": [
+    "Wall clock on one machine with the CPUs below. A laptop has fewer and will be slower.",
+    "ONNX Runtime chooses its own thread count here; this is the out-of-the-box behaviour a user gets, not a tuned one.",
+    "Load time is a one-off per session and is reported apart from the per-passage cost.",
+    "Cost, not quality. Read it beside the recall artifacts, never instead of them."
+  ],
+  "machine": {
+    "host": "doudou",
+    "cpus": 8,
+    "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "total_mem_bytes": 25079382016,
+    "loadavg": [
+      4.76,
+      3.42,
+      2.25
+    ],
+    "node": "v22.23.1"
+  }
+}
