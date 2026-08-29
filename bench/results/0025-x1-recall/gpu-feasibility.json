@@ -14,7 +14,7 @@
       "wall_seconds": 160.7,
       "ms_per_passage": 1.73,
       "passages_per_min": 34729,
-      "log": "bench/results/0038-mrl-binary/bge.log",
+      "log": "bench/results/0025-x1-recall/bge.log",
       "projection_factor": 2.749,
       "hours_to_index_projected": 0.12
     },
@@ -27,7 +27,7 @@
       "wall_seconds": 441.9,
       "ms_per_passage": 4.75,
       "passages_per_min": 12630,
-      "log": "bench/results/0038-mrl-binary/nomic.log",
+      "log": "bench/results/0025-x1-recall/nomic.log",
       "projection_factor": 2.749,
       "hours_to_index_projected": 0.34
     },
@@ -40,10 +40,10 @@
       "wall_seconds": 2069.8,
       "ms_per_passage": 22.25,
       "passages_per_min": 2697,
-      "log": "bench/results/0038-mrl-binary/qwen06b.log",
+      "log": "bench/results/0025-x1-recall/qwen06b.log",
       "projection_factor": 2.749,
       "hours_to_index_projected": 1.58
     }
   ],
-  "compare_with": "bench/results/0038-mrl-binary/embed-feasibility.json (CPU, measured in the ONNX runtime zoteus ships; this file is PyTorch on CUDA, which is what the vectors were actually built with \u2014 a different stack, so read the CPU/GPU gap as an order of magnitude and not a ratio to two figures)"
+  "compare_with": "bench/results/0025-x1-recall/embed-feasibility.json (CPU, measured in the ONNX runtime zoteus ships; this file is PyTorch on CUDA, which is what the vectors were actually built with \u2014 a different stack, so read the CPU/GPU gap as an order of magnitude and not a ratio to two figures)"
 }

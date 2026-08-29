@@ -2,7 +2,7 @@
 
 The CPU half of this question is measured directly by bench/embed_feasibility.mjs. This is
 the other half, and it is DERIVED rather than measured on purpose: the runs it reads are the
-ones that produced the vectors in bench/results/0038-mrl-binary/, so the numbers describe
+ones that produced the vectors in bench/results/0025-x1-recall/, so the numbers describe
 work that actually happened rather than a benchmark staged to produce them. Re-running three
 embeddings of 93 022 passages to time them again would cost an hour of GPU and tell us what
 the logs already record.
@@ -111,7 +111,7 @@ def main() -> None:
                 "gpu": args.gpu,
                 "projected_to": args.scale,
                 "runs": runs,
-                "compare_with": "bench/results/0038-mrl-binary/embed-feasibility.json (CPU, "
+                "compare_with": "bench/results/0025-x1-recall/embed-feasibility.json (CPU, "
                 "measured in the ONNX runtime zoteus ships; this file is PyTorch on CUDA, "
                 "which is what the vectors were actually built with — a different stack, so "
                 "read the CPU/GPU gap as an order of magnitude and not a ratio to two figures)",

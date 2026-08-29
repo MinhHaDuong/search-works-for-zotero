@@ -315,12 +315,17 @@ check whose all-clear is indistinguishable from "I could not look".
   - *recall@30 >= 0.98* — **0,9973** at the 8x pool, full width. Holds.
   - *pool <= 32xtopK* — the verdict is claimed at **8x**, well inside 32x.
   - *scan+rerank <= 400 ms at 650k* — not measured at 650k. Measured at
-    255 703x3 072, where the binary scan is **97,2 ms** against the exact
-    scan's 4 088,7 ms. The clause's own substrate is untested and the ship
-    decision is provisional on it.
+    255 703 x 3 072, where the binary scan is **87,6 ms** against the exact
+    scan's 4 893,9 ms. Both figures are the committed artifact's
+    (`bench/results/0025-x1-recall/scan-shapes-255703x3072.json`); three
+    independent invocations at that geometry gave exact 4 088,7 / 4 196,2 /
+    4 893,9 ms and binary 97,2 / 94,1 / 87,6 ms, and the upstream comment
+    deliberately quotes the most conservative of the three rather than this
+    one. The clause's own substrate is untested and the ship decision is
+    provisional on it.
 
   **The pool multiple is load-bearing and was omitted from the log.** At the 8x
-  pool quoted throughout, nomic-768 scores **0,971 — below the 0.98 bar**; it
+  pool quoted throughout, nomic-768 scores **0,9710 — below the 0,98 bar**; it
   clears at 16x (0,9893), still inside the 32x allowance. The rule passes, but
   only once the pool is named, and a reader checking the headline against the
   rule without it finds a failure. Any ratification should carry the pool.

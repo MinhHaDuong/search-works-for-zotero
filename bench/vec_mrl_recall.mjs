@@ -239,9 +239,13 @@ for (const p of probeIdx) {
  * Ticket 0008 packed into bytes and scanned with a 256-entry lookup table. Words and the
  * SWAR popcount below are the same codes read four bytes at a time, and the difference is
  * not cosmetic — but the evidence for that lives in bench/vec_scan_shapes.mjs, which times
- * a BigInt popcount at upstream #30's geometry and finds it 4,6x SLOWER than the exact
- * float scan it is meant to replace. This file measures recall and times nothing of the
- * kind, so it cites that result rather than restating it.
+ * a BigInt popcount at upstream #30's geometry and finds it SLOWER than the exact float
+ * scan it is meant to replace: read `bigint_3072.speedup_vs_baseline` in
+ * bench/results/0025-x1-recall/scan-shapes-255703x3072.json, which is below 1 and is
+ * therefore a slowdown. Quoted as a field rather than as a ratio computed here, because a
+ * ratio restated in a comment is exactly what went stale between two runs. This file
+ * measures recall and times nothing of the kind, so it cites that result rather than
+ * restating it.
  */
 function bitsPacked(v, w, centre) {
   const words = w >> 5;

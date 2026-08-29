@@ -1,10 +1,12 @@
 // Can a Zotero user actually run this model? Throughput in the runtime zoteus ships.
 //
-// Every recall figure in bench/results/0038-mrl-binary/ is worthless to a user who cannot
+// Every recall figure in bench/results/0025-x1-recall/ is worthless to a user who cannot
 // afford to compute the vectors. That is not a hypothetical: the strongest model measured
-// there, Qwen3-Embedding-0.6B, is 600M parameters and would take days on a laptop, so its
-// 0,9973 belongs to a configuration nobody can run locally. This driver measures the other
-// half of the trade.
+// there, Qwen3-Embedding-0.6B, is 600M parameters and would take days on a laptop. It is
+// the CPU cost that makes its 0,9973 impractical, not the model — the same vectors were
+// built on an A4000, a projected 1,58 h for 255 703 passages
+// (bench/results/0025-x1-recall/gpu-feasibility.json), so a user with a GPU is the
+// counter-example. This driver measures the other half of the trade.
 //
 // Two properties make the measurement mean something:
 //
