@@ -60,6 +60,16 @@ the rewritten voice, and these are the same paragraphs.
    alone. An Intro reduced to nothing but a pointer has gone too far — a
    reader entering at DESIGN.md still needs to learn what DESIGN.md owns
    without leaving the file.
+5. Add the reading protocol to README.md's canonical statement, in one
+   paragraph: each document in the chain has its own organising principle —
+   DECISIONS.md chronological because ratification is chronological,
+   REQUIREMENTS.md and CONSTRAINTS.md enumerative because they are
+   checklists, DESIGN.md architectural because architecture has structure.
+   Say so and say why. This is settled (author, 2026-08-29): the differing
+   spines stay, because they follow from the authority separation rather than
+   from carelessness, and forcing one spine would cost the property that
+   makes the chain worth having. The defect was never the difference; it was
+   that a reader meeting it is never told. Nothing else to do about spines.
 
 ## Test
 A check that fails when the same sentence, normalised, appears in more than
@@ -68,7 +78,7 @@ the positive control for the whole ticket.
 
 ## Verification
 - [ ] Each Intro still tells a mid-document arrival what that document owns
-- [ ] The chain is described once, in README.md
+- [ ] The chain is described once, in README.md, with its reading protocol
 - [ ] No pointer is a bare cross-reference with no local context
 
 ## Invariants
@@ -80,5 +90,6 @@ the positive control for the whole ticket.
 
 ## Exit criteria
 - [ ] The authority chain is stated once and pointed at from each Intro
+- [ ] README.md names each document's organising principle and why it differs
 - [ ] The duplicate-sentence guard is in place and fires on regression
 - [ ] `make check` passes

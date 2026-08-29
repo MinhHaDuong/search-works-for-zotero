@@ -8,6 +8,7 @@ Author: claude
 2026-08-29T00:00Z claude label needs-human
 2026-08-29T12:00Z minh note both draft entries ratified (DECISIONS.md 2026-08-29); the 211/666 reading stays open
 
+2026-08-29T11:14Z claude note C2's chunker sentence corrected in the same pass that fixed the geometry claim (both are one sentence); the never-crosses-a-section refutation is landed, so that exit criterion is ticked here
 --- body ---
 ## Context
 A verification pass against the author's own Zotero installation (10.0,
@@ -81,14 +82,37 @@ get to skip it — which is why it carries `needs-human`.
 - `verification/VERIFY-FULLTEXT-SQLITE.md` — the evidence
 
 ## Actions
-1. Author ratifies or vetoes the two draft entries. Record in DECISIONS.md.
-2. Correct the §2.6 attribution to shipped Zotero 10.
-3. State explicitly in §2.6 that our fused third list differs from the
+1. Correct the §2.6 attribution to shipped Zotero 10.
+2. State explicitly in §2.6 that our fused third list differs from the
    platform's exclusive routing, and name the two dead ends it fixes.
-4. Correct C2's boundary sentence, and say that our ruling is stricter by
+3. Correct C2's boundary sentence, and say that our ruling is stricter by
    choice.
-5. Resolve the 211 / 666 inconsistency per the author's ruling.
-6. Add the C1 and trigram corroborations.
+4. Resolve the 211 / 666 inconsistency per the author's ruling.
+5. Add the C1 and trigram corroborations.
+
+Three findings from the same verification, folded here because they share its
+evidence and touch the same two documents:
+
+6. **CONSTRAINTS.md carries no figure-guard anchors.** It is absent from the
+   PROSE map in `bench/check_figures.py`, so its measured figures — 584/8 037,
+   374 ms, 120/768/48, both RAM budgets — are unchecked, and the guard's
+   "0 stale" all-clear covers a file it never opens. Add it. Do this AFTER the
+   0080 rework, not before: 0080 rewrites C2 and §2.3, and anchors placed on
+   sentences that are about to change would only have to move again.
+7. **DESIGN.md L560–572 uses US thousands separators** (`7,541`, `5,561`,
+   `6,100`, `2,101`, bare `100%`). Two different problems in one block. The
+   prose outside the blockquote violates the house convention and is a plain
+   fix. The numbers INSIDE the blockquote are a sample of what the product
+   prints, so changing them decides whether the coverage sentence emits
+   `7,541` or `7 541` — an i18n design question the author owns. Fix the
+   prose; put the question to him rather than deciding it here.
+8. **SYNC.md has a blind spot this verification exposed.** No public release
+   note named `fulltext.sqlite`, FTS5, or the index split — Zotero 10's
+   changelog says only "Much faster full-text content searches". The
+   platform's largest recent move in our own problem area shipped unannounced
+   on 2026-08-17 and reached us through a third party's PR. Watching
+   `fulltext.js` and `resource/schema/userdata.sql` on `main` would have fired
+   on 2026-06-30. Add the watch to SYNC.md's mechanics.
 
 ## Test
 The figure guard covers prose numbers, not attributions. The check here is a
@@ -97,6 +121,7 @@ is a released Zotero version or a read commit, never a draft PR summary.
 
 ## Verification
 - [ ] Every edit traces to a ratified DECISIONS.md entry
+- [ ] The figure guard opens CONSTRAINTS.md; a seeded stale figure makes it red
 - [ ] No claim cites a PR summary where a shipped build is available
 - [ ] `make check` green
 
@@ -111,6 +136,10 @@ is a released Zotero version or a read commit, never a draft PR summary.
 - [x] The two entries are ratified or vetoed
 - [ ] §2.6's attribution names shipped Zotero 10
 - [ ] §2.6 states our divergence from exclusive routing
-- [ ] C2's boundary sentence is corrected
+- [x] C2's boundary sentence is corrected
 - [ ] The 211 / 666 inconsistency is resolved
+- [ ] CONSTRAINTS.md is in the figure-guard PROSE map (after 0080)
+- [ ] DESIGN.md's prose separators fixed; the blockquote i18n question put to
+      the author, not decided here
+- [ ] SYNC.md watches fulltext.js and userdata.sql on main
 - [ ] `make check` passes

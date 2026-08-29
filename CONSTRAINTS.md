@@ -94,11 +94,65 @@ The scouts sharpened this constraint on five points:
   random-access container with a reader contract
   `{byteLength, read(offset,length)}`, describing itself with exactly the
   key shape of C1. Zotero's own chunker splits on structural boundaries,
-  measured in tokens (120 minimum, 768 maximum, 48 overlap), never crosses
-  a section, and embeds the heading path with the text. This is platform
-  prior art, and the boundary ruling aligns with it.
+  measured in tokens, and embeds the heading path with the text. Two details
+  of it are easy to state wrongly, and both were, so they are stated here in
+  the platform's terms (read at PR head `77e2c4b`, 2026-08-29).
+
+  The geometry is 120 minimum, 48 overlap, and a maximum of 768 that is
+  **a ceiling, not a chunk size**. The source says so in as many words:
+  "A ceiling rather than a target: chunks come out paragraph-sized, so this
+  decides only how long a text has to be before it's split at all." The
+  effective budget is a minimum against the live model, not the constant —
+  `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
+  count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
+  declare `maxTokens: 512`; the two at 8 192 (`jina-embeddings-v2-small-en`,
+  `bge-m3`) are labelled `test:`. So 768 never binds today, and exists to
+  stop a future long-window model from emitting 8 000-token chunks. A
+  consumer that copies 768 without the minimum copies a ceiling and uses it
+  as a target, which is the opposite of what the number is for.
+
+  The chunker also **does not** never cross a section: it merges sections
+  below the 120-token minimum forward into their neighbour, asserted by
+  #6012's own tests. It never merges two sections each able to stand alone.
+  Our boundary ruling is therefore stricter than the platform's, a
+  deliberate divergence rather than the alignment this bullet used to claim.
 - Once #6012's saved-search serialization merges, it will be the first
   place platform semantic results appear in the local API.
+
+Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
+author's own installation (10.0, build 20260817151751) and the shipped
+`fulltext.js` of that build; the evidence is in
+`verification/VERIFY-FULLTEXT-SQLITE.md`.
+
+- The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
+  and `fulltextItemWords` and moved the keyword index into a separate
+  attached database, `fulltext.sqlite`. Upstream commit `7c2a1d1`,
+  2026-06-30, tagged in 10.0.0 and 10.0.1 only.
+- The schema is four contentless FTS5 tables plus their bookkeeping:
+  `fulltextContent` (unicode61), `fulltextContentCJK` (ascii, fed
+  overlapping 2-grams), `fulltextNotes` (trigram), `fulltextNotesCJK`,
+  with `fulltextIndexState`, `noteText` and `fulltextIndexMeta`. On the
+  author's library: 13 090 content documents, 386 CJK, 1 200 notes.
+- A row identifies an item directly. `fulltextContent.rowid` is the local
+  `itemID`, joined 13 090 of 13 090 against `fulltextIndexState`.
+- Contentless means the text does not come back. `MATCH` answers which
+  items match. `snippet()` and the stored column both return nothing,
+  measured. Zotero keeps the text in the `.zotero-ft-cache` files, not in
+  the index.
+- It is readable while Zotero runs, and fast. A read-only open of the live
+  file returned a count in 7 ms and a `MATCH` in 8 ms with the application
+  up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
+  WAL, so a writer takes an exclusive lock and a reader is cheap but not
+  guaranteed available.
+- Nothing documents any of this. The 10.0 changelog says only "Much faster
+  full-text content searches", naming neither the file, nor FTS5, nor the
+  split. This is an internal implementation file that has already moved
+  once without announcement, which is the C2 risk in its purest form.
+- Zoteus does not read it. It reaches full text over the local API
+  (`/items/<key>/fulltext` and `/fulltext?since=`), so the move did not
+  break it, and the platform's finished keyword index currently goes
+  unused. Whether to depend on it is a design question, carried by ticket
+  0120.
 
 ## C3 — the machine belongs to the user
 
