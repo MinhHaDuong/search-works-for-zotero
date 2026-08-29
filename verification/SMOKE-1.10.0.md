@@ -70,6 +70,38 @@ it did. The operational consequence is the one already recorded on ticket 0025:
 caller that checks only `hits` sees an empty result and no error — the
 all-clear and the could-not-look, again, being the same output.
 
+**This is not an upstream migration problem, and the check is worth stating
+because it looks like one.** Read from upstream history rather than inferred:
+`index_meta` appears in **no upstream commit, ever**, while `passages_fts` and
+the `schemaVersion` stamp both arrive together in `eee1000`, the first commit of
+the SQLite backend, released in **v1.7.0**. `SCHEMA_VERSION` was introduced as 1
+there and has never been bumped in the three releases since. The schema this
+repo tripped over is its own archived prototype
+(`archive/fts5-storage-2026-08-21`), which no user ever ran. Users predating the
+SQLite backend are unaffected for a separate reason: that index persisted as
+`search-index.json`, a different filename, so it is never inspected by this
+path.
+
+**What the episode does expose is prospective, and it is structural.** There is
+no migration code, and none is contemplated by the shape of the check:
+
+```ts
+if (stored === 'fresh' || stored === SCHEMA_VERSION) return;
+// …everything else is renamed aside and rebuilt from zero
+```
+
+Sideline-and-rebuild is the *only* behaviour on any schema that is not exactly
+the current one — an older stamped version included. So the day
+`SCHEMA_VERSION` becomes 2, every user's index is discarded and rebuilt, and the
+rebuild's cost is dominated by re-embedding, which is the expensive half and is
+not measured here. The 263,7 s this repo records for a 477 512-passage rebuild
+is the FTS half alone. Sidelining rather than deleting is the right call and the
+notice is honest; what is missing is any path that reads an old index instead of
+abandoning it.
+
+Whether that deserves an upstream issue is the author's call and the budget is
+currently spent (both slots on #27 and #28). It is recorded here, not filed.
+
 ### 2. In `semantic` mode the returned score is a rank, not a similarity
 
 Three of the five `semantic` queries returned byte-identical top-5 scores, and
