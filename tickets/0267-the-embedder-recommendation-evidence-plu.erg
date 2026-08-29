@@ -1,0 +1,86 @@
+%erg 0.1
+Title: The embedder recommendation: evidence plus a decision rule
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0263
+Blocked-by: 0264
+Blocked-by: 0265
+Blocked-by: 0266
+
+--- log ---
+2026-08-29T20:10Z claude created
+2026-08-29T20:10Z claude note child 7 of tracker 0240. Blocked on all four measurement children. Writes a recommendation; sets no default.
+
+--- body ---
+## Context
+
+Child 7 of tracker `tickets/0240`, which owns the rationale.
+
+The tracker's instruction is precise and easy to violate: the recommendation is
+addressed to the maintainer's choice and is **not a patch to a default**. It
+equips him to set one, and states what evidence would overturn it.
+
+Every input is measured by then. This ticket does no measuring; if it needs a
+number that does not exist, the answer is a child ticket, not an estimate.
+
+## Relevant files
+
+- `tickets/0240-...erg` — the tracker
+- `tickets/0263` CPU arm, `0264` GPU arm, `0265` recall and fusion, `0266`
+  cross-lingual — the four evidence bases
+- `spec/DECISIONS.md` — where a ruling lands, written by the author, not here
+- `spec/FIELD-REVIEW.md` — for what the surveyed field does and does not measure
+- `verification/` — where the report lives; evidence, not authority
+
+## Actions
+
+1. Write the recommendation as a report under `verification/`, cited by path from
+   this ticket.
+2. State the decision rule explicitly: which columns rank, in what order, and
+   what tie-breaks. Memory is a reported cost and does not rank — the tracker's
+   2026-08-29 ruling inverted its role and applying it as a gate would reject
+   every multilingual candidate.
+3. Present the CPU and GPU arms as two shapes. A recommendation that holds on one
+   and not the other is a finding, not a problem to average away.
+4. Answer the tracker's standing open questions with the measurements: does the
+   uint8-over-q8 ordering generalise past nomic; is the low 8-bit fidelity
+   nomic-specific or general; is quantization robustness a live selection
+   criterion.
+5. State what would overturn the recommendation — a named, checkable condition,
+   not a hedge.
+6. Say plainly, where they are cited, that `0025-x1-recall/`'s campaign
+   benchmarked a candidate field R7 already excludes. The artifacts stay; the
+   sentence is the honest move.
+7. Record the engine versions, the documented support matrix as read at write
+   time, and the state of upstream `transformers.js#945`.
+
+## Test
+
+- No new measurement code. An adherence check: every figure in the report
+  resolves to a committed result file through `bench/check_figures.py`.
+
+## Verification
+
+- [ ] The report recommends and does not patch a default
+- [ ] Memory appears as a reported cost, never as a rank or a gate
+- [ ] Both 8-bit variants are reported per candidate, with the generalisation
+      question answered rather than assumed
+- [ ] Every figure is declared in the figure guard with its anchor
+- [ ] What would overturn the recommendation is stated as a checkable condition
+
+## Invariants
+
+- No second embedding set is proposed
+- R10 holds: no API embedder in the comparison
+- `0025-x1-recall/` artifacts are not deleted or rewritten
+- The report is evidence, not authority: where it touches the design it points at
+  the owning document
+- Nothing in the report carries this repo's internal governance or its reading of
+  the maintainer
+
+## Exit criteria
+
+- [ ] A recommendation under `verification/`, stating a decision rule, its
+      evidence, and what would overturn it
+- [ ] Engine versions, limits and the upstream CUDA work's state recorded with it
+- [ ] Every figure declared; `make check` green
