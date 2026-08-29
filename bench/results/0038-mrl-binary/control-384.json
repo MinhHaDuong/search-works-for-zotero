@@ -1,6 +1,6 @@
 {
   "what": "Matryoshka truncation x binary quantization, decomposed, on real vectors",
-  "when": "2026-08-29T08:11:08.957Z",
+  "when": "2026-08-29T08:23:52.831Z",
   "label": "positive control vs ticket 0008",
   "source": {
     "kind": "vec0",
@@ -33,73 +33,131 @@
       },
       "truncation_only_recall": 1,
       "binary_recall": {
-        "threshold_zero": [
-          {
-            "pool": 30,
-            "multiple": 1,
-            "recall": 0.5917
-          },
-          {
-            "pool": 60,
-            "multiple": 2,
-            "recall": 0.7763
-          },
-          {
-            "pool": 120,
-            "multiple": 4,
-            "recall": 0.884
-          },
-          {
-            "pool": 240,
-            "multiple": 8,
-            "recall": 0.9527
-          },
-          {
-            "pool": 480,
-            "multiple": 16,
-            "recall": 0.986
-          }
-        ],
-        "mean_centred": [
-          {
-            "pool": 30,
-            "multiple": 1,
-            "recall": 0.6073
-          },
-          {
-            "pool": 60,
-            "multiple": 2,
-            "recall": 0.81
-          },
-          {
-            "pool": 120,
-            "multiple": 4,
-            "recall": 0.918
-          },
-          {
-            "pool": 240,
-            "multiple": 8,
-            "recall": 0.9687
-          },
-          {
-            "pool": 480,
-            "multiple": 16,
-            "recall": 0.991
-          }
-        ]
+        "threshold_zero": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5917
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.7763
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.884
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9527
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.986
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.5917
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.7763
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.884
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9527
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.986
+            }
+          ]
+        },
+        "mean_centred": {
+          "rerank_full_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.6073
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.81
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.918
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9687
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.991
+            }
+          ],
+          "rerank_at_width": [
+            {
+              "pool": 30,
+              "multiple": 1,
+              "recall": 0.6073
+            },
+            {
+              "pool": 60,
+              "multiple": 2,
+              "recall": 0.81
+            },
+            {
+              "pool": 120,
+              "multiple": 4,
+              "recall": 0.918
+            },
+            {
+              "pool": 240,
+              "multiple": 8,
+              "recall": 0.9687
+            },
+            {
+              "pool": 480,
+              "multiple": 16,
+              "recall": 0.991
+            }
+          ]
+        }
       }
     }
   ],
   "scan_timings": [
     {
       "name": "exact_float32_full",
-      "median_ms": 73.44,
-      "iqr_pct_of_median": 2.6
+      "median_ms": 76.48,
+      "iqr_pct_of_median": 0.6
     },
     {
       "name": "binary_384bit_swar",
-      "median_ms": 4.29,
-      "iqr_pct_of_median": 1
+      "median_ms": 4.69,
+      "iqr_pct_of_median": 9.7
     }
   ],
   "same_item_share_of_exact_topk": 0.521,
@@ -109,9 +167,9 @@
     "cpu_model": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
     "total_mem_bytes": 25079382016,
     "loadavg_at_start": [
-      1.02,
-      1.38,
-      1.92
+      0.96,
+      0.72,
+      1.2
     ],
     "node": "v22.23.1"
   },

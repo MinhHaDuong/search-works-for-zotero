@@ -258,14 +258,30 @@ function meanPrefix(w) {
 
 const POOLS = [TOPK, TOPK * 2, TOPK * 4, TOPK * 8, TOPK * 16];
 
-/** Recall@TOPK of a coarse pool reranked exactly against the FULL-width vectors. */
-function recallFromCoarse(coarseByProbe) {
+/**
+ * Recall@TOPK of a coarse pool, reranked and scored against the exact full-width ranking.
+ *
+ * `rerankDist` is the distance the SECOND stage sorts by, and the choice is the whole
+ * question for a user staring at a 3 GB index:
+ *
+ *   - the full-width distances — the shipped two-stage shape. The narrow codes make the
+ *     SCAN cheap, but the full float32 column must stay on disk for the rerank to read,
+ *     so this buys latency and not bytes.
+ *   - the width-W distances — nothing but the narrow representation is ever read, so the
+ *     full column can be DELETED. That is the option that reclaims the disk, and its cost
+ *     is exactly what this second variant measures.
+ *
+ * Scoring is against the full-width ranking either way: that is what the user has today,
+ * and it does not stop being the reference because we chose to store less.
+ */
+function recallFromCoarse(coarseByProbe, rerankDist) {
   return POOLS.map((pool) => {
     let hit = 0;
     for (const p of probeIdx) {
-      const { top, dist } = exact.get(p);
+      const { top } = exact.get(p);
+      const by = rerankDist ? rerankDist.get(p) : exact.get(p).dist;
       const pooled = Array.from(coarseByProbe.get(p).subarray(0, pool));
-      pooled.sort((a, b) => dist[a] - dist[b]);
+      pooled.sort((a, b) => by[a] - by[b]);
       hit += pooled.slice(0, TOPK).filter((i) => top.has(i)).length / TOPK;
     }
     return { pool, multiple: pool / TOPK, recall: +(hit / PROBES).toFixed(4) };
@@ -277,11 +293,15 @@ for (const w of WIDTHS) {
   const words = w >> 5;
 
   // (a) truncation alone: the exact ranking the prefix produces, no bits dropped.
+  // The distances are kept rather than discarded — the same array is what a rerank
+  // restricted to the narrow representation would sort by, below.
+  const distW = new Map();
   let truncHit = 0;
   for (const p of probeIdx) {
     const { top } = exact.get(p);
-    const got = selectAscending(cosineDistances(vecs[p], w), TOPK, p);
-    for (const i of got) if (top.has(i)) truncHit++;
+    const d = cosineDistances(vecs[p], w);
+    distW.set(p, d);
+    for (const i of selectAscending(d, TOPK, p)) if (top.has(i)) truncHit++;
   }
   const truncationOnly = +(truncHit / (PROBES * TOPK)).toFixed(4);
 
@@ -303,7 +323,10 @@ for (const w of WIDTHS) {
       }
       coarse.set(p, selectAscending(d, MAXPOOL, p));
     }
-    regimes[name] = recallFromCoarse(coarse);
+    regimes[name] = {
+      rerank_full_width: recallFromCoarse(coarse, null),
+      rerank_at_width: recallFromCoarse(coarse, distW),
+    };
   }
 
   perWidth.push({
@@ -313,10 +336,11 @@ for (const w of WIDTHS) {
     truncation_only_recall: truncationOnly,
     binary_recall: regimes,
   });
+  const z = regimes.threshold_zero;
   console.error(
-    `width ${String(w).padStart(5)}  truncation-only ${truncationOnly.toFixed(4)}  ` +
-      `binary@4x ${regimes.threshold_zero[2].recall.toFixed(4)}  ` +
-      `binary@8x ${regimes.threshold_zero[3].recall.toFixed(4)}`,
+    `width ${String(w).padStart(5)}  trunc-only ${truncationOnly.toFixed(4)}  ` +
+      `binary+full-rerank @4x ${z.rerank_full_width[2].recall.toFixed(4)} @8x ${z.rerank_full_width[3].recall.toFixed(4)}  ` +
+      `binary+narrow-rerank @8x ${z.rerank_at_width[3].recall.toFixed(4)}`,
   );
 }
 
