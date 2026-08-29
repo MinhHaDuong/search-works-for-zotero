@@ -1,0 +1,80 @@
+%erg 0.1
+Title: Repair the two bench drivers pinned to the pre-rename index schema
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T10:40Z claude created
+2026-08-29T10:42Z claude note found by the /roar sweep after X2. Filed at 0100 rather than the next free 0092: 0080 landed on main from a parallel session mid-session, which is exactly the frontier contention the renumber rule names
+
+--- body ---
+## Context
+X2 lost an hour to a schema break nobody had noticed: upstream renamed the
+index tables, so `passages` — once the FTS5 virtual table — is now a plain
+table with `passages_fts` beside it. Every pre-existing index on the author's
+machine became unreadable, and the runbook step that used one could not run.
+
+The sweep asked whether anything else in `bench/` carries the same
+assumption. Two drivers do, and both open a REAL index rather than building
+their own:
+
+- **`bench/index_concentration.mjs:138`** — `CREATE VIRTUAL TABLE ... USING
+  fts5vocab(passages, row)`. Confirmed against the rebuilt 477 512-passage
+  index: `Error: stepping, no such fts5 table: temp.passages`. So this driver
+  cannot run against any index built by v1.9.0.
+- **`bench/bm25_idf_effect.mjs:4`** — opens the hardcoded path
+  `/home/haduong/.zoteus-bench-0003/search-index.sqlite` and queries the old
+  shape. Two defects in one line: the pre-rename schema, and a hardcoded path
+  where the house rule requires a CLI parameter.
+
+Checked and NOT affected, recorded so the next sweep does not re-derive it:
+`constrained_match.mjs` already uses `passages_fts`; `fts5_bench.mjs` and
+`cosine_fusion.mjs` build their own tables and are self-consistent —
+`cosine_fusion.mjs` is in fact already new-schema-shaped.
+
+Why this clears the severity floor: it bites the science. STATE.md quotes
+0013's concentration figures, and they were produced by a driver that can no
+longer run against a current index — so those numbers cannot be re-measured
+or refuted, only believed.
+
+## Relevant files
+- `bench/index_concentration.mjs` — `fts5vocab(passages, row)` at line 138
+- `bench/bm25_idf_effect.mjs` — hardcoded path and old schema at line 4
+- `bench/results/0013-concentration/` — the artifacts whose driver is broken
+- A current-schema index exists at
+  `/home/haduong/data/projets/zoteus-bench/x2-rebuild/` (477 512 passages),
+  built for X2, so neither repair needs a fresh 264 s build
+
+## Actions
+1. Point `index_concentration.mjs` at `passages_fts`, and have it FAIL LOUDLY
+   with the schema it found when the expected table is absent — a driver that
+   silently measures the wrong table is the defect class this ticket exists
+   for.
+2. Give `bm25_idf_effect.mjs` a `--db` argument with no default, per the
+   no-hardcoded-paths rule, and move it to the new schema.
+3. Re-run both against `x2-rebuild/` and compare with the committed 0013
+   artifacts. A changed number is a finding, not a nuisance: say which of the
+   two runs is right and why, in the artifact.
+
+## Test
+The repair is verified by running, not by reading — the old code errors on a
+current index, which is the red step. Assert on the error path too: point the
+repaired driver at a pre-rename index and confirm it names the schema it
+found rather than returning zero.
+
+## Verification
+- [ ] both drivers run against `x2-rebuild/` and emit their artifacts
+- [ ] both refuse loudly on a pre-rename index, naming the schema
+- [ ] `bm25_idf_effect.mjs` has no hardcoded path
+- [ ] 0013's figures re-measured, and any change explained in the artifact
+      and propagated to STATE.md through the figure guard
+
+## Invariants
+- `make check` stays green; the figure guard reports 0 stale.
+- No committed artifact is edited to match a new run without the artifact
+  saying which run produced it.
+
+## Exit criteria
+- Both drivers run against a current-schema index, refuse loudly against an
+  old one, and 0013's quoted figures are either confirmed or corrected with
+  the reason recorded.
