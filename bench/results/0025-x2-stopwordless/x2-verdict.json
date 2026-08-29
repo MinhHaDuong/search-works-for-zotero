@@ -1,0 +1,67 @@
+{
+  "probe": "ticket 0025 X2 — stopword-less OR-query keyword p95 on the real 477k-passage index, with a stock-upstream control arm on the same index and the same queries",
+  "rule": "DESIGN.md §3: p95 <= ~500 ms -> the stoplist deletion ships alone; above -> the PR grows corpus-driven pruning of query terms whose document frequency exceeds ~50% first",
+  "verdict": "FAIL. Warm p95 is 1773,0 ms, 3,5x the ~500 ms allowance. The control arm puts the cause beyond doubt: the same twenty queries on the same index, answered by stock v1.9.0 with its stoplist intact, cost a warm p95 of 392,3 ms — inside the allowance. Deleting the stoplist multiplies p95 by 4,5 and the median by 5,7. Per the rule the deletion does not ship alone; df-driven pruning is a precondition, not a follow-up.",
+  "substrate": "REAL. The author's live Zotero library (host doudou), 7 541 items, 477 512 passages of which 465 110 full text, uncapped (ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0). Built fresh for this measurement — see rebuild_note.",
+  "rebuild_note": "Every pre-existing index in /home/haduong/data/projets/zoteus-bench/ is pre-rename schema: `passages` is itself the FTS5 virtual table there, while v1.9.0 expects a plain `passages` table with `passages_fts` beside it. Opening one on current code dies with `virtual tables may not be indexed`, so RUNBOOK step 2's $DATA650 could not be measured against and the index was rebuilt. The rebuild reproduced the old geometry exactly (477 512 passages, 465 110 full text), which is what licenses comparison with the 0011 and 0003 artifacts.",
+  "rebuild": {
+    "driver": "bench/run_build.py",
+    "elapsed_s": 263.7,
+    "peak_rss_kb": 1842396,
+    "peak_rss_mib": 1755.6,
+    "sqlite_bytes": 984350720,
+    "sibling": "bench/results/0011-rss/uncapped-build-3.json (371,6 s, 1 848,8 MiB, same 477 512 passages, old schema, 2026-08-22)"
+  },
+  "queries": "bench/queries-x2.txt — 20 natural-language queries, each carrying at least three of the 29 English words the deleted stoplist held. Committed rather than improvised in /tmp: a p95 is a claim about a population.",
+  "driver": "bench/query.py --backend sqlite --limit 20 --repeat 6",
+  "arms": {
+    "treatment": {
+      "tree": "MinhHaDuong/zoteus stopwords-follow-up 94d994d (one commit atop v1.9.0 bb414df); dist/features/search/tokenize.js carries no stoplist",
+      "artifact": "bench/results/0025-x2-stopwordless/queries-477k.json"
+    },
+    "control": {
+      "tree": "oscardvs/zoteus v1.9.0 bb414df, stoplist intact (2 STOPWORDS occurrences in dist/features/search/tokenize.js)",
+      "artifact": "bench/results/0025-x2-stopwordless/control-stock-v1.9.0-477k.json"
+    }
+  },
+  "measurement": "Six timed passes over the twenty queries per arm. Pass 0 is reported separately as the cold population; the verdict reads the 100 warm samples, since the rule is about steady-state query cost. Nearest-rank percentiles.",
+  "warm_p95_ms": {
+    "stopword_less": 1773.0,
+    "stock_with_stoplist": 392.3
+  },
+  "warm_p50_ms": {
+    "stopword_less": 1233.2,
+    "stock_with_stoplist": 215.7
+  },
+  "warm_max_ms": {
+    "stopword_less": 3123.8,
+    "stock_with_stoplist": 440.3
+  },
+  "warm_min_ms": {
+    "stopword_less": 885.3,
+    "stock_with_stoplist": 37.1
+  },
+  "ratio_p95": 4.5,
+  "ratio_p50": 5.7,
+  "slowest_query": {
+    "q": "on the theory of value and of distribution",
+    "warm_max_ms": 3123.8
+  },
+  "fastest_query_is_still_over_budget": {
+    "q": "to be or not to be",
+    "warm_min_ms": 885.3,
+    "note": "The cheapest of the twenty costs 885,3 ms warm. No query in the population came within the allowance, so the failure is not a tail artifact."
+  },
+  "collateral_finding": {
+    "claim_in_the_pr_body": "\"`to be or not to be` tokenizes to nothing at all, on both backends\"",
+    "measured": "FALSE on v1.9.0. tokenize('to be or not to be') returns [\"not\"] — `not` was never in the 29-word stoplist. Stock therefore answers the query as a single-term search for `not`, returning 20 bm25-ranked hits in ~290 ms whose titles have no relation to the query.",
+    "consequence": "The sentence must be reworded before the PR opens. The defect it points at is real and arguably worse than the one claimed — the query silently degenerates to one incidental term and returns confident noise rather than nothing — but as written the claim is falsifiable by the maintainer in one minute, and it is the PR's rhetorical centerpiece.",
+    "checked_by": "importing tokenize() from each arm's built dist/ and printing its output"
+  },
+  "not_a_finding": "tokenize() emits duplicate tokens (`the` three times in query 1). It costs nothing: sqlite-index.ts:466 dedupes with `[...new Set(tokenize(q))]` before building the MATCH string. Checked before reporting.",
+  "host": "doudou (the author's workstation — the substrate ticket 0025's map requires for X2)",
+  "cpu": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+  "node": "v22.23.1",
+  "date": "2026-08-29",
+  "timestamp_utc": "2026-08-29T07:58:40.227751+00:00"
+}

@@ -1,0 +1,116 @@
+%erg 0.1
+Title: Correct DESIGN §2.6 and CONSTRAINTS C2 against the Zotero 10 verification
+Created: 2026-08-29
+Author: claude
+
+--- log ---
+2026-08-29T00:00Z claude created
+2026-08-29T00:00Z claude label needs-human
+2026-08-29T12:00Z minh note both draft entries ratified (DECISIONS.md 2026-08-29); the 211/666 reading stays open
+
+--- body ---
+## Context
+A verification pass against the author's own Zotero installation (10.0,
+build 20260817151751) and against the shipped `fulltext.js` of that build
+settled a claim that had been recorded as unverified, and in doing so
+refuted two statements the specification chain currently makes. Evidence:
+`verification/VERIFY-FULLTEXT-SQLITE.md` — nine sub-claims, seven confirmed,
+one partly, one refuted, each with its provenance.
+
+Zotero 10 dropped `fulltextWords` / `fulltextItemWords` at userdata step 127
+and moved the keyword index into a separate attached database,
+`fulltext.sqlite` — four contentless FTS5 tables, among them
+`fulltextContentCJK`, fed overlapping 2-grams by `getCJKBigrams()`. Upstream
+commit `7c2a1d1`, 2026-06-30; `git tag --contains` returns 10.0.0 and 10.0.1
+only. Measured on the author's index: 2 536 distinct terms, every one
+exactly two characters.
+
+Three of our statements are now wrong or misleading. This ticket corrects
+them. It does not re-open any ruling.
+
+## What is wrong
+
+**1. DESIGN.md §2.6 credits the wrong source.** It attributes the CJK 2-gram
+geometry to "#6012's shipped geometry". At PR head `77e2c4b`,
+`getCJKBigrams` appears in the #6012 diff only as a call site: the geometry
+predates the PR and ships on `main`. Credit shipped Zotero 10, which is both
+correct and the stronger citation — a released platform beats a draft PR.
+
+**2. DESIGN.md §2.6's "fused as a third list" describes us, not Zotero.**
+The platform routes CJK *exclusively* and returns null for a single CJK
+character and for a mixed-script term. Fusing is our improvement, and those
+two dead ends are what it fixes. As written the sentence reads as though we
+match the platform. #6012 does add a query-side single-character fallback
+the shipped path lacks, which is worth adopting.
+
+**3. CONSTRAINTS.md C2's "never crosses a section" is refuted.** The chunker
+merges sections below the 120-token minimum forward into their neighbour,
+asserted by #6012's own tests (one chunk containing `Title page`,
+`Copyright notice` and `alpha0`). It never merges two sections each able to
+stand alone. Our boundary ruling is therefore *stricter* than the platform's
+— a deliberate divergence, where C2 currently claims alignment. A reader
+building to C2 as written would build the wrong thing.
+
+## The internal inconsistency this exposed
+120 / 768 / 48 are real constants, but **768 never binds**: every shipped
+embedding model declares `maxTokens: 512`, so the effective ceiling is ~510
+minus the heading prefix. Under that reading `DESIGN.md:211` ("adopted
+verbatim") and `DESIGN.md:666` (the ≈ 250–300k passage estimate) are
+inconsistent with each other. Which one moves is the author's call, not a
+mechanical fix — the passage estimate feeds budgets.
+
+## Two corroborations to record while here
+- Zotero keys its index by local `itemID`, stamps it with `localUserKey`,
+  and rebuilds on mismatch. That is C1's `Zotero-Server-ID` partitioning
+  rule, independently arrived at, same reason and same remedy.
+- Zotero tried trigram for content and abandoned it three weeks later
+  (`0ce289a`, 2026-07-17, trigram → unicode61, forcing a rebuild), keeping
+  trigram for notes only. Independent support for our own trigram kill.
+
+## Ratification comes first
+Two draft DECISIONS.md entries are written in
+`verification/VERIFY-FULLTEXT-SQLITE.md` §4, in the ledger's style. The
+author ratifies or vetoes them; only then are DESIGN.md and CONSTRAINTS.md
+edited to match. That order is the chain's rule, and this ticket does not
+get to skip it — which is why it carries `needs-human`.
+
+## Relevant files
+- `DESIGN.md` §2.6, and lines 211 and 666
+- `CONSTRAINTS.md` C1, C2
+- `DECISIONS.md` — the two entries land here first
+- `verification/VERIFY-FULLTEXT-SQLITE.md` — the evidence
+
+## Actions
+1. Author ratifies or vetoes the two draft entries. Record in DECISIONS.md.
+2. Correct the §2.6 attribution to shipped Zotero 10.
+3. State explicitly in §2.6 that our fused third list differs from the
+   platform's exclusive routing, and name the two dead ends it fixes.
+4. Correct C2's boundary sentence, and say that our ruling is stricter by
+   choice.
+5. Resolve the 211 / 666 inconsistency per the author's ruling.
+6. Add the C1 and trigram corroborations.
+
+## Test
+The figure guard covers prose numbers, not attributions. The check here is a
+review-gate item: every corrected sentence names its source, and the source
+is a released Zotero version or a read commit, never a draft PR summary.
+
+## Verification
+- [ ] Every edit traces to a ratified DECISIONS.md entry
+- [ ] No claim cites a PR summary where a shipped build is available
+- [ ] `make check` green
+
+## Invariants
+- Rulings land in DECISIONS.md before the documents move.
+- The D2 hosted-mode ruling and the trigram kill are not re-opened; the
+  trigram kill is corroborated, not revisited.
+- One statement per fact: C2 owns the platform constraint, §2.6 owns our
+  response, neither restates the other.
+
+## Exit criteria
+- [x] The two entries are ratified or vetoed
+- [ ] §2.6's attribution names shipped Zotero 10
+- [ ] §2.6 states our divergence from exclusive routing
+- [ ] C2's boundary sentence is corrected
+- [ ] The 211 / 666 inconsistency is resolved
+- [ ] `make check` passes

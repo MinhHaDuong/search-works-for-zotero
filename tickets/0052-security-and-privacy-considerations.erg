@@ -1,0 +1,81 @@
+%erg 0.1
+Title: Security and privacy considerations for the specification chain
+Created: 2026-08-29
+Author: claude
+Blocked-by: 0036
+
+--- log ---
+2026-08-29T00:00Z claude created
+2026-08-29T00:00Z claude label needs-human
+2026-08-29T12:00Z minh note placement ratified: standalone SECURITY.md (DECISIONS.md 2026-08-29)
+
+--- body ---
+## Context
+Every IETF RFC carries a mandatory Security Considerations section. The
+specification chain has none, and the omission is not a formality here.
+
+In 11 862 words the only privacy content is REQUIREMENTS.md's line
+recording that four privacy requirements were DROPPED when hosted mode went
+out of scope (D2), plus DESIGN.md's note that the returned hosted-mode
+lines — contract keying, multi-tenant consent bookkeeping,
+encryption-at-rest, quota arithmetic — "stay dead". That reasoning is sound
+for the threats it names and it does not cover the local case. Dropping
+hosted mode removes multi-tenant exposure. It does not remove the exposure
+of a system that indexes the whole of a user's personal library on their own
+machine.
+
+The concrete surfaces the design already has: a derived index over every
+item, note and annotation the user holds; passage text that may leave the
+machine for an embedding API; a query endpoint and a status endpoint; a
+local database on a disk the design explicitly treats as the user's (C3);
+credentials for whatever remote services are configured.
+
+This ticket does not assert that any of these is mishandled. It asserts
+that the chain is silent, and that silence is indistinguishable from
+"considered and found safe" to any reader — including the author in six
+months and any reviewer upstream.
+
+## Placement — ratified 2026-08-29
+Standalone `SECURITY.md`, not a section of DESIGN.md or CONSTRAINTS.md. The
+ruling and its grounds are in DECISIONS.md: threats outlive designs, a section
+inside DESIGN.md is rewritten with the design it sits in, and a threat model
+states obligations we take on where CONSTRAINTS.md states facts the world
+imposes. FIELD-REVIEW.md supplies the supporting evidence — of 39 surveyed
+projects none documents a threat model, and the survey records three live
+privacy failures of exactly this class.
+
+## Actions
+1. Enumerate the assets: what the system holds that a user would mind
+   losing or leaking. Be concrete about the derived index — it is a
+   reconstruction of the library, not merely a pointer to it.
+2. Enumerate the surfaces: local database and its file permissions, the
+   query and status endpoints and what they bind to, any egress to
+   embedding or LLM providers, credential storage, logs.
+3. For each, state the design's current answer — including "none yet", where
+   that is the truth. An honest gap is the point of the document.
+4. Cross-reference R- and C-numbers rather than restating them.
+
+## Test
+No unit test fits a prose section. The check is a review-gate item: the
+document names every egress point the design has, verified by reading
+DESIGN.md section 2 for network calls and enumerating them independently.
+A positive control is required — seed a known egress and confirm the sweep
+finds it — otherwise "no egress found" and "I did not look" read alike.
+
+## Verification
+- [x] Placement ratified in DECISIONS.md before the text is written
+- [ ] Every egress point in DESIGN.md section 2 appears in the enumeration
+- [ ] Gaps stated as gaps, not smoothed over
+- [ ] No requirement or threshold restated; cross-references only
+
+## Invariants
+- This document describes and discloses. It does not decide: a new
+  obligation is a requirement and goes through DECISIONS.md then
+  REQUIREMENTS.md.
+- The D2 hosted-mode ruling is not reopened. Local-only is the scope.
+
+## Exit criteria
+- [x] Placement decided and ratified (standalone SECURITY.md)
+- [ ] Assets, surfaces and current answers enumerated, gaps included
+- [ ] Registered in CLAUDE.md and README.md
+- [ ] `make check` passes

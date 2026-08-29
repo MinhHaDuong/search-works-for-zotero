@@ -18,11 +18,18 @@ and in the author's fork, not here.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
+- `FIELD-REVIEW.md` — the survey of prior art: what other people have already
+  built for Zotero AI retrieval, what it teaches, and what is
+  license-compatible to borrow. Authoritative for the inventory and for each
+  project's observed state at its stated observation date. Owns no design
+  number, no requirement, and no threshold; where it touches our design it
+  points at the owning document. A dated snapshot, not a live tracker.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
-- `panel/cycle2/` — verbatim session record (memos, critiques, the political
-  and implementation reviews). Archive: never edit, never treat as
-  authoritative; where it disagrees with DESIGN.md, DESIGN.md is the record.
+- The cycle-2 panel's verbatim session record (memos, critiques, the political
+  and implementation reviews) is in git history, last present at commit
+  `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
+  with DESIGN.md, DESIGN.md is the record.
 - Superseded documents are DELETED, not archived in the tree — git is the
   archive. Do not create `history/` directories or versioned doc copies.
 
@@ -68,9 +75,21 @@ repo is public and he reads it.
   pushes from Claude sessions — in a remote session, attach it with `add_repo`
   (push access) rather than reporting it unreachable. The upstream repository
   is read-only, always.
-- Upstream API actions (filing an issue; the author authorizes each one) cannot
-  run in a session bound to this repo — cross-owner repos do not attach. The
-  working technique (issue #26, 2026-08-28): spawn a dedicated sibling session
-  with the upstream repository as its initial source (`create_session` with
-  `source_url`), hand it the exact text and nothing else to do, then verify the
-  result publicly (the issue/PR page) before recording it here.
+- Upstream API actions need the author's authorization for each one. They do
+  **not** need a special session: from a local session the forge CLI acts on
+  `oscardvs/zoteus` directly, on a `repo`-scoped token, with no push rights
+  required — opening a PR from the fork and editing a PR you authored both
+  work. Verified 2026-08-29 by editing PR #31's body. Always verify the result
+  publicly (the issue/PR page) before recording it here.
+- **Once authorized, execute — do not hand the author a URL to click.** The
+  earlier note here said upstream actions "cannot run in a session bound to
+  this repo — cross-owner repos do not attach", which describes a *remote*
+  session's repo-attachment mechanism and was read as a blanket prohibition.
+  Acting on it, an authorized PR was reduced to a pre-filled compare link for
+  the author to open and a body for him to paste by hand — his paste then
+  carried a two-space indent and CRLF into the public PR. Mechanical work the
+  agent can do is the agent's (author, 2026-08-29). Where a capability really
+  is absent, the sibling-session technique (issue #26, 2026-08-28:
+  `create_session` with the upstream repo as `source_url`, handed the exact
+  text and nothing else) remains the fallback — but probe the direct route
+  first.

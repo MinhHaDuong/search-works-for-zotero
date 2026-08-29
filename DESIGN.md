@@ -7,9 +7,10 @@ every design number: the gate thresholds (§2.8), the experiment decision
 rules (§3), and the budgets (§2.9). The requirements it serves are in
 REQUIREMENTS.md, the constraints it operates under are in CONSTRAINTS.md,
 and the author's rulings are recorded in DECISIONS.md. The raw panel record
-is in panel/cycle2/ — an archive; where it disagrees with this document,
-this document is the record. The predecessor design — cycle 1's "The Settled
-Ledger", called v1 below — is superseded and lives in git history.
+is in git history, last present at commit `e32afe3` as `panel/cycle2/`; where
+it disagrees with this document, this document is the record. The predecessor
+design — cycle 1's "The Settled Ledger", called v1 below — is superseded and
+lives in git history.
 
 How cycle 2 worked, in two sentences: six architects each re-ran the design
 through one lens (derivation, corpus, custody, concurrency, query, operator)
@@ -109,8 +110,9 @@ folded into the entries conversation (scoped issue B, §4): shipping
 item-collapse now would ship exactly the framing the entry ruling rejected.
 
 The full verdict-by-verdict record — what survived, what was amended by
-which critique, what died and what killed it — is in git history (this file
-before the plain-language rewrite) and in panel/cycle2/.
+which critique, what died and what killed it — is in git history: this file
+before the plain-language rewrite, and `panel/cycle2/` as of commit
+`e32afe3`.
 
 ---
 
@@ -744,9 +746,9 @@ deletions; the "contained" D3 PR as first proposed.
 
 ## 4. The increment sequence from v1.7.0
 
-*(Re-formed 2026-08-26 by the political and implementation reviews,
-panel/cycle2/, and ratified in DECISIONS.md. The original fifteen-step train
-is in git history at `dba8cd6`.)*
+*(Re-formed 2026-08-26 by the political and implementation reviews — in git
+history at `e32afe3` as `panel/cycle2/` — and ratified in DECISIONS.md. The
+original fifteen-step train is in git history at `dba8cd6`.)*
 
 Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
 SYNC.md's measured asymmetry governs the form each item takes: a contained

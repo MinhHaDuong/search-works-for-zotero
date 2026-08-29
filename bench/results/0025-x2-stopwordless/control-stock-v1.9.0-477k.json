@@ -1,0 +1,2837 @@
+{
+  "backend": "sqlite",
+  "limit": 20,
+  "repeat": 6,
+  "handshake_s": 0.45,
+  "ready_s": 1.42,
+  "peak_rss_kb_after_start": 116284,
+  "status": {
+    "documents": 477512,
+    "vectors": 0,
+    "items": 7541,
+    "storage": "sqlite",
+    "embedder": "none (keyword-only)",
+    "embedderConfigured": "off",
+    "embedderActive": false,
+    "fulltextEnabled": true,
+    "fulltextItems": 5562,
+    "fulltextPassages": 465110,
+    "builtFromVersion": 7541,
+    "libraryVersion": 418,
+    "libraryBackend": "local",
+    "passages": 477512,
+    "state": "idle",
+    "operation": "build",
+    "itemsFetched": 0,
+    "itemsRemoved": 0,
+    "itemsTotal": 7541,
+    "itemsAvailable": 7541,
+    "phase": "metadata",
+    "fulltextItemsScanned": 0,
+    "fulltextItemsTotal": 0
+  },
+  "queries": {
+    "the role of the state in the energy transition": {
+      "n": 20,
+      "keys": [
+        "JEJ2R6JF",
+        "35ZGLRZS",
+        "ZB9UTKG4",
+        "8L6E4UVZ",
+        "BNVPWNIS",
+        "HK3SJZDC",
+        "CRMGK5W8",
+        "SMPHC27H",
+        "9T67P2UY",
+        "P2KI5CVM",
+        "8XL87GQT",
+        "5L2C2XD2",
+        "KXKFFLZA",
+        "EMXDBMQ8",
+        "DXDNGI7S",
+        "E27H5TMF",
+        "SE7KI4YR",
+        "KKY728VV",
+        "VN3LL565",
+        "K224T6QM"
+      ],
+      "latency_ms": [
+        359.7,
+        348.1,
+        345.9,
+        328.1,
+        365.5,
+        354.5
+      ],
+      "hits": [
+        {
+          "itemKey": "JEJ2R6JF",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Website: https://www.diw.de/snapfi"
+        },
+        {
+          "itemKey": "35ZGLRZS",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Stakeholder Perspectives on South Africa’s Just Energy Transition I..."
+        },
+        {
+          "itemKey": "ZB9UTKG4",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Strategic analysis and framework design on international cooperation for energy transition: A perspective from China"
+        },
+        {
+          "itemKey": "8L6E4UVZ",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Renewables 2019 Global Status Report"
+        },
+        {
+          "itemKey": "BNVPWNIS",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Workshop: Energy transition in Viet Nam - Opportunities and challenges"
+        },
+        {
+          "itemKey": "HK3SJZDC",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "The Missing “Just” in Vietnam’s Just Energy Transition Partnership (JETP)"
+        },
+        {
+          "itemKey": "CRMGK5W8",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "World Energy Investment 2018"
+        },
+        {
+          "itemKey": "SMPHC27H",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Towards a Just Energy Transition Framework in the minerals and energy sectors. Discussion Document."
+        },
+        {
+          "itemKey": "9T67P2UY",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "The political economy of the ‘just transition’"
+        },
+        {
+          "itemKey": "P2KI5CVM",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Just energy transition partnerships in the context of Africa-Europe relations: reflections from South Africa, Nigeria and Senegal"
+        },
+        {
+          "itemKey": "8XL87GQT",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Stepping into the just transition journey: The energy transition in petrostates"
+        },
+        {
+          "itemKey": "5L2C2XD2",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Transforming the governance of energy systems: the politics of ideas in low-carbon infrastructure development in Mexico and Vietnam"
+        },
+        {
+          "itemKey": "KXKFFLZA",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Affordability, security, sustainability? Grassroots community energy visions from Liverpool, United Kingdom"
+        },
+        {
+          "itemKey": "EMXDBMQ8",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Just transition: A conceptual review"
+        },
+        {
+          "itemKey": "DXDNGI7S",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Quyết định 888/QĐ-TTg phê duyệt đề án về những nhiệm vụ, giải pháp triển khai kết quả hội nghị lần thứ 26 các bên tham gia công ước khung của liên hợp quốc về biến đổi khí hậu"
+        },
+        {
+          "itemKey": "E27H5TMF",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Scenarios for the Energy Transition: Global experience and best practices"
+        },
+        {
+          "itemKey": "SE7KI4YR",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "The challenges of Energy Transition in Vietnam and in Southeast Asia"
+        },
+        {
+          "itemKey": "KKY728VV",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Phasing out coal power in a developing country context: Insights from Vietnam"
+        },
+        {
+          "itemKey": "VN3LL565",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "International Conference\tREvision2023 Overcoming the Energy Crisis with Renewables"
+        },
+        {
+          "itemKey": "K224T6QM",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Just energy transitions and partnerships in Africa: A Nigeria case study"
+        }
+      ]
+    },
+    "what is the social cost of carbon": {
+      "n": 20,
+      "keys": [
+        "ZHCI6BCR",
+        "86EC9MMZ",
+        "4LK7VW2V",
+        "W7UZKDAL",
+        "NE9H2CJ3",
+        "P5WDCV9I",
+        "HE5RVLYP",
+        "PKEDRC6E",
+        "K864WYKS",
+        "PPH6VFF5",
+        "B6HXUHIS",
+        "FVDYLWXS",
+        "UXW9L5QI",
+        "VHVLBJGM",
+        "6XC83HS9",
+        "IKVN75MV",
+        "H5R3XXTM",
+        "3IPR4M8J",
+        "FWQ6VHWG",
+        "UQG8B2QW"
+      ],
+      "latency_ms": [
+        326.0,
+        325.7,
+        293.1,
+        304.8,
+        292.6,
+        317.3
+      ],
+      "hits": [
+        {
+          "itemKey": "ZHCI6BCR",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Why the social cost of carbon will always be disputed"
+        },
+        {
+          "itemKey": "86EC9MMZ",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "The Social Costs of Electricity Generation—Categorising Different Types of Costs and Evaluating Their Respective Relevance"
+        },
+        {
+          "itemKey": "4LK7VW2V",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "The future of nuclear power. An interdisciplinary MIT study."
+        },
+        {
+          "itemKey": "W7UZKDAL",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "The Treatment of Risk and Uncertainty in the US Social Cost of Carbon for Regulatory Impact Analysis"
+        },
+        {
+          "itemKey": "NE9H2CJ3",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Tipping points and ambiguity in the integrated assessment of climate change"
+        },
+        {
+          "itemKey": "P5WDCV9I",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Climate Risks and Carbon Prices: Revising the Social Cost of Carbon"
+        },
+        {
+          "itemKey": "HE5RVLYP",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "The economics of immense risk, urgent action and radical change: towards new approaches to the economics of climate change"
+        },
+        {
+          "itemKey": "PKEDRC6E",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "UNFCCC Review of Adaptation Costs and Benefits"
+        },
+        {
+          "itemKey": "K864WYKS",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "A retrospective analysis of benefits and impacts of U.S. renewable portfolio standards"
+        },
+        {
+          "itemKey": "PPH6VFF5",
+          "score": 0.012987012987012988,
+          "source": null,
+          "title": "Optimal carbon emissions and the social cost of carbon over time under uncertainty"
+        },
+        {
+          "itemKey": "B6HXUHIS",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Climate Economics: The State of the Art"
+        },
+        {
+          "itemKey": "FVDYLWXS",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Risk Premia and the Social Cost of Carbon: A Review"
+        },
+        {
+          "itemKey": "UXW9L5QI",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Thinking inside the box: A participatory, computer-assisted approach to scenario discovery"
+        },
+        {
+          "itemKey": "VHVLBJGM",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Global Alliance for Clean Cookstoves"
+        },
+        {
+          "itemKey": "6XC83HS9",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Vietnam Market Assessment Sector Mapping"
+        },
+        {
+          "itemKey": "IKVN75MV",
+          "score": 0.011363636363636364,
+          "source": null,
+          "title": "Technical Support Document: Social Cost of Carbon for Regulatory Impact Analysis Under Executive Order 12866"
+        },
+        {
+          "itemKey": "H5R3XXTM",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "The epistemic, ethical, and political dimensions of uncertainty in integrated assessment modeling"
+        },
+        {
+          "itemKey": "3IPR4M8J",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "The Challenge of Global Warming: Economic Models and Environmental Policy"
+        },
+        {
+          "itemKey": "FWQ6VHWG",
+          "score": 0.01098901098901099,
+          "source": null,
+          "title": "The Uncertainty about the Total Economic Impact of Climate Change"
+        },
+        {
+          "itemKey": "UQG8B2QW",
+          "score": 0.010752688172043012,
+          "source": "fulltext",
+          "title": "Inside the Integrated Assessment Models: Four Issues in Climate Economics"
+        }
+      ]
+    },
+    "the effect of a carbon tax on household income": {
+      "n": 20,
+      "keys": [
+        "DS9KVEAS",
+        "PIA5Q2MD",
+        "CJVEWKK3",
+        "DH8EXSVA",
+        "QXTFAHUL",
+        "TVP24JKR",
+        "LMZZ6L7N",
+        "H22UKQD7",
+        "LG368KPB",
+        "HE96I95C",
+        "WZ9SNRZM",
+        "NKSK3SIQ",
+        "XFN2ZM2B",
+        "X69DJS66",
+        "I3LX55EG",
+        "YDUBHPNQ",
+        "TAMLP8PA",
+        "BMAN5W8Q",
+        "MF9QE5BS",
+        "2Z8NWQSU"
+      ],
+      "latency_ms": [
+        228.4,
+        231.7,
+        235.0,
+        211.0,
+        208.4,
+        221.7
+      ],
+      "hits": [
+        {
+          "itemKey": "DS9KVEAS",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
+        },
+        {
+          "itemKey": "PIA5Q2MD",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Is the Discretionary Income Effect of Oil Price Shocks a Hoax?"
+        },
+        {
+          "itemKey": "CJVEWKK3",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "National and Sub-national Policies and Institutions"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "QXTFAHUL",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "World economic outlook: countering the cost-of-living crisis"
+        },
+        {
+          "itemKey": "TVP24JKR",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Weatherford - 2010 Annual Report"
+        },
+        {
+          "itemKey": "LMZZ6L7N",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Carbon pricing in Vietnam: Options for adoption"
+        },
+        {
+          "itemKey": "H22UKQD7",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Schmeduling"
+        },
+        {
+          "itemKey": "LG368KPB",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Policies for low-carbon and affordable home heating: A French outlook"
+        },
+        {
+          "itemKey": "HE96I95C",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Social determinants of residential electricity consumption in Korea: Findings from a spatial panel model"
+        },
+        {
+          "itemKey": "WZ9SNRZM",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Circular 111/2013/TT-BTC, August 15, 2013, guidance on the implementation of the Law on Personal income tax | Circular 111/2013/TT-BTC, August 15, 2013, guidance on the implementation of the Law on Personal income tax"
+        },
+        {
+          "itemKey": "NKSK3SIQ",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Achieving Copenhagen target through carbon emission trading: Economic impacts assessment in Guangdong Province of China"
+        },
+        {
+          "itemKey": "XFN2ZM2B",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Beyond Kyoto: Flexible Carbon Pricing for Global Cooperation"
+        },
+        {
+          "itemKey": "X69DJS66",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Opportunities for carbon pricing in Viet Nam"
+        },
+        {
+          "itemKey": "I3LX55EG",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Prices and costs of EU energy"
+        },
+        {
+          "itemKey": "YDUBHPNQ",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "Statistical Yearbook of Vietnam 2005"
+        },
+        {
+          "itemKey": "TAMLP8PA",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "Household electricity demand, revisited"
+        },
+        {
+          "itemKey": "BMAN5W8Q",
+          "score": 0.010309278350515464,
+          "source": "fulltext",
+          "title": "Statistical Yearbook of Vietnam 2008"
+        },
+        {
+          "itemKey": "MF9QE5BS",
+          "score": 0.01020408163265306,
+          "source": "fulltext",
+          "title": "Statistical Yearbook of Vietnam 2007"
+        },
+        {
+          "itemKey": "2Z8NWQSU",
+          "score": 0.009900990099009901,
+          "source": "fulltext",
+          "title": "Statistical Yearbook of Vietnam 2009"
+        }
+      ]
+    },
+    "to be or not to be": {
+      "n": 20,
+      "keys": [
+        "THXPN4ZP",
+        "KXKFFLZA",
+        "8EB4JHQL",
+        "Y3QZZEWH",
+        "PKEDRC6E",
+        "XS7PAHEW",
+        "2H5VK525",
+        "2XN9ZI8R",
+        "L74M9FXA",
+        "GZK9KAH4",
+        "8SGNNTQD",
+        "UMLS2I5P",
+        "Z9IS7FPY",
+        "CGZXTQPF",
+        "QIHV285M",
+        "XKM86PRR",
+        "XLKKKFV7",
+        "36XWMNUJ",
+        "F2KWWAQE",
+        "DH8EXSVA"
+      ],
+      "latency_ms": [
+        306.5,
+        287.2,
+        305.8,
+        273.6,
+        290.0,
+        288.6
+      ],
+      "hits": [
+        {
+          "itemKey": "THXPN4ZP",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Coping with Oil Price Volatility."
+        },
+        {
+          "itemKey": "KXKFFLZA",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Affordability, security, sustainability? Grassroots community energy visions from Liverpool, United Kingdom"
+        },
+        {
+          "itemKey": "8EB4JHQL",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "CO₂ Emissions and Models Performance: Insights from the Open LLM Leaderboard"
+        },
+        {
+          "itemKey": "Y3QZZEWH",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Modeling Energy and Development: An Evaluation of Models and Concepts"
+        },
+        {
+          "itemKey": "PKEDRC6E",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "UNFCCC Review of Adaptation Costs and Benefits"
+        },
+        {
+          "itemKey": "XS7PAHEW",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Global Status of CCS 2023. Scaling up through 2030"
+        },
+        {
+          "itemKey": "2H5VK525",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Global risk of radioactive fallout after major  nuclear reactor accidents"
+        },
+        {
+          "itemKey": "2XN9ZI8R",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Urban poverty assessment in Ha Noi and Ho Chi Minh City"
+        },
+        {
+          "itemKey": "L74M9FXA",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Bridge Over Troubled Waters: Linking Climate Change and Development"
+        },
+        {
+          "itemKey": "GZK9KAH4",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Energy security in ASEAN: A quantitative approach for sustainable energy policy"
+        },
+        {
+          "itemKey": "8SGNNTQD",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Tolerable risk guidelines"
+        },
+        {
+          "itemKey": "UMLS2I5P",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Residual Risk"
+        },
+        {
+          "itemKey": "Z9IS7FPY",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Style guide"
+        },
+        {
+          "itemKey": "CGZXTQPF",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Environmental Assessment For CO2 Capture ans storage"
+        },
+        {
+          "itemKey": "QIHV285M",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Global Trends in New Urban Electric Mobility"
+        },
+        {
+          "itemKey": "XKM86PRR",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Guidelines for carcinogen risk assessment"
+        },
+        {
+          "itemKey": "XLKKKFV7",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "English Style Guide"
+        },
+        {
+          "itemKey": "36XWMNUJ",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "Chiến lược phát triển kinh tế - xã hội 10 năm 2021-2030 - Economic development strategy for the 10 years 2021-2030"
+        },
+        {
+          "itemKey": "F2KWWAQE",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Finance for climate action: scaling up investment for climate and development"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        }
+      ]
+    },
+    "the origins of index numbers in economics": {
+      "n": 6,
+      "keys": [
+        "DH8EXSVA",
+        "MKNXF3F9",
+        "FIL2JI5M",
+        "JEJ2R6JF",
+        "VTDH929P",
+        "XMFQBZQZ"
+      ],
+      "latency_ms": [
+        132.0,
+        141.5,
+        127.6,
+        122.3,
+        124.5,
+        124.0
+      ],
+      "hits": [
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "MKNXF3F9",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "On the Economics and Analysis of Diversity"
+        },
+        {
+          "itemKey": "FIL2JI5M",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "System of national accounts 2008"
+        },
+        {
+          "itemKey": "JEJ2R6JF",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "Website: https://www.diw.de/snapfi"
+        },
+        {
+          "itemKey": "VTDH929P",
+          "score": 0.010416666666666666,
+          "source": "fulltext",
+          "title": "Natural Resource and Environmental Economics"
+        },
+        {
+          "itemKey": "XMFQBZQZ",
+          "score": 0.009900990099009901,
+          "source": "fulltext",
+          "title": "Al-Hawārī's Essential Commentary: Arabic Arithmetic in the Fourteenth Century"
+        }
+      ]
+    },
+    "models that are used for integrated assessment of climate": {
+      "n": 20,
+      "keys": [
+        "C4NAWBK6",
+        "QYFSIQ2P",
+        "LF8SY5WE",
+        "L6YPKQ5R",
+        "DIVGR3HZ",
+        "D83UNZ42",
+        "PKEDRC6E",
+        "A3XK63W2",
+        "T7RIV5E6",
+        "TT3HRT7K",
+        "TJ8ACXKG",
+        "2TM3QHQT",
+        "IKVN75MV",
+        "E43ZKH59",
+        "QXZAV24W",
+        "F8Y3IIJU",
+        "AM8AA9UR",
+        "JZ8UGBS3",
+        "C7LYAMZJ",
+        "H5R3XXTM"
+      ],
+      "latency_ms": [
+        344.8,
+        440.3,
+        327.3,
+        328.4,
+        411.9,
+        339.1
+      ],
+      "hits": [
+        {
+          "itemKey": "C4NAWBK6",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The next generation of scenarios for climate change research and assessment"
+        },
+        {
+          "itemKey": "QYFSIQ2P",
+          "score": 0.015873015873015872,
+          "source": null,
+          "title": "Modeling myths: On DICE and dynamic realism in integrated assessment models of climate change mitigation"
+        },
+        {
+          "itemKey": "LF8SY5WE",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Annex III: Scenarios and Modelling Methods"
+        },
+        {
+          "itemKey": "L6YPKQ5R",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Organising Policy-Relevant Knowledge for Climate Action: Integrated Assessment Modelling, the IPCC, and the Emergence of a Collective Expertise on Socioeconomic Emission Scenarios"
+        },
+        {
+          "itemKey": "DIVGR3HZ",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Economic Aspects of Adaptation to Climate Change - Papers - OECD iLibrary"
+        },
+        {
+          "itemKey": "D83UNZ42",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "A quantitative minimax regret approach to climate change: Does discounting still matter?"
+        },
+        {
+          "itemKey": "PKEDRC6E",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "UNFCCC Review of Adaptation Costs and Benefits"
+        },
+        {
+          "itemKey": "A3XK63W2",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "The representative concentration pathways: an overview"
+        },
+        {
+          "itemKey": "T7RIV5E6",
+          "score": 0.013513513513513514,
+          "source": null,
+          "title": "Necessities and problems of coupling climate and socioeconomic models for integrated assessments studies from an economist's point of view"
+        },
+        {
+          "itemKey": "TT3HRT7K",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "An analysis of the dismal theorem"
+        },
+        {
+          "itemKey": "TJ8ACXKG",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Plan or React? Analysis of Adaptation Costs and Benefits Using Integrated Assessment Models"
+        },
+        {
+          "itemKey": "2TM3QHQT",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Evaluating process-based integrated assessment models of climate change mitigation"
+        },
+        {
+          "itemKey": "IKVN75MV",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Technical Support Document: Social Cost of Carbon for Regulatory Impact Analysis Under Executive Order 12866"
+        },
+        {
+          "itemKey": "E43ZKH59",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Anticipating Futures through Models: The Rise of Integrated Assessment Modelling in the Climate Science–Policy Interface since 1970"
+        },
+        {
+          "itemKey": "QXZAV24W",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "A Detailed Overview and Consistent Classification of Climate-Economy Models"
+        },
+        {
+          "itemKey": "F8Y3IIJU",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "DICE 2013R: Introduction and User's Manual"
+        },
+        {
+          "itemKey": "AM8AA9UR",
+          "score": 0.011764705882352941,
+          "source": null,
+          "title": "Revisiting the social cost of carbon"
+        },
+        {
+          "itemKey": "JZ8UGBS3",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "The need for and use of socio-economic scenarios for climate change analysis: A new approach based on shared socio-economic pathways"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        },
+        {
+          "itemKey": "H5R3XXTM",
+          "score": 0.010869565217391304,
+          "source": "fulltext",
+          "title": "The epistemic, ethical, and political dimensions of uncertainty in integrated assessment modeling"
+        }
+      ]
+    },
+    "the price of electricity in Vietnam": {
+      "n": 20,
+      "keys": [
+        "7SNK7V3C",
+        "GALVDHUT",
+        "IPHQWKUW",
+        "8ZP7BY3E",
+        "4ZM3E3UP",
+        "5UN65QQ3",
+        "SYK6YDMF",
+        "SMX95QCE",
+        "6ENKLJFR",
+        "ABMFQE6K",
+        "UYEQLPY3",
+        "NEQMYQIJ",
+        "VIHWNYPI",
+        "5V9AVA6A",
+        "AGTKX9QD",
+        "MRHXX4VK",
+        "SATNVLJ6",
+        "3BGRUUSE",
+        "JVIDUGNY",
+        "T92GVX24"
+      ],
+      "latency_ms": [
+        231.6,
+        233.8,
+        240.6,
+        229.5,
+        228.4,
+        224.6
+      ],
+      "hits": [
+        {
+          "itemKey": "7SNK7V3C",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Vietnam Low Electricity Price and Environmental Impacts"
+        },
+        {
+          "itemKey": "GALVDHUT",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "The study on national power development plan for the period of 2006-2015, perspective up to 2025 in Vietnam - Supporting reports"
+        },
+        {
+          "itemKey": "IPHQWKUW",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Giá điện 2 thành phần, người dân hưởng lợi?"
+        },
+        {
+          "itemKey": "8ZP7BY3E",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Thông tư số 15/2022/TT-BCT \"Quy định phương pháp xác định khung giá phát điện nhà máy điện mặt trời, điện gió chuyển tiếp\""
+        },
+        {
+          "itemKey": "4ZM3E3UP",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Le - Electricity Price, Residential Electricity Demand,.pdf"
+        },
+        {
+          "itemKey": "5UN65QQ3",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Quy hoạch điện VIII -  Một số chính sách cần bổ sung, ban hành ngay cho 16 hạng mục cơ bản [Electricity planning VIII - A number of policies need to be supplemented and issued immediately for 16 basic items]"
+        },
+        {
+          "itemKey": "SYK6YDMF",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Khung giá nào cho nguồn thủy điện tích năng ở Việt Nam?"
+        },
+        {
+          "itemKey": "SMX95QCE",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Giá mua điện khí 2 thành phần - Tham khảo cách điều hành của Ủy ban Phát Cải Thượng Hải"
+        },
+        {
+          "itemKey": "6ENKLJFR",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Policy Brief For Preparation of Just Energy Transition Partnership Implementation in Vietnam JUST AND EQUITY ASPECT"
+        },
+        {
+          "itemKey": "ABMFQE6K",
+          "score": 0.013888888888888888,
+          "source": null,
+          "title": "Study on the Impacts of Electricity Tariff Increase on the National Economy of Vietnam"
+        },
+        {
+          "itemKey": "UYEQLPY3",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Circular 96/2012/TT-BTC - Guidelines for financial mechanism to support electric price for wind power projects on grid tie"
+        },
+        {
+          "itemKey": "NEQMYQIJ",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Early research and propose a two-component electricity price mechanism"
+        },
+        {
+          "itemKey": "VIHWNYPI",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Electricity price and residential electricity demand in Vietnam"
+        },
+        {
+          "itemKey": "5V9AVA6A",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Bế tắc trong đàm phán giá mua bán điện khí LNG - Nhìn từ báo cáo của EVN gửi Chính phủ"
+        },
+        {
+          "itemKey": "AGTKX9QD",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Áp cách tính giá mới, tiền điện thay đổi thế nào?"
+        },
+        {
+          "itemKey": "MRHXX4VK",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Các khuyến nghị về phát triển điện LNG trong Quy hoạch điện VIII của Việt Nam"
+        },
+        {
+          "itemKey": "SATNVLJ6",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Một số khuyến nghị ban đầu về khung giá điện LNG (năm 2024) của Việt Nam"
+        },
+        {
+          "itemKey": "3BGRUUSE",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Master Plan Study on Pumped Storage Power Project PSPP and Optimization for Peaking Power Generation in Vietnam"
+        },
+        {
+          "itemKey": "JVIDUGNY",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Energy outlook of Vietnam through 2025 - Part 2"
+        },
+        {
+          "itemKey": "T92GVX24",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "Lấy ý kiến dự thảo Thông tư quy định khung giá cho nguồn thủy điện tích năng"
+        }
+      ]
+    },
+    "it is the marginal cost that matters and not the average": {
+      "n": 19,
+      "keys": [
+        "DH8EXSVA",
+        "KFMST55P",
+        "KTKVPKF6",
+        "MS7672HF",
+        "HKDLMRGF",
+        "JKKC2Q29",
+        "KXZ4RM4R",
+        "DWGG53Y2",
+        "JGIMQJN8",
+        "5VRI9R42",
+        "QHEWRBGU",
+        "GS6DK2JI",
+        "86EC9MMZ",
+        "RUMRDTCJ",
+        "R4HDCVL9",
+        "B6HXUHIS",
+        "VIHWNYPI",
+        "H6E5JT6G",
+        "HIHLXI37"
+      ],
+      "latency_ms": [
+        427.7,
+        407.3,
+        406.0,
+        383.5,
+        418.9,
+        392.3
+      ],
+      "hits": [
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "KFMST55P",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Incorporating CCS Technologies in Integrated Assessment Models"
+        },
+        {
+          "itemKey": "KTKVPKF6",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Incorporating carbon capture and storage technologies in integrated assessment models"
+        },
+        {
+          "itemKey": "MS7672HF",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Electricity Tariff Structure Review: Alternative Tariff Structures"
+        },
+        {
+          "itemKey": "HKDLMRGF",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Do consumers respond to marginal or average price? Evidence from nonlinear electricity pricing"
+        },
+        {
+          "itemKey": "JKKC2Q29",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Pricing mechanisms of electricity in SAARC member states"
+        },
+        {
+          "itemKey": "KXZ4RM4R",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "A case study on power sector restructuring in Vietnam"
+        },
+        {
+          "itemKey": "DWGG53Y2",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Electricity pricing for North Vietnam"
+        },
+        {
+          "itemKey": "JGIMQJN8",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Theory and Practice of Marginal Cost Pricing: The Experience of Électricité de France"
+        },
+        {
+          "itemKey": "5VRI9R42",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Marginal Cost Selling in Électricité de France"
+        },
+        {
+          "itemKey": "QHEWRBGU",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Technical change and the marginal cost of abatement"
+        },
+        {
+          "itemKey": "GS6DK2JI",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "On the economic theory of socialism: part one"
+        },
+        {
+          "itemKey": "86EC9MMZ",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "The Social Costs of Electricity Generation—Categorising Different Types of Costs and Evaluating Their Respective Relevance"
+        },
+        {
+          "itemKey": "RUMRDTCJ",
+          "score": 0.010869565217391304,
+          "source": "fulltext",
+          "title": "Calculation, complexity and planning: the socialist calculation debate once again"
+        },
+        {
+          "itemKey": "R4HDCVL9",
+          "score": 0.010752688172043012,
+          "source": "fulltext",
+          "title": "Ancillary benefits of reduced air pollution in the US from moderate greenhouse gas mitigation policies in the electricity sector"
+        },
+        {
+          "itemKey": "B6HXUHIS",
+          "score": 0.01,
+          "source": "fulltext",
+          "title": "Climate Economics: The State of the Art"
+        },
+        {
+          "itemKey": "VIHWNYPI",
+          "score": 0.009615384615384616,
+          "source": "fulltext",
+          "title": "Electricity price and residential electricity demand in Vietnam"
+        },
+        {
+          "itemKey": "H6E5JT6G",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "Electricity tariff design for transition economies"
+        },
+        {
+          "itemKey": "HIHLXI37",
+          "score": 0.00847457627118644,
+          "source": "fulltext",
+          "title": "International Benchmarking of Electricity Tariffs"
+        }
+      ]
+    },
+    "these results are robust to the choice of a discount rate": {
+      "n": 20,
+      "keys": [
+        "RKVRDT97",
+        "D83UNZ42",
+        "6UC8W8M9",
+        "2CEXRV4N",
+        "NQQG34H8",
+        "SGTJ9T9K",
+        "PZESJ4U9",
+        "P5WDCV9I",
+        "DJUAWMAT",
+        "XJZFW9IN",
+        "LF8SY5WE",
+        "TUK3BDYK",
+        "2GJCXUZ6",
+        "EAVTN9WP",
+        "C8UIC2VE",
+        "KMNRTKJZ",
+        "CXGEGATN",
+        "5JXD7BXV",
+        "KIH5D6GG",
+        "K2I876ZW"
+      ],
+      "latency_ms": [
+        221.1,
+        212.9,
+        192.5,
+        191.7,
+        195.3,
+        202.2
+      ],
+      "hits": [
+        {
+          "itemKey": "RKVRDT97",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Environmental policy under model uncertainty: a robust optimal control approach"
+        },
+        {
+          "itemKey": "D83UNZ42",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "A quantitative minimax regret approach to climate change: Does discounting still matter?"
+        },
+        {
+          "itemKey": "6UC8W8M9",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Accounting for the risk of uncertain outcomes in an integrated assessment of climate change"
+        },
+        {
+          "itemKey": "2CEXRV4N",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Social Cost-Benefit Analysis of Climate Change Mitigation Options in a European Context"
+        },
+        {
+          "itemKey": "NQQG34H8",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Optimal climate policy is a utopia: from quantitative to qualitative cost-benefit analysis"
+        },
+        {
+          "itemKey": "SGTJ9T9K",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Assessing Early Investments in Low Carbon Technologies under Uncertainty: The Case of Carbon Capture and Storage"
+        },
+        {
+          "itemKey": "PZESJ4U9",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Cost-benefit analysis for natural reource management in the Pacific: A guide"
+        },
+        {
+          "itemKey": "P5WDCV9I",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Climate Risks and Carbon Prices: Revising the Social Cost of Carbon"
+        },
+        {
+          "itemKey": "DJUAWMAT",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "The Social Cost of Carbon: Trends, Outliers and Catastrophes"
+        },
+        {
+          "itemKey": "XJZFW9IN",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Vietnam Energy Outlook Report 2021"
+        },
+        {
+          "itemKey": "LF8SY5WE",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Annex III: Scenarios and Modelling Methods"
+        },
+        {
+          "itemKey": "TUK3BDYK",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Economics of Adaptation to Climate Change (EACC) Synthesis report"
+        },
+        {
+          "itemKey": "2GJCXUZ6",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Advanced Fuel Cycle Economic Tools, Algorithms, and Methodologies"
+        },
+        {
+          "itemKey": "EAVTN9WP",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "Discounting and the social cost of carbon: a closer look at uncertainty"
+        },
+        {
+          "itemKey": "C8UIC2VE",
+          "score": 0.010869565217391304,
+          "source": "fulltext",
+          "title": "The social discount rate under intertemporal risk aversion and ambiguity"
+        },
+        {
+          "itemKey": "KMNRTKJZ",
+          "score": 0.010752688172043012,
+          "source": "fulltext",
+          "title": "More than Meets the Eye. The Social Cost of Carbon in U.S. Climate Policy, in Plain English"
+        },
+        {
+          "itemKey": "CXGEGATN",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "Gamma discounting"
+        },
+        {
+          "itemKey": "5JXD7BXV",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "Executive summary - Projected Costs of Generating Electricity 2015"
+        },
+        {
+          "itemKey": "KIH5D6GG",
+          "score": 0.010416666666666666,
+          "source": "fulltext",
+          "title": "The Influence of the Specification of Climate Change Damages on the Social Cost of Carbon"
+        },
+        {
+          "itemKey": "K2I876ZW",
+          "score": 0.01020408163265306,
+          "source": "fulltext",
+          "title": "The Environment and Directed Technical Change"
+        }
+      ]
+    },
+    "from theory to policy in the climate negotiations": {
+      "n": 20,
+      "keys": [
+        "B6HXUHIS",
+        "ITEHVIWP",
+        "DXDAGUQ5",
+        "ZJXQAGLA",
+        "CJVEWKK3",
+        "UFN7G8TP",
+        "8GYWBGW4",
+        "E43ZKH59",
+        "TJ8ACXKG",
+        "VXUKIDJE",
+        "DH8EXSVA",
+        "GW43MPQE",
+        "5ARAN8H9",
+        "AWFDVJAD",
+        "M2QJT73P",
+        "VMB9I9TC",
+        "I3GMMBEC",
+        "FDBETNFC",
+        "WNBS6I87",
+        "9DEGKGET"
+      ],
+      "latency_ms": [
+        281.3,
+        277.6,
+        260.4,
+        274.6,
+        262.4,
+        281.5
+      ],
+      "hits": [
+        {
+          "itemKey": "B6HXUHIS",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Climate Economics: The State of the Art"
+        },
+        {
+          "itemKey": "ITEHVIWP",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Crafting desirable climate trajectories with RL explored socio-environmental simulations"
+        },
+        {
+          "itemKey": "DXDAGUQ5",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Delayed action and uncertain stabilisation targets. How much will the delay cost?"
+        },
+        {
+          "itemKey": "ZJXQAGLA",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Fuzzy non-cooperative bargaining process of international climate change negotiations : Case of the Kyoto Protocol"
+        },
+        {
+          "itemKey": "CJVEWKK3",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "National and Sub-national Policies and Institutions"
+        },
+        {
+          "itemKey": "UFN7G8TP",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Containing Global Warming after Copenhagen: One-Shot and Learning-by Doing Approaches"
+        },
+        {
+          "itemKey": "8GYWBGW4",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Moving the trillions : a debate on positive pricing of mitigation actions"
+        },
+        {
+          "itemKey": "E43ZKH59",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Anticipating Futures through Models: The Rise of Integrated Assessment Modelling in the Climate Science–Policy Interface since 1970"
+        },
+        {
+          "itemKey": "TJ8ACXKG",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Plan or React? Analysis of Adaptation Costs and Benefits Using Integrated Assessment Models"
+        },
+        {
+          "itemKey": "VXUKIDJE",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Large-Scale Intentional Interventions into the Climate System? Assessing the Climate Engineering Debate."
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "GW43MPQE",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Megatrends in the global energy transition"
+        },
+        {
+          "itemKey": "5ARAN8H9",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Policy options in a worst case climate change world"
+        },
+        {
+          "itemKey": "AWFDVJAD",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "The international climate finance accounting muddle: is there hope on the horizon?"
+        },
+        {
+          "itemKey": "M2QJT73P",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Energy research and the contributions of the social sciences: A contemporary examination"
+        },
+        {
+          "itemKey": "VMB9I9TC",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Post-2025 climate finance target: how much more and how much better?"
+        },
+        {
+          "itemKey": "I3GMMBEC",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "HOW TO PLAY GAMES? NASH VERSUS BERGE BEHAVIOUR RULES"
+        },
+        {
+          "itemKey": "FDBETNFC",
+          "score": 0.011627906976744186,
+          "source": null,
+          "title": "International climate policy architectures: Overview of the EMF 22 International Scenarios"
+        },
+        {
+          "itemKey": "WNBS6I87",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Climate Clubs: Overcoming Free-riding in International Climate Policy"
+        },
+        {
+          "itemKey": "9DEGKGET",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "The urgency of climate action and the aim for justice in energy transitions – dynamics and complexity"
+        }
+      ]
+    },
+    "the demand for energy in developing countries": {
+      "n": 20,
+      "keys": [
+        "6ANUEM8Q",
+        "XWS2CB6X",
+        "YQKUAVUC",
+        "B834W2VX",
+        "PLKJWIJ9",
+        "SEYAIPEA",
+        "2KFGGS7P",
+        "RWYUV5S8",
+        "IM6RGTUB",
+        "DS9KVEAS",
+        "Y3QZZEWH",
+        "Z8R3LLQR",
+        "4LK7VW2V",
+        "5BV78IFB",
+        "CEUU6NU3",
+        "JLC6DTZ4",
+        "NMZJJYM5",
+        "GNQAPZU2",
+        "E5KTP4MU",
+        "W7I6YSHL"
+      ],
+      "latency_ms": [
+        420.8,
+        369.9,
+        368.2,
+        370.8,
+        366.9,
+        372.6
+      ],
+      "hits": [
+        {
+          "itemKey": "6ANUEM8Q",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Exploring the determinants of household electricity demand in Vietnam in the period 2012-16"
+        },
+        {
+          "itemKey": "XWS2CB6X",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Study on the impact of electricity tariff increase on national economy of Viet Nam"
+        },
+        {
+          "itemKey": "YQKUAVUC",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Bioenergy development: issues and impacts for poverty and natural resource management"
+        },
+        {
+          "itemKey": "B834W2VX",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Analysis of household energy demand in Vietnam"
+        },
+        {
+          "itemKey": "PLKJWIJ9",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Made in Vietnam Energy Plan 4.0. Improving Bankability of Vietnam's Clean Energy Sector"
+        },
+        {
+          "itemKey": "SEYAIPEA",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Global Bioenergy Supply and Demand Projections: A working paper for REmap 2030"
+        },
+        {
+          "itemKey": "2KFGGS7P",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Importance of technological change and spillovers in long-term climate policy"
+        },
+        {
+          "itemKey": "RWYUV5S8",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Renewables global futures report: Great debates towards 100% renewable energy"
+        },
+        {
+          "itemKey": "IM6RGTUB",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Renewable electricity generation target setting in developing countries: Modeling, policy, and analysis"
+        },
+        {
+          "itemKey": "DS9KVEAS",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
+        },
+        {
+          "itemKey": "Y3QZZEWH",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Modeling Energy and Development: An Evaluation of Models and Concepts"
+        },
+        {
+          "itemKey": "Z8R3LLQR",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Modelling energy systems for developing countries"
+        },
+        {
+          "itemKey": "4LK7VW2V",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "The future of nuclear power. An interdisciplinary MIT study."
+        },
+        {
+          "itemKey": "5BV78IFB",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Renewables 2014 Global Status Report"
+        },
+        {
+          "itemKey": "CEUU6NU3",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Development and climate: Engaging developing countries"
+        },
+        {
+          "itemKey": "JLC6DTZ4",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "Of renewable energy, energy democracy, and sustainable development: A roadmap to accelerate the energy transition in developing countries"
+        },
+        {
+          "itemKey": "NMZJJYM5",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "A Critical Review on Potential and Current Status of Wind Energy in Vietnam"
+        },
+        {
+          "itemKey": "GNQAPZU2",
+          "score": 0.012195121951219513,
+          "source": "fulltext",
+          "title": "Renewables 2016 Global Status Report"
+        },
+        {
+          "itemKey": "E5KTP4MU",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Long-Run Demand for Energy Services: Income and Price Elasticities over Two Hundred Years"
+        },
+        {
+          "itemKey": "W7I6YSHL",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Taking Stock of Wholesale Power Markets In Developing Countries: A Literature Review"
+        }
+      ]
+    },
+    "our estimates of the rebound effect and their limits": {
+      "n": 20,
+      "keys": [
+        "LG368KPB",
+        "5VYJMXL3",
+        "47Z4MPUY",
+        "QSXGG8JB",
+        "AHCH6M93",
+        "2W3S2XMV",
+        "LHDC6WYL",
+        "5TSM2I7M",
+        "E5KTP4MU",
+        "8M94P4IN",
+        "DQSZZL9H",
+        "CSCX9V49",
+        "Q78MGVWZ",
+        "UA9AKPGZ",
+        "3VGIK7AD",
+        "7US5XVGD",
+        "B6HXUHIS",
+        "DS9KVEAS",
+        "MGHSIJFK",
+        "C7LYAMZJ"
+      ],
+      "latency_ms": [
+        110.1,
+        108.5,
+        108.6,
+        103.4,
+        106.5,
+        118.8
+      ],
+      "hits": [
+        {
+          "itemKey": "LG368KPB",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Policies for low-carbon and affordable home heating: A French outlook"
+        },
+        {
+          "itemKey": "5VYJMXL3",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Renewable Energy Sources and Climate Change Mitigation - Summary for Policymakers and Technical summary"
+        },
+        {
+          "itemKey": "47Z4MPUY",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Renewable energy sources and climate change mitigation: summary for policymakers and technical summary : special report of the intergovernmental panel on climate change."
+        },
+        {
+          "itemKey": "QSXGG8JB",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Formalizing best practice for energy system optimization modelling"
+        },
+        {
+          "itemKey": "AHCH6M93",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Lay concepts on CCS deployment in Switzerland based on qualitative interviews"
+        },
+        {
+          "itemKey": "2W3S2XMV",
+          "score": 0.014492753623188406,
+          "source": null,
+          "title": "William Stanley Jevons' The Coal Question (1865), beyond the rebound effect."
+        },
+        {
+          "itemKey": "LHDC6WYL",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Issues in Midterm Analysis and Forecasting 1999 - Modeling Technology Learning in the National Energy Modeling System"
+        },
+        {
+          "itemKey": "5TSM2I7M",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "Material efficiency: A white paper"
+        },
+        {
+          "itemKey": "E5KTP4MU",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "Long-Run Demand for Energy Services: Income and Price Elasticities over Two Hundred Years"
+        },
+        {
+          "itemKey": "8M94P4IN",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Clean fuel-saving technology adoption in urban Ethiopia"
+        },
+        {
+          "itemKey": "DQSZZL9H",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "World Economic Outlook, April 2020: The Great Lockdown"
+        },
+        {
+          "itemKey": "CSCX9V49",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Energy models and scenarios in the era of climate change"
+        },
+        {
+          "itemKey": "Q78MGVWZ",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Building Energy Performance Baselines Study"
+        },
+        {
+          "itemKey": "UA9AKPGZ",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Energy Efficiency 2018. Analysis and outlook to 2040."
+        },
+        {
+          "itemKey": "3VGIK7AD",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "The effect of low-carbon transportation pilot policy on carbon performance: evidence from China"
+        },
+        {
+          "itemKey": "7US5XVGD",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Exploring futures to plan energy transition. Guidelines for future studies on energy and power transition."
+        },
+        {
+          "itemKey": "B6HXUHIS",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Climate Economics: The State of the Art"
+        },
+        {
+          "itemKey": "DS9KVEAS",
+          "score": 0.011111111111111112,
+          "source": "fulltext",
+          "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
+        },
+        {
+          "itemKey": "MGHSIJFK",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "A review of demand-side management policy in the UK"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.01020408163265306,
+          "source": "fulltext",
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        }
+      ]
+    },
+    "this is the standard model of optimal growth": {
+      "n": 20,
+      "keys": [
+        "EEKJSV6H",
+        "DH8EXSVA",
+        "JYQJWBN8",
+        "D88STV6G",
+        "F8Y3IIJU",
+        "B7QCQR68",
+        "AM8AA9UR",
+        "ZNBUC32I",
+        "TSTDJRP6",
+        "UT4FF28F",
+        "T3MBD2GH",
+        "H22UKQD7",
+        "5ESN4L69",
+        "67PU5RLM",
+        "C7LYAMZJ",
+        "H5R3XXTM",
+        "EZS5JZHR",
+        "IFR5B8I3",
+        "X8UP76WX",
+        "QXZAV24W"
+      ],
+      "latency_ms": [
+        221.8,
+        233.2,
+        215.2,
+        210.4,
+        220.0,
+        233.3
+      ],
+      "hits": [
+        {
+          "itemKey": "EEKJSV6H",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Economiically Optimal Use of CO2 Sequestration Technology"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "JYQJWBN8",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Endogenous Growth, Convexity of Damage and Climate Risk"
+        },
+        {
+          "itemKey": "D88STV6G",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "What is the economic optimal use of carbon dioxide sequestration?"
+        },
+        {
+          "itemKey": "F8Y3IIJU",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "DICE 2013R: Introduction and User's Manual"
+        },
+        {
+          "itemKey": "B7QCQR68",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Policies, Projections, and the Social Cost of Carbon: Results from the DICE-2023 Model"
+        },
+        {
+          "itemKey": "AM8AA9UR",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Revisiting the social cost of carbon"
+        },
+        {
+          "itemKey": "ZNBUC32I",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Uncertainty and endogenous technical change in climate policy models"
+        },
+        {
+          "itemKey": "TSTDJRP6",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Fat tails, exponents, extreme uncertainty: Simulating catastrophe in DICE"
+        },
+        {
+          "itemKey": "UT4FF28F",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Projections and Uncertainties about Climate Change in an Era of Minimal Climate Policies"
+        },
+        {
+          "itemKey": "T3MBD2GH",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Limitations of integrated assessment models of climate change"
+        },
+        {
+          "itemKey": "H22UKQD7",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Schmeduling"
+        },
+        {
+          "itemKey": "5ESN4L69",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Climate change and growth"
+        },
+        {
+          "itemKey": "67PU5RLM",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "A Time for Action on Climate Change and a Time for Change in Economics"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        },
+        {
+          "itemKey": "H5R3XXTM",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "The epistemic, ethical, and political dimensions of uncertainty in integrated assessment modeling"
+        },
+        {
+          "itemKey": "EZS5JZHR",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "Hedging and liquidation under transaction costs in currency markets"
+        },
+        {
+          "itemKey": "IFR5B8I3",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Optimal Transport Networks in Spatial Equilibrium"
+        },
+        {
+          "itemKey": "X8UP76WX",
+          "score": 0.010869565217391304,
+          "source": "fulltext",
+          "title": "Carbon dioxide sequestration: When and how much?"
+        },
+        {
+          "itemKey": "QXZAV24W",
+          "score": 0.010752688172043012,
+          "source": "fulltext",
+          "title": "A Detailed Overview and Consistent Classification of Climate-Economy Models"
+        }
+      ]
+    },
+    "the history of mathematical economics as a discipline": {
+      "n": 13,
+      "keys": [
+        "6ZMCCBGX",
+        "DH8EXSVA",
+        "AGMQMZP9",
+        "DD6QH3L3",
+        "B4APP976",
+        "8LNV6JF4",
+        "SFWS38BV",
+        "CEI5RIHI",
+        "MEDUEPBU",
+        "XH9UWCKG",
+        "S5C2JCCR",
+        "ZTXRZKZP",
+        "TUK3BDYK"
+      ],
+      "latency_ms": [
+        129.2,
+        111.3,
+        109.3,
+        116.0,
+        110.1,
+        121.3
+      ],
+      "hits": [
+        {
+          "itemKey": "6ZMCCBGX",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The Cultures of Mathematical Economics in the Postwar Soviet Union: More than a Method, Less than a Discipline"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "AGMQMZP9",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Programming the USSR: Leonid V. Kantorovich in Context"
+        },
+        {
+          "itemKey": "DD6QH3L3",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "From Methodology to Practice (and Back): Georgescu-Roegen's Philosophy of Economics and the Flow-Fund Model"
+        },
+        {
+          "itemKey": "B4APP976",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "Soviet Mathematics and Economic Theory in the Past Century: A Historical Reappraisal"
+        },
+        {
+          "itemKey": "8LNV6JF4",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Soviet Mathematics and Economic Theory in the Past Century: An Historical Reappraisal"
+        },
+        {
+          "itemKey": "SFWS38BV",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Koopmans in the Soviet Union: A Travel Report of the Summer of 1965"
+        },
+        {
+          "itemKey": "CEI5RIHI",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Finding Equilibrium: Arrow, Debreu, McKenzie and the Problem of Scientific Credit"
+        },
+        {
+          "itemKey": "MEDUEPBU",
+          "score": 0.012048192771084338,
+          "source": null,
+          "title": "Siting the New Economic Science: The Cowles Commission's Activity Analysis Conference of June 1949"
+        },
+        {
+          "itemKey": "XH9UWCKG",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
+        },
+        {
+          "itemKey": "S5C2JCCR",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "On the History of Combinatorial Optimization (Till 1960)"
+        },
+        {
+          "itemKey": "ZTXRZKZP",
+          "score": 0.01,
+          "source": null,
+          "title": "The Frame for the Not-Yet Existent: How American, European, and Soviet Scholars Jointly Shaped Modern Mathematical Economics"
+        },
+        {
+          "itemKey": "TUK3BDYK",
+          "score": 0.009708737864077669,
+          "source": "fulltext",
+          "title": "Economics of Adaptation to Climate Change (EACC) Synthesis report"
+        }
+      ]
+    },
+    "capture and storage of carbon in the atmosphere": {
+      "n": 20,
+      "keys": [
+        "2HAHT8FF",
+        "6RBE78IG",
+        "3NSSBD3J",
+        "C23BVZ49",
+        "JVLABAUE",
+        "EQXZQXI9",
+        "4E6GIGW4",
+        "CGZXTQPF",
+        "W479XJRA",
+        "UGZXFNF8",
+        "ST3TTUZS",
+        "6RXMQ6DH",
+        "PES9HNDA",
+        "82JMZIJC",
+        "X35QKX7N",
+        "YYRJVG9M",
+        "8D7DBR2J",
+        "9R7WG8GL",
+        "MKTB245M",
+        "57FXJGQ3"
+      ],
+      "latency_ms": [
+        164.1,
+        168.4,
+        159.6,
+        165.8,
+        160.8,
+        169.6
+      ],
+      "hits": [
+        {
+          "itemKey": "2HAHT8FF",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "Climate Change 2014: Synthesis Report. Contribution of Working Groups I, II and III to the Fifth Assessment Report of the Intergovernmental Panel on Climate Change"
+        },
+        {
+          "itemKey": "6RBE78IG",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Direct Air Capture of CO2 with Chemicals.A Technology Assessment for the APS Panel on Public Affairs"
+        },
+        {
+          "itemKey": "3NSSBD3J",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Geoengineering: governance and technology policy"
+        },
+        {
+          "itemKey": "C23BVZ49",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "NO emission during co-firing coal and biomass in an oxy-fuel circulating fluidized bed combustor"
+        },
+        {
+          "itemKey": "JVLABAUE",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Climate Strategy with CO2 Capture from the Air"
+        },
+        {
+          "itemKey": "EQXZQXI9",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Regulatory challenges to the implementation of carbon capture and geological storage within the European Union under EU and international law"
+        },
+        {
+          "itemKey": "4E6GIGW4",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Environmental Assessment for CCS Projects"
+        },
+        {
+          "itemKey": "CGZXTQPF",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Environmental Assessment For CO2 Capture ans storage"
+        },
+        {
+          "itemKey": "W479XJRA",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "IPCC Special Report on Carbon Dioxide Capture and Storage"
+        },
+        {
+          "itemKey": "UGZXFNF8",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Carbon Dioxide Capture and Storage"
+        },
+        {
+          "itemKey": "ST3TTUZS",
+          "score": 0.013888888888888888,
+          "source": "fulltext",
+          "title": "Biochar as a viable carbon sequestration option: Global and Canadian perspective"
+        },
+        {
+          "itemKey": "6RXMQ6DH",
+          "score": 0.0136986301369863,
+          "source": null,
+          "title": "Global potential for biomass and carbon dioxide capture, transport and storage up to 2050"
+        },
+        {
+          "itemKey": "PES9HNDA",
+          "score": 0.013513513513513514,
+          "source": null,
+          "title": "Economic and energetic analysis of capturing CO2 from ambient air"
+        },
+        {
+          "itemKey": "82JMZIJC",
+          "score": 0.013333333333333334,
+          "source": null,
+          "title": "Efficiency of carbon storage with leakage: physical and economical approaches"
+        },
+        {
+          "itemKey": "X35QKX7N",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "The impact of carbon capture and storage on climate"
+        },
+        {
+          "itemKey": "YYRJVG9M",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Special Report on Carbon Capture Utilisation and Storage. CCUS in clean energy transitions"
+        },
+        {
+          "itemKey": "8D7DBR2J",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Summary of Carbon Dioxide Enhanced Oil Recovery (CO2EOR) Injection Well Technology"
+        },
+        {
+          "itemKey": "9R7WG8GL",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "False Hope: Why Carbon Capture and Storage Won't Save the Climate"
+        },
+        {
+          "itemKey": "MKTB245M",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Chapter 2: Bioenergy"
+        },
+        {
+          "itemKey": "57FXJGQ3",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Bioenergy"
+        }
+      ]
+    },
+    "the distribution of income and wealth in the long run": {
+      "n": 16,
+      "keys": [
+        "DH8EXSVA",
+        "N8VBZK3C",
+        "QLPFHB76",
+        "MECBHRCE",
+        "FIL2JI5M",
+        "ITUYNL2C",
+        "I2973H2U",
+        "XRD7T2QI",
+        "XWS2CB6X",
+        "SKWEQXNP",
+        "FQTVKDV8",
+        "6ANUEM8Q",
+        "GS6DK2JI",
+        "VTDH929P",
+        "AIT7VRSM",
+        "HPJNEJD7"
+      ],
+      "latency_ms": [
+        241.3,
+        222.0,
+        219.9,
+        232.8,
+        215.7,
+        217.2
+      ],
+      "hits": [
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "N8VBZK3C",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Empirics for growth and distribution: stratification, polarization, and convergence clubs"
+        },
+        {
+          "itemKey": "QLPFHB76",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Electricity demand and basic needs: Empirical evidence from China's households"
+        },
+        {
+          "itemKey": "MECBHRCE",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Turning on the lights: A meta-analysis of residential electricity demand elasticities"
+        },
+        {
+          "itemKey": "FIL2JI5M",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "System of national accounts 2008"
+        },
+        {
+          "itemKey": "ITUYNL2C",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "World Economic Outlook, April 2022: War Sets Back The Global Recovery"
+        },
+        {
+          "itemKey": "I2973H2U",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Modelling the Contribution of Nuclear Energy to Economic Development"
+        },
+        {
+          "itemKey": "XRD7T2QI",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Ecological Macroeconomic Models: Assessing Current Developments"
+        },
+        {
+          "itemKey": "XWS2CB6X",
+          "score": 0.011494252873563218,
+          "source": "fulltext",
+          "title": "Study on the impact of electricity tariff increase on national economy of Viet Nam"
+        },
+        {
+          "itemKey": "SKWEQXNP",
+          "score": 0.011363636363636364,
+          "source": "fulltext",
+          "title": "Energy models for demand forecasting—A review"
+        },
+        {
+          "itemKey": "FQTVKDV8",
+          "score": 0.01,
+          "source": null,
+          "title": "The trend of inequality in income distribution in Vietnam 2016-2020 period"
+        },
+        {
+          "itemKey": "6ANUEM8Q",
+          "score": 0.009900990099009901,
+          "source": "fulltext",
+          "title": "Exploring the determinants of household electricity demand in Vietnam in the period 2012-16"
+        },
+        {
+          "itemKey": "GS6DK2JI",
+          "score": 0.009523809523809525,
+          "source": "fulltext",
+          "title": "On the economic theory of socialism: part one"
+        },
+        {
+          "itemKey": "VTDH929P",
+          "score": 0.008695652173913044,
+          "source": "fulltext",
+          "title": "Natural Resource and Environmental Economics"
+        },
+        {
+          "itemKey": "AIT7VRSM",
+          "score": 0.008620689655172414,
+          "source": "fulltext",
+          "title": "Is socialism back? A review of contemporary economic literature"
+        },
+        {
+          "itemKey": "HPJNEJD7",
+          "score": 0.008333333333333333,
+          "source": "fulltext",
+          "title": "Econometric Policy Evaluation: A Critique"
+        }
+      ]
+    },
+    "as measured by the elasticity of substitution": {
+      "n": 20,
+      "keys": [
+        "GP4CV9I3",
+        "DH8EXSVA",
+        "P36FM7EJ",
+        "K2I876ZW",
+        "R3TWDJRT",
+        "WNXARC83",
+        "97TRZG98",
+        "BPVTKWCI",
+        "KTXGSAZB",
+        "6J24CEWN",
+        "AWGKZIA6",
+        "4842PMV4",
+        "SGTJ9T9K",
+        "P95NRBEV",
+        "KTKVPKF6",
+        "4ZM3E3UP",
+        "KFMST55P",
+        "2JRDYHML",
+        "VB53B2JB",
+        "TJ8ACXKG"
+      ],
+      "latency_ms": [
+        40.7,
+        37.1,
+        37.5,
+        38.0,
+        41.7,
+        39.2
+      ],
+      "hits": [
+        {
+          "itemKey": "GP4CV9I3",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The synthesis of bottom-up and top-down approaches to climate policy modeling: Electric power technologies and the cost of limiting US CO2 emissions"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "P36FM7EJ",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Trade costs"
+        },
+        {
+          "itemKey": "K2I876ZW",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "The Environment and Directed Technical Change"
+        },
+        {
+          "itemKey": "R3TWDJRT",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Household response to dynamic pricing of electricity: a survey of 15 experiments"
+        },
+        {
+          "itemKey": "WNXARC83",
+          "score": 0.014285714285714285,
+          "source": "fulltext",
+          "title": "The impact of oil prices on an oil-importing developing economy"
+        },
+        {
+          "itemKey": "97TRZG98",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "MARKAL-MACRO: A Linked Model for Energy-Economy Analysis"
+        },
+        {
+          "itemKey": "BPVTKWCI",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Pathways to low-carbon development for Vietnam"
+        },
+        {
+          "itemKey": "KTXGSAZB",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Macroeconomic pathways of the Saudi economy: The challenge of global mitigation action versus the opportunity of national energy reforms"
+        },
+        {
+          "itemKey": "6J24CEWN",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Energy price shocks sweet and sour consequences for developing countries"
+        },
+        {
+          "itemKey": "AWGKZIA6",
+          "score": 0.011627906976744186,
+          "source": "fulltext",
+          "title": "Oil and Economic Performance in Industrial Countries"
+        },
+        {
+          "itemKey": "4842PMV4",
+          "score": 0.010638297872340425,
+          "source": "fulltext",
+          "title": "Uncertainty in Greenhouse Emissions and Costs of Atmospheric Stabilization"
+        },
+        {
+          "itemKey": "SGTJ9T9K",
+          "score": 0.010526315789473684,
+          "source": "fulltext",
+          "title": "Assessing Early Investments in Low Carbon Technologies under Uncertainty: The Case of Carbon Capture and Storage"
+        },
+        {
+          "itemKey": "P95NRBEV",
+          "score": 0.010416666666666666,
+          "source": "fulltext",
+          "title": "The pure theory of international trade"
+        },
+        {
+          "itemKey": "KTKVPKF6",
+          "score": 0.009433962264150943,
+          "source": "fulltext",
+          "title": "Incorporating carbon capture and storage technologies in integrated assessment models"
+        },
+        {
+          "itemKey": "4ZM3E3UP",
+          "score": 0.009345794392523364,
+          "source": "fulltext",
+          "title": "Le - Electricity Price, Residential Electricity Demand,.pdf"
+        },
+        {
+          "itemKey": "KFMST55P",
+          "score": 0.009259259259259259,
+          "source": "fulltext",
+          "title": "Incorporating CCS Technologies in Integrated Assessment Models"
+        },
+        {
+          "itemKey": "2JRDYHML",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "Technology and Environment"
+        },
+        {
+          "itemKey": "VB53B2JB",
+          "score": 0.008620689655172414,
+          "source": "fulltext",
+          "title": "The MIT Emissions Prediction and Policy Analysis (EPPA) Model: Version 4"
+        },
+        {
+          "itemKey": "TJ8ACXKG",
+          "score": 0.008403361344537815,
+          "source": "fulltext",
+          "title": "Plan or React? Analysis of Adaptation Costs and Benefits Using Integrated Assessment Models"
+        }
+      ]
+    },
+    "their contribution to the equilibrium of the market": {
+      "n": 14,
+      "keys": [
+        "DH8EXSVA",
+        "GV5U9CPV",
+        "XH9UWCKG",
+        "RUMRDTCJ",
+        "WNTRTQ6Q",
+        "5UIJPSWI",
+        "CEI5RIHI",
+        "9KSMUGKB",
+        "GP4CV9I3",
+        "Z7ZW4K4J",
+        "QXZAV24W",
+        "C7LYAMZJ",
+        "LMZZ6L7N",
+        "7BSCP2IA"
+      ],
+      "latency_ms": [
+        161.7,
+        144.6,
+        146.7,
+        144.7,
+        175.6,
+        146.9
+      ],
+      "hits": [
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "GV5U9CPV",
+          "score": 0.016129032258064516,
+          "source": "fulltext",
+          "title": "Constrained optimal transport with an application to large markets with indivisible goods"
+        },
+        {
+          "itemKey": "XH9UWCKG",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
+        },
+        {
+          "itemKey": "RUMRDTCJ",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Calculation, complexity and planning: the socialist calculation debate once again"
+        },
+        {
+          "itemKey": "WNTRTQ6Q",
+          "score": 0.014492753623188406,
+          "source": "fulltext",
+          "title": "Concave Generalized Flows with Applications to Market Equilibria"
+        },
+        {
+          "itemKey": "5UIJPSWI",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "Spatial and Temporal Price and Allocation Models"
+        },
+        {
+          "itemKey": "CEI5RIHI",
+          "score": 0.013157894736842105,
+          "source": "fulltext",
+          "title": "Finding Equilibrium: Arrow, Debreu, McKenzie and the Problem of Scientific Credit"
+        },
+        {
+          "itemKey": "9KSMUGKB",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "A survey of the theory of international trade: part 2, the neo-classical theory"
+        },
+        {
+          "itemKey": "GP4CV9I3",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "The synthesis of bottom-up and top-down approaches to climate policy modeling: Electric power technologies and the cost of limiting US CO2 emissions"
+        },
+        {
+          "itemKey": "Z7ZW4K4J",
+          "score": 0.011764705882352941,
+          "source": "fulltext",
+          "title": "Equilibria for Economies with Production: Constant-Returns Technologies and Production Planning Constraints"
+        },
+        {
+          "itemKey": "QXZAV24W",
+          "score": 0.011235955056179775,
+          "source": "fulltext",
+          "title": "A Detailed Overview and Consistent Classification of Climate-Economy Models"
+        },
+        {
+          "itemKey": "C7LYAMZJ",
+          "score": 0.01098901098901099,
+          "source": "fulltext",
+          "title": "Understanding risks and uncertainties in energy and climate policy"
+        },
+        {
+          "itemKey": "LMZZ6L7N",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "Carbon pricing in Vietnam: Options for adoption"
+        },
+        {
+          "itemKey": "7BSCP2IA",
+          "score": 0.008403361344537815,
+          "source": "fulltext",
+          "title": "Expert judgments about transient climate response to alternative future trajectories of radiative forcing"
+        }
+      ]
+    },
+    "on the theory of value and of distribution": {
+      "n": 6,
+      "keys": [
+        "DH8EXSVA",
+        "KPTPHQPQ",
+        "RUMRDTCJ",
+        "MJUV6HKF",
+        "PHUPZ6P3",
+        "RG9US92B"
+      ],
+      "latency_ms": [
+        206.3,
+        175.0,
+        177.4,
+        184.2,
+        190.8,
+        188.7
+      ],
+      "hits": [
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "KPTPHQPQ",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Handbook on the History of Economic Analysis, Volume III: Developments in Major Fields of Economics"
+        },
+        {
+          "itemKey": "RUMRDTCJ",
+          "score": 0.009615384615384616,
+          "source": "fulltext",
+          "title": "Calculation, complexity and planning: the socialist calculation debate once again"
+        },
+        {
+          "itemKey": "MJUV6HKF",
+          "score": 0.009174311926605505,
+          "source": "fulltext",
+          "title": "Assessing model-based and conflict-based uncertainty"
+        },
+        {
+          "itemKey": "PHUPZ6P3",
+          "score": 0.008771929824561403,
+          "source": "fulltext",
+          "title": "Sraffa and von Neumann"
+        },
+        {
+          "itemKey": "RG9US92B",
+          "score": 0.00847457627118644,
+          "source": "fulltext",
+          "title": "Optimal Transport Methods in Economics"
+        }
+      ]
+    },
+    "was the transition to renewables in these countries inevitable": {
+      "n": 20,
+      "keys": [
+        "N6IVA2NE",
+        "GXQ4VZ3U",
+        "GNAIWL4I",
+        "YLJ72U3G",
+        "K224T6QM",
+        "T5LLDKG5",
+        "TER775S9",
+        "WT49X7FK",
+        "ZFJMNIRI",
+        "2PVNHP4F",
+        "DH8EXSVA",
+        "SLKHINE5",
+        "4H5K2TBS",
+        "J52Q42E5",
+        "5VUMJR6Z",
+        "5ARZFT7M",
+        "JEJ2R6JF",
+        "CG333B2A",
+        "GMRIK5PD",
+        "NAV4AV3P"
+      ],
+      "latency_ms": [
+        168.4,
+        186.0,
+        157.9,
+        181.0,
+        164.9,
+        179.6
+      ],
+      "hits": [
+        {
+          "itemKey": "N6IVA2NE",
+          "score": 0.01639344262295082,
+          "source": "fulltext",
+          "title": "The Just Transition Transaction: A Developing Country Coal Retirement Mechanism"
+        },
+        {
+          "itemKey": "GXQ4VZ3U",
+          "score": 0.015873015873015872,
+          "source": "fulltext",
+          "title": "Carbon Capturing and Sequestration: An Option to Buy Time?"
+        },
+        {
+          "itemKey": "GNAIWL4I",
+          "score": 0.015625,
+          "source": "fulltext",
+          "title": "Carbon Capturing and Sequestration: An Option to Buy Time?"
+        },
+        {
+          "itemKey": "YLJ72U3G",
+          "score": 0.015384615384615385,
+          "source": "fulltext",
+          "title": "Two years into South Africa’s Just Energy Transition Partnership: How real is the deal?"
+        },
+        {
+          "itemKey": "K224T6QM",
+          "score": 0.015151515151515152,
+          "source": "fulltext",
+          "title": "Just energy transitions and partnerships in Africa: A Nigeria case study"
+        },
+        {
+          "itemKey": "T5LLDKG5",
+          "score": 0.014925373134328358,
+          "source": "fulltext",
+          "title": "Global Offshore Wind Report 2021"
+        },
+        {
+          "itemKey": "TER775S9",
+          "score": 0.014705882352941176,
+          "source": "fulltext",
+          "title": "Fostering Effective Energy Transition 2023 edition"
+        },
+        {
+          "itemKey": "WT49X7FK",
+          "score": 0.014492753623188406,
+          "source": null,
+          "title": "Just Energy Transition Partnerships: An inclusive climate finance approach?"
+        },
+        {
+          "itemKey": "ZFJMNIRI",
+          "score": 0.014084507042253521,
+          "source": "fulltext",
+          "title": "COP26 Energy Transition Council: 2022 strategic priorities"
+        },
+        {
+          "itemKey": "2PVNHP4F",
+          "score": 0.013888888888888888,
+          "source": null,
+          "title": "Governing the Energy Transition: Reality, Illusion or Necessity?"
+        },
+        {
+          "itemKey": "DH8EXSVA",
+          "score": 0.0136986301369863,
+          "source": "fulltext",
+          "title": "The New Palgrave Dictionary of Economics"
+        },
+        {
+          "itemKey": "SLKHINE5",
+          "score": 0.013513513513513514,
+          "source": "fulltext",
+          "title": "Worth the wait: How South Africa's renewable energy auctions perform compared to Europe's leading countries"
+        },
+        {
+          "itemKey": "4H5K2TBS",
+          "score": 0.013333333333333334,
+          "source": "fulltext",
+          "title": "The world health report 2002 - Reducing Risks, Promoting Healthy Life"
+        },
+        {
+          "itemKey": "J52Q42E5",
+          "score": 0.012987012987012988,
+          "source": "fulltext",
+          "title": "Household surveys in developing and transition countries"
+        },
+        {
+          "itemKey": "5VUMJR6Z",
+          "score": 0.01282051282051282,
+          "source": "fulltext",
+          "title": "Renewables Global Status Report 2017"
+        },
+        {
+          "itemKey": "5ARZFT7M",
+          "score": 0.012658227848101266,
+          "source": "fulltext",
+          "title": "World Energy Trilemma Index 2019"
+        },
+        {
+          "itemKey": "JEJ2R6JF",
+          "score": 0.0125,
+          "source": "fulltext",
+          "title": "Website: https://www.diw.de/snapfi"
+        },
+        {
+          "itemKey": "CG333B2A",
+          "score": 0.012345679012345678,
+          "source": "fulltext",
+          "title": "Renewables 2021 Global Status Report"
+        },
+        {
+          "itemKey": "GMRIK5PD",
+          "score": 0.012048192771084338,
+          "source": "fulltext",
+          "title": "Reformulating taxes for an energy transition"
+        },
+        {
+          "itemKey": "NAV4AV3P",
+          "score": 0.011904761904761904,
+          "source": "fulltext",
+          "title": "Renewables 2022 Global Status Report"
+        }
+      ]
+    }
+  },
+  "latency": {
+    "cold_pass": {
+      "n": 20,
+      "min_ms": 40.7,
+      "p50_ms": 221.8,
+      "p95_ms": 420.8,
+      "max_ms": 427.7
+    },
+    "warm_passes": {
+      "n": 100,
+      "min_ms": 37.1,
+      "p50_ms": 215.7,
+      "p95_ms": 392.3,
+      "max_ms": 440.3
+    },
+    "all_passes": {
+      "n": 120,
+      "min_ms": 37.1,
+      "p50_ms": 219.9,
+      "p95_ms": 406.0,
+      "max_ms": 440.3
+    }
+  },
+  "peak_rss_kb_final": 131632
+}
