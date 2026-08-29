@@ -9,7 +9,7 @@ REQUIREMENTS.md, the constraints it operates under are in CONSTRAINTS.md,
 and the author's rulings are recorded in DECISIONS.md. The raw panel record
 is in git history, last present at commit `e32afe3` as `panel/cycle2/`; where
 it disagrees with this document, this document is the record. The predecessor
-design — cycle 1's "The Settled Ledger", called v1 below — is superseded and
+design (cycle 1's "The Settled Ledger", called v1 below) is superseded and
 lives in git history.
 
 How cycle 2 worked, in two sentences: six architects each re-ran the design
@@ -18,21 +18,22 @@ against the consolidated requirements and constraints; each result was
 adversarially critiqued, and this synthesis assembles what survived, plus
 the named repairs. Every load-bearing claim about upstream code was
 re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0; upstream
-has since moved to v1.9.0 `bb414df` — SYNC.md characterizes the deltas, and
+has since moved to v1.9.0 `bb414df`, whose deltas SYNC.md characterizes, and
 each ticket re-verifies its own evidence on moved files before acting), and
 the disputed numbers were recomputed from the committed artifacts in
 `bench/results/`. Two process bounds held throughout: decisions and rulings
 already ratified were not reopened, and the scout findings entered as
 binding input.
 
-Facts verified live at edf2748 and relied on below: the query tokenizer is
-broken for non-English text (`tokenize.ts`: `/[a-z0-9]+/g` plus 29 English
-stopwords); there is no `busy_timeout` and no `SQLITE_BUSY` handling
-anywhere in `src/`; `SCHEMA_VERSION` is written (`sqlite-index.ts:26,153`)
-and never read; `DEFAULT_FULLTEXT_MAX_CHARS = 40_000` truncates the 44.9 MB
-living example roughly 1 100-fold; changing embedder drops every vector at
-open (`dropStaleVectors` → `clearVectors()`); builds crawl `top:true` only;
-and `clearStore()` sits in the build path. Two artifact recomputations
+Seven facts were verified live at edf2748 and are relied on below. The
+query tokenizer is broken for non-English text (`tokenize.ts`:
+`/[a-z0-9]+/g` plus 29 English stopwords). There is no `busy_timeout` and
+no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
+(`sqlite-index.ts:26,153`) and never read. `DEFAULT_FULLTEXT_MAX_CHARS =
+40_000` truncates the 44.9 MB living example roughly 1 100-fold. Changing
+embedder drops every vector at open (`dropStaleVectors` →
+`clearVectors()`). Builds crawl `top:true` only, and `clearStore()` sits in
+the build path. Two artifact recomputations
 decided disputes: the golden-answer stability sample (60 queries with
 pinned known-correct results, from
 `bench/results/0013-concentration/uncapped-477512.json`) has a per-query
@@ -46,26 +47,27 @@ fulltext entries at version 0.
 ## 1. What changed since v1
 
 v1's skeleton survived every lens and every critique untouched: durable
-(item × stage) ledger rows in SQLite, with lease claim → compute → commit;
-control through a pipe, durable work through the database; a write-free
-query path; two OS processes. R13 (second process), R22 (durable pause) and
-R27 (work counters) each turn out to *want* that skeleton — every one is a
-one-row concern on a substrate that already exists. Also carried over:
-census-seeded newest-first discovery (a census is a full listing — every
-item, or every fulltext version — fetched whole rather than paged); the
-failure policy (transient/persistent split, bisection quarantine,
-reachability gating, backpressure counted in items; mechanism spec unchanged
-from v1 §2.6, in git history) — with two amendments: quarantine auto-clear
-keys on the *content* signal chain, not on raw counter movement, so a resync
-cannot mass-replay every poison input; and R14's terminal states (`empty`)
-are *done*, not failures — different bookkeeping, different sentence in
-status; micro-batch commits; the int8 vector plan
-with its X1 gate; the stored-norm dot product; slabs; the derived vector
-sidecar (vectors live in a file beside the database, derived from it);
-probe-don't-fix; sideline-never-delete (an unreadable index file is moved
-aside, never deleted); and the recovery-verb grammar. The
-stopwords/tokenizer fix stopped being a plan: it is PR #19, merged upstream
-2026-08-27 (`4f61b2a`).
+(item × stage) ledger rows in SQLite with lease claim → compute → commit,
+control through a pipe and durable work through the database, a write-free
+query path, and two OS processes. R13 (second process), R22 (durable pause)
+and R27 (work counters) each turn out to *want* that skeleton: every one is
+a one-row concern on a substrate that already exists. Also carried over:
+census-seeded newest-first discovery (a census is a full listing, every
+item or every fulltext version, fetched whole rather than paged),
+micro-batch commits, the int8 vector plan with its X1 gate, the stored-norm
+dot product, slabs, the derived vector sidecar (vectors live in a file
+beside the database, derived from it), probe-don't-fix,
+sideline-never-delete (an unreadable index file is moved aside, never
+deleted), the recovery-verb grammar, and the failure policy. The failure
+policy
+(transient/persistent split, bisection quarantine, reachability gating,
+backpressure counted in items; mechanism spec unchanged from v1 §2.6, in
+git history) carries two amendments. Quarantine auto-clear now keys on the
+*content* signal chain, not on raw counter movement, so a resync cannot
+mass-replay every poison input. And R14's terminal states (`empty`) are
+*done*, not failures: different bookkeeping, different sentence in status.
+The stopwords/tokenizer fix stopped being a plan: it is PR #19, merged
+upstream 2026-08-27 (`4f61b2a`).
 
 Three forces changed the rest.
 
@@ -79,38 +81,38 @@ Three forces changed the rest.
    §2.8).
 
 2. **Observability became the requirement.** v1 designed an engine whose
-   promises — convergence, newest-first, budgets, edit costs, custody — were
-   mostly unobservable. Sheet v2 — the consolidated requirements and
-   constraints, now REQUIREMENTS.md and CONSTRAINTS.md — makes observability
-   itself the requirement, so v2 designs the instrument panel and the gates
-   beside the engine.
+   promises (convergence, newest-first, budgets, edit costs, custody) were
+   mostly unobservable. Sheet v2, the consolidated requirements and
+   constraints now in REQUIREMENTS.md and CONSTRAINTS.md, makes
+   observability itself the requirement, so v2 designs the instrument panel
+   and the gates beside the engine.
 
 3. **Two measured facts killed v1 machinery.** The local `/fulltext`
-   sequence is mixed and must never be cursored — v1's ascending-sweep
+   sequence is mixed and must never be cursored: v1's ascending-sweep
    freshness would have silently lost locally-extracted text (the 584
-   measured version-0 entries prove the loss non-empty); census-equality
-   replaces it (§2.4). And constraining FTS5 MATCH costs seconds at library
-   scale (FTS5 evaluates a rowid-constrained MATCH once per row), so v1's
-   filter pushdown dies as worded; unconstrained MATCH plus a
-   guaranteed-fill bitmap filter replaces it (§2.6).
+   measured version-0 entries prove the loss non-empty), and
+   census-equality replaces it (§2.4). And constraining FTS5 MATCH costs
+   seconds at library scale (FTS5 evaluates a rowid-constrained MATCH once
+   per row), so v1's filter pushdown dies as worded. Unconstrained MATCH
+   plus a guaranteed-fill bitmap filter replaces it (§2.6).
 
 Other reversals worth naming, each with its reason. Extract is no longer
-keyed by the version counter alone — R11 and the shipped
-92,7 %-changed-forever defect killed that; signals and keys are now separate
-(§2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted — v1's
-rejection rested on wrong arithmetic, verified empirically — behind the
-golden gate (§2.6). Pause is a
-durable row, not a pipe message — verified: today's `stop` cancels one job
-and `auto_build` restarts on the next query (§2.7). Unknown-schema handling
-is read-compatibility gating plus a **new filename**
-(`search-index-v2.sqlite`), because no protocol can bind binaries that
-predate it: a v1.7.0 sibling reaching `clearStore()` against an in-place
-upgraded file would erase every library (§2.7). And v1's item-collapse PR is
-folded into the entries conversation (scoped issue B, §4): shipping
-item-collapse now would ship exactly the framing the entry ruling rejected.
+keyed by the version counter alone, because R11 and the shipped
+92,7 %-changed-forever defect killed that reading: signals and keys are now
+separate (§2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted
+behind the golden gate (§2.6): v1's rejection rested on wrong arithmetic,
+verified empirically. Pause is a durable row, not a pipe message, because
+today's `stop` was verified to cancel one job while `auto_build` restarts
+on the next query (§2.7). Unknown-schema handling is read-compatibility
+gating plus a new filename (`search-index-v2.sqlite`), because no protocol
+can bind binaries that predate it: a v1.7.0 sibling reaching `clearStore()`
+against an in-place upgraded file would erase every library (§2.7). And
+v1's item-collapse PR is folded into the entries conversation (scoped issue
+B, §4): shipping item-collapse now would ship exactly the framing the entry
+ruling rejected.
 
-The full verdict-by-verdict record — what survived, what was amended by
-which critique, what died and what killed it — is in git history: this file
+The full verdict-by-verdict record (what survived, what was amended by
+which critique, what died and what killed it) is in git history: this file
 before the plain-language rewrite, and `panel/cycle2/` as of commit
 `e32afe3`.
 
@@ -120,55 +122,55 @@ before the plain-language rewrite, and `panel/cycle2/` as of commit
 
 ### 2.1 Signals vs keys
 
-Every stage row stores **signals** and **keys**, never mixed.
+Every stage row stores *signals* and *keys*, never mixed.
 
 - A *signal* is a Zotero version counter, scoped by server identity, and
   only ever compared for equality. A signal mismatch schedules
-  *verification* — one fetch plus one hash — never recomputation.
+  *verification*, one fetch plus one hash, never recomputation.
 - A *key* is `(content hash, tool identity)`. Work is stale exactly when the
   stored key differs from the current key.
 
 R11 (counter churn is not change) falls out structurally: a resync flips
 signals, the verify pass re-hashes, the hashes match, and nothing downstream
 moves. The R27 counters record thousands of `resync.noop` and zero
-`resync.done` — so the counter that once hid the 92,7 % defect now proves
+`resync.done`, so the counter that once hid the 92,7 % defect now proves
 its absence.
 
 The stage keys:
 
-- **record**: a field-tagged `record_hash`; the canonicalization version
+- **record**: a field-tagged `record_hash`. The canonicalization version
   folds into the tool identity, so a canonicalization fix is a labeled key
-  bump;
-- **extract**: `text_hash` over the streamed bytes;
-- **chunk**: `(text_hash, segmenter id+version, chunker id+geometry)` — the
+  bump.
+- **extract**: `text_hash` over the streamed bytes.
+- **chunk**: `(text_hash, segmenter id+version, chunker id+geometry)`. The
   segmenter lives inside the chunker key, exactly as the boundary ruling
-  directs;
-- **embed**: `embed_hash`, the hash of the **full embedded text including
-  the context prefix** — hashing the chunk text alone would let a vector
-  computed under an old heading silently keep serving under a new one — with
-  an EXISTS guard on deletes, so removing one row never removes a vector
-  another row with the same hash still references.
+  directs.
+- **embed**: `embed_hash`, the hash of the full embedded text including the
+  context prefix, with an EXISTS guard on deletes, so removing one row
+  never removes a vector another row with the same hash still references.
+  Hashing the chunk text alone would let a vector computed under an old
+  heading silently keep serving under a new one.
 
-Honest restatement of the R11 benefit: *unchanged regions never re-embed*. A
-segmenter bump re-embeds what it actually touched, no more. And one
+Honest restatement of the R11 benefit: *unchanged regions never re-embed*,
+and a segmenter bump re-embeds only what it actually touched. And one
 disclosed R3 residue: a counter-churning resync still costs
-O(changed-attachments) local fetches before the hashes stop the chain —
-fetch-and-hash is the price of verification, stated rather than hidden.
+O(changed-attachments) local fetches before the hashes stop the chain.
+Fetch-and-hash is the price of verification, stated rather than hidden.
 
 ### 2.2 Storage: one file, one schema, every row library-keyed
 
 The store is `search-index-v2.sqlite`: WAL mode, `synchronous=NORMAL`,
 `busy_timeout=5000` on every connection, and `PRAGMA
-auto_vacuum=INCREMENTAL` set **before the first table** — set any later it
-is a no-op, and the idle `incremental_vacuum` promised in §2.7 would never
+auto_vacuum=INCREMENTAL` set before the first table. Set any later it is a
+no-op, and the idle `incremental_vacuum` promised in §2.7 would never
 reclaim a page.
 
 **Identity.** `origins(oid, server_id)` is the `Zotero-Server-ID` partition
-C1 mandates; `libraries(lib, oid, kind, remote_id, item_watermark, …)`
-hangs libraries under origins. **Every downstream row carries `lib`** —
-Zotero keys are unique only per library, so a merged index without the
-column would turn R15's delete into an R12 violation — and every delete is
-`WHERE lib = ?`. `clearStore()` is abolished from the build path: "rebuild"
+C1 mandates, and `libraries(lib, oid, kind, remote_id, item_watermark, …)`
+hangs libraries under origins. Every downstream row carries `lib`, and
+every delete is `WHERE lib = ?`: Zotero keys are unique only per library,
+so a merged index without the column would turn R15's delete into an R12
+violation. `clearStore()` is abolished from the build path: "rebuild"
 is a ledger state (`UPDATE … SET status='pending' WHERE lib=?`), never a
 `DELETE FROM passages`. That makes an R12 violation unwritable for
 protocol-aware binaries; the new filename (§1) fences the binaries that are
@@ -181,19 +183,19 @@ not.
   page_est, page_est_kind)`.
 - `slabs(sid, lib, source ∈ attachment|record|note|annotation, source_key,
   char range, gzip bytes ≤ 1 MiB, content_hash)`. Record and own-words text
-  is slabbed too — otherwise the first 100 % (phase A) would ship hits whose
-  snippets cannot be re-derived.
-- `passages(pid, eid, lib, item_key, sid, off_start, off_end, fp)` —
-  **references, not text**. Snippets re-derive from our own slab store,
+  is slabbed too, because otherwise the first 100 % (phase A) would ship
+  hits whose snippets cannot be re-derived.
+- `passages(pid, eid, lib, item_key, sid, off_start, off_end, fp)` are
+  references, not text. Snippets re-derive from our own slab store,
   never from Zotero: gunzip one slab, slice, verify the fingerprint, and
-  return null rather than wrong words on a mismatch. Slab cuts land on entry
-  boundaries, not byte counts.
+  return null rather than wrong words on a mismatch, and slab cuts land on
+  entry boundaries, not byte counts.
 
 **FTS.** FTS5 with per-field columns, tokenizer `unicode61
 remove_diacritics 2`: `fts(title, abstract, creators, tags, pub, ctx, own,
-body)`. Per-field columns replace v1's two joined columns for two reasons:
-fields keep their identity for ranking — a tag match no longer scores like a
-title match, the record ruling's exact complaint — and joined fields break
+body)`. Per-field columns replace v1's two joined columns for two reasons.
+Fields keep their identity for ranking: a tag match no longer scores like a
+title match, the record ruling's exact complaint. And joined fields break
 phrase search: with `'. '`-joined fields, unicode61 treats `.` as a
 separator, so a quoted phrase can falsely match across the seam between two
 fields. Body rows put
@@ -201,39 +203,39 @@ chunk text in `body` and the heading path plus item title in `ctx`, so
 context matches count (weighted) without polluting `body`'s document
 frequencies or phrase positions. The *embedded* text is
 `«title» › «heading path» ¶ «chunk»`, with the prefix charged to the token
-budget — Zotero's own prior art. Creators, venue, and date have a stated
+budget, Zotero's own prior art. Creators, venue, and date have a stated
 column mapping (the creators and pub columns; date goes into the record
 row's `pub`), so no field indexed today silently vanishes. The bm25 column
 weights ship as a starting point and are tuned against R21's golden set once
-it is re-pinned at entry granularity — not before. Contentless FTS
-(`content=''`, `contentless_delete=1`) where SQLite ≥ 3.43; v1's
+it is re-pinned at entry granularity, not before. Contentless FTS
+(`content=''`, `contentless_delete=1`) where SQLite ≥ 3.43. v1's
 external-content layout is the probed fallback, chosen once and recorded in
 meta.
 
 **Chunking.** Tokens on structural boundaries: 120 minimum / 768 maximum /
-48 overlap — Zotero's geometry, adopted verbatim — never across entries,
+48 overlap (Zotero's geometry, adopted verbatim), never across entries,
 with overlap only inside a split paragraph. (For the record: the claim that
 upstream chunks below Zotero's minimum holds only for its 512-char
 *metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
 inside the band. The move to token-structural chunking rests on the boundary
 ruling, not on that comparison.)
 
-**The segmenter, seg/1** — new machinery; the spec lives here, and ticket
-0028 builds to it:
+**The segmenter, seg/1** is new machinery: the spec lives here, and ticket
+0028 builds to it.
 
-- classify lines, and collect heading candidates from numbering patterns,
-  case shape, and the dictionary's headword *rhythm* — the median gap and
-  median absolute deviation (MAD) over candidate spacing;
-- cut entries at accepted headings;
-- confidence = the fraction of text inside confirmed entries;
-- below confidence 0.5, fall back to **synthetic entries of ~6k tokens** cut
+- Classify lines, and collect heading candidates from numbering patterns,
+  case shape, and the dictionary's headword *rhythm*, the median gap and
+  median absolute deviation (MAD) over candidate spacing.
+- Cut entries at accepted headings.
+- Confidence = the fraction of text inside confirmed entries.
+- Below confidence 0.5, fall back to synthetic entries of ~6k tokens cut
   at paragraph boundaries, labeled as synthetic.
 
 Palgrave arithmetic (input assumption labeled, unmeasured): 44.9 MB across
-~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each — the monster becomes
-~1 850 first-class peers, which is the entry ruling's whole point. **The
-segmenter is the design's biggest unmeasured bet; experiment X5 gates scoped
-issue B on it** (§5, risk 1).
+~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the monster
+becomes ~1 850 first-class peers, which is the entry ruling's whole point.
+The segmenter is the design's biggest unmeasured bet; experiment X5 gates
+scoped issue B on it (§5, risk 1).
 
 ### 2.3 Discovery and fairness: records for everyone, then bodies, newest-first throughout
 
@@ -241,32 +243,32 @@ The phase order follows the record ruling.
 
 - **Phase A — records.** Every item's record, fields kept apart, globally
   newest-first across libraries: per-library sweeps sorted `date_added
-  DESC`, interleaved by k-way merge — recency is the researcher's notion and
-  is library-blind. Cost arithmetic: a record is 1–2 chunks; 10k items ≈
-  12–15k record chunks at an assumed (labeled) 25 passages/s ≈ **8–10
-  minutes to D1's first 100 %**.
-- **Phase A′ — own words** (R16; D7 = both). Child notes and annotations,
-  crawled as a second, itemType-filtered pass. Verified gap upstream: builds
+  DESC`, interleaved by k-way merge, because recency is the researcher's
+  notion and is library-blind. Cost arithmetic: a record is 1–2 chunks; 10k
+  items ≈ 12–15k record chunks at an assumed (labeled) 25 passages/s ≈
+  8–10 minutes to D1's first 100 %.
+- **Phase A′ — own words** (R16; D7 = both). Child notes and annotations
+  are crawled as a second, itemType-filtered pass. Verified gap upstream: builds
   crawl `top:true` only, so standalone notes are indexed today but child
   notes and annotations are not.
 - **Phase B — body text.** Entry-segmented, processed through a two-band
   frontier with a derived cap K: each item's first K passages ride the
-  newest-first frontier (band 0); passages beyond K queue in a second band,
-  drained behind it — so one monster cannot monopolize the pipeline. K is
-  derived, not transplanted: **K = ceil(median passages per item, measured
-  on this corpus; floor 16)**, stated in meta. (Under the old char-stride
+  newest-first frontier (band 0), and passages beyond K queue in a second
+  band, drained behind it, so one monster cannot monopolize the pipeline. K is
+  derived, not transplanted: K = ceil(median passages per item, measured
+  on this corpus; floor 16), stated in meta. (Under the old char-stride
   chunking the measured median was 63 passages/item, giving K = 64; under
   the token geometry above the median item is ~25 passages.)
 
-**Newest-first versus smallest-first, stated honestly.** #6012 — the draft
-PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2) —
-orders attachments smallest-first; our ratified R2 is newest-first, so
+**Newest-first versus smallest-first, stated honestly.** #6012, the draft
+PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2),
+orders attachments smallest-first. Our ratified R2 is newest-first, so
 smallest-first is rejected at item granularity on R2's own text. The R26
-observable is then asserted per phase. Record coverage is a strict
-newest-first prefix. Body coverage is a newest-first prefix for band 0 only;
-band 1 is disclosed residue — the band cap itself makes a strict
-full-coverage prefix impossible, and the same standard must bind both our
-design and the rejected alternative. This split is v2's one resolution made
+observable is then asserted per phase: record coverage is a strict
+newest-first prefix, and body coverage is a newest-first prefix for band 0
+only. Band 1 is disclosed residue, because the band cap itself makes a
+strict full-coverage prefix impossible, and the same standard must bind
+both our design and the rejected alternative. This split is v2's one resolution made
 by interpretive reading rather than verified fact: R26's sentence does not
 specify its own granularity, and the author can veto the reading (flagged in
 DECISIONS.md). The band cap does the anti-monopoly work that smallest-first
@@ -274,11 +276,11 @@ does for #6012.
 
 **D6, first-with-text.** Per item, exactly one attachment is indexed for
 body text: the deterministic first (ascending `dateAdded`, key tie-break)
-that appears in the fulltext census. Skipped attachments get a stored reason
-— "identical text, suppressed" or "different text, not indexed under
-first-with-text" — honesty without reopening the decision. If a later
+that appears in the fulltext census. Skipped attachments get a stored
+reason, "identical text, suppressed" or "different text, not indexed under
+first-with-text": honesty without reopening the decision. If a later
 extraction gives an earlier attachment text, the choice function's output
-changes and the chain re-derives — convergent by construction.
+changes and the chain re-derives, convergent by construction.
 
 ### 2.4 Freshness: census-equality where the sequence is mixed, a cursor where it is not
 
@@ -287,21 +289,21 @@ backoff when Zotero is unreachable, and does three things per library:
 
 1. **Items**: fetch `?since=item_watermark`, the watermark scoped to
    (oid, lib). This is a legitimate cursor: library versions are monotonic
-   per backend, and the watermark is partitioned by server ID — the
+   per backend, and the watermark is partitioned by server ID (the
    local/cloud label is verified insufficient, and the header machinery to
-   lift already exists upstream at `local-writes.ts`.
+   lift already exists upstream at `local-writes.ts`).
 2. **Full text, local scope**: fetch the full `/fulltext?since=0` census and
    equality-diff it per attachment against stored versions. The local
-   sequence is mixed — one attachment's version may be a web sync stamp, a
-   local client version, or 0 for locally extracted text (C1) — so **no
-   fulltext watermark column exists for any local scope**: the
+   sequence is mixed (C1: one attachment's version may be a web sync stamp,
+   a local client version, or 0 for locally extracted text), so no
+   fulltext watermark column exists for any local scope: the
    mixed-sequence trap is made unrepresentable in the schema. Cloud scopes
-   are different: the web sequence genuinely is monotonic, so **cloud scopes
-   use an ordinary `?since=` cursor**, under the web politeness constraint
+   are different: the web sequence genuinely is monotonic, so cloud scopes
+   use an ordinary `?since=` cursor, under the web politeness constraint
    (CONSTRAINTS.md states it once). The census cost: ~8 037 entries ≈
    120–200 KB serialized per tick, O(attachments) in memory, zero extra
    requests. If X7 measures the parse above 50 ms at 30k entries, the
-   cadence backs off to every 5th tick — a decision rule, not a hope.
+   cadence backs off to every 5th tick: a decision rule, not a hope.
 3. **Deletions**: item-census subtraction every 10th tick (≤ ~10 min
    disclosed deletion latency; the `sync` verb forces it immediately). The
    local API has no `/deleted` endpoint (CONSTRAINTS.md C2); census
@@ -309,150 +311,153 @@ backoff when Zotero is unreachable, and does three things per library:
 
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to
-equality comparison — and on a never-synced library that could be *every*
-entry. The resolution has three parts. (i) **Widen the extract signal to
-`(fulltext version, attachment item md5/version)`**: replacing a file bumps
+equality comparison, and on a never-synced library that could be *every*
+entry. The resolution has three parts. (i) Widen the extract signal to
+`(fulltext version, attachment item md5/version)`: replacing a file bumps
 the attachment item in the item sequence the tick already sweeps, so
-file-driven re-extraction is caught for free. (ii) The remaining case —
-re-extraction with no file change — is **disclosed in the contract** as
+file-driven re-extraction is caught for free. (ii) The remaining case,
+re-extraction with no file change, is disclosed in the contract as
 accepted staleness ("version-0 text refreshes on file change or rebuild");
 Zotero's own embeddings layer documents the same residue. (iii) A bounded
-idle re-verify sweep is **built only if X6 shows local re-extraction
-genuinely re-stamps 0**; the experiment (re-extract one attachment on a
+idle re-verify sweep is built only if X6 shows local re-extraction
+genuinely re-stamps 0. The experiment (re-extract one attachment on a
 synced and on a never-synced profile, watch the census and the attachment
 item's version) runs before the machinery is written.
 
 **The query path** is unchanged from v1: zero Zotero requests when the tick
 ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that
-reports and nudges rather than blocks; `probedMsAgo` in replies.
+reports and nudges rather than blocks, with `probedMsAgo` in replies.
 
 ### 2.5 Topology and concurrency: N servers, one conductor, one worker
 
 Two kinds of process appear below: P0, a query-serving zoteus server, and
 P1, the single background pipeline worker. The normal deployment is N × P0:
 one zoteus per MCP client, all on one fixed default data directory
-(verified). Every P0 answers queries — WAL readers on a write-free query
-path. Exactly one P0 is the **conductor**, elected through a lease row:
+(verified). Every P0 answers queries, as WAL readers on a write-free query
+path. Exactly one P0 is the *conductor*, elected through a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
     WHERE name='conductor' AND (holder=:uuid OR expires_at < :now)
 
-The holder is a UUID, not a recyclable pid; a lockfile was rejected because
-lockfiles go stale exactly when their holder dies. Lease timing: **TTL = 2×
-heartbeat (20 s); an election-check cadence of 10 s in every server;
-migration gate < TTL + cadence = 30 s** — constants that satisfy their own
+The holder is a UUID, not a recyclable pid. A lockfile was rejected because
+lockfiles go stale exactly when their holder dies. Lease timing: TTL = 2×
+heartbeat (20 s), an election-check cadence of 10 s in every server, and a
+migration gate < TTL + cadence = 30 s. The constants satisfy their own
 gate. The conductor runs the reconcile tick and owns the single P1 worker
 (`nice 19`, three ledger-paced loops), so the pipeline budget does not
 multiply with N.
 
-Two orphan repairs are mandatory — without them nothing actually enforces
-"exactly one P1". The worker **exits on stdin EOF** (parent death) and
+Two orphan repairs are mandatory, because without them nothing actually
+enforces "exactly one P1". The worker exits on stdin EOF (parent death) and
 re-verifies `leases.holder == parent-uuid` between micro-batches, exiting on
-mismatch. And lease renewal runs on a **timer decoupled from batch progress,
-renewed immediately before any long fetch** — the 44.9 MB single-GET monster
+mismatch. And lease renewal runs on a timer decoupled from batch progress,
+renewed immediately before any long fetch: the 44.9 MB single-GET monster
 fetch has no micro-batch boundary inside it.
 
 Safety never depends on the singleton: per-row leases with the
 `claimed_input` commit guard are the correctness layer, cross-process by
-construction. R13's letter is restated honestly: **never committed twice;
-duplicate compute ≤ one micro-batch per failover**. The strict letter has no
+construction. R13's letter is restated honestly: never committed twice, and
+duplicate compute ≤ one micro-batch per failover. The strict letter has no
 implementation on a single-file SQLite substrate, and the design says so
 rather than implying otherwise.
 
 Foreground beats background across processes: each P0 touches
-`<dataDir>/activity` on query arrival (a filesystem operation — the query
-path stays write-free even in the database sense); the worker stats that
+`<dataDir>/activity` on query arrival (a filesystem operation, so the query
+path stays write-free even in the database sense). The worker stats that
 file between micro-batches and idles 2 s while it is fresh. The conductor's
 own stdio pipe remains the low-latency fast path; `nice 19` remains the OS
 floor. Upstream's BEGIN-at-first-mutation transaction is repaired
-surgically: the **build path** commits per page (its 200-item/10 s persist
+surgically: the build path commits per page (its 200-item/10 s persist
 cadence already exists; the hold window shrinks below the busy_timeout),
-while the **update path keeps its single-transaction rollback** — upstream's
+while the update path keeps its single-transaction rollback. Upstream's
 own comment is right that a half-applied delta is a wrong index, not a
 partial one.
 
-Sidecar discipline: conductor-only writes; generation-numbered files
-(`vectors-<embedderKey>.g<N>`); fsync then atomic rename; the generation
-stamped in meta and verified by scans; deletion tombstones cover **every
-live generation**; compaction at >10 % dead rows or in the idle weekly slot.
+Sidecar discipline: the conductor alone writes, into generation-numbered
+files (`vectors-<embedderKey>.g<N>`), fsynced then atomically renamed. The
+generation is stamped in meta and verified by scans, and deletion
+tombstones cover every live generation. Compaction runs at >10 % dead rows or in the
+idle weekly slot.
 
 ### 2.6 Query path and ranking
 
-**Query semantics (D5), granularity decided out loud.** Hard units — quoted
-phrases, explicit AND, NOT — are filters. Bare terms are soft: they rank,
-OR'd — today's recall-friendly default, kept deliberately. Phrases evaluate
-per passage (FTS5-native, positions intact; a phrase straddling two entries
-is correctly dead text). **AND and NOT evaluate at entry scope**: one MATCH
-per hard term, id-lists joined on `eid` — AND means every term hits at least
-one passage of the entry; NOT means no passage of the entry hits. That is a
-few id-set operations over lists the design already fetches, one extra MATCH
-per hard term, trivially inside R6. Passage-scope AND on a multi-chunk entry
-would silently exclude legitimate hits (proved by construction during the
-critique). **Until entries exist upstream, hard predicates ship at item
-scope — entry scope's conservative projection at today's granularity — and
-any upstream filing of this work says so out loud.** Memory-backend parity:
-the phrase/AND/NOT check runs against a fold-only, unfiltered token stream
-re-tokenized from stored text — the retained `tokenize()` arrays are
-stopword-stripped and would make `"war and peace"` match "war versus peace"
-— and the predicate is pushed inside `search()` before its top-k slice.
+**Query semantics (D5), granularity decided out loud.** Hard units (quoted
+phrases, explicit AND, NOT) are filters, while bare terms are soft: they
+rank, OR'd, which is today's recall-friendly default, kept deliberately. Phrases
+evaluate per passage (FTS5-native, positions intact; a phrase straddling
+two entries is correctly dead text). AND and NOT evaluate at entry scope:
+one MATCH per hard term, id-lists joined on `eid`. AND means every term
+hits at least one passage of the entry; NOT means no passage of the entry
+hits. That is a few id-set operations over lists the design already
+fetches, one extra MATCH per hard term, trivially inside R6. Passage-scope
+AND on a multi-chunk entry would silently exclude legitimate hits (proved
+by construction during the critique). Until entries exist upstream, hard
+predicates ship at item scope, entry scope's conservative projection at
+today's granularity, and any upstream filing of this work says so out
+loud. Memory-backend parity: the phrase/AND/NOT check runs against a
+fold-only, unfiltered token stream re-tokenized from stored text, because
+the retained `tokenize()` arrays are stopword-stripped and would make
+`"war and peace"` match "war versus peace". The predicate is pushed inside
+`search()` before its top-k slice.
 
-**Filters (R5).** Facets compile in SQL to an allowed-entry bitmap. On the
-vector scan, the bitmap applies before the dot product — genuine pushdown,
-since that loop is ours. On the keyword side, MATCH runs **unconstrained**
-(C2's measured economics; upstream already does this) with pool
+**Filters (R5).** Facets compile in SQL to an allowed-entry bitmap, and on
+the vector scan the bitmap applies before the dot product: genuine
+pushdown, since that loop is ours. On the keyword side, MATCH runs unconstrained
+(C2's measured economics, and upstream already does this) with pool
 `max(8×limit, 256)`, and the bitmap filters the candidate stream. A ladder
 guarantees the result fills up: first refetch deeper (4 096); then, for
 scopes of roughly ≤ 20k passages, run a constrained MATCH via `json_each`
-(`carray` does not exist in `node:sqlite`) — the actual threshold is
+(`carray` does not exist in `node:sqlite`), where the actual threshold is
 measured by X4, not trusted; then stop and answer honestly through R18's
-`scope{}` block. No path ever post-filters a top-k and *claims completeness*
-— the give-up is disclosed, which is what R5 and R18 jointly demand.
+`scope{}` block. No path ever post-filters a top-k and *claims
+completeness*; the give-up is disclosed, which is what R5 and R18 jointly
+demand.
 
 **Entry collapse.** Each engine collapses passages to entries *before ranks
-are assigned* — the entry score is the MAX over its chunks (#6012's rule,
-transposed to the ratified unit) — and the vector scan does the collapse
-**in a single pass with an entry-keyed top-S heap** (a refetch variant would
+are assigned*: the entry score is the MAX over its chunks (#6012's rule,
+transposed to the ratified unit). The vector scan does the collapse in a
+single pass with an entry-keyed top-S heap, because a refetch variant would
 hide a second 650k scan, ~0.5–1 s, on exactly the dictionary-heavy queries
-that trigger it). Presentation groups entries under items; ranking never
+that trigger it. Presentation groups entries under items; ranking never
 re-collapses. D9 and R25 dissolve as the ruling says: the dictionary earns
 many slots only with many genuinely distinct entries, and concentration is
 still disclosed in status.
 
-**Fusion.** Fraction-weighted RRF at k=60. The seam invariant — every ranked
-list crossing the fusion seam is higher-is-better and strictly positive — is
-a unit-tested contract at the four verified lines (SQLite clamps idf;
-`-r.rank` stays positive); `frac ∈ [0,1]` bounds every contribution above by
-plain RRF, and frac = 0 is noise-suppressed, stated. `frac_vec` defaults to
-**list-local max-normalization**. #6012-style calibration (mean centering;
-noise floor = p99 of unrelated pairs; ceiling = median of matched pairs;
-reject bad models outright) is deferred to ticket 0031, because as first
-adopted it had no data source and left `frac_vec` undefined at minute zero;
-meta reserves a calibration block for it. The ticket states the
-pair-generation protocol: one item's title and abstract form a matched pair,
-cross-item pairs are unrelated — the library is the corpus. Ship gate (D11):
-golden-set Jaccard at or above §2.8's thresholds against plain RRF, both
-behind one flag.
+**Fusion.** The fusion rule is fraction-weighted RRF at k=60. The seam invariant, that every
+ranked list crossing the fusion seam is higher-is-better and strictly
+positive, is a unit-tested contract at the four verified lines (SQLite
+clamps idf; `-r.rank` stays positive). `frac ∈ [0,1]` bounds every
+contribution above by plain RRF, and frac = 0 is noise-suppressed, stated.
+`frac_vec` defaults to list-local max-normalization. #6012-style
+calibration (mean centering, noise floor = p99 of unrelated pairs, ceiling
+= median of matched pairs, reject bad models outright) is deferred to
+ticket 0031, because as first adopted it had no data source and left
+`frac_vec` undefined at minute zero; meta reserves a calibration block for
+it. The ticket states the pair-generation protocol: one item's title and
+abstract form a matched pair, cross-item pairs are unrelated; the library
+is the corpus. Ship gate (D11): golden-set Jaccard at or above §2.8's
+thresholds against plain RRF, both behind one flag.
 
-**The locator (R24)**, discriminated by the hit's entry kind — a record or
+**The locator (R24)** is discriminated by the hit's entry kind: a record or
 note hit has no attachment and no page, and the reply never fabricates
-either:
+either.
 
-- a **body** hit carries `{itemKey, attachmentKey, entry heading/path,
+- A **body** hit carries `{itemKey, attachmentKey, entry heading/path,
   charStart/End, pageEstimate, pageIsEstimate: true}`. The heading path is
-  the primary locator (per the ruling); the char offsets are exact. The page
-  is estimated within its attachment, from per-attachment totals that
+  the primary locator (per the ruling); the char offsets are exact. The
+  page is estimated within its attachment, from per-attachment totals that
   extraction now records instead of discarding (verified: upstream keeps
   only `content` and concatenates, destroying the offset→attachment
   mapping). `pageIsEstimate` stays true until a verified exact mapping
-  exists — the label is the honesty mechanism;
-- a **record** hit carries `{itemKey, field}`;
-- a **note/annotation** hit carries `{itemKey, sourceKey}`; the annotation's
-  parent attachment and page, when Zotero supplies them, pass through as
-  exact.
+  exists; the label is the honesty mechanism.
+- A **record** hit carries `{itemKey, field}`.
+- A **note/annotation** hit carries `{itemKey, sourceKey}`; the
+  annotation's parent attachment and page, when Zotero supplies them, pass
+  through as exact.
 
 **Empty results (R18).** An empty result names its scope in one of three
-disjoint sentences — "not indexed yet (0 of 947)", "partial: 812 of 947 —
-the miss may be coverage", "fully covered — nothing matches" — computed at
+disjoint sentences ("not indexed yet (0 of 947)", "partial: 812 of 947 —
+the miss may be coverage", "fully covered — nothing matches"), computed at
 query time from facet tables joined to ledger terminal states, deliberately
 *not* a materialized counter (C4 governs the status path; R6 governs this
 one). Under a strict query, one relaxed soft-MATCH count offers the
@@ -460,51 +465,51 @@ drop-the-quotes alternative.
 
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
-**2-gram twin tables** — #6012's shipped geometry, and decisive on its own
-terms: the modal Chinese word is two characters, unrepresentable as an exact
-trigram — backfilled from slabs for CJK-bearing passages only, query-routed,
-fused as a third list. SentencePiece quadratic-encode caution inherited: cap
-encode segments at ~1 000 chars.
+2-gram twin tables (#6012's shipped geometry, and decisive on its own
+terms: the modal Chinese word is two characters, unrepresentable as an
+exact trigram), backfilled from slabs for CJK-bearing passages only,
+query-routed, fused as a third list. SentencePiece quadratic-encode caution
+inherited: cap encode segments at ~1 000 chars.
 
 ### 2.7 Custody and lifecycle
 
 **R10 — local by default.** Verified: exactly two opt-in exfiltration paths,
 no silent fallback. The sole permitted external call on the default path is
 the one-time model-weight download, named in status, degrading to
-keyword-only and *never* to an API embedder — that invariant gets a test.
-Every reply carries the one-line **custody string**. The consent gate:
-auto-build defaults on only for the free local embedder; API embedders quote
-a cost and require an explicit go-ahead per index generation. One hygiene
-PR: the Gemini key moves from the URL query string to a header.
+keyword-only and *never* to an API embedder; that invariant gets a test.
+Every reply carries the one-line custody string. The consent gate:
+auto-build defaults on only for the free local embedder; API embedders
+quote a cost and require an explicit go-ahead per index generation. One
+hygiene PR: the Gemini key moves from the URL query string to a header.
 
 **R15 — deleted means gone.** Deletion rides the census tick, and every copy
 of the text has a named removal path:
 
-- item and entry rows;
+- item and entry rows
 - the FTS index, via its delete protocol (upstream's correct discipline,
-  kept);
-- passages;
-- vectors;
-- slabs (keyed per attachment/source, never shared);
-- sidecar tombstone bitmaps, across **all** generations;
-- ledger rows (a worker committing on a deleted item fails its guard);
+  kept)
+- passages
+- vectors
+- slabs (keyed per attachment/source, never shared)
+- sidecar tombstone bitmaps, across *all* generations
+- ledger rows (a worker committing on a deleted item fails its guard)
 - WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§2.2), plus
-  idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction;
-- the legacy `search-index.json`, which upstream leaves in place forever —
+  idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction
+- the legacy `search-index.json`, which upstream leaves in place forever,
   renamed `.migrated-<ts>` after the first post-migration save and swept at
   30 days or on `purge` (an *issue*, not a PR, because it reverses his
-  documented decision).
+  documented decision)
 
-**Pause never gates removal**: deletion propagation is classified
-as removal, not derivation — one branch in the tick — because otherwise a
-paused index serves deleted text for months. The acceptance test
-decompresses slabs before grepping (`strings` on gzip proves nothing).
-Byte-level "gone" is eventual, with a disclosed bound — stated as the
-negotiated reading of R15, for the author to veto.
+Pause never gates removal: deletion propagation is classified as removal,
+not derivation (one branch in the tick), because otherwise a paused index
+serves deleted text for months. The acceptance test decompresses slabs
+before grepping (`strings` on gzip proves nothing). Byte-level "gone" is
+eventual, with a disclosed bound, stated as the negotiated reading of R15,
+for the author to veto.
 
 **R22 — pause stays paused.** One meta row, written by `pause`, read before
 any scheduling decision. It gates worker spawn (a paused pipeline is zero
-processes — drain, then shut down, a #6012 pattern), the tick's build side,
+processes: drain, then shut down, a #6012 pattern), the tick's build side,
 and `auto_build`
 (verified: today any query against an empty index starts a build). It does
 not gate queries, the probe, deletions, or explicit verbs (`build` while
@@ -513,46 +518,47 @@ by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
-`clearVectors()` at open) dies. Vectors carry per-row embedder keys; on a
-model switch nothing drops; re-embedding drains newest-first; during the
-window, queries **dual-embed**, each row scored in its own space. The old
-model is **lazy-loaded only while old-generation rows are in the pool, and
-evicted after ~60 s idle**; under memory pressure, queries fall back to
-labeled keyword-anchored fusion. Two resident models (~240 MB + 70 + 32–64)
-would bust the ratified 300 MB for a days-long window; lazy-loading keeps
-the budget honest at the price of a disclosed cold-load spike. At most two generations;
-worst-case storage 2× sidecar, disclosed. The *small PR* version of D3 is
-narrower: upstream's one global `embedderId` cannot support mixed spaces, so
-the contained fix is keep-vectors plus **pin the query-side embedder to the
-stored id** until a rebuild switches both; dual-embed lives in scoped issue
-A (§4).
+`clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a
+model switch nothing drops, re-embedding drains newest-first, and during
+the window queries dual-embed, each row scored in its own space. The old
+model is lazy-loaded only while old-generation rows are in the pool, and
+evicted after ~60 s idle. Under memory pressure, queries fall back to
+labeled keyword-anchored fusion. Two resident models (~240 MB + 70 +
+32–64) would bust the ratified 300 MB for a days-long window, so
+lazy-loading keeps the budget honest at the price of a disclosed cold-load
+spike. At most two generations coexist; worst-case storage is 2× the
+sidecar, disclosed.
+The *small PR* version of D3 is narrower: upstream's one global
+`embedderId` cannot support mixed spaces, so the contained fix is
+keep-vectors plus pinning the query-side embedder to the stored id until a
+rebuild switches both. Dual-embed lives in scoped issue A (§4).
 
 **R23 — upgrade and downgrade.** The open protocol: read
-`meta.schemaVersion` **before any DDL or write** (verified defect:
+`meta.schemaVersion` before any DDL or write (verified defect:
 `createSchema` re-stamps via `INSERT OR REPLACE` before `loadMeta`, so today
-a downgrade destroys the evidence of skew at the moment it matters). A newer
-file → sideline (never delete), fresh build, notice — and only the conductor
-may sideline, because under N processes an unconditional per-server sideline
-would let one stale install repeatedly sideline a fresh one's index. An older
-file → versioned migrations. `min_reader_version` lets a too-old-but-aware
-server keep serving everything that never touches the index, and answer
-search with a typed `SCHEMA_NEWER {remedy}`. The ping-pong-downgrade hybrid
-state carries its own tamper evidence: `stamp==1 && v2 tables present` means
-an old binary wrote here — the response is not "migrate" but
-**reconcile-heal**: mark derived stages stale, census-diff, let R1 re-earn.
-The retroactive limit is stated plainly: binaries that predate the protocol
-(every release through v1.8.0; v1.9.0 ships the read-before-write + sideline
-slice via PR #25, but not the conductor rule or `min_reader_version`) are
-unreachable by it; the new filename (§1) is what actually protects against
-them.
+a downgrade destroys the evidence of skew at the moment it matters). A
+newer file → sideline (never delete), fresh build, notice. Only the
+conductor may sideline, because under N processes an unconditional
+per-server sideline would let one stale install repeatedly sideline a fresh
+one's index. An older file → versioned migrations. `min_reader_version`
+lets a too-old-but-aware server keep serving everything that never touches
+the index, and answer search with a typed `SCHEMA_NEWER {remedy}`. The
+ping-pong-downgrade hybrid state carries its own tamper evidence:
+`stamp==1 && v2 tables present` means an old binary wrote here, and the
+response is not "migrate" but reconcile-heal: mark derived stages stale,
+census-diff, let R1 re-earn. The retroactive limit is stated plainly:
+binaries that predate the protocol (every release through v1.8.0; v1.9.0
+ships the read-before-write + sideline slice via PR #25, but not the
+conductor rule or `min_reader_version`) are unreachable by it; the new
+filename (§1) is what actually protects against them.
 
 **R28 — uninstall.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per
-its documentation — documentation-cited, not disk-verified; the fix is
+its documentation: documentation-cited, not disk-verified, and the fix is
 correct regardless). Uninstall = delete the data directory; `purge` +
-uninstall = byte-clean. **D2 hosted-out** deletes, explicitly: per-tenant
-contract keying, multi-tenant consent bookkeeping, encryption-at-rest, quota
-arithmetic — the four returned privacy lines stay dead.
+uninstall = byte-clean. D2 hosted-out deletes, explicitly: per-tenant
+contract keying, multi-tenant consent bookkeeping, encryption-at-rest,
+quota arithmetic; the four returned privacy lines stay dead.
 
 ### 2.8 The instrument panel
 
@@ -568,33 +574,33 @@ with reason; sections only ever the partial qualifier):
 > priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 
-The example's arithmetic is deliberately consistent — 5,561 extracted + 538
-metadata-only + 1 quarantined = 6,100, the states disjoint — and "covered at
-extract" is defined once: items with no attachments are vacuously covered,
-the "of 6,100" clause scopes the with-attachments subset, so
+The example's arithmetic is deliberately consistent (5,561 extracted + 538
+metadata-only + 1 quarantined = 6,100, the states disjoint), and "covered
+at extract" is defined once: items with no attachments are vacuously
+covered, the "of 6,100" clause scopes the with-attachments subset, so
 `covered.embed == items.total` is stateable on a real library. Beyond the
 sentence, status carries per-library rows, the pause line ("paused since
 <date>"), the custody string, the record/body coverage split, and the
 version-0 residue disclosure (§2.4).
 
-**Counters (C4).** `counters(name, value)`, updated **in the same
-transaction as the ledger transition each one describes**. Per stage:
+**Counters (C4).** `counters(name, value)`, updated in the same
+transaction as the ledger transition each one describes. Per stage:
 `covered / empty / partial / outOfBand / quarantined`. Work counters on two
 axes: `work.<stage>.<trigger>.<outcome>`, with trigger ∈ `{new, edit,
 re-extract, resync, key-bump, prefix-stale, retry, delete}` (R27's "which
-input") and outcome ∈ `{noop, done}` — `noop` means signals moved, keys
+input") and outcome ∈ `{noop, done}`. Here `noop` means signals moved, keys
 verified unchanged, nothing recomputed; `done` means recomputed. R27 needs
 both what triggered work and what became of it, and one flat vocabulary
 cannot say both. Idle reconciliation recomputes the counters with real
-COUNTs, fixes them, and increments a **surfaced** `drift` counter the
-harness fails on — if the counters can drift silently, every status answer
+COUNTs, fixes them, and increments a surfaced `drift` counter the harness
+fails on, because if the counters can drift silently, every status answer
 built on them is suspect. Status point reads are sub-ms, against the
 measured 374 ms cold scan.
 
-The prefix accounting: the boundary cursor is the **total-order key
-`(dateAdded, lib, itemKey)`**, never the bare date — several items can share
-a `dateAdded`, and the boundary must be able to stop partway through such a
-tie group. It passes **settled** states
+The prefix accounting: the boundary cursor is the total-order key
+`(dateAdded, lib, itemKey)`, never the bare date, because several items can
+share a `dateAdded` and the boundary must be able to stop partway through
+such a tie group. It passes settled states
 (`done | empty | quarantined | band0-done`). `outOfBand` is pure set
 membership: covered items older than the boundary, decremented as the
 boundary sweeps past them. Edit work counts only under the `edit` trigger,
@@ -602,26 +608,26 @@ and the record stage counts its own edits.
 
 **The convergence harness (R26/R27).** A fixture library, an empty data
 directory, status polls at 1 Hz touching nothing else (R1 needs no asking).
-It asserts four things:
+It asserts four things.
 
-- status answers in ≤ 50 ms;
-- coverage is monotone;
-- the per-stage prefix arithmetic holds, at the granularity §2.3 states:
+- Status answers in ≤ 50 ms.
+- Coverage is monotone.
+- The per-stage prefix arithmetic holds, at the granularity §2.3 states:
   `covered == |{(dateAdded, lib, itemKey) ≥ boundary}| − partial −
-  quarantined + outOfBand`, with the definitions above;
-- the terminal state arrives: all stages at total, drift 0, `pipeline: idle`
+  quarantined + outOfBand`, with the definitions above.
+- The terminal state arrives: all stages at total, drift 0, `pipeline: idle`
   (the #6012 engine-shutdown observable), work counters stationary.
 
 Phase 2: edit
 one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
 sections(record)`, everything else 0; then a simulated identical-bytes
-resync → **zero recompute**: every `*.done` delta 0, the touched items
-appearing only under `work.*.resync.noop` (§2.1 says verification runs — the
-gate must permit exactly that and nothing downstream of it). This is R11
-measured by R27's own counters — the test that would have caught the shipped
-92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one monster,
-dateAdded ties — the harness must fail on the corpus that exercises its
-subtraction terms, not only pass on the gentle one.
+resync → zero recompute: every `*.done` delta 0, the touched items
+appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
+the gate must permit exactly that and nothing downstream of it). This is
+R11 measured by R27's own counters, the test that would have caught the
+shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
+monster, dateAdded ties. The harness must fail on the corpus that exercises
+its subtraction terms, not only pass on the gentle one.
 
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
 `check-slow: check rss-gate convergence soak`):
@@ -636,28 +642,28 @@ subtraction terms, not only pass on the gentle one.
 - **R20, the RSS gate.** A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: worker `VmHWM ≤ 500 MB`, server p95 ≤
-  300 MB — the ratified budgets verbatim, against the document class whose
+  300 MB, the ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
-  deviation from R20's letter ("against the 44.9 MB dictionary" — content
+  deviation from R20's letter ("against the 44.9 MB dictionary", content
   that cannot be committed to a public repo); ratification is pending in
   DECISIONS.md, and the real-document run stays X3a on the author's machine.
 - **R21, the golden gate (D11 = set).** A pinned multilingual fixture
-  corpus, ~40 queries, answer *sets* at k=10. Thresholds derived from the
-  stability artifact — the measured per-query Jaccard minimum under
+  corpus, ~40 queries, answer *sets* at k=10. Thresholds derive from the
+  stability artifact: the measured per-query Jaccard minimum under
   legitimate perturbation is 0.25, so a 0.5 floor would flag legitimate
-  churn: **mean Jaccard ≥ 0.8; at most 5 % of queries below 0.35; hard floor
-  0.2** — below the observed legitimate minimum, far above the failure
-  class's measured 0.00. Order is deliberately ungated (`identical_ordered`
-  was 22/60 under legitimate perturbation — an order gate flakes, gets
-  turned off, and that is how ticket 0009's defect happened). Re-pins are
-  commits
-  whose set diff is the review artifact. The golden set is re-pinned at
-  **entry granularity** when entries exist; until then it gates item
+  churn. The thresholds: mean Jaccard ≥ 0.8, at most 5 % of queries below
+  0.35, and a hard floor of 0.2, below the observed legitimate minimum and
+  far above the failure class's measured 0.00. Order is deliberately ungated
+  (`identical_ordered` was 22/60 under legitimate perturbation; an order
+  gate flakes, gets turned off, and that is how ticket 0009's defect
+  happened). Re-pins are commits
+  whose set diff is the review artifact, and the golden set is re-pinned at
+  entry granularity when entries exist; until then it gates item
   projections and says so.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
-  kill -9 the conductor twice. Assert: p95 ≤ 1.5 s; zero SQLITE_BUSY
-  surfacing; WAL ≤ 256 MB; lease migration < 30 s; zero double-commits;
-  duplicate compute ≤ 1 micro-batch per failover.
+  kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
+  surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
+  and duplicate compute ≤ 1 micro-batch per failover.
 
 **R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
 instead of silently duplicating work.
@@ -666,25 +672,25 @@ instead of silently duplicating work.
 
 **Disk** at the design point, under the token geometry (both counts stated):
 768-token chunks give ≈ 250–300k passages from the same corpus that yields
-650k under the old 1 200-char stride — bench comparability keeps the old
-count; the budgets use the new. FTS ~0.3–0.4 GB + gzip slabs ~0.23 GB
+650k under the old 1 200-char stride; bench comparability keeps the old
+count, and the budgets use the new. FTS ~0.3–0.4 GB + gzip slabs ~0.23 GB
 (680 MB raw at ~3:1) + int8 sidecar ~0.1 GB (300k × 384) + metadata/ledger
-~0.1 GB ≈ **~0.8–0.9 GB** — under v1's 2.3 GB, because passage text is no
+~0.1 GB ≈ ~0.8–0.9 GB, under v1's 2.3 GB, because passage text is no
 longer stored twice (passages are references into slabs) and the chunks are
 fewer. The float32 fallback adds ~0.35 GB.
 
 **RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
 ~120 MB of query model on first semantic use ≈ ~220–250 MB. One P1 ≈
 ~250 MB steady, ≤ 500 MB transient with hard kill. Whole-machine at two
-clients ≈ 2×220 + 250 ≈ **~690 MB steady**. That figure is stated because
+clients ≈ 2×220 + 250 ≈ ~690 MB steady. That figure is stated because
 "≤ 300 MB per process" would be a *re-scoping* of a number ratified against
-a single-server picture — awaiting the author's ratification, stated once in
-DECISIONS.md. Dual-embed no longer threatens the budget (the lazy-load rule,
-§2.7).
+a single-server picture. It awaits the author's ratification, stated once
+in DECISIONS.md. Dual-embed no longer threatens the budget (the lazy-load
+rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
-single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget 3 s
-— unchanged, and now without the hidden second scan (§2.6).
+single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget
+3 s, unchanged, and now without the hidden second scan (§2.6).
 
 ---
 
@@ -697,10 +703,10 @@ single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget 3 s
 - **CJK — committed.** 2-gram twin tables, CJK-bearing passages only,
   backfilled from slabs; typed degradation meanwhile.
 - **Stopwords** — PR #19 merged (`4f61b2a`); the deletion itself ships in
-  its follow-up (0014, now the train's head). **X2 guards it**:
+  its follow-up (0014, now the train's head). X2 guards it:
   measure stopword-less OR-query p95 at 650k; above ~500 ms, add
   corpus-driven pruning of query terms whose document frequency exceeds
-  ~50 % — language-neutral by construction.
+  ~50 %, language-neutral by construction.
 - **Fairness — committed.** Record phase, then two-band body with derived K
   (§2.3); smallest-first rejected on the record.
 - **Fraction-RRF — conditional.** Ships behind the golden gate; calibration
@@ -734,31 +740,31 @@ single-pass sidecar scan (X1) + fusion ≈ 300–700 ms typical; hard budget 3 s
 
 **Rejected this cycle, for the record** (each killed by a verified fact or a
 critique; details in git history): cursoring any fulltext sequence on the
-local transport; a universal fulltext census across transports (it would
-hammer api.zotero.org); passage-scope AND/NOT; the stopword-filtered token
-stream for phrase parity; the always-resident dual model; the 0.5 golden
-floor (artifact-refuted); item-granularity smallest-first; trigram CJK (the
-modal Chinese word is two characters); `carray` (not shipped in
-`node:sqlite`); an in-place v2 schema under the old filename; pause gating
-deletions; the "contained" D3 PR as first proposed.
+local transport, a universal fulltext census across transports (it would
+hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered token
+stream for phrase parity, the always-resident dual model, the 0.5 golden
+floor (artifact-refuted), item-granularity smallest-first, trigram CJK (the
+modal Chinese word is two characters), `carray` (not shipped in
+`node:sqlite`), an in-place v2 schema under the old filename, pause gating
+deletions, and the "contained" D3 PR as first proposed.
 
 ---
 
 ## 4. The increment sequence from v1.7.0
 
-*(Re-formed 2026-08-26 by the political and implementation reviews — in git
-history at `e32afe3` as `panel/cycle2/` — and ratified in DECISIONS.md. The
+*(Re-formed 2026-08-26 by the political and implementation reviews, in git
+history at `e32afe3` as `panel/cycle2/`, and ratified in DECISIONS.md. The
 original fifteen-step train is in git history at `dba8cd6`.)*
 
 Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
 SYNC.md's measured asymmetry governs the form each item takes: a contained
-defect with a failing test goes as a **[PR]** (merged twice); anything
+defect with a failing test goes as a **[PR]** (merged twice), and anything
 design-sized goes as an **[issue]** he builds himself (the precedent is
 upstream issue #10; two for two).
-**[X]** means measure first. Gates are repo-side, in this repo's Makefile,
-never PRs.
+**[X]** means measure first, and gates are repo-side, in this repo's
+Makefile, never PRs.
 
-This section carries the train's *shape* only. The ratified terms (volume
+This section carries the train's *shape* only: the ratified terms (volume
 cap, cadence, commitment bounds) live once in DECISIONS.md's re-form entry,
 and each item's scope, evidence, and live state live in its ticket — the
 tickets are authoritative for content, this list for ordering.
@@ -781,13 +787,13 @@ tickets are authoritative for content, this list for ordering.
 6. **Three #10-shaped scoped issues, after the train and the offer** — A:
    ledger/freshness/counters (0033); B: entries and the segmenter (0034); C:
    multi-process on one data dir (0035). The contract survives even if he
-   reimplements the machinery in his own idiom — which is where C2 says the
+   reimplements the machinery in his own idiom, which is where C2 says the
    durable value lives.
 7. **Experiments before their dependents** (0025 carries the substrate map;
-   the rules live in §3): X1 before the sidecar work; X4 before any ladder
-   constant; X5 (seg/1 built first, 0028) before issue B; X6 with I-1; X7
-   before the tick cadence is documented; X3a feeds the rss-gate fixture;
-   X3b travels with issue B.
+   the rules live in §3): X1 before the sidecar work, X4 before any ladder
+   constant, X5 (seg/1 built first, 0028) before issue B, X6 with I-1, X7
+   before the tick cadence is documented, X3a feeding the rss-gate fixture,
+   and X3b traveling with issue B.
 8. **Commitment bounds** — per DECISIONS.md's re-form entry, verbatim and
    binding; the fork's end state is **archived** once the train resolves.
 
@@ -799,27 +805,27 @@ tickets are authoritative for content, this list for ordering.
 it.** Entry collapse, locators, dedup, the golden re-pin, and the Palgrave
 arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
 seg/1 has never touched the real 44.9 MB extraction. Its failure mode is
-*silent plausible-looking entries* — wrong citeable locators and wrong dedup
-units, worse than honest synthetic ones. *Falsifier:* X5 — half a day,
+*silent plausible-looking entries*: wrong citeable locators and wrong dedup
+units, worse than honest synthetic ones. *Falsifier:* X5, half a day,
 before scoped issue B claims numbers. Below acceptable precision the design
-degrades gracefully to labeled synthetic entries: the contract survives; the
-"1 850 peers" story does not.
+degrades gracefully to labeled synthetic entries: the contract survives;
+the "1 850 peers" story does not.
 
 **Risk 2 — the version-0 freshness residue could be the whole story, not
 the residue.** On a never-synced library the census may be structurally
-blind to every re-extraction. The md5 widening catches file-driven changes;
+blind to every re-extraction. The md5 widening catches file-driven changes,
 but if X6 shows re-extraction bumps nothing observable, "coverage: current"
-is a lie the design can only disclose, not fix — an honest but ugly
-amendment to the freshness contract. *Falsifier:* X6 — an afternoon, and I-1
+is a lie the design can only disclose, not fix: an honest but ugly
+amendment to the freshness contract. *Falsifier:* X6, an afternoon, and I-1
 is already drafted to carry the answer upstream.
 
 **Risk 3 — upstream ships its own core before the design conversation
-completes.** Sharpened since v1: he built #10's answer himself in days — and
-the risk materialized a second time on 2026-08-27, when he filed and fixed
-his own follow-up to PR #20 (#21, with #22/#23) inside one day — and
+completes.** Sharpened since v1: he built #10's answer himself in days, the
+risk materialized a second time on 2026-08-27, when he filed and fixed
+his own follow-up to PR #20 (#21, with #22/#23) inside one day, and
 #6012's saved-search serialization is the first crack through which platform
 semantic results will leak into the local API. *Falsifier:* the harness
-offer and the scoped issues themselves, after the PR train — those threads
+offer and the scoped issues themselves, after the PR train; those threads
 settle fork-versus-upstream for the cost of writing them. The hedge is
 structural: every stage behind a key; the contract, counters, and harness
 are ours whoever writes the machinery.
@@ -827,27 +833,27 @@ are ours whoever writes the machinery.
 **Risk 4 — N-process reality diverges from the protocol on exactly the
 edges the soak must catch.** The conductor election, the activity-file
 yield, and the lease timing are designed against named failure states
-(orphaned worker, mid-monster steal, torn sidecar) but unmeasured;
+(orphaned worker, mid-monster steal, torn sidecar) but unmeasured, and
 filesystem mtime granularity and WAL growth are folklore until soaked.
-*Falsifier:* the §2.8 soak gate — scripted, 30 minutes, kill -9 twice; its
+*Falsifier:* the §2.8 soak gate: scripted, 30 minutes, kill -9 twice. Its
 assertions are constants the protocol can arithmetically meet, so a failure
 is information, not noise.
 
 **Risk 5 — gate decay.** The fold gate's waiver retired with #19's merge
-(2026-08-27); the rss and convergence gates sit in `check-slow`; a 14-day-stale
-WARN is advisory. This is the normalization-of-deviance channel that
-produced ticket 0011's defect, reintroduced at a slower time constant with better
-signage — designed around, not away, and named so the author can choose to
-tighten it. *Falsifier:* none needed — the risk is organizational; the
-mitigation is that every gate threshold cites the artifact that justifies
-it, so re-pins and waivers leave evidence.
+(2026-08-27), the rss and convergence gates sit in `check-slow`, and a
+14-day-stale WARN is advisory. This is the normalization-of-deviance
+channel that produced ticket 0011's defect, reintroduced at a slower time
+constant with better signage: designed around, not away, and named so the
+author can choose to tighten it. *Falsifier:* none needed, because the risk
+is organizational. The mitigation is that every gate threshold cites the
+artifact that justifies it, so re-pins and waivers leave evidence.
 
 ---
 
 The bet: the ledger keeps failures boring, and the contract keeps answers
-honest. Cycle 2 adds four things. The units are now the ones the author
-ratified (entries, records, items). The freshness protocol can no longer be
-fooled by the counter it watches. N processes are a designed state, not an
-accident. And every promise is either watched by a gate whose threshold
-cites its artifact, or named as an experiment with a decision rule (§3) —
-each falsifiable in under a day, before the expensive code exists.
+honest. Cycle 2 adds four things: the units are now the ones the author
+ratified (entries, records, items), the freshness protocol can no longer be
+fooled by the counter it watches, N processes are a designed state rather
+than an accident, and every promise is either watched by a gate whose
+threshold cites its artifact or named as an experiment with a decision rule
+(§3), each falsifiable in under a day, before the expensive code exists.
