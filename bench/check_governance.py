@@ -52,6 +52,10 @@ OWNER = "GOVERNANCE.md"
 SCANNED = [
     "README.md",
     "CLAUDE.md",
+    # The chain's front page, and a status page is where the division of labour
+    # with upstream is most tempting to explain: every row has to say why a
+    # promise is unshipped, and the honest short answer is a governance one.
+    "spec/README.md",
     "SECURITY.md",
     "spec/REQUIREMENTS.md",
     "spec/CONSTRAINTS.md",
