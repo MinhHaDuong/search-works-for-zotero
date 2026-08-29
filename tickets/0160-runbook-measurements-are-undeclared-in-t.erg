@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-29T11:20Z claude created
+2026-08-29T13:10Z claude note /gaze REROLL 1: the "CONSTRAINTS.md quotes none" claim was false — it carries 410, 0..25 036 and 584 of 8 037, all labelled measured, all from 0012's artifact. Disposition (a): folded into this ticket's scope, same work in kind. RUNBOOK enumeration corrected to six sites and eight values, adding line 37's ratios and line 139's 731 584 ms with its 0025-x4-constrained-match artifact.
 
 --- body ---
 ## Context
@@ -15,12 +16,15 @@ one document over: `DECISIONS.md` was absent from `bench/check_figures.py`'s
 day and nothing could see it. Fixing that instance prompted the question of
 which OTHER prose documents quote measurements without declaring them.
 
-`RUNBOOK.md` does, in five places, and it is not in the map:
+`RUNBOOK.md` does, in six places carrying eight distinct values, and it is not
+in the map:
 
-- line 36 — `warm p95 1 773,0 ms stopword-less against 392,3 ms on stock`
-- line 54 — `263,7 s and 1 755,6 MiB on doudou`
-- line 116 — `reproduces 0011's 2 084,9 MiB class`
-- line 171 — `a number that would read "1 773,0 ms"`
+- line 36 — `1 773,0 ms` and `392,3 ms` → `bench/results/0025-x2-stopwordless/x2-verdict.json`
+- line 37 — `4,5×` and `5,7×` → same artifact, stored as `ratio_p95` and `ratio_p50`
+- line 54 — `263,7 s` and `1 755,6 MiB` → `bench/results/0011-rss/`
+- line 116 — `2 084,9 MiB` → `bench/results/0011-rss/`
+- line 139 — `731 584 ms` median at 100k rowids → `bench/results/0025-x4-constrained-match/synthetic-477k.json`
+- line 171 — repeats line 36's `1 773,0 ms`
 
 These are this repo's own measurements, from `bench/results/`, quoted in prose.
 CLAUDE.md's rule is unconditional: *every measurement quoted in prose is
@@ -28,7 +32,16 @@ declared there with an anchor; when you re-measure, the guard tells you every
 prose site to update.* RUNBOOK's sites are exactly the ones it would not tell
 you about.
 
-`CONSTRAINTS.md` was checked and quotes none — it is correctly absent.
+`CONSTRAINTS.md` is a third live instance, not the clean negative this ticket
+first recorded. It quotes `410 versus 0..25 036` and `584 of 8 037`, both
+labelled *measured* in the prose, both from
+`bench/results/0012-fulltext-sequence/sequences.json`, and it is not in the map
+either; `verification/ACCEPTANCE-0036.md` already names those same figures. The
+first pass missed them because they use space thousands with no decimal comma,
+so a decimal-comma grep returns zero. That is material to 0161: a scan finds
+figures only in the shape it was written for, and the all-clear it returns
+otherwise is indistinguishable from not having looked.
+
 `FIELD-REVIEW.md` carries 24 measurement-shaped figures but they are OTHER
 projects' claimed numbers, not ours, and the guard has nothing to compare them
 against; it is out of scope here and is the reason 0161 asks for a rule that
@@ -46,10 +59,23 @@ exactly the question the guard exists to answer mechanically, and here it cannot
 
 ## Actions
 
-1. Add `"runbook": ["RUNBOOK.md"]` to `PROSE` in `bench/check_figures.py`.
-2. Declare each of the four distinct figures against its artifact in
-   `bench/results/0025-x2-stopwordless/` and `bench/results/0011-rss/`.
-3. Where a figure has no artifact behind it, say so in the ticket rather than
+Review widened the scope from RUNBOOK-only: `CONSTRAINTS.md` is the same work in
+kind, one `PROSE` entry plus its declarations, so it lands here rather than in a
+ticket of its own.
+
+1. Add `"runbook": ["RUNBOOK.md"]` and `"constraints": ["CONSTRAINTS.md"]` to
+   `PROSE` in `bench/check_figures.py`.
+2. Declare every RUNBOOK figure enumerated above, each against the artifact
+   named beside it. Three points a cold pass gets wrong: line 37's two ratios
+   sit in the same verdict JSON as line 36's latencies and are as declarable;
+   line 54 needs two declarations, seconds and MiB, because the guard renders
+   one scalar per key; line 171 repeats line 36's value, so both sites need
+   anchors or one can go stale behind the other.
+3. Declare CONSTRAINTS.md's figures against
+   `bench/results/0012-fulltext-sequence/sequences.json`. `584` is a difference
+   of two stored counts, not a stored key, so declare what the artifact holds
+   and record the derivation, or record 584 as undeclarable with that reason.
+4. Where a figure has no artifact behind it, say so in the ticket rather than
    inventing a declaration — an undeclarable number in an instruction document
    is its own finding.
 
@@ -62,9 +88,13 @@ all-clear never seen to fail is not evidence.
 
 ## Verification
 
-- [ ] `python3 bench/check_figures.py` reports 0 stale with RUNBOOK covered
+- [ ] `python3 bench/check_figures.py` reports 0 stale with RUNBOOK and
+      CONSTRAINTS covered
 - [ ] the pair count rises by the number of declarations added
+- [ ] line 37's ratios and line 139's `731 584 ms` are declared, or recorded
+      undeclarable with the reason
 - [ ] a planted wrong value in RUNBOOK.md produces STALE, then restores clean
+- [ ] a planted wrong value in CONSTRAINTS.md produces STALE, then restores clean
 
 ## Invariants
 
@@ -75,5 +105,5 @@ all-clear never seen to fail is not evidence.
 
 ## Exit criteria
 
-- RUNBOOK.md is in `PROSE` and every measurement it quotes is declared, or
-  recorded as undeclarable with the reason.
+- RUNBOOK.md and CONSTRAINTS.md are in `PROSE` and every measurement each
+  quotes is declared, or recorded as undeclarable with the reason.
