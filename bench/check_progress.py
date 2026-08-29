@@ -52,14 +52,20 @@ PAGE_SECTION = re.compile(r"^### (.+?)\s*$")
 #: The glyphs, and the vocabulary each axis admits. `designed` has two states
 #: and `delivered` three, which is the asymmetry the page exists to show: a
 #: promise is designed or it is not, but it can be half-kept.
-DESIGNED = {"ratified": "█", "open": "░"}
-DELIVERED = {"shipped": "█", "partial": "▓", "none": "░"}
+#:
+#: Filled, half and empty circles rather than block shades. The first version
+#: used █ and ▓, whose fills differ by a quarter, and the author could not tell
+#: them apart in the rendered page — which costs the reader the one distinction
+#: the delivered bar exists to draw. A half-filled circle carries "partial" in
+#: its shape, so the bar survives being read without its legend.
+DESIGNED = {"ratified": "●", "open": "○"}
+DELIVERED = {"shipped": "●", "partial": "◐", "none": "○"}
 
 #: The two headline lines, whose bar and counts must both match the rows.
-HEAD_DESIGNED = re.compile(r"^`([█░]+)`\s*&nbsp;\s*(\d+) ratified · (\d+) still open\s*$")
-HEAD_DELIVERED = re.compile(r"^`([█▓░]+)`\s*&nbsp;\s*(\d+) shipped · (\d+) partial · (\d+) not yet\s*$")
+HEAD_DESIGNED = re.compile(r"^`([●○]+)`\s*&nbsp;\s*(\d+) ratified · (\d+) still open\s*$")
+HEAD_DELIVERED = re.compile(r"^`([●◐○]+)`\s*&nbsp;\s*(\d+) shipped · (\d+) partial · (\d+) not yet\s*$")
 #: A row of the at-a-glance table: `| section | \`bar\` | \`bar\` |`.
-SUMMARY_ROW = re.compile(r"^\|\s*([A-Z][^|]+?)\s*\|\s*`([█░]+)`\s*\|\s*`([█▓░]+)`\s*\|\s*$")
+SUMMARY_ROW = re.compile(r"^\|\s*([A-Z][^|]+?)\s*\|\s*`([●○]+)`\s*\|\s*`([●◐○]+)`\s*\|\s*$")
 
 #: Digits that address something instead of measuring it. Deleted from the line
 #: before the digit test, so what remains is whatever was written as a quantity.
@@ -173,6 +179,7 @@ def check_bars(text: str, rows) -> list[str]:
     """Every written bar recomputed from the rows it claims to summarise."""
     findings = []
     ordered = [section for section, _ in dict.fromkeys((s, None) for _, s, _, _, _ in rows)]
+    summarised: list[str] = []
 
     for line in text.splitlines():
         if head := HEAD_DESIGNED.match(line):
@@ -198,6 +205,7 @@ def check_bars(text: str, rows) -> list[str]:
                 findings.append(f"COUNT delivered: written {counts}, rows give {actual}")
         elif row := SUMMARY_ROW.match(line):
             section, written_d, written_v = row.group(1), row.group(2), row.group(3)
+            summarised.append(section)
             if section not in ordered:
                 findings.append(f"SUMMARY {section!r}: no section of that name carries rows")
                 continue
@@ -212,6 +220,17 @@ def check_bars(text: str, rows) -> list[str]:
                 findings.append(
                     f"SUMMARY {section!r} delivered: written {written_v!r}, rows give {expected_v!r}"
                 )
+
+    # A summary row is checked only if it parses, so a row whose glyphs fall
+    # outside the vocabulary — a stale bar left behind when the glyphs changed,
+    # a hand-edit — is not wrong, it is invisible, and the guard reports the
+    # all-clear it would report for a page with no such row at all. Every
+    # section must therefore be accounted for by name.
+    for section in ordered:
+        if section not in summarised:
+            findings.append(
+                f"SUMMARY {section!r}: no row summarises it, or its row no longer parses as bars"
+            )
     return findings
 
 
