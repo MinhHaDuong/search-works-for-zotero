@@ -1,0 +1,55 @@
+{
+  "ticket": "tickets/0140-cap-the-chunker-below-the-embedder-limit.erg",
+  "probe": [
+    "bench/passage_census.mjs",
+    "bench/passage_census.py"
+  ],
+  "tokenization": {
+    "run_utc": "2026-08-30T09:55:39.907Z",
+    "model": {
+      "id": "all-minilm-l6-v2",
+      "repo": "Xenova/all-MiniLM-L6-v2"
+    },
+    "special_tokens": 2,
+    "population": 13630,
+    "sampled": 13630,
+    "seed": 0
+  },
+  "geometry": {
+    "budget": 498,
+    "window": 512,
+    "min_tokens": 120,
+    "overlap_tokens": 48
+  },
+  "approximation": "entry = one cache file (seg/1 not built yet); synthetic entry boundaries would only add closures, so passage counts err low",
+  "summary": {
+    "budget": 498,
+    "files": 13630,
+    "passages_total": 567829,
+    "tokens_total": 211342921,
+    "median_passages_per_attachment": 18.0,
+    "by_kind": {
+      "pdf": {
+        "files": 8700,
+        "paragraphs": 2194841,
+        "tokens": 189723782,
+        "passages": 514070,
+        "median_passages_per_attachment": 35.0
+      },
+      "html": {
+        "files": 4867,
+        "paragraphs": 343205,
+        "tokens": 20190563,
+        "passages": 50018,
+        "median_passages_per_attachment": 5
+      },
+      "other": {
+        "files": 63,
+        "paragraphs": 13254,
+        "tokens": 1428576,
+        "passages": 3741,
+        "median_passages_per_attachment": 29
+      }
+    }
+  }
+}

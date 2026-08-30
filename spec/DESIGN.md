@@ -294,7 +294,12 @@ The phase order follows the record ruling.
   derived, not transplanted: K = ceil(median passages per item, measured
   on this corpus; floor 16), stated in meta. (Under the old char-stride
   chunking the measured median was 63 passages/item, giving K = 64; under
-  the token geometry above the median item is ~25 passages.)
+  the token geometry the median attachment measures 18 passages —
+  35 for PDFs, 5 for HTML snapshots, whose extraction is
+  mostly chrome — so K lands near the floor rather than at 64. Basis
+  stated: the census counts per attachment cache, the closest measurable
+  proxy for the item until seg/1 exists;
+  `bench/results/0140-passage-census/census.json`.)
 
 **Newest-first versus smallest-first, stated honestly.** #6012, the draft
 PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2),
@@ -725,20 +730,24 @@ instead of silently duplicating work.
 ### 2.9 Budgets, recomputed and honestly scoped
 
 **Disk** at the design point, under the token geometry (both counts stated).
-**The passage count is pending re-measurement.** The ≈ 250–300k figure was
-derived at a 768-token maximum, which the 2026-08-29 ruling replaced with
-`min(500, modelMax) − affordances` (§2.2); a smaller budget yields more
-passages, not fewer, so every disk figure in this paragraph is an
-underestimate until it lands. Ticket 0140 recomputes it by measuring, not by
-scaling this number: under structural chunking the maximum rarely binds, since
-an entry shorter than the budget yields one chunk whatever the ceiling, so
-arithmetic on the ratio would overstate the correction. The same corpus yields
-650k under the old 1 200-char stride; bench comparability keeps the old
-count. FTS ~0.3–0.4 GB + gzip slabs ~0.23 GB
-(680 MB raw at ~3:1) + int8 sidecar ~0.1 GB (300k × 384) + metadata/ledger
-~0.1 GB ≈ ~0.8–0.9 GB, under v1's 2.3 GB, because passage text is no
-longer stored twice (passages are references into slabs) and the chunks are
-fewer. The float32 fallback adds ~0.35 GB.
+**The passage count is measured, not derived**: 567 829 passages at the
+resolved budget of 498 tokens, counted over all 13 630 fulltext caches
+(211 342 921 tokens through the embedder's own tokenizer;
+`bench/results/0140-passage-census/census.json`, ticket 0140). The earlier
+≈ 250–300k figure was arithmetic at a 768-token maximum and understated the
+count by nearly half — the measurement, not a rescaling, was the ticket's
+instruction, and it was right to insist: under structural chunking the
+maximum rarely binds, so no ratio could have produced this number. One stated
+approximation: the census chunks each cache as one paragraph sequence (seg/1
+does not exist yet), and entry boundaries only add chunk closures, so the
+count errs low by that margin. The same corpus yields 650k under the old
+1 200-char stride, coherently above the token count since 498 tokens is
+roughly 2 000 characters; bench comparability keeps the old count. FTS
+~0.3–0.4 GB + gzip slabs ~0.23 GB (680 MB raw at ~3:1) + int8 sidecar
+~0.22 GB (567 829 × 384) + metadata/ledger ~0.1 GB ≈ ~0.9–1.0 GB, under
+v1's 2.3 GB, because passage text is no longer stored twice (passages are
+references into slabs) and the chunks are fewer. The float32 fallback adds
+~0.87 GB.
 
 **RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
 ~120 MB of query model on first semantic use ≈ ~220–250 MB. One P1 ≈
