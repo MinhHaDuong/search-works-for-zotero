@@ -2,7 +2,6 @@
 Title: Implement seg/1, the entry segmenter X5 measures
 Created: 2026-08-26
 Author: claude
-Blocked-by: 0140
 
 --- log ---
 2026-08-26T16:46Z claude created
@@ -12,6 +11,7 @@ Blocked-by: 0140
 2026-08-29T11:04Z claude note blocked by 0140: the chunker's token cap is unsettled and 768 tokens exceeds the embedder's measured 512-token limit; seg/1 must be built to the settled geometry, not to 768
 2026-08-30T14:30Z claude note design input from a corpus look (author's question, 0140 session): 350+ word blocks are mostly extractor artifacts, not authored paragraphs — in 254 sampled PDFs, 58% of 3 939 such blocks carry 2+ sentence-end-newline-capital seams (indentation-separated paragraphs glued when extraction drops the indent), the rest are reference lists and mangled layout; real paragraphs inside run 150-250 words. Consequence for seg/1: when budget-splitting an oversized block, split at those seams rather than at blind token positions — the true boundaries are recoverable; and the weak structure signal is the standing argument for the structured-extraction path (C2) over deeper flat-text heuristics
 
+2026-08-30T12:38Z Minh Ha-Duong note blocker 0140 closed — Blocked-by removed.
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; the review is in git

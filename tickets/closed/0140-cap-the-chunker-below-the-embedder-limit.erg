@@ -2,6 +2,7 @@
 Title: Cap the chunker below the embedder's token limit before seg/1 ships
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #99
 
 --- log ---
 2026-08-29T15:00Z claude created
@@ -16,6 +17,7 @@ Author: claude
 
 2026-08-30T14:55Z minh ruling the chunk is the paragraph and the geometry question is closed for good (DECISIONS.md 2026-08-30): the budget is a guard against extraction artifacts, never a target; window ceases to be an embedder-selection criterion beyond 512, answering action 5 (long-context insurance: not needed); keeping upstream's chunker as-is considered and rejected at source (chunker.ts flattens all whitespace before a 1 200-char stride — paragraph-sized statistically, paragraph-aligned never, and token-unsafe for CJK). Extractor and chunker improvements deferred by the author to another time.
 
+2026-08-30T12:38Z Minh Ha-Duong closed — autoclosed — PR #99
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted
