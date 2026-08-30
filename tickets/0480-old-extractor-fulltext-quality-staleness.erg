@@ -1,0 +1,109 @@
+%erg 0.1
+Title: Old-extractor full text: quality staleness is a class beside cache loss
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T09:30Z Minh Ha-Duong created
+2026-08-30T09:30Z claude note filed at the author's request, same session as the presence-probe ruling (spec/DECISIONS.md 2026-08-30) — this is that ruling's sibling: cache-lost is availability staleness, this ticket is quality staleness. The author's estimate for his library: roughly half the full-text cache was produced by the old extractor and could be improved
+
+--- body ---
+## Context
+
+Zoteus advertises as the all-in-one MCP server for a Zotero library. The
+2026-08-30 presence-probe ruling covers the cache that *vanished*; this ticket
+covers the cache that *survived but is poor* — produced by an older extractor
+generation and improvable by a current one. The author estimates roughly half
+of his library's full-text cache is in that state.
+
+Two established facts frame the design space:
+
+- **Zotero offers no re-extraction API.** X6 measured it
+  (`bench/results/0025-x6-version-dynamics/`): deleting a cache forces
+  unavailability, not re-extraction; nothing re-extracts headless; the local
+  API documents no reindex endpoint. Healing through the platform is the
+  user's Reindex, one item at a time.
+- **Upstream already extracts locally when the platform cache is absent**
+  (v1.10.0, upstream PR #29). So the improvement path for an all-in-one
+  server needs no Zotero API at all: extend the existing local-extraction
+  path from "cache absent" to "cache flagged poor", with the derivation
+  recorded. The AGPL/MIT boundary already ruled out reusing Zotero's own
+  chunker code (ticket 0140's log); the same applies to its extractor —
+  adoptable as specification, not as source.
+
+## What makes this a design question, not a feature request
+
+- **Detection.** The census and content endpoints expose versions and text,
+  not extractor identity. "Old extractor" must be inferred: candidates
+  include the cache sidecar's recorded fields, cache mtime against
+  attachment mtime, and text-quality signals (missing text layer, mangled
+  ligatures/diacritics, equation dropout — the EDM experience says a text
+  layer can silently drop the mathematics). The author's "roughly half" is
+  a testable population claim, not yet a measurement.
+- **Preference policy.** When an item's platform cache is flagged poor, does
+  zoteus index its own extraction instead? Always, opt-in, or per-item? This
+  is a ruling for the ledger's contract (the served text would no longer be
+  what Zotero serves), and it must not silently diverge from the platform:
+  the divergence is exactly what the ledger exists to record.
+- **Derivation identity.** Re-extraction with a better extractor changes
+  passage content without any source change — the inverse of cache-lost. The
+  extractor generation therefore belongs in the derivation key (the chunker
+  key already carries the resolved budget, ticket 0140), so an upgrade
+  regenerates cleanly and two generations never mix unlabeled in one index.
+- **Budget.** Extraction is the expensive phase (the monster document's
+  extracted text is tens of MiB); re-extracting half a library is a bounded
+  background campaign, not a tick — the same walk-and-budget discipline as
+  DESIGN.md §2.4's sweeps.
+
+## Coordination with current work
+
+- `spec/DECISIONS.md` 2026-08-30 (presence probe) — sibling ruling; the
+  cache-lost machinery (probe, stored states, surfaced counts) is the
+  natural carrier for a poor-cache flag too.
+- Ticket 0033 (scoped issue A) — the ledger/freshness design this would
+  extend; the upstream conversation about extraction quality belongs in that
+  scoped-issue lane, within GOVERNANCE.md's bounds.
+- Ticket 0019 — terminal-state vocabulary the flag would reuse.
+- Upstream #29 — the local-extraction path this would extend; any upstream
+  ask points there.
+
+## Actions
+
+1. Measure the population: a probe over the real library classifying each
+   cached extraction (sidecar fields, mtimes, quality heuristics), testing
+   the "roughly half" estimate. Artifact to `bench/results/`, no library
+   mutation.
+2. From the measurement, propose the detection heuristic and its false-flag
+   rate — a wrong "poor" flag re-extracts needlessly (cost), a wrong "fine"
+   flag leaves bad text served (the current state, so the floor is known).
+3. Draft the ruling question for the author: preference policy and its
+   contract wording (DECISIONS.md, awaiting ratification).
+4. If ratified: design edit (derivation key gains extractor identity; the
+   background campaign's budget) and the upstream-facing text via the
+   scoped-issue lane.
+
+## Test
+
+- The population probe runs against a fixture directory with a known mix of
+  old-style and current-style caches and classifies both correctly before it
+  touches the real library (positive control first).
+
+## Verification
+
+- [ ] Population measured on the real library, artifact committed with
+      provenance
+- [ ] Detection heuristic proposed with measured false-flag behaviour
+- [ ] Ruling question filed in DECISIONS.md awaiting ratification
+
+## Invariants
+
+- No mutation of the author's Zotero storage or library by any probe.
+- `make check` stays green; measurements quoted in prose are declared in the
+  figure guard.
+
+## Exit criteria
+
+- The author has ruled on the preference policy, and the ruling's
+  consequences (design edit, upstream item or explicit not-filed) are
+  recorded — or the measurement shows the population is too small to justify
+  the machinery, recorded as the finding.

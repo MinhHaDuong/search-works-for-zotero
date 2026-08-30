@@ -1,0 +1,25 @@
+{
+  "cell_id": "gte-multilingual-base__fp16__cpu__fixed-queries-v1__cost-v1",
+  "model": "gte-multilingual-base",
+  "dtype": "fp16",
+  "device_requested": "cpu",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T07:37Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "unloadable",
+  "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): DEL_TYPE_MAPPING: [NewModel, NewForTokenClassification] for model type 'new'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"new\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 09:37:46.943119257 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+}

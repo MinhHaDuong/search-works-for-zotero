@@ -56,6 +56,12 @@ PROSE = {
     "sync": ["SYNC.md"],
     "design": ["spec/DESIGN.md"],
     "requirements": ["spec/REQUIREMENTS.md"],
+    # Ticket 0160: CONSTRAINTS.md quotes 0012's sequence-probe figures as "measured" —
+    # C1's two-sequences sentence and C1's since=0 scoping bullet — and was the one live
+    # instance the first pass of that ticket missed, because its figures use space
+    # thousands with no decimal comma, so a decimal-comma grep returns zero. A scan finds
+    # figures only in the shape it was written for.
+    "constraints": ["spec/CONSTRAINTS.md"],
     # The ratification ledger quotes measured figures while a ruling is pending, and until
     # 2026-08-29 it was the one prose document with no entry here — so every number in it
     # was unguarded, and the X1 entry drifted onto a superseded run within a day of being
@@ -92,6 +98,10 @@ PROSE = {
     "t0001": [
         "tickets/0001-replace-the-resident-js-index-with-sqlit.erg",
         "tickets/closed/0001-replace-the-resident-js-index-with-sqlit.erg",
+    ],
+    "t0263": [
+        "tickets/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
+        "tickets/closed/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
     ],
 }
 
@@ -216,20 +226,22 @@ FIGURES = [
     ("0008-real-vectors/real-93022.json", "latency_ms.binary_first_pass_k240.median_ms", 1,
      {"t0008": "At 8x it is {} ms of the", "state": "it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
+    # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
+    # (spec/DECISIONS.md): the §5 prose that quoted these figures is gone.
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
-     {"t0001": None, "state": None, "readme": "one corpus of {} passages", "sync": "of {} passages read"}),
+     {"t0001": None, "state": None, "readme": "one corpus of {} passages"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
      {"t0001": "| startup to first answer | {} s |", "state": "| startup to first answer | **{} s**",
-      "readme": "**{} s\nagainst", "sync": "and {} s against"}),
+      "readme": "**{} s\nagainst"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2,
-     {"t0001": None, "state": None, "readme": None, "sync": "against {} s to first answer"}),
+     {"t0001": None, "state": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.json_after_16_queries", 1,
      {"t0001": "| resident after 16 queries | {} MiB |", "state": "| resident after 16 queries | **{} MiB**",
-      "readme": "**{} MiB against", "sync": "{} MiB against"}),
+      "readme": "**{} MiB against"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.sqlite_after_16_queries", 1,
-     {"t0001": None, "state": None, "readme": None, "sync": "{} MiB resident and"}),
+     {"t0001": None, "state": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "memory_caveat.conservative_ratio", 1,
-     {"state": "a\n**{}x** win", "readme": "win is {}x rather", "sync": "{}x rather than 45x"}),
+     {"state": "a\n**{}x** win", "readme": "win is {}x rather"}),
     ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None, "state": None}),
     # ---- 0005, the migration ----
     ("0005-migration/migrate_463MB.json", "ratio_db_over_json", 4, {"state": None}),
@@ -237,10 +249,18 @@ FIGURES = [
     ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0, {"state": None}),
     ("0009-fold-sweep/codepoints.json", "codepoints_agreeing", 0, {"state": "**{} of 1 301 agreeing"}),
     # ---- 0012, the two version sequences ----
-    ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0, {"state": None}),
-    ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0, {"state": None}),
+    # CONSTRAINTS.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
+    # 410 versus 0..25 036" — plus the entries-total in the since=0 scoping bullet. Anchored,
+    # not presence-only: "0" and "25 036" both recur as bare small numbers elsewhere in the
+    # document, so a bare containment check would stay green with either one stale.
+    ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0,
+     {"state": None, "constraints": "measured: {} versus"}),
+    ("0012-fulltext-sequence/sequences.json", "fulltext_version_min", 0,
+     {"constraints": "versus {}.."}),
+    ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0,
+     {"state": None, "constraints": "0..{})."}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_entries_total", 0,
-     {"state": None, "design": None}),
+     {"state": None, "design": None, "constraints": "584 of {} fulltext"}),
     ("0012-fulltext-sequence/sequences.json",
      "fraction_of_library_reported_new_at_library_version", 1,
      {"design": None, "requirements": None}, "pct"),
@@ -611,6 +631,107 @@ FIGURES = [
      {"decisions": "no filter at all costs **{} ms** median"}),
     ("0025-year-scope/year-vs-json-each.json", "column_and_index_build_ms", 0,
      {"decisions": "cost **{} ms**, and Zotero's local API"}),
+    # ---- 0263, the CPU arm: cost and fidelity for every candidate at every
+    # loadable dtype. SUMMARY.json aggregates the 64 committed cells; every
+    # figure below is quoted once, in the campaign's own ticket-log entry.
+    ("0263-cpu-arm/SUMMARY.json", "cells_total", 0, {"t0263": "All {} planned cells resolved"}),
+    ("0263-cpu-arm/SUMMARY.json", "counts.measured", 0, {"t0263": "resolved: {} measured, 16 unloadable"}),
+    ("0263-cpu-arm/SUMMARY.json", "counts.unloadable", 0, {"t0263": "48 measured, {} unloadable, 0 duplicate"}),
+    ("0263-cpu-arm/SUMMARY.json", "counts.duplicate", 0, {"t0263": "unloadable, {} duplicate, 0 failed"}),
+    ("0263-cpu-arm/SUMMARY.json", "counts.failed", 0, {"t0263": "duplicate, {} failed (`bench/results"}),
+    # The fp32-against-itself control -- one representative model; every other
+    # model's fp32 cell carries the identical triple by the scorer's own design.
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.fp32.cos_mean", 1,
+     {"t0263": "control: cos_mean {}, overlap_at_30_mean 1,0"}),
+    # granite-97m's outlier collapse -- the finding the whole campaign turns on.
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "q8{} (cos_mean 0,743121)"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.q8.cos_mean", 6,
+     {"t0263": "q8 0,2349 (cos_mean {})"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "against uint8{} (cos_mean 0,948132)"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.uint8.cos_mean", 6,
+     {"t0263": "(cos_mean {}) — a 0,4156 gap"}),
+    # q8-versus-uint8 overlap@30, every other candidate and both CONTRAST cells --
+    # the "does nomic's ordering generalise" answer, checkable row by row.
+    ("0263-cpu-arm/SUMMARY.json", "rows.1.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`granite-311m-multilingual-r2` q8{} / uint8 0,8334"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.1.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,8346 / uint8{} (q8 ahead"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.2.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`arctic-embed-m-v2` q8{} / uint8 0,8351"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.2.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,8338 / uint8{} (uint8 ahead"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.3.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`gte-multilingual-base` q8{} / uint8 0,7213"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.3.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,7227 / uint8{} (q8 ahead)"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.4.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`multilingual-e5-small` q8{} / uint8 0,8302"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.4.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,8664 / uint8{} (q8 ahead"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.5.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`multilingual-e5-base` q8{} / uint8 0,7336"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.5.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,7376 / uint8{} (q8 ahead)"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.6.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`all-minilm-l6-v2` q8{} / uint8 0,8804"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.6.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,9272 / uint8{} and"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.7.q8_vs_uint8.q8_overlap_at_30_mean", 4,
+     {"t0263": "`bge-small-en-v15` q8{} / uint8 0,8683"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.7.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
+     {"t0263": "q8 0,9137 / uint8{} (both favour q8)"}),
+    # RSS medians, five fresh processes -- the campaign's cost table, one anchor
+    # per cell, positional against its two table-row neighbours.
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| granite-97m-multilingual-r2 | {} | 6,3 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "6,3 | {} | 7,4 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.0.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "7,4 | {} | 4,8 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.1.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| granite-311m-multilingual-r2 | {} | 16,1 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.1.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "16,1 | {} | 70,1 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.1.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "70,1 | {} | 91,5 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.2.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| arctic-embed-m-v2 | {} | 22,1 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.2.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "22,1 | {} | 47,5 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.2.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "47,5 | {} | 55,5 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.3.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| gte-multilingual-base | {} | 68,4 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.3.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "68,4 | {} | 52,7 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.3.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "52,7 | {} | 20,9 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.4.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| multilingual-e5-small | {} | 51,0 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.4.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "51,0 | {} | 18,6 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.4.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "18,6 | {} | 51,6 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.5.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "| multilingual-e5-base | {} | 21,6 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.5.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "21,6 | {} | 8,9 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.5.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "8,9 | {} | 51,5 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.6.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "all-minilm-l6-v2 (CONTRAST) | {} | 48,7 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.6.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "48,7 | {} | 24,1 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.6.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "24,1 | {} | 23,6 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.7.cost.fp32.rss_delta_mb_median", 1,
+     {"t0263": "bge-small-en-v15 (CONTRAST) | {} | 17,7 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.7.cost.q8.rss_delta_mb_median", 1,
+     {"t0263": "17,7 | {} | 19,6 |"}),
+    ("0263-cpu-arm/SUMMARY.json", "rows.7.cost.uint8.rss_delta_mb_median", 1,
+     {"t0263": "19,6 | {} | 2,3 |"}),
 ]
 
 

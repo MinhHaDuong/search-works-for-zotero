@@ -2,12 +2,12 @@
 Title: Recall at the deployed dtype, and the fused RRF delta
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0263
 
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 5 of tracker 0240. Two measurements the tracker keeps together because they answer the same question at two altitudes: what the user actually gets.
 
+2026-08-30T10:03Z Minh Ha-Duong note blocker 0263 closed — Blocked-by removed.
 --- body ---
 ## Context
 

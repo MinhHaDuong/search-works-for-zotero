@@ -348,7 +348,7 @@ backoff when Zotero is unreachable, and does three things per library:
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to
 equality comparison, and on a never-synced library that could be *every*
-entry. The resolution has three parts. (i) Widen the extract signal to
+entry. The resolution has four parts. (i) Widen the extract signal to
 `(fulltext version, attachment item md5/version)`: replacing a file bumps
 the attachment item in the item sequence the tick already sweeps, so
 file-driven re-extraction is caught for free. (ii) The remaining case,
@@ -358,7 +358,18 @@ Zotero's own embeddings layer documents the same residue. (iii) A bounded
 idle re-verify sweep is built only if X6 shows local re-extraction
 genuinely re-stamps 0. The experiment (re-extract one attachment on a
 synced and on a never-synced profile, watch the census and the attachment
-item's version) runs before the machinery is written.
+item's version) runs before the machinery is written. (iv) A
+**content-presence probe** at verify time, ratified 2026-08-30 on X6's
+decoupling finding (`bench/results/0025-x6-version-dynamics/`): a derived
+cache can vanish — content 404 — with every version signal and the source
+md5 unmoved, so no part (i)–(iii) signal sees it. A 404 on an item whose
+passages are indexed marks them **cache-lost**: a stored warning state,
+counted, reason stored in the terminal-state vocabulary — never an
+eviction, because the source did not change and the passages remain
+faithful; the healing path is the user's Reindex, surfaced as a count. The
+probe rides whichever bounded background walk this section ends up with —
+part (iii)'s sweep if X6 forces it, else its own slow walk — and its
+cadence is pinned when the machinery lands.
 
 **The query path** is unchanged from v1: zero Zotero requests when the tick
 ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that

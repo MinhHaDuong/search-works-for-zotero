@@ -1,0 +1,23 @@
+{
+ "purpose": "RUNBOOK.md step 4 -- trunk re-measurement (unblocks I-2's redraft with trunk numbers only, his backend, his tree). Consolidated pointer for the five files in this directory.",
+ "date": "2026-08-30",
+ "host": "doudou",
+ "trunk_sha": "b132f2dcdf646424a236e5ede4ec68ab8a33adc6",
+ "trunk_version": "v1.10.0",
+ "how_trunk_was_obtained": "make upstream-checkout (fork/ is git-ignored; recreated at UPSTREAM_REVIEWED_SHA, detached HEAD, both origin=fork and upstream=oscardvs/zoteus remotes), npm ci, npm run build -- clean.",
+ "version_note": "The RUNBOOK named trunk-1.9.0 when it was written; UPSTREAM had already advanced to v1.10.0 (b132f2d) by run time. This directory is named for the version actually under test, per the RUNBOOK's own instruction to re-read the baseline before running this step.",
+ "zotero": "Zotero 10.0 local API on 127.0.0.1:23119, real personal library, 7 541 top-level items available",
+ "files": {
+  "build-sqlite.json": "4a -- sqlite backend, default caps (5000 items / 200000 chars). elapsed_s 150,9; peak_rss 701,6 MiB.",
+  "build-memory.json": "4a -- memory backend, default caps. elapsed_s 185,3; peak_rss 4 605,1 MiB.",
+  "build-memory-uncapped.json": "4b -- memory backend, uncapped (max-items 1000000, max-chars 0). Two attempts: default heap OOM-crashes at ~190 s; a 10 GiB heap completes the in-memory build (270,8 s, peak 8 130,7 MiB) but cannot PERSIST it -- 'Invalid string length', a V8 max-string-length ceiling on JSON.stringify() of the whole index, not an allocation failure. Confirms and names the mechanism behind the earlier json-baseline 'persist_failed' finding.",
+  "query-sqlite.json": "4c -- warm query + resident memory, sqlite backend (the build-sqlite.json data dir), bench/queries.txt (16 queries), limit 20, repeat 5.",
+  "query-memory.json": "4c -- same, memory backend (the build-memory.json data dir)."
+ },
+ "headline_query_numbers": {
+  "sqlite": {"warm_p50_ms": 6.0, "warm_p95_ms": 110.0, "peak_rss_mib_final": 132.4},
+  "memory": {"warm_p50_ms": 169.0, "warm_p95_ms": 226.8, "peak_rss_mib_final": 3902.4}
+ },
+ "not_run": "4c was not attempted against build-memory-uncapped.json's data dir -- no full index was ever persisted there to query (see that file's files_note); querying it would measure a stale partial, not the geometry under test.",
+ "driver_output_note": "bench/run_build.py and bench/query.py log RESULT to stderr via the logging module, not stdout -- the RUNBOOK's '> file.json' capture pattern is stale against the current drivers for run_build.py (query.py writes its own --out JSON directly and is unaffected). The build-*.json files here hand-extract the RESULT line from the captured stderr log, per the bench/results/0011-rss provenance convention -- with one difference: *.log.txt was added to .gitignore after 0011-rss's log was tracked (commit 7d4db23), so those raw logs are local to this run and NOT committed; each build-*.json's own fields are the full provenance record."
+}

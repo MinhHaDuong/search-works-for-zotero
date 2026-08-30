@@ -1,0 +1,1278 @@
+{
+  "what": "ticket 0263: CPU-arm cost and fidelity for every registry candidate, every loadable dtype, plus two CONTRAST cells (all-minilm-l6-v2, bge-small-en-v15) re-measured one-process-per-cell to supersede the 0025 sequential-process figures",
+  "tracker": "ticket 0240",
+  "results_dir": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/agent-a789e509742f94544/bench/results/0263-cpu-arm",
+  "cells_total": 64,
+  "counts": {
+    "measured": 48,
+    "unloadable": 16,
+    "duplicate": 0,
+    "failed": 0
+  },
+  "rows": [
+    {
+      "model": "granite-97m-multilingual-r2",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+          "model_id": "granite-97m-multilingual-r2",
+          "dim": 384,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 2158.3,
+          "rss_before_mb": 89.9,
+          "rss_after_load_mb": 768.3,
+          "rss_delta_mb": 678.5,
+          "query_ms_min": 6.8,
+          "query_ms_median": 8.5,
+          "query_ms_p95": 11.8,
+          "n": 60,
+          "rss_delta_mb_median": 682.2,
+          "rss_delta_mb_spread": 6.3,
+          "rss_delta_mb_reps": [
+            684,
+            682.2,
+            684.8,
+            680.4,
+            678.5
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): /tmp/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /tmp/tjs-check/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-97m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+          "model_id": "granite-97m-multilingual-r2",
+          "dim": 384,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 1598.4,
+          "rss_before_mb": 89.7,
+          "rss_after_load_mb": 494.7,
+          "rss_delta_mb": 405,
+          "query_ms_min": 5.1,
+          "query_ms_median": 6.1,
+          "query_ms_p95": 7.8,
+          "n": 60,
+          "rss_delta_mb_median": 406.6,
+          "rss_delta_mb_spread": 7.4,
+          "rss_delta_mb_reps": [
+            406.8,
+            404.4,
+            411.8,
+            406.6,
+            405
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+          "model_id": "granite-97m-multilingual-r2",
+          "dim": 384,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 1620.7,
+          "rss_before_mb": 89.9,
+          "rss_after_load_mb": 495.3,
+          "rss_delta_mb": 405.3,
+          "query_ms_min": 5.1,
+          "query_ms_median": 6.3,
+          "query_ms_p95": 8.6,
+          "n": 60,
+          "rss_delta_mb_median": 406.5,
+          "rss_delta_mb_spread": 4.8,
+          "rss_delta_mb_reps": [
+            406.5,
+            404,
+            407.3,
+            408.8,
+            405.3
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 294.57,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): /home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-97m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.743121,
+          "cos_p05": 0.712199,
+          "cos_min": 0.692378,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.2349,
+          "overlap_at_30_p05": 0.0667,
+          "top1_kept_frac": 0.415,
+          "ms_per_passage": 275.53,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.948132,
+          "cos_p05": 0.925957,
+          "cos_min": 0.884804,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.6505,
+          "overlap_at_30_p05": 0.4667,
+          "top1_kept_frac": 0.97,
+          "ms_per_passage": 304.72,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.2349,
+        "uint8_overlap_at_30_mean": 0.6505,
+        "winner": "uint8",
+        "quant_robustness_worst_overlap_at_30": 0.2349
+      }
+    },
+    {
+      "model": "granite-311m-multilingual-r2",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+          "model_id": "granite-311m-multilingual-r2",
+          "dim": 768,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 5609.4,
+          "rss_before_mb": 90.6,
+          "rss_after_load_mb": 1675.7,
+          "rss_delta_mb": 1585.1,
+          "query_ms_min": 23.5,
+          "query_ms_median": 28.7,
+          "query_ms_p95": 36.8,
+          "n": 60,
+          "rss_delta_mb_median": 1585.2,
+          "rss_delta_mb_spread": 16.1,
+          "rss_delta_mb_reps": [
+            1575.2,
+            1591.3,
+            1586.8,
+            1585.2,
+            1585.1
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): /tmp/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /tmp/tjs-check/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-311m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+          "model_id": "granite-311m-multilingual-r2",
+          "dim": 768,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 2909.4,
+          "rss_before_mb": 94.6,
+          "rss_after_load_mb": 747.6,
+          "rss_delta_mb": 653,
+          "query_ms_min": 11.5,
+          "query_ms_median": 13.2,
+          "query_ms_p95": 18.6,
+          "n": 60,
+          "rss_delta_mb_median": 660,
+          "rss_delta_mb_spread": 70.1,
+          "rss_delta_mb_reps": [
+            658.6,
+            721.9,
+            723.1,
+            660,
+            653
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+          "model_id": "granite-311m-multilingual-r2",
+          "dim": 768,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 3603.7,
+          "rss_before_mb": 89,
+          "rss_after_load_mb": 725.2,
+          "rss_delta_mb": 636.2,
+          "query_ms_min": 13.2,
+          "query_ms_median": 17.7,
+          "query_ms_p95": 25.3,
+          "n": 60,
+          "rss_delta_mb_median": 656.8,
+          "rss_delta_mb_spread": 91.5,
+          "rss_delta_mb_reps": [
+            669.2,
+            656.8,
+            652.8,
+            727.7,
+            636.2
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 758.53,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): /home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-311m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.990179,
+          "cos_p05": 0.984126,
+          "cos_min": 0.960648,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8346,
+          "overlap_at_30_p05": 0.7,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 634.29,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.990199,
+          "cos_p05": 0.98389,
+          "cos_min": 0.961125,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8334,
+          "overlap_at_30_p05": 0.7,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 704.38,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/granite-311m-multilingual-r2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.8346,
+        "uint8_overlap_at_30_mean": 0.8334,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.8334
+      }
+    },
+    {
+      "model": "arctic-embed-m-v2",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+          "model_id": "arctic-embed-m-v2",
+          "dim": 768,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 4607.5,
+          "rss_before_mb": 94.9,
+          "rss_after_load_mb": 1753.9,
+          "rss_delta_mb": 1659,
+          "query_ms_min": 25.8,
+          "query_ms_median": 32.9,
+          "query_ms_p95": 46.9,
+          "n": 60,
+          "rss_delta_mb_median": 1659.4,
+          "rss_delta_mb_spread": 22.1,
+          "rss_delta_mb_reps": [
+            1638.7,
+            1660.8,
+            1659.4,
+            1660.1,
+            1659
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): [resolve_model_type] Architecture(s) not found in MODEL_TYPE_MAPPING: [GteModel] for model type 'gte'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"gte\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 09:18:01.396735958 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/tmp/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/tmp/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+          "model_id": "arctic-embed-m-v2",
+          "dim": 768,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 1674.2,
+          "rss_before_mb": 94.8,
+          "rss_after_load_mb": 650.9,
+          "rss_delta_mb": 556.1,
+          "query_ms_min": 11.7,
+          "query_ms_median": 16,
+          "query_ms_p95": 22.6,
+          "n": 60,
+          "rss_delta_mb_median": 594.4,
+          "rss_delta_mb_spread": 47.5,
+          "rss_delta_mb_reps": [
+            603.6,
+            603.5,
+            589.9,
+            594.4,
+            556.1
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+          "model_id": "arctic-embed-m-v2",
+          "dim": 768,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 1612,
+          "rss_before_mb": 89.9,
+          "rss_after_load_mb": 642.4,
+          "rss_delta_mb": 552.5,
+          "query_ms_min": 8.7,
+          "query_ms_median": 12.9,
+          "query_ms_p95": 19.5,
+          "n": 60,
+          "rss_delta_mb_median": 587.6,
+          "rss_delta_mb_spread": 55.5,
+          "rss_delta_mb_reps": [
+            598.2,
+            608,
+            587.6,
+            556.4,
+            552.5
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 832.09,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): ] Architecture(s) not found in MODEL_TYPE_MAPPING: [GteModel] for model type 'gte'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"gte\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 11:01:58.087349795 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.946119,
+          "cos_p05": 0.929644,
+          "cos_min": 0.881621,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8338,
+          "overlap_at_30_p05": 0.7,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 524.43,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.946417,
+          "cos_p05": 0.93059,
+          "cos_min": 0.877237,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8351,
+          "overlap_at_30_p05": 0.7333,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 534.57,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/arctic-embed-m-v2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.8338,
+        "uint8_overlap_at_30_mean": 0.8351,
+        "winner": "uint8",
+        "quant_robustness_worst_overlap_at_30": 0.8338
+      }
+    },
+    {
+      "model": "gte-multilingual-base",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "onnx-community/gte-multilingual-base",
+          "model_id": "gte-multilingual-base",
+          "dim": 768,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 3740,
+          "rss_before_mb": 87,
+          "rss_after_load_mb": 1764.3,
+          "rss_delta_mb": 1677.3,
+          "query_ms_min": 22.3,
+          "query_ms_median": 25.7,
+          "query_ms_p95": 30.5,
+          "n": 60,
+          "rss_delta_mb_median": 1670.6,
+          "rss_delta_mb_spread": 68.4,
+          "rss_delta_mb_reps": [
+            1670.6,
+            1649,
+            1626.3,
+            1694.7,
+            1677.3
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): DEL_TYPE_MAPPING: [NewModel, NewForTokenClassification] for model type 'new'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"new\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 09:37:46.943119257 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "onnx-community/gte-multilingual-base",
+          "model_id": "gte-multilingual-base",
+          "dim": 768,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 1976.5,
+          "rss_before_mb": 90.6,
+          "rss_after_load_mb": 725.4,
+          "rss_delta_mb": 634.8,
+          "query_ms_min": 12.2,
+          "query_ms_median": 20.5,
+          "query_ms_p95": 34.8,
+          "n": 60,
+          "rss_delta_mb_median": 630.8,
+          "rss_delta_mb_spread": 52.7,
+          "rss_delta_mb_reps": [
+            639.7,
+            587,
+            587,
+            630.8,
+            634.8
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "onnx-community/gte-multilingual-base",
+          "model_id": "gte-multilingual-base",
+          "dim": 768,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 1912.1,
+          "rss_before_mb": 91.2,
+          "rss_after_load_mb": 737.3,
+          "rss_delta_mb": 646,
+          "query_ms_min": 9.1,
+          "query_ms_median": 13.2,
+          "query_ms_p95": 21.2,
+          "n": 60,
+          "rss_delta_mb_median": 646,
+          "rss_delta_mb_spread": 20.9,
+          "rss_delta_mb_reps": [
+            651.4,
+            630.5,
+            648.9,
+            636,
+            646
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 687.14,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): DEL_TYPE_MAPPING: [NewModel, NewForTokenClassification] for model type 'new'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"new\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 11:32:36.922445061 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/encoder/layer.11/mlp_ln/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.927811,
+          "cos_p05": 0.909368,
+          "cos_min": 0.87799,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7227,
+          "overlap_at_30_p05": 0.5333,
+          "top1_kept_frac": 0.9933,
+          "ms_per_passage": 384.51,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.927236,
+          "cos_p05": 0.908395,
+          "cos_min": 0.880547,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7213,
+          "overlap_at_30_p05": 0.565,
+          "top1_kept_frac": 0.9933,
+          "ms_per_passage": 449.87,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.7227,
+        "uint8_overlap_at_30_mean": 0.7213,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.7213
+      }
+    },
+    {
+      "model": "multilingual-e5-small",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-small",
+          "model_id": "multilingual-e5-small",
+          "dim": 384,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 2208.9,
+          "rss_before_mb": 94.7,
+          "rss_after_load_mb": 851.6,
+          "rss_delta_mb": 756.9,
+          "query_ms_min": 6.9,
+          "query_ms_median": 8.3,
+          "query_ms_p95": 10.4,
+          "n": 60,
+          "rss_delta_mb_median": 756.9,
+          "rss_delta_mb_spread": 51.0,
+          "rss_delta_mb_reps": [
+            728.7,
+            708.2,
+            757.4,
+            759.2,
+            756.9
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:42:19.519723350 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-small",
+          "model_id": "multilingual-e5-small",
+          "dim": 384,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 1235.4,
+          "rss_before_mb": 90,
+          "rss_after_load_mb": 490.8,
+          "rss_delta_mb": 400.8,
+          "query_ms_min": 4.2,
+          "query_ms_median": 5.4,
+          "query_ms_p95": 7.7,
+          "n": 60,
+          "rss_delta_mb_median": 415.8,
+          "rss_delta_mb_spread": 18.6,
+          "rss_delta_mb_reps": [
+            415.8,
+            419,
+            417.8,
+            400.4,
+            400.8
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-small",
+          "model_id": "multilingual-e5-small",
+          "dim": 384,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 1227.8,
+          "rss_before_mb": 94.9,
+          "rss_after_load_mb": 496.1,
+          "rss_delta_mb": 401.3,
+          "query_ms_min": 3.3,
+          "query_ms_median": 4.5,
+          "query_ms_p95": 7.6,
+          "n": 60,
+          "rss_delta_mb_median": 389.1,
+          "rss_delta_mb_spread": 51.6,
+          "rss_delta_mb_reps": [
+            389.1,
+            419.6,
+            372.7,
+            368,
+            401.3
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 208.13,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 10:21:07.616960494 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.995561,
+          "cos_p05": 0.993764,
+          "cos_min": 0.980324,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8664,
+          "overlap_at_30_p05": 0.7667,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 189.25,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.991885,
+          "cos_p05": 0.989172,
+          "cos_min": 0.959916,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8302,
+          "overlap_at_30_p05": 0.7333,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 181.29,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-small__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.8664,
+        "uint8_overlap_at_30_mean": 0.8302,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.8302
+      }
+    },
+    {
+      "model": "multilingual-e5-base",
+      "registry_status": "candidate",
+      "is_contrast": false,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-base",
+          "model_id": "multilingual-e5-base",
+          "dim": 768,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 3262.3,
+          "rss_before_mb": 89.9,
+          "rss_after_load_mb": 1494.4,
+          "rss_delta_mb": 1404.5,
+          "query_ms_min": 17.1,
+          "query_ms_median": 19.5,
+          "query_ms_p95": 26.4,
+          "n": 60,
+          "rss_delta_mb_median": 1404.5,
+          "rss_delta_mb_spread": 21.6,
+          "rss_delta_mb_reps": [
+            1411.3,
+            1389.7,
+            1405.5,
+            1403.7,
+            1404.5
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:47:31.642794907 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-base",
+          "model_id": "multilingual-e5-base",
+          "dim": 768,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 1722.9,
+          "rss_before_mb": 89.9,
+          "rss_after_load_mb": 663,
+          "rss_delta_mb": 573.2,
+          "query_ms_min": 8,
+          "query_ms_median": 10.5,
+          "query_ms_p95": 14.9,
+          "n": 60,
+          "rss_delta_mb_median": 572.6,
+          "rss_delta_mb_spread": 8.9,
+          "rss_delta_mb_reps": [
+            564.7,
+            572.6,
+            570.9,
+            573.6,
+            573.2
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "Xenova/multilingual-e5-base",
+          "model_id": "multilingual-e5-base",
+          "dim": 768,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 1560.1,
+          "rss_before_mb": 89.7,
+          "rss_after_load_mb": 675.1,
+          "rss_delta_mb": 585.4,
+          "query_ms_min": 7.5,
+          "query_ms_median": 10,
+          "query_ms_p95": 15.4,
+          "n": 60,
+          "rss_delta_mb_median": 586,
+          "rss_delta_mb_spread": 51.5,
+          "rss_delta_mb_reps": [
+            586,
+            598.1,
+            549.7,
+            601.2,
+            585.4
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 406.35,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 10:25:50.852666267 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.97371,
+          "cos_p05": 0.960868,
+          "cos_min": 0.941288,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7376,
+          "overlap_at_30_p05": 0.6,
+          "top1_kept_frac": 0.9983,
+          "ms_per_passage": 285.17,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.969108,
+          "cos_p05": 0.957547,
+          "cos_min": 0.927919,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7336,
+          "overlap_at_30_p05": 0.6,
+          "top1_kept_frac": 0.995,
+          "ms_per_passage": 325.32,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/multilingual-e5-base__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.7376,
+        "uint8_overlap_at_30_mean": 0.7336,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.7336
+      }
+    },
+    {
+      "model": "all-minilm-l6-v2",
+      "registry_status": "rejected",
+      "is_contrast": true,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "Xenova/all-MiniLM-L6-v2",
+          "model_id": "all-minilm-l6-v2",
+          "dim": 384,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 295.2,
+          "rss_before_mb": 90.5,
+          "rss_after_load_mb": 232.4,
+          "rss_delta_mb": 141.9,
+          "query_ms_min": 3,
+          "query_ms_median": 3.6,
+          "query_ms_p95": 4.8,
+          "n": 60,
+          "rss_delta_mb_median": 142.1,
+          "rss_delta_mb_spread": 48.7,
+          "rss_delta_mb_reps": [
+            190.4,
+            142.1,
+            141.7,
+            142.6,
+            141.9
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:50:04.666300538 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.5/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.5/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "Xenova/all-MiniLM-L6-v2",
+          "model_id": "all-minilm-l6-v2",
+          "dim": 384,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 180.8,
+          "rss_before_mb": 90.4,
+          "rss_after_load_mb": 165.4,
+          "rss_delta_mb": 75,
+          "query_ms_min": 2,
+          "query_ms_median": 2.7,
+          "query_ms_p95": 4.1,
+          "n": 60,
+          "rss_delta_mb_median": 75,
+          "rss_delta_mb_spread": 24.1,
+          "rss_delta_mb_reps": [
+            98.9,
+            75.6,
+            74.8,
+            75,
+            75
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "Xenova/all-MiniLM-L6-v2",
+          "model_id": "all-minilm-l6-v2",
+          "dim": 384,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 178.7,
+          "rss_before_mb": 94.7,
+          "rss_after_load_mb": 170.8,
+          "rss_delta_mb": 76.1,
+          "query_ms_min": 1.6,
+          "query_ms_median": 2.2,
+          "query_ms_p95": 4.2,
+          "n": 60,
+          "rss_delta_mb_median": 76.3,
+          "rss_delta_mb_spread": 23.6,
+          "rss_delta_mb_reps": [
+            98.8,
+            76.3,
+            76.9,
+            75.2,
+            76.1
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 88.03,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:52:27.267927022 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.5/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.5/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.991404,
+          "cos_p05": 0.987446,
+          "cos_min": 0.982569,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.9272,
+          "overlap_at_30_p05": 0.8667,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 63.33,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.971098,
+          "cos_p05": 0.951553,
+          "cos_min": 0.920764,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8804,
+          "overlap_at_30_p05": 0.7667,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 65.56,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/all-minilm-l6-v2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.9272,
+        "uint8_overlap_at_30_mean": 0.8804,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.8804
+      }
+    },
+    {
+      "model": "bge-small-en-v15",
+      "registry_status": "rejected",
+      "is_contrast": true,
+      "cost": {
+        "fp32": {
+          "status": "measured",
+          "model": "Xenova/bge-small-en-v1.5",
+          "model_id": "bge-small-en-v15",
+          "dim": 384,
+          "dtype": "fp32",
+          "device": "cpu",
+          "load_ms": 438.8,
+          "rss_before_mb": 89.7,
+          "rss_after_load_mb": 287.5,
+          "rss_delta_mb": 197.8,
+          "query_ms_min": 6.2,
+          "query_ms_median": 7.1,
+          "query_ms_p95": 9.6,
+          "n": 60,
+          "rss_delta_mb_median": 197.8,
+          "rss_delta_mb_spread": 17.7,
+          "rss_delta_mb_reps": [
+            215.1,
+            197.4,
+            197.8,
+            197.8,
+            197.8
+          ]
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:50:49.797471541 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "model": "Xenova/bge-small-en-v1.5",
+          "model_id": "bge-small-en-v15",
+          "dim": 384,
+          "dtype": "q8",
+          "device": "cpu",
+          "load_ms": 263,
+          "rss_before_mb": 89.6,
+          "rss_after_load_mb": 183.8,
+          "rss_delta_mb": 94.3,
+          "query_ms_min": 3.8,
+          "query_ms_median": 4.7,
+          "query_ms_p95": 6.1,
+          "n": 60,
+          "rss_delta_mb_median": 95.4,
+          "rss_delta_mb_spread": 19.6,
+          "rss_delta_mb_reps": [
+            113.6,
+            95.8,
+            95.4,
+            94,
+            94.3
+          ]
+        },
+        "uint8": {
+          "status": "measured",
+          "model": "Xenova/bge-small-en-v1.5",
+          "model_id": "bge-small-en-v15",
+          "dim": 384,
+          "dtype": "uint8",
+          "device": "cpu",
+          "load_ms": 224.4,
+          "rss_before_mb": 89.1,
+          "rss_after_load_mb": 186.6,
+          "rss_delta_mb": 97.5,
+          "query_ms_min": 3.6,
+          "query_ms_median": 4.8,
+          "query_ms_p95": 6.3,
+          "n": 60,
+          "rss_delta_mb_median": 97.8,
+          "rss_delta_mb_spread": 2.3,
+          "rss_delta_mb_reps": [
+            97.8,
+            99.3,
+            97,
+            99.2,
+            97.5
+          ]
+        }
+      },
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 166.32,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 09:55:51.688897466 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+        },
+        "q8": {
+          "status": "measured",
+          "cos_mean": 0.99654,
+          "cos_p05": 0.994208,
+          "cos_min": 0.987912,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.9137,
+          "overlap_at_30_p05": 0.8333,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 137.6,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "cos_mean": 0.989717,
+          "cos_p05": 0.981442,
+          "cos_min": 0.946387,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8683,
+          "overlap_at_30_p05": 0.7667,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 141.33,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/bge-small-en-v15__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "q8_vs_uint8": {
+        "q8_overlap_at_30_mean": 0.9137,
+        "uint8_overlap_at_30_mean": 0.8683,
+        "winner": "q8",
+        "quant_robustness_worst_overlap_at_30": 0.8683
+      }
+    }
+  ]
+}

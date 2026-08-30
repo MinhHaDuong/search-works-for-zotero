@@ -16,6 +16,8 @@ Author: claude
 2026-08-28T08:19Z claude note the comment on #24 (from here) read and verified accurate at 309204b: reset() unconditional at index-manager.ts:546, start=0 at :578, cadences 200/10s and 500/60s confirmed. It stays inside #24's scope — keeps libraryVersion as the freshness signal, does not surface I-1. Recalibration: the fold option is moot (the comment exists and withholds the finding); its checkpoint/freshness separation makes I-1 sharper as a standalone issue — once resume is decoupled, the remaining freshness hole IS I-1. Recommendation stands: file I-1 citing #24 and the comment's separation
 2026-08-28T08:23Z claude note I-1 text prepared FINAL (2026-08-28) and delivered in-session, ready to file: mechanism cited at 309204b (build.ts:280 since=libraryVersion with top:true; updateIncremental fulltextFor only for the changed set, index-manager.ts:790), the 0012 artifact linked (410 vs 0..25036, since=410 returns 93% of text), the unmeasured direction offered as a verification protocol, #23/#24 and the checkpoint separation cited as neighbors, a narrow fulltext-cursor option sketched, regression test included. No internal labels in the text
 2026-08-28T08:34Z claude note I-1 FILED 2026-08-28 as oscardvs/zoteus#26, verbatim from the prepared text, via a dedicated sibling session (this session cannot reach the upstream API). Body verified publicly: all sections, the 0012 artifact link, build.ts:280-284 and index-manager.ts:790 citations intact; author MinhHaDuong. Exit criterion checked. Remaining: I-2 (ready), I-3 (behind the 6012 checkpoint); record his response here when it lands
+2026-08-30T08:19Z Minh Ha-Duong note I-2 WITHDRAWN, not filed — ruling in spec/DECISIONS.md (2026-08-30): noise once upstream adopted the sqlite backend; docs/semantic-search.md at v1.10.0 names the JSON ceiling's mechanism and carries measured figures of its own, so the correction has no target left. The redrafted text (trunk v1.10.0 numbers, drafted 2026-08-30 after RUNBOOK step 4) is discarded; the trunk artifacts stay as repo-side evidence (bench/results/trunk-1.10.0/, ticket 0025's log); ticket 0460 holds the source-level inventory of the ceiling
+
 --- body ---
 ## Context
 DESIGN.md §4 item 4. Form per SYNC.md's measured asymmetry: design-sized
@@ -24,8 +26,8 @@ problems go as issues he builds himself (#10, two for two).
   cycle-1 session, upgraded to a FINDING in cycle 2: startIndexUpdate keys on
   libraryVersion alone, so post-build extraction is invisible to
   action:"update". X6 (0025) is its empirical annex.
-- I-2: the measurement corrections for docs/semantic-search.md — drafted
-  FINAL (build is API-bound, both memory numbers, the 477,512 wall).
+- I-2: the measurement corrections for docs/semantic-search.md — WITHDRAWN
+  2026-08-30 by ruling (spec/DECISIONS.md), see the log.
 - I-3: the 40k truncation cap vs R9 — DEFAULT_FULLTEXT_MAX_CHARS = 40_000
   truncates the 44.9 MB living example ~1,100-fold; design-sized (streaming),
   his to build.
@@ -34,6 +36,6 @@ problems go as issues he builds himself (#10, two for two).
 
 ## Exit criteria
 - [x] I-1 filed 2026-08-28 as upstream #26 (finding wording, 0012 artifact linked, #23/#24 cited)
-- [ ] I-2 filed with both numbers stated
+- [x] I-2 withdrawn, not filed — ruling 2026-08-30 (spec/DECISIONS.md); trunk artifacts stay as repo-side evidence
 - [ ] I-3 filed citing the measured truncation (after the #6012 checkpoint)
 - [ ] responses recorded here as they land

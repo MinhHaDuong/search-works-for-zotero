@@ -1,0 +1,25 @@
+{
+  "cell_id": "multilingual-e5-small__fp16__cpu__home-haduong-data-projets-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "multilingual-e5-small",
+  "dtype": "fp16",
+  "device_requested": "cpu",
+  "corpus": "/home/haduong/data/projets/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T08:21Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "query: ",
+    "passage": "passage: "
+  },
+  "pooling": "mean",
+  "normalize": true,
+  "status": "unloadable",
+  "reason": "fp16 is published but fails at ONNX session init on cpu (ticket 0240's known case): \u001b[1;31m2026-08-30 10:21:07.616960494 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/encoder/layer.11/output/LayerNorm/Constant_output_0for node: /embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/projets/zoteus-bench/0263/tjs-check/node_modules/\u001b[4monnxruntime-node\u001b[24m/dist/backend.js:136:29)\n\u001b[90m    at process.processImmediate (node:internal/timers:484:21)\u001b[39m\n\nNode.js v22.23.1\n"
+}

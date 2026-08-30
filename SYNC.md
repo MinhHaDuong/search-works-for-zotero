@@ -273,22 +273,13 @@ duties. The I-label stays internal.*
 
 ### 5. The measurements
 
-*Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first
-sections of `docs/semantic-search.md` and left every measurement claim
-untouched (the 337 s build row, the memory ratio, "past roughly 250k
-passages"). I-2 stands, ready to file — ticket 0024.*
-
-`docs/semantic-search.md` upstream now makes ceiling and memory claims with no
-numbers behind them. Ours are on a real 7 541-item library: 5 759,6 MiB against
-128,0 MiB resident and 90,87 s against 3,86 s to first answer, on **one** corpus
-of 360 811 passages read by both backends — and 6,8x rather than 45x if SQLite is
-charged the whole file against a JS heap that has no such remainder. Plus the wall
-itself: 477 512 passages built, held, and unwritable, `Invalid string length`,
-three times.
-
-Both numbers belong in any claim, which is the discipline this repo imposed on
-itself and the reason the figures are worth offering at all. Low effort, and it is
-the one place this work becomes visible upstream.
+*Withdrawn 2026-08-30 (ruling in `spec/DECISIONS.md`): I-2 is not filed —
+noise, once upstream adopted the sqlite backend and `docs/semantic-search.md`
+at v1.10.0 came to name the JSON ceiling's mechanism and carry measured
+figures of its own. The trunk re-measurement that was to carry the filing
+stays as repo-side evidence (`bench/results/trunk-1.10.0/`, ticket 0025's
+log), and ticket 0460 holds the source-level inventory of the ceiling's
+mechanism at the reviewed SHA.*
 
 ## What to retire, deliberately
 
@@ -346,7 +337,7 @@ agrees (`search-index.sqlite` beside the JSON) so `--data-dir` needs nothing.
 | the train | **one in flight** (#32, filed 2026-08-29); #27/#28/#31 all merged the same day. The contained-PR budget's live remainder is **one**: the STOPWORDS follow-up (0014), and it is **held by its own evidence** — X2 measured 2026-08-29 and failed (warm p95 1 773,0 ms stopword-less against 392,3 ms on stock), so per DESIGN §3 the deletion does not ship alone and df-driven pruning (0090/0091) became a precondition rather than a follow-up. PR-3 has now opened as #32, so the six ratified contained PRs stand at four merged (#25, #27, #28, and #19/#20 before them), one sunset-closed (PR-2, overtaken by v1.7.1's `80f8aa0`), one in flight (#32) and one held (0014). The reserve is therefore the live source of further candidates, and its warm-batch condition remains met: 0022 went up 2026-08-29 as issue #33 rather than as a PR, leaving 0019 (terminal no-text state) as the one reserve item still unspent — its warn-once verified still live at `fulltext-source.ts:180`, though #29's local extraction changed the population under it, so its evidence needs re-deriving before it is argued |
 | §2 migration | skipped by decision — see §2's head note |
 | §4 delta / I-1 | filed 2026-08-28 as **#26** (see §4's tail notes). **Closed COMPLETED** 2026-08-29 in the v1.10.0 sweep, like #24 — the maintainer answered both in one pass (a closing comment on each at 12:14) and built the work: build resume and the full-text version cursor (see the Aug 29 timeline row). Ticket 0024 carries the response |
-| §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL. Reconcile before filing: the author's 2026-08-27 ruling (ticket 0024) requires trunk-measured numbers, not fork-prototype figures — RUNBOOK.md step 4 is that measurement. Upstream numbers #21–#23 are consumed — I-labels stay internal |
+| §5 measurements / I-2 | untouched by `2f453d6` (see §5's head note); drafted FINAL. Reconcile before filing: the author's 2026-08-27 ruling (ticket 0024) requires trunk-measured numbers, not fork-prototype figures — trunk re-measured 2026-08-30 (`bench/results/trunk-1.10.0/`, ticket 0025's log) unblocks the redraft. Upstream numbers #21–#23 are consumed — I-labels stay internal |
 | gates | fold-gate waiver retired with #19's merge (0026, DESIGN.md §2.8); stock ≥v1.7.2 carries `normalizeForSearch`, so the fold gate runs green against it |
 | fork | `main` at `bb414df`, now **two releases behind** upstream `b132f2d` — re-align when convenient; `cross-library-guard` **rebased onto `b132f2d`** and force-pushed as `ae6b043` (was `61a0e38`), carrying PR #32; `fuse-cosine-loop` (`999cb1c`), `model-cache-under-datadir` (`998865e`) and `gemini-key-header` (`b6312e4`) are all merged upstream and can be deleted by the author (session proxies cannot delete branches — 403 — so this step is always his); `stopwords-follow-up` (`94d994d`) stays one commit atop `309204b`, now two releases behind and held by X2's verdict; historical storage tree preserved as `archive/fts5-storage-2026-08-21` at `bae82a7` |
 | Zotero core | tracked as a surface per DECISIONS.md 2026-08-28. [zotero/zotero#6012](https://github.com/zotero/zotero/pull/6012) — dstillman's **draft** semantic-search PR (opened 2026-08-05, last activity 2026-08-26): local ONNX models via Firefox's runtime, RRF hybrid ranking, **sqlite-vec** for vectors — the same extension #30 proposes for zoteus. Added to the watch 2026-08-29 at the author's request: [zotero/zotero#1610](https://github.com/zotero/zotero/issues/1610) — dstillman's issue (2018-12-19, **closed**), "Undelete and overwrite items in target library trash for repeat cross-library copy", part of the cross-library overhaul around zotero#140; trash/undelete behavior on repeat cross-library copies sits under what the local API serves group-library indexing (#12). The rendered page does not surface the close date or closing commit — verify before citing either |
@@ -377,17 +368,10 @@ that is not a Zoteus index loaded as empty and was written back over the file on
 the next clean shutdown. The contributed corruption test survives at HEAD except
 one assertion string (the remedy text now leads with the tool call).*
 
-**§5 is a correction, not a contribution.** `docs/semantic-search.md` already carries the
-JSON-side figures, cited to issue #10 — which is ours. What is left to offer is three
-corrections rather than new numbers: the build column reads as a 7x speedup where the build
-is API-bound (our own uncapped SQLite build took 371.6 s against the 337 s the JSON row
-reports); the memory ratio omits that RSS excludes the page cache holding the database file,
-which is 45x against 6.8x depending on which question is asked; and "past roughly 250k
-passages" understates a build that completes and then cannot write its artifact at 477,512.
-
-The SQLite figures cannot be offered as measurements of *his* backend — they are the fork's
-prototype — so the issue says so in as many words. That is also why §5 stopped being a docs
-PR: editing his prose with numbers measured on other code is not something to do quietly.
+**§5 resolved — withdrawn, not filed.** The correction issue was ruled noise on
+2026-08-30 (`spec/DECISIONS.md`): upstream adopted the sqlite backend and its
+doc carries the ceiling's mechanism and figures. See §5 above for what stands
+as repo-side evidence.
 
 **Order of operations**: superseded — the plan of record is DESIGN.md §4 as
 ratified in DECISIONS.md, executed through tickets 0014–0035. The original

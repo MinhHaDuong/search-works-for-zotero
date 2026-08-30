@@ -40,6 +40,12 @@ entry points at the question rather than settling it; rulings land in
   first K passages ride the newest-first frontier, and its remaining passages
   queue behind them, so one monster document cannot monopolise the pipeline.
   Authoritative: DESIGN.md §2.3, which derives K.
+- **cache-lost** — the stored warning state of passages whose item answers
+  not-found on the full-text content endpoint while every version signal is
+  unmoved: the derived cache is gone, the source is not, so the passages stay
+  served and counted rather than evicted, and the user's Reindex is the
+  healing path. Authoritative: DESIGN.md §2.4 (ruling: DECISIONS.md
+  2026-08-30).
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: DESIGN.md §2.4.
