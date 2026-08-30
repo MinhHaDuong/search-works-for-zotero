@@ -619,20 +619,35 @@ improvised here.
 
 ## Awaiting ratification
 
-- **Page-based segmentation for books (author's position, 2026-08-30, facts
-  attached for the ruling).** For ordinary books the segmenter should cut at
-  pages rather than heuristic entries; reference works keep entry
-  segmentation under the entry-as-unit-of-answer ruling. What measurement
-  adds: a page is 1 900–2 300 characters ≈ 380–490 tokens — almost exactly
-  one chunk at the 498 budget, so segment ≈ chunk ≈ page and the page number
-  rides along as a citable locator, which heuristic entries can never give.
-  The caveat the ruling should weigh: form feeds mark pages in only 55 % of
-  PDF caches (300-file sample; extractor-vintage mixed regime, 0480's
-  class) — the rest need a re-extraction sweep or a paragraph-synthetic
-  fallback, and `indexedPages`/`totalPages` gives counts but not boundaries.
-  If ratified, seg/1's below-confidence fallback becomes page-based instead
-  of synthetic 6k-token entries, and X5's question shifts accordingly
-  (ticket 0028).
+- **The book segmenter works at page boundaries on the PDF side — and the
+  open question is where the split runs relative to the extractor (author,
+  2026-08-30; a first recording of this entry misread the position as
+  "segment = page" and is corrected here — awaiting entries are drafts, the
+  append-only rule protects ratified ones).** For books, proceedings, and
+  encyclopedias, chapters and articles begin on pages, and the PDF side
+  holds that map: measured, 15 of 24 sampled 100-plus-page PDFs (63 %)
+  carry a machine-readable outline (`mutool show … outline`), page-anchored.
+  The question — split before or after the extractor — resolves under the
+  shim ruling into **discover before, cut after**: true before-the-extractor
+  splitting means extracting text per chapter ourselves, which contradicts
+  the shim (Zotero stays the extractor, and its API has no per-range call);
+  but *discovery* before it is only reading structure, not extracting text.
+  So the segmenter reads the chapter map from the PDF (outline first, TOC
+  parse as fallback), and cuts the *extracted text* at the mapped page
+  boundaries, located by form feeds — present in 55 % of caches today,
+  raisable by a re-extraction sweep (0480's class). Two consequences favor
+  this shape. The outline names chapters past the 100-page cap that
+  extraction never delivered, giving honest coverage its denominator —
+  "present in the book, absent from the index" — which flat text cannot
+  express (ticket 0483's state gains chapter names). And when the
+  someday-better extractor arrives, the same map drives true per-chapter
+  extraction with no redesign. Online encyclopedias have no pages: there the
+  structure signal is markup headings, necessarily text-side; the
+  segmenter's interface should take structure signals (PDF outline + form
+  feeds | HTML headings | headword rhythm) and cut text, with today's
+  heuristic seg/1 as the no-signal fallback. Reference works keep entry
+  segmentation under the entry-as-unit-of-answer ruling. Ratifying this
+  reshapes ticket 0028's spec and X5's question.
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**
   The entry below reports X4 and concludes the ladder loses its middle rung.
