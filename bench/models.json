@@ -104,7 +104,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -146,7 +146,10 @@
       "status": "candidate",
       "notes": "The tracker filed every onnx-community mirror as a could-not-look on an unauthenticated 401. Authenticated, this one publishes the conventional set. Prefixes are empty in the upstream config_sentence_transformers.json.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-97m-multilingual-r2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-97m-multilingual-r2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "536a9f241cb3f02a9c5995a1e708c784bd274859",
+      "normalize": true,
+      "normalize_source": "modules.json on ibm-granite/granite-embedding-97m-multilingual-r2 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "granite-311m-multilingual-r2",
@@ -226,7 +229,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -268,7 +271,10 @@
       "status": "candidate",
       "notes": "Same family as the 97m, one size up. Also a could-not-look in the tracker.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-311m-multilingual-r2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-311m-multilingual-r2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "8f039f21d4181327268271bea4b11ddcc7eef88d",
+      "normalize": true,
+      "normalize_source": "modules.json on ibm-granite/granite-embedding-311m-multilingual-r2 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "arctic-embed-m-v2",
@@ -370,7 +376,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -412,7 +418,10 @@
       "status": "candidate",
       "notes": "Publishes the conventional set in its own repo, so no mirror is needed. The query prefix is not decoration: config_sentence_transformers.json declares a query prompt and no document prompt, and a harness that ignores it measures a different model.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-m-v2.0 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-m-v2.0 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "95c2741480856aa9666782eb4afe11959938017f",
+      "normalize": true,
+      "normalize_source": "modules.json on Snowflake/snowflake-arctic-embed-m-v2.0 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "gte-multilingual-base",
@@ -515,7 +524,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -557,7 +566,10 @@
       "status": "candidate",
       "notes": "The tracker ruled this model out because Alibaba-NLP publishes no ONNX. That much holds — see the gte-multilingual-base-upstream record — but the mirror publishes the conventional set, so the model is sweepable after all.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "2edbf5e672aab465f9ed4c154a8b61791c082c69",
+      "normalize": true,
+      "normalize_source": "modules.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "multilingual-e5-small",
@@ -679,7 +691,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -721,7 +733,10 @@
       "status": "candidate",
       "notes": "Zotero core's own multilingual model, and a blank column in this repo rather than a low score. The prefixes are mandatory: the upstream card says every input starts with one, even in other languages.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+      "normalize": true,
+      "normalize_source": "modules.json on intfloat/multilingual-e5-small (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "multilingual-e5-base",
@@ -843,7 +858,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -885,7 +900,10 @@
       "status": "candidate",
       "notes": "The e5 sibling one size up, same prefixes.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-base (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "1ec9243030a27d1a115d5c340572074c125b58b2",
+      "normalize": true,
+      "normalize_source": "modules.json on intfloat/multilingual-e5-base (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "paraphrase-multilingual-mpnet-base-v2",
@@ -963,7 +981,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1011,7 +1029,10 @@
       },
       "notes": "Measured negative, per the tracker's instruction to keep it visible.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "e5d116277351513fd260955ece953ecddde7046e",
+      "normalize": false,
+      "normalize_source": "modules.json on sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (read 2026-08-30T06:31Z); Normalize module absent"
     },
     {
       "id": "paraphrase-multilingual-minilm-l12-v2",
@@ -1089,7 +1110,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1137,7 +1158,10 @@
       },
       "notes": "Measured negative, per the tracker's instruction to keep it visible.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+      "normalize": false,
+      "normalize_source": "modules.json on sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (read 2026-08-30T06:31Z); Normalize module absent"
     },
     {
       "id": "distiluse-base-multilingual-cased-v2",
@@ -1215,7 +1239,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1263,7 +1287,10 @@
       },
       "notes": "The 512 output width comes from a sentence-transformers Dense module (2_Dense/config.json, 768 in, 512 out), not from the transformer, whose hidden size is 768. Whether the ONNX export carries that module is unverified. Moot while the token ceiling stands, and a trap if the model is ever revisited.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on sentence-transformers/distiluse-base-multilingual-cased-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/distiluse-base-multilingual-cased-v2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "cad454171d918d9873a2701ba245054b6c1760dd",
+      "normalize": false,
+      "normalize_source": "modules.json on sentence-transformers/distiluse-base-multilingual-cased-v2 (read 2026-08-30T06:31Z); Normalize module absent"
     },
     {
       "id": "granite-107m-multilingual-v1",
@@ -1303,7 +1330,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "model.onnx"
@@ -1324,7 +1351,10 @@
       },
       "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-107m-multilingual (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-107m-multilingual (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "d6cffd338414d6a1c1f5decfad5fec62eebc90d5",
+      "normalize": true,
+      "normalize_source": "modules.json on ibm-granite/granite-embedding-107m-multilingual (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "granite-278m-multilingual-v1",
@@ -1364,7 +1394,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "model.onnx"
@@ -1385,7 +1415,10 @@
       },
       "notes": "The v1 generation, kept because 'multilingual' in a model name is not a language list. The r2 generation covers R7.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-278m-multilingual (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on ibm-granite/granite-embedding-278m-multilingual (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "a9cb5338491faf32b73dd17b714a31821c021bbf",
+      "normalize": true,
+      "normalize_source": "modules.json on ibm-granite/granite-embedding-278m-multilingual (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "bge-m3",
@@ -1412,7 +1445,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1460,7 +1493,10 @@
       },
       "notes": "A re-probe the tracker asked for. The mirror publishes the conventional set, so the rejection rests on size alone; the upstream repo addresses only fp32.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on BAAI/bge-m3 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on BAAI/bge-m3 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "25b9af8e87a38eb120cfe87125383677b9cd309e",
+      "normalize": true,
+      "normalize_source": "modules.json on BAAI/bge-m3 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "arctic-embed-l-v2",
@@ -1562,7 +1598,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1611,7 +1647,10 @@
       },
       "notes": "Publishes the conventional set in-repo; the rejection is size, not packaging.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-l-v2.0 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on Snowflake/snowflake-arctic-embed-l-v2.0 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "ac6544c8a46e00af67e330e85a9028c66b8cfd9a",
+      "normalize": true,
+      "normalize_source": "modules.json on Snowflake/snowflake-arctic-embed-l-v2.0 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "jina-embeddings-v3",
@@ -1733,7 +1772,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1758,7 +1797,10 @@
       },
       "notes": "A re-probe the tracker asked for. Readable without authentication trouble, and it publishes two dtypes rather than the conventional set: fp32 and fp16 only.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on jinaai/jina-embeddings-v3 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on jinaai/jina-embeddings-v3 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "ab036b023d30b4d1138c4c3bfa9f0c445ab455d6",
+      "normalize": true,
+      "normalize_source": "modules.json on jinaai/jina-embeddings-v3 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "embeddinggemma-300m",
@@ -1785,7 +1827,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -1822,7 +1864,10 @@
       },
       "notes": "Two states in one model, which is why both repos were probed. The source repo is gated and publishes no ONNX; the mirror is ungated and publishes five dtypes. The licence follows the weights, so the mirror's openness changes nothing.",
       "pooling": null,
-      "pooling_source": "could_not_look: Access to model google/embeddinggemma-300m is restricted and you are not in the authorized list. Visit https://huggingface.co/google/embeddinggemma-300m to ask for access. (google/embeddinggemma-300m, 2026-08-29T16:12Z)"
+      "pooling_source": "could_not_look: Access to model google/embeddinggemma-300m is restricted and you are not in the authorized list. Visit https://huggingface.co/google/embeddinggemma-300m to ask for access. (google/embeddinggemma-300m, 2026-08-30T06:31Z)",
+      "hf_revision": "5090578d9565bb06545b4552f76e6bc2c93e4a66",
+      "normalize": "unknown",
+      "normalize_source": "modules.json on google/embeddinggemma-300m: not read (could_not_look: Access to model google/embeddinggemma-300m is restricted and you are not in the authorized list. Visit https://huggingface.co/google/embeddinggemma-300m to ask for access., 2026-08-30T06:31Z)"
     },
     {
       "id": "gte-multilingual-base-upstream",
@@ -1925,7 +1970,7 @@
       "availability": {
         "state": "confirmed_absent",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {},
         "onnx_files": [],
         "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
@@ -1939,7 +1984,10 @@
       },
       "notes": "The model itself is a candidate through the mirror. This record exists so the absence is a finding with a date on it rather than a gap, and so a later reader does not re-run the same query.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "9bbca17d9273fd0d03d5725c7a4b0f6b45142062",
+      "normalize": true,
+      "normalize_source": "modules.json on Alibaba-NLP/gte-multilingual-base (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "nomic-embed-text-v2-moe",
@@ -2068,7 +2116,7 @@
       "availability": {
         "state": "confirmed_absent",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {},
         "onnx_files": [],
         "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
@@ -2082,7 +2130,10 @@
       },
       "notes": "The tracker's confirmed absence, re-confirmed with a token. The language list is the widest in this registry, so the absence costs something. The prefixes are recorded for the day a mirror appears. dim 768 read from 1_Pooling/config.json word_embedding_dimension on the upstream repo (2026-08-30, ticket 0422); it publishes no ONNX, so the record stays rejected.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v2-moe (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v2-moe (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "1066b6599d099fbb93dfcb64f9c37a7c9e503e85",
+      "normalize": true,
+      "normalize_source": "modules.json on nomic-ai/nomic-embed-text-v2-moe (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "jina-embeddings-v2-base-multilingual",
@@ -2109,7 +2160,7 @@
       "availability": {
         "state": "could_not_look",
         "http_status": 404,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {},
         "onnx_files": null,
         "reason": "{\"error\":\"Repository not found\"}"
@@ -2123,7 +2174,9 @@
       },
       "notes": "The tracker records this id as gated on a 401. Authenticated it returns 404, and so does a repo id invented for the run's negative control, so the code alone cannot tell a wrong id from a private repo. What settles it is a different query: listing the publisher's own repos returns an English model and three bilingual ones, and no multilingual v2 at any size. The state stays could-not-look because that is what the file listing gives; the rejection is the id, not the model.",
       "pooling": null,
-      "pooling_source": "could_not_look: repo itself is not readable (404 on 1_Pooling/config.json and on metadata) (jinaai/jina-embeddings-v2-base-multilingual, 2026-08-29T16:12Z)"
+      "pooling_source": "could_not_look: repo itself is not readable (404 on 1_Pooling/config.json and on metadata) (jinaai/jina-embeddings-v2-base-multilingual, 2026-08-30T06:31Z)",
+      "normalize": "unknown",
+      "normalize_source": "modules.json on jinaai/jina-embeddings-v2-base-multilingual: not read (could_not_look: repo itself is not readable (404 on 1_Pooling/config.json and on metadata), 2026-08-30T06:31Z)"
     },
     {
       "id": "multilingual-e5-small-intfloat",
@@ -2245,7 +2298,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -2267,7 +2320,10 @@
       },
       "notes": "Kept because the trap is the interesting part: the repo has ONNX, the model is the right model, and the sweep would still have run one rung.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on intfloat/multilingual-e5-small (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "normalize": true,
+      "normalize_source": "modules.json on intfloat/multilingual-e5-small (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "all-minilm-l6-v2",
@@ -2296,7 +2352,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -2344,7 +2400,10 @@
       },
       "notes": "Measured in the earlier campaign; kept so its absence from the study is legible.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on sentence-transformers/all-MiniLM-L6-v2 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on sentence-transformers/all-MiniLM-L6-v2 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+      "normalize": true,
+      "normalize_source": "modules.json on sentence-transformers/all-MiniLM-L6-v2 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "bge-small-en-v15",
@@ -2373,7 +2432,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -2421,7 +2480,10 @@
       },
       "notes": "Measured in the earlier campaign.",
       "pooling": "cls",
-      "pooling_source": "1_Pooling/config.json on BAAI/bge-small-en-v1.5 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on BAAI/bge-small-en-v1.5 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "ea104dacec62c0de699686887e3f920caeb4f3e3",
+      "normalize": true,
+      "normalize_source": "modules.json on BAAI/bge-small-en-v1.5 (read 2026-08-30T06:31Z); Normalize module present"
     },
     {
       "id": "nomic-embed-text-v15",
@@ -2450,7 +2512,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -2498,7 +2560,10 @@
       },
       "notes": "The dtype ladder and the quantization-fidelity work were done on this model, so it is the contrast arm rather than a competitor. R7 keeps it out of the comparison; nothing keeps it out of the baseline.",
       "pooling": "mean",
-      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v1.5 (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on nomic-ai/nomic-embed-text-v1.5 (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "e9b6763023c676ca8431644204f50c2b100d9aab",
+      "normalize": false,
+      "normalize_source": "modules.json on nomic-ai/nomic-embed-text-v1.5 (read 2026-08-30T06:31Z); Normalize module absent"
     },
     {
       "id": "qwen3-embedding-06b",
@@ -2525,7 +2590,7 @@
       "availability": {
         "state": "available",
         "http_status": 200,
-        "probed_utc": "2026-08-29T14:33Z",
+        "probed_utc": "2026-08-30T06:31Z",
         "dtypes": {
           "fp32": [
             "onnx/model.onnx"
@@ -2574,7 +2639,10 @@
       },
       "notes": "Measured in the earlier campaign through the mirror. The source repo publishes no ONNX; the mirror publishes the conventional set. Re-screening the language claim is the tracker's call, not this registry's.",
       "pooling": "last_token",
-      "pooling_source": "1_Pooling/config.json on Qwen/Qwen3-Embedding-0.6B (read 2026-08-29T16:12Z); the ONNX mirror publishes no pooling config"
+      "pooling_source": "1_Pooling/config.json on Qwen/Qwen3-Embedding-0.6B (read 2026-08-30T06:31Z); the ONNX mirror publishes no pooling config",
+      "hf_revision": "c25a394dd583836952667c12f008335071b3f43d",
+      "normalize": true,
+      "normalize_source": "modules.json on Qwen/Qwen3-Embedding-0.6B (read 2026-08-30T06:31Z); Normalize module present"
     }
   ]
 }

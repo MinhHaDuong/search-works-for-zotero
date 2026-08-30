@@ -309,6 +309,33 @@ def check_registry(root: Path, failures: list[str]) -> None:
                     f"{name}: pooling carries no pooling_source. A value with no "
                     f"provenance cannot be told from a guess."
                 )
+            # normalize: whether the pipeline L2-normalizes the pooled vector, read
+            # from the model's own modules.json (a declared Normalize module), same
+            # provenance discipline as pooling. Unlike pooling, "the value could not
+            # be determined" is itself a legitimate recorded state here — ticket
+            # 0262 requires it be written as the literal string "unknown" rather
+            # than defaulted to true or false, so it is a required field with three
+            # allowed values rather than a required determination.
+            if record.get("normalize") not in (True, False, "unknown"):
+                failures.append(
+                    f"{name}: candidate normalize is {record.get('normalize')!r}, "
+                    f"not True, False, or 'unknown'. Read it from the model's own "
+                    f"modules.json; record 'unknown' rather than guessing."
+                )
+            if not (record.get("normalize_source") or "").strip():
+                failures.append(
+                    f"{name}: normalize carries no normalize_source. A value with "
+                    f"no provenance cannot be told from a guess."
+                )
+            # hf_revision: the commit sha the availability probe read on hf_repo,
+            # so a sweep result can later be checked against the registry state
+            # that produced it (ticket 0262).
+            if not (record.get("hf_revision") or "").strip():
+                failures.append(
+                    f"{name}: candidate hf_revision is missing. Record the repo "
+                    f"commit sha the availability probe read "
+                    f"(HF API GET /api/models/{{repo}} returns 'sha')."
+                )
         else:
             criteria = record.get("rejection", {}).get("criteria") or []
             if not criteria:

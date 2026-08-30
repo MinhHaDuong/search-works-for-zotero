@@ -9,6 +9,7 @@ Author: claude
 2026-08-30T06:22Z claude note session review with the author added two registry columns (actions 11-12): a normalize flag with provenance — 0421 recorded that all six candidates carry a Normalize module and left the drivers' flag unmatched per model, the open axis this closes before any sweep — and an hf revision pin, because the per-cell ONNX hash protects results while nothing yet pins what the registry's identity claim was probed against.
 
 2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
+2026-08-30T06:41Z landed: bench/sweep.py (the registry-driven resumable harness), tests/test_sweep.py (15 cases, fake-executor driven), and the two new registry columns (normalize/normalize_source, hf_revision) via probe_pooling.py and probe_onnx_dtypes.py, extended into bench/check_models.py with a demonstrated red state. make check green. Ships no measurements, per the ticket's own body -- 0263 runs the real campaign.
 --- body ---
 ## Context
 

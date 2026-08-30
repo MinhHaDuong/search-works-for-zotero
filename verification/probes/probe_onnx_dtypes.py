@@ -15,6 +15,10 @@ It records three outcomes and never collapses them:
 The distinction is the whole point: the tracker's first pass ran unauthenticated,
 read several 401s, and one of them was a repo that publishes the full dtype set.
 
+`--update-registry` also writes `hf_revision`: the commit sha (`payload["sha"]`)
+of the mirror repo this listing was read at, so a later sweep result can be
+checked against the registry state that produced it (ticket 0262).
+
 Controls are part of the output, not a separate manual step. `--controls` probes a
 repo known to publish ONNX and a repo id known not to exist, so the artifact carries
 the evidence that a `confirmed_absent` in it is a finding rather than a blind probe.
@@ -169,6 +173,10 @@ def probe_repo(repo: str, token: str | None) -> dict:
     record["gated"] = payload.get("gated", False)
     record["private"] = payload.get("private", False)
     record["licence"] = card.get("license")
+    # The repo commit this listing was read at. `sha` is the HEAD commit of the
+    # revision queried (here, main) at fetch time -- ticket 0262's hf_revision
+    # column, so a later re-probe can tell whether the mirror moved under us.
+    record["sha"] = payload.get("sha")
     languages = card.get("language")
     if isinstance(languages, str):
         languages = [languages]
@@ -231,6 +239,11 @@ def update_registry(path: Path, results: list[dict], probed_utc: str) -> int:
             "onnx_files": probe.get("onnx_files"),
             "reason": probe.get("reason", ""),
         }
+        # hf_revision: the repo commit sha THIS availability probe read, on the
+        # mirror the ONNX runtime actually loads (hf_repo). Left unset when the
+        # probe could not look, rather than carrying a stale sha forward.
+        if probe.get("sha"):
+            record["hf_revision"] = probe["sha"]
         touched += 1
     path.write_text(json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return touched
