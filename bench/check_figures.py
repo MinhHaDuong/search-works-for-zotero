@@ -188,6 +188,12 @@ def display(value, places: int, pct: bool = False) -> str:
     return text + "%" if pct else text
 
 
+#: Coverage floor established at 349 pairs by ticket 0420 on 2026-08-30, after
+#: the GPU-correction and embedder-recommendation declarations landed. It moves
+#: only with an explicit explanation of removed coverage. New declarations pass
+#: without changing it: this is a one-way floor, not an equality check.
+MINIMUM_PAIRS = 349
+
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
@@ -998,11 +1004,11 @@ def dig(obj, path: str):
     return obj
 
 
-def main_for_test(results_dir: str, verbose: bool = False) -> int:
+def main_for_test(results_dir: str, verbose: bool = False, minimum_pairs: int = 0) -> int:
     """The check, callable without argv. Exists so `tests/test_check_figures.py` drives the
     real code path rather than a copy of it — a test that reimplements the check tests the
     reimplementation."""
-    return run(results_dir, verbose=verbose, listing=False)
+    return run(results_dir, verbose=verbose, listing=False, minimum_pairs=minimum_pairs)
 
 
 def main() -> int:
@@ -1012,10 +1018,15 @@ def main() -> int:
     ap.add_argument("--list", action="store_true", help="print every declared figure and its current value")
     a = ap.parse_args()
     _validate_anchors()
-    return run(a.results, verbose=a.verbose, listing=a.list)
+    return run(a.results, verbose=a.verbose, listing=a.list, minimum_pairs=MINIMUM_PAIRS)
 
 
-def run(results_dir: str, verbose: bool = False, listing: bool = False) -> int:
+def run(
+    results_dir: str,
+    verbose: bool = False,
+    listing: bool = False,
+    minimum_pairs: int = MINIMUM_PAIRS,
+) -> int:
     _validate_anchors()
     cache: dict[str, dict] = {}
     text: dict[str, str] = {}
@@ -1088,6 +1099,12 @@ def run(results_dir: str, verbose: bool = False, listing: bool = False) -> int:
 
     if listing:
         return 0
+    if checked < minimum_pairs:
+        failures.append(
+            f"COVERAGE SHRANK: {checked} pairs checked, below the {minimum_pairs}-pair "
+            "ratchet. Re-record MINIMUM_PAIRS deliberately only after explaining which "
+            "coverage was removed"
+        )
     for line in failures:
         log.error("%s", line)
     # Anchored and presence-only are reported apart, because they are not the same check.
