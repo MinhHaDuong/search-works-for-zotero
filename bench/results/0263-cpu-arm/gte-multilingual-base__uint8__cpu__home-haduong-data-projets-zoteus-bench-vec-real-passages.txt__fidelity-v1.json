@@ -1,0 +1,47 @@
+{
+  "cell_id": "gte-multilingual-base__uint8__cpu__home-haduong-data-projets-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "gte-multilingual-base",
+  "dtype": "uint8",
+  "device_requested": "cpu",
+  "corpus": "/home/haduong/data/projets/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T09:49Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "9524e1fc6afb876b2fe3578f7dc174770865fce4d5d0d22d3d5e03617e0e73cc",
+  "onnx_path": "onnx/model_uint8.onnx",
+  "n_reps": 1,
+  "device_selected": "cpu",
+  "metrics": {
+    "cos_mean": 0.927236,
+    "cos_p05": 0.908395,
+    "cos_min": 0.880547,
+    "cos_ge_0999_frac": 0.0,
+    "overlap_at_30_mean": 0.7213,
+    "overlap_at_30_p05": 0.565,
+    "top1_kept_frac": 0.9933,
+    "ms_per_passage": 449.87,
+    "rows": 600,
+    "dim": 768,
+    "corpus_stride": 155,
+    "vectors": {
+      "reference_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+      "reference_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+      "rung_f32": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-uint8.f32",
+      "rung_meta": "/home/haduong/data/projets/zoteus-bench/0263-vectors/gte-multilingual-base__fidelity-v1-uint8.json"
+    }
+  }
+}

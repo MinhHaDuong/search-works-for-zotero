@@ -7,6 +7,15 @@ Author: claude
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 3 of tracker 0240. Runs on doudou. Cost first, since it is cheap and prunes.
 2026-08-30T06:22Z claude note this arm's per-rung fidelity vectors are also X8's CPU side (DESIGN §3, measured in 0264): keep them committed or addressable per (model, rung), not discarded after scoring.
+2026-08-30T11:20Z claude note CPU arm complete on doudou. All 64 planned cells resolved: 48 measured, 16 unloadable, 0 duplicate, 0 failed (`bench/results/0263-cpu-arm/SUMMARY.json`). Candidates = the 6 registry records with `status: candidate`; CONTRAST = `all-minilm-l6-v2` and `bge-small-en-v15`, re-measured one-process-per-cell to supersede the 0025 sequential-process figures (action 3) — both are present in the results directory and in SUMMARY.json throughout, labelled `is_contrast: true` and registry status `rejected`, never as candidates. This is the reconciliation the ticket asked for: "English-only absent from results" (0240's verification bullet) means absent from the CANDIDATE set, not absent from the file — a labelled CONTRAST row is not a violation of it.
+2026-08-30T11:21Z claude note fp32-against-itself control: cos_mean 1,0, overlap_at_30_mean 1,0, top1_kept_frac 1,0 on every one of the 8 models, not only one — `bench/results/0263-cpu-arm/SUMMARY.json` `rows.0.fidelity.fp32.cos_mean` is the representative figure and every other model's fp32 cell carries the identical triple.
+2026-08-30T11:22Z claude note RSS cost, median over five fresh processes ± spread (MB); fp16 unloadable on every model, both kinds — recorded, not a gap: | model | fp32 | spread | q8 | spread | uint8 | spread | | granite-97m-multilingual-r2 | 682,2 | 6,3 | 406,6 | 7,4 | 406,5 | 4,8 | | granite-311m-multilingual-r2 | 1585,2 | 16,1 | 660,0 | 70,1 | 656,8 | 91,5 | | arctic-embed-m-v2 | 1659,4 | 22,1 | 594,4 | 47,5 | 587,6 | 55,5 | | gte-multilingual-base | 1670,6 | 68,4 | 630,8 | 52,7 | 646,0 | 20,9 | | multilingual-e5-small | 756,9 | 51,0 | 415,8 | 18,6 | 389,1 | 51,6 | | multilingual-e5-base | 1404,5 | 21,6 | 572,6 | 8,9 | 586,0 | 51,5 | | all-minilm-l6-v2 (CONTRAST) | 142,1 | 48,7 | 75,0 | 24,1 | 76,3 | 23,6 | | bge-small-en-v15 (CONTRAST) | 197,8 | 17,7 | 95,4 | 19,6 | 97,8 | 2,3 |
+2026-08-30T11:23Z claude note every q8-versus-uint8 RSS pair above sits inside or barely outside its own spread (granite-311m's 660,0±70,1 against 656,8±91,5 is the widest gap and it is not even one full spread) — no RSS ordering is reported between the two 8-bit rungs for any candidate, matching the tracker's "same price" finding.
+2026-08-30T11:24Z claude note q8-versus-uint8 fidelity (overlap@30 mean, 600 real passages): nomic's ordering does NOT generalise. `granite-97m-multilingual-r2` is the outlier, and it is worse than nomic's own 0,7439/0,90031 case: q8 0,2349 (cos_mean 0,743121) against uint8 0,6505 (cos_mean 0,948132) — a 0,4156 gap on overlap@30 and the single worst 8-bit fidelity measured anywhere in this campaign. Every other candidate is close to tied or favours q8: `granite-311m-multilingual-r2` q8 0,8346 / uint8 0,8334 (q8 ahead by 0,0012), `arctic-embed-m-v2` q8 0,8338 / uint8 0,8351 (uint8 ahead by 0,0013), `gte-multilingual-base` q8 0,7227 / uint8 0,7213 (q8 ahead), `multilingual-e5-small` q8 0,8664 / uint8 0,8302 (q8 ahead by 0,0362), `multilingual-e5-base` q8 0,7376 / uint8 0,7336 (q8 ahead), and the CONTRAST pair `all-minilm-l6-v2` q8 0,9272 / uint8 0,8804 and `bge-small-en-v15` q8 0,9137 / uint8 0,8683 (both favour q8). Quantization robustness (the worse of a candidate's two 8-bit rungs, overlap@30) ranks every real candidate above 0,72 except `granite-97m-multilingual-r2` at 0,2349 — nobody in the surveyed field measures this column (`spec/FIELD-REVIEW.md`), and here it is the one criterion that would have singled this candidate out for exclusion where cost and fp32-fidelity alone would not.
+2026-08-30T11:25Z claude note fp16 is unloadable on the CPU provider everywhere, through two DIFFERENT ONNX Runtime failures, not one. Six of eight (`arctic-embed-m-v2`, `gte-multilingual-base`, `multilingual-e5-small`, `multilingual-e5-base`, `all-minilm-l6-v2`, `bge-small-en-v15`) reproduce the tracker's documented graph-fusion error verbatim (`GetIndexFromName ... InsertedPrecisionFreeCast_/.../SimplifiedLayerNormFusion`). Both granite models (`granite-97m-multilingual-r2`, `granite-311m-multilingual-r2`) fail a different way: a float16/float32 type mismatch on a `Cast` node inside their rotary-embedding block (`Type Error: Type (tensor(float16)) of output arg ... does not match expected type (tensor(float))`). Same outcome — fp16 does not load on this CPU provider, record as unloadable — but not the same bug; the tracker's "a graph-fusion failure rather than a missing kernel" description holds for six of eight, not for the two RoPE-architecture models.
+2026-08-30T11:26Z claude note substrate: 0 duplicate ONNX files across these 8 models — the nomic q8/int8 collision does not recur here. Vectors persisted per (model, rung) under `/home/haduong/data/projets/zoteus-bench/0263-vectors/` (not committed; path recorded per cell in the committed JSON's `metrics.vectors`). Fidelity corpus: `quant_fidelity.mjs`'s own deterministic stride over `vec-real/passages.txt` (93 022 real passages) at `--rows 600` — step = floor(93022 / 600) = 155, `row_index` = [0, 155, 310, …]; not RNG-seeded, fully reproducible from (corpus path, rows) alone, and the same 600 rows for every model since both are fixed. Recorded per fidelity cell as `corpus_stride` plus the full `row_index` in the persisted vector metadata JSON.
+2026-08-30T11:27Z claude note harness change (`bench/sweep.py`, ticket 0262's file, both additive): (1) `RealExecutor.resolve()` now runs an actual fp16 session-init probe (one extra `query_embed_cost.mjs --reps 1` subprocess) before declaring fp16 loadable — the file-listing check alone cannot see the session-init failures above, so without it these 16 cells would have landed as `failed`, not `unloadable`, which is what ticket 0240 asked to avoid. (2) `RealExecutor._measure_fidelity()` persists vectors under `--vectors-dir` and caches the fp32 reference per (model, fidelity driver version), so a model's fp32-control, q8 and uint8 cells share one fp32 embedding pass instead of three. All 15 pre-existing `tests/test_sweep.py` tests pass unmodified — `RealExecutor` is outside the fake-executor test surface by the file's own docstring. `bench/summarize_0263.py` (new) aggregates the 64 committed cells into `SUMMARY.json` without naming a model itself, reading every id from the cells' own JSON.
+2026-08-30T11:28Z claude note deviation from the directive: the transformers.js pkg-root moved mid-campaign from `/tmp/tjs-check` to `/home/haduong/data/projets/zoteus-bench/0263/tjs-check`. Cause: transformers.js's default model cache is `<package-dir>/.cache`, relative to the pkg-root itself — never `/tmp` by name — so every ONNX download for this campaign landed on the shared 12 GB `/tmp` tmpfs (already carrying several GB from unrelated concurrent sessions on this host), which reached 9,3 GB used and two cells (`arctic-embed-m-v2` q8 and uint8, cost kind) failed on a disk-write error (Node `errno -122`) before the move. Moving the whole `node_modules` tree to the data partition (232 GB free) and re-running the two failed cells fixed it with no further failures anywhere in the remaining 60 cells; the four engine versions (4.2.0 / 1.24.3 / 1.26.0-dev.20260416-b7804b056c / 1.24.3) were re-verified identical after the move, so the relocation changed no measured behaviour.
 
 2026-08-30T06:43Z Minh Ha-Duong note blocker 0262 closed — Blocked-by removed.
 --- body ---
@@ -55,12 +64,16 @@ would pick one blind on every candidate.
 
 ## Verification
 
-- [ ] Every English-only model is absent from the results, by the R7 filter
-- [ ] Each result file names its four engine versions and the device actually
+- [x] Every English-only model is absent from the results, by the R7 filter --
+      reconciled with action 3 (log 2026-08-30T11:20Z): `all-minilm-l6-v2` and
+      `bge-small-en-v15` are English-only and DO appear in the results, but only
+      as labelled CONTRAST cells (`is_contrast: true`, registry status
+      `rejected`); no English-only model appears as a candidate
+- [x] Each result file names its four engine versions and the device actually
       selected
-- [ ] fp16 appears as an unloadable result, not as a gap
-- [ ] Duplicate ONNX files appear as duplicates, with one run spent, not two
-- [ ] Every prose figure is declared in the figure guard
+- [x] fp16 appears as an unloadable result, not as a gap
+- [x] Duplicate ONNX files appear as duplicates, with one run spent, not two
+- [x] Every prose figure is declared in the figure guard
 
 ## Invariants
 
@@ -72,7 +85,7 @@ would pick one blind on every candidate.
 
 ## Exit criteria
 
-- [ ] CPU arm complete for every surviving candidate at fp32, fp16, q8, uint8
-- [ ] Unloadable combinations recorded as results; duplicate files as duplicates
-- [ ] The q8-versus-uint8 ordering reported per candidate
-- [ ] Results committed under `bench/results/` and declared in the figure guard
+- [x] CPU arm complete for every surviving candidate at fp32, fp16, q8, uint8
+- [x] Unloadable combinations recorded as results; duplicate files as duplicates
+- [x] The q8-versus-uint8 ordering reported per candidate
+- [x] Results committed under `bench/results/` and declared in the figure guard
