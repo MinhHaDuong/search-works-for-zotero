@@ -1,0 +1,85 @@
+%erg 0.1
+Title: The GPU throughput anomaly: find the mechanism before R30's bound is pinned
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T10:23Z Minh Ha-Duong created
+2026-08-30T10:25Z claude note filed from the 0264 wrap-up: the arm's two strangest observations are jointly suspicious and neither has a cause. Blocks nothing mechanically, but 0267 must weigh it and two ratifications wait on it in practice.
+
+--- body ---
+## Context
+
+Ticket 0264 measured the GPU arm on padme and two observations came out of it
+that this ticket exists to explain. Report the observation, hold the cause —
+both are recorded without one.
+
+1. **Embedding on the A4000 is slower than the CPU projections it was meant
+   to beat.** Every candidate, every dtype: 58 to 256 ms per passage under
+   `auto`, projecting to 89 to 396 minutes for the 93 022-passage corpus —
+   one to two orders of magnitude slower than the superseded PyTorch
+   projections, with dtype not the explanation (fp32 is as slow as q8).
+   Cross-validated at 9 280 rows within 8 % of the 600-row rate, so it is
+   not a probe artifact of scale.
+2. **X8 found the CPU and GPU arms' vectors byte-identical** at every
+   surviving (model, rung) — not close, identical
+   (`bench/results/0264-gpu-arm/x8-cross-provider-fidelity.json`).
+
+The two are jointly consistent with one hypothesis nobody has verified: the
+compute lands on the CPU despite CUDA node placement (340 of 402 nodes
+assigned to CUDA in the observed session), either through per-op fallback,
+host-device transfer thrash, or an ORT partitioning that leaves the heavy
+matmuls off the GPU. They are also consistent with two independent mundane
+causes. Cross-provider floating-point identity across a whole transformer
+would be surprising; measure, do not argue.
+
+## Relevant files
+
+- `bench/results/0264-gpu-arm/` — the measured cells and the X8 scores
+- `verification/DEVICE-AUTO-0264.md` — the observed provider resolution
+- `bench/sweep.py` — the harness; `verification/probes/x8_cross_provider_fidelity.py`
+- upstream `huggingface/transformers.js#945` — the open "use cuda by default"
+  work claiming ~10x, whose landing would change the meaning of every figure
+
+## Actions
+
+1. On padme, instrument one model at one rung: ORT profiling (per-node
+   timings and providers), GPU utilization sampled during the run
+   (`nvidia-smi dmon`), and a batch-size sweep (1, 8, 32, 128) — batch-1
+   per-call overhead is the boring candidate mechanism and must be priced
+   first.
+2. Discriminate the byte-identity: perturb one input, embed on both arms,
+   and compare intermediate activations or at minimum confirm the GPU run's
+   kernel launches are nonzero while it produces the identical vector.
+3. If the mechanism is per-call overhead, report the throughput at the batch
+   size the pipeline would actually use, and R30's bound derives from that.
+4. Record the verdict where the two waiting decisions can cite it.
+
+## Test
+
+- The instrumented run must include a positive control: a workload known to
+  saturate the GPU (a large matmul benchmark) showing the instrumentation
+  can tell busy from idle.
+
+## Verification
+
+- [ ] A named mechanism, or a named discriminating experiment that failed to
+      run, for each of the two observations
+- [ ] GPU utilization during an embed run, measured, not inferred from
+      provider assignment
+
+## Invariants
+
+- R30's bound is not pinned, and the adopt-a-foreign-index question is not
+  ratified, until observation 2 is explained — byte-identity is currently
+  evidence for provider-free keys AND for "the GPU never computed", and only
+  one of those supports the ratification.
+- No result from 0263/0264 is rewritten; this ticket adds evidence beside
+  them.
+
+## Exit criteria
+
+- [ ] Both observations have a mechanism or a bounded open question with the
+      one discriminating experiment named
+- [ ] The throughput figure R30's bound should derive from is identified
+      (batch size stated), or shown not to exist on this stack
