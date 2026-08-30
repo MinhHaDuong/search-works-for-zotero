@@ -1,0 +1,27 @@
+{
+  "model": "Xenova/multilingual-e5-small",
+  "model_id": "multilingual-e5-small",
+  "dtype": "q8",
+  "device": "cuda",
+  "dim": 384,
+  "rows": 80,
+  "batch": 8,
+  "stride": 1162,
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "load_ms": 1262.6,
+  "embed_ms": 4422.5,
+  "ms_per_passage": 55.282,
+  "first_vec_head": [
+    0.25540247559547424,
+    -0.0288167055696249,
+    -0.3551067113876343,
+    -0.2148619145154953,
+    0.3074328899383545,
+    -0.32784104347229004,
+    0.411892831325531,
+    0.08713442087173462
+  ],
+  "profile_path": "/home/haduong/data/search-works-for-zotero/bench/results/0481-gpu-anomaly/step3_e5small_cuda_q8_profiled.json.profile.json",
+  "host": "padme",
+  "when": "2026-08-30T11:10:49.328Z"
+}

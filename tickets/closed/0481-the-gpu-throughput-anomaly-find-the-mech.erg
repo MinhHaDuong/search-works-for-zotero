@@ -1,0 +1,107 @@
+%erg 0.1
+Title: The GPU throughput anomaly: find the mechanism before R30's bound is pinned
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Closed: mechanism isolated by PR #102: the harness dropped --device, so the GPU-arm fidelity cells ran on CPU; both observations explained by one defect. Fix merged with a red-first regression test; corrected campaign is ticket 0482
+
+--- log ---
+2026-08-30T10:23Z Minh Ha-Duong created
+2026-08-30T10:25Z claude note filed from the 0264 wrap-up: the arm's two strangest observations are jointly suspicious and neither has a cause. Blocks nothing mechanically, but 0267 must weigh it and two ratifications wait on it in practice.
+2026-08-30T11:25Z claude note MECHANISM FOUND for both observations. bench/sweep.py RealExecutor._measure_fidelity and _measure_recall never appended --device to the quant_fidelity.mjs subprocess command (unlike _measure_cost, which always did) -- confirmed directly from the original 0264 campaign's own surviving artifacts: every persisted per-rung vector metadata file (/home/haduong/data/0264-vectors/*.json on padme) records "device": "(runtime default)". transformers.js's Node default (devices.js: DEFAULT_DEVICE = cpu) is CPU. So every fidelity/recall cell in the GPU-arm campaign -- labelled auto or cuda purely as sweep-plan bookkeeping -- silently ran on CPU regardless of the requested device. This explains observation 1 (the 58-256 ms/passage figures were genuine CPU rates, not GPU rates) and observation 2 (the CPU arm 0263 and the "GPU arm" 0264 fidelity vectors were byte-identical because both literally ran the same CPU code path, not because of cross-provider fp invariance). POSITIVE CONTROL: nvidia-smi dmon during a real llama-server completion call showed sm% rising 0 to 31-57% and returning to 0, proving the instrumentation discriminates busy from idle (bench/results/0481-gpu-anomaly/dmon/dmon_control_busy.txt). GPU UTILIZATION DURING EMBED (device forwarded correctly, via a new standalone probe verification/probes/gpu_anomaly_embed_probe.mjs): granite-97m/device:cuda/q8 and multilingual-e5-small/device:auto/q8 both showed genuine GPU business (sm% 20-29% and 3-25% respectively, framebuffer memory allocated) throughout the embed call -- GPU is not idle once the flag reaches the driver. ORT PROFILING (enableProfiling, one run each): for q8, MatMulInteger -- the quantized matmul, 69% of node time -- runs entirely on CPUExecutionProvider (CUDA registers no int8 matmul kernel, confirming DEVICE-AUTO-0264.md Result 1's own finding); for fp32, 99.9% of node time is on CUDAExecutionProvider and total kernel time is small (145 ms for 80 rows) -- genuinely GPU-accelerated. BATCH-SIZE SWEEP (1/8/32/128, multilingual-e5-small, device cuda explicit): flat for both q8 (52-66 ms/passage) and fp32 (22-25 ms/passage) -- batch-1 per-call overhead, the ticket's own "boring candidate", is NOT the mechanism; fp32 is consistently ~2.3x faster than q8 on this host because of the MatMulInteger-on-CPU bottleneck. BYTE-IDENTITY DISCRIMINATION: same 20-row stride sample (corpus sha256 949d5af1...eec0ca4, verified identical on both machines), embedded locally on doudou (CPU, no GPU present) and on padme with --device cuda explicit plus profiling: the padme run genuinely executed on CUDA (106,13 of 106,19 ms node time, 99,9%, on CUDAExecutionProvider) and its vector is NOT byte-identical to the CPU vector -- differs from the fourth significant digit (e.g. 0,24527722597122192 CPU vs 0,245431050658226 GPU), cosine 0,9999999283 over the compared dims, max abs diff 1,78e-4 -- exactly the expected signature of genuine cross-provider floating point, and the direct contrast case for 0264's X8 exact-identity verdict. R30 THROUGHPUT: multilingual-e5-small at fp32, device cuda explicit, batch 8, 600 rows (matching 0264's fidelity-cell conditions) measured **21,8 ms/passage**, versus the buggy 59,3 ms/passage 0264 recorded for the identical (model, dtype, rows) under the CPU-only path; projects to **33,8 minutes** for the 93 022-passage corpus -- inside gpu-feasibility.json's superseded 7-95 minute PyTorch-derived band. Flat across batch sizes (above), so this figure is not batch-size-sensitive within 1-128. CAVEAT: measured for ONE candidate at ONE dtype with a correctly-forwarded device, not a full re-run of the six-candidate x four-dtype campaign; q8 measured SLOWER than fp32 on this stack (MatMulInteger-on-CPU), so the deployed-dtype figure needs its own GPU-corrected measurement before ticket 0267 pins anything -- recommend re-running the fidelity/recall sweep with this branch's bench/sweep.py fix before trusting any bench/results/0264-gpu-arm/ ms_per_passage figure as a GPU number. HARNESS FIX in this branch: bench/sweep.py now forwards --device in _measure_fidelity (both fp32 reference and dtype rung) and _measure_recall; regression test tests/test_sweep_real_executor_device.py, verified red against the unfixed code (positive control) before being verified green against the fix. VRAM STARVATION RULED UNLIKELY FOR 0264 BY TIMELINE: llama-server was killed before any 0264 cell ran, GPU confirmed quiet 89/2 MiB, and it was restarted only after the last cell -- so contention for VRAM is not an alternative explanation for either observation; the mechanism above (a missing CLI flag, unrelated to memory pressure) is the full explanation. Full evidence: bench/results/0481-gpu-anomaly/ (SUMMARY.json ties every step together), verification/GPU-ANOMALY-0481.md, verification/probes/gpu_anomaly_embed_probe.mjs, verification/probes/gpu_anomaly_profile_summarize.py. llama-server end state (this session): restarted manually (exact ExecStart from the systemd unit, run as the user, same procedure as 0264), healthy, still not under systemd supervision -- same standing flag 0264 left for the author.
+
+2026-08-30T11:30Z claude note CORRECTION to the prior entry's llama-server claim: at T11:25Z it was written as already restarted, but it was not — the restart command had not actually been run yet, only planned. Caught by a final verification pass (curl health check + ps + nvidia-smi) that found the GPU idle and no llama-server process. Restarted properly just now with the systemd unit's exact ExecStart line; confirmed healthy (`{"status":"ok"}`) and GPU memory back at 14171+11456 MiB, matching its pre-experiment footprint. Recorded here rather than silently editing the prior entry, per the append-only log convention.
+
+2026-08-30T11:32Z Minh Ha-Duong closed — mechanism isolated by PR #102: the harness dropped --device, so the GPU-arm fidelity cells ran on CPU; both observations explained by one defect. Fix merged with a red-first regression test; corrected campaign is ticket 0482
+--- body ---
+## Context
+
+Ticket 0264 measured the GPU arm on padme and two observations came out of it
+that this ticket exists to explain. Report the observation, hold the cause —
+both are recorded without one.
+
+1. **Embedding on the A4000 is slower than the CPU projections it was meant
+   to beat.** Every candidate, every dtype: 58 to 256 ms per passage under
+   `auto`, projecting to 89 to 396 minutes for the 93 022-passage corpus —
+   one to two orders of magnitude slower than the superseded PyTorch
+   projections, with dtype not the explanation (fp32 is as slow as q8).
+   Cross-validated at 9 280 rows within 8 % of the 600-row rate, so it is
+   not a probe artifact of scale.
+2. **X8 found the CPU and GPU arms' vectors byte-identical** at every
+   surviving (model, rung) — not close, identical
+   (`bench/results/0264-gpu-arm/x8-cross-provider-fidelity.json`).
+
+The two are jointly consistent with one hypothesis nobody has verified: the
+compute lands on the CPU despite CUDA node placement (340 of 402 nodes
+assigned to CUDA in the observed session), either through per-op fallback,
+host-device transfer thrash, or an ORT partitioning that leaves the heavy
+matmuls off the GPU. They are also consistent with two independent mundane
+causes. Cross-provider floating-point identity across a whole transformer
+would be surprising; measure, do not argue.
+
+## Relevant files
+
+- `bench/results/0264-gpu-arm/` — the measured cells and the X8 scores
+- `verification/DEVICE-AUTO-0264.md` — the observed provider resolution
+- `bench/sweep.py` — the harness; `verification/probes/x8_cross_provider_fidelity.py`
+- upstream `huggingface/transformers.js#945` — the open "use cuda by default"
+  work claiming ~10x, whose landing would change the meaning of every figure
+
+## Actions
+
+1. On padme, instrument one model at one rung: ORT profiling (per-node
+   timings and providers), GPU utilization sampled during the run
+   (`nvidia-smi dmon`), and a batch-size sweep (1, 8, 32, 128) — batch-1
+   per-call overhead is the boring candidate mechanism and must be priced
+   first.
+2. Discriminate the byte-identity: perturb one input, embed on both arms,
+   and compare intermediate activations or at minimum confirm the GPU run's
+   kernel launches are nonzero while it produces the identical vector.
+3. If the mechanism is per-call overhead, report the throughput at the batch
+   size the pipeline would actually use, and R30's bound derives from that.
+4. Record the verdict where the two waiting decisions can cite it.
+
+## Test
+
+- The instrumented run must include a positive control: a workload known to
+  saturate the GPU (a large matmul benchmark) showing the instrumentation
+  can tell busy from idle.
+
+## Verification
+
+- [x] A named mechanism, or a named discriminating experiment that failed to
+      run, for each of the two observations. DONE: `bench/sweep.py`'s
+      `_measure_fidelity`/`_measure_recall` never forwarded `--device` to
+      `quant_fidelity.mjs`, so every GPU-arm fidelity/recall cell silently ran
+      at transformers.js's Node default device (`cpu`) — confirmed from the
+      original campaign's own vector metadata (`"device": "(runtime
+      default)"`), and reproduced live with the harness fix. One mechanism
+      explains both observations.
+- [x] GPU utilization during an embed run, measured, not inferred from
+      provider assignment. DONE: `nvidia-smi dmon -s um` sampled throughout
+      two embed runs (granite-97m/cuda, e5-small/auto), both genuinely busy
+      (sm% and framebuffer memory both nonzero for the run's duration).
+
+## Invariants
+
+- R30's bound is not pinned, and the adopt-a-foreign-index question is not
+  ratified, until observation 2 is explained — byte-identity is currently
+  evidence for provider-free keys AND for "the GPU never computed", and only
+  one of those supports the ratification.
+- No result from 0263/0264 is rewritten; this ticket adds evidence beside
+  them.
+
+## Exit criteria
+
+- [x] Both observations have a mechanism or a bounded open question with the
+      one discriminating experiment named. DONE, one mechanism for both —
+      see the 2026-08-30T11:25Z log entry and
+      `bench/results/0481-gpu-anomaly/SUMMARY.json`.
+- [x] The throughput figure R30's bound should derive from is identified
+      (batch size stated), or shown not to exist on this stack. DONE, WITH A
+      SCOPE CAVEAT: multilingual-e5-small/fp32/device:cuda/batch 8 measures
+      21,8 ms/passage (33,8 minutes projected for 93 022 passages), flat
+      across batch 1–128. Measured for one candidate at one dtype, not the
+      full six-candidate × four-dtype field, and q8 was *slower* than fp32 on
+      this stack (MatMulInteger has no CUDA kernel) — ticket 0267 should
+      re-run the fidelity/recall sweep with this branch's harness fix before
+      pinning R30 on any candidate's number.

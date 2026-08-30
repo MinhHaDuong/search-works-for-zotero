@@ -1,0 +1,28 @@
+{
+  "cell_id": "granite-97m-multilingual-r2__fp16__cuda__fixed-queries-v1__cost-v1",
+  "model": "granite-97m-multilingual-r2",
+  "dtype": "fp16",
+  "device_requested": "cuda",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T09:17Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "failed",
+  "onnx_hash": "15a914a2ff40bd45bb3348f35e51359f83b00a3e39d4e20c4bdeabab567dd7dc",
+  "onnx_path": "onnx/model_fp16.onnx",
+  "error": "returncode=-6\n/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /home/haduong/data/zoteus-bench-pkg/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-97m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:136:29)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.23.2\ncorrupted double-linked list\n"
+}

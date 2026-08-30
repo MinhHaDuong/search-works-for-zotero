@@ -56,6 +56,7 @@ import json
 import logging
 import os
 import re
+import socket
 import statistics
 import subprocess
 import sys
@@ -242,6 +243,36 @@ def read_package_version(pkg_root: Path, package: str) -> str:
         return "unreadable"
 
 
+def _read_valid_json(path: Path) -> dict | None:
+    """Parse `path` as JSON, or None if it is absent, empty, or truncated.
+
+    A driver subprocess that crashes mid-write (the padme GPU host's native-binding
+    exit crash, ticket 0264) can leave a partial file; a truncated JSON parse error
+    here is the signal that the crash landed before the write finished, not after.
+    """
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _subprocess_diagnostic(result: subprocess.CompletedProcess) -> str:
+    """Head and tail of stderr, not just the tail.
+
+    A crash that happens deep in graph execution (e.g. a mixed CUDA/WebGPU
+    partitioning error) prints its real diagnostic early, then the process can go on
+    to print thousands of characters of routine per-op warnings before exiting. A
+    tail-only slice loses the actual error under that noise (observed on padme,
+    ticket 0264: `result.stderr[-4000:]` captured only repeated WebGPU buffer-limit
+    warnings and dropped the "Non-zero status code... Sqrt node" line that named the
+    real failure). Head and tail together are cheap and keep both ends.
+    """
+    err = result.stderr or ""
+    head, tail = err[:3000], err[-2000:]
+    body = head if len(err) <= 5000 else f"{head}\n...[{len(err) - 5000} chars elided]...\n{tail}"
+    return f"returncode={result.returncode}\n{body}"
+
+
 @dataclass
 class RealExecutor:
     """Wires the five existing drivers up as subprocesses. Never invoked by
@@ -273,13 +304,19 @@ class RealExecutor:
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None
     #: Where a fidelity cell's raw vectors are persisted, keyed by (model, fidelity
-    #: driver version) — ticket 0263: they are experiment X8's CPU side (DESIGN §3)
-    #: and must stay addressable after scoring, not discarded with a tmp dir. `None`
-    #: keeps the old ephemeral-tmp-dir behaviour (the sole path any test exercises).
+    #: driver version) — ticket 0263: they are experiment X8's CPU side (DESIGN §3),
+    #: and ticket 0264's GPU side reads the same convention to score one arm's vectors
+    #: against the other's. Must stay addressable after scoring, not discarded with a
+    #: tmp dir. `None` keeps the old ephemeral-tmp-dir behaviour (the sole path any
+    #: test exercises).
     vectors_dir: Path | None = None
-    #: Ticket 0263's floor: prior fidelity runs (nomic) used 600 rows; the driver's
-    #: own default is 400. A named field rather than a literal in the cmd below so a
-    #: caller can see and override what a campaign actually asked for.
+    #: Ticket 0263's floor, shared by the 0264 GPU arm so both sides sample the SAME
+    #: 600 rows: prior fidelity runs (nomic) used 600 rows; the driver's own default
+    #: is 400. A named field rather than a literal in the cmd below so a caller can
+    #: see and override what a campaign actually asked for. The stride
+    #: `quant_fidelity.mjs` samples with is a pure function of (corpus length, rows),
+    #: so two arms against the byte-identical corpus file at the same row count see
+    #: the identical rows with no separate coordination.
     fidelity_rows: str = "600"
     #: The device `resolve()`'s fp16 probe (below) actually tests against. Loadability
     #: for every other rung in this campaign's floor is a published-file fact; fp16 is
@@ -288,7 +325,14 @@ class RealExecutor:
     #: missing kernel), and that disagreement is device-specific. `resolve()` itself
     #: takes no device parameter (the Protocol other tests build against, and the
     #: 0262 fake executor's signature, both fix it at two arguments) — so the device
-    #: to probe is configured here instead, once, at executor construction.
+    #: to probe is configured here instead, once, at executor construction. The 0264
+    #: GPU arm passes 'auto' or 'cuda' here; on that host the probe is a NECESSARY
+    #: condition, not sufficient — fp16 session init there is nondeterministic (the
+    #: same bytes at the same device sometimes load, sometimes fail with this exact
+    #: signature; verification/DEVICE-AUTO-0264.md), so a single probe pass can mark a
+    #: cell loadable that a later real run still fails. `_measure_cost`/`_measure_fidelity`
+    #: below stay crash-tolerant for exactly that reason: the probe narrows the field,
+    #: it does not replace catching a failure where it actually happens.
     probe_device: str = "cpu"
 
     def engine_versions(self) -> dict[str, str]:
@@ -404,16 +448,29 @@ class RealExecutor:
             if device != "(runtime default)":
                 cmd += ["--device", device]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            if result.returncode != 0:
-                return MeasureResult(ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:])
-            payload = json.loads(out_path.read_text(encoding="utf-8"))
-            entry = payload["models"][0]
-        device_selected = device if device != "auto" else f"{device} (requested; ORT provider not introspectable)"
-        return MeasureResult(ok=True, device_selected=device_selected, metrics=entry)
+            # The GPU host's WebGPU/Dawn native binding crashes the process on exit --
+            # AFTER the driver's own writeFileSync completes (device-auto-probe.mjs,
+            # ticket 0264, confirmed the crash is strictly post-output on this host/ORT
+            # version). A nonzero returncode is therefore not proof the measurement is
+            # bad: check for a valid, complete output file first, on every returncode.
+            payload = _read_valid_json(out_path)
+            if payload is not None and payload.get("models"):
+                entry = payload["models"][0]
+                if result.returncode != 0:
+                    entry["process_exit_note"] = (
+                        f"driver exited {result.returncode} after writing valid output "
+                        "(known post-output native-binding crash on this host; see ticket 0264)"
+                    )
+                device_selected = (
+                    device if device != "auto" else f"{device} (requested; ORT provider not introspectable)"
+                )
+                return MeasureResult(ok=True, device_selected=device_selected, metrics=entry)
+            return MeasureResult(ok=False, device_selected=device, metrics={}, error=_subprocess_diagnostic(result))
 
     def _measure_fidelity(self, record: dict, dtype: str, device: str, corpus: str) -> MeasureResult:
         import quant_fidelity_score as qfs
 
+        crash_notes: list[str] = []
         persistent = self.vectors_dir is not None
         tmp_ctx = None
         if persistent:
@@ -455,10 +512,32 @@ class RealExecutor:
                     "--rows",
                     self.fidelity_rows,
                 ]
+                # Ticket 0481: this flag was missing entirely until this fix, so every
+                # fidelity cell silently ran quant_fidelity.mjs's own default device
+                # (transformers.js's Node DEFAULT_DEVICE is 'cpu' -- devices.js) no
+                # matter what the plan requested. That is the root cause behind both
+                # 0264's throughput anomaly (every "GPU arm" fidelity figure was
+                # actually a CPU rate) and its byte-identical X8 verdict (both arms ran
+                # the same CPU code path). See verification/GPU-ANOMALY-0481.md.
+                if device != "(runtime default)":
+                    cmd += ["--device", device]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
-                if result.returncode != 0:
+                # Crash tolerance (ticket 0264): the padme GPU host's native-binding
+                # exit crash can kill the process AFTER quant_fidelity.mjs's own
+                # writeFileSync completes. Check the rung's output for validity BEFORE
+                # trusting the return code, on every returncode -- salvages a
+                # post-output crash as measured (with a process_exit_note) while a
+                # genuine pre-output crash (session-init or mid-execution) still
+                # reports the real diagnostic instead of a generic "missing" message.
+                rung_meta = _read_valid_json(rung_json)
+                if rung_meta is None or not rung_f32.is_file():
                     return MeasureResult(
-                        ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:]
+                        ok=False, device_selected=device, metrics={}, error=_subprocess_diagnostic(result)
+                    )
+                if result.returncode != 0:
+                    crash_notes.append(
+                        f"{rung}: driver exited {result.returncode} after writing valid output "
+                        "(known post-output native-binding crash on this host; see ticket 0264)"
                     )
             reference = qfs.load_rung(Path(prefix), "fp32")
             rung_data = qfs.load_rung(Path(prefix), dtype)
@@ -471,6 +550,8 @@ class RealExecutor:
             metrics["rows"] = meta["rows"]
             metrics["dim"] = meta["dim"]
             metrics["corpus_stride"] = meta["stride"]
+            if crash_notes:
+                metrics["process_exit_note"] = "; ".join(crash_notes)
             if persistent:
                 metrics["vectors"] = {
                     "reference_f32": f"{prefix}-fp32.f32",
@@ -514,6 +595,11 @@ class RealExecutor:
                 "--dtype",
                 dtype,
             ]
+            if self.fidelity_rows is not None:
+                embed_cmd += ["--rows", str(self.fidelity_rows)]
+            # Ticket 0481: same missing forward as _measure_fidelity above, same fix.
+            if device != "(runtime default)":
+                embed_cmd += ["--device", device]
             result = subprocess.run(embed_cmd, capture_output=True, text=True, timeout=1800)
             if result.returncode != 0:
                 return MeasureResult(ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:])
@@ -759,6 +845,11 @@ def _base_record(plan: CellPlan, engine_versions: dict[str, str], record: dict) 
         "driver": KIND_DRIVER[plan.kind],
         "driver_version": plan.driver_version,
         "measured_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+        # The GPU arm and the CPU arm are otherwise identical on paper (same corpus,
+        # same probes, same driver, ticket 0240's invariant) -- the host is the one
+        # fact that tells them apart on the page, and it lived only nested inside a
+        # cost cell's own `machine` sub-object (never a fidelity cell's) before this.
+        "host": socket.gethostname(),
         "engine_versions": engine_versions,
         "input_template": record.get("input_template"),
         "pooling": record.get("pooling"),

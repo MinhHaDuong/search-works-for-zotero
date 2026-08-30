@@ -48,12 +48,12 @@ always means *holds on stock upstream*, never *we wrote it*.
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-9 measured · 12 read in the source · 8 inferred
+10 measured · 11 read in the source · 8 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-nine, nine rest on an experiment or a test that ran, twelve on
+the twenty-nine, ten rest on an experiment or a test that ran, eleven on
 opening the upstream source at the reviewed baseline, and eight on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
@@ -125,7 +125,7 @@ demonstrated. They are not the same kind of statement.
 | R14 | no text is a terminal state | ratified | none | inferred | An attachment that yields no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing. Held in reserve as ticket 0019. |
 | R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. |
 | R26 | convergence is watched, not trusted | ratified | none | inferred | No harness polls an empty index to completion. Ticket 0026, and the requirement's prefix clause is being rewritten in ticket 0080. |
-| R30 | capable hardware is used | open | none | code | The local path passes no execution device, so the runtime's CPU default always serves — read at the reviewed baseline, with the failing `auto` path measured in `verification/DEVICE-AUTO-0220.md`. The device mechanism and the wall-clock bound await the GPU arm, ticket 0264; ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
+| R30 | capable hardware is used | open | none | measured | The local path still passes no execution device on stock upstream, so the runtime's CPU default still serves there — unchanged from the reviewed baseline. The device mechanism is observed rather than read from source (`verification/DEVICE-AUTO-0264.md`), ticket 0264's throughput anomaly is explained as a harness defect rather than a GPU fact (`verification/GPU-ANOMALY-0481.md`: the fidelity cells never received a device and ran on CPU), and genuine GPU acceleration is measured for one candidate at full precision (`bench/results/0481-gpu-anomaly/`). The design stays open on the per-model shape of the guarded fallback (the mixed-provider path crashes per model, not per machine) and on the per-device optimal rung (the quantized matmul has no CUDA kernel). The bound is pinned after ticket 0482's corrected campaign; ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
 
 ### Change and cost
 

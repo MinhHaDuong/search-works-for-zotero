@@ -1,0 +1,54 @@
+{
+  "cell_id": "gte-multilingual-base__uint8__auto__fixed-queries-v1__cost-v1",
+  "model": "gte-multilingual-base",
+  "dtype": "uint8",
+  "device_requested": "auto",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T08:35Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "9524e1fc6afb876b2fe3578f7dc174770865fce4d5d0d22d3d5e03617e0e73cc",
+  "onnx_path": "onnx/model_uint8.onnx",
+  "n_reps": 5,
+  "device_selected": "auto (requested; ORT provider not introspectable)",
+  "metrics": {
+    "model": "onnx-community/gte-multilingual-base",
+    "model_id": "gte-multilingual-base",
+    "dim": 768,
+    "dtype": "uint8",
+    "device": "auto",
+    "load_ms": 1769.5,
+    "rss_before_mb": 93.3,
+    "rss_after_load_mb": 1207.1,
+    "rss_delta_mb": 1113.8,
+    "query_ms_min": 8.4,
+    "query_ms_median": 10.2,
+    "query_ms_p95": 12.5,
+    "n": 60,
+    "process_exit_note": "driver exited -11 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+    "rss_delta_mb_median": 1114.7,
+    "rss_delta_mb_spread": 2.0,
+    "rss_delta_mb_reps": [
+      1115.8,
+      1115.5,
+      1114.6,
+      1114.7,
+      1113.8
+    ]
+  }
+}

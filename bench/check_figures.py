@@ -103,6 +103,14 @@ PROSE = {
         "tickets/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
         "tickets/closed/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
     ],
+    "t0481": [
+        "tickets/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
+        "tickets/closed/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
+    ],
+    "t0266": [
+        "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
+        "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
+    ],
 }
 
 
@@ -662,7 +670,8 @@ FIGURES = [
      {"t0263": "control: cos_mean {}, overlap_at_30_mean 1,0"}),
     # granite-97m's outlier collapse -- the finding the whole campaign turns on.
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.q8_overlap_at_30_mean", 4,
-     {"t0263": "q8{} (cos_mean 0,743121)"}),
+     {"t0263": "q8{} (cos_mean 0,743121)",
+      "t0266": "overlap@30 of {} there, cos_mean 0,743121"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.q8.cos_mean", 6,
      {"t0263": "q8 0,2349 (cos_mean {})"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
@@ -749,6 +758,38 @@ FIGURES = [
      {"t0263": "17,7 | {} | 19,6 |"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.7.cost.uint8.rss_delta_mb_median", 1,
      {"t0263": "19,6 | {} | 2,3 |"}),
+    # ---- 0481, the GPU throughput anomaly's mechanism ----
+    ("0481-gpu-anomaly/SUMMARY.json", "step6_r30_throughput.ms_per_passage_fp32_cuda_batch8_600rows", 1,
+     {"t0481": "measured **{} ms/passage**"}),
+    ("0481-gpu-anomaly/SUMMARY.json", "step6_r30_throughput.projection_minutes_93022_rows", 1,
+     {"t0481": "projects to **{} minutes**"}),
+    # ---- 0266, the cross-lingual probe. cells is keyed by "<model_id>__<dtype>", not
+    # indexed by list position, so a re-run that adds a candidate cannot silently shift
+    # which cell an anchor names.
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.pool_size", 0,
+     {"t0266": "Fixed retrieval pool, same across every cell: {} passages, 24 gold"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.query_count", 0,
+     {"t0266": "{} queries: EN + FR + native per non-English topic"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.all-minilm-l6-v2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "scores en->vi hit@10 of {} at q8"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,62/0,50/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-small__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,25/0,50/0,62/0,75/0,50"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.arctic-embed-m-v2__fp32.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "fp32/q8/uint8 identically {}/1,00/0,88/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.gte-multilingual-base__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,88/1,00/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-311m-multilingual-r2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,62/0,75/0,75/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8 COLLAPSES: {}/0,25/0,00/0,00/0,00/0,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__fp32.negative_control.clean", 0,
+     {"t0266": "granite-97m-multilingual-r2 fp32 clean={}/4, q8 clean=0/4"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__q8.negative_control.clean", 0,
+     {"t0266": "q8 clean={}/4, uint8 clean=3/4"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__uint8.negative_control.clean", 0,
+     {"t0266": "uint8 clean={}/4;"}),
 ]
 
 
