@@ -1,0 +1,38 @@
+{
+  "cell_id": "gte-multilingual-base__fp32__auto__home-haduong-data-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "gte-multilingual-base",
+  "dtype": "fp32",
+  "device_requested": "auto",
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T08:40Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "5b9f03fdc40350a78fa064b4cfb6bf9a229a7c40aa87736f537e3ebd00aa2b86",
+  "onnx_path": "onnx/model.onnx",
+  "n_reps": 1,
+  "device_selected": "auto",
+  "metrics": {
+    "cos_mean": 1.0,
+    "cos_p05": 1.0,
+    "cos_min": 1.0,
+    "cos_ge_0999_frac": 1.0,
+    "overlap_at_30_mean": 1.0,
+    "overlap_at_30_p05": 1.0,
+    "top1_kept_frac": 1.0,
+    "ms_per_passage": 153.9
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "cell_id": "multilingual-e5-small__fp16__auto__fixed-queries-v1__cost-v1",
+  "model": "multilingual-e5-small",
+  "dtype": "fp16",
+  "device_requested": "auto",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T08:51Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "query: ",
+    "passage": "passage: "
+  },
+  "pooling": "mean",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "0e0fe349c99ea21c6f3aa273af21f7fb753c1e1174ef1647032029c2be3251c3",
+  "onnx_path": "onnx/model_fp16.onnx",
+  "n_reps": 5,
+  "device_selected": "auto (requested; ORT provider not introspectable)",
+  "metrics": {
+    "model": "Xenova/multilingual-e5-small",
+    "model_id": "multilingual-e5-small",
+    "dim": 384,
+    "dtype": "fp16",
+    "device": "auto",
+    "load_ms": 1576.2,
+    "rss_before_mb": 90,
+    "rss_after_load_mb": 1234.3,
+    "rss_delta_mb": 1144.3,
+    "query_ms_min": 2.1,
+    "query_ms_median": 2.2,
+    "query_ms_p95": 3.1,
+    "n": 60,
+    "process_exit_note": "driver exited -11 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+    "rss_delta_mb_median": 1150.8,
+    "rss_delta_mb_spread": 55.4,
+    "rss_delta_mb_reps": [
+      1150.8,
+      1165.5,
+      1110.1,
+      1161.5,
+      1144.3
+    ]
+  }
+}

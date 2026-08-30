@@ -242,6 +242,36 @@ def read_package_version(pkg_root: Path, package: str) -> str:
         return "unreadable"
 
 
+def _read_valid_json(path: Path) -> dict | None:
+    """Parse `path` as JSON, or None if it is absent, empty, or truncated.
+
+    A driver subprocess that crashes mid-write (the padme GPU host's native-binding
+    exit crash, ticket 0264) can leave a partial file; a truncated JSON parse error
+    here is the signal that the crash landed before the write finished, not after.
+    """
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _subprocess_diagnostic(result: subprocess.CompletedProcess) -> str:
+    """Head and tail of stderr, not just the tail.
+
+    A crash that happens deep in graph execution (e.g. a mixed CUDA/WebGPU
+    partitioning error) prints its real diagnostic early, then the process can go on
+    to print thousands of characters of routine per-op warnings before exiting. A
+    tail-only slice loses the actual error under that noise (observed on padme,
+    ticket 0264: `result.stderr[-4000:]` captured only repeated WebGPU buffer-limit
+    warnings and dropped the "Non-zero status code... Sqrt node" line that named the
+    real failure). Head and tail together are cheap and keep both ends.
+    """
+    err = result.stderr or ""
+    head, tail = err[:3000], err[-2000:]
+    body = head if len(err) <= 5000 else f"{head}\n...[{len(err) - 5000} chars elided]...\n{tail}"
+    return f"returncode={result.returncode}\n{body}"
+
+
 @dataclass
 class RealExecutor:
     """Wires the five existing drivers up as subprocesses. Never invoked by
@@ -272,6 +302,19 @@ class RealExecutor:
     #: resolves as unloadable rather than crashing on a missing argument.
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None
+    #: Row count for the fidelity/recall corpus sample. `quant_fidelity.mjs` picks a
+    #: fixed-stride sample of this many rows from the corpus; None lets it use its own
+    #: default (400). The 0264 GPU arm passes 600 to match the CPU arm's sample -- the
+    #: stride is a pure function of (corpus length, rows), so two runs against the same
+    #: corpus file at the same row count see the identical rows without any separate
+    #: coordination.
+    fidelity_rows: int | None = None
+    #: Where to persist each fidelity cell's raw per-(model, rung) vectors. The fidelity
+    #: kind otherwise scores inside a throwaway temp dir and discards the vectors --
+    #: sufficient for the in-arm quantization ladder, not for X8 (DESIGN §3), which scores
+    #: one arm's vectors against the other arm's SAME (model, rung) vectors after both
+    #: have finished. None keeps the old throwaway behaviour.
+    vectors_dir: Path | None = None
 
     def engine_versions(self) -> dict[str, str]:
         return {pkg: read_package_version(self.pkg_root, pkg) for pkg in ENGINE_PACKAGES}
@@ -343,16 +386,29 @@ class RealExecutor:
             if device != "(runtime default)":
                 cmd += ["--device", device]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            if result.returncode != 0:
-                return MeasureResult(ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:])
-            payload = json.loads(out_path.read_text(encoding="utf-8"))
-            entry = payload["models"][0]
-        device_selected = device if device != "auto" else f"{device} (requested; ORT provider not introspectable)"
-        return MeasureResult(ok=True, device_selected=device_selected, metrics=entry)
+            # The GPU host's WebGPU/Dawn native binding crashes the process on exit --
+            # AFTER the driver's own writeFileSync completes (device-auto-probe.mjs,
+            # ticket 0264, confirmed the crash is strictly post-output on this host/ORT
+            # version). A nonzero returncode is therefore not proof the measurement is
+            # bad: check for a valid, complete output file first, on every returncode.
+            payload = _read_valid_json(out_path)
+            if payload is not None and payload.get("models"):
+                entry = payload["models"][0]
+                if result.returncode != 0:
+                    entry["process_exit_note"] = (
+                        f"driver exited {result.returncode} after writing valid output "
+                        "(known post-output native-binding crash on this host; see ticket 0264)"
+                    )
+                device_selected = (
+                    device if device != "auto" else f"{device} (requested; ORT provider not introspectable)"
+                )
+                return MeasureResult(ok=True, device_selected=device_selected, metrics=entry)
+            return MeasureResult(ok=False, device_selected=device, metrics={}, error=_subprocess_diagnostic(result))
 
     def _measure_fidelity(self, record: dict, dtype: str, device: str, corpus: str) -> MeasureResult:
         import quant_fidelity_score as qfs
 
+        crash_notes: list[str] = []
         with _tmp_prefix() as prefix:
             for rung in ("fp32", dtype):
                 cmd = [
@@ -369,11 +425,31 @@ class RealExecutor:
                     "--dtype",
                     rung,
                 ]
+                if self.fidelity_rows is not None:
+                    cmd += ["--rows", str(self.fidelity_rows)]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
-                if result.returncode != 0:
+                # Same post-output crash tolerance as _measure_cost: quant_fidelity.mjs
+                # writes its .f32/.json before any teardown, so check those exist and
+                # are complete before trusting the returncode.
+                rung_meta_path = Path(f"{prefix}-{rung}.json")
+                rung_vec_path = Path(f"{prefix}-{rung}.f32")
+                rung_meta = _read_valid_json(rung_meta_path)
+                if rung_meta is None or not rung_vec_path.is_file():
                     return MeasureResult(
-                        ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:]
+                        ok=False, device_selected=device, metrics={}, error=_subprocess_diagnostic(result)
                     )
+                if result.returncode != 0:
+                    crash_notes.append(
+                        f"{rung}: driver exited {result.returncode} after writing valid output "
+                        "(known post-output native-binding crash on this host; see ticket 0264)"
+                    )
+                if self.vectors_dir is not None:
+                    self.vectors_dir.mkdir(parents=True, exist_ok=True)
+                    for suffix in (".f32", ".json"):
+                        src = Path(f"{prefix}-{rung}{suffix}")
+                        if src.exists():
+                            dest = self.vectors_dir / f"{record['id']}__{rung}{suffix}"
+                            dest.write_bytes(src.read_bytes())
             reference = qfs.load_rung(Path(prefix), "fp32")
             rung = qfs.load_rung(Path(prefix), dtype)
             if reference is None or rung is None:
@@ -382,6 +458,8 @@ class RealExecutor:
             vectors, meta = rung
             metrics = qfs.compare(ref_vectors, vectors, k=30)
             metrics["ms_per_passage"] = meta["ms_per_passage"]
+            if crash_notes:
+                metrics["process_exit_note"] = "; ".join(crash_notes)
         return MeasureResult(ok=True, device_selected=device, metrics=metrics)
 
     def _measure_recall(self, record: dict, dtype: str, device: str, corpus: str) -> MeasureResult:
@@ -415,6 +493,8 @@ class RealExecutor:
                 "--dtype",
                 dtype,
             ]
+            if self.fidelity_rows is not None:
+                embed_cmd += ["--rows", str(self.fidelity_rows)]
             result = subprocess.run(embed_cmd, capture_output=True, text=True, timeout=1800)
             if result.returncode != 0:
                 return MeasureResult(ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:])
@@ -747,6 +827,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--recall-corpus", type=Path, help="passages file for the recall kind")
     parser.add_argument("--recall-items", type=Path, help="item-id-per-line file (ticket 0265's corpus)")
     parser.add_argument("--recall-ords", type=Path, help="chunk-ordinal-per-line file (ticket 0265's corpus)")
+    parser.add_argument(
+        "--fidelity-rows",
+        type=int,
+        default=None,
+        help="row count for the fidelity/recall corpus sample (default: quant_fidelity.mjs's own, 400)",
+    )
+    parser.add_argument(
+        "--vectors-dir",
+        type=Path,
+        default=None,
+        help="persist each fidelity cell's raw per-(model, rung) vectors here (default: discarded)",
+    )
     parser.add_argument("--report", action="store_true", help="print a report instead of running")
     parser.add_argument("--keyfile", type=Path, default=Path.home() / ".config/keys/huggingface.env")
     return parser.parse_args()
@@ -790,6 +882,8 @@ def main() -> int:
         hf_token=read_hf_token(args.keyfile),
         recall_items_path=args.recall_items,
         recall_ords_path=args.recall_ords,
+        fidelity_rows=args.fidelity_rows,
+        vectors_dir=args.vectors_dir,
     )
     stats = run_sweep(plans, args.results_dir, executor, registry_by_id)
     logger.info(

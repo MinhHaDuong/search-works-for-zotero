@@ -1,0 +1,27 @@
+{
+  "cell_id": "arctic-embed-m-v2__fp16__cuda__home-haduong-data-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "arctic-embed-m-v2",
+  "dtype": "fp16",
+  "device_requested": "cuda",
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T09:30Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "query: ",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "failed",
+  "onnx_hash": "f27ab40ab6e230265ba49a202a37f1ad031556256cbbc105d0ca9c0bdc7ec42e",
+  "onnx_path": "onnx/model_fp16.onnx",
+  "error": "returncode=1\n[resolve_model_type] Architecture(s) not found in MODEL_TYPE_MAPPING: [GteModel] for model type 'gte'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"gte\", attempting to construct from base class.\n\u001b[1;31m2026-08-30 11:30:32.619305790 [E:onnxruntime:, inference_session.cc:2619 operator()] Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\u001b[m\n/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Exception during initialization: /onnxruntime_src/onnxruntime/core/graph/graph_utils.cc:29 int onnxruntime::graph_utils::GetIndexFromName(const onnxruntime::Node&, const std::string&, bool) itr != node_args.end() was false. Attempting to get index by a name which does not exist:InsertedPrecisionFreeCast_/0/auto_model/embeddings/LayerNorm/Constant_output_0for node: /0/auto_model/embeddings/LayerNorm/Mul/SimplifiedLayerNormFusion/\n\n    at new OnnxruntimeSessionHandler (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:136:29)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.23.2\n"
+}

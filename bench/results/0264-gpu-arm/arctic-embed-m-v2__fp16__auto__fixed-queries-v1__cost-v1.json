@@ -1,0 +1,53 @@
+{
+  "cell_id": "arctic-embed-m-v2__fp16__auto__fixed-queries-v1__cost-v1",
+  "model": "arctic-embed-m-v2",
+  "dtype": "fp16",
+  "device_requested": "auto",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T08:14Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "query: ",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "f27ab40ab6e230265ba49a202a37f1ad031556256cbbc105d0ca9c0bdc7ec42e",
+  "onnx_path": "onnx/model_fp16.onnx",
+  "n_reps": 5,
+  "device_selected": "auto (requested; ORT provider not introspectable)",
+  "metrics": {
+    "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+    "model_id": "arctic-embed-m-v2",
+    "dim": 768,
+    "dtype": "fp16",
+    "device": "auto",
+    "load_ms": 2164.2,
+    "rss_before_mb": 93.4,
+    "rss_after_load_mb": 1335.2,
+    "rss_delta_mb": 1241.8,
+    "query_ms_min": 2.6,
+    "query_ms_median": 2.9,
+    "query_ms_p95": 4.1,
+    "n": 60,
+    "process_exit_note": "driver exited -11 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+    "rss_delta_mb_median": 1238.4,
+    "rss_delta_mb_spread": 26.7,
+    "rss_delta_mb_reps": [
+      1234.7,
+      1226.2,
+      1238.4,
+      1252.9,
+      1241.8
+    ]
+  }
+}
