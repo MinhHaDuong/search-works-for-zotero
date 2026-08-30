@@ -476,6 +476,35 @@ registration is attempted regardless of what is installed, so the title's "when
 the CUDA shared library is unavailable" is a symptom rather than the condition.
 
 
+**2026-08-30 — GPU acceleration is a requirement: R30.** The author's ruling,
+overturning the session's advisory that acceleration stay a mechanism detail.
+Three grounds, his. It is the one structural advantage this design holds over
+the field: zoteus runs as a native process that can reach CUDA, where the
+surveyed plugins and Zotero core's #6012 live inside the application runtime,
+which has no GPU path today. The advantage has a sunset — it lasts until GPU
+support reaches that runtime — and the sunset argues for shipping while it
+matters, not against the promise. It is testable on padme, the designated GPU
+host, with the same disclosed-hardware standing R20's letter already has on
+the author's machine. And time-to-coverage is user-visible: R1's "eventually"
+deliberately declines to bound the wall clock, and "indexing finishes today"
+is a promise a user with a capable machine cares about.
+
+The requirement enters the sheet as R30 — R29 stays reserved for ticket 0037's
+cross-lingual proposal — with three MUST clauses: use a usable GPU; disclose
+the execution device actually serving, on every machine, which is the clause
+any harness can gate anywhere; and meet a wall-clock bound to full embed
+coverage on the designated GPU host, the bound's value pinned in DESIGN.md
+§2.8 from ticket 0264's measurement in the same change that first asserts it,
+the C3-replacement pattern, never before the measurement exists.
+
+This ruling also decides the direction of the device-shape question below
+(awaiting ratification, 2026-08-29): of its three shapes, only passing a
+GPU-bearing provider list and catching the failure can satisfy R30's first
+clause — passing none or `cpu` forecloses it. What remains open there is the
+mechanism's detail (what `auto` actually selects, observed on padme; the
+fallback's cost on CPU-only Linux), which is ticket 0264's to measure, not a
+further ruling to make.
+
 ## Awaiting ratification
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**

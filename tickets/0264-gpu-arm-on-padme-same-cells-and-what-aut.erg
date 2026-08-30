@@ -6,6 +6,7 @@ Blocked-by: 0262
 Label: needs-human
 
 --- log ---
+2026-08-30T07:05Z claude note the author ratified R30 (DECISIONS.md 2026-08-30): GPU use is now a requirement, and this arm gains action 8, the full-corpus wall-clock measurement R30's bound derives from. The ruling also fixes the device shape this arm must exercise: a GPU-bearing provider list with the failure caught, never pass-none or cpu.
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 4 of tracker 0240. Labelled needs-human on substrate, not on judgement: the working machine has no GPU at all (nvidia-smi absent, re-confirmed 2026-08-29), so nothing in this arm can be executed from a doudou session beyond the code path. The author decides how padme is reached.
 2026-08-30T06:22Z claude note session review with the author added X8, cross-provider fidelity (action 7): the author wants to embed on padme and retrieve on doudou, DESIGN §3 now owns the decision rule, and the adopt-a-foreign-index question in DECISIONS.md waits on this cell. The CPU side costs nothing extra — it is 0263's fidelity vectors, already on disk by the time this arm runs.
@@ -60,6 +61,10 @@ thing to record.
    does the scoring; the fp32-against-itself control applies here too. The
    verdict decides whether the execution provider stays out of the embedder
    key, and the adopt-a-foreign-index ruling in DECISIONS.md waits on it.
+8. Measure full-corpus embed wall clock per surviving candidate on this host,
+   warm, with repeats. R30's throughput bound (DESIGN §2.8, unpinned) derives
+   from the recommended candidate's figure; the pin lands with the gate, in
+   one change, never from a projection.
 
 ## Test
 
@@ -87,3 +92,4 @@ thing to record.
 - [ ] `gpu-feasibility.json`'s projections are superseded in place, with the
       supersession stated where they are cited
 - [ ] X8 reported per candidate at every shared rung, against DESIGN §3's bar
+- [ ] Full-corpus embed wall clock measured per candidate, feeding R30's bound
