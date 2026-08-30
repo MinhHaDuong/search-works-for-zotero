@@ -25,12 +25,15 @@ def load():
 x8 = load()
 
 
-def write_vectors(directory: Path, model: str, rung: str, vectors: np.ndarray) -> None:
+def write_vectors(
+    directory: Path, model: str, rung: str, vectors: np.ndarray, device: str | None = "cuda"
+) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     (directory / f"{model}__{rung}.f32").write_bytes(vectors.astype(np.float32).tobytes())
-    (directory / f"{model}__{rung}.json").write_text(
-        json.dumps({"rows": vectors.shape[0], "dim": vectors.shape[1]})
-    )
+    meta = {"rows": vectors.shape[0], "dim": vectors.shape[1]}
+    if device is not None:
+        meta["device"] = device
+    (directory / f"{model}__{rung}.json").write_text(json.dumps(meta))
 
 
 def test_pending_when_cpu_dir_empty(tmp_path):
@@ -64,6 +67,8 @@ def test_identical_vectors_score_1_0(tmp_path):
     result = json.loads(out.read_text())
     assert result["status"] == "scored"
     assert result["verdict"] == "all-clear"
+    assert result["scored_count"] == 1
+    assert result["cleared_count"] == 1
     row = result["rows"][0]
     assert row["status"] == "scored"
     assert row["cos_mean"] == 1.0
@@ -87,6 +92,32 @@ def test_divergent_vectors_below_bar(tmp_path):
     row = result["rows"][0]
     assert row["clears_bar"] is False
     assert result["verdict"] == "some-below-bar"
+    assert result["scored_count"] == 1
+    assert result["cleared_count"] == 0
+
+
+def test_gpu_side_runtime_default_device_refused(tmp_path):
+    """Ticket 0482's assertion: a GPU-side vector whose metadata records no resolved
+    device -- the exact fingerprint ticket 0481 found on every 0264 fidelity cell,
+    where the harness silently ran on CPU regardless of the requested device -- must
+    not be scored, even though the bytes could otherwise compare fine.
+    """
+    rng = np.random.default_rng(3)
+    vectors = rng.standard_normal((10, 4)).astype(np.float32)
+    gpu_dir = tmp_path / "gpu"
+    cpu_dir = tmp_path / "cpu"
+    write_vectors(gpu_dir, "modelA", "fp32", vectors, device="(runtime default)")
+    write_vectors(cpu_dir, "modelA", "fp32", vectors, device="cpu")
+    out = tmp_path / "out.json"
+
+    assert x8.main(["--gpu-dir", str(gpu_dir), "--cpu-dir", str(cpu_dir), "--output", str(out)]) == 0
+
+    result = json.loads(out.read_text())
+    row = result["rows"][0]
+    assert row["status"] == "device-unresolved"
+    assert result["verdict"] is None  # nothing scored, so no all-clear/some-below-bar verdict
+    assert result["scored_count"] == 0
+    assert result["cleared_count"] == 0
 
 
 def test_missing_gpu_side_reported_not_crashed(tmp_path):

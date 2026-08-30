@@ -1,0 +1,49 @@
+{
+  "cell_id": "granite-97m-multilingual-r2__uint8__cuda__home-haduong-data-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "granite-97m-multilingual-r2",
+  "dtype": "uint8",
+  "device_requested": "cuda",
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T12:05Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "dea067870822c093be74a60fbd8be86bbc78e5edb0cfe164724323ef92122df2",
+  "onnx_path": "onnx/model_uint8.onnx",
+  "n_reps": 1,
+  "device_selected": "cuda",
+  "metrics": {
+    "cos_mean": 0.947308,
+    "cos_p05": 0.920911,
+    "cos_min": 0.866511,
+    "cos_ge_0999_frac": 0.0,
+    "overlap_at_30_mean": 0.6518,
+    "overlap_at_30_p05": 0.4667,
+    "top1_kept_frac": 0.965,
+    "ms_per_passage": 53.67,
+    "rows": 600,
+    "dim": 384,
+    "corpus_stride": 155,
+    "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+    "vectors": {
+      "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+      "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+      "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.f32",
+      "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.json"
+    }
+  }
+}

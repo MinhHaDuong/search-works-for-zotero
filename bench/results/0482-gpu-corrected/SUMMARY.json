@@ -1,0 +1,506 @@
+{
+  "what": "ticket 0482: GPU-corrected fidelity cells for every registry candidate on padme, every rung loadable under an explicit GPU device (fp32/q8/uint8 always, fp16 attempted and recorded per ticket 0240/0264's known reliability) -- supersedes the CPU-mislabeled bench/results/0264-gpu-arm/ fidelity figures (ticket 0481)",
+  "tracker": "ticket 0240",
+  "results_dir": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/agent-a7624ca4c481cf23f/bench/results/0482-gpu-corrected/cells",
+  "cells_total": 24,
+  "counts": {
+    "measured": 18,
+    "unloadable": 6,
+    "duplicate": 0,
+    "failed": 0
+  },
+  "rows": [
+    {
+      "model": "granite-97m-multilingual-r2",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 6.57,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): /home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /home/haduong/data/zoteus-bench-pkg/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-97m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:136:29)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.23.2\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.74296,
+          "cos_p05": 0.709495,
+          "cos_min": 0.688718,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.2353,
+          "overlap_at_30_p05": 0.0667,
+          "top1_kept_frac": 0.415,
+          "ms_per_passage": 54.14,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.947308,
+          "cos_p05": 0.920911,
+          "cos_min": 0.866511,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.6518,
+          "overlap_at_30_p05": 0.4667,
+          "top1_kept_frac": 0.965,
+          "ms_per_passage": 53.67,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-97m-multilingual-r2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 6.57,
+        "q8": 54.14,
+        "uint8": 53.67
+      },
+      "better_8bit_rung": "uint8"
+    },
+    {
+      "model": "granite-311m-multilingual-r2",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 17.3,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): /home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50\n            __classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").loadModel(pathOrBuffer, options);\n                                                                                           ^\n\nError: Load model from /home/haduong/data/zoteus-bench-pkg/node_modules/@huggingface/transformers/.cache/onnx-community/granite-embedding-311m-multilingual-r2-ONNX/onnx/model_fp16.onnx failed:Type Error: Type (tensor(float16)) of output arg (/layers.0/attn/rotary_emb/Cast_1_output_0) of node (/layers.0/attn/rotary_emb/Cast_1) does not match expected type (tensor(float)).\n    at new OnnxruntimeSessionHandler (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:136:29)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.23.2\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.990173,
+          "cos_p05": 0.984027,
+          "cos_min": 0.958975,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8359,
+          "overlap_at_30_p05": 0.7,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 188.68,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.990173,
+          "cos_p05": 0.983396,
+          "cos_min": 0.961983,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8346,
+          "overlap_at_30_p05": 0.7,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 178.92,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/granite-311m-multilingual-r2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 17.3,
+        "q8": 188.68,
+        "uint8": 178.92
+      },
+      "better_8bit_rung": "uint8"
+    },
+    {
+      "model": "arctic-embed-m-v2",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 11.29,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): [resolve_model_type] Architecture(s) not found in MODEL_TYPE_MAPPING: [GteModel] for model type 'gte'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"gte\", attempting to construct from base class.\ndone Snowflake/snowflake-arctic-embed-m-v2.0\nwrote /tmp/tmpuzc28usn.json\ncorrupted double-linked list\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.945972,
+          "cos_p05": 0.9296,
+          "cos_min": 0.873129,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8327,
+          "overlap_at_30_p05": 0.7317,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 159.24,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.946311,
+          "cos_p05": 0.929936,
+          "cos_min": 0.879392,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8329,
+          "overlap_at_30_p05": 0.7333,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 155.74,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/arctic-embed-m-v2__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 11.29,
+        "q8": 159.24,
+        "uint8": 155.74
+      },
+      "better_8bit_rung": "uint8"
+    },
+    {
+      "model": "gte-multilingual-base",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 11.11,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): [resolve_model_type] Architecture(s) not found in MODEL_TYPE_MAPPING: [NewModel, NewForTokenClassification] for model type 'new'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"new\", attempting to construct from base class.\ndone onnx-community/gte-multilingual-base\nwrote /tmp/tmplqujq6wa.json\ncorrupted double-linked list\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.927755,
+          "cos_p05": 0.908344,
+          "cos_min": 0.883556,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7239,
+          "overlap_at_30_p05": 0.5667,
+          "top1_kept_frac": 0.9933,
+          "ms_per_passage": 156.27,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.927605,
+          "cos_p05": 0.907134,
+          "cos_min": 0.866918,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7255,
+          "overlap_at_30_p05": 0.5667,
+          "top1_kept_frac": 0.99,
+          "ms_per_passage": 153.24,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/gte-multilingual-base__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 11.11,
+        "q8": 156.27,
+        "uint8": 153.24
+      },
+      "better_8bit_rung": "uint8"
+    },
+    {
+      "model": "multilingual-e5-small",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 22.27,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): done Xenova/multilingual-e5-small\nwrote /tmp/tmpblrp2cyj.json\ncorrupted double-linked list\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.995588,
+          "cos_p05": 0.993821,
+          "cos_min": 0.981172,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8659,
+          "overlap_at_30_p05": 0.7667,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 51.62,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.991877,
+          "cos_p05": 0.989117,
+          "cos_min": 0.961101,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.8324,
+          "overlap_at_30_p05": 0.7333,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 51.79,
+          "rows": 600,
+          "dim": 384,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-small__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 22.27,
+        "q8": 51.62,
+        "uint8": 51.79
+      },
+      "better_8bit_rung": "q8"
+    },
+    {
+      "model": "multilingual-e5-base",
+      "registry_status": "candidate",
+      "fidelity": {
+        "fp32": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 1.0,
+          "cos_p05": 1.0,
+          "cos_min": 1.0,
+          "cos_ge_0999_frac": 1.0,
+          "overlap_at_30_mean": 1.0,
+          "overlap_at_30_p05": 1.0,
+          "top1_kept_frac": 1.0,
+          "ms_per_passage": 13.14,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "fp32: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.json"
+          }
+        },
+        "fp16": {
+          "status": "unloadable",
+          "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): done Xenova/multilingual-e5-base\nwrote /tmp/tmprby8_55v.json\ncorrupted double-linked list\n"
+        },
+        "q8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.974042,
+          "cos_p05": 0.9609,
+          "cos_min": 0.945581,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7401,
+          "overlap_at_30_p05": 0.6,
+          "top1_kept_frac": 0.995,
+          "ms_per_passage": 117.45,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "q8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-q8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-q8.json"
+          }
+        },
+        "uint8": {
+          "status": "measured",
+          "device_selected": "cuda",
+          "cos_mean": 0.969068,
+          "cos_p05": 0.957073,
+          "cos_min": 0.940503,
+          "cos_ge_0999_frac": 0.0,
+          "overlap_at_30_mean": 0.7377,
+          "overlap_at_30_p05": 0.6,
+          "top1_kept_frac": 0.9983,
+          "ms_per_passage": 115.39,
+          "rows": 600,
+          "dim": 768,
+          "corpus_stride": 155,
+          "process_exit_note": "uint8: driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+          "vectors": {
+            "reference_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.f32",
+            "reference_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-fp32.json",
+            "rung_f32": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-uint8.f32",
+            "rung_meta": "/home/haduong/data/projets/zoteus-bench/0482-vectors/multilingual-e5-base__fidelity-v1-uint8.json"
+          }
+        }
+      },
+      "ms_per_passage_by_rung": {
+        "fp32": 13.14,
+        "q8": 117.45,
+        "uint8": 115.39
+      },
+      "better_8bit_rung": "uint8"
+    }
+  ]
+}

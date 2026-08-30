@@ -107,6 +107,11 @@ PROSE = {
         "tickets/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
         "tickets/closed/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
     ],
+    "t0482": [
+        "tickets/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
+        "tickets/closed/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
+    ],
+    "v0482": ["verification/GPU-CORRECTED-0482.md"],
     "t0266": [
         "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
         "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
@@ -763,6 +768,21 @@ FIGURES = [
      {"t0481": "measured **{} ms/passage**"}),
     ("0481-gpu-anomaly/SUMMARY.json", "step6_r30_throughput.projection_minutes_93022_rows", 1,
      {"t0481": "projects to **{} minutes**"}),
+    # ---- 0482, the GPU-corrected fidelity/X8/throughput campaign ----
+    ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "cleared_count", 0,
+     {"v0482": "**{} of 18 clear the bar"}),
+    ("0482-gpu-corrected/SUMMARY.json", "counts.measured", 0, {"v0482": None}),
+    ("0482-gpu-corrected/SUMMARY.json", "counts.unloadable", 0, {"v0482": None}),
+    ("0482-gpu-corrected/throughput/multilingual-e5-small__fp32.json", "ms_per_passage_median", 2,
+     {"v0482": None}),
+    ("0482-gpu-corrected/throughput/multilingual-e5-small__uint8.json", "ms_per_passage_median", 2,
+     {"v0482": None}),
+    ("0482-gpu-corrected/throughput/granite-97m-multilingual-r2__fp32.json", "ms_per_passage_median", 2,
+     {"v0482": None}),
+    ("0482-gpu-corrected/throughput/batch-spotcheck__granite-97m__uint8__b1.json", "ms_per_passage_median", 2,
+     {"v0482": None}),
+    ("0482-gpu-corrected/throughput/batch-spotcheck__granite-97m__uint8__b128.json", "ms_per_passage_median", 2,
+     {"v0482": None}),
     # ---- 0266, the cross-lingual probe. cells is keyed by "<model_id>__<dtype>", not
     # indexed by list position, so a re-run that adds a candidate cannot silently shift
     # which cell an anchor names.

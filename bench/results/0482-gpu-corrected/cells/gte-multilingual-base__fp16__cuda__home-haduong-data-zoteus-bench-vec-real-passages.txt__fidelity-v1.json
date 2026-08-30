@@ -1,0 +1,26 @@
+{
+  "cell_id": "gte-multilingual-base__fp16__cuda__home-haduong-data-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "gte-multilingual-base",
+  "dtype": "fp16",
+  "device_requested": "cuda",
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T11:59Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "unloadable",
+  "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): [resolve_model_type] Architecture(s) not found in MODEL_TYPE_MAPPING: [NewModel, NewForTokenClassification] for model type 'new'. Falling back to EncoderOnly (single model.onnx file). If you encounter issues, please report at: https://github.com/huggingface/transformers.js/issues/new/choose\nUnknown model class \"new\", attempting to construct from base class.\ndone onnx-community/gte-multilingual-base\nwrote /tmp/tmplqujq6wa.json\ncorrupted double-linked list\n"
+}

@@ -1,0 +1,16 @@
+{
+  "model": "multilingual-e5-small",
+  "dtype": "fp32",
+  "device": "cuda",
+  "rows": 600,
+  "batch": 8,
+  "reps": 3,
+  "ms_per_passage_reps": [
+    21.85,
+    21.65,
+    21.63
+  ],
+  "ms_per_passage_median": 21.65,
+  "ms_per_passage_spread": 0.22,
+  "projection_minutes_93022_rows": 33.6
+}

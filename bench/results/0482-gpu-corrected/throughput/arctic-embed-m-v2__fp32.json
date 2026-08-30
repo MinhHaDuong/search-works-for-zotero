@@ -1,0 +1,16 @@
+{
+  "model": "arctic-embed-m-v2",
+  "dtype": "fp32",
+  "device": "cuda",
+  "rows": 600,
+  "batch": 8,
+  "reps": 3,
+  "ms_per_passage_reps": [
+    11.02,
+    11.2,
+    11.31
+  ],
+  "ms_per_passage_median": 11.2,
+  "ms_per_passage_spread": 0.29,
+  "projection_minutes_93022_rows": 17.4
+}

@@ -1,0 +1,16 @@
+{
+  "model": "gte-multilingual-base",
+  "dtype": "fp32",
+  "device": "cuda",
+  "rows": 600,
+  "batch": 8,
+  "reps": 3,
+  "ms_per_passage_reps": [
+    11.17,
+    11.2,
+    11.22
+  ],
+  "ms_per_passage_median": 11.2,
+  "ms_per_passage_spread": 0.05,
+  "projection_minutes_93022_rows": 17.4
+}

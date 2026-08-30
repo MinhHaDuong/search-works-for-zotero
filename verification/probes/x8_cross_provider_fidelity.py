@@ -108,6 +108,26 @@ def main(argv: list[str] | None = None) -> int:
             continue
         gpu_vec, gpu_meta = gpu
         cpu_vec, cpu_meta = cpu
+        # Ticket 0481's mechanism: a fidelity cell whose device never reached the
+        # subprocess records the literal string "(runtime default)" in its own
+        # metadata -- that is the harness bug's fingerprint, not a benign default, on
+        # the GPU side (the CPU arm's "(runtime default)" is correct BY COINCIDENCE,
+        # since transformers.js's Node default already is 'cpu' -- see ticket 0482's
+        # log). Refuse to score a GPU-side vector that carries the bug's own
+        # fingerprint rather than silently reproducing 0264's byte-identity artifact.
+        gpu_device = gpu_meta.get("device")
+        if not gpu_device or gpu_device == "(runtime default)":
+            rows.append(
+                {
+                    "model": model,
+                    "rung": rung,
+                    "status": "device-unresolved",
+                    "gpu_device": gpu_device,
+                    "reason": "GPU-side vector metadata records no resolved device; "
+                    "refusing to score (ticket 0482's assertion)",
+                }
+            )
+            continue
         if gpu_vec.shape != cpu_vec.shape:
             rows.append(
                 {
@@ -142,7 +162,18 @@ def main(argv: list[str] | None = None) -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(
-            {"status": "scored" if scored else "no-overlap", "bar": BAR, "verdict": verdict, "rows": rows},
+            {
+                "status": "scored" if scored else "no-overlap",
+                "bar": BAR,
+                "verdict": verdict,
+                # Counts, not just the per-row detail: "N of M clear the bar" is the number
+                # a report quotes, and deriving it by hand from `rows` at report time is
+                # exactly the kind of number `bench/check_figures.py` exists to catch going
+                # stale (ticket 0482).
+                "scored_count": len(scored),
+                "cleared_count": sum(1 for r in scored if r["clears_bar"]),
+                "rows": rows,
+            },
             indent=2,
         )
         + "\n",
