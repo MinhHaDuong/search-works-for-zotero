@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 2 of tracker 0240. The deliverable is the harness, tested before any campaign runs on it — a benchmark that silently measures the wrong thing produces confident wrong answers for weeks.
+2026-08-30T06:22Z claude note session review with the author added two registry columns (actions 11-12): a normalize flag with provenance — 0421 recorded that all six candidates carry a Normalize module and left the drivers' flag unmatched per model, the open axis this closes before any sweep — and an hf revision pin, because the per-cell ONNX hash protects results while nothing yet pins what the registry's identity claim was probed against.
 
 2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
 --- body ---
@@ -54,6 +55,14 @@ tests that say it is taking the right ones.
    device requested — in every result file.
 10. Make the scorer read what exists: report a missing cell as missing and score
     the rest, rather than failing or silently reporting a short table.
+11. Add a `normalize` + `normalize_source` pair to every registry record, read
+    from each model's own pipeline config, never defaulted — the axis 0421
+    left open. The driver applies it and records it in every result file, the
+    same discipline as pooling and the input template.
+12. Pin an `hf_revision` per registry record (the repo commit the availability
+    probe read) and record it in every result file. The per-cell ONNX hash
+    guards a result after the fact; the revision pin says what the registry's
+    claim was true of.
 
 ## Test
 
@@ -93,3 +102,5 @@ Written before the campaign, per the tracker:
 - [ ] Registry-driven resumable harness in `bench/`, with every test above
 - [ ] The five existing drivers are reused, not duplicated
 - [ ] A demonstrated resume: one added candidate measures only its own cells
+- [ ] Every registry record carries `normalize`/`normalize_source` and
+      `hf_revision`, guarded by `bench/check_models.py` like the pooling pair

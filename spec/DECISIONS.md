@@ -680,3 +680,25 @@ here, not in any issue text):
   or pass `cpu` explicitly, measured identical to today but foreclosing any
   future improvement to the runtime's own default. The ruling's *intent* is
   untouched by the measurement and no knob is proposed.
+
+- **May an index travel by copy? "Work does not travel" meets the GPU machine.**
+  REQUIREMENTS.md's out-of-scope list rules vector export and sync out. The
+  author's stated use (2026-08-30) is narrower: embed on the GPU machine,
+  retrieve on the CPU one, by one-shot copy, with no live sharing. The
+  architecture sits closer to that use than the scope sentence suggests. A
+  copied index's signals are foreign on arrival — versions scope by
+  `Zotero-Server-ID` (C1), and two machines' local profiles share nothing — but
+  its keys are content hashes, so the signal/key split (DESIGN.md §2.1)
+  converges a copied index by fetch-and-hash with zero re-embedding: R23's open
+  protocol opens it, R1 re-earns the delta. Three conditions gate the path. X8
+  (DESIGN.md §3) must clear the compatibility bar, so the embedder key is
+  provider-free; the corpus rung must load on the query machine, since a query
+  embedded at a different rung than the corpus is the measured cross-rung
+  failure ticket 0240 records, and fp16 loads on no CPU provider; and transport
+  is one-shot copy, never a shared live file — WAL needs same-host shared
+  memory, and §2.5's conductor protocol binds one machine. Two ways to rule,
+  after X8 reports: amend the out-of-scope sentence to keep sync out while
+  admitting a one-shot adopt-a-foreign-index path, and the design gains that
+  path (new origin row, signals marked stale, verify sweep, R1 from there); or
+  keep the sentence as ratified and record the copy path as unsupported. The
+  ruling waits for X8 — if X8 fails the bar, the question answers itself.

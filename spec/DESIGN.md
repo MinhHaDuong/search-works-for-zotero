@@ -781,6 +781,19 @@ rather than a MUST.
   dictionary. Rule: ≥ 45/50 correct ships the entry story; 40–44 raises the
   confidence gate and re-runs; < 40 means synthetic entries carry the
   corpus, labeled.
+- **Cross-provider fidelity — X8 decides where the device lives.** Same model,
+  same rung, the GPU provider's vectors scored against the CPU provider's over
+  the fidelity probe corpus; the cells ride the 0264 GPU arm, at every rung
+  both providers load, and the CPU side is the 0263 artifacts already on disk.
+  Rule: at mean cosine ≥ 0,999 (the field's vector-compatibility bar,
+  FIELD-REVIEW.md) the execution provider stays out of the embedder key —
+  device is an execution detail recorded in results, never in vector identity,
+  and an index embedded on one machine can serve on another; below the bar,
+  the provider enters the key and the adopt-a-foreign-index question
+  (DECISIONS.md, awaiting ratification) dies on the evidence. Either way fp16
+  is a single-machine rung: the CPU provider cannot load it, so no CPU
+  query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
+  is the measured failure ticket 0240 records.
 - **Budget scoping under N processes** — awaiting the author's ratification
   (DECISIONS.md; both figures stated there and in §2.9).
 

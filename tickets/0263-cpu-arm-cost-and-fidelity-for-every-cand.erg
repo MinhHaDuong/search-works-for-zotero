@@ -7,6 +7,7 @@ Blocked-by: 0262
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 3 of tracker 0240. Runs on doudou. Cost first, since it is cheap and prunes.
+2026-08-30T06:22Z claude note this arm's per-rung fidelity vectors are also X8's CPU side (DESIGN §3, measured in 0264): keep them committed or addressable per (model, rung), not discarded after scoring.
 
 --- body ---
 ## Context
