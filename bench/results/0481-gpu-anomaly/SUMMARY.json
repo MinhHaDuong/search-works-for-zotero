@@ -1,0 +1,81 @@
+{
+  "ticket": "tickets/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
+  "host": "padme",
+  "when": "2026-08-30T11:00Z-11:20Z",
+  "cuda_pin": "CUDA_VISIBLE_DEVICES=0 (RTX A4000; RTX 3060 present, unused)",
+  "cudnn": "user-local, LD_LIBRARY_PATH=$HOME/opt/cudnn/lib (nvidia-cudnn-cu12 9.25.1.1)",
+  "llama_server": {
+    "state_at_start": "running as manual (non-systemd) process, pid 63671, ~14 GiB on A4000",
+    "used_as_positive_control": true,
+    "stopped_for_experiments": "kill -TERM 63671; GPU confirmed quiet 89/2 MiB",
+    "restarted_after": "yes, exact ExecStart from /etc/systemd/system/llama-server.service run manually as the user (systemd unit not touched, same as ticket 0264's own restart procedure)"
+  },
+  "verdict": {
+    "mechanism": "bench/sweep.py's RealExecutor._measure_fidelity and _measure_recall never appended --device to the quant_fidelity.mjs subprocess command (unlike _measure_cost, which always did). transformers.js's Node default device (devices.js: DEFAULT_DEVICE = apis.IS_NODE_ENV ? 'cpu' : 'wasm') is 'cpu'. So every fidelity/recall cell in the 0264 GPU-arm campaign -- labelled 'auto' or 'cuda' purely as sweep-plan bookkeeping -- silently ran on CPU regardless of the requested device.",
+    "confirmed_in_original_artifacts": "every persisted per-rung vector metadata file from the 0264 campaign (/home/haduong/data/0264-vectors/*.json on padme) records \"device\": \"(runtime default)\" -- quant_fidelity.mjs's own literal echo of an unset --device flag.",
+    "explains_observation_1_throughput_anomaly": "the 58-256 ms/passage figures were genuine CPU rates on padme's CPU, not GPU rates. With --device forwarded correctly, the SAME model/dtype/rows/batch on the SAME host measures far faster on GPU (see cells below).",
+    "explains_observation_2_byte_identity": "the CPU arm (0263) and the 'GPU arm' (0264) fidelity vectors were byte-identical because both literally computed on CPU, via the identical code path -- not because of cross-provider floating-point invariance.",
+    "harness_fix": "bench/sweep.py: --device now forwarded in _measure_fidelity (both the fp32 reference rung and the dtype rung) and _measure_recall, mirroring _measure_cost's existing (and always-correct) behaviour. Regression test: tests/test_sweep_real_executor_device.py.",
+    "0264_results_not_rewritten": "per this ticket's invariant, the committed bench/results/0264-gpu-arm/*.json and x8-cross-provider-fidelity.json are left as-is; the mechanism is recorded beside them, here and in the ticket log."
+  },
+  "step1_positive_control": {
+    "method": "nvidia-smi dmon -s u sampled at 1 Hz across a real llama-server /completion call (n_predict=300) before stopping the process",
+    "file": "dmon/dmon_control_busy.txt",
+    "result": "sm% 0 at idle, rising to 31-57% during generation, back to 0% after -- instrumentation discriminates busy from idle"
+  },
+  "step2_gpu_utilization_during_embed": {
+    "granite_97m_device_cuda_q8_batch8": {
+      "file": "dmon/dmon_embed_granite_cuda.txt",
+      "cost_summary": "step2_granite_cuda_q8_b8.json",
+      "result": "sm% 21-29% and fb (framebuffer) memory rising to 2329 MiB for the ~17 s duration of the embed call, back to 89 MiB idle after -- genuinely busy, not idle"
+    },
+    "multilingual_e5_small_device_auto_q8_batch8": {
+      "file": "dmon/dmon_embed_e5small_auto.txt",
+      "cost_summary": "step2_e5small_auto_q8_b8.json",
+      "result": "sm% 3-25% (noisier, lower peak than granite/cuda) and fb rising to 793 MiB for the ~16 s duration -- also genuinely busy, not idle"
+    },
+    "note": "both embed runs used the standalone probe (verification/probes/gpu_anomaly_embed_probe.mjs) with --device forwarded explicitly, i.e. the CORRECTED code path -- these confirm GPU compute genuinely happens when the device flag reaches the driver, which is exactly the flag 0264's sweep-driven fidelity cells never received."
+  },
+  "step3_ort_profiling": {
+    "e5_small_q8_cuda_80rows_batch8": {
+      "summary": "step3_profile_summary.json",
+      "total_node_ms": 2570.566,
+      "cpu_execution_provider_ms": 1926.961,
+      "cuda_execution_provider_ms": 643.605,
+      "dominant_op": "MatMulInteger (1773.385 ms, 69% of node time), entirely on CPUExecutionProvider -- CUDA registers no int8 MatMulInteger kernel (confirmed independently in verification/DEVICE-AUTO-0264.md Result 1: \"CUDA kernel not found in registries for Op type: MatMulInteger\")",
+      "reading": "for q8, even with --device correctly forwarded, the quantized matmul itself -- the dominant cost -- runs on CPU by ORT's own partitioning, not GPU. This is a real, separate, smaller effect from the harness bug above; it does not explain 0264's numbers (those never reached CUDA at all) but does explain why q8 is not dramatically faster than fp32 on this stack."
+    },
+    "e5_small_fp32_cuda_80rows_batch8": {
+      "summary": "step3_profile_summary_fp32.json",
+      "total_node_ms": 145.231,
+      "cuda_execution_provider_ms": 145.059,
+      "cpu_execution_provider_ms": 0.172,
+      "reading": "fp32 runs essentially entirely on CUDA (99.9% of node time) and the kernel time itself is small (145 ms for 80 rows) -- genuinely GPU-accelerated."
+    }
+  },
+  "step4_batch_sweep": {
+    "model": "multilingual-e5-small",
+    "rows": 128,
+    "device": "cuda (explicit)",
+    "q8_ms_per_passage": {"batch1": 53.31, "batch8": 51.917, "batch32": 57.281, "batch128": 65.734},
+    "fp32_ms_per_passage": {"batch1": 23.326, "batch8": 22.196, "batch32": 23.224, "batch128": 25.001},
+    "reading": "flat across batch 1-128 for both dtypes once --device is correctly forwarded -- batch-1 per-call overhead (the ticket's 'boring candidate') is NOT the mechanism. fp32 is consistently ~2.3x faster than q8 on this host: q8's MatMulInteger-on-CPU bottleneck (step 3) outweighs any bandwidth/memory saving from quantization."
+  },
+  "step5_byte_identity_discrimination": {
+    "method": "same 20-row stride sample (corpus sha256 949d5af1...eec0ca4, verified identical both machines) embedded with multilingual-e5-small/fp32: locally on doudou (CPU, no GPU present) and on padme with --device cuda explicit, with ORT profiling enabled on the padme run",
+    "local_cpu_result": "step5 comparison: local_cpu_e5small_fp32.json head vector recorded in ticket log",
+    "padme_gpu_result": "step5_gpu_e5small_fp32_20rows.json",
+    "cuda_kernel_time_confirmed_nonzero": "106.133 of 106.19 ms total node time (99.9%) on CUDAExecutionProvider -- this run genuinely executed on GPU",
+    "vectors_compared": "NOT byte-identical: first 8 dims differ starting at the 4th significant digit (e.g. 0.24527722597122192 CPU vs 0.245431050658226 GPU), cosine over those 8 dims = 0.9999999283, max abs diff 1.78e-4",
+    "reading": "this is the expected signature of a genuine CPU-vs-GPU floating-point computation (different reduction order / FMA usage) -- close but not identical. It is the direct contrast case for 0264's X8 verdict, which found EXACT byte identity because the 'GPU arm' fidelity vectors were, per the mechanism above, actually computed on CPU too."
+  },
+  "step6_r30_throughput": {
+    "figure": "for multilingual-e5-small, the correctly-GPU-measured sustained embedding rate (device cuda explicit, batch 8, 600 rows, matching 0264's fidelity-cell conditions) is 21.8 ms/passage at fp32 -- versus the buggy 59.3 ms/passage the 0264 campaign recorded for the identical (model, dtype, rows) under the CPU-only code path.",
+    "ms_per_passage_fp32_cuda_batch8_600rows": 21.8,
+    "projection_minutes_93022_rows": 33.8,
+    "projection_93022_rows": "93022 * 21.8 ms = 2 027 880 ms = 33,8 minutes at fp32, batch 8, single-stream -- well inside the 89-396 minute range 0264 reported, and inside gpu-feasibility.json's superseded 7-95 minute PyTorch-derived projection band.",
+    "caveat_scope": "measured for ONE candidate (multilingual-e5-small) at ONE dtype (fp32) with a correctly-forwarded device; NOT a full re-run of the six-candidate x four-dtype campaign. q8 (the more likely deployed rung) measured slower than fp32 on this stack (step 3/4) because of the CPU-bound MatMulInteger kernel gap -- so the deployed-dtype figure needs its own GPU-corrected measurement, not an assumption that quantization helps on this host.",
+    "caveat_batch_size": "flat across batch 1-128 (step 4), so the 21.8 ms/passage figure is not sensitive to the pipeline's actual batch size choice, within this range.",
+    "recommendation": "ticket 0267 (blocked on this one) should re-run the fidelity/recall sweep with the bench/sweep.py fix in this branch before pinning R30's bound -- the six-candidate x four-dtype GPU table in bench/results/0264-gpu-arm/ needs re-measurement under the corrected harness before any of its ms_per_passage figures are trusted as GPU numbers."
+  }
+}

@@ -103,6 +103,10 @@ PROSE = {
         "tickets/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
         "tickets/closed/0263-cpu-arm-cost-and-fidelity-for-every-cand.erg",
     ],
+    "t0481": [
+        "tickets/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
+        "tickets/closed/0481-the-gpu-throughput-anomaly-find-the-mech.erg",
+    ],
 }
 
 
@@ -732,6 +736,11 @@ FIGURES = [
      {"t0263": "17,7 | {} | 19,6 |"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.7.cost.uint8.rss_delta_mb_median", 1,
      {"t0263": "19,6 | {} | 2,3 |"}),
+    # ---- 0481, the GPU throughput anomaly's mechanism ----
+    ("0481-gpu-anomaly/SUMMARY.json", "step6_r30_throughput.ms_per_passage_fp32_cuda_batch8_600rows", 1,
+     {"t0481": "measured **{} ms/passage**"}),
+    ("0481-gpu-anomaly/SUMMARY.json", "step6_r30_throughput.projection_minutes_93022_rows", 1,
+     {"t0481": "projects to **{} minutes**"}),
 ]
 
 

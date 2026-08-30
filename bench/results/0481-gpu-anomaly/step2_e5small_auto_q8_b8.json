@@ -1,0 +1,27 @@
+{
+  "model": "Xenova/multilingual-e5-small",
+  "model_id": "multilingual-e5-small",
+  "dtype": "q8",
+  "device": "auto",
+  "dim": 384,
+  "rows": 300,
+  "batch": 8,
+  "stride": 310,
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "load_ms": 1518.4,
+  "embed_ms": 15606.6,
+  "ms_per_passage": 52.022,
+  "first_vec_head": [
+    0.22816894948482513,
+    -0.053507234901189804,
+    -0.3432847857475281,
+    -0.18717466294765472,
+    0.28258398175239563,
+    -0.3095773160457611,
+    0.3625738024711609,
+    0.11544902622699738
+  ],
+  "profile_path": null,
+  "host": "padme",
+  "when": "2026-08-30T11:09:09.761Z"
+}

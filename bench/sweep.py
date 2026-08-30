@@ -512,6 +512,15 @@ class RealExecutor:
                     "--rows",
                     self.fidelity_rows,
                 ]
+                # Ticket 0481: this flag was missing entirely until this fix, so every
+                # fidelity cell silently ran quant_fidelity.mjs's own default device
+                # (transformers.js's Node DEFAULT_DEVICE is 'cpu' -- devices.js) no
+                # matter what the plan requested. That is the root cause behind both
+                # 0264's throughput anomaly (every "GPU arm" fidelity figure was
+                # actually a CPU rate) and its byte-identical X8 verdict (both arms ran
+                # the same CPU code path). See verification/GPU-ANOMALY-0481.md.
+                if device != "(runtime default)":
+                    cmd += ["--device", device]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
                 # Crash tolerance (ticket 0264): the padme GPU host's native-binding
                 # exit crash can kill the process AFTER quant_fidelity.mjs's own
@@ -588,6 +597,9 @@ class RealExecutor:
             ]
             if self.fidelity_rows is not None:
                 embed_cmd += ["--rows", str(self.fidelity_rows)]
+            # Ticket 0481: same missing forward as _measure_fidelity above, same fix.
+            if device != "(runtime default)":
+                embed_cmd += ["--device", device]
             result = subprocess.run(embed_cmd, capture_output=True, text=True, timeout=1800)
             if result.returncode != 0:
                 return MeasureResult(ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:])
