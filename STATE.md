@@ -1,26 +1,27 @@
 # STATE — Search Works for Zotero
 
-*Repository state reconciled 2026-08-30 — 37 tickets closed, 41 open; reviewed
-upstream baseline v1.10.0 (`b132f2d`); PR #25 merged the day it was filed; the
-in-container half of 0025 is measured and decided (X7, X1-timing, X4 —
-verdicts in that ticket); the remaining workstation steps (X6, the trunk
-re-measurement, X3a) were executed 2026-08-30 — artifacts in `bench/results/`,
-verdicts on ticket 0025's log — and `RUNBOOK.md` sunset per its own clause;
-superseded implementation archived at `archive/fts5-storage-2026-08-21`. See
-`SYNC.md`.*
+*Repository state reconciled 2026-08-30 evening (housekeeping run
+2026-08-30T16:45Z) — 46 tickets closed, 39 open; reviewed upstream baseline
+v1.10.0 (`b132f2d`); the in-container and workstation halves of 0025 are both
+measured and decided, `RUNBOOK.md` sunset per its own clause; superseded
+implementation archived at `archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
 
-*Embedder study, 2026-08-29/30: ticket 0240 was decomposed into a tracker plus
-eight children (0261–0268) — it is the work train for choosing a multilingual
-embedder, and only 0261 has landed. `bench/models.json` is now the registry, and
-it owns three things a measurement depends on: the model id, the `pooling` mode,
-and the `input_template` prefixes. Each has a guard in `bench/check_models.py`
-with a demonstrated red state. The finding that motivated the pooling column:
-four of the six candidates pool with `cls` while every driver had hardcoded
-`mean`, so a sweep run before 0421 would have scored four candidates low —
-including both Granite models — and it would have read as evidence rather than a
-bug. Next on the train is 0262, the resumable sweep harness. 0264 (GPU arm) and
-0268 (C3's replacement value) are labelled `needs-human`: the first needs padme,
-the second needs a ruling in `spec/DECISIONS.md`.*
+*Embedder study, 2026-08-29/30 — the measurement train ran to completion in
+one day. Children 0261–0266 and the follow-ups 0481/0482 are closed and
+merged: the registry (`bench/models.json`, with pooling, input template,
+normalize and revision per model, each guarded), the resumable sweep harness
+(`bench/sweep.py`), the CPU arm, the corrected GPU arm on padme (the first
+arm's fidelity cells had silently run on CPU — a dropped `--device` flag,
+ticket 0481), recall at the deployed dtype plus the first fused-RRF delta,
+and the cross-lingual probe. Ratified along the way: R30 (GPU acceleration
+is a requirement), C3 re-pinned at ~750 MB p95, X8's rule in DESIGN §3.
+Open: ticket 0267's recommendation (selects multilingual-e5-base under a
+six-clause rule) awaits the author on PR #110; the 0440 upstream ask is
+drafted (`verification/ISSUE-DRAFT-0440.md`) and deferred pending that read;
+ticket 0485 carries the X8-bar task-metric check the adopt-by-copy
+ratification waits on; ticket 0486 carries the normalize-consumer gap the
+roar sweep found. Tracker 0240 closes after PR #110 and the integration
+review.*
 
 Operational handoff and measurement record for the open workshop on semantic
 retrieval in Zotero. Zoteus is the current reference implementation and
