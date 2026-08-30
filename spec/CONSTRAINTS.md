@@ -21,7 +21,11 @@ The index stores derived data only, in a chain of three links:
    and geometry), where the heuristic segmenter's identity folds into the
    chunker key, per the boundary ruling (the third ruling in
    REQUIREMENTS.md);
-3. vectors derive from (chunks, embedder identity and model).
+3. vectors derive from (chunks, the complete embedder-entry fingerprint and
+   model). The fingerprint includes every registry field that can change a
+   vector; a display label and aggregate validation standing do not. Execution
+   provider enters it only where DESIGN.md §3's cross-provider rule requires
+   that distinction.
 
 A "key" is the recorded identity of the inputs that produced a piece of
 derived data. Work is stale exactly when a stored key no longer equals the
@@ -196,6 +200,13 @@ everything: foreground always beats background.
 The server ceiling binds per process, the scope its gate can assert; DESIGN.md
 §2.9 states the whole-machine arithmetic alongside it (DECISIONS.md,
 2026-08-29).
+
+Whether an ONNX entry actually loads and preserves its declared geometry is an
+environment fact, not a property of the model name alone. Runtime version,
+operating system, architecture and execution provider can turn the same entry
+into a working, degraded or unloadable one. A remote attestation can establish
+that another installation saw a shape; it cannot replace the local check on the
+machine that will create or query the index.
 
 ## C4 — status answers from counters
 

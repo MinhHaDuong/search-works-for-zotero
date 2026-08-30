@@ -2,7 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements, R1 to R30 — R29 is reserved for
+This document lists the user requirements, R1 to R31 — R29 is reserved for
 the cross-lingual proposal awaiting ratification in ticket 0037. Each is
 written as a
 testable property: something the test harness, or a careful reader, can
@@ -143,6 +143,17 @@ record rejected text as contract.
   the plan). Any Chinese/Japanese/Korean (CJK) ambition is decided
   explicitly, never silently. (Arabic and Hebrew use the default path but
   are not tested; see "Out of scope".)
+
+### Embedding configurations
+
+- **R31 — selectable embedders are complete and proven locally.** Every local
+  embedding configuration offered to a user MUST be one versioned, curated
+  registry entry containing every field that changes its vectors. Before an
+  entry creates or queries an index on a concrete runtime and execution
+  provider, it MUST pass the bundled automatic validation there or fail
+  explicitly. Failure MUST NOT silently select another entry. Sharing a
+  content-free validation attestation MAY be offered only by explicit opt-in;
+  library text, query text and Zotero identifiers MUST NOT enter it.
 
 ### Custody and lifecycle
 

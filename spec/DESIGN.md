@@ -407,10 +407,42 @@ machinery lands.
 ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that
 reports and nudges rather than blocks, with `probedMsAgo` in replies.
 
-### 2.5 Topology and concurrency: N servers, one conductor, three worker kinds
+### 2.5 Embedder registry, topology and concurrency
 
-Four process roles appear below: P0, a query-serving zoteus server, and one
-worker kind for each asynchronous pipeline stage — extract, chunk, embed.
+**The registry is configuration, not a menu of model names.** One indivisible,
+versioned entry owns the model repository and revision, graph and dtype,
+pooling, normalization, query and passage templates, model window, output
+dimension and registry-schema revision. Those vector-affecting fields produce
+the embedder fingerprint in C1. Display text and validation standing do not.
+The public selector accepts an entry id, never a bag of raw overrides; an
+unknown id is an error. During the invariant stages an unset selector resolves
+to the singleton incumbent MiniLM entry and must reproduce its old vectors and
+keys byte for byte.
+
+**Embedding has one transport-neutral interface.** Both
+`embed_query(text, entry)` and `embed_passages(batch, entry)` return vectors
+with a handshake naming the requested and actual fingerprints, dimension,
+runtime, execution provider and local-validation result. The client rejects a
+mismatch before reading or writing a vector. The first implementation and the
+installation default remain in-process. The interface admits a later local IPC
+adapter without making a daemon, supervisor or OS facility part of the registry
+contract or a prerequisite for curated entries. Conceptually the execution
+choice is `provider: in_process` now or `provider: local_endpoint` later; it
+does not alter the selected entry. The actual execution provider contributes to
+the vector fingerprint only when §3's X8 rule says its vectors are not
+interchangeable. Endpoint syntax and discovery stay out of the registry until
+ticket 0491 decides their owner.
+A future `provider: zotero` is the preferred reuse probe: #6012 already runs
+native ONNX inference in Firefox's separate memory-gated process, but its
+`Zotero.ML` and `Zotero.Embeddings` calls are internal at the reviewed head.
+Ticket 0496 asks whether an official local bridge can expose query and batched
+passage embedding with the same fingerprint handshake. Sharing Zotero's stored
+embedding database or depending on private in-process symbols is not that bridge.
+
+**Process topology.** Four process roles appear below: P0, a query-serving
+zoteus server, and one worker kind for each asynchronous pipeline stage —
+extract, chunk, embed.
+
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
 default data directory (verified). Every P0 answers queries, as a WAL reader
 on a write-free query path. Exactly one P0 is the *conductor*, elected through
@@ -512,14 +544,25 @@ positive, is a unit-tested contract at the four verified lines (SQLite
 clamps idf; `-r.rank` stays positive). `frac ∈ [0,1]` bounds every
 contribution above by plain RRF, and frac = 0 is noise-suppressed, stated.
 `frac_vec` defaults to list-local max-normalization. #6012-style
-calibration (mean centering, noise floor = p99 of unrelated pairs, ceiling
-= median of matched pairs, reject bad models outright) is deferred to
-ticket 0031, because as first adopted it had no data source and left
-`frac_vec` undefined at minute zero; meta reserves a calibration block for
-it. The ticket states the pair-generation protocol: one item's title and
-abstract form a matched pair, cross-item pairs are unrelated; the library
-is the corpus. Ship gate (D11): golden-set Jaccard at or above §2.8's
-thresholds against plain RRF, both behind one flag.
+registry introduces two deliberately separate checks. First, every selected
+entry must pass the bundled public compatibility fixture on the actual local
+runtime and provider before it creates or queries an index. That check covers
+loadability, declared dimension, finite values, normalization, application of
+query and passage templates, determinism within the provider, and basic
+matched-over-unmatched discrimination. Its cached result is keyed by the full
+entry fingerprint plus engine version, runtime, operating system, architecture
+and execution provider. A remote result can inform the UI but never substitutes
+for this local gate.
+
+Second, #6012-style library calibration (mean centering, noise floor = p99 of
+unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
+remains deferred to ticket 0031. One item's title and abstract form a matched
+pair, cross-item pairs are unrelated, and the private library is the corpus.
+Those texts and scores never enter a shared attestation. An optional,
+content-free compatibility attestation may report only pass/fail, exact entry
+fingerprint and runtime shape, after explicit opt-in; it is evidence that a
+configuration executes, not that it retrieves well. Ship gate (D11): golden-set
+Jaccard at or above §2.8's thresholds against plain RRF, both behind one flag.
 
 **The locator (R24)** is discriminated by the hit's entry kind: a record or
 note hit has no attachment and no page, and the reply never fabricates
@@ -868,6 +911,15 @@ rather than a MUST.
   is the measured failure ticket 0240 records.
 - **Budget scoping under N processes** — awaiting the author's ratification
   (DECISIONS.md; both figures stated there and in §2.9).
+- **Autonomous embedding service — architectural direction, open ownership.**
+  The interface seam and its future `local_endpoint` execution mode are
+  committed in §2.5; implementing a daemon in zoteus is not. Ticket 0491
+  compares the in-process default with Zotero #6012 runtime reuse (probe 0496),
+  a bundled child, a per-user service and an external OS/community facility.
+  The decision rule includes install time, cross-platform packaging, custody
+  and uninstall behavior, single- and multi-P0 RAM, failure semantics, and
+  whether this responsibility belongs in zoteus at all. The experiment is
+  parallel to, and never a blocker for, registry entries or validation.
 
 **Rejected this cycle, for the record** (each killed by a verified fact or a
 critique; details in git history): cursoring any fulltext sequence on the
@@ -925,7 +977,14 @@ authoritative for content, this list for ordering.
    constant, X5 (seg/1 built first, 0028) before issue B, X6 with I-1, X7
    before the tick cadence is documented, X3a feeding the rss-gate fixture,
    and X3b traveling with issue B.
-8. **The commitment bounds** — stated in GOVERNANCE.md, ratified in
+8. **The curated embedder registry** (tracker 0488) — singleton extraction;
+   authoritative fields and parity; curated entries plus entry-id selection;
+   local automatic compatibility validation; optional content-free
+   attestations; then the separate golden and resource gate that decides what
+   ships. The autonomous-service experiment (0491) reuses the interface seam
+   but does not block this sequence. One upstream design issue carries staged
+   acceptance tests; it is not a prepared PR series.
+9. **The commitment bounds** — stated in GOVERNANCE.md, ratified in
    DECISIONS.md's re-form entry; the fork's end state is **archived** once
    the train resolves.
 

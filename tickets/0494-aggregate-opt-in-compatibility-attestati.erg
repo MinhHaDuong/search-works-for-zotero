@@ -1,0 +1,25 @@
+%erg 0.1
+Title: Aggregate opt in compatibility attestations
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Blocked-by: 0493
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## Scope
+
+If an aggregation endpoint is justified, let users explicitly contribute the
+automatic compatibility result. This is crowdtesting of execution compatibility,
+not retrieval relevance.
+
+## Exit criteria
+
+- Default behavior sends nothing.
+- The opt-in payload contains only pass/fail, exact entry fingerprint and the
+  minimum runtime/provider/platform shape needed to group failures.
+- Tests prove library text, query text, vectors and Zotero identifiers cannot
+  enter the payload.
+- Aggregate presentation states compatibility and sample size, never a quality
+  ranking or automatic default.

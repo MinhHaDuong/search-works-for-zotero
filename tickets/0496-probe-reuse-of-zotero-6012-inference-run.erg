@@ -1,0 +1,41 @@
+%erg 0.1
+Title: Probe reuse of Zotero 6012 inference runtime
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T16:09Z Minh Ha-Duong created
+
+--- body ---
+## Context
+
+Zotero PR #6012 already places native ONNX inference in Firefox's separate,
+memory-gated inference process. Its internal `Zotero.ML` creates engines and
+manages the model cache; `Zotero.Embeddings` owns a curated model registry and
+`embedQuery()` / `embedPassages()`. At PR head `77e2c4b`, the changed-file set
+contains no local-API route exposing those calls, so direct reuse by an external
+zoteus process appears unavailable. Confirm that boundary rather than inferring
+an API from internal JavaScript names.
+
+## Scope
+
+Determine whether zoteus can reuse Zotero's #6012 inference process through a
+supported bridge, avoiding another loaded model and another system service.
+Explore an official Zotero local-API contract first. A private monkey-patch or
+mandatory Zotero plugin is evidence about feasibility, not an adoption path.
+
+## Exit criteria
+
+- Verify against the current #6012 head whether any supported external call can
+  request query and batched passage embeddings.
+- If absent, specify the smallest upstream bridge: model/version identity,
+  query versus passage role, batching, dimension, runtime/provider identity,
+  cancellation, errors and availability. It accepts text transiently and
+  exposes neither Zotero's embedding database nor arbitrary profile access.
+- Test whether vectors returned by Zotero's native ONNX backend satisfy X8
+  against the same registry entry used in-process; a failure keeps provider in
+  vector identity.
+- Compare cold-start, steady RAM, model-cache custody, version skew and failure
+  behavior with in-process zoteus and a generic local endpoint.
+- Record one outcome for ticket 0491: consume an existing API, propose the
+  bridge upstream, defer pending #6012, or reject reuse with the blocking fact.

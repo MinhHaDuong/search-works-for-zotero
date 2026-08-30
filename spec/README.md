@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the twenty-nine promises actually
+documents do not: **where each of the thirty promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -37,24 +37,24 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 27 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 28 ratified · 2 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 13 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 14 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 11 read in the source · 8 inferred
+10 measured · 11 read in the source · 9 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-nine, ten rest on an experiment or a test that ran, eleven on
-opening the upstream source at the reviewed baseline, and eight on nothing
+the thirty, ten rest on an experiment or a test that ran, eleven on
+opening the upstream source at the reviewed baseline, and nine on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -97,13 +97,14 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 | Corpus | `●●●` | `◐○○` |
 | Query | `●●●●●` | `◐◐◐○○` |
 | Multilingual | `●` | `◐` |
+| Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●●` | `●◐◐◐○` |
 | Multi-library and multi-process | `●●` | `◐○` |
 | Operator gates | `●●●` | `◐○○` |
 
 ---
 
-## The twenty-nine
+## The thirty
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -158,6 +159,12 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Ticket 0090, ticket 0091, ticket 0240. |
+
+### Embedding configurations
+
+| | promise | designed | delivered | evidence | standing |
+|---|---|---|---|---|---|
+| R31 | selectable embedders are complete and proven locally | ratified | none | inferred | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation. The invariant-first implementation is ticket 0488. |
 
 ### Custody and lifecycle
 
