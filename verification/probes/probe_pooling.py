@@ -1,4 +1,5 @@
-"""Probe each candidate's own repo for the pooling mode it was trained with.
+"""Probe each candidate's own repo for the pooling mode it was trained with, and
+for whether its pipeline normalizes the pooled vector.
 
 Pooling is the second half of the trap `input_template` closed. A driver that
 reads the prefixes from the registry and then hardcodes `pooling: 'mean'` gets one
@@ -6,13 +7,21 @@ axis right and the other wrong, and wrong pooling degrades retrieval *silently* 
 it reads as the model being worse, not as a bug. A sweep can therefore reject a
 good candidate on it and record a confident wrong number.
 
-Where the value lives: sentence-transformers writes `1_Pooling/config.json` with
-one `pooling_mode_*` flag set true, and lists the modules in `modules.json`. Both
-are read here. The ONNX mirrors do NOT carry either file -- `Xenova/*` and
-`onnx-community/*` publish the graph and nothing else -- so the probe reads the
-`upstream_repo` field, which is exactly why the registry carries it.
+Normalization is the third axis, read from the same `modules.json` listing this
+probe already fetches for pooling: a sentence-transformers pipeline that declares
+a `Normalize` module expects its output L2-normalized before cosine comparison.
+Ticket 0262 requires this be read from each model's own published pipeline
+config and never defaulted -- an unread value is recorded as `"unknown"`, not
+coerced to `true` or `false`.
 
-Four outcomes, never collapsed:
+Where the values live: sentence-transformers writes `1_Pooling/config.json` with
+one `pooling_mode_*` flag set true, and lists the modules -- pooling and
+normalize alike -- in `modules.json`. Both are read here. The ONNX mirrors do NOT
+carry either file -- `Xenova/*` and `onnx-community/*` publish the graph and
+nothing else -- so the probe reads the `upstream_repo` field, which is exactly
+why the registry carries it.
+
+Four outcomes, never collapsed, for pooling:
 
   read             the pooling config was fetched and names exactly one mode
   ambiguous        it was fetched and names zero modes, or several
@@ -21,7 +30,11 @@ Four outcomes, never collapsed:
 
 A model whose config names zero modes, or more than one, is reported as ambiguous
 rather than resolved to a guess. Guessing is how the prefix trap nearly landed,
-and a wrong pooling value is not visible downstream.
+and a wrong pooling value is not visible downstream. Normalize inherits the same
+state: it is read only in the branches where `1_Pooling/config.json` itself was
+read (`read` or `ambiguous`), and left `"unknown"` otherwise -- a repo whose
+pooling config could not be reached did not have its modules.json reached either,
+in this pass.
 
 Controls are enforced, not merely recorded. `--controls` probes a repo whose
 pooling is attested independently of this probe (multilingual-e5-small is `mean`
@@ -215,7 +228,9 @@ def targets_from_registry(path: Path, candidates_only: bool = False) -> list[tup
 
 
 def update_registry(path: Path, by_id: dict[str, dict], probed_utc: str) -> int:
-    """Write pooling + pooling_source onto each candidate record. Returns count."""
+    """Write pooling + pooling_source and normalize + normalize_source onto each
+    candidate record. Returns count.
+    """
     registry = json.loads(path.read_text(encoding="utf-8"))
     written = 0
     for model in registry.get("models", []):
@@ -231,6 +246,22 @@ def update_registry(path: Path, by_id: dict[str, dict], probed_utc: str) -> int:
         else:
             source = f"{result['state']}: {result['detail']} ({result['repo']}, {probed_utc})"
         model["pooling_source"] = source
+
+        # Read only where 1_Pooling/config.json itself was read (see probe_repo):
+        # a repo whose pooling config was not reached had modules.json left
+        # unfetched too, in this pass. Recorded as "unknown", never defaulted.
+        if result["normalize"] is None:
+            model["normalize"] = "unknown"
+            model["normalize_source"] = (
+                f"{MODULES} on {result['repo']}: not read ({result['state']}"
+                f"{': ' + result['detail'] if result['detail'] else ''}, {probed_utc})"
+            )
+        else:
+            model["normalize"] = result["normalize"]
+            model["normalize_source"] = (
+                f"{MODULES} on {result['repo']} (read {probed_utc}); "
+                f"Normalize module {'present' if result['normalize'] else 'absent'}"
+            )
         written += 1
     path.write_text(json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return written

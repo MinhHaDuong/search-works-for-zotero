@@ -1,0 +1,1834 @@
+{
+  "probe": "onnx dtype availability, authenticated repo metadata",
+  "ticket": "0261",
+  "endpoint": "https://huggingface.co/api/models/<repo>",
+  "authenticated": true,
+  "probed_utc": "2026-08-30T06:31Z",
+  "dtype_suffix_mapping": {
+    "fp32": "",
+    "fp16": "_fp16",
+    "int8": "_int8",
+    "uint8": "_uint8",
+    "q8": "_quantized",
+    "q4": "_q4",
+    "q2": "_q2",
+    "q1": "_q1",
+    "q4f16": "_q4f16",
+    "q2f16": "_q2f16",
+    "q1f16": "_q1f16",
+    "bnb4": "_bnb4"
+  },
+  "dtype_suffix_source": "@huggingface/transformers 4.2.0 src/utils/dtypes.js",
+  "controls": {
+    "positive": {
+      "repo": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "536a9f241cb3f02a9c5995a1e708c784bd274859",
+      "declared_languages": [
+        "ar",
+        "az",
+        "bg",
+        "bn",
+        "ca",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "fr",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "ka",
+        "kk",
+        "km",
+        "ko",
+        "lt",
+        "lv",
+        "mr",
+        "ms",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "uz",
+        "vi",
+        "zh"
+      ],
+      "parameters": null,
+      "last_modified": "2026-06-21T08:29:51.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 32768,
+        "model_type": "modernbert",
+        "vocab_size": 180000
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    "negative": {
+      "repo": "search-works-for-zotero/no-such-repo-negative-control",
+      "http_status": 404,
+      "state": "could_not_look",
+      "reason": "{\"error\":\"Repository not found\"}",
+      "onnx_files": null,
+      "dtypes": null
+    }
+  },
+  "results": [
+    {
+      "repo": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "536a9f241cb3f02a9c5995a1e708c784bd274859",
+      "declared_languages": [
+        "ar",
+        "az",
+        "bg",
+        "bn",
+        "ca",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "fr",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "ka",
+        "kk",
+        "km",
+        "ko",
+        "lt",
+        "lv",
+        "mr",
+        "ms",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "uz",
+        "vi",
+        "zh"
+      ],
+      "parameters": null,
+      "last_modified": "2026-06-21T08:29:51.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 32768,
+        "model_type": "modernbert",
+        "vocab_size": 180000
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "8f039f21d4181327268271bea4b11ddcc7eef88d",
+      "declared_languages": [
+        "ar",
+        "az",
+        "bg",
+        "bn",
+        "ca",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "fr",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "ka",
+        "kk",
+        "km",
+        "ko",
+        "lt",
+        "lv",
+        "mr",
+        "ms",
+        "nl",
+        "no",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "uz",
+        "vi",
+        "zh"
+      ],
+      "parameters": null,
+      "last_modified": "2026-05-04T04:35:25.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 8192,
+        "model_type": "modernbert",
+        "vocab_size": 262152
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Snowflake/snowflake-arctic-embed-m-v2.0",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "95c2741480856aa9666782eb4afe11959938017f",
+      "declared_languages": [
+        "af",
+        "ar",
+        "az",
+        "be",
+        "bg",
+        "bn",
+        "ca",
+        "ceb",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fr",
+        "gl",
+        "gu",
+        "he",
+        "hi",
+        "hr",
+        "ht",
+        "hu",
+        "hy",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "jv",
+        "ka",
+        "kk",
+        "km",
+        "kn",
+        "ko",
+        "ky",
+        "lo",
+        "lt",
+        "lv",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "ne",
+        "nl",
+        "pa",
+        "pl",
+        "pt",
+        "qu",
+        "ro",
+        "ru",
+        "si",
+        "sk",
+        "sl",
+        "so",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "vi",
+        "yo",
+        "zh"
+      ],
+      "parameters": 305368320,
+      "last_modified": "2025-04-24T17:37:05.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 8192,
+        "model_type": "gte",
+        "vocab_size": 250048
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "onnx-community/gte-multilingual-base",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "2edbf5e672aab465f9ed4c154a8b61791c082c69",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2024-10-08T13:53:56.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 8192,
+        "model_type": "new",
+        "vocab_size": 250048
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/multilingual-e5-small",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T00:03:05.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 512,
+        "model_type": "bert",
+        "vocab_size": 250037
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/multilingual-e5-base",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "1ec9243030a27d1a115d5c340572074c125b58b2",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T00:03:08.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 514,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/paraphrase-multilingual-mpnet-base-v2",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "e5d116277351513fd260955ece953ecddde7046e",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T00:06:40.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 514,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T00:07:45.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 512,
+        "model_type": "bert",
+        "vocab_size": 250037
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/distiluse-base-multilingual-cased-v2",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "cad454171d918d9873a2701ba245054b6c1760dd",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T00:07:15.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 512,
+        "model_type": "distilbert",
+        "vocab_size": 119547
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "ibm-granite/granite-embedding-107m-multilingual",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "d6cffd338414d6a1c1f5decfad5fec62eebc90d5",
+      "declared_languages": [
+        "en",
+        "ar",
+        "cs",
+        "de",
+        "es",
+        "fr",
+        "it",
+        "ja",
+        "ko",
+        "nl",
+        "pt",
+        "zh"
+      ],
+      "parameters": 106994304,
+      "last_modified": "2025-08-19T01:34:26.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 514,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002,
+        "st_max_seq_length": 512
+      },
+      "onnx_files": [
+        "model.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "model.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "ibm-granite/granite-embedding-278m-multilingual",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "a9cb5338491faf32b73dd17b714a31821c021bbf",
+      "declared_languages": [
+        "en",
+        "ar",
+        "cs",
+        "de",
+        "es",
+        "fr",
+        "it",
+        "ja",
+        "ko",
+        "nl",
+        "pt",
+        "zh"
+      ],
+      "parameters": 278043648,
+      "last_modified": "2025-08-19T01:36:37.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 514,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002,
+        "st_max_seq_length": 512
+      },
+      "onnx_files": [
+        "model.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "model.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "onnx-community/bge-m3-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "mit",
+      "sha": "25b9af8e87a38eb120cfe87125383677b9cd309e",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2026-05-06T08:31:55.000Z",
+      "config": {
+        "hidden_size": 1024,
+        "max_position_embeddings": 8194,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Snowflake/snowflake-arctic-embed-l-v2.0",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "ac6544c8a46e00af67e330e85a9028c66b8cfd9a",
+      "declared_languages": [
+        "af",
+        "ar",
+        "az",
+        "be",
+        "bg",
+        "bn",
+        "ca",
+        "ceb",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fr",
+        "gl",
+        "gu",
+        "he",
+        "hi",
+        "hr",
+        "ht",
+        "hu",
+        "hy",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "jv",
+        "ka",
+        "kk",
+        "km",
+        "kn",
+        "ko",
+        "ky",
+        "lo",
+        "lt",
+        "lv",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "ne",
+        "nl",
+        "pa",
+        "pl",
+        "pt",
+        "qu",
+        "ro",
+        "ru",
+        "si",
+        "sk",
+        "sl",
+        "so",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "vi",
+        "yo",
+        "zh"
+      ],
+      "parameters": 567754752,
+      "last_modified": "2025-07-28T14:00:58.000Z",
+      "config": {
+        "hidden_size": 1024,
+        "max_position_embeddings": 8194,
+        "model_type": "xlm-roberta",
+        "vocab_size": 250002
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_O4.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "jinaai/jina-embeddings-v3",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "cc-by-nc-4.0",
+      "sha": "ab036b023d30b4d1138c4c3bfa9f0c445ab455d6",
+      "declared_languages": [
+        "multilingual",
+        "af",
+        "am",
+        "ar",
+        "as",
+        "az",
+        "be",
+        "bg",
+        "bn",
+        "br",
+        "bs",
+        "ca",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "el",
+        "en",
+        "eo",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fr",
+        "fy",
+        "ga",
+        "gd",
+        "gl",
+        "gu",
+        "ha",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "hy",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "jv",
+        "ka",
+        "kk",
+        "km",
+        "kn",
+        "ko",
+        "ku",
+        "ky",
+        "la",
+        "lo",
+        "lt",
+        "lv",
+        "mg",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "ne",
+        "nl",
+        "no",
+        "om",
+        "or",
+        "pa",
+        "pl",
+        "ps",
+        "pt",
+        "ro",
+        "ru",
+        "sa",
+        "sd",
+        "si",
+        "sk",
+        "sl",
+        "so",
+        "sq",
+        "sr",
+        "su",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "ug",
+        "uk",
+        "ur",
+        "uz",
+        "vi",
+        "xh",
+        "yi",
+        "zh"
+      ],
+      "parameters": 572310396,
+      "last_modified": "2026-04-08T14:04:08.000Z",
+      "config": {
+        "hidden_size": 1024,
+        "max_position_embeddings": 8194,
+        "model_type": null,
+        "vocab_size": 250002
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_fp16.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "onnx-community/embeddinggemma-300m-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "gemma",
+      "sha": "5090578d9565bb06545b4552f76e6bc2c93e4a66",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-09-04T15:43:56.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 2048,
+        "model_type": "gemma3_text",
+        "vocab_size": 262144
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_no_gather_q4.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Alibaba-NLP/gte-multilingual-base",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "9bbca17d9273fd0d03d5725c7a4b0f6b45142062",
+      "declared_languages": [
+        "af",
+        "ar",
+        "az",
+        "be",
+        "bg",
+        "bn",
+        "ca",
+        "ceb",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fr",
+        "gl",
+        "gu",
+        "he",
+        "hi",
+        "hr",
+        "ht",
+        "hu",
+        "hy",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "jv",
+        "ka",
+        "kk",
+        "km",
+        "kn",
+        "ko",
+        "ky",
+        "lo",
+        "lt",
+        "lv",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "ne",
+        "nl",
+        "no",
+        "pa",
+        "pl",
+        "pt",
+        "qu",
+        "ro",
+        "ru",
+        "si",
+        "sk",
+        "sl",
+        "so",
+        "sq",
+        "sr",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "uk",
+        "ur",
+        "vi",
+        "yo",
+        "zh"
+      ],
+      "parameters": 305369089,
+      "last_modified": "2025-07-05T01:38:16.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 8192,
+        "model_type": "new",
+        "vocab_size": 250048,
+        "st_max_seq_length": 8192
+      },
+      "onnx_files": [],
+      "dtypes": {},
+      "state": "confirmed_absent",
+      "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
+    },
+    {
+      "repo": "nomic-ai/nomic-embed-text-v2-moe",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "1066b6599d099fbb93dfcb64f9c37a7c9e503e85",
+      "declared_languages": [
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "pl",
+        "nl",
+        "tr",
+        "ja",
+        "vi",
+        "ru",
+        "id",
+        "ar",
+        "cs",
+        "ro",
+        "sv",
+        "el",
+        "uk",
+        "zh",
+        "hu",
+        "da",
+        "no",
+        "hi",
+        "fi",
+        "bg",
+        "ko",
+        "sk",
+        "th",
+        "he",
+        "ca",
+        "lt",
+        "fa",
+        "ms",
+        "sl",
+        "lv",
+        "mr",
+        "bn",
+        "sq",
+        "cy",
+        "be",
+        "ml",
+        "kn",
+        "mk",
+        "ur",
+        "fy",
+        "te",
+        "eu",
+        "sw",
+        "so",
+        "sd",
+        "uz",
+        "co",
+        "hr",
+        "gu",
+        "ce",
+        "eo",
+        "jv",
+        "la",
+        "zu",
+        "mn",
+        "si",
+        "ga",
+        "ky",
+        "tg",
+        "my",
+        "km",
+        "mg",
+        "pa",
+        "sn",
+        "ha",
+        "ht",
+        "su",
+        "gd",
+        "ny",
+        "ps",
+        "ku",
+        "am",
+        "ig",
+        "lo",
+        "mi",
+        "nn",
+        "sm",
+        "yi",
+        "st",
+        "tl",
+        "xh",
+        "yo",
+        "af",
+        "ta",
+        "tn",
+        "ug",
+        "az",
+        "ba",
+        "bs",
+        "dv",
+        "et",
+        "gl",
+        "gn",
+        "gv",
+        "hy"
+      ],
+      "parameters": 475292928,
+      "last_modified": "2025-04-01T13:38:53.000Z",
+      "config": {
+        "hidden_size": null,
+        "max_position_embeddings": null,
+        "model_type": "nomic_bert",
+        "vocab_size": 250048,
+        "st_max_seq_length": 512
+      },
+      "onnx_files": [],
+      "dtypes": {},
+      "state": "confirmed_absent",
+      "reason": "listing read; no file named model<suffix>.onnx for any suffix in DEFAULT_DTYPE_SUFFIX_MAPPING"
+    },
+    {
+      "repo": "jinaai/jina-embeddings-v2-base-multilingual",
+      "http_status": 404,
+      "state": "could_not_look",
+      "reason": "{\"error\":\"Repository not found\"}",
+      "onnx_files": null,
+      "dtypes": null
+    },
+    {
+      "repo": "intfloat/multilingual-e5-small",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "mit",
+      "sha": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "declared_languages": [
+        "multilingual",
+        "af",
+        "am",
+        "ar",
+        "as",
+        "az",
+        "be",
+        "bg",
+        "bn",
+        "br",
+        "bs",
+        "ca",
+        "cs",
+        "cy",
+        "da",
+        "de",
+        "el",
+        "en",
+        "eo",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fr",
+        "fy",
+        "ga",
+        "gd",
+        "gl",
+        "gu",
+        "ha",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "hy",
+        "id",
+        "is",
+        "it",
+        "ja",
+        "jv",
+        "ka",
+        "kk",
+        "km",
+        "kn",
+        "ko",
+        "ku",
+        "ky",
+        "la",
+        "lo",
+        "lt",
+        "lv",
+        "mg",
+        "mk",
+        "ml",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "ne",
+        "nl",
+        "no",
+        "om",
+        "or",
+        "pa",
+        "pl",
+        "ps",
+        "pt",
+        "ro",
+        "ru",
+        "sa",
+        "sd",
+        "si",
+        "sk",
+        "sl",
+        "so",
+        "sq",
+        "sr",
+        "su",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "th",
+        "tl",
+        "tr",
+        "ug",
+        "uk",
+        "ur",
+        "uz",
+        "vi",
+        "xh",
+        "yi",
+        "zh"
+      ],
+      "parameters": 117654272,
+      "last_modified": "2026-04-02T02:16:05.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 512,
+        "model_type": "bert",
+        "vocab_size": 250037,
+        "st_max_seq_length": 512
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_O4.onnx",
+        "onnx/model_qint8_avx512_vnni.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/all-MiniLM-L6-v2",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "751bff37182d3f1213fa05d7196b954e230abad9",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T16:42:24.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 512,
+        "model_type": "bert",
+        "vocab_size": 30522
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "Xenova/bge-small-en-v1.5",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "ea104dacec62c0de699686887e3f920caeb4f3e3",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2025-07-22T16:45:37.000Z",
+      "config": {
+        "hidden_size": 384,
+        "max_position_embeddings": 512,
+        "model_type": "bert",
+        "vocab_size": 30522
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "nomic-ai/nomic-embed-text-v1.5",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": "apache-2.0",
+      "sha": "e9b6763023c676ca8431644204f50c2b100d9aab",
+      "declared_languages": [
+        "en"
+      ],
+      "parameters": 136731648,
+      "last_modified": "2026-04-07T14:17:02.000Z",
+      "config": {
+        "hidden_size": 768,
+        "max_position_embeddings": 2048,
+        "model_type": "nomic_bert",
+        "vocab_size": 30528,
+        "st_max_seq_length": 8192
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    },
+    {
+      "repo": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "http_status": 200,
+      "gated": false,
+      "private": false,
+      "licence": null,
+      "sha": "c25a394dd583836952667c12f008335071b3f43d",
+      "declared_languages": null,
+      "parameters": null,
+      "last_modified": "2026-04-03T22:00:13.000Z",
+      "config": {
+        "hidden_size": 1024,
+        "max_position_embeddings": 32768,
+        "model_type": "qwen3",
+        "vocab_size": 151669
+      },
+      "onnx_files": [
+        "onnx/model.onnx",
+        "onnx/model_bnb4.onnx",
+        "onnx/model_fp16.onnx",
+        "onnx/model_int8.onnx",
+        "onnx/model_q4.onnx",
+        "onnx/model_q4f16.onnx",
+        "onnx/model_quantized.onnx",
+        "onnx/model_uint8.onnx"
+      ],
+      "dtypes": {
+        "fp32": [
+          "onnx/model.onnx"
+        ],
+        "fp16": [
+          "onnx/model_fp16.onnx"
+        ],
+        "int8": [
+          "onnx/model_int8.onnx"
+        ],
+        "uint8": [
+          "onnx/model_uint8.onnx"
+        ],
+        "q8": [
+          "onnx/model_quantized.onnx"
+        ],
+        "q4": [
+          "onnx/model_q4.onnx"
+        ],
+        "q4f16": [
+          "onnx/model_q4f16.onnx"
+        ],
+        "bnb4": [
+          "onnx/model_bnb4.onnx"
+        ]
+      },
+      "state": "available",
+      "reason": ""
+    }
+  ]
+}

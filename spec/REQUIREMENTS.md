@@ -2,7 +2,9 @@
 
 ## Intro
 
-This document lists the user requirements, R1 to R28. Each is written as a
+This document lists the user requirements, R1 to R30 — R29 is reserved for
+the cross-lingual proposal awaiting ratification in ticket 0037. Each is
+written as a
 testable property: something the test harness, or a careful reader, can
 check. They were agreed with the author and consolidated on 2026-08-26; the
 documents they were consolidated from are superseded and live only in git
@@ -73,6 +75,15 @@ record rejected text as contract.
   most-recent-first prefix: the newest N items, never a gap in the middle.
   (The granularity at which "prefix" is asserted is a design reading,
   DESIGN.md §2.3, flagged for author veto.)
+- **R30 — capable hardware is used.** Where a supported GPU is usable by the
+  embed stage, the system MUST use it, and status MUST name the execution
+  device actually serving, on every machine — GPU or not. On the designated
+  GPU host, time to full embed coverage MUST meet a bound; the bound's value
+  belongs to DESIGN.md §2.8 and is pinned from measurement (ticket 0264),
+  never before it. The ruling, its rationale — the native process reaches a
+  GPU where the in-app runtime cannot, and "indexing finishes today" is a
+  promise R1's "eventually" declines to make — and the gate's
+  disclosed-hardware standing are in DECISIONS.md (2026-08-30).
 
 ### Change and cost
 
