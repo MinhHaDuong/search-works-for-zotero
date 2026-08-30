@@ -1,0 +1,190 @@
+%erg 0.1
+Title: Unbounded string aggregation hits V8's string-length ceiling twice
+Created: 2026-08-30
+Author: claude
+
+--- log ---
+2026-08-30T08:08Z claude created
+
+--- body ---
+## Context
+
+Two independent measurements have hit the same ceiling on upstream's JSON
+(memory) search-index backend:
+
+1. `bench/results/json-baseline/rung-rall-nochar.json` (2026-08-21, pre-v1.10.0
+   session): the in-memory build reached the real library's full geometry
+   (477 512 passages), but `search-index.json` could not be written — three
+   occurrences of `WARN Could not persist index: Invalid string length` from
+   item ~5 100 onward, leaving a stale 402 542-passage partial on disk.
+2. `bench/results/trunk-1.10.0/build-memory-uncapped.json` (2026-08-30, this
+   repo's reviewed baseline, b132f2d / v1.10.0): the same build, same
+   geometry, a 10 GiB heap this time — the in-memory build completed in
+   full, but persistence failed identically: repeated `WARN Could not persist
+   index: Invalid string length` from item ~5 100 onward, final status
+   `persistError: "Invalid string length"`.
+
+Both hits are the same site and the same mechanism, confirmed by reading the
+source at the reviewed SHA (`b132f2dcdf646424a236e5ede4ec68ab8a33adc6`,
+v1.10.0):
+
+- `fork/src/features/search/persistence.ts:27` —
+  `await writeFile(tmp, JSON.stringify(index.toJSON()))`.
+- `index.toJSON()` (`fork/src/features/search/index-manager.ts:1676-1699`,
+  `SearchIndexBase`) builds `{ chunks: [...this.chunks.values()], vectors:
+  this.vectors.toJSON(), ... }` — every passage and every vector the index
+  holds, materialized in one object, handed to one `JSON.stringify` call.
+
+Upstream is already aware of the ceiling and documents it in three places at
+this SHA: `persistence.ts:18-21`, `backend.ts:5-10`, and
+`build.ts:116-121` (`persistNotice`, surfaced on `IndexBuildStatus`). The
+documented mitigation is `ZOTEUS_INDEX_BACKEND=sqlite` (Node 22.13+), which
+`factory.ts`'s `auto` mode already prefers when available
+(`fork/src/features/search/factory.ts:52-56`). Both measurements above forced
+the JSON/memory backend explicitly (`ZOTEUS_SEARCH_BACKEND=json` /
+`--backend memory`) to characterize the ceiling itself; a default `auto` run
+on Node 22.13+ would not hit this particular site. It remains reachable
+whenever `ZOTEUS_INDEX_BACKEND=memory` is set explicitly, or `auto` falls
+back on pre-22.13 Node.
+
+## Site inventory (at b132f2dcdf646424a236e5ede4ec68ab8a33adc6, v1.10.0)
+
+### Confirmed unbounded
+
+1. **`fork/src/features/search/persistence.ts:27`** — `saveIndex()`,
+   `JSON.stringify(index.toJSON())`. What accumulates: every `ChunkRecord`
+   (all passages, all items) and every vector the in-memory index holds, in
+   one V8 string. Not bounded: no cap exists between "index holds N
+   passages" and "attempt to serialize all N in one string". Ceiling: V8's
+   maximum string length, ~536 870 888 UTF-16 code units (~512 MiB) on
+   current V8/Node; `JSON.stringify` can also throw a heap `RangeError`
+   before that if the intermediate string construction exceeds available
+   heap. Reached by our measured library (477 512 passages, 465 110
+   fulltext passages, 44,9 MB max single document) at roughly 5 100-5 600 of
+   7 541 items in both recorded runs — well inside the library's actual
+   size, not at some hypothetical future scale.
+
+2. **`fork/src/features/search/index-manager.ts:572`** (`SearchIndexBase.build()`,
+   shared by `MemorySearchIndex` and `SqliteSearchIndex` — both backends
+   inherit it) — `this.opts.embedder.embed(records.map((r) => r.text))`.
+   `records` accumulates over every item in the `libraryItems` argument with
+   no batching at all, unlike the production incremental-build path (see
+   bounded list below). If the configured embedder is `ApiEmbeddingProvider`
+   (`fork/src/features/search/embeddings.ts:230-284`) constructed with no
+   per-provider `batchSize`, `embedBatch()` performs exactly one
+   `JSON.stringify({ model, input: texts })` (OpenAI,
+   `embeddings.ts:260`) or one `requests: texts.map(...)` stringify (Gemini,
+   `embeddings.ts:275-277`) of every text passed in — i.e. every passage's
+   text from the whole `libraryItems` array, in one HTTP request body.
+   **Reachability caveat**: `SearchIndex.build()` is part of the public
+   interface (`backend.ts:436`) and is exercised only by the test suite (10
+   test files call `.build(` directly) as of this SHA — the live MCP tool
+   flow (`zotero_index action:"build"`) calls `buildIncremental` via
+   `fork/src/features/search/build.ts`, which does batch (see bounded list).
+   This is a real, currently-dead-in-production code path, not a live
+   third hit — flagged because it sits on the same public interface as the
+   confirmed persist-path defect and any future caller (or a change that
+   rewires the tool to call `build()` directly) would reach it unbatched on
+   both backends.
+
+### Bounded by design (non-findings, with interactions noted)
+
+- **`fork/src/features/search/sqlite-index.ts:566-579`** (`importJson`, the
+  legacy-JSON-to-SQLite migration) reads a whole `search-index.json` into one
+  string via `readFile(jsonPath, 'utf8')` before `JSON.parse` — same class,
+  read side — but is guarded by `MAX_MIGRATION_BYTES = 200 * 1024 * 1024`
+  (200 MB, `sqlite-index.ts:32`): above that size the file is left untouched
+  and `storeNotice` reports why ("reading it needs roughly ten times its
+  size in heap"), rather than attempting the read. This guard is itself
+  evidence upstream has already reasoned about this class on the read side.
+
+- **`fork/src/features/search/fulltext-source.ts`** `textFor()`
+  (lines ~166-192) accumulates one item's attachment text into one string,
+  capped by `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS`
+  (`DEFAULT_FULLTEXT_MAX_CHARS = 40_000`, `fulltext-source.ts:10`) — this is
+  ticket 0024's I-3 (the 40k truncation cap vs R9), a design gap, not this
+  class. The interaction: both measurements above set
+  `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0` (uncapped) specifically to reach the
+  library's real fulltext geometry, and *that* is what makes the per-item
+  text legitimately large (our library's max single document is 44,9 MB,
+  within the task's own "one document in one string" carve-out) — but
+  multiplied across 5 999 fulltext-bearing items and funneled through
+  finding #1's single `JSON.stringify`, it is what makes the aggregate
+  exceed V8's ceiling. Closing I-3 (a per-item cap) would not fix finding
+  #1 (the aggregate has no cap of its own regardless of per-item size); the
+  two are independent, compounding defects.
+
+- **`fork/src/features/search/embeddings.ts:200-217`**
+  (`LocalEmbeddingProvider.embed`) and the production embedding call sites —
+  `index-manager.ts:1399` (`buildIncremental`'s pass), `index-manager.ts:1146`
+  / `:1150` (its callers) — batch via `embedBatchSize` /
+  `DEFAULT_EMBED_BATCH_SIZE` (`limits.ts`), the option documented at
+  `backend.ts:249-250`. This is the live tool path and it is bounded by
+  design; contrast with finding #2 above, which is the same embed-call shape
+  with the batching removed.
+
+- **`fork/src/auth/store.ts`** (OAuth token store: AES-256-GCM +
+  base64, `Buffer.concat([iv, tag, ct]).toString('base64')` at line 189) —
+  a single credential record, not library-scale.
+
+- **`fork/src/lib/cimd.ts:116`** (`Buffer.concat(chunks).toString('utf8')`,
+  Client ID Metadata Document fetch) — capped by `maxBytes`, streamed rather
+  than buffered without limit (see the file's own SSRF/size-cap comment
+  block, lines 4-10).
+
+- **`fork/src/features/fulltext/epub.ts`, `pdf-pages.ts`, `pdf-locate.ts`** —
+  per-document string building (page/section `.join()`). In scope of the
+  task's own carve-out: one document's text in one string is legitimate up
+  to the library's measured ~45 MB single-document ceiling; these sites
+  never concatenate across documents.
+
+- **`fork/src/tools/tag-audit.ts`** `listAllTags` / `listItems` — page the
+  whole library into in-memory *arrays* (not strings) of small objects, then
+  feed a report bounded by the tool's own `limit` argument (default 50, max
+  500) through `registry.ts`'s `ok()`, whose single `JSON.stringify` only
+  serializes that bounded report. The unbounded accumulation here is an
+  array, not a string passed through one stringify/parse/join/concat step —
+  outside this ticket's class as scoped, noted for completeness rather than
+  counted as a finding.
+
+## What an upstream fix would look like in shape
+
+Not deciding for upstream — the design is his call — but the shape any fix
+takes is constrained by what the measurements show:
+
+- **Streamed/chunked persistence**: write `chunks` and `vectors` as a
+  streamed sequence (e.g. newline-delimited JSON, or an array written
+  incrementally with a stream-based JSON writer) instead of one
+  `JSON.stringify` of the whole snapshot. Avoids the V8 string ceiling
+  because no single string ever holds more than one record.
+- **Per-item / per-batch persistence**: the SQLite backend already does this
+  (rows, not one blob) — `ZOTEUS_INDEX_BACKEND=sqlite` is the existing
+  answer for anyone who can move off the JSON backend. A shape-preserving
+  fix for the JSON backend itself would need the same principle: persist
+  in bounded units rather than one atomic whole-index write.
+- **A guard on the write side symmetric with the read-side one**: `saveIndex`
+  currently has no analogue of `importJson`'s `MAX_MIGRATION_BYTES` check —
+  nothing estimates the serialized size before attempting the
+  `JSON.stringify` and fails fast with a clear message instead of a bare
+  `Invalid string length` three-quarters of the way through a multi-minute
+  build. This would not fix the ceiling but would turn today's
+  crash-late-and-lose-everything failure into a fail-fast one with a
+  useful message, cheaply, on the existing backend.
+- **Bound `SearchIndexBase.build()`'s embed call** (finding #2): batch it the
+  same way `buildIncremental` already does, or delete the unbatched method
+  if it is genuinely dead outside tests — either removes the latent
+  unbounded-request shape from the public interface.
+
+## Exit criteria
+
+- [ ] Findings #1 and #2 above are either accepted as accurate (no further
+      investigation needed) or corrected, by a maintainer or a later session
+      re-reading the cited lines at a current SHA.
+- [ ] A decision is recorded (here or in a filed upstream issue) on whether
+      this repo files an upstream issue for finding #1, given upstream
+      already documents the ceiling and already ships a mitigation
+      (`ZOTEUS_INDEX_BACKEND=sqlite`) — i.e. whether this is worth raising
+      as a request for a write-side guard/streamed persistence, or whether
+      the existing sqlite path is considered sufficient upstream response.
+- [ ] If filed upstream, the issue is linked here (log entry) per
+      `GOVERNANCE.md`.
