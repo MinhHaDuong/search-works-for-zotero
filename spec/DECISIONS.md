@@ -505,6 +505,17 @@ mechanism's detail (what `auto` actually selects, observed on padme; the
 fallback's cost on CPU-only Linux), which is ticket 0264's to measure, not a
 further ruling to make.
 
+**2026-08-30 — I-2 is not filed.** The measurement-correction issue (ticket
+0024's second item) is ruled noise: upstream adopted the sqlite backend,
+`auto` prefers it on a capable Node, and `docs/semantic-search.md` at v1.10.0
+names the JSON ceiling's mechanism and carries measured figures of its own.
+The trunk re-measurement taken to carry the filing
+(`bench/results/trunk-1.10.0/`, ticket 0025's log) stands as repo-side
+evidence; nothing goes upstream for it. The same ruling settles ticket 0460's
+open question identically: no upstream issue for the write-side string
+ceiling — the sqlite path is the sufficient upstream response. I-3 is
+untouched, still behind the zotero#6012 checkpoint.
+
 ## Awaiting ratification
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**

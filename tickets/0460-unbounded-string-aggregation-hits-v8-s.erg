@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-30T08:08Z claude created
+2026-08-30T08:19Z Minh Ha-Duong note the upstream-filing question is SETTLED by the same ruling that withdrew the measurement issue (spec/DECISIONS.md 2026-08-30): nothing is filed for finding #1 — the sqlite path is the sufficient upstream response. Exit criterion 2 checked, criterion 3 moot; criterion 1 (re-verification of the cited lines at a current SHA) is what keeps this ticket open
 
 --- body ---
 ## Context
@@ -180,11 +181,8 @@ takes is constrained by what the measurements show:
 - [ ] Findings #1 and #2 above are either accepted as accurate (no further
       investigation needed) or corrected, by a maintainer or a later session
       re-reading the cited lines at a current SHA.
-- [ ] A decision is recorded (here or in a filed upstream issue) on whether
-      this repo files an upstream issue for finding #1, given upstream
-      already documents the ceiling and already ships a mitigation
-      (`ZOTEUS_INDEX_BACKEND=sqlite`) — i.e. whether this is worth raising
-      as a request for a write-side guard/streamed persistence, or whether
-      the existing sqlite path is considered sufficient upstream response.
-- [ ] If filed upstream, the issue is linked here (log entry) per
-      `GOVERNANCE.md`.
+- [x] A decision is recorded on whether this repo files an upstream issue for
+      finding #1: NOT filed — ruling 2026-08-30 (spec/DECISIONS.md); the
+      existing sqlite path is the sufficient upstream response.
+- [x] Not filed upstream, so there is no issue to link — moot per the same
+      ruling (was: link the issue here per `GOVERNANCE.md` if filed).

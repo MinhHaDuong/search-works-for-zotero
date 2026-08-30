@@ -273,22 +273,13 @@ duties. The I-label stays internal.*
 
 ### 5. The measurements
 
-*Still open at v1.8.0: `2f453d6` rewrote the repair and metadata-first
-sections of `docs/semantic-search.md` and left every measurement claim
-untouched (the 337 s build row, the memory ratio, "past roughly 250k
-passages"). I-2 stands, ready to file — ticket 0024.*
-
-`docs/semantic-search.md` upstream now makes ceiling and memory claims with no
-numbers behind them. Ours are on a real 7 541-item library: 5 759,6 MiB against
-128,0 MiB resident and 90,87 s against 3,86 s to first answer, on **one** corpus
-of 360 811 passages read by both backends — and 6,8x rather than 45x if SQLite is
-charged the whole file against a JS heap that has no such remainder. Plus the wall
-itself: 477 512 passages built, held, and unwritable, `Invalid string length`,
-three times.
-
-Both numbers belong in any claim, which is the discipline this repo imposed on
-itself and the reason the figures are worth offering at all. Low effort, and it is
-the one place this work becomes visible upstream.
+*Withdrawn 2026-08-30 (ruling in `spec/DECISIONS.md`): I-2 is not filed —
+noise, once upstream adopted the sqlite backend and `docs/semantic-search.md`
+at v1.10.0 came to name the JSON ceiling's mechanism and carry measured
+figures of its own. The trunk re-measurement that was to carry the filing
+stays as repo-side evidence (`bench/results/trunk-1.10.0/`, ticket 0025's
+log), and ticket 0460 holds the source-level inventory of the ceiling's
+mechanism at the reviewed SHA.*
 
 ## What to retire, deliberately
 
@@ -377,17 +368,10 @@ that is not a Zoteus index loaded as empty and was written back over the file on
 the next clean shutdown. The contributed corruption test survives at HEAD except
 one assertion string (the remedy text now leads with the tool call).*
 
-**§5 is a correction, not a contribution.** `docs/semantic-search.md` already carries the
-JSON-side figures, cited to issue #10 — which is ours. What is left to offer is three
-corrections rather than new numbers: the build column reads as a 7x speedup where the build
-is API-bound (our own uncapped SQLite build took 371.6 s against the 337 s the JSON row
-reports); the memory ratio omits that RSS excludes the page cache holding the database file,
-which is 45x against 6.8x depending on which question is asked; and "past roughly 250k
-passages" understates a build that completes and then cannot write its artifact at 477,512.
-
-The SQLite figures cannot be offered as measurements of *his* backend — they are the fork's
-prototype — so the issue says so in as many words. That is also why §5 stopped being a docs
-PR: editing his prose with numbers measured on other code is not something to do quietly.
+**§5 resolved — withdrawn, not filed.** The correction issue was ruled noise on
+2026-08-30 (`spec/DECISIONS.md`): upstream adopted the sqlite backend and its
+doc carries the ceiling's mechanism and figures. See §5 above for what stands
+as repo-side evidence.
 
 **Order of operations**: superseded — the plan of record is DESIGN.md §4 as
 ratified in DECISIONS.md, executed through tickets 0014–0035. The original
