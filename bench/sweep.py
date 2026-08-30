@@ -272,6 +272,24 @@ class RealExecutor:
     #: resolves as unloadable rather than crashing on a missing argument.
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None
+    #: Where a fidelity cell's raw vectors are persisted, keyed by (model, fidelity
+    #: driver version) — ticket 0263: they are experiment X8's CPU side (DESIGN §3)
+    #: and must stay addressable after scoring, not discarded with a tmp dir. `None`
+    #: keeps the old ephemeral-tmp-dir behaviour (the sole path any test exercises).
+    vectors_dir: Path | None = None
+    #: Ticket 0263's floor: prior fidelity runs (nomic) used 600 rows; the driver's
+    #: own default is 400. A named field rather than a literal in the cmd below so a
+    #: caller can see and override what a campaign actually asked for.
+    fidelity_rows: str = "600"
+    #: The device `resolve()`'s fp16 probe (below) actually tests against. Loadability
+    #: for every other rung in this campaign's floor is a published-file fact; fp16 is
+    #: the one rung where "the file exists" and "the session will init" can disagree
+    #: (ticket 0240's tracker: a graph-fusion failure on the ONNX CPU provider, not a
+    #: missing kernel), and that disagreement is device-specific. `resolve()` itself
+    #: takes no device parameter (the Protocol other tests build against, and the
+    #: 0262 fake executor's signature, both fix it at two arguments) — so the device
+    #: to probe is configured here instead, once, at executor construction.
+    probe_device: str = "cpu"
 
     def engine_versions(self) -> dict[str, str]:
         return {pkg: read_package_version(self.pkg_root, pkg) for pkg in ENGINE_PACKAGES}
@@ -306,7 +324,50 @@ class RealExecutor:
                     out.write(chunk)
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             return ResolveResult(loadable=False, reason=f"download failed: {error}")
+        if dtype == "fp16":
+            probe_error = self._probe_fp16_loadable(record)
+            if probe_error:
+                return ResolveResult(
+                    loadable=False,
+                    onnx_path=rel_path,
+                    onnx_hash=digest.hexdigest(),
+                    reason=(
+                        f"fp16 is published but fails at ONNX session init on "
+                        f"{self.probe_device} (ticket 0240's known case): {probe_error}"
+                    ),
+                )
         return ResolveResult(loadable=True, onnx_path=rel_path, onnx_hash=digest.hexdigest())
+
+    def _probe_fp16_loadable(self, record: dict) -> str:
+        """Empty string means the session loaded; anything else is the tail of stderr.
+
+        One extra subprocess per (model, fp16) plan, scoped to fp16 alone: every other
+        dtype in the campaign floor has already proven loadable across the field, and
+        fp16 is the one rung `resolve()`'s file-listing check cannot tell apart from a
+        genuine load failure. `--reps 1` keeps the probe to one model load plus one
+        query — the cheapest real exercise of session init the existing driver offers.
+        """
+        with _tmp_json() as out_path:
+            cmd = [
+                self.node_bin,
+                str(BENCH / "query_embed_cost.mjs"),
+                "--pkg-root",
+                str(self.pkg_root),
+                "--models",
+                record["id"],
+                "--dtype",
+                "fp16",
+                "--device",
+                self.probe_device,
+                "--reps",
+                "1",
+                "--output",
+                str(out_path),
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            if result.returncode != 0:
+                return result.stderr[-2000:] or "non-zero exit, no stderr captured"
+        return ""
 
     def measure(
         self,
@@ -353,8 +414,31 @@ class RealExecutor:
     def _measure_fidelity(self, record: dict, dtype: str, device: str, corpus: str) -> MeasureResult:
         import quant_fidelity_score as qfs
 
-        with _tmp_prefix() as prefix:
+        persistent = self.vectors_dir is not None
+        tmp_ctx = None
+        if persistent:
+            self.vectors_dir.mkdir(parents=True, exist_ok=True)
+            # Keyed by (model, fidelity driver version), not by dtype: the fp32
+            # reference is the SAME file every dtype cell of this model needs, so one
+            # prefix shared across all of a model's fidelity cells is what lets the
+            # cache below actually be a cache. A driver-version bump changes the
+            # prefix, so it invalidates persisted vectors the same way it already
+            # invalidates a result cell's path — no separate migration step.
+            prefix = str(self.vectors_dir / f"{record['id']}__fidelity-v{KIND_DRIVER_VERSION['fidelity']}")
+        else:
+            tmp_ctx = _tmp_prefix()
+            prefix = tmp_ctx.__enter__()
+        try:
             for rung in ("fp32", dtype):
+                rung_f32 = Path(f"{prefix}-{rung}.f32")
+                rung_json = Path(f"{prefix}-{rung}.json")
+                # fp32 is every dtype cell's reference (Action 2), including its own
+                # fp32-vs-itself control cell. Persisted, it is embedded once per
+                # model rather than once per dtype cell -- q8, uint8 and the fp32
+                # control would otherwise each re-embed the whole corpus at fp32 for
+                # nothing but a reference the previous cell already produced.
+                if persistent and rung == "fp32" and rung_f32.exists() and rung_json.exists():
+                    continue
                 cmd = [
                     self.node_bin,
                     str(BENCH / "quant_fidelity.mjs"),
@@ -368,6 +452,8 @@ class RealExecutor:
                     record["id"],
                     "--dtype",
                     rung,
+                    "--rows",
+                    self.fidelity_rows,
                 ]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
                 if result.returncode != 0:
@@ -375,13 +461,26 @@ class RealExecutor:
                         ok=False, device_selected=device, metrics={}, error=result.stderr[-4000:]
                     )
             reference = qfs.load_rung(Path(prefix), "fp32")
-            rung = qfs.load_rung(Path(prefix), dtype)
-            if reference is None or rung is None:
+            rung_data = qfs.load_rung(Path(prefix), dtype)
+            if reference is None or rung_data is None:
                 return MeasureResult(ok=False, device_selected=device, metrics={}, error="rung file missing")
             ref_vectors, _ = reference
-            vectors, meta = rung
+            vectors, meta = rung_data
             metrics = qfs.compare(ref_vectors, vectors, k=30)
             metrics["ms_per_passage"] = meta["ms_per_passage"]
+            metrics["rows"] = meta["rows"]
+            metrics["dim"] = meta["dim"]
+            metrics["corpus_stride"] = meta["stride"]
+            if persistent:
+                metrics["vectors"] = {
+                    "reference_f32": f"{prefix}-fp32.f32",
+                    "reference_meta": f"{prefix}-fp32.json",
+                    "rung_f32": f"{prefix}-{dtype}.f32",
+                    "rung_meta": f"{prefix}-{dtype}.json",
+                }
+        finally:
+            if tmp_ctx is not None:
+                tmp_ctx.__exit__(None, None, None)
         return MeasureResult(ok=True, device_selected=device, metrics=metrics)
 
     def _measure_recall(self, record: dict, dtype: str, device: str, corpus: str) -> MeasureResult:
@@ -739,6 +838,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--results-dir", type=Path, required=True)
     parser.add_argument("--pkg-root", type=Path, help="dir with node_modules/@huggingface/transformers")
     parser.add_argument("--onnx-cache-dir", type=Path, help="where resolved ONNX files are downloaded")
+    parser.add_argument(
+        "--vectors-dir",
+        type=Path,
+        help="persist fidelity-cell raw vectors here, keyed by (model, driver version); "
+        "omit to keep the old ephemeral-tmp-dir behaviour",
+    )
+    parser.add_argument("--fidelity-rows", default="600", help="rows quant_fidelity.mjs samples per fidelity cell")
+    parser.add_argument("--probe-device", default="cpu", help="device resolve()'s fp16 loadability probe tests")
     parser.add_argument("--models", help="comma-separated registry ids; default every candidate")
     parser.add_argument("--dtypes", default="fp32,fp16,q8,uint8")
     parser.add_argument("--devices", default="cpu")
@@ -790,6 +897,9 @@ def main() -> int:
         hf_token=read_hf_token(args.keyfile),
         recall_items_path=args.recall_items,
         recall_ords_path=args.recall_ords,
+        vectors_dir=args.vectors_dir,
+        fidelity_rows=args.fidelity_rows,
+        probe_device=args.probe_device,
     )
     stats = run_sweep(plans, args.results_dir, executor, registry_by_id)
     logger.info(

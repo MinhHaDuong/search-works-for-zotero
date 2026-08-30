@@ -1,0 +1,52 @@
+{
+  "cell_id": "granite-97m-multilingual-r2__q8__cpu__fixed-queries-v1__cost-v1",
+  "model": "granite-97m-multilingual-r2",
+  "dtype": "q8",
+  "device_requested": "cpu",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T06:59Z",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "704c1ebca5fbb7cd83ced41827658ac4c9990c64f7f2874d22b78044e5022e22",
+  "onnx_path": "onnx/model_quantized.onnx",
+  "n_reps": 5,
+  "device_selected": "cpu",
+  "metrics": {
+    "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+    "model_id": "granite-97m-multilingual-r2",
+    "dim": 384,
+    "dtype": "q8",
+    "device": "cpu",
+    "load_ms": 1598.4,
+    "rss_before_mb": 89.7,
+    "rss_after_load_mb": 494.7,
+    "rss_delta_mb": 405,
+    "query_ms_min": 5.1,
+    "query_ms_median": 6.1,
+    "query_ms_p95": 7.8,
+    "n": 60,
+    "rss_delta_mb_median": 406.6,
+    "rss_delta_mb_spread": 7.4,
+    "rss_delta_mb_reps": [
+      406.8,
+      404.4,
+      411.8,
+      406.6,
+      405
+    ]
+  }
+}
