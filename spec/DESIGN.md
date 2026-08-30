@@ -591,7 +591,7 @@ the window queries dual-embed, each row scored in its own space. The old
 model is lazy-loaded only while old-generation rows are in the pool, and
 evicted after ~60 s idle. Under memory pressure, queries fall back to
 labeled keyword-anchored fusion. Two resident models (~240 MB + 70 +
-32–64) would bust the ratified 300 MB for a days-long window, so
+32–64) would bust the ratified ceiling for a days-long window, so
 lazy-loading keeps the budget honest at the price of a disclosed cold-load
 spike. At most two generations coexist; worst-case storage is 2× the
 sidecar, disclosed.
@@ -709,7 +709,7 @@ its subtraction terms, not only pass on the gentle one.
 - **R20, the RSS gate.** A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: worker `VmHWM ≤ 500 MB`, server p95 ≤
-  300 MB, the ratified budgets verbatim, against the document class whose
+  750 MB, the ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from R20's letter ("against the 44.9 MB dictionary", content
   that cannot be committed to a public repo); ratification is pending in
@@ -765,13 +765,14 @@ references into slabs) and the chunks are fewer. The float32 fallback adds
 ~0.87 GB.
 
 **RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
-~120 MB of query model on first semantic use ≈ ~220–250 MB. One P1 ≈
-~250 MB steady, ≤ 500 MB transient with hard kill. Whole-machine at two
-clients ≈ 2×220 + 250 ≈ ~690 MB steady. That figure is stated because
-"≤ 300 MB per process" would be a *re-scoping* of a number ratified against
-a single-server picture. It awaits the author's ratification, stated once
-in DECISIONS.md. Dual-embed no longer threatens the budget (the lazy-load
-rule, §2.7).
+≈ 570–660 MB of multilingual query model at its 8-bit rung on first
+semantic use ≈ ~670–760 MB (the measured range across candidates, ticket
+0263; the ceiling is C3's). One P1 ≈ ~250 MB steady, ≤ 500 MB transient
+with hard kill. Whole-machine at two clients ≈ 2×700 + 250 ≈ ~1,6 GB
+steady. That figure is stated because "≤ 750 MB per process" would be a
+*re-scoping* of a number ratified against a single-server picture. It
+awaits the author's ratification, stated once in DECISIONS.md. Dual-embed
+no longer threatens the budget (the lazy-load rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in
