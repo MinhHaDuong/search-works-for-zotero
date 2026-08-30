@@ -161,9 +161,12 @@ def test_the_repo_declarations_are_all_current():
     ) == 0
 
 
-def test_removing_one_declaration_breaks_the_pair_count_ratchet(monkeypatch, caplog):
-    """A green check must not be reachable by silently shrinking its own scope."""
-    monkeypatch.setattr(cf, "FIGURES", cf.FIGURES[:-1])
+def test_shrinking_below_the_pair_count_ratchet_fails(monkeypatch, caplog):
+    """A green check must not be reachable by shrinking below its coverage floor."""
+    figures = list(cf.FIGURES)
+    while sum(len(entry[3]) for entry in figures) >= cf.MINIMUM_PAIRS:
+        figures.pop()
+    monkeypatch.setattr(cf, "FIGURES", figures)
     assert cf.main_for_test(
         str(REPO / "bench" / "results"), minimum_pairs=cf.MINIMUM_PAIRS
     ) == 1
