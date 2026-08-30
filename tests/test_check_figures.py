@@ -156,7 +156,26 @@ def test_a_missing_artifact_is_reported_rather_than_passing(tmp_path, monkeypatc
 
 def test_the_repo_declarations_are_all_current():
     """The live check, so a stale figure fails the suite and not only a manual run."""
-    assert cf.main_for_test(str(REPO / "bench" / "results")) == 0
+    assert cf.main_for_test(
+        str(REPO / "bench" / "results"), minimum_pairs=cf.MINIMUM_PAIRS
+    ) == 0
+
+
+def test_removing_one_declaration_breaks_the_pair_count_ratchet(monkeypatch, caplog):
+    """A green check must not be reachable by silently shrinking its own scope."""
+    monkeypatch.setattr(cf, "FIGURES", cf.FIGURES[:-1])
+    assert cf.main_for_test(
+        str(REPO / "bench" / "results"), minimum_pairs=cf.MINIMUM_PAIRS
+    ) == 1
+    assert "Re-record MINIMUM_PAIRS deliberately" in caplog.text
+
+
+def test_adding_a_declaration_needs_no_second_edit(monkeypatch):
+    """The floor is one-way: extra coverage passes without moving the ratchet."""
+    monkeypatch.setattr(cf, "FIGURES", [*cf.FIGURES, cf.FIGURES[-1]])
+    assert cf.main_for_test(
+        str(REPO / "bench" / "results"), minimum_pairs=cf.MINIMUM_PAIRS
+    ) == 0
 
 
 def test_a_ticket_is_found_whether_open_or_archived(tmp_path, monkeypatch):
