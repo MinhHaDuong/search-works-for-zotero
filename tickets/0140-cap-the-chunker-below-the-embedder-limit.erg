@@ -12,6 +12,8 @@ Author: claude
 
 2026-08-30T12:05Z claude note remaining exit criteria executed. The geometry is code now (bench/geometry.py, the one statement the census and the tests share), the regression exists with its positive control and both arms committed (bench/results/0140-truncation-regression/regression.json: cosine 0,99999996 at the 768 cap — red demonstrated — 0,679 at budget 498, control 0,221), and §2.9's count is a measurement: 567 829 passages over all 13 630 fulltext caches at budget 498 (bench/results/0140-passage-census/census.json), against the ≈250-300k arithmetic it replaces — the measure-don't-divide instruction was right by nearly a factor of two. Median 18 passages per attachment (35 PDF), so §2.3's K lands near its floor, not at 64. Census ran only after the 0263 sweep drained: its cells record ms_per_passage, and a corpus-scale tokenization under a timed window corrupts silently. Action 4's upstream truncation:true flag stays an author decision under the GOVERNANCE budget; action 5 is 0240's train, already running.
 
+2026-08-30T13:40Z minh ruling action 4 bundles into the seg/1 upstream PR (0028), never a standalone filing — this repo explores, designs and prepares the upstream contribution, it implements nothing that ships; ledger entry appended (DECISIONS.md 2026-08-30), DESIGN.md 2.2 states the embed-call contract, 0028 carries the bundle as an exit criterion
+
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted

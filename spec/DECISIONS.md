@@ -540,6 +540,22 @@ with; its cadence is owned there when scoped issue A's machinery lands
 (ticket 0033). X6's still-pending question — what a real re-extraction stamps
 — is untouched and still decides §2.4's part (iii).
 
+**2026-08-30 — the embed-call guard travels inside the upstream contribution,
+never as its own filing.** Ticket 0140's fourth action — assert the cap in the
+chunker and declare the embed call's truncation behaviour explicitly, so an
+over-length chunk surfaces loudly instead of embedding its head in silence —
+was left open on the 0140 branch as "an author decision under the GOVERNANCE
+budget", framed as a possible standalone upstream PR. The author rules it the
+other way, and restates the posture the framing had drifted from: this
+repository explores, designs, and prepares the upstream contribution — it
+implements nothing that ships. The guard is design for the seg/1 PR, which is
+the change that creates the exposure: zoteus today chunks in characters and
+never over-feeds its embedder, so a standalone filing would spend bounded
+upstream budget fixing a latent risk that only our own redesign introduces.
+Bundled, it costs nothing and lands exactly where the risk begins. DESIGN.md
+§2.2 now states the embed call's contract; ticket 0028 carries the bundle as
+an exit criterion.
+
 ## Awaiting ratification
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**

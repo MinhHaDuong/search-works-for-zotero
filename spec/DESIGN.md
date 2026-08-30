@@ -251,6 +251,15 @@ should not yield a chunk that is mostly breadcrumb. Ordering matters: the
 budget bounds the whole embedded sequence, path included, so
 `min(500, width) − affordances` is not `min(width − affordances, 500)`.
 
+The embed call is part of this contract. Seg/1's embed path asserts the cap
+before embedding — an over-length chunk is a bug and surfaces loudly — and
+declares its truncation behaviour explicitly on the call, rather than
+inheriting whatever the runtime does in silence (measured: the incumbent
+embeds the first 512 tokens and discards the rest without a word, ticket
+0140's founding identity). The guard ships inside the seg/1 upstream change
+(ticket 0028), the change that creates the exposure — never as a standalone
+filing (DECISIONS.md, 2026-08-30).
+
 (For the record: the claim that upstream chunks below Zotero's minimum holds
 only for its 512-char *metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
 inside the band. The move to token-structural chunking rests on the boundary
