@@ -68,13 +68,15 @@ SCANNED = [
 #: DECISIONS.md is the append-only ledger where the rulings were made — the
 #: record is evidence precisely because it is never rewritten. SYNC.md records
 #: what happened upstream, including the live tally the bounds are spent
-#: against. STATE.md and RUNBOOK.md are operational. Tickets carry the work.
+#: against. STATE.md is operational. Tickets carry the work. RUNBOOK.md was
+#: operational too, self-sunset 2026-08-30 once its measurements executed
+#: (ticket 0160) — removed from this list with the file, not left dangling.
 #:
 #: This list is documentation, not code: anything absent from SCANNED is already
 #: unscanned. It is written down because "why is SYNC.md not checked?" is the
 #: question that would otherwise be answered by adding it and breaking the
 #: build.
-UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.md", "RUNBOOK.md"]
+UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.md"]
 
 #: Where the two lists above must, between them, account for every document.
 #: A hand-written scope fails asymmetrically: a document that LEAVES breaks the

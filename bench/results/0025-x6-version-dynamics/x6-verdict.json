@@ -1,0 +1,55 @@
+{
+ "probe": "ticket 0025 X6 -- version-0 dynamics: does re-extracting one attachment's fulltext bump anything observable (library version, item version, or the fulltext census entry)? Empirical annex to I-1 (ticket 0024). Feeds the #26 thread per RUNBOOK.md step 3.",
+ "rule": "DESIGN.md §3: if re-extraction re-stamps the item's fulltext version to 0, build the bounded re-verify sweep; if anything observable bumps instead, the md5-widened signal already proposed on the #26 thread suffices and the sweep is never built.",
+ "date": "2026-08-30",
+ "host": "doudou",
+
+ "substrate_available": "ONE arm only -- the author's normal, currently-synced Zotero profile (already running at session start; local API confirmed live on 127.0.0.1:23119 before any other step). The RUNBOOK asks for a second arm on a never-synced profile; that needs a second live Zotero instance/profile, which the task's own hard constraints forbid launching (no GUI, no second Zotero instance). NOT ATTEMPTED, recorded as a limitation rather than silently skipped.",
+
+ "chosen_attachment": {
+  "itemKey": "8YHZTSKL",
+  "parentItem": "V9S6H2RC",
+  "title": "IEA Sankey Vietnam 2020.pdf",
+  "why_this_one": "Smallest non-empty .zotero-ft-cache confirmed present in the fulltext census (105 B extracted text, 106 542 B PDF) -- a low-value single-page infographic, chosen to minimize footprint on the author's real library per the task's 'touch nothing else' constraint.",
+  "storage_path": "/home/haduong/data/Zotero/storage/8YHZTSKL/ (outside this repo -- the author's live Zotero data directory, per CLAUDE.md's environment notes)"
+ },
+
+ "mutation_performed": "rm /home/haduong/data/Zotero/storage/8YHZTSKL/.zotero-ft-cache -- the ONLY mutation the task authorized. Nothing else in the author's storage was touched, and Zotero was never restarted or interacted with via its UI.",
+
+ "observations": {
+  "before": {
+   "library_last_modified_version": 418,
+   "item_8YHZTSKL_version": 0,
+   "census_entry_for_8YHZTSKL": 13780,
+   "fulltext_endpoint_status": "200 (not captured before deletion -- inferred from the census entry existing and the content being servable at that time; the API call to /items/8YHZTSKL/fulltext was first made AFTER the deletion, so this is the one field not directly measured pre-mutation)"
+  },
+  "immediately_after_deletion": {
+   "fulltext_endpoint_status": 404,
+   "note": "GET /api/users/0/items/8YHZTSKL/fulltext returned 404 Not Found the instant the cache file was gone -- the API's per-item fulltext-content endpoint appears to read the .zotero-ft-cache file directly (or a structure invalidated by its absence), independent of any version bump."
+  },
+  "polled_for_5_minutes": {
+   "method": "30 polls at 10 s intervals (300 s total) against GET /api/users/0/items/8YHZTSKL/fulltext, watching for a transition to 200",
+   "result": "ALL 30 POLLS RETURNED 404. No spontaneous re-extraction occurred within the observation window.",
+   "raw_poll_log": "not committed (ephemeral curl status-code polling, no content beyond what is summarized here)"
+  },
+  "after_5_minutes": {
+   "library_last_modified_version": 418,
+   "item_8YHZTSKL_version": 0,
+   "census_entry_for_8YHZTSKL": 13780,
+   "census_total_entries": 8037,
+   "fulltext_endpoint_status": 404
+  }
+ },
+
+ "what_moved": "NOTHING in the version/census machinery moved: library version 418->418, item version 0->0, census entry 13780->13780, census population unchanged at 8037 entries. The only thing that changed was the content-serving endpoint itself: 200-servable before, 404 after, immediately and durably (still 404 five minutes later).",
+
+ "verdict": "X6 IS NOT FULLY ANSWERABLE HEADLESS, and the DESIGN §3 rule cannot be evaluated as written. The rule presupposes that re-extraction HAPPENS and then asks what it does to the version signals ('if re-extraction re-stamps 0 ... if anything bumps'). Here, re-extraction never occurred in 5 minutes of passive observation -- Zotero's fulltext indexer did not notice or repair the missing cache file on its own. Deleting the cache file is a headless-forceable ACTION (per the RUNBOOK's own wording, an alternative to the GUI's 'Reindex Item'), but it forces UNAVAILABILITY, not RE-EXTRACTION; the latter needs either the item's PDF to be opened in the Zotero reader or an explicit UI reindex, both excluded from this run by the task's own constraints.",
+
+ "the_finding_that_is_available": "A real, previously-undocumented failure mode adjacent to X6's question and directly relevant to I-1/0024's freshness design: the fulltext-content endpoint and the version/census machinery are NOT coupled. An item can go from fully indexed and servable to completely unservable (404) with every version signal -- library version, item version, and the item's own fulltext census entry -- reporting business as usual. A freshness check that trusts the census entry (13780, unchanged) or either version number would report this attachment as indexed and current when its content is, in fact, gone. This is evidence FOR the md5-widened-signal proposal already on the #26 thread being necessary rather than sufficient on its own: an md5 comparison of the SOURCE FILE would not catch this case either, since the PDF itself was never touched -- only its derived cache. The gap is between derived-artifact integrity and the stamps that are supposed to describe it, not between source and derived content.",
+
+ "limitation_never_synced_profile_arm": "NOT ATTEMPTED. Requires a second live Zotero profile/instance running concurrently, which the task's hard constraints exclude (no GUI action, no second Zotero instance). The available-arm result above stands alone; whether a never-synced profile's sync-queue machinery behaves differently on the same forced-unavailability is an open question for whoever can run a second profile.",
+
+ "side_effect_on_the_authors_library": "Item 8YHZTSKL ('IEA Sankey Vietnam 2020.pdf') now has no extracted fulltext and will not surface in Zotero's own fulltext search until it is re-extracted (opening it in the reader, or a manual Reindex Item, both trivial one-time actions). It is a single-page infographic, chosen deliberately for low value. No other file in the author's storage was touched.",
+
+ "not_settled": "Whether re-extraction (once it eventually happens, by whatever path) re-stamps the fulltext version to 0 or bumps it to something new -- the DESIGN §3 rule's actual question -- remains UNMEASURED. This is an open experiment, not a null result: report it as such rather than as evidence either way (per the workflow's 'a null result is not a finding until a positive control has fired' discipline). The one path that would settle it without touching the GUI is a scripted PDF re-open via a non-interactive Zotero automation surface, if one exists and is authorized -- not attempted here."
+}

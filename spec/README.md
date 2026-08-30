@@ -20,10 +20,11 @@ owns, and how authority passes between them, is stated once in the repository's
 [README](../README.md) — this page does not restate it.
 
 Live state lives outside the chain: [`../SYNC.md`](../SYNC.md) tracks upstream,
-[`../STATE.md`](../STATE.md) holds the prototype phase's measurement record,
-[`../RUNBOOK.md`](../RUNBOOK.md) says how to run the measurements, and
+[`../STATE.md`](../STATE.md) holds the prototype phase's measurement record, and
 [`../GOVERNANCE.md`](../GOVERNANCE.md) states how this repo conducts itself
-upstream. The work train is the tickets.
+upstream. `../RUNBOOK.md` self-sunset 2026-08-30 once its measurements
+executed; its durable state lives in ticket 0014, ticket 0016, ticket 0024
+and ticket 0025. The work train is the tickets.
 
 ---
 

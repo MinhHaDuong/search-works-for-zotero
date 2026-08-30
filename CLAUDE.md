@@ -8,7 +8,7 @@ and in the author's fork, not here.
 ## The document set, and who is authoritative for what
 
 The specification chain lives in `spec/`. What changes week to week — `STATE.md`,
-`SYNC.md`, `RUNBOOK.md` — stays at the top level, as do `README.md` and this file.
+`SYNC.md` — stays at the top level, as do `README.md` and this file.
 
 - `spec/README.md` — the chain's entry point, and `spec/`'s landing page on the
   forge. Owns one thing nothing else does: where each of the twenty-nine
@@ -52,7 +52,9 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   points at the owning document. A dated snapshot, not a live tracker.
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
-  `RUNBOOK.md` — how to run the measurements, and on which substrate.
+  `RUNBOOK.md` self-sunset 2026-08-30 once its measurements executed; its
+  durable state lives in ticket 0014, ticket 0016, ticket 0024, ticket 0025
+  and `SYNC.md`.
 - The cycle-2 panel's verbatim session record (memos, critiques, the political
   and implementation reviews) is in git history, last present at commit
   `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees

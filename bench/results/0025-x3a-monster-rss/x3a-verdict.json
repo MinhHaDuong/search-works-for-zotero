@@ -1,0 +1,84 @@
+{
+ "probe": "ticket 0025 X3a -- monster RSS baseline on stock upstream (trunk v1.10.0). Stock upstream, the uncapped 44,9 MB document's library ('DurlaufBlume2008-NewPalgraveDictionaryEconomics-2ndEd.pdf', item AXE7G67C, 129,9 MiB PDF / 43,3 MiB extracted text, present in the real library), sqlite backend, --max-chars 0. Reproduces bench/results/0011-rss's 2 084,9 MiB class on the current reviewed baseline. Feeds 0026's rss-gate fixture spec.",
+ "why_committed": "RUNBOOK.md step 5 -- rss-gate fixture spec (0026) needs a build-time and an at-rest RSS baseline on the current trunk, not just the 2026-08-22 v1.9.0-era figure in 0011-rss.",
+ "date": "2026-08-30",
+ "host": "doudou",
+ "trunk_sha": "b132f2dcdf646424a236e5ede4ec68ab8a33adc6",
+ "trunk_version": "v1.10.0",
+ "server": "fork/dist/index.js",
+ "data_dir": "fresh mktemp -d, discarded after the run",
+ "zotero": "Zotero 10.0 local API on 127.0.0.1:23119, real personal library (7 541 top-level items)",
+ "monster_document": {
+  "itemKey": "AXE7G67C",
+  "title": "The New Palgrave Dictionary of Economics, 2nd Edition (Durlauf & Blume, eds., 2008)",
+  "pdf_bytes": 136174386,
+  "pdf_mib": 129.9,
+  "extracted_cache_bytes": 45394219,
+  "extracted_cache_mib": 43.3,
+  "note_on_item_key": "0011-rss/0025 ticket log entries from 2026-08-22/29 refer to this document by a different item key (DH8EXSVA). AXE7G67C is the key resolved against the library as it stands today (2026-08-30). Observation only -- cause not established (could be a re-import, a Zotero-side key reassignment, or the earlier note being wrong); the extracted text size (43,3 MiB here) matches the '44 906 152 chars' figure closely enough to be confident this is the same document."
+ },
+
+ "build_phase": {
+  "purpose": "reproduces bench/results/0011-rss/uncapped-build-3.json's methodology and target class on trunk v1.10.0",
+  "driver": "bench/run_build.py",
+  "command": "python3 bench/run_build.py --server dist/index.js --data-dir <mktemp -d> --backend sqlite --build --max-items 1000000 --max-chars 0",
+  "note_on_driver_output": "Same stdout/stderr note as the trunk-1.10.0 artifacts: RESULT line hand-extracted from the captured stderr log. The raw log is local to the run and NOT committed (*.log.txt is gitignored repo-wide, commit 7d4db23); this JSON's own fields are the full provenance record.",
+  "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
+  "elapsed_s": 182.2,
+  "peak_rss_kb": 2095172,
+  "peak_rss_mib": 2046.1,
+  "status": {
+   "documents": 477511,
+   "vectors": 0,
+   "items": 7541,
+   "storage": "sqlite",
+   "fulltextItems": 5561,
+   "fulltextPassages": 465109,
+   "builtFromVersion": 7541,
+   "libraryVersion": 418,
+   "fulltextVersion": 25041,
+   "passages": 477511,
+   "state": "done",
+   "fulltextItemsScanned": 5999,
+   "fulltextItemsTotal": 5999
+  },
+  "files": {
+   "search-index.sqlite": 984383488,
+   "search-index.sqlite-wal": 154594792,
+   "search-index.sqlite-shm": 327680
+  },
+  "files_mib": {
+   "search-index.sqlite": 938.8,
+   "search-index.sqlite-wal": 147.4,
+   "search-index.sqlite-shm": 0.3
+  }
+ },
+
+ "at_rest_phase": {
+  "purpose": "0026's rss-gate fixture cares about steady-state serving memory, not only the transient build-time peak -- captured as a natural, low-cost complement to the build measurement (not literally requested by name in RUNBOOK.md step 5, which names 'run_serve/run_build' either driver).",
+  "driver": "bench/query.py",
+  "command": "python3 bench/query.py --server dist/index.js --data-dir <same dir as build_phase> --backend sqlite --queries-file bench/queries.txt --limit 20 --repeat 3",
+  "artifact": "bench/results/0025-x3a-monster-rss/query-atrest-sqlite.json",
+  "handshake_s": 0.77,
+  "ready_s": 1.77,
+  "peak_rss_kb_after_start": 125624,
+  "peak_rss_kb_after_start_mib": 122.7,
+  "peak_rss_kb_final": 140380,
+  "peak_rss_kb_final_mib": 137.1,
+  "latency_warm": {"n": 32, "p50_ms": 7.7, "p95_ms": 210.5, "max_ms": 220.2},
+  "note": "At-rest RSS (122,7-137,1 MiB) is roughly 15x smaller than the build-time peak (2 046,1 MiB) -- consistent with the SQLite backend being disk-resident rather than memory-resident once built, the same pattern already documented for the capped case in bench/results/json-baseline/SUMMARY.json's comment on 'the SQLite 121-135 MiB column'. The build-time peak, not the at-rest figure, is the number that reproduces 0011's 2 084,9 MiB class."
+ },
+
+ "reproduction_check": {
+  "target": "bench/results/0011-rss/uncapped-build-3.json -- 371,6 s, 1 848,8 MiB peak_rss_kb (1 893 192 kB), 477 512/465 110 passages, measured 2026-08-22 on an earlier (v1.9.0-era) tree",
+  "measured_here": "182,2 s, 2 046,1 MiB peak_rss_kb (2 095 172 kB), 477 511/465 109 passages, measured 2026-08-30 on trunk v1.10.0",
+  "verdict": "REPRODUCES THE CLASS. Peak RSS is within 10,6% of the 0011 figure (2 046,1 vs 1 848,8 MiB) and both land inside the '2 084,9 MiB class' the 0025 substrate map names (bench/results/0003-full-build's 339,0 s / 2 084,9 MiB (2 134 916 kB) is the third sibling in that range, 39 744 kB / 38,8 MiB apart from the 2 095 172 kB measured here). Passage counts match to within one item (477 511 here vs 477 512/477 511 across siblings -- the library gains and loses a top-level item between crawls, as already noted in 0011-rss's own provenance).",
+  "elapsed_time_note": "182,2 s here is roughly HALF of 0011's 371,6 s. Not explained by this run -- reported as an observation, cause not established. Candidates not distinguished: trunk v1.10.0 build-path changes since v1.9.0, host-load differences between the two sessions (0011 ran 2026-08-22, this ran 2026-08-30), and filesystem cache state (Zotero's own storage and this run's temp dir may have been warmer in page cache this time). RSS, not wall time, is the figure this experiment exists to reproduce, and RSS agrees closely."
+ },
+
+ "siblings": {
+  "0011_rss_uncapped_build_3": "bench/results/0011-rss/uncapped-build-3.json",
+  "0003_full_build": "bench/results/0003-full-build/build_result.json",
+  "trunk_step4_sqlite_capped": "bench/results/trunk-1.10.0/build-sqlite.json (same backend, default caps -- for contrast against this uncapped figure)"
+ }
+}

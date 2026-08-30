@@ -1,0 +1,75 @@
+{
+ "probe": "RUNBOOK.md step 4b -- 'the wall, on trunk': uncapped fulltext build on the memory backend, real library, --max-items 1000000 --max-chars 0.",
+ "why_committed": "Unblocks I-2's redraft with trunk numbers only. Two attempts recorded because the RUNBOOK's literal command (no --node-options) does not survive this geometry -- premise drift discovered while executing, same class the RUNBOOK's own rot warning names for the version premise.",
+ "driver": "bench/run_build.py",
+ "date": "2026-08-30",
+ "host": "doudou",
+ "node_version": "v22.23.1",
+ "trunk_sha": "b132f2dcdf646424a236e5ede4ec68ab8a33adc6",
+ "trunk_version": "v1.10.0",
+ "server": "fork/dist/index.js",
+ "zotero": "Zotero 10.0 local API on 127.0.0.1:23119, real personal library (7 541 top-level items, 5 999 with attempted fulltext extraction, 477 512 passages / 465 110 fulltext passages at completion)",
+ "backend": "memory",
+ "max_items": 1000000,
+ "max_chars": 0,
+
+ "attempt_1_default_heap": {
+  "command": "python3 bench/run_build.py --server dist/index.js --data-dir <mktemp -d> --backend memory --build --max-items 1000000 --max-chars 0",
+  "node_options": "",
+  "outcome": "CRASHED -- FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory, at 190 s wall (GC log timestamp), after the last recorded poll at 177 s. No RESULT line: run_build.py's own vmhwm_kb() then raised (the server pid was gone, /proc/<pid>/status had no VmHWM line), so run_build.py itself also raised rather than reporting a fabricated peak -- the RuntimeError in the log is that guard, not a second defect.",
+  "last_observed_progress": {
+   "wall_s": 177,
+   "peak_rss_observed_gb": 4.61,
+   "documents": 267803,
+   "fulltextItemsScanned": 3200,
+   "fulltextItemsTotal": 5999
+  },
+  "source_log": "local to the run, NOT committed -- *.log.txt is gitignored repo-wide (commit 7d4db23); crash context quoted directly in outcome/last_observed_progress above",
+  "note": "The RUNBOOK's step 4b command carries no --node-options. This is the literal command as written, and it does not complete at this geometry -- a driver/backend gap the RUNBOOK did not flag, distinct from the version-premise gap it did flag. Not fixed in run_build.py itself (the flag already exists and is documented in the driver's own --node-options help text); the fix is supplying it at the call site, done in attempt 2."
+ },
+
+ "attempt_2_heap_10gb": {
+  "command": "python3 bench/run_build.py --server dist/index.js --data-dir <mktemp -d> --backend memory --build --max-items 1000000 --max-chars 0 --node-options=--max-old-space-size=10240",
+  "node_options": "--max-old-space-size=10240",
+  "why_10gb": "Matches the order of magnitude already used for this backend at this geometry in bench/results/json-baseline/SUMMARY.json (12288 MiB, a prior, pre-v1.10.0 session establishing that the memory/JSON backend cannot persist the full uncapped-chars library at all -- rung 'rall-nochar' there reached only 6 100/7 541 items before persist_failed with a 12 GiB heap). 10 GiB was chosen to fit this machine's headroom at run time (free -m: ~12.5 GiB available, swap already saturated) while remaining in the same range as that precedent.",
+  "outcome": "The in-memory build COMPLETED in full -- reached the full real geometry (477 512 passages, 465 110 fulltext passages, 5 999/5 999 fulltext items scanned, matching bench/results/0011-rss's 477 512/465 110 class exactly) -- but PERSISTING it to disk did not: repeated 'WARN Could not persist index: Invalid string length' from item ~5100 onward, and the final status carries persistError: 'Invalid string length'. This is a V8 single-string-length ceiling hit by JSON.stringify()-ing the whole in-memory index, not a heap-size question -- more heap could not fix it, since the failure is a maximum-string-length limit, not an allocation failure. It confirms and sharpens the earlier json-baseline finding (which called it 'persist_failed' without naming the mechanism): the memory/JSON backend structurally cannot serialize a real-scale uncapped-chars index to a single JSON file, on trunk v1.10.0, independent of heap size.",
+  "elapsed_s": 270.8,
+  "peak_rss_kb": 8324864,
+  "peak_rss_mib": 8130.7,
+  "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
+  "status": {
+   "documents": 477512,
+   "vectors": 0,
+   "items": 7541,
+   "storage": "memory",
+   "fulltextItems": 5562,
+   "fulltextPassages": 465110,
+   "builtFromVersion": 7541,
+   "libraryVersion": 418,
+   "fulltextVersion": 25041,
+   "passages": 477512,
+   "state": "done",
+   "itemsAvailable": 7541,
+   "fulltextItemsScanned": 5999,
+   "fulltextItemsTotal": 5999,
+   "persistError": "Invalid string length"
+  },
+  "files": {
+   "search-index.json": 510118958,
+   "update-check.json": 120
+  },
+  "files_mib": {
+   "search-index.json": 486.5
+  },
+  "files_note": "The 486,5 MiB search-index.json on disk is a STALE PARTIAL checkpoint from an earlier successful persist attempt before the string-length limit was hit (the build persists incrementally as it grows) -- it is NOT the completed 477 512-passage index, which was never written. Do not query against this data dir as if it holds the full index.",
+  "source_log": "local to the run, NOT committed -- *.log.txt is gitignored repo-wide (commit 7d4db23); the RESULT line and persist warnings are quoted directly in outcome/status/files above"
+ },
+
+ "the_wall_time_answer": "270,8 s to complete the in-memory scan/index of the full uncapped real library on trunk v1.10.0's memory backend (peak RSS 8 130,7 MiB with a 10 GiB heap) -- but this is a wall time for an index that is built and unusable, not shipped: it cannot be persisted at this geometry, on this backend, regardless of heap. The comparable SQLITE figure for the same uncapped geometry is bench/results/0011-rss/uncapped-build-3.json (371,6 s, 1 848,8 MiB peak, persists fine to a 949,4 MiB .sqlite file) -- SQLite is both faster to reach a usable state and the only backend that reaches one at this geometry.",
+
+ "siblings": {
+  "sqlite_uncapped_precedent": "bench/results/0011-rss/uncapped-build-3.json -- same 477 512/465 110 geometry, sqlite backend, persists fine",
+  "memory_backend_persist_limit_precedent": "bench/results/json-baseline/SUMMARY.json rung 'rall-nochar' -- earlier, pre-v1.10.0 session, same structural finding under a different name ('persist_failed'), reached only a partial 6 100/7 541 items with a 12 GiB heap and never identified the 'Invalid string length' mechanism",
+  "capped_memory_backend": "bench/results/trunk-1.10.0/build-memory.json -- same backend, default caps, completes and persists fine"
+ }
+}
