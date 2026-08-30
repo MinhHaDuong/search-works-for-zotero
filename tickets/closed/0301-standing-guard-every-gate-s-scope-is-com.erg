@@ -2,11 +2,14 @@
 Title: Standing guard: every gate's scope is complete, including the Makefile's
 Created: 2026-08-29
 Author: claude
+Closed: Guard inventory is now derived and enforced; every suite must touch the live repository, progress is wired into make check, and the full gate passes.
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude note filed from the roar sweep after PR 52; the class fired three times in one session
 
+2026-08-30T16:15Z Codex decision: keep uncovered() and untriaged() private; they encode different discovery scopes, and sharing them would couple independent guards without strengthening completeness.
+2026-08-30T16:15Z Codex closed — Guard inventory is now derived and enforced; every suite must touch the live repository, progress is wired into make check, and the full gate passes.
 --- body ---
 ## Context
 This repository keeps being bitten by one defect, at three different levels,
@@ -81,12 +84,12 @@ assertion and assert the test fails. A completeness test that has never been
 seen to fail is the exact defect it was written against.
 
 ## Verification
-- [ ] Adding a guard script without Makefile wiring fails the suite, and the
+- [x] Adding a guard script without Makefile wiring fails the suite, and the
       failure names the script
-- [ ] A guard suite that never touches the real repository fails, and the
+- [x] A guard suite that never touches the real repository fails, and the
       failure names the suite
-- [ ] Both new tests were observed red before being made green
-- [ ] `make check` passes
+- [x] Both new tests were observed red before being made green
+- [x] `make check` passes
 
 ## Invariants
 - No existing guard changes behaviour. This ticket adds tests about the gates,
