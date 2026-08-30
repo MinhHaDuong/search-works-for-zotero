@@ -222,20 +222,22 @@ FIGURES = [
     ("0008-real-vectors/real-93022.json", "latency_ms.binary_first_pass_k240.median_ms", 1,
      {"t0008": "At 8x it is {} ms of the", "state": "it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
+    # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
+    # (spec/DECISIONS.md): the §5 prose that quoted these figures is gone.
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
-     {"t0001": None, "state": None, "readme": "one corpus of {} passages", "sync": "of {} passages read"}),
+     {"t0001": None, "state": None, "readme": "one corpus of {} passages"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
      {"t0001": "| startup to first answer | {} s |", "state": "| startup to first answer | **{} s**",
-      "readme": "**{} s\nagainst", "sync": "and {} s against"}),
+      "readme": "**{} s\nagainst"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2,
-     {"t0001": None, "state": None, "readme": None, "sync": "against {} s to first answer"}),
+     {"t0001": None, "state": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.json_after_16_queries", 1,
      {"t0001": "| resident after 16 queries | {} MiB |", "state": "| resident after 16 queries | **{} MiB**",
-      "readme": "**{} MiB against", "sync": "{} MiB against"}),
+      "readme": "**{} MiB against"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.sqlite_after_16_queries", 1,
-     {"t0001": None, "state": None, "readme": None, "sync": "{} MiB resident and"}),
+     {"t0001": None, "state": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "memory_caveat.conservative_ratio", 1,
-     {"state": "a\n**{}x** win", "readme": "win is {}x rather", "sync": "{}x rather than 45x"}),
+     {"state": "a\n**{}x** win", "readme": "win is {}x rather"}),
     ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None, "state": None}),
     # ---- 0005, the migration ----
     ("0005-migration/migrate_463MB.json", "ratio_db_over_json", 4, {"state": None}),
