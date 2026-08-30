@@ -2,6 +2,7 @@
 Title: Re-run the GPU fidelity and X8 cells with the device fix, every candidate
 Created: 2026-08-30
 Author: Minh Ha-Duong
+Closed: delivered by PR #106: X8 at full coverage — full precision clears the bar for all six candidates, quantized rungs mostly fail it; GPU throughput favours full precision for every candidate; batch-flatness does not generalise. 0264's X8 all-clear formally superseded
 
 --- log ---
 2026-08-30T11:40Z Minh Ha-Duong created
@@ -13,6 +14,7 @@ Author: Minh Ha-Duong
 2026-08-30T15:14Z claude note BATCH SPOT-CHECK: granite-97m-multilingual-r2/uint8/cuda at batch 1/8/32/128 (128 rows): 39,29 / 53,16 / 82,56 / 91,90 ms/passage — roughly DOUBLES from batch 1 to 128. 0481's flat-across-batch finding for multilingual-e5-small does NOT generalize; flagged as model-specific, not a stack-wide property. llama-server: stopped before any measurement (kill -TERM pid 76589, GPU confirmed quiet 89/2 MiB), restarted after with the exact ExecStart line from the systemd unit, run manually as the user — same procedure as 0264/0481. Healthy post-restart ({"status":"ok"}), GPU memory back to 14171+11456 MiB.
 2026-08-30T15:15Z claude note Artifacts: bench/results/0482-gpu-corrected/ (cells/, throughput/, SUMMARY.json, x8-cross-provider-fidelity.json), verification/GPU-CORRECTED-0482.md, bench/results/0264-gpu-arm/SUPERSEDED.md (sibling note, no artifact rewritten), GPU vectors copied to /home/haduong/data/projets/zoteus-bench/0482-vectors/. bench/summarize_0482.py (new, mirrors summarize_0263.py). make check green (184 tests, all guards clean); make progress green (0 findings).
 
+2026-08-30T12:56Z Minh Ha-Duong closed — delivered by PR #106: X8 at full coverage — full precision clears the bar for all six candidates, quantized rungs mostly fail it; GPU throughput favours full precision for every candidate; batch-flatness does not generalise. 0264's X8 all-clear formally superseded
 --- body ---
 ## Context
 
