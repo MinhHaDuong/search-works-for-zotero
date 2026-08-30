@@ -56,6 +56,12 @@ PROSE = {
     "sync": ["SYNC.md"],
     "design": ["spec/DESIGN.md"],
     "requirements": ["spec/REQUIREMENTS.md"],
+    # Ticket 0160: CONSTRAINTS.md quotes 0012's sequence-probe figures as "measured" —
+    # C1's two-sequences sentence and C1's since=0 scoping bullet — and was the one live
+    # instance the first pass of that ticket missed, because its figures use space
+    # thousands with no decimal comma, so a decimal-comma grep returns zero. A scan finds
+    # figures only in the shape it was written for.
+    "constraints": ["spec/CONSTRAINTS.md"],
     # The ratification ledger quotes measured figures while a ruling is pending, and until
     # 2026-08-29 it was the one prose document with no entry here — so every number in it
     # was unguarded, and the X1 entry drifted onto a superseded run within a day of being
@@ -237,10 +243,18 @@ FIGURES = [
     ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0, {"state": None}),
     ("0009-fold-sweep/codepoints.json", "codepoints_agreeing", 0, {"state": "**{} of 1 301 agreeing"}),
     # ---- 0012, the two version sequences ----
-    ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0, {"state": None}),
-    ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0, {"state": None}),
+    # CONSTRAINTS.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
+    # 410 versus 0..25 036" — plus the entries-total in the since=0 scoping bullet. Anchored,
+    # not presence-only: "0" and "25 036" both recur as bare small numbers elsewhere in the
+    # document, so a bare containment check would stay green with either one stale.
+    ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0,
+     {"state": None, "constraints": "measured: {} versus"}),
+    ("0012-fulltext-sequence/sequences.json", "fulltext_version_min", 0,
+     {"constraints": "versus {}.."}),
+    ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0,
+     {"state": None, "constraints": "0..{})."}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_entries_total", 0,
-     {"state": None, "design": None}),
+     {"state": None, "design": None, "constraints": "584 of {} fulltext"}),
     ("0012-fulltext-sequence/sequences.json",
      "fraction_of_library_reported_new_at_library_version", 1,
      {"design": None, "requirements": None}, "pct"),
