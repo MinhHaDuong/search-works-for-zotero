@@ -1,0 +1,78 @@
+%erg 0.1
+Title: Re-run the GPU fidelity and X8 cells with the device fix, every candidate
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T11:40Z Minh Ha-Duong created
+2026-08-30T11:42Z claude note filed on 0481's verdict: every fidelity/recall cell of the 0264 campaign ran on CPU because the harness dropped --device. The fix is merged (PR #102); this ticket spends it. 0267 must not quote any bench/results/0264-gpu-arm/ fidelity figure as a GPU number until this lands.
+
+--- body ---
+## Context
+
+Ticket 0481 isolated the 0264 anomaly: `bench/sweep.py` never forwarded
+`--device` to the fidelity/recall driver, so every "GPU-arm" fidelity cell
+silently ran at the runtime's CPU default, and X8's byte-identity was
+CPU-versus-CPU. The fix and its red-first regression test are merged. What
+remains is to spend the fix: the GPU fidelity cells measured for real, X8 at
+full coverage, and GPU-corrected throughput at the deployed dtypes.
+
+Two findings from 0481 shape the scope. fp32 runs 99,9 % on CUDA and comes
+out faster than q8 there, because the quantized matmul has no CUDA kernel and
+falls back to CPU — so the optimal rung differs by device, and the menu
+entries 0440 proposes may need to say so. And the genuine cross-provider
+signature (close, not byte-identical) is what X8's bar was written for; one
+candidate has cleared it, five have not been measured.
+
+## Relevant files
+
+- `tickets/0481-...erg` — the mechanism, the evidence paths, the caveats
+- `tickets/closed/0264-...erg` — the campaign being corrected
+- `bench/sweep.py` — carries the fix; use it as merged
+- `bench/results/0264-gpu-arm/` — fidelity figures superseded by this run;
+  state the supersession where they are cited
+- `verification/probes/gpu_anomaly_embed_probe.mjs` — the device-forwarding
+  probe pattern
+- `spec/DESIGN.md` §3 X8 — the decision rule and the bar
+
+## Actions
+
+1. On padme (llama-server stop/restart per the standing authorization and
+   0481's procedure), re-run the fidelity cells for every candidate at every
+   rung loadable under an explicit GPU device, with the fixed harness. Use
+   explicit `cuda` where `auto` crashes per 0481/0264 (the granite models).
+2. Score X8 per candidate at every shared rung against 0263's CPU vectors —
+   the genuine cross-provider comparison this time; report against DESIGN §3's
+   bar.
+3. Measure GPU throughput at the rungs 0267 could actually deploy (fp32 and
+   the 8-bit rungs), so R30's bound can derive from the recommended
+   candidate's real figure.
+4. Mark the superseded 0264 fidelity figures as superseded where cited, never
+   rewriting the artifacts.
+
+## Test
+
+- The harness's device regression test already gates this; additionally the
+  campaign's own vector metadata must record the resolved device, not
+  "(runtime default)" — assert it per cell before scoring.
+
+## Verification
+
+- [ ] No fidelity result in this campaign records "(runtime default)" as its
+      device
+- [ ] X8 reported per candidate and rung, with the bar stated
+- [ ] The 0264 fidelity figures are marked superseded where cited
+
+## Invariants
+
+- No 0263/0264 artifact is rewritten; supersession is stated beside citations
+- Warm only; repeats with spread for anything ranked
+- llama-server's state recorded before and after
+
+## Exit criteria
+
+- [ ] GPU fidelity cells re-measured for every candidate at every loadable
+      rung, device asserted per cell
+- [ ] X8 at full coverage with a verdict per candidate
+- [ ] GPU-corrected throughput for the deployable rungs, ready for 0267 and
+      R30's bound
