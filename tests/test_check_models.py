@@ -133,6 +133,20 @@ def test_file_paths_are_not_read_as_model_ids(tmp_path):
     assert cm.run(repo) == 0
 
 
+def test_a_ticket_path_is_not_read_as_a_model_id(tmp_path):
+    """A driver citing its ticket writes `tickets/NNNN-….erg`, whose slug can
+    contain a family word ('embedder'); that is a path, not a repo id."""
+    repo = build(
+        tmp_path,
+        {
+            "bench/census.mjs": (
+                "// ticket: tickets/0140-cap-the-chunker-below-the-embedder-limit.erg\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 0
+
+
 def test_a_record_missing_a_required_key_fails(tmp_path):
     incomplete = dict(MINIMAL_RECORD)
     del incomplete["input_template"]

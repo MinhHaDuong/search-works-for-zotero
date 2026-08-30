@@ -158,13 +158,14 @@ FAMILY = re.compile(
 TOKEN = re.compile(r"(?<![\w./-])([A-Za-z0-9][\w.-]{0,40})/([A-Za-z0-9][\w.-]{0,60})(?![\w./-])")
 
 #: A path segment, not a repo name.
-EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html)$", re.I)
+EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html|erg)$", re.I)
 
 #: Directory names that open a path, not an owner.
 PATH_OWNERS = {
     "bench",
     "spec",
     "tests",
+    "tickets",
     "verification",
     "results",
     "onnx",
