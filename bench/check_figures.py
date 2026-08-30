@@ -282,6 +282,23 @@ FIGURES = [
     # duplicate-value case a bare presence check cannot see.
     ("0140-model-windows/candidate-windows.json", "min_window", 0,
      {"design": "window is {} tokens, so the minimum never binds"}),
+    # ---- 0140, the passage census. §2.9's count is a measurement, and these anchors
+    # are what make a re-measurement propagate: re-run the census, and every quoted
+    # figure below goes stale together instead of drifting one by one.
+    ("0140-passage-census/census.json", "summary.passages_total", 0,
+     {"design": "derived**: {} passages at the"}),
+    ("0140-passage-census/census.json", "summary.files", 0,
+     {"design": "counted over all {} fulltext caches"}),
+    ("0140-passage-census/census.json", "summary.tokens_total", 0,
+     {"design": "({} tokens through the"}),
+    ("0140-passage-census/census.json", "summary.median_passages_per_attachment", 0,
+     {"design": "attachment measures {} passages"}),
+    ("0140-passage-census/census.json", "summary.by_kind.pdf.median_passages_per_attachment", 0,
+     {"design": "{} for PDFs"}),
+    ("0140-passage-census/census.json", "summary.by_kind.html.median_passages_per_attachment", 0,
+     {"design": "{} for HTML snapshots"}),
+    ("0140-passage-census/census.json", "geometry.budget", 0,
+     {"design": "resolved budget of {} tokens"}),
     # ---- 0013, concentration ----
     ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
     ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,

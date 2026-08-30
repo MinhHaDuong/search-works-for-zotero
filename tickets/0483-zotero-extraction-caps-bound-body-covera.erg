@@ -1,0 +1,72 @@
+%erg 0.1
+Title: Zotero extraction caps bound body coverage: settle which cap binds where
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T12:16Z Minh Ha-Duong created
+
+2026-08-30T15:50Z claude note action 1's experiment substantially settled the same afternoon (verification/probes/api-vs-cache-probe.py): the API serves the cache byte-identical — same chars, same form feeds, blank lines intact — on 3 probes including one AT the cap (indexedPages 100, totalPages 114, 99 form feeds), so pdfMaxPages binds cache and API alike and the per-attachment detection hook works live. Remaining before closing: the textMaxLength half (the p99 signature is suggestive, not settled), the ruling+CONSTRAINTS entry, and the truncated-body state in DESIGN.
+
+--- body ---
+## Context
+The author raised it during the 0140 session (2026-08-30): Zotero as the
+extract process carries caps we do not control — `fulltext.pdfMaxPages`
+(default 100 pages) and `fulltext.textMaxLength` (default 500 000
+characters), both at defaults on this machine (prefs.js holds no override).
+The spec chain records neither. A long document therefore arrives truncated
+at the source, before the 0140 chunk geometry or any coverage machinery
+sees it — the same silent-partial failure family the truncation regression
+guards at the embed stage, one stage earlier.
+
+Measured state (2026-08-30, census data
+`bench/results/0140-passage-census/census.json` and its per-file JSONL):
+the regime is MIXED, so the mechanism is an open question, not a verdict.
+152 of 8 700 PDF caches exceed ~90k tokens (≈100 dense pages); the tail
+reaches 306k, 488k, and one 10,1M-token cache. Yet the p99 sits at 103 429
+tokens, almost exactly the 500 000-character cap's signature (~105k
+tokens). Consistent with: one cap binding the API-served indexed content,
+the cache files partially escaping, historical extractions under other
+settings — not yet isolated. Which artifact each cap binds matters because
+zoteus consumes the API while our census read cache files directly.
+
+## Relevant files
+- `bench/results/0140-passage-census/census.json` — the measured cache-side state
+- `spec/CONSTRAINTS.md` — where the platform cap belongs once settled (beside C2)
+- `spec/DESIGN.md` §2.3-2.4 — coverage states (cache-lost machinery) the
+  truncated-body flag would join
+- `tickets/0480-old-extractor-fulltext-quality-staleness.erg` — sibling
+  extractor-quality class
+
+## Actions
+1. The one experiment: pick one known 500+-page PDF; compare the API's
+   `indexedPages`/`totalPages` and content length against the cache file's
+   length. That settles which cap binds which artifact.
+2. Record the settled constraint in CONSTRAINTS.md (a ruling in
+   spec/DECISIONS.md first, per the chain's rule).
+3. Design the honest state: the API reports `indexedPages`/`totalPages`, so
+   an extractor-truncated body can be a marked ledger state (like
+   cache-lost) instead of silence — one field, and R4/R17 stay true for
+   books.
+
+## Test
+- The experiment of action 1 is the test; its artifact goes under
+  `verification/` and is cited here.
+
+## Verification
+- [ ] Which cap binds the cache file, and which binds the API content, each
+      established by the experiment, not inferred
+- [ ] The constraint stated in the chain with the cap values and their scope
+- [ ] The truncated-body state designed, with its detection source named
+
+## Invariants
+- No extractor improvement in this ticket — the author deferred that
+  (2026-08-30); this ticket records, settles, and designs the honest flag.
+- Coverage claims (R4, R17) must not silently include truncated bodies once
+  the state exists.
+
+## Exit criteria
+- [ ] The cap mechanism is settled by measurement and recorded in the chain
+- [ ] The truncated-body coverage state is in DESIGN.md
+- [ ] This ticket's findings are reflected in the extract-stage discussion
+      whenever the own-extractor question reopens

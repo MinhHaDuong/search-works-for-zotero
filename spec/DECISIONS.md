@@ -540,7 +540,114 @@ with; its cadence is owned there when scoped issue A's machinery lands
 (ticket 0033). X6's still-pending question — what a real re-extraction stamps
 — is untouched and still decides §2.4's part (iii).
 
+**2026-08-30 — the embed-call guard travels inside the upstream contribution,
+never as its own filing.** Ticket 0140's fourth action — assert the cap in the
+chunker and declare the embed call's truncation behaviour explicitly, so an
+over-length chunk surfaces loudly instead of embedding its head in silence —
+was left open on the 0140 branch as "an author decision under the GOVERNANCE
+budget", framed as a possible standalone upstream PR. The author rules it the
+other way, and restates the posture the framing had drifted from: this
+repository explores, designs, and prepares the upstream contribution — it
+implements nothing that ships. The guard is design for the seg/1 PR, which is
+the change that creates the exposure: zoteus today chunks in characters and
+never over-feeds its embedder, so a standalone filing would spend bounded
+upstream budget fixing a latent risk that only our own redesign introduces.
+Bundled, it costs nothing and lands exactly where the risk begins. DESIGN.md
+§2.2 now states the embed call's contract; ticket 0028 carries the bundle as
+an exit criterion.
+
+**2026-08-30 — the chunk is the paragraph; the geometry question is closed.**
+The unit of chunking is the authored paragraph, and §2.2's token budget is a
+guard against extraction artifacts, never a target. Basis, measured on this
+corpus: readable paragraphs run 100–200 words, which the two tokenizer
+families in play price at roughly 130–390 tokens (1,26 tokens per word for
+the English wordpiece, 1,57 for the multilingual vocabulary, measured on a
+196-word abstract; `verification/probes/tokens-per-word-probe.mjs`) — every
+authored paragraph fits one 498-token chunk with room to spare. The window
+binds only on extraction artifacts: in a 254-PDF sample, most 350-plus-word
+blocks carry the glued-paragraph signature — sentence-end, newline, capital —
+left when extraction drops the first-line indent that separated paragraphs;
+the rest are reference lists and mangled layout
+(`verification/probes/glued-block-probe.py`; figures on ticket 0028's log).
+Splitting those loses nothing an author wrote.
+
+Two corollaries close with it. Window size ceases to be an embedder-selection
+criterion beyond ≥ 512 tokens: authored paragraphs never approach the window,
+so a long-context model buys nothing for chunk geometry, and 0140's action 5
+— long-context embedders as insurance — is answered, not needed. And seg/1
+splits oversized blocks at the recoverable seams, recorded on 0028.
+
+**Rejected: keeping upstream's chunker as it stands.** Read at v1.10.0
+(`b132f2d`, `src/features/search/chunker.ts`): `chunkText` collapses all
+whitespace — newlines included — to single spaces as its first act, then
+strides 1 200 characters with 150 of overlap, snapping cuts to word
+boundaries. Three grounds. (i) It is paragraph-*sized* only statistically and
+paragraph-*aligned* never: structure is flattened before the first cut, so
+boundaries land mid-sentence everywhere and each seam vector averages two
+unrelated thoughts. (ii) A character cap is token-safe in Latin scripts
+alone: 1 200 characters of CJK exceed the 512-token window severalfold,
+reproducing on the multilingual path (R7, C2) the silent truncation 0140
+measured. (iii) It is entry-blind, ruled against on 2026-08-26 — the entry
+as unit of answer. What upstream got right is kept: the scale of its chunks,
+1 200 characters being roughly 250–300 English tokens, inside the paragraph
+band — which is why nothing truncates in the field today, and why this
+ruling is an alignment fix, not a size change.
+
+**2026-08-30 — the pipeline is four processes, and the extract stage is a shim
+over Zotero for now.** The author's architecture: extract, chunk, and embed as
+three asynchronous processes, the MCP query servers the fourth — coordinated
+through the ledger, whose keyed, idempotent derivations are what make the
+stage boundaries process boundaries. The extract process starts as a shim
+that only queries Zotero, same functionality as today's in-server crawl,
+because the shim's real content is already nontrivial: the bookkeeping that
+everything gets extracted *eventually* and *to the latest extractor* — the
+since-cursor, extractor-version staleness (ticket 0480's class), and the
+per-attachment truncation flags (ticket 0483). Someday it is replaced by a
+better extractor — one that, for instance, keeps blank lines so the chunker
+can be structural. A fact measured the same day narrows what "someday" must
+deliver: the local API serves the cache file byte-identical — blank lines and
+form-feed page breaks arrive intact (3 probes, one at the 100-page cap,
+`verification/probes/api-vs-cache-probe.py`) — so structure is destroyed by
+the *chunker's* whitespace-flattening, not the transport, and the shim can
+pass structure through from day one. The workers' lifecycle is run-to-drain —
+spawn on a tick, drain the ledger queue, exit — so steady state holds only
+the query servers and the RAM arithmetic keeps today's shape; the chunker
+and embedder split buys failure-mode isolation (monster-RSS risk is
+chunk-side; the embedder is memory-steady), not wall-clock. Propagation of
+the process model into DESIGN.md §2.4/§2.5/§2.9 is ticketed rather than
+improvised here.
+
 ## Awaiting ratification
+
+- **The book segmenter works at page boundaries on the PDF side — and the
+  open question is where the split runs relative to the extractor (author,
+  2026-08-30; a first recording of this entry misread the position as
+  "segment = page" and is corrected here — awaiting entries are drafts, the
+  append-only rule protects ratified ones).** For books, proceedings, and
+  encyclopedias, chapters and articles begin on pages, and the PDF side
+  holds that map: measured, 15 of 24 sampled 100-plus-page PDFs (63 %)
+  carry a machine-readable outline (`mutool show … outline`), page-anchored.
+  The question — split before or after the extractor — resolves under the
+  shim ruling into **discover before, cut after**: true before-the-extractor
+  splitting means extracting text per chapter ourselves, which contradicts
+  the shim (Zotero stays the extractor, and its API has no per-range call);
+  but *discovery* before it is only reading structure, not extracting text.
+  So the segmenter reads the chapter map from the PDF (outline first, TOC
+  parse as fallback), and cuts the *extracted text* at the mapped page
+  boundaries, located by form feeds — present in 55 % of caches today,
+  raisable by a re-extraction sweep (0480's class). Two consequences favor
+  this shape. The outline names chapters past the 100-page cap that
+  extraction never delivered, giving honest coverage its denominator —
+  "present in the book, absent from the index" — which flat text cannot
+  express (ticket 0483's state gains chapter names). And when the
+  someday-better extractor arrives, the same map drives true per-chapter
+  extraction with no redesign. Online encyclopedias have no pages: there the
+  structure signal is markup headings, necessarily text-side; the
+  segmenter's interface should take structure signals (PDF outline + form
+  feeds | HTML headings | headword rhythm) and cut text, with today's
+  heuristic seg/1 as the no-signal fallback. Reference works keep entry
+  segmentation under the entry-as-unit-of-answer ruling. Ratifying this
+  reshapes ticket 0028's spec and X5's question.
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**
   The entry below reports X4 and concludes the ladder loses its middle rung.
