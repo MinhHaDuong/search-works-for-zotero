@@ -341,7 +341,12 @@ changes and the chain re-derives, convergent by construction.
 ### 2.4 Freshness: census-equality where the sequence is mixed, a cursor where it is not
 
 The reconcile tick is conductor-owned (§2.5), runs every 60 s when idle with
-backoff when Zotero is unreachable, and does three things per library:
+backoff when Zotero is unreachable, and schedules the run-to-drain **extract
+shim**. The tick is the scheduler, not the extractor. The shim queries Zotero
+only, drains the extract-stage ledger queue, and owns the bookkeeping that
+makes extraction converge eventually and to the latest extractor: the item
+cursor, the full-text census, extractor-version staleness, and per-attachment
+truncation flags. It does three things per library:
 
 1. **Items**: fetch `?since=item_watermark`, the watermark scoped to
    (oid, lib). This is a legitimate cursor: library versions are monotonic
@@ -365,6 +370,13 @@ backoff when Zotero is unreachable, and does three things per library:
    local API has no `/deleted` endpoint (CONSTRAINTS.md C2); census
    subtraction is the only local deletion route.
 
+The shim does not need to flatten what Zotero returns. The local API serves
+the cache bytes unchanged, including blank lines and form-feed page boundaries
+(`verification/probes/api-vs-cache-probe.py`; ruling 2026-08-30). Structure is
+lost in today's chunker, not in transport, so the extract stage passes those
+signals through from day one. A later extractor can replace the shim without
+changing the ledger boundary or the downstream stages.
+
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to
 equality comparison, and on a never-synced library that could be *every*
@@ -387,21 +399,22 @@ passages are indexed marks them **cache-lost**: a stored warning state,
 counted, reason stored in the terminal-state vocabulary — never an
 eviction, because the source did not change and the passages remain
 faithful; the healing path is the user's Reindex, surfaced as a count. The
-probe rides whichever bounded background walk this section ends up with —
-part (iii)'s sweep if X6 forces it, else its own slow walk — and its
-cadence is pinned when the machinery lands.
+probe rides the extract shim's bounded verify walk — part (iii)'s sweep if
+X6 forces it, else its own slow walk — and its cadence is pinned when the
+machinery lands.
 
 **The query path** is unchanged from v1: zero Zotero requests when the tick
 ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that
 reports and nudges rather than blocks, with `probedMsAgo` in replies.
 
-### 2.5 Topology and concurrency: N servers, one conductor, one worker
+### 2.5 Topology and concurrency: N servers, one conductor, three worker kinds
 
-Two kinds of process appear below: P0, a query-serving zoteus server, and
-P1, the single background pipeline worker. The normal deployment is N × P0:
-one zoteus per MCP client, all on one fixed default data directory
-(verified). Every P0 answers queries, as WAL readers on a write-free query
-path. Exactly one P0 is the *conductor*, elected through a lease row:
+Four process roles appear below: P0, a query-serving zoteus server, and one
+worker kind for each asynchronous pipeline stage — extract, chunk, embed.
+The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
+default data directory (verified). Every P0 answers queries, as a WAL reader
+on a write-free query path. Exactly one P0 is the *conductor*, elected through
+a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
     WHERE name='conductor' AND (holder=:uuid OR expires_at < :now)
@@ -410,16 +423,19 @@ The holder is a UUID, not a recyclable pid. A lockfile was rejected because
 lockfiles go stale exactly when their holder dies. Lease timing: TTL = 2×
 heartbeat (20 s), an election-check cadence of 10 s in every server, and a
 migration gate < TTL + cadence = 30 s. The constants satisfy their own
-gate. The conductor runs the reconcile tick and owns the single P1 worker
-(`nice 19`, three ledger-paced loops), so the pipeline budget does not
-multiply with N.
+gate. The conductor runs the reconcile tick and owns at most one worker of
+each kind (`nice 19`), so the pipeline does not multiply with N. Each worker
+is run-to-drain: it is spawned when its stage's ledger queue has work, drains
+that queue, and exits. The ledger's keyed, idempotent derivations — not an
+in-memory pipe — are the boundary between stages. When every queue is drained,
+steady state contains no pipeline worker.
 
-Two orphan repairs are mandatory, because without them nothing actually
-enforces "exactly one P1". The worker exits on stdin EOF (parent death) and
-re-verifies `leases.holder == parent-uuid` between micro-batches, exiting on
-mismatch. And lease renewal runs on a timer decoupled from batch progress,
-renewed immediately before any long fetch: the 44.9 MB single-GET monster
-fetch has no micro-batch boundary inside it.
+Two orphan repairs are mandatory for every worker kind, because without them
+nothing actually enforces the one-of-each bound. Each worker exits on stdin
+EOF (parent death) and re-verifies `leases.holder == parent-uuid` between
+micro-batches, exiting on mismatch. Lease renewal runs on a timer decoupled
+from stage progress and is renewed immediately before any long unit of work;
+the extract stage's monster GET has no micro-batch boundary inside it.
 
 Safety never depends on the singleton: per-row leases with the
 `claimed_input` commit guard are the correctness layer, cross-process by
@@ -430,21 +446,21 @@ rather than implying otherwise.
 
 Foreground beats background across processes: each P0 touches
 `<dataDir>/activity` on query arrival (a filesystem operation, so the query
-path stays write-free even in the database sense). The worker stats that
-file between micro-batches and idles 2 s while it is fresh. The conductor's
-own stdio pipe remains the low-latency fast path; `nice 19` remains the OS
-floor. Upstream's BEGIN-at-first-mutation transaction is repaired
+path stays write-free even in the database sense). Every active worker stats
+that file between micro-batches and idles 2 s while it is fresh. The
+conductor's stdio pipes remain the low-latency fast path; `nice 19` remains
+the OS floor. Upstream's BEGIN-at-first-mutation transaction is repaired
 surgically: the build path commits per page (its 200-item/10 s persist
 cadence already exists; the hold window shrinks below the busy_timeout),
 while the update path keeps its single-transaction rollback. Upstream's
 own comment is right that a half-applied delta is a wrong index, not a
 partial one.
 
-Sidecar discipline: the conductor alone writes, into generation-numbered
-files (`vectors-<embedderKey>.g<N>`), fsynced then atomically renamed. The
-generation is stamped in meta and verified by scans, and deletion
-tombstones cover every live generation. Compaction runs at >10 % dead rows or in the
-idle weekly slot.
+Sidecar discipline: the conductor's single embed worker alone writes, into
+generation-numbered files (`vectors-<embedderKey>.g<N>`), fsynced then
+atomically renamed. The generation is stamped in meta and verified by scans,
+and deletion tombstones cover every live generation. Compaction runs at >10 %
+dead rows or in the idle weekly slot.
 
 ### 2.6 Query path and ranking
 
@@ -708,8 +724,9 @@ its subtraction terms, not only pass on the gentle one.
   green by right.
 - **R20, the RSS gate.** A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
-  the band cap are exercised. Assert: worker `VmHWM ≤ 500 MB`, server p95 ≤
-  750 MB, the ratified budgets verbatim, against the document class whose
+  the band cap are exercised. Assert: concurrent background-pipeline peak ≤
+  500 MB across the run-to-drain stage workers, server p95 ≤ 750 MB, the
+  ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from R20's letter ("against the 44.9 MB dictionary", content
   that cannot be committed to a public repo); ratification is pending in
@@ -767,12 +784,16 @@ references into slabs) and the chunks are fewer. The float32 fallback adds
 **RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
 ≈ 570–660 MB of multilingual query model at its 8-bit rung on first
 semantic use ≈ ~670–760 MB (the measured range across candidates, ticket
-0263; the ceiling is C3's). One P1 ≈ ~250 MB steady, ≤ 500 MB transient
-with hard kill. Whole-machine at two clients ≈ 2×700 + 250 ≈ ~1,6 GB
-steady. That figure is stated because "≤ 750 MB per process" would be a
-*re-scoping* of a number ratified against a single-server picture. It
-awaits the author's ratification, stated once in DECISIONS.md. Dual-embed
-no longer threatens the budget (the lazy-load rule, §2.7).
+0263; the ceiling is C3's). At drain-complete steady state only P0s remain,
+so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
+incorrectly kept a pipeline worker resident. Extract, chunk, and embed add
+transient residency only: they are run-to-drain, one of each kind at most,
+and together remain under C3's ≤ 500 MB pipeline peak with hard kill rather
+than multiplying that budget by stage. The chunk split isolates the monster
+RSS risk from the memory-steady embedder; it does not buy wall-clock. Whether
+the server ceiling scopes per process or per machine still awaits the
+author's ratification, stated once in DECISIONS.md. Dual-embed no longer
+threatens the budget (the lazy-load rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in

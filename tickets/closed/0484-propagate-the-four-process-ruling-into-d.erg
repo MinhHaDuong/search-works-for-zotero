@@ -2,10 +2,12 @@
 Title: Propagate the four-process ruling into DESIGN 2.4, 2.5 and 2.9
 Created: 2026-08-30
 Author: Minh Ha-Duong
+Closed: four-process ruling propagated through DESIGN §§2.4, 2.5, 2.8 and 2.9; extract shim and byte-preserving structure path stated, one run-to-drain worker per stage, steady RAM corrected to query servers only, terminology aligned; make check green (258 passed, 12 skipped)
 
 --- log ---
 2026-08-30T12:22Z Minh Ha-Duong created
 
+2026-08-30T13:51Z Codex closed — four-process ruling propagated through DESIGN §§2.4, 2.5, 2.8 and 2.9; extract shim and byte-preserving structure path stated, one run-to-drain worker per stage, steady RAM corrected to query servers only, terminology aligned; make check green (258 passed, 12 skipped)
 --- body ---
 ## Context
 DECISIONS.md 2026-08-30 ratified the four-process pipeline: a shim extract
@@ -38,6 +40,6 @@ around it.
 - `make check` green throughout; every moved figure keeps an anchor.
 
 ## Exit criteria
-- [ ] The three sections state the four-process model and cite the ruling
-- [ ] No document still describes chunk+embed as one worker
-- [ ] Figure guard green with the moved RAM figures
+- [x] The three sections state the four-process model and cite the ruling
+- [x] No document still describes chunk+embed as one worker
+- [x] Figure guard green with the moved RAM figures
