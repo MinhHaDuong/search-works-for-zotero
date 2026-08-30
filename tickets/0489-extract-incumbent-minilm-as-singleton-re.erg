@@ -1,0 +1,22 @@
+%erg 0.1
+Title: Extract incumbent MiniLM as singleton registry entry
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## Scope
+
+Move the current local MiniLM configuration out of its constructor chain into
+one versioned registry file. Do not add a selector, alternate entry, daemon or
+behavior change.
+
+## Exit criteria
+
+- A characterization test freezes current query and passage vectors, dimension
+  and vector key before the extraction.
+- The singleton entry carries the incumbent model, revision, graph/dtype,
+  pooling, normalization, templates, window and dimension explicitly.
+- The characterization stays green after the extraction.

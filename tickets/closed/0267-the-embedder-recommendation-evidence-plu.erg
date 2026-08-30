@@ -2,6 +2,7 @@
 Title: The embedder recommendation: evidence plus a decision rule
 Created: 2026-08-29
 Author: claude
+Closed: PR #110 merged; recommendation evidence reviewed without selecting an implementation default
 
 --- log ---
 2026-08-30T15:10Z claude note delivered: verification/EMBEDDER-RECOMMENDATION-0267.md. Decision rule in six ordered clauses (R7 filter; reliability-at-deployed-rung gate, which excludes granite-97m/q8 on three independent condemnations; rank on task recall at the shipping rung; control cleanliness above raw recall; cross-lingual tiebreak; cost reported never ranked). Under the rule multilingual-e5-base comes out best balanced; arctic-embed-m-v2 wins raw recall if the hubness clause is priced differently, and the report names the discriminating experiment. Two shapes stated: 8-bit on CPU, fp32 on CUDA (no int8 CUDA kernel). Tracker open questions answered: uint8-over-q8 does NOT generalise; the 8-bit collapse is granite-97m-specific; quantization robustness is a live criterion. Fused delta: 0,7352 of the vector gain survives; a broken rung drags fused below keyword-alone. Six named overturn conditions. Every figure anchored in bench/check_figures.py (v0267).
@@ -14,6 +15,7 @@ Author: claude
 2026-08-30T14:55Z claude note window size is not a selection criterion beyond 512 tokens (DECISIONS.md 2026-08-30, the-chunk-is-the-paragraph ruling): authored paragraphs measure 130-390 tokens and never approach the window, so a long-context model buys nothing for chunk geometry — judge candidates on retrieval quality, cost and language coverage alone
 
 2026-08-30T13:29Z Minh Ha-Duong note blocker 0265 closed — Blocked-by removed.
+2026-08-30T14:57Z Codex closed — PR #110 merged; recommendation evidence reviewed without selecting an implementation default
 --- body ---
 ## Context
 

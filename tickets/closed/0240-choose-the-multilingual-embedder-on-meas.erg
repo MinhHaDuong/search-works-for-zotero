@@ -2,6 +2,7 @@
 Title: Choose the multilingual embedder, on measurements taken at the deployed dtype
 Created: 2026-08-29
 Author: claude
+Closed: measurement children complete, PR #110 merged, and integration review transferred implementation to tracker 0488
 
 --- log ---
 2026-08-30T16:00Z claude note batched decision round executed. C3 ruled at ~750 MB p95 and re-pinned (0268 closed); 0440 closed on the recorded deferral, draft committed; the adopt-by-copy ratification holds for ticket 0485 (the X8-bar task-metric check, new). Children standing: 0261-0266 and 0268 closed; 0267 open awaiting the author's read of PR #110. The tracker closes after that merge and the integration review, not before.
@@ -18,6 +19,7 @@ Author: claude
 2026-08-29T15:05Z claude note the per-model input template needs a POOLING column beside the prefixes, and for the same reason. Zotero core's registry (zotero/zotero#6012, chrome/content/zotero/xpcom/embeddings.js) carries pooling per model and it varies: cls for bge-small-en/zh, bge-base, bge-m3; mean for multilingual-e5-small/base, all-MiniLM-L6-v2, jina-v2-small. zoteus hardcodes pooling:'mean' at src/features/search/embeddings.ts:284, so a harness copying it will silently mean-pool a cls model and under-measure it exactly as missing prefixes under-measure e5. NOT yet checked, and it is the one check that matters here: which pooling granite-embedding-97m/311m-r2, snowflake-arctic-embed-m-v2.0 and gte-multilingual-base each want — three of the four leading candidates. Read it off each model card before 0262 embeds anything; do not infer it. Same file also confirms two things this ticket already holds: dtype belongs in vector identity (their revision-bump comment names dtype first), and their pick for every one of eight shipped models is q8.
 2026-08-29T15:46Z bump circuit-breaker — agent timeout: the 0261 executor stalled re-requesting a review panel that had already reported five times to the raid; killed after salvage confirmed a clean tree, and its findings were dispositioned by the orchestrator directly
 2026-08-29T16:47Z Minh Ha-Duong note blocker 0220 closed — Blocked-by removed.
+2026-08-30T14:57Z Codex closed — measurement children complete, PR #110 merged, and integration review transferred implementation to tracker 0488
 --- body ---
 ## This is a tracking ticket
 

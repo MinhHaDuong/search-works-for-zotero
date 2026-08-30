@@ -1,0 +1,25 @@
+%erg 0.1
+Title: Gate which embedder entries ship
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Blocked-by: 0493
+Blocked-by: 0029
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## Scope
+
+After technical validation works, apply the private golden retrieval gate and
+the published resource budgets to decide which curated entries are exposed and
+whether the default changes. Compatibility crowd counts are supporting
+operability evidence only.
+
+## Exit criteria
+
+- Every proposed shipped entry passes local compatibility, the golden retrieval
+  gate and resource limits on its supported shapes.
+- Licences, artifact sizes and runtime support are disclosed beside the entry.
+- The decision and its negative controls are recorded in DECISIONS.md.
+- If evidence does not justify a change, MiniLM remains the default explicitly.

@@ -66,6 +66,13 @@ entry points at the question rather than settling it; rulings land in
 - **entry collapse** — reducing a document's matching passages to one ranked
   hit per entry, scored as the maximum over its chunks, before either engine
   assigns ranks. Authoritative: DESIGN.md §2.6.
+- **embedder entry** — one indivisible curated configuration whose complete
+  vector-affecting fields produce its fingerprint. Authoritative:
+  REQUIREMENTS.md R31 and DESIGN.md §2.5.
+- **embedding service** — the shareable local endpoint toward which the
+  transport-neutral query/passage interface can evolve; whether zoteus should
+  provide, bundle or merely consume one remains open. Authoritative: DESIGN.md
+  §3 and ticket 0491.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: DESIGN.md §2.8, which owns every threshold; the
@@ -134,6 +141,10 @@ entry points at the question rather than settling it; rulings land in
 - **stage** — one step of the indexing pipeline: record, extract, chunk, embed.
   Each carries its own key, its own ledger rows and its own counters.
   Authoritative: REQUIREMENTS.md, intro; the keys are DESIGN.md §2.1.
+- **validation attestation** — an optional content-free report that one exact
+  embedder entry passed the automatic compatibility fixture on a stated runtime
+  shape; it is not a retrieval-quality judgement. Authoritative:
+  REQUIREMENTS.md R31 and DESIGN.md §2.6.
 - **watermark** — a resume cursor stored per origin and library, legitimate
   only where the underlying version sequence is genuinely monotonic; the local
   full-text sequence is mixed, so no watermark column exists for it.
