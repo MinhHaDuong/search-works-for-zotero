@@ -2,6 +2,7 @@
 Title: Cap the chunker below the embedder's token limit before seg/1 ships
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #99
 
 --- log ---
 2026-08-29T15:00Z claude created
@@ -10,6 +11,13 @@ Author: claude
 2026-08-29T11:14Z claude note ballot corrected after reading #6012 at source: 768 is a CEILING not a chunk size, and the platform caps it with min(768, modelMax) - specialTokens - prefix; adopting the min() is now option (a), a fixed sub-512 constant is (b), and (c) takes the min but records the resolved budget in the chunker key so the C1 coupling is explicit rather than silent
 2026-08-29T11:21Z claude note option (a) specified in full from source (two nested caps plus a drop rule across embeddings.js:1642 and utilities_internal.js:3752/3797), and the quarter-rule promoted to an exit criterion for every option; code reuse ruled out — Zotero is AGPL-3.0 and zoteus is MIT, there is no runtime path from an external MCP server into Zotero.Utilities.Internal.Chunking, and #6012 is unmerged; the design is adoptable as specification, the source is not2026-08-29T18:00Z claude note author ratified option (c) with the ~500 ceiling (DECISIONS.md 2026-08-29): budget = min(500, modelMax) - specialTokens - prefix, resolved budget recorded in the chunker key. The premise the recommendation rested on was measured before ratifying rather than after: all nine 0240 candidates plus today's model declare a window above 500, tightest 512 (verification/probes/model-window-census.py, bench/results/0140-model-windows/candidate-windows.json), so the min never binds and the key is stable in fact. The census also found that 'the model's limit' is not one number - nomic-embed-text-v1.5 declares four position-limit fields spanning 4x, and v2-moe disagrees between config and tokenizer_config - so modelMax is defined as the minimum over every declared field. DESIGN.md 2.2 rewritten; 2.9's passage estimate flagged pending re-measurement rather than divided.
 
+2026-08-30T12:05Z claude note remaining exit criteria executed. The geometry is code now (bench/geometry.py, the one statement the census and the tests share), the regression exists with its positive control and both arms committed (bench/results/0140-truncation-regression/regression.json: cosine 0,99999996 at the 768 cap — red demonstrated — 0,679 at budget 498, control 0,221), and §2.9's count is a measurement: 567 829 passages over all 13 630 fulltext caches at budget 498 (bench/results/0140-passage-census/census.json), against the ≈250-300k arithmetic it replaces — the measure-don't-divide instruction was right by nearly a factor of two. Median 18 passages per attachment (35 PDF), so §2.3's K lands near its floor, not at 64. Census ran only after the 0263 sweep drained: its cells record ms_per_passage, and a corpus-scale tokenization under a timed window corrupts silently. Action 4's upstream truncation:true flag stays an author decision under the GOVERNANCE budget; action 5 is 0240's train, already running.
+
+2026-08-30T13:40Z minh ruling action 4 bundles into the seg/1 upstream PR (0028), never a standalone filing — this repo explores, designs and prepares the upstream contribution, it implements nothing that ships; ledger entry appended (DECISIONS.md 2026-08-30), DESIGN.md 2.2 states the embed-call contract, 0028 carries the bundle as an exit criterion
+
+2026-08-30T14:55Z minh ruling the chunk is the paragraph and the geometry question is closed for good (DECISIONS.md 2026-08-30): the budget is a guard against extraction artifacts, never a target; window ceases to be an embedder-selection criterion beyond 512, answering action 5 (long-context insurance: not needed); keeping upstream's chunker as-is considered and rejected at source (chunker.ts flattens all whitespace before a 1 200-char stride — paragraph-sized statistically, paragraph-aligned never, and token-unsafe for CJK). Extractor and chunker improvements deferred by the author to another time.
+
+2026-08-30T12:38Z Minh Ha-Duong closed — autoclosed — PR #99
 --- body ---
 ## Context
 DESIGN.md §2.2 chunks at 120 / 768 / 48 tokens, "Zotero's geometry, adopted
@@ -237,13 +245,17 @@ The test must assert its own positive control — head and tail dissimilar —
 or it cannot distinguish truncation from similarity.
 
 ## Verification
-- [ ] The chosen construction cannot over-feed the embedder under any
+- [x] The chosen construction cannot over-feed the embedder under any
       registered model, including the 8 192-token ones
-- [ ] The heading path is dropped, not truncated, when it would exceed a
+      (tests/test_chunk_geometry.py over the window census, 32 768 included)
+- [x] The heading path is dropped, not truncated, when it would exceed a
       quarter of the budget, whichever option wins
-- [ ] The regression test fails against a 768-token cap and passes at the new one
-- [ ] §2.9's passage count is measured at the new cap, not divided
-- [ ] `make check` green, figure-guard anchors updated
+      (bench/geometry.py effective_prefix, tested)
+- [x] The regression test fails against a 768-token cap and passes at the new one
+      (bench/results/0140-truncation-regression/regression.json, guarded)
+- [x] §2.9's passage count is measured at the new cap, not divided
+      (bench/results/0140-passage-census/census.json)
+- [x] `make check` green, figure-guard anchors updated
 
 ## Invariants
 - C1's stage separation holds in the form ratified 2026-08-29: the chunk key
@@ -258,6 +270,9 @@ or it cannot distinguish truncation from similarity.
 ## Exit criteria
 - [x] The construction is ratified in DECISIONS.md and stated in §2.2,
       with "adopted verbatim" either made true or replaced
-- [ ] §2.9 recomputed from a measurement
-- [ ] The regression test exists, with its positive control
-- [ ] Blocks 0028: seg/1 is built to the settled geometry, never to 768
+- [x] §2.9 recomputed from a measurement
+- [x] The regression test exists, with its positive control
+- [x] Blocks 0028: seg/1 is built to the settled geometry, never to 768 —
+      the block held (0028 is Blocked-by this ticket and its log names the
+      settled geometry as its spec), and the geometry 0028 builds to is now
+      stated in §2.2 and machine-guarded in bench/geometry.py's tests

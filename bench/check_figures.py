@@ -112,6 +112,10 @@ PROSE = {
         "tickets/closed/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
     ],
     "v0482": ["verification/GPU-CORRECTED-0482.md"],
+    "t0266": [
+        "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
+        "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
+    ],
 }
 
 
@@ -283,6 +287,23 @@ FIGURES = [
     # duplicate-value case a bare presence check cannot see.
     ("0140-model-windows/candidate-windows.json", "min_window", 0,
      {"design": "window is {} tokens, so the minimum never binds"}),
+    # ---- 0140, the passage census. §2.9's count is a measurement, and these anchors
+    # are what make a re-measurement propagate: re-run the census, and every quoted
+    # figure below goes stale together instead of drifting one by one.
+    ("0140-passage-census/census.json", "summary.passages_total", 0,
+     {"design": "derived**: {} passages at the"}),
+    ("0140-passage-census/census.json", "summary.files", 0,
+     {"design": "counted over all {} fulltext caches"}),
+    ("0140-passage-census/census.json", "summary.tokens_total", 0,
+     {"design": "({} tokens through the"}),
+    ("0140-passage-census/census.json", "summary.median_passages_per_attachment", 0,
+     {"design": "attachment measures {} passages"}),
+    ("0140-passage-census/census.json", "summary.by_kind.pdf.median_passages_per_attachment", 0,
+     {"design": "{} for PDFs"}),
+    ("0140-passage-census/census.json", "summary.by_kind.html.median_passages_per_attachment", 0,
+     {"design": "{} for HTML snapshots"}),
+    ("0140-passage-census/census.json", "geometry.budget", 0,
+     {"design": "resolved budget of {} tokens"}),
     # ---- 0013, concentration ----
     ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
     ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,
@@ -654,7 +675,8 @@ FIGURES = [
      {"t0263": "control: cos_mean {}, overlap_at_30_mean 1,0"}),
     # granite-97m's outlier collapse -- the finding the whole campaign turns on.
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.q8_overlap_at_30_mean", 4,
-     {"t0263": "q8{} (cos_mean 0,743121)"}),
+     {"t0263": "q8{} (cos_mean 0,743121)",
+      "t0266": "overlap@30 of {} there, cos_mean 0,743121"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.q8.cos_mean", 6,
      {"t0263": "q8 0,2349 (cos_mean {})"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
@@ -761,6 +783,33 @@ FIGURES = [
      {"v0482": None}),
     ("0482-gpu-corrected/throughput/batch-spotcheck__granite-97m__uint8__b128.json", "ms_per_passage_median", 2,
      {"v0482": None}),
+    # ---- 0266, the cross-lingual probe. cells is keyed by "<model_id>__<dtype>", not
+    # indexed by list position, so a re-run that adds a candidate cannot silently shift
+    # which cell an anchor names.
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.pool_size", 0,
+     {"t0266": "Fixed retrieval pool, same across every cell: {} passages, 24 gold"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.query_count", 0,
+     {"t0266": "{} queries: EN + FR + native per non-English topic"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.all-minilm-l6-v2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "scores en->vi hit@10 of {} at q8"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-base__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,62/0,50/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.multilingual-e5-small__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,25/0,50/0,62/0,75/0,50"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.arctic-embed-m-v2__fp32.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "fp32/q8/uint8 identically {}/1,00/0,88/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.gte-multilingual-base__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,88/1,00/0,88/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-311m-multilingual-r2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8: {}/0,62/0,75/0,75/1,00/1,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__q8.pair_summary.en->vi.hit_at_10", 2,
+     {"t0266": "q8 COLLAPSES: {}/0,25/0,00/0,00/0,00/0,00"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__fp32.negative_control.clean", 0,
+     {"t0266": "granite-97m-multilingual-r2 fp32 clean={}/4, q8 clean=0/4"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__q8.negative_control.clean", 0,
+     {"t0266": "q8 clean={}/4, uint8 clean=3/4"}),
+    ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__uint8.negative_control.clean", 0,
+     {"t0266": "uint8 clean={}/4;"}),
 ]
 
 

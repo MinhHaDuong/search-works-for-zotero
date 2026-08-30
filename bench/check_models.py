@@ -157,14 +157,19 @@ FAMILY = re.compile(
 #: `owner/name`, both segments free of slashes and of surrounding path characters.
 TOKEN = re.compile(r"(?<![\w./-])([A-Za-z0-9][\w.-]{0,40})/([A-Za-z0-9][\w.-]{0,60})(?![\w./-])")
 
-#: A path segment, not a repo name.
-EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html)$", re.I)
+#: A path segment, not a repo name. `erg` joined 2026-08-30, from two sessions
+#: independently: a ticket path (`tickets/0266-…-multilingual.erg`,
+#: `tickets/0140-…-embedder-….erg`) is a path like any other, and the first
+#: ticket filenames to also contain a FAMILY word showed the extension list
+#: had never had to cover it. `tickets` joined PATH_OWNERS the same day.
+EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html|erg)$", re.I)
 
 #: Directory names that open a path, not an owner.
 PATH_OWNERS = {
     "bench",
     "spec",
     "tests",
+    "tickets",
     "verification",
     "results",
     "onnx",
