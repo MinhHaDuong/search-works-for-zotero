@@ -89,7 +89,7 @@ def test_an_exempt_item_that_gains_a_keyword_fires():
 
 
 def test_narrative_outside_the_requirements_section_is_untouched():
-    """The case convention exists so prose can keep its ordinary modals."""
+    """The case convention applies to R-items, not the structural rulings."""
     text = (
         "# REQUIREMENTS\n\n## Intro\n\nA tag match must not outrank a title.\n\n"
         "## Requirements\n\n- **R1 — a promise.** Coverage MUST reach 100 %.\n"

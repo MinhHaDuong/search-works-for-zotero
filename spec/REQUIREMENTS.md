@@ -181,12 +181,11 @@ record rejected text as contract.
   that checks this agreement, over 1 301 codepoints, MUST run on every
   check, not once in a closed ticket.
 - **R20 — RAM budgets are gates.** The RAM budgets of constraint C3
-  (CONSTRAINTS.md) MUST be asserted by the harness against the 44.9 MB
-  dictionary, not measured once. (This rule can be read two
-  ways: run on every check, or only in the slow suite; and test against the
-  real copyrighted dictionary, or a synthetic stand-in that can be
-  committed. Both questions await the author's ruling in DECISIONS.md;
-  DESIGN.md §2.8 says what the design currently does.)
+  (CONSTRAINTS.md) MUST be asserted by the slow harness against the
+  deterministic synthetic surrogate, not measured once; the fast harness
+  MUST assert that the cap mechanism engages. The surrogate MUST be
+  revalidated against the real dictionary at each release (DECISIONS.md,
+  2026-08-29; DESIGN.md §2.8).
 - **R21 — same corpus in, same answers out.** A pinned query set with
   golden (known-correct) answers MUST gate every change. (Per D11, the golden
   set pins the answer set, not the order.)

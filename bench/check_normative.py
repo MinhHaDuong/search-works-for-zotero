@@ -19,11 +19,12 @@ before this ticket it contained zero modal verbs of any kind, so a blacklist
 alone would have reported the budgets section clean while every budget in it
 was unforced.
 
-Scope is deliberately narrow. CONSTRAINTS.md is out: it states facts about the
-world, and its Intro's "the design must operate under" is description, not
-duty — a guard here would fire on the document's own framing sentence.
-DECISIONS.md is out as the append-only ledger. Narrative prose everywhere is
-out, which is the whole point of the case convention.
+Scope is deliberately narrow, confirmed by the author's 2026-08-30 ruling.
+CONSTRAINTS.md is out: it states facts and binding bounds through its place in
+the authority chain, not through RFC 2119 case. The three structural rulings
+above the R-items bind the same way. DECISIONS.md is out as the append-only
+ledger. Narrative prose everywhere is out, which is the whole point of the
+case convention.
 """
 
 import argparse

@@ -729,8 +729,8 @@ its subtraction terms, not only pass on the gentle one.
   ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from R20's letter ("against the 44.9 MB dictionary", content
-  that cannot be committed to a public repo); ratification is pending in
-  DECISIONS.md, and the real-document run stays X3a on the author's machine.
+  that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
+  real-document X3a run revalidates it at each release on the author's machine.
 - **R21, the golden gate (D11 = set).** A pinned multilingual fixture
   corpus, ~40 queries, answer *sets* at k=10. Thresholds derive from the
   stability artifact: the measured per-query Jaccard minimum under
@@ -791,9 +791,10 @@ transient residency only: they are run-to-drain, one of each kind at most,
 and together remain under C3's ≤ 500 MB pipeline peak with hard kill rather
 than multiplying that budget by stage. The chunk split isolates the monster
 RSS risk from the memory-steady embedder; it does not buy wall-clock. Whether
-the server ceiling scopes per process or per machine still awaits the
-author's ratification, stated once in DECISIONS.md. Dual-embed no longer
-threatens the budget (the lazy-load rule, §2.7).
+the server ceiling scopes per process is settled: it does, because that is the
+scope the gate can assert; the two-client whole-machine arithmetic above keeps
+the aggregate visible (DECISIONS.md, 2026-08-29). Dual-embed no longer threatens
+the budget (the lazy-load rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in
