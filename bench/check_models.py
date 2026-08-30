@@ -157,8 +157,11 @@ FAMILY = re.compile(
 #: `owner/name`, both segments free of slashes and of surrounding path characters.
 TOKEN = re.compile(r"(?<![\w./-])([A-Za-z0-9][\w.-]{0,40})/([A-Za-z0-9][\w.-]{0,60})(?![\w./-])")
 
-#: A path segment, not a repo name.
-EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html)$", re.I)
+#: A path segment, not a repo name. `erg` joined 2026-08-30: a ticket path
+#: (`tickets/0266-cross-lingual-probe-on-the-multilingual.erg`) is a path like
+#: any other, and the first ticket filename to also contain a FAMILY word
+#: ("multilingual") showed the extension list had never had to cover it.
+EXTENSION = re.compile(r"\.(onnx|json|mjs|js|ts|py|md|txt|sh|jsonl|f32|log|csv|html|erg)$", re.I)
 
 #: Directory names that open a path, not an owner.
 PATH_OWNERS = {
