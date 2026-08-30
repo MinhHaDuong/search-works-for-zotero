@@ -4,6 +4,7 @@ Created: 2026-08-29
 Author: claude
 
 --- log ---
+2026-08-30T15:10Z claude note delivered: verification/EMBEDDER-RECOMMENDATION-0267.md. Decision rule in six ordered clauses (R7 filter; reliability-at-deployed-rung gate, which excludes granite-97m/q8 on three independent condemnations; rank on task recall at the shipping rung; control cleanliness above raw recall; cross-lingual tiebreak; cost reported never ranked). Under the rule multilingual-e5-base comes out best balanced; arctic-embed-m-v2 wins raw recall if the hubness clause is priced differently, and the report names the discriminating experiment. Two shapes stated: 8-bit on CPU, fp32 on CUDA (no int8 CUDA kernel). Tracker open questions answered: uint8-over-q8 does NOT generalise; the 8-bit collapse is granite-97m-specific; quantization robustness is a live criterion. Fused delta: 0,7352 of the vector gain survives; a broken rung drags fused below keyword-alone. Six named overturn conditions. Every figure anchored in bench/check_figures.py (v0267).
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 7 of tracker 0240. Blocked on all four measurement children. Writes a recommendation; sets no default.
 
@@ -63,12 +64,12 @@ number that does not exist, the answer is a child ticket, not an estimate.
 
 ## Verification
 
-- [ ] The report recommends and does not patch a default
-- [ ] Memory appears as a reported cost, never as a rank or a gate
-- [ ] Both 8-bit variants are reported per candidate, with the generalisation
+- [x] The report recommends and does not patch a default
+- [x] Memory appears as a reported cost, never as a rank or a gate
+- [x] Both 8-bit variants are reported per candidate, with the generalisation
       question answered rather than assumed
-- [ ] Every figure is declared in the figure guard with its anchor
-- [ ] What would overturn the recommendation is stated as a checkable condition
+- [x] Every figure is declared in the figure guard with its anchor
+- [x] What would overturn the recommendation is stated as a checkable condition
 
 ## Invariants
 
@@ -82,7 +83,7 @@ number that does not exist, the answer is a child ticket, not an estimate.
 
 ## Exit criteria
 
-- [ ] A recommendation under `verification/`, stating a decision rule, its
+- [x] A recommendation under `verification/`, stating a decision rule, its
       evidence, and what would overturn it
-- [ ] Engine versions, limits and the upstream CUDA work's state recorded with it
-- [ ] Every figure declared; `make check` green
+- [x] Engine versions, limits and the upstream CUDA work's state recorded with it
+- [x] Every figure declared; `make check` green
