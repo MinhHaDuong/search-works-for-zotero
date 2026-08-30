@@ -9,6 +9,7 @@ Blocked-by: 0029
 2026-08-26T16:52Z claude created
 
 2026-08-26T17:11Z claude note Copilot round 4: dependency edges mechanized (0026, 0029); the exit criterion distinguishes runnable gates from later-executable specs
+2026-08-30T09:55Z Minh Ha-Duong note author directive: the acceptance spec is sqlite-explicit. The trunk re-measurement showed the memory backend cannot reach a testable state at real geometry — the uncapped in-memory build OOMs on a stock heap and, with heap enough to finish, cannot persist (V8 string ceiling; bench/results/trunk-1.10.0/build-memory-uncapped.json, source inventory ticket 0460) — so a spec silent on backend would be untestable against half of what upstream ships. Every threshold names the sqlite backend; added as an exit criterion. The spec also gains a measured latency baseline it can cite from his own tree: the warm keyword figures in ticket 0025's step-4 log entry
 --- body ---
 ## Context
 DESIGN.md §4 item 5, per the ratified re-form (DECISIONS.md 2026-08-26; the
@@ -27,6 +28,10 @@ repo does not promise to track his tree with it.
       soak travel as written specs with their runnable-when conditions
       stated (they execute only once the scoped-issue machinery and the
       mock local API exist — 0026's two-pile split)
+- [ ] every threshold and gate in the offered spec names the sqlite backend
+      explicitly — the memory backend cannot reach a testable state at real
+      geometry (see the 2026-08-30 log entry), so a backend-silent spec
+      would be untestable against half of what upstream ships
 - [ ] offer posted upstream as one issue: what it asserts, how to run it, what
       green means, no code he has to accept
 - [ ] his response recorded here; sunset per DECISIONS.md's commitment bounds
