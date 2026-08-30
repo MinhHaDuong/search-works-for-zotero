@@ -8,6 +8,7 @@ Label: needs-human
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 4 of tracker 0240. Labelled needs-human on substrate, not on judgement: the working machine has no GPU at all (nvidia-smi absent, re-confirmed 2026-08-29), so nothing in this arm can be executed from a doudou session beyond the code path. The author decides how padme is reached.
+2026-08-30T06:22Z claude note session review with the author added X8, cross-provider fidelity (action 7): the author wants to embed on padme and retrieve on doudou, DESIGN §3 now owns the decision rule, and the adopt-a-foreign-index question in DECISIONS.md waits on this cell. The CPU side costs nothing extra — it is 0263's fidelity vectors, already on disk by the time this arm runs.
 
 --- body ---
 ## Context
@@ -53,6 +54,12 @@ thing to record.
    If it lands, the meaning of the default changes and every CPU baseline needs
    re-reading.
 6. Report the CPU and GPU arms as two shapes, not one merged table.
+7. Run X8, cross-provider fidelity (DESIGN §3 owns the rule): score this arm's
+   vectors against the CPU arm's same-(model, rung) vectors from 0263, per
+   candidate, at every rung both providers load. The existing fidelity scorer
+   does the scoring; the fp32-against-itself control applies here too. The
+   verdict decides whether the execution provider stays out of the embedder
+   key, and the adopt-a-foreign-index ruling in DECISIONS.md waits on it.
 
 ## Test
 
@@ -79,3 +86,4 @@ thing to record.
 - [ ] The provider `auto` selected is recorded from observation
 - [ ] `gpu-feasibility.json`'s projections are superseded in place, with the
       supersession stated where they are cited
+- [ ] X8 reported per candidate at every shared rung, against DESIGN §3's bar
