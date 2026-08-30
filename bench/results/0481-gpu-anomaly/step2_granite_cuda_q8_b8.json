@@ -1,0 +1,27 @@
+{
+  "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+  "model_id": "granite-97m-multilingual-r2",
+  "dtype": "q8",
+  "device": "cuda",
+  "dim": 384,
+  "rows": 300,
+  "batch": 8,
+  "stride": 310,
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "load_ms": 1480.8,
+  "embed_ms": 16782.4,
+  "ms_per_passage": 55.941,
+  "first_vec_head": [
+    -0.1559039056301117,
+    -0.535286009311676,
+    -0.4588167071342468,
+    -0.20446932315826416,
+    0.9400268793106079,
+    0.9206463694572449,
+    0.5971242785453796,
+    0.48110345005989075
+  ],
+  "profile_path": null,
+  "host": "padme",
+  "when": "2026-08-30T11:07:54.414Z"
+}

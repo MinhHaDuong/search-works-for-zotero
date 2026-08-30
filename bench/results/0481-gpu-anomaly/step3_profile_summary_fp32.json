@@ -1,0 +1,35 @@
+{
+  "profile_path": "bench/results/0481-gpu-anomaly/step3_e5small_cuda_fp32_profiled.json.profile.json",
+  "n_events_total": 3532,
+  "n_node_events": 3510,
+  "cats": {
+    "Session": 22,
+    "Node": 3510
+  },
+  "total_node_ms": 145.231,
+  "by_provider_ms": {
+    "CUDAExecutionProvider": 145.059,
+    "CPUExecutionProvider": 0.172
+  },
+  "by_provider_node_count": {
+    "CUDAExecutionProvider": 3490,
+    "CPUExecutionProvider": 20
+  },
+  "top_ops_ms": {
+    "Sub": 54.539,
+    "MatMul": 48.683,
+    "Add": 18.659,
+    "Transpose": 4.74,
+    "Softmax": 4.287,
+    "LayerNormalization": 2.996,
+    "Reshape": 2.996,
+    "FusedMatMul": 2.98,
+    "BiasGelu": 1.938,
+    "Cast": 1.642,
+    "Slice": 0.641,
+    "Gather": 0.516,
+    "Shape": 0.268,
+    "Unsqueeze": 0.2,
+    "Mul": 0.146
+  }
+}

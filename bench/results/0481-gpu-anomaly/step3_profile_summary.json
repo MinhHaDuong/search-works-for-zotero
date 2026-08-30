@@ -1,0 +1,35 @@
+{
+  "profile_path": "bench/results/0481-gpu-anomaly/step3_e5small_cuda_q8_profiled.json.profile.json",
+  "n_events_total": 7882,
+  "n_node_events": 7860,
+  "cats": {
+    "Session": 22,
+    "Node": 7860
+  },
+  "total_node_ms": 2570.566,
+  "by_provider_ms": {
+    "CPUExecutionProvider": 1926.961,
+    "CUDAExecutionProvider": 643.605
+  },
+  "by_provider_node_count": {
+    "CUDAExecutionProvider": 6640,
+    "CPUExecutionProvider": 1220
+  },
+  "top_ops_ms": {
+    "MatMulInteger": 1773.385,
+    "MemcpyFromHost": 401.813,
+    "DynamicQuantizeLinear": 153.404,
+    "Mul": 79.362,
+    "FusedMatMul": 56.192,
+    "MemcpyToHost": 36.628,
+    "Add": 19.057,
+    "Cast": 18.012,
+    "Transpose": 6.607,
+    "MatMul": 5.527,
+    "LayerNormalization": 4.764,
+    "Softmax": 4.609,
+    "Reshape": 4.013,
+    "DequantizeLinear": 3.398,
+    "BiasGelu": 1.986
+  }
+}
