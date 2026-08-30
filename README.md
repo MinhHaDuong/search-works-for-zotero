@@ -70,7 +70,6 @@ stays at the top level.
 | [`SECURITY.md`](SECURITY.md) | What this system holds, where it can leak, and the design's current answer for each |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Operational handoff and measurement record |
-| [`RUNBOOK.md`](RUNBOOK.md) | How to run the measurements, and on which substrate |
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
 | [`bench/`](bench/) | Executable probes and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |

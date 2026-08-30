@@ -3,9 +3,11 @@
 *Repository state reconciled 2026-08-30 — 35 tickets closed, 42 open; reviewed
 upstream baseline v1.9.0 (`bb414df`); PR #25 merged the day it was filed; the
 in-container half of 0025 is measured and decided (X7, X1-timing, X4 —
-verdicts in that ticket); the remaining workstation steps live in
-`RUNBOOK.md` (self-sunsetting); superseded implementation archived at
-`archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
+verdicts in that ticket); the remaining workstation steps (X6, the trunk
+re-measurement, X3a) were executed 2026-08-30 — artifacts in `bench/results/`,
+verdicts on ticket 0025's log — and `RUNBOOK.md` sunset per its own clause;
+superseded implementation archived at `archive/fts5-storage-2026-08-21`. See
+`SYNC.md`.*
 
 *Embedder study, 2026-08-29/30: ticket 0240 was decomposed into a tracker plus
 eight children (0261–0268) — it is the work train for choosing a multilingual
