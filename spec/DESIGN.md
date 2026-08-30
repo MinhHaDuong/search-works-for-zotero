@@ -700,6 +700,13 @@ its subtraction terms, not only pass on the gentle one.
   kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 micro-batch per failover.
+- **R30, the throughput gate.** Runs on the designated GPU host, never in
+  CI, with the same disclosed-hardware standing as X3a: time to full embed
+  coverage on the fixture corpus, plus the disclosure clause (status names
+  the execution device serving), which does gate everywhere. The wall-clock
+  threshold is unpinned until ticket 0264 measures it, and is pinned in the
+  same change that first asserts it — the C3-replacement pattern, ruled
+  2026-08-30 (DECISIONS.md).
 
 **R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
 instead of silently duplicating work.

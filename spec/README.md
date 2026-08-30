@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the twenty-eight promises actually
+documents do not: **where each of the twenty-nine promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -36,23 +36,23 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●○` &nbsp; 27 ratified · 1 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 27 ratified · 2 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 12 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 13 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-9 measured · 11 read in the source · 8 inferred
+9 measured · 12 read in the source · 8 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-eight, nine rest on an experiment or a test that ran, eleven on
+the twenty-nine, nine rest on an experiment or a test that ran, twelve on
 opening the upstream source at the reviewed baseline, and eight on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
@@ -91,7 +91,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 | section | designed | delivered |
 |---|---|---|
-| Coverage and convergence | `●●●●●○` | `◐◐◐○○○` |
+| Coverage and convergence | `●●●●●○○` | `◐◐◐○○○○` |
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
 | Query | `●●●●●` | `◐◐◐○○` |
@@ -102,7 +102,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
-## The twenty-eight
+## The twenty-nine
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -124,6 +124,7 @@ demonstrated. They are not the same kind of statement.
 | R14 | no text is a terminal state | ratified | none | inferred | An attachment that yields no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing. Held in reserve as ticket 0019. |
 | R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. |
 | R26 | convergence is watched, not trusted | ratified | none | inferred | No harness polls an empty index to completion. Ticket 0026, and the requirement's prefix clause is being rewritten in ticket 0080. |
+| R30 | capable hardware is used | open | none | code | The local path passes no execution device, so the runtime's CPU default always serves — read at the reviewed baseline, with the failing `auto` path measured in `verification/DEVICE-AUTO-0220.md`. The device mechanism and the wall-clock bound await the GPU arm, ticket 0264; ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
 
 ### Change and cost
 
