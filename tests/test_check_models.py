@@ -48,6 +48,9 @@ MINIMAL_RECORD = {
     "input_template": {"query": "", "passage": ""},
     "pooling": "mean",
     "pooling_source": "fixture",
+    "normalize": True,
+    "normalize_source": "fixture",
+    "hf_revision": "0" * 40,
     "availability": {
         "state": "available",
         "http_status": 200,
@@ -450,6 +453,81 @@ def test_a_rejected_record_is_not_required_to_carry_pooling(tmp_path):
     record = dict(MINIMAL_RECORD, status="rejected", rejection={"criteria": ["r7"]})
     del record["pooling"]
     del record["pooling_source"]
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 0
+
+
+# --- normalize and hf_revision: ticket 0262's two new registry columns -----------
+#
+# `normalize` (whether the pipeline L2-normalizes the pooled vector) and
+# `hf_revision` (the commit sha the availability probe read) closed a gap the
+# same shape as pooling's: a value with no provenance is a value nobody can tell
+# from a guess. normalize differs from pooling in one respect — "unknown" is
+# itself a legitimate recorded value here, because a model's own published
+# pipeline config sometimes cannot be read at all, and the requirement is that
+# this be written down rather than defaulted to true or false.
+
+
+def test_a_candidate_without_normalize_fails(tmp_path):
+    """The positive control: run it against a registry lacking the field."""
+    record = dict(MINIMAL_RECORD)
+    del record["normalize"]
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_candidate_with_normalize_but_no_source_fails(tmp_path):
+    """A value with no provenance cannot be told from a guess, so the pair is required."""
+    record = dict(MINIMAL_RECORD, normalize_source="   ")
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_normalize_defaulted_to_a_bare_default_fails(tmp_path):
+    """Any value other than True, False or the literal 'unknown' is rejected.
+
+    This is the guard against exactly the failure mode the ticket names: a
+    driver author defaulting an unread value instead of recording that it
+    could not be read.
+    """
+    record = dict(MINIMAL_RECORD, normalize="mean")
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_normalize_unknown_with_its_source_passes(tmp_path):
+    """'unknown' is a legitimate recorded state, not a failure to fill the field."""
+    record = dict(
+        MINIMAL_RECORD,
+        normalize="unknown",
+        normalize_source="modules.json on Fixture/fixture-embed-v1: not read (could_not_look)",
+    )
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 0
+
+
+def test_a_candidate_without_hf_revision_fails(tmp_path):
+    """The positive control: run it against a registry lacking the field."""
+    record = dict(MINIMAL_RECORD)
+    del record["hf_revision"]
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_blank_hf_revision_fails(tmp_path):
+    record = dict(MINIMAL_RECORD, hf_revision="   ")
+    repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
+    assert cm.run(repo) == 1
+
+
+def test_a_rejected_record_is_not_required_to_carry_normalize_or_hf_revision(tmp_path):
+    """Scoped to candidates, same as pooling — the other side of the requirement."""
+    record = dict(MINIMAL_RECORD, status="rejected", rejection={"criteria": ["r7"]})
+    del record["pooling"]
+    del record["pooling_source"]
+    del record["normalize"]
+    del record["normalize_source"]
+    del record["hf_revision"]
     repo = build(tmp_path, {}, models={"states": cm.STATES, "models": [record]})
     assert cm.run(repo) == 0
 
