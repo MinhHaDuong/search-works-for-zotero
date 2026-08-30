@@ -2,11 +2,13 @@
 Title: Correct DESIGN §3's stopword rule: the 50% threshold does not reach its own budget
 Created: 2026-08-29
 Author: claude
+Closed: DESIGN section 3 now uses the measured 30% working point, a fewer-than-two-terms fallback, and an explicit cost-only justification; all quoted measurements are anchored and make check passes.
 
 --- log ---
 2026-08-29T09:49Z claude created
 2026-08-29T10:05Z claude note filed at 0090 rather than the next free id (0081): the frontier is the most contended seat under parallel sessions, and open PRs already hold 0014, 0025, 0054 and 0060
 
+2026-08-30T16:28Z Codex closed — DESIGN section 3 now uses the measured 30% working point, a fewer-than-two-terms fallback, and an explicit cost-only justification; all quoted measurements are anchored and make check passes.
 --- body ---
 ## Context
 X2 measured the stoplist deletion and it failed the DESIGN §3 gate by 3,5x
@@ -63,10 +65,10 @@ stale after the §3 rewrite, which is what catches a number transcribed wrong
 into the prose.
 
 ## Verification
-- [ ] §3 no longer names 50% as the threshold
-- [ ] §3 names the degeneracy fallback, not an empty-set one
-- [ ] `make check` green, figure guard 0 stale
-- [ ] every new figure in §3 is declared in `check_figures.py` with an anchor
+- [x] §3 no longer names 50% as the threshold
+- [x] §3 names the degeneracy fallback, not an empty-set one
+- [x] `make check` green, figure guard 0 stale
+- [x] every new figure in §3 is declared in `check_figures.py` with an anchor
 
 ## Invariants
 - DESIGN.md remains the single owner of the threshold: 0091 and the tickets

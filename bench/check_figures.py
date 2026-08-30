@@ -465,7 +465,12 @@ FIGURES = [
     # cost and fidelity. Every anchor head here ends in a non-digit on purpose — `p50 ` and
     # `p95 ` would be glued to the value by despace(), per the note above.
     ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_50pct.p95_ms", 1,
-     {"t0025": "terms drop and p95 stays at {} ms"}),
+     {"t0025": "terms drop and p95 stays at {} ms",
+      "design": "terms drop and p95 remains {} ms"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_50pct.terms_dropped", 0,
+     {"design": "only {} terms drop and p95"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_30pct.p95_ms", 1,
+     {"design": "alone reaches {} ms p95"}),
     ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p50_ms", 1,
      {"t0025": "fallback): p50{} ms", "t0014": "gives p50{} ms"}),
     ("0025-x2-stopwordless/df-droplist-sweep.json", "recommended_policy.p95_ms", 1,

@@ -813,11 +813,18 @@ rather than a MUST.
   free.
 - **CJK — committed.** 2-gram twin tables, CJK-bearing passages only,
   backfilled from slabs; typed degradation meanwhile.
-- **Stopwords** — PR #19 merged (`4f61b2a`); the deletion itself ships in
-  its follow-up (0014, now the train's head). X2 guards it:
-  measure stopword-less OR-query p95 at 650k; above ~500 ms, add
-  corpus-driven pruning of query terms whose document frequency exceeds
-  ~50 %, language-neutral by construction.
+- **Stopwords — committed.** PR #19 merged (`4f61b2a`); the deletion itself
+  ships in its follow-up (0014, now the train's head). X2 rejects the former
+  ~50 % rule: only 9 terms drop and p95 remains 820,7 ms against the ~500 ms
+  allowance. Prune query terms at df ≥ 30 %, the working point inside the
+  measured ~25–35 % window: above that window the budget is not recovered;
+  below it content terms begin to disappear. At the working point pruning
+  alone reaches 463,5 ms p95. If fewer than two terms survive, send the raw
+  token set: `to be or not to be` otherwise retains only `not`, so an
+  empty-set fallback does not fire. The cutoff is justified by cost — each
+  dropped term avoids walking a posting list — never by ranking quality;
+  BM25 already down-weights common terms continuously, while a hard cutoff
+  can only approximate that signal.
 - **Fairness — committed.** Record phase, then two-band body with derived K
   (§2.3); smallest-first rejected on the record.
 - **Fraction-RRF — conditional.** Ships behind the golden gate; calibration
