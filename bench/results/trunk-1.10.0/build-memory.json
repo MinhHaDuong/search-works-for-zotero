@@ -1,0 +1,50 @@
+{
+ "probe": "RUNBOOK.md step 4a -- trunk (v1.10.0) build wall-time + peak RSS, memory (upstream vocabulary >= v1.7.0 for the old 'json') backend, real library, default caps (5000 items / 200000 chars).",
+ "why_committed": "Unblocks I-2's redraft with trunk numbers only (his backend, his tree); the fork-prototype figures drop out of the text entirely. Sibling of build-sqlite.json -- same library snapshot, same caps, run back to back.",
+ "driver": "bench/run_build.py",
+ "date": "2026-08-30",
+ "host": "doudou",
+ "node_version": "v22.23.1",
+ "trunk_sha": "b132f2dcdf646424a236e5ede4ec68ab8a33adc6",
+ "trunk_version": "v1.10.0",
+ "server": "fork/dist/index.js",
+ "data_dir": "fresh mktemp -d, discarded after the run",
+ "zotero": "Zotero 10.0 local API on 127.0.0.1:23119, real personal library (7 541 top-level items available)",
+ "command": "python3 bench/run_build.py --server dist/index.js --data-dir <mktemp -d> --backend memory --build",
+ "note_on_driver_output": "Same stdout/stderr note as build-sqlite.json -- RESULT line hand-extracted from the captured stderr log.",
+ "source_log": "bench/results/trunk-1.10.0/build-memory.log.txt",
+ "source_log_line": 35,
+ "backend": "memory",
+ "max_items": 5000,
+ "max_chars": 200000,
+ "node_options": "",
+ "note_on_heap": "Default stock heap survived at these (default) caps -- no crash, no --node-options needed. Contrast with build-memory-uncapped.json, where the same backend at uncapped chars needs an explicit heap flag or OOMs mid-build.",
+ "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
+ "elapsed_s": 185.3,
+ "peak_rss_kb": 4716632,
+ "peak_rss_mib": 4605.1,
+ "status": {
+  "documents": 237352,
+  "vectors": 0,
+  "items": 5000,
+  "storage": "memory",
+  "fulltextItems": 3768,
+  "fulltextPassages": 229466,
+  "builtFromVersion": 5000,
+  "libraryVersion": 418,
+  "fulltextVersion": 25041,
+  "passages": 237352,
+  "state": "done",
+  "itemsAvailable": 7541,
+  "fulltextItemsScanned": 4095,
+  "fulltextItemsTotal": 4095
+ },
+ "files": {
+  "search-index.json": 321273973,
+  "update-check.json": 120
+ },
+ "files_mib": {
+  "search-index.json": 306.4
+ },
+ "sibling": "bench/results/trunk-1.10.0/build-sqlite.json"
+}
