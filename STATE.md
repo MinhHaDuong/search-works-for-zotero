@@ -1,7 +1,7 @@
 # STATE — Search Works for Zotero
 
-*Repository state reconciled 2026-08-30 — 35 tickets closed, 42 open; reviewed
-upstream baseline v1.9.0 (`bb414df`); PR #25 merged the day it was filed; the
+*Repository state reconciled 2026-08-30 — 37 tickets closed, 41 open; reviewed
+upstream baseline v1.10.0 (`b132f2d`); PR #25 merged the day it was filed; the
 in-container half of 0025 is measured and decided (X7, X1-timing, X4 —
 verdicts in that ticket); the remaining workstation steps (X6, the trunk
 re-measurement, X3a) were executed 2026-08-30 — artifacts in `bench/results/`,
