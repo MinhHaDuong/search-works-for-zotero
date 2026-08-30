@@ -2,7 +2,6 @@
 Title: GPU arm on padme: same cells, and what auto actually selects
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0262
 Label: needs-human
 
 --- log ---
@@ -11,6 +10,7 @@ Label: needs-human
 2026-08-29T20:10Z claude note child 4 of tracker 0240. Labelled needs-human on substrate, not on judgement: the working machine has no GPU at all (nvidia-smi absent, re-confirmed 2026-08-29), so nothing in this arm can be executed from a doudou session beyond the code path. The author decides how padme is reached.
 2026-08-30T06:22Z claude note session review with the author added X8, cross-provider fidelity (action 7): the author wants to embed on padme and retrieve on doudou, DESIGN §3 now owns the decision rule, and the adopt-a-foreign-index question in DECISIONS.md waits on this cell. The CPU side costs nothing extra — it is 0263's fidelity vectors, already on disk by the time this arm runs.
 
+2026-08-30T06:43Z Minh Ha-Duong note blocker 0262 closed — Blocked-by removed.
 --- body ---
 ## Context
 
