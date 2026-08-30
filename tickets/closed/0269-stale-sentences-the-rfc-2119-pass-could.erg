@@ -2,11 +2,13 @@
 Title: Stale sentences the RFC 2119 pass could not fix
 Created: 2026-08-29
 Author: claude
+Closed: four stale statements aligned with the 2026-08-29 rulings; disk budget kept informative, constrained-MATCH ownership deduplicated, RFC 2119 scope confirmed for R-items; make check green
 
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude note surfaced by ticket 0050's planning pass; filed on 0050's PR branch
 
+2026-08-30T15:03Z Codex closed — four stale statements aligned with the 2026-08-29 rulings; disk budget kept informative, constrained-MATCH ownership deduplicated, RFC 2119 scope confirmed for R-items; make check green
 --- body ---
 ## Context
 Ticket 0050 assigned an RFC 2119 force to every R-item. Its own bound is that
@@ -62,8 +64,8 @@ same is true of the three rulings above the R-item list in REQUIREMENTS.md,
 which carry lowercase "must not" in what are plainly obligations.
 
 ## Exit criteria
-- [ ] The four sentences say what DECISIONS.md ratified on 2026-08-29
-- [ ] The two open questions are answered, in DECISIONS.md if either is a ruling
-- [ ] A decision is recorded on whether C3's bare-declarative obligations and
+- [x] The four sentences say what DECISIONS.md ratified on 2026-08-29
+- [x] The two open questions are answered, in DECISIONS.md if either is a ruling
+- [x] A decision is recorded on whether C3's bare-declarative obligations and
       the three rulings take keywords, and the guard's scope follows it
-- [ ] `make check` passes
+- [x] `make check` passes

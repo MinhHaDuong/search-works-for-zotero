@@ -638,6 +638,17 @@ as this entry, and `tests/test_c3_gate_agreement.py` — run red against the
 300-era tree first — keeps the two from drifting apart. The executable gate
 itself remains ticket 0026's; it inherits this number when it is built.
 
+**2026-08-30 — ticket 0269's normative cleanup changes no system behaviour.**
+Three author rulings settle the remaining editorial questions. First,
+DESIGN.md §2.9's disk arithmetic remains an estimate, not a contract or a new
+gate. Second, CONSTRAINTS.md C2 owns the measured platform constraint on
+rowid-constrained MATCH, while DESIGN.md §2.6 alone owns the conditional
+fallback and the threshold experiment X4 measures. Third, RFC 2119 keywords
+remain limited to the R-items in REQUIREMENTS.md. The three structural rulings
+and the constraints bind through their place in the authority chain, not
+through upper-case modal verbs; `bench/check_normative.py` therefore remains
+scoped to R-items.
+
 ## Awaiting ratification
 
 - **The book segmenter works at page boundaries on the PDF side — and the

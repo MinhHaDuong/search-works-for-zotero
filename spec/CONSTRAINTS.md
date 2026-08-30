@@ -86,9 +86,8 @@ The scouts sharpened this constraint on five points:
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
   per row, which costs seconds at library scale (#6012's measurement).
   MATCH therefore runs unconstrained on the general path, with scoping
-  enforced elsewhere. One exception is permitted and disclosed in DESIGN.md
-  §2.6: on scopes smaller than a threshold, to be measured by experiment
-  X4, MATCH MAY run constrained. That fallback is never the default path.
+  enforced elsewhere. DESIGN.md §2.6 owns the conditional fallback and the
+  threshold experiment X4 measures; it is never the default path.
 - If the local API ever serves structured extraction, the SDT pack
   (zotero/structured-document-text) is the concrete thing to adapt to: a
   random-access container with a reader contract
@@ -194,8 +193,9 @@ everything: foreground always beats background.
 - pipeline peak ≤ ~500 MB regardless of document size
 - embed worker killable/restartable at any time with zero index damage
 
-How the server figure scopes under N processes is awaiting the author's
-ratification; the question is stated once, in DECISIONS.md.
+The server ceiling binds per process, the scope its gate can assert; DESIGN.md
+§2.9 states the whole-machine arithmetic alongside it (DECISIONS.md,
+2026-08-29).
 
 ## C4 — status answers from counters
 
