@@ -24,8 +24,7 @@
    "fulltextItemsScanned": 3200,
    "fulltextItemsTotal": 5999
   },
-  "source_log": "bench/results/trunk-1.10.0/build-memory-uncapped.log.txt",
-  "crash_line": 46,
+  "source_log": "local to the run, NOT committed -- *.log.txt is gitignored repo-wide (commit 7d4db23); crash context quoted directly in outcome/last_observed_progress above",
   "note": "The RUNBOOK's step 4b command carries no --node-options. This is the literal command as written, and it does not complete at this geometry -- a driver/backend gap the RUNBOOK did not flag, distinct from the version-premise gap it did flag. Not fixed in run_build.py itself (the flag already exists and is documented in the driver's own --node-options help text); the fix is supplying it at the call site, done in attempt 2."
  },
 
@@ -63,9 +62,7 @@
    "search-index.json": 486.5
   },
   "files_note": "The 486,5 MiB search-index.json on disk is a STALE PARTIAL checkpoint from an earlier successful persist attempt before the string-length limit was hit (the build persists incrementally as it grows) -- it is NOT the completed 477 512-passage index, which was never written. Do not query against this data dir as if it holds the full index.",
-  "source_log": "bench/results/trunk-1.10.0/build-memory-uncapped-heap10g.log.txt",
-  "source_log_result_line": 53,
-  "source_log_first_persist_warning_context": "grep -n 'Could not persist' bench/results/trunk-1.10.0/build-memory-uncapped-heap10g.log.txt"
+  "source_log": "local to the run, NOT committed -- *.log.txt is gitignored repo-wide (commit 7d4db23); the RESULT line and persist warnings are quoted directly in outcome/status/files above"
  },
 
  "the_wall_time_answer": "270,8 s to complete the in-memory scan/index of the full uncapped real library on trunk v1.10.0's memory backend (peak RSS 8 130,7 MiB with a 10 GiB heap) -- but this is a wall time for an index that is built and unusable, not shipped: it cannot be persisted at this geometry, on this backend, regardless of heap. The comparable SQLITE figure for the same uncapped geometry is bench/results/0011-rss/uncapped-build-3.json (371,6 s, 1 848,8 MiB peak, persists fine to a 949,4 MiB .sqlite file) -- SQLite is both faster to reach a usable state and the only backend that reaches one at this geometry.",

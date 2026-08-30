@@ -15,16 +15,14 @@
   "pdf_mib": 129.9,
   "extracted_cache_bytes": 45394219,
   "extracted_cache_mib": 43.3,
-  "note_on_item_key": "0011-rss/0025 ticket log entries from 2026-08-22/29 refer to this document by a different item key (DH8EXSVA). AXE7G67C is the key resolved against the library as it stands today (2026-08-30). Observation only -- cause not established (could be a re-import, a Zotero-side key reassignment, or the earlier note being wrong); the extracted text size (43,3 MB here) matches the '44 906 152 chars' figure closely enough to be confident this is the same document."
+  "note_on_item_key": "0011-rss/0025 ticket log entries from 2026-08-22/29 refer to this document by a different item key (DH8EXSVA). AXE7G67C is the key resolved against the library as it stands today (2026-08-30). Observation only -- cause not established (could be a re-import, a Zotero-side key reassignment, or the earlier note being wrong); the extracted text size (43,3 MiB here) matches the '44 906 152 chars' figure closely enough to be confident this is the same document."
  },
 
  "build_phase": {
   "purpose": "reproduces bench/results/0011-rss/uncapped-build-3.json's methodology and target class on trunk v1.10.0",
   "driver": "bench/run_build.py",
   "command": "python3 bench/run_build.py --server dist/index.js --data-dir <mktemp -d> --backend sqlite --build --max-items 1000000 --max-chars 0",
-  "note_on_driver_output": "Same stdout/stderr note as the trunk-1.10.0 artifacts: RESULT line hand-extracted from the captured stderr log.",
-  "source_log": "bench/results/0025-x3a-monster-rss/build-sqlite-uncapped.log.txt",
-  "source_log_line": 45,
+  "note_on_driver_output": "Same stdout/stderr note as the trunk-1.10.0 artifacts: RESULT line hand-extracted from the captured stderr log. The raw log is local to the run and NOT committed (*.log.txt is gitignored repo-wide, commit 7d4db23); this JSON's own fields are the full provenance record.",
   "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
   "elapsed_s": 182.2,
   "peak_rss_kb": 2095172,
