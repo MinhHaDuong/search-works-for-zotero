@@ -516,6 +516,30 @@ open question identically: no upstream issue for the write-side string
 ceiling — the sqlite path is the sufficient upstream response. I-3 is
 untouched, still behind the zotero#6012 checkpoint.
 
+**2026-08-30 — the presence probe: cache loss becomes a stored warning
+state.** X6's headless arm settled one thing while its profile arms stay open:
+the full-text content endpoint and the version/census machinery are decoupled —
+a derived cache can vanish (content 404) with library version, item version,
+and census entry all unmoved, and a source-file md5 unmoved too, since only
+the derived cache was touched (`bench/results/0025-x6-version-dynamics/`).
+Ruling, from four argued options: verification gains a **content-presence
+probe**, and absence becomes a stored warning state (**cache-lost**) on the
+item's passages — kept and served, because the source did not change and the
+text remains faithful; counted; reason stored in the terminal-state vocabulary
+(ticket 0019). Never an eviction: deleting true passages because a derived
+cache blinked is the one harmful response. Healing is surfaced, not automated
+— a count of items needing Reindex in Zotero — because X6 measured that
+nothing re-extracts headless. The md5-widened signal stands as the
+ingestion-side complement: necessary for file-driven changes, proven
+insufficient alone for cache loss. Rejected: accepting the class as invisible
+(the fetch-and-hash convergence path hits these 404s regardless, so the choice
+was a designed state versus an improvised one), and automated repair (no API
+path exists; mutating the user's library is out of bounds everywhere else in
+the design). The probe rides whatever bounded background walk §2.4 ends up
+with; its cadence is owned there when scoped issue A's machinery lands
+(ticket 0033). X6's still-pending question — what a real re-extraction stamps
+— is untouched and still decides §2.4's part (iii).
+
 ## Awaiting ratification
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**

@@ -15,6 +15,7 @@ Blocked-by: 0032
 2026-08-28T16:24Z Claude note blocker 0015 closed — Blocked-by removed.
 2026-08-29T09:58Z Minh Ha-Duong note blocker 0014 closed — Blocked-by removed.
 2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
+2026-08-30T09:05Z Minh Ha-Duong note scope grows by ruling (spec/DECISIONS.md 2026-08-30, argued from X6's decoupling finding): the ledger design this issue carries upstream includes the content-presence probe and the cache-lost warning state (DESIGN.md 2.4 part iv) — served-not-evicted, counted, Reindex surfaced. The probe's cadence is pinned when this issue's machinery lands
 --- body ---
 ## Context
 DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).
