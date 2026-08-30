@@ -2,6 +2,7 @@
 Title: CPU arm: cost and fidelity for every candidate at every loadable dtype
 Created: 2026-08-29
 Author: claude
+Closed: delivered by PR #97: 64 cells resolved (48 measured, 16 unloadable-fp16, 0 failed), fp32 control 1,0 on all 8 models, q8-vs-uint8 ordering per candidate — nomic's uint8 advantage does not generalise, granite-97m is the sole and extreme reproducer
 
 --- log ---
 2026-08-29T20:10Z claude created
@@ -18,6 +19,7 @@ Author: claude
 2026-08-30T11:28Z claude note deviation from the directive: the transformers.js pkg-root moved mid-campaign from `/tmp/tjs-check` to `/home/haduong/data/projets/zoteus-bench/0263/tjs-check`. Cause: transformers.js's default model cache is `<package-dir>/.cache`, relative to the pkg-root itself — never `/tmp` by name — so every ONNX download for this campaign landed on the shared 12 GB `/tmp` tmpfs (already carrying several GB from unrelated concurrent sessions on this host), which reached 9,3 GB used and two cells (`arctic-embed-m-v2` q8 and uint8, cost kind) failed on a disk-write error (Node `errno -122`) before the move. Moving the whole `node_modules` tree to the data partition (232 GB free) and re-running the two failed cells fixed it with no further failures anywhere in the remaining 60 cells; the four engine versions (4.2.0 / 1.24.3 / 1.26.0-dev.20260416-b7804b056c / 1.24.3) were re-verified identical after the move, so the relocation changed no measured behaviour.
 
 2026-08-30T06:43Z Minh Ha-Duong note blocker 0262 closed — Blocked-by removed.
+2026-08-30T10:03Z Minh Ha-Duong closed — delivered by PR #97: 64 cells resolved (48 measured, 16 unloadable-fp16, 0 failed), fp32 control 1,0 on all 8 models, q8-vs-uint8 ordering per candidate — nomic's uint8 advantage does not generalise, granite-97m is the sole and extreme reproducer
 --- body ---
 ## Context
 
