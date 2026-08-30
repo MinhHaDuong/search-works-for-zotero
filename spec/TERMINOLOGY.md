@@ -92,9 +92,9 @@ entry points at the question rather than settling it; rulings land in
 - **metadata-only** — the terminal state of an attachment that yields no text:
   covered rather than failed, with its reason recorded and counted in the
   denominator. Authoritative: REQUIREMENTS.md R14 and R17.
-- **P0 / P1** — the two process kinds, in that order: the query-serving zoteus
-  server, of which several may run at once, and the single background pipeline
-  worker the conductor owns. Authoritative: DESIGN.md §2.5.
+- **P0 / pipeline workers** — the query-serving zoteus server may have several
+  instances; the conductor owns one run-to-drain worker of each pipeline kind:
+  extract, chunk, embed. Authoritative: DESIGN.md §2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: DESIGN.md §2.2.
 - **prefix** — the coverage-order property: at every moment the indexed set is
