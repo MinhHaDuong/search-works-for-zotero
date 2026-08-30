@@ -556,6 +556,43 @@ Bundled, it costs nothing and lands exactly where the risk begins. DESIGN.md
 §2.2 now states the embed call's contract; ticket 0028 carries the bundle as
 an exit criterion.
 
+**2026-08-30 — the chunk is the paragraph; the geometry question is closed.**
+The unit of chunking is the authored paragraph, and §2.2's token budget is a
+guard against extraction artifacts, never a target. Basis, measured on this
+corpus: readable paragraphs run 100–200 words, which the two tokenizer
+families in play price at roughly 130–390 tokens (1,26 tokens per word for
+the English wordpiece, 1,57 for the multilingual vocabulary, measured on a
+196-word abstract; `verification/probes/tokens-per-word-probe.mjs`) — every
+authored paragraph fits one 498-token chunk with room to spare. The window
+binds only on extraction artifacts: in a 254-PDF sample, most 350-plus-word
+blocks carry the glued-paragraph signature — sentence-end, newline, capital —
+left when extraction drops the first-line indent that separated paragraphs;
+the rest are reference lists and mangled layout
+(`verification/probes/glued-block-probe.py`; figures on ticket 0028's log).
+Splitting those loses nothing an author wrote.
+
+Two corollaries close with it. Window size ceases to be an embedder-selection
+criterion beyond ≥ 512 tokens: authored paragraphs never approach the window,
+so a long-context model buys nothing for chunk geometry, and 0140's action 5
+— long-context embedders as insurance — is answered, not needed. And seg/1
+splits oversized blocks at the recoverable seams, recorded on 0028.
+
+**Rejected: keeping upstream's chunker as it stands.** Read at v1.10.0
+(`b132f2d`, `src/features/search/chunker.ts`): `chunkText` collapses all
+whitespace — newlines included — to single spaces as its first act, then
+strides 1 200 characters with 150 of overlap, snapping cuts to word
+boundaries. Three grounds. (i) It is paragraph-*sized* only statistically and
+paragraph-*aligned* never: structure is flattened before the first cut, so
+boundaries land mid-sentence everywhere and each seam vector averages two
+unrelated thoughts. (ii) A character cap is token-safe in Latin scripts
+alone: 1 200 characters of CJK exceed the 512-token window severalfold,
+reproducing on the multilingual path (R7, C2) the silent truncation 0140
+measured. (iii) It is entry-blind, ruled against on 2026-08-26 — the entry
+as unit of answer. What upstream got right is kept: the scale of its chunks,
+1 200 characters being roughly 250–300 English tokens, inside the paragraph
+band — which is why nothing truncates in the field today, and why this
+ruling is an alignment fix, not a size change.
+
 ## Awaiting ratification
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**

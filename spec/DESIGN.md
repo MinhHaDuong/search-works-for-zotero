@@ -245,6 +245,12 @@ A construction naming no field is therefore underspecified. At this ceiling the
 ambiguity never bites, and the rule is stated so it stays that way should the
 ceiling ever move.
 
+The unit is the authored paragraph; the budget is a guard, not a target
+(ratified 2026-08-30). Real paragraphs measure roughly 130–390 tokens across
+both tokenizer families in play — inside the budget with room to spare — so
+the cap binds only on extraction artifacts: glued paragraphs, reference
+lists, mangled layout. Splitting those loses nothing an author wrote.
+
 The heading path is charged to this budget, and dropped entirely rather than
 truncated when it would cost more than a quarter of it — a deeply nested entry
 should not yield a chunk that is mostly breadcrumb. Ordering matters: the

@@ -11,6 +11,8 @@ Blocked-by: 0266
 2026-08-29T20:10Z claude note child 7 of tracker 0240. Blocked on all four measurement children. Writes a recommendation; sets no default.
 
 2026-08-30T10:03Z Minh Ha-Duong note blocker 0263 closed — Blocked-by removed.
+2026-08-30T14:55Z claude note window size is not a selection criterion beyond 512 tokens (DECISIONS.md 2026-08-30, the-chunk-is-the-paragraph ruling): authored paragraphs measure 130-390 tokens and never approach the window, so a long-context model buys nothing for chunk geometry — judge candidates on retrieval quality, cost and language coverage alone
+
 --- body ---
 ## Context
 
