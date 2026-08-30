@@ -7,6 +7,7 @@ Author: Minh Ha-Duong
 2026-08-30T16:20Z Minh Ha-Duong created
 2026-08-30T16:21Z claude note found by the roar sweep for the day's defect class (a per-model axis a wrapper silently drops — the shape of both the pooling bug and the 0481 device bug). Ticket 0262's exit criterion reads "The driver applies it and records it in every result file"; the column and its guard landed, the application did not.
 
+2026-08-30T19:49Z claude note the class this ticket names has a second consumer now: the author's calibration-header proposal of 2026-08-30 (spec/DECISIONS.md, awaiting ratification) and ticket 0487's portable format. All three of the class's instances -- pooling hardcoded mean against four cls candidates (0421), the device flag dropped by the sweep wrapper (0481), normalize declared and unapplied (this ticket) -- are cases where the DECLARED identity held while the function changed, which is exactly what a behavioural header catches and a declared key cannot. Two consequences for this ticket's action 3: the class guard should extend to 0487's manifest the moment it exists (a chain field written from a literal is the same defect at file scope), and the bit-determinism question is cheap to settle here -- re-embed a fixed probe twice on one machine, same provider and thread count, and record whether the bytes are identical, since the header's local-tripwire half rests on that and nothing has measured it
 --- body ---
 ## Context
 

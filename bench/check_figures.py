@@ -953,6 +953,16 @@ FIGURES = [
     ("0266-cross-lingual/all-minilm-l6-v2-q8.score.json", "pair_summary.en->vi.hit_at_10", 2,
      {"v0267": 'contrast model scores\n{} — recall'}),
 
+    # ---- the calibration-header entry (DECISIONS.md, awaiting ratification) ----
+    # Two X8 cells carry that entry's argument: fp32 is cross-provider compatible
+    # WITHOUT being bit-identical (so a hash over a header would false-positive),
+    # and a cell can clear the bar while losing most of its top-30 overlap (so the
+    # tolerant comparison cannot be cosine alone).
+    ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "rows.12.cos_min", 6,
+     {"decisions": 'a minimum cosine of {} at fp32'}),
+    ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "rows.7.overlap_at_30_mean", 4,
+     {"decisions": 'clears the bar while keeping {}\n  of its top-30 overlap'}),
+
 ]
 
 
