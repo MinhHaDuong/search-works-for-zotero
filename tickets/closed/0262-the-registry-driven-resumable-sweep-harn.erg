@@ -2,6 +2,7 @@
 Title: The registry-driven resumable sweep harness in bench/
 Created: 2026-08-29
 Author: claude
+Closed: delivered by PR #87: registry-driven resumable sweep harness in bench/, 15 harness tests, normalize+hf_revision registry columns with live-probed values, guard extended with demonstrated red state
 
 --- log ---
 2026-08-29T20:10Z claude created
@@ -10,6 +11,7 @@ Author: claude
 
 2026-08-29T15:42Z Minh Ha-Duong note blocker 0261 closed — Blocked-by removed.
 2026-08-30T06:41Z landed: bench/sweep.py (the registry-driven resumable harness), tests/test_sweep.py (15 cases, fake-executor driven), and the two new registry columns (normalize/normalize_source, hf_revision) via probe_pooling.py and probe_onnx_dtypes.py, extended into bench/check_models.py with a demonstrated red state. make check green. Ships no measurements, per the ticket's own body -- 0263 runs the real campaign.
+2026-08-30T06:43Z Minh Ha-Duong closed — delivered by PR #87: registry-driven resumable sweep harness in bench/, 15 harness tests, normalize+hf_revision registry columns with live-probed values, guard extended with demonstrated red state
 --- body ---
 ## Context
 
