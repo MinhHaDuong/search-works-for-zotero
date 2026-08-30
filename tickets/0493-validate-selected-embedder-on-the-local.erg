@@ -1,0 +1,24 @@
+%erg 0.1
+Title: Validate selected embedder on the local runtime
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Blocked-by: 0492
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## Scope
+
+Run a bundled public technical fixture against the selected entry on the
+machine and provider that will create or query vectors. Keep this distinct from
+library-derived fusion calibration and retrieval-quality gates.
+
+## Exit criteria
+
+- The gate checks load, shape, finite values, normalization, templates,
+  provider-local determinism and matched-over-unmatched discrimination.
+- Results are cached only for the exact entry fingerprint and environment
+  shape; a changed component revalidates.
+- Failure blocks semantic use explicitly and never selects another entry.
+- The daemon and every client reject a stale or mismatched validation result.

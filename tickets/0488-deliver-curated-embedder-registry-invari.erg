@@ -1,0 +1,27 @@
+%erg 0.1
+Title: Deliver curated embedder registry invariant first
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## This is a tracking ticket
+
+The executable work is in these children. The tracker is not itself a blocker.
+
+| child | scope | blocked by |
+|---|---|---|
+| `0489` | Extract the incumbent MiniLM chain as one entry | -- |
+| `0490` | Make all vector-affecting fields authoritative; prove parity | 0489 |
+| `0492` | Add curated entries and select by entry id | 0490 |
+| `0493` | Validate the chosen entry on the actual local runtime | 0492 |
+| `0494` | Optionally aggregate content-free compatibility attestations | 0493 |
+| `0495` | Decide which entries ship and whether the default changes | 0493 |
+
+Companion ticket 0491 is a parallel policy experiment, fed by Zotero-runtime
+probe 0496; neither is an implementation child or blocker for 0492–0495. Close
+this tracker after the children in the table close and the integration review
+confirms that no stage silently changed the incumbent behavior; 0491 and 0496
+may remain open independently.

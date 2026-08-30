@@ -1,0 +1,38 @@
+%erg 0.1
+Title: Evaluate an autonomous embedding service boundary
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Blocked-by: 0490
+Blocked-by: 0496
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+--- body ---
+## Scope
+
+Keep the embedding interface transport-neutral and preserve a
+`local_endpoint` execution mode, then determine whether zoteus should spawn a
+bundled child, install a user-session service, or consume an embedding facility
+supplied elsewhere. Zotero #6012's existing Firefox inference process, reached
+through an official bridge if one exists or can be added, is the first reuse
+candidate and is measured in ticket 0496. The shareable local service is the
+architectural direction; its ownership is open. This is a policy and feasibility
+experiment, not an implementation prerequisite and not a blocker for adding
+registry entries.
+
+## Exit criteria
+
+- The in-process implementation proves the interface does not itself require a
+  daemon or change the fast-install path.
+- A bounded prototype or measured model compares in-process execution, Zotero
+  runtime reuse, a bundled child, a user-session service and an external
+  facility on
+  cold install/start, single- and multi-P0 RAM, cross-platform packaging,
+  custody/uninstall, failure, upgrade and supervision.
+- The review states who should own the facility: zoteus, an optional companion,
+  the OS, or another community project.
+- Any out-of-process candidate specifies fingerprint/dimension/runtime/provider
+  handshake and explicit keyword-only degradation without silent fallback.
+- DECISIONS.md records adopt, defer or reject. Deferral leaves the registry and
+  validation work unblocked and in-process.

@@ -1,0 +1,26 @@
+%erg 0.1
+Title: Specify curated embedder registry worktrain
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Closed: authoritative design, staged worktrain and upstream issue draft completed; all repository gates pass
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+2026-08-30T14:57Z Codex closed — authoritative design, staged worktrain and upstream issue draft completed; all repository gates pass
+--- body ---
+## Scope
+
+Record the author's invariant-first trajectory in the authoritative chain,
+including the open autonomous-service question, technical validation versus
+retrieval quality, the staged worktrain, and an upstream issue draft. This ticket changes
+no implementation and selects no embedder.
+
+## Exit criteria
+
+- DECISIONS, REQUIREMENTS, CONSTRAINTS and DESIGN agree.
+- The status page and glossary remain mechanically valid.
+- One tracker decomposes implementation into ordered, independently testable
+  children.
+- The upstream issue draft keeps protocol and supervision choices open.
+- `make check` passes.

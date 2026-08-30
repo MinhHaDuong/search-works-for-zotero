@@ -649,6 +649,39 @@ and the constraints bind through their place in the authority chain, not
 through upper-case modal verbs; `bench/check_normative.py` therefore remains
 scoped to R-items.
 
+**2026-08-30 — the embedder registry lands invariant-first; the study selects
+nothing yet.** The candidate measurements are feasibility evidence, not a new
+default. Work proceeds in this order: extract the incumbent MiniLM chain as
+one registry entry; make every vector-affecting field authoritative while
+proving identical vectors and keys; add curated entries and select one by entry
+id; validate the selected entry automatically on the actual execution
+environment; only then use the golden gate to decide which entries, if any,
+ship or become the default. Unknown, unloadable and invalid entries fail
+explicitly and never trigger a silent fallback.
+
+The embedding interface makes a shareable local service the architectural exit,
+but no daemon implementation is a prerequisite here. The default path remains
+in-process and preserves zoteus's install-and-run promise; the same complete
+entry may later be requested through a `local_endpoint` provider. Ticket 0491
+separately compares reuse of Zotero #6012's existing Firefox inference process,
+an embedded child process, a user-session service and an external OS/community
+facility against startup, cross-platform packaging, custody, failure and memory
+costs, including whether zoteus should build a service or merely consume one.
+The Zotero path requires an official bridge: internal `Zotero.ML` and
+`Zotero.Embeddings` methods are not an external API. It does not block registry
+entries or local validation. Until that decision lands, the existing four-role
+run-to-drain topology and C3's per-process accounting remain unchanged.
+
+Automatic validation is a technical compatibility check over a bundled public
+fixture: load, shape, finite values, normalization, declared query/passage
+templates and basic matched-versus-unmatched discrimination. It is not a
+retrieval-quality vote. A content-free attestation of that result may be shared
+only by explicit opt-in and may identify the exact entry fingerprint and
+runtime shape, never library text, query text or Zotero identifiers. Local
+validation remains authoritative. Upstream, this is one design issue with
+staged acceptance tests, not a prepared implementation PR series; the
+maintainer retains implementation choices at each stage.
+
 ## Awaiting ratification
 
 - **The book segmenter works at page boundaries on the PDF side — and the

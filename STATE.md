@@ -6,8 +6,9 @@ v1.10.0 (`b132f2d`); the in-container and workstation halves of 0025 are both
 measured and decided, `RUNBOOK.md` sunset per its own clause; superseded
 implementation archived at `archive/fts5-storage-2026-08-21`. See `SYNC.md`.*
 
-*Embedder study, 2026-08-29/30 — the measurement train ran to completion in
-one day. Children 0261–0266 and the follow-ups 0481/0482 are closed and
+*Embedder study, 2026-08-29/30 — the measurement train and recommendation
+review ran to completion in one day; PR #110 merged. Children 0261–0267 and
+the follow-ups 0481/0482 are closed and
 merged: the registry (`bench/models.json`, with pooling, input template,
 normalize and revision per model, each guarded), the resumable sweep harness
 (`bench/sweep.py`), the CPU arm, the corrected GPU arm on padme (the first
@@ -15,13 +16,14 @@ arm's fidelity cells had silently run on CPU — a dropped `--device` flag,
 ticket 0481), recall at the deployed dtype plus the first fused-RRF delta,
 and the cross-lingual probe. Ratified along the way: R30 (GPU acceleration
 is a requirement), C3 re-pinned at ~750 MB p95, X8's rule in DESIGN §3.
-Open: ticket 0267's recommendation (selects multilingual-e5-base under a
-six-clause rule) awaits the author on PR #110; the 0440 upstream ask is
-drafted (`verification/ISSUE-DRAFT-0440.md`) and deferred pending that read;
-ticket 0485 carries the X8-bar task-metric check the adopt-by-copy
-ratification waits on; ticket 0486 carries the normalize-consumer gap the
-roar sweep found. Tracker 0240 closes after PR #110 and the integration
-review.*
+The study does not select the implementation default. Tracker 0488 now carries
+the invariant-first registry path: singleton extraction, authoritative fields,
+curated entry selection, local automatic compatibility validation, optional
+content-free attestations, and only then a ship/default decision. The separate
+ticket 0491 asks whether a future autonomous embedding service belongs in
+zoteus at all; it does not block the registry. The upstream design text is
+`verification/ISSUE-DRAFT-0488.md`. Ticket 0485 carries the X8-bar task-metric
+check; ticket 0486 carries the normalize-consumer gap.*
 
 Operational handoff and measurement record for the open workshop on semantic
 retrieval in Zotero. Zoteus is the current reference implementation and
