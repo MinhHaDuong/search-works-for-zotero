@@ -56,6 +56,7 @@ import json
 import logging
 import os
 import re
+import socket
 import statistics
 import subprocess
 import sys
@@ -832,6 +833,11 @@ def _base_record(plan: CellPlan, engine_versions: dict[str, str], record: dict) 
         "driver": KIND_DRIVER[plan.kind],
         "driver_version": plan.driver_version,
         "measured_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+        # The GPU arm and the CPU arm are otherwise identical on paper (same corpus,
+        # same probes, same driver, ticket 0240's invariant) -- the host is the one
+        # fact that tells them apart on the page, and it lived only nested inside a
+        # cost cell's own `machine` sub-object (never a fidelity cell's) before this.
+        "host": socket.gethostname(),
         "engine_versions": engine_versions,
         "input_template": record.get("input_template"),
         "pooling": record.get("pooling"),

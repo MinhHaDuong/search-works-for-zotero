@@ -8,6 +8,7 @@
   "driver": "query_embed_cost.mjs",
   "driver_version": "1",
   "measured_utc": "2026-08-30T07:40Z",
+  "host": "padme",
   "engine_versions": {
     "@huggingface/transformers": "4.2.0",
     "onnxruntime-node": "1.24.3",

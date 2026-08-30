@@ -37,7 +37,7 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 27 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●●○` &nbsp; 28 ratified · 1 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
@@ -48,7 +48,7 @@ always means *holds on stock upstream*, never *we wrote it*.
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-9 measured · 12 read in the source · 8 inferred
+10 measured · 11 read in the source · 8 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
@@ -92,7 +92,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 | section | designed | delivered |
 |---|---|---|
-| Coverage and convergence | `●●●●●○○` | `◐◐◐○○○○` |
+| Coverage and convergence | `●●●●●●○` | `◐◐◐○○○○` |
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
 | Query | `●●●●●` | `◐◐◐○○` |
@@ -125,7 +125,7 @@ demonstrated. They are not the same kind of statement.
 | R14 | no text is a terminal state | ratified | none | inferred | An attachment that yields no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing. Held in reserve as ticket 0019. |
 | R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. |
 | R26 | convergence is watched, not trusted | ratified | none | inferred | No harness polls an empty index to completion. Ticket 0026, and the requirement's prefix clause is being rewritten in ticket 0080. |
-| R30 | capable hardware is used | open | none | code | The local path passes no execution device, so the runtime's CPU default always serves — read at the reviewed baseline, with the failing `auto` path measured in `verification/DEVICE-AUTO-0220.md`. The device mechanism and the wall-clock bound await the GPU arm, ticket 0264; ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
+| R30 | capable hardware is used | ratified | none | measured | The local path still passes no execution device on stock upstream, so the runtime's CPU default still serves there — unchanged from the reviewed baseline. What changed: the device mechanism is now observed rather than read from source (`verification/DEVICE-AUTO-0264.md`, the GPU-arm sequel to `verification/DEVICE-AUTO-0220.md`), and the full-corpus wall-clock figures the gate's bound would derive from are measured, not projected (`bench/results/0264-gpu-arm/`). The bound itself is deliberately NOT pinned yet — the surviving candidate is ticket 0267's call (blocked on ticket 0264) and the measured throughput carries an unexplained anomaly the same report discloses. Ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
 
 ### Change and cost
 

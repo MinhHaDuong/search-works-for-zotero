@@ -8,6 +8,7 @@
   "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
   "driver_version": "1",
   "measured_utc": "2026-08-30T08:24Z",
+  "host": "padme",
   "engine_versions": {
     "@huggingface/transformers": "4.2.0",
     "onnxruntime-node": "1.24.3",

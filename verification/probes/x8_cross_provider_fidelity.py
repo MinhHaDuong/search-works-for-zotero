@@ -7,9 +7,10 @@ guaranteed identical rows because `quant_fidelity.mjs`'s sampling is a pure func
 row count. Reuses `quant_fidelity_score.compare`, the same fp32-against-itself-controlled
 scorer the in-arm quantization ladder uses; it is not a new scoring path.
 
-Vector files are read as `{model_id}__{rung}.f32` / `.json` pairs from two directories, one
-per arm -- the convention `bench/sweep.py --vectors-dir` writes. If the CPU arm's directory
-uses the same convention, pass it directly; otherwise adapt --cpu-glob.
+Vector files are read as `{model_id}__fidelity-v{N}-{rung}.f32` / `.json` pairs from two
+directories, one per arm -- the convention `bench/sweep.py --vectors-dir` writes (ticket
+0263). An older `{model_id}__{rung}.f32` pair (ticket 0264's own pre-merge harness run)
+matches too.
 
 Rule (DESIGN §3, X8): mean cosine >= 0.999 (the field's vector-compatibility bar,
 FIELD-REVIEW.md) keeps the execution provider out of the embedder key -- device stays an
@@ -25,6 +26,7 @@ Usage:
 import argparse
 import json
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -37,26 +39,34 @@ logger = logging.getLogger("x8")
 
 BAR = 0.999
 
+#: `bench/sweep.py --vectors-dir` (ticket 0263) names a persisted pair
+#: `{model}__fidelity-v{driver_version}-{rung}.{f32,json}`. An older run of this ticket's
+#: own harness (before 0263 and 0264 merged) wrote `{model}__{rung}.{f32,json}` instead;
+#: both are matched so files gathered under either convention pair up.
+_PAIR_RE = re.compile(r"^(?P<model>.+?)__(?:fidelity-v\d+-)?(?P<rung>fp32|fp16|q8|int8|uint8|q4|q4f16|bnb4)$")
+
 
 def load_pair(directory: Path, model: str, rung: str) -> tuple[np.ndarray, dict] | None:
-    meta_path = directory / f"{model}__{rung}.json"
-    vec_path = directory / f"{model}__{rung}.f32"
-    if not meta_path.exists() or not vec_path.exists():
-        return None
-    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    vectors = np.fromfile(vec_path, dtype=np.float32).reshape(meta["rows"], meta["dim"])
-    return vectors, meta
+    for f in directory.glob(f"{model}__*{rung}.json"):
+        match = _PAIR_RE.match(f.stem)
+        if match and match["model"] == model and match["rung"] == rung:
+            vec_path = f.with_suffix(".f32")
+            if not vec_path.exists():
+                return None
+            meta = json.loads(f.read_text(encoding="utf-8"))
+            vectors = np.fromfile(vec_path, dtype=np.float32).reshape(meta["rows"], meta["dim"])
+            return vectors, meta
+    return None
 
 
 def discover_pairs(gpu_dir: Path) -> list[tuple[str, str]]:
     """(model, rung) pairs the GPU arm actually produced, from its filenames."""
     pairs = []
     for f in sorted(gpu_dir.glob("*.f32")):
-        stem = f.stem  # "{model}__{rung}"
-        if "__" not in stem:
+        match = _PAIR_RE.match(f.stem)
+        if not match:
             continue
-        model, rung = stem.rsplit("__", 1)
-        pairs.append((model, rung))
+        pairs.append((match["model"], match["rung"]))
     return pairs
 
 
