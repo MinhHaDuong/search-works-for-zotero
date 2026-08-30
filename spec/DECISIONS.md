@@ -617,6 +617,27 @@ chunk-side; the embedder is memory-steady), not wall-clock. Propagation of
 the process model into DESIGN.md §2.4/§2.5/§2.9 is ticketed rather than
 improvised here.
 
+**2026-08-30 — C3's replacement ceiling: server steady-state RSS ≤ ~750 MB
+p95.** The author's ruling, given in the batched decision round closing the
+embedder study's measurement phase. The 2026-08-29 entry above made R7 hard
+and let the 300 MB ceiling give way without setting the new number; this sets
+it, from measurement.
+
+The arithmetic, labelled derived: a query server idles near 100 MB
+(DESIGN.md §2.9's Node-plus-cache figure) and the recommended candidate,
+multilingual-e5-base at q8, resides at 572,6 MB median with a spread of
+8,9 MB over five fresh processes (`bench/results/0263-cpu-arm/SUMMARY.json`)
+— roughly 673 MB steady, and 750 gives about 11 % headroom. The number is
+robust to the recommendation itself: every multilingual candidate measured
+sits between 406,6 and 660,0 MB at its 8-bit rungs, so 750 covers each of
+them with its idle share. The serve-stale window's second, lazy-loaded model
+is a disclosed transient excursion under §2.7's eviction rule, not part of
+the p95 promise; the pipeline worker's 500 MB peak is a separate budget and
+untouched. C3 and DESIGN §2.8's gate line were re-pinned in the same change
+as this entry, and `tests/test_c3_gate_agreement.py` — run red against the
+300-era tree first — keeps the two from drifting apart. The executable gate
+itself remains ticket 0026's; it inherits this number when it is built.
+
 ## Awaiting ratification
 
 - **The book segmenter works at page boundaries on the PDF side — and the

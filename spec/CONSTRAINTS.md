@@ -188,11 +188,13 @@ everything: foreground always beats background.
 ### Ratified budgets (2026-08-26)
 
 - background ≤ ~1 core, low priority
-- server steady-state RSS ≤ ~300 MB
+- server steady-state RSS ≤ ~750 MB (replaced 2026-08-30, DECISIONS.md: the
+  original figure was ratified against an English-embedder picture, and R7
+  outranks it)
 - pipeline peak ≤ ~500 MB regardless of document size
 - embed worker killable/restartable at any time with zero index damage
 
-How the 300 MB figure scopes under N processes is awaiting the author's
+How the server figure scopes under N processes is awaiting the author's
 ratification; the question is stated once, in DECISIONS.md.
 
 ## C4 — status answers from counters

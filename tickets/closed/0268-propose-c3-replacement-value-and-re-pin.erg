@@ -4,11 +4,13 @@ Created: 2026-08-29
 Author: claude
 Blocked-by: 0267
 Label: needs-human
+Closed: ruled 2026-08-30 in the batched round: server steady-state RSS <= ~750 MB p95, derived from the recommended candidate's measured residency with the arithmetic shown in the ledger entry; C3 and DESIGN §2.8 re-pinned in the same change; tests/test_c3_gate_agreement.py run red first, green after
 
 --- log ---
 2026-08-29T20:10Z claude created
 2026-08-29T20:10Z claude note child 8 of tracker 0240. Labelled needs-human because the exit criterion is a ratified ledger entry, and the ledger is the author's. The agent-side work is the proposal and the same-change gate re-pin; the ruling is his.
 
+2026-08-30T13:45Z Minh Ha-Duong closed — ruled 2026-08-30 in the batched round: server steady-state RSS <= ~750 MB p95, derived from the recommended candidate's measured residency with the arithmetic shown in the ledger entry; C3 and DESIGN §2.8 re-pinned in the same change; tests/test_c3_gate_agreement.py run red first, green after
 --- body ---
 ## Context
 

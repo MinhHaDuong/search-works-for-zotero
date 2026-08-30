@@ -1,0 +1,60 @@
+%erg 0.1
+Title: Does the X8 bar move task recall? Price 0,98-class cross-provider cosine on the task metric
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T15:55Z Minh Ha-Duong created
+2026-08-30T15:56Z claude note filed on the author's ruling in the batched round: the adopt-a-foreign-index ratification HOLDS until this measures. The 0,999 bar is a field-borrowed vector-compatibility proxy; whether failing it at 0,97-0,998 costs any task recall has never been measured, and this repo's own history (the truncation priced at 22 points by a self-referential metric and 4,8 % by the task metric) says the proxy can be off by an order of magnitude in either direction.
+
+--- body ---
+## Context
+
+Experiment X8 (DESIGN.md §3) showed every candidate clearing the 0,999
+cross-provider bar at full precision and most failing it at the 8-bit rungs
+(0,970-0,998 mean cosine; `bench/results/0482-gpu-corrected/
+x8-cross-provider-fidelity.json`). As the rule is written, that supports the
+adopt-a-foreign-index path only when both machines run fp32. Whether the rule
+is right is untested: the bar is a compatibility proxy, and the question that
+matters is whether a corpus embedded by one provider and queried by the other
+at an 8-bit rung loses task recall, and how much.
+
+The author held the adopt-by-copy ratification on exactly this (2026-08-30).
+
+## Relevant files
+
+- `spec/DESIGN.md` §3 — the X8 rule this may amend (an amendment is a ruling,
+  not a report)
+- `spec/DECISIONS.md` — the awaiting adopt-a-foreign-index entry
+- `bench/results/0482-gpu-corrected/` — the GPU vectors and X8 scores
+- `bench/results/0263-cpu-arm/` and `/home/haduong/data/projets/
+  zoteus-bench/0263-vectors/` — the CPU vectors
+- `bench/results/0265-recall-fusion/` — the task-recall methodology to reuse
+
+## Actions
+
+1. For two or three candidates spanning the X8 range (one near 0,97, one near
+   0,998, one that cleared), run the 0265 task-recall probe with the corpus
+   vectors from one provider and the query vectors from the other, at the
+   same 8-bit rung, against the same-provider baseline.
+2. Report the recall delta beside the cosine score, per candidate. The
+   finding is the mapping, not a verdict on any single model.
+3. If the delta is inside the probe's noise, propose the bar's amendment to
+   the author as a ratification question; if it is real, the fp32-only
+   condition stands and the ledger entry can be ratified as drafted.
+
+## Test
+
+- Positive control: the same-provider arm must reproduce 0265's recall for
+  that (candidate, rung) within noise, or the probe is not measuring what it
+  claims.
+
+## Verification
+
+- [ ] The cosine-to-recall mapping reported for candidates spanning the bar
+- [ ] Same-provider control reproduces the 0265 figure per cell
+
+## Exit criteria
+
+- [ ] Evidence sufficient for the author to ratify or amend the X8 bar, and
+      to rule on adopt-by-copy, cited from the awaiting entry
