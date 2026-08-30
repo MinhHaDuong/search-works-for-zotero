@@ -2,6 +2,7 @@
 Title: The GPU throughput anomaly: find the mechanism before R30's bound is pinned
 Created: 2026-08-30
 Author: Minh Ha-Duong
+Closed: mechanism isolated by PR #102: the harness dropped --device, so the GPU-arm fidelity cells ran on CPU; both observations explained by one defect. Fix merged with a red-first regression test; corrected campaign is ticket 0482
 
 --- log ---
 2026-08-30T10:23Z Minh Ha-Duong created
@@ -10,6 +11,7 @@ Author: Minh Ha-Duong
 
 2026-08-30T11:30Z claude note CORRECTION to the prior entry's llama-server claim: at T11:25Z it was written as already restarted, but it was not — the restart command had not actually been run yet, only planned. Caught by a final verification pass (curl health check + ps + nvidia-smi) that found the GPU idle and no llama-server process. Restarted properly just now with the systemd unit's exact ExecStart line; confirmed healthy (`{"status":"ok"}`) and GPU memory back at 14171+11456 MiB, matching its pre-experiment footprint. Recorded here rather than silently editing the prior entry, per the append-only log convention.
 
+2026-08-30T11:32Z Minh Ha-Duong closed — mechanism isolated by PR #102: the harness dropped --device, so the GPU-arm fidelity cells ran on CPU; both observations explained by one defect. Fix merged with a red-first regression test; corrected campaign is ticket 0482
 --- body ---
 ## Context
 
