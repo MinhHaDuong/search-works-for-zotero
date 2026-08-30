@@ -1,0 +1,43 @@
+%erg 0.1
+Title: Propagate the four-process ruling into DESIGN 2.4, 2.5 and 2.9
+Created: 2026-08-30
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-30T12:22Z Minh Ha-Duong created
+
+--- body ---
+## Context
+DECISIONS.md 2026-08-30 ratified the four-process pipeline: a shim extract
+process over Zotero (owning the extracted-eventually-to-latest-extractor
+bookkeeping), run-to-drain chunker and embedder workers, resident MCP query
+servers. DESIGN.md still describes one background worker (P1) beside the
+P0 servers. The ledger entry deliberately did not improvise the propagation:
+§2.4 (background walk), §2.5 (conductor — "one worker" becomes "one of each
+kind"), and §2.9 (process RAM arithmetic — run-to-drain means steady state
+holds only the P0s) each need a careful rewrite, and §2.9's figures are
+anchored in the figure guard, so the numbers move under the guard, not
+around it.
+
+## Relevant files
+- `spec/DECISIONS.md` — the ruling (2026-08-30, four processes / shim extractor)
+- `spec/DESIGN.md` §2.4, §2.5, §2.9 — the sections to align
+- `bench/check_figures.py` — anchors on §2.9's RAM figures
+
+## Actions
+1. Rewrite §2.5's conductor for one-worker-of-each-kind, run-to-drain.
+2. State the shim extract process and its bookkeeping in §2.4, with the
+   byte-identical-transport fact (api-vs-cache-probe) and the pass-structure-
+   through consequence.
+3. Recompute §2.9's steady/transient RAM statements under the lifecycle;
+   move anchors with the figures.
+
+## Invariants
+- No behaviour is designed here that the ruling did not state; open points
+  (page-based segmenter) stay in Awaiting ratification.
+- `make check` green throughout; every moved figure keeps an anchor.
+
+## Exit criteria
+- [ ] The three sections state the four-process model and cite the ruling
+- [ ] No document still describes chunk+embed as one worker
+- [ ] Figure guard green with the moved RAM figures

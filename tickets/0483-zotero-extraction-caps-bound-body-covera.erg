@@ -6,6 +6,8 @@ Author: Minh Ha-Duong
 --- log ---
 2026-08-30T12:16Z Minh Ha-Duong created
 
+2026-08-30T15:50Z claude note action 1's experiment substantially settled the same afternoon (verification/probes/api-vs-cache-probe.py): the API serves the cache byte-identical — same chars, same form feeds, blank lines intact — on 3 probes including one AT the cap (indexedPages 100, totalPages 114, 99 form feeds), so pdfMaxPages binds cache and API alike and the per-attachment detection hook works live. Remaining before closing: the textMaxLength half (the p99 signature is suggestive, not settled), the ruling+CONSTRAINTS entry, and the truncated-body state in DESIGN.
+
 --- body ---
 ## Context
 The author raised it during the 0140 session (2026-08-30): Zotero as the

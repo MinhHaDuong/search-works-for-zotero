@@ -593,7 +593,46 @@ as unit of answer. What upstream got right is kept: the scale of its chunks,
 band — which is why nothing truncates in the field today, and why this
 ruling is an alignment fix, not a size change.
 
+**2026-08-30 — the pipeline is four processes, and the extract stage is a shim
+over Zotero for now.** The author's architecture: extract, chunk, and embed as
+three asynchronous processes, the MCP query servers the fourth — coordinated
+through the ledger, whose keyed, idempotent derivations are what make the
+stage boundaries process boundaries. The extract process starts as a shim
+that only queries Zotero, same functionality as today's in-server crawl,
+because the shim's real content is already nontrivial: the bookkeeping that
+everything gets extracted *eventually* and *to the latest extractor* — the
+since-cursor, extractor-version staleness (ticket 0480's class), and the
+per-attachment truncation flags (ticket 0483). Someday it is replaced by a
+better extractor — one that, for instance, keeps blank lines so the chunker
+can be structural. A fact measured the same day narrows what "someday" must
+deliver: the local API serves the cache file byte-identical — blank lines and
+form-feed page breaks arrive intact (3 probes, one at the 100-page cap,
+`verification/probes/api-vs-cache-probe.py`) — so structure is destroyed by
+the *chunker's* whitespace-flattening, not the transport, and the shim can
+pass structure through from day one. The workers' lifecycle is run-to-drain —
+spawn on a tick, drain the ledger queue, exit — so steady state holds only
+the query servers and the RAM arithmetic keeps today's shape; the chunker
+and embedder split buys failure-mode isolation (monster-RSS risk is
+chunk-side; the embedder is memory-steady), not wall-clock. Propagation of
+the process model into DESIGN.md §2.4/§2.5/§2.9 is ticketed rather than
+improvised here.
+
 ## Awaiting ratification
+
+- **Page-based segmentation for books (author's position, 2026-08-30, facts
+  attached for the ruling).** For ordinary books the segmenter should cut at
+  pages rather than heuristic entries; reference works keep entry
+  segmentation under the entry-as-unit-of-answer ruling. What measurement
+  adds: a page is 1 900–2 300 characters ≈ 380–490 tokens — almost exactly
+  one chunk at the 498 budget, so segment ≈ chunk ≈ page and the page number
+  rides along as a citable locator, which heuristic entries can never give.
+  The caveat the ruling should weigh: form feeds mark pages in only 55 % of
+  PDF caches (300-file sample; extractor-vintage mixed regime, 0480's
+  class) — the rest need a re-extraction sweep or a paragraph-synthetic
+  fallback, and `indexedPages`/`totalPages` gives counts but not boundaries.
+  If ratified, seg/1's below-confidence fallback becomes page-based instead
+  of synthetic 6k-token entries, and X5's question shifts accordingly
+  (ticket 0028).
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**
   The entry below reports X4 and concludes the ladder loses its middle rung.
