@@ -1,4 +1,5 @@
 {
+  "superseded": "These projections (PyTorch on CUDA, derived from run logs rather than measured, on an English-only field R7 later excluded) are superseded by real ONNX measurements in the runtime zoteus ships, taken on the designated GPU host: bench/results/0264-gpu-arm/, ticket 0264. Kept here unedited as the record of what was projected and why; not deleted.",
   "what": "GPU embedding throughput, derived from the logs of the runs that produced this directory's vectors",
   "derived_not_measured": "Wall clock is taken between the 'loading' and 'done' lines of each run, so it includes model load and, on a first run, download. The per-passage cost is therefore an UPPER bound, which is the safe direction: it never flatters the GPU against the directly-measured CPU figures in embed-feasibility.json.",
   "projection": "hours_to_index_projected scales each run's own wall clock to 255703 passages by simple proportion. An arithmetic projection, not a measurement; the factor used is recorded per run.",

@@ -1,0 +1,54 @@
+{
+  "cell_id": "granite-311m-multilingual-r2__q8__cuda__fixed-queries-v1__cost-v1",
+  "model": "granite-311m-multilingual-r2",
+  "dtype": "q8",
+  "device_requested": "cuda",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T09:21Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "measured",
+  "onnx_hash": "54d33d10f865516eda6770d7b0bbf5eaece861058907da0ad095c62e52958c3d",
+  "onnx_path": "onnx/model_quantized.onnx",
+  "n_reps": 5,
+  "device_selected": "cuda",
+  "metrics": {
+    "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+    "model_id": "granite-311m-multilingual-r2",
+    "dim": 768,
+    "dtype": "q8",
+    "device": "cuda",
+    "load_ms": 2608.5,
+    "rss_before_mb": 86.1,
+    "rss_after_load_mb": 1165.3,
+    "rss_delta_mb": 1079.1,
+    "query_ms_min": 13.6,
+    "query_ms_median": 14.3,
+    "query_ms_p95": 16.6,
+    "n": 60,
+    "process_exit_note": "driver exited -6 after writing valid output (known post-output native-binding crash on this host; see ticket 0264)",
+    "rss_delta_mb_median": 1079.1,
+    "rss_delta_mb_spread": 51.9,
+    "rss_delta_mb_reps": [
+      1055.4,
+      1081,
+      1107.3,
+      1077.3,
+      1079.1
+    ]
+  }
+}

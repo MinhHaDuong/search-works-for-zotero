@@ -1,0 +1,28 @@
+{
+  "cell_id": "granite-97m-multilingual-r2__fp32__auto__fixed-queries-v1__cost-v1",
+  "model": "granite-97m-multilingual-r2",
+  "dtype": "fp32",
+  "device_requested": "auto",
+  "corpus": "fixed-queries-v1",
+  "kind": "cost",
+  "driver": "query_embed_cost.mjs",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T07:25Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "",
+    "passage": ""
+  },
+  "pooling": "cls",
+  "normalize": true,
+  "status": "failed",
+  "onnx_hash": "68e592b160673d30250824c1116bc6ab33f70efb22b97c9e1d7ce1e69c1c9d70",
+  "onnx_path": "onnx/model.onnx",
+  "error": "returncode=-6\nWarning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\n\u001b[1;31m2026-08-30 09:25:00.892265144 [E:onnxruntime:, sequential_executor.cc:572 ExecuteKernel] Non-zero status code returned while running Sqrt node. Name:'/layers.0/attn/Sqrt' Status Message: /onnxruntime_src/onnxruntime/core/providers/webgpu/webgpu_context.cc:185 onnxruntime::common::Status onnxruntime::webgpu::WebGpuContext::Run(onnxruntime::webgpu::ComputeContextBase&, const onnxruntime::webgpu::ProgramBase&) std::all_of(inputs.begin(), inputs.end(), [](const ProgramInput& input) { const auto* tensor = input.tensor; return tensor != nullptr && tensor->Location().mem_type == OrtMemType::OrtMemTypeDefault && tensor->Location().device.Type() == OrtDevice::GPU && !strcmp(tensor->Location().name.c_str(), WEBGPU_BUFFER); }) was false. All inputs must be tensors on WebGPU buffers.\n\u001b[m\nAn error occurred during model execution: \"Error: Non-zero status code returned while running Sqrt node. Name:'/layers.0/attn/Sqrt' Status Message: /onnxruntime_src/onnxruntime/core/providers/webgpu/webgpu_context.cc:185 onnxruntime::common::Status onnxruntime::webgpu::WebGpuContext::Run(onnxruntime::webgpu::ComputeContextBase&, const onnxruntime::webgpu::ProgramBase&) std::all_of(inputs.begin(), inputs.end(), [](const ProgramInput& input) { const auto* tensor = input.tensor; return tensor != nullptr && tensor->Location().mem_type == OrtMemType::OrtMemTypeDefault && tensor->Location().device.Type() == OrtDevice::GPU && !strcmp(tensor->Location().name.c_str(), WEBGPU_BUFFER); }) was false. All inputs must be tensors on WebGPU buffers.\n\".\nInputs given to model: {\n  input_ids: {\n    type: 'int64',\n    dims: [ 1, 13 ],\n    location: 'cpu',\n    data: BigInt64Array(13) [\n      179934n, 13107n,  2186n,\n       19899n, 23296n,  2833n,\n        1031n,   250n,  3634n,\n        3037n,   288n, 15568n,\n      179938n\n    ]\n  },\n  attention_mask: {\n    type: 'int64',\n    dims: [ 1, 13 ],\n    location: 'cpu',\n    data: BigInt64Array(13) [\n      1n, 1n, 1n, 1n, 1n, 1n,\n      1n, 1n, 1n, 1n, 1n, 1n,\n      1n\n    ]\n  }\n}\n/home/haduong/data/zoteus-bench-pkg/node_modules/onnxruntime-node/dist/backend.js:117\n                    resolve(__classPrivateFieldGet(this, _OnnxruntimeSessionHandler_inferenceSession, \"f\").run(feeds, fetches, options));\n                                                                                                           ^\n\nError: Non-zero status code returned while running Sqrt node. Name:'/layers.0/attn/Sqrt' Status Message: /onnxruntime_src/onnxruntime/core/providers/webgpu/webgpu_context.cc:185 onnxruntime::common::Status onnxruntime::webgpu::WebGpuContext::Run(onnxruntime::webgpu::ComputeContextBase&, const onnxruntime::webgpu::ProgramBase&) std::all_of(inputs.begin(), inputs.end(), [](const ProgramInput&"
+}
