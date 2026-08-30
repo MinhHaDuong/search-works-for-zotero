@@ -1,0 +1,1055 @@
+{
+  "what": "ticket 0265: recall at the deployed dtype, and the fused RRF delta -- vector-arm and fused-arm same-item retrieval for every 0263-surviving (candidate, rung), scored on one seeded subsample of the real 93 022-passage corpus",
+  "tracker": "ticket 0240",
+  "ticket": "tickets/0265-recall-at-the-deployed-dtype-and-the-fus.erg",
+  "subsample": {
+    "what": "ticket 0265's recall/fusion subsample: whole items, seeded shuffle, budget-capped",
+    "source_passages": "/home/haduong/data/projets/zoteus-bench/vec-real/passages.txt",
+    "source_items": "/home/haduong/data/projets/zoteus-bench/vec-real/passages.items",
+    "source_passages_total": 93022,
+    "source_items_total": 2100,
+    "seed": 20260830,
+    "method": "random.Random(seed).shuffle(item_index); accumulate whole items in shuffled order until passage count >= target; the crossing item is kept whole, not truncated; output re-sorted to original file order",
+    "target_passages": 1500,
+    "items_selected": 33,
+    "passages_selected": 1533,
+    "passages_sha256": "32fbc9e77c8571a7c99f2fe372acfa2f698e3a633e283bc5e10d59fd17403479"
+  },
+  "keyword_arm": {
+    "recall_at_topk": 0.8092,
+    "mrr": 0.9478,
+    "probes": {
+      "count": 400,
+      "seed": "20260830",
+      "zero_hit_probes": 0,
+      "mean_query_terms": 12
+    },
+    "corpus": {
+      "passages": 1533,
+      "items": 33,
+      "eligible_probes": 1524
+    },
+    "task": {
+      "relevant": "other passages of the probe's own item, at least 3 chunks away",
+      "query_construction": "top 12 highest-frequency content words (len>=4, multilingual stoplist, ties broken alphabetically) of the probe passage itself, OR-joined as an FTS5 MATCH query -- the standard more-like-this move for a document-length query, since the same-item task has no separate query set",
+      "topk": 30,
+      "tokenizer": "unicode61 remove_diacritics 2",
+      "bm25_convention": "SQLite bm25() is smaller-is-better; ORDER BY s ASC, rank 0 = best"
+    },
+    "not_this": "bench/results/0070-cosine-fusion/ is loop fusion -- a JIT/arithmetic optimisation of the vector scan's cosine function. This file has nothing to do with that; it is the keyword-search half of the RRF search-result fusion this ticket measures.",
+    "source": "bench/results/0265-recall-fusion/keyword-arm.json (shared across every cell)"
+  },
+  "cells_total": 18,
+  "cells_present": 18,
+  "missing": [],
+  "mismatches": [],
+  "fusion_gain_analysis": {
+    "what": "of the cells where the vector arm beats keyword-alone, how much of that gain survives fusion into the fused RRF arm",
+    "healthy_cells": 17,
+    "broken_cells": [
+      "granite-97m-multilingual-r2/q8"
+    ],
+    "vector_arm_gain_range": [
+      0.0552,
+      0.1202
+    ],
+    "fused_gain_range": [
+      0.055,
+      0.0812
+    ],
+    "fraction_of_vector_gain_surviving_fusion_mean": 0.7352,
+    "fraction_of_vector_gain_surviving_fusion_median": 0.7236
+  },
+  "rows": [
+    {
+      "model": "granite-97m-multilingual-r2",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+        "model_id": "granite-97m-multilingual-r2",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 2376.1,
+        "embed_ms": 214324.1,
+        "ms_per_passage": 139.81,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.9025,
+        "mrr": 0.9729
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9025,
+        "mrr": 0.9729
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8799,
+        "mrr": 0.982
+      },
+      "vector_arm_gain_over_keyword": 0.0933,
+      "fused_gain_over_keyword": 0.0707,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 0,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.0.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "granite-97m-multilingual-r2",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+        "model_id": "granite-97m-multilingual-r2",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 1585.7,
+        "embed_ms": 208903.4,
+        "ms_per_passage": 136.27,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.5895,
+        "mrr": 0.8546
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.5895,
+        "mrr": 0.8546
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.7454,
+        "mrr": 0.9321
+      },
+      "vector_arm_gain_over_keyword": -0.2197,
+      "fused_gain_over_keyword": -0.0638,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 0,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.0.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "granite-97m-multilingual-r2",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+        "model_id": "granite-97m-multilingual-r2",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 3228.2,
+        "embed_ms": 371008.6,
+        "ms_per_passage": 242.01,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.8644,
+        "mrr": 0.9583
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.8644,
+        "mrr": 0.9583
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8642,
+        "mrr": 0.9807
+      },
+      "vector_arm_gain_over_keyword": 0.0552,
+      "fused_gain_over_keyword": 0.055,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 0,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.0.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "granite-311m-multilingual-r2",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+        "model_id": "granite-311m-multilingual-r2",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 10835.5,
+        "embed_ms": 1680427.6,
+        "ms_per_passage": 1096.17,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9249,
+        "mrr": 0.9815
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9249,
+        "mrr": 0.9815
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8904,
+        "mrr": 0.9776
+      },
+      "vector_arm_gain_over_keyword": 0.1157,
+      "fused_gain_over_keyword": 0.0812,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 1,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.1.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "granite-311m-multilingual-r2",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+        "model_id": "granite-311m-multilingual-r2",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 6422.5,
+        "embed_ms": 1244376.2,
+        "ms_per_passage": 811.73,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9208,
+        "mrr": 0.9757
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9208,
+        "mrr": 0.9757
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8888,
+        "mrr": 0.9791
+      },
+      "vector_arm_gain_over_keyword": 0.1116,
+      "fused_gain_over_keyword": 0.0796,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 1,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.1.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "granite-311m-multilingual-r2",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/granite-embedding-311m-multilingual-r2-ONNX",
+        "model_id": "granite-311m-multilingual-r2",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 2924.6,
+        "embed_ms": 1103145.2,
+        "ms_per_passage": 719.6,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9195,
+        "mrr": 0.9764
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9195,
+        "mrr": 0.9764
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8894,
+        "mrr": 0.9778
+      },
+      "vector_arm_gain_over_keyword": 0.1103,
+      "fused_gain_over_keyword": 0.0802,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 1,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.1.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "arctic-embed-m-v2",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+        "model_id": "arctic-embed-m-v2",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 3607.2,
+        "embed_ms": 921773.7,
+        "ms_per_passage": 601.29,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9294,
+        "mrr": 0.9773
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9294,
+        "mrr": 0.9773
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8885,
+        "mrr": 0.974
+      },
+      "vector_arm_gain_over_keyword": 0.1202,
+      "fused_gain_over_keyword": 0.0793,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 2,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.2.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "arctic-embed-m-v2",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+        "model_id": "arctic-embed-m-v2",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 1870.7,
+        "embed_ms": 605258.5,
+        "ms_per_passage": 394.82,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9278,
+        "mrr": 0.9745
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9278,
+        "mrr": 0.9745
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8881,
+        "mrr": 0.9721
+      },
+      "vector_arm_gain_over_keyword": 0.1186,
+      "fused_gain_over_keyword": 0.0789,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 2,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.2.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "arctic-embed-m-v2",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+        "model_id": "arctic-embed-m-v2",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 2045,
+        "embed_ms": 618656.7,
+        "ms_per_passage": 403.56,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9273,
+        "mrr": 0.9747
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9273,
+        "mrr": 0.9747
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8881,
+        "mrr": 0.9718
+      },
+      "vector_arm_gain_over_keyword": 0.1181,
+      "fused_gain_over_keyword": 0.0789,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 2,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.2.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "gte-multilingual-base",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/gte-multilingual-base",
+        "model_id": "gte-multilingual-base",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 3874.2,
+        "embed_ms": 820935.1,
+        "ms_per_passage": 535.51,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9158,
+        "mrr": 0.9754
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9158,
+        "mrr": 0.9754
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8844,
+        "mrr": 0.9724
+      },
+      "vector_arm_gain_over_keyword": 0.1066,
+      "fused_gain_over_keyword": 0.0752,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 3,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.3.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "gte-multilingual-base",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/gte-multilingual-base",
+        "model_id": "gte-multilingual-base",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 2169.3,
+        "embed_ms": 660608.6,
+        "ms_per_passage": 430.93,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9164,
+        "mrr": 0.9756
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9164,
+        "mrr": 0.9756
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8849,
+        "mrr": 0.9784
+      },
+      "vector_arm_gain_over_keyword": 0.1072,
+      "fused_gain_over_keyword": 0.0757,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 3,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.3.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "gte-multilingual-base",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "onnx-community/gte-multilingual-base",
+        "model_id": "gte-multilingual-base",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "",
+        "pooling": "cls",
+        "batch": 8,
+        "load_ms": 3185.2,
+        "embed_ms": 673820.4,
+        "ms_per_passage": 439.54,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9123,
+        "mrr": 0.9774
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9123,
+        "mrr": 0.9774
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8826,
+        "mrr": 0.977
+      },
+      "vector_arm_gain_over_keyword": 0.1031,
+      "fused_gain_over_keyword": 0.0734,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 3,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.3.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-small",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-small",
+        "model_id": "multilingual-e5-small",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 2306.6,
+        "embed_ms": 234782.6,
+        "ms_per_passage": 153.15,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.9049,
+        "mrr": 0.9691
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9049,
+        "mrr": 0.9691
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8788,
+        "mrr": 0.9672
+      },
+      "vector_arm_gain_over_keyword": 0.0957,
+      "fused_gain_over_keyword": 0.0696,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 4,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.4.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-small",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-small",
+        "model_id": "multilingual-e5-small",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 1349.3,
+        "embed_ms": 187908.7,
+        "ms_per_passage": 122.58,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.9058,
+        "mrr": 0.9694
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9058,
+        "mrr": 0.9694
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8791,
+        "mrr": 0.9715
+      },
+      "vector_arm_gain_over_keyword": 0.0966,
+      "fused_gain_over_keyword": 0.0699,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 4,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.4.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-small",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-small",
+        "model_id": "multilingual-e5-small",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 384,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 1285.8,
+        "embed_ms": 183234.9,
+        "ms_per_passage": 119.53,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 384,
+        "bytes_per_vector": 1536,
+        "recall_at_topk": 0.9036,
+        "mrr": 0.9696
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9036,
+        "mrr": 0.9696
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8801,
+        "mrr": 0.9687
+      },
+      "vector_arm_gain_over_keyword": 0.0944,
+      "fused_gain_over_keyword": 0.0709,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 4,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.4.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-base",
+      "dtype": "fp32",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-base",
+        "model_id": "multilingual-e5-base",
+        "dtype": "fp32",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 3711.4,
+        "embed_ms": 558367.6,
+        "ms_per_passage": 364.23,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9093,
+        "mrr": 0.9701
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9093,
+        "mrr": 0.9701
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8831,
+        "mrr": 0.9712
+      },
+      "vector_arm_gain_over_keyword": 0.1001,
+      "fused_gain_over_keyword": 0.0739,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 5,
+        "dtype_key": "fp32",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.5.fidelity.fp32 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-base",
+      "dtype": "q8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-base",
+        "model_id": "multilingual-e5-base",
+        "dtype": "q8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 1682.6,
+        "embed_ms": 372975.4,
+        "ms_per_passage": 243.3,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.896,
+        "mrr": 0.9646
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.896,
+        "mrr": 0.9646
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8772,
+        "mrr": 0.972
+      },
+      "vector_arm_gain_over_keyword": 0.0868,
+      "fused_gain_over_keyword": 0.068,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 5,
+        "dtype_key": "q8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.5.fidelity.q8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    },
+    {
+      "model": "multilingual-e5-base",
+      "dtype": "uint8",
+      "device": "cpu",
+      "embedding": {
+        "model": "Xenova/multilingual-e5-base",
+        "model_id": "multilingual-e5-base",
+        "dtype": "uint8",
+        "device": "cpu",
+        "dim": 768,
+        "rows": 1533,
+        "corpus": "/home/haduong/data/projets/zoteus-bench/0265/subsample-passages.txt",
+        "input_template_role": "passage",
+        "input_template_prefix": "passage: ",
+        "pooling": "mean",
+        "batch": 8,
+        "load_ms": 1700.3,
+        "embed_ms": 412752.9,
+        "ms_per_passage": 269.25,
+        "normalized": false,
+        "runtime": "@huggingface/transformers in Node (ONNX)",
+        "machine": {
+          "host": "doudou",
+          "cpus": 8,
+          "node": "v22.23.1"
+        }
+      },
+      "vector_recall": {
+        "width": 768,
+        "bytes_per_vector": 3072,
+        "recall_at_topk": 0.9001,
+        "mrr": 0.9632
+      },
+      "keyword_arm": {
+        "recall_at_topk": 0.8092,
+        "mrr": 0.9478
+      },
+      "vector_arm": {
+        "recall_at_topk": 0.9001,
+        "mrr": 0.9632
+      },
+      "fused_arm": {
+        "recall_at_topk": 0.8784,
+        "mrr": 0.9667
+      },
+      "vector_arm_gain_over_keyword": 0.0909,
+      "fused_gain_over_keyword": 0.0692,
+      "fusion_rule": "fraction-weighted RRF, k=60, frac=1 for both arms (plain RRF -- the family's own upper bound; #6012-style calibration is ticket 0031's, deferred)",
+      "fidelity_pointer": {
+        "source": "bench/results/0263-cpu-arm/SUMMARY.json",
+        "row_index": 5,
+        "dtype_key": "uint8",
+        "note": "reused from ticket 0263, not re-measured here -- see rows.5.fidelity.uint8 for cos_mean / overlap_at_30_mean / top1_kept_frac"
+      }
+    }
+  ]
+}

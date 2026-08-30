@@ -116,6 +116,10 @@ PROSE = {
         "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
         "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
     ],
+    "t0265": [
+        "tickets/0265-recall-at-the-deployed-dtype-and-the-fus.erg",
+        "tickets/closed/0265-recall-at-the-deployed-dtype-and-the-fus.erg",
+    ],
 }
 
 
@@ -672,13 +676,18 @@ FIGURES = [
     # The fp32-against-itself control -- one representative model; every other
     # model's fp32 cell carries the identical triple by the scorer's own design.
     ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.fp32.cos_mean", 1,
-     {"t0263": "control: cos_mean {}, overlap_at_30_mean 1,0"}),
+     {"t0263": "control: cos_mean {}, overlap_at_30_mean 1,0",
+      "t0265": "control: {} for every candidate"}),
     # granite-97m's outlier collapse -- the finding the whole campaign turns on.
+    # Ticket 0265 quotes this same pair as the real-world cost of the collapse: its
+    # own recall@30 falls from 0,9025 (fp32) to 0,5895 (q8) on exactly this cell.
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.q8_overlap_at_30_mean", 4,
      {"t0263": "q8{} (cos_mean 0,743121)",
-      "t0266": "overlap@30 of {} there, cos_mean 0,743121"}),
+      "t0266": "overlap@30 of {} there, cos_mean 0,743121",
+      "t0265": "overlap_at_30_mean {}); its own uint8"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.q8.cos_mean", 6,
-     {"t0263": "q8 0,2349 (cos_mean {})"}),
+     {"t0263": "q8 0,2349 (cos_mean {})",
+      "t0265": "q8 cos_mean {}, overlap_at_30_mean"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.q8_vs_uint8.uint8_overlap_at_30_mean", 4,
      {"t0263": "against uint8{} (cos_mean 0,948132)"}),
     ("0263-cpu-arm/SUMMARY.json", "rows.0.fidelity.uint8.cos_mean", 6,
@@ -810,6 +819,45 @@ FIGURES = [
      {"t0266": "q8 clean={}/4, uint8 clean=3/4"}),
     ("0266-cross-lingual/SUMMARY.json", "cells.granite-97m-multilingual-r2__uint8.negative_control.clean", 0,
      {"t0266": "uint8 clean={}/4;"}),
+    # ---- 0265, recall at the deployed dtype and the fused RRF delta. SUMMARY.json
+    # aggregates the 18 committed cells (6 candidates x fp32/q8/uint8); every figure
+    # below is quoted once, in the campaign's own ticket-log entry.
+    ("0265-recall-fusion/SUMMARY.json", "subsample.items_selected", 0,
+     {"t0265": "{} items / 1 533"}),
+    ("0265-recall-fusion/SUMMARY.json", "subsample.passages_selected", 0,
+     {"t0265": "items / {} of the 2 100"}),
+    # "recall@30" ends in a digit immediately before the value's own leading digit, so
+    # despace() merges the space between them (the "p95 4 198,5" trap this file's own
+    # comment already documents) -- the anchor head carries no space here to match.
+    ("0265-recall-fusion/SUMMARY.json", "keyword_arm.recall_at_topk", 4,
+     {"t0265": "recall@30{}, MRR"}),
+    ("0265-recall-fusion/SUMMARY.json", "keyword_arm.mrr", 4,
+     {"t0265": "MRR {}, 400 probes"}),
+    # granite-97m-multilingual-r2, the one candidate whose quantized rung breaks --
+    # fp32, q8 (the break), and uint8 (recovers), row indices 0/1/2 by construction
+    # (bench/build_0265_summary.py's MODELS x DTYPES loop order).
+    ("0265-recall-fusion/SUMMARY.json", "rows.0.vector_arm.recall_at_topk", 4,
+     {"t0265": "(from {} at fp32)"}),
+    ("0265-recall-fusion/SUMMARY.json", "rows.1.vector_arm.recall_at_topk", 4,
+     {"t0265": "collapses to {} (from"}),
+    ("0265-recall-fusion/SUMMARY.json", "rows.2.vector_arm.recall_at_topk", 4,
+     {"t0265": "loses far less ({})"}),
+    ("0265-recall-fusion/SUMMARY.json", "rows.1.fused_arm.recall_at_topk", 4,
+     {"t0265": "fused recall {} beats"}),
+    ("0265-recall-fusion/SUMMARY.json", "rows.1.fused_gain_over_keyword", 4,
+     {"t0265": "fused_gain_over_keyword {})"}),
+    # The fusion-gain analysis block: the 17-cell range and the fraction of the
+    # vector-arm's isolated gain that survives fusion -- a derived figure, computed
+    # by bench/build_0265_summary.py from the 17 healthy cells, not hand-arithmetic
+    # in the prose.
+    ("0265-recall-fusion/SUMMARY.json", "fusion_gain_analysis.vector_arm_gain_range", 4,
+     {"t0265": "gain over keyword-alone ranges {} and"}),
+    ("0265-recall-fusion/SUMMARY.json", "fusion_gain_analysis.fused_gain_range", 4,
+     {"t0265": "fused gain ranges {};"}),
+    ("0265-recall-fusion/SUMMARY.json", "fusion_gain_analysis.fraction_of_vector_gain_surviving_fusion_mean", 4,
+     {"t0265": "mean fraction {}, median"}),
+    ("0265-recall-fusion/SUMMARY.json", "fusion_gain_analysis.fraction_of_vector_gain_surviving_fusion_median", 4,
+     {"t0265": "median {})"}),
 ]
 
 
