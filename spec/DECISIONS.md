@@ -651,6 +651,71 @@ scoped to R-items.
 
 ## Awaiting ratification
 
+- **Files certify their own embedding chain: calibration chunks in every
+  file's header, and one chain per file (author, 2026-08-30).** Two proposals
+  that are one mechanism. Every vector file opens with a fixed, public set of
+  calibration chunks, embedded by the same chain in the same run as the corpus
+  behind them; and no file ever mixes chains, so that header speaks for every
+  row in the file. Verification becomes local and self-contained — embed the
+  same chunks, compare, decide — with no registry to consult and no declared
+  metadata to trust.
+
+  What it answers is a defect class this repository has realized three times,
+  each one a case where the *declared* identity held while the function
+  changed: pooling hardcoded `mean` against four `cls` candidates (ticket
+  0421), the device flag dropped by the sweep wrapper (0481), `normalize`
+  carried in the registry and applied nowhere (0486). `spec/CONSTRAINTS.md`
+  C1's third link derives vectors from "chunks, embedder identity and model",
+  and all four of `spec/DESIGN.md` §2.1's stage keys hash *inputs* —
+  `text_hash`, and `embed_hash` over the embedded text including its prefix.
+  Nothing anywhere measures what the embedder did. A header does.
+
+  Three consequences beyond hygiene. Adopting a foreign index stops being a
+  negotiation over provenance and becomes a local measurement, which is the
+  mechanism the adopt-by-copy entry is waiting on. Serving through an embedder
+  change falls out of the invariant: a new chain is a new file, so the old file
+  serves while the new one builds and the cutover is atomic — the shape ZotSeek
+  reaches with per-model chunk keying and a coverage table
+  (`spec/FIELD-REVIEW.md`; unlicensed, so reimplemented from the description
+  and never copied). And X8 becomes a field instrument rather than a lab one,
+  since every file then carries vectors its own chain produced.
+
+  **What a header cannot do is make the comparison exact**, and this should not
+  be ratified as though it could. X8's own fp32 rows are cross-provider
+  compatible without being bit-identical: in
+  `bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json`,
+  `multilingual-e5-base` reaches a minimum cosine of 0,999974 at fp32. A hash
+  over the header would call that a different chain. The comparison therefore
+  stays tolerant — and on the same artifact it should not be cosine alone,
+  since `granite-97m-multilingual-r2` at q8 clears the bar while keeping 0,4164
+  of its top-30 overlap. Ticket 0485 prices that gap and owns the question; the
+  bar itself is `spec/DESIGN.md` §3's.
+
+  Two sub-questions this entry does not settle. **Where the calibration vectors
+  live**: physically first is right for a reader, but if they occupy slab rows
+  they are addressable as corpus rows and every consumer must remember to
+  exclude them, which is the silent wrongness C1 exists to prevent — a manifest
+  section is proposed instead of row space. **Which chunks**: they must be
+  public, fixed, and reproducible by a stranger, and they must not be drawn
+  from the library, because `SECURITY.md` lists vectors as an asset rather than
+  assuming they are safe for looking like numbers, and a header derived from
+  library text would leak the library into every file handed out. They should
+  span the languages X2 showed behave differently, span short to near-budget
+  length, and pass through the model's own `input_template`, without which the
+  header measures a different function than production does.
+
+  Three costs to weigh before ratifying. A cutover holds two slabs at the real
+  geometry, against budgets `spec/DESIGN.md` §2.9 owns. The execution device is
+  part of the chain, so under R30 a GPU-built and a CPU-built file cannot be
+  merged at the 8-bit rungs, where X8 says most candidates fail. And
+  `embed_hash`'s EXISTS guard on deletes becomes per-file rather than global,
+  which `spec/DESIGN.md` §2.1 must restate rather than inherit.
+
+  Ratifying this reshapes `spec/DESIGN.md` §2.1's stage keys and §2.2's storage
+  section, gives `spec/CONSTRAINTS.md` C1's third link a measured half beside
+  its declared one, and supplies the mechanism the adopt-a-foreign-index entry
+  is waiting on. Ticket 0487 carries the portable format the invariant implies.
+
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
   2026-08-30; a first recording of this entry misread the position as

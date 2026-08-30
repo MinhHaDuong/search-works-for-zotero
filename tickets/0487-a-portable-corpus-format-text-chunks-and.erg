@@ -1,0 +1,112 @@
+%erg 0.1
+Title: A portable corpus format: text, chunks and vectors, one chain per file
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Blocked-by: 0485
+
+--- log ---
+2026-08-30T19:48Z Minh Ha-Duong created
+
+--- body ---
+## Context
+
+The author's proposal of 2026-08-30 (`spec/DECISIONS.md`, awaiting
+ratification) makes every vector file certify its own embedding chain through
+a calibration header, on the invariant that no file mixes chains. That
+invariant implies a format, and this ticket is that format.
+
+The data model already exists and is not in question: `spec/CONSTRAINTS.md`
+C1's three links, and `spec/DESIGN.md` §2.1's four stage keys. What is missing
+is that the model lives as a schema INSIDE zoteus's index rather than as a
+portable artifact, and the cost of that coupling is measured rather than
+speculative. Ticket 0025's substrate correction records every index on the
+author's machine dying on open against the renamed schema
+(`virtual tables may not be indexed`), forcing a full rebuild before X2, X3a
+and X4's real-corpus arms could run at all; ticket 0100 is still open for two
+drivers pinned to the same pre-rename schema. A corpus that outlives the index
+schema is what stops that recurring.
+
+Three further consumers want it. Adopt-a-foreign-index (the awaiting entry in
+`spec/DECISIONS.md`) needs a file a stranger can verify. `GOVERNANCE.md`
+commits the fork to archival once the train resolves, so the corpus must be
+readable without it. And the second machine cannot reuse the first machine's
+work today: R30's designated GPU host and the author's CPU host each rebuild
+what the other already has.
+
+## Shape
+
+Three layers, separable, each independently reusable, each keyed by the layer
+below it.
+
+1. **text** — content-addressed by `text_hash`, already defined in
+   `spec/DESIGN.md` §2.1.
+2. **chunks** — byte offsets into that text, never copies of it. Zotero core
+   reaches the same answer (chunk location as start/end offsets, content
+   re-derived from the source pack); it is described in `spec/FIELD-REVIEW.md`
+   and reimplemented from the description, never copied — the repository is
+   AGPL-3.0 and zoteus is MIT.
+3. **vectors** — one contiguous slab with stored norms, the geometry X1
+   already settled by measurement (`bench/results/0025-x1-timing/`: per-row
+   BLOBs miss the budget by roughly an order of magnitude where the slab meets
+   it). Binary codes ride alongside as a second artifact
+   (`bench/results/0025-x1-recall/`), not as a replacement.
+
+The manifest carries the calibration header, the resolved chain (model id,
+dtype, pooling, normalize, input template, dims — every axis
+`bench/models.json` declares, per ticket 0486's class), the segmenter and
+chunker keys, and the schema version. Calibration vectors live in the manifest
+section and NOT in the slab's row space, so no consumer can return one as a
+hit.
+
+Format: a raw little-endian float32 slab plus a JSON manifest, readable from
+both languages `bench/` already uses with no new dependency. Arrow, Parquet
+and HDF5 all buy less than they cost here and each adds a reader the acceptance
+harness would have to carry.
+
+## Sequencing
+
+Blocked by 0485, and the dependency is real rather than procedural: 0485
+prices cosine against task recall, which decides what the calibration header
+must be compared ON, and therefore what the manifest has to store. Designing
+the layers ahead of that verdict is fine; freezing the header's contract is
+not. The awaiting entry in `spec/DECISIONS.md` must also be ratified before
+the never-mix invariant is built to — it changes `spec/DESIGN.md` §2.1 and
+§2.2.
+
+## Actions
+
+1. Specify the manifest, the slab layout, and the three keys, in
+   `spec/DESIGN.md` §2.2 rather than here — this ticket carries the work, the
+   owning document carries the schema.
+2. Write a reader and a writer in each of the two languages, sharing no code,
+   so the format is proven portable rather than asserted portable.
+3. Convert one real corpus to it and re-run a driver against the converted
+   file, retiring that driver's dependence on the index schema (0100's
+   destination).
+4. Record the applied registry axes in the manifest from
+   `bench/registry.mjs` / `bench/registry.py`, never from a literal — ticket
+   0486's class guard applies here the moment the manifest exists.
+
+## Test
+
+- Round trip: write, read back in the OTHER language, and reproduce the slab
+  byte for byte and the manifest field for field.
+- Negative: a file whose manifest declares one chain and whose calibration
+  vectors were produced by another must be REJECTED by the reader, not merely
+  flagged.
+- The converted corpus must reproduce a committed driver result within that
+  driver's stated noise, or the conversion lost something.
+
+## Verification
+
+- [ ] Reader/writer pairs in both languages, neither sharing code with the other
+- [ ] A real corpus converted and a driver re-run against it
+- [ ] The chain-mismatch rejection demonstrated red before it is green
+
+## Exit criteria
+
+- [ ] The format specified in `spec/DESIGN.md` §2.2, this ticket holding only
+      the work
+- [ ] One driver reads the portable file instead of the index schema
+- [ ] The manifest's chain fields come from the registry, with no literal
+      anywhere
