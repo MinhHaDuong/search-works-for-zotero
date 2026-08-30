@@ -1,0 +1,14 @@
+{
+  "model": "granite-97m-multilingual-r2",
+  "dtype": "uint8",
+  "device": "cuda",
+  "rows": 128,
+  "batch": 1,
+  "reps": 1,
+  "ms_per_passage_reps": [
+    39.29
+  ],
+  "ms_per_passage_median": 39.29,
+  "ms_per_passage_spread": 0.0,
+  "projection_minutes_93022_rows": 60.9
+}

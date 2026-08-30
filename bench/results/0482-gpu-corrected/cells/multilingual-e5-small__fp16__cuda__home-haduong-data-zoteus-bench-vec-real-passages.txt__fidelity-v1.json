@@ -1,0 +1,26 @@
+{
+  "cell_id": "multilingual-e5-small__fp16__cuda__home-haduong-data-zoteus-bench-vec-real-passages.txt__fidelity-v1",
+  "model": "multilingual-e5-small",
+  "dtype": "fp16",
+  "device_requested": "cuda",
+  "corpus": "/home/haduong/data/zoteus-bench/vec-real/passages.txt",
+  "kind": "fidelity",
+  "driver": "quant_fidelity.mjs+quant_fidelity_score.py",
+  "driver_version": "1",
+  "measured_utc": "2026-08-30T11:45Z",
+  "host": "padme",
+  "engine_versions": {
+    "@huggingface/transformers": "4.2.0",
+    "onnxruntime-node": "1.24.3",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c",
+    "onnxruntime-common": "1.24.3"
+  },
+  "input_template": {
+    "query": "query: ",
+    "passage": "passage: "
+  },
+  "pooling": "mean",
+  "normalize": true,
+  "status": "unloadable",
+  "reason": "fp16 is published but fails at ONNX session init on cuda (ticket 0240's known case): done Xenova/multilingual-e5-small\nwrote /tmp/tmpblrp2cyj.json\ncorrupted double-linked list\n"
+}

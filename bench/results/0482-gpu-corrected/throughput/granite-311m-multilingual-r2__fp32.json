@@ -1,0 +1,16 @@
+{
+  "model": "granite-311m-multilingual-r2",
+  "dtype": "fp32",
+  "device": "cuda",
+  "rows": 600,
+  "batch": 8,
+  "reps": 3,
+  "ms_per_passage_reps": [
+    17.29,
+    17.33,
+    17.46
+  ],
+  "ms_per_passage_median": 17.33,
+  "ms_per_passage_spread": 0.17,
+  "projection_minutes_93022_rows": 26.9
+}
