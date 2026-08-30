@@ -747,7 +747,7 @@ maintainer retains implementation choices at each stage.
   Ratifying this reshapes `spec/DESIGN.md` §2.1's stage keys and §2.2's storage
   section, gives `spec/CONSTRAINTS.md` C1's third link a measured half beside
   its declared one, and supplies the mechanism the adopt-a-foreign-index entry
-  is waiting on. Ticket 0487 carries the portable format the invariant implies.
+  is waiting on. Ticket 0497 carries the portable format the invariant implies.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
