@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance terminology chain-dedup normative models help upstream-status upstream-checkout
+.PHONY: check check-fast lint figures governance terminology chain-dedup normative models progress help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -28,7 +28,7 @@ help:
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance terminology chain-dedup normative models check-fast
+check: lint figures governance terminology chain-dedup normative models progress check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
