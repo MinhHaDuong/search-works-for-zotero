@@ -2,7 +2,6 @@
 Title: The embedder recommendation: evidence plus a decision rule
 Created: 2026-08-29
 Author: claude
-Blocked-by: 0264
 Blocked-by: 0265
 Blocked-by: 0266
 
@@ -11,6 +10,7 @@ Blocked-by: 0266
 2026-08-29T20:10Z claude note child 7 of tracker 0240. Blocked on all four measurement children. Writes a recommendation; sets no default.
 
 2026-08-30T10:03Z Minh Ha-Duong note blocker 0263 closed — Blocked-by removed.
+2026-08-30T10:23Z Minh Ha-Duong note blocker 0264 closed — Blocked-by removed.
 --- body ---
 ## Context
 
