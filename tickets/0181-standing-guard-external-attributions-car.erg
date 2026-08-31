@@ -8,6 +8,7 @@ Blocked-by: 0180
 2026-08-29T16:05Z claude created
 2026-08-29T16:05Z claude note the regression half of 0180; /gaze is per-PR and cannot catch this class returning in an unrelated future change
 
+2026-08-31T06:35Z claude note ONE MORE DIMENSION for this guard, from the 0180 episode (spec/DECISIONS.md, 2026-08-31): a citation that supports a DESIGN CHOICE rather than a fact is the kind that survives unexamined longest, because nothing downstream breaks when it is wrong. The residue sentence is the case -- it claimed Zotero's embeddings layer documents the same staleness residue, which it does not, and no measurement, test or build would ever have caught it, since it was doing rhetorical work rather than load-bearing work. A guard keyed on measurement-quoting prose would miss the whole class. The other dimension the same episode surfaced is evidence GRADE, distinct from truth: the rowid claim is true and was cited as '#6012's measurement' when it is a rationale in a source comment carrying no figure, so a reader credits the maintainer with numbers he never published
 --- body ---
 ## Context
 0180 corrects the external attributions that are wrong today. This ticket

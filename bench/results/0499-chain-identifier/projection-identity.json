@@ -1,0 +1,414 @@
+{
+ "probe": "ticket 0499 — a seeded random projection as the chain identifier",
+ "what": "How much of the fp32 chain-identity margin survives a data-oblivious random projection, at each projected width. Pairs are synthetic, drawn at the cosines X8 and the per-cell ladder measured; the projection's behaviour is what is simulated, and it is distribution-free.",
+ "inputs": {
+  "cosines_from": "bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json",
+  "ladder_from": "bench/results/0482-gpu-corrected/cells"
+ },
+ "method": {
+  "projection": "Gaussian R (width x dim), scaled 1/sqrt(width), drawn from a seed",
+  "header_chunks": 64,
+  "trials_per_width": 200,
+  "seed": 20260831,
+  "retention_bar": 0.9,
+  "statistic": "worst trial, not the mean: an identifier is only as good as its worst header, and the mean hides the case that misidentifies a file.",
+  "caveat": "Nothing is embedded here. This prices the projection, not the models — and it cannot rescue the 8-bit rungs, where the first arm found the ratio already below one. Preserving a ratio faithfully is no help when the ratio itself says the chains are indistinguishable."
+ },
+ "sweeps": [
+  {
+   "model": "arctic-embed-m-v2",
+   "dim": 768,
+   "cos_same_chain": 0.999999,
+   "cos_nearest_other_chain": 0.946311,
+   "unprojected_ratio": 232.76,
+   "full_header_bytes": 196608,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 78.15,
+     "worst_aggregated_ratio": 207.53,
+     "mean_aggregated_ratio": 232.27,
+     "retention_worst_aggregated": 0.8916
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 113.3,
+     "worst_aggregated_ratio": 217.51,
+     "mean_aggregated_ratio": 233.04,
+     "retention_worst_aggregated": 0.9345
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 137.85,
+     "worst_aggregated_ratio": 224.8,
+     "mean_aggregated_ratio": 232.79,
+     "retention_worst_aggregated": 0.9658
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 164.36,
+     "worst_aggregated_ratio": 224.69,
+     "mean_aggregated_ratio": 232.67,
+     "retention_worst_aggregated": 0.9654
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 177.26,
+     "worst_aggregated_ratio": 227.86,
+     "mean_aggregated_ratio": 232.84,
+     "retention_worst_aggregated": 0.979
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 189.43,
+     "worst_aggregated_ratio": 228.66,
+     "mean_aggregated_ratio": 232.72,
+     "retention_worst_aggregated": 0.9824
+    },
+    {
+     "projected_dim": 768,
+     "header_bytes": 196608,
+     "worst_per_chunk_ratio": 232.76,
+     "worst_aggregated_ratio": 232.76,
+     "mean_aggregated_ratio": 232.76,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 32
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "dim": 768,
+   "cos_same_chain": 0.9999995,
+   "cos_nearest_other_chain": 0.990173,
+   "unprojected_ratio": 140.31,
+   "full_header_bytes": 196608,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 47.45,
+     "worst_aggregated_ratio": 125.99,
+     "mean_aggregated_ratio": 139.93,
+     "retention_worst_aggregated": 0.898
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 67.63,
+     "worst_aggregated_ratio": 131.88,
+     "mean_aggregated_ratio": 140.5,
+     "retention_worst_aggregated": 0.94
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 80.62,
+     "worst_aggregated_ratio": 135.54,
+     "mean_aggregated_ratio": 140.32,
+     "retention_worst_aggregated": 0.9661
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 100.26,
+     "worst_aggregated_ratio": 135.04,
+     "mean_aggregated_ratio": 140.24,
+     "retention_worst_aggregated": 0.9624
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 107.6,
+     "worst_aggregated_ratio": 137.48,
+     "mean_aggregated_ratio": 140.35,
+     "retention_worst_aggregated": 0.9799
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 114.52,
+     "worst_aggregated_ratio": 137.77,
+     "mean_aggregated_ratio": 140.28,
+     "retention_worst_aggregated": 0.9819
+    },
+    {
+     "projected_dim": 768,
+     "header_bytes": 196608,
+     "worst_per_chunk_ratio": 140.31,
+     "worst_aggregated_ratio": 140.31,
+     "mean_aggregated_ratio": 140.31,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 32
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "dim": 384,
+   "cos_same_chain": 0.999999,
+   "cos_nearest_other_chain": 0.947308,
+   "unprojected_ratio": 230.57,
+   "full_header_bytes": 98304,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 71.02,
+     "worst_aggregated_ratio": 206.17,
+     "mean_aggregated_ratio": 230.62,
+     "retention_worst_aggregated": 0.8942
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 105.8,
+     "worst_aggregated_ratio": 218.64,
+     "mean_aggregated_ratio": 230.87,
+     "retention_worst_aggregated": 0.9482
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 141.63,
+     "worst_aggregated_ratio": 221.97,
+     "mean_aggregated_ratio": 230.84,
+     "retention_worst_aggregated": 0.9627
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 165.43,
+     "worst_aggregated_ratio": 223.77,
+     "mean_aggregated_ratio": 230.46,
+     "retention_worst_aggregated": 0.9705
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 175.27,
+     "worst_aggregated_ratio": 226.02,
+     "mean_aggregated_ratio": 230.57,
+     "retention_worst_aggregated": 0.9803
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 230.57,
+     "worst_aggregated_ratio": 230.57,
+     "mean_aggregated_ratio": 230.57,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 32
+  },
+  {
+   "model": "gte-multilingual-base",
+   "dim": 768,
+   "cos_same_chain": 0.999999,
+   "cos_nearest_other_chain": 0.927755,
+   "unprojected_ratio": 270.43,
+   "full_header_bytes": 196608,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 90.96,
+     "worst_aggregated_ratio": 240.66,
+     "mean_aggregated_ratio": 269.9,
+     "retention_worst_aggregated": 0.8899
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 131.45,
+     "worst_aggregated_ratio": 252.34,
+     "mean_aggregated_ratio": 270.75,
+     "retention_worst_aggregated": 0.9331
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 162.01,
+     "worst_aggregated_ratio": 261.22,
+     "mean_aggregated_ratio": 270.47,
+     "retention_worst_aggregated": 0.966
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 190.49,
+     "worst_aggregated_ratio": 261.24,
+     "mean_aggregated_ratio": 270.33,
+     "retention_worst_aggregated": 0.966
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 205.78,
+     "worst_aggregated_ratio": 264.7,
+     "mean_aggregated_ratio": 270.53,
+     "retention_worst_aggregated": 0.9788
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 220.12,
+     "worst_aggregated_ratio": 265.74,
+     "mean_aggregated_ratio": 270.39,
+     "retention_worst_aggregated": 0.9826
+    },
+    {
+     "projected_dim": 768,
+     "header_bytes": 196608,
+     "worst_per_chunk_ratio": 270.43,
+     "worst_aggregated_ratio": 270.43,
+     "mean_aggregated_ratio": 270.43,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 32
+  },
+  {
+   "model": "multilingual-e5-base",
+   "dim": 768,
+   "cos_same_chain": 0.999974,
+   "cos_nearest_other_chain": 0.974042,
+   "unprojected_ratio": 31.67,
+   "full_header_bytes": 196608,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 10.66,
+     "worst_aggregated_ratio": 28.34,
+     "mean_aggregated_ratio": 31.59,
+     "retention_worst_aggregated": 0.895
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 15.44,
+     "worst_aggregated_ratio": 29.68,
+     "mean_aggregated_ratio": 31.71,
+     "retention_worst_aggregated": 0.9373
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 18.42,
+     "worst_aggregated_ratio": 30.58,
+     "mean_aggregated_ratio": 31.67,
+     "retention_worst_aggregated": 0.9657
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 22.47,
+     "worst_aggregated_ratio": 30.51,
+     "mean_aggregated_ratio": 31.65,
+     "retention_worst_aggregated": 0.9635
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 24.17,
+     "worst_aggregated_ratio": 31.01,
+     "mean_aggregated_ratio": 31.68,
+     "retention_worst_aggregated": 0.9793
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 25.78,
+     "worst_aggregated_ratio": 31.1,
+     "mean_aggregated_ratio": 31.66,
+     "retention_worst_aggregated": 0.9822
+    },
+    {
+     "projected_dim": 768,
+     "header_bytes": 196608,
+     "worst_per_chunk_ratio": 31.67,
+     "worst_aggregated_ratio": 31.67,
+     "mean_aggregated_ratio": 31.67,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 32
+  },
+  {
+   "model": "multilingual-e5-small",
+   "dim": 384,
+   "cos_same_chain": 0.9999995,
+   "cos_nearest_other_chain": 0.995588,
+   "unprojected_ratio": 93.97,
+   "full_header_bytes": 98304,
+   "widths": [
+    {
+     "projected_dim": 16,
+     "header_bytes": 4096,
+     "worst_per_chunk_ratio": 30.98,
+     "worst_aggregated_ratio": 84.57,
+     "mean_aggregated_ratio": 93.92,
+     "retention_worst_aggregated": 0.9
+    },
+    {
+     "projected_dim": 32,
+     "header_bytes": 8192,
+     "worst_per_chunk_ratio": 45.03,
+     "worst_aggregated_ratio": 88.42,
+     "mean_aggregated_ratio": 94.12,
+     "retention_worst_aggregated": 0.9409
+    },
+    {
+     "projected_dim": 64,
+     "header_bytes": 16384,
+     "worst_per_chunk_ratio": 59.25,
+     "worst_aggregated_ratio": 90.55,
+     "mean_aggregated_ratio": 94.11,
+     "retention_worst_aggregated": 0.9636
+    },
+    {
+     "projected_dim": 128,
+     "header_bytes": 32768,
+     "worst_per_chunk_ratio": 66.67,
+     "worst_aggregated_ratio": 91.21,
+     "mean_aggregated_ratio": 93.93,
+     "retention_worst_aggregated": 0.9706
+    },
+    {
+     "projected_dim": 256,
+     "header_bytes": 65536,
+     "worst_per_chunk_ratio": 72.15,
+     "worst_aggregated_ratio": 91.97,
+     "mean_aggregated_ratio": 93.95,
+     "retention_worst_aggregated": 0.9787
+    },
+    {
+     "projected_dim": 384,
+     "header_bytes": 98304,
+     "worst_per_chunk_ratio": 93.97,
+     "worst_aggregated_ratio": 93.97,
+     "mean_aggregated_ratio": 93.97,
+     "retention_worst_aggregated": 1.0
+    }
+   ],
+   "smallest_width_at_bar": 16
+  }
+ ],
+ "verdict": {
+  "models": 6,
+  "narrowest_unprojected_ratio": 31.67,
+  "width_that_serves_every_model": 32,
+  "worst_aggregated_ratio_at_that_width": 29.68,
+  "header_bytes_at_that_width": 8192,
+  "shrink_against_widest_full_header": 24.0,
+  "fp32_only": "This says nothing about the 8-bit rungs, and neither does any projection: at those rungs the same chain on the other arm already moves more than the nearest different chain does."
+ }
+}

@@ -6,12 +6,14 @@ role in the full chain is stated once, in README.md.*
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
 22 kills, each with its evidence), cycle 1's synthesis ("The Settled Ledger"),
-and the scout report — are superseded and live in git history, last present at
-commit `6f7fcd1` as `DESIGN.md`, `DESIGN-DELTA.md`, `DESIGN-V1.md`,
-`SCOUTS.md`. The consolidated truth in the working tree replaces them; git is
-the archive. The cycle-2 panel record that entries below cite by name — the
-memos, the critiques, the political and implementation reviews — is likewise
-in git history, last present at commit `e32afe3` as `panel/cycle2/`.*
+and the scout report — are superseded and are now gone: they lived only in the
+history this repository was re-rooted away from on 2026-08-29, and 2026-08-31's
+ruling below abandoned it rather than republish it. The consolidated truth in
+the working tree replaces them, and is now the whole of the record. The cycle-2
+panel record that entries below cite by name — the memos, the critiques, the
+political and implementation reviews — went the same way. Entries below that
+cite a panel document by name cite something no reader can now open; they are
+ratified and stay as written, and this paragraph is the standing correction.*
 
 ## Ratified
 
@@ -713,6 +715,318 @@ artifacts also hold `passage` and `snippet` text drawn from the library, and
 the benchmark query sets are the author's own research questions. Both are
 larger disclosures than a title. Neither is decided here.
 
+**2026-08-31 — the embedder swap is R7 conformance, not a move on the
+cost-versus-quality frontier.** The author's ruling. The reason to leave the
+incumbent MiniLM is that the library and its reader are multilingual. It is not
+that some other model sits at a better point on a trade-off between resident
+memory, latency and retrieval quality.
+
+The distinction decides what the selection gate can return. Judged on that
+trade-off alone the incumbent wins, and keeps winning: `all-MiniLM-L6-v2` is
+several times smaller than every multilingual candidate in the field, and it is
+tuned for the one language in which such a comparison is easiest to measure. A
+gate that weighs quality against resident memory therefore has one stable
+answer — keep MiniLM — however many multilingual candidates it is shown. That is
+a property of the question, not a finding about the candidates.
+
+R7 is the question that has an answer, it is hard by the 2026-08-29 ruling
+above, and the incumbent fails it on its own model card: `bench/models.json`
+records the declared language set of `all-MiniLM-L6-v2` as English alone. So the
+swap is a conformance repair on the reviewed baseline; the candidate campaign of
+ticket 0240 prices that repair rather than justifies it; and C3's replacement
+ceiling, ruled 2026-08-30 above, is what the repair costs rather than what a
+quality upgrade bought.
+
+Consequences for the train. Ticket 0495's gate applies R7 first: an entry whose
+declared language set is not multilingual is not a candidate for the default,
+whatever its golden and resource scores, and the golden gate then chooses among
+the entries that conform. The 2026-08-30 invariant-first entry above stands
+unamended, and its "which entries, if any, ship or become the default" reads
+under this entry as a question about which multilingual entry — never as a route
+by which the incumbent is re-confirmed on frontier evidence. Where no entry yet
+passes, MiniLM remains in place as the disclosed interim state of a known
+non-conformance, never as a ruling that the evidence did not justify a change.
+
+**What this entry does not settle.** It does not rule on R29, the cross-lingual
+property — a query in one language retrieving documents in another — which is a
+strictly stronger promise than R7 and remains ticket 0037's proposal, awaiting
+ratification. Whether R29 joins R7 as a gate criterion in 0495 is open, and it
+is not academic: ticket 0266 measured the cross-lingual arm and its negative
+control cleared at every deployed dtype for only two of six candidates, so
+admitting R29 as a criterion narrows the field before any budget question is
+asked. Nor does this entry select an embedder, which remains 0495's after 0493.
+
+**2026-08-31 — R29 is ratified, amended: the cross-lingual promise enters the
+sheet, and it is a gate criterion.** The author's ruling on the proposal ticket
+0037 has carried since 2026-08-27, and it answers the question the entry above
+left open.
+
+R29 says the query language is not the document language: a query in English or
+French retrieves relevant Vietnamese content with the user translating nothing.
+R7 promises each language its own lane; R29 promises the lanes connect, which is
+the stronger claim and the one the author actually wants from a multilingual
+embedder. Both are conformance criteria in ticket 0495's ship gate, applied
+before the golden and resource gates and traded against neither.
+
+Three amendments to the proposal as drafted. **No new experiment.** The proposal
+commissioned an experiment X8 to measure cross-lingual recall. That label has
+since been taken — DESIGN §3's X8 is cross-provider fidelity — and the
+measurement itself is already done: ticket 0266 ran EN and FR queries against
+Vietnamese, German and Russian content at every deployed dtype, and its artifact
+is committed. The design cites that evidence instead of commissioning a fresh
+experiment under a colliding name, and no new experiment label is allocated.
+**The constraints land with their owners.** That keyword search cannot cross
+languages, that the embedding space is therefore the only channel, and that
+fusion cannot require keyword confirmation before a semantic hit surfaces are
+facts about the two query paths, so DESIGN §2.6 carries them beside the CJK
+posture they transpose. R10 already forbids a translation service on the default
+path, and the sheet's out-of-scope list gains the sentence saying query
+translation is not the mechanism. Nothing is restated in CONSTRAINTS.md.
+**The cross-lingual slice of the golden corpus is gated separately** from the
+monolingual queries, as proposed, so a regression names which of the two
+promises it broke rather than reporting one number for both.
+
+**What this entry does not settle.** It selects no embedder — that stays ticket
+0495's, after ticket 0493 — and it pins no threshold. R29's gate numbers are the
+golden gate's, and ticket 0029 pins them when it builds the slice.
+**2026-08-31 — the pre-restart history is abandoned, and the panel record with
+it.** This repository's `main` was re-rooted on 2026-08-29; everything before
+that date — 121 commits back to the true root of 2026-08-21 — survived only in
+one container's clone, on no remote ref. Ruled: let it go. Not preserved, not
+pushed to an archive branch, not bundled.
+
+The reason is the ruling above it. Fifteen files at that lineage's tip carry
+the document names removed the same day, so preserving the history would
+republish exactly what "no names, only keys" was for. Weighed against that,
+what the history held: the cycle-2 panel's verbatim session record
+(`panel/cycle2/`, fifteen files, 255 715 bytes) and the commit-level provenance
+behind nine citations in the working tree. The tree itself loses nothing — all
+one hundred and six files common to both lineages are current, the four chain
+documents merely moved under `spec/`, and the five tickets that looked missing
+are in `tickets/closed/`.
+
+**Every citation into that history is now corrected rather than left
+dangling**, which is the part that would otherwise rot silently: a pointer to
+`e32afe3` reads as an archive until someone tries it. `CLAUDE.md`, `README.md`,
+`spec/CONSTRAINTS.md`, `spec/DESIGN.md` (four sites), `spec/TERMINOLOGY.md`
+(two), this document's own preamble, and two tickets said the panel record was
+in git history; they now say it is gone. `verification/ACCEPTANCE-0036.md` is
+annotated at its head and untouched below it — a dossier rewritten after its
+evidence became uncheckable would be worth less than one that says so.
+
+Ratified entries below that cite a panel document by name are not edited. They
+are the record of what was decided and why, the ledger is append-only, and the
+preamble carries the standing correction instead.
+**2026-08-31 — files certify their own embedding chain: a calibration header,
+and one chain per file.** Ratified as proposed. Every vector file opens with a
+fixed, public set of calibration chunks, embedded by the same chain in the same
+run as the corpus behind them, and no file ever mixes chains, so that header
+speaks for every row in the file. Verification is thereby local and
+self-contained — embed the same chunks, compare, decide — with no registry to
+consult and no declared metadata to trust.
+
+What this answers is a defect class realized three times, each a case where the
+*declared* identity held while the function changed: pooling hardcoded `mean`
+against four `cls` candidates (ticket 0421), the device flag dropped by the
+sweep wrapper (0481), `normalize` carried in the registry and applied nowhere
+(0486). CONSTRAINTS.md C1's third link derives vectors from "chunks, embedder
+identity and model", and all four of DESIGN.md §2.1's stage keys hash *inputs*.
+Nothing measured what the embedder did. A header does.
+
+Three consequences follow. Adopting a foreign index becomes a local
+measurement rather than a negotiation over provenance, which is the mechanism
+the adopt-by-copy entry below is waiting on. Serving through an embedder change
+falls out of the invariant: a new chain is a new file, so the old file serves
+while the new one builds and the cutover is atomic. And X8 becomes a field
+instrument, since every file carries vectors its own chain produced.
+
+**A header does not make the comparison exact, and the ruling does not pretend
+otherwise.** X8's fp32 rows are cross-provider compatible without being
+bit-identical: `multilingual-e5-base` reaches a minimum cosine of 0,999974 at fp32
+(`bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json`). A hash over
+the header would call that a different chain, so a hash is ruled out
+cross-machine; it is admissible only as a same-machine tripwire, and ticket 0486
+carries the bit-determinism check that claim rests on.
+
+Three sub-rulings settle what the proposal left open. **The calibration vectors
+live in the manifest, not the slab's row space** — addressable-as-a-row means a
+consumer that forgets to exclude them returns a calibration chunk as a hit, and
+the alternative is a permanent exclusion obligation on every reader that will
+ever open the format. **The set is 64 chunks, self-authored and published in
+this repository as a fixture**, never drawn from the library, since SECURITY.md
+lists vectors as an asset and a header derived from library text would leak the
+library into every file handed out; they span the four languages X2 separated,
+span roughly ten tokens to near the resolved budget, and pass through the
+model's own `input_template`. **And the comparison is two tests, not one**:
+per-vector cosine against the stored header proves the two vector spaces align,
+which is what adopting a foreign file requires, while rank agreement over the
+calibration set's own pairwise similarity matrix catches what cosine cannot —
+`granite-97m-multilingual-r2` at q8 clears the bar while keeping 0,4164
+of its top-30 overlap. Sixty-four chunks give that matrix enough pairs at the
+cost of a single forward pass.
+
+Three costs are accepted with the ruling. A cutover holds two slabs at the real
+geometry, against budgets DESIGN.md §2.9 owns. The execution device is part of
+the chain, so under R30 a GPU-built and a CPU-built file cannot be merged at the
+8-bit rungs, where X8 says most candidates fail. And `embed_hash`'s EXISTS guard
+on deletes becomes per-file rather than global, which DESIGN.md §2.1 must
+restate rather than inherit.
+
+This reshapes DESIGN.md §2.1's stage keys and §2.2's storage section, gives
+CONSTRAINTS.md C1's third link a measured half beside its declared one, and
+supplies the mechanism the adopt-a-foreign-index entry is waiting on. Ticket
+0497 carries the portable format the invariant implies; ticket 0485 still
+decides what the header is compared on before that contract is frozen.
+
+**2026-08-31 — ticket 0031 builds calibration from the description, and the
+read-at-source instruction is withdrawn.** FIELD-REVIEW.md instructed ticket
+0031 to read `Zotero.Embeddings.Calibration` at source before committing to its
+own calibration, on the ground that the procedure is an algorithm with
+parameters rather than an idea and so the survey's usual read-describe-rebuild
+route could not carry it. `zotero/zotero` is AGPL-3.0 and zoteus is MIT, and
+that instruction stood with no bound on what the reading could produce.
+
+The premise does not survive inspection, and the ruling dissolves the question
+rather than adopting a protocol for it. FIELD-REVIEW.md has already described
+the whole algorithm — build a query-by-passage score matrix from a labelled
+corpus of relevant and irrelevant pairs, set a per-model minimum relevance
+threshold from it, reject a model that cannot clear it — so nothing is
+withheld. What the source would add is their parameter *values*, and those are
+the one part that must not be reused: a threshold calibrated on their corpus
+and their task is wrong for ours by construction, in the same way X2 showed a
+stoplist is wrong for a corpus whose majority language differs. Deriving our
+own thresholds is not a weaker result; it is the correct one.
+
+So ticket 0031 builds from FIELD-REVIEW.md's description and its own stated
+pair-generation protocol, does not read `Zotero.Embeddings.Calibration`, and
+FIELD-REVIEW.md's read-at-source instruction is withdrawn in the same change as
+this ruling. No contamination question remains to price, and 0031 is unblocked.
+
+What this ruling does NOT touch is reading upstream source to verify a factual
+claim about upstream behaviour — the #6012 checkpoint, and the attributions
+settled for ticket 0180. That produces assertions about what upstream does,
+never code, and tickets 0180 and 0181 depend on it continuing.
+
+
+**2026-08-31 — the accepted-staleness residue: the corroboration is withdrawn,
+and no ruling is disturbed.** Ratified as closing, with no further action.
+DESIGN.md disclosed a residue in the freshness contract — re-extraction with no
+file change is not caught, accepted as staleness — and asserted beside it that
+"Zotero's own embeddings layer documents the same residue". Read at source
+(PR head `77e2c4b`, ticket 0180), that does not hold: `embeddings.js` documents
+staleness only as model-revision-driven reindex and as pref-toggle eligibility,
+and addresses re-extraction without a file change nowhere. The sentence is
+removed; the disclosure's own wording is unchanged.
+
+The question this entry was opened to answer — whether the residue was accepted
+partly on the strength of the platform accepting it too — is answered from the
+record, and the answer is that no ruling was influenced because no ruling
+exists. The four-part resolution lives in DESIGN.md §2.4 as design, not as a
+ratified reading; this ledger's only trace of its vocabulary is inside the
+2026-08-30 presence-probe ruling, where the widened signal appears as a
+complement being noted rather than as the thing ratified;
+REQUIREMENTS.md carries no R-item for it. That same presence-probe ruling
+records part (iii) as still gated on X6's profile arms, which have not run, so
+part (ii) is the interim position of an open design — which is what a
+corroboration should never have been load-bearing for. The residue is decided
+when those arms run, on our own measurement.
+
+What the episode earns is a dimension for ticket 0181's guard, recorded there:
+a citation that supports a *design choice* rather than a fact survives
+unexamined longest, because nothing downstream breaks when it is wrong, and no
+measurement-keyed guard would ever have caught this one.
+
+
+**2026-08-31 — the session-start hook is project state, and `.gitignore` now
+says which part.** The `.claude/` ignore rule was written for per-session agent
+runtime state, and a `SessionStart` hook is not that: a hook only runs if it is
+already in the tree the session opens on, so ticket 0498's exit criterion — a
+fresh container that runs `make check` with no human installing anything —
+cannot be met while the rule covers it. The rule is narrowed to `.claude/*`
+with two exceptions, `.claude/settings.json` and `.claude/hooks/`, and the
+reason is stated in the file beside them. Everything else under `.claude/`
+stays out, which was the original rule's whole point.
+
+Ratified after the change was flagged for veto rather than merged quietly,
+because it edits a rule the author wrote deliberately. It sets no precedent for
+the rest of the directory: a third exception is a third ruling.
+
+
+**2026-08-31 — the header's cheap identifier is a projected vector at a published
+seed, and no hash of anything.** Ratified as proposed, in shape rather than in
+threshold. The calibration-header entry above rules a hash out cross-machine
+because X8's fp32 rows agree in space without agreeing in bytes, and admits one
+only as a same-machine tripwire. The obvious repair — hash the sign bit of each
+dimension rather than the bytes, 32x smaller and blind to low-order noise — fails
+too, for two independent reasons, and ticket 0499 establishes both from artifacts
+already committed here.
+
+At the worst same-chain row (`multilingual-e5-base`, fp32, cross-provider cosine
+0,999974) **1,763 of 768 sign bits move**, so an exact sign hash agrees on one
+vector 17,1 % of the time and on the 64-chunk header never: hashing amplifies,
+because one flipped bit in some 49 000 destroys the match. And ticket 0008
+measured two dimensions over 95 % one-sided on 93 022 real vectors, **both of them
+dimensions the model never activates**, at a millionth or less of the median
+magnitude — their sign is float noise, and an all-or-nothing hash hashes those
+bits beside the ones carrying the corpus.
+
+**What identification actually needs is a ratio**, and naming it is what makes the
+question answerable: the distance to the nearest chain that is not this one, over
+the distance this chain moves when only the provider changes. The two populations
+sit in different artifacts — the noise floor is X8's summary rows (the same chain
+on two arms, at the same model and rung), the signal is inside each cell (a dtype
+against the fp32 rung beside it, one provider). Paired that way, sign distance
+identifies an **fp32** file for 6 of 6 models at **31,67x** the noise floor in the
+narrowest case; at the 8-bit rungs **1 of 12** cells clears even a 2:1 margin and
+**3 invert**. That boundary is the cost this ledger already accepted from the
+cosine side — the device is part of the chain at the 8-bit rungs — reached
+independently in sign space.
+
+**The object that carries the ratio is a seeded random projection.** Preserving
+the ratio is a far weaker requirement than preserving cosine at the noise floor's
+precision, and Johnson-Lindenstrauss meets it exactly, being multiplicative on
+distances: a nearly-identical pair stays nearly identical, both distances shrink
+by nearly the same factor, and the ratio survives. Sign bits quantize the small
+angle away instead, which is the whole of why they fail. Measured over each
+model's own measured cosines, 200 simulated headers per width, worst trial rather
+than mean, with a control projecting to the source width that must reproduce the
+unprojected ratio: **one width serves all six models — 32 dims, 8 192 bytes per
+header, 24,0x smaller than the full fp32 header, keeping a worst case of 29,68x
+against the narrowest unprojected 31,67x.** The header being 64 chunks is most of
+that steadiness, the projection's error being zero-mean.
+
+Three properties make it admissible where a data-derived basis is not. The matrix
+comes from a **published seed**, so it carries no corpus — SECURITY.md lists
+vectors as an asset, and a basis fitted to the library would put the library into
+every file handed out. It is **reproducible** on both machines from that seed,
+with nothing to transmit. And the guarantee is **distribution-free**, so the
+anisotropy that broke the sign-bit argument does not weaken it. MRL truncation is
+model-specific and PCA on the calibration set is circular; neither can be the
+format's rule.
+
+So the header carries `R·v` at 32 dims *beside* the fp32 calibration vectors and
+never instead of them, as the cheap first read that fails fast. The ratified
+per-vector cosine test stays what adopting a foreign file rests on. Nothing is
+claimed at 8-bit, and no projection can claim anything there: preserving a ratio
+faithfully is no help where the ratio is already below one.
+
+**Ratified in shape, not in bar.** The threshold the projected distance is
+compared against is NOT ratified here: it waits on ticket 0485, which decides what
+the header is compared on, and must be sized from measured flip and angle
+distributions rather than from a simulation. Two further limits are ratified with
+the shape rather than papered over. The evidence is derived from committed
+cosines, not from vectors — the artifacts store six decimals, so a rung printed
+1,0 still admits 0,244 flipped bits at 768 dims, and ticket 0499 carries the
+real-vector arm. And the theta/pi identity behind the sign half is a floor, not an
+estimate: reproduced exactly under an isotropic control, it understates flips
+**7,76x** under coordinate-wise quantization, because a coordinate near zero needs
+almost no error to change sign.
+
+This adds the projected vector and its seed to DESIGN.md §2.2. The fuller reshape
+that the calibration-header entry above owes that section — the header itself,
+§2.1's stage keys, the per-file `embed_hash` guard — is still outstanding and is
+that entry's, not this one's.
+
 **2026-08-31 — the standing table is read as a test board, and goal 1 is his
 own first promise, made strong.** The author's instruction, in his words: read
 the completion table in `spec/README.md` as test-driven development, and take
@@ -874,6 +1188,7 @@ R30 leaves the bundle outright. What step 1 does not settle, and step 2 owes:
 R12, and the two items the review found missing — hybrid retrieval and recall.
 
 ## Awaiting ratification
+
 
 - **The goal 1 perimeter, reviewed: five things the roster gets wrong, and the
   author owns all five (2026-08-31, on his instruction to review it).** The

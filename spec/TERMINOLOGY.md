@@ -46,6 +46,19 @@ entry points at the question rather than settling it; rulings land in
   served and counted rather than evicted, and the user's Reindex is the
   healing path. Authoritative: DESIGN.md §2.4 (ruling: DECISIONS.md
   2026-08-30).
+- **calibration header** — the fixed, public set of chunks that opens a vector
+  file, embedded by the same chain in the same run as the corpus behind it, so
+  the file certifies its own embedding chain and a reader verifies it locally
+  rather than trusting declared metadata. It lives in the manifest, never in the
+  slab's row space, so no consumer can return a calibration chunk as a hit.
+  Authoritative: DESIGN.md §2.2 (rulings: DECISIONS.md 2026-08-31).
+- **calibration probe** — the projected copy of the calibration header carried
+  beside it, each vector multiplied by a matrix drawn from a seed published with
+  the format, read first because it fails fast and carries no corpus. It is a
+  cheap read and never the decision: the ratified comparison is the per-vector
+  cosine and the rank agreement over the header itself. Authoritative:
+  DESIGN.md §2.2, which owns its width and its bound (ruling: DECISIONS.md
+  2026-08-31; evidence: ticket 0499).
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: DESIGN.md §2.4.
@@ -57,6 +70,13 @@ entry points at the question rather than settling it; rulings land in
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: REQUIREMENTS.md R1 and R17; the coverage sentence
   and its counters are DESIGN.md §2.8.
+- **cross-lingual** — the property that a query in one language retrieves
+  documents in another: an English or French query finding Vietnamese content.
+  Stronger than *multilingual* and routinely confused with it — multilingual is
+  each language working in its own lane, cross-lingual is the lanes connecting.
+  Only the embedding space crosses languages; the keyword path cannot.
+  Authoritative: REQUIREMENTS.md R29 (ruling: DECISIONS.md 2026-08-31); the
+  mechanism is DESIGN.md §2.6.
 - **custody string** — the one-line statement, carried on every reply, of where
   the query text and the library text went. Authoritative: REQUIREMENTS.md
   R10; the mechanism is DESIGN.md §2.7.
@@ -111,6 +131,12 @@ entry points at the question rather than settling it; rulings land in
 - **metadata-only** — the terminal state of an attachment that yields no text:
   covered rather than failed, with its reason recorded and counted in the
   denominator. Authoritative: REQUIREMENTS.md R14 and R17.
+- **multilingual** — the property that the default path works in each of the
+  tested languages on its own terms and with no configuration, which is what
+  makes a multilingual default embedder a requirement rather than a preference.
+  Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
+  over Vietnamese content and still have no path from an English one.
+  Authoritative: REQUIREMENTS.md R7.
 - **P0 / pipeline workers** — the query-serving zoteus server may have several
   instances; the conductor owns one run-to-drain worker of each pipeline kind:
   extract, chunk, embed. Authoritative: DESIGN.md §2.5.
@@ -230,8 +256,11 @@ one dates the text rather than sending the reader hunting.
   as the soak gate's assertions in DESIGN.md §2.8.
 - **`panel/cycle2/`** — the cycle-two design panel's verbatim session record:
   memos, critiques, and the political and implementation reviews. Deleted from
-  the tree and last present at commit `e32afe3`. It was never authoritative,
-  and where it disagrees with DESIGN.md, DESIGN.md is the record.
+  the tree, then lost outright with the pre-restart history (DECISIONS.md,
+  2026-08-31). It was never authoritative, and DESIGN.md was always the record;
+  a document elsewhere in the chain that cites a panel memo by name is citing
+  something no reader can open.
 - **The Settled Ledger (v1)** — the cycle-one design, superseded by the current
-  "Instrumented Ledger". Historical: what changed and why is DESIGN.md §1, and
-  the document itself lives only in git history.
+  "Instrumented Ledger". Historical: what changed and why is DESIGN.md §1, which
+  is now the whole of it — the document itself went with the pre-restart history
+  (DECISIONS.md, 2026-08-31).

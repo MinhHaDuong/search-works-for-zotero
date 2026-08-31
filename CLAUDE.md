@@ -59,9 +59,10 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   durable state lives in ticket 0014, ticket 0016, ticket 0024, ticket 0025
   and `SYNC.md`.
 - The cycle-2 panel's verbatim session record (memos, critiques, the political
-  and implementation reviews) is in git history, last present at commit
-  `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
-  with DESIGN.md, DESIGN.md is the record.
+  and implementation reviews) is GONE. It lived only in the history `main` was
+  re-rooted away from on 2026-08-29, and 2026-08-31's ruling abandoned it
+  (spec/DECISIONS.md). It was never authoritative and DESIGN.md was always the
+  record; DESIGN.md is now the only one. Cite it for nothing.
 - `verification/` — evidence, not authority. Reports that settle a factual
   question (a platform probe, an acceptance dossier, a voice measurement) and
   the scripts under `verification/probes/` that produced them. A report is
@@ -87,6 +88,14 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
+- What the gate needs to run at all is declared in `requirements-check.txt`
+  (`ruff`, `pytest`, `numpy`); what a measurement driver needs on top of it is
+  `requirements-drivers.txt`, so nobody installs a model runtime to run a lint
+  gate. `bench/check_deps.py` runs FIRST in `make check` and names a missing
+  package before any guard prints, because the failure it was filed for arrived
+  after eight guards had printed success and reads as green to a session that
+  looks at the tail. A remote session installs the gate's set by itself:
+  `.claude/hooks/session-start.sh`. Ticket 0498.
 - One model name, one place: `bench/models.json`, and the same for the two things
   that decide what a measurement means. Every driver names a model by registry id
   and resolves it — plus its `pooling` mode and its `input_template` prefixes —

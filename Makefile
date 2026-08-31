@@ -12,11 +12,12 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast lint figures governance terminology chain-dedup normative models progress help upstream-status upstream-checkout
+.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models progress help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
 	@echo "make check-fast  — the tests alone"
+	@echo "make deps        — the gate's dependencies are declared, present and used"
 	@echo "make lint        — ruff over the harness"
 	@echo "make figures     — every figure quoted in the prose still matches its artifact"
 	@echo "make governance  — process bounds are stated in GOVERNANCE.md, not in the spec"
@@ -29,10 +30,19 @@ help:
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance terminology chain-dedup normative models names progress check-fast
+check: deps lint figures governance terminology chain-dedup normative models names progress check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
+
+# The preflight, and the only guard that runs before the dependencies it checks
+# for. It is first in `check` for the reason ticket 0498 filed it: the gate died
+# on `No module named pytest` at its LAST step, after eight guards had printed
+# success, and a session reading the tail of that output can take it for green.
+# What the gate needs is requirements-check.txt; what a driver needs is
+# requirements-drivers.txt; this keeps both true.
+deps:
+	python3 bench/check_deps.py
 
 lint:
 	# Ruff's default selection has changed across releases. Spell out the

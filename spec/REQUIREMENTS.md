@@ -2,9 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements, R1 to R32 — R29 is reserved for
-the cross-lingual proposal awaiting ratification in ticket 0037. Each is
-written as a
+This document lists the user requirements, R1 to R32. Each is written as a
 testable property: something the test harness, or a careful reader, can
 check. They were agreed with the author and consolidated on 2026-08-26; the
 documents they were consolidated from are superseded and live only in git
@@ -149,6 +147,15 @@ record rejected text as contract.
   explicitly, never silently. (Arabic and Hebrew use the default path but
   are not tested; see "Out of scope".)
 
+- **R29 — the query language is not the document language.** A query in
+  English or French MUST retrieve relevant Vietnamese content without the
+  user translating anything. R7 promises each language its own lane; this
+  promises the lanes connect. The cross-lingual property MUST be gated
+  separately from the monolingual one, so a regression names which promise it
+  broke. When the semantic path is unavailable, the reply MUST say that
+  cross-language matching is down rather than return a silent miss. Query
+  translation is not the mechanism; see "Out of scope".
+
 ### Embedding configurations
 
 - **R31 — selectable embedders are complete and proven locally.** Every local
@@ -238,5 +245,8 @@ read as a promise:
   keeps today's behavior.
 - **Arabic and Hebrew are untested.** Expected to work on the default path,
   but outside R7's tested matrix.
+- **Query translation is out.** R29 rides the embedding space, which is the
+  only channel that crosses languages. No translation service and no local
+  translation model joins the default path.
 - **No enumeration.** Semantic search returns a bounded page; exhaustiveness
   is the job of R5 narrowing, not of paging.

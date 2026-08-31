@@ -94,8 +94,8 @@ relationship should not have to dig for. `SECURITY.md` sits outside it as
 well: it discloses what the system holds and where that can leak, and it
 decides nothing, so a gap it names closes as a ruling like any other. Panel
 documents are inputs, not conclusions; the adversarial design-review record of
-cycle 2 is in git history, last present at commit `e32afe3` as `panel/cycle2/`,
-as are the other superseded documents.
+cycle 2 is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31), as are the
+superseded design documents that preceded the current chain.
 
 Each document in the chain has its own organising principle, and the chain
 requires this. `DECISIONS.md` reads chronologically, because ratification
@@ -167,6 +167,13 @@ belong in any external claim. The figures are measurements of the fork's
 prototype, not of upstream's backend.
 
 ## Bench
+
+Two dependency sets, declared apart because they are needed apart. The gate is
+`python3 -m pip install -r requirements-check.txt` — three packages, none of them
+a model runtime — and `make check` runs from there. The drivers below want
+`requirements-drivers.txt` on top of it, which is where the heavy two live. A
+missing package is reported by name before any guard runs, never at the tail of
+an otherwise green output.
 
 Drivers take `--server` / `--data-dir` and record `VmHWM` (the kernel
 high-water mark, which cannot miss a peak between samples) rather than sampled

@@ -8,14 +8,23 @@ Blocked-by: 0029
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-08-31T06:00Z claude note the author ruled 2026-08-31 that the embedder swap is R7 conformance, not a move on a cost-versus-quality frontier (spec/DECISIONS.md). Scope and exit criteria rewritten to match: R7 is the first filter and is not traded, the golden gate and the budgets choose among the entries that pass it, and the old 'if evidence does not justify a change, MiniLM remains the default' clause is gone -- under R7-hard it was unreachable as written, since the incumbent's declared language set is English alone (bench/models.json), so MiniLM staying is a disclosed non-conformance rather than a verdict on the evidence
+2026-08-31T06:32Z claude note R29 ratified 2026-08-31 (spec/DECISIONS.md) and admitted here as a conformance criterion beside R7: the filter now reads ticket 0266's measured cross-lingual arm, both controls, not only the declared language set. On that evidence the field narrows to the two candidates whose negative control clears at every deployed dtype before any budget question is asked
 2026-08-31T08:21Z claude note R32 ADDS A BUILD-TIME BUDGET TO THIS GATE, ruled 2026-08-31 (spec/DECISIONS.md, goal 1 step 1). R30 was split and time to coverage became R32, whose reference machine is laptop-class CPU: an initial build must reach record coverage inside the record bound and body coverage inside the build bound. So an entry the default cannot meet the build bound with is not eligible to be the default, which is a resource limit of exactly the kind this ticket's exit criteria already apply. On today's CPU evidence, per passage: multilingual-e5-small 59,75 ms and granite-97m-multilingual-r2 68,54 ms against multilingual-e5-base 137,57 ms, gte-multilingual-base 153,90 ms, arctic-embed-m-v2 166,70 ms and granite-311m-multilingual-r2 231,74 ms (the cells ticket 0481 recovered from bench/results/0264-gpu-arm/, whose auto runs never received a device), with MiniLM at 77,6 ms on an i5-8250U laptop for scale (bench/results/0025-x1-recall/embed-feasibility.json). Against DESIGN 2.9's measured 567 829 passages that is roughly 9-11 h for the two small multilingual candidates and 22-37 h for the four larger: an overnight build separates them. Two hosts, so the laptop figure against the rest is an order of magnitude and not a ratio, and the multilingual cells were fidelity runs rather than throughput benchmarks. The bound itself is unpinned until measured on the reference machine, and is pinned in the change that first asserts it
 --- body ---
 ## Scope
 
-After technical validation works, apply the private golden retrieval gate and
-the published resource budgets to decide which curated entries are exposed and
-whether the default changes. Compatibility crowd counts are supporting
-operability evidence only.
+After technical validation works, decide which curated entries are exposed and
+which one is the default. R7 and R29 conformance is the first filter and it is
+not traded against anything (the author's rulings, `spec/DECISIONS.md`
+2026-08-31 -- the swap is a conformance repair, not a move on a
+cost-versus-quality frontier). An entry whose declared language set is not
+multilingual is not a candidate for the default, whatever it scores; nor is one
+that cannot cross languages, which is measured rather than declared -- ticket
+0266's cross-lingual arm at the deployed dtype, both controls, is the evidence
+this filter reads. The private golden retrieval gate and the published resource
+budgets then choose among the entries that pass that filter. Compatibility crowd counts are supporting operability
+evidence only.
 
 ## Exit criteria
 
@@ -23,4 +32,9 @@ operability evidence only.
   gate and resource limits on its supported shapes.
 - Licences, artifact sizes and runtime support are disclosed beside the entry.
 - The decision and its negative controls are recorded in DECISIONS.md.
-- If evidence does not justify a change, MiniLM remains the default explicitly.
+- The entry proposed as the default is R7-conformant, read from its declared
+  language set rather than from its name or its scores, and R29-conformant on
+  ticket 0266's measured cross-lingual arm including its negative control.
+- If no entry passes, MiniLM stays in place as the disclosed interim state of a
+  known non-conformance -- never as a finding that the evidence did not justify
+  a change -- and the ticket names which gate blocked which entry.
