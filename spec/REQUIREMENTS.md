@@ -283,7 +283,10 @@ deleting the data directory MUST be the whole uninstall.
 
 Deleting an item removes its text from every stage's store and from the queues
 between them, not merely from search results — text that survives in a queue
-comes back. At the other scale, index state, queues, watermarks and downloaded
+comes back. Deleting means what the platform shows: an item moved to the trash
+has left the search perimeter, per ruling 4, so removal fires at trashing, and
+emptying the trash later changes nothing the index can see; R35's minute starts
+at the same event. At the other scale, index state, queues, watermarks and downloaded
 models MUST NOT survive anywhere outside the data directory, so removing that
 directory removes the system.
 
