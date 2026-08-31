@@ -5,18 +5,16 @@
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
 
-**The measurement record that used to fill this file is gone.** It described a
-tree three upstream versions stale and said so itself. Git log is the archive —
-this repo deletes rather than archives in the tree. A measurement's durable
-home is its artifact under `bench/results/` and the ticket that produced it;
-prose quoting one is a convenience, never the record.
+**The measurement record that used to fill this file is gone**; git log is the
+archive. A measurement's durable home is its artifact under `bench/results/`
+and the ticket that produced it — prose quoting one is never the record.
 
 ## Where the live state lives
 
 | | |
 |---|---|
 | Upstream: what is filed, merged, in flight | [`SYNC.md`](SYNC.md) |
-| The reviewed baseline SHA, machine-readable | `UPSTREAM`; `make upstream-status` detects movement |
+| The reviewed baseline SHA, machine-readable | `UPSTREAM`; `make upstream-status` detects movement, `make upstream-catchup` reads it |
 | The work queue and every item's state | `./tickets/erg ready` |
 | The design, and every design number | [`spec/DESIGN.md`](spec/DESIGN.md) |
 | Rulings, and what awaits one | [`spec/DECISIONS.md`](spec/DECISIONS.md) |
@@ -34,6 +32,8 @@ would show up in a diff sent upstream.
 
 ## Handoff
 
-The tracking repository is clean on `main`. `make check` is green on the system
-interpreter; no `.venv` exists and none is needed. What is in flight upstream,
-and what remains of the budget it spends, is `SYNC.md`'s to report.
+`main` is clean, `make check` green on the system interpreter, no `.venv`
+needed. Two things a session gets wrong by default. **Work may not be on
+`main`**: fetch and sweep every branch before reading the working tree as the
+whole picture. And **the reviewed baseline is deliberately behind upstream** —
+ticket 0504 owns when it moves, so `make upstream-status` STALE is expected.
