@@ -96,7 +96,9 @@ entry points at the question rather than settling it; rulings land in
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: DESIGN.md §2.8, which owns every threshold; the
-  requirements they serve are R13, R19, R20 and R21.
+  requirements they serve are R13 and R19; the RAM and golden gates serve no
+  requirement of their own since 2026-08-31, a gate being apparatus rather than
+  a promise.
 - **fraction-RRF** — fraction-weighted reciprocal-rank fusion, the rule that
   merges the keyword and semantic ranked lists into one. Authoritative:
   DESIGN.md §2.6, which owns the constant, the seam invariant and the ship
@@ -138,7 +140,7 @@ entry points at the question rather than settling it; rulings land in
   shape per hit kind is DESIGN.md §2.6.
 - **metadata-only** — the terminal state of an attachment that yields no text:
   covered rather than failed, with its reason recorded and counted in the
-  denominator. Authoritative: REQUIREMENTS.md R14 and R17.
+  denominator. Authoritative: REQUIREMENTS.md R1 and R17.
 - **multilingual** — the property that the default path works in each of the
   tested languages on its own terms and with no configuration, which is what
   makes a multilingual default embedder a requirement rather than a preference.
@@ -151,8 +153,8 @@ entry points at the question rather than settling it; rulings land in
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: DESIGN.md §2.2.
 - **prefix** — the coverage-order property: at every moment the indexed set is
-  the newest items with no gap in the middle. Authoritative: REQUIREMENTS.md R2
-  and R26; the granularity at which the design asserts it, per phase rather
+  the newest items with no gap in the middle. Authoritative: REQUIREMENTS.md R1,
+  whose newest-first clause is what remains of it; the granularity at which the design asserts it, per phase rather
   than over the library, is DESIGN.md §2.3.
 - **probe-don't-fix** — the freshness posture of the query path: when the tick
   is stale, one bounded probe reports and nudges rather than blocking the

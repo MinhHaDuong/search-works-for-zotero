@@ -75,15 +75,19 @@ def test_the_two_checks_are_independent():
     assert any("lowercase 'must'" in p for p in problems)
 
 
-def test_a_named_exemption_is_accepted():
-    """R26 is unforced on purpose while ticket 0080 owns its rewrite."""
-    text = document("- **R26 — convergence is watched.** Coverage must reach 100 %.")
+def test_a_named_exemption_is_accepted(monkeypatch):
+    """An item may be unforced while a ticket owns its rewrite. The table is empty
+    since R26 was retired from the sheet (2026-08-31), so the mechanism is tested
+    with an exemption the test installs rather than one the repository carries."""
+    monkeypatch.setitem(cn.UNFORCED, "R41", "under revision; a ticket owns the rewrite")
+    text = document("- **R41 — convergence is watched.** Coverage must reach 100 %.")
     assert cn.check(text) == []
 
 
-def test_an_exempt_item_that_gains_a_keyword_fires():
+def test_an_exempt_item_that_gains_a_keyword_fires(monkeypatch):
     """The exemption is a debt, not a licence. Paying it must retire the entry."""
-    text = document("- **R26 — convergence is watched.** Coverage MUST reach 100 %.")
+    monkeypatch.setitem(cn.UNFORCED, "R41", "under revision; a ticket owns the rewrite")
+    text = document("- **R41 — convergence is watched.** Coverage MUST reach 100 %.")
     problems = cn.check(text)
     assert any("listed as unforced" in p for p in problems), problems
 
@@ -111,3 +115,15 @@ def test_missing_document_fails(tmp_path):
 
 def test_the_repo_itself_is_clean():
     assert cn.run(REPO) == 0
+
+
+def test_an_exemption_for_an_item_that_does_not_exist(monkeypatch):
+    """A dead exemption excuses nothing and says nothing, which is how it survives.
+
+    The case that exposed it: R26 was retired from the sheet and its entry stayed
+    behind, excusing an item nobody could find.
+    """
+    monkeypatch.setitem(cn.UNFORCED, "R99", "retired, and never removed from this table")
+    text = document("- **R1 — the whole library.** Coverage MUST reach 100 %.")
+    problems = cn.check(text)
+    assert any("R99" in problem for problem in problems), problems

@@ -48,7 +48,7 @@ v1's skeleton survived every lens and every critique untouched: durable
 (item × stage) ledger rows in SQLite with lease claim → compute → commit,
 control through a pipe and durable work through the database, a write-free
 query path, and two OS processes. R13 (second process), R22 (durable pause)
-and R27 (work counters) each turn out to *want* that skeleton: every one is
+and R17's work counters each turn out to *want* that skeleton: every one is
 a one-row concern on a substrate that already exists. Also carried over:
 census-seeded newest-first discovery (a census is a full listing, every
 item or every fulltext version, fetched whole rather than paged),
@@ -62,7 +62,7 @@ policy
 backpressure counted in items; mechanism spec unchanged from v1 §2.6, whose
 document is lost) carries two amendments. Quarantine auto-clear now keys on the
 *content* signal chain, not on raw counter movement, so a resync cannot
-mass-replay every poison input. And R14's terminal states (`empty`) are
+mass-replay every poison input. And R1's terminal states (`empty`) are
 *done*, not failures: different bookkeeping, different sentence in status.
 The stopwords/tokenizer fix stopped being a plan: it is PR #19, merged
 upstream 2026-08-27 (`4f61b2a`).
@@ -95,7 +95,7 @@ Three forces changed the rest.
    plus a guaranteed-fill bitmap filter replaces it (§2.6).
 
 Other reversals worth naming, each with its reason. Extract is no longer
-keyed by the version counter alone, because R11 and the shipped
+keyed by the version counter alone, because R3's counter-churn clause and the shipped
 92,7 %-changed-forever defect killed that reading: signals and keys are now
 separate (§2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted
 behind the golden gate (§2.6): v1's rejection rested on wrong arithmetic,
@@ -129,9 +129,9 @@ Every stage row stores *signals* and *keys*, never mixed.
 - A *key* is `(content hash, tool identity)`. Work is stale exactly when the
   stored key differs from the current key.
 
-R11 (counter churn is not change) falls out structurally: a resync flips
+R3's counter-churn clause falls out structurally: a resync flips
 signals, the verify pass re-hashes, the hashes match, and nothing downstream
-moves. The R27 counters record thousands of `resync.noop` and zero
+moves. R17's counters record thousands of `resync.noop` and zero
 `resync.done`, so the counter that once hid the 92,7 % defect now proves
 its absence.
 
@@ -150,7 +150,7 @@ The stage keys:
   Hashing the chunk text alone would let a vector computed under an old
   heading silently keep serving under a new one.
 
-Honest restatement of the R11 benefit: *unchanged regions never re-embed*,
+Honest restatement of that benefit: *unchanged regions never re-embed*,
 and a segmenter bump re-embeds only what it actually touched. And one
 disclosed R3 residue: a counter-churning resync still costs
 O(changed-attachments) local fetches before the hashes stop the chain.
@@ -205,7 +205,7 @@ frequencies or phrase positions. The *embedded* text is
 budget, Zotero's own prior art. Creators, venue, and date have a stated
 column mapping (the creators and pub columns; date goes into the record
 row's `pub`), so no field indexed today silently vanishes. The bm25 column
-weights ship as a starting point and are tuned against R21's golden set once
+weights ship as a starting point and are tuned against the golden set once
 it is re-pinned at entry granularity, not before. Contentless FTS
 (`content=''`, `contentless_delete=1`) where SQLite ≥ 3.43. v1's
 external-content layout is the probed fallback, chosen once and recorded in
@@ -351,14 +351,14 @@ The phase order follows the record ruling.
 
 **Newest-first versus smallest-first, stated honestly.** #6012, the draft
 PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2),
-orders attachments smallest-first. Our ratified R2 is newest-first, so
-smallest-first is rejected at item granularity on R2's own text. The R26
+orders attachments smallest-first. R1's newest-first clause is ratified, so
+smallest-first is rejected at item granularity on its own text. The convergence
 observable is then asserted per phase: record coverage is a strict
 newest-first prefix, and body coverage is a newest-first prefix for band 0
 only. Band 1 is disclosed residue, because the band cap itself makes a
 strict full-coverage prefix impossible, and the same standard must bind
 both our design and the rejected alternative. This split is v2's one resolution made
-by interpretive reading rather than verified fact: R26's sentence does not
+by interpretive reading rather than verified fact: the harness's own sentence does not
 specify its own granularity, and the author can veto the reading (flagged in
 DECISIONS.md). The band cap does the anti-monopoly work that smallest-first
 does for #6012.
@@ -566,7 +566,7 @@ transposed to the ratified unit). The vector scan does the collapse in a
 single pass with an entry-keyed top-S heap, because a refetch variant would
 hide a second 650k scan, ~0.5–1 s, on exactly the dictionary-heavy queries
 that trigger it. Presentation groups entries under items; ranking never
-re-collapses. D9 and R25 dissolve as the ruling says: the dictionary earns
+re-collapses. D9 dissolves as the ruling says, and R24 absorbed the dedup clause: the dictionary earns
 many slots only with many genuinely distinct entries, and concentration is
 still disclosed in status.
 
@@ -724,7 +724,7 @@ ships the read-before-write + sideline slice via PR #25, but not the
 conductor rule or `min_reader_version`) are unreachable by it; the new
 filename (§1) is what actually protects against them.
 
-**R28 — uninstall.** Pin `env.cacheDir` under the data directory before
+**R15's uninstall clause.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per
 its documentation: documentation-cited, not disk-verified, and the fix is
 correct regardless). Uninstall = delete the data directory; `purge` +
@@ -759,9 +759,9 @@ version-0 residue disclosure (§2.4).
 transaction as the ledger transition each one describes. Per stage:
 `covered / empty / partial / outOfBand / quarantined`. Work counters on two
 axes: `work.<stage>.<trigger>.<outcome>`, with trigger ∈ `{new, edit,
-re-extract, resync, key-bump, prefix-stale, retry, delete}` (R27's "which
+re-extract, resync, key-bump, prefix-stale, retry, delete}` (R17's "which
 input") and outcome ∈ `{noop, done}`. Here `noop` means signals moved, keys
-verified unchanged, nothing recomputed; `done` means recomputed. R27 needs
+verified unchanged, nothing recomputed; `done` means recomputed. R17 needs
 both what triggered work and what became of it, and one flat vocabulary
 cannot say both. Idle reconciliation recomputes the counters with real
 COUNTs, fixes them, and increments a surfaced `drift` counter the harness
@@ -778,7 +778,8 @@ membership: covered items older than the boundary, decremented as the
 boundary sweeps past them. Edit work counts only under the `edit` trigger,
 and the record stage counts its own edits.
 
-**The convergence harness (R26/R27).** A fixture library, an empty data
+**The convergence harness.** Apparatus for R1 and R17, and no requirement of
+its own since 2026-08-31. A fixture library, an empty data
 directory, status polls at 1 Hz touching nothing else (R1 needs no asking).
 It asserts four things.
 
@@ -796,7 +797,7 @@ sections(record)`, everything else 0; then a simulated identical-bytes
 resync → zero recompute: every `*.done` delta 0, the touched items
 appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
 the gate MUST permit exactly that and nothing downstream of it). This is
-R11 measured by R27's own counters, the test that would have caught the
+R3's counter-churn clause measured by R17's own counters, the test that would have caught the
 shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
 monster, dateAdded ties. The harness MUST fail on the corpus that exercises
 its subtraction terms, not only pass on the gentle one.
@@ -811,13 +812,13 @@ its subtraction terms, not only pass on the gentle one.
   keyed to PR #19's URL retired with its merge (2026-08-27): stock ≥v1.7.2
   ships `normalizeForSearch`, so against current upstream the gate runs
   green by right.
-- **R20, the RSS gate.** A deterministic synthetic monster at the measured
+- **The RSS gate**, over constraint C3. A deterministic synthetic monster at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: concurrent background-pipeline peak ≤
   500 MB across the run-to-drain stage workers, server p95 ≤ 750 MB, the
   ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
-  deviation from R20's letter ("against the 44.9 MB dictionary", content
+  deviation from the ratified letter ("against the 44.9 MB dictionary", content
   that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
   real-document X3a run revalidates it at each release on the author's machine.
 Every gate below is decided at one of two levels, and the relation between them
@@ -826,10 +827,10 @@ level** runs wherever the gate runs, on the committable corpus. The **library
 level** runs against the author's real library or a disclosed machine and cannot
 be committed. A fixture that stands in for something real — the synthetic
 monster, the reference machine, a scaled corpus — carries a fidelity claim, and
-the library level is the only thing that can renew it: R20's revalidation clause
+the library level is the only thing that can renew it: the RSS gate's revalidation clause
 is the pattern, and it binds every surrogate here, not only that one.
 
-- **R21, the golden gate (D11 = set).** A pinned multilingual fixture
+- **The golden gate (D11 = set)**, which decides R34. A pinned multilingual fixture
   corpus, ~40 queries, answer *sets* at k=10. Thresholds derive from the
   stability artifact: the measured per-query Jaccard minimum under
   legitimate perturbation is 0.25, so a 0.5 floor would flag legitimate
@@ -845,9 +846,9 @@ is the pattern, and it binds every surrogate here, not only that one.
   FR queries whose answer sets are Vietnamese entries — gated separately from
   the monolingual queries, so a regression names which of R7 and R29 it broke.
   The same pinned set decides R34, and the two readings of it are opposite on
-  purpose: R21 compares one run against the last and tolerates legitimate
-  drift, which is what the thresholds above are for, while R34 compares the
-  run against the pinned answers themselves and tolerates none. A corpus that
+  purpose: the stability reading compares one run against the last and
+  tolerates legitimate drift, which is what the thresholds above are for, while
+  R34 compares the run against the pinned answers and tolerates none. A corpus that
   can be stable and wrong is exactly why both readings exist. Ticket 0029
   builds it, and its intersections — a monster in a non-Latin script, a scale
   run at the multilingual default — are where terms that look independent fail
@@ -856,7 +857,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 micro-batch per failover.
-- **R30, the disclosure gate.** Status names the execution device actually
+- **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32 on 2026-08-31 (DECISIONS.md), so this gate no longer
   carries a wall-clock threshold.

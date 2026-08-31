@@ -101,7 +101,7 @@ Each document in the chain has its own organising principle, and the chain
 requires this. `DECISIONS.md` reads chronologically, because ratification
 happens in time and the record must show what came before what.
 `REQUIREMENTS.md` and `CONSTRAINTS.md` read enumeratively, as checklists (R1
-to R30, C1 to C4), because a reader needs to check off one promise or one
+to R34, C1 to C4), because a reader needs to check off one promise or one
 fact about the world, not follow an argument. `DESIGN.md` reads
 architecturally, by section and subsystem, because architecture has structure
 that a chronological or enumerative spine would flatten. This follows from

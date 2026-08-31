@@ -1337,6 +1337,61 @@ fidelity claim was last renewed. That obligation is DESIGN.md §2.8's, where the
 gates live, and a page carrying a date per row would rot faster than the claim
 it records.
 
+**2026-08-31 — what verifies a promise is not itself a promise, and thirty-four
+requirements were too many.** Two rulings from the author, one criterion, eleven
+numbers retired.
+
+**The criterion.** An item belongs in `spec/REQUIREMENTS.md` only if it is a
+promise someone outside this repository can hold us to. Anything that exists to
+*verify* a promise is apparatus, and apparatus belongs to the gates in
+DESIGN.md §2.8. The tell had been visible on the status page for weeks without
+being read: three rows were red — R20, R21, R26 — because *this repository's*
+build does not run them, so a page reporting on zoteus was reporting on us. R19
+makes the same point from the other side: with its cadence clause gone, the
+property it protects has been shipped upstream since the fold merged, and the
+row moves without anyone writing code.
+
+**A second criterion, for size.** Thirty-four items overstated how many
+independent promises the system makes, because the sheet had been treating the
+item as the unit when the unit is the MUST clause — the point tracker 0400 made
+before it dissolved this morning. Two items are one requirement when one is a
+clause of the other, or when they can only fail together. Merging items merges
+no clauses, so nothing testable is lost; what goes is the pretence that an item
+is the unit.
+
+**Retired, and never reused.** R20 and R26 as apparatus; R21 with them, its
+thin user-facing residue — *my answers do not change under me* — now carried by
+R34's absolute floor. R19's cadence clause, leaving its property behind. Then
+the merges: R14 and R2 into R1 (what "covered" means, and the order coverage
+grows in); R11 into R3 (counter churn is the special case of recompute what
+changed); R9 into R8, retitled *size does not disqualify*, because a library is
+large in both directions at once; R25 into R24, which have never been able to
+fail apart; R28 into R15, removal being complete at the item scale and the
+install scale; R27 into R17, one observability surface rather than two; and R30
+into R32 and R17 — the promise was always that indexing finishes today, the
+GPU was how, and *naming the device serving* is a clause of the coverage
+sentence. R31 stays, rewritten to state its property instead of its registry.
+
+Twenty-three remain. `spec/REQUIREMENTS.md` numbers to R34 with gaps, and the
+gaps are the record: a retired number is never reused.
+
+**The instruments roster goes with them.** It existed to name the apparatus that
+happened to be written as requirements — a fact about the sheet's history rather
+than about goal 1 — and this criterion removes its subject entirely. Goal 1
+keeps one roster. The defect that exposed it is worth recording: step 1 ruled
+that R21 would join the instruments once the recall term existed, R34 landed,
+and neither the page nor the ledger moved, because the guard could only compare
+the page against the ledger and both were wrong together. A roster whose only
+check is self-consistency drifts exactly like that.
+
+Goal 1 binds: R1, R6, R7, R8, R12, R16, R17, R19, R32, R33, R34.
+
+Eleven terms, R9 having merged into R8. `bench/check_progress.py` loses its
+instruments path, and `bench/check_normative.py` gains one: its exemption table
+is empty now that R26 is gone, and an entry naming an item the sheet does not
+declare fails the build, because an exemption for a requirement that does not
+exist excuses nothing and hides that it is stale.
+
 ## Awaiting ratification
 
 

@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the thirty-four promises actually
+documents do not: **where each of the twenty-three promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -37,24 +37,24 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 32 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●` &nbsp; 23 ratified · 0 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○○○` &nbsp; 1 shipped · 17 partial · 16 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○` &nbsp; 1 shipped · 15 partial · 7 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-13 measured · 11 read in the source · 10 inferred
+10 measured · 8 read in the source · 5 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the thirty-four, thirteen rest on an experiment or a test that ran, eleven on
-opening the upstream source at the reviewed baseline, and ten on nothing
+the twenty-three, ten rest on an experiment or a test that ran, eight on
+opening the upstream source at the reviewed baseline, and five on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -62,7 +62,7 @@ was checked from one that was argued.
 Only the arithmetic is mechanical: every bar and every tally is recomputed
 from the rows, never a row from a measurement. Closing the gap is the work
 itself rather than a tracker over it: the fixture corpus in ticket 0029, the
-gates in ticket 0026 — two of which, R19 and R20, demand a check that runs —
+gates in ticket 0026, which is where a check that runs now lives —
 and the acceptance harness in ticket 0032. Their unit is the MUST clause rather
 than the requirement, because a compound requirement graded as one token is
 what made `partial` ambiguous before the evidence column split it.
@@ -94,15 +94,15 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 | section | designed | delivered |
 |---|---|---|---|
-| Coverage and convergence | `●●●●●●○○` | `◐◐◐◐○○○○` |
-| Change and cost | `●●●` | `◐◐○` |
-| Corpus | `●●●` | `◐○○` |
-| Query | `●●●●●●●` | `◐◐◐◐○○○` |
+| Coverage and convergence | `●●●●` | `◐◐◐◐` |
+| Change and cost | `●` | `◐` |
+| Corpus | `●●` | `◐○` |
+| Query | `●●●●●●` | `◐◐◐◐○○` |
 | Multilingual | `●●` | `◐○` |
 | Embedding configurations | `●` | `○` |
-| Custody and lifecycle | `●●●●●` | `●◐◐◐○` |
+| Custody and lifecycle | `●●●●` | `●◐◐○` |
 | Multi-library and multi-process | `●●` | `◐○` |
-| Operator gates | `●●●` | `◐○○` |
+| Normalization | `●` | `◐` |
 
 ---
 
@@ -134,20 +134,20 @@ Searchable at an older extraction, chunking or embedder version still counts;
 indexed by its opening pages does not. The bundle and its exclusions were ruled
 on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
 
-`◐◐◐◐◐◐◐◐◐○○○` &nbsp; 12 in the bundle · 6 rest on something that ran
+`◐◐◐◐◐◐◐◐◐○○` &nbsp; 11 in the bundle · 6 rest on something that ran
 
 That bar shows where the terms stand. It is not a progress bar: under the
 conjunction the goal is kept at all-shipped and at no state before it.
 
 **Read as test-driven development, this bundle has no failing tests. It has
-twelve unwritten ones.** The `evidence` column is the test column: `measured` says an
+eleven unwritten ones.** The `evidence` column is the test column: `measured` says an
 assertion ran, `code` and `inferred` say none exists. A row in those two states
 is not red — red is a claim about the system, and an unwritten test is a claim
 about nobody — which is why the six that rest on something that ran are counted
-separately above, and why not one of the twelve is yet a check that runs on
+separately above, and why not one of the eleven is yet a check that runs on
 every build.
 
-So what goal 1 asks for is not upstream code. It is twelve assertions, each
+So what goal 1 asks for is not upstream code. It is eleven assertions, each
 carrying the way it can fail. Most go red on the reviewed baseline the day they
 are written, for the reasons their rows already give. Two or three arrive green
 — R6's property holds already, and the fold sweep passes — and a test never seen
@@ -164,40 +164,29 @@ further down.
 committable corpus, which runs wherever the gate runs; `library` is the author's
 real library or a disclosed machine, which cannot be committed; `both` is a
 fixture assertion standing in for something real, whose fidelity the library
-level has to re-earn — the pattern R20's revalidation clause already follows.
+level has to re-earn — the pattern the RSS gate's revalidation clause follows.
 The assignment is a reading, and a vetoable one: it says where each assertion
 can be *decided*, not where it happens to have run.
 
 | | the clause goal 1 binds | decided at | where its test would live |
 |---|---|---|---|
-| R1 | the whole library is covered unattended, a text-less attachment ending covered with its reason (R14, folded in) | fixture | ticket 0026 |
+| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason | fixture | ticket 0026 |
 | R6 | the query path waits for no freshness work | fixture | ticket 0026 |
 | R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | fixture | ticket 0029 |
-| R8 | the design-point library is answered, not approached | library | ticket 0025 |
-| R9 | a monster is indexed whole, never by its opening pages | both | ticket 0029 |
+| R8 | the design-point library is answered, and a monster is indexed whole | both | ticket 0029 |
 | R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
 | R33 | the exact string, the paraphrase, and the document both signals agree on | fixture | ticket 0029 |
 | R34 | every pinned answer comes back within the first ten results | fixture | ticket 0029 |
-| R17 | how much is searchable, answered per stage in one sentence | fixture | ticket 0026 |
+| R17 | how much is searchable, per stage, in one sentence, naming the device serving | fixture | ticket 0026 |
 | R19 | every token the query normalizer makes, the index normalizer can make too | fixture | ticket 0026 |
 | R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
 
-**Instruments.** Not terms, and not lesser: these decide whether the terms hold,
-and a term whose instrument is missing cannot be settled at all. They are named
-here rather than counted in the bar, because a promise the user meets is not
-made truer or falser by what this repository runs in its own build.
-
-| | what it decides | run at | where it is built |
-|---|---|---|---|
-| R19 | the sweep runs on every check — the cadence clause, deciding R19's own property and R7's keyword half | fixture | ticket 0026 |
-| R26 | convergence is watched from an empty index rather than trusted — deciding R1 | fixture | ticket 0026 |
-
-Binding is per clause, which is why R19 is in both tables: goal 1 binds its
-property, and its cadence is what decides that property. R21 joins the
-instruments when the recall term exists, and R30 is no longer here at all —
-finishing today turned out to be a property of the configuration rather than of
-the hardware, so it left R30 and became R32.
+R19 is a term by its property clause alone. Its cadence — that the sweep runs
+on every check — is not a promise to anyone and left the sheet on 2026-08-31,
+with R20, R21 and R26, on the same criterion: what verifies a promise is not
+itself a promise, so it belongs to the gates in DESIGN.md §2.8. R30 left too,
+dissolved into R32 and R17.
 
 None of those addresses is new work. The fixture corpus, the gates and the
 acceptance harness offered upstream were scoped before this goal existed; goal 1
@@ -210,7 +199,7 @@ reports itself kept when it is not.
 
 ---
 
-## The thirty-four
+## The twenty-three
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -226,29 +215,22 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R1 | eventually the whole library is indexed | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. |
-| R2 | most recent first | open | none | code | The crawl pages the library; it does not work a priority order. The requirement's own wording is under revision in ticket 0080, which also reworks the frontier that justified it. |
+| R1 | eventually the whole library is indexed | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
 | R4 | something partial is better than nothing | ratified | partial | code | A capped or interrupted build answers queries and says it was capped. What it does not yet do is report coverage per stage, which is what makes a partial index distinguishable from a complete one. |
-| R14 | no text is a terminal state | ratified | none | inferred | An attachment that yields no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing. Held in reserve as ticket 0019. |
-| R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. |
-| R26 | convergence is watched, not trusted | ratified | none | inferred | No harness polls an empty index to completion. Ticket 0026, and the requirement's prefix clause is being rewritten in ticket 0080. |
-| R30 | capable hardware is used | open | none | measured | The local path still passes no execution device on stock upstream, so the runtime's CPU default still serves there — unchanged from the reviewed baseline. The device mechanism is observed rather than read from source (`verification/DEVICE-AUTO-0264.md`), and ticket 0264's throughput anomaly is explained as a harness defect rather than a GPU fact (`verification/GPU-ANOMALY-0481.md`: the fidelity cells never received a device and ran on CPU). The design stays open on the per-model shape of the guarded fallback — the mixed-provider path crashes per model, not per machine — and on the per-device optimal rung, since the quantized matmul has no CUDA kernel. Time to coverage left this row on 2026-08-31 and is R32's. |
-| R32 | the build finishes today | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R2's finding. Bounds are pinned in the change that first asserts them, and the constraint this puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
+| R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. Two clauses merged in on 2026-08-31 and neither holds either: per-stage counters naming the input that triggered each unit of work do not exist upstream (scoped issue A, ticket 0033), and the local path passes no execution device, so nothing names the one actually serving (`verification/DEVICE-AUTO-0264.md`). |
+| R32 | the build finishes today | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. Bounds are pinned in the change that first asserts them, and the constraint this puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
 
 ### Change and cost
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R3 | avoid unnecessary rebuild | ratified | partial | code | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. |
-| R11 | counter churn is not change | ratified | partial | code | The full-text sequence is read as its own cursor, which removes the defect's known cause. Nothing yet proves the absence, because the counters that would prove it are R27's. |
-| R27 | edit one, count one | ratified | none | inferred | Per-stage work counters naming the input that triggered each unit of work do not exist upstream. Scoped issue A, ticket 0033. |
+| R3 | avoid unnecessary rebuild | ratified | partial | code | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. The counter-churn clause merged in on 2026-08-31 is the better-off half: the full-text sequence is read as its own cursor, which removes the known cause, and nothing yet proves the absence because the counters that would prove it are R17's. |
 
 ### Corpus
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R8 | 10k documents is not much | ratified | partial | code | The item cap is configurable and says when it truncates, and the two-stage vector search retired the full-scan red zone. The default cap still sits below the design point. |
-| R9 | 15 000-page documents are included | ratified | none | code | Full text is capped per item by default, so a monster is indexed by its opening pages. This is the one place where a default contradicts a promise outright; ticket 0024 carries the filing. |
+| R8 | size does not disqualify | ratified | partial | code | The item cap is configurable and says when it truncates, and the two-stage vector search retired the full-scan red zone; the default cap still sits below the design point. The monster clause merged in on 2026-08-31 fails outright: full text is capped per item by default, so a monster is indexed by its opening pages, which is the one place a default contradicts a promise. Ticket 0024 carries the filing. |
 | R16 | my own words | ratified | none | code | Verified nil at v1.10.0: every crawl asks for top-level items, and neither a child note nor an annotation is one, so `zotero_annotate` writes what search can never find. Filed upstream as issue #33 with a working prototype; ticket 0022. |
 
 ### Query
@@ -258,8 +240,7 @@ demonstrated. They are not the same kind of statement.
 | R5 | filters are good to have | ratified | partial | measured | Scoping exists, but experiment X4 measured the constrained path and it lost to ranking everything, superlinearly. Confirmed on the real corpus, where scoping costs more than ranking the whole library: ticket 0025. The design answer is settled and negative: no constrained step ships, and the ladder ends at R18's honest refusal. |
 | R6 | a sufficient reply in 3 s beats the optimum in 3 min | ratified | partial | measured | The query path does no freshness work, and the two-stage search brought the scan well inside the budget. Nothing gates it, so the property is true and unwatched. |
 | R18 | an empty result says which | ratified | none | inferred | An empty answer does not yet distinguish "nothing matches" from "this scope is not indexed yet". The decision it waited on is now made and negative — experiment X4 ran and no constrained step ships, so the `scope{}` block stops being the last resort and becomes the answer whenever a narrow scope outruns the deeper refetch. The ladder edit that follows is awaiting ratification in DECISIONS.md; ticket 0025. |
-| R24 | a citeable page in one step | ratified | partial | code | Local extraction now yields real page ranges and a document's own outline. The primary locator is meant to be the entry heading, which waits on the segmenter: ticket 0028, gated by experiment X5. |
-| R25 | one entry, one hit | ratified | none | inferred | Deduplication is per item, not per section, because sections do not exist yet. Same dependency as R24. |
+| R24 | a citeable page in one step, and one entry per hit | ratified | partial | code | Local extraction now yields real page ranges and a document's own outline. The primary locator is meant to be the entry heading, which waits on the segmenter: ticket 0028, gated by experiment X5. The dedup clause merged in on 2026-08-31 waits on the same thing — deduplication is per item, not per section, because sections do not exist yet. |
 | R33 | lexical, semantic and hybrid each work | ratified | partial | measured | Three of the four clauses have something behind them and the load-bearing one does not. Upstream serves a hybrid default, and our own measurement of it drove the two sides apart — the vector side moved while the keyword side stayed put (`verification/issue-30-thread.md`), which is evidence that both paths exist and are separately live. Nothing tests the agreement clause: no check asks whether a document both signals rank mid comes back above one that only a single signal favours, which is the defect shape `spec/FIELD-REVIEW.md` records open in a neighbouring project. The mode-served clause is unread at the reviewed baseline. Ticket 0029 carries the probes. |
 | R34 | if it is in my library, I find it | ratified | none | inferred | No pinned set exists upstream and nothing asserts one, so the promise is unmeasured rather than shown unmet. The adjacent evidence is not this: ticket 0265 scored a synthetic task — relevance being other passages of the same item — on a subsample of the real corpus, which measures retrieval strength and not whether a research question finds its answer. The corpus is ticket 0029, the gate is ticket 0026. |
 
@@ -274,17 +255,16 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R31 | selectable embedders are complete and proven locally | ratified | none | inferred | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation. The invariant-first implementation is ticket 0488. |
+| R31 | a configuration offered to me works here | ratified | none | inferred | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation, so nothing validates before an index is created or queried and nothing fails explicitly. The invariant-first implementation is ticket 0488. |
 
 ### Custody and lifecycle
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R10 | local by default | ratified | shipped | measured | The default embedder is local, the model cache sits under the data directory, and the one API key that used to travel in a URL now travels in a header. Asserted against a running server rather than read: `bench/smoke_upstream.py` checks that effective embeddings resolve local and the embedder is active. Closed as ticket 0017. |
-| R15 | deleted means gone | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows. That every queue and every stage lose it too is design, not yet code. |
+| R15 | deleted means gone, at both scales | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The uninstall clause merged in on 2026-08-31 is measured and partial: the downloaded model no longer escapes the data directory, observed on a build that actually downloaded one, and nothing has swept for other survivors. Ticket 0017. |
 | R22 | pause stays paused | ratified | none | code | Verified absent at v1.10.0: there is no pause. Scoped issue A, ticket 0033. |
 | R23 | upgrade and downgrade | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served. Serving in both directions is still design — an older stamp is abandoned rather than migrated, which is filed upstream as issue #34. |
-| R28 | uninstall | ratified | partial | measured | The downloaded model no longer escapes the data directory — observed on a build that actually downloaded one, not read off the source. Nothing has yet swept for other survivors. The known one was ticket 0017. |
 
 ### Multi-library and multi-process
 
@@ -293,17 +273,11 @@ demonstrated. They are not the same kind of statement.
 | R12 | group libraries | ratified | partial | measured | Group libraries are served locally and merged into one index. The second clause fails today: a build for one library against an interrupted index appends to another's rows. Ten tests, all red on stock v1.10.0; the guard is in flight as pull request #32, ticket 0016. |
 | R13 | second process | ratified | none | inferred | Two processes on one data directory are undesigned in the code and unsoaked here. Scoped issue C, ticket 0035. |
 
-### Operator gates
-
-These three requirements are unusual: each demands that a check *run*, not
-merely that a property hold. So a green property with an unwired gate is a
-half-kept promise, and the table says so.
+### Normalization
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R19 | the fold sweep is a gate | ratified | partial | measured | The property holds — the fold merged upstream, and the sweep passed when it ran. The gate does not run: the sweep sits in `bench/` and `make check` does not call it, which is the state R19's own sentence forbids. Ticket 0026. |
-| R20 | RAM budgets are gates | ratified | none | measured | Peak build memory was measured once, in a closed ticket, which is again what the requirement forbids. The fixture that would let it run on every check awaits a ruling, and experiment X3a is unrun. Ticket 0026. |
-| R21 | same corpus in, same answers out | ratified | none | inferred | No pinned query set gates changes. The corpus is ticket 0029, the gate is ticket 0026. |
+| R19 | the query and index normalizers agree | ratified | partial | measured | The property holds: the fold merged upstream, and the sweep passed when it ran. The cadence clause — that the sweep runs on every check — left the sheet on 2026-08-31, because what verifies a promise is not itself a promise. It is a gate in DESIGN.md §2.8, and ticket 0026 wires it. |
 
 ---
 

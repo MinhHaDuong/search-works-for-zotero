@@ -223,7 +223,7 @@ machine that will create or query the index.
 
 Status MUST answer in a few milliseconds while all three queues run, and
 never by scanning a table a stage is writing. Status is the only window
-into requirements R1 and R2, coverage and its newest-first order
+into requirement R1, coverage and its newest-first order
 (REQUIREMENTS.md), and agents poll it every few seconds, forever. The
 obvious implementation, a GROUP BY over the table the build is writing, was
 measured at 374 ms with a cold cache. R6 budgets the query path; C4 budgets

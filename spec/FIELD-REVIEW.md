@@ -321,7 +321,7 @@ harder honest route to the same precision. Two mistakes to avoid, both cheap:
 ordering work by modification date against a page budget leaves users unable to
 learn what was indexed, and a bare character-count floor misclassifies scanned
 PDFs as empty instead of marking them metadata-only with a reason
-(REQUIREMENTS.md R14 already requires the latter). No code is borrowable: AGPL
+(REQUIREMENTS.md R1 already requires the latter). No code is borrowable: AGPL
 plus a cloud-first architecture.
 
 ### PapersGPT for Zotero
@@ -1048,7 +1048,7 @@ labels afterwards, so a chunk can straddle a section boundary: the exact
 inversion of the boundary ruling. And issue #39 is a direct warning against
 estimating tokens by a character ratio, which the token geometry in DESIGN.md
 §2.2 must not repeat. Their 40-page default cap is the field's bluntest
-statement about who its users are, and it is the opposite of REQUIREMENTS.md R9.
+statement about who its users are, and it is the opposite of REQUIREMENTS.md R8.
 
 ### lit-lake
 
@@ -1736,9 +1736,9 @@ attachment yielding under 150 characters; upstream zoteus truncates full text at
 presented as configuration.
 
 The caps agree because the field's users agree: a few hundred short papers. That
-makes REQUIREMENTS.md R9 the position with no company in it, and it explains why
+makes REQUIREMENTS.md R8 the position with no company in it, and it explains why
 so little of the field's machinery survives contact with our corpus. It also
-means no competitor's default protects a reader from the failure R9 exists to
+means no competitor's default protects a reader from the failure R8 exists to
 prevent — a document silently half-indexed, with nothing saying so.
 
 ### Nobody has an entry, and the defect class shows up one level up

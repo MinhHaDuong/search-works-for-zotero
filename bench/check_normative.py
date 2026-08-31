@@ -48,9 +48,15 @@ R_ITEM = re.compile(r"^- \*\*(R\d+) — ")
 #: R-items exempt from the whitelist, each with the reason and its owner. An
 #: exemption is written down rather than skipped silently: a guard with a hidden
 #: hole is worse than one with a documented one, because only the second gets
-#: removed. R26 was rejected as written on 2026-08-29 (DECISIONS.md); recording
-#: rejected text as contract would be worse than leaving it unmarked.
-UNFORCED = {"R26": "rejected 2026-08-29; ticket 0080 owns the rewrite"}
+#: removed.
+#:
+#: Empty since 2026-08-31. It held R26, rejected as written on 2026-08-29, until
+#: R26 was retired from the sheet altogether — what verifies a promise is not
+#: itself a promise (DECISIONS.md). That exposed the hole this table can develop:
+#: an exemption for an item that no longer exists excuses nothing and nobody
+#: notices, so the check below fails on one. A dead exemption is the same defect
+#: class as a dead guard.
+UNFORCED: dict[str, str] = {}
 
 
 def r_items(text: str) -> list[tuple[str, int, str]]:
@@ -89,6 +95,15 @@ def check(text: str) -> list[str]:
         # behind. No R-items found means the section moved or was renamed, not
         # that the document is clean.
         return [f"{REQUIREMENTS}: found no R-items; the Requirements section moved or was renamed"]
+
+    declared = {name for name, _, _ in items}
+    for name, reason in UNFORCED.items():
+        if name not in declared:
+            problems.append(
+                f"{REQUIREMENTS}: {name} is listed as unforced ({reason}) and the sheet "
+                f"declares no such item; an exemption for a requirement that does not exist "
+                f"excuses nothing and hides that it is stale"
+            )
 
     for name, number, body in items:
         reason = UNFORCED.get(name)
