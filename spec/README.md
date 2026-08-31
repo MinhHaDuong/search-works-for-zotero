@@ -127,6 +127,17 @@ hit hands back once found — its page, its entry, one hit per entry — is R24'
 and deliberately not goal 1's: that strand waits on the segmenter behind
 experiment X5, and it is a second promise rather than a clause of this one.
 
+**It is kept by reaching that state, not by holding it** (ruled 2026-08-31).
+The terms are properties of a state reached — the perimeter is covered, the
+languages work, the build finished, the answers come back — and R1 and R32 are
+events with a clock, which cannot be held even in principle. So an event that
+later empties the index does not retroactively unkeep the goal: it restarts it,
+and the same terms bound the return. R23 is that case, and it is not a term. Its
+clause folds into R1's assertion instead, on R14's pattern: after a
+schema-version flip in either direction, coverage returns unattended, with no
+file deleted by hand, inside R32's bounds. What R23 promises beyond that — that
+migration spares the rebuild altogether — stays R23's, and is filed upstream.
+
 **Made strong** is four strengthenings, and each was already a promise here:
 every document, a 15 000-page PDF included, in a library of the size one really
 has; the three
@@ -175,7 +186,7 @@ can be *decided*, not where it happens to have run.
 
 | | the clause goal 1 binds | decided at | where its test would live |
 |---|---|---|---|
-| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason | fixture | ticket 0026 |
+| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, and coverage returning the same way after a schema-version flip | fixture | ticket 0026 |
 | R6 | the query path waits for no freshness work | fixture | ticket 0026 |
 | R7 | the default path serves English, French and Vietnamese unconfigured, and should serve one language per script class | fixture | ticket 0029 |
 | R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
@@ -223,7 +234,7 @@ demonstrated. They are not the same kind of statement.
 | R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and no state MUST ever need a manual rebuild | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
 | R4 | The index MUST answer queries at every moment of its life, including during its first build | ratified | partial | code | A capped or interrupted build answers queries and says it was capped. What it does not yet do is report coverage per stage, which is what makes a partial index distinguishable from a complete one. |
 | R17 | "How much of my library is searchable?" MUST get a human answer, per stage, with a date | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. Two clauses merged in on 2026-08-31 and neither holds either: per-stage counters naming the input that triggered each unit of work do not exist upstream (scoped issue A, ticket 0033), and the local path passes no execution device, so nothing names the one actually serving (`verification/DEVICE-AUTO-0264.md`). |
-| R32 | On a laptop-class machine with no GPU, a first build with the default configuration MUST index at 150 ms per passage or better, which for a 15k library means records searchable within one hour and body text within a day. It SHOULD reach 75 ms per passage, which halves both figures | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. The bound is now pinned and it is a rate — per passage, over the whole pipeline, on a disclosed laptop-class machine (DESIGN.md §2.8), with the wall-clock promise derived from it through the measured census. Only the embed term of that rate rests on measurement; extract and chunk are an allocation until ticket 0500 measures them. A time bound with no machine attached is not a bound, and a wall-clock one alone silently fixes the library size; this row was unfalsifiable without both halves. The constraint that puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
+| R32 | On a laptop-class machine with no GPU, a full build with the default configuration MUST index at 150 ms per passage or better, which for a 15k library means records searchable within one hour and body text within a day. It SHOULD reach 75 ms per passage, which halves both figures | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. The bound is now pinned and it is a rate — per passage, over the whole pipeline, on a disclosed laptop-class machine (DESIGN.md §2.8), with the wall-clock promise derived from it through the measured census. Only the embed term of that rate rests on measurement; extract and chunk are an allocation until ticket 0500 measures them. A time bound with no machine attached is not a bound, and a wall-clock one alone silently fixes the library size; this row was unfalsifiable without both halves. The constraint that puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
 
 ### Change and cost
 
