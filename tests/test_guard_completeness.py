@@ -101,3 +101,26 @@ def test_every_guard_is_reached_by_make_check():
 def test_every_guard_suite_exercises_the_live_repository():
     missing = suites_without_live_repo(REPO)
     assert not missing, f"guard suites never exercising REPO: {missing}"
+
+
+def test_check_prerequisites_are_phony_or_pathless():
+    """A `check` prerequisite that names an existing path and is not .PHONY is
+    a silent no-op: make reports it up to date and its recipe never runs.
+
+    Caught live on the `tickets` target (t0507, 2026-08-31): it collided with
+    the tickets/ directory, printed "up to date", and the erg check it was
+    added to enforce never ran — inside the very commit claiming to close that
+    ratchet gap. `names` survives today only because no `names` path exists.
+    """
+    import os
+    import re
+
+    text = (REPO / "Makefile").read_text(encoding="utf-8")
+    phony = set(re.search(r"^\.PHONY:(.*)$", text, re.M).group(1).split())
+    prereqs = re.search(r"^check:(.*)$", text, re.M).group(1).split()
+    for target in prereqs:
+        assert target in phony or not os.path.exists(REPO / target), (
+            f"'check' prerequisite {target!r} collides with an existing path "
+            "and is not .PHONY: make reports it up to date and its recipe "
+            "never runs"
+        )

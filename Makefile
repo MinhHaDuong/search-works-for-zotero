@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models vocabulary progress help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
