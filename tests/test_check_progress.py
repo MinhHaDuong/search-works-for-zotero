@@ -76,6 +76,14 @@ Measured against upstream v1.10.0, the reviewed baseline.
 | R1 | the whole library, unattended | fixture | ticket 0080 |
 | R9 | a monster indexed whole | both | ticket 0024 |
 
+## Goal 2 — the rung above
+
+`◐` &nbsp; 1 in the bundle · 0 rest on something that ran
+
+| | the clause goal 2 binds | decided at | where its test would live |
+|---|---|---|---|
+| R2 | newest first | fixture | ticket 0080 |
+
 ### Coverage
 
 | | promise | designed | delivered | evidence | standing |
@@ -101,6 +109,8 @@ LEDGER = """# DECISIONS
 **2026-08-31 — the bundle.**
 
 Goal 1 binds: R1, R9.
+
+Goal 2 binds: R2.
 """
 
 
@@ -357,16 +367,71 @@ def test_the_ledger_rules_no_membership(tmp_path):
 
 def test_the_later_ruling_supersedes_the_earlier(tmp_path):
     """The ledger is append-only: a bundle changes by a new line, and the last one is live."""
-    ledger = LEDGER + "\n**Later.**\n\nGoal 1 binds: R1, R2, R9.\n"
+    ledger = LEDGER + "\n**Later.**\n\nGoal 1 binds: R1.\n\nGoal 2 binds: R2, R9.\n"
     page = PAGE.replace(
-        "| R9 | a monster indexed whole | both | ticket 0024 |",
-        "| R9 | a monster indexed whole | both | ticket 0024 |\n"
-        "| R2 | newest first | fixture | ticket 0080 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |\n\n## Goal 2",
+        "\n## Goal 2",
     ).replace(
         "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
-        "`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran",
+        "`●` &nbsp; 1 in the bundle · 0 rest on something that ran",
+    ).replace(
+        "| R2 | newest first | fixture | ticket 0080 |",
+        "| R2 | newest first | fixture | ticket 0080 |\n"
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+    ).replace(
+        "`◐` &nbsp; 1 in the bundle · 0 rest on something that ran",
+        "`◐○` &nbsp; 2 in the bundle · 1 rest on something that ran",
     )
     assert cp.run(build(tmp_path, page=page, ledger=ledger)) == 0
+
+
+def test_a_requirement_on_no_rung(tmp_path):
+    """The ladder is a partition: work on no rung is work nobody scheduled."""
+    ledger = LEDGER.replace("Goal 2 binds: R2.", "Goal 2 binds: R2, R9.")
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | both | ticket 0024 |\n\n## Goal 2",
+        "\n## Goal 2",
+    ).replace(
+        "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
+        "`●` &nbsp; 1 in the bundle · 0 rest on something that ran",
+    )
+    # R9 is now ruled onto the second rung and written onto neither.
+    assert cp.run(build(tmp_path, page=page, ledger=ledger)) == 1
+
+
+def test_a_requirement_on_two_rungs(tmp_path):
+    """The other half of the partition: work counted twice is work planned twice."""
+    ledger = LEDGER.replace("Goal 2 binds: R2.", "Goal 2 binds: R2, R1.")
+    page = PAGE.replace(
+        "| R2 | newest first | fixture | ticket 0080 |",
+        "| R2 | newest first | fixture | ticket 0080 |\n"
+        "| R1 | the whole library, unattended | fixture | ticket 0080 |",
+    ).replace(
+        "`◐` &nbsp; 1 in the bundle · 0 rest on something that ran",
+        "`●◐` &nbsp; 2 in the bundle · 0 rest on something that ran",
+    )
+    assert cp.run(build(tmp_path, page=page, ledger=ledger)) == 1
+
+
+def test_a_gap_in_the_rung_numbering(tmp_path):
+    """The number is the build order, so a gap is a rung nobody can stand on."""
+    ledger = LEDGER.replace("Goal 2 binds: R2.", "Goal 3 binds: R2.")
+    page = PAGE.replace("## Goal 2 — the rung above", "## Goal 3 — the rung above").replace(
+        "the clause goal 2 binds", "the clause goal 3 binds"
+    )
+    assert cp.run(build(tmp_path, page=page, ledger=ledger)) == 1
+
+
+def test_a_rung_the_ledger_never_ruled(tmp_path):
+    """A page free to add a rung is a page setting its own scope."""
+    page = PAGE + (
+        "\n## Goal 3 — invented here\n\n"
+        "`●` &nbsp; 1 in the bundle · 0 rest on something that ran\n\n"
+        "| | the clause goal 3 binds | decided at | where its test would live |\n"
+        "|---|---|---|---|\n"
+        "| R1 | the whole library, unattended | fixture | ticket 0080 |\n"
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
 
 
 def test_the_goal_bar_stopped_matching_its_members(tmp_path):
@@ -407,9 +472,10 @@ def test_the_goal_section_deleted_outright(tmp_path):
 
 def test_a_member_row_is_not_read_as_a_standing_row(tmp_path):
     """The two tables share an opener. If the split failed, R1 would read as duplicated."""
-    outside, block = cp.goal_split(PAGE)
-    terms = cp.goal_members(block)
-    assert [name for name, _, _, _ in terms] == ["R1", "R9"]
+    outside, blocks = cp.goal_split(PAGE)
+    assert sorted(blocks) == [1, 2]
+    assert [name for name, _, _, _ in cp.goal_members(blocks[1])] == ["R1", "R9"]
+    assert [name for name, _, _, _ in cp.goal_members(blocks[2])] == ["R2"]
     assert sorted(name for name, *_ in cp.page_rows(outside)) == ["R1", "R2", "R9"]
     assert cp.goal_members(outside) == []
 

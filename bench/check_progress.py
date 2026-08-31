@@ -139,17 +139,21 @@ SUMMARY_ROW = re.compile(r"^\|\s*([A-Z][^|]+?)\s*\|\s*`([●○]+)`\s*\|\s*`([�
 #: page: a guard that takes a bundle's scope from the document under guard can
 #: see a member spelt wrong, and can never see one quietly dropped.
 LEDGER = "spec/DECISIONS.md"
-#: `Goal 1 binds: R1, R6, ...` — the ruling's machine-readable membership line.
-#: The ledger is append-only, so a later ruling that changes the bundle appends a
-#: new line rather than editing the old one, and the LAST line is the live one.
-#: A guard that took the first would report the superseded bundle forever.
-LEDGER_MEMBERS = re.compile(r"^Goal 1 binds:\s*(R\d{1,2}(?:\s*,\s*R\d{1,2})*)\s*\.", re.M)
+#: `Goal 3 binds: R1, R6, ...` — a ruling's machine-readable membership line,
+#: one per goal of the ladder. The ledger is append-only, so a later ruling that
+#: changes a bundle appends a new line rather than editing the old one, and the
+#: LAST line FOR THAT GOAL is the live one. A guard that took the first would
+#: report the superseded bundle forever; one that took the last line of any goal
+#: would report the last goal ruled on as if it were all of them.
+LEDGER_MEMBERS = re.compile(
+    r"^Goal (\d{1,2}) binds:\s*(R\d{1,2}(?:\s*,\s*R\d{1,2})*)\s*\.", re.M
+)
 
-#: The goal section on the page: its heading, and the `##` heading that ends it.
+#: A goal section on the page: its heading, and the `##` heading that ends it.
 #: Its rows open exactly like standing rows and carry three cells rather than
-#: six, so every check above must be told where the block is — otherwise each
+#: six, so every check above must be told where the blocks are — otherwise each
 #: member row reads as a standing row that failed to parse.
-GOAL_HEADING = re.compile(r"^## Goal 1\b")
+GOAL_HEADING = re.compile(r"^## Goal (\d{1,2})\b")
 GOAL_END = re.compile(r"^#{2,6}\s")
 #: `| R1 | the clause the goal binds | level | address |`. Both tables share the
 #: shape; which one a row belongs to is positional, and the marker below is the
@@ -447,23 +451,26 @@ def check_tickets(repo: Path, rows) -> list[str]:
     return findings
 
 
-def goal_split(text: str) -> tuple[str, str]:
-    """The page as `(outside the goal block, the goal block)`, line numbers preserved.
+def goal_split(text: str) -> tuple[str, dict[int, str]]:
+    """The page as `(outside every goal block, {goal number: its block})`.
 
-    Blanked rather than removed: every finding above reports a line number, and a
-    block deleted from the middle of the page would shift every number after it.
+    Line numbers are preserved: blocks are blanked rather than removed, because
+    every finding above reports a line number and a block deleted from the middle
+    of the page would shift every number after it.
     """
-    inside = []
+    blocks: dict[int, list[str]] = {}
     outside = []
-    live = False
+    live: int | None = None
     for line in text.splitlines():
-        if GOAL_HEADING.match(line):
-            live = True
-        elif live and GOAL_END.match(line):
-            live = False
-        inside.append(line if live else "")
-        outside.append("" if live else line)
-    return "\n".join(outside), "\n".join(inside)
+        if match := GOAL_HEADING.match(line):
+            live = int(match.group(1))
+            blocks.setdefault(live, ["" for _ in outside])
+        elif live is not None and GOAL_END.match(line):
+            live = None
+        for number, body in blocks.items():
+            body.append(line if number == live else "")
+        outside.append("" if live is not None else line)
+    return "\n".join(outside), {n: "\n".join(body) for n, body in blocks.items()}
 
 
 def goal_members(block: str) -> list[tuple[str, ...]]:
@@ -475,26 +482,83 @@ def goal_members(block: str) -> list[tuple[str, ...]]:
     ]
 
 
-def ruled_members(repo: Path, pattern: re.Pattern[str]) -> list[str] | None:
-    """The roster the ledger's last such ruling sets, or None if it rules none."""
+def ruled_members(repo: Path) -> dict[int, list[str]] | None:
+    """Each goal's roster as the ledger last ruled it, or None if it rules none.
+
+    Last per goal, not last overall: the ladder's five rosters are ruled in
+    separate entries, and a reading that took the final line would leave four
+    bundles unchecked while looking checked.
+    """
     path = repo / LEDGER
     if not path.exists():
         return None
-    ruled = pattern.findall(path.read_text(encoding="utf-8"))
+    ruled = LEDGER_MEMBERS.findall(path.read_text(encoding="utf-8"))
     if not ruled:
         return None
-    return [name.strip() for name in ruled[-1].split(",")]
+    rosters: dict[int, list[str]] = {}
+    for number, members in ruled:
+        rosters[int(number)] = [name.strip() for name in members.split(",")]
+    return rosters
 
 
-def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
-    """The bundle is the one that was ruled, and its bar is its terms' rows."""
-    if not block.strip():
+def check_ladder(repo: Path, blocks: dict[int, str], rows, declared) -> list[str]:
+    """Every goal of the ladder, and the ladder itself.
+
+    The ladder is a partition: each requirement the sheet declares sits on
+    exactly one goal, and the goals number from 1 without a gap. Both properties
+    are the point of a ladder that orders work — a requirement on no goal is work
+    nobody scheduled, one on two goals is work counted twice, and a gap in the
+    numbering means a goal was deleted rather than merged.
+    """
+    if not blocks:
         return [
-            "GOAL: the page names no goal bundle. Its membership is ruled in "
+            "GOAL: the page names no goal bundle. Membership is ruled in "
             f"{LEDGER}; a page that stops carrying it does not stop the work, it "
             f"stops reporting it"
         ]
 
+    ruled = ruled_members(repo)
+    if ruled is None:
+        return [
+            f"GOAL: {LEDGER} rules no roster. A bundle's scope is a ruling, and a "
+            f"scope the page sets for itself is a scope nothing can contradict"
+        ]
+
+    findings = []
+    for number in sorted(set(ruled) - set(blocks)):
+        findings.append(
+            f"GOAL {number} DROPPED: ruled in {LEDGER}, and the page carries no section for it"
+        )
+    for number in sorted(set(blocks) - set(ruled)):
+        findings.append(f"GOAL {number} ADDED: a section the ledger never ruled a roster for")
+
+    rungs = sorted(set(ruled) | set(blocks))
+    if rungs != list(range(1, len(rungs) + 1)):
+        findings.append(
+            f"LADDER: the goals number {rungs}, which is not 1..{len(rungs)}. The number "
+            f"is the build order, so a gap in it is a rung nobody can stand on"
+        )
+
+    placed: dict[str, list[int]] = {}
+    for number in sorted(set(blocks) & set(ruled)):
+        findings += check_goal(number, blocks[number], ruled[number], rows, declared)
+        for name in goal_members(blocks[number]):
+            placed.setdefault(name[0], []).append(number)
+
+    for name, _, _ in declared:
+        on = placed.get(name, [])
+        if not on:
+            findings.append(
+                f"LADDER {name}: on no goal. Every requirement the sheet declares sits on "
+                f"exactly one rung, or the ladder stops being the order the work is done in"
+            )
+        elif len(on) > 1:
+            findings.append(f"LADDER {name}: on goals {on}; a requirement sits on exactly one")
+    return findings
+
+
+def check_goal(number: int, block: str, ruled: list[str], rows, declared) -> list[str]:
+    """One bundle: the one that was ruled, and a bar that is its terms' rows."""
     findings = []
     terms = goal_members(block)
     known = {name for name, _, _ in declared}
@@ -503,43 +567,35 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
     for n, line in enumerate(block.splitlines(), 1):
         if PAGE_ROW_OPENER.match(line) and not GOAL_MEMBER.match(line):
             findings.append(
-                f"GOAL MALFORMED line {n}: opens like a member row and does not parse as "
-                f"one, so the bundle silently loses it — {line.strip()[:90]}"
+                f"GOAL {number} MALFORMED line {n}: opens like a member row and does not parse "
+                f"as one, so the bundle silently loses it — {line.strip()[:90]}"
             )
 
-    for role, article, listed, pattern in (("term", "a", terms, LEDGER_MEMBERS),):
-        named = [name for name, _, _, _ in listed]
-        for name, _, level, address in listed:
-            if level not in LEVEL:
-                findings.append(
-                    f"GOAL LEVEL {name}: {level!r} is not one of {sorted(LEVEL)}. Where an "
-                    f"assertion is decided is part of what it claims"
-                )
-            if name not in known:
-                findings.append(f"GOAL INVENTED {name}: {article} {role} {SHEET} does not declare")
-            elif name not in standing:
-                findings.append(
-                    f"GOAL UNSTANDING {name}: {article} {role} with no standing row to summarise"
-                )
-            if named.count(name) > 1:
-                findings.append(f"GOAL DUPLICATE {name}: {named.count(name)} {role} rows")
-            if not address:
-                findings.append(
-                    f"GOAL {name}: no address for the work that would settle it. {article.capitalize()} "
-                    f"{role} that lives nowhere decides nothing"
-                )
-
-        ruled = ruled_members(repo, pattern)
-        if ruled is None:
+    named = [name for name, _, _, _ in terms]
+    for name, _, level, address in terms:
+        if level not in LEVEL:
             findings.append(
-                f"GOAL: {LEDGER} rules no {role} roster. The bundle's scope is a ruling, "
-                f"and a scope the page sets for itself is a scope nothing can contradict"
+                f"GOAL {number} LEVEL {name}: {level!r} is not one of {sorted(LEVEL)}. Where an "
+                f"assertion is decided is part of what it claims"
             )
-            continue
-        for name in sorted(set(ruled) - set(named), key=lambda r: int(r[1:])):
-            findings.append(f"GOAL DROPPED {name}: ruled {article} {role}, absent from the page")
-        for name in sorted(set(named) - set(ruled), key=lambda r: int(r[1:])):
-            findings.append(f"GOAL ADDED {name}: on the page as {article} {role}, never ruled one")
+        if name not in known:
+            findings.append(f"GOAL {number} INVENTED {name}: a term {SHEET} does not declare")
+        elif name not in standing:
+            findings.append(
+                f"GOAL {number} UNSTANDING {name}: a term with no standing row to summarise"
+            )
+        if named.count(name) > 1:
+            findings.append(f"GOAL {number} DUPLICATE {name}: {named.count(name)} term rows")
+        if not address:
+            findings.append(
+                f"GOAL {number} {name}: no address for the work that would settle it. A term "
+                f"that lives nowhere decides nothing"
+            )
+
+    for name in sorted(set(ruled) - set(named), key=lambda r: int(r[1:])):
+        findings.append(f"GOAL {number} DROPPED {name}: ruled a term, absent from the page")
+    for name in sorted(set(named) - set(ruled), key=lambda r: int(r[1:])):
+        findings.append(f"GOAL {number} ADDED {name}: on the page as a term, never ruled one")
 
     bound = [name for name, _, _, _ in terms]
     delivered = [standing[name][0] for name in bound if name in standing]
@@ -550,17 +606,19 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
         if head := GOAL_HEAD.match(line):
             if head.group(1) != expected:
                 findings.append(
-                    f"GOAL BAR: written {head.group(1)!r}, its terms' rows give {expected!r}"
+                    f"GOAL {number} BAR: written {head.group(1)!r}, its terms' rows give "
+                    f"{expected!r}"
                 )
             written = (int(head.group(2)), int(head.group(3)))
             if written != (len(bound), ran):
                 findings.append(
-                    f"GOAL COUNT: written {written}, its terms' rows give {(len(bound), ran)}"
+                    f"GOAL {number} COUNT: written {written}, its terms' rows give "
+                    f"{(len(bound), ran)}"
                 )
             break
     else:
         findings.append(
-            "GOAL: no bar summarises the bundle, or its line no longer parses as one"
+            f"GOAL {number}: no bar summarises the bundle, or its line no longer parses as one"
         )
     return findings
 
@@ -608,7 +666,7 @@ def run(repo: Path) -> int:
     text = page.read_text(encoding="utf-8")
     # The goal block's rows open exactly like standing rows. Split first, so
     # every check below reads the half it was written for.
-    outside, goal = goal_split(text)
+    outside, goals = goal_split(text)
     declared = sheet_requirements(sheet.read_text(encoding="utf-8"))
     rows = page_rows(outside)
     promises = page_promises(outside)
@@ -620,13 +678,16 @@ def run(repo: Path) -> int:
         log.error("MISSING: %s carries no standing rows", PAGE)
         return 1
 
-    # The goal's two counts are the guard's own, like the three headline tallies:
-    # written on the page, recomputed here, and exempt from the digit rule on
-    # exactly that ground.
+    # Each goal's two counts are the guard's own, like the three headline
+    # tallies: written on the page, recomputed here, and exempt from the digit
+    # rule on exactly that ground.
     standing = {name: (d, e) for name, _, _, d, e, _ in rows}
-    bound = [name for name, _, _, _ in goal_members(goal)]
-    ran = [standing[name][1] for name in bound if name in standing].count("measured")
-    owned = [f"{len(bound)} in the bundle · {ran} rest on something that ran"]
+    owned, bound = [], []
+    for block in goals.values():
+        members = [name for name, _, _, _ in goal_members(block)]
+        ran = [standing[name][1] for name in members if name in standing].count("measured")
+        owned.append(f"{len(members)} in the bundle · {ran} rest on something that ran")
+        bound += members
 
     findings = (
         malformed_rows(outside)
@@ -635,7 +696,7 @@ def run(repo: Path) -> int:
         + check_bars(outside, rows)
         + check_baseline(repo, text)
         + check_tickets(repo, rows)
-        + check_goal(repo, goal, rows, declared)
+        + check_ladder(repo, goals, rows, declared)
         + check_digits(text, rows, promises, owned)
     )
 
@@ -646,9 +707,10 @@ def run(repo: Path) -> int:
         return 1
 
     log.info(
-        "PROGRESS: %d requirements, %d of them terms of goal 1, every bar recomputed, "
-        "0 findings",
+        "PROGRESS: %d requirements over %d goals of the ladder, %d terms placed, "
+        "every bar recomputed, 0 findings",
         len(declared),
+        len(goals),
         len(bound),
     )
     return 0
