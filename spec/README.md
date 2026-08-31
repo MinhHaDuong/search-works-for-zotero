@@ -150,7 +150,7 @@ build and no library: they are decidable the moment the system is installed.
 | | the clause goal 1 binds | decided at | where its test would live |
 |---|---|---|---|
 | R10 | my library text and my queries stay on this machine without an opt-in | both | [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py) |
-| R15 | a deleted item loses its text everywhere, and the data directory is the whole uninstall | both | ticket 0017 |
+| R15 | deleting the data directory is the whole uninstall | both | ticket 0017 |
 | R22 | one obvious way to stop all background work, holding across restarts | both | ticket 0033 |
 | R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | ticket 0488 |
 
@@ -193,7 +193,9 @@ which emptiness an empty one is.
 
 All three modes, the pinned answer inside the first ten, scoping enforced before
 truncation, three languages served unconfigured with the lanes connected, and a
-hit that opens at the page it came from.
+hit that opens at the page it came from. Which pinned queries this rung binds is
+faceted by the corpus each answer needs; the rule is DESIGN.md §2.8's
+(DECISIONS.md 2026-08-31).
 
 `◐◐◐◐○○` &nbsp; 6 in the bundle · 4 rest on something that ran
 
@@ -224,12 +226,16 @@ one: this is the word *all* in the promise.
 
 ## What the ladder does not say
 
-Two terms bind a clause rather than an item. R19 is in by its property alone:
+Three terms bind a clause rather than an item. R19 is in by its property alone:
 its cadence — that the sweep runs on every check — is not a promise to anyone
 and left the sheet on 2026-08-31, on the criterion that what verifies a promise
 is not itself a promise, so it belongs to the gates in DESIGN.md §2.8. R24 is in
 by its page clause alone, its entry-heading and dedup clauses waiting on the
-segmenter behind experiment X5.
+segmenter behind experiment X5. R15 is in by its uninstall clause: its
+item-deletion clause is asserted with goal 2's built-index tests, as
+event-then-state — after a delete is noticed and the tick completes, no store
+or queue holds the text — and its clock is R35's, on goal 5 (DECISIONS.md
+2026-08-31).
 
 *Works for me* is the acceptance standard for the top three rungs together — the
 promise stated in the user's own terms, *search all of my library*: every
@@ -266,7 +272,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and no state MUST ever need a manual rebuild | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
+| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and the system MUST NOT need a manual rebuild, whatever state it is in | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
 | R4 | The index MUST answer queries at every moment of its life, including during its first build | ratified | partial | code | A capped or interrupted build answers queries and says it was capped. What it does not yet do is report coverage per stage, which is what makes a partial index distinguishable from a complete one. |
 | R17 | "How much of my library is searchable?" MUST get a human answer, per stage, with a date | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. Two clauses merged in on 2026-08-31 and neither holds either: per-stage counters naming the input that triggered each unit of work do not exist upstream (scoped issue A, ticket 0033), and the local path passes no execution device, so nothing names the one actually serving (`verification/DEVICE-AUTO-0264.md`). |
 | R32 | On a laptop-class machine with no GPU, a full build with the default configuration MUST index at 150 ms per passage or better, which for a 15k library means records searchable within one hour and body text within a day. It SHOULD reach 75 ms per passage, which halves both figures | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. The bound is now pinned and it is a rate — per passage, over the whole pipeline, on a disclosed laptop-class machine (DESIGN.md §2.8), with the wall-clock promise derived from it through the measured census. Only the embed term of that rate rests on measurement; extract and chunk are an allocation until ticket 0500 measures them. A time bound with no machine attached is not a bound, and a wall-clock one alone silently fixes the library size; this row was unfalsifiable without both halves. The constraint that puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |

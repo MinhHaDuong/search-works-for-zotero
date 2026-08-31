@@ -161,7 +161,7 @@ nothing enforces it on the text you send, so read what you send, as sent.
   git-ignored `fork/` at the reviewed SHA with both `origin` and `upstream`
   remotes. Do not overwrite an existing checkout.
 - The measurement corpora are NOT in this repo: real vectors, the 477k index,
-  and the 44.9 MB extraction live on the author's machine; `bench/results/`
+  and the 44,9 MB extraction live on the author's machine; `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which
   experiments run where.
 - The author's fork (`FORK_REPOSITORY` in `UPSTREAM`) is authorized for direct

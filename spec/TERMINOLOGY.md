@@ -198,6 +198,11 @@ entry points at the question rather than settling it; rulings land in
   embedder entry passed the automatic compatibility fixture on a stated runtime
   shape; it is not a retrieval-quality judgement. Authoritative:
   REQUIREMENTS.md R31 and DESIGN.md §2.6.
+- **warm** — describes a query answered with the embedder already resident and
+  the store already open: nothing loads and nothing builds when the clock
+  starts, which is the state R6's latency bounds are stated for; the first
+  query after a start is not one. Authoritative: REQUIREMENTS.md R6; what the
+  time is spent on is DESIGN.md §2.9.
 - **watermark** — a resume cursor stored per origin and library, legitimate
   only where the underlying version sequence is genuinely monotonic; the local
   full-text sequence is mixed, so no watermark column exists for it.

@@ -2282,6 +2282,74 @@ the caution that produced unruled rosters is dropped, because an unruled roster
 is exactly the drift this repository has twice paid for.
 
 
+**2026-08-31 — four clarifications from the sheet review, and none moves a
+decision.** A review of `spec/REQUIREMENTS.md` returned four findings; the
+author's instruction was to clarify all four. Each makes explicit something
+already decided, so the rulings here are wordings rather than thresholds: no
+number moves and no roster moves.
+
+**R1's negation moves into the keyword.** "No state MUST ever need a manual
+rebuild" parses, under the sheet's own RFC 2119 clause, as "no state is
+required to need a rebuild" — vacuously true, the MUST pointing the wrong way.
+The sentence now reads "the system MUST NOT need a manual rebuild, whatever
+state it is in". The force was always meant to bind; the normative guard counts
+a MUST in either direction, which is why it never saw this. The standing row on
+`spec/README.md` quotes the amended sentence, as the progress guard requires.
+
+**R15 says "trash", because ruling 4 already handed it the transition.** On the
+platform, deleting an item moves it to the trash, and the trash is outside the
+perimeter. R15's removal therefore fires at trashing, and emptying the trash
+later changes nothing the index can see; R35's minute on a deletion starts at
+the same event. The sentence is unchanged; the paragraph now says what a reader
+of R15 alone could not previously learn.
+
+**The dictionary's size takes the convention's formatting.** This ledger writes
+"44,9 MB"; the sheet, DESIGN.md and CLAUDE.md still carried the US-point
+"44.9 MB" — drift rather than an exception, and converted. Dated reports under
+`verification/` keep their snapshots as written.
+
+**"warm" enters the glossary.** R6's bounds are stated for warm queries and no
+document defined the word. TERMINOLOGY.md gains the entry, in the Ours bucket;
+the numbers stay R6's and DESIGN.md §2.9's.
+
+**2026-08-31 — the build-order review: R15 binds goal 1 by its uninstall
+clause, and the pinned set is faceted by corpus.** The author, ratifying the
+review's recommendations as put. Two rulings and two recorded notes; no roster
+moves, so the five binding lines of the ladder entry above stay the live
+rosters.
+
+**R15 is in by its uninstall clause.** Goal 1's rationale — decidable the
+moment the system is installed — is true of the data-directory clause and not
+of the item-deletion clause, which needs a built index with queues in flight.
+On R24's pattern the rung binds the clause: goal 1 asserts that removing the
+data directory removes the system, and the item-deletion clause is asserted
+with goal 2's built-index tests, as event-then-state: after a delete is
+noticed and the tick completes, no store or queue holds the text. No clock
+there; the minute is R35's, on rung 5, where the machinery that delivers it
+lives. Moving R15 whole to goal 2 was rejected because goal 1 would lose the
+uninstall promise, the core of its own words.
+
+**Each pinned query carries a corpus facet, and goal 4 binds the covered
+subset.** A pinned answer can live in a note, a group library or the deep body
+of a long document — corpus that arrives with goal 5 — and nothing said
+whether goal 4 could close before it. Ruled: the set stays one artifact, each
+query records at pinning which corpus its answer needs (core, notes, group,
+deep-body), and goal 4's conjunction binds the queries whose facet the corpus
+already covers, the rest joining goal 5's evaluation when theirs lands. The
+facet rides the review artifact the set already is. Constraining the set to
+the easy corpus was rejected because nothing ever re-expands a corpus-shaped
+set; letting R34 close after goal 5 was rejected because it inverts the one
+ordering the ladder exists to impose. DESIGN.md §2.8 owns the rule; ticket
+0029 carries it into the corpus.
+
+**Two notes, needing no ruling.** R19 stays on goal 3: its sweep is a standing
+gate that runs regardless of rung, so its placement defers nothing, and ticket
+0026 builds the sweep with the goal-1 batch because it is the cheapest gate on
+the sheet. And DESIGN.md §4 now states the split its 2026-08-26 re-forming
+predates: the ladder governs the order repo-side assertions are built, the
+train the order items go upstream — on collision the ladder wins for tests and
+the train for filings, ticket 0488 being the documented case.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

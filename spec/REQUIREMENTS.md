@@ -2,7 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements. Numbering runs to R34 with gaps:
+This document lists the user requirements. Numbering runs to R35 with gaps:
 eleven items were retired on 2026-08-31, either because what verifies a promise
 is not itself a promise or because they were clauses of another item, and a
 retired number is never reused (DECISIONS.md). Each is written as a
@@ -71,7 +71,8 @@ one-word name is the handle the rest of the chain cites.
 ### Coverage and convergence
 
 **R1. Coverage.** Every item in the search perimeter MUST become searchable
-without anyone asking for it, and no state MUST ever need a manual rebuild.
+without anyone asking for it, and the system MUST NOT need a manual rebuild,
+whatever state it is in.
 
 Coverage MUST grow in ruling 2's class order, newest-first inside each class:
 the crawler works a priority order, not a page cursor, and recency orders
@@ -155,7 +156,7 @@ of a library already in service.
 The design point is at least 10 000 documents with full text and the system MUST
 work at that size; the known red zone is that a full vector scan approaches 1 s
 there. A 15 000-page PDF MUST be first-class too, not an outlier to cap away —
-the 44.9 MB dictionary is the one in hand — and under ruling 1 it is a
+the 44,9 MB dictionary is the one in hand — and under ruling 1 it is a
 collection of entries among peers. The two sizes are one promise because a
 library is large in both directions at once.
 
@@ -282,7 +283,10 @@ deleting the data directory MUST be the whole uninstall.
 
 Deleting an item removes its text from every stage's store and from the queues
 between them, not merely from search results — text that survives in a queue
-comes back. At the other scale, index state, queues, watermarks and downloaded
+comes back. Deleting means what the platform shows: an item moved to the trash
+has left the search perimeter, per ruling 4, so removal fires at trashing, and
+emptying the trash later changes nothing the index can see; R35's minute starts
+at the same event. At the other scale, index state, queues, watermarks and downloaded
 models MUST NOT survive anywhere outside the data directory, so removing that
 directory removes the system.
 
