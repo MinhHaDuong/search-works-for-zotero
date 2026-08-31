@@ -1000,6 +1000,39 @@ repo's care demonstrably pays.
 The ruling is about standing commitments, not about care. Nothing here lowers
 the evidence bar for a claim, a number, or a sentence sent to the maintainer.
 
+**2026-08-31 — ticket 0400 goes (author, on the same day it was defended
+here).** The tracker closes. It was filed to keep an evidence gap visible —
+"22 of 28 are not yet measured" — and what it produces is bookkeeping: an
+evidence column, a guard recomputing it, a tally to keep true. The work that
+would close the gap is not its own; it is 0029's fixture corpus, 0026's gates
+and 0032's offer, which the tracker itself names as its children. A tracker
+whose children hold all the work and whose own output is a status page is the
+excess weight the earlier entry today describes, one level up.
+
+**What this ruling does NOT touch, stated because a parallel branch was
+building on the tracker when it landed.** The goal-1 work of 2026-08-31 stands
+in full: the standing table read as a test board, goal 1 as a conjunction over
+terms, the terms/instruments distinction, R14 folded into R1, R30 split with
+time-to-coverage becoming R32, and `bench/check_progress.py` reading goal
+membership from the ledger rather than from the status page. None of it lives
+in the tracker. The rulings are ratified here, the membership is in
+`spec/README.md` and in the guard, and closing a ticket removes none of them.
+
+**What the closure does require, and it is owed by whoever closes it.** Ticket
+0400's log ties goal 1 to the tracker in terms — "GOAL 1 ORDERS THIS TRACKER'S
+WORK", later corrected, and "this tracker's unit is unchanged". Those notes are
+the only place some of that reasoning is written down outside the ledger
+entries. Re-home what is load-bearing into 0029, 0026 or 0032 before closing,
+rather than closing over it. The evidence column itself is not abolished by
+this ruling and stays where it is; what ends is tracking its completion as a
+work item.
+
+This reverses a withdrawal recorded here earlier the same day. That withdrawal
+was right on its own information — a session must not contradict a ruling it
+has not read — and is superseded by the author ruling with both branches in
+view. The near-miss it recorded stands as the finding: nothing in this repo
+detects two sessions ruling opposite ways on one ticket before the merge.
+
 
 
 ## Awaiting ratification
@@ -1018,28 +1051,7 @@ the evidence bar for a claim, a number, or a sentence sent to the maintainer.
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.
 
-- **Ticket 0400 is NOT dissolved — withdrawn 2026-08-31, same day it was
-  raised, on reading the parallel session's branch.** This slot briefly held a
-  proposal to close 0400, fold it into 0029/0026/0032, and move R19, R20, R21
-  and R26 out of REQUIREMENTS.md into DESIGN §2.8 as the gate spec they read
-  as. It is withdrawn unrun: the author ruled the opposite way earlier the same
-  day on branch `claude/specs-readme-completion-wkn65m`, and ruled better. That
-  work found the same structural defect — the roster mixes the promise's terms
-  with the apparatus that decides them — and answered it by distinguishing
-  *terms* from *instruments* inside the sheet rather than by moving the
-  apparatus out. R19's cadence clause and R26 are named instruments of goal 1,
-  so relocating them would break a ratified conjunction. The sheet also gained
-  R32 there, going to thirty-two rather than the twenty-seven this proposal
-  implied.
 
-  Recorded rather than silently dropped, because the near-miss is the finding:
-  a session reasoning only from its own branch produced a well-argued change
-  that contradicted a ruling made hours earlier, and nothing in the repo would
-  have caught it before the merge. The excess-weight ruling above stands as
-  ratified — it touched no requirement and no goal — but its reach stops at
-  the guards it names. `bench/check_progress.py` is expressly NOT among them:
-  under the test-board reading it keeps a ratified membership from being lost
-  to a page edit, which is the ledger-protection class this repo keeps.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
