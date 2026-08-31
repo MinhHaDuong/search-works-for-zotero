@@ -1,0 +1,15 @@
+# What the measurement drivers need, beyond the gate's set (ticket 0498).
+#
+# These are the heavy two: a model runtime and the library that loads a
+# sentence-transformer on top of it. Nothing under `make check` imports either,
+# which is the whole reason for the split — the gate is runnable on a machine
+# that will never embed anything.
+#
+#     python3 -m pip install -r requirements-check.txt -r requirements-drivers.txt
+#
+# Unpinned, deliberately: every number that decides what a measurement means is
+# pinned in `bench/models.json` instead, and a driver that cared about a library
+# version would have to record it in the result file rather than here.
+
+sentence-transformers
+torch
