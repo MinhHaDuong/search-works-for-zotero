@@ -1,0 +1,52 @@
+%erg 0.1
+Title: Propagate the sole-writer conductor topology
+Created: 2026-08-31
+Author: Minh Ha-Duong
+
+--- log ---
+2026-08-31T18:44Z Minh Ha-Duong created
+
+2026-08-31T19:01Z claude note amended for the author's segmentation ruling: the conductor segments and dispatches slab ranges; new finding F5 on the no-materialize clause
+--- body ---
+## Context
+
+The author's amendment to the 2026-08-30 process ruling: the conductor is the
+only writer and the segmenter, and the pipeline worker streams text in and
+vectors out, taking slab ranges rather than documents for anything large.
+The proposal, the requirement-by-requirement review and four findings are
+`verification/SOLE-WRITER-0507.md`; the awaiting-ratification question is in
+`spec/DECISIONS.md`. This ticket is the propagation, and it does nothing until
+that question is answered.
+
+Two of the findings are the author's to rule on and gate the rest: whether
+C3's pipeline ceiling is re-pinned on the 0263 measurements or chunking keeps
+its own process (F1), and whether a conductor that writes while serving still
+meets R6 (F2).
+
+## Exit criteria
+
+- [ ] DECISIONS.md records adopt, amend or reject for the sole-writer topology.
+- [ ] On adopt: DESIGN.md §2.5 says the conductor alone writes, both artifacts;
+      the stage boundary is restated as a write ordering with the
+      chunk-before-vector streaming order; the worker count and the orphan
+      repairs match what a worker that writes nothing needs.
+- [ ] On adopt: DESIGN.md §2.4 states that no document fetch happens inside the
+      tick, which is what keeps R35's minute.
+- [ ] On adopt: DESIGN.md §2.2 records that a passage's slab range is also the
+      dispatch address, and §2.3's two bands are stated as a dispatch policy
+      over ranges rather than as separate machinery.
+- [ ] On adopt: the no-materialize clause is written where an implementer will
+      meet it, and F5 has an instrument — resident memory across a fetch of the
+      library's largest attachment, in a process holding the query embedder.
+- [ ] On adopt: DESIGN.md §2.9's residency arithmetic names one pipeline worker
+      and carries F1's ruling; C3's pipeline ceiling and §2.9 agree, with a test
+      that fails when they drift, as `tests/test_c3_gate_agreement.py` does for
+      the server ceiling.
+- [ ] On adopt: TERMINOLOGY.md's *P0 / pipeline workers* entry matches, and
+      SECURITY.md names the process that talks to Zotero.
+- [ ] On adopt: the embedder handshake is stated as crossing the worker pipe,
+      with the conductor rejecting a fingerprint mismatch before writing a
+      vector (R31).
+- [ ] F2 has an instrument: query latency measured on a conductor draining a
+      build, against §2.9's budget.
+- [ ] `make check` passes.

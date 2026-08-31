@@ -2408,3 +2408,56 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   path (new origin row, signals marked stale, verify sweep, R1 from there); or
   keep the sentence as ratified and record the copy path as unsupported. The
   ruling waits for X8 — if X8 fails the bar, the question answers itself.
+
+- **The sole-writer conductor and the pure streaming worker (raised 2026-08-31,
+  from the author's own three-process sketch reviewed against the ratified
+  topology).** The 2026-08-30 ruling gave the pipeline three worker kinds, each
+  opening the store and committing its own stage's rows, plus the query servers.
+  The author's amendment is that the conductor does the writing, and that it
+  also segments: the worker streams an attachment's text in from Zotero in
+  bounded windows, the conductor decides the boundaries and writes the slabs,
+  entries and passages as they close, and the worker is then handed **ranges** —
+  the slab addresses §2.2 already gives every passage — which it embeds and
+  streams back as vectors for the conductor to commit. A book therefore crosses
+  the pipe once as text and never again; a re-embed after a model change moves
+  no text at all. Query embedding stays in-process, per the same amendment, and
+  is not reopened here.
+
+  What the change buys, in one sentence each. The vector sidecar and the ledger
+  stop being two artifacts with two writers kept in agreement by a generation
+  stamp, and become one ordering decision in one process. C3's
+  killable-at-any-time bullet becomes structural rather than argued, since a
+  worker holding no durable state cannot damage a store it never opens, and one
+  of the two mandatory orphan repairs loses its subject. And streaming chunk
+  records ahead of vectors keeps the ledger a stage boundary — resumability
+  stays at the chunk, not at the document — while delivering the structural
+  hint's first justification, keyword availability never waiting on embedding,
+  without a third process — under the amendment it is stronger than a streaming
+  order, since an item's slabs and passages are committed before any vector for
+  it is computed. The two-band frontier becomes a dispatch policy over ranges
+  rather than machinery of its own.
+
+  What it costs, and the two questions that decide it. The conductor becomes a
+  query-serving process that performs every durable write, so C3's
+  foreground-beats-background rule has to move inside it, and nothing has
+  measured query latency on a conductor draining a build against R6's budget.
+  And a single worker running a multilingual model plus a section batch makes
+  the collision between C3's pipeline ceiling and the candidates' measured
+  residency concrete: that ceiling was ratified against an English-embedder
+  picture and was explicitly left untouched when the server ceiling was re-pinned
+  on the 0263 measurements. Either it is re-pinned on the same evidence, or
+  chunking keeps its own process and the ceiling covers the smaller of the two.
+  Both questions are the author's; neither is an agent's to settle.
+
+  One clause carries the rest and is worth ratifying explicitly: the conductor
+  must never materialize a whole document. The local API answers with the text
+  inside one JSON object, so the convenient read is the one that puts a 44,9 MB
+  attachment into the process that holds the query embedder and answers queries,
+  and the arithmetic against C3's per-process ceiling says that does not fit.
+  Streaming it is ordinary work, but it is work nothing currently measures, and
+  a library of ordinary papers never exposes the omission.
+
+  The full proposal, the requirement-by-requirement review behind it, and its
+  five findings are `verification/SOLE-WRITER-0507.md`. The propagation into
+  DESIGN.md §2.4/§2.5/§2.9, TERMINOLOGY.md and SECURITY.md is ticket 0507 and
+  waits on this ruling.
