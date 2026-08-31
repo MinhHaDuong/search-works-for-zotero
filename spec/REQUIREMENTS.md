@@ -156,7 +156,7 @@ of a library already in service.
 The design point is at least 10 000 documents with full text and the system MUST
 work at that size; the known red zone is that a full vector scan approaches 1 s
 there. A 15 000-page PDF MUST be first-class too, not an outlier to cap away —
-the 44.9 MB dictionary is the one in hand — and under ruling 1 it is a
+the 44,9 MB dictionary is the one in hand — and under ruling 1 it is a
 collection of entries among peers. The two sizes are one promise because a
 library is large in both directions at once.
 

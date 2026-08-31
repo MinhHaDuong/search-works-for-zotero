@@ -28,7 +28,7 @@ query tokenizer is broken for non-English text (`tokenize.ts`:
 `/[a-z0-9]+/g` plus 29 English stopwords). There is no `busy_timeout` and
 no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
 (`sqlite-index.ts:26,153`) and never read. `DEFAULT_FULLTEXT_MAX_CHARS =
-40_000` truncates the 44.9 MB living example roughly 1 100-fold. Changing
+40_000` truncates the 44,9 MB living example roughly 1 100-fold. Changing
 embedder drops every vector at open (`dropStaleVectors` →
 `clearVectors()`). Builds crawl `top:true` only, and `clearStore()` sits in
 the build path. Two artifact recomputations
@@ -315,7 +315,7 @@ still has to carry them, along with §2.1's stage keys and the per-file
 - Below confidence 0.5, fall back to synthetic entries of ~6k tokens cut
   at paragraph boundaries, labeled as synthetic.
 
-Dictionary arithmetic (input assumption labeled, unmeasured): 44.9 MB across
+Dictionary arithmetic (input assumption labeled, unmeasured): 44,9 MB across
 ~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the dictionary
 becomes ~1 850 first-class peers, which is the entry ruling's whole point.
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates
@@ -857,7 +857,7 @@ the two outcomes apart.
   500 MB across the run-to-drain stage workers, server p95 ≤ 750 MB, the
   ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
-  deviation from the ratified letter ("against the 44.9 MB dictionary", content
+  deviation from the ratified letter ("against the 44,9 MB dictionary", content
   that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
   real-document X3a run revalidates it at each release on the author's machine.
 Every gate below is decided at one of two levels, and the relation between them
@@ -1059,11 +1059,11 @@ Unchanged, and now without the hidden second scan (§2.6).
   inside the 300–700 ms typical budget); if even 1k exceeds it, no
   constrained step ships and the ladder ends at the honest R18 give-up.
 - **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
-  baselines stock upstream on the uncapped 44.9 MB document (the 2 084,9 MiB
+  baselines stock upstream on the uncapped 44,9 MB document (the 2 084,9 MiB
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against the 500 MB rule, travels with the entries machinery (scoped issue
   B).
-- **Segmenter — X5 gates scoped issue B.** Run seg/1 over the real 44.9 MB
+- **Segmenter — X5 gates scoped issue B.** Run seg/1 over the real 44,9 MB
   extraction; sample 50 cut points uniformly at random (seeded, recorded)
   from accepted entry boundaries; hand-score them against the printed
   dictionary. Rule: ≥ 45/50 correct ships the entry story; 40–44 raises the
@@ -1172,7 +1172,7 @@ authoritative for content, this list for ordering.
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
 it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
 arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
-seg/1 has never touched the real 44.9 MB extraction. Its failure mode is
+seg/1 has never touched the real 44,9 MB extraction. Its failure mode is
 *silent plausible-looking entries*: wrong citeable locators and wrong dedup
 units, worse than honest synthetic ones. *Falsifier:* X5, half a day,
 before scoped issue B claims numbers. Below acceptable precision the design
