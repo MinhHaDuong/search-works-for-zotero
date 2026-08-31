@@ -1903,7 +1903,7 @@ and the reconcile cadence and deletion latency in DESIGN.md §2.4 were promised
 to nobody. R35 delegates its value there on R6's pattern.
 
 **R35 enters at `inferred`, which is the weakest evidence class, and ticket
-0501 owns getting it out.** The machinery exists upstream — incremental updates
+0503 owns getting it out.** The machinery exists upstream — incremental updates
 on a library version cursor, deletion reconciling against the key set — but
 nothing here has read what triggers a run or how often, and no latency has been
 measured. The ticket reads the trigger at source, measures both latencies, and
@@ -1940,7 +1940,7 @@ delivers the minute, and §2.4 now says so — worst case is one full tick.
 Deletion subtraction moves from every tenth tick to every tick: the old cadence
 disclosed ≤ ~10 min, which the promise no longer allows. What the item census
 costs per tick is unmeasured, unlike the full-text census beside it, so ticket
-0501 measures it; if it proves too expensive to run every minute, that is a
+0503 measures it; if it proves too expensive to run every minute, that is a
 finding about the cadence and never about the bound.
 
 

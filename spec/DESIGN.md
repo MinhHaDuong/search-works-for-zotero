@@ -423,7 +423,7 @@ per library.
    promise. The `sync` verb still forces it immediately. The local API has no
    `/deleted` endpoint (C2), so census subtraction is the only local route.
    What the item census costs per tick is unmeasured, unlike the full-text one
-   above; ticket 0501 measures it, and if it proves too expensive to run every
+   above; ticket 0503 measures it, and if it proves too expensive to run every
    minute the finding is about the cadence, never about the bound.
 
 The shim passes Zotero's bytes through unchanged. The local API serves the
