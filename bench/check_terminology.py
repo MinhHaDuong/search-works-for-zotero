@@ -93,6 +93,12 @@ ALLOWED = {
     "version string": re.compile(r"\bv\d+(?:\.\d+)*\b|\b(?:Zotero|SQLite|Node)\s+\d+(?:\.\d+)*\b"),
     # A ticket, cited as `ticket 0028` or by path.
     "ticket ID": re.compile(r"\btickets?[/\s]\d{4}\b"),
+    # The two sizes, as names rather than quantities: the author banned the vague
+    # word that used to stand for them and ruled the specific phrases in its place
+    # (2026-08-31), which makes the digits part of a proper name. Narrow on
+    # purpose, and the 44.9 MB dictionary is deliberately not here — that is a
+    # measured figure, and the glossary owns no measurement.
+    "named size": re.compile(r"\b15\s?000-page PDF\b|\b15k-page PDF\b|\b15k library\b"),
     # `goal 1` — a goal's name, addressing the ruling that set its membership.
     # Spelled out, never a bare ordinal, on the ticket rule's logic.
     "goal": re.compile(r"\bgoals?\s+\d{1,2}\b", re.IGNORECASE),

@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models progress help upstream-status upstream-checkout
+.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models vocabulary progress help upstream-status upstream-checkout
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -30,7 +30,7 @@ help:
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: deps lint figures governance terminology chain-dedup normative models names progress check-fast
+check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -111,6 +111,14 @@ names:
 # added to the sheet and never given a row, or a status edited in the table and
 # not in the bar above it. Both are silent, and both leave the page looking
 # complete, which is worse than no page. Ticket 0300.
+# The eighth guard, over a word rather than a number or a rule. "Monster" stood
+# for a 15 000-page PDF in one paragraph, the 44.9 MB dictionary in another and
+# any inconvenient input in a third, so two sentences using it could not be told
+# apart. Banned 2026-08-31: be specific everywhere. Each ban carries what to
+# write instead, because a ban alone is answered with a synonym.
+vocabulary:
+	python3 bench/check_vocabulary.py
+
 progress:
 	python3 bench/check_progress.py
 

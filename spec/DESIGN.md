@@ -315,8 +315,8 @@ still has to carry them, along with §2.1's stage keys and the per-file
 - Below confidence 0.5, fall back to synthetic entries of ~6k tokens cut
   at paragraph boundaries, labeled as synthetic.
 
-Monster arithmetic (input assumption labeled, unmeasured): 44.9 MB across
-~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the monster
+Dictionary arithmetic (input assumption labeled, unmeasured): 44.9 MB across
+~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the dictionary
 becomes ~1 850 first-class peers, which is the entry ruling's whole point.
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates
 scoped issue B on it (§5, risk 1).
@@ -338,7 +338,8 @@ The phase order follows the record ruling.
 - **Phase B — body text.** Entry-segmented, processed through a two-band
   frontier with a derived cap K: each item's first K passages ride the
   newest-first frontier (band 0), and passages beyond K queue in a second
-  band, drained behind it, so one monster cannot monopolize the pipeline. K is
+  band, drained behind it, so one 15 000-page PDF cannot monopolize the
+  pipeline. K is
   derived, not transplanted: K = ceil(median passages per item, measured
   on this corpus; floor 16), stated in meta. (Under the old char-stride
   chunking the measured median was 63 passages/item, giving K = 64; under
@@ -499,7 +500,7 @@ nothing actually enforces the one-of-each bound. Each worker exits on stdin
 EOF (parent death) and re-verifies `leases.holder == parent-uuid` between
 micro-batches, exiting on mismatch. Lease renewal runs on a timer decoupled
 from stage progress and is renewed immediately before any long unit of work;
-the extract stage's monster GET has no micro-batch boundary inside it.
+the extract stage's whole-document GET has no micro-batch boundary inside it.
 
 Safety never depends on the singleton: per-row leases with the
 `claimed_input` commit guard are the correctness layer, cross-process by
@@ -799,7 +800,7 @@ appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
 the gate MUST permit exactly that and nothing downstream of it). This is
 R3's counter-churn clause measured by R17's own counters, the test that would have caught the
 shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
-monster, dateAdded ties. The harness MUST fail on the corpus that exercises
+a 15 000-page PDF, dateAdded ties. The harness MUST fail on the corpus that exercises
 its subtraction terms, not only pass on the gentle one.
 
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
@@ -812,7 +813,7 @@ its subtraction terms, not only pass on the gentle one.
   keyed to PR #19's URL retired with its merge (2026-08-27): stock ≥v1.7.2
   ships `normalizeForSearch`, so against current upstream the gate runs
   green by right.
-- **The RSS gate**, over constraint C3. A deterministic synthetic monster at the measured
+- **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: concurrent background-pipeline peak ≤
   500 MB across the run-to-drain stage workers, server p95 ≤ 750 MB, the
@@ -826,7 +827,8 @@ is calibration rather than coverage (DECISIONS.md, 2026-08-31). The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
 level** runs against the author's real library or a disclosed machine and cannot
 be committed. A fixture that stands in for something real — the synthetic
-monster, the reference machine, a scaled corpus — carries a fidelity claim, and
+synthetic document, the reference machine, a scaled corpus — carries a fidelity
+claim, and
 the library level is the only thing that can renew it: the RSS gate's revalidation clause
 is the pattern, and it binds every surrogate here, not only that one.
 
@@ -850,7 +852,8 @@ is the pattern, and it binds every surrogate here, not only that one.
   tolerates legitimate drift, which is what the thresholds above are for, while
   R34 compares the run against the pinned answers and tolerates none. A corpus that
   can be stable and wrong is exactly why both readings exist. Ticket 0029
-  builds it, and its intersections — a monster in a non-Latin script, a scale
+  builds it, and its intersections — a 15 000-page PDF in a non-Latin script, a
+  scale
   run at the multilingual default — are where terms that look independent fail
   together.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
@@ -907,7 +910,7 @@ so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
 incorrectly kept a pipeline worker resident. Extract, chunk, and embed add
 transient residency only: they are run-to-drain, one of each kind at most,
 and together remain under C3's ≤ 500 MB pipeline peak with hard kill rather
-than multiplying that budget by stage. The chunk split isolates the monster
+than multiplying that budget by stage. The chunk split isolates the long-document
 RSS risk from the memory-steady embedder; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
 scope the gate can assert; the two-client whole-machine arithmetic above keeps
@@ -960,7 +963,7 @@ rather than a MUST.
   measured scope whose constrained-MATCH p95 ≤ 150 ms (the filter allowance
   inside the 300–700 ms typical budget); if even 1k exceeds it, no
   constrained step ships and the ladder ends at the honest R18 give-up.
-- **Monster RSS — X3, split in two.** X3a, runnable before any new code,
+- **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
   baselines stock upstream on the uncapped 44.9 MB document (the 2 084,9 MiB
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against the 500 MB rule, travels with the entries machinery (scoped issue
@@ -1072,7 +1075,7 @@ authoritative for content, this list for ordering.
 ## 5. The biggest remaining risks, and the cheapest falsifiers
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
-it.** Entry collapse, locators, dedup, the golden re-pin, and the monster
+it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
 arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
 seg/1 has never touched the real 44.9 MB extraction. Its failure mode is
 *silent plausible-looking entries*: wrong citeable locators and wrong dedup
@@ -1103,7 +1106,7 @@ are ours whoever writes the machinery.
 **Risk 4 — N-process reality diverges from the protocol on exactly the
 edges the soak must catch.** The conductor election, the activity-file
 yield, and the lease timing are designed against named failure states
-(orphaned worker, mid-monster steal, torn sidecar) but unmeasured, and
+(orphaned worker, a steal mid-document, torn sidecar) but unmeasured, and
 filesystem mtime granularity and WAL growth are folklore until soaked.
 *Falsifier:* the §2.8 soak gate: scripted, 30 minutes, kill -9 twice. Its
 assertions are constants the protocol can arithmetically meet, so a failure

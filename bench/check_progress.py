@@ -180,6 +180,15 @@ ALLOWED = {
     # 0080`. A bare number in a list would have to be admitted as a bare
     # number, which is the exemption this rule exists to refuse.
     "ticket ID": re.compile(r"\btickets?[/\s]\d{4}\b", re.IGNORECASE),
+    # The two sizes, as names rather than quantities. The author banned the word
+    # that used to stand in for them — be specific everywhere: a 15k library, a
+    # 15k-page PDF (2026-08-31) — which makes the digits part of a proper name,
+    # the way R9's old title carried one. Narrow on purpose: these exact phrases
+    # and nothing else, so a bare size in prose still fails. The 44.9 MB
+    # dictionary is deliberately absent — that is a measured figure the figure
+    # guard anchors, and quoting it here would be the second copy this page
+    # exists to refuse.
+    "named size": re.compile(r"\b15\s?000-page PDF\b|\b15k-page PDF\b|\b15k library\b"),
     # `goal 1` — a goal's name, addressing the ruling in the ledger that set
     # its membership. The digit labels the bundle and ranks nothing. Spelled out
     # like a ticket citation and never as a bare ordinal, for the same reason:

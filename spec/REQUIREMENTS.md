@@ -101,13 +101,13 @@ replaces the machinery it described.
 
 ### Corpus
 
-- **R8 — size does not disqualify.** The design point is at least 10 000
-  documents with full text, and the system MUST work at that size; the known
-  red zone is that a full vector scan approaches 1 s there. Monster documents
-  MUST be first-class input too, not an outlier to cap away (the 44.9 MB
-  dictionary is the living example): under ruling 1, a monster is a collection
-  of entries among peers, and the two sizes are one promise because a library
-  is large in both directions at once.
+- **R8 — a 15k library and a 15k-page PDF are both ordinary.** The design
+  point is at least 10 000 documents with full text, and the system MUST work at
+  that size; the known red zone is that a full vector scan approaches 1 s there.
+  A 15 000-page PDF MUST be first-class input too, not an outlier to cap away —
+  the 44.9 MB dictionary is the one in hand — and under ruling 1 it is a
+  collection of entries among peers. The two sizes are one promise because a
+  library is large in both directions at once.
 - **R16 — my own words.** Notes *and* annotations MUST be part of the
   corpus (per D7), not just the papers.
 
@@ -228,7 +228,7 @@ replaces the machinery it described.
 | D6 twin attachments | **First-with-text.** Per item, one attachment is indexed for body text; skipped ones get a recorded reason. |
 | D7 own-words scope | **Both** notes and annotations. |
 | D8 image-only PDFs | **Leave room** (OCR is out today). |
-| D9 monster weight | **Dissolved** by the entry ruling. |
+| D9 long-document weight | **Dissolved** by the entry ruling. |
 | D10 page fidelity | **Labeled estimate.** |
 | D11 what the golden pins | The answer **set**, not the order. |
 

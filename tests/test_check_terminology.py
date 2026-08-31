@@ -122,6 +122,7 @@ def test_every_allowlist_class_is_admitted(tmp_path):
         "version string": "- **the fork** — v1.9.0 against Zotero 10 and SQLite 3.43.",
         "ticket ID": "- **seg/1** — built by ticket 0028, see tickets/0034.",
         "goal": "- **the bundle** — the promises goal 1 binds.",
+        "named size": "- **band 0** — so one 15 000-page PDF cannot monopolise the pipeline.",
     }
     assert set(lines) == set(ct.ALLOWED), "an exemption was added without an admission test"
     for name, line in lines.items():

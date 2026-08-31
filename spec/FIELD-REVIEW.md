@@ -156,7 +156,7 @@ paper structure (Abstract, Methods, Results) and are often too long to index
 effectively", and confirmed on 2025-12-29 that 2 000 books at ten chapters each
 would need about 16 hours to index, concluding that "for a library heavily
 weighted toward long-form books rather than papers, the current architecture
-might not be ideal". That is independent evidence that the monster-document
+might not be ideal". That is independent evidence that the 15 000-page-PDF
 case DESIGN.md §2.2 stakes the segmenter on is genuinely unsolved, not
 overthought. No code or corpus is borrowable: no licence, and the evaluation
 set is not in the public repository.
@@ -812,7 +812,7 @@ that the local API has no version stamp, which is exactly the gap the ledger of
 DESIGN.md §2.1 and §2.4 closes. Issue #29 is a dependency we inherit through the
 same transport and do not yet claim to close: extraction quality is Zotero's,
 including its failures. Nothing upstream addresses the entry unit, the
-monster-document case, resource budgets, deletion and pause semantics, or
+15 000-page-PDF case, resource budgets, deletion and pause semantics, or
 coverage honesty; those remain this project's additions rather than parity work.
 
 ### zotero-mcp (54yyyu)
@@ -1897,7 +1897,7 @@ Answered, and we should stop treating these as unknowns:
 
 Open, and nobody has an answer to borrow:
 
-- **Segmenting a structureless monster into entries.** Four attempts, four
+- **Segmenting a structureless 15 000-page PDF into entries.** Four attempts, four
   fallbacks to a label rather than a strategy.
 - **The FTS5 constrained-MATCH threshold.** Almost nobody in the field uses
   FTS5: the exceptions are Zotero core, upstream zoteus, and `zotero-cli-cc`,

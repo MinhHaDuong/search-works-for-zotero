@@ -128,7 +128,8 @@ and deliberately not goal 1's: that strand waits on the segmenter behind
 experiment X5, and it is a second promise rather than a clause of this one.
 
 **Made strong** is four strengthenings, and each was already a promise here:
-every document, including the monsters, at a library size worth the name; every
+every document, a 15 000-page PDF included, in a library of the size one really
+has; every
 language on the default path, whose keyword half can only match if the two
 normalizers agree; everything searchable **today** rather than eventually —
 records first, body text behind them, on ordinary hardware — with one's own
@@ -177,7 +178,7 @@ can be *decided*, not where it happens to have run.
 | R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason | fixture | ticket 0026 |
 | R6 | the query path waits for no freshness work | fixture | ticket 0026 |
 | R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | fixture | ticket 0029 |
-| R8 | the design-point library is answered, and a monster is indexed whole | both | ticket 0029 |
+| R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
 | R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
 | R17 | how much is searchable, per stage, in one sentence, naming the device serving | fixture | ticket 0026 |
@@ -234,7 +235,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R8 | size does not disqualify | ratified | partial | code | The item cap is configurable and says when it truncates, and the two-stage vector search retired the full-scan red zone; the default cap still sits below the design point. The monster clause merged in on 2026-08-31 fails outright: full text is capped per item by default, so a monster is indexed by its opening pages, which is the one place a default contradicts a promise. Ticket 0024 carries the filing. |
+| R8 | a 15k library and a 15k-page PDF are both ordinary | ratified | partial | code | The item cap is configurable and says when it truncates, and the two-stage vector search retired the full-scan red zone; the default cap still sits below the design point. The long-document clause merged in on 2026-08-31 fails outright: full text is capped per item by default, so a 15 000-page PDF is indexed by its opening pages, which is the one place a default contradicts a promise. Ticket 0024 carries the filing. |
 | R16 | my own words | ratified | none | code | Verified nil at v1.10.0: every crawl asks for top-level items, and neither a child note nor an annotation is one, so `zotero_annotate` writes what search can never find. Filed upstream as issue #33 with a working prototype; ticket 0022. |
 
 ### Query

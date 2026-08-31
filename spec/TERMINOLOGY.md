@@ -38,7 +38,7 @@ entry points at the question rather than settling it; rulings land in
 
 - **band 0 / band 1** — the two lanes of the body-text frontier: each item's
   first K passages ride the newest-first frontier, and its remaining passages
-  queue behind them, so one monster document cannot monopolise the pipeline.
+  queue behind them, so one 15 000-page PDF cannot monopolise the pipeline.
   Authoritative: DESIGN.md §2.3, which derives K.
 - **cache-lost** — the stored warning state of passages whose item answers
   not-found on the full-text content endpoint while every version signal is
