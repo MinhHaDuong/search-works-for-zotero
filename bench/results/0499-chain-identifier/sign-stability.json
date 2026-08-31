@@ -1,0 +1,502 @@
+{
+ "probe": "ticket 0499 — can a hash over sign bits identify the chain",
+ "what": "What X8's committed cosines and 0008's real-vector anisotropy imply about identifying an embedding chain by hashing the sign bits of a calibration header. Derived from committed artifacts; no vectors were embedded here.",
+ "inputs": {
+  "x8": "bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json",
+  "cells": "bench/results/0482-gpu-corrected/cells",
+  "anisotropy": "bench/results/0008-real-vectors/real-93022.json"
+ },
+ "method": {
+  "identity": "expected sign disagreement per coordinate = arccos(cos)/pi",
+  "header_chunks": 64,
+  "cos_precision": 5e-07,
+  "seed": 20260831,
+  "caveat": "The axes are not random hyperplanes and the artifacts carry summary cosines rather than vectors, so these are implications of committed measurements, not measurements of sign flips."
+ },
+ "rows": [
+  {
+   "model": "arctic-embed-m-v2",
+   "rung": "fp32",
+   "dim": 768,
+   "cos": 0.999999,
+   "angle_rad": 0.001414,
+   "flip_fraction": 0.00045,
+   "expected_flipped_bits_per_vector": 0.346,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 0.346,
+   "p_sign_hash_matches_one_vector": 0.707654,
+   "p_sign_hash_matches_64_chunk_header": 2.45e-10
+  },
+  {
+   "model": "arctic-embed-m-v2",
+   "rung": "q8",
+   "dim": 768,
+   "cos": 0.970499,
+   "angle_rad": 0.243504,
+   "flip_fraction": 0.07751,
+   "expected_flipped_bits_per_vector": 59.528,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 59.528,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "arctic-embed-m-v2",
+   "rung": "uint8",
+   "dim": 768,
+   "cos": 0.967552,
+   "angle_rad": 0.255441,
+   "flip_fraction": 0.081309,
+   "expected_flipped_bits_per_vector": 62.446,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 62.446,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "rung": "fp32",
+   "dim": 768,
+   "cos": 1.0,
+   "angle_rad": 0.0,
+   "flip_fraction": 0.0,
+   "expected_flipped_bits_per_vector": 0.0,
+   "cos_at_artifact_precision_floor": true,
+   "flipped_bits_upper_bound": 0.244,
+   "p_sign_hash_matches_one_vector": 1.0,
+   "p_sign_hash_matches_64_chunk_header": 1.0
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "rung": "q8",
+   "dim": 768,
+   "cos": 0.993444,
+   "angle_rad": 0.11457,
+   "flip_fraction": 0.036469,
+   "expected_flipped_bits_per_vector": 28.008,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 28.008,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "rung": "uint8",
+   "dim": 768,
+   "cos": 0.995438,
+   "angle_rad": 0.095556,
+   "flip_fraction": 0.030416,
+   "expected_flipped_bits_per_vector": 23.36,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 23.36,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "rung": "fp32",
+   "dim": 384,
+   "cos": 0.999999,
+   "angle_rad": 0.001414,
+   "flip_fraction": 0.00045,
+   "expected_flipped_bits_per_vector": 0.173,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 0.173,
+   "p_sign_hash_matches_one_vector": 0.841222,
+   "p_sign_hash_matches_64_chunk_header": 1.56e-05
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "rung": "q8",
+   "dim": 384,
+   "cos": 0.997703,
+   "angle_rad": 0.067792,
+   "flip_fraction": 0.021579,
+   "expected_flipped_bits_per_vector": 8.286,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 8.286,
+   "p_sign_hash_matches_one_vector": 0.00023,
+   "p_sign_hash_matches_64_chunk_header": 1.45e-233
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "rung": "uint8",
+   "dim": 384,
+   "cos": 0.928845,
+   "angle_rad": 0.379513,
+   "flip_fraction": 0.120803,
+   "expected_flipped_bits_per_vector": 46.388,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 46.388,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "gte-multilingual-base",
+   "rung": "fp32",
+   "dim": 768,
+   "cos": 0.999999,
+   "angle_rad": 0.001414,
+   "flip_fraction": 0.00045,
+   "expected_flipped_bits_per_vector": 0.346,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 0.346,
+   "p_sign_hash_matches_one_vector": 0.707654,
+   "p_sign_hash_matches_64_chunk_header": 2.45e-10
+  },
+  {
+   "model": "gte-multilingual-base",
+   "rung": "q8",
+   "dim": 768,
+   "cos": 0.965466,
+   "angle_rad": 0.26357,
+   "flip_fraction": 0.083897,
+   "expected_flipped_bits_per_vector": 64.433,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 64.433,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "gte-multilingual-base",
+   "rung": "uint8",
+   "dim": 768,
+   "cos": 0.971572,
+   "angle_rad": 0.239013,
+   "flip_fraction": 0.07608,
+   "expected_flipped_bits_per_vector": 58.43,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 58.43,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "multilingual-e5-base",
+   "rung": "fp32",
+   "dim": 768,
+   "cos": 0.999974,
+   "angle_rad": 0.007211,
+   "flip_fraction": 0.002295,
+   "expected_flipped_bits_per_vector": 1.763,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 1.763,
+   "p_sign_hash_matches_one_vector": 0.171209,
+   "p_sign_hash_matches_64_chunk_header": 8.82e-50
+  },
+  {
+   "model": "multilingual-e5-base",
+   "rung": "q8",
+   "dim": 768,
+   "cos": 0.935262,
+   "angle_rad": 0.361798,
+   "flip_fraction": 0.115164,
+   "expected_flipped_bits_per_vector": 88.446,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 88.446,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "multilingual-e5-base",
+   "rung": "uint8",
+   "dim": 768,
+   "cos": 0.925382,
+   "angle_rad": 0.388754,
+   "flip_fraction": 0.123744,
+   "expected_flipped_bits_per_vector": 95.036,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 95.036,
+   "p_sign_hash_matches_one_vector": 0.0,
+   "p_sign_hash_matches_64_chunk_header": 0.0
+  },
+  {
+   "model": "multilingual-e5-small",
+   "rung": "fp32",
+   "dim": 384,
+   "cos": 1.0,
+   "angle_rad": 0.0,
+   "flip_fraction": 0.0,
+   "expected_flipped_bits_per_vector": 0.0,
+   "cos_at_artifact_precision_floor": true,
+   "flipped_bits_upper_bound": 0.122,
+   "p_sign_hash_matches_one_vector": 1.0,
+   "p_sign_hash_matches_64_chunk_header": 1.0
+  },
+  {
+   "model": "multilingual-e5-small",
+   "rung": "q8",
+   "dim": 384,
+   "cos": 0.996525,
+   "angle_rad": 0.083391,
+   "flip_fraction": 0.026544,
+   "expected_flipped_bits_per_vector": 10.193,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 10.193,
+   "p_sign_hash_matches_one_vector": 3.3e-05,
+   "p_sign_hash_matches_64_chunk_header": 7.26e-288
+  },
+  {
+   "model": "multilingual-e5-small",
+   "rung": "uint8",
+   "dim": 384,
+   "cos": 0.995937,
+   "angle_rad": 0.090175,
+   "flip_fraction": 0.028704,
+   "expected_flipped_bits_per_vector": 11.022,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 11.022,
+   "p_sign_hash_matches_one_vector": 1.4e-05,
+   "p_sign_hash_matches_64_chunk_header": 1.44e-311
+  }
+ ],
+ "identification": [
+  {
+   "model": "arctic-embed-m-v2",
+   "file_rung": "fp32",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.00045,
+   "nearest_other_chain_flip_fraction": 0.104778,
+   "separation": 232.84,
+   "separates": true
+  },
+  {
+   "model": "arctic-embed-m-v2",
+   "file_rung": "q8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.07751,
+   "nearest_other_chain_flip_fraction": 0.104778,
+   "separation": 1.35,
+   "separates": true
+  },
+  {
+   "model": "arctic-embed-m-v2",
+   "file_rung": "uint8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.081309,
+   "nearest_other_chain_flip_fraction": 0.104778,
+   "separation": 1.29,
+   "separates": true
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "file_rung": "fp32",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.000318,
+   "nearest_other_chain_flip_fraction": 0.044661,
+   "separation": 140.31,
+   "separates": true
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "file_rung": "q8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.036469,
+   "nearest_other_chain_flip_fraction": 0.044661,
+   "separation": 1.22,
+   "separates": true
+  },
+  {
+   "model": "granite-311m-multilingual-r2",
+   "file_rung": "uint8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.030416,
+   "nearest_other_chain_flip_fraction": 0.044661,
+   "separation": 1.47,
+   "separates": true
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "file_rung": "fp32",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.00045,
+   "nearest_other_chain_flip_fraction": 0.103792,
+   "separation": 230.65,
+   "separates": true
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "file_rung": "q8",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.021579,
+   "nearest_other_chain_flip_fraction": 0.103792,
+   "separation": 4.81,
+   "separates": true
+  },
+  {
+   "model": "granite-97m-multilingual-r2",
+   "file_rung": "uint8",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.120803,
+   "nearest_other_chain_flip_fraction": 0.103792,
+   "separation": 0.86,
+   "separates": false
+  },
+  {
+   "model": "gte-multilingual-base",
+   "file_rung": "fp32",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.00045,
+   "nearest_other_chain_flip_fraction": 0.121736,
+   "separation": 270.52,
+   "separates": true
+  },
+  {
+   "model": "gte-multilingual-base",
+   "file_rung": "q8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.083897,
+   "nearest_other_chain_flip_fraction": 0.121736,
+   "separation": 1.45,
+   "separates": true
+  },
+  {
+   "model": "gte-multilingual-base",
+   "file_rung": "uint8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.07608,
+   "nearest_other_chain_flip_fraction": 0.121736,
+   "separation": 1.6,
+   "separates": true
+  },
+  {
+   "model": "multilingual-e5-base",
+   "file_rung": "fp32",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.002295,
+   "nearest_other_chain_flip_fraction": 0.072685,
+   "separation": 31.67,
+   "separates": true
+  },
+  {
+   "model": "multilingual-e5-base",
+   "file_rung": "q8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.115164,
+   "nearest_other_chain_flip_fraction": 0.072685,
+   "separation": 0.63,
+   "separates": false
+  },
+  {
+   "model": "multilingual-e5-base",
+   "file_rung": "uint8",
+   "dim": 768,
+   "same_chain_noise_flip_fraction": 0.123744,
+   "nearest_other_chain_flip_fraction": 0.072685,
+   "separation": 0.59,
+   "separates": false
+  },
+  {
+   "model": "multilingual-e5-small",
+   "file_rung": "fp32",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.000318,
+   "nearest_other_chain_flip_fraction": 0.029912,
+   "separation": 93.97,
+   "separates": true
+  },
+  {
+   "model": "multilingual-e5-small",
+   "file_rung": "q8",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.026544,
+   "nearest_other_chain_flip_fraction": 0.029912,
+   "separation": 1.13,
+   "separates": true
+  },
+  {
+   "model": "multilingual-e5-small",
+   "file_rung": "uint8",
+   "dim": 384,
+   "same_chain_noise_flip_fraction": 0.028704,
+   "nearest_other_chain_flip_fraction": 0.029912,
+   "separation": 1.04,
+   "separates": true
+  }
+ ],
+ "verdict": {
+  "worst_same_chain_row": {
+   "model": "multilingual-e5-base",
+   "rung": "fp32",
+   "dim": 768,
+   "cos": 0.999974,
+   "angle_rad": 0.007211,
+   "flip_fraction": 0.002295,
+   "expected_flipped_bits_per_vector": 1.763,
+   "cos_at_artifact_precision_floor": false,
+   "flipped_bits_upper_bound": 1.763,
+   "p_sign_hash_matches_one_vector": 0.171209,
+   "p_sign_hash_matches_64_chunk_header": 8.82e-50
+  },
+  "exact_hash_survives_cross_provider": false,
+  "flip_fraction_floor_at_artifact_precision": 0.00031831,
+  "expected_flips_at_artifact_precision": 0.244,
+  "fp32_files": {
+   "models": 6,
+   "all_separate": true,
+   "narrowest_separation": 31.67,
+   "widest_separation": 270.52
+  },
+  "eight_bit_files": {
+   "cells": 12,
+   "separating": 9,
+   "separating_by_2x": 1,
+   "inverting": 3,
+   "narrowest_separation": 0.59,
+   "reading": "At an 8-bit rung the same chain read on the other arm can move more bits than the nearest different chain does, so sign distance stops identifying anything. That is the same boundary the calibration-header ruling already accepted from the cosine side — the device is part of the chain at the 8-bit rungs — reached independently in sign space."
+  }
+ },
+ "dead_dimensions": {
+  "source": "0008, 93 022 real vectors at 384 dims",
+  "over_95pct_one_sided": 2,
+  "one_sided_but_dead": [
+   {
+    "dim": 223,
+    "one_sided": 0.9689,
+    "mean_abs": 5.66e-33,
+    "ratio_to_median": 1.4e-31
+   },
+   {
+    "dim": 319,
+    "one_sided": 1,
+    "mean_abs": 5.54e-08,
+    "ratio_to_median": 1.4e-06
+   }
+  ],
+  "median_dimension_mean_abs": 0.03935,
+  "reading": "Both dimensions above 95% one-sided are dimensions the model never activates, at a millionth or less of the median magnitude. Their sign is float noise, and an all-or-nothing hash over every dimension hashes them alongside the ones that carry the corpus."
+ },
+ "controls": {
+  "isotropic": [
+   {
+    "cos": 0.999974,
+    "dim": 768,
+    "trials": 200,
+    "measured_mean_flips": 1.765,
+    "predicted_flips": 1.763
+   },
+   {
+    "cos": 0.9975,
+    "dim": 768,
+    "trials": 200,
+    "measured_mean_flips": 17.62,
+    "predicted_flips": 17.29
+   },
+   {
+    "cos": 0.97,
+    "dim": 768,
+    "trials": 200,
+    "measured_mean_flips": 59.8,
+    "predicted_flips": 60.031
+   }
+  ],
+  "coordinate_quantization": {
+   "dim": 768,
+   "dead_fraction": 0.005208333333333333,
+   "trials": 200,
+   "mean_cos": 0.999768,
+   "measured_mean_flips": 38.06,
+   "predicted_mean_flips": 4.905,
+   "understatement_factor": 7.76
+  }
+ }
+}
