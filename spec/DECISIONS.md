@@ -1878,6 +1878,44 @@ others for being settled — reading the questions against the sheet, and not
 against the rulings.
 
 
+**2026-08-31 — the class order is ruling 2's, and discovery becomes R35.** The
+author, on the two clauses added to R1 earlier the same day: *look at other R,
+R1 may not be best home.* It was not, for two different reasons.
+
+**The class order was already stated twice.** Ruling 2 has always said that
+every item's record is indexed before any body text; R32's paragraph said it
+again to explain why it carries two bounds; R1 said it a third time this
+morning. Three copies of one fact is this repository's most expensive recurring
+defect, and none of the three named the middle class — notes and annotations
+are indexed between the record and the body, and no document said so. Ruling 2
+now names all three classes. R1 and R32 point at it. R1 keeps what is its own:
+newest-first inside the order, a priority order rather than a page cursor.
+
+**Discovery becomes its own item, R35, beside R3 under Change and cost.** The
+test is the one the retirement used: two items are one requirement when they
+can only fail together, and these fail apart — a library can be re-indexed at
+exactly the right cost and still take a day to notice a deletion. So R3 bounds
+what staying current costs and R35 bounds how long it takes. The gap was real
+and pre-dated this morning: R1 says an item becomes searchable without saying
+when the system learns there is one, R32 bounds the first build and not the
+steady state, R15 says deletion removes text everywhere without saying when,
+and the reconcile cadence and deletion latency in DESIGN.md §2.4 were promised
+to nobody. R35 delegates its value there on R6's pattern.
+
+**R35 enters at `inferred`, which is the weakest evidence class, and ticket
+0501 owns getting it out.** The machinery exists upstream — incremental updates
+on a library version cursor, deletion reconciling against the key set — but
+nothing here has read what triggers a run or how often, and no latency has been
+measured. The ticket reads the trigger at source, measures both latencies, and
+either confirms §2.4's values as the bound or re-pins them.
+
+**Goal 1's membership does not move here.** R35 is a candidate term — indexed
+*today* is a claim about a state the library has to keep having — and that is
+exactly the question already awaiting a ruling in the list below, whether the
+goal is kept by reaching the state or by holding it. A bundle should not gain a
+member as a side effect of a new requirement being filed.
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

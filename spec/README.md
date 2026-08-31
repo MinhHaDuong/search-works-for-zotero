@@ -37,18 +37,18 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●` &nbsp; 23 ratified · 0 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●` &nbsp; 24 ratified · 0 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○` &nbsp; 1 shipped · 15 partial · 7 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○` &nbsp; 1 shipped · 16 partial · 7 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 8 read in the source · 5 inferred
+10 measured · 8 read in the source · 6 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
@@ -95,7 +95,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 | section | designed | delivered |
 |---|---|---|---|
 | Coverage and convergence | `●●●●` | `◐◐◐◐` |
-| Change and cost | `●` | `◐` |
+| Change and cost | `●●` | `◐◐` |
 | Corpus | `●●` | `◐○` |
 | Query | `●●●●●●` | `◐◐◐◐○○` |
 | Multilingual | `●●` | `◐○` |
@@ -230,6 +230,7 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R3 | The cost of staying current MUST be proportional to what changed, never to the size of the library | ratified | partial | code | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. The counter-churn clause merged in on 2026-08-31 is the better-off half: the full-text sequence is read as its own cursor, which removes the known cause, and nothing yet proves the absence because the counters that would prove it are R17's. |
+| R35 | A new, changed or deleted item MUST become visible to the index inside the discovery bound, with no one asking | ratified | partial | inferred | The machinery to notice a change exists upstream: incremental updates ride a library version cursor (SYNC.md records the commit that added them), and deletion reconciles against the key set. What does not exist is the bound. Nothing here has established how often the update path runs, and no deletion latency has been measured or read at source, which is why this row is `inferred` where R3's neighbouring row is `code`. Ticket 0501 opens to settle it; the design states both values in DESIGN.md §2.4. |
 
 ### Corpus
 

@@ -1,0 +1,40 @@
+%erg 0.1
+Title: Establish how fast upstream discovers a change, and pin the discovery bound
+Created: 2026-08-31
+Author: Claude
+
+--- log ---
+2026-08-31T15:45Z Claude created
+
+--- body ---
+## Context
+R35 entered the sheet on 2026-08-31 with an `inferred` standing row, which is
+the weakest evidence class: neither measured nor read at source. The promise is
+that a new, changed or deleted item becomes visible to the index inside the
+discovery bound. Two things are missing and they are different jobs.
+
+What upstream does. Incremental updates ride a library version cursor and
+deletion reconciles against the key set, so the machinery exists. Nobody here
+has established what *triggers* a run, or how often — whether the update path
+is a cadence, a hook on a Zotero event, or something that only happens when a
+build or a query asks. Until that is read at source the row cannot leave
+`inferred`, and R35's standing is a guess in either direction.
+
+What the bound is. DESIGN.md §2.4 states a reconcile cadence and a disclosed
+deletion latency, and R35 delegates its value there on R6's pattern. Whether
+those two numbers are the right promise to a user is not settled: they were
+chosen as design, before any requirement pointed at them.
+
+## Exit criteria
+- [ ] the upstream trigger and cadence read at source at the reviewed SHA, with
+      the file and line recorded here
+- [ ] deletion latency and new-item latency measured on the reference machine,
+      artifact committed under `bench/results/`
+- [ ] R35's row moves off `inferred`, or says why it cannot
+- [ ] the §2.4 values are confirmed as the bound or re-pinned from the
+      measurement, with the ruling in DECISIONS.md if they move
+
+## Relevant files
+- `spec/REQUIREMENTS.md` — R35, and R3 beside it
+- `spec/DESIGN.md` §2.4 — the reconcile cadence and the deletion latency
+- `spec/README.md` — R35's standing row
