@@ -2341,3 +2341,40 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   path (new origin row, signals marked stale, verify sweep, R1 from there); or
   keep the sentence as ratified and record the copy path as unsupported. The
   ruling waits for X8 — if X8 fails the bar, the question answers itself.
+
+- **The sole-writer conductor and the pure streaming worker (raised 2026-08-31,
+  from the author's own three-process sketch reviewed against the ratified
+  topology).** The 2026-08-30 ruling gave the pipeline three worker kinds, each
+  opening the store and committing its own stage's rows, plus the query servers.
+  The author's amendment is that the conductor does the writing and the worker
+  returns its results in memory, streaming: the worker fetches from Zotero,
+  chunks, embeds and streams records back; the conductor commits them. Query
+  embedding stays in-process, per the same amendment, and is not reopened here.
+
+  What the change buys, in one sentence each. The vector sidecar and the ledger
+  stop being two artifacts with two writers kept in agreement by a generation
+  stamp, and become one ordering decision in one process. C3's
+  killable-at-any-time bullet becomes structural rather than argued, since a
+  worker holding no durable state cannot damage a store it never opens, and one
+  of the two mandatory orphan repairs loses its subject. And streaming chunk
+  records ahead of vectors keeps the ledger a stage boundary — resumability
+  stays at the chunk, not at the document — while delivering the structural
+  hint's first justification, keyword availability never waiting on embedding,
+  without a third process.
+
+  What it costs, and the two questions that decide it. The conductor becomes a
+  query-serving process that performs every durable write, so C3's
+  foreground-beats-background rule has to move inside it, and nothing has
+  measured query latency on a conductor draining a build against R6's budget.
+  And a single worker running a multilingual model plus a section batch makes
+  the collision between C3's pipeline ceiling and the candidates' measured
+  residency concrete: that ceiling was ratified against an English-embedder
+  picture and was explicitly left untouched when the server ceiling was re-pinned
+  on the 0263 measurements. Either it is re-pinned on the same evidence, or
+  chunking keeps its own process and the ceiling covers the smaller of the two.
+  Both questions are the author's; neither is an agent's to settle.
+
+  The full proposal, the requirement-by-requirement review behind it, and the
+  four findings are `verification/SOLE-WRITER-0507.md`. The propagation into
+  DESIGN.md §2.4/§2.5/§2.9, TERMINOLOGY.md and SECURITY.md is ticket 0507 and
+  waits on this ruling.
