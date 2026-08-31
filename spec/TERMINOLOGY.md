@@ -85,6 +85,12 @@ entry points at the question rather than settling it; rulings land in
   indexed for body text, the deterministic first appearing in the full-text
   census, with a stored reason for each attachment skipped. Authoritative:
   REQUIREMENTS.md D6; the choice function is DESIGN.md §2.3.
+- **goal 1** — the first bundle of promises the work drives to green together:
+  the upstream README's opening promise, made strong. A milestone rather than a
+  status — it says which assertions get written first, and nothing about
+  whether they pass. Authoritative: README.md in this directory, which carries
+  the roster and recomputes its bar; the membership was ruled in DECISIONS.md
+  (2026-08-31).
 - **key** — the recorded identity of the inputs that produced a piece of
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: CONSTRAINTS.md C1; the

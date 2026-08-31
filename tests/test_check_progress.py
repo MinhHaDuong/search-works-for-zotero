@@ -60,6 +60,15 @@ Measured against upstream v1.10.0, the reviewed baseline.
 | Coverage | `●○` | `●◐` |
 | Corpus | `●` | `○` |
 
+## Goal 1 — the first bundle
+
+`●○` &nbsp; 2 in the bundle · 1 rest on something that ran
+
+| | the clause goal 1 binds | where its test would live |
+|---|---|---|
+| R1 | the whole library, unattended | ticket 0080 |
+| R9 | a monster indexed whole | ticket 0024 |
+
 ### Coverage
 
 | | promise | designed | delivered | evidence | standing |
@@ -77,12 +86,23 @@ Measured against upstream v1.10.0, the reviewed baseline.
 
 UPSTREAM = "UPSTREAM_REVIEWED_SHA=b132f2d\nUPSTREAM_REVIEWED_VERSION=v1.10.0\n"
 
+#: The ledger, which owns the goal's membership. The page is checked against
+#: this rather than against itself: a bundle whose scope is set by the document
+#: reporting on it is a scope nothing can contradict.
+LEDGER = """# DECISIONS
+
+**2026-08-31 — the first bundle.**
+
+Goal 1 binds: R1, R9.
+"""
+
 
 def build(
     root: Path,
     page: str | None = PAGE,
     sheet: str | None = SHEET,
     upstream: str | None = UPSTREAM,
+    ledger: str | None = LEDGER,
 ) -> Path:
     """A fixture repository, with either document optionally absent."""
     (root / "spec").mkdir(parents=True, exist_ok=True)
@@ -98,6 +118,8 @@ def build(
         (root / "spec" / "README.md").write_text(page, encoding="utf-8")
     if sheet is not None:
         (root / "spec" / "REQUIREMENTS.md").write_text(sheet, encoding="utf-8")
+    if ledger is not None:
+        (root / "spec" / "DECISIONS.md").write_text(ledger, encoding="utf-8")
     return root
 
 
@@ -217,7 +239,7 @@ def test_addresses_are_not_measurements(tmp_path):
     page = PAGE.replace(
         "Landed upstream.",
         "Landed upstream as issue #33 at v1.10.0, ratified 2026-08-29, DESIGN §2.8, "
-        "experiment X3a, commit b132f2d, ticket 0080.",
+        "experiment X3a, commit b132f2d, ticket 0080, bound into goal 1.",
     )
     assert cp.run(build(tmp_path, page=page)) == 0
 
@@ -287,3 +309,93 @@ def test_a_standing_row_that_no_longer_parses(tmp_path):
         "| R2 | most recent first | open | partial |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
+
+
+# The goal block. A bundle is a claim about scope, and every one of its failure
+# modes is silent in the same way the page's own are: a member dropped leaves a
+# milestone that finishes early, a member added leaves one that never finishes,
+# and a bar left behind after a row moved leaves both looking authoritative.
+# Every test below asserts a failure, so each is a positive control.
+
+
+def test_a_ruled_member_dropped_from_the_page(tmp_path):
+    """The bundle's own silent failure: a milestone that finishes early."""
+    page = PAGE.replace("| R9 | a monster indexed whole | ticket 0024 |\n", "").replace(
+        "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
+        "`●` &nbsp; 1 in the bundle · 0 rest on something that ran",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_member_the_ledger_never_ruled(tmp_path):
+    """The other direction: scope widened on the page, with no ruling behind it."""
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | ticket 0024 |",
+        "| R9 | a monster indexed whole | ticket 0024 |\n| R2 | newest first | ticket 0080 |",
+    ).replace(
+        "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
+        "`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_the_ledger_rules_no_membership(tmp_path):
+    """A page free to set its own scope is a page nothing can contradict."""
+    assert cp.run(build(tmp_path, ledger="# DECISIONS\n\nNothing ruled.\n")) == 1
+
+
+def test_the_later_ruling_supersedes_the_earlier(tmp_path):
+    """The ledger is append-only: a bundle changes by a new line, and the last one is live."""
+    ledger = LEDGER + "\n**Later.**\n\nGoal 1 binds: R1, R2, R9.\n"
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | ticket 0024 |",
+        "| R9 | a monster indexed whole | ticket 0024 |\n| R2 | newest first | ticket 0080 |",
+    ).replace(
+        "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
+        "`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran",
+    )
+    assert cp.run(build(tmp_path, page=page, ledger=ledger)) == 0
+
+
+def test_the_goal_bar_stopped_matching_its_members(tmp_path):
+    """Same failure as every other bar, recomputed the same way — from the members' rows."""
+    page = PAGE.replace(
+        "| R9 | 15 000-page documents are included | ratified | none | measured |",
+        "| R9 | 15 000-page documents are included | ratified | partial | measured |",
+    ).replace("| Corpus | `●` | `○` |", "| Corpus | `●` | `◐` |").replace(
+        "`●◐○` &nbsp; 1 shipped · 1 partial · 1 not yet",
+        "`●◐◐` &nbsp; 1 shipped · 2 partial · 0 not yet",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_member_row_that_stopped_parsing(tmp_path):
+    """A malformed member is not a wrong claim, it is an invisible one."""
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | ticket 0024 |",
+        "| R9 | a monster indexed whole | extra | ticket 0024 |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_member_with_no_address_for_its_test(tmp_path):
+    """A member whose assertion lives nowhere is a promise, not a milestone."""
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | ticket 0024 |",
+        "| R9 | a monster indexed whole |  |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_the_goal_section_deleted_outright(tmp_path):
+    """Dropping the section does not stop the work; it stops the page reporting it."""
+    page = PAGE[: PAGE.index("## Goal 1")] + PAGE[PAGE.index("### Coverage") :]
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_member_row_is_not_read_as_a_standing_row(tmp_path):
+    """The two tables share an opener. If the split failed, R1 would read as duplicated."""
+    outside, block = cp.goal_split(PAGE)
+    assert [name for name, _, _ in cp.goal_members(block)] == ["R1", "R9"]
+    assert sorted(name for name, *_ in cp.page_rows(outside)) == ["R1", "R2", "R9"]
+    assert cp.goal_members(outside) == []

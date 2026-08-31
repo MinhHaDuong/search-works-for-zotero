@@ -713,6 +713,57 @@ artifacts also hold `passage` and `snippet` text drawn from the library, and
 the benchmark query sets are the author's own research questions. Both are
 larger disclosures than a title. Neither is decided here.
 
+**2026-08-31 — the standing table is read as a test board, and goal 1 is his
+own first promise, made strong.** The author's instruction, in his words: read
+the completion table in `spec/README.md` as test-driven development, and take
+goal 1 to be the upstream README's first promise made strong — *search all my
+library, hybrid* — meaning large documents, multilingual, everything indexed
+today, and retrieval in reasonable time.
+
+Two things follow, and the first is a re-reading rather than a new column. Under
+TDD the test is written before the thing it tests and it must fail first, so the
+`evidence` column *is* the test column: `measured` means an assertion ran, and
+`code` and `inferred` mean no assertion exists. Rows in those two states are not
+red. They are unwritten, which from a distance looks the same and is worse — a
+red test is a claim about the system, an absent one is a claim about nobody. The
+page has said this since the evidence column existed; what the ruling adds is
+that the unwritten rows are the *work*, not the caveat. `delivered` then stops
+being a verdict a reader assigns and becomes a result a run reports, which is
+ticket 0400's fourth exit criterion arriving by another road.
+
+The second is scope. Thirty promises do not have a first, so the author names
+one: not our sheet's opening row but *his* README's, the one already published
+over his name — "find anything in your own work", hybrid keyword and semantic
+over the library, the body of every PDF included. Made strong means the four
+strengthenings the instruction lists, each of which is already a requirement:
+every document including the monsters (R9) at the design-point size (R8); every
+language on the default path (R7), whose keyword half only matches at all if the
+two normalizers agree (R19); everything indexed, unattended (R1), with a
+text-less attachment ending as covered-with-a-reason rather than retried forever
+(R14), the reaching watched rather than asserted (R26), one's own notes and
+annotations in the corpus at all (R16), and the whole of it legible in one
+sentence (R17); today rather than eventually, which is exactly what R30's
+hardware clause promises where R1's "eventually" declines to; and an answer
+inside the latency the query path is budgeted for (R6).
+
+Goal 1 binds: R1, R6, R7, R8, R9, R14, R16, R17, R19, R26, R30.
+
+That list is the reading, and the reading is vetoable — the instruction gave the
+axes, not the roster. Three deliberate exclusions, stated so the silence does
+not read as an oversight. The same README bullet also promises the matching
+passage *with its page number*, which is R24 and R25; that strand is gated on
+the segmenter behind experiment X5 (ticket 0028) and is a second goal, not a
+tail of this one. R21's golden set keeps goal 1 green once it is green and does
+not help make it true, so it is the net under the bundle rather than a member.
+R2 and R4 shape how coverage grows and what a half-built index answers, which
+is the promise's manner rather than its substance.
+
+Nothing new enters the work train. The tests goal 1 needs are the ones already
+scoped — the fixture corpus (ticket 0029), the repo-side gates (ticket 0026),
+and the acceptance harness offered upstream (ticket 0032) — and goal 1 orders
+them rather than adding to them: it says which assertions get written first, and
+ticket 0400 keeps the count.
+
 ## Awaiting ratification
 
 - **The accepted-staleness residue has lost its corroboration, and whether

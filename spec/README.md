@@ -104,6 +104,72 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
+## Goal 1 — the first promise, made strong
+
+Thirty promises have no first, so the rows below are read in the order the work
+is done, and the first bundle is not ours. It is the opening line of the
+upstream README — *find anything in your own work*: hybrid keyword and semantic
+search across the library, and, with full-text indexing turned on, the body of
+every PDF as well. That promise is already published upstream, which is exactly
+what makes it the right one to check first: nothing about it has to be argued
+before it can be tested.
+
+**Made strong** is four strengthenings, and each was already a promise here:
+every document, including the monsters, at a library size worth the name;
+every language on the default path, whose keyword half can only match if the two
+normalizers agree; everything indexed **today** rather than eventually, watched
+from empty rather than asserted, with one's own notes in the corpus at all and
+the whole of it legible in one sentence; and an answer back inside the budget
+the query path is held to. The bundle, and the three promises deliberately left
+out of it, were ruled on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
+
+`◐◐◐◐◐◐○○○○○` &nbsp; 11 in the bundle · 4 rest on something that ran
+
+**Read as test-driven development, this bundle has no failing tests. It has
+eleven unwritten ones.** The `evidence` column is the test column: `measured`
+says an assertion ran, `code` and `inferred` say none exists. A row in those two
+states is not red — red is a claim about the system, and an unwritten test is a
+claim about nobody — which is why the four that rest on something that ran are
+counted separately above, and why not one of the eleven is yet a check that runs
+on every build.
+
+So the first deliverable of goal 1 is not upstream code. It is eleven
+assertions, each carrying the way it can fail. Most will go red the day they are
+written, against the reviewed baseline, for the reasons their rows already give. Two or three
+will be green the morning they are written — R6's property holds already, and
+the fold sweep passes — and a test never seen to fail is a test nobody has
+checked yet, which is why ticket 0026's fold gate keeps a red classification
+for a tree that lacks the fold. Green on arrival is a result. Green without a
+way to be red is a decoration.
+
+Each row below gives the clause the goal binds and the address where its
+assertion would live. The status is not repeated here — it is in the rows for
+these requirements further down, and the bar above is recomputed from them.
+
+| | the clause goal 1 binds | where its test would live |
+|---|---|---|
+| R1 | coverage reaches the whole library with nobody asking | ticket 0026 |
+| R6 | the query path waits for no freshness work | ticket 0026 |
+| R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | ticket 0029 |
+| R8 | the design-point library is answered, not approached | ticket 0025 |
+| R9 | a monster is indexed whole, never by its opening pages | ticket 0029 |
+| R14 | an attachment with no text ends covered, with its reason | ticket 0019 |
+| R16 | my own notes and annotations are in the corpus at all | ticket 0022 |
+| R17 | how much is searchable, answered in one sentence | ticket 0026 |
+| R19 | every token the query normalizer makes, the index normalizer can make too | ticket 0026 |
+| R26 | the reaching is watched from an empty index, not trusted | ticket 0026 |
+| R30 | the execution device actually serving is named, on every machine | [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py) |
+
+None of those addresses is new work. The fixture corpus, the gates and the
+acceptance harness offered upstream were scoped before this goal existed; goal 1
+says which of their assertions get written first, and ticket 0400 keeps the
+count. Membership is a ruling, not a page edit:
+[`bench/check_progress.py`](../bench/check_progress.py) reads the roster from
+[DECISIONS.md](DECISIONS.md) and fails the build when the two disagree, because
+a bundle that can quietly lose a member is a milestone that finishes early.
+
+---
+
 ## The thirty
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or

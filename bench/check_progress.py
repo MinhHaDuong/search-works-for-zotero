@@ -32,6 +32,11 @@ only the document under guard cannot tell an omission from an absence.
    vocabulary, and the tally is recomputed like every other count. The
    requirements themselves are objectively testable; this column is what
    admits how few of the verdicts have yet been tested.
+6. GOAL. The page names one bundle of promises as the first milestone, and a
+   bundle is a claim about scope: drop a member and the goal reads finished
+   early, add one and it never finishes. So membership is checked against the
+   ruling that set it — `spec/DECISIONS.md`, not this page — and the goal's own
+   bar is recomputed from its members' rows like every other bar.
 """
 
 import logging
@@ -123,6 +128,33 @@ HEAD_EVIDENCE = re.compile(
 #: A row of the at-a-glance table: `| section | \`bar\` | \`bar\` |`.
 SUMMARY_ROW = re.compile(r"^\|\s*([A-Z][^|]+?)\s*\|\s*`([●○]+)`\s*\|\s*`([●◐○]+)`\s*\|\s*$")
 
+#: The append-only ledger, which owns the rulings the page reports against. The
+#: goal's membership is a ruling, so it is read from there rather than from the
+#: page: a guard that takes a bundle's scope from the document under guard can
+#: see a member spelt wrong, and can never see one quietly dropped.
+LEDGER = "spec/DECISIONS.md"
+#: `Goal 1 binds: R1, R6, ...` — the ruling's machine-readable membership line.
+#: The ledger is append-only, so a later ruling that changes the bundle appends a
+#: new line rather than editing the old one, and the LAST line is the live one.
+#: A guard that took the first would report the superseded bundle forever.
+LEDGER_MEMBERS = re.compile(r"^Goal 1 binds:\s*(R\d{1,2}(?:\s*,\s*R\d{1,2})*)\s*\.", re.M)
+
+#: The goal section on the page: its heading, and the `##` heading that ends it.
+#: Its rows open exactly like standing rows and carry three cells rather than
+#: six, so every check above must be told where the block is — otherwise each
+#: member row reads as a standing row that failed to parse.
+GOAL_HEADING = re.compile(r"^## Goal 1\b")
+GOAL_END = re.compile(r"^#{2,6}\s")
+#: `| R1 | the clause the goal binds | address |`.
+GOAL_MEMBER = re.compile(r"^\|\s*(R\d{1,2})\s*\|([^|]*)\|([^|]*)\|\s*$")
+#: The goal's own bar, over its members' delivered states, and two counts: how
+#: many promises the bundle binds, and how many of their verdicts rest on
+#: something that ran. Distinct wording from the two headline bars on purpose —
+#: a line that matched both would be recomputed against all thirty rows.
+GOAL_HEAD = re.compile(
+    r"^`([●◐○]+)`\s*&nbsp;\s*(\d+) in the bundle · (\d+) rest on something that ran\s*$"
+)
+
 #: Digits that address something instead of measuring it. Deleted from the line
 #: before the digit test, so what remains is whatever was written as a quantity.
 ALLOWED = {
@@ -136,6 +168,11 @@ ALLOWED = {
     # 0080`. A bare number in a list would have to be admitted as a bare
     # number, which is the exemption this rule exists to refuse.
     "ticket ID": re.compile(r"\btickets?[/\s]\d{4}\b", re.IGNORECASE),
+    # `goal 1` — the name of a milestone, addressing the ruling in the ledger
+    # that set its membership. Spelled out like a ticket citation and never as a
+    # bare ordinal, for the same reason: admitting the bare number would admit
+    # every bare number beside a milestone word.
+    "goal": re.compile(r"\bgoals?\s+\d{1,2}\b", re.IGNORECASE),
     "upstream item": re.compile(r"#\d{1,4}\b"),
     "version string": re.compile(r"\bv\d+(?:\.\d+)*\b|\b(?:Zotero|SQLite|Node)\s+\d+(?:\.\d+)*\b"),
     "ISO date": re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
@@ -361,7 +398,117 @@ def check_tickets(repo: Path, rows) -> list[str]:
     return findings
 
 
-def check_digits(text: str, rows, promises) -> list[str]:
+def goal_split(text: str) -> tuple[str, str]:
+    """The page as `(outside the goal block, the goal block)`, line numbers preserved.
+
+    Blanked rather than removed: every finding above reports a line number, and a
+    block deleted from the middle of the page would shift every number after it.
+    """
+    inside = []
+    outside = []
+    live = False
+    for line in text.splitlines():
+        if GOAL_HEADING.match(line):
+            live = True
+        elif live and GOAL_END.match(line):
+            live = False
+        inside.append(line if live else "")
+        outside.append("" if live else line)
+    return "\n".join(outside), "\n".join(inside)
+
+
+def goal_members(block: str) -> list[tuple[str, str, str]]:
+    """Every `(requirement, clause, address)` the goal block binds, in its order."""
+    return [
+        (m.group(1), m.group(2).strip(), m.group(3).strip())
+        for m in map(GOAL_MEMBER.match, block.splitlines())
+        if m
+    ]
+
+
+def ruled_members(repo: Path) -> list[str] | None:
+    """The membership the ledger's last ruling sets, or None if it rules none."""
+    path = repo / LEDGER
+    if not path.exists():
+        return None
+    ruled = LEDGER_MEMBERS.findall(path.read_text(encoding="utf-8"))
+    if not ruled:
+        return None
+    return [name.strip() for name in ruled[-1].split(",")]
+
+
+def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
+    """The bundle is the one that was ruled, and its bar is its members' rows."""
+    if not block.strip():
+        return [
+            "GOAL: the page names no first milestone. The bundle is ruled in "
+            f"{LEDGER}; a page that stops carrying it does not stop the work, it "
+            f"stops reporting it"
+        ]
+
+    findings = []
+    members = goal_members(block)
+    named = [name for name, _, _ in members]
+
+    for n, line in enumerate(block.splitlines(), 1):
+        if PAGE_ROW_OPENER.match(line) and not GOAL_MEMBER.match(line):
+            findings.append(
+                f"GOAL MALFORMED line {n}: opens like a member row and does not parse as "
+                f"one, so the bundle silently loses it — {line.strip()[:90]}"
+            )
+
+    known = {name for name, _, _ in declared}
+    standing = {name: (d, e) for name, _, _, d, e, _ in rows}
+    for name in named:
+        if name not in known:
+            findings.append(f"GOAL INVENTED {name}: a member {SHEET} does not declare")
+        elif name not in standing:
+            findings.append(f"GOAL UNSTANDING {name}: a member with no standing row to summarise")
+        if named.count(name) > 1:
+            findings.append(f"GOAL DUPLICATE {name}: {named.count(name)} member rows")
+    for name, _, address in members:
+        if not address:
+            findings.append(
+                f"GOAL {name}: no address for the test that would settle it. A member "
+                f"whose test lives nowhere is a promise, not a milestone"
+            )
+
+    ruled = ruled_members(repo)
+    if ruled is None:
+        findings.append(
+            f"GOAL: {LEDGER} rules no membership. The bundle's scope is a ruling, and a "
+            f"scope the page sets for itself is a scope nothing can contradict"
+        )
+    else:
+        for name in sorted(set(ruled) - set(named), key=lambda r: int(r[1:])):
+            findings.append(f"GOAL DROPPED {name}: ruled into the bundle, absent from the page")
+        for name in sorted(set(named) - set(ruled), key=lambda r: int(r[1:])):
+            findings.append(f"GOAL ADDED {name}: on the page, never ruled into the bundle")
+
+    delivered = [standing[name][0] for name in named if name in standing]
+    evidence = [standing[name][1] for name in named if name in standing]
+    expected = bar(delivered, DELIVERED)
+    ran = evidence.count("measured")
+    for line in block.splitlines():
+        if head := GOAL_HEAD.match(line):
+            if head.group(1) != expected:
+                findings.append(
+                    f"GOAL BAR: written {head.group(1)!r}, its members' rows give {expected!r}"
+                )
+            written = (int(head.group(2)), int(head.group(3)))
+            if written != (len(named), ran):
+                findings.append(
+                    f"GOAL COUNT: written {written}, its members' rows give {(len(named), ran)}"
+                )
+            break
+    else:
+        findings.append(
+            "GOAL: no bar summarises the bundle, or its line no longer parses as one"
+        )
+    return findings
+
+
+def check_digits(text: str, rows, promises, owned_extra: list[str]) -> list[str]:
     """Every digit an address. The counts the guard itself computes are its own."""
     designed = [d for _, _, d, _, _, _ in rows]
     delivered = [d for _, _, _, d, _, _ in rows]
@@ -372,6 +519,7 @@ def check_digits(text: str, rows, promises) -> list[str]:
         f"{delivered.count('none')} not yet",
         f"{evidence.count('measured')} measured · {evidence.count('code')} read in the source · "
         f"{evidence.count('inferred')} inferred",
+        *owned_extra,
     ]
     # Verified quotations of the sheet, per check_coverage. Longest first, so a
     # title that is the prefix of another cannot leave its tail behind.
@@ -401,9 +549,12 @@ def run(repo: Path) -> int:
             return 1
 
     text = page.read_text(encoding="utf-8")
+    # The goal block's rows open exactly like standing rows. Split first, so
+    # every check below reads the half it was written for.
+    outside, goal = goal_split(text)
     declared = sheet_requirements(sheet.read_text(encoding="utf-8"))
-    rows = page_rows(text)
-    promises = page_promises(text)
+    rows = page_rows(outside)
+    promises = page_promises(outside)
 
     if not declared:
         log.error("MISSING: %s declares no requirements; the sheet parse found nothing", SHEET)
@@ -412,14 +563,23 @@ def run(repo: Path) -> int:
         log.error("MISSING: %s carries no standing rows", PAGE)
         return 1
 
+    # The goal's two counts are the guard's own, like the three headline tallies:
+    # written on the page, recomputed here, and exempt from the digit rule on
+    # exactly that ground.
+    standing = {name: (d, e) for name, _, _, d, e, _ in rows}
+    bound = [name for name, _, _ in goal_members(goal)]
+    ran = [standing[name][1] for name in bound if name in standing].count("measured")
+    owned = [f"{len(bound)} in the bundle · {ran} rest on something that ran"]
+
     findings = (
-        malformed_rows(text)
+        malformed_rows(outside)
         + check_coverage(declared, rows, promises)
         + check_tokens(rows)
-        + check_bars(text, rows)
+        + check_bars(outside, rows)
         + check_baseline(repo, text)
         + check_tickets(repo, rows)
-        + check_digits(text, rows, promises)
+        + check_goal(repo, goal, rows, declared)
+        + check_digits(text, rows, promises, owned)
     )
 
     if findings:
@@ -428,7 +588,12 @@ def run(repo: Path) -> int:
         log.error("PROGRESS: %d finding(s) over %d requirements", len(findings), len(declared))
         return 1
 
-    log.info("PROGRESS: %d requirements, every bar recomputed, 0 findings", len(declared))
+    log.info(
+        "PROGRESS: %d requirements, %d of them bound into goal 1, every bar recomputed, "
+        "0 findings",
+        len(declared),
+        len(bound),
+    )
     return 0
 
 
