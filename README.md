@@ -64,7 +64,7 @@ stays at the top level.
 | [`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md) | Facts imposed by Zotero, upstream projects, and the operating environment |
 | [`spec/DESIGN.md`](spec/DESIGN.md) | Current design and experiment decision rules |
 | [`spec/TERMINOLOGY.md`](spec/TERMINOLOGY.md) | Glossary of the chain's vocabulary, marked ours or inherited |
-| [`spec/FIELD-REVIEW.md`](spec/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
+| [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`spec/DECISIONS.md`](spec/DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SECURITY.md`](SECURITY.md) | What this system holds, where it can leak, and the design's current answer for each |
@@ -81,7 +81,7 @@ The authoritative chain is: rulings enter `DECISIONS.md` first, and
 ratified line stays open to a later veto; the veto lands in `DECISIONS.md` as
 a new entry, and the other documents then follow. Requirements and
 constraints state the contract; `DESIGN.md` must satisfy it; experiments and
-tickets test or implement it. `FIELD-REVIEW.md` sits beside that chain rather
+tickets test or implement it. `verification/FIELD-REVIEW.md` sits beside that chain rather
 than inside it: it surveys what already exists, owns no design number, and
 points at the owning document wherever it touches ours. `TERMINOLOGY.md` serves
 the chain without joining it: it defines the words the three documents share and

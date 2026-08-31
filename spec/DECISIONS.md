@@ -1035,6 +1035,48 @@ detects two sessions ruling opposite ways on one ticket before the merge.
 
 
 
+**2026-08-31 — STATE.md is a pointer page under forty lines, and FIELD-REVIEW
+leaves the chain.** Two cuts under the excess-weight ruling, both by author
+direction the same day.
+
+**STATE.md keeps only live state, and history belongs to the git log.** It was
+542 lines, of which roughly 330 were measurement sections against `bae82a7` —
+the archived pre-merge tree — which the file itself said had never been
+re-measured, while upstream moved three versions past it. One of those sections
+quoted figures whose driver cannot open a current index (ticket 0100), so the
+page asserted numbers that could be believed but not reproduced. A "Current
+handoff" dated three days back had already been found wrong once on the
+in-flight slots. The cut follows `RUNBOOK.md`'s self-sunset of 2026-08-30 and
+this repo's standing rule that superseded documents are deleted rather than
+archived in the tree.
+
+The durable home of a measurement is its artifact under `bench/results/` and
+the ticket that produced it; prose quoting one is a convenience, never the
+record. Thirty-seven figure-guard declarations named STATE.md. Thirty-one also
+named their ticket and simply lost a duplicate slot; five had no other prose
+home and are deleted with the prose; one — 0009's swept-codepoint count — was
+re-anchored to R19, which quotes it live and which the guard had been reaching
+only through STATE.md, so the shrink contains a small coverage gain. The
+ratchet fired on the way through and was lowered deliberately, with that
+accounting written where it is enforced.
+
+**FIELD-REVIEW.md moves to `verification/`.** At 1 974 lines it was the largest
+document in the repo and 29 % of its prose, while owning no design number, no
+requirement and no threshold — a dated snapshot, by its own description. That
+is the definition this repo already gives `verification/`: evidence, not
+authority, cited by path from the ticket it serves and never a source of truth.
+It keeps its place in the governance and chain-dedup scanned sets, because it
+is public authored prose rather than a generated report, and both guards fail
+loudly on a scanned document that vanishes — which is how the move was made
+safely. The chain is twelve documents and 4 367 lines, from thirteen and 6 743.
+
+Two test fixtures hardcoded `spec/` when building their scanned-document
+trees and broke on the move: the guards were right and their own tests were
+what failed. Both now derive each directory from the scanned path, so the next
+document to move does not repeat it.
+
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

@@ -40,7 +40,7 @@ SCANNED = [
     "spec/REQUIREMENTS.md",
     "spec/CONSTRAINTS.md",
     "spec/DESIGN.md",
-    "spec/FIELD-REVIEW.md",
+    "verification/FIELD-REVIEW.md",
     "spec/DECISIONS.md",
     "spec/TERMINOLOGY.md",
 ]

@@ -51,7 +51,6 @@ REPO = Path(__file__).resolve().parent.parent
 #: against stale figures that quietly stops guarding the moment a ticket closes is the
 #: worst version of it: the document becomes permanent at exactly that moment.
 PROSE = {
-    "state": ["STATE.md"],
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
     "design": ["spec/DESIGN.md"],
@@ -192,7 +191,22 @@ def display(value, places: int, pct: bool = False) -> str:
 #: the GPU-correction and embedder-recommendation declarations landed. It moves
 #: only with an explicit explanation of removed coverage. New declarations pass
 #: without changing it: this is a one-way floor, not an equality check.
-MINIMUM_PAIRS = 349
+#:
+#: LOWERED to 318 on 2026-08-31, and here is the removed coverage, as the ratchet
+#: requires. STATE.md was cut to a pointer page under forty lines by author ruling
+#: the same day: its measurement record described a tree three upstream versions
+#: stale, and git log is this repo's archive. Thirty-seven declarations named it.
+#: Thirty-one of those quoted a figure that ALSO lives in the ticket that produced
+#: it, so they lost one prose site and kept their anchor — no coverage is gone
+#: there, only a duplicate slot. Six had STATE.md as their only prose home and are
+#: deleted outright: 0005's migration ratio, 0009's codepoints_agreeing, and
+#: 0013's three concentration figures. Their artifacts stay under bench/results/
+#: and their tickets stay authoritative for the evidence; what ends is a prose
+#: quote that no document makes any more, and a figure nobody quotes cannot drift.
+#: One was re-anchored rather than dropped — 0009's codepoints_swept, which R19
+#: quotes live ("over 1 301 codepoints") and which was, until this edit, guarded
+#: only through STATE.md. That one is a coverage GAIN hiding inside the shrink.
+MINIMUM_PAIRS = 318
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -202,28 +216,28 @@ FIGURES = [
     # ---- 0008, the real-vector measurement. The latency table is anchored: every stale
     # figure on this branch was a table cell whose value also appeared elsewhere.
     ("0008-real-vectors/real-93022.json", "corpus.vectors", 0,
-     {"t0008": "{} passages of the real library", "state": "**{} real passages"}),
+     {"t0008": "{} passages of the real library"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.exact_k30.median_ms", 1,
-     {"t0008": "Exact float32 scan at k=30: **{} ms**", "state": "vs exact ({} ms)"}),
+     {"t0008": "Exact float32 scan at k=30: **{} ms**"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.two_stage_pool_4x.median_ms", 1,
-     {"t0008": "| 0,918 | {} ms |", "state": "| 0,918 | {} ms |"}),
+     {"t0008": "| 0,918 | {} ms |"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.two_stage_pool_8x.median_ms", 1,
-     {"t0008": "| 0,969 | {} ms |", "state": "| 0,969 | {} ms |"}),
+     {"t0008": "| 0,969 | {} ms |"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.two_stage_pool_16x.median_ms", 1,
-     {"t0008": "| 0,991 | {} ms |", "state": "| 0,991 | {} ms |"}),
+     {"t0008": "| 0,991 | {} ms |"}),
     ("0008-real-vectors/real-93022.json", "anisotropy.corpus_mean_norm", 3,
-     {"t0008": "mean norm {}, and", "state": "norm **{}**"}),
+     {"t0008": "mean norm {}, and"}),
     ("0008-real-vectors/real-93022.json", "anisotropy.most_one_sided_LIVE_dimension.one_sided", 3,
-     {"t0008": "tops out at **{}**", "state": "tops out at **{}**"}),
+     {"t0008": "tops out at **{}**"}),
     ("0008-real-vectors/real-93022.json", "on_disk.float32_bytes_per_vector", 1,
-     {"t0008": "**{} B per float32", "state": "**{} B per float32"}),
+     {"t0008": "**{} B per float32"}),
     ("0008-real-vectors/real-93022.json", "on_disk.binary_bytes_per_vector", 1,
-     {"t0008": "against {} B per binary", "state": "against {} B per binary"}),
+     {"t0008": "against {} B per binary"}),
     ("0008-real-vectors/real-93022.json", "probe_design.exact_topk_from_the_probe_own_item", 1,
      {"t0008": "**{}% of a probe's exact top-30"}, "pct"),
     ("0008-real-vectors/build.json", "elapsed_s", 1, {"t0008": "**{} s wall clock**"}),
     ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_4x", 2,
-     {"t0008": "git history: {}\nat the 4x pool", "state": "(4x pool {}x)"}),
+     {"t0008": "git history: {}\nat the 4x pool"}),
     ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_8x", 2,
      {"t0008": "at the 4x pool, {} at 8x"}),
     ("0008-real-vectors/real-93022.json", "latency_run_agreement.speedup_vs_exact_per_run.two_stage_pool_16x", 2,
@@ -231,60 +245,59 @@ FIGURES = [
     # The headline recall column — the most-quoted numbers in the ticket, and unreachable
     # until dig() learned to walk lists. Anchored on the table rows they live in.
     ("0008-real-vectors/real-93022.json", "recall.2.recall_threshold_zero", 3,
-     {"t0008": "| 0,628 | **{}**", "state": "| 0,628 | **{}**"}),
+     {"t0008": "| 0,628 | **{}**"}),
     ("0008-real-vectors/real-93022.json", "recall.2.recall_mean_centred", 3,
-     {"t0008": "**0,884** | {} |", "state": "**0,884** | {} |"}),
+     {"t0008": "**0,884** | {} |"}),
     ("0008-real-vectors/real-93022.json", "recall.3.recall_threshold_zero", 3,
-     {"t0008": "| 0,862 | **{}**", "state": "| 0,862 | **{}**"}),
+     {"t0008": "| 0,862 | **{}**"}),
     ("0008-real-vectors/real-93022.json", "recall.3.recall_mean_centred", 3,
-     {"t0008": "**0,953** | {} |", "state": "**0,953** | {} |"}),
+     {"t0008": "**0,953** | {} |"}),
     ("0008-real-vectors/real-93022.json", "recall.4.recall_threshold_zero", 3,
-     {"t0008": "| 0,998 | {} |", "state": "| 0,998 | {} |"}),
+     {"t0008": "| 0,998 | {} |"}),
     # The figure whose staleness bounced this branch twice. Declaring it is the point.
     ("0008-real-vectors/real-93022.json", "latency_run_agreement.iqr_pct_range_all_candidates", 1,
-     {"t0008": "the spreads fell to **{}%**", "state": "shuffling brought them to {}%"}),
+     {"t0008": "the spreads fell to **{}%**"}),
     ("0008-real-vectors/real-93022.json", "latency_run_agreement.iqr_pct_range_two_stage", 1,
      {"t0008": "**{}%** across the three two-stage rows"}),
     ("0008-real-vectors/real-93022.json", "coarse_pool_fidelity.recall_via_vec0_pool.2.via_vec0_pool", 4,
      {"t0008": "(0,8840 against {} at 4x"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.binary_first_pass_k240.median_ms", 1,
-     {"t0008": "At 8x it is {} ms of the", "state": "it is {} ms of the"}),
+     {"t0008": "At 8x it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
     # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
     # (spec/DECISIONS.md): the §5 prose that quoted these figures is gone.
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
-     {"t0001": None, "state": None, "readme": "one corpus of {} passages"}),
+     {"t0001": None, "readme": "one corpus of {} passages"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
-     {"t0001": "| startup to first answer | {} s |", "state": "| startup to first answer | **{} s**",
+     {"t0001": "| startup to first answer | {} s |",
       "readme": "**{} s\nagainst"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2,
-     {"t0001": None, "state": None, "readme": None}),
+     {"t0001": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.json_after_16_queries", 1,
-     {"t0001": "| resident after 16 queries | {} MiB |", "state": "| resident after 16 queries | **{} MiB**",
+     {"t0001": "| resident after 16 queries | {} MiB |",
       "readme": "**{} MiB against"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.sqlite_after_16_queries", 1,
-     {"t0001": None, "state": None, "readme": None}),
+     {"t0001": None, "readme": None}),
     ("0001-old-vs-new/SUMMARY.json", "memory_caveat.conservative_ratio", 1,
-     {"state": "a\n**{}x** win", "readme": "win is {}x rather"}),
-    ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None, "state": None}),
+     {"readme": "win is {}x rather"}),
+    ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None}),
     # ---- 0005, the migration ----
-    ("0005-migration/migrate_463MB.json", "ratio_db_over_json", 4, {"state": None}),
     # ---- 0009, the fold sweep ----
-    ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0, {"state": None}),
-    ("0009-fold-sweep/codepoints.json", "codepoints_agreeing", 0, {"state": "**{} of 1 301 agreeing"}),
+    ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0,
+     {"requirements": "over {} codepoints"}),
     # ---- 0012, the two version sequences ----
     # CONSTRAINTS.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
     # 410 versus 0..25 036" — plus the entries-total in the since=0 scoping bullet. Anchored,
     # not presence-only: "0" and "25 036" both recur as bare small numbers elsewhere in the
     # document, so a bare containment check would stay green with either one stale.
     ("0012-fulltext-sequence/sequences.json", "library_version_from_items_header", 0,
-     {"state": None, "constraints": "measured: {} versus"}),
+     {"constraints": "measured: {} versus"}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_version_min", 0,
      {"constraints": "versus {}.."}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_version_max", 0,
-     {"state": None, "constraints": "0..{})."}),
+     {"constraints": "0..{})."}),
     ("0012-fulltext-sequence/sequences.json", "fulltext_entries_total", 0,
-     {"state": None, "design": None, "constraints": "584 of {} fulltext"}),
+     {"design": None, "constraints": "584 of {} fulltext"}),
     ("0012-fulltext-sequence/sequences.json",
      "fraction_of_library_reported_new_at_library_version", 1,
      {"design": None, "requirements": None}, "pct"),
@@ -316,11 +329,6 @@ FIGURES = [
     ("0140-passage-census/census.json", "geometry.budget", 0,
      {"design": "resolved budget of {} tokens"}),
     # ---- 0013, concentration ----
-    ("0013-concentration/uncapped-477512.json", "passages_total", 0, {"state": None}),
-    ("0013-concentration/uncapped-477512.json", "dominant_item.passages", 0,
-     {"state": "holds **{} of 477 512"}),
-    ("0013-concentration/uncapped-477512.json", "next_largest_passages", 0,
-     {"state": "against {} for the next largest"}),
     # ---- 0025 X7, census parse cost (synthetic wire shape, container CPU) ----
     ("0025-x7-census/parse-cost.json", "rows.1.median_ms", 2,
      {"t0025": "at 30 000 entries median {} ms and"}),
@@ -411,18 +419,14 @@ FIGURES = [
     # only the control would leave the treatment figure true and the conclusion false.
     ("0025-x2-stopwordless/x2-verdict.json", "warm_p95_ms.stopword_less", 1,
      {"t0025": "Warm p95 stopword-less = {} ms against the ~500 ms rule",
-      "t0014": "Warm p95 stopword-less = {} ms at 477 512 passages",
-      "state": "warm p95 is {} ms against the"}),
+      "t0014": "Warm p95 stopword-less = {} ms at 477 512 passages"}),
     ("0025-x2-stopwordless/x2-verdict.json", "warm_p95_ms.stock_with_stoplist", 1,
      {"t0025": "answers them at a warm p95 of {} ms, inside the allowance",
-      "t0014": "same index and queries answers at {} ms",
-      "state": "twenty queries answers at {} ms"}),
+      "t0014": "same index and queries answers at {} ms"}),
     ("0025-x2-stopwordless/x2-verdict.json", "ratio_p95", 1,
-     {"t0025": "the deletion multiplies p95 by {} and", "t0014": "({}x on p95",
-      "state": "({}\u00d7 on\n  p95"}),
+     {"t0025": "the deletion multiplies p95 by {} and", "t0014": "({}x on p95"}),
     ("0025-x2-stopwordless/x2-verdict.json", "ratio_p50", 1,
-     {"t0025": "the median by {} (1 233,2 vs 215,7 ms)", "t0014": "{}x on the median)",
-      "state": "{}\u00d7 on the median)"}),
+     {"t0025": "the median by {} (1 233,2 vs 215,7 ms)", "t0014": "{}x on the median)"}),
     ("0025-x2-stopwordless/x2-verdict.json", "warm_p50_ms.stopword_less", 1,
      {"t0025": "({} vs 215,7 ms)"}),
     ("0025-x2-stopwordless/x2-verdict.json", "warm_p50_ms.stock_with_stoplist", 1,

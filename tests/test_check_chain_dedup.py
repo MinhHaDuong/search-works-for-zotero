@@ -25,10 +25,15 @@ ccd = load()
 
 def build(root, docs: dict[str, str], owner: bool = True):
     """A fixture repository. `docs` overrides the default empty scanned files."""
-    (root / "spec").mkdir(parents=True, exist_ok=True)
+    # Derive each directory from the scanned path itself. Hardcoding "spec" here
+    # made the fixture break the day a scanned document moved out of spec/
+    # (FIELD-REVIEW.md to verification/, 2026-08-31) — the guard was correct and
+    # its own test was what failed.
     if owner:
+        (root / ccd.OWNER).parent.mkdir(parents=True, exist_ok=True)
         (root / ccd.OWNER).write_text("# Readme\n\nThe authoritative chain is described here.\n")
     for rel in ccd.SCANNED:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text(docs.get(rel, "nothing to see\n"))
     return root
 

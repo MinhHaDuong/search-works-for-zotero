@@ -15,7 +15,7 @@ Read them in this order:
 [REQUIREMENTS.md](REQUIREMENTS.md), [CONSTRAINTS.md](CONSTRAINTS.md),
 [DESIGN.md](DESIGN.md), [DECISIONS.md](DECISIONS.md). Beside them sit
 [TERMINOLOGY.md](TERMINOLOGY.md), the glossary, and
-[FIELD-REVIEW.md](FIELD-REVIEW.md), the survey of prior art. What each document
+[FIELD-REVIEW.md](../verification/FIELD-REVIEW.md), the survey of prior art. What each document
 owns, and how authority passes between them, is stated once in the repository's
 [README](../README.md) — this page does not restate it.
 

@@ -917,7 +917,7 @@ rather than a MUST.
   the fidelity probe corpus; the cells ride the 0264 GPU arm, at every rung
   both providers load, and the CPU side is the 0263 artifacts already on disk.
   Rule: at mean cosine ≥ 0,999 (the field's vector-compatibility bar,
-  FIELD-REVIEW.md) the execution provider stays out of the embedder key —
+  verification/FIELD-REVIEW.md) the execution provider stays out of the embedder key —
   device is an execution detail recorded in results, never in vector identity,
   and an index embedded on one machine can serve on another; below the bar,
   the provider enters the key and the adopt-a-foreign-index question
