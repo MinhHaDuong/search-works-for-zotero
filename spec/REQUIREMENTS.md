@@ -72,8 +72,13 @@ one-word name is the handle the rest of the chain cites.
 **R1. Coverage.** Every item in the search perimeter MUST become searchable
 without anyone asking for it, and no state MUST ever need a manual rebuild.
 
-Coverage MUST grow newest-first: the crawler works a priority order, not a page
-cursor, and recency orders *coverage*, not answers. An attachment that yields no
+Coverage MUST grow by priority class — an item's metadata, then its notes and
+annotations, then its body text — and newest-first inside each class: the
+crawler works a priority order, not a page cursor, and recency orders
+*coverage*, not answers. New and deleted data in any class MUST be discovered
+inside the reconcile bound, whose cadence and disclosed deletion latency belong
+to DESIGN.md §2.4. Ordering and discovery are separate obligations: a build can
+be in perfect class order and still not notice that an item was deleted. An attachment that yields no
 text MUST be treated as done rather than retried forever — it counts as covered,
 marked metadata-only, its reason recorded and reported — so full coverage stays
 reachable and honest at once. Per D8 below, OCR is out for now and the stage keys

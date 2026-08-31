@@ -1838,6 +1838,46 @@ interpretive question, because R1 is a term of goal 1 and the assertion ticket
 0026 owes cannot be written without knowing which granularity it asserts.
 
 
+**2026-08-31 — robust and efficient beats strict, and the priority classes said
+plainly.** The author, on the design: *I prefer robust and efficient to
+strict.* A tie-break for the whole design and not for one paragraph. Where a
+guarantee can be stated strictly or robustly, it is stated robustly; where
+strictness costs throughput, strictness loses.
+
+Asked what the ordering actually is, he stated it: **three priority classes —
+metadata, then notes and annotations, then body text — and newer first inside
+each. New or deleted data in any class is discovered in reasonable time.** That
+is the design's own Phase A / A′ / B plus the reconcile tick, and it is now how
+§2.3 opens. The second sentence is a separate promise from the first: ordering
+says what is indexed next, discovery latency says how fast a change is noticed,
+and §2.3 said the first at length while never saying the second.
+
+The ruling is not new and that is the finding. On 2026-08-29 he rejected R26's
+strict newest-first prefix on the same instinct — recency orients the work, it
+does not impose a verifiable total order over a library that changes while the
+build runs — and that entry says in terms that the veto is that entry. It had
+not been executed. Two days later DESIGN.md §2.3 still carried the vetoed
+paragraph, and §2.8's convergence harness still asserted prefix arithmetic over
+a boundary cursor. Both are corrected in this change. The band cap keeps its
+anti-monopoly job and loses its standing as an observable; what else has to
+replace it is ticket 0080's, unchanged.
+
+**Two sheet edits, flagged for veto.** R1 now names the three classes and says
+newest-first applies inside each, because R26 carried the tier priority and R26
+is retired — the promise had no normative home left. And R1 gains the discovery
+clause from the author's second sentence, with the value delegated to §2.4 on
+R6's pattern, since ordering and discovery are different obligations and only
+the first was written down.
+
+One session error belongs with it, because it is the same class as the three
+the awaiting list was reconciled for this morning. That reconciliation kept the
+cycle-2 prefix-granularity question and re-addressed it to R1. It should have
+been deleted: the author had answered it two days earlier. A question already
+settled was carried forward as open, in the very change that removed three
+others for being settled — reading the questions against the sheet, and not
+against the rulings.
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
@@ -2143,23 +2183,12 @@ interpretive question, because R1 is a term of goal 1 and the assertion ticket
   decision; or hold ratification until the 650k substrate clause is measured.
 
 
-Two readings cycle 2 could not decide on the sheet's text alone (flagged in
-DESIGN.md §2.3 and §2.9; put to the author directly — the re-formed
-train keeps internal governance out of upstream filings, so they are resolved
-here, not in any issue text). A third, R20's letter against the gate's
-practice, was answered on 2026-08-29 and removed on 2026-08-31; the removal
-entry is above.
-
-- **The granularity of R1's newest-first clause (re-addressed 2026-08-31,
-  raised as R26's, whose item is retired).** DESIGN.md §2.3 asserts the
-  convergence observable per phase — record coverage as a strict newest-first
-  prefix; body coverage as a band-0 prefix with band-1 as disclosed residue —
-  because the two-band anti-monopoly cap breaks a strict full-coverage prefix
-  by construction, and the same standard has to bind the smallest-first
-  alternative §2.3 rejects on R1's text. R1's clause does not specify its own
-  granularity, so this is an interpretive reading and vetoable. It is now on
-  goal 1's path rather than beside it: R1 is a term, and the assertion ticket
-  0026 owes cannot be written before the granularity is settled.
+One reading cycle 2 could not decide on the sheet's text alone (flagged in
+DESIGN.md §2.9; put to the author directly — the re-formed train keeps
+internal governance out of upstream filings, so it is resolved here, not in any
+issue text). The other two are gone: R20's letter against the gate's practice
+was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
+2026-08-29. Both removal entries are above.
 - **The 300 MB budget's scope under N processes.** Ratified against a
   single-server picture; the normal deployment is one zoteus per MCP client,
   ~690 MB whole-machine steady at two clients. Per process or per machine is

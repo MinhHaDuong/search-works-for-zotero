@@ -152,10 +152,6 @@ entry points at the question rather than settling it; rulings land in
   extract, chunk, embed. Authoritative: DESIGN.md §2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: DESIGN.md §2.2.
-- **prefix** — the coverage-order property: at every moment the indexed set is
-  the newest items with no gap in the middle. Authoritative: REQUIREMENTS.md R1,
-  whose newest-first clause is what remains of it; the granularity at which the design asserts it, per phase rather
-  than over the library, is DESIGN.md §2.3.
 - **probe-don't-fix** — the freshness posture of the query path: when the tick
   is stale, one bounded probe reports and nudges rather than blocking the
   answer. Authoritative: DESIGN.md §2.4, which owns the deadline.
@@ -271,6 +267,13 @@ one dates the text rather than sending the reader hunting.
 - **kill 9** — a panel-era shorthand for the abrupt process termination the
   soak gate exercises. Historical as a phrase; the property it named survives
   as the soak gate's assertions in DESIGN.md §2.8.
+- **prefix** — the coverage-order property the design once asserted: at every
+  moment the indexed set is the newest items with no gap in the middle.
+  Rejected by the author on 2026-08-29 (DECISIONS.md), because a library
+  changes while the build runs, so the property is asserted over a set that has
+  already moved. What stands in its place is the class order — metadata, then
+  notes and annotations, then body text, newer first inside each — whose
+  promise is REQUIREMENTS.md R1 and whose statement is DESIGN.md §2.3.
 - **`panel/cycle2/`** — the cycle-two design panel's verbatim session record:
   memos, critiques, and the political and implementation reviews. Deleted from
   the tree, then lost outright with the pre-restart history (DECISIONS.md,

@@ -321,123 +321,142 @@ becomes ~1 850 first-class peers, which is the entry ruling's whole point.
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates
 scoped issue B on it (§5, risk 1).
 
-### 2.3 Discovery and fairness: records for everyone, then bodies, newest-first throughout
+### 2.3 Discovery order: three priority classes, newest first inside each
 
-The phase order follows the record ruling.
+Three priority classes, in this order: **metadata**, then **notes and
+annotations**, then **body text**. Within each class, newer first. That is the
+whole ordering rule, and it is checkable at any instant: no item's body text is
+indexed before its record.
 
-- **Phase A — records.** Every item's record, fields kept apart, globally
-  newest-first across libraries: per-library sweeps sorted `date_added
-  DESC`, interleaved by k-way merge, because recency is the researcher's
-  notion and is library-blind. Cost arithmetic: a record is 1–2 chunks; 10k
-  items ≈ 12–15k record chunks at an assumed (labeled) 25 passages/s ≈
-  8–10 minutes to D1's first 100 %.
+Ordering is not the only promise. New and deleted data in any class must be
+discovered in reasonable time, which is the reconcile tick's job and is stated
+in §2.4 rather than here.
+
+What the order buys: within minutes a user can find any item by its title,
+author or abstract, and body text fills in behind that for hours.
+
+- **Phase A — records.** Every item's record, its fields kept apart. Each
+  library is swept `date_added DESC` and the sweeps are merged k-way, so the
+  order is newest-first across all libraries at once — recency is the
+  researcher's notion of priority and does not stop at a library boundary. A
+  record is 1–2 chunks, so 10k items make ≈ 12–15k record chunks; at an assumed
+  (labeled) 25 passages/s that is ≈ 8–10 minutes to D1's first 100 %.
+
 - **Phase A′ — own words** (R16; D7 = both). Child notes and annotations
-  are crawled as a second, itemType-filtered pass. Verified gap upstream: builds
-  crawl `top:true` only, so standalone notes are indexed today but child
-  notes and annotations are not.
-- **Phase B — body text.** Entry-segmented, processed through a two-band
-  frontier with a derived cap K: each item's first K passages ride the
-  newest-first frontier (band 0), and passages beyond K queue in a second
-  band, drained behind it, so one 15 000-page PDF cannot monopolize the
-  pipeline. K is
-  derived, not transplanted: K = ceil(median passages per item, measured
-  on this corpus; floor 16), stated in meta. (Under the old char-stride
-  chunking the measured median was 63 passages/item, giving K = 64; under
-  the token geometry the median attachment measures 18 passages —
-  35 for PDFs, 5 for HTML snapshots, whose extraction is
-  mostly chrome — so K lands near the floor rather than at 64. Basis
-  stated: the census counts per attachment cache, the closest measurable
-  proxy for the item until seg/1 exists;
-  `bench/results/0140-passage-census/census.json`.)
+  follow, in a second pass filtered by item type. Upstream does not do this
+  today, verified: its builds crawl `top:true` only, so standalone notes are
+  indexed and child notes and annotations are not.
 
-**Newest-first versus smallest-first, stated honestly.** #6012, the draft
-PR in which Zotero is building its own semantic search (CONSTRAINTS.md C2),
-orders attachments smallest-first. R1's newest-first clause is ratified, so
-smallest-first is rejected at item granularity on its own text. The convergence
-observable is then asserted per phase: record coverage is a strict
-newest-first prefix, and body coverage is a newest-first prefix for band 0
-only. Band 1 is disclosed residue, because the band cap itself makes a
-strict full-coverage prefix impossible, and the same standard must bind
-both our design and the rejected alternative. This split is v2's one resolution made
-by interpretive reading rather than verified fact: the harness's own sentence does not
-specify its own granularity, and the author can veto the reading (flagged in
-DECISIONS.md). The band cap does the anti-monopoly work that smallest-first
-does for #6012.
+- **Phase B — body text.** Entry-segmented. Each item's first K passages ride
+  the main frontier (band 0) and the rest queue behind it (band 1), so one
+  15 000-page PDF cannot monopolize the pipeline. K is derived from this corpus
+  rather than transplanted: K = ceil(median passages per item), floor 16,
+  stated in meta.
 
-**D6, first-with-text.** Per item, exactly one attachment is indexed for
-body text: the deterministic first (ascending `dateAdded`, key tie-break)
-that appears in the fulltext census. Skipped attachments get a stored
-reason, "identical text, suppressed" or "different text, not indexed under
-first-with-text": honesty without reopening the decision. If a later
-extraction gives an earlier attachment text, the choice function's output
-changes and the chain re-derives, convergent by construction.
+  Where K lands, and why the number moved. Under the old char-stride chunking
+  the measured median was 63 passages/item, giving K = 64. Under the token
+  geometry the median attachment measures 18 passages —
+  35 for PDFs, 5 for HTML snapshots, whose extraction is mostly chrome —
+  so K lands near the floor instead. The census counts per attachment cache, the closest measurable proxy
+  for the item until seg/1 exists
+  (`bench/results/0140-passage-census/census.json`).
 
-### 2.4 Freshness: census-equality where the sequence is mixed, a cursor where it is not
+**What is checked, and what is not.** The harness asserts the class order
+above, per item, and it asserts that discovery keeps up. It does not assert a
+position. The reading that record coverage is a strict
+newest-first prefix was rejected on 2026-08-29 and the veto is in DECISIONS.md:
+items enter and leave the library while the build runs, so an invariant over a
+positional prefix is asserted over a set that has already moved. The two bands
+stay, as anti-monopoly machinery rather than as an observable; ticket 0080 owns
+what else has to replace them, since the class order stops a 15k-page PDF
+delaying every *record* and does not stop it monopolizing the body tier.
 
-The reconcile tick is conductor-owned (§2.5), runs every 60 s when idle with
-backoff when Zotero is unreachable, and schedules the run-to-drain **extract
-shim**. The tick is the scheduler, not the extractor. The shim queries Zotero
-only, drains the extract-stage ledger queue, and owns the bookkeeping that
-makes extraction converge eventually and to the latest extractor: the item
-cursor, the full-text census, extractor-version staleness, and per-attachment
-truncation flags. It does three things per library:
+Zotero's own draft PR #6012 (CONSTRAINTS.md C2) orders attachments
+smallest-first. Ours orders by recency and stops monopoly with the band cap
+instead, and the same standard binds both: neither ordering is asserted as an
+invariant over a moving set.
 
-1. **Items**: fetch `?since=item_watermark`, the watermark scoped to
-   (oid, lib). This is a legitimate cursor: library versions are monotonic
-   per backend, and the watermark is partitioned by server ID (the
-   local/cloud label is verified insufficient, and the header machinery to
-   lift already exists upstream at `local-writes.ts`).
-2. **Full text, local scope**: fetch the full `/fulltext?since=0` census and
-   equality-diff it per attachment against stored versions. The local
-   sequence is mixed (C1: one attachment's version may be a web sync stamp,
-   a local client version, or 0 for locally extracted text), so no
-   fulltext watermark column exists for any local scope: the
-   mixed-sequence trap is made unrepresentable in the schema. Cloud scopes
-   are different: the web sequence genuinely is monotonic, so cloud scopes
-   use an ordinary `?since=` cursor, under the web politeness constraint
-   (CONSTRAINTS.md states it once). The census cost: ~8 037 entries ≈
-   120–200 KB serialized per tick, O(attachments) in memory, zero extra
-   requests. If X7 measures the parse above 50 ms at 30k entries, the
-   cadence backs off to every 5th tick: a decision rule, not a hope.
-3. **Deletions**: item-census subtraction every 10th tick (≤ ~10 min
-   disclosed deletion latency; the `sync` verb forces it immediately). The
-   local API has no `/deleted` endpoint (CONSTRAINTS.md C2); census
-   subtraction is the only local deletion route.
+**D6, first-with-text.** Per item, exactly one attachment carries the body
+text: the first — ascending `dateAdded`, key tie-break — that appears in the
+fulltext census. A skipped attachment gets a stored reason, "identical text,
+suppressed" or "different text, not indexed under first-with-text", which is
+honesty without reopening the decision. If a later extraction gives an earlier
+attachment text, the choice function's output changes and the chain re-derives
+from there.
 
-The shim does not need to flatten what Zotero returns. The local API serves
-the cache bytes unchanged, including blank lines and form-feed page boundaries
-(`verification/probes/api-vs-cache-probe.py`; ruling 2026-08-30). Structure is
-lost in today's chunker, not in transport, so the extract stage passes those
-signals through from day one. A later extractor can replace the shim without
-changing the ledger boundary or the downstream stages.
+### 2.4 Freshness: how the index finds out what changed
+
+The reconcile tick asks Zotero what changed and queues the work. It does not
+extract anything itself. It is conductor-owned (§2.5), runs every 60 s when
+idle, backs off when Zotero is unreachable, and schedules the **extract shim**,
+which runs to drain. The shim talks to Zotero only. It drains the extract-stage
+ledger queue and keeps the bookkeeping that makes extraction converge, and
+converge to the latest extractor: the item cursor, the full-text census,
+extractor-version staleness, and per-attachment truncation flags. Three things
+per library.
+
+1. **Items.** Fetch `?since=item_watermark`, the watermark scoped to
+   (oid, lib). A cursor is legitimate here because library versions are
+   monotonic per backend, and scoping by server ID is what makes that true —
+   the local/cloud label was verified insufficient, and the header machinery to
+   lift already exists upstream at `local-writes.ts`.
+
+2. **Full text, local scope.** Fetch the whole `/fulltext?since=0` census and
+   diff it per attachment against the stored versions. No cursor, and no
+   fulltext watermark column exists for any local scope, because the local
+   sequence is mixed: one attachment's version may be a web sync stamp, a local
+   client version, or 0 for locally extracted text (C1). The schema makes that
+   trap unrepresentable rather than documenting it. Cloud scopes are different
+   — the web sequence really is monotonic — so they use an ordinary `?since=`
+   cursor, under the web politeness constraint CONSTRAINTS.md states once. The
+   census is cheap: ~8 037 entries ≈ 120–200 KB serialized per tick,
+   O(attachments) in memory, no extra requests. If X7 measures the parse above
+   50 ms at 30k entries, the cadence backs off to every 5th tick — a decision
+   rule, not a hope.
+
+3. **Deletions.** Subtract the item census every 10th tick, which discloses a
+   deletion latency of ≤ ~10 min; the `sync` verb forces it immediately. The
+   local API has no `/deleted` endpoint (C2), so census subtraction is the only
+   local route.
+
+The shim passes Zotero's bytes through unchanged. The local API serves the
+cache bytes as they are, blank lines and form-feed page boundaries included
+(`verification/probes/api-vs-cache-probe.py`; ruling 2026-08-30), so structure
+is lost in today's chunker rather than in transport, and the extract stage
+carries those signals through from day one. A later extractor can replace the
+shim without moving the ledger boundary or touching the stages downstream.
 
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
-version 0. A local re-extraction that stamps 0 again is invisible to
-equality comparison, and on a never-synced library that could be *every*
-entry. The resolution has four parts. (i) Widen the extract signal to
-`(fulltext version, attachment item md5/version)`: replacing a file bumps
-the attachment item in the item sequence the tick already sweeps, so
-file-driven re-extraction is caught for free. (ii) The remaining case,
-re-extraction with no file change, is disclosed in the contract as
-accepted staleness ("version-0 text refreshes on file change or rebuild").
-(iii) A bounded idle re-verify sweep is built only if X6 shows local
-re-extraction genuinely re-stamps 0. The experiment (re-extract one
-attachment on a synced and on a never-synced profile, watch the census and
-the attachment item's version) runs before the machinery is written. (iv) A
-**content-presence probe** at verify time, ratified 2026-08-30 on X6's
-decoupling finding (`bench/results/0025-x6-version-dynamics/`): a derived
-cache can vanish — content 404 — with every version signal and the source
-md5 unmoved, so no part (i)–(iii) signal sees it. A 404 on an item whose
-passages are indexed marks them **cache-lost**: a stored warning state,
-counted, reason stored in the terminal-state vocabulary — never an
-eviction, because the source did not change and the passages remain
-faithful; the healing path is the user's Reindex, surfaced as a count. The
-probe rides the extract shim's bounded verify walk — part (iii)'s sweep if
-X6 forces it, else its own slow walk — and its cadence is pinned when the
-machinery lands.
+version 0. A local re-extraction that stamps 0 again is invisible to an
+equality comparison, and on a never-synced library that could be *every* entry.
+The resolution has four parts.
 
-**The query path** is unchanged from v1: zero Zotero requests when the tick
-ran within ~30 s; otherwise one memoized probe with a 500 ms deadline that
+(i) Widen the extract signal to `(fulltext version, attachment item
+md5/version)`. Replacing a file bumps the attachment item in the item sequence
+the tick already sweeps, so file-driven re-extraction is caught for free.
+
+(ii) What remains — re-extraction with no file change — is disclosed in the
+contract as accepted staleness: "version-0 text refreshes on file change or
+rebuild".
+
+(iii) A bounded idle re-verify sweep is built only if X6 shows that local
+re-extraction really does re-stamp 0. The experiment runs before the machinery
+is written: re-extract one attachment on a synced profile and on a never-synced
+one, and watch the census and the attachment item's version.
+
+(iv) A **content-presence probe** at verify time, ratified 2026-08-30 on X6's
+decoupling finding (`bench/results/0025-x6-version-dynamics/`). A derived cache
+can vanish — content 404 — with every version signal and the source md5
+unmoved, so nothing in (i)–(iii) sees it. A 404 on an item whose passages are
+indexed marks them **cache-lost**: a stored warning state, counted, its reason
+in the terminal-state vocabulary. Never an eviction, because the source did not
+change and the passages remain faithful; the healing path is the user's
+Reindex, surfaced as a count. The probe rides the extract shim's bounded verify
+walk — part (iii)'s sweep if X6 forces it, otherwise its own slow walk — and
+its cadence is pinned when the machinery lands.
+
+**The query path** is unchanged from v1: no Zotero requests at all when the
+tick ran within ~30 s, otherwise one memoized probe with a 500 ms deadline that
 reports and nudges rather than blocks, with `probedMsAgo` in replies.
 
 ### 2.5 Embedder registry, topology and concurrency
@@ -770,10 +789,10 @@ fails on, because if the counters can drift silently, every status answer
 built on them is suspect. Status point reads are sub-ms, against the
 measured 374 ms cold scan.
 
-The prefix accounting: the boundary cursor is the total-order key
-`(dateAdded, lib, itemKey)`, never the bare date, because several items can
-share a `dateAdded` and the boundary MUST be able to stop partway through
-such a tie group. It passes settled states
+The boundary cursor is where the crawl resumes, not an invariant anyone
+asserts. It is the total-order key `(dateAdded, lib, itemKey)`, never the bare
+date, because several items can share a `dateAdded` and the boundary MUST be
+able to stop partway through such a tie group. It passes settled states
 (`done | empty | quarantined | band0-done`). `outOfBand` is pure set
 membership: covered items older than the boundary, decremented as the
 boundary sweeps past them. Edit work counts only under the `edit` trigger,
@@ -786,9 +805,11 @@ It asserts four things.
 
 - Status answers in ≤ 50 ms.
 - Coverage is monotone.
-- The per-stage prefix arithmetic holds, at the granularity §2.3 states:
-  `covered == |{(dateAdded, lib, itemKey) ≥ boundary}| − partial −
-  quarantined + outOfBand`, with the definitions above.
+- The class order §2.3 states holds, per item: nothing has body passages
+  indexed before its record. A positional prefix is not asserted — the reading
+  that it should be was vetoed on 2026-08-29 — and the counter arithmetic
+  written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
+  partial − quarantined + outOfBand`) is ticket 0080's to rework or retire.
 - The terminal state arrives: all stages at total, drift 0, `pipeline: idle`
   (the #6012 engine-shutdown observable), work counters stationary.
 
