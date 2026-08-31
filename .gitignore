@@ -18,8 +18,15 @@ bench/data/
 __pycache__/
 *.pyc
 
-# Per-session agent runtime state, not project state.
-.claude/
+# Per-session agent runtime state, not project state — with two exceptions that
+# are project state and have to be, because a hook only runs if it is in the tree
+# a session opens on. The session-start hook installs the gate's declared
+# dependencies so a fresh container can run `make check` without a human
+# installing anything (ticket 0498); the settings file is what registers it.
+# Everything else under .claude/ stays out.
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 # Credential selection for the review seats. Names a variable, holds no secret —
 # gitignored anyway, because a .env at a repo root must never become committable

@@ -85,6 +85,14 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
+- What the gate needs to run at all is declared in `requirements-check.txt`
+  (`ruff`, `pytest`, `numpy`); what a measurement driver needs on top of it is
+  `requirements-drivers.txt`, so nobody installs a model runtime to run a lint
+  gate. `bench/check_deps.py` runs FIRST in `make check` and names a missing
+  package before any guard prints, because the failure it was filed for arrived
+  after eight guards had printed success and reads as green to a session that
+  looks at the tail. A remote session installs the gate's set by itself:
+  `.claude/hooks/session-start.sh`. Ticket 0498.
 - One model name, one place: `bench/models.json`, and the same for the two things
   that decide what a measurement means. Every driver names a model by registry id
   and resolves it — plus its `pooling` mode and its `input_template` prefixes —
