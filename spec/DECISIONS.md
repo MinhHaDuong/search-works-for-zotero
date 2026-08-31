@@ -817,193 +817,127 @@ evidence became uncheckable would be worth less than one that says so.
 Ratified entries below that cite a panel document by name are not edited. They
 are the record of what was decided and why, the ledger is append-only, and the
 preamble carries the standing correction instead.
+**2026-08-31 — files certify their own embedding chain: a calibration header,
+and one chain per file.** Ratified as proposed. Every vector file opens with a
+fixed, public set of calibration chunks, embedded by the same chain in the same
+run as the corpus behind them, and no file ever mixes chains, so that header
+speaks for every row in the file. Verification is thereby local and
+self-contained — embed the same chunks, compare, decide — with no registry to
+consult and no declared metadata to trust.
+
+What this answers is a defect class realized three times, each a case where the
+*declared* identity held while the function changed: pooling hardcoded `mean`
+against four `cls` candidates (ticket 0421), the device flag dropped by the
+sweep wrapper (0481), `normalize` carried in the registry and applied nowhere
+(0486). CONSTRAINTS.md C1's third link derives vectors from "chunks, embedder
+identity and model", and all four of DESIGN.md §2.1's stage keys hash *inputs*.
+Nothing measured what the embedder did. A header does.
+
+Three consequences follow. Adopting a foreign index becomes a local
+measurement rather than a negotiation over provenance, which is the mechanism
+the adopt-by-copy entry below is waiting on. Serving through an embedder change
+falls out of the invariant: a new chain is a new file, so the old file serves
+while the new one builds and the cutover is atomic. And X8 becomes a field
+instrument, since every file carries vectors its own chain produced.
+
+**A header does not make the comparison exact, and the ruling does not pretend
+otherwise.** X8's fp32 rows are cross-provider compatible without being
+bit-identical: `multilingual-e5-base` reaches a minimum cosine of 0,999974 at fp32
+(`bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json`). A hash over
+the header would call that a different chain, so a hash is ruled out
+cross-machine; it is admissible only as a same-machine tripwire, and ticket 0486
+carries the bit-determinism check that claim rests on.
+
+Three sub-rulings settle what the proposal left open. **The calibration vectors
+live in the manifest, not the slab's row space** — addressable-as-a-row means a
+consumer that forgets to exclude them returns a calibration chunk as a hit, and
+the alternative is a permanent exclusion obligation on every reader that will
+ever open the format. **The set is 64 chunks, self-authored and published in
+this repository as a fixture**, never drawn from the library, since SECURITY.md
+lists vectors as an asset and a header derived from library text would leak the
+library into every file handed out; they span the four languages X2 separated,
+span roughly ten tokens to near the resolved budget, and pass through the
+model's own `input_template`. **And the comparison is two tests, not one**:
+per-vector cosine against the stored header proves the two vector spaces align,
+which is what adopting a foreign file requires, while rank agreement over the
+calibration set's own pairwise similarity matrix catches what cosine cannot —
+`granite-97m-multilingual-r2` at q8 clears the bar while keeping 0,4164
+of its top-30 overlap. Sixty-four chunks give that matrix enough pairs at the
+cost of a single forward pass.
+
+Three costs are accepted with the ruling. A cutover holds two slabs at the real
+geometry, against budgets DESIGN.md §2.9 owns. The execution device is part of
+the chain, so under R30 a GPU-built and a CPU-built file cannot be merged at the
+8-bit rungs, where X8 says most candidates fail. And `embed_hash`'s EXISTS guard
+on deletes becomes per-file rather than global, which DESIGN.md §2.1 must
+restate rather than inherit.
+
+This reshapes DESIGN.md §2.1's stage keys and §2.2's storage section, gives
+CONSTRAINTS.md C1's third link a measured half beside its declared one, and
+supplies the mechanism the adopt-a-foreign-index entry is waiting on. Ticket
+0497 carries the portable format the invariant implies; ticket 0485 still
+decides what the header is compared on before that contract is frozen.
+
+**2026-08-31 — ticket 0031 builds calibration from the description, and the
+read-at-source instruction is withdrawn.** FIELD-REVIEW.md instructed ticket
+0031 to read `Zotero.Embeddings.Calibration` at source before committing to its
+own calibration, on the ground that the procedure is an algorithm with
+parameters rather than an idea and so the survey's usual read-describe-rebuild
+route could not carry it. `zotero/zotero` is AGPL-3.0 and zoteus is MIT, and
+that instruction stood with no bound on what the reading could produce.
+
+The premise does not survive inspection, and the ruling dissolves the question
+rather than adopting a protocol for it. FIELD-REVIEW.md has already described
+the whole algorithm — build a query-by-passage score matrix from a labelled
+corpus of relevant and irrelevant pairs, set a per-model minimum relevance
+threshold from it, reject a model that cannot clear it — so nothing is
+withheld. What the source would add is their parameter *values*, and those are
+the one part that must not be reused: a threshold calibrated on their corpus
+and their task is wrong for ours by construction, in the same way X2 showed a
+stoplist is wrong for a corpus whose majority language differs. Deriving our
+own thresholds is not a weaker result; it is the correct one.
+
+So ticket 0031 builds from FIELD-REVIEW.md's description and its own stated
+pair-generation protocol, does not read `Zotero.Embeddings.Calibration`, and
+FIELD-REVIEW.md's read-at-source instruction is withdrawn in the same change as
+this ruling. No contamination question remains to price, and 0031 is unblocked.
+
+What this ruling does NOT touch is reading upstream source to verify a factual
+claim about upstream behaviour — the #6012 checkpoint, and the attributions
+settled for ticket 0180. That produces assertions about what upstream does,
+never code, and tickets 0180 and 0181 depend on it continuing.
+
+
+**2026-08-31 — the accepted-staleness residue: the corroboration is withdrawn,
+and no ruling is disturbed.** Ratified as closing, with no further action.
+DESIGN.md disclosed a residue in the freshness contract — re-extraction with no
+file change is not caught, accepted as staleness — and asserted beside it that
+"Zotero's own embeddings layer documents the same residue". Read at source
+(PR head `77e2c4b`, ticket 0180), that does not hold: `embeddings.js` documents
+staleness only as model-revision-driven reindex and as pref-toggle eligibility,
+and addresses re-extraction without a file change nowhere. The sentence is
+removed; the disclosure's own wording is unchanged.
+
+The question this entry was opened to answer — whether the residue was accepted
+partly on the strength of the platform accepting it too — is answered from the
+record, and the answer is that no ruling was influenced because no ruling
+exists. The four-part resolution lives in DESIGN.md §2.4 as design, not as a
+ratified reading; this ledger's only trace of its vocabulary is inside the
+2026-08-30 presence-probe ruling, where the widened signal appears as a
+complement being noted rather than as the thing ratified;
+REQUIREMENTS.md carries no R-item for it. That same presence-probe ruling
+records part (iii) as still gated on X6's profile arms, which have not run, so
+part (ii) is the interim position of an open design — which is what a
+corroboration should never have been load-bearing for. The residue is decided
+when those arms run, on our own measurement.
+
+What the episode earns is a dimension for ticket 0181's guard, recorded there:
+a citation that supports a *design choice* rather than a fact survives
+unexamined longest, because nothing downstream breaks when it is wrong, and no
+measurement-keyed guard would ever have caught this one.
+
 
 ## Awaiting ratification
-
-- **The accepted-staleness residue has lost its corroboration, and whether
-  that changes the ruling is the author's to say (2026-08-31, on his
-  instruction that the removal needed a ledger entry).** `spec/DESIGN.md`
-  disclosed a residue in the freshness contract — re-extraction with no file
-  change is not caught, accepted as staleness — and asserted beside it that
-  "Zotero's own embeddings layer documents the same residue". Read at source
-  on 2026-08-30 (PR head `77e2c4b`, ticket 0180), that assertion does not
-  hold: `embeddings.js` documents staleness only as model-revision-driven
-  reindex and as pref-toggle eligibility, and addresses re-extraction without
-  a file change nowhere. The sentence has been removed; the disclosure's own
-  wording is unchanged.
-
-  The correction was first made without a ledger entry, on the reading that
-  deleting a false corroboration cannot change a reading whose text is
-  byte-identical. The author overruled that and required the entry, on the
-  question a byte-identical text cannot answer: **was the residue accepted
-  partly on the strength of the platform accepting it too?**
-
-  **Answered from the record, and the answer is that no ruling was
-  influenced, because no ruling exists.** The residue's four-part resolution
-  lives in `spec/DESIGN.md` §2.4 as design, not as a ratified reading. This
-  ledger carries no entry establishing it: the vocabulary of that resolution
-  — the widened extract signal, the version-0 case — appears here exactly
-  once, inside the 2026-08-30 presence-probe ruling, and appears there as a
-  complement being noted rather than as the thing ratified ("the md5-widened
-  signal stands as the ingestion-side complement"). `spec/REQUIREMENTS.md`
-  carries no R-item for it either. So the Zotero sentence sat beside a design
-  statement, and its removal changes nothing that was ever ratified.
-
-  Two things make that answer firmer rather than merely technical. The same
-  presence-probe ruling records that part (iii) of the resolution — the
-  bounded idle re-verify sweep — is still gated on X6's profile arms, which
-  have not run; part (ii), the accepted-staleness disclosure, is therefore
-  the interim position of an open design, and an interim position is exactly
-  what a corroboration should not have been load-bearing for. And X6's
-  headless arm has since produced our own evidence that the residue is real
-  — the content endpoint and the version machinery are decoupled
-  (`bench/results/0025-x6-version-dynamics/`) — which is evidence the residue
-  EXISTS, not evidence for accepting it, and the design should not conflate
-  the two.
-
-  **Recommendation: ratify this entry as closing with no further action** —
-  the removal stands, no reading is disturbed, and the residue is decided
-  when X6's profile arms run, on our measurement rather than on anyone's
-  corroboration. What the episode does earn is a note for ticket 0181's
-  guard: a citation that supports a *design choice* rather than a fact is
-  the kind that survives unexamined longest, because nothing downstream
-  breaks when it is wrong.
-
-- **Reading AGPL source in order to reimplement it is unpriced, and ticket
-  0031 is where it lands (session finding, 2026-08-30).**
-  `spec/FIELD-REVIEW.md` sets the survey's general route for an idea held by a
-  copyleft or unlicensed project — read the design, write the paragraph, build
-  it independently — and then names one place that route is *not* enough:
-  Zotero core's calibration procedure, "an algorithm with parameters rather
-  than an idea", with the instruction that ticket 0031 read
-  `Zotero.Embeddings.Calibration` at source before committing to its own.
-  Nothing in the chain says what that reading may then produce.
-
-  The asymmetry is real. `zotero/zotero` is AGPL-3.0 and zoteus is MIT, and
-  reading an algorithm-with-parameters at source in order to reimplement it is
-  a different act from reading a design and describing it: the closer the
-  reimplementation tracks the parameters, the less "independently built"
-  describes it. This is not a claim that 0031 would infringe — it is the
-  observation that the chain currently gives 0031 an instruction and no bound,
-  and that the bound is the kind of thing decided before the work rather than
-  argued afterwards.
-
-  What this entry does NOT question is reading upstream source to verify a
-  factual claim about upstream behaviour. This session did that at length —
-  the #6012 checkpoint, and three attributions settled for ticket 0180 — and
-  it produces assertions about what upstream does, never code. The two acts
-  should be separated by whatever rule is adopted, because conflating them
-  would forbid the verification `spec/FIELD-REVIEW.md` and ticket 0181 both
-  depend on.
-
-  **Recommendation: do not read the source, and the dilemma dissolves rather
-  than needing a protocol.** `spec/FIELD-REVIEW.md`'s premise is that the
-  procedure is an algorithm with parameters and so cannot travel as a
-  description — but the survey has already described it, and the description
-  is the whole algorithm: build a query-by-passage score matrix from a
-  labelled corpus of relevant and irrelevant pairs, set a per-model minimum
-  relevance threshold from it, and reject a model that cannot clear it.
-  Nothing in that is withheld. What reading the source would add is their
-  parameter *values*, and those are the one part we must not reuse: a
-  threshold calibrated on their corpus and their task is wrong for ours by
-  construction, in the same way X2 showed a stoplist is wrong for a corpus
-  whose majority language differs. Deriving our own thresholds is not the
-  weaker result the option list called it — it is the only correct one.
-
-  So the recommended ruling is narrow: ticket 0031 builds from
-  `spec/FIELD-REVIEW.md`'s description and its own stated pair-generation
-  protocol, does not read `Zotero.Embeddings.Calibration`, and
-  `spec/FIELD-REVIEW.md`'s instruction to read it at source is withdrawn.
-  That leaves no contamination question to price, and costs nothing we were
-  entitled to keep. If the author would rather keep the option of reading it,
-  the fallback is the clean-room split — one reader writes a parameter-free
-  description, a second builds from that and never sees the source — but it
-  buys access to values we should not adopt, so it is a fallback and not a
-  preference.
-
-- **Files certify their own embedding chain: calibration chunks in every
-  file's header, and one chain per file (author, 2026-08-30).** Two proposals
-  that are one mechanism. Every vector file opens with a fixed, public set of
-  calibration chunks, embedded by the same chain in the same run as the corpus
-  behind them; and no file ever mixes chains, so that header speaks for every
-  row in the file. Verification becomes local and self-contained — embed the
-  same chunks, compare, decide — with no registry to consult and no declared
-  metadata to trust.
-
-  What it answers is a defect class this repository has realized three times,
-  each one a case where the *declared* identity held while the function
-  changed: pooling hardcoded `mean` against four `cls` candidates (ticket
-  0421), the device flag dropped by the sweep wrapper (0481), `normalize`
-  carried in the registry and applied nowhere (0486). `spec/CONSTRAINTS.md`
-  C1's third link derives vectors from "chunks, embedder identity and model",
-  and all four of `spec/DESIGN.md` §2.1's stage keys hash *inputs* —
-  `text_hash`, and `embed_hash` over the embedded text including its prefix.
-  Nothing anywhere measures what the embedder did. A header does.
-
-  Three consequences beyond hygiene. Adopting a foreign index stops being a
-  negotiation over provenance and becomes a local measurement, which is the
-  mechanism the adopt-by-copy entry is waiting on. Serving through an embedder
-  change falls out of the invariant: a new chain is a new file, so the old file
-  serves while the new one builds and the cutover is atomic — the shape ZotSeek
-  reaches with per-model chunk keying and a coverage table
-  (`spec/FIELD-REVIEW.md`; unlicensed, so reimplemented from the description
-  and never copied). And X8 becomes a field instrument rather than a lab one,
-  since every file then carries vectors its own chain produced.
-
-  **What a header cannot do is make the comparison exact**, and this should not
-  be ratified as though it could. X8's own fp32 rows are cross-provider
-  compatible without being bit-identical: in
-  `bench/results/0482-gpu-corrected/x8-cross-provider-fidelity.json`,
-  `multilingual-e5-base` reaches a minimum cosine of 0,999974 at fp32. A hash
-  over the header would call that a different chain. The comparison therefore
-  stays tolerant — and on the same artifact it should not be cosine alone,
-  since `granite-97m-multilingual-r2` at q8 clears the bar while keeping 0,4164
-  of its top-30 overlap. Ticket 0485 prices that gap and owns the question; the
-  bar itself is `spec/DESIGN.md` §3's.
-
-  Two sub-questions, both now carrying a recommendation rather than being
-  left open.
-
-  **Where the calibration vectors live: the manifest, not the slab's row
-  space.** Physically first is right for a reader, but addressable-as-a-row
-  is not: a consumer that forgets to exclude them returns a calibration chunk
-  as a search hit, and the cost of the alternative is a permanent exclusion
-  obligation on every reader that will ever open the format. That is the
-  silent wrongness C1 exists to prevent, and the fix is free at design time
-  and expensive afterwards.
-
-  **Which chunks: 64, self-authored and published in this repository as a
-  fixture.** Not drawn from the library — `SECURITY.md` lists vectors as an
-  asset rather than assuming they are safe for looking like numbers, and a
-  header derived from library text would leak the library into every file
-  handed out. They span the four languages X2 showed behave differently
-  (including German, which pays an English price through shared spellings),
-  span roughly ten tokens to near the resolved budget, and pass through the
-  model's own `input_template`, without which the header measures a different
-  function than production does. Sixty-four rather than a handful because of
-  what the comparison has to be, below.
-
-  **And the comparison is two tests, not one.** Per-vector cosine against the
-  stored header proves the two vector *spaces* align, which is what adopting
-  a foreign file requires. But cosine alone cannot catch the failure this
-  entry already quotes — `granite-97m-multilingual-r2` at q8 clearing the bar
-  while keeping 0,4164 of its top-30 overlap — so the second test is rank
-  agreement over the calibration set's own pairwise similarity matrix, which
-  is self-contained, needs no corpus, and is exactly the structure retrieval
-  depends on. Sixty-four chunks give that matrix enough pairs to be
-  meaningful at the cost of a single forward pass.
-
-  Three costs to weigh before ratifying. A cutover holds two slabs at the real
-  geometry, against budgets `spec/DESIGN.md` §2.9 owns. The execution device is
-  part of the chain, so under R30 a GPU-built and a CPU-built file cannot be
-  merged at the 8-bit rungs, where X8 says most candidates fail. And
-  `embed_hash`'s EXISTS guard on deletes becomes per-file rather than global,
-  which `spec/DESIGN.md` §2.1 must restate rather than inherit.
-
-  Ratifying this reshapes `spec/DESIGN.md` §2.1's stage keys and §2.2's storage
-  section, gives `spec/CONSTRAINTS.md` C1's third link a measured half beside
-  its declared one, and supplies the mechanism the adopt-a-foreign-index entry
-  is waiting on. Ticket 0497 carries the portable format the invariant implies.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,

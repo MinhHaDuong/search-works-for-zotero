@@ -961,7 +961,7 @@ FIGURES = [
     ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "rows.12.cos_min", 6,
      {"decisions": 'a minimum cosine of {} at fp32'}),
     ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "rows.7.overlap_at_30_mean", 4,
-     {"decisions": 'clears the bar while keeping {}\n  of its top-30 overlap'}),
+     {"decisions": 'clears the bar while keeping {}\nof its top-30 overlap'}),
 
 ]
 

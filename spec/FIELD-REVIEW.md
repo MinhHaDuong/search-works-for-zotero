@@ -1620,8 +1620,9 @@ calibration: `Zotero.Embeddings.Calibration` builds a query-by-passage score
 matrix from a labelled corpus of relevant and irrelevant pairs and sets a
 per-model minimum relevance threshold, rejecting models outright below it. Our
 design defers calibration to ticket 0031 with a stated pair-generation protocol;
-the platform's version is more complete and worth reading before that ticket is
-built. The separate `embeddings.sqlite` kept out of sync is a structural
+the platform's version is more complete, and the description above is what 0031
+builds from — reading it at source was instructed here once and is withdrawn
+(ruling, `spec/DECISIONS.md` 2026-08-31; see the closing section). The separate `embeddings.sqlite` kept out of sync is a structural
 parallel to our sidecar, reached differently. And the confirmation that nothing
 reaches the local API answers a question our design carried: there is no
 platform surface to reconcile with today, which is what CONSTRAINTS.md C2
@@ -1962,7 +1963,12 @@ five-line idea that needs no code at all.
 
 Where an idea is worth having from an unlicensed or copyleft project, the route
 is the same one this survey used: read the design, write the paragraph, build it
-independently. The one place that route is not enough is Zotero core's
-calibration procedure, which is an algorithm with parameters rather than an
-idea, and ticket 0031 should read `Zotero.Embeddings.Calibration` at source
-before committing to its own.
+independently. This document once excepted Zotero core's calibration procedure,
+instructing ticket 0031 to read `Zotero.Embeddings.Calibration` at source on the
+ground that an algorithm with parameters cannot travel as a description. **That
+instruction is withdrawn** (ruling, `spec/DECISIONS.md` 2026-08-31): the
+paragraph describing it above carries the whole algorithm, so nothing is
+withheld, and what the source would add is their parameter values — the one part
+that must not be reused, since a threshold calibrated on their corpus and their
+task is wrong for ours by construction. Ticket 0031 builds from that description
+and derives its own thresholds. The route has no exception.
