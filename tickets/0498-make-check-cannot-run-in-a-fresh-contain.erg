@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-08-31T05:38Z claude created
 
+2026-08-31T06:32Z claude note REPRODUCED 2026-08-31 in a second fresh container, on the merged tree: identical to the 2026-08-30 observation this ticket was filed on. `make check` printed eight guards green and died at its last step on `No module named pytest`; `pip install pytest` then exposed `No module named numpy` from tests/test_x8_cross_provider_fidelity.py at COLLECTION time, so the whole suite was interrupted rather than one test skipped. After installing both by hand the suite passed (272 passed / 12 skipped on the merged tree, up from 264/12 because bench/check_names.py landed with eight tests). This is the second session in two days to hand-install the same two packages, which is the actions list's point: nothing about the tree tells a session what the gate needs. Action 4 is the one that bit -- the failure arrives after eight success lines, and a session reading its own output tail-first can mistake the run for green. Nothing implemented here; the ticket's actions stand as written.
 --- body ---
 ## Context
 
