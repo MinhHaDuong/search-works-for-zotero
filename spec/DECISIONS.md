@@ -1027,6 +1027,129 @@ that the calibration-header entry above owes that section — the header itself,
 §2.1's stage keys, the per-file `embed_hash` guard — is still outstanding and is
 that entry's, not this one's.
 
+**2026-08-31 — the excess-weight ruling: the guards that check prose are not
+the work.** The repo was audited against its own purpose. Its two sanctioned
+outputs are stated in GOVERNANCE.md — changes merged upstream, and the
+one-time acceptance-harness transfer — and the audit asked of each standing
+commitment whether it serves one of them. The measured shape: 3 187 lines of
+guard code against 6 426 lines of measurement driver; ten of twenty test files
+testing the guards rather than the science; eight of the nine guards in `make
+check` existing to keep 6 743 lines of prose across thirteen documents
+mutually consistent; and thirteen of fifty-six closed tickets having been pure
+document maintenance.
+
+The finding that settles it is not a ratio. **The guards are green and the
+bench is red.** Two drivers have been unable to open any index built since the
+upstream table rename (ticket 0100), `make check` has never opened a database
+at all, and 0013's concentration figures stand quoted in STATE.md, produced by
+a driver that cannot run — so they can be believed but neither re-measured nor
+refuted, while the figure guard passes them, because it checks that a number is
+declared and not that it is reproducible.
+
+**The line.** A guard that protects a measurement's fidelity, or the honesty of
+text leaving the repo, earns its place; a guard that keeps internal documents
+consistent with each other does not. The first kind has paid repeatedly — the
+pooling guard catches a class where four of six candidates are `cls` against a
+hardcoded `mean` and retrieval degrades silently; the dependency guard exists
+because the gate once died at its last step after eight guards printed success;
+the review of outward text caught a false public claim of prototyping work that
+does not exist. The second kind has produced no upstream artifact.
+
+**Dropped:** ticket 0161 (a guard on which documents are in scope for another
+guard — and by its own analysis unable to fire for the case that motivated it,
+since CONSTRAINTS.md's platform figures have no artifact to match against) and
+ticket 0181 (a guard requiring prose to be read for semantic intent, which its
+own actions predict "will be fought and then disabled"). Ticket 0320 is
+rescoped, not dropped: its sabotage proof stands and the parallel-append merge
+shape recurs by construction, but it becomes one property — the ratified entry
+count never decreases — because git already holds every prior text of the
+ledger and only loss is invisible to review.
+
+**Not dropped, and named so the ruling is not over-read:** ticket 0101, which
+is the one guard that would have caught the schema break, and is science rather
+than prose; the pooling and dependency guards; ticket 0180's one-time
+attribution audit, as distinct from the standing guard built on it; and the
+review discipline applied to every text sent upstream, which is where this
+repo's care demonstrably pays.
+
+The ruling is about standing commitments, not about care. Nothing here lowers
+the evidence bar for a claim, a number, or a sentence sent to the maintainer.
+
+**2026-08-31 — ticket 0400 goes (author, on the same day it was defended
+here).** The tracker closes. It was filed to keep an evidence gap visible —
+"22 of 28 are not yet measured" — and what it produces is bookkeeping: an
+evidence column, a guard recomputing it, a tally to keep true. The work that
+would close the gap is not its own; it is 0029's fixture corpus, 0026's gates
+and 0032's offer, which the tracker itself names as its children. A tracker
+whose children hold all the work and whose own output is a status page is the
+excess weight the earlier entry today describes, one level up.
+
+**What this ruling does NOT touch, stated because a parallel branch was
+building on the tracker when it landed.** The goal-1 work of 2026-08-31 stands
+in full: the standing table read as a test board, goal 1 as a conjunction over
+terms, the terms/instruments distinction, R14 folded into R1, R30 split with
+time-to-coverage becoming R32, and `bench/check_progress.py` reading goal
+membership from the ledger rather than from the status page. None of it lives
+in the tracker. The rulings are ratified here, the membership is in
+`spec/README.md` and in the guard, and closing a ticket removes none of them.
+
+**What the closure does require, and it is owed by whoever closes it.** Ticket
+0400's log ties goal 1 to the tracker in terms — "GOAL 1 ORDERS THIS TRACKER'S
+WORK", later corrected, and "this tracker's unit is unchanged". Those notes are
+the only place some of that reasoning is written down outside the ledger
+entries. Re-home what is load-bearing into 0029, 0026 or 0032 before closing,
+rather than closing over it. The evidence column itself is not abolished by
+this ruling and stays where it is; what ends is tracking its completion as a
+work item.
+
+This reverses a withdrawal recorded here earlier the same day. That withdrawal
+was right on its own information — a session must not contradict a ruling it
+has not read — and is superseded by the author ruling with both branches in
+view. The near-miss it recorded stands as the finding: nothing in this repo
+detects two sessions ruling opposite ways on one ticket before the merge.
+
+
+
+**2026-08-31 — STATE.md is a pointer page under forty lines, and FIELD-REVIEW
+leaves the chain.** Two cuts under the excess-weight ruling, both by author
+direction the same day.
+
+**STATE.md keeps only live state, and history belongs to the git log.** It was
+542 lines, of which roughly 330 were measurement sections against `bae82a7` —
+the archived pre-merge tree — which the file itself said had never been
+re-measured, while upstream moved three versions past it. One of those sections
+quoted figures whose driver cannot open a current index (ticket 0100), so the
+page asserted numbers that could be believed but not reproduced. A "Current
+handoff" dated three days back had already been found wrong once on the
+in-flight slots. The cut follows `RUNBOOK.md`'s self-sunset of 2026-08-30 and
+this repo's standing rule that superseded documents are deleted rather than
+archived in the tree.
+
+The durable home of a measurement is its artifact under `bench/results/` and
+the ticket that produced it; prose quoting one is a convenience, never the
+record. Thirty-seven figure-guard declarations named STATE.md. Thirty-one also
+named their ticket and simply lost a duplicate slot; five had no other prose
+home and are deleted with the prose; one — 0009's swept-codepoint count — was
+re-anchored to R19, which quotes it live and which the guard had been reaching
+only through STATE.md, so the shrink contains a small coverage gain. The
+ratchet fired on the way through and was lowered deliberately, with that
+accounting written where it is enforced.
+
+**FIELD-REVIEW.md moves to `verification/`.** At 1 974 lines it was the largest
+document in the repo and 29 % of its prose, while owning no design number, no
+requirement and no threshold — a dated snapshot, by its own description. That
+is the definition this repo already gives `verification/`: evidence, not
+authority, cited by path from the ticket it serves and never a source of truth.
+It keeps its place in the governance and chain-dedup scanned sets, because it
+is public authored prose rather than a generated report, and both guards fail
+loudly on a scanned document that vanishes — which is how the move was made
+safely. The chain is twelve documents and 4 367 lines, from thirteen and 6 743.
+
+Two test fixtures hardcoded `spec/` when building their scanned-document
+trees and broke on the move: the guards were right and their own tests were
+what failed. Both now derive each directory from the scanned path, so the next
+document to move does not repeat it.
+
 **2026-08-31 — the standing table is read as a test board, and goal 1 is his
 own first promise, made strong.** The author's instruction, in his words: read
 the completion table in `spec/README.md` as test-driven development, and take
@@ -1496,6 +1619,19 @@ platform's two-gram Chinese geometry each break a different one.
 
 ## Awaiting ratification
 
+- **Which of the prose guards come out, and whether thirteen documents is the
+  right number (raised 2026-08-31 by the excess-weight ruling, which settled
+  the principle and left the instances open).** Three questions the ruling
+  implies but does not decide, because each destroys something on the author's
+  say-so rather than an agent's. (i) `bench/check_figures.py` is 1 141 lines,
+  a third of all guard code; its value is real but proportional to how much
+  prose is kept, so it is decided *after* the document count, not before.
+  (ii) The chain-dedup, terminology and normative guards exist to manage a
+  problem created by having eleven places a fact could live; if that number
+  falls, they lose their subject. (iii) `spec/FIELD-REVIEW.md` is 1 974 lines,
+  the largest document in the repo, a dated snapshot that is authoritative for
+  nothing in the design. Merging or retiring documents is a deletion, and this
+  repo deletes rather than archives, so each one wants its own ruling.
 
 - **The goal 1 perimeter, reviewed: five things the roster gets wrong, and the
   author owns all five (2026-08-31, on his instruction to review it).** The

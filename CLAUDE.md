@@ -48,12 +48,14 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
   authoritative for each item's scope, evidence, and live state. `DESIGN.md
   §4` carries only the ordering.
-- `spec/FIELD-REVIEW.md` — the survey of prior art: what other people have already
+- `verification/FIELD-REVIEW.md` — the survey of prior art: what other people have already
   built for Zotero AI retrieval, what it teaches, and what is
   license-compatible to borrow. Authoritative for the inventory and for each
   project's observed state at its stated observation date. Owns no design
   number, no requirement, and no threshold; where it touches our design it
-  points at the owning document. A dated snapshot, not a live tracker.
+  points at the owning document. A dated snapshot, not a live tracker, which is why it sits in
+  `verification/` as evidence rather than in the chain as spec (ruled
+  2026-08-31).
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
   `STATE.md` — the prototype phase's measurement record; mostly frozen.
   `RUNBOOK.md` self-sunset 2026-08-30 once its measurements executed; its

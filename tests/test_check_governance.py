@@ -25,10 +25,13 @@ cg = load()
 
 def build(root, docs: dict[str, str], owner: bool = True):
     """A fixture repository. `docs` overrides the default empty scanned files."""
-    (root / "spec").mkdir(parents=True, exist_ok=True)
+    # Directories come from the scanned paths themselves. Hardcoding "spec" broke
+    # this fixture the day a scanned document moved to verification/ (2026-08-31).
     if owner:
+        (root / cg.OWNER).parent.mkdir(parents=True, exist_ok=True)
         (root / cg.OWNER).write_text("# Governance\n\nThe bounds live here.\n")
     for rel in cg.SCANNED:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text(docs.get(rel, "nothing to see\n"))
     return root
 
@@ -138,7 +141,7 @@ def test_a_triaged_document_is_accepted(tmp_path):
 def test_verification_reports_are_out_of_scope(tmp_path):
     """Evidence, not authority: a different object class, deliberately unglobbed."""
     repo = build(tmp_path, {})
-    (repo / "verification").mkdir()
+    (repo / "verification").mkdir(exist_ok=True)
     (repo / "verification" / "ACCEPTANCE-9999.md").write_text("A report.\n")
     assert cg.run(repo) == 0
 

@@ -48,12 +48,14 @@ SCANNED = [
     "spec/CONSTRAINTS.md",
     "spec/DESIGN.md",
     "spec/TERMINOLOGY.md",
-    "spec/FIELD-REVIEW.md",
 ]
 
 #: Documents deliberately outside the ban, listed rather than merely absent, on
 #: the same asymmetry every other guard here names: a document that LEAVES the
 #: scan breaks loudly, a document that ARRIVES is never read and nothing says so.
+#: FIELD-REVIEW.md left the chain for verification/ on 2026-08-31 (main), so it
+#: is out of this scan the way every other dated snapshot is: it records what was
+#: observed in the words it was observed in.
 UNSCANNED_BY_DESIGN = ["spec/DECISIONS.md", "SYNC.md", "STATE.md"]
 
 #: Where the two lists must, between them, account for every document.

@@ -8,25 +8,20 @@ Author: Minh Ha-Duong
 2026-08-29T18:40Z claude note found by the /roar sweep after resolving two DECISIONS.md merge conflicts in one session; confirmed by sabotage rather than by reading — a whole ratified entry deleted, every gate green
 
 2026-08-29T14:29Z claude note renumbered 0300 to 0320: two sibling PRs both allocated 0300 and both landed on main, so erg check was failing against origin/main with a duplicate ID. This ticket is the second allocation and the one with no external reference; the other 0300 is cited by merged PR #55 and keeps the number. Renumbered clear of the frontier (0301) rather than to the next free ID, per tickets/AGENTS.md. This repo has no CI, so erg check against origin/main is the only thing that catches a collision that has already merged.
+2026-08-31T09:26Z RESCOPED to the minimal form (author ruling 2026-08-31, the excess-weight pass). The defect and its sabotage proof stand — a deleted ratified entry leaves make check fully green, and the parallel-append merge shape recurs by construction. What is dropped is the program around it: the per-entry digest census, the immutability half, the amendment policy, and the governance-SCANNED registration. Immutability is dropped because git already holds every prior text of the ledger and an edited entry is visible in review of the diff that edits it; loss is the case review cannot catch, because the conflict resolution that drops a hunk looks like a resolved conflict. So the guard becomes one property, entry count never decreases, against a committed count. Roughly fifteen lines
 --- body ---
 ## Context
 
 `spec/DECISIONS.md` is the append-only ratification ledger. CLAUDE.md makes it
 the authority: the author's rulings land there first and the other documents
-are edited to match, and a ratified entry is never edited again. Nothing
-enforces either property.
+are edited to match. Nothing enforces that an entry, once landed, is still
+there.
 
 **Confirmed by sabotage, not by reading.** Deleting the whole
 "2026-08-29 — the plain-language rewrite is accepted" entry (881 characters, a
 complete ratification) leaves `make check` fully green: ruff clean, 171 figure
 pairs / 0 stale, governance 6 documents, terminology 45 entries, 55 tests
-passed. No gate counts entries, and none compares an entry against its previous
-text.
-
-What *is* guarded is the ledger's numbers: `bench/check_figures.py` carries a
-`"decisions"` prose key precisely because a figure quoted in an append-only
-document is the worst place for drift. The guard covers the digits inside an
-entry and says nothing about the entry existing.
+passed. No gate counts entries.
 
 ## Why this is not hypothetical
 
@@ -39,69 +34,53 @@ normal state of this repo.
 
 The resolution is always "keep both". The failure mode is a conflict resolved
 with "take theirs", or an editor that swallows a hunk: a ruling silently
-vanishes, every gate stays green, and the loss is discovered only when someone
-looks for a decision that is no longer there. Because the document is
-append-only, nothing downstream re-derives it — there is no second copy.
+vanishes and nothing downstream re-derives it, because the document is
+append-only and there is no second copy. Both resolutions here asserted the
+union in a script rather than trusting the merge, and that was a choice made
+by hand.
 
-The near-miss is the point. Both resolutions here asserted the union in a
-script rather than trusting the merge, and that was a choice made by hand.
-Nothing would have caught the other choice.
+## Scope, after the 2026-08-31 excess-weight ruling
 
-## Relevant files
+One property, not two. **Monotonicity only: the ratified entry count never
+decreases.**
 
-- `spec/DECISIONS.md` — the ledger; the thing to protect
-- `bench/check_figures.py` — precedent for a prose guard, and already carries
-  the `"decisions"` key
-- `bench/check_governance.py` — precedent for a default-deny scanned set
-- `Makefile` — where a new guard is wired into `make check`
+Immutability — "a ratified entry is never edited again" — is NOT guarded.
+Git holds every prior text of the ledger, and an edit to a ratified entry is
+visible in the diff that makes it, which is where review already looks. Loss
+is the case review cannot catch, because a conflict resolution that drops a
+hunk looks exactly like a resolved conflict.
+
+Also dropped: the per-entry digest census, the amendment-policy decision, and
+registration in `check_governance.py`'s SCANNED set. A count is not a
+document.
 
 ## Actions
 
-1. Extract the ledger's entries mechanically. Each ratified entry opens
-   `**YYYY-MM-DD — ` at the start of a line inside the `## Ratified` section;
-   that pattern is the parse.
-2. Record a committed census beside the ledger: entry count plus a stable
-   digest per entry (its date and headline, or a hash of its body).
-3. Guard two properties, and treat them separately because they fail
-   differently:
-   - **Monotonicity.** The entry count never decreases and no recorded entry
-     disappears. This is the merge-loss case.
-   - **Immutability.** A recorded entry's body does not change. This is the
-     "never edit a ratified entry" rule, currently honoured by care alone.
-4. Decide what the guard does about a *legitimate* amendment. The ledger's own
-   convention is that an amendment is a NEW entry citing the old one, never an
-   edit — so immutability should be strict, with no exemption list. Confirm
-   that reading against the existing entries before enforcing it.
-5. Wire into `make check` and register in `check_governance.py`'s SCANNED set
-   if the census file counts as a scanned document.
+1. Count ratified entries: lines matching `^\*\*\d{4}-\d{2}-\d{2} — `
+   inside the `## Ratified` section.
+2. Commit the expected count in one line of the guard itself.
+3. Fail when the live count is lower than the committed one, naming both
+   numbers. A higher count is the normal case and refreshes the constant.
 
 ## Test
 
-Red first, against the sabotage that found this: delete one whole ratified
-entry from a fixture ledger and assert the guard fails naming that entry. A
-guard that passes on the deletion is the current state, so this test must fail
-against today's tree before the guard exists.
-
-Second red case, for immutability: change one word inside a recorded entry's
-body and assert the guard fails. These are different defects and a guard
-covering only the first would look done.
+Red first, against the sabotage that found this: delete one ratified entry
+from a fixture ledger and assert the guard fails. A guard that passes on the
+deletion is the current state.
 
 ## Verification
 
-- [ ] The census test fails against a ledger with one entry deleted
-- [ ] The census test fails against a ledger with one entry reworded
-- [ ] `make check` green on the unmodified tree
-- [ ] Adding a new entry and refreshing the census is a one-command step, not a
-      hand edit — a guard that is annoying to satisfy gets disabled
+- [ ] fails against a ledger with one entry deleted
+- [ ] passes on the unmodified tree
+- [ ] refreshing the count on a legitimate append is a one-line edit
 
 ## Invariants
 
-- The ledger stays append-only and human-written; the guard observes it and
-  never rewrites it.
-- No existing gate weakens: figure-guard coverage of `"decisions"` is unchanged.
+- The ledger stays append-only and human-written; the guard counts, never
+  rewrites.
+- Figure-guard coverage of the `"decisions"` prose key is unchanged.
 
 ## Exit criteria
 
-- [ ] A guard exists that fails on a lost entry and on an edited one
-- [ ] Both red cases demonstrated before the guard was written
+- [ ] A guard fails on a lost entry, with the red case demonstrated first
 - [ ] Wired into `make check`

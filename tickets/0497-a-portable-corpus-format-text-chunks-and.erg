@@ -43,7 +43,7 @@ below it.
    `spec/DESIGN.md` §2.1.
 2. **chunks** — byte offsets into that text, never copies of it. Zotero core
    reaches the same answer (chunk location as start/end offsets, content
-   re-derived from the source pack); it is described in `spec/FIELD-REVIEW.md`
+   re-derived from the source pack); it is described in `verification/FIELD-REVIEW.md`
    and reimplemented from the description, never copied — the repository is
    AGPL-3.0 and zoteus is MIT.
 3. **vectors** — one contiguous slab with stored norms, the geometry X1
