@@ -797,7 +797,8 @@ of the text has a named removal path:
 - vectors
 - slabs (keyed per attachment/source, never shared)
 - sidecar tombstone bitmaps, across *all* generations
-- ledger rows (a worker committing on a deleted item fails its guard)
+- ledger rows (the conductor committing on a deleted item fails its own
+  commit guard, §2.5 — workers write nothing)
 - WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§2.2), plus
   idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction
 - the legacy `search-index.json`, which upstream leaves in place forever,
@@ -967,10 +968,13 @@ the two outcomes apart.
   that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
   real-document X3a run revalidates it at each release on the author's machine.
   **The transport clause**, same gate: resident memory across a fetch of the
-  library's largest attachment, measured in a process that has already loaded
-  the query embedder — the instrument for §2.5's no-materialize clause, whose
-  incremental JSON decode is otherwise an instruction rather than a verified
-  property (finding F5, `verification/SOLE-WRITER-0507.md`).
+  library's largest attachment, measured on both processes of the fetch path
+  — the worker across the streamed fetch and its incremental decode, and the
+  conductor, the process that has already loaded the query embedder, across
+  the same ingest — because the clause it instruments is that no process on
+  the path ever holds the document whole (§2.5's no-materialize clause,
+  otherwise an instruction rather than a verified property; finding F5,
+  `verification/SOLE-WRITER-0507.md`).
 Every gate below is decided at one of two levels, and the relation between them
 is calibration rather than coverage (DECISIONS.md, 2026-08-31). The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
