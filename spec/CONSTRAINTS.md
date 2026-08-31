@@ -239,7 +239,7 @@ scoped to the web transport, not to the design.
 ## The author's structural hint (standing instruction to any panel)
 
 A "panel" is one of this repo's recorded design-review sessions; cycle 2's
-is in git history, last present at commit `e32afe3` as `panel/cycle2/`. The
+record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31). The
 hint: three asynchronous processes (extract, chunk, embed), independently
 paced, with queues between them. Two justifications were found: (a) keyword
 availability never waits on embedding, and (b) an OS process can be

@@ -6,12 +6,14 @@ role in the full chain is stated once, in README.md.*
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
 22 kills, each with its evidence), cycle 1's synthesis ("The Settled Ledger"),
-and the scout report — are superseded and live in git history, last present at
-commit `6f7fcd1` as `DESIGN.md`, `DESIGN-DELTA.md`, `DESIGN-V1.md`,
-`SCOUTS.md`. The consolidated truth in the working tree replaces them; git is
-the archive. The cycle-2 panel record that entries below cite by name — the
-memos, the critiques, the political and implementation reviews — is likewise
-in git history, last present at commit `e32afe3` as `panel/cycle2/`.*
+and the scout report — are superseded and are now gone: they lived only in the
+history this repository was re-rooted away from on 2026-08-29, and 2026-08-31's
+ruling below abandoned it rather than republish it. The consolidated truth in
+the working tree replaces them, and is now the whole of the record. The cycle-2
+panel record that entries below cite by name — the memos, the critiques, the
+political and implementation reviews — went the same way. Entries below that
+cite a panel document by name cite something no reader can now open; they are
+ratified and stay as written, and this paragraph is the standing correction.*
 
 ## Ratified
 
@@ -712,6 +714,35 @@ What this ruling does not reach, and what therefore stays open: committed
 artifacts also hold `passage` and `snippet` text drawn from the library, and
 the benchmark query sets are the author's own research questions. Both are
 larger disclosures than a title. Neither is decided here.
+
+**2026-08-31 — the pre-restart history is abandoned, and the panel record with
+it.** This repository's `main` was re-rooted on 2026-08-29; everything before
+that date — 121 commits back to the true root of 2026-08-21 — survived only in
+one container's clone, on no remote ref. Ruled: let it go. Not preserved, not
+pushed to an archive branch, not bundled.
+
+The reason is the ruling above it. Fifteen files at that lineage's tip carry
+the document names removed the same day, so preserving the history would
+republish exactly what "no names, only keys" was for. Weighed against that,
+what the history held: the cycle-2 panel's verbatim session record
+(`panel/cycle2/`, fifteen files, 255 715 bytes) and the commit-level provenance
+behind nine citations in the working tree. The tree itself loses nothing — all
+one hundred and six files common to both lineages are current, the four chain
+documents merely moved under `spec/`, and the five tickets that looked missing
+are in `tickets/closed/`.
+
+**Every citation into that history is now corrected rather than left
+dangling**, which is the part that would otherwise rot silently: a pointer to
+`e32afe3` reads as an archive until someone tries it. `CLAUDE.md`, `README.md`,
+`spec/CONSTRAINTS.md`, `spec/DESIGN.md` (four sites), `spec/TERMINOLOGY.md`
+(two), this document's own preamble, and two tickets said the panel record was
+in git history; they now say it is gone. `verification/ACCEPTANCE-0036.md` is
+annotated at its head and untouched below it — a dossier rewritten after its
+evidence became uncheckable would be worth less than one that says so.
+
+Ratified entries below that cite a panel document by name are not edited. They
+are the record of what was decided and why, the ledger is append-only, and the
+preamble carries the standing correction instead.
 
 ## Awaiting ratification
 

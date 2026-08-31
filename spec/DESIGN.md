@@ -5,9 +5,8 @@
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
 every design number: the gate thresholds (§2.8), the experiment decision
 rules (§3), and the budgets (§2.9). Its place in the authority chain is
-stated once, in README.md. The raw panel record is in git history, last
-present at commit `e32afe3` as `panel/cycle2/`; where it disagrees with this
-document, this document is the record. The predecessor design (cycle 1's
+stated once, in README.md. The raw panel record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31); where it once disagreed with this
+document, this document was already the record, and is now the only one. The predecessor design (cycle 1's
 "The Settled Ledger", called v1 below) is superseded and lives in git
 history.
 
@@ -60,8 +59,8 @@ sideline-never-delete (an unreadable index file is moved aside, never
 deleted), the recovery-verb grammar, and the failure policy. The failure
 policy
 (transient/persistent split, bisection quarantine, reachability gating,
-backpressure counted in items; mechanism spec unchanged from v1 §2.6, in
-git history) carries two amendments. Quarantine auto-clear now keys on the
+backpressure counted in items; mechanism spec unchanged from v1 §2.6, whose
+document is lost) carries two amendments. Quarantine auto-clear now keys on the
 *content* signal chain, not on raw counter movement, so a resync cannot
 mass-replay every poison input. And R14's terminal states (`empty`) are
 *done*, not failures: different bookkeeping, different sentence in status.
@@ -111,9 +110,10 @@ B, §4): shipping item-collapse now would ship exactly the framing the entry
 ruling rejected.
 
 The full verdict-by-verdict record (what survived, what was amended by
-which critique, what died and what killed it) is in git history: this file
-before the plain-language rewrite, and `panel/cycle2/` as of commit
-`e32afe3`.
+which critique, what died and what killed it) no longer exists. It lived in
+this file before the plain-language rewrite and in `panel/cycle2/`, both of
+them only in the pre-restart history, abandoned by ruling (DECISIONS.md,
+2026-08-31). The narrative above is what remains of it.
 
 ---
 
@@ -921,7 +921,7 @@ rather than a MUST.
   parallel to, and never a blocker for, registry entries or validation.
 
 **Rejected this cycle, for the record** (each killed by a verified fact or a
-critique; details in git history): cursoring any fulltext sequence on the
+critique, whose details are lost with the pre-restart history): cursoring any fulltext sequence on the
 local transport, a universal fulltext census across transports (it would
 hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered token
 stream for phrase parity, the always-resident dual model, the 0.5 golden
@@ -934,9 +934,10 @@ deletions, and the "contained" D3 PR as first proposed.
 
 ## 4. The increment sequence from v1.7.0
 
-*(Re-formed 2026-08-26 by the political and implementation reviews, in git
-history at `e32afe3` as `panel/cycle2/`, and ratified in DECISIONS.md. The
-original fifteen-step train is in git history at `dba8cd6`.)*
+*(Re-formed 2026-08-26 by the political and implementation reviews and
+ratified in DECISIONS.md. Both those reviews and the original fifteen-step
+train are gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31): what
+survived the re-forming is this section.)*
 
 Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
 SYNC.md's measured asymmetry governs the form each item takes: a contained

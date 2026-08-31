@@ -56,9 +56,10 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   durable state lives in ticket 0014, ticket 0016, ticket 0024, ticket 0025
   and `SYNC.md`.
 - The cycle-2 panel's verbatim session record (memos, critiques, the political
-  and implementation reviews) is in git history, last present at commit
-  `e32afe3` as `panel/cycle2/`. It was never authoritative; where it disagrees
-  with DESIGN.md, DESIGN.md is the record.
+  and implementation reviews) is GONE. It lived only in the history `main` was
+  re-rooted away from on 2026-08-29, and 2026-08-31's ruling abandoned it
+  (spec/DECISIONS.md). It was never authoritative and DESIGN.md was always the
+  record; DESIGN.md is now the only one. Cite it for nothing.
 - `verification/` — evidence, not authority. Reports that settle a factual
   question (a platform probe, an acceptance dossier, a voice measurement) and
   the scripts under `verification/probes/` that produced them. A report is

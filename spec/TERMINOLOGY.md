@@ -218,8 +218,11 @@ one dates the text rather than sending the reader hunting.
   as the soak gate's assertions in DESIGN.md §2.8.
 - **`panel/cycle2/`** — the cycle-two design panel's verbatim session record:
   memos, critiques, and the political and implementation reviews. Deleted from
-  the tree and last present at commit `e32afe3`. It was never authoritative,
-  and where it disagrees with DESIGN.md, DESIGN.md is the record.
+  the tree, then lost outright with the pre-restart history (DECISIONS.md,
+  2026-08-31). It was never authoritative, and DESIGN.md was always the record;
+  a document elsewhere in the chain that cites a panel memo by name is citing
+  something no reader can open.
 - **The Settled Ledger (v1)** — the cycle-one design, superseded by the current
-  "Instrumented Ledger". Historical: what changed and why is DESIGN.md §1, and
-  the document itself lives only in git history.
+  "Instrumented Ledger". Historical: what changed and why is DESIGN.md §1, which
+  is now the whole of it — the document itself went with the pre-restart history
+  (DECISIONS.md, 2026-08-31).

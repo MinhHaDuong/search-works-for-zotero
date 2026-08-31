@@ -11,6 +11,16 @@ criterion is met. Nothing in the repo was edited to produce it. Every count
 below comes from a script run against the files; the scripts are in
 `/tmp/acc0036/` and are named where they matter.
 
+> **Its commit citations no longer resolve (added 2026-08-31).** Every SHA
+> below — `7d4db23`, `72b4068`, `ea0a2e0`, `c196265`, `3a99103`, `a108d54`,
+> `b69ce9d` — was on the history this repository was re-rooted away from on
+> 2026-08-29, abandoned by ruling (`spec/DECISIONS.md`, 2026-08-31). The diffs
+> and the control corpus behind the rates below can no longer be recomputed.
+> Nothing here is edited on that account: a dossier rewritten after its
+> evidence became uncheckable would be worth less than one that says so. Read
+> its numbers as a record of what was measured on 2026-08-27, not as something
+> a reader can now reproduce.
+
 A caution on section 3, stated up front. It is written by an LLM judging
 whether prose still sounds like an LLM, which is the one judgement it is worst
 placed to make by impression. The section therefore rests on measured rates

@@ -20,7 +20,7 @@ Closed: Accepted by the author 2026-08-29: he read all three rewritten documents
 The three documents came out of the design panel and read like it:
 compressed, allusive, full of internal jargon ("corpus-critic M4", "graft",
 "kill 9") that only makes sense with the cycle-2 panel record open beside
-them (in git history at `e32afe3`, panel/cycle2/). The author's verdict
+them (that record is now gone; DECISIONS.md, 2026-08-31). The author's verdict
 (2026-08-27): "the house style is purely llm at the moment, not my voice
 yet." Rewrite REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md so
 that a newcomer — or the author in six months — can read each one top to

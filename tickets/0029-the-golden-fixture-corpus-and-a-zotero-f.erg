@@ -9,7 +9,7 @@ Author: claude
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
-in git history at `e32afe3` under panel/cycle2/): no pinned fixture corpus
+a panel document now lost; DECISIONS.md, 2026-08-31): no pinned fixture corpus
 exists — bench/queries.txt is 16 queries, and every
 answer-set artifact was measured against the author's private library, which
 cannot be committed. Needed: a committable multilingual document set (FR/DE/
