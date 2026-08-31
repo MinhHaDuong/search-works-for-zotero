@@ -1736,6 +1736,37 @@ observed mix, and to re-cut the allocation from what it finds — or to report t
 the total cannot hold, which would be a finding about the bound rather than
 about the stages.
 
+**2026-08-31 — the segmenter is for books and proceedings first; the dictionary
+is a rare case.** The author's ruling inverts what seg/1 was specified against.
+Every clause of DESIGN.md §2.2's segmenter was written for the dictionary, and
+the rare case had been standing in for the common one.
+
+Three consequences, and the propagation is ticket 0502 rather than improvised
+here. First, the discriminating heuristic goes: heading candidates are accepted
+on the headword *rhythm*, a median gap and MAD over candidate spacing, which
+works only because a dictionary's entries are near-uniform in length. A book's
+chapters and a proceedings' papers are unequal by nature, so that statistic
+measures a property the primary class does not have — it is not a threshold to
+retune, and what replaces it as the core signal is a table of contents, chapter
+and section numbering, author bylines, and chapter starts on page boundaries.
+Second, the entry arithmetic in the same section is the dictionary's story, and
+the "first-class peers" framing it calls the entry ruling's whole point is now
+the illustration rather than the point: a book's entry is a chapter, tens per
+item, not hundreds. Third, X5's rule changes corpus AND ground truth, which is
+the one place this ruling makes the work cheaper: hand-scoring cuts against a
+printed dictionary needed a human with the physical book, where a book's own
+table of contents is mechanical ground truth for the cut set it should have
+produced. The bar's form survives; what it is sampled from does not.
+
+What this ruling does NOT touch, stated because a careless propagation would
+take it: the dictionary holds a second, unrelated role as the monster document.
+REQUIREMENTS.md makes a 15 000-page PDF first-class, X3a baselines the uncapped
+document that once measured 2 084,9 MiB, and DESIGN.md §2.8's RSS gate is
+calibrated against that class. Demoting the dictionary as a segmenter TARGET
+leaves it exactly where it is as an RSS FIXTURE, and the extraction-cap example
+in §1 is likewise a coverage statement, not a segmenter one. Two roles, one
+document; only the first moves.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

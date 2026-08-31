@@ -1,0 +1,74 @@
+%erg 0.1
+Title: Propagate the books-and-proceedings ruling into seg/1's spec and X5's rule
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T15:41Z claude created
+
+2026-08-31T15:41Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
+
+--- body ---
+## Context
+
+The author ruled 2026-08-31 that seg/1 is for **books and proceedings first**
+and that the dictionary is a rare case. Every clause of `spec/DESIGN.md` §2.2's
+segmenter was written for the dictionary, so the rare case had been standing in
+for the common one and the spec now says the wrong thing in four places.
+
+This ticket is the propagation only. The ruling is in `spec/DECISIONS.md` and is
+not restated here beyond what the edits need.
+
+## The sites, and what each becomes
+
+1. **`spec/DESIGN.md` §2.2, the heuristic list.** The headword *rhythm* — median
+   gap and MAD over candidate spacing — is a uniformity statistic and books and
+   proceedings are not uniform. It is demoted from core signal to the rare
+   class's special case. What takes its place as the primary signal set: a table
+   of contents to validate the cut set against rather than only score it,
+   chapter and section numbering, author bylines (no dictionary analogue, and
+   the strongest single signal in a proceedings), and chapter starts on page
+   boundaries — form feeds, present in the newer extractor generation only per
+   ticket 0120, so exploited where present and never required.
+2. **`spec/DESIGN.md` §2.2, the entry arithmetic.** The "first-class peers"
+   paragraph is the dictionary's arithmetic and calls itself the entry ruling's
+   whole point. It becomes the illustration: a book's entry is a chapter, tens
+   per item rather than hundreds. Check whether §2.9's passage estimate moves —
+   total text is unchanged, so passage counts should not, but entry *collapse*
+   behaviour does, since fewer and larger entries mean fewer hits per item.
+3. **`spec/DESIGN.md` §2.2, the fallback.** Synthetic entries of ~6k tokens
+   approximate a dictionary entry and are a fraction of a book chapter, so a
+   book below the confidence gate is shredded into fragments that are neither
+   entries nor chapters. Re-size against the primary class or state why it holds.
+4. **X5's rule (`spec/DESIGN.md` §3, ticket 0025) and `spec/DESIGN.md` §5 risk 1.**
+   Corpus and ground truth both change, and this is where the ruling makes the
+   work *cheaper*: hand-scoring 50 cuts against a printed dictionary needed a
+   human with the physical book, where a book's own table of contents is
+   mechanical ground truth for the cut set seg/1 should have produced. The bar's
+   form survives; what it is sampled from does not, and whether ≥ 45/50 is still
+   the right number against easier ground truth is a question for the author,
+   not a number to carry over silently.
+5. **Ticket 0028's exit criteria**, which name the dictionary as the thing seg/1
+   runs over.
+
+## What must NOT move
+
+The dictionary holds a second, unrelated role: the monster document.
+`spec/REQUIREMENTS.md` makes a 15 000-page PDF first-class, X3a baselines the
+uncapped document at the 2 084,9 MiB class, and §2.8's RSS gate is calibrated
+against it. Demoting the dictionary as a segmenter TARGET leaves it exactly
+where it is as an RSS FIXTURE. `spec/DESIGN.md` §1's extraction-cap example is
+likewise a coverage statement, not a segmenter one. Two roles, one document;
+only the first moves — a propagation that greps for the document and edits every
+hit takes the fixture with it.
+
+## Exit criteria
+
+- [ ] §2.2's heuristics rewritten for the primary class, the rhythm statistic
+      kept as the rare case's special case rather than deleted
+- [ ] the entry arithmetic reframed, and §2.9 checked rather than assumed
+- [ ] the synthetic fallback re-sized against a chapter, or its size defended
+- [ ] X5's corpus and ground truth restated in §3 and ticket 0025, with the
+      bar's number put to the author rather than carried over
+- [ ] 0028's exit criteria repointed
+- [ ] the RSS-fixture sites verified untouched, by name: §1, §2.8, X3a, R-scale
