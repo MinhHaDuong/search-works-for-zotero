@@ -67,10 +67,16 @@ SCANNED = [
     # maintainer, on a repository he reads. CLAUDE.md's one non-negotiable —
     # never put this repo's governance or its reading of him into upstream text —
     # had until now no mechanical enforcement on the outgoing side at all, only
-    # on ours. These files close that, and they are scanned WHOLE: the internal
-    # head note above the rule says what the document is and where the branch
-    # sits, which is exactly the kind of sentence that must not drift downward
-    # into the body. Scanning only below the rule would license writing it above.
+    # on ours. What this adds is what the guard can actually do, and no more: the
+    # six BOUNDS regexes below, which catch a bound RESTATED. A sentence reading
+    # the maintainer, or disclosing how the queue is run, passes clean — the
+    # judgement stays the writer's and CLAUDE.md still says read what you send,
+    # as sent. This closes the loud half, which is the half that has recurred.
+    #
+    # Scanned WHOLE rather than below the rule: the internal head note says what
+    # the document is and where the branch sits, and that is exactly the kind of
+    # sentence that must not drift downward into the body. Scanning only below
+    # the rule would license writing it above.
     "verification/UPSTREAM-PR-0091-DROPLIST.md",
 ]
 
