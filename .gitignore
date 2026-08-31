@@ -8,6 +8,11 @@
 fork/
 fork-*/
 
+# The bare mirror `bench/upstream_catchup.py` fetches into. Same reason as
+# fork/: upstream's objects are upstream's, and this one is regenerable by
+# definition — deleting it costs one clone.
+upstream.git/
+
 # Measurement artefacts: regenerable, and large.
 bench/*.sqlite
 bench/*.sqlite-*

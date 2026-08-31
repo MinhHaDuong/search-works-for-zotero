@@ -138,9 +138,17 @@ nothing enforces it on the text you send, so read what you send, as sent.
 ## Environment notes
 
 - `UPSTREAM` owns the reviewed upstream SHA and repository URLs.
-  `make upstream-status` detects upstream movement; `make upstream-checkout`
-  recreates the git-ignored `fork/` at that exact SHA with both `origin` and
-  `upstream` remotes. Do not overwrite an existing checkout.
+  `make upstream-status` detects upstream movement — one bit, and it is not in
+  `make check`, so nothing tells you upstream moved unless you ask.
+  `make upstream-catchup` answers the other half: which releases shipped, what
+  landed in them, which items they name, how far the search layer moved, and
+  which pull refs are new. It fetches a git-ignored bare mirror at
+  `upstream.git/`, so it costs a round trip after the first run. It never
+  reports whether an issue is open — that state is the forge's, it changes
+  without a commit, and a copy here would be stale on arrival; the report ends
+  with the query URL instead. `make upstream-checkout` recreates the
+  git-ignored `fork/` at the reviewed SHA with both `origin` and `upstream`
+  remotes. Do not overwrite an existing checkout.
 - The measurement corpora are NOT in this repo: real vectors, the 477k index,
   and the 44.9 MB extraction live on the author's machine; `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which

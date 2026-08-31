@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models vocabulary progress help upstream-status upstream-checkout
+.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models vocabulary progress help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -29,6 +29,7 @@ help:
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
+	@echo "make upstream-catchup  — what upstream did since the reviewed baseline"
 
 check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress check-fast
 
@@ -131,6 +132,11 @@ upstream-status:
 	if test -d fork/.git; then echo "checkout  $$(git -C fork rev-parse HEAD)"; else echo "checkout  absent"; fi; \
 	test "$$remote" = "$(UPSTREAM_REVIEWED_SHA)" || { echo "STALE: upstream has moved; review before changing UPSTREAM" >&2; exit 1; }; \
 	echo "OK: reviewed baseline is current"
+
+# The other half of upstream-status: not THAT it moved, but what moved. Every
+# step it prints was done by hand on 2026-08-31 and none of it was a judgement.
+upstream-catchup:
+	python3 bench/upstream_catchup.py
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }
