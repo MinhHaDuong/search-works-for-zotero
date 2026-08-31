@@ -117,8 +117,8 @@ every PDF as well. The same line goes on to promise the matching passage with
 its page number, and that clause is deliberately not goal 1's, so the subject
 here is the line minus its locator. What remains is already published upstream,
 so nothing about it has to be argued before it can be tested; and it is kept
-only when every one of the eleven rows below holds at once. Any single one of them failing falsifies it, whatever the
-other ten do.
+only when every one of the eleven rows below holds at once. Any single one of
+them failing falsifies it, whatever the other ten do.
 
 That is the whole reason to name the bundle. Eleven separate rows can be
 reported as ten-elevenths done, and a promise cannot.
@@ -140,8 +140,8 @@ That bar shows where the terms stand. It is not a progress bar: under the
 conjunction the goal is kept at all-shipped and at no state before it.
 
 **Read as test-driven development, this bundle has no failing tests. It has
-eleven unwritten ones.** The `evidence` column is the test column: `measured` says an
-assertion ran, `code` and `inferred` say none exists. A row in those two states
+eleven unwritten ones.** The `evidence` column is the test column: `measured`
+says an assertion ran, `code` and `inferred` say none exists. A row in those two states
 is not red — red is a claim about the system, and an unwritten test is a claim
 about nobody — which is why the six that rest on something that ran are counted
 separately above, and why not one of the eleven is yet a check that runs on
@@ -176,11 +176,11 @@ can be *decided*, not where it happens to have run.
 | R8 | the design-point library is answered, and a monster is indexed whole | both | ticket 0029 |
 | R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
-| R33 | the exact string, the paraphrase, and the document both signals agree on | fixture | ticket 0029 |
-| R34 | every pinned answer comes back within the first ten results | fixture | ticket 0029 |
 | R17 | how much is searchable, per stage, in one sentence, naming the device serving | fixture | ticket 0026 |
 | R19 | every token the query normalizer makes, the index normalizer can make too | fixture | ticket 0026 |
 | R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
+| R33 | the exact string, the paraphrase, and the document both signals agree on | fixture | ticket 0029 |
+| R34 | every pinned answer comes back within the first ten results | fixture | ticket 0029 |
 
 R19 is a term by its property clause alone. Its cadence — that the sweep runs
 on every check — is not a promise to anyone and left the sheet on 2026-08-31,
@@ -192,7 +192,7 @@ None of those addresses is new work. The fixture corpus, the gates and the
 acceptance harness offered upstream were scoped before this goal existed; goal 1
 names which of their assertions this one promise hangs on, and the tally above
 keeps the count. Membership is a ruling, not a page edit:
-[`bench/check_progress.py`](../bench/check_progress.py) reads both rosters from
+[`bench/check_progress.py`](../bench/check_progress.py) reads the roster from
 [DECISIONS.md](DECISIONS.md) and fails the build when the page and the ledger
 disagree, because a bundle that can quietly lose a member is a milestone that
 reports itself kept when it is not.
