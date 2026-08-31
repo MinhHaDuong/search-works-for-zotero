@@ -93,7 +93,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 [`../GOVERNANCE.md`](../GOVERNANCE.md).
 
 | section | designed | delivered |
-|---|---|---|
+|---|---|---|---|
 | Coverage and convergence | `●●●●●●○○` | `◐◐◐◐○○○○` |
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
@@ -155,34 +155,43 @@ to fail is a test nobody has checked, which is why ticket 0026's fold gate keeps
 a red classification for a tree that lacks the fold. Green on arrival is a
 result. Green with no way to be red is a decoration.
 
-**Terms.** What the user meets. Each row gives the clause goal 1 binds and the
-address where its assertion would live; the status is not repeated here, and the
-bar above is recomputed from these requirements' own rows further down.
+**Terms.** What the user meets. Each row gives the clause goal 1 binds, where it
+is decided, and the address where its assertion would live; the status is not
+repeated here, and the bar above is recomputed from these requirements' own rows
+further down.
 
-| | the clause goal 1 binds | where its test would live |
-|---|---|---|
-| R1 | the whole library is covered unattended, a text-less attachment ending covered with its reason (R14, folded in) | ticket 0026 |
-| R6 | the query path waits for no freshness work | ticket 0026 |
-| R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | ticket 0029 |
-| R8 | the design-point library is answered, not approached | ticket 0025 |
-| R9 | a monster is indexed whole, never by its opening pages | ticket 0029 |
-| R12 | a subscribed group library is searchable, and indexing one library never erases another | ticket 0016 |
-| R16 | my own notes and annotations are in the corpus at all | ticket 0022 |
-| R33 | the exact string, the paraphrase, and the document both signals agree on | ticket 0029 |
-| R34 | every pinned answer comes back within the first ten results | ticket 0029 |
-| R17 | how much is searchable, answered per stage in one sentence | ticket 0026 |
-| R19 | every token the query normalizer makes, the index normalizer can make too | ticket 0026 |
-| R32 | records searchable today and the body behind them, on the reference machine | ticket 0026 |
+*Decided at* is the two levels and the relation between them. `fixture` is the
+committable corpus, which runs wherever the gate runs; `library` is the author's
+real library or a disclosed machine, which cannot be committed; `both` is a
+fixture assertion standing in for something real, whose fidelity the library
+level has to re-earn — the pattern R20's revalidation clause already follows.
+The assignment is a reading, and a vetoable one: it says where each assertion
+can be *decided*, not where it happens to have run.
+
+| | the clause goal 1 binds | decided at | where its test would live |
+|---|---|---|---|
+| R1 | the whole library is covered unattended, a text-less attachment ending covered with its reason (R14, folded in) | fixture | ticket 0026 |
+| R6 | the query path waits for no freshness work | fixture | ticket 0026 |
+| R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | fixture | ticket 0029 |
+| R8 | the design-point library is answered, not approached | library | ticket 0025 |
+| R9 | a monster is indexed whole, never by its opening pages | both | ticket 0029 |
+| R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
+| R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
+| R33 | the exact string, the paraphrase, and the document both signals agree on | fixture | ticket 0029 |
+| R34 | every pinned answer comes back within the first ten results | fixture | ticket 0029 |
+| R17 | how much is searchable, answered per stage in one sentence | fixture | ticket 0026 |
+| R19 | every token the query normalizer makes, the index normalizer can make too | fixture | ticket 0026 |
+| R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
 
 **Instruments.** Not terms, and not lesser: these decide whether the terms hold,
 and a term whose instrument is missing cannot be settled at all. They are named
 here rather than counted in the bar, because a promise the user meets is not
 made truer or falser by what this repository runs in its own build.
 
-| | what it decides | where it is built |
-|---|---|---|
-| R19 | the sweep runs on every check — the cadence clause, deciding R19's own property and R7's keyword half | ticket 0026 |
-| R26 | convergence is watched from an empty index rather than trusted — deciding R1 | ticket 0026 |
+| | what it decides | run at | where it is built |
+|---|---|---|---|
+| R19 | the sweep runs on every check — the cadence clause, deciding R19's own property and R7's keyword half | fixture | ticket 0026 |
+| R26 | convergence is watched from an empty index rather than trusted — deciding R1 | fixture | ticket 0026 |
 
 Binding is per clause, which is why R19 is in both tables: goal 1 binds its
 property, and its cadence is what decides that property. R21 joins the

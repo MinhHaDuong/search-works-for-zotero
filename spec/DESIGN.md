@@ -820,6 +820,15 @@ its subtraction terms, not only pass on the gentle one.
   deviation from R20's letter ("against the 44.9 MB dictionary", content
   that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
   real-document X3a run revalidates it at each release on the author's machine.
+Every gate below is decided at one of two levels, and the relation between them
+is calibration rather than coverage (DECISIONS.md, 2026-08-31). The **fixture
+level** runs wherever the gate runs, on the committable corpus. The **library
+level** runs against the author's real library or a disclosed machine and cannot
+be committed. A fixture that stands in for something real — the synthetic
+monster, the reference machine, a scaled corpus — carries a fidelity claim, and
+the library level is the only thing that can renew it: R20's revalidation clause
+is the pattern, and it binds every surrogate here, not only that one.
+
 - **R21, the golden gate (D11 = set).** A pinned multilingual fixture
   corpus, ~40 queries, answer *sets* at k=10. Thresholds derive from the
   stability artifact: the measured per-query Jaccard minimum under

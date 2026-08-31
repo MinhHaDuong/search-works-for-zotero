@@ -1291,6 +1291,52 @@ continuously, which is the argument for dissolving rather than a loss.
 Entries above this one cite ticket 0400 as live. They were true when written and
 are not edited, per this ledger; the ticket resolves in `tickets/closed/`.
 
+**2026-08-31 — two levels, and the second one re-earns the first.** The author
+raised it as a related thought — bench on a portable fixture, bench on a real
+library — and ruled it in. Named rather than numbered, because a digit in this
+vocabulary would be a quantity nobody could tell from an address: the **fixture
+level** is the committable corpus that runs wherever the gate runs, and the
+**library level** is the author's real library or a disclosed machine, which
+cannot be committed at all — copyrighted documents, private text, one host.
+
+What makes this a model rather than two lists is the relation between them. They
+are not two suites covering the same ground twice. **The fixture level is where
+assertions run; the library level is where the fixture's fidelity is re-earned.**
+Every fixture that stands in for something real — a synthetic monster, a
+reference machine, a scaled corpus — carries a fidelity claim, and only the
+library level can renew it. A surrogate whose fidelity nobody renews is a green
+that has stopped meaning anything.
+
+The rule is not new; it has been ratified three times as separate facts, and
+each is now an instance of it. R20's synthetic surrogate is revalidated against
+the real dictionary at each release (2026-08-29). R30's disclosure clause gates
+everywhere while R32's build bound needs its reference machine. Ticket 0025's
+substrate map says which experiment runs where. Stating the rule once is what
+lets a fourth case be recognised without a fourth ruling.
+
+Two things follow without further decision. The dependency split ticket 0498
+built is the same seam seen from another side: the fixture level runs on
+`requirements-check.txt` in a bare container, and the library level may want
+`requirements-drivers.txt`, a GPU, or a running Zotero. And the reason the
+author's second thought matters — that neither the requirements nor the harness
+is zoteus-specific, and that Zotero core's own work needs a real-library level
+too — is that a fixture-level spec is the half that can travel, while the
+library level never can.
+
+`spec/README.md`'s goal tables gain a *decided at* column over a closed
+vocabulary — `fixture`, `library`, `both` — and `bench/check_progress.py` fails
+on any other word, on a row that sheds the cell, and on a row that keeps the old
+three-cell shape. The per-requirement assignment is a reading and is vetoable:
+it says where each assertion can be decided, not where it has happened to run.
+`both` is the value the vocabulary exists for, and today it falls on R9, R12 and
+R32 — a surrogate monster, a cross-library guard whose repro ran against a real
+Zotero, and a build bound whose reference machine stands for a real library.
+
+What is deliberately not built: no date column, no per-row record of when a
+fidelity claim was last renewed. That obligation is DESIGN.md §2.8's, where the
+gates live, and a page carrying a date per row would rot faster than the claim
+it records.
+
 ## Awaiting ratification
 
 

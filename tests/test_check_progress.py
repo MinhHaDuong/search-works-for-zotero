@@ -64,16 +64,16 @@ Measured against upstream v1.10.0, the reviewed baseline.
 
 `●○` &nbsp; 2 in the bundle · 1 rest on something that ran
 
-| | the clause goal 1 binds | where its test would live |
-|---|---|---|
-| R1 | the whole library, unattended | ticket 0080 |
-| R9 | a monster indexed whole | ticket 0024 |
+| | the clause goal 1 binds | decided at | where its test would live |
+|---|---|---|---|
+| R1 | the whole library, unattended | fixture | ticket 0080 |
+| R9 | a monster indexed whole | both | ticket 0024 |
 
 **Instruments.** What decides the terms.
 
-| | what it decides | where it is built |
-|---|---|---|
-| R2 | the crawl order is watched, deciding R1 | ticket 0080 |
+| | what it decides | run at | where it is built |
+|---|---|---|---|
+| R2 | the crawl order is watched, deciding R1 | fixture | ticket 0080 |
 
 ### Coverage
 
@@ -329,7 +329,7 @@ def test_a_standing_row_that_no_longer_parses(tmp_path):
 
 def test_a_ruled_member_dropped_from_the_page(tmp_path):
     """The bundle's own silent failure: a conjunction reported over fewer terms."""
-    page = PAGE.replace("| R9 | a monster indexed whole | ticket 0024 |\n", "").replace(
+    page = PAGE.replace("| R9 | a monster indexed whole | both | ticket 0024 |\n", "").replace(
         "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
         "`●` &nbsp; 1 in the bundle · 0 rest on something that ran",
     )
@@ -339,8 +339,9 @@ def test_a_ruled_member_dropped_from_the_page(tmp_path):
 def test_a_member_the_ledger_never_ruled(tmp_path):
     """The other direction: scope widened on the page, with no ruling behind it."""
     page = PAGE.replace(
-        "| R9 | a monster indexed whole | ticket 0024 |",
-        "| R9 | a monster indexed whole | ticket 0024 |\n| R2 | newest first | ticket 0080 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |\n"
+        "| R2 | newest first | fixture | ticket 0080 |",
     ).replace(
         "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
         "`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran",
@@ -357,8 +358,9 @@ def test_the_later_ruling_supersedes_the_earlier(tmp_path):
     """The ledger is append-only: a bundle changes by a new line, and the last one is live."""
     ledger = LEDGER + "\n**Later.**\n\nGoal 1 binds: R1, R2, R9.\n"
     page = PAGE.replace(
-        "| R9 | a monster indexed whole | ticket 0024 |",
-        "| R9 | a monster indexed whole | ticket 0024 |\n| R2 | newest first | ticket 0080 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |\n"
+        "| R2 | newest first | fixture | ticket 0080 |",
     ).replace(
         "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
         "`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran",
@@ -381,8 +383,8 @@ def test_the_goal_bar_stopped_matching_its_members(tmp_path):
 def test_a_member_row_that_stopped_parsing(tmp_path):
     """A malformed member is not a wrong claim, it is an invisible one."""
     page = PAGE.replace(
-        "| R9 | a monster indexed whole | ticket 0024 |",
-        "| R9 | a monster indexed whole | extra | ticket 0024 |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | both | extra | ticket 0024 |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -390,8 +392,8 @@ def test_a_member_row_that_stopped_parsing(tmp_path):
 def test_a_member_with_no_address_for_its_test(tmp_path):
     """A member whose assertion lives nowhere is a promise, not a milestone."""
     page = PAGE.replace(
-        "| R9 | a monster indexed whole | ticket 0024 |",
-        "| R9 | a monster indexed whole |  |",
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | both |  |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -406,8 +408,8 @@ def test_a_member_row_is_not_read_as_a_standing_row(tmp_path):
     """The two tables share an opener. If the split failed, R1 would read as duplicated."""
     outside, block = cp.goal_split(PAGE)
     terms, instruments = cp.goal_members(block)
-    assert [name for name, _, _ in terms] == ["R1", "R9"]
-    assert [name for name, _, _ in instruments] == ["R2"]
+    assert [name for name, _, _, _ in terms] == ["R1", "R9"]
+    assert [name for name, _, _, _ in instruments] == ["R2"]
     assert sorted(name for name, *_ in cp.page_rows(outside)) == ["R1", "R2", "R9"]
     assert cp.goal_members(outside) == ([], [])
 
@@ -419,16 +421,16 @@ def test_a_member_row_is_not_read_as_a_standing_row(tmp_path):
 
 def test_a_ruled_instrument_dropped_from_the_page(tmp_path):
     """A term whose instrument is gone cannot be settled, and nothing else says so."""
-    page = PAGE.replace("| R2 | the crawl order is watched, deciding R1 | ticket 0080 |\n", "")
+    page = PAGE.replace("| R2 | the crawl order is watched, deciding R1 | fixture | ticket 0080 |\n", "")
     assert cp.run(build(tmp_path, page=page)) == 1
 
 
 def test_an_instrument_the_ledger_never_ruled(tmp_path):
     """Scope widened on the page, in the half that is easiest to widen unnoticed."""
     page = PAGE.replace(
-        "| R2 | the crawl order is watched, deciding R1 | ticket 0080 |",
-        "| R2 | the crawl order is watched, deciding R1 | ticket 0080 |\n"
-        "| R9 | re-read as an instrument | ticket 0024 |",
+        "| R2 | the crawl order is watched, deciding R1 | fixture | ticket 0080 |",
+        "| R2 | the crawl order is watched, deciding R1 | fixture | ticket 0080 |\n"
+        "| R9 | re-read as an instrument | fixture | ticket 0024 |",
     )
     assert cp.run(build(tmp_path, page=page)) == 1
 
@@ -441,4 +443,22 @@ def test_the_ledger_rules_no_instruments(tmp_path):
 def test_the_instruments_marker_lost(tmp_path):
     """Without the switch every instrument reads as a term, and the bar moves with it."""
     page = PAGE.replace("**Instruments.** What decides the terms.", "What decides the terms.")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_level_outside_the_vocabulary(tmp_path):
+    """Where an assertion can be decided is part of what it claims, so it is a closed set."""
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | someday | ticket 0024 |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_a_row_that_lost_its_level(tmp_path):
+    """A four-cell row shedding a cell parses as nothing, which is the invisible failure."""
+    page = PAGE.replace(
+        "| R9 | a monster indexed whole | both | ticket 0024 |",
+        "| R9 | a monster indexed whole | ticket 0024 |",
+    )
     assert cp.run(build(tmp_path, page=page)) == 1

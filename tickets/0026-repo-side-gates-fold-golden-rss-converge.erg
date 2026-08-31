@@ -10,6 +10,7 @@ Author: claude
 2026-08-26T16:53Z claude note the RFC's acceptance-spec pile now serves the harness offer (0032)
 2026-08-26T17:19Z claude note simplify pass: thresholds now live once in DESIGN §2.8; this ticket points at them; RFC vocabulary retired
 2026-08-27T15:53Z claude note the fold-gate waiver retired: #19 merged 2026-08-27 (4f61b2a); stock >=v1.7.2 ships normalizeForSearch and tokenize.ts is byte-identical to the PR at v1.8.0, so the gate runs green by right against current upstream — red-by-classification remains the honest state only against pre-fold trees
+2026-08-31T12:05Z claude note THE TWO LEVELS ARE RULED (spec/DECISIONS.md 2026-08-31) and this ticket's gates now declare one each. Fixture level runs wherever the gate runs, on the committable corpus; library level runs against the real library or a disclosed machine and cannot be committed. The relation is calibration, not coverage: the fixture level is where assertions run, the library level is what re-earns the fidelity of every fixture standing in for something real. R20's revalidate-against-the-real-dictionary clause stops being a special case and becomes the pattern that binds every surrogate here — the RSS surrogate, R32's reference machine, any scaled corpus. DESIGN 2.8 carries the rule at the head of the gate list; spec/README.md's goal tables carry the per-term reading in a decided-at column that bench/check_progress.py holds to a closed vocabulary
 --- body ---
 ## Context
 Build the gate estate of DESIGN.md §2.8, which owns every threshold and

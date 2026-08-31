@@ -121,6 +121,14 @@ entry points at the question rather than settling it; rulings land in
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: CONSTRAINTS.md C1; the
   per-stage keys are DESIGN.md §2.1.
+- **fixture level / library level** — where an assertion is decided. The
+  fixture level is the committable corpus, running wherever the gate runs; the
+  library level is the author's real library or a disclosed machine, which
+  cannot be committed. Not two suites over the same ground: the fixture level
+  is where assertions run, and the library level is what re-earns the fidelity
+  of every fixture standing in for something real. Authoritative: DESIGN.md
+  §2.8 for the gates, README.md in this directory for which level decides each
+  term of goal 1 (ruling: DECISIONS.md 2026-08-31).
 - **the ledger** — the durable table of item-by-stage rows, each claimed under
   a lease, computed, then committed, where all background work is scheduled and
   all of its state survives a restart. Authoritative: DESIGN.md §1 and §2.5.

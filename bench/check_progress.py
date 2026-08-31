@@ -153,9 +153,20 @@ LEDGER_INSTRUMENTS = re.compile(
 #: member row reads as a standing row that failed to parse.
 GOAL_HEADING = re.compile(r"^## Goal 1\b")
 GOAL_END = re.compile(r"^#{2,6}\s")
-#: `| R1 | the clause the goal binds | address |`. Both tables share the shape;
-#: which one a row belongs to is positional, and the marker below is the switch.
-GOAL_MEMBER = re.compile(r"^\|\s*(R\d{1,2})\s*\|([^|]*)\|([^|]*)\|\s*$")
+#: `| R1 | the clause the goal binds | level | address |`. Both tables share the
+#: shape; which one a row belongs to is positional, and the marker below is the
+#: switch.
+GOAL_MEMBER = re.compile(r"^\|\s*(R\d{1,2})\s*\|([^|]*)\|\s*(\w+)\s*\|([^|]*)\|\s*$")
+
+#: Where an assertion is decided. Two levels and the relation between them:
+#: `fixture` is the committable corpus that runs anywhere the gate runs;
+#: `library` is the author's real library or a disclosed machine, which cannot
+#: be committed; `both` is a fixture assertion standing in for something real,
+#: whose fidelity the library level has to re-earn. The third value is the one
+#: the vocabulary exists for — a surrogate whose fidelity nobody renews is a
+#: green that has stopped meaning anything, which is the failure R20's
+#: revalidation clause was written against.
+LEVEL = {"fixture", "library", "both"}
 #: Where the terms table ends and the instruments table begins. Absent, every row
 #: reads as a term — which fails loudly against the ledger's instruments line
 #: rather than quietly counting instruments into the conjunction.
@@ -430,16 +441,18 @@ def goal_split(text: str) -> tuple[str, str]:
     return "\n".join(outside), "\n".join(inside)
 
 
-def goal_members(block: str) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
-    """The goal block's `(requirement, clause, address)` rows, as `(terms, instruments)`."""
-    terms: list[tuple[str, str, str]] = []
-    instruments: list[tuple[str, str, str]] = []
+def goal_members(block: str) -> tuple[list[tuple[str, ...]], list[tuple[str, ...]]]:
+    """The goal block's `(requirement, clause, level, address)` rows, as `(terms, instruments)`."""
+    terms: list[tuple[str, str, str, str]] = []
+    instruments: list[tuple[str, str, str, str]] = []
     here = terms
     for line in block.splitlines():
         if GOAL_INSTRUMENTS.match(line):
             here = instruments
         elif row := GOAL_MEMBER.match(line):
-            here.append((row.group(1), row.group(2).strip(), row.group(3).strip()))
+            here.append(
+                (row.group(1), row.group(2).strip(), row.group(3).strip(), row.group(4).strip())
+            )
     return terms, instruments
 
 
@@ -479,8 +492,13 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
         ("term", "a", terms, LEDGER_MEMBERS),
         ("instrument", "an", instruments, LEDGER_INSTRUMENTS),
     ):
-        named = [name for name, _, _ in listed]
-        for name, _, address in listed:
+        named = [name for name, _, _, _ in listed]
+        for name, _, level, address in listed:
+            if level not in LEVEL:
+                findings.append(
+                    f"GOAL LEVEL {name}: {level!r} is not one of {sorted(LEVEL)}. Where an "
+                    f"assertion is decided is part of what it claims"
+                )
             if name not in known:
                 findings.append(f"GOAL INVENTED {name}: {article} {role} {SHEET} does not declare")
             elif name not in standing:
@@ -510,7 +528,7 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
     # The bar summarises the conjunction, so it runs over terms alone. An
     # instrument counted here would make the goal look further from kept — or
     # nearer to it — than its own terms say.
-    bound = [name for name, _, _ in terms]
+    bound = [name for name, _, _, _ in terms]
     delivered = [standing[name][0] for name in bound if name in standing]
     evidence = [standing[name][1] for name in bound if name in standing]
     expected = bar(delivered, DELIVERED)
@@ -593,7 +611,7 @@ def run(repo: Path) -> int:
     # written on the page, recomputed here, and exempt from the digit rule on
     # exactly that ground.
     standing = {name: (d, e) for name, _, _, d, e, _ in rows}
-    bound = [name for name, _, _ in goal_members(goal)[0]]
+    bound = [name for name, _, _, _ in goal_members(goal)[0]]
     ran = [standing[name][1] for name in bound if name in standing].count("measured")
     owned = [f"{len(bound)} in the bundle · {ran} rest on something that ran"]
 
