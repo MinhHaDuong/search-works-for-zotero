@@ -682,6 +682,37 @@ validation remains authoritative. Upstream, this is one design issue with
 staged acceptance tests, not a prepared implementation PR series; the
 maintainer retains implementation choices at each stage.
 
+**2026-08-31 — no names, only keys.** A committed artifact, ticket or
+specification document identifies a document in the author's library by its
+Zotero item key and never by its title, its creators or its attachment
+filename. The repository is public; a measurement record that names what the
+author reads discloses the library one figure at a time, and the disclosure
+outlives whatever the figure was for. The key carries every property provenance
+needs — stable, unique, resolvable by whoever holds the library — and none of
+the properties that make a title a leak.
+
+Scope, and its cost. `bench/query.py` and `bench/smoke_upstream.py` recorded
+titles into every result they wrote; both now record keys. 4 630 name fields
+were removed from 24 committed artifacts, and the prose in `spec/DESIGN.md`,
+`STATE.md` and three tickets was rewritten to cite the key or a generic
+descriptor. Each redacted artifact carries a `redaction` field saying what was
+removed, because a provenance field that quietly stops existing is worse than
+one that never did. One artifact loses identification outright rather than
+gaining a key it never recorded: `bench/results/0025-x2-stopwordless/zotero-native-baseline.json`
+noted the first hit per query by filename alone, so those rows can no longer
+say which document ranked first. That is the accepted price.
+
+**Git history is not rewritten** (author, 2026-08-31). The names are in the
+public log and stay there. A scrub of history would break every SHA this
+chain cites — `UPSTREAM`, the artifacts' own provenance, every ticket that
+pins a commit — to remove what is already published and already read. The
+harm is past; the rule binds going forward.
+
+What this ruling does not reach, and what therefore stays open: committed
+artifacts also hold `passage` and `snippet` text drawn from the library, and
+the benchmark query sets are the author's own research questions. Both are
+larger disclosures than a title. Neither is decided here.
+
 ## Awaiting ratification
 
 - **The accepted-staleness residue has lost its corroboration, and whether

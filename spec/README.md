@@ -158,7 +158,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Ticket 0090, ticket 0091, ticket 0240. |
+| R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so R7's second MUST fails outright at the reviewed baseline, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Choosing the replacement is ticket 0240; ticket 0090, ticket 0091. |
 
 ### Embedding configurations
 

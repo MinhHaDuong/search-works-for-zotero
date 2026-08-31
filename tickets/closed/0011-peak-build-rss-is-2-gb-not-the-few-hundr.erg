@@ -6,7 +6,7 @@ Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T19:25Z minh created
-2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the New Palgrave and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
+2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the dictionary and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
 2026-08-22T00:35Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
 
 2026-08-21T22:40Z bump verify-reroll — round 1: third-build figures had no committed artifact; committed and citation corrected
@@ -71,7 +71,7 @@ Step 0 ran, and one document accounts for the peak.
 Rebuilt the full library changing exactly one variable:
 `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS` from 0 to 2 000 000. The next-largest
 `.zotero-ft-cache` is 1 908 743 B, so that truncates precisely one document --
-`DH8EXSVA`, the New Palgrave, 44 906 152 characters -- and leaves every other
+`DH8EXSVA`, the dictionary, 44 906 152 characters -- and leaves every other
 document in the library untouched.
 
 | | passages | peak build `VmHWM` | elapsed |
@@ -99,7 +99,7 @@ name the number both ways.
 
 ## Actions
 
-0. **Cheapest first, added 2026-08-22:** one item (`DH8EXSVA`, the New Palgrave
+0. **Cheapest first, added 2026-08-22:** one item (`DH8EXSVA`, the dictionary
    Dictionary) contributes 44,9 MB of text and 9% of all passages -- see
    ticket 0013. Rebuild with it excluded and re-read `VmHWM` before doing
    anything else. A single 44,9 MB string live in the page loop is a far more

@@ -5,58 +5,47 @@
  "top_items_by_passages": [
   {
    "item": "DH8EXSVA",
-   "title": "The New Palgrave Dictionary of Economics",
    "passages": 42963
   },
   {
    "item": "CBEBU7EH",
-   "title": "Science and Judgment in Risk Assessment",
    "passages": 1450
   },
   {
    "item": "PK4VDN2Y",
-   "title": "VHLSS 2012",
    "passages": 1252
   },
   {
    "item": "MF9QE5BS",
-   "title": "Statistical Yearbook of Vietnam 2007",
    "passages": 1114
   },
   {
    "item": "ZF62VKPQ",
-   "title": "Statistical Yearbook of Vietnam 2010",
    "passages": 1084
   },
   {
    "item": "5KNWHZTJ",
-   "title": "Statisitical Yearbook of Vietnam 2010",
    "passages": 1080
   },
   {
    "item": "YDUBHPNQ",
-   "title": "Statistical Yearbook of Vietnam 2005",
    "passages": 1067
   },
   {
    "item": "Q934NYJB",
-   "title": "Statistical Yearbook of Vietnam 2013",
    "passages": 1058
   },
   {
    "item": "UVNWXVYX",
-   "title": "Statistical Yearbook of Vietnam 2012",
    "passages": 1056
   },
   {
    "item": "BMAN5W8Q",
-   "title": "Statistical Yearbook of Vietnam 2008",
    "passages": 1027
   }
  ],
  "dominant_item": {
   "item": "DH8EXSVA",
-  "title": "The New Palgrave Dictionary of Economics",
   "passages": 42963,
   "share_of_index": 0.09
  },
@@ -974,5 +963,6 @@
     "dominant_in_top": false
    }
   ]
- }
+ },
+ "redaction": "Document names removed 2026-08-31 by ruling (spec/DECISIONS.md): committed artifacts identify a library document by its Zotero item key and never by its title or filename. Keys are unchanged, so every figure here remains traceable."
 }

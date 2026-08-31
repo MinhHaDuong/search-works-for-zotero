@@ -161,8 +161,12 @@ def main():
                         keys.append(h.get("itemKey") or h.get("key") or h.get("item_key"))
                 out["queries"][q] = {
                     "n": len(hits), "keys": keys, "latency_ms": [],
+                    # No title: a committed artifact names a library document by its
+                    # item key and never by its title or filename (ruling 2026-08-31,
+                    # spec/DECISIONS.md). The key is the identifier; the title was only
+                    # ever there to make a hit list readable at a glance.
                     "hits": [{"itemKey": h.get("itemKey"), "score": h.get("score"),
-                              "source": h.get("source"), "title": h.get("title")}
+                              "source": h.get("source")}
                              for h in hits if isinstance(h, dict)]}
             elif len(hits) != out["queries"][q]["n"]:
                 raise SystemExit(f"query {q!r} returned {len(hits)} hits on pass "
