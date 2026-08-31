@@ -588,6 +588,20 @@ query time from facet tables joined to ledger terminal states, deliberately
 one). Under a strict query, one relaxed soft-MATCH count offers the
 drop-the-quotes alternative.
 
+**Cross-lingual (R29).** Keyword search cannot cross languages: FTS5 and
+`bm25()` have no path from "hydropower" or "hydroélectricité" to "thủy điện",
+whatever the tokenizer folds. The embedding space is the only channel, so the
+promise stands or falls on the embedder and rides the semantic path with no new
+query-side machinery. On such a query the keyword list is empty or noise, so
+fusion has to let a semantic hit surface without keyword confirmation — the
+`frac_vec` question ticket 0031 owns, with the cross-lingual slice as its
+hardest case. When the semantic path is unavailable the reply carries a typed
+`CROSS_LINGUAL_DEGRADED` disclosure beside R18's sentences, the CJK posture
+below transposed. Alignment is a property of the embedder's training and varies
+by language pair, so it is measured per candidate at the deployed dtype rather
+than read off a model card; ticket 0266 is that measurement, and R29 is a
+conformance criterion in the registry's ship gate (ticket 0495).
+
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
 2-gram twin tables (#6012's shipped geometry, and decisive on its own
@@ -785,7 +799,10 @@ its subtraction terms, not only pass on the gentle one.
   happened). Re-pins are commits
   whose set diff is the review artifact, and the golden set is re-pinned at
   entry granularity when entries exist; until then it gates item
-  projections and says so.
+  projections and says so. The corpus carries a cross-lingual slice — EN and
+  FR queries whose answer sets are Vietnamese entries — gated separately from
+  the monolingual queries, so a regression names which of R7 and R29 it broke.
+  Ticket 0029 builds it.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
   kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
@@ -980,8 +997,11 @@ authoritative for content, this list for ordering.
 8. **The curated embedder registry** (tracker 0488) — singleton extraction;
    authoritative fields and parity; curated entries plus entry-id selection;
    local automatic compatibility validation; optional content-free
-   attestations; then the separate golden and resource gate that decides what
-   ships. The autonomous-service experiment (0491) reuses the interface seam
+   attestations; then the separate gate that decides what ships — R7 and R29
+   conformance first and untraded, the golden and resource gates choosing
+   among the entries that pass it (ticket 0495; the ruling on why the swap
+   happens at all is DECISIONS.md 2026-08-31).
+   The autonomous-service experiment (0491) reuses the interface seam
    but does not block this sequence. One upstream design issue carries staged
    acceptance tests; it is not a prepared PR series.
 9. **The commitment bounds** — stated in GOVERNANCE.md, ratified in
