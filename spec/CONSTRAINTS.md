@@ -88,7 +88,13 @@ The scouts sharpened this constraint on five points:
 - The local API has no `/deleted` endpoint; the documented deletion route
   is a key-set diff (`format=versions`, unpaginated).
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
-  per row, which costs seconds at library scale (#6012's measurement).
+  per row, which costs seconds at library scale. That is #6012's stated
+  rationale rather than a measurement of theirs, and the distinction is the
+  correction ticket 0180 found: read at PR head `77e2c4b`, `lexical.js`
+  says exactly this in a source comment and cites no figure, then reaches
+  our own conclusion in the lines beneath it — the MATCH runs unconstrained
+  and the candidate filter is applied after it. The numbers under the claim
+  are ours, from X4, and are DESIGN.md §3's to state.
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. DESIGN.md §2.6 owns the conditional fallback and the
   threshold experiment X4 measures; it is never the default path.

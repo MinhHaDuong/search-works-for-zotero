@@ -8,6 +8,7 @@ Author: claude
 2026-08-29T16:00Z claude note filed from the roar sweep after two attribution defects were found and fixed the same day; 4 of 8 sampled claims were wrong
 
 2026-08-31T05:37Z claude note THREE ATTRIBUTIONS RESOLVED at source 2026-08-30, read from a clone of zotero/zotero at PR head 77e2c4b rather than by page fetch -- the stronger instrument this ticket's own action 1 asks for. (a) CONSTRAINTS.md's rowid-constrained MATCH bullet, listed unverified: the mechanism HOLDS, verbatim and better than paraphrased -- lexical.js:355-359 reads 'a full scan for a common term costs milliseconds, while constraining the same MATCH to a rowid set makes FTS5 evaluate the expression per row, which at library scale costs seconds', and upstream draws our own conclusion (MATCH unconstrained, candidate filter applied after, lexical.js:361-366). But the citation OVERSTATES its evidentiary status: that is a source comment stating a rationale, with no figure anywhere, so '#6012's measurement' should read as #6012's stated rationale -- the numbers are X4's, ours, not theirs. A new instance of this ticket's class, inverted: the mechanism travelled correctly and the evidence grade did not. (b) DESIGN.md's smallest-first attribution (now at DESIGN.md:321, the table's line number has drifted): HOLDS -- embeddings.js:2085-2106 orders attachments 'smallest first so that one enormous book doesn't sit at the' head, ORDER BY COALESCE(totalChars, totalPages * ?, ?), itemID, with notes enqueued last at :2026. (c) 'Zotero's own embeddings layer documents the same residue' (now DESIGN.md:389, listed unverified): NOT SUPPORTED at this head. embeddings.js documents staleness only as model-revision-driven reindex (:201-205, revision bump forces detection) and pref-toggle eligibility (:1811-1814); nothing there addresses re-extraction with no file change, which is the residue our sentence attributes to it. This is a source read, not a could-not-look. Our residue disclosure stands on its own evidence and should stop leaning on Zotero. REMAINING WORK for this ticket: the two prose corrections, (a)'s evidence grade and (c)'s removal, both judgement calls this note deliberately leaves to the ticket rather than making in passing
+2026-08-31T05:50Z claude note BOTH PROSE CORRECTIONS APPLIED, closing the pair this ticket's action 4 left open. CONSTRAINTS.md's rowid bullet now says stated rationale rather than measurement, cites lexical.js at PR head 77e2c4b as the coordinate, and points at DESIGN.md section 3 for the numbers, which are X4's. DESIGN.md's residue sentence drops its Zotero corroboration entirely: this is the removal of an unsupported citation, NOT a change to the ratified disclosure it sat beside -- the accepted-staleness contract is unchanged and needed no ledger entry, per action 3's test. The table's verdicts and its tally are updated with it, and the class paragraph gains the inverted case
 --- body ---
 ## Context
 The specification chain makes claims about what Zotero and #6012 do. Two of
@@ -23,14 +24,21 @@ Sampled, with verdicts:
 | CONSTRAINTS.md C2 | geometry, and "never crosses a section" | refuted, fixed |
 | DESIGN.md:417 | entry score is MAX over chunks, "#6012's rule" | holds |
 | DESIGN.md:206 | prefix charged to the budget, "Zotero's own prior art" | holds in part |
-| CONSTRAINTS.md:87 | rowid-constrained MATCH cost, "#6012's measurement" | unverified |
-| DESIGN.md:321 | "Zotero's own embeddings layer documents the same residue" | unverified |
+| CONSTRAINTS.md:87 | rowid-constrained MATCH cost, "#6012's measurement" | mechanism holds, citation overstated — corrected |
+| DESIGN.md:389 | "Zotero's own embeddings layer documents the same residue" | not supported at `77e2c4b` — removed |
 
-Four wrong out of eight. That is a class, not a run of bad luck, and the
-class has a shape worth naming: **a value or behaviour is read from an
+The last two were settled at source on 2026-08-30 (see the log) and both are
+now corrected in the text; the second row's coordinate had drifted from :321
+to :389 since this table was written, which is its own argument for ticket
+0181's guard. Six wrong out of eight. That is a class, not a run of bad
+luck, and the class has a shape worth naming: **a value or behaviour is read from an
 upstream summary, adopted as a constant, and cited as though the mechanism
-around it came too.** The geometry case is the clearest — 768 was copied as
-a chunk size when upstream uses it as a ceiling inside a `min()`, so the
+around it came too.** The rowid row is the same class inverted, and worth
+holding beside the others: there the mechanism travelled correctly and the
+*evidence grade* did not — a rationale stated in a source comment was cited
+as a measurement, which is the failure a reader cannot detect from our text
+alone. The geometry case is the clearest — 768 was copied as a chunk size
+when upstream uses it as a ceiling inside a `min()`, so the
 number arrived and the guard that made it safe did not.
 
 Why this is above the severity floor rather than a tidiness item. It bit the
