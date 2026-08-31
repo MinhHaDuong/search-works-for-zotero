@@ -10,9 +10,10 @@ points at the document that owns it.
 refreshes the work queue and manages deletions, an embedder that drains it, and
 a query embedder — reviewed against the ratified four-role topology
 (`DECISIONS.md`, 2026-08-30), against upstream zoteus at the reviewed baseline,
-and against Zotero's draft pull request #6012 read at source. Two of the
-author's amendments shape it: the query embedder stays in-process, and the
-conductor, not the worker, does the writing.
+and against Zotero's draft pull request #6012 read at source. Three of the
+author's amendments shape it: the query embedder stays in-process, the
+conductor rather than the worker does the writing, and the conductor segments —
+handing the worker ranges rather than documents.
 
 ---
 
@@ -47,44 +48,75 @@ the vector bytes, fsync, commit the row that references them. A crash between
 the two leaves bytes nothing points at, which is the safe direction — the same
 dead weight the compaction rule already collects.
 
-### W2 — the worker is pure
+### W2 — the worker is pure, and it is handed ranges
 
-The worker receives a work order naming an item or attachment and the keys its
-inputs were seen at. It then does all of the expensive, unbounded and
-crash-prone work: it fetches the extracted text from Zotero's local API,
-segments it, chunks it, embeds the chunks, and streams the results back over its
-pipe. It opens no database, holds no lease of its own, and owns no file.
+The worker holds no lease, opens no write handle and owns no file. It does two
+jobs, both of them contained, and it writes nothing in either.
 
-Two consequences worth stating as properties rather than hopes. C3's
-"killable/restartable at any time with zero index damage" becomes structural: a
-process that holds no durable state cannot damage any. And the second orphan
-repair §2.5 mandates — re-verifying `leases.holder` between micro-batches —
-becomes unnecessary for this worker: an orphaned worker whose parent died can
-only produce records into a closed pipe. Exit on stdin EOF remains, as
-hygiene rather than as a correctness measure.
+**Fetching.** It streams one attachment's extracted text from Zotero's local API
+and forwards it to the conductor in bounded windows. It does not decide
+boundaries and does not accumulate: one window at a time crosses the pipe.
 
-The worker is also where every unbounded allocation now lives: the whole-document
-fetch, the segmentation of a 44,9 MB dictionary, the model. The conductor never
-holds a document.
+**Embedding.** It receives work orders and returns vectors. A work order for a
+small input — a record, a note, an annotation — carries its text outright. A work
+order for a large one carries **ranges**: `(slab, off_start, off_end)`, the
+addresses §2.2 already gives every passage. The worker opens the store read-only,
+gunzips the slab, slices, embeds, and streams the vectors back. A book therefore
+crosses the pipe once as text on its way in, and never again: re-embedding after
+a model change, a band-1 backfill and a resumed run all dispatch ranges over text
+that is already stored.
 
-### W3 — streaming order: chunk rows ahead of vectors
+The property to state honestly is *never a writer*, not *never a reader*: the
+worker is a WAL reader like any sibling P0, which is what makes it killable at
+any instant with zero index damage — C3's bullet, structural rather than argued.
+It also means one of the two mandatory orphan repairs loses its subject: an
+orphaned worker can only read a database and write into a closed pipe. Exit on
+stdin EOF remains, as hygiene.
 
-The worker streams each item's chunk records as it produces them, and its
-vectors behind them. The conductor commits in that order.
+### W2′ — the conductor segments, and never holds a document
 
-This is what keeps the ledger a stage boundary rather than a process boundary.
-§2.5's "the ledger's keyed, idempotent derivations — not an in-memory pipe — are
-the boundary between stages" was load-bearing for a reason: the boundary decides
-where work resumes. Collapse chunk and embed into one worker with no streaming
-and a death mid-document loses every chunk computed for it, which on a
-15 000-page PDF is a redo measured in hours. Streaming makes the boundary a
-*write ordering* instead, and resumability stays at the chunk.
+Segmentation is a streaming state machine over the arriving windows: it closes
+entries at structural boundaries, writes each closed entry's text into a slab
+(§2.2's cap and its entry-aligned cuts, unchanged), and writes the entry and
+passage rows that address it. Peak memory is one window plus the segmenter's
+own state — which is exactly the property C3 already asserts, that extraction and
+chunking stream so peak memory is proportional to a section batch rather than to
+the document.
 
-It also delivers, without a third process, the first of the two justifications
-the author's structural hint gives for asynchronous stages (`CONSTRAINTS.md`, the
-standing instruction): keyword availability never waits on embedding, because
-the chunk rows that feed the keyword index are committed before the vectors that
-did not yet exist.
+**The clause this rests on, and it is load-bearing: the conductor must never
+materialize a whole document.** The local API answers `/items/<key>/fulltext`
+with one JSON object carrying the text in a `content` field
+(`verification/probes/api-vs-cache-probe.py`), so `response.json()` on a 44,9 MB
+attachment materializes the body and its decoded string inside the process that
+also holds the query embedder and answers queries. The arithmetic, labeled
+derived: §2.9's idle figure plus the recommended candidate's measured residency
+already sits near C3's per-process server ceiling, and a materialized monster
+document puts it over. Hence the fetch is the worker's, and it forwards windows
+— the incremental decode is written once, in the process whose failure costs a
+restart rather than a breached ceiling and a missed query budget.
+
+This is why the fetch does not simply move into the conductor along with the
+segmenter. The conductor gains the boundary decisions, which are cheap and
+bounded; it does not gain the transport, which is neither.
+
+### W3 — chunk rows are durable before any vector exists
+
+Because the conductor segments and writes as the text arrives, an item's slabs,
+entries and passages are committed before a single vector is computed for it.
+The keyword index is complete for that item at that moment; the vectors fill in
+behind.
+
+This is the first of the two justifications the author's structural hint gives
+for asynchronous stages (`CONSTRAINTS.md`, the standing instruction) — keyword
+availability never waits on embedding — delivered without a third process. It
+also fixes where work resumes: the ledger boundary between chunk and embed
+survives as a *write ordering* rather than a process boundary, so a worker death
+loses only the vectors of the ranges in flight, never the segmentation of a
+15 000-page book.
+
+It also makes the two-band frontier a dispatch policy rather than machinery:
+band 0 is the first K ranges of each item, band 1 is the rest, and both are just
+which range dispatches the conductor sends first. §2.3 keeps the derivation of K.
 
 ### W4 — the commit guard
 
@@ -102,8 +134,8 @@ process that writes rather than a cross-process claim protocol.
 ### W5 — the batch is the memory dial
 
 The worker packs each engine call to a token budget rather than to a count,
-sorting by length inside a window before packing, because the runtime pads every
-member of a batch to the longest sequence in it. Batch size is then a memory and
+sorting the ranges it was handed by length before packing, because the runtime
+pads every member of a batch to the longest sequence in it. Batch size is then a memory and
 latency dial, not a throughput lever: it is what the pipeline peak scales with,
 it is the unit R13's duplicate-compute bound is stated in, and it is the grain at
 which the worker yields to foreground work and at which a death loses progress.
@@ -132,8 +164,9 @@ bookkeeping, and all of it is writing, so all of it is the conductor's: the item
 cursor, the census diff, extractor-version staleness, the per-attachment
 truncation flags, the version-0 residue and the content-presence probe that marks
 passages `cache-lost`. The one part that is reading — the whole-document GET —
-moves into the worker under W2. The stage keeps its key (`text_hash`, §2.1) and
-its terminal states; only the fetch moves.
+is the worker's under W2, and arrives back as windows. The stage keeps its key
+(`text_hash`, §2.1) and its terminal states; the hash is computed over the
+stream as it passes, so nothing has to hold the document to identify it.
 
 ### Fairness moves inside the conductor
 
@@ -161,9 +194,10 @@ transient/persistent split are unchanged.
 |---|---|---|
 | `DESIGN.md` §2.5 | the conductor's single embed worker alone writes the sidecar | the conductor alone writes, both artifacts |
 | `DESIGN.md` §2.5 | the ledger, not an in-memory pipe, is the boundary between stages | the boundary survives as a write ordering; W3 states how |
-| `DESIGN.md` §2.5 | one run-to-drain worker of each of three kinds | one pipeline worker; the stages remain, the processes do not |
+| `DESIGN.md` §2.5 | one run-to-drain worker of each of three kinds | one pipeline worker: fetch and embed; segmentation is the conductor's |
 | `DESIGN.md` §2.5 | two orphan repairs per worker kind | stdin EOF only; the lease re-check has no subject in a worker that writes nothing |
-| `DESIGN.md` §2.4 | the tick schedules the extract shim | the tick dispatches work orders and fetches nothing |
+| `DESIGN.md` §2.4 | the tick schedules the extract shim | the tick dispatches work orders and fetches nothing; the conductor never materializes a document |
+| `DESIGN.md` §2.2 | passages are references into slabs | unchanged, and now also the dispatch address: a work order for a large input carries ranges |
 | `DESIGN.md` §2.9 | extract, chunk and embed add transient residency | one worker's residency, and see finding F1 |
 | `CONSTRAINTS.md` C4 | status answers while all three queues run | unchanged: the queues are ledger queues, not processes |
 | `TERMINOLOGY.md` | *P0 / pipeline workers*: one worker of each pipeline kind | one pipeline worker; *the ledger* entry unaffected |
@@ -187,9 +221,12 @@ R15.
 
 **R15, deletion — held, and strengthened.** The promise reaches "the queues
 between the stages", which is where text survives a deletion and comes back.
-Under W1 no queue between stages holds text at all: the durable queue is ledger
-rows written by one process, and the only text in flight lives in the worker's
-memory and behind the commit guard. A deletion landing while a document is being
+Under W1 no queue between stages holds text outside the store: the durable
+intermediate is the slab table, which the same `WHERE lib = ?` delete sweeps, and
+the only text outside it lives in one window in flight and behind the commit
+guard. A range dispatch whose slab has been deleted meanwhile reads nothing; the
+worker reports the input as vanished and the conductor discards it, which is a
+race to tolerate rather than an error to log. A deletion landing while a document is being
 chunked cannot reach the store, because W4 rejects at commit every record whose
 row is gone. The slab write and the row that references it are one transaction,
 so removing an item removes both.
@@ -217,9 +254,14 @@ it" comes free, since every streamed record carries the work order it answers.
 **R3, proportionality — held.** Untouched: the signal/key split does this work
 and the proposal moves no key.
 
-**R8, scale — held, and this is the point of W2.** Neither the 44,9 MB
-dictionary nor a 15 000-page PDF ever enters a query-serving process. The
-unbounded allocation is in the killable worker, which is what C3 asks for.
+**R8, scale — held, on the clause in W2′.** Neither the 44,9 MB dictionary nor a
+15 000-page PDF is ever resident whole in any process: the worker streams it,
+the conductor segments a window at a time, and the slab layer stores it in
+entry-aligned pieces. What makes this a promise rather than a hope is that
+nothing on the path is allowed to call for the whole body at once — which is a
+property of how the fetch is written, not of the topology, and is therefore the
+one thing here that a careless implementation can lose while every test still
+passes. Finding F5.
 
 **R10, locality — held, with one documentation consequence.** No new network
 surface: the worker speaks to the local API only, and the model download is the
@@ -291,20 +333,26 @@ pipeline peak is a separate budget and untouched — but the recommended
 candidate's measured fresh-process residency (`DECISIONS.md`, 2026-08-30, from
 `bench/results/0263-cpu-arm/SUMMARY.json`) is already above that pipeline
 ceiling, and every multilingual candidate's 8-bit rung sits in the same region.
-Merging chunking into the same process adds a section batch on top of it. This
-is not created by the proposal — a ratified embed worker running a ratified
+This is not created by the proposal — a ratified embed worker running a ratified
 multilingual model has the same problem today — but the proposal is the first
 document that has to state a single number for a single process, so it surfaces
-it. **Needs a ruling**: either the pipeline ceiling is re-pinned on the same
-measurements that re-pinned the server one, or chunking goes back into its own
-process and the ceiling covers the smaller of the two. The measurement exists;
-what is missing is the ruling.
+it.
 
-**F2. The conductor now serves queries and performs every write, and nothing
-measures what that does to R6.** In the ratified design the write-free query path
+The segmentation amendment improves the case rather than worsening it: with
+boundaries decided in the conductor and the worker handed ranges, the worker's
+peak is the model plus one batch and nothing else — the smallest a process that
+embeds can be. **Needs a ruling all the same**: the pipeline ceiling is either
+re-pinned on the same measurements that re-pinned the server one, or it stands
+and no multilingual candidate can be run by a pipeline worker at all. The
+measurement exists; what is missing is the ruling.
+
+**F2. The conductor now serves queries, segments, and performs every write, and
+nothing measures what that does to R6.** In the ratified design the write-free query path
 is a property of every P0 including the conductor, because the writing happens in
-worker processes. Under W1 one P0 writes continuously during a build while
-answering queries against the 700 ms preference and the 3 s bound. The fairness
+worker processes. Under W1 and W2′ one P0 segments and writes continuously during a build while
+answering queries against the 700 ms preference and the 3 s bound. Segmentation
+is cheap beside embedding but it is on-thread work, so it belongs in the same
+measurement rather than in a separate argument. The fairness
 clause above is the intended remedy and is untested. **Instrument**: a soak
 measurement of query latency on the conductor during a full build, against the
 same budget §2.9 states — the shape of the RSS and soak gates ticket 0026 owns.
@@ -320,6 +368,20 @@ have is GPU. A CPU sweep at the deployed rung would settle all three at once
 **F4. The item census cost sits on the tick's critical path and is unmeasured.**
 Independent of this proposal, but the proposal concentrates the tick's duties in
 one process, so it inherits the exposure whole. Ticket 0503 owns it.
+
+**F5. The whole design's memory story rests on an incremental read that nobody
+has written or measured.** The local API serves the text inside one JSON object,
+so streaming it means decoding a JSON string value incrementally — escapes,
+form feeds and all — rather than calling `response.json()`. The convenient call
+is the one that breaks C3 on the conductor, and it breaks it silently: a build
+over a library of ordinary papers never approaches the ceiling, and the failure
+arrives on the one library that holds a dictionary. **Instrument**: measure
+resident memory across a fetch of the largest attachment in the reference
+library, both ways, in a process that has already loaded the query embedder —
+the same shape as the RSS gate ticket 0026 owns, run against the transport
+rather than the model. Until that exists, W2′'s clause is an instruction, not a
+verified property, and it is the first thing a reviewer of the implementation
+should look for.
 
 ---
 
