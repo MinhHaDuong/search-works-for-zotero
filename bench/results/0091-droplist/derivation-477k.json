@@ -1,0 +1,43 @@
+{
+  "probe": "ticket 0091 — the droplist derivation on a real library, through the shipped code path",
+  "data_dir": "/home/haduong/data/projets/zoteus-bench/0091-treatment",
+  "passages": 477512,
+  "vocabulary_terms": 639888,
+  "droplist_terms": 23,
+  "droplist_bytes": 75,
+  "droplist": [
+    "1",
+    "2",
+    "3",
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "be",
+    "by",
+    "for",
+    "from",
+    "in",
+    "is",
+    "of",
+    "on",
+    "or",
+    "s",
+    "that",
+    "the",
+    "this",
+    "to",
+    "with"
+  ],
+  "numerals_on_the_list": [
+    "1",
+    "2",
+    "3"
+  ],
+  "derived_at_passages": 477512,
+  "scan_ms": {
+    "cold": 2281,
+    "warm": 2013
+  }
+}

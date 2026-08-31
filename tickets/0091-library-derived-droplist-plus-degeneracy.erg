@@ -9,6 +9,10 @@ Author: claude
 
 2026-08-29T10:25Z claude note cross-granularity control on the droplist, measured 2026-08-29 against Zotero 10's own FTS5 index (fulltext.sqlite, 13 090 documents, item-level): at the same 30% threshold that yields 23 terms on our 477 512-passage index, the platform index yields 777 — 34x more, because document frequency at item granularity is a different quantity from document frequency at passage granularity. Its top terms are the bare digits (1 in 11 873 of 13 090 docs, 2 in 11 755, 10 in 11 217) since every document carries page numbers, years and references. Importing a droplist from the platform would drop every numeral from every query. This is independent evidence FOR this ticket's central choice: corpus-derived means derived from THIS corpus at THIS granularity, and the ticket already gets that right. No design change implied. Two further notes: the scan is not cheaper on the platform side either (670 680 terms in 4,0 s there against 639 888 in 3,4 s here), so the meta-row-plus-drift cadence stays necessary; and fts5vocab reads term and doc counts happily off a CONTENTLESS table, so vocabulary statistics are available from the platform index even though its text is not (see 0120). Worth a cheap check while here: whether our own 23 terms include numerals, and how the degeneracy fallback behaves on a numeric query such as 2019 or a DOI fragment — passage granularity likely keeps digits well under threshold, but it is cheaper to check than to learn from a user.
 2026-08-30T16:28Z Codex note blocker 0090 closed — Blocked-by removed.
+2026-08-31T20:20Z claude note anchors re-verified against upstream b05ed69 (v1.12.0) BEFORE implementing, because UPSTREAM still names v1.10.0 and v1.11.0/v1.12.0 rewrote the search layer under us (+1738/-57 over ten files, SYNC.md 2026-08-31). All three survive; two moved. tokenize.ts still opens on the 29-word literal at line 1 and applies it in tokenize() at line 150. sqlite-index.ts's keyword path is keywordSearch at line 1134, not ~466, and still opens with [...new Set(tokenize(q))]; the meta helpers, createSchema and the FTS5 declaration are still in that file. index-manager.ts's makeSnippet is at line 150 and still centres on the earliest matching token. bm25.ts is untouched at 2,6K. What the rewrite added under the same roof, and what this ticket therefore has to coexist with rather than change: a passages.source column with its own index and the own-words passages behind it (#33), the vector_codes table and the two-stage vector path (#30), and the migration ladder plus VectorSalvage (#34). None of them touch the query token set, so the design needed no revision — only new line numbers.
+2026-08-31T20:21Z claude note MEASURED end-to-end on the real 477 512-passage index, all three arms against ONE copy of it so page cache and file layout are not variables (bench/results/0091-droplist/query-477k.json). Stock v1.12.0 answers the twenty queries at p50 222,0 ms and p95 392,5 ms, which lands on the 392,3 ms the X2 control read on v1.9.0 in August — harness, machine and earlier run agree. Delete the stoplist and prune nothing and the same file costs p50 1 011,6 ms and p95 1 151,3 ms: X2 reproduced on v1.12.0, and the adoption case too, since that arm IS an index with no stored droplist. The droplist plus the fallback brings it to p50 282,0 ms and p95 696,5 ms. The tail is the fallback and not the pruning: take out the one fully degenerate query of the twenty and the same arm reads p95 491,7 ms, inside the allowance and near the 463,5 ms the sweep predicted for pruning alone. Fidelity: mean Jaccard against stock 0,866, no query emptied, and on the soliloquy query this arm returns EXACTLY the unfiltered result set where stock overlaps it on 5 items of 35. The derivation reproduces the sweep's 23 terms over 639 888 vocabulary terms, numerals 1, 2 and 3 among them exactly as the sweep's others_caught said, and it costs 2 281 ms on first call and 2 013 ms on the second against a warm page cache — below the ~3,4 s this ticket carried, and nothing here reproduces its ~7,5 s cold figure.
+2026-08-31T20:21Z claude note two findings the measurement produced that the design did not predict, both for the author. FIRST, the 30 % droplist is not a superset of the stoplist it replaces: it catches 19 of the 29 and adds 1, 2, 3 and s, leaving at, it, its, was, we, were, our, their, these and those — English function words common enough to be expensive and under 30 % document frequency in this library. Every query whose droplist p50 beats stock by more than 50 ms carries one of them, so the residual gap between arm B and stock is that list and nothing else. SECOND, the degenerate query's cost is INVARIANT to the threshold, by construction rather than by measurement: the fallback sends the raw token set, so a fully degenerate query costs the same at any cutoff, and lowering the cutoff only makes more queries degenerate. No threshold ruling can move the 696,5 ms figure; only a different fallback can — a phrase query over the raw set, or a cap on it — and that is DESIGN section 3 to rule on, not this ticket to invent. Method caveat worth carrying: queries-x2.txt was BUILT to carry at least three stoplist words per query, so it oversamples exactly the words a hand list catches and a df cutoff need not, and it is 5 % degenerate by construction, which over twenty queries is precisely where p95 lands. Read these as the adversarial case, not as ordinary traffic. A first attempt gave each arm its own copy of the index and read stock at 3 703,9 ms and 5 564,8 ms p95, nine to fourteen times the same binary on the other copy minutes later and rising between repeats; the two files are structurally identical (same page count, same freelist, same indexes, verified), so those readings are page-cache artifacts and are DISCARDED, which is why every figure above is same-file.
+2026-08-31T20:26Z claude note PREPARED, not filed. Fork branch t0091-droplist pushed to FORK_REPOSITORY at 4510bb0, one commit atop b05ed69, green on upstream typecheck, eslint and 933 vitest tests. PR body drafted at verification/UPSTREAM-PR-0091-DROPLIST.md and its figures declared under the u0091 key in bench/check_figures.py, so a re-measurement cannot leave the one outward-facing document quoting a superseded number. Shape of the implementation, for the record: a new src/features/search/droplist.ts holding the ratio, the drift bound, the two minimum-survivor counts and the pruning function, so both backends share one policy and one place to read it; refreshDroplist and highDf as sibling hooks on SearchIndexBase beside finalizeVectors, called at the same three sites and for the same reason (a derived fact commits with the rows it was derived from); the SQLite backend deriving through a temp-schema fts5vocab table it drops again, so sqlite_master is unchanged and no schema bump is needed; the JSON backend answering from its own resident df instead, which is why it needs no stored list, no cadence and no adoption; and makeSnippet taking the droplist at a threshold of one surviving term where MATCH takes two. Left for the author: authorize the filing, and rule on the two questions above.
 --- body ---
 ## Context
 The measured replacement for the stoplist deletion that failed X2 (ticket
@@ -94,12 +98,22 @@ and unrelated hits. Then the fallback case, the parity case between backends,
 the adoption case (no stored droplist filters nothing), and a snippet case.
 
 ## Verification
-- [ ] p95 on the 477k index inside the DESIGN §3 budget, re-measured with
-      `bench/query.py --repeat 6`, not asserted
-- [ ] degenerate query returns the same hits as an unfiltered query
-- [ ] an index built before this change filters nothing until rebuilt
-- [ ] snippets centre on content, not on the passage opening
-- [ ] upstream's own gates: typecheck, lint, full suite
+- [~] p95 on the 477k index inside the DESIGN §3 budget, re-measured with
+      `bench/query.py --repeat 6`, not asserted. Measured, not asserted, and
+      the answer is split: 491,7 ms over the nineteen ordinary queries, inside
+      the allowance; 696,5 ms over all twenty, because the twentieth is the
+      degenerate one the fallback exists for. See the log entry and
+      `bench/results/0091-droplist/query-477k.json`. NOT a pass to claim
+      whole — the author rules on whether the allowance is stated against a
+      population containing a fully degenerate query.
+- [x] degenerate query returns the same hits as an unfiltered query — on the
+      real index, and identical rather than merely similar
+- [x] an index built before this change filters nothing until rebuilt — arm C
+      of the measurement is that index
+- [x] snippets centre on content, not on the passage opening —
+      `makeSnippet` now takes the droplist; the control arm in
+      `search-droplist.test.ts` shows it centring on the opening without one
+- [x] upstream's own gates: typecheck, eslint, 933 vitest tests, all green
 
 ## Invariants
 - DESIGN.md §3 owns the threshold (0090). This ticket implements it and
@@ -114,3 +128,15 @@ the adoption case (no stored droplist filters nothing), and a snippet case.
   0016's cross-library wipe guard fixes silent data loss and outranks this,
   and the Zotero-native baseline showed matching to be the lower-value half
   of the layer. Do not spend a slot here while 0016 is queued.
+
+## Where this stands
+0016 merged as PR #32 on 2026-08-31, so its half of the gate is clear and both
+slots of GOVERNANCE.md's volume bound are free (`SYNC.md`). The other half is
+the author's: **nothing is filed upstream without his authorization**, so this
+ticket stops at PREPARED. What exists is the branch `t0091-droplist` on the
+fork (`FORK_REPOSITORY`), cut from `b05ed69` and green on upstream's own three
+gates, and the PR body drafted at
+`verification/UPSTREAM-PR-0091-DROPLIST.md`. The p95 half of the exit criterion
+is measured and reported split, not claimed; the two design questions the
+measurement raised are in the log for the author, and neither is this ticket's
+to settle.

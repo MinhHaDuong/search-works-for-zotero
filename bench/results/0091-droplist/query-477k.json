@@ -1,0 +1,125 @@
+{
+  "probe": "ticket 0091 — the library-derived droplist plus degeneracy fallback, implemented and measured end-to-end on the real 477 512-passage index",
+  "date": "2026-08-31",
+  "substrate": "REAL. One copy of the x2-rebuild index (host doudou, 7 541 items, 477 512 passages, 465 110 of them full text, uncapped), 938,8 MiB. ALL THREE ARMS RUN AGAINST THE SAME FILE, so page cache and file layout are not variables — see method_note.",
+  "method": "bench/query.py --backend sqlite --limit 20 --repeat 6 over bench/queries-x2.txt, end-to-end through the MCP server (zotero_semantic_search, mode=keyword, ZOTEUS_EMBEDDINGS=off). Warm passes only; pass 0 is discarded as the cold one. Arms A and B were each run more than once and their warm samples are pooled.",
+  "method_note": "A first attempt put each arm on its own copy of the index and produced warm p95 figures of 3 703,9 ms and 5 564,8 ms for stock — nine to fourteen times the same binary measured on the other copy minutes later, and rising between repeats. The two files are byte-comparable in structure (same page_count 240 320, same freelist, same indexes; verified), so the difference was the page cache under concurrent load, not the code or the data. Those readings are DISCARDED. Every figure below is from the single shared file, with the droplist toggled in and out of its meta table between arms.",
+  "arms": {
+    "A_stock_v1_12_0": {
+      "tree": "oscardvs/zoteus b05ed69 (v1.12.0), 29-word stoplist intact in tokenize.ts",
+      "latency": {
+        "runs": 2,
+        "n": 200,
+        "p50_ms": 222.0,
+        "p95_ms": 392.5,
+        "max_ms": 451.7
+      }
+    },
+    "B_droplist_plus_fallback": {
+      "tree": "this ticket, atop b05ed69: stoplist deleted, 30 % df droplist derived and stored, degeneracy fallback below two surviving terms",
+      "latency": {
+        "runs": 3,
+        "n": 300,
+        "p50_ms": 282.0,
+        "p95_ms": 696.5,
+        "max_ms": 1049.8
+      },
+      "latency_excluding_the_degenerate_query": {
+        "runs": 3,
+        "n": 285,
+        "p50_ms": 274.6,
+        "p95_ms": 491.7,
+        "max_ms": 696.5
+      }
+    },
+    "C_no_stoplist_no_droplist": {
+      "tree": "this ticket, with the two droplist rows removed from meta — i.e. exactly what an index built by an earlier version presents on its first open",
+      "latency": {
+        "runs": 1,
+        "n": 100,
+        "p50_ms": 1011.6,
+        "p95_ms": 1151.3,
+        "max_ms": 1464.6
+      }
+    }
+  },
+  "verdict": "The pruning works and the fallback is what the tail is made of. Against stock at p50 222,0 ms / p95 392,5 ms, the unpruned arm costs p50 1 011,6 ms / p95 1 151,3 ms — the X2 failure reproduced on v1.12.0 — and the droplist brings that back to p50 282,0 ms / p95 696,5 ms. Excluding the one fully degenerate query of the twenty, the droplist arm reads p95 491,7 ms, inside the ~500 ms allowance DESIGN §3 names and close to the 463,5 ms its own sweep predicted for pruning alone. The whole overrun is therefore the degeneracy fallback firing on `to be or not to be`, which costs that query about 760 ms against stock's 281,9 ms — and buys the right answer for it: the droplist arm returns EXACTLY the unfiltered result set there, where stock overlaps it on 5 items of 35.",
+  "the_fallback_cost_is_invariant_to_the_threshold": "Not a threshold that could be tuned out. The fallback sends the RAW token set, so a fully degenerate query costs the same at any cutoff — lowering the threshold only makes more queries degenerate. Anything that would move this figure is a different fallback (a phrase query, a cap on the raw set), which is DESIGN §3's to rule on, not this ticket's.",
+  "the_ten_words_the_cutoff_does_not_reach": {
+    "finding": "The 30 % droplist is not a superset of the 29-word stoplist. It catches 19 of them and adds 1, 2, 3 and s; the ten it leaves are at, it, its, was, we, were, our, their, these, those — English function words common enough to be expensive and below 30 % document frequency in this library. Every query in the population whose droplist p50 exceeds stock's by more than 50 ms carries one of them.",
+    "examples_ms_stock_vs_droplist": {
+      "it is the marginal cost that matters and not the average": [
+        393.7,
+        509.1
+      ],
+      "these results are robust to the choice of a discount rate": [
+        197.5,
+        368.9
+      ],
+      "our estimates of the rebound effect and their limits": [
+        108.2,
+        316.9
+      ],
+      "was the transition to renewables in these countries": [
+        171.4,
+        438.9
+      ]
+    },
+    "population_caveat": "bench/queries-x2.txt was BUILT to carry at least three of the 29 stoplist words per query, to measure what deleting that list costs. It therefore oversamples exactly the words a hand list catches and a df cutoff need not, and it is 5 % degenerate by construction — which, over 20 queries, is precisely where p95 lands. Read these figures as the adversarial case for the droplist, not as a library's ordinary traffic."
+  },
+  "result_quality": {
+    "mean_jaccard_vs_stock_droplist": 0.866,
+    "mean_jaccard_vs_stock_unpruned": 0.835,
+    "queries_emptied": 0,
+    "degenerate_query_matches_the_unfiltered_set": true,
+    "degenerate_query_overlap_with_stock": "5 items of 35 (stock answers it on `not` alone)"
+  },
+  "derivation": {
+    "source": "bench/derive_droplist.mjs, calling the shipped refreshDroplist on the built dist",
+    "vocabulary_terms": 639888,
+    "droplist_terms": 23,
+    "droplist_bytes_stored": 75,
+    "droplist": [
+      "1",
+      "2",
+      "3",
+      "a",
+      "an",
+      "and",
+      "are",
+      "as",
+      "be",
+      "by",
+      "for",
+      "from",
+      "in",
+      "is",
+      "of",
+      "on",
+      "or",
+      "s",
+      "that",
+      "the",
+      "this",
+      "to",
+      "with"
+    ],
+    "numerals_on_the_list": [
+      "1",
+      "2",
+      "3"
+    ],
+    "scan_ms": {
+      "cold": 2281,
+      "warm": 2013
+    },
+    "note": "The 23 terms reproduce df-droplist-sweep.json exactly, including the four the sweep called `others_caught` (1, 2, s, 3), which independently confirms that the shipped derivation computes what the sweep computed by hand. 53 bytes of term text; 75 bytes stored, the difference being the 22 separators. The scan cost 2 281 ms on first call and 2 013 ms on the second, both against a page cache warmed by the copy that preceded them — below the ~3,4 s the ticket carried and not comparable to its ~7,5 s cold figure, which nothing here reproduces."
+  },
+  "verification_against_the_ticket": {
+    "p95 inside the DESIGN §3 budget": "PARTIAL — 491,7 ms excluding the degenerate query, 696,5 ms including it. See verdict.",
+    "degenerate query returns the same hits as an unfiltered query": "YES, on the real index: the result sets are identical, not merely similar.",
+    "an index built before this change filters nothing until rebuilt": "YES — arm C is that index, and it answers exactly as the unpruned policy does.",
+    "snippets centre on content": "asserted in tests/features/search-droplist.test.ts; not measurable from this driver, which records item keys and not snippets.",
+    "upstream's own gates": "typecheck, eslint and 933 vitest tests green on the fork branch."
+  }
+}
