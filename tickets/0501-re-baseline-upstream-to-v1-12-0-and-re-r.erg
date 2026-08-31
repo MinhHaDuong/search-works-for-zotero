@@ -1,0 +1,46 @@
+%erg 0.1
+Title: Re-baseline UPSTREAM to v1.12.0 and re-read the standing
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T14:50Z claude created
+
+--- body ---
+## Context
+
+Upstream advanced two releases past the reviewed baseline on 2026-08-31:
+`UPSTREAM` declares v1.10.0 (`b132f2d`, reviewed 2026-08-29), upstream `main` is
+now v1.12.0 (`b05ed69`), with v1.11.0 (`ee50cea`) between them.
+`make upstream-status` reports STALE.
+
+This is not a formatting change. `git diff --stat v1.10.0..main -- src/features/search/`
+is +1738/-57 across ten files, three of them new (`own-words-source.ts`,
+`vector-salvage.ts`, `electron.ts`). `spec/README.md`'s standing -- 23 rows on two
+axes plus an evidence column -- was read against v1.10.0 source, and a judgement
+about that release is not evidence about this one.
+
+The guard already knows. `bench/check_progress.py` `check_baseline()` is
+default-deny: the page may name the release `UPSTREAM` declares reviewed and no
+other. Its own words: "when the baseline moves the honest act is to invalidate
+the page rather than to let it keep answering for a release it never saw." So
+`make check` goes red the moment `UPSTREAM` is bumped, and stays red until every
+row has been read again. That is the design, not an obstacle to route around.
+
+Split from the 2026-08-31 reconciliation pass (SYNC.md, tickets) deliberately:
+recording what upstream did is cheap and was done immediately; re-reading the
+standing is author-gated. Ten of the twenty-three verdicts carry
+`evidence: measured`, and they rest on `bench/results/smoke-1.10.0/checks.json`,
+produced by `bench/smoke_upstream.py` driven against the author's real Zotero
+library. That library is not in this repo and no agent session can reach it.
+Bumping the baseline without re-running it would silently demote ten `measured`
+rows to `inferred` -- the exact dishonesty the evidence column was split to
+prevent.
+
+## Exit criteria
+- [ ] `UPSTREAM` names v1.12.0 / `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`, with the review date
+- [ ] Every one of the 23 rows in `spec/README.md` re-read against v1.12.0 source, both axes and the evidence word
+- [ ] The four version mentions in `spec/README.md` (lines 33, 239, 271, 278 at the time of filing) name v1.12.0 and no other release
+- [ ] `bench/smoke_upstream.py` re-run against v1.12.0 on the author's machine, its artifact committed under `bench/results/`
+- [ ] Any figure the re-measurement moves is updated at every prose site `bench/check_figures.py` names
+- [ ] `make check` green and `make upstream-status` green together

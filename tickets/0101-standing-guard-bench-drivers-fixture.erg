@@ -3,11 +3,13 @@ Title: Standing guard: every bench driver that opens a real index is exercised a
 Created: 2026-08-29
 Author: claude
 Blocked-by: 0100
+Blocked-by: 0501
 
 --- log ---
 2026-08-29T10:45Z claude created
 2026-08-29T10:46Z claude note filed separately from 0100 on purpose: 0100 fixes two instances, this covers the class. Bundling the guard into the fix would make it a per-PR check, where what is needed is something that fires when an UNRELATED future change breaks the same assumption
 
+2026-08-31T14:57Z claude note gains Blocked-by 0501. Action 4 records in UPSTREAM which schema generation the drivers target, and UPSTREAM cannot name a generation before the baseline it belongs to is reviewed. The need got sharper the same day: upstream v1.11.0 (#34) shipped a schema ladder and vector salvage, so SCHEMA_VERSION is no longer a constant that has never moved -- which is exactly the change this ticket was filed in anticipation of
 --- body ---
 ## Context
 The /roar sweep after X2 found two bench drivers pinned to the pre-rename

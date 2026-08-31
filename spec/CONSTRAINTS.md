@@ -66,8 +66,8 @@ Three facts about the terrain:
   its own semantic search, is active and exposes nothing over the local API
   yet.
 - The upstream maintainer (oscardvs/zoteus) merges small contained PRs and
-  reimplements design-sized proposals himself; the asymmetry is measured
-  two-for-two in each direction (SYNC.md).
+  reimplements design-sized proposals himself; the asymmetry is measured in
+  both directions, and SYNC.md carries the live count.
 - Some twenty other AI plugins are evolutionary pressure, not a runtime
   concern.
 
