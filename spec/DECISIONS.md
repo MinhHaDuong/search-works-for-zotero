@@ -985,10 +985,37 @@ the rest of the directory: a third exception is a third ruling.
   accepted from the cosine side — the device is part of the chain at the 8-bit
   rungs — reached independently in sign space.
 
-  So the proposal is narrow: the header carries that sign vector *beside* the fp32
+  **What carries that ratio is a seeded random projection, not sign bits.** The
+  ratio is the whole requirement, and it is much weaker than preserving cosine to
+  the precision of the noise floor: any transform is admissible exactly insofar as
+  it keeps the two distances in proportion. Johnson-Lindenstrauss does, because it
+  is multiplicative on distances — a nearly-identical pair stays nearly identical,
+  both distances shrink by nearly the same factor, and the ratio survives. Sign
+  bits quantize the small angle away instead, which is the whole of why they fail.
+
+  Measured over each model's own pair of measured cosines (200 simulated headers
+  per width, worst trial rather than mean, with a control that projects to the
+  source width and must reproduce the unprojected ratio): **one width serves all
+  six models — 32 dims, 8 192 bytes per header, 24,0x smaller than the full fp32
+  header, keeping a worst case of 29,68x against the narrowest unprojected
+  31,67x.** The header being 64 chunks is most of that steadiness: the projection's
+  error is zero-mean, so the aggregate is far steadier than any single chunk.
+
+  Three properties make it admissible where a data-derived basis is not. The matrix
+  comes from a **published seed**, so it carries no corpus — SECURITY.md lists
+  vectors as an asset, and a basis fitted to the library would put the library into
+  every file handed out. It is **reproducible** on both machines from that seed,
+  with nothing to transmit. And the guarantee is **distribution-free**, so the
+  anisotropy that broke the sign-bit argument does not weaken it. MRL truncation is
+  model-specific and PCA on the calibration set is circular; neither can be the
+  format's rule.
+
+  So the proposal is: the header carries `R·v` at 32 dims *beside* the fp32
   calibration vectors and never instead of them, as the cheap first read that fails
   fast on an fp32 file. The ratified per-vector cosine test stays what adopting a
-  foreign file rests on, and nothing is claimed at 8-bit.
+  foreign file rests on, and nothing is claimed at 8-bit — no projection can claim
+  anything there, since preserving a ratio faithfully is no help where the ratio is
+  already below one.
 
   What is NOT proposed is the number. The bar belongs after ticket 0485 decides
   what the header is compared on, and it must be sized from measured flip
@@ -1001,7 +1028,11 @@ the rest of the directory: a third exception is a third ruling.
   Ticket 0499 carries the real-vector arm and the same-machine arm that ticket
   0486 already owes.
 
-  Ratifying this adds a field to `spec/DESIGN.md` §2.2's format section and
+  What is proposed for ratification is therefore the SHAPE — a projected vector at
+  a published seed, carried beside the fp32 header, read first — and not the bar it
+  is thresholded against, which waits on ticket 0485 and must be sized from
+  measured flip and angle distributions rather than from a simulation. Ratifying
+  the shape adds a field and a seed to `spec/DESIGN.md` §2.2's format section and
   nothing else; vetoing it costs nothing built, since the ratified header stands
   either way.
 

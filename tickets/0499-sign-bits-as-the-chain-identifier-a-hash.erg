@@ -1,5 +1,5 @@
 %erg 0.1
-Title: Sign bits as the chain identifier: a hash cannot, a threshold can
+Title: The compact chain identifier: not a hash, not sign bits, a seeded projection
 Created: 2026-08-31
 Author: claude
 Blocked-by: 0485
@@ -7,9 +7,10 @@ Blocked-by: 0485
 --- log ---
 2026-08-31T08:14Z claude created
 
-2026-08-31T08:16Z claude note ANSWERED from committed artifacts, for the half that needs no vectors (bench/results/0499-sign-hash/sign-stability.json, driver bench/sign_stability.py). The repair fails, and it fails twice over. Probabilistically: at X8's worst same-chain fp32 row (multilingual-e5-base, cos_min 0,999974) 1,763 of 768 sign bits move between providers, so an exact sign hash agrees on one vector 17,1% of the time and on a 64-chunk header 8,8e-50 of the time -- a hash over sign bits is no more admissible cross-machine than a hash over bytes, which is what the calibration-header ruling already said about bytes. Mechanically, and independent of any cosine: 0008 measured two dimensions over 95% one-sided on 93 022 real vectors, BOTH of them dimensions the model never activates (mean magnitude 5,66e-33 and 5,54e-08 against a median dimension of 0,03935), so their sign is float noise; an all-or-nothing hash hashes those bits beside the ones carrying the corpus. Three further readings. (a) The committed artifacts CANNOT settle the exact-hash question by themselves: cosine is stored to six decimals, so a row printed 1,0 still admits 0,244 flipped bits at 768 dims -- the vectors are needed, and they are on the author's machine. (b) The identity is a FLOOR, not an estimate: an isotropic control reproduces it (1,765 measured against 1,763 predicted) while a coordinate-wise 8-bit quantization control on a heavy-tailed vector flips 7,76x what the same cosine predicts, because a coordinate near zero needs almost no error to change sign. (c) A THRESHOLD on sign distance discriminates where the hash cannot, but only at fp32: an fp32 file separates for 6 of 6 models at 31,67x the noise floor in the narrowest case, while at the 8-bit rungs 1 of 12 cells clears a 2:1 margin and 3 invert. The pairing behind (c) was wrong in the first cut of this entry and the numbers here are the corrected ones; the next log line records what the error was, because the wrong reading is the instructive part
+2026-08-31T08:16Z claude note ANSWERED from committed artifacts, for the half that needs no vectors (bench/results/0499-chain-identifier/sign-stability.json, driver bench/sign_stability.py). The repair fails, and it fails twice over. Probabilistically: at X8's worst same-chain fp32 row (multilingual-e5-base, cos_min 0,999974) 1,763 of 768 sign bits move between providers, so an exact sign hash agrees on one vector 17,1% of the time and on a 64-chunk header 8,8e-50 of the time -- a hash over sign bits is no more admissible cross-machine than a hash over bytes, which is what the calibration-header ruling already said about bytes. Mechanically, and independent of any cosine: 0008 measured two dimensions over 95% one-sided on 93 022 real vectors, BOTH of them dimensions the model never activates (mean magnitude 5,66e-33 and 5,54e-08 against a median dimension of 0,03935), so their sign is float noise; an all-or-nothing hash hashes those bits beside the ones carrying the corpus. Three further readings. (a) The committed artifacts CANNOT settle the exact-hash question by themselves: cosine is stored to six decimals, so a row printed 1,0 still admits 0,244 flipped bits at 768 dims -- the vectors are needed, and they are on the author's machine. (b) The identity is a FLOOR, not an estimate: an isotropic control reproduces it (1,765 measured against 1,763 predicted) while a coordinate-wise 8-bit quantization control on a heavy-tailed vector flips 7,76x what the same cosine predicts, because a coordinate near zero needs almost no error to change sign. (c) A THRESHOLD on sign distance discriminates where the hash cannot, but only at fp32: an fp32 file separates for 6 of 6 models at 31,67x the noise floor in the narrowest case, while at the 8-bit rungs 1 of 12 cells clears a 2:1 margin and 3 invert. The pairing behind (c) was wrong in the first cut of this entry and the numbers here are the corrected ones; the next log line records what the error was, because the wrong reading is the instructive part
 
 2026-08-31T08:20Z claude note CORRECTION, same session, before any of this left the branch: the first cut read X8's summary rows as different chains and derived a 9,4x separation from them. They are not -- x8_cross_provider_fidelity.py scores the GPU arm against the CPU arm for the SAME model and the SAME rung, so every summary row is one chain seen twice, and the cross-CHAIN measurement is inside each cell, where quant_fidelity_score scores a dtype against the fp32 rung beside it on one provider. The corrected pairing gives a different and better answer: an fp32 file separates for 6 of 6 models at 31,67x the noise floor in the narrowest case, while at the 8-bit rungs only 1 of 12 cells clears a 2:1 margin and 3 INVERT -- the same chain on the other arm moves more bits than the nearest different chain. The 8-bit boundary is the cost the calibration-header ruling already accepted from the cosine side (device is part of the chain at 8-bit), reached here independently in sign space. What the correction does not touch: the hash verdict, which rests on the fp32 row alone and on 0008's dead dimensions
+2026-08-31T09:07Z claude note SECOND ARM, answering the author's question (is there a dimension reduction that protects cosine): yes, a seeded random projection, and it is strictly better than the sign vector this ticket first proposed. Johnson-Lindenstrauss is multiplicative on distances, so a nearly-identical pair stays nearly identical and the RATIO of the two distances -- which is all identification needs -- survives; sign bits quantize the small angle away instead, which is the whole of why they failed. Measured per model on its own cosines (bench/projection_identity.py, bench/results/0499-chain-identifier/projection-identity.json, 200 simulated headers per width, WORST trial not mean, plus a project-to-source-width control that must reproduce the unprojected ratio): one width serves all six models at 32 dims, 8 192 bytes per header, 24,0x smaller than the full fp32 header, keeping 29,68x of the narrowest unprojected 31,67x. Admissible for three reasons a data-derived basis is not -- drawn from a published seed so it carries no corpus (SECURITY.md lists vectors as an asset), reproducible on both machines from that seed, and distribution-free so 0008's dead dimensions do not weaken it. MRL truncation is model-specific and PCA on the calibration set is circular. It rescues nothing at 8-bit and no projection can: preserving a ratio faithfully is no help where the ratio is already below one. Ticket title widened from sign bits to the compact identifier, since the sign-bit answer is now one negative result inside a larger question
 --- body ---
 ## Context
 
@@ -31,7 +32,7 @@ and the same evidence says what to do instead.
 
 Both halves come from artifacts already in the tree; neither needed a vector
 embedded. `bench/sign_stability.py` derives them and
-`bench/results/0499-sign-hash/sign-stability.json` is its record.
+`bench/results/0499-chain-identifier/sign-stability.json` is its record.
 
 1. **The probabilistic half.** Two unit vectors at angle theta disagree on a
    coordinate's sign with probability theta/pi. At X8's worst same-chain row the
@@ -76,10 +77,49 @@ cosine side — the device is part of the chain at the 8-bit rungs — reached
 independently in sign space, which is some evidence that both readings are of the
 same underlying fact.
 
-So the proposal is narrow: a sign vector carried beside the fp32 calibration
-vectors, never instead of them, as the cheap first read that fails fast on an
-fp32 file. It claims nothing at 8-bit, where the ruling already says a
-GPU-built and a CPU-built file do not merge.
+## The object that carries the margin: a seeded random projection
+
+Sign bits were an attempt to make the header small. The ratio above is what makes
+that question answerable properly: any transform is admissible exactly insofar as
+it preserves the RATIO of the two distances, and that is a much weaker requirement
+than preserving cosine to the precision of the noise floor.
+
+A random projection preserves it, for the one reason sign bits do not.
+Johnson-Lindenstrauss is multiplicative on distances, so a nearly-identical pair
+stays nearly identical: both distances shrink by nearly the same factor and their
+ratio survives. Sign bits quantize the small angle away instead, which is how an
+angle of 0,0072 rad became noise.
+
+Measured over each model's own measured pair of cosines
+(`bench/projection_identity.py`, artifact
+`bench/results/0499-chain-identifier/projection-identity.json`; 200 simulated
+headers per width, worst trial reported rather than the mean, and a control that
+projects to the source width and must reproduce the unprojected ratio):
+
+**One width serves all six models: 32 dims, 8 192 bytes per header — 24,0x smaller
+than the full fp32 header — keeping a worst-case ratio of 29,68x against the
+narrowest unprojected 31,67x.** Most of that steadiness comes from the header
+being 64 chunks: the projection's error is zero-mean, so the aggregate is far
+steadier than any single chunk, which the artifact reports beside it.
+
+Three properties make this admissible where a data-derived reduction is not. The
+matrix is drawn from a **published seed**, so it carries no corpus — SECURITY.md
+lists vectors as an asset, and a basis fitted to the library would put the library
+in every file handed out. It is **reproducible** on both machines from that seed,
+with nothing to transmit. And the guarantee is **distribution-free**, so the
+anisotropy that broke the sign-bit argument does not weaken it.
+
+The two alternatives are worse for this job, and for stated reasons rather than
+taste. MRL truncation is measured here already (`bench/results/0025-x1-recall/`)
+but is model-specific and only defined for MRL-trained models, so it cannot be the
+format's rule. PCA or SVD on the calibration set is circular — the basis would be
+derived from the very vectors being certified — and whitening changes the metric
+the comparison is stated in.
+
+So the proposal is: the header carries `R·v` at 32 dims beside the fp32 calibration
+vectors, never instead of them, as the cheap first read that fails fast. It claims
+nothing at 8-bit, and no projection can: preserving a ratio faithfully is no help
+where the ratio is already below one.
 
 The proposal, and the threshold it needs, are stated in `spec/DECISIONS.md` under
 awaiting ratification. Nothing here changes the ratified header.
@@ -93,9 +133,12 @@ number does.
 
 ## Actions
 
-1. Confirm on real vectors what the cosines only imply: sign-flip counts between
-   the two providers at fp32, on the same rows X8 scored. The vectors are on the
-   author's machine, beside `bench/results/0482-gpu-corrected/cells/`.
+1. Confirm on real vectors what the cosines only imply: sign-flip counts and
+   projected-angle ratios between the two providers at fp32, on the same rows X8
+   scored. The vectors are on the author's machine, beside
+   `bench/results/0482-gpu-corrected/cells/`. The projection arm is
+   distribution-free by construction, so what the real vectors settle there is the
+   ANGLES, not the projection.
 2. Measure the same-machine case ticket 0486 carries — re-embed a fixed probe
    twice, same provider and thread count — and record whether the sign bits are
    identical where the bytes may not be. That is the tripwire's actual claim.

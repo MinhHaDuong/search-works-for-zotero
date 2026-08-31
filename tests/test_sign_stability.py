@@ -112,7 +112,7 @@ def test_the_committed_artifact_still_matches_the_driver():
     import json
 
     committed = json.loads(
-        (REPO / "bench" / "results" / "0499-sign-hash" / "sign-stability.json").read_text(
+        (REPO / "bench" / "results" / "0499-chain-identifier" / "sign-stability.json").read_text(
             encoding="utf-8"
         )
     )
