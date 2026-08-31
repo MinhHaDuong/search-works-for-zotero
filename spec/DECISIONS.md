@@ -2136,6 +2136,53 @@ Sixteen terms, R24 by its page clause alone and R19 by its property clause
 alone. `spec/README.md` is edited to match: five rows, the levels, and the bar
 and counts the guard recomputes.
 
+**2026-08-31 — the ladder is named, and goal 1 keeps its number.** The author,
+asked what would stand below the bundle if its number ranked anything: *write up
+the goals ladder at the end of the sheet.* Two things are ruled by that
+instruction, and a third is deliberately not.
+
+**The ladder is a dependency reading, and it is written in the sheet rather than
+on the status page.** What depends on what is a property of the promises
+themselves, so it belongs beside them; where each bundle *stands* remains
+`spec/README.md`'s, and the ladder states no standing.
+
+**Goal 1 keeps its number.** The name is a label and ranks nothing — ruled
+2026-08-31 — so a bundle that sits third in dependency order is not renamed to
+match. Renumbering would rewrite every reference in this ledger, the page, the
+guards and the tickets, to move a label that was never a rank. The ladder says
+where goal 1 sits and leaves its name alone.
+
+**What is NOT ruled: the two lower rungs' rosters.** Goal 1's membership is a
+ruling with a machine-readable line and a guard that fails the build when the
+page and the ledger disagree. The rungs below it have neither, and this entry
+does not give them one. They are named, their candidate members are listed, and
+the sheet says in terms that only goal 1's roster is ruled — because a bundle
+with an unruled roster that reads like a ruled one is exactly the drift the
+instruments roster died of.
+
+The rungs, in the user's own terms. **It is mine, and I can leave** — R10, R15,
+R22, R31: nothing leaves the machine unasked, deleting the data directory is the
+whole uninstall, one obvious switch stops the work, and a configuration proves
+it runs here before it is used. This is the entry condition: nobody points an
+indexer at a real library for a day unless trying it is reversible. **It survives
+the second day** — R3, R13, R23: cost proportional to what changed, two
+processes on one data directory, an index under another schema version ending up
+served. Then goal 1 above them.
+
+Two consequences worth recording, because neither was visible before the rungs
+were drawn. The durability rung **precedes** goal 1 rather than following it: R32
+admits a build that runs for a day, and an index a second process corrupts or a
+version flip abandons mid-build never reaches the state goal 1 measures, so
+these promises are what make arrival possible rather than what protects it
+afterwards. And R23, refused as a term this morning and folded into R1's
+assertion, is that rung's charter member — the refusal was about which
+conjunction it belongs to, never about whether it matters.
+
+**R5 is on no rung.** It is the one residual promise the sheet has that the
+design answered negatively — the constrained path lost to ranking everything —
+and its user-facing residue moved into goal 1 as R18. A decided question with
+its promise already rehoused is not a goal.
+
 
 ## Awaiting ratification
 

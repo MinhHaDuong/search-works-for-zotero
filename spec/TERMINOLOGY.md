@@ -107,18 +107,25 @@ entry points at the question rather than settling it; rulings land in
   indexed for body text, the deterministic first appearing in the full-text
   census, with a stored reason for each attachment skipped. Authoritative:
   REQUIREMENTS.md D6; the choice function is DESIGN.md §2.3.
-- **goal 1** — the bundle of promises that must all hold for the upstream
-  README's opening promise, made strong, to be kept. A conjunction, not a
-  queue: the number names the bundle and ranks nothing, and the goal is kept
-  only when every term is. Authoritative: README.md in this directory, which
-  carries both rosters and recomputes the bar; the membership was ruled in
-  DECISIONS.md (2026-08-31).
-- **term / instrument** — the two halves of a goal's roster. A term is a
-  property the user meets, and the conjunction runs over terms alone; an
-  instrument is what decides whether a term holds, named beside the bundle
-  rather than counted in it. Sorted by one question per clause: if this clause
-  fails and nothing else changes, is what the user can know or do any
-  different? Authoritative: DECISIONS.md (2026-08-31).
+- **goal 1** — the bundle of promises that must all hold for one promise stated
+  in the user's own terms, *search all of my library*, to be kept. A
+  conjunction, not a queue: the number names the bundle and ranks nothing, and
+  the goal is kept only when every term is. It is the MVP, and the MVP is
+  *works for me* — the acceptance standard is the author's own library rather
+  than a fixture. Authoritative: README.md in this directory, which carries the
+  roster and recomputes the bar; the membership was ruled in DECISIONS.md
+  (2026-08-31).
+- **goals ladder / rung** — the dependency reading over goals: which promises
+  have to hold before another bundle can be kept at all. A rung is one bundle
+  in it. The ladder ranks nothing and schedules nothing, and only goal 1's
+  roster is ruled — the rungs below it carry candidates, so nothing checks
+  them. Authoritative: REQUIREMENTS.md, last section.
+- **term** — a property the user meets, and what a goal's conjunction runs
+  over. Binding is per clause rather than per requirement, so one item can be
+  in by one clause and out by another. Sorted by one question per clause: if
+  this clause fails and nothing else changes, is what the user can know or do
+  any different? Its retired counterpart, *instrument*, is in the historical
+  section. Authoritative: DECISIONS.md (2026-08-31).
 - **key** — the recorded identity of the inputs that produced a piece of
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: CONSTRAINTS.md C1; the
@@ -261,6 +268,11 @@ one dates the text rather than sending the reader hunting.
 
 - **corpus-critic M4** — a panel-era label for one of the cycle-two critique
   seats. Historical: it named a session role, never a component.
+- **instrument** — the other half of what a goal's roster once carried: a thing
+  that decides whether a term holds, named beside the bundle rather than
+  counted in it. Historical since 2026-08-31, when the apparatus items left the
+  sheet on the criterion that what verifies a promise is not itself a promise,
+  which removed the roster's subject entirely. A goal keeps one roster now.
 - **graft** — a panel-era word for attaching new machinery onto an existing
   pipeline stage. Historical: removed from the chain by ticket 0036's rewrite,
   which required every term of art to be defined where it first appears.
