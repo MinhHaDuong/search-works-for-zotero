@@ -99,7 +99,7 @@ input triggered it, so one edited item shows up as one unit of work rather than
 as a wave. Status MUST name the execution device actually serving, on every
 machine, since a user who cannot see that cannot explain the speed they get.
 
-**R32. Buildtime.** On a laptop-class machine with no GPU, a first build with
+**R32. Buildtime.** On a laptop-class machine with no GPU, a full build with
 the default configuration MUST index at 150 ms per passage or better, which for
 a 15k library means records searchable within one hour and body text within a
 day. It SHOULD reach 75 ms per passage, which halves both figures.
@@ -114,7 +114,12 @@ which is ruling 2's class order seen from the clock. The machine is named
 because a time bound with no machine attached is not a bound; which laptop, and
 the arithmetic from the measured passage count, are DESIGN.md §2.8's. Finishing
 today is a property of the configuration rather than of the hardware, which is
-why this is its own promise and not a clause of one about GPUs.
+why this is its own promise and not a clause of one about GPUs. A full build and
+not only the first, ruled 2026-08-31: a rebuild from nothing is the same work on
+the same machine, and a user whose index was abandoned under a foreign schema
+stamp waits exactly as long as one who has just installed. What these bounds are
+not is a library already in service, where R3 bounds the cost of staying current
+and R35 the delay before a change is noticed.
 
 ### Change and cost
 
@@ -140,7 +145,7 @@ current — R3 bounds what it costs, this bounds how long it takes — and they
 fail apart, since a library can be re-indexed at exactly the right cost and
 still take a day to notice a deletion. R1 says an item becomes searchable and
 never says when the system learns it exists; R15 says deleting removes text
-everywhere and never says when; R32's bounds are the first build's, not those
+everywhere and never says when; R32's bounds are a full build's, not those
 of a library already in service.
 
 ### Corpus

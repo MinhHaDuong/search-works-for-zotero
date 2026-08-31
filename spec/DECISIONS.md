@@ -1971,6 +1971,87 @@ still point at DESIGN.md. Neither is a value — they are mechanisms the sheet
 deliberately does not fix, on R5's lesson that the obligation is on the honesty
 of the result and never on which operator enforces it.
 
+**2026-08-31 — goal 1 is kept by reaching the state, R23 does not join the
+terms, and its clause folds into R1's assertion.** The author's ruling on the
+question the perimeter review left behind, taken with a second on the scope of
+R32's bounds. This settles the last of the review's findings; nothing of it
+outlives this entry.
+
+**Reaching, and the reading was never open.** The choice was put as a choice and
+it is not one: the terms' own grammar forecloses it. R32 is *the build finishes
+today* — an event with a clock, which cannot be held, only reached — and R1 is
+*becomes searchable*. A conjunction cannot be evaluated over members of two
+temporal types, so goal 1 speaks to a state reached, or half its members want
+rewriting into properties they were never drafted as. Goal 1 therefore says so
+in words on `spec/README.md`, where it said nothing before and a reader supplied
+the duration themselves.
+
+**R23 stays out of the terms, and the case for admitting it is answered rather
+than overruled.** The case is real — a version rollback is a mundane, in-scope
+event, and after it the library is not searchable at all, which is closer to the
+promise's own words than anything R11 ever was. Three things answer it. **R4 is
+already out**: *the index answers at every moment of its life, including during
+its first build* is the sheet's own home for an empty or rebuilding index, and
+admitting R23 on the empty-index worry while the direct case sits outside would
+be incoherent. **R14's precedent fits exactly**: R14 kept its MUST and its row
+and stopped being a term because its only failure mode reaches the user as R1
+failing, and R23's abandonment case reaches the user the same way — the library
+is not searchable until R1 re-earns it, unattended. **What survives that fold is
+a cost promise**: after an abandonment nobody deletes anything by hand and
+coverage regrows unasked, so R1 is kept on its letter and what the user actually
+loses is a day. Bounding that day is R3 and R32's family, and R3 stayed out of
+the bundle on step 1's *stale still answers*.
+
+So Wednesday is not unowned. Under reaching, an event that empties the index
+restarts the same promise, and the bundle's terms already say what has to happen
+next and how fast.
+
+**The fold is where option (ii) alone would have lost something.** Ruling only
+that the event is R1's to repair would take the failure mode out of the bundle
+and out of the harness in one move. Instead, on R14's pattern, R23's clause
+becomes part of R1's assertion: ticket 0026's convergence harness asserts that
+after a schema-version flip in either direction, coverage returns unattended,
+with no file deleted by hand, inside R32's bounds. R23 keeps its MUST, its row
+and its own stronger promise — that migration ought to make the rebuild
+unnecessary at all — which is filed upstream as issue #34 and is not goal 1's to
+carry.
+
+Goal 1 binds: R1, R6, R7, R8, R12, R16, R17, R19, R32, R33, R34.
+
+Eleven terms, unchanged, restated because this entry ruled on a twelfth.
+
+**R32's bounds are any full build's, not only the first.** The second ruling,
+and the one that makes the first bounded rather than rhetorical. R32 read *a
+first build*, which left the rebuild after an abandonment bounded by nothing —
+the same work, the same machine, the same default configuration, and no promise
+about it because of how it was reached. The bounds now bind whenever the system
+builds from nothing, however it got there. What does not move is the line R35
+draws beside it: these are a full build's bounds and never those of a library
+already in service, where R3 bounds the cost and R35 the delay. `spec/REQUIREMENTS.md`
+R32 and R35 and `spec/DESIGN.md` §2.8 are edited to match; no number changes.
+
+
+**2026-08-31 — ticket 0320 is closed won't-do, and "rescoped, not dropped" is
+superseded.** The author, asked which of two decisions on the same ticket was
+live — the close of 2026-08-30 (git history already preserves the append-only
+ledger, and a committed per-entry census is maintenance machinery
+disproportionate to the residual merge-resolution risk) or the rescope of
+2026-08-31 (the program drops, one property survives: the ratified entry count
+never decreases) — ruled the close. The rescope is the later text but not the
+later decision; it was written before the question was put.
+
+So the fifteen-line residue goes with the rest of it. The sabotage proof stands
+as a description and not as a commitment: a whole ratified entry can be deleted
+and `make check` stays green, and nothing will now notice. What the repo relies
+on instead is git, which holds every prior text of the ledger, and review of the
+diff that edits it — which is what the close said in the first place.
+
+This is a new entry rather than a correction because the excess-weight ruling
+above says, in terms, that ticket 0320 is rescoped and not dropped, and that
+entry is ratified. The ledger is append-only, so a reversal names what it
+reverses and leaves it standing. That is this ticket's own subject settled by
+the rule rather than by the guard it asked for.
+
 
 ## Awaiting ratification
 
@@ -1987,20 +2068,6 @@ of the result and never on which operator enforces it.
   the largest document in the repo, a dated snapshot that is authoritative for
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.
-
-- **Is goal 1 kept by reaching the state or by holding it, and does R23 belong
-  to the terms (raised by the perimeter review of 2026-08-31, whose other
-  findings are consumed; see the closing entry above).** The bundle's terms all
-  read as properties of a state reached: the perimeter is covered, the languages
-  work, the build finished, the answers come back. Step 1 settled the
-  neighbouring case in that direction — counter churn does not unmake
-  searchability, because the old vectors keep answering, so freshness currency
-  is a different promise. R23 is the case that reading does not cover: an index
-  written under an abandoned schema version ends up empty until R1 re-earns it,
-  and an empty index has nothing to answer with, so a promise kept on Tuesday is
-  falsified on Wednesday by an event inside its own perimeter. Two ways to
-  settle it, and either is a ruling: R23 joins the terms, or goal 1 says in
-  words that it speaks to reaching the state and R23's event is R1's to repair.
 
 - **Reading AGPL source in order to reimplement it is unpriced, and ticket
   0031 is where it lands (session finding, 2026-08-30).**
