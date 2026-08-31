@@ -1018,15 +1018,28 @@ the evidence bar for a claim, a number, or a sentence sent to the maintainer.
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.
 
-- **Ticket 0400's honest exit: which requirement rows stay read-only (raised
-  2026-08-31).** The tracker plans a forty-clause conformance suite for a
-  codebase this repo does not control, whose maintainer has reimplemented its
-  seams. Its own body already names the alternative exit — "the author rules
-  that some rows will stay read-only and says which" — and taking it is the
-  single largest scope reduction available. The evidence column stands at 11
-  measured, 11 read in the source, 9 inferred. What is needed is not a
-  verdict on the tracker but a list: which rows are worth a harness, and which
-  are recorded as read-in-the-source permanently.
+- **Ticket 0400 is NOT dissolved — withdrawn 2026-08-31, same day it was
+  raised, on reading the parallel session's branch.** This slot briefly held a
+  proposal to close 0400, fold it into 0029/0026/0032, and move R19, R20, R21
+  and R26 out of REQUIREMENTS.md into DESIGN §2.8 as the gate spec they read
+  as. It is withdrawn unrun: the author ruled the opposite way earlier the same
+  day on branch `claude/specs-readme-completion-wkn65m`, and ruled better. That
+  work found the same structural defect — the roster mixes the promise's terms
+  with the apparatus that decides them — and answered it by distinguishing
+  *terms* from *instruments* inside the sheet rather than by moving the
+  apparatus out. R19's cadence clause and R26 are named instruments of goal 1,
+  so relocating them would break a ratified conjunction. The sheet also gained
+  R32 there, going to thirty-two rather than the twenty-seven this proposal
+  implied.
+
+  Recorded rather than silently dropped, because the near-miss is the finding:
+  a session reasoning only from its own branch produced a well-argued change
+  that contradicted a ruling made hours earlier, and nothing in the repo would
+  have caught it before the merge. The excess-weight ruling above stands as
+  ratified — it touched no requirement and no goal — but its reach stops at
+  the guards it names. `bench/check_progress.py` is expressly NOT among them:
+  under the test-board reading it keeps a ratified membership from being lost
+  to a page edit, which is the ledger-protection class this repo keeps.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
