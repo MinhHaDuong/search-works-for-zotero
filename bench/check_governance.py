@@ -62,6 +62,16 @@ SCANNED = [
     "spec/DESIGN.md",
     "verification/FIELD-REVIEW.md",
     "spec/TERMINOLOGY.md",
+    # The upstream PR bodies. A new document class, and the one that matters most
+    # here: everything below the rule in these files is verbatim text SENT to the
+    # maintainer, on a repository he reads. CLAUDE.md's one non-negotiable —
+    # never put this repo's governance or its reading of him into upstream text —
+    # had until now no mechanical enforcement on the outgoing side at all, only
+    # on ours. These files close that, and they are scanned WHOLE: the internal
+    # head note above the rule says what the document is and where the branch
+    # sits, which is exactly the kind of sentence that must not drift downward
+    # into the body. Scanning only below the rule would license writing it above.
+    "verification/UPSTREAM-PR-0091-DROPLIST.md",
 ]
 
 #: Not scanned, and each for its own reason. GOVERNANCE.md owns the bounds.
@@ -88,10 +98,18 @@ UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.m
 #: someone puts it in one list or the other, which takes one line and one
 #: moment's thought at the only time anybody has the context to spend it.
 #:
-#: verification/ is deliberately outside this scope. CLAUDE.md classifies it as
-#: evidence rather than authority, a different object class from the documents
-#: whose governance vocabulary this guard polices.
-COVERED_GLOBS = ["*.md", "spec/*.md"]
+#: Most of verification/ is deliberately outside this scope. CLAUDE.md classifies
+#: it as evidence rather than authority, a different object class from the
+#: documents whose governance vocabulary this guard polices.
+#:
+#: `verification/UPSTREAM-*.md` is the exception, and it is the sharpest case the
+#: completeness check has: those files are not evidence, they are OUTGOING TEXT,
+#: and a governance sentence that reaches one of them reaches the maintainer.
+#: The glob is here rather than the filename so the SECOND such document cannot
+#: arrive unread — which is precisely how FIELD-REVIEW.md spent months outside
+#: the gate, and precisely what ticket 0221 named. A verification report that is
+#: not an upstream body still needs no entry.
+COVERED_GLOBS = ["*.md", "spec/*.md", "verification/UPSTREAM-*.md"]
 
 #: The named process bounds. Each is a rule the author ratified about how this
 #: repository conducts itself upstream — not a fact about the world, and not a

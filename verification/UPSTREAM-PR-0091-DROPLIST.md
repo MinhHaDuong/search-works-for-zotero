@@ -99,7 +99,7 @@ an order of magnitude between two structurally identical files and was discarded
 | arm | p50 | p95 |
 |---|---:|---:|
 | v1.12.0 as it stands, 29-word list | 222 ms | 392 ms |
-| stoplist deleted, nothing pruned | 1012 ms | 1151 ms |
+| stoplist deleted, nothing pruned | 1 012 ms | 1 151 ms |
 | this PR: droplist + degeneracy fallback | 282 ms | 696 ms |
 
 Fidelity against the current release: mean Jaccard 87% over the twenty result sets, no

@@ -560,10 +560,15 @@ FIGURES = [
      {"t0091": "near the {} ms the sweep predicted"}),
     # ---- The same measurement as the upstream PR body carries it. Rounded to whole
     # milliseconds, deliberately: that document is written for a reader outside this repo,
-    # where a decimal comma reads as a typo, and `places=0` renders a figure both notations
-    # spell the same way. The p95 anchors embed their row's p50 because a markdown table
-    # gives them no other left-hand boundary — a one-way coupling, so a p50 edit fails its
-    # neighbour too, which is the safe direction.
+    # where a decimal comma reads as a typo, and an integer has no decimal mark to disagree
+    # about. The THOUSANDS mark still does — the document writes `1 012 ms` beside its
+    # `477 512` and `639 888`, consistently with itself, and despace() is what lets the
+    # anchor match either way. So `places=0` sidesteps the decimal question and nothing
+    # else; the spaced form in the anchors is not decoration.
+    #
+    # The p95 anchors embed their row's p50 because a markdown table gives them no other
+    # left-hand boundary — a one-way coupling, so a p50 edit fails its neighbour too, which
+    # is the safe direction.
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p50_ms", 0,
      {"u0091": "29-word list | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p95_ms", 0,
@@ -571,7 +576,7 @@ FIGURES = [
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 0,
      {"u0091": "nothing pruned | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 0,
-     {"u0091": "nothing pruned | 1012 ms | {} ms |"}),
+     {"u0091": "nothing pruned | 1 012 ms | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p50_ms", 0,
      {"u0091": "degeneracy fallback | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 0,
