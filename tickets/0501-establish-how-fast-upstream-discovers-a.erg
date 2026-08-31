@@ -6,6 +6,7 @@ Author: Claude
 --- log ---
 2026-08-31T15:45Z Claude created
 
+2026-08-31T15:51Z R35 states its own number now (author, 2026-08-31): one minute, no delegation to 2.4. Two consequences land here. The item census moves to every tick, so this ticket measures what that costs per tick — the full-text census beside it is measured at ~8 037 entries and the item one is not. And the exit criterion that would have confirmed or re-pinned 2.4's values is now narrower: the bound is ruled, so a measurement that comes out badly is a finding about the tick cadence, not about the minute
 --- body ---
 ## Context
 R35 entered the sheet on 2026-08-31 with an `inferred` standing row, which is

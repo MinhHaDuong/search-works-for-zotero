@@ -1916,6 +1916,34 @@ goal is kept by reaching the state or by holding it. A bundle should not gain a
 member as a side effect of a new requirement being filed.
 
 
+**2026-08-31 — a requirement is readable, and it states its number: the
+discovery bound is one minute.** The author, on R35 as filed an hour earlier:
+*R must be readable. Do not start reintroducing variables. Bound is 1 mn.*
+
+R35 said "inside the discovery bound" and delegated the value to DESIGN.md
+§2.4. That is a variable: the reader of the sheet is sent to another document
+to find out what was promised, and a coined name for a number reads as
+machinery rather than as a promise. R35 now says one minute, in the sentence,
+and the glossary entry that defined the name is deleted. The precedent it was
+built on — R6 pointing at §2.9 for the latency budget — is not touched here,
+but it is the same defect and R32 carries two of them.
+
+What R35 promises, said plainly: the system notices a new, changed or deleted
+item within one minute. Noticing is not indexing, so a 15 000-page PDF is
+noticed as fast as a note and indexed a great deal slower. Deleting is the
+strict case, because removing text costs nothing: deleted text stops being
+served inside the same minute. A Zotero that is not running has nothing to
+report, so the minute starts when it comes back.
+
+Two design consequences, both executed. The 60 s reconcile tick is what
+delivers the minute, and §2.4 now says so — worst case is one full tick.
+Deletion subtraction moves from every tenth tick to every tick: the old cadence
+disclosed ≤ ~10 min, which the promise no longer allows. What the item census
+costs per tick is unmeasured, unlike the full-text census beside it, so ticket
+0501 measures it; if it proves too expensive to run every minute, that is a
+finding about the cadence and never about the bound.
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

@@ -389,7 +389,10 @@ from there.
 The reconcile tick asks Zotero what changed and queues the work. It does not
 extract anything itself. It is conductor-owned (§2.5), runs every 60 s when
 idle, backs off when Zotero is unreachable, and schedules the **extract shim**,
-which runs to drain. The shim talks to Zotero only. It drains the extract-stage
+which runs to drain. The 60 s cadence is what delivers R35's one-minute
+promise, so the worst case is one full tick: a change landing just after a tick
+waits for the next. Backing off is not a violation — a Zotero that is not
+answering has nothing to report, and R35 starts its minute when it comes back. The shim talks to Zotero only. It drains the extract-stage
 ledger queue and keeps the bookkeeping that makes extraction converge, and
 converge to the latest extractor: the item cursor, the full-text census,
 extractor-version staleness, and per-attachment truncation flags. Three things
@@ -414,10 +417,14 @@ per library.
    50 ms at 30k entries, the cadence backs off to every 5th tick — a decision
    rule, not a hope.
 
-3. **Deletions.** Subtract the item census every 10th tick, which discloses a
-   deletion latency of ≤ ~10 min; the `sync` verb forces it immediately. The
-   local API has no `/deleted` endpoint (C2), so census subtraction is the only
-   local route.
+3. **Deletions.** Subtract the item census every tick, because R35 gives
+   deleting a one-minute bound and the tick is what delivers it — an earlier
+   every-10th-tick cadence disclosed ≤ ~10 min and no longer meets the
+   promise. The `sync` verb still forces it immediately. The local API has no
+   `/deleted` endpoint (C2), so census subtraction is the only local route.
+   What the item census costs per tick is unmeasured, unlike the full-text one
+   above; ticket 0501 measures it, and if it proves too expensive to run every
+   minute the finding is about the cadence, never about the bound.
 
 The shim passes Zotero's bytes through unchanged. The local API serves the
 cache bytes as they are, blank lines and form-feed page boundaries included

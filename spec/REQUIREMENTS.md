@@ -75,8 +75,7 @@ without anyone asking for it, and no state MUST ever need a manual rebuild.
 
 Coverage MUST grow in ruling 2's class order, newest-first inside each class:
 the crawler works a priority order, not a page cursor, and recency orders
-*coverage*, not answers. What is indexed before what is ruling 2's; the
-recency inside it is this promise's. An attachment that yields no
+*coverage*, not answers. An attachment that yields no
 text MUST be treated as done rather than retried forever — it counts as covered,
 marked metadata-only, its reason recorded and reported — so full coverage stays
 reachable and honest at once. Per D8 below, OCR is out for now and the stage keys
@@ -122,17 +121,21 @@ version counters MUST re-embed nothing whose bytes are unchanged. This project
 once shipped a defect that re-marked 92,7 % of a library as changed, forever,
 and that is the cautionary example the clause exists for.
 
-**R35. Discovery.** A new, changed or deleted item MUST become visible to the
-index inside the discovery bound, with no one asking.
+**R35. Discovery.** The system MUST notice a new, changed or deleted item
+within one minute, without anyone asking.
 
-This is the other half of staying current: R3 bounds what it costs, and this
-bounds how long it takes. They fail apart — a library can be re-indexed at
-exactly the right cost and still take a day to notice a deletion — which is why
-they are two promises. The bound's value belongs to DESIGN.md §2.4, which owns
-the reconcile cadence and the disclosed deletion latency, on R6's pattern.
-Nothing else in this sheet states it: R1 says an item becomes searchable and
-this says when the system learns there is one; R32 bounds the first build and
-not the steady state; R15 owns what deleting removes and this owns when.
+Noticing is not indexing. A new or edited item is queued inside the minute and
+becomes searchable in its class's turn, so a 15 000-page PDF is noticed as fast
+as a note and indexed a great deal slower. Deleting is the strict case, because
+removing text costs nothing: text the user deleted MUST stop being served
+inside the same minute. When Zotero is not running there is nothing to notice,
+and the minute starts when it comes back. This is the other half of staying
+current — R3 bounds what it costs, this bounds how long it takes — and they
+fail apart, since a library can be re-indexed at exactly the right cost and
+still take a day to notice a deletion. R1 says an item becomes searchable and
+never says when the system learns it exists; R15 says deleting removes text
+everywhere and never says when; R32's bounds are the first build's, not those
+of a library already in service.
 
 ### Corpus
 

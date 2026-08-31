@@ -80,10 +80,6 @@ entry points at the question rather than settling it; rulings land in
 - **custody string** — the one-line statement, carried on every reply, of where
   the query text and the library text went. Authoritative: REQUIREMENTS.md
   R10; the mechanism is DESIGN.md §2.7.
-- **discovery bound** — how long the system may take to notice that an item
-  was added, changed or deleted. Authoritative: REQUIREMENTS.md R35 for the
-  promise, DESIGN.md §2.4 for the value, which is the reconcile cadence and the
-  disclosed deletion latency.
 - **entry** — the unit of answer: a section of a document rather than the
   document, so an encyclopedia is one item and many entries. Authoritative:
   REQUIREMENTS.md, the first ruling; the storage layer is DESIGN.md §2.2.
