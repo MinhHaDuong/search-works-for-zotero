@@ -5,9 +5,8 @@
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
 every design number: the gate thresholds (§2.8), the experiment decision
 rules (§3), and the budgets (§2.9). Its place in the authority chain is
-stated once, in README.md. The raw panel record is in git history, last
-present at commit `e32afe3` as `panel/cycle2/`; where it disagrees with this
-document, this document is the record. The predecessor design (cycle 1's
+stated once, in README.md. The raw panel record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31); where it once disagreed with this
+document, this document was already the record, and is now the only one. The predecessor design (cycle 1's
 "The Settled Ledger", called v1 below) is superseded and lives in git
 history.
 
@@ -60,8 +59,8 @@ sideline-never-delete (an unreadable index file is moved aside, never
 deleted), the recovery-verb grammar, and the failure policy. The failure
 policy
 (transient/persistent split, bisection quarantine, reachability gating,
-backpressure counted in items; mechanism spec unchanged from v1 §2.6, in
-git history) carries two amendments. Quarantine auto-clear now keys on the
+backpressure counted in items; mechanism spec unchanged from v1 §2.6, whose
+document is lost) carries two amendments. Quarantine auto-clear now keys on the
 *content* signal chain, not on raw counter movement, so a resync cannot
 mass-replay every poison input. And R14's terminal states (`empty`) are
 *done*, not failures: different bookkeeping, different sentence in status.
@@ -111,9 +110,10 @@ B, §4): shipping item-collapse now would ship exactly the framing the entry
 ruling rejected.
 
 The full verdict-by-verdict record (what survived, what was amended by
-which critique, what died and what killed it) is in git history: this file
-before the plain-language rewrite, and `panel/cycle2/` as of commit
-`e32afe3`.
+which critique, what died and what killed it) no longer exists. It lived in
+this file before the plain-language rewrite and in `panel/cycle2/`, both of
+them only in the pre-restart history, abandoned by ruling (DECISIONS.md,
+2026-08-31). The narrative above is what remains of it.
 
 ---
 
@@ -588,6 +588,20 @@ query time from facet tables joined to ledger terminal states, deliberately
 one). Under a strict query, one relaxed soft-MATCH count offers the
 drop-the-quotes alternative.
 
+**Cross-lingual (R29).** Keyword search cannot cross languages: FTS5 and
+`bm25()` have no path from "hydropower" or "hydroélectricité" to "thủy điện",
+whatever the tokenizer folds. The embedding space is the only channel, so the
+promise stands or falls on the embedder and rides the semantic path with no new
+query-side machinery. On such a query the keyword list is empty or noise, so
+fusion has to let a semantic hit surface without keyword confirmation — the
+`frac_vec` question ticket 0031 owns, with the cross-lingual slice as its
+hardest case. When the semantic path is unavailable the reply carries a typed
+`CROSS_LINGUAL_DEGRADED` disclosure beside R18's sentences, the CJK posture
+below transposed. Alignment is a property of the embedder's training and varies
+by language pair, so it is measured per candidate at the deployed dtype rather
+than read off a model card; ticket 0266 is that measurement, and R29 is a
+conformance criterion in the registry's ship gate (ticket 0495).
+
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
 2-gram twin tables (#6012's shipped geometry, and decisive on its own
@@ -785,7 +799,10 @@ its subtraction terms, not only pass on the gentle one.
   happened). Re-pins are commits
   whose set diff is the review artifact, and the golden set is re-pinned at
   entry granularity when entries exist; until then it gates item
-  projections and says so.
+  projections and says so. The corpus carries a cross-lingual slice — EN and
+  FR queries whose answer sets are Vietnamese entries — gated separately from
+  the monolingual queries, so a regression names which of R7 and R29 it broke.
+  Ticket 0029 builds it.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
   kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
@@ -921,7 +938,7 @@ rather than a MUST.
   parallel to, and never a blocker for, registry entries or validation.
 
 **Rejected this cycle, for the record** (each killed by a verified fact or a
-critique; details in git history): cursoring any fulltext sequence on the
+critique, whose details are lost with the pre-restart history): cursoring any fulltext sequence on the
 local transport, a universal fulltext census across transports (it would
 hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered token
 stream for phrase parity, the always-resident dual model, the 0.5 golden
@@ -934,9 +951,10 @@ deletions, and the "contained" D3 PR as first proposed.
 
 ## 4. The increment sequence from v1.7.0
 
-*(Re-formed 2026-08-26 by the political and implementation reviews, in git
-history at `e32afe3` as `panel/cycle2/`, and ratified in DECISIONS.md. The
-original fifteen-step train is in git history at `dba8cd6`.)*
+*(Re-formed 2026-08-26 by the political and implementation reviews and
+ratified in DECISIONS.md. Both those reviews and the original fifteen-step
+train are gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31): what
+survived the re-forming is this section.)*
 
 Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
 SYNC.md's measured asymmetry governs the form each item takes: a contained
@@ -979,8 +997,11 @@ authoritative for content, this list for ordering.
 8. **The curated embedder registry** (tracker 0488) — singleton extraction;
    authoritative fields and parity; curated entries plus entry-id selection;
    local automatic compatibility validation; optional content-free
-   attestations; then the separate golden and resource gate that decides what
-   ships. The autonomous-service experiment (0491) reuses the interface seam
+   attestations; then the separate gate that decides what ships — R7 and R29
+   conformance first and untraded, the golden and resource gates choosing
+   among the entries that pass it (ticket 0495; the ruling on why the swap
+   happens at all is DECISIONS.md 2026-08-31).
+   The autonomous-service experiment (0491) reuses the interface seam
    but does not block this sequence. One upstream design issue carries staged
    acceptance tests; it is not a prepared PR series.
 9. **The commitment bounds** — stated in GOVERNANCE.md, ratified in

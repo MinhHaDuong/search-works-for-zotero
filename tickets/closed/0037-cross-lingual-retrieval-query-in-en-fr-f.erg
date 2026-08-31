@@ -1,0 +1,45 @@
+%erg 0.1
+Title: Cross-lingual retrieval: query in EN/FR finds Vietnamese content
+Created: 2026-08-27
+Author: claude
+Closed: R29 ratified amended 2026-08-31; the proposal landed in the chain and this body is now pointers
+
+--- log ---
+2026-08-27T06:44Z claude created
+
+2026-08-27T06:50Z claude note author-flagged priority; body carries the proposal awaiting ratification
+
+2026-08-30T11:36Z claude note evidence lands in tickets/0266 (measurement only; this ticket's proposal text is untouched). Headline: an EN/FR query does retrieve the right non-English passage above chance and well above the English-only CONTRAST baseline (0,12 hit@10) at every candidate and every deployed dtype, but the negative control (unrelated queries must not retrieve a gold passage) fires clean at every dtype for only two of six candidates -- multilingual-e5-small and multilingual-e5-base -- making those two the only ones whose cross-lingual figures carry no caveat. multilingual-e5-base q8: en->vi hit@10 0,88, fr->vi 0,62, en->de 0,50, fr->de 0,88, en->ru/fr->ru 1,00 (n=4, thin). Full per-pair table, both controls, and the caveat mechanics: tickets/0266-cross-lingual-probe-on-the-multilingual.erg log, and bench/results/0266-cross-lingual/SUMMARY.json.
+2026-08-31T06:00Z claude note raised in priority by the 2026-08-31 ruling: the swap's motivation is multilinguism, so whether R29 (cross-lingual) joins R7 as a criterion in 0495's ship gate is now on the selection path rather than a later sharpening. The ledger entry names it as what it does not settle. 0266's evidence already narrows the field if R29 is admitted -- the negative control clears at every deployed dtype for only two of six candidates
+2026-08-31T06:33Z Claude closed — R29 ratified amended 2026-08-31; the proposal landed in the chain and this body is now pointers
+--- body ---
+## Ratified 2026-08-31 — the proposal is the chain's now
+
+R29 entered the sheet on the author's ruling, amended in three places; the
+ruling and its amendments are in `spec/DECISIONS.md`. Nothing in this ticket is
+authoritative any more. Where each part of the former proposal now lives:
+
+| what | owner |
+|---|---|
+| R29 itself, and query translation being out of scope | `spec/REQUIREMENTS.md` |
+| the ruling, and the amendments to the proposal as drafted | `spec/DECISIONS.md` |
+| the mechanism -- the embedding space as the only cross-lingual channel, the fusion seam, the typed degradation disclosure | `spec/DESIGN.md` 2.6 |
+| the cross-lingual slice of the golden gate, separately gated | `spec/DESIGN.md` 2.8; ticket 0029 builds it and pins its thresholds |
+| R29 as a conformance criterion in the embedder ship gate | ticket 0495 |
+| the measurement, per language pair and per deployed dtype, with both controls | ticket 0266, `bench/results/0266-cross-lingual/` |
+| where each requirement stands, R29 included | `spec/README.md` |
+
+The proposal's "new experiment X8" was not carried. The label had since been
+taken by cross-provider fidelity (`spec/DESIGN.md` 3), and ticket 0266 had
+already run the measurement it asked for, so no experiment label was allocated
+and the design cites the evidence instead. The proposal's CONSTRAINTS.md
+sharpenings were not carried there either: they are facts about the two query
+paths, so they landed with their owner in `spec/DESIGN.md` 2.6.
+
+## Exit criteria
+- [x] Proposal put to the author; the ruling lands in DECISIONS.md
+- [x] REQUIREMENTS.md gains R29 and the out-of-scope sentence; DESIGN.md 2.6
+      and 2.8 gain the amendments; this body becomes pointers
+- [x] No experiment label allocated -- amended away, the measurement existed
+- [x] 0029's scope extended with the cross-lingual slice
+- [x] make check green

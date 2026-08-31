@@ -15,8 +15,9 @@ Author: claude
 2026-08-30T17:04Z claude note #6012 CHECKPOINT READ 2026-08-30, at source rather than by page fetch (clone of zotero/zotero, PR head fetched as refs/pull/6012/head). VERDICT: seg/1 is NOT obsoleted; build it. State: still DRAFT, head 77e2c4b (Bogdan Abaev, 'fix stale test', authored 2026-08-28) -- the same SHA CONSTRAINTS.md read on 2026-08-29, so the PR has not moved in the interval. NOT merged: 77e2c4b is not an ancestor of origin/main (main tip bccaf46, 2026-08-27), true merge-base 3af8cea (2026-08-05), 50 commits ahead. The PR adds embeddings.js, lexical.js, bestMatch.js and ml.js and modifies fulltext.js and sdt.js, and none of it is on main. THE DECIDING FACT is not the PR's state but the API surface: sdt.js already ships on main, so structured extraction exists in the application today, yet server_localAPI.js on main carries ZERO sdt/structured references -- the only text surface is flat /fulltext, read from Zotero.Fulltext.getItemCacheFile(). Structured extraction therefore does not reach the consumer zoteus is, whether or not #6012 merges, and heuristic segmentation over flat text stays the only available path. Re-open this checkpoint if the local API gains a structured-text endpoint, not merely if #6012 merges
 --- body ---
 ## Context
-Missing work the implementation review surfaced (§5.1; the review is in git
-history at `e32afe3`, panel/cycle2/review-implementation.md): X5 gates scoped
+Missing work the implementation review surfaced (§5.1; that review is now
+lost -- DECISIONS.md, 2026-08-31 -- and this paragraph is what survives of it):
+X5 gates scoped
 issue B (0034, which supersedes the RFC 0027) on the segmenter's measured precision, and seg/1
 had no implementation anywhere — days of new code standing between 0025's X5
 and 0034, priced nowhere until now. The spec lives once, in DESIGN.md §2.2;

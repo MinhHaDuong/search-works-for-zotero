@@ -93,7 +93,8 @@ This is the one-statement-per-fact rule applied to vocabulary.
 3. Mark deprecated and panel-era terms explicitly as historical, with the
    git coordinate. Three terms — `graft`, `kill 9`, `corpus-critic M4` —
    plus `v1` / "The Settled Ledger", all sharing one coordinate:
-   `panel/cycle2/` at commit `e32afe3`. A short subsection, not a research
+   `panel/cycle2/`, since lost (DECISIONS.md, 2026-08-31). A short subsection,
+   not a research
    project.
 4. Register the document in CLAUDE.md and README.md, and add it to
    `SCANNED` in `bench/check_governance.py`.

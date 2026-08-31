@@ -6,12 +6,14 @@ role in the full chain is stated once, in README.md.*
 *The documents these entries ratified — the original sheet, the elicitation
 panel's delta (19 requirements, 11 decisions, 7 out-of-scope declarations,
 22 kills, each with its evidence), cycle 1's synthesis ("The Settled Ledger"),
-and the scout report — are superseded and live in git history, last present at
-commit `6f7fcd1` as `DESIGN.md`, `DESIGN-DELTA.md`, `DESIGN-V1.md`,
-`SCOUTS.md`. The consolidated truth in the working tree replaces them; git is
-the archive. The cycle-2 panel record that entries below cite by name — the
-memos, the critiques, the political and implementation reviews — is likewise
-in git history, last present at commit `e32afe3` as `panel/cycle2/`.*
+and the scout report — are superseded and are now gone: they lived only in the
+history this repository was re-rooted away from on 2026-08-29, and 2026-08-31's
+ruling below abandoned it rather than republish it. The consolidated truth in
+the working tree replaces them, and is now the whole of the record. The cycle-2
+panel record that entries below cite by name — the memos, the critiques, the
+political and implementation reviews — went the same way. Entries below that
+cite a panel document by name cite something no reader can now open; they are
+ratified and stay as written, and this paragraph is the standing correction.*
 
 ## Ratified
 
@@ -713,6 +715,108 @@ artifacts also hold `passage` and `snippet` text drawn from the library, and
 the benchmark query sets are the author's own research questions. Both are
 larger disclosures than a title. Neither is decided here.
 
+**2026-08-31 — the embedder swap is R7 conformance, not a move on the
+cost-versus-quality frontier.** The author's ruling. The reason to leave the
+incumbent MiniLM is that the library and its reader are multilingual. It is not
+that some other model sits at a better point on a trade-off between resident
+memory, latency and retrieval quality.
+
+The distinction decides what the selection gate can return. Judged on that
+trade-off alone the incumbent wins, and keeps winning: `all-MiniLM-L6-v2` is
+several times smaller than every multilingual candidate in the field, and it is
+tuned for the one language in which such a comparison is easiest to measure. A
+gate that weighs quality against resident memory therefore has one stable
+answer — keep MiniLM — however many multilingual candidates it is shown. That is
+a property of the question, not a finding about the candidates.
+
+R7 is the question that has an answer, it is hard by the 2026-08-29 ruling
+above, and the incumbent fails it on its own model card: `bench/models.json`
+records the declared language set of `all-MiniLM-L6-v2` as English alone. So the
+swap is a conformance repair on the reviewed baseline; the candidate campaign of
+ticket 0240 prices that repair rather than justifies it; and C3's replacement
+ceiling, ruled 2026-08-30 above, is what the repair costs rather than what a
+quality upgrade bought.
+
+Consequences for the train. Ticket 0495's gate applies R7 first: an entry whose
+declared language set is not multilingual is not a candidate for the default,
+whatever its golden and resource scores, and the golden gate then chooses among
+the entries that conform. The 2026-08-30 invariant-first entry above stands
+unamended, and its "which entries, if any, ship or become the default" reads
+under this entry as a question about which multilingual entry — never as a route
+by which the incumbent is re-confirmed on frontier evidence. Where no entry yet
+passes, MiniLM remains in place as the disclosed interim state of a known
+non-conformance, never as a ruling that the evidence did not justify a change.
+
+**What this entry does not settle.** It does not rule on R29, the cross-lingual
+property — a query in one language retrieving documents in another — which is a
+strictly stronger promise than R7 and remains ticket 0037's proposal, awaiting
+ratification. Whether R29 joins R7 as a gate criterion in 0495 is open, and it
+is not academic: ticket 0266 measured the cross-lingual arm and its negative
+control cleared at every deployed dtype for only two of six candidates, so
+admitting R29 as a criterion narrows the field before any budget question is
+asked. Nor does this entry select an embedder, which remains 0495's after 0493.
+
+**2026-08-31 — R29 is ratified, amended: the cross-lingual promise enters the
+sheet, and it is a gate criterion.** The author's ruling on the proposal ticket
+0037 has carried since 2026-08-27, and it answers the question the entry above
+left open.
+
+R29 says the query language is not the document language: a query in English or
+French retrieves relevant Vietnamese content with the user translating nothing.
+R7 promises each language its own lane; R29 promises the lanes connect, which is
+the stronger claim and the one the author actually wants from a multilingual
+embedder. Both are conformance criteria in ticket 0495's ship gate, applied
+before the golden and resource gates and traded against neither.
+
+Three amendments to the proposal as drafted. **No new experiment.** The proposal
+commissioned an experiment X8 to measure cross-lingual recall. That label has
+since been taken — DESIGN §3's X8 is cross-provider fidelity — and the
+measurement itself is already done: ticket 0266 ran EN and FR queries against
+Vietnamese, German and Russian content at every deployed dtype, and its artifact
+is committed. The design cites that evidence instead of commissioning a fresh
+experiment under a colliding name, and no new experiment label is allocated.
+**The constraints land with their owners.** That keyword search cannot cross
+languages, that the embedding space is therefore the only channel, and that
+fusion cannot require keyword confirmation before a semantic hit surfaces are
+facts about the two query paths, so DESIGN §2.6 carries them beside the CJK
+posture they transpose. R10 already forbids a translation service on the default
+path, and the sheet's out-of-scope list gains the sentence saying query
+translation is not the mechanism. Nothing is restated in CONSTRAINTS.md.
+**The cross-lingual slice of the golden corpus is gated separately** from the
+monolingual queries, as proposed, so a regression names which of the two
+promises it broke rather than reporting one number for both.
+
+**What this entry does not settle.** It selects no embedder — that stays ticket
+0495's, after ticket 0493 — and it pins no threshold. R29's gate numbers are the
+golden gate's, and ticket 0029 pins them when it builds the slice.
+**2026-08-31 — the pre-restart history is abandoned, and the panel record with
+it.** This repository's `main` was re-rooted on 2026-08-29; everything before
+that date — 121 commits back to the true root of 2026-08-21 — survived only in
+one container's clone, on no remote ref. Ruled: let it go. Not preserved, not
+pushed to an archive branch, not bundled.
+
+The reason is the ruling above it. Fifteen files at that lineage's tip carry
+the document names removed the same day, so preserving the history would
+republish exactly what "no names, only keys" was for. Weighed against that,
+what the history held: the cycle-2 panel's verbatim session record
+(`panel/cycle2/`, fifteen files, 255 715 bytes) and the commit-level provenance
+behind nine citations in the working tree. The tree itself loses nothing — all
+one hundred and six files common to both lineages are current, the four chain
+documents merely moved under `spec/`, and the five tickets that looked missing
+are in `tickets/closed/`.
+
+**Every citation into that history is now corrected rather than left
+dangling**, which is the part that would otherwise rot silently: a pointer to
+`e32afe3` reads as an archive until someone tries it. `CLAUDE.md`, `README.md`,
+`spec/CONSTRAINTS.md`, `spec/DESIGN.md` (four sites), `spec/TERMINOLOGY.md`
+(two), this document's own preamble, and two tickets said the panel record was
+in git history; they now say it is gone. `verification/ACCEPTANCE-0036.md` is
+annotated at its head and untouched below it — a dossier rewritten after its
+evidence became uncheckable would be worth less than one that says so.
+
+Ratified entries below that cite a panel document by name are not edited. They
+are the record of what was decided and why, the ledger is append-only, and the
+preamble carries the standing correction instead.
 **2026-08-31 — files certify their own embedding chain: a calibration header,
 and one chain per file.** Ratified as proposed. Every vector file opens with a
 fixed, public set of calibration chunks, embedded by the same chain in the same

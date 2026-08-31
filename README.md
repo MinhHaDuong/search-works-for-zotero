@@ -94,8 +94,8 @@ relationship should not have to dig for. `SECURITY.md` sits outside it as
 well: it discloses what the system holds and where that can leak, and it
 decides nothing, so a gap it names closes as a ruling like any other. Panel
 documents are inputs, not conclusions; the adversarial design-review record of
-cycle 2 is in git history, last present at commit `e32afe3` as `panel/cycle2/`,
-as are the other superseded documents.
+cycle 2 is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31), as are the
+superseded design documents that preceded the current chain.
 
 Each document in the chain has its own organising principle, and the chain
 requires this. `DECISIONS.md` reads chronologically, because ratification
