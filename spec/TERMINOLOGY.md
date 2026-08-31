@@ -46,6 +46,19 @@ entry points at the question rather than settling it; rulings land in
   served and counted rather than evicted, and the user's Reindex is the
   healing path. Authoritative: DESIGN.md §2.4 (ruling: DECISIONS.md
   2026-08-30).
+- **calibration header** — the fixed, public set of chunks that opens a vector
+  file, embedded by the same chain in the same run as the corpus behind it, so
+  the file certifies its own embedding chain and a reader verifies it locally
+  rather than trusting declared metadata. It lives in the manifest, never in the
+  slab's row space, so no consumer can return a calibration chunk as a hit.
+  Authoritative: DESIGN.md §2.2 (rulings: DECISIONS.md 2026-08-31).
+- **calibration probe** — the projected copy of the calibration header carried
+  beside it, each vector multiplied by a matrix drawn from a seed published with
+  the format, read first because it fails fast and carries no corpus. It is a
+  cheap read and never the decision: the ratified comparison is the per-vector
+  cosine and the rank agreement over the header itself. Authoritative:
+  DESIGN.md §2.2, which owns its width and its bound (ruling: DECISIONS.md
+  2026-08-31; evidence: ticket 0499).
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: DESIGN.md §2.4.

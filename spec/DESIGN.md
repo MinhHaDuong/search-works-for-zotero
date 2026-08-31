@@ -271,6 +271,39 @@ only for its 512-char *metadata* stride; its 1 200-char body chunks are roughly 
 inside the band. The move to token-structural chunking rests on the boundary
 ruling, not on that comparison.)
 
+**The calibration header's cheap read: a projected vector at a published seed**
+(ratified 2026-08-31). Every vector file certifies its own chain by carrying a
+fixed calibration set its chain produced, and a reader decides locally by
+embedding the same chunks and comparing. That comparison is two tests — per-vector
+cosine, and rank agreement over the set's own similarity matrix — and both want
+the full fp32 vectors. Beside them the header carries the same vectors under a
+random projection to **32 dims**, `R` drawn from a seed published with the format,
+as the cheap first read that fails fast before the full comparison runs.
+
+The projection is admissible where a data-derived basis is not, for three
+reasons. Its matrix carries no corpus, so a file handed to a stranger discloses
+nothing about the library it was built from; both machines derive the same `R`
+from the seed, so no basis travels; and its guarantee is distribution-free, so it
+does not depend on the geometry of any one model. What it preserves is the ratio
+the decision reads — the distance to the nearest other chain over the distance
+this chain moves when only the provider changes — at **8 192 bytes per header,
+24,0x smaller than the full fp32 header**, keeping a worst case of **29,68x**
+against the narrowest unprojected **31,67x** (ticket 0499,
+`bench/results/0499-chain-identifier/`).
+
+Two bounds ship with it. The threshold this distance is compared against is not
+set here: it waits on X8's successor question (§3, ticket 0485) and must be sized
+from measured distributions rather than simulation. And the read is meaningful at
+fp32 only — at the 8-bit rungs the same chain read on another execution provider
+already moves further than the nearest different chain does, which is the same
+boundary §2.5's device rule reaches from the cosine side. A hash of any kind is
+ruled out cross-machine, sign bits included, and the ledger records why.
+
+*Owed here, and not by this entry:* the header itself, its never-mix invariant and
+its fixed 64-chunk set are ratified (DECISIONS.md, 2026-08-31) and this section
+still has to carry them, along with §2.1's stage keys and the per-file
+`embed_hash` guard that ruling reshapes.
+
 **The segmenter, seg/1** is new machinery: the spec lives here, and ticket
 0028 builds to it.
 

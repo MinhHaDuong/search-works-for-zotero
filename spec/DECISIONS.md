@@ -952,89 +952,83 @@ because it edits a rule the author wrote deliberately. It sets no precedent for
 the rest of the directory: a third exception is a third ruling.
 
 
+**2026-08-31 — the header's cheap identifier is a projected vector at a published
+seed, and no hash of anything.** Ratified as proposed, in shape rather than in
+threshold. The calibration-header entry above rules a hash out cross-machine
+because X8's fp32 rows agree in space without agreeing in bytes, and admits one
+only as a same-machine tripwire. The obvious repair — hash the sign bit of each
+dimension rather than the bytes, 32x smaller and blind to low-order noise — fails
+too, for two independent reasons, and ticket 0499 establishes both from artifacts
+already committed here.
+
+At the worst same-chain row (`multilingual-e5-base`, fp32, cross-provider cosine
+0,999974) **1,763 of 768 sign bits move**, so an exact sign hash agrees on one
+vector 17,1 % of the time and on the 64-chunk header never: hashing amplifies,
+because one flipped bit in some 49 000 destroys the match. And ticket 0008
+measured two dimensions over 95 % one-sided on 93 022 real vectors, **both of them
+dimensions the model never activates**, at a millionth or less of the median
+magnitude — their sign is float noise, and an all-or-nothing hash hashes those
+bits beside the ones carrying the corpus.
+
+**What identification actually needs is a ratio**, and naming it is what makes the
+question answerable: the distance to the nearest chain that is not this one, over
+the distance this chain moves when only the provider changes. The two populations
+sit in different artifacts — the noise floor is X8's summary rows (the same chain
+on two arms, at the same model and rung), the signal is inside each cell (a dtype
+against the fp32 rung beside it, one provider). Paired that way, sign distance
+identifies an **fp32** file for 6 of 6 models at **31,67x** the noise floor in the
+narrowest case; at the 8-bit rungs **1 of 12** cells clears even a 2:1 margin and
+**3 invert**. That boundary is the cost this ledger already accepted from the
+cosine side — the device is part of the chain at the 8-bit rungs — reached
+independently in sign space.
+
+**The object that carries the ratio is a seeded random projection.** Preserving
+the ratio is a far weaker requirement than preserving cosine at the noise floor's
+precision, and Johnson-Lindenstrauss meets it exactly, being multiplicative on
+distances: a nearly-identical pair stays nearly identical, both distances shrink
+by nearly the same factor, and the ratio survives. Sign bits quantize the small
+angle away instead, which is the whole of why they fail. Measured over each
+model's own measured cosines, 200 simulated headers per width, worst trial rather
+than mean, with a control projecting to the source width that must reproduce the
+unprojected ratio: **one width serves all six models — 32 dims, 8 192 bytes per
+header, 24,0x smaller than the full fp32 header, keeping a worst case of 29,68x
+against the narrowest unprojected 31,67x.** The header being 64 chunks is most of
+that steadiness, the projection's error being zero-mean.
+
+Three properties make it admissible where a data-derived basis is not. The matrix
+comes from a **published seed**, so it carries no corpus — SECURITY.md lists
+vectors as an asset, and a basis fitted to the library would put the library into
+every file handed out. It is **reproducible** on both machines from that seed,
+with nothing to transmit. And the guarantee is **distribution-free**, so the
+anisotropy that broke the sign-bit argument does not weaken it. MRL truncation is
+model-specific and PCA on the calibration set is circular; neither can be the
+format's rule.
+
+So the header carries `R·v` at 32 dims *beside* the fp32 calibration vectors and
+never instead of them, as the cheap first read that fails fast. The ratified
+per-vector cosine test stays what adopting a foreign file rests on. Nothing is
+claimed at 8-bit, and no projection can claim anything there: preserving a ratio
+faithfully is no help where the ratio is already below one.
+
+**Ratified in shape, not in bar.** The threshold the projected distance is
+compared against is NOT ratified here: it waits on ticket 0485, which decides what
+the header is compared on, and must be sized from measured flip and angle
+distributions rather than from a simulation. Two further limits are ratified with
+the shape rather than papered over. The evidence is derived from committed
+cosines, not from vectors — the artifacts store six decimals, so a rung printed
+1,0 still admits 0,244 flipped bits at 768 dims, and ticket 0499 carries the
+real-vector arm. And the theta/pi identity behind the sign half is a floor, not an
+estimate: reproduced exactly under an isotropic control, it understates flips
+**7,76x** under coordinate-wise quantization, because a coordinate near zero needs
+almost no error to change sign.
+
+This adds the projected vector and its seed to DESIGN.md §2.2. The fuller reshape
+that the calibration-header entry above owes that section — the header itself,
+§2.1's stage keys, the per-file `embed_hash` guard — is still outstanding and is
+that entry's, not this one's.
+
+
 ## Awaiting ratification
-
-- **The chain's cheap identifier is a sign-distance threshold, not a hash of
-  anything.** The ratified calibration-header entry rules a hash out
-  cross-machine because X8's fp32 rows agree in space without agreeing in bytes,
-  and admits one as a same-machine tripwire. The obvious repair — hash the sign
-  bit of each dimension rather than the bytes, 32x smaller and blind to
-  low-order noise — does not work either, and ticket 0499 establishes it from
-  artifacts already committed here.
-
-  Two independent reasons, which is why this is proposed as settled rather than
-  as a preference. At the worst same-chain row (`multilingual-e5-base`, fp32,
-  cross-provider cosine 0,999974) **1,763 of 768 sign bits move**, so an exact
-  sign hash agrees on one vector 17,1 % of the time and on the ruling's 64-chunk
-  header never; hashing amplifies, because one flipped bit in some 49 000
-  destroys the match. And ticket 0008 measured two dimensions over 95 % one-sided
-  on 93 022 real vectors, **both of them dimensions the model never activates**,
-  at a millionth or less of the median magnitude — their sign is float noise, and
-  an all-or-nothing hash hashes those bits beside the ones carrying the corpus.
-
-  What the same evidence supports is a threshold, and only at fp32. Identification
-  needs two populations and the artifacts hold both, in different places: the noise
-  floor is the same chain read on the other arm (X8's summary rows, GPU against CPU
-  at the *same* model and rung), and the signal is the distance to a chain that is
-  not this one (inside each cell, where the ladder scores a dtype against the fp32
-  rung beside it on one provider). Paired that way, sign distance identifies an
-  **fp32** file for 6 of 6 models, at **31,67x** the noise floor in the narrowest
-  case. At the 8-bit rungs it stops working: **1 of 12** cells clears even a 2:1
-  margin and **3 invert**, the same chain on the other arm moving more bits than
-  the nearest different chain. That boundary is the cost this ledger already
-  accepted from the cosine side — the device is part of the chain at the 8-bit
-  rungs — reached independently in sign space.
-
-  **What carries that ratio is a seeded random projection, not sign bits.** The
-  ratio is the whole requirement, and it is much weaker than preserving cosine to
-  the precision of the noise floor: any transform is admissible exactly insofar as
-  it keeps the two distances in proportion. Johnson-Lindenstrauss does, because it
-  is multiplicative on distances — a nearly-identical pair stays nearly identical,
-  both distances shrink by nearly the same factor, and the ratio survives. Sign
-  bits quantize the small angle away instead, which is the whole of why they fail.
-
-  Measured over each model's own pair of measured cosines (200 simulated headers
-  per width, worst trial rather than mean, with a control that projects to the
-  source width and must reproduce the unprojected ratio): **one width serves all
-  six models — 32 dims, 8 192 bytes per header, 24,0x smaller than the full fp32
-  header, keeping a worst case of 29,68x against the narrowest unprojected
-  31,67x.** The header being 64 chunks is most of that steadiness: the projection's
-  error is zero-mean, so the aggregate is far steadier than any single chunk.
-
-  Three properties make it admissible where a data-derived basis is not. The matrix
-  comes from a **published seed**, so it carries no corpus — SECURITY.md lists
-  vectors as an asset, and a basis fitted to the library would put the library into
-  every file handed out. It is **reproducible** on both machines from that seed,
-  with nothing to transmit. And the guarantee is **distribution-free**, so the
-  anisotropy that broke the sign-bit argument does not weaken it. MRL truncation is
-  model-specific and PCA on the calibration set is circular; neither can be the
-  format's rule.
-
-  So the proposal is: the header carries `R·v` at 32 dims *beside* the fp32
-  calibration vectors and never instead of them, as the cheap first read that fails
-  fast on an fp32 file. The ratified per-vector cosine test stays what adopting a
-  foreign file rests on, and nothing is claimed at 8-bit — no projection can claim
-  anything there, since preserving a ratio faithfully is no help where the ratio is
-  already below one.
-
-  What is NOT proposed is the number. The bar belongs after ticket 0485 decides
-  what the header is compared on, and it must be sized from measured flip
-  distributions rather than from the theta/pi identity this analysis used — that
-  identity is a floor, reproduced exactly under an isotropic control and
-  understating flips **7,76x** under coordinate-wise quantization, because a
-  coordinate near zero needs almost no error to change sign. The committed
-  cosines also cannot close the exact-hash question by themselves: stored to six
-  decimals, a rung printed 1,0 still admits 0,244 flipped bits at 768 dims.
-  Ticket 0499 carries the real-vector arm and the same-machine arm that ticket
-  0486 already owes.
-
-  What is proposed for ratification is therefore the SHAPE — a projected vector at
-  a published seed, carried beside the fp32 header, read first — and not the bar it
-  is thresholded against, which waits on ticket 0485 and must be sized from
-  measured flip and angle distributions rather than from a simulation. Ratifying
-  the shape adds a field and a seed to `spec/DESIGN.md` §2.2's format section and
-  nothing else; vetoing it costs nothing built, since the ratified header stands
-  either way.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
