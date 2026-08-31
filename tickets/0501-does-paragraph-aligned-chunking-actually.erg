@@ -1,0 +1,126 @@
+%erg 0.1
+Title: Does paragraph-aligned chunking actually retrieve better? The three-arm A/B
+Created: 2026-08-31
+Author: claude
+Label: deferred
+Blocked-by: 0019
+Blocked-by: 0026
+
+--- log ---
+2026-08-31T15:19Z claude created
+
+2026-08-31T15:22Z claude label deferred
+
+2026-08-31T15:22Z claude note deferred at the author's instruction, 2026-08-31, on the priority the whole train is ordered by: a library that cannot be fully searched is not improved by searching part of it better. Filed rather than dropped because the design below is the expensive half and it was derived once already; the measurement itself is a day's work on top of it
+
+--- body ---
+## Context
+
+Upstream flattens every newline before it cuts
+(`chunker.ts:8`, `text.replace(/\s+/g, ' ')`, unchanged from the reviewed
+`b132f2d` through v1.12.0), so the paragraph breaks the cache carries are gone
+before the first boundary decision. That much is settled, and
+`spec/DECISIONS.md` (2026-08-30) already ruled the chunk is the paragraph.
+
+What is NOT settled is whether fixing it retrieves better, and the survey done
+2026-08-31 says the field does not know either:
+
+- Semantic chunking's gains are inconsistent and rarely justify their cost
+  (Qu, Bao & Tu, NAACL Findings 2025), and with good embeddings the choice
+  matters less than expected.
+- ZotSeek's own ablation — the nearest neighbour in `verification/FIELD-REVIEW.md`,
+  same corpus type — puts MRR 0,2514 at 512-token chunks against 0,2550 at
+  2 000, and concludes size barely matters while the per-item chunk ceiling
+  does. That gap is almost certainly noise at their query count, which is the
+  point: they had the power to see it was noise.
+- Against that, the largest cross-domain study (36 methods, 6 domains, 5
+  embedders) puts paragraph grouping top and fixed-size CHARACTER chunking
+  bottom. Upstream is in the second bucket, which is the sharpest thing that
+  can be said for the fix without measuring it.
+
+So the direction is plausible, the magnitude is unknown, and nothing in this
+repo measures it: X5 hand-scores 50 cut points for segmenter PRECISION, which a
+chunker can pass while moving no ranking at all. The price of being wrong is not
+small — every stored vector is invalidated (salvage needs byte-identical text),
+so every user re-embeds.
+
+## Why this waits
+
+R1 is the drawer's lock. "Every item in the search perimeter MUST become
+searchable without anyone asking for it" is not met on the reviewed baseline:
+`spec/README.md` has R1 at *partial*, with the crawl paging the library instead
+of working a priority order, and a text-less attachment not recorded as
+done-with-a-reason (ticket 0019). Better chunking of a partial library is a
+refinement of the wrong thing.
+
+`Blocked-by` names 0019 and 0026 as the machine-readable proxy: 0019 is R1's
+unmet no-text clause, 0026 is the harness that would show convergence actually
+reaches every item. The true condition is R1 standing at delivered in
+`spec/README.md`; reopen on that, not merely on those two closing.
+
+## The method, so it is not re-derived
+
+Four properties make the comparison sound. The first three are what a naive A/B
+gets wrong.
+
+1. **Judge at the item level.** The chunker changes how an item is represented,
+   not what is relevant to a query. Chunk-level labels are geometry-dependent —
+   they must be rebuilt per arm, and the rebuild encodes the arm. Label items;
+   score each arm by best-chunk-per-item, which is what `query()` already does;
+   one judgment file then scores every arm untouched.
+   This rules out `bench/vec_task_recall.mjs` as the scorer: its relevant set is
+   "other chunks of the same item" and its `--gap` exclusion is defined in terms
+   of the chunker's own 150-character overlap, so pointed at a chunker A/B it
+   measures the geometry twice. Its own header says why.
+2. **Queries must be geometry-blind.** Never generate a query from a chunk — the
+   generating geometry wins by construction, which kills the cheap
+   questions-from-passages route. Citation sentences are the right source: a
+   sentence in item A citing item B, marker stripped, relevant item B. The labels
+   exist independently of any chunker, they are query-to-answer shaped rather
+   than topical-similarity shaped, and they are free at scale. Known bias: a
+   citing sentence often paraphrases the cited abstract, so hits can land on
+   metadata passages the chunker never touches — run body-only as primary
+   (`source = 'fulltext'`), metadata-included as secondary.
+3. **Control chunks-per-item, or measure chunks-per-item.** An item scores as its
+   best chunk, so more chunks is more draws at the maximum — a higher score with
+   no better alignment. #6012's own `CHUNK_MIN_TOKENS` comment states the
+   mechanism; ZotSeek found the per-item ceiling mattered more than size. Three
+   arms: (A) current 1 200/150, (B) paragraph-aligned, (C) current retuned to
+   match B's chunks-per-item. **If B beats A but B is level with C, the result is
+   chunk count and the alignment story is dead.** Arm C is one parameter and it
+   is what makes the answer mean anything. Report passages-per-item per arm.
+   Carry a negative control too: a metadata-only query set the change must not
+   move.
+4. **Power and paired statistics.** 0029's ~40 pinned queries is a regression
+   gate, not a comparator. Paired bootstrap CI over queries — the interval, never
+   a point estimate — and the decision rule pre-registered in `spec/DESIGN.md` §3's
+   form before the run. Everything else held fixed: embedder, pooling, normalize
+   and input template resolved through `bench/registry`, same fusion, same k,
+   same extraction; both arms re-embed, since vectors cannot cross geometries.
+
+## Substrate
+
+The author's library first, committing scores only — the pattern 0025's substrate
+map already uses for private-substrate experiments — because citation pairs are
+abundant there and available now. 0029's committable corpus is a soft dependency
+for the public half only; making it a hard one blocks the measurement on the
+expensive side.
+
+## What arm B should be
+
+Not the segmenter. The smallest change that could move the number is the unwrap:
+collapse newlines inside a block, keep blank lines, never let a chunk straddle
+one. That is one line plus a boundary check, needs no tokenizer and no
+`Intl.Segmenter`, and 0028's log records why it is also the prerequisite for
+adopting #6012's geometry at all — that chunker splits on lines, so it is
+paragraph-aligned only on text whose newlines already mean paragraph breaks.
+Measure the cheap arm before pricing the expensive one.
+
+## Exit criteria
+
+- [ ] a citation-pair query extractor, labels at the item level
+- [ ] `bench/chunker_ab.mjs`: three arms, item-level nDCG@10 / MRR / recall@10,
+      paired bootstrap CIs, passages-per-item reported per arm
+- [ ] the decision rule pre-registered in `spec/DESIGN.md` §3 BEFORE the run
+- [ ] arm C reported beside B, and the verdict stated against C rather than A
+- [ ] the negative control run and reported
