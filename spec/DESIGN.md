@@ -44,10 +44,11 @@ fulltext entries at version 0.
 
 ## 1. What changed since v1
 
-v1's skeleton survived every lens and every critique untouched: durable
-(item × stage) ledger rows in SQLite with lease claim → compute → commit,
-control through a pipe and durable work through the database, a write-free
-query path, and two OS processes. R13 (second process), R22 (durable pause)
+v1's skeleton survived every lens and every critique with one amendment:
+durable (item × stage) ledger rows in SQLite — compute → guarded commit, the
+per-row lease claim retired by the sole-writer ruling (§2.5; DECISIONS.md
+2026-08-31) — control through a pipe and durable work through the database, a
+write-free query path, and two OS processes. R13 (second process), R22 (durable pause)
 and R17's work counters each turn out to *want* that skeleton: every one is
 a one-row concern on a substrate that already exists. Also carried over:
 census-seeded newest-first discovery (a census is a full listing, every
@@ -1099,7 +1100,8 @@ incorrectly kept a pipeline worker resident. The one pipeline worker adds
 transient residency only: run-to-drain, at most one, its peak the model plus
 one token-budget batch (§2.5's dial), under C3's re-pinned pipeline ceiling —
 priced by the same measured candidate range quoted above, without the
-server's cache share (DECISIONS.md, 2026-08-31). Segmentation adds one text
+server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
+range's top, inside the ceiling (DECISIONS.md, 2026-08-31). Segmentation adds one text
 window plus segmenter state to the conductor, inside the server ceiling. The
 sole-writer topology confines the long-document RSS risk to the worker's
 streaming fetch; it does not buy wall-clock. Whether

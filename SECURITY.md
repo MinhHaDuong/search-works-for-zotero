@@ -86,11 +86,13 @@ errors are written anywhere, and if so where, for how long, or who can read
 them.
 
 **Local Zotero traffic.** The pipeline reads items, records, and full text from
-Zotero's own local API on the same machine (`spec/DESIGN.md` §2.3, §2.4). Two
-processes hold that conversation (`spec/DESIGN.md` §2.5): the conductor runs
-the item and full-text census ticks and the query-path freshness probe, and
-the pipeline worker performs the whole-document text fetch — so the process
-that reads bulk text from Zotero is not the process that answers the user.
+Zotero's own local API on the same machine (`spec/DESIGN.md` §2.3, §2.4). The
+conversation splits by process (`spec/DESIGN.md` §2.5): the conductor runs the
+item and full-text census ticks, any query-serving process may issue the query
+path's one bounded freshness probe (§2.4), and the pipeline worker alone
+performs the whole-document text fetch. Bulk text reaches the conductor only
+as bounded windows, never resident as a whole document — that, not "never
+reaches a query-serving process", is the isolation the design provides.
 None of this leaves the machine and
 none of it counts against R10's two paths. It crosses the process boundary
 between zoteus and the Zotero application. Whatever access control exists on

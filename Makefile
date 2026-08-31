@@ -27,6 +27,8 @@ help:
 	@echo "make normative   — every R-item declares its RFC 2119 force"
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
+	@echo "make vocabulary  — banned vague words stay out of the chain"
+	@echo "make tickets     — erg check over the ticket store"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
