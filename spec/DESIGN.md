@@ -882,10 +882,24 @@ is the pattern, and it binds every surrogate here, not only that one.
   for papers. The passage is the unit the work is done in and the unit every
   artifact already measures.
 
-  On the reference machine, the embed stage MUST hold **≤ 150 ms per passage**
-  and SHOULD hold **≤ 75 ms per passage**. A rate is assertable from a few
-  hundred passages, per stage, so a regression surfaces in a minute instead of
-  at the end of a build.
+  *The bound is on the pipeline, not on one stage.* A build finishes when
+  extract, chunk and embed have all finished, so a bound on embed alone is not a
+  bound on the build. On the reference machine the whole pipeline MUST hold
+  **≤ 150 ms per passage** and SHOULD hold **≤ 75 ms per passage**. A rate is
+  assertable from a few hundred passages, per stage, so a regression surfaces in
+  a minute instead of at the end of a build.
+
+  *The allocation across stages is provisional, and the total is not.* Embed is
+  the dominant term and the only one measured: **≤ 120 ms** at the MUST and
+  **≤ 65 ms** at the SHOULD, leaving **30 ms** and **10 ms** for extract, chunk
+  and the record write together. Those two are **unpinned** — no artifact in
+  this repository measures either — and the allocation may be re-cut in any
+  proportion so long as the total holds, because the total is what the user
+  feels and the split is an engineering convenience. What is known without
+  measurement: extraction is usually a read of the platform's own full-text
+  cache rather than a parse, and the expensive path is the file the platform has
+  not indexed, where a 15k-page PDF yields tens of MiB (ticket 0480). Ticket
+  0500 measures both stages on the reference machine and pins their share.
 
   *The wall clock is the promise*, and it is this rate against the measured
   census of §2.9 — the census is the bridge, and the arithmetic is shown rather

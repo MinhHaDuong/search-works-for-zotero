@@ -1706,6 +1706,36 @@ finding about the non-linear part. And a rate does not transfer across passage
 length distributions, which is why the fixture's distribution is pinned with the
 corpus.
 
+**2026-08-31 — the rate is on the pipeline, and the arithmetic that exposed
+it.** The author, on the throughput bound ruled minutes earlier: what about
+extracting and chunking speed?
+
+The question is a defect report. The bound had been written on the **embed
+stage**, and a build finishes when extract, chunk and embed have all finished,
+so a bound on one stage was never a bound on the build. Worse, the numbers did
+not survive the question: the 24-hour wall clock over §2.9's measured census is
+152,2 ms per passage for *everything*, and the embed bound alone had been set at
+150 — **98,6 % of the whole budget**, leaving 2,2 ms for extraction, chunking and
+the record write together, which is not a number anyone could meet. The rate was
+right and its scope was wrong.
+
+So the bound is now the pipeline's: MUST ≤ 150 ms per passage, SHOULD ≤ 75, and
+the per-stage split is an **allocation** rather than a finding — embed ≤ 120 and
+≤ 65, the rest 30 ms and 10 ms. The allocation may be re-cut in any proportion so
+long as the total holds, because the total is what the user feels and the split
+is an engineering convenience. Stating it that way is what lets two unmeasured
+stages sit inside a pinned bound without the bound becoming a guess.
+
+Extract and chunk are unpinned and said to be: no artifact in this repository
+measures either. What is known without measuring is that extraction is usually a
+read of the platform's own full-text cache rather than a parse — the census
+counted the caches — and that the expensive path is the attachment the platform
+has not indexed, where a 15k-page PDF yields tens of MiB. **Ticket 0500** opens
+to measure both on the reference machine, over both extraction paths and the
+observed mix, and to re-cut the allocation from what it finds — or to report that
+the total cannot hold, which would be a finding about the bound rather than
+about the stages.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
