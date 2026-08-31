@@ -715,6 +715,36 @@ larger disclosures than a title. Neither is decided here.
 
 ## Awaiting ratification
 
+- **The accepted-staleness residue has lost its corroboration, and whether
+  that changes the ruling is the author's to say (2026-08-31, on his
+  instruction that the removal needed a ledger entry).** `spec/DESIGN.md`
+  disclosed a residue in the freshness contract — re-extraction with no file
+  change is not caught, accepted as staleness — and asserted beside it that
+  "Zotero's own embeddings layer documents the same residue". Read at source
+  on 2026-08-30 (PR head `77e2c4b`, ticket 0180), that assertion does not
+  hold: `embeddings.js` documents staleness only as model-revision-driven
+  reindex and as pref-toggle eligibility, and addresses re-extraction without
+  a file change nowhere. The sentence has been removed; the disclosure's own
+  wording is unchanged.
+
+  The correction was first made without a ledger entry, on the reading that
+  deleting a false corroboration cannot change a reading whose text is
+  byte-identical. The author overruled that: an entry is required, because
+  the question a byte-identical text cannot answer is **whether the residue
+  was accepted partly on the strength of the platform accepting it too.** If
+  it was, the ruling has lost part of its basis and is due a re-examination.
+  If it was not — if the residue stands on the contract's own terms, and the
+  Zotero sentence was decoration — then nothing further is owed and this
+  entry closes by saying so.
+
+  Only the author can settle that, because it is a question about why a
+  ruling was made rather than what it says. Two things are worth having in
+  hand either way: X6's headless arm has since shown the content endpoint
+  and the version machinery to be decoupled, which is independent evidence
+  for the residue's existence rather than for accepting it; and the bounded
+  idle re-verify sweep the disclosure defers remains gated on X6's profile
+  arms, which have not run.
+
 - **Reading AGPL source in order to reimplement it is unpriced, and ticket
   0031 is where it lands (session finding, 2026-08-30).**
   `spec/FIELD-REVIEW.md` sets the survey's general route for an idea held by a
