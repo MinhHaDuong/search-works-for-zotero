@@ -31,7 +31,7 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 
-check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress check-fast
+check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -122,6 +122,13 @@ vocabulary:
 
 progress:
 	python3 bench/check_progress.py
+
+# CLAUDE.md declares "erg check must pass" beside the guards, yet the gate ran
+# fully green on a tree where it was red (a closed ticket outside closed/,
+# t0507, 2026-08-31). The declared-mandatory check joins the target that makes
+# the declaration true.
+tickets:
+	./tickets/erg check tickets/
 
 upstream-status:
 	@set -eu; \
