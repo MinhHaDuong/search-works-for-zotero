@@ -143,9 +143,10 @@ entry points at the question rather than settling it; rulings land in
   Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
   over Vietnamese content and still have no path from an English one.
   Authoritative: REQUIREMENTS.md R7.
-- **P0 / pipeline workers** — the query-serving zoteus server may have several
-  instances; the conductor owns one run-to-drain worker of each pipeline kind:
-  extract, chunk, embed. Authoritative: DESIGN.md §2.5.
+- **P0 / pipeline worker** — the query-serving zoteus server may have several
+  instances; exactly one, the elected *conductor*, is the sole writer and the
+  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
+  text, embeds, and writes nothing. Authoritative: DESIGN.md §2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: DESIGN.md §2.2.
 - **probe-don't-fix** — the freshness posture of the query path: when the tick
