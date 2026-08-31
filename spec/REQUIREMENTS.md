@@ -61,167 +61,244 @@ replaces the machinery it described.
 
 ## Requirements
 
+Each item is a name, one sentence, and a paragraph. The **sentence** is the
+promise, written so it can be read alone and tested by someone who has read
+nothing else here. The **paragraph** unpacks it: what the sentence implies, what
+was decided about it, and which document owns any number it depends on. The
+one-word name is the handle the rest of the chain cites.
+
 ### Coverage and convergence
 
-- **R1 — eventually the whole library is indexed.** With no further edits,
-  coverage MUST reach 100 % without anyone asking, and the system MUST NOT
-  require a manual rebuild of any state. Coverage MUST grow newest-first: the
-  crawler works through a priority order, not a page cursor, and recency orders
-  *coverage*, not answers (see "Out of scope"). An attachment that yields no
-  text MUST be treated as *done*, not retried forever: it counts as covered
-  ("metadata-only"), the reason is recorded, and the coverage report says so
-  (per D8, in the resolved decisions tabled below, OCR is out for now, but the
-  stage keys leave room for a future extractor).
-- **R4 — something partial is better than nothing.** The index MUST answer
-  queries at every moment of its life, including during the first build.
-  This obliges honest coverage reporting; otherwise a partial index is
-  indistinguishable from a complete one.
-- **R17 — coverage in one sentence.** "How much of my library is
-  searchable?" MUST get a human answer: N of M items (per D1), per stage,
-  with the most-recent-covered date. Metadata-only items count toward the
-  denominator, with their reason. Every stage MUST report what it processed and
-  which input triggered it, and one edited item MUST show up as one. Status
-  MUST name the execution device actually serving, on every machine.
-- **R32 — the build finishes today.** On the reference machine DESIGN.md §2.8
-  names, an initial build with the default configuration MUST reach record
-  coverage of the whole library inside the record bound, and body-text
-  coverage inside the build bound. Both bounds' values belong to DESIGN.md
-  §2.8 and are pinned from measurement, never before it — the pattern C3's
-  replacement ceiling already follows.
+**R1. Coverage.** Every item in the search perimeter MUST become searchable
+without anyone asking for it, and no state MUST ever need a manual rebuild.
+
+Coverage MUST grow newest-first: the crawler works a priority order, not a page
+cursor, and recency orders *coverage*, not answers. An attachment that yields no
+text MUST be treated as done rather than retried forever — it counts as covered,
+marked metadata-only, its reason recorded and reported — so full coverage stays
+reachable and honest at once. Per D8 below, OCR is out for now and the stage keys
+leave room for a future extractor.
+
+**R4. Availability.** The index MUST answer queries at every moment of its life,
+including during its first build.
+
+An index that goes dark while it works is worse than a partial one, so partial
+answers ship from the first passage indexed. This obliges honest coverage
+reporting, which R17 carries: without it, a partial index is indistinguishable
+from a complete one and the user cannot tell a gap from an absence.
+
+**R17. Reporting.** "How much of my library is searchable?" MUST get a human
+answer, per stage, with a date.
+
+The answer is N of M items — items per D1 — for each stage, with the
+most-recent-covered date, and metadata-only items counted in the denominator
+with their reason. Every stage MUST also report what it processed and which
+input triggered it, so one edited item shows up as one unit of work rather than
+as a wave. Status MUST name the execution device actually serving, on every
+machine, since a user who cannot see that cannot explain the speed they get.
+
+**R32. Buildtime.** On the reference machine, an initial build with the default
+configuration MUST make records searchable inside the record bound and body text
+inside the build bound.
+
+Two bounds because the work stages: every item's record first, its body text
+behind it. Both bounds' values and the reference machine belong to DESIGN.md
+§2.8 and are pinned from measurement, never before it — the pattern C3's
+replacement ceiling already follows. Finishing today is a property of the
+configuration rather than of the hardware, which is why this is its own promise
+and not a clause of one about GPUs.
 
 ### Change and cost
 
-- **R3 — avoid unnecessary rebuild.** The cost of staying current MUST be
-  proportional to the change, not to the library. Recompute exactly what is
-  downstream of a changed input; the unit of invalidation is (item ×
-  stage). A resync or extractor upgrade that advances version counters MUST
-  re-embed nothing whose bytes are unchanged. (This project itself once shipped
-  a defect that re-marked 92,7 % of the library as changed, forever; it is the
-  cautionary example.)
+**R3. Proportionality.** The cost of staying current MUST be proportional to
+what changed, never to the size of the library.
+
+Recompute exactly what is downstream of a changed input; the unit of
+invalidation is (item × stage). A resync or an extractor upgrade that advances
+version counters MUST re-embed nothing whose bytes are unchanged. This project
+once shipped a defect that re-marked 92,7 % of a library as changed, forever,
+and that is the cautionary example the clause exists for.
 
 ### Corpus
 
-- **R8 — a 15k library and a 15k-page PDF are both ordinary.** The design
-  point is at least 10 000 documents with full text, and the system MUST work at
-  that size; the known red zone is that a full vector scan approaches 1 s there.
-  A 15 000-page PDF MUST be first-class input too, not an outlier to cap away —
-  the 44.9 MB dictionary is the one in hand — and under ruling 1 it is a
-  collection of entries among peers. The two sizes are one promise because a
-  library is large in both directions at once.
-- **R16 — my own words.** Notes *and* annotations MUST be part of the
-  corpus (per D7), not just the papers.
+**R8. Scale.** A 15k library and a 15k-page PDF MUST both be ordinary input.
+
+The design point is at least 10 000 documents with full text and the system MUST
+work at that size; the known red zone is that a full vector scan approaches 1 s
+there. A 15 000-page PDF MUST be first-class too, not an outlier to cap away —
+the 44.9 MB dictionary is the one in hand — and under ruling 1 it is a
+collection of entries among peers. The two sizes are one promise because a
+library is large in both directions at once.
+
+**R16. Notes.** My own notes and annotations MUST be searchable, not only the
+papers I collected.
+
+Per D7 both are in: a note written in the reader and an annotation anchored to a
+page are the reader's own words about the corpus, and a search that cannot find
+them searches somebody else's library. They are child items, which is what makes
+them easy to miss in a crawl that asks only for top-level items.
 
 ### Query
 
-- **R5 — filters are good to have.** Scoping by collection, tag, item type,
-  or date MUST be enforced before any answer is truncated, never by filtering
-  after the fact a top-k list (the k best-scoring results) that claims to
-  be complete. One correction from the scouts (the pre-design code-reading
-  and measurement passes): "pushed into SQL" MUST NOT be read as
-  constraining the MATCH operator of SQLite's FTS5 full-text engine, which
-  measures at seconds per query at library scale. The obligation is on the
-  honesty of the result, not on which operator enforces it.
-- **R6 — a sufficient reply in 3 s beats the optimum in 3 min.** Freshness
-  work on the query path MUST be limited to O(1) requests; anything bigger
-  MUST be scheduled, never awaited. A warm query MUST answer inside the hard
-  budget, whose value belongs to DESIGN.md §2.9 — the same section that owns
-  the distinction between that budget and the typical figure it is not.
-- **R18 — an empty result says which.** The answer MUST be "nothing matches"
-  or "this scope is not indexed yet", stated for the scope the query asked
-  about, not for the library as a whole.
-- **R24 — a citeable page in one step, and one entry per hit.** A full-text
-  hit MUST lead to its page, an estimated page number MUST say it is an
-  estimate (per D10), and the primary locator MUST be the entry heading
-  (ruling 1). As amended by ruling 1 (D9 dissolved): deduplication is per
-  section, and a single document MUST NOT crowd other items out of the
-  candidate pool before that deduplication happens. When many of the returned
-  hits come from one document, the result says so.
+**R5. Scoping.** Scoping a search by collection, tag, item type or date MUST be
+enforced before any answer is truncated.
 
-- **R33 — lexical, semantic and hybrid each work.** A query naming a rare
-  exact string MUST return the item carrying it; a query that paraphrases its
-  answer without sharing a content word MUST return that answer; and where
-  both signals are present but weak, the combined answer MUST rank the
-  document they agree on above one that only a single signal favours. Where
-  the interface offers a retrieval mode, the mode selected MUST be the mode
-  served. The combination rule belongs to DESIGN.md §2.6.
-- **R34 — if it is in my library, I find it.** For every query of the pinned
-  set, whose answers are known-correct and known to be in the corpus, the
-  default configuration MUST return the pinned answer within the first ten
-  results. Per D11 this fixes the answer set and not its order: order inside
-  those ten is unconstrained. Re-pinning the set is a commit whose set diff is
-  the review artifact (DESIGN.md §2.8).
+Never by filtering a top-k list after the fact — the k best-scoring results —
+and then presenting it as complete. One correction from the pre-design
+code-reading and measurement passes: "pushed into SQL" MUST NOT be read as
+constraining the MATCH operator of SQLite's FTS5 engine, which measures at
+seconds per query at library scale. The obligation is on the honesty of the
+result, not on which operator enforces it.
+
+**R6. Latency.** A warm query MUST answer inside the hard budget, and MUST never
+wait on freshness work bigger than a single request.
+
+Freshness work on the query path is limited to O(1) requests; anything larger is
+scheduled and never awaited. The budget's value belongs to DESIGN.md §2.9, which
+also owns the distinction between that hard budget and the typical figure it is
+not — a sufficient reply now beats an optimal one later, which is the trade this
+promise names.
+
+**R18. Emptiness.** An empty answer MUST say whether nothing matched or the
+scope is not indexed yet.
+
+Stated for the scope the query asked about, never for the library as a whole: a
+user who searched one collection is owed the truth about that collection. The
+two cases call for opposite actions — rephrase, or wait — so collapsing them
+into one blank result wastes the user's next move.
+
+**R24. Locator.** A hit MUST lead to the page it came from, and one entry MUST
+give one hit.
+
+A full-text hit leads to its page; an estimated page number MUST say it is an
+estimate, per D10; and the primary locator MUST be the entry heading, per ruling
+1. As that ruling amends it — D9 dissolved — deduplication is per section, and a
+single document MUST NOT crowd other items out of the candidate pool before
+deduplication happens. When many returned hits come from one document, the
+result says so.
+
+**R33. Modes.** Exact-word search, meaning-based search, and the two combined
+MUST each work.
+
+A query naming a rare exact string MUST return the item carrying it. A query
+that paraphrases its answer without sharing a content word MUST return that
+answer. Where both signals are present but weak, the combined answer MUST rank
+the document they agree on above one that only a single signal favours — the
+case that catches a fusion which has quietly dropped a side. Where the interface
+offers a retrieval mode, the mode selected MUST be the mode served. The
+combination rule belongs to DESIGN.md §2.6.
+
+**R34. Recall.** For every query of the pinned set, the answer MUST come back
+within the first ten results.
+
+The pinned set's answers are known-correct and known to be in the corpus, so
+this is a floor on what comes back rather than a score. Per D11 it fixes the
+answer set and not its order: order inside those ten is unconstrained. Re-pinning
+the set is a commit whose set diff is the review artifact, per DESIGN.md §2.8,
+which is what stops a failing query being deleted instead of fixed.
+
 ### Multilingual
 
-- **R7 — multilingual by default, in two tiers.** The default path MUST work
-  for English, French and Vietnamese with no configuration, and the default
-  embedder MUST be multilingual. It SHOULD work, with no configuration, for
-  Arabic, Chinese, German, Hindi, Russian and Spanish; setting one of those
-  aside is allowed and MUST be stated, which is what separates a tier from a
-  wish. The second tier names one language per script and morphology class and
-  never one per community: right-to-left, Cyrillic, no word boundaries,
-  compounding, abugida, and Latin-with-diacritics, which Spanish stands for. The
-  English stopword list is a known ranking bias whose deletion is already
-  decided (the move is ratified into the plan). Chinese in the second tier is
-  the explicit CJK decision this item used to defer, and it carries the keyword
-  half with it: the two-gram geometry the platform ships is what a Chinese query
-  term has to survive. Every other language rides the default path untested; see
-  "Out of scope".
+**R7. Languages.** The default path MUST work in English, French and
+Vietnamese with no configuration, and SHOULD work in Arabic, Chinese, German,
+Hindi, Russian and Spanish.
 
-- **R29 — the query language is not the document language.** A query in
-  English or French MUST retrieve relevant Vietnamese content without the
-  user translating anything. R7 promises each language its own lane; this
-  promises the lanes connect. The cross-lingual property MUST be gated
-  separately from the monolingual one, so a regression names which promise it
-  broke. When the semantic path is unavailable, the reply MUST say that
-  cross-language matching is down rather than return a silent miss. Query
-  translation is not the mechanism; see "Out of scope".
+The default embedder MUST be multilingual. Setting a second-tier language aside
+is allowed and MUST be stated, which is what separates a tier from a wish. The
+second tier names one language per script and morphology class and never one per
+community: right-to-left, Cyrillic, no word boundaries, compounding, abugida,
+and Latin-with-diacritics, which Spanish stands for. Chinese in that tier is the
+explicit CJK decision this item used to defer, and it carries the keyword half
+with it — the two-gram geometry the platform ships is what a Chinese query term
+has to survive. The English stopword list is a known ranking bias whose deletion
+is already decided. Every other language rides the default path untested; see
+"Out of scope".
+
+**R29. Crosslingual.** A query in English or French MUST retrieve relevant
+Vietnamese content without the user translating anything.
+
+R7 promises each language its own lane; this promises the lanes connect. The
+cross-lingual property MUST be gated separately from the monolingual one, so a
+regression names which promise it broke. When the semantic path is unavailable
+the reply MUST say that cross-language matching is down, rather than return a
+silent miss that reads as an honest empty. Query translation is not the
+mechanism; see "Out of scope".
 
 ### Embedding configurations
 
-- **R31 — a configuration offered to me works here.** Before a local
-  embedding configuration creates or queries an index on this machine, it MUST
-  pass the bundled automatic validation there or fail explicitly, and failure
-  MUST NOT silently select another. What identifies such a configuration —
-  every field that changes its vectors, carried as one versioned entry — is
-  DESIGN.md's. Sharing a content-free validation attestation MAY be offered
-  only by explicit opt-in; library text, query text and Zotero identifiers
-  MUST NOT enter it.
+**R31. Validation.** A search configuration offered to me MUST prove it works on
+my machine before it is used, or fail loudly there.
+
+Before it creates or queries an index on a concrete machine it MUST pass the
+bundled automatic validation there or fail explicitly, and that failure MUST NOT
+silently select another configuration. What identifies such a configuration —
+every field that changes its vectors, carried as one versioned entry — is
+DESIGN.md's. Sharing a content-free validation attestation MAY be offered only
+by explicit opt-in, and library text, query text and Zotero identifiers MUST NOT
+enter it.
 
 ### Custody and lifecycle
 
-- **R10 — local by default.** Without an explicit opt-in, library text and
-  query text MUST NOT leave the machine. The default build and query path
-  make zero external calls; the one-time model-weight download is the sole
-  exception, and it is named.
-- **R15 — deleted means gone, at both scales.** Deleting an item in Zotero
-  MUST remove its text from every stage's store and from the queues between
-  them, not merely from search results. Deleting the data directory MUST be
-  the whole uninstall: index state, queues, watermarks and downloaded models
-  MUST NOT survive anywhere else.
-- **R22 — pause stays paused.** There MUST be one obvious way to stop all
-  background work, and it MUST hold across restarts.
-- **R23 — upgrade and downgrade.** An index written under a different schema
-  version MUST open and end up serving, in either direction, without anyone
-  deleting files by hand.
+**R10. Locality.** Without an explicit opt-in, my library text and my queries
+MUST NOT leave this machine.
+
+The default build and query path make zero external calls. The one-time
+model-weight download is the sole exception, and it is named rather than
+discovered: an exception a user has to find out about is not an exception, it is
+a surprise.
+
+**R15. Deletion.** Deleting an item MUST remove its text everywhere, and
+deleting the data directory MUST be the whole uninstall.
+
+Deleting an item removes its text from every stage's store and from the queues
+between them, not merely from search results — text that survives in a queue
+comes back. At the other scale, index state, queues, watermarks and downloaded
+models MUST NOT survive anywhere outside the data directory, so removing that
+directory removes the system.
+
+**R22. Pause.** There MUST be one obvious way to stop all background work, and
+it MUST hold across restarts.
+
+One way, because a user hunting for a second switch has already lost the machine
+they were trying to quiet. Holding across restarts, because background work that
+resumes on its own after a reboot was never stopped, only interrupted.
+
+**R23. Migration.** An index written under a different schema version MUST end
+up serving, in either direction, without anyone deleting files by hand.
+
+Either direction: a newer build meeting an older index, and an older build
+meeting a newer one, which is the case every user hits the day a version is
+rolled back. The clause is about ending up serving — abandoning the file and
+rebuilding silently is a failure of this promise, not a way of keeping it.
 
 ### Multi-library and multi-process
 
-- **R12 — group libraries.** Group libraries MUST be searchable like my
-  own, and indexing one library MUST NOT erase another. (Per D4: one merged index,
-  with the library as one more R5 filter, like collection or tag.)
-- **R13 — second process.** Two server processes on one data directory MUST
-  both answer queries, MUST NOT corrupt the index, and MUST NOT extract or
-  embed any passage twice. (Honest restatement accepted in DESIGN.md §2.5: never
-  *committed* twice; duplicate *compute* is bounded at one micro-batch per
-  failover.)
+**R12. Libraries.** Group libraries MUST be searchable exactly like my own, and
+indexing one library MUST NOT erase another.
+
+Per D4 there is one merged index, with the library as one more R5 filter
+alongside collection and tag. The second clause is the sharper one: a build for
+one library that meets an index belonging to another MUST refuse rather than
+overwrite it or append to its rows, because the failure is silent data loss
+reported as success.
+
+**R13. Concurrency.** Two server processes on one data directory MUST both
+answer queries without corrupting the index or doing the same work twice.
+
+The honest restatement accepted in DESIGN.md §2.5: no passage is ever
+*committed* twice, and duplicate *compute* is bounded at one micro-batch per
+failover. Two processes is the ordinary case rather than the exotic one — one
+per client application — so the index has to expect company.
 
 ### Normalization
 
-- **R19 — the query and index normalizers agree.** Every token the query
-  normalizer produces MUST be one the index normalizer can also produce;
-  otherwise that query term can never match anything. (The character-folding
-  sweep that checks the agreement over 1 301 codepoints is a gate, and a gate
-  is not a promise: DESIGN.md §2.8 owns it and every other one.)
+**R19. Normalization.** Every token the query side produces MUST be one the
+index side can also produce.
+
+Otherwise that query term can never match anything, in any language, and the
+failure is invisible: the search returns nothing and looks like an honest miss.
+The character-folding sweep that checks the agreement over 1 301 codepoints is a
+gate rather than a promise, and DESIGN.md §2.8 owns it with every other gate.
 
 ## The resolved decisions (ratified by delegation, 2026-08-26)
 

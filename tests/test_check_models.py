@@ -63,9 +63,9 @@ MINIMAL_RECORD = {
 }
 
 R7_LINE = (
-    "- **R7 — multilingual by default, in two tiers.** The default path MUST work\n"
-    "  for French, German, Vietnamese, Greek and Russian with no configuration. It\n"
-    "  SHOULD work, with no configuration, for Arabic and Chinese.\n"
+    "**R7. Languages.** The default path MUST work in French, German,\n"
+    "Vietnamese, Greek and Russian with no configuration, and SHOULD work in\n"
+    "Arabic and Chinese.\n"
 )
 
 

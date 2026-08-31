@@ -71,7 +71,13 @@ PAGE_VERSION = re.compile(r"\bv\d+(?:\.\d+)+\b")
 #: The sheet's own section headings, inside its `## Requirements` block.
 SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
 #: `- **R1 — eventually the whole library is indexed.**` — the name, then the title.
-SHEET_ITEM = re.compile(r"^- \*\*(R\d{1,2}) — (.+?)\.?\*\*")
+#: `**R1. Coverage.** Every item in the search perimeter MUST become…` — the
+#: name, then the promise's first sentence, which is what the page quotes. The
+#: sheet's format changed on 2026-08-31: a one-word handle, one testable
+#: sentence readable alone, and a paragraph unpacking it. The page quotes the
+#: SENTENCE rather than the handle, because a status page whose promise column
+#: reads "Coverage" tells a reader nothing they came for.
+SHEET_ITEM = re.compile(r"^\*\*(R\d{1,2})\. (?:[\w-]+)\.\*\* (.+)$")
 #: Where the sheet's requirement list begins and ends.
 SHEET_START = "## Requirements"
 SHEET_END = "## The resolved decisions"
@@ -211,10 +217,24 @@ DIGIT = re.compile(r"\d")
 
 
 def sheet_requirements(text: str) -> list[tuple[str, str, str]]:
-    """Every `(requirement, section, title)` the sheet declares, in the sheet's order."""
+    """Every `(requirement, section, promise)` the sheet declares, in the sheet's order.
+
+    The promise is the sentence, gathered to the blank line that ends it, because
+    the sheet wraps and a promise cut at the first newline would be a promise the
+    page could never quote back.
+    """
     found: list[tuple[str, str, str]] = []
     section = None
     live = False
+    pending: list[str] | None = None
+    name = None
+
+    def close() -> None:
+        nonlocal pending, name
+        if pending is not None:
+            found.append((name, section, " ".join(" ".join(pending).split()).rstrip(".")))
+            pending, name = None, None
+
     for line in text.splitlines():
         if line.startswith(SHEET_START):
             live = True
@@ -224,9 +244,17 @@ def sheet_requirements(text: str) -> list[tuple[str, str, str]]:
         if not live:
             continue
         if heading := SHEET_SECTION.match(line):
+            close()
             section = heading.group(1)
         elif item := SHEET_ITEM.match(line):
-            found.append((item.group(1), section, item.group(2).strip()))
+            close()
+            name, pending = item.group(1), [item.group(2)]
+        elif pending is not None:
+            if line.strip():
+                pending.append(line.strip())
+            else:
+                close()
+    close()
     return found
 
 

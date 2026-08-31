@@ -1617,6 +1617,29 @@ Ticket 0026 carries the consequence for R19: the character-folding sweep was
 built on Latin plus Cyrillic assumptions, and Arabic, Devanagari and the
 platform's two-gram Chinese geometry each break a different one.
 
+**2026-08-31 — the sheet's form: a name, a sentence, a paragraph.** The author's
+instruction, applied to all twenty-three items: `Rx. Oneworddescriptor.` then one
+sentence describing a testable user-facing feature, clear with no context needed,
+then one paragraph unpacking it.
+
+The old form was a bolded title and a blob, and the blob did three jobs at once —
+it stated the promise, argued for it, and cited whichever document owned a number
+it leaned on. A reader could not tell which sentence they were being held to. The
+new form separates them: **the sentence is the contract** and stands alone, the
+paragraph is everything that explains it, and the one-word name is the handle the
+rest of the chain cites. Nothing testable moved; every MUST and MUST NOT clause
+that was in an item is in the same item, either in its sentence or in its
+paragraph.
+
+Three consequences worth recording because they are what the format costs.
+`bench/check_normative.py` and `bench/check_progress.py` both parsed the old
+bullet shape and now read the new one, the second gathering the sentence across
+its wrapped lines — a promise cut at the first newline is a promise the page
+could never quote back. `bench/check_models.py` reads R7's two tiers out of its
+sentence, which the reformat rewrote, so its two patterns moved with it. And the
+status page now quotes the **sentence** rather than the name: a promise column
+reading "Coverage" tells a reader nothing they came to the page for.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

@@ -31,7 +31,7 @@ def document(*bullets: str) -> str:
 
 
 def test_a_keyworded_item_passes():
-    text = document("- **R1 — a promise.** Coverage MUST reach 100 %.")
+    text = document("**R1. Name.** Coverage MUST reach 100 %.")
     assert cn.check(text) == []
 
 
@@ -41,8 +41,8 @@ def test_lowercase_modal_in_a_contract_line_fires():
     It carried the only literal lowercase "must" inside an R-item.
     """
     text = document(
-        "- **R19 — the fold sweep is a gate.** Every token the query normalizer\n"
-        "  produces must be one the index normalizer can also produce."
+        "**R19. Normalization.** Every token the query normalizer\n"
+        "produces must be one the index normalizer can also produce."
     )
     problems = cn.check(text)
     assert any("lowercase 'must'" in p for p in problems), problems
@@ -57,8 +57,8 @@ def test_an_item_with_no_modal_at_all_fires():
     unforced.
     """
     text = document(
-        "- **R21 — same corpus in, same answers out.** A pinned query set with\n"
-        "  golden answers gates every change."
+        "**R21. Golden.** A pinned query set with\n"
+        "golden answers gates every change."
     )
     problems = cn.check(text)
     assert any("declares no force" in p for p in problems), problems
@@ -67,8 +67,8 @@ def test_an_item_with_no_modal_at_all_fires():
 def test_the_two_checks_are_independent():
     """One item can fail both ways; neither check subsumes the other."""
     both = document(
-        "- **R19 — a gate.** Every token the query normalizer produces must be\n"
-        "  one the index normalizer can also produce."
+        "**R19. Normalization.** Every token the query normalizer produces must be\n"
+        "one the index normalizer can also produce."
     )
     problems = cn.check(both)
     assert any("declares no force" in p for p in problems)
@@ -80,14 +80,14 @@ def test_a_named_exemption_is_accepted(monkeypatch):
     since R26 was retired from the sheet (2026-08-31), so the mechanism is tested
     with an exemption the test installs rather than one the repository carries."""
     monkeypatch.setitem(cn.UNFORCED, "R41", "under revision; a ticket owns the rewrite")
-    text = document("- **R41 — convergence is watched.** Coverage must reach 100 %.")
+    text = document("**R41. Name.** Coverage must reach 100 %.")
     assert cn.check(text) == []
 
 
 def test_an_exempt_item_that_gains_a_keyword_fires(monkeypatch):
     """The exemption is a debt, not a licence. Paying it must retire the entry."""
     monkeypatch.setitem(cn.UNFORCED, "R41", "under revision; a ticket owns the rewrite")
-    text = document("- **R41 — convergence is watched.** Coverage MUST reach 100 %.")
+    text = document("**R41. Name.** Coverage MUST reach 100 %.")
     problems = cn.check(text)
     assert any("listed as unforced" in p for p in problems), problems
 
@@ -96,7 +96,7 @@ def test_narrative_outside_the_requirements_section_is_untouched():
     """The case convention applies to R-items, not the structural rulings."""
     text = (
         "# REQUIREMENTS\n\n## Intro\n\nA tag match must not outrank a title.\n\n"
-        "## Requirements\n\n- **R1 — a promise.** Coverage MUST reach 100 %.\n"
+        "## Requirements\n\n**R1. Coverage.** Coverage MUST reach 100 %.\n"
         "\n## The resolved decisions\n\nD5 may be revisited.\n"
     )
     assert cn.check(text) == []
@@ -124,13 +124,13 @@ def test_an_exemption_for_an_item_that_does_not_exist(monkeypatch):
     behind, excusing an item nobody could find.
     """
     monkeypatch.setitem(cn.UNFORCED, "R99", "retired, and never removed from this table")
-    text = document("- **R1 — the whole library.** Coverage MUST reach 100 %.")
+    text = document("**R1. Name.** Coverage MUST reach 100 %.")
     problems = cn.check(text)
     assert any("R99" in problem for problem in problems), problems
 
 
 def test_an_r_item_that_names_the_implementation():
     """A promise naming one codebase is a promise only that codebase can keep."""
-    text = document("- **R13 — second process.** Two zoteus processes MUST answer.")
+    text = document("**R13. Name.** Two zoteus processes MUST answer.")
     problems = cn.check(text)
     assert any("names the implementation" in problem for problem in problems), problems

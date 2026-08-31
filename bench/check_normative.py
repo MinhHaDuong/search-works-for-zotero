@@ -42,8 +42,11 @@ KEYWORD = re.compile(r"\b(MUST|SHALL|SHOULD|MAY|REQUIRED|RECOMMENDED|OPTIONAL)\b
 #: The lowercase modals that carry no force but read as though they might.
 LOWERCASE_MODAL = re.compile(r"\b(must|shall|should|may)\b")
 
-#: An R-item opens a bullet and names itself.
-R_ITEM = re.compile(r"^- \*\*(R\d+) — ")
+#: An R-item opens a block and names itself: `**R1. Coverage.** <the sentence>`.
+#: The format changed on 2026-08-31 from a bullet with a title to a name, one
+#: sentence and a paragraph; the sentence carries the force, so the scan below
+#: reads from the name to the blank line after the paragraph.
+R_ITEM = re.compile(r"^\*\*(R\d+)\. ")
 
 #: R-items exempt from the whitelist, each with the reason and its owner. An
 #: exemption is written down rather than skipped silently: a guard with a hidden
@@ -83,16 +86,21 @@ def r_items(text: str) -> list[tuple[str, int, str]]:
         return []
 
     items: list[tuple[str, int, list[str]]] = []
+    open_item: tuple[str, int, list[str]] | None = None
     for offset, line in enumerate(lines[start:], start=start + 1):
         if line.startswith("## ") and not line.startswith("## Requirements"):
             break
-        match = R_ITEM.match(line)
-        if match:
+        if match := R_ITEM.match(line):
             items.append((match.group(1), offset, [line]))
-        elif items and (line.startswith("  ") or not line.strip()):
-            items[-1][2].append(line)
-        elif line.startswith("- ") or line.startswith("### "):
-            continue
+            open_item = items[-1]
+        elif line.startswith("### "):
+            # A section heading closes the item before it: prose under a heading
+            # and before the next name belongs to no requirement, and folding it
+            # into the previous one would let a stray lowercase modal there be
+            # reported against a requirement that does not contain it.
+            open_item = None
+        elif open_item is not None:
+            open_item[2].append(line)
     return [(name, number, "\n".join(body)) for name, number, body in items]
 
 

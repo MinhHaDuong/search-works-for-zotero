@@ -33,12 +33,19 @@ SHEET = """# REQUIREMENTS
 
 ### Coverage
 
-- **R1 — eventually the whole library is indexed.** With no further edits.
-- **R2 — most recent first.** Coverage grows newest-first.
+**R1. Coverage.** eventually the whole library is indexed
+
+With no further edits.
+
+**R2. Recency.** most recent first
+
+Coverage grows newest-first.
 
 ### Corpus
 
-- **R9 — 15 000-page documents are included.** Monsters are first-class.
+**R9. Length.** 15 000-page documents are included
+
+They are first-class input.
 
 ## The resolved decisions
 
@@ -141,7 +148,7 @@ def test_requirement_added_to_the_sheet_and_not_the_page(tmp_path):
     """The failure this guard exists for: a promise with no standing, and nothing looks wrong."""
     sheet = SHEET.replace(
         "### Corpus",
-        "### Corpus\n\n- **R16 — my own words.** Notes and annotations are part of the corpus.",
+        "### Corpus\n\n**R16. Notes.** Notes and annotations are part of the corpus.\n",
     )
     assert cp.run(build(tmp_path, sheet=sheet)) == 1
 

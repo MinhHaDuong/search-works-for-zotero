@@ -214,9 +214,7 @@ ISO_639_1 = {
 R7_MUST = re.compile(
     r"\*\*R7[^*]*\*\*(?P<body>.{0,400}?)with no configuration", re.DOTALL | re.IGNORECASE
 )
-R7_SHOULD = re.compile(
-    r"SHOULD work, with no configuration, for(?P<body>.{0,200}?)[.;]", re.DOTALL
-)
+R7_SHOULD = re.compile(r"SHOULD work in(?P<body>.{0,200}?)[.;]", re.DOTALL)
 
 
 def _codes(body: str, sheet: Path, which: str) -> set[str]:
