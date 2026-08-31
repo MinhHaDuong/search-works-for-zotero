@@ -232,7 +232,12 @@ def display(value, places: int, pct: bool = False) -> str:
 #: verdict and the threshold sweep to place its own, and twelve for the upstream PR body,
 #: which is the first document here written to be read outside the repo and therefore the
 #: one where a stale figure costs most. No coverage was removed.
-MINIMUM_PAIRS = 377
+#:
+#: RAISED again to 381 in review round 1, for arm D — X2's own binary re-run on the same
+#: file to isolate why the unpruned arm reads under X2's figure — and for arm C's pooled
+#: pair where its second run is recorded. Both are provenance rather than results, which is
+#: exactly the kind of figure that rots unnoticed.
+MINIMUM_PAIRS = 381
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -522,7 +527,7 @@ FIGURES = [
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 1,
      {"t0091": "costs p50{} ms and"}),
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 1,
-     {"t0091": "and p95{} ms: X2 reproduced"}),
+     {"t0091": "and p95{} ms: X2's failure mode"}),
     ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p50_ms", 1,
      {"t0091": "brings it to p50{} ms and"}),
     # Quoted three times in the ticket — the measurement entry, the findings entry, and the
@@ -551,6 +556,19 @@ FIGURES = [
      {"t0091": "it costs {} ms on first call"}),
     ("0091-droplist/query-477k.json", "derivation.scan_ms.warm", 0,
      {"t0091": "call and {} ms on the second"}),
+    # Arm D exists only to answer a question the review asked: why the unpruned arm reads
+    # well under X2's 1 773,0 ms when the stock control reproduces X2 to 0,05 %. It is X2's
+    # OWN binary on this file, so its two figures are the isolation, and a stale one would
+    # turn a ruled-out cause back into an open one.
+    ("0091-droplist/query-477k.json", "arms.D_x2_own_binary.latency.p50_ms", 1,
+     {"t0091": "reading p50{} ms and"}),
+    ("0091-droplist/query-477k.json", "arms.D_x2_own_binary.latency.p95_ms", 1,
+     {"t0091": "and p95{} ms. Statistically"}),
+    # Arm C's pooled pair, quoted a second time where its second run is recorded.
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 1,
+     {"t0091": "(pooled p50{} ms, p95"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 1,
+     {"t0091": "965,6 ms, p95{} ms) since"}),
     # The two figures the ticket quotes from OTHER artifacts to place its own. The stock
     # control is what says the machine and the harness still agree with August; the sweep's
     # prediction is what says the implementation lands where the design said it would.
@@ -576,7 +594,7 @@ FIGURES = [
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 0,
      {"u0091": "nothing pruned | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 0,
-     {"u0091": "nothing pruned | 1 012 ms | {} ms |"}),
+     {"u0091": "nothing pruned | 966 ms | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p50_ms", 0,
      {"u0091": "degeneracy fallback | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 0,

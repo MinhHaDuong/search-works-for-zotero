@@ -146,6 +146,36 @@ def test_verification_reports_are_out_of_scope(tmp_path):
     assert cg.run(repo) == 0
 
 
+def test_an_arriving_upstream_pr_body_must_be_triaged(tmp_path):
+    """The one part of verification/ that IS in scope, because it is text we send.
+
+    An upstream PR body is not evidence about upstream, it is the message: whatever
+    governance sentence reaches it reaches the maintainer, on a repository he reads.
+    So the arrival half of the scope problem has to close over these the way it
+    closes over the spec — which is the same asymmetry the two tests above cover,
+    at the only address where the reader is outside this repo.
+    """
+    repo = build(tmp_path, {})
+    (repo / "verification").mkdir(exist_ok=True)
+    (repo / "verification" / "UPSTREAM-PR-9999-SOMETHING.md").write_text("Outgoing.\n")
+    assert cg.run(repo) == 1
+
+
+def test_a_report_about_upstream_is_not_an_upstream_pr_body(tmp_path):
+    """The boundary, and it is a discrimination rather than a formality.
+
+    `UPSTREAM-PR-*` and not `UPSTREAM-*`, because a re-read of upstream's tree is
+    a report — the same object class as every other file in this directory — and
+    globbing it in would have made two independently green branches red in
+    combination, with no CI here to notice. The narrower glob is the semantic
+    answer as well as the merge-safe one: sending is what earns the gate.
+    """
+    repo = build(tmp_path, {})
+    (repo / "verification").mkdir(exist_ok=True)
+    (repo / "verification" / "UPSTREAM-1.12.0-REREAD.md").write_text("A report about upstream.\n")
+    assert cg.run(repo) == 0
+
+
 def test_the_repo_itself_is_fully_triaged():
     """Every document in the real tree is in exactly one list."""
     assert cg.uncovered(REPO) == set()

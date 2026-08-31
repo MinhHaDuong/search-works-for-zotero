@@ -1,8 +1,8 @@
 {
   "probe": "ticket 0091 — the library-derived droplist plus degeneracy fallback, implemented and measured end-to-end on the real 477 512-passage index",
   "date": "2026-08-31",
-  "substrate": "REAL. One copy of the x2-rebuild index (host doudou, 7 541 items, 477 512 passages, 465 110 of them full text, uncapped), 938,8 MiB. ALL THREE ARMS RUN AGAINST THE SAME FILE, so page cache and file layout are not variables — see method_note.",
-  "method": "bench/query.py --backend sqlite --limit 20 --repeat 6 over bench/queries-x2.txt, end-to-end through the MCP server (zotero_semantic_search, mode=keyword, ZOTEUS_EMBEDDINGS=off). Warm passes only; pass 0 is discarded as the cold one. Arms A and B were each run more than once and their warm samples are pooled.",
+  "substrate": "REAL. One copy of the x2-rebuild index (host doudou, 7 541 items, 477 512 passages, 465 110 of them full text, uncapped), 938,8 MiB. EVERY ARM RUNS AGAINST THAT SAME FILE, so page cache and file layout are not variables — see method_note.",
+  "method": "bench/query.py --backend sqlite --limit 20 --repeat 6 over bench/queries-x2.txt, end-to-end through the MCP server (zotero_semantic_search, mode=keyword, ZOTEUS_EMBEDDINGS=off). Warm passes only; pass 0 is discarded as the cold one. Each arm was run more than once where its figure carries weight, and the warm samples of its runs are pooled; `runs` records how many.",
   "method_note": "A first attempt put each arm on its own copy of the index and produced warm p95 figures of 3 703,9 ms and 5 564,8 ms for stock — nine to fourteen times the same binary measured on the other copy minutes later, and rising between repeats. The two files are byte-comparable in structure (same page_count 240 320, same freelist, same indexes; verified), so the difference was the page cache under concurrent load, not the code or the data. Those readings are DISCARDED. Every figure below is from the single shared file, with the droplist toggled in and out of its meta table between arms.",
   "arms": {
     "A_stock_v1_12_0": {
@@ -35,15 +35,32 @@
     "C_no_stoplist_no_droplist": {
       "tree": "this ticket, with the two droplist rows removed from meta — i.e. exactly what an index built by an earlier version presents on its first open",
       "latency": {
+        "runs": 2,
+        "n": 200,
+        "p50_ms": 965.6,
+        "p95_ms": 1132.8,
+        "max_ms": 1464.6
+      }
+    },
+    "D_x2_own_binary": {
+      "tree": "MinhHaDuong/zoteus stopwords-follow-up 94d994d, one commit atop v1.9.0 — the exact tree the 2026-08-29 X2 treatment figure was measured on",
+      "purpose": "Not a policy arm. It exists to answer why arm C reads well under the 1 773,0 ms X2 recorded for the same policy, and it answers it: this binary reads the same as arm C on this file today, so the difference is NOT the v1.11/v1.12 search-layer rewrite.",
+      "latency": {
         "runs": 1,
         "n": 100,
-        "p50_ms": 1011.6,
-        "p95_ms": 1151.3,
-        "max_ms": 1464.6
+        "p50_ms": 903.5,
+        "p95_ms": 1025.4,
+        "max_ms": 1049.1
       }
     }
   },
-  "verdict": "The pruning works and the fallback is what the tail is made of. Against stock at p50 222,0 ms / p95 392,5 ms, the unpruned arm costs p50 1 011,6 ms / p95 1 151,3 ms — the X2 failure reproduced on v1.12.0 — and the droplist brings that back to p50 282,0 ms / p95 696,5 ms. Excluding the one fully degenerate query of the twenty, the droplist arm reads p95 491,7 ms, inside the ~500 ms allowance DESIGN §3 names and close to the 463,5 ms its own sweep predicted for pruning alone. The whole overrun is therefore the degeneracy fallback firing on `to be or not to be`, which costs that query about 760 ms against stock's 281,9 ms — and buys the right answer for it: the droplist arm returns EXACTLY the unfiltered result set there, where stock overlaps it on 5 items of 35.",
+  "verdict": "The pruning works and the fallback is what the tail is made of. Against stock at p50 222,0 ms / p95 392,5 ms, the unpruned arm costs p50 965,6 ms / p95 1 132,8 ms and the droplist brings that back to p50 282,0 ms / p95 696,5 ms. Excluding the one fully degenerate query of the twenty, the droplist arm reads p95 491,7 ms, inside the ~500 ms allowance DESIGN §3 names and close to the 463,5 ms its own sweep predicted for pruning alone. The whole overrun is therefore the degeneracy fallback firing on `to be or not to be`, which costs that query about 760 ms against stock's 281,9 ms — and buys the right answer for it: the droplist arm returns EXACTLY the unfiltered result set there, where stock overlaps it on 5 items of 35.",
+  "x2_is_reproduced_in_kind_not_in_magnitude": {
+    "observation": "X2 measured the stoplist-deleted policy at warm p95 1 773,0 ms on 2026-08-29. The same policy here reads 1 132,8 ms, about 64 % of it, while the stock control reads 392,5 ms against X2's 392,3 ms — agreement to 0,05 % on one arm and a 36 % gap on the other, which no single explanation covers for free.",
+    "what_was_ruled_out": "The v1.11.0/v1.12.0 search-layer rewrite. Arm D is X2's OWN treatment binary (94d994d, one commit atop v1.9.0) run against this same file in the same session: p50 903,5 ms, p95 1 025,4 ms, statistically the same as arm C's v1.12.0 code under the same policy. Same binary, same queries, same file, different day — so the code is not the variable.",
+    "what_remains_open": "The substrate and machine state between 2026-08-29 and today. The X2 run measured its own freshly built copy on a machine in a different state; this one shares a warmed file with three sibling arms. That is a plausible cause and it is NOT established here — it is named as the open question rather than recorded as a residual. Nothing in this artifact depends on it: every arm is contemporaneous and same-file, so the ratios between them stand whatever the absolute level was in August.",
+    "consequence_for_the_prose": "Say the failure mode is reproduced, not the figure. Arm C is the X2 policy failing the same way and by the same mechanism; it is not the 1 773,0 ms number."
+  },
   "the_fallback_cost_is_invariant_to_the_threshold": "Not a threshold that could be tuned out. The fallback sends the RAW token set, so a fully degenerate query costs the same at any cutoff — lowering the threshold only makes more queries degenerate. Anything that would move this figure is a different fallback (a phrase query, a cap on the raw set), which is DESIGN §3's to rule on, not this ticket's.",
   "the_ten_words_the_cutoff_does_not_reach": {
     "finding": "The 30 % droplist is not a superset of the 29-word stoplist. It catches 19 of them and adds 1, 2, 3 and s; the ten it leaves are at, it, its, was, we, were, our, their, these, those — English function words common enough to be expensive and below 30 % document frequency in this library. Every query in the population whose droplist p50 exceeds stock's by more than 50 ms carries one of them.",
@@ -113,7 +130,7 @@
       "cold": 2281,
       "warm": 2013
     },
-    "note": "The 23 terms reproduce df-droplist-sweep.json exactly, including the four the sweep called `others_caught` (1, 2, s, 3), which independently confirms that the shipped derivation computes what the sweep computed by hand. 53 bytes of term text; 75 bytes stored, the difference being the 22 separators. The scan cost 2 281 ms on first call and 2 013 ms on the second, both against a page cache warmed by the copy that preceded them — below the ~3,4 s the ticket carried and not comparable to its ~7,5 s cold figure, which nothing here reproduces."
+    "note": "The 23 terms reproduce df-droplist-sweep.json exactly, including the four the sweep called `others_caught` (1, 2, s, 3), which independently confirms that the shipped derivation computes what the sweep computed by hand. 53 bytes of term text; 75 bytes stored, the difference being the 22 separators. The scan cost 2 281 ms on first call and 2 013 ms on the second — BOTH against a page cache the copy that preceded them had already warmed, so both are floors and neither is a cold-start figure. Below the ~3,4 s this ticket carried; nothing here reproduces its ~7,5 s cold figure, and nothing here tried to."
   },
   "verification_against_the_ticket": {
     "p95 inside the DESIGN §3 budget": "PARTIAL — 491,7 ms excluding the degenerate query, 696,5 ms including it. See verdict.",

@@ -1,6 +1,6 @@
 # Upstream PR body — the library-derived droplist (ticket 0091)
 
-Drafted here, sent as written. Branch `t0091-droplist` on the author's fork at `4510bb0`,
+Drafted here, sent as written. Branch `t0091-droplist` on the author's fork at `eff9fb9`,
 one commit atop `b05ed69` (v1.12.0), pushed 2026-08-31. **Not filed**: nothing goes
 upstream without the author's authorization. When it is authorized, the PR opens from
 `MinhHaDuong:t0091-droplist` against `oscardvs/zoteus` `main`.
@@ -57,10 +57,14 @@ Three details are worth stating because each was a decision:
 **Why it is stored rather than computed.** `fts5vocab` is ordered by term, not by document
 count, so "which terms exceed 30%" is a full scan of it. On a 477 512-passage library that
 scan reads 639 888 terms and costs about 2 281 ms on a first call and 2 013 ms on a
-second. Far too slow for query time, and too slow to pay at startup. Everything else about
-the answer is small — 23 terms, 75 bytes of text — so it goes in `meta` beside
-`schemaVersion`, and the scan happens where a full walk of the corpus is already being
-paid for. On that library the build costs minutes; this is about 1% on top.
+second — both against a page cache the preceding work had already warmed, so read them as
+a floor rather than as a cold-start figure. Either way far too slow for query time, and
+too slow to pay at startup.
+
+Everything else about the answer is small — 23 terms, 75 bytes of text — so it goes in
+`meta` beside `schemaVersion`, and the scan happens where a full walk of the corpus is
+already being paid for: on that library a build takes minutes, and a couple of seconds is
+a percent or so of it.
 
 **Why a delta update does not redo it.** A handful of new items cannot move a 30%
 threshold, and this scan is the one cost in the change a user could feel. The passage
@@ -90,16 +94,17 @@ match.
 ### Measurements
 
 A real 7 541-item library, 477 512 passages, 465 110 of them attachment full text, one
-938 MB index. Twenty natural-language queries, each carrying at least three of the 29
+938,8 MiB index. Twenty natural-language queries, each carrying at least three of the 29
 words, run end-to-end through the MCP server with `mode: "keyword"` and embeddings off;
 six passes, warm passes pooled. **All three arms run against the same file**, so the page
 cache is not a variable — an earlier attempt with one copy per arm produced differences of
-an order of magnitude between two structurally identical files and was discarded.
+an order of magnitude between two structurally identical files and was discarded. The
+first two rows pool two runs each, the third pools three.
 
 | arm | p50 | p95 |
 |---|---:|---:|
 | v1.12.0 as it stands, 29-word list | 222 ms | 392 ms |
-| stoplist deleted, nothing pruned | 1 012 ms | 1 151 ms |
+| stoplist deleted, nothing pruned | 966 ms | 1 133 ms |
 | this PR: droplist + degeneracy fallback | 282 ms | 696 ms |
 
 Fidelity against the current release: mean Jaccard 87% over the twenty result sets, no

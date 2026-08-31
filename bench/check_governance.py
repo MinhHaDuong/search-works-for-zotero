@@ -102,14 +102,24 @@ UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.m
 #: it as evidence rather than authority, a different object class from the
 #: documents whose governance vocabulary this guard polices.
 #:
-#: `verification/UPSTREAM-*.md` is the exception, and it is the sharpest case the
-#: completeness check has: those files are not evidence, they are OUTGOING TEXT,
-#: and a governance sentence that reaches one of them reaches the maintainer.
-#: The glob is here rather than the filename so the SECOND such document cannot
-#: arrive unread — which is precisely how FIELD-REVIEW.md spent months outside
-#: the gate, and precisely what ticket 0221 named. A verification report that is
-#: not an upstream body still needs no entry.
-COVERED_GLOBS = ["*.md", "spec/*.md", "verification/UPSTREAM-*.md"]
+#: `verification/UPSTREAM-PR-*.md` is the exception, and it is the sharpest case
+#: the completeness check has: those files are not evidence, they are OUTGOING
+#: TEXT, and a governance sentence that reaches one of them reaches the
+#: maintainer. The glob is here rather than the filename so the SECOND such
+#: document cannot arrive unread — which is precisely how FIELD-REVIEW.md spent
+#: months outside the gate, and precisely what ticket 0221 named.
+#:
+#: `-PR-` and not a bare `UPSTREAM-*`, which is what this first said and which
+#: was wrong twice over. Technically: a sibling branch was adding
+#: `verification/UPSTREAM-1.12.0-REREAD.md` at the same moment, so each PR was
+#: green alone and their union was red — nothing here runs CI, so main would
+#: have gone red silently. Semantically, and this is the reason the narrower
+#: glob is not merely a dodge: the class being gated is *text we send*, not
+#: *documents about upstream*. A re-read report is evidence about upstream, the
+#: same object class as every other report in this directory, and reads by the
+#: rule two paragraphs up. Sending is what earns the gate, and the filename says
+#: which is which.
+COVERED_GLOBS = ["*.md", "spec/*.md", "verification/UPSTREAM-PR-*.md"]
 
 #: The named process bounds. Each is a rule the author ratified about how this
 #: repository conducts itself upstream — not a fact about the world, and not a
