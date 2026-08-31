@@ -150,7 +150,7 @@ build and no library: they are decidable the moment the system is installed.
 | | the clause goal 1 binds | decided at | where its test would live |
 |---|---|---|---|
 | R10 | my library text and my queries stay on this machine without an opt-in | both | [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py) |
-| R15 | a deleted item loses its text everywhere, and the data directory is the whole uninstall | both | ticket 0017 |
+| R15 | deleting the data directory is the whole uninstall | both | ticket 0017 |
 | R22 | one obvious way to stop all background work, holding across restarts | both | ticket 0033 |
 | R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | ticket 0488 |
 
@@ -193,7 +193,9 @@ which emptiness an empty one is.
 
 All three modes, the pinned answer inside the first ten, scoping enforced before
 truncation, three languages served unconfigured with the lanes connected, and a
-hit that opens at the page it came from.
+hit that opens at the page it came from. Which pinned queries this rung binds is
+faceted by the corpus each answer needs; the rule is DESIGN.md §2.8's
+(DECISIONS.md 2026-08-31).
 
 `◐◐◐◐○○` &nbsp; 6 in the bundle · 4 rest on something that ran
 
@@ -224,12 +226,16 @@ one: this is the word *all* in the promise.
 
 ## What the ladder does not say
 
-Two terms bind a clause rather than an item. R19 is in by its property alone:
+Three terms bind a clause rather than an item. R19 is in by its property alone:
 its cadence — that the sweep runs on every check — is not a promise to anyone
 and left the sheet on 2026-08-31, on the criterion that what verifies a promise
 is not itself a promise, so it belongs to the gates in DESIGN.md §2.8. R24 is in
 by its page clause alone, its entry-heading and dedup clauses waiting on the
-segmenter behind experiment X5.
+segmenter behind experiment X5. R15 is in by its uninstall clause: its
+item-deletion clause is asserted with goal 2's built-index tests, as
+event-then-state — after a delete is noticed and the tick completes, no store
+or queue holds the text — and its clock is R35's, on goal 5 (DECISIONS.md
+2026-08-31).
 
 *Works for me* is the acceptance standard for the top three rungs together — the
 promise stated in the user's own terms, *search all of my library*: every
