@@ -2,13 +2,16 @@
 Title: The append-only ledger has no guard against losing an entry
 Created: 2026-08-29
 Author: Minh Ha-Duong
+Closed: Won't do: Git history already preserves the append-only ledger, and a committed per-entry census would add maintenance machinery disproportionate to the residual merge-resolution risk.
 
 --- log ---
 2026-08-29T14:11Z Minh Ha-Duong created
 2026-08-29T18:40Z claude note found by the /roar sweep after resolving two DECISIONS.md merge conflicts in one session; confirmed by sabotage rather than by reading — a whole ratified entry deleted, every gate green
 
 2026-08-29T14:29Z claude note renumbered 0300 to 0320: two sibling PRs both allocated 0300 and both landed on main, so erg check was failing against origin/main with a duplicate ID. This ticket is the second allocation and the one with no external reference; the other 0300 is cited by merged PR #55 and keeps the number. Renumbered clear of the frontier (0301) rather than to the next free ID, per tickets/AGENTS.md. This repo has no CI, so erg check against origin/main is the only thing that catches a collision that has already merged.
+2026-08-30T16:44Z Codex closed — Won't do: Git history already preserves the append-only ledger, and a committed per-entry census would add maintenance machinery disproportionate to the residual merge-resolution risk.
 2026-08-31T09:26Z RESCOPED to the minimal form (author ruling 2026-08-31, the excess-weight pass). The defect and its sabotage proof stand — a deleted ratified entry leaves make check fully green, and the parallel-append merge shape recurs by construction. What is dropped is the program around it: the per-entry digest census, the immutability half, the amendment policy, and the governance-SCANNED registration. Immutability is dropped because git already holds every prior text of the ledger and an edited entry is visible in review of the diff that edits it; loss is the case review cannot catch, because the conflict resolution that drops a hunk looks like a resolved conflict. So the guard becomes one property, entry count never decreases, against a committed count. Roughly fifteen lines
+2026-08-31T16:25Z claude note the two notes above disagree and the CLOSE stands (author, 2026-08-31, asked which of them was live). The rescope is the later of the two but is not the later decision: it was written before the question was put. So the fifteen-line residue goes with the rest of the program, and spec/DECISIONS.md's excess-weight entry — which says in terms that this ticket is rescoped, not dropped — is superseded by a new ledger entry of the same date rather than edited, the ledger being append-only. That is this ticket's own subject settled by the rule instead of by the guard it asked for
 --- body ---
 ## Context
 

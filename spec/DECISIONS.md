@@ -1972,6 +1972,28 @@ deliberately does not fix, on R5's lesson that the obligation is on the honesty
 of the result and never on which operator enforces it.
 
 
+**2026-08-31 — ticket 0320 is closed won't-do, and "rescoped, not dropped" is
+superseded.** The author, asked which of two decisions on the same ticket was
+live — the close of 2026-08-30 (git history already preserves the append-only
+ledger, and a committed per-entry census is maintenance machinery
+disproportionate to the residual merge-resolution risk) or the rescope of
+2026-08-31 (the program drops, one property survives: the ratified entry count
+never decreases) — ruled the close. The rescope is the later text but not the
+later decision; it was written before the question was put.
+
+So the fifteen-line residue goes with the rest of it. The sabotage proof stands
+as a description and not as a commitment: a whole ratified entry can be deleted
+and `make check` stays green, and nothing will now notice. What the repo relies
+on instead is git, which holds every prior text of the ledger, and review of the
+diff that edits it — which is what the close said in the first place.
+
+This is a new entry rather than a correction because the excess-weight ruling
+above says, in terms, that ticket 0320 is rescoped and not dropped, and that
+entry is ratified. The ledger is append-only, so a reversal names what it
+reverses and leaves it standing. That is this ticket's own subject settled by
+the rule rather than by the guard it asked for.
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
