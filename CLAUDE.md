@@ -11,15 +11,15 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 `SYNC.md` — stays at the top level, as do `README.md` and this file.
 
 - `spec/README.md` — the chain's entry point, and `spec/`'s landing page on the
-  forge. Owns one thing nothing else does: where each of the thirty
+  forge. Owns one thing nothing else does: where each of the thirty-one
   requirements stands, on two axes — designed, and delivered on stock upstream
   at the reviewed baseline — plus an `evidence` column saying how each verdict
   was established. It owns no threshold and no design number; the standing is
   read from the upstream source, never computed, and `bench/check_progress.py`
   fails the build when the reviewed baseline moves past it. It also owns goal
-  1's roster — which promises the bundle binds, and where each one's assertion
-  will live — checked against the ruling in `spec/DECISIONS.md` rather than
-  against itself. Tracker: 0400.
+  1's two rosters — the terms the conjunction runs over and the instruments that
+  decide them, each with the address where its work lives — checked against the
+  ruling in `spec/DECISIONS.md` rather than against itself. Tracker: 0400.
 - `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
 - `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
   every design number: gate thresholds (§2.8), experiment decision rules

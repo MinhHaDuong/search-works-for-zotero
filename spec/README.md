@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the thirty promises actually
+documents do not: **where each of the thirty-one promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -37,23 +37,23 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 28 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 29 ratified · 2 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 14 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○` &nbsp; 1 shipped · 16 partial · 14 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 11 read in the source · 9 inferred
+11 measured · 11 read in the source · 9 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the thirty, ten rest on an experiment or a test that ran, eleven on
+the thirty-one, eleven rest on an experiment or a test that ran, eleven on
 opening the upstream source at the reviewed baseline, and nine on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
@@ -92,7 +92,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 | section | designed | delivered |
 |---|---|---|
-| Coverage and convergence | `●●●●●○○` | `◐◐◐○○○○` |
+| Coverage and convergence | `●●●●●●○○` | `◐◐◐◐○○○○` |
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
 | Query | `●●●●●` | `◐◐◐○○` |
@@ -122,64 +122,81 @@ That is the whole reason to name the bundle. Eleven separate rows can be
 reported as ten-elevenths done, and a promise cannot.
 
 **Made strong** is four strengthenings, and each was already a promise here:
-every document, including the monsters, at a library size worth the name;
-every language on the default path, whose keyword half can only match if the two
-normalizers agree; everything indexed **today** rather than eventually, watched
-from empty rather than asserted, with one's own notes in the corpus at all and
-the whole of it legible in one sentence; and an answer back inside the budget
-the query path is held to. The bundle, and the three promises deliberately left
-out of it, were ruled on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
+every document, including the monsters, at a library size worth the name; every
+language on the default path, whose keyword half can only match if the two
+normalizers agree; everything searchable **today** rather than eventually —
+records first, body text behind them, on ordinary hardware — with one's own
+notes in the corpus at all and the whole of it legible, per stage, in one
+sentence; and an answer back inside the budget the query path is held to.
+Searchable at an older extraction, chunking or embedder version still counts;
+indexed by its opening pages does not. The bundle and its exclusions were ruled
+on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
 
-`◐◐◐◐◐◐○○○○○` &nbsp; 11 in the bundle · 4 rest on something that ran
+`◐◐◐◐◐◐◐○○` &nbsp; 9 in the bundle · 4 rest on something that ran
 
-That bar shows where the members stand. It is not a progress bar: under the
+That bar shows where the terms stand. It is not a progress bar: under the
 conjunction the goal is kept at all-shipped and at no state before it.
 
-**Read as test-driven development, this bundle has no failing tests. It has
-eleven unwritten ones.** The `evidence` column is the test column: `measured`
-says an assertion ran, `code` and `inferred` say none exists. A row in those two
-states is not red — red is a claim about the system, and an unwritten test is a
-claim about nobody — which is why the four that rest on something that ran are
-counted separately above, and why not one of the eleven is yet a check that runs
-on every build.
+**Read as test-driven development, this bundle has no failing tests. It has nine
+unwritten ones.** The `evidence` column is the test column: `measured` says an
+assertion ran, `code` and `inferred` say none exists. A row in those two states
+is not red — red is a claim about the system, and an unwritten test is a claim
+about nobody — which is why the four that rest on something that ran are counted
+separately above, and why not one of the nine is yet a check that runs on every
+build.
 
-So what goal 1 asks for is not upstream code. It is eleven assertions, each
+So what goal 1 asks for is not upstream code. It is nine assertions, each
 carrying the way it can fail. Most go red on the reviewed baseline the day they
 are written, for the reasons their rows already give. Two or three arrive green
-— R6's property holds already, and the fold sweep passes — and a test never
-seen to fail is a test nobody has checked, which is why ticket 0026's fold gate
-keeps a red classification for a tree that lacks the fold. Green on arrival is
-a result. Green with no way to be red is a decoration.
+— R6's property holds already, and the fold sweep passes — and a test never seen
+to fail is a test nobody has checked, which is why ticket 0026's fold gate keeps
+a red classification for a tree that lacks the fold. Green on arrival is a
+result. Green with no way to be red is a decoration.
 
-Each row below gives the clause the goal binds and the address where its
-assertion would live. The status is not repeated here — it is in the rows for
-these requirements further down, and the bar above is recomputed from them.
+**Terms.** What the user meets. Each row gives the clause goal 1 binds and the
+address where its assertion would live; the status is not repeated here, and the
+bar above is recomputed from these requirements' own rows further down.
 
 | | the clause goal 1 binds | where its test would live |
 |---|---|---|
-| R1 | coverage reaches the whole library with nobody asking | ticket 0026 |
+| R1 | the whole library is covered unattended, a text-less attachment ending covered with its reason (R14, folded in) | ticket 0026 |
 | R6 | the query path waits for no freshness work | ticket 0026 |
 | R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | ticket 0029 |
 | R8 | the design-point library is answered, not approached | ticket 0025 |
 | R9 | a monster is indexed whole, never by its opening pages | ticket 0029 |
-| R14 | an attachment with no text ends covered, with its reason | ticket 0019 |
 | R16 | my own notes and annotations are in the corpus at all | ticket 0022 |
-| R17 | how much is searchable, answered in one sentence | ticket 0026 |
+| R17 | how much is searchable, answered per stage in one sentence | ticket 0026 |
 | R19 | every token the query normalizer makes, the index normalizer can make too | ticket 0026 |
-| R26 | the reaching is watched from an empty index, not trusted | ticket 0026 |
-| R30 | the execution device actually serving is named, on every machine | [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py) |
+| R32 | records searchable today and the body behind them, on the reference machine | ticket 0026 |
+
+**Instruments.** Not terms, and not lesser: these decide whether the terms hold,
+and a term whose instrument is missing cannot be settled at all. They are named
+here rather than counted in the bar, because a promise the user meets is not
+made truer or falser by what this repository runs in its own build.
+
+| | what it decides | where it is built |
+|---|---|---|
+| R19 | the sweep runs on every check — the cadence clause, deciding R19's own property and R7's keyword half | ticket 0026 |
+| R26 | convergence is watched from an empty index rather than trusted — deciding R1 | ticket 0026 |
+
+Binding is per clause, which is why R19 is in both tables: goal 1 binds its
+property, and its cadence is what decides that property. R21 joins the
+instruments when the recall term exists, and R30 is no longer here at all —
+finishing today turned out to be a property of the configuration rather than of
+the hardware, so it left R30 and became R32.
 
 None of those addresses is new work. The fixture corpus, the gates and the
 acceptance harness offered upstream were scoped before this goal existed; goal 1
 names which of their assertions this one promise hangs on, and ticket 0400 keeps
 the count. Membership is a ruling, not a page edit:
-[`bench/check_progress.py`](../bench/check_progress.py) reads the roster from
-[DECISIONS.md](DECISIONS.md) and fails the build when the two disagree, because
-a bundle that can quietly lose a member is a milestone that finishes early.
+[`bench/check_progress.py`](../bench/check_progress.py) reads both rosters from
+[DECISIONS.md](DECISIONS.md) and fails the build when the page and the ledger
+disagree, because a bundle that can quietly lose a member is a milestone that
+reports itself kept when it is not.
 
 ---
 
-## The thirty
+## The thirty-one
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -201,7 +218,8 @@ demonstrated. They are not the same kind of statement.
 | R14 | no text is a terminal state | ratified | none | inferred | An attachment that yields no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing. Held in reserve as ticket 0019. |
 | R17 | coverage in one sentence | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. |
 | R26 | convergence is watched, not trusted | ratified | none | inferred | No harness polls an empty index to completion. Ticket 0026, and the requirement's prefix clause is being rewritten in ticket 0080. |
-| R30 | capable hardware is used | open | none | measured | The local path still passes no execution device on stock upstream, so the runtime's CPU default still serves there — unchanged from the reviewed baseline. The device mechanism is observed rather than read from source (`verification/DEVICE-AUTO-0264.md`), ticket 0264's throughput anomaly is explained as a harness defect rather than a GPU fact (`verification/GPU-ANOMALY-0481.md`: the fidelity cells never received a device and ran on CPU), and genuine GPU acceleration is measured for one candidate at full precision (`bench/results/0481-gpu-anomaly/`). The design stays open on the per-model shape of the guarded fallback (the mixed-provider path crashes per model, not per machine) and on the per-device optimal rung (the quantized matmul has no CUDA kernel). Ticket 0482's corrected campaign (`verification/GPU-CORRECTED-0482.md`, `bench/results/0482-gpu-corrected/`) re-measured every candidate with the device fix: full precision is faster than both quantized rungs on every candidate (confirming ticket 0481's finding generalizes), and X8 at full coverage clears DESIGN §3's bar at full precision for every candidate but mostly fails it at the quantized rungs — reversing ticket 0264's CPU-artifact "all-clear". The bound is pinned, and the adopt-a-foreign-index question ruled on, by the author from this evidence; ticket 0240 carries the study, and the ruling is in DECISIONS.md. |
+| R30 | capable hardware is used | open | none | measured | The local path still passes no execution device on stock upstream, so the runtime's CPU default still serves there — unchanged from the reviewed baseline. The device mechanism is observed rather than read from source (`verification/DEVICE-AUTO-0264.md`), and ticket 0264's throughput anomaly is explained as a harness defect rather than a GPU fact (`verification/GPU-ANOMALY-0481.md`: the fidelity cells never received a device and ran on CPU). The design stays open on the per-model shape of the guarded fallback — the mixed-provider path crashes per model, not per machine — and on the per-device optimal rung, since the quantized matmul has no CUDA kernel. Time to coverage left this row on 2026-08-31 and is R32's. |
+| R32 | the build finishes today | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R2's finding. Bounds are pinned in the change that first asserts them, and the constraint this puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
 
 ### Change and cost
 
@@ -233,7 +251,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so R7's second MUST fails outright at the reviewed baseline, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Choosing the replacement is ticket 0240; ticket 0090, ticket 0091. |
+| R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so R7's second MUST fails outright at the reviewed baseline, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Ticket 0240 measured the replacement field and closed with a recommendation that sets no default; ticket 0495 decides what ships. Ticket 0090, ticket 0091. |
 
 ### Embedding configurations
 

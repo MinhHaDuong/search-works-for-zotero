@@ -69,6 +69,12 @@ Measured against upstream v1.10.0, the reviewed baseline.
 | R1 | the whole library, unattended | ticket 0080 |
 | R9 | a monster indexed whole | ticket 0024 |
 
+**Instruments.** What decides the terms.
+
+| | what it decides | where it is built |
+|---|---|---|
+| R2 | the crawl order is watched, deciding R1 | ticket 0080 |
+
 ### Coverage
 
 | | promise | designed | delivered | evidence | standing |
@@ -94,6 +100,8 @@ LEDGER = """# DECISIONS
 **2026-08-31 — the bundle.**
 
 Goal 1 binds: R1, R9.
+
+Goal 1 instruments: R2.
 """
 
 
@@ -397,6 +405,40 @@ def test_the_goal_section_deleted_outright(tmp_path):
 def test_a_member_row_is_not_read_as_a_standing_row(tmp_path):
     """The two tables share an opener. If the split failed, R1 would read as duplicated."""
     outside, block = cp.goal_split(PAGE)
-    assert [name for name, _, _ in cp.goal_members(block)] == ["R1", "R9"]
+    terms, instruments = cp.goal_members(block)
+    assert [name for name, _, _ in terms] == ["R1", "R9"]
+    assert [name for name, _, _ in instruments] == ["R2"]
     assert sorted(name for name, *_ in cp.page_rows(outside)) == ["R1", "R2", "R9"]
-    assert cp.goal_members(outside) == []
+    assert cp.goal_members(outside) == ([], [])
+
+
+# The instruments half of the same block. An instrument is not a term, and the
+# guard has to hold both apart: counted into the bar it would move a conjunction
+# it is not part of, and lost from the page it would leave a term nothing decides.
+
+
+def test_a_ruled_instrument_dropped_from_the_page(tmp_path):
+    """A term whose instrument is gone cannot be settled, and nothing else says so."""
+    page = PAGE.replace("| R2 | the crawl order is watched, deciding R1 | ticket 0080 |\n", "")
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_an_instrument_the_ledger_never_ruled(tmp_path):
+    """Scope widened on the page, in the half that is easiest to widen unnoticed."""
+    page = PAGE.replace(
+        "| R2 | the crawl order is watched, deciding R1 | ticket 0080 |",
+        "| R2 | the crawl order is watched, deciding R1 | ticket 0080 |\n"
+        "| R9 | re-read as an instrument | ticket 0024 |",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_the_ledger_rules_no_instruments(tmp_path):
+    """Both rosters are rulings; one of them missing is not a page that half-passes."""
+    assert cp.run(build(tmp_path, ledger=LEDGER.replace("\nGoal 1 instruments: R2.\n", "\n"))) == 1
+
+
+def test_the_instruments_marker_lost(tmp_path):
+    """Without the switch every instrument reads as a term, and the bar moves with it."""
+    page = PAGE.replace("**Instruments.** What decides the terms.", "What decides the terms.")
+    assert cp.run(build(tmp_path, page=page)) == 1

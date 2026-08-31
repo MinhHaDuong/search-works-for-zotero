@@ -785,6 +785,94 @@ of the evidence column, the three stated exclusions, and the fact that no new
 work enters the train. `spec/README.md`, `spec/TERMINOLOGY.md` and `CLAUDE.md`
 are edited to match; the entry above stands as written, per this ledger.
 
+**2026-08-31 — step 1: goal 1 is a conjunction over terms, and time-to-coverage
+leaves R30.** The author ruled the perimeter review's four-step order — rule the
+shape, then the membership, then the sheet, then write the assertions — and this
+entry is step 1. Everything below is his, except where it says otherwise.
+
+**The shape.** A *term* is a property the user meets; an *instrument* is a thing
+that decides whether a term holds. Goal 1 is a conjunction over terms alone, and
+its instruments are named beside it rather than counted in it. The sorting test
+is one question per clause: if this clause fails and nothing else changes, is
+what the user can know or do any different? The defect it removes is concrete —
+goal 1 read not-kept partly because this repository's own `make check` does not
+run a fold sweep, which makes a claim about zoteus hostage to a Makefile here,
+and makes the bundle unhandable to anyone else.
+
+**Binding is per clause, not per requirement.** R19 is one row and two clauses:
+its property (every token the query normalizer produces, the index normalizer
+can also produce) is a term; its cadence (the sweep runs on every check) is an
+instrument. The same mechanism is what lets a requirement be split when the
+clauses turn out to belong to different promises, which is what happened to R30
+below.
+
+**R14 is folded, not dropped.** Its clause becomes part of R1's assertion: a
+no-text attachment ends covered, with its reason recorded, counted in the
+denominator. It keeps its MUST and its row; it stops being a term, because its
+only failure mode reaches the user as R1 failing.
+
+**R17 is a term, against the reviewer's recommendation.** The review proposed it
+as an instrument and offered R4 as the carrier of the user-facing half. That was
+wrong on the text: R4's single MUST is availability, and its honesty sentence is
+rationale carrying no force, so R17 is the only normative home in the sheet for
+honest coverage reporting. The author's ground: honesty and observability during
+the transition phase matter. The promise is "search *all* my library", and a user
+who cannot be told how much is searchable cannot hold anyone to "all". R26 stays
+an instrument by the same test — it changes what this repository knows, not what
+the user can.
+
+**What counts as searchable, ruled.** Everything searchable is the MVP, even if
+not extracted, chunked and embedded at the latest version. So R1's "covered"
+means searchable by *some* version, which is D3's serve-stale, and it is R17's
+per-stage report that keeps that honest. Two consequences. R11 and R3 stay out
+of the bundle: counter churn re-embedding the library does not make anything
+unsearchable, because the old vectors keep answering, so freshness currency is
+not this promise's business. And stale is admitted where truncated is not — R9
+is untouched, since a monster indexed by its opening pages is not searchable at
+an older version, it is missing.
+
+**R30 is split, on measured ground.** The review recommended against a split and
+the author overruled it, correctly. R30 carried both "use the GPU where one is
+usable, and name the device serving" and "on the designated GPU host, time to
+full embed coverage meets a bound". Measured, finishing today is a property of
+the *configuration*, not of the hardware: in the runtime zoteus ships, on a
+laptop CPU, the incumbent small model reaches an overnight build of a
+design-point library, and so do the two small multilingual candidates, while the
+base-sized candidates do not — GPU or no GPU
+(`bench/results/0025-x1-recall/embed-feasibility.json`, and the CPU cells ticket
+0481 recovered from `bench/results/0264-gpu-arm/`, whose `auto` runs never
+received a device). Binding goal 1's "today" to R30 would therefore have said
+hardware-conditional where the evidence says configuration-conditional.
+
+So R30 keeps hardware use and device disclosure and carries no wall-clock bound,
+and **R32 — the build finishes today** enters the sheet: on the reference machine
+DESIGN.md §2.8 names, an initial build with the default configuration reaches
+record coverage of the whole library inside the record bound and body coverage
+inside the build bound. Two bounds, because the design already stages it that
+way. The reference machine is laptop-class CPU, which is the second gain of the
+split: the term stops being decidable only on the disclosed GPU host, and the
+gate runs wherever the fixture runs. `spec/REQUIREMENTS.md` and `spec/DESIGN.md`
+are edited to match.
+
+**A consequence for the embedder decision, recorded before it is taken.** R32
+puts a throughput constraint where the study carried a quality one: an entry the
+default cannot meet the build bound with is not eligible to be the default. On
+today's evidence that separates the small multilingual candidates from the
+base-sized ones. The study that measured them, ticket 0240, is closed and its
+recommendation (ticket 0267) explicitly declines to set a default, so the
+constraint lands on the ticket that does — ticket 0495, which already applies
+resource budgets to decide which entries ship and whether the default changes.
+Build time joins those budgets.
+
+Goal 1 binds: R1, R6, R7, R8, R9, R16, R17, R19, R32.
+
+Goal 1 instruments: R19, R26.
+
+R19 appears in both by clause, per the binding rule above. R21 joins the
+instruments when step 3's recall term exists; R27 leaves, because R11 did.
+R30 leaves the bundle outright. What step 1 does not settle, and step 2 owes:
+R12, and the two items the review found missing — hybrid retrieval and recall.
+
 ## Awaiting ratification
 
 - **The goal 1 perimeter, reviewed: five things the roster gets wrong, and the

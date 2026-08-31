@@ -8,6 +8,7 @@ Blocked-by: 0029
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-08-31T08:21Z claude note R32 ADDS A BUILD-TIME BUDGET TO THIS GATE, ruled 2026-08-31 (spec/DECISIONS.md, goal 1 step 1). R30 was split and time to coverage became R32, whose reference machine is laptop-class CPU: an initial build must reach record coverage inside the record bound and body coverage inside the build bound. So an entry the default cannot meet the build bound with is not eligible to be the default, which is a resource limit of exactly the kind this ticket's exit criteria already apply. On today's CPU evidence, per passage: multilingual-e5-small 59,75 ms and granite-97m-multilingual-r2 68,54 ms against multilingual-e5-base 137,57 ms, gte-multilingual-base 153,90 ms, arctic-embed-m-v2 166,70 ms and granite-311m-multilingual-r2 231,74 ms (the cells ticket 0481 recovered from bench/results/0264-gpu-arm/, whose auto runs never received a device), with MiniLM at 77,6 ms on an i5-8250U laptop for scale (bench/results/0025-x1-recall/embed-feasibility.json). Against DESIGN 2.9's measured 567 829 passages that is roughly 9-11 h for the two small multilingual candidates and 22-37 h for the four larger: an overnight build separates them. Two hosts, so the laptop figure against the rest is an order of magnitude and not a ratio, and the multilingual cells were fidelity runs rather than throughput benchmarks. The bound itself is unpinned until measured on the reference machine, and is pinned in the change that first asserts it
 --- body ---
 ## Scope
 

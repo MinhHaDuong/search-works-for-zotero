@@ -88,9 +88,15 @@ entry points at the question rather than settling it; rulings land in
 - **goal 1** — the bundle of promises that must all hold for the upstream
   README's opening promise, made strong, to be kept. A conjunction, not a
   queue: the number names the bundle and ranks nothing, and the goal is kept
-  only when every member is. Authoritative: README.md in this directory, which
-  carries the roster and recomputes its bar; the membership was ruled in
+  only when every term is. Authoritative: README.md in this directory, which
+  carries both rosters and recomputes the bar; the membership was ruled in
   DECISIONS.md (2026-08-31).
+- **term / instrument** — the two halves of a goal's roster. A term is a
+  property the user meets, and the conjunction runs over terms alone; an
+  instrument is what decides whether a term holds, named beside the bundle
+  rather than counted in it. Sorted by one question per clause: if this clause
+  fails and nothing else changes, is what the user can know or do any
+  different? Authoritative: DECISIONS.md (2026-08-31).
 - **key** — the recorded identity of the inputs that produced a piece of
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: CONSTRAINTS.md C1; the

@@ -2,7 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements, R1 to R31 — R29 is reserved for
+This document lists the user requirements, R1 to R32 — R29 is reserved for
 the cross-lingual proposal awaiting ratification in ticket 0037. Each is
 written as a
 testable property: something the test harness, or a careful reader, can
@@ -77,13 +77,18 @@ record rejected text as contract.
   DESIGN.md §2.3, flagged for author veto.)
 - **R30 — capable hardware is used.** Where a supported GPU is usable by the
   embed stage, the system MUST use it, and status MUST name the execution
-  device actually serving, on every machine — GPU or not. On the designated
-  GPU host, time to full embed coverage MUST meet a bound; the bound's value
-  belongs to DESIGN.md §2.8 and is pinned from measurement (ticket 0264),
-  never before it. The ruling, its rationale — the native process reaches a
-  GPU where the in-app runtime cannot, and "indexing finishes today" is a
-  promise R1's "eventually" declines to make — and the gate's
-  disclosed-hardware standing are in DECISIONS.md (2026-08-30).
+  device actually serving, on every machine — GPU or not. The ruling and its
+  rationale — the native process reaches a GPU where the in-app runtime
+  cannot — are in DECISIONS.md (2026-08-30). Time to coverage was part of this
+  item until 2026-08-31, when it was split out as R32 on the measured ground
+  that finishing today is a property of the configuration rather than of the
+  hardware (DECISIONS.md).
+- **R32 — the build finishes today.** On the reference machine DESIGN.md §2.8
+  names, an initial build with the default configuration MUST reach record
+  coverage of the whole library inside the record bound, and body-text
+  coverage inside the build bound. Both bounds' values belong to DESIGN.md
+  §2.8 and are pinned from measurement, never before it — the pattern R30's
+  own gate and C3's replacement ceiling already follow.
 
 ### Change and cost
 
