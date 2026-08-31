@@ -1392,6 +1392,35 @@ is empty now that R26 is gone, and an entry naming an item the sheet does not
 declare fails the build, because an exemption for a requirement that does not
 exist excuses nothing and hides that it is stale.
 
+**2026-08-31 — a requirement names no implementation, and goal 1's subject is
+the promise rather than a document.** The author, reading goal 1 back: *line 1
+already off; R must not refer to zoteus.*
+
+Two things were wrong and they are the same thing. **The sheet named the
+implementation twice** — R13 spoke of "two zoteus processes on one data
+directory", R23 of "a zoteus with a different schema version" — which narrows a
+promise to one codebase and contradicts what makes the sheet worth handing to
+anyone: it states properties, not mechanisms, so it survives reimplementation.
+Both are rewritten to the property (two server processes; an index written under
+a different schema version), and `bench/check_normative.py` now fails on any
+R-item naming the implementation, with a test. Zotero itself is untouched: the
+platform is the domain, and the sheet is about a library held in it.
+
+**And goal 1 was defined by that implementation's README.** Its heading and its
+opening sentence derived the bundle's subject from the upstream README's first
+bullet, which made the goal exactly as portable as one project's marketing copy.
+The subject is restated as the promise in the user's own terms — *search all of
+my library*: every document it holds, in every language it is written in,
+indexed today and answered in reasonable time, by meaning and by exact words
+alike. The README keeps one sentence, demoted to what it always was: the promise
+happens also to be published by the implementation this page measures, which is
+what makes it cheap to test rather than argue, and if that text changed tomorrow
+goal 1 would not.
+
+Entries above this one define goal 1 by the upstream README. They record how the
+bundle was arrived at, which is true, and they are not edited; this entry is
+where its subject is stated.
+
 ## Awaiting ratification
 
 

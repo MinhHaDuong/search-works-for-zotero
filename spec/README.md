@@ -106,22 +106,26 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
-## Goal 1 — the README's opening promise, made strong
+## Goal 1 — search all of my library
 
 Goal 1 is not the first thing to be done and says nothing about what is: the
 number names the bundle, it does not rank it. What the bundle is, is a
-**conjunction**. Its subject is the search half of the opening line of the
-upstream README — *find anything in your own work*: hybrid keyword and semantic
-search across the library, and, with full-text indexing turned on, the body of
-every PDF as well. The same line goes on to promise the matching passage with
-its page number, and that clause is deliberately not goal 1's, so the subject
-here is the line minus its locator. What remains is already published upstream,
-so nothing about it has to be argued before it can be tested; and it is kept
-only when every one of the eleven rows below holds at once. Any single one of
-them failing falsifies it, whatever the other ten do.
+**conjunction**, and its subject is one promise stated in the user's own terms —
+*search all of my library*: every document it holds, in every language it is
+written in, indexed today and answered in reasonable time, by meaning and by
+exact words alike. It is kept only when every one of the eleven rows below holds
+at once, and any single one of them failing falsifies it whatever the other ten
+do.
 
 That is the whole reason to name the bundle. Eleven separate rows can be
 reported as ten-elevenths done, and a promise cannot.
+
+The promise is the system's, not any document's. It happens also to be published
+by the implementation this page measures, which is what makes it cheap to test
+rather than argue — but if that text changed tomorrow, goal 1 would not. What a
+hit hands back once found — its page, its entry, one hit per entry — is R24's
+and deliberately not goal 1's: that strand waits on the segmenter behind
+experiment X5, and it is a second promise rather than a clause of this one.
 
 **Made strong** is four strengthenings, and each was already a promise here:
 every document, including the monsters, at a library size worth the name; every

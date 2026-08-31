@@ -127,3 +127,10 @@ def test_an_exemption_for_an_item_that_does_not_exist(monkeypatch):
     text = document("- **R1 — the whole library.** Coverage MUST reach 100 %.")
     problems = cn.check(text)
     assert any("R99" in problem for problem in problems), problems
+
+
+def test_an_r_item_that_names_the_implementation():
+    """A promise naming one codebase is a promise only that codebase can keep."""
+    text = document("- **R13 — second process.** Two zoteus processes MUST answer.")
+    problems = cn.check(text)
+    assert any("names the implementation" in problem for problem in problems), problems

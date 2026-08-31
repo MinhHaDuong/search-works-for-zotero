@@ -59,6 +59,17 @@ R_ITEM = re.compile(r"^- \*\*(R\d+) — ")
 UNFORCED: dict[str, str] = {}
 
 
+#: Implementation names the sheet may not use. A requirement is a promise about
+#: what the user gets, so it survives being handed to anyone building it — the
+#: same reason it is stated as a property and not as a mechanism. Naming the
+#: implementation quietly narrows the promise to one codebase, and it had
+#: happened twice before anyone looked: R13 spoke of "two zoteus processes" and
+#: R23 of "a zoteus with a different schema version" (ruling 2026-08-31). Zotero
+#: itself is not here: the platform is the domain, and the sheet is about a
+#: library held in it.
+IMPLEMENTATIONS = re.compile(r"\bzoteus\b", re.IGNORECASE)
+
+
 def r_items(text: str) -> list[tuple[str, int, str]]:
     """Every R-item as (name, first line number, full bullet text).
 
@@ -119,6 +130,12 @@ def check(text: str) -> list[str]:
             problems.append(
                 f"{REQUIREMENTS}:{number}: {name} declares no force. Give it an RFC 2119 "
                 f"keyword, or list it in UNFORCED with a reason and an owner"
+            )
+        for hit in IMPLEMENTATIONS.finditer(body):
+            problems.append(
+                f"{REQUIREMENTS}:{number}: {name} names the implementation "
+                f"({hit.group(0)!r}). A requirement is a promise about what the user gets, "
+                f"and naming one codebase narrows it to that codebase"
             )
         for hit in LOWERCASE_MODAL.finditer(body):
             problems.append(

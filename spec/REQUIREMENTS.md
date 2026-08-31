@@ -193,16 +193,16 @@ replaces the machinery it described.
   MUST NOT survive anywhere else.
 - **R22 — pause stays paused.** There MUST be one obvious way to stop all
   background work, and it MUST hold across restarts.
-- **R23 — upgrade and downgrade.** A zoteus with a different schema version
-  MUST open the old file and end up serving, in either direction, without
-  anyone deleting files by hand.
+- **R23 — upgrade and downgrade.** An index written under a different schema
+  version MUST open and end up serving, in either direction, without anyone
+  deleting files by hand.
 
 ### Multi-library and multi-process
 
 - **R12 — group libraries.** Group libraries MUST be searchable like my
   own, and indexing one library MUST NOT erase another. (Per D4: one merged index,
   with the library as one more R5 filter, like collection or tag.)
-- **R13 — second process.** Two zoteus processes on one data directory MUST
+- **R13 — second process.** Two server processes on one data directory MUST
   both answer queries, MUST NOT corrupt the index, and MUST NOT extract or
   embed any passage twice. (Honest restatement accepted in DESIGN.md §2.5: never
   *committed* twice; duplicate *compute* is bounded at one micro-batch per
