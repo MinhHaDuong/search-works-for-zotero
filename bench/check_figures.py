@@ -113,6 +113,10 @@ PROSE = {
         "tickets/closed/0482-re-run-the-gpu-fidelity-and-x8-cells-wit.erg",
     ],
     "v0482": ["verification/GPU-CORRECTED-0482.md"],
+    "t0499": [
+        "tickets/0499-sign-bits-as-the-chain-identifier-a-hash.erg",
+        "tickets/closed/0499-sign-bits-as-the-chain-identifier-a-hash.erg",
+    ],
     "t0266": [
         "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
         "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
@@ -962,6 +966,38 @@ FIGURES = [
      {"decisions": 'a minimum cosine of {} at fp32'}),
     ("0482-gpu-corrected/x8-cross-provider-fidelity.json", "rows.7.overlap_at_30_mean", 4,
      {"decisions": 'clears the bar while keeping {}\nof its top-30 overlap'}),
+
+    # ---- 0499, sign bits as the chain identifier ----
+    # The successor question to the entry above: if a byte hash is ruled out because
+    # fp32 agrees in space and not in bytes, does a hash over SIGN bits survive? It
+    # does not, and both the ledger entry and the ticket quote the same four figures
+    # from one artifact. They are derived from committed cosines rather than measured
+    # on vectors, which is exactly why they need the guard: the real-vector arm will
+    # replace them, and the prose must move when it does.
+    ("0499-sign-hash/sign-stability.json",
+     "verdict.worst_same_chain_row.expected_flipped_bits_per_vector", 3,
+     {"decisions": '**{} of 768 sign bits move**', "t0499": '{} of 768 sign bits move'}),
+    ("0499-sign-hash/sign-stability.json",
+     "verdict.worst_same_chain_row.p_sign_hash_matches_one_vector", 1,
+     {"decisions": 'agrees on one vector {} % of the time',
+      "t0499": 'one vector {}% of the time'}, "pct"),
+    ("0499-sign-hash/sign-stability.json", "verdict.fp32_files.narrowest_separation", 2,
+     {"decisions": 'at **{}x** the noise floor', "t0499": '{}x the noise floor'}),
+    ("0499-sign-hash/sign-stability.json", "verdict.eight_bit_files.separating_by_2x", 0,
+     {"decisions": '**{} of 12** cells clears', "t0499": '{} of 12 cells clears'}),
+    ("0499-sign-hash/sign-stability.json", "verdict.eight_bit_files.inverting", 0,
+     {"decisions": 'margin and **{} invert**', "t0499": 'and {} invert'}),
+    ("0499-sign-hash/sign-stability.json", "verdict.fp32_files.widest_separation", 2,
+     {"t0499": 'case and {}x in the widest'}),
+    ("0499-sign-hash/sign-stability.json", "verdict.expected_flips_at_artifact_precision", 3,
+     {"decisions": 'admits {} flipped bits', "t0499": 'admits {} flipped bits'}),
+    ("0499-sign-hash/sign-stability.json",
+     "controls.coordinate_quantization.understatement_factor", 2,
+     {"decisions": 'understating flips **{}x**', "t0499": 'flips {}x'}),
+    ("0499-sign-hash/sign-stability.json", "controls.isotropic.0.measured_mean_flips", 3,
+     {"t0499": '({} measured against'}),
+    ("0008-real-vectors/real-93022.json", "anisotropy.median_dimension_mean_abs", 5,
+     {"t0499": 'median dimension of {})'}),
 
 ]
 

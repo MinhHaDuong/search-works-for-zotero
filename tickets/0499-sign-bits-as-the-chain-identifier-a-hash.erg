@@ -1,0 +1,121 @@
+%erg 0.1
+Title: Sign bits as the chain identifier: a hash cannot, a threshold can
+Created: 2026-08-31
+Author: claude
+Blocked-by: 0485
+
+--- log ---
+2026-08-31T08:14Z claude created
+
+2026-08-31T08:16Z claude note ANSWERED from committed artifacts, for the half that needs no vectors (bench/results/0499-sign-hash/sign-stability.json, driver bench/sign_stability.py). The repair fails, and it fails twice over. Probabilistically: at X8's worst same-chain fp32 row (multilingual-e5-base, cos_min 0,999974) 1,763 of 768 sign bits move between providers, so an exact sign hash agrees on one vector 17,1% of the time and on a 64-chunk header 8,8e-50 of the time -- a hash over sign bits is no more admissible cross-machine than a hash over bytes, which is what the calibration-header ruling already said about bytes. Mechanically, and independent of any cosine: 0008 measured two dimensions over 95% one-sided on 93 022 real vectors, BOTH of them dimensions the model never activates (mean magnitude 5,66e-33 and 5,54e-08 against a median dimension of 0,03935), so their sign is float noise; an all-or-nothing hash hashes those bits beside the ones carrying the corpus. Three further readings. (a) The committed artifacts CANNOT settle the exact-hash question by themselves: cosine is stored to six decimals, so a row printed 1,0 still admits 0,244 flipped bits at 768 dims -- the vectors are needed, and they are on the author's machine. (b) The identity is a FLOOR, not an estimate: an isotropic control reproduces it (1,765 measured against 1,763 predicted) while a coordinate-wise 8-bit quantization control on a heavy-tailed vector flips 7,76x what the same cosine predicts, because a coordinate near zero needs almost no error to change sign. (c) A THRESHOLD on sign distance discriminates where the hash cannot, but only at fp32: an fp32 file separates for 6 of 6 models at 31,67x the noise floor in the narrowest case, while at the 8-bit rungs 1 of 12 cells clears a 2:1 margin and 3 invert. The pairing behind (c) was wrong in the first cut of this entry and the numbers here are the corrected ones; the next log line records what the error was, because the wrong reading is the instructive part
+
+2026-08-31T08:20Z claude note CORRECTION, same session, before any of this left the branch: the first cut read X8's summary rows as different chains and derived a 9,4x separation from them. They are not -- x8_cross_provider_fidelity.py scores the GPU arm against the CPU arm for the SAME model and the SAME rung, so every summary row is one chain seen twice, and the cross-CHAIN measurement is inside each cell, where quant_fidelity_score scores a dtype against the fp32 rung beside it on one provider. The corrected pairing gives a different and better answer: an fp32 file separates for 6 of 6 models at 31,67x the noise floor in the narrowest case, while at the 8-bit rungs only 1 of 12 cells clears a 2:1 margin and 3 INVERT -- the same chain on the other arm moves more bits than the nearest different chain. The 8-bit boundary is the cost the calibration-header ruling already accepted from the cosine side (device is part of the chain at 8-bit), reached here independently in sign space. What the correction does not touch: the hash verdict, which rests on the fp32 row alone and on 0008's dead dimensions
+--- body ---
+## Context
+
+The calibration-header ruling (`spec/DECISIONS.md`, 2026-08-31) rules a hash over
+the header out cross-machine, on the measured fact that X8's fp32 rows are
+cross-provider compatible without being bit-identical, and admits one only as a
+same-machine tripwire resting on ticket 0486's bit-determinism check.
+
+The obvious repair is to hash something coarser than bytes: the sign bit of each
+dimension, which this repository already quantizes to (ticket 0008) and which
+discards exactly the low-order noise a byte hash trips on. A sign hash would be
+32x smaller than the fp32 header and would answer chain identity in a comparison,
+with no per-vector cosine loop.
+
+This ticket asks whether that works. The answer for the hash is no, twice over,
+and the same evidence says what to do instead.
+
+## What is already established
+
+Both halves come from artifacts already in the tree; neither needed a vector
+embedded. `bench/sign_stability.py` derives them and
+`bench/results/0499-sign-hash/sign-stability.json` is its record.
+
+1. **The probabilistic half.** Two unit vectors at angle theta disagree on a
+   coordinate's sign with probability theta/pi. At X8's worst same-chain row the
+   cross-provider cosine is 0,999974, which moves 1,763 of 768 bits — so an exact
+   sign hash agrees on a single vector 17,1% of the time, and a hash over the
+   ruling's 64-chunk header essentially never. Hashing amplifies: one flipped bit
+   anywhere in ~49 000 destroys the match.
+2. **The mechanism half.** Ticket 0008 measured two dimensions over 95% one-sided
+   on 93 022 real vectors, and both are dimensions the model never activates, at a
+   millionth or less of the median magnitude. Their sign is float noise. A hash
+   over every dimension hashes them too, so the least informative bits in the
+   vector are also the ones most likely to break the identifier.
+
+Two qualifications belong with the numbers. The artifacts store cosine to six
+decimals, so a rung printed 1,0 admits 0,244 flipped bits at 768 dims and the
+exact-hash question cannot be closed from summaries alone. And the theta/pi
+identity is a floor rather than an estimate: an isotropic control reproduces it,
+while coordinate-wise quantization on a heavy-tailed vector flips 7,76x as many
+bits at the same cosine, because a coordinate near zero needs almost no error to
+change sign.
+
+## What the same evidence supports instead, and where it stops
+
+A threshold, not a hash — and only at fp32.
+
+Identification needs two populations, and the artifacts hold both, in different
+places. The **noise floor** is the same chain read on the other arm: that is what
+X8's summary rows measure, GPU against CPU at the *same* model and rung. The
+**signal** is the distance to a chain that is not this one: that is inside each
+cell, where the ladder scores a dtype against the fp32 rung beside it on one
+provider. Reading the summary rows as different chains is the error the first pass
+of this analysis made, and correcting it changes the answer rather than the
+wording.
+
+Corrected, sign distance identifies an **fp32** file for 6 of 6 models, at
+31,67x the noise floor in the narrowest case and 270,52x in the widest. At the
+**8-bit rungs it stops working**: only 1 of 12 cells clears even a 2:1 margin,
+and 3 invert outright — the same chain on the other arm moves more bits than the
+nearest different chain does, so there is nothing to threshold. That boundary is
+not new; it is the cost the calibration-header ruling already accepted from the
+cosine side — the device is part of the chain at the 8-bit rungs — reached
+independently in sign space, which is some evidence that both readings are of the
+same underlying fact.
+
+So the proposal is narrow: a sign vector carried beside the fp32 calibration
+vectors, never instead of them, as the cheap first read that fails fast on an
+fp32 file. It claims nothing at 8-bit, where the ruling already says a
+GPU-built and a CPU-built file do not merge.
+
+The proposal, and the threshold it needs, are stated in `spec/DECISIONS.md` under
+awaiting ratification. Nothing here changes the ratified header.
+
+## Sequencing
+
+Blocked by 0485 for the same reason ticket 0497 is: 0485 decides what the header
+is compared on, and a threshold whose bar is set before that verdict would be set
+against the wrong metric. The analysis above does not depend on it; freezing a
+number does.
+
+## Actions
+
+1. Confirm on real vectors what the cosines only imply: sign-flip counts between
+   the two providers at fp32, on the same rows X8 scored. The vectors are on the
+   author's machine, beside `bench/results/0482-gpu-corrected/cells/`.
+2. Measure the same-machine case ticket 0486 carries — re-embed a fixed probe
+   twice, same provider and thread count — and record whether the sign bits are
+   identical where the bytes may not be. That is the tripwire's actual claim.
+3. Size the threshold from those two distributions rather than from the identity,
+   and report the overlap if there is any.
+4. Only then propose the header field, in `spec/DESIGN.md` §2.2 where the format
+   lives, and put the number to the author.
+
+## Test
+
+- The real-vector arm must reproduce the direction of this analysis or overturn
+  it; either outcome is the result. A run that reports agreement without stating
+  the flip distribution has not answered the question.
+- Negative control: two different chains must exceed the threshold on the same
+  corpus, or the identifier identifies nothing.
+
+## Exit criteria
+
+- [ ] Sign-flip distributions measured cross-provider and same-machine, on real
+      vectors, and committed
+- [ ] A threshold sized from those distributions, with its overlap stated
+- [ ] The ledger entry ratified or vetoed, and `spec/DESIGN.md` §2.2 edited to
+      match if it carries

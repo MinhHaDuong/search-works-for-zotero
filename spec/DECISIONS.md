@@ -954,6 +954,57 @@ the rest of the directory: a third exception is a third ruling.
 
 ## Awaiting ratification
 
+- **The chain's cheap identifier is a sign-distance threshold, not a hash of
+  anything.** The ratified calibration-header entry rules a hash out
+  cross-machine because X8's fp32 rows agree in space without agreeing in bytes,
+  and admits one as a same-machine tripwire. The obvious repair — hash the sign
+  bit of each dimension rather than the bytes, 32x smaller and blind to
+  low-order noise — does not work either, and ticket 0499 establishes it from
+  artifacts already committed here.
+
+  Two independent reasons, which is why this is proposed as settled rather than
+  as a preference. At the worst same-chain row (`multilingual-e5-base`, fp32,
+  cross-provider cosine 0,999974) **1,763 of 768 sign bits move**, so an exact
+  sign hash agrees on one vector 17,1 % of the time and on the ruling's 64-chunk
+  header never; hashing amplifies, because one flipped bit in some 49 000
+  destroys the match. And ticket 0008 measured two dimensions over 95 % one-sided
+  on 93 022 real vectors, **both of them dimensions the model never activates**,
+  at a millionth or less of the median magnitude — their sign is float noise, and
+  an all-or-nothing hash hashes those bits beside the ones carrying the corpus.
+
+  What the same evidence supports is a threshold, and only at fp32. Identification
+  needs two populations and the artifacts hold both, in different places: the noise
+  floor is the same chain read on the other arm (X8's summary rows, GPU against CPU
+  at the *same* model and rung), and the signal is the distance to a chain that is
+  not this one (inside each cell, where the ladder scores a dtype against the fp32
+  rung beside it on one provider). Paired that way, sign distance identifies an
+  **fp32** file for 6 of 6 models, at **31,67x** the noise floor in the narrowest
+  case. At the 8-bit rungs it stops working: **1 of 12** cells clears even a 2:1
+  margin and **3 invert**, the same chain on the other arm moving more bits than
+  the nearest different chain. That boundary is the cost this ledger already
+  accepted from the cosine side — the device is part of the chain at the 8-bit
+  rungs — reached independently in sign space.
+
+  So the proposal is narrow: the header carries that sign vector *beside* the fp32
+  calibration vectors and never instead of them, as the cheap first read that fails
+  fast on an fp32 file. The ratified per-vector cosine test stays what adopting a
+  foreign file rests on, and nothing is claimed at 8-bit.
+
+  What is NOT proposed is the number. The bar belongs after ticket 0485 decides
+  what the header is compared on, and it must be sized from measured flip
+  distributions rather than from the theta/pi identity this analysis used — that
+  identity is a floor, reproduced exactly under an isotropic control and
+  understating flips **7,76x** under coordinate-wise quantization, because a
+  coordinate near zero needs almost no error to change sign. The committed
+  cosines also cannot close the exact-hash question by themselves: stored to six
+  decimals, a rung printed 1,0 still admits 0,244 flipped bits at 768 dims.
+  Ticket 0499 carries the real-vector arm and the same-machine arm that ticket
+  0486 already owes.
+
+  Ratifying this adds a field to `spec/DESIGN.md` §2.2's format section and
+  nothing else; vetoing it costs nothing built, since the ratified header stands
+  either way.
+
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,
   2026-08-30; a first recording of this entry misread the position as
