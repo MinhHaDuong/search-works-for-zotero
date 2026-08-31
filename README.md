@@ -168,6 +168,13 @@ prototype, not of upstream's backend.
 
 ## Bench
 
+Two dependency sets, declared apart because they are needed apart. The gate is
+`python3 -m pip install -r requirements-check.txt` — three packages, none of them
+a model runtime — and `make check` runs from there. The drivers below want
+`requirements-drivers.txt` on top of it, which is where the heavy two live. A
+missing package is reported by name before any guard runs, never at the tail of
+an otherwise green output.
+
 Drivers take `--server` / `--data-dir` and record `VmHWM` (the kernel
 high-water mark, which cannot miss a peak between samples) rather than sampled
 RSS. None defaults `--node-options` to a heap flag: whether the server survives

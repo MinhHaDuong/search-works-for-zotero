@@ -1,0 +1,18 @@
+# What `make check` needs, and nothing more (ticket 0498).
+#
+# The gate runs before every commit, so its dependency set is the one a fresh
+# container has to satisfy before it can do anything else here. It is small on
+# purpose: three names, none of them heavy, none of them a model runtime.
+#
+# The drivers' set is declared separately in `requirements-drivers.txt`, so a
+# contributor who only wants to run the gate is never told to install torch.
+# A driver may of course use a name declared here; nothing needs repeating.
+#
+#     python3 -m pip install -r requirements-check.txt
+#
+# `bench/check_deps.py` reads this file: a name declared here and used nowhere,
+# or used and declared nowhere, fails the gate.
+
+ruff
+pytest
+numpy

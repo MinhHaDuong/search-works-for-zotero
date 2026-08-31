@@ -2,11 +2,14 @@
 Title: make check cannot run in a fresh container: no declared Python dependencies
 Created: 2026-08-31
 Author: claude
+Closed: delivered: two declarations, a preflight guard, and a session-start hook; make check green in a bare container with no hand-installation
 
 --- log ---
 2026-08-31T05:38Z claude created
 
 2026-08-31T06:32Z claude note REPRODUCED 2026-08-31 in a second fresh container, on the merged tree: identical to the 2026-08-30 observation this ticket was filed on. `make check` printed eight guards green and died at its last step on `No module named pytest`; `pip install pytest` then exposed `No module named numpy` from tests/test_x8_cross_provider_fidelity.py at COLLECTION time, so the whole suite was interrupted rather than one test skipped. After installing both by hand the suite passed (272 passed / 12 skipped on the merged tree, up from 264/12 because bench/check_names.py landed with eight tests). This is the second session in two days to hand-install the same two packages, which is the actions list's point: nothing about the tree tells a session what the gate needs. Action 4 is the one that bit -- the failure arrives after eight success lines, and a session reading its own output tail-first can mistake the run for green. Nothing implemented here; the ticket's actions stand as written.
+2026-08-31T07:34Z claude note delivered: requirements-check.txt (ruff, pytest, numpy) and requirements-drivers.txt (sentence-transformers, torch) split as action 1 and 2 asked; bench/check_deps.py first in make check; .claude/hooks/session-start.sh installing the gate's set on a remote session. Action 3 answered BOTH ways -- the files are what a contributor reads, the hook is what makes a container green without a human. Demonstrated end to end in this container rather than argued: pip uninstall pytest numpy, then make check died at its FIRST step naming both packages, then the hook alone restored it and the suite ran 285 passed / 12 skipped. Two findings worth keeping. (a) The uninstall left a stale ~/.local/bin/pytest behind, and the first cut of the guard -- distribution metadata OR a binary on PATH -- called that gate ready for a run that would have died at collection, which is 0498's own defect reproduced INSIDE its fix; the guard now asks the question the Makefile asks, importable for python3 -m NAME and on PATH for a bare recipe command, and tests/test_check_deps.py freezes the console-script case. (b) The guard carries the 0486 class in both directions: an import declared nowhere fails, and a requirement nothing imports or invokes fails, so the declaration cannot rot into decoration
+2026-08-31T07:34Z Claude closed — delivered: two declarations, a preflight guard, and a session-start hook; make check green in a bare container with no hand-installation
 --- body ---
 ## Context
 
@@ -53,6 +56,9 @@ class ticket 0486 names: a declared thing with no consumer, discovered late.
 
 ## Exit criteria
 
-- [ ] The gate's dependencies declared, separately from the drivers'
-- [ ] A fresh container runs `make check` green with no hand-installation
-- [ ] A missing dependency is reported before the guards run, not after
+- [x] The gate's dependencies declared, separately from the drivers'
+      (`requirements-check.txt`, `requirements-drivers.txt`)
+- [x] A fresh container runs `make check` green with no hand-installation
+      (`.claude/hooks/session-start.sh`, demonstrated below)
+- [x] A missing dependency is reported before the guards run, not after
+      (`bench/check_deps.py`, first in the `check` target)
