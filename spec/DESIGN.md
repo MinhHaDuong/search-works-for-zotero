@@ -980,8 +980,11 @@ authoritative for content, this list for ordering.
 8. **The curated embedder registry** (tracker 0488) — singleton extraction;
    authoritative fields and parity; curated entries plus entry-id selection;
    local automatic compatibility validation; optional content-free
-   attestations; then the separate golden and resource gate that decides what
-   ships. The autonomous-service experiment (0491) reuses the interface seam
+   attestations; then the separate gate that decides what ships — R7
+   conformance first and untraded, the golden and resource gates choosing
+   among the entries that pass it (ticket 0495; the ruling on why the swap
+   happens at all is DECISIONS.md 2026-08-31).
+   The autonomous-service experiment (0491) reuses the interface seam
    but does not block this sequence. One upstream design issue carries staged
    acceptance tests; it is not a prepared PR series.
 9. **The commitment bounds** — stated in GOVERNANCE.md, ratified in

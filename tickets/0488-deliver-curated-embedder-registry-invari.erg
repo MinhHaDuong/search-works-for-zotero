@@ -6,6 +6,7 @@ Author: Minh Ha-Duong
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-08-31T06:00Z claude note the 2026-08-31 ruling on the swap's motivation (spec/DECISIONS.md) lands on child 0495 only: R7 conformance is the first filter in the ship gate, not one score among several. Stages 0489-0494 are unaffected -- the invariant-first order and the parity proofs do not depend on why the swap happens
 --- body ---
 ## This is a tracking ticket
 

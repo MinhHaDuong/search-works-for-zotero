@@ -682,6 +682,47 @@ validation remains authoritative. Upstream, this is one design issue with
 staged acceptance tests, not a prepared implementation PR series; the
 maintainer retains implementation choices at each stage.
 
+**2026-08-31 — the embedder swap is R7 conformance, not a move on the
+cost-versus-quality frontier.** The author's ruling. The reason to leave the
+incumbent MiniLM is that the library and its reader are multilingual. It is not
+that some other model sits at a better point on a trade-off between resident
+memory, latency and retrieval quality.
+
+The distinction decides what the selection gate can return. Judged on that
+trade-off alone the incumbent wins, and keeps winning: `all-MiniLM-L6-v2` is
+several times smaller than every multilingual candidate in the field, and it is
+tuned for the one language in which such a comparison is easiest to measure. A
+gate that weighs quality against resident memory therefore has one stable
+answer — keep MiniLM — however many multilingual candidates it is shown. That is
+a property of the question, not a finding about the candidates.
+
+R7 is the question that has an answer, it is hard by the 2026-08-29 ruling
+above, and the incumbent fails it on its own model card: `bench/models.json`
+records the declared language set of `all-MiniLM-L6-v2` as English alone. So the
+swap is a conformance repair on the reviewed baseline; the candidate campaign of
+ticket 0240 prices that repair rather than justifies it; and C3's replacement
+ceiling, ruled 2026-08-30 above, is what the repair costs rather than what a
+quality upgrade bought.
+
+Consequences for the train. Ticket 0495's gate applies R7 first: an entry whose
+declared language set is not multilingual is not a candidate for the default,
+whatever its golden and resource scores, and the golden gate then chooses among
+the entries that conform. The 2026-08-30 invariant-first entry above stands
+unamended, and its "which entries, if any, ship or become the default" reads
+under this entry as a question about which multilingual entry — never as a route
+by which the incumbent is re-confirmed on frontier evidence. Where no entry yet
+passes, MiniLM remains in place as the disclosed interim state of a known
+non-conformance, never as a ruling that the evidence did not justify a change.
+
+**What this entry does not settle.** It does not rule on R29, the cross-lingual
+property — a query in one language retrieving documents in another — which is a
+strictly stronger promise than R7 and remains ticket 0037's proposal, awaiting
+ratification. Whether R29 joins R7 as a gate criterion in 0495 is open, and it
+is not academic: ticket 0266 measured the cross-lingual arm and its negative
+control cleared at every deployed dtype for only two of six candidates, so
+admitting R29 as a criterion narrows the field before any budget question is
+asked. Nor does this entry select an embedder, which remains 0495's after 0493.
+
 ## Awaiting ratification
 
 - **Files certify their own embedding chain: calibration chunks in every

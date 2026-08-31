@@ -9,6 +9,7 @@ Author: claude
 2026-08-27T06:50Z claude note author-flagged priority; body carries the proposal awaiting ratification
 
 2026-08-30T11:36Z claude note evidence lands in tickets/0266 (measurement only; this ticket's proposal text is untouched). Headline: an EN/FR query does retrieve the right non-English passage above chance and well above the English-only CONTRAST baseline (0,12 hit@10) at every candidate and every deployed dtype, but the negative control (unrelated queries must not retrieve a gold passage) fires clean at every dtype for only two of six candidates -- multilingual-e5-small and multilingual-e5-base -- making those two the only ones whose cross-lingual figures carry no caveat. multilingual-e5-base q8: en->vi hit@10 0,88, fr->vi 0,62, en->de 0,50, fr->de 0,88, en->ru/fr->ru 1,00 (n=4, thin). Full per-pair table, both controls, and the caveat mechanics: tickets/0266-cross-lingual-probe-on-the-multilingual.erg log, and bench/results/0266-cross-lingual/SUMMARY.json.
+2026-08-31T06:00Z claude note raised in priority by the 2026-08-31 ruling: the swap's motivation is multilinguism, so whether R29 (cross-lingual) joins R7 as a criterion in 0495's ship gate is now on the selection path rather than a later sharpening. The ledger entry names it as what it does not settle. 0266's evidence already narrows the field if R29 is admitted -- the negative control clears at every deployed dtype for only two of six candidates
 --- body ---
 ## Context
 The library holds Vietnamese-language content; the author queries in English
