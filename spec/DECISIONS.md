@@ -729,21 +729,40 @@ larger disclosures than a title. Neither is decided here.
 
   The correction was first made without a ledger entry, on the reading that
   deleting a false corroboration cannot change a reading whose text is
-  byte-identical. The author overruled that: an entry is required, because
-  the question a byte-identical text cannot answer is **whether the residue
-  was accepted partly on the strength of the platform accepting it too.** If
-  it was, the ruling has lost part of its basis and is due a re-examination.
-  If it was not — if the residue stands on the contract's own terms, and the
-  Zotero sentence was decoration — then nothing further is owed and this
-  entry closes by saying so.
+  byte-identical. The author overruled that and required the entry, on the
+  question a byte-identical text cannot answer: **was the residue accepted
+  partly on the strength of the platform accepting it too?**
 
-  Only the author can settle that, because it is a question about why a
-  ruling was made rather than what it says. Two things are worth having in
-  hand either way: X6's headless arm has since shown the content endpoint
-  and the version machinery to be decoupled, which is independent evidence
-  for the residue's existence rather than for accepting it; and the bounded
-  idle re-verify sweep the disclosure defers remains gated on X6's profile
-  arms, which have not run.
+  **Answered from the record, and the answer is that no ruling was
+  influenced, because no ruling exists.** The residue's four-part resolution
+  lives in `spec/DESIGN.md` §2.4 as design, not as a ratified reading. This
+  ledger carries no entry establishing it: the vocabulary of that resolution
+  — the widened extract signal, the version-0 case — appears here exactly
+  once, inside the 2026-08-30 presence-probe ruling, and appears there as a
+  complement being noted rather than as the thing ratified ("the md5-widened
+  signal stands as the ingestion-side complement"). `spec/REQUIREMENTS.md`
+  carries no R-item for it either. So the Zotero sentence sat beside a design
+  statement, and its removal changes nothing that was ever ratified.
+
+  Two things make that answer firmer rather than merely technical. The same
+  presence-probe ruling records that part (iii) of the resolution — the
+  bounded idle re-verify sweep — is still gated on X6's profile arms, which
+  have not run; part (ii), the accepted-staleness disclosure, is therefore
+  the interim position of an open design, and an interim position is exactly
+  what a corroboration should not have been load-bearing for. And X6's
+  headless arm has since produced our own evidence that the residue is real
+  — the content endpoint and the version machinery are decoupled
+  (`bench/results/0025-x6-version-dynamics/`) — which is evidence the residue
+  EXISTS, not evidence for accepting it, and the design should not conflate
+  the two.
+
+  **Recommendation: ratify this entry as closing with no further action** —
+  the removal stands, no reading is disturbed, and the residue is decided
+  when X6's profile arms run, on our measurement rather than on anyone's
+  corroboration. What the episode does earn is a note for ticket 0181's
+  guard: a citation that supports a *design choice* rather than a fact is
+  the kind that survives unexamined longest, because nothing downstream
+  breaks when it is wrong.
 
 - **Reading AGPL source in order to reimplement it is unpriced, and ticket
   0031 is where it lands (session finding, 2026-08-30).**
@@ -772,14 +791,30 @@ larger disclosures than a title. Neither is decided here.
   would forbid the verification `spec/FIELD-REVIEW.md` and ticket 0181 both
   depend on.
 
-  Options, unranked and for the author: adopt a clean-room split (one reader
-  writes the parameter-free description, a second builds from it and never
-  reads the source); take the parameters as facts about the problem rather
-  than as expression, and record that reasoning; ask upstream for the
-  procedure under a permissive grant; or build 0031's calibration from its own
-  stated pair-generation protocol and never read theirs, accepting a weaker
-  result. Ratifying any of them settles ticket 0031's method; ratifying none
-  leaves the instruction standing without one.
+  **Recommendation: do not read the source, and the dilemma dissolves rather
+  than needing a protocol.** `spec/FIELD-REVIEW.md`'s premise is that the
+  procedure is an algorithm with parameters and so cannot travel as a
+  description — but the survey has already described it, and the description
+  is the whole algorithm: build a query-by-passage score matrix from a
+  labelled corpus of relevant and irrelevant pairs, set a per-model minimum
+  relevance threshold from it, and reject a model that cannot clear it.
+  Nothing in that is withheld. What reading the source would add is their
+  parameter *values*, and those are the one part we must not reuse: a
+  threshold calibrated on their corpus and their task is wrong for ours by
+  construction, in the same way X2 showed a stoplist is wrong for a corpus
+  whose majority language differs. Deriving our own thresholds is not the
+  weaker result the option list called it — it is the only correct one.
+
+  So the recommended ruling is narrow: ticket 0031 builds from
+  `spec/FIELD-REVIEW.md`'s description and its own stated pair-generation
+  protocol, does not read `Zotero.Embeddings.Calibration`, and
+  `spec/FIELD-REVIEW.md`'s instruction to read it at source is withdrawn.
+  That leaves no contamination question to price, and costs nothing we were
+  entitled to keep. If the author would rather keep the option of reading it,
+  the fallback is the clean-room split — one reader writes a parameter-free
+  description, a second builds from that and never sees the source — but it
+  buys access to values we should not adopt, so it is a fallback and not a
+  preference.
 
 - **Files certify their own embedding chain: calibration chunks in every
   file's header, and one chain per file (author, 2026-08-30).** Two proposals
@@ -821,18 +856,37 @@ larger disclosures than a title. Neither is decided here.
   of its top-30 overlap. Ticket 0485 prices that gap and owns the question; the
   bar itself is `spec/DESIGN.md` §3's.
 
-  Two sub-questions this entry does not settle. **Where the calibration vectors
-  live**: physically first is right for a reader, but if they occupy slab rows
-  they are addressable as corpus rows and every consumer must remember to
-  exclude them, which is the silent wrongness C1 exists to prevent — a manifest
-  section is proposed instead of row space. **Which chunks**: they must be
-  public, fixed, and reproducible by a stranger, and they must not be drawn
-  from the library, because `SECURITY.md` lists vectors as an asset rather than
-  assuming they are safe for looking like numbers, and a header derived from
-  library text would leak the library into every file handed out. They should
-  span the languages X2 showed behave differently, span short to near-budget
-  length, and pass through the model's own `input_template`, without which the
-  header measures a different function than production does.
+  Two sub-questions, both now carrying a recommendation rather than being
+  left open.
+
+  **Where the calibration vectors live: the manifest, not the slab's row
+  space.** Physically first is right for a reader, but addressable-as-a-row
+  is not: a consumer that forgets to exclude them returns a calibration chunk
+  as a search hit, and the cost of the alternative is a permanent exclusion
+  obligation on every reader that will ever open the format. That is the
+  silent wrongness C1 exists to prevent, and the fix is free at design time
+  and expensive afterwards.
+
+  **Which chunks: 64, self-authored and published in this repository as a
+  fixture.** Not drawn from the library — `SECURITY.md` lists vectors as an
+  asset rather than assuming they are safe for looking like numbers, and a
+  header derived from library text would leak the library into every file
+  handed out. They span the four languages X2 showed behave differently
+  (including German, which pays an English price through shared spellings),
+  span roughly ten tokens to near the resolved budget, and pass through the
+  model's own `input_template`, without which the header measures a different
+  function than production does. Sixty-four rather than a handful because of
+  what the comparison has to be, below.
+
+  **And the comparison is two tests, not one.** Per-vector cosine against the
+  stored header proves the two vector *spaces* align, which is what adopting
+  a foreign file requires. But cosine alone cannot catch the failure this
+  entry already quotes — `granite-97m-multilingual-r2` at q8 clearing the bar
+  while keeping 0,4164 of its top-30 overlap — so the second test is rank
+  agreement over the calibration set's own pairwise similarity matrix, which
+  is self-contained, needs no corpus, and is exactly the structure retrieval
+  depends on. Sixty-four chunks give that matrix enough pairs to be
+  meaningful at the cost of a single forward pass.
 
   Three costs to weigh before ratifying. A cutover holds two slabs at the real
   geometry, against budgets `spec/DESIGN.md` §2.9 owns. The execution device is
