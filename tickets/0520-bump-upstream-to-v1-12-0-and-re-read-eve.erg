@@ -1,0 +1,89 @@
+%erg 0.1
+Title: Bump UPSTREAM to v1.12.0 and re-read every row
+Created: 2026-08-31
+Author: claude
+Blocked-by: 0506
+
+--- log ---
+2026-08-31T19:44Z claude created
+2026-08-31T19:50Z claude note allocated at 0520 rather than the next free 0508: the frontier is the most contended seat in the repo and a parallel session was filing while this was written (tickets/AGENTS.md). Successor to 0504, which read four rows and recorded the trigger without bumping
+
+--- body ---
+## Context
+
+Ticket 0504 read four rows at upstream v1.12.0 and deliberately did not
+re-baseline: writing a v1.12.0 reading into a page `UPSTREAM` dates to v1.10.0
+is what `check_baseline` exists to refuse, and the bump obliges a re-read of
+every row on the page. This ticket is where the bump lands when its trigger
+fires. It exists so `SYNC.md`'s pointer has somewhere to go once 0504 closes.
+
+**The trigger is not yet ratified.** `spec/DECISIONS.md` carries the proposal
+in the awaiting list: the acceptance harness exists (ticket 0032), or the page
+faces outward, or a re-read establishes a `delivered` verdict is wrong rather
+than merely dated. Do not run this ticket on the bare fact that upstream
+shipped again.
+
+## What 0504 already established, and what it did not
+
+`verification/UPSTREAM-1.12.0-REREAD.md` is the source read at
+`b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`. It settles four rows as `code`
+evidence and can settle no row as `measured`, because nothing was run.
+
+- **R16 is kept** where the page reads `none`. Own words shipped in v1.11.0.
+- **R12's second clause is kept** for both documented shapes, where the page
+  says it fails and names pull request #32 as in flight; #32 merged.
+- **R23 splits by direction.** The older-stamp ladder exists and has never
+  carried a real index — `SCHEMA_MIGRATIONS` is empty, `SCHEMA_VERSION` is
+  still 1. The newer-stamp direction is still sidelined, so R23 is not kept.
+- **R10 does not move.** The v1.12.0 transport fallback does not reach a
+  running build, which pins its API and fails rather than re-routing.
+
+The other twenty rows were not read. That is this ticket's work.
+
+## Relevant files
+
+- `UPSTREAM` — the machine-readable baseline; the SHA, version and date move together.
+- `spec/README.md` — every row, both bars, the evidence tally, and the
+  "Measured against upstream vN" line.
+- `bench/check_progress.py` — `check_baseline()` fires once `UPSTREAM` names a
+  release the page does not, and stays red until the page names it too.
+- `bench/smoke_upstream.py` — the only instrument that moves a row to
+  `measured`; repaired by ticket 0506 first.
+- `verification/UPSTREAM-1.12.0-REREAD.md` — the four rows already read.
+- `SYNC.md` — its upstream row and head note point here.
+
+## Actions
+
+1. Confirm the trigger fired, and which one. Record it in the log.
+2. `make upstream-catchup` and `make upstream-status`, so the bump is made
+   against what upstream is on the day, not against v1.12.0 by inheritance.
+3. Repair `bench/smoke_upstream.py` (ticket 0506) and re-run it, so R10 and
+   R23 keep `measured` rather than falling back to `code`.
+4. Re-read the remaining twenty rows from a clone at the new baseline.
+5. Bump `UPSTREAM` and rewrite the page: rows, standing sentences, both bars,
+   the evidence tally, the version in the "Measured against" line.
+
+## Test
+
+Red first: bump `UPSTREAM` alone and confirm `make check` fails on
+`check_baseline` before any page edit. A guard whose red state was never seen
+is not a guard, and this one fires in exactly one direction.
+
+## Verification
+
+- [ ] `make check` and `make upstream-status` green together
+- [ ] Every row's evidence column reflects what was actually done for it —
+      `measured` only where an artifact from the new baseline says so
+- [ ] No row keeps a standing sentence naming a filing that has since merged
+
+## Invariants
+
+- The page states no threshold and no measurement: every digit is an address.
+- A row is not upgraded to `measured` without the artifact that measured it.
+
+## Exit criteria
+- [ ] The trigger that fired is named in the log
+- [ ] `UPSTREAM` names the release and SHA the read was done against
+- [ ] Every row re-read, with its evidence column earned rather than inherited
+- [ ] `make check` and `make upstream-status` green together
+- [ ] `SYNC.md`'s upstream row no longer points at a pending re-baseline
