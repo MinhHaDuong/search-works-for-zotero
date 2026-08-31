@@ -11,7 +11,7 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 `SYNC.md` — stays at the top level, as do `README.md` and this file.
 
 - `spec/README.md` — the chain's entry point, and `spec/`'s landing page on the
-  forge. Owns one thing nothing else does: where each of the thirty
+  forge. Owns one thing nothing else does: where each of the thirty-one
   requirements stands, on two axes — designed, and delivered on stock upstream
   at the reviewed baseline — plus an `evidence` column saying how each verdict
   was established. It owns no threshold and no design number; the standing is

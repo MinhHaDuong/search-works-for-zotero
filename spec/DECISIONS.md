@@ -723,6 +723,40 @@ control cleared at every deployed dtype for only two of six candidates, so
 admitting R29 as a criterion narrows the field before any budget question is
 asked. Nor does this entry select an embedder, which remains 0495's after 0493.
 
+**2026-08-31 — R29 is ratified, amended: the cross-lingual promise enters the
+sheet, and it is a gate criterion.** The author's ruling on the proposal ticket
+0037 has carried since 2026-08-27, and it answers the question the entry above
+left open.
+
+R29 says the query language is not the document language: a query in English or
+French retrieves relevant Vietnamese content with the user translating nothing.
+R7 promises each language its own lane; R29 promises the lanes connect, which is
+the stronger claim and the one the author actually wants from a multilingual
+embedder. Both are conformance criteria in ticket 0495's ship gate, applied
+before the golden and resource gates and traded against neither.
+
+Three amendments to the proposal as drafted. **No new experiment.** The proposal
+commissioned an experiment X8 to measure cross-lingual recall. That label has
+since been taken — DESIGN §3's X8 is cross-provider fidelity — and the
+measurement itself is already done: ticket 0266 ran EN and FR queries against
+Vietnamese, German and Russian content at every deployed dtype, and its artifact
+is committed. The design cites that evidence instead of commissioning a fresh
+experiment under a colliding name, and no new experiment label is allocated.
+**The constraints land with their owners.** That keyword search cannot cross
+languages, that the embedding space is therefore the only channel, and that
+fusion cannot require keyword confirmation before a semantic hit surfaces are
+facts about the two query paths, so DESIGN §2.6 carries them beside the CJK
+posture they transpose. R10 already forbids a translation service on the default
+path, and the sheet's out-of-scope list gains the sentence saying query
+translation is not the mechanism. Nothing is restated in CONSTRAINTS.md.
+**The cross-lingual slice of the golden corpus is gated separately** from the
+monolingual queries, as proposed, so a regression names which of the two
+promises it broke rather than reporting one number for both.
+
+**What this entry does not settle.** It selects no embedder — that stays ticket
+0495's, after ticket 0493 — and it pins no threshold. R29's gate numbers are the
+golden gate's, and ticket 0029 pins them when it builds the slice.
+
 ## Awaiting ratification
 
 - **Files certify their own embedding chain: calibration chunks in every

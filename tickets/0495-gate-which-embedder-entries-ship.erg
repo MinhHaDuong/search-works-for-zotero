@@ -9,17 +9,20 @@ Blocked-by: 0029
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-08-31T06:00Z claude note the author ruled 2026-08-31 that the embedder swap is R7 conformance, not a move on a cost-versus-quality frontier (spec/DECISIONS.md). Scope and exit criteria rewritten to match: R7 is the first filter and is not traded, the golden gate and the budgets choose among the entries that pass it, and the old 'if evidence does not justify a change, MiniLM remains the default' clause is gone -- under R7-hard it was unreachable as written, since the incumbent's declared language set is English alone (bench/models.json), so MiniLM staying is a disclosed non-conformance rather than a verdict on the evidence
+2026-08-31T06:32Z claude note R29 ratified 2026-08-31 (spec/DECISIONS.md) and admitted here as a conformance criterion beside R7: the filter now reads ticket 0266's measured cross-lingual arm, both controls, not only the declared language set. On that evidence the field narrows to the two candidates whose negative control clears at every deployed dtype before any budget question is asked
 --- body ---
 ## Scope
 
 After technical validation works, decide which curated entries are exposed and
-which one is the default. R7 conformance is the first filter and it is not
-traded against anything: an entry whose declared language set is not
-multilingual is not a candidate for the default, whatever it scores (the
-author's ruling, `spec/DECISIONS.md` 2026-08-31 -- the swap is a conformance
-repair, not a move on a cost-versus-quality frontier). The private golden
-retrieval gate and the published resource budgets then choose among the entries
-that pass that filter. Compatibility crowd counts are supporting operability
+which one is the default. R7 and R29 conformance is the first filter and it is
+not traded against anything (the author's rulings, `spec/DECISIONS.md`
+2026-08-31 -- the swap is a conformance repair, not a move on a
+cost-versus-quality frontier). An entry whose declared language set is not
+multilingual is not a candidate for the default, whatever it scores; nor is one
+that cannot cross languages, which is measured rather than declared -- ticket
+0266's cross-lingual arm at the deployed dtype, both controls, is the evidence
+this filter reads. The private golden retrieval gate and the published resource
+budgets then choose among the entries that pass that filter. Compatibility crowd counts are supporting operability
 evidence only.
 
 ## Exit criteria
@@ -29,7 +32,8 @@ evidence only.
 - Licences, artifact sizes and runtime support are disclosed beside the entry.
 - The decision and its negative controls are recorded in DECISIONS.md.
 - The entry proposed as the default is R7-conformant, read from its declared
-  language set rather than from its name or its scores.
+  language set rather than from its name or its scores, and R29-conformant on
+  ticket 0266's measured cross-lingual arm including its negative control.
 - If no entry passes, MiniLM stays in place as the disclosed interim state of a
   known non-conformance -- never as a finding that the evidence did not justify
   a change -- and the ticket names which gate blocked which entry.

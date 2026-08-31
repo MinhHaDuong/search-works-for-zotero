@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the thirty promises actually
+documents do not: **where each of the thirty-one promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -37,23 +37,23 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 28 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 29 ratified · 2 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 14 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○○` &nbsp; 1 shipped · 15 partial · 15 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 11 read in the source · 9 inferred
+11 measured · 11 read in the source · 9 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the thirty, ten rest on an experiment or a test that ran, eleven on
+the thirty-one, eleven rest on an experiment or a test that ran, eleven on
 opening the upstream source at the reviewed baseline, and nine on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
@@ -96,7 +96,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
 | Query | `●●●●●` | `◐◐◐○○` |
-| Multilingual | `●` | `◐` |
+| Multilingual | `●●` | `◐○` |
 | Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●●` | `●◐◐◐○` |
 | Multi-library and multi-process | `●●` | `◐○` |
@@ -104,7 +104,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
-## The thirty
+## The thirty-one
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -159,6 +159,7 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Ticket 0090, ticket 0091, ticket 0240. |
+| R29 | the query language is not the document language | ratified | none | measured | Stock upstream embeds with the incumbent English MiniLM chain, which `verification/SMOKE-1.10.0.md` names as observed on a running server, so no cross-lingual channel exists at the reviewed baseline. That a multilingual embedder supplies one is measured rather than assumed: ticket 0266 ran EN and FR queries against Vietnamese, German and Russian content at every deployed dtype (`bench/results/0266-cross-lingual/SUMMARY.json`), and its negative control clears at every dtype for only two candidates of the six. The promise is a gate criterion for whichever entry the registry ships: ticket 0037, ticket 0495. |
 
 ### Embedding configurations
 

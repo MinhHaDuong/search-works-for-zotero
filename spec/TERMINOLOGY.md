@@ -57,6 +57,13 @@ entry points at the question rather than settling it; rulings land in
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: REQUIREMENTS.md R1 and R17; the coverage sentence
   and its counters are DESIGN.md §2.8.
+- **cross-lingual** — the property that a query in one language retrieves
+  documents in another: an English or French query finding Vietnamese content.
+  Stronger than *multilingual* and routinely confused with it — multilingual is
+  each language working in its own lane, cross-lingual is the lanes connecting.
+  Only the embedding space crosses languages; the keyword path cannot.
+  Authoritative: REQUIREMENTS.md R29 (ruling: DECISIONS.md 2026-08-31); the
+  mechanism is DESIGN.md §2.6.
 - **custody string** — the one-line statement, carried on every reply, of where
   the query text and the library text went. Authoritative: REQUIREMENTS.md
   R10; the mechanism is DESIGN.md §2.7.
@@ -99,6 +106,12 @@ entry points at the question rather than settling it; rulings land in
 - **metadata-only** — the terminal state of an attachment that yields no text:
   covered rather than failed, with its reason recorded and counted in the
   denominator. Authoritative: REQUIREMENTS.md R14 and R17.
+- **multilingual** — the property that the default path works in each of the
+  tested languages on its own terms and with no configuration, which is what
+  makes a multilingual default embedder a requirement rather than a preference.
+  Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
+  over Vietnamese content and still have no path from an English one.
+  Authoritative: REQUIREMENTS.md R7.
 - **P0 / pipeline workers** — the query-serving zoteus server may have several
   instances; the conductor owns one run-to-drain worker of each pipeline kind:
   extract, chunk, embed. Authoritative: DESIGN.md §2.5.
