@@ -155,14 +155,17 @@ replaces the machinery it described.
 - **R7 — multilingual by default, in two tiers.** The default path MUST work
   for English, French and Vietnamese with no configuration, and the default
   embedder MUST be multilingual. It SHOULD work, with no configuration, for
-  Arabic, Chinese, German, Russian and Spanish; setting one of those aside is
-  allowed and MUST be stated, which is what separates a tier from a wish. The
+  Arabic, Chinese, German, Hindi, Russian and Spanish; setting one of those
+  aside is allowed and MUST be stated, which is what separates a tier from a
+  wish. The second tier names one language per script and morphology class and
+  never one per community: right-to-left, Cyrillic, no word boundaries,
+  compounding, abugida, and Latin-with-diacritics, which Spanish stands for. The
   English stopword list is a known ranking bias whose deletion is already
   decided (the move is ratified into the plan). Chinese in the second tier is
   the explicit CJK decision this item used to defer, and it carries the keyword
   half with it: the two-gram geometry the platform ships is what a Chinese query
-  term has to survive. Every other language, Greek, Hebrew and Portuguese
-  included, rides the default path untested; see "Out of scope".
+  term has to survive. Every other language rides the default path untested; see
+  "Out of scope".
 
 - **R29 — the query language is not the document language.** A query in
   English or French MUST retrieve relevant Vietnamese content without the
@@ -251,9 +254,11 @@ read as a promise:
 - **Hosted mode is out.** The redesign binds the desktop; the OAuth server
   keeps today's behavior.
 - **Untested languages are named, not implied.** Everything outside R7's two
-  tiers rides the default path and is expected to work there — Greek, Hebrew,
-  Portuguese and the rest — but nothing measures it, and a language nobody
-  measured is not a language anybody promised.
+  tiers rides the default path and is expected to work there, but nothing
+  measures it, and a language nobody measured is not a language anybody
+  promised. Portuguese and Italian sit in the class Spanish represents, so they
+  are covered by argument and not by measurement, which is the weaker thing and
+  is said as one. Greek and Hebrew are in no tier's class at all.
 - **Query translation is out.** R29 rides the embedding space, which is the
   only channel that crosses languages. No translation service and no local
   translation model joins the default path.

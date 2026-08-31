@@ -195,6 +195,7 @@ ISO_639_1 = {
     "german": "de",
     "greek": "el",
     "hebrew": "he",
+    "hindi": "hi",
     "italian": "it",
     "japanese": "ja",
     "korean": "ko",

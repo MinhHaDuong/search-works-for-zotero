@@ -177,7 +177,7 @@ can be *decided*, not where it happens to have run.
 |---|---|---|---|
 | R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason | fixture | ticket 0026 |
 | R6 | the query path waits for no freshness work | fixture | ticket 0026 |
-| R7 | the default path serves English, French and Vietnamese unconfigured, and should serve four more | fixture | ticket 0029 |
+| R7 | the default path serves English, French and Vietnamese unconfigured, and should serve one language per script class | fixture | ticket 0029 |
 | R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
 | R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |

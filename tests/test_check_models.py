@@ -198,7 +198,7 @@ def test_r7_languages_are_read_from_the_sheet_not_restated():
     """
     assert cm.r7_language_codes(REPO / cm.R7_SOURCE) == (
         {"en", "fr", "vi"},
-        {"ar", "zh", "de", "ru", "es"},
+        {"ar", "zh", "de", "hi", "ru", "es"},
     )
 
 

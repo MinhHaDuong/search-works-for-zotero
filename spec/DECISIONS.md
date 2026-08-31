@@ -1459,6 +1459,41 @@ guard that fails a SHOULD has promoted it to a MUST, which is the one thing the
 convention asks a reader not to do — so a candidate short of the second tier
 prints where the stated reason would have to go.
 
+**2026-08-31 — the second tier covers script classes, not communities; Hindi
+joins, Portuguese is covered by argument.** Ratified by the author on the
+proposal put to him.
+
+The rule, which is what keeps the tier from growing by sentiment: **R7's second
+tier names one language per script and morphology class, never one per
+community.** A language earns its place by stressing the pipeline in a way
+nothing else in the tier does, not by how many researchers write in it. Today
+that reads right-to-left (Arabic), Cyrillic (Russian), no word boundaries
+(Chinese), compounding (German), Latin-with-diacritics (Spanish) — and it had a
+hole at abugida, which **Hindi** now fills: Devanagari combines vowel marks and
+forms conjuncts, so normalization that is a no-op in Latin is not one there.
+
+**Portuguese is covered by argument and not by measurement**, and the sheet says
+so in those words rather than leaving it unnamed. It sits in the class Spanish
+represents, as Italian does. That is a weaker guarantee than a tested language
+has, which is the point of writing it down: Greek and Hebrew, by contrast, are
+in no tier's class at all and are covered by nothing.
+
+Checked before ratifying: all six measured candidates declare `hi` alongside the
+rest, so **the field does not move again** and `bench/check_models.py` needed one
+line — Hindi in the ISO map it reads R7's sentences through.
+
+The cost lands on ticket 0029 rather than on the embedder study, and it is real:
+each tier language needs freely licensed documents and pinned answers in the
+fixture corpus, and a public-domain Devanagari or Arabic set is work nobody has
+done. That is exactly the case the tier was built for — a SHOULD may be set
+aside for a stated reason, so a language whose corpus cannot be assembled is set
+aside in the open, with the reason recorded on the ticket, rather than quietly
+missing.
+
+Ticket 0026 carries the consequence for R19: the character-folding sweep was
+built on Latin plus Cyrillic assumptions, and Arabic, Devanagari and the
+platform's two-gram Chinese geometry each break a different one.
+
 ## Awaiting ratification
 
 
