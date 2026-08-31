@@ -882,7 +882,12 @@ is the pattern, and it binds every surrogate here, not only that one.
   happened). Re-pins are commits
   whose set diff is the review artifact, and the golden set is re-pinned at
   entry granularity when entries exist; until then it gates item
-  projections and says so. The corpus carries a cross-lingual slice — EN and
+  projections and says so. Each pinned query records, at pinning, which corpus
+  its answer needs — core, notes, group, or deep-body — and the facet rides the
+  same review artifact as the set. Rung evaluation binds the queries whose
+  facet the corpus already covers: goal 4 closes on the covered subset, and
+  the rest join goal 5's evaluation when their corpus lands (DECISIONS.md
+  2026-08-31). The corpus carries a cross-lingual slice — EN and
   FR queries whose answer sets are Vietnamese entries — gated separately from
   the monolingual queries, so a regression names which of R7 and R29 it broke.
   The same pinned set decides R34, and the two readings of it are opposite on
@@ -1125,6 +1130,12 @@ This section carries the train's *shape* only. The terms it runs under live
 once in GOVERNANCE.md, which points at the entries that ratified them; each
 item's scope, evidence, and live state live in its ticket. The tickets are
 authoritative for content, this list for ordering.
+
+Two orders coexist. The ladder on `spec/README.md` governs the order repo-side
+assertions are built; this train governs the order items go upstream. On
+collision the ladder wins for tests and the train for filings — ticket 0488, a
+rung-1 member filed at item 8, is the documented case (DECISIONS.md
+2026-08-31).
 
 1. **The head, resolved** — PR #19 (accent fold) and #20 (corruption path)
    merged 2026-08-27 (`4f61b2a`, `6e4637b`); the stopwords follow-up
