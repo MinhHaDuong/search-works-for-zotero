@@ -952,7 +952,81 @@ because it edits a rule the author wrote deliberately. It sets no precedent for
 the rest of the directory: a third exception is a third ruling.
 
 
+**2026-08-31 — the excess-weight ruling: the guards that check prose are not
+the work.** The repo was audited against its own purpose. Its two sanctioned
+outputs are stated in GOVERNANCE.md — changes merged upstream, and the
+one-time acceptance-harness transfer — and the audit asked of each standing
+commitment whether it serves one of them. The measured shape: 3 187 lines of
+guard code against 6 426 lines of measurement driver; ten of twenty test files
+testing the guards rather than the science; eight of the nine guards in `make
+check` existing to keep 6 743 lines of prose across thirteen documents
+mutually consistent; and thirteen of fifty-six closed tickets having been pure
+document maintenance.
+
+The finding that settles it is not a ratio. **The guards are green and the
+bench is red.** Two drivers have been unable to open any index built since the
+upstream table rename (ticket 0100), `make check` has never opened a database
+at all, and 0013's concentration figures stand quoted in STATE.md, produced by
+a driver that cannot run — so they can be believed but neither re-measured nor
+refuted, while the figure guard passes them, because it checks that a number is
+declared and not that it is reproducible.
+
+**The line.** A guard that protects a measurement's fidelity, or the honesty of
+text leaving the repo, earns its place; a guard that keeps internal documents
+consistent with each other does not. The first kind has paid repeatedly — the
+pooling guard catches a class where four of six candidates are `cls` against a
+hardcoded `mean` and retrieval degrades silently; the dependency guard exists
+because the gate once died at its last step after eight guards printed success;
+the review of outward text caught a false public claim of prototyping work that
+does not exist. The second kind has produced no upstream artifact.
+
+**Dropped:** ticket 0161 (a guard on which documents are in scope for another
+guard — and by its own analysis unable to fire for the case that motivated it,
+since CONSTRAINTS.md's platform figures have no artifact to match against) and
+ticket 0181 (a guard requiring prose to be read for semantic intent, which its
+own actions predict "will be fought and then disabled"). Ticket 0320 is
+rescoped, not dropped: its sabotage proof stands and the parallel-append merge
+shape recurs by construction, but it becomes one property — the ratified entry
+count never decreases — because git already holds every prior text of the
+ledger and only loss is invisible to review.
+
+**Not dropped, and named so the ruling is not over-read:** ticket 0101, which
+is the one guard that would have caught the schema break, and is science rather
+than prose; the pooling and dependency guards; ticket 0180's one-time
+attribution audit, as distinct from the standing guard built on it; and the
+review discipline applied to every text sent upstream, which is where this
+repo's care demonstrably pays.
+
+The ruling is about standing commitments, not about care. Nothing here lowers
+the evidence bar for a claim, a number, or a sentence sent to the maintainer.
+
+
+
 ## Awaiting ratification
+
+- **Which of the prose guards come out, and whether thirteen documents is the
+  right number (raised 2026-08-31 by the excess-weight ruling, which settled
+  the principle and left the instances open).** Three questions the ruling
+  implies but does not decide, because each destroys something on the author's
+  say-so rather than an agent's. (i) `bench/check_figures.py` is 1 141 lines,
+  a third of all guard code; its value is real but proportional to how much
+  prose is kept, so it is decided *after* the document count, not before.
+  (ii) The chain-dedup, terminology and normative guards exist to manage a
+  problem created by having eleven places a fact could live; if that number
+  falls, they lose their subject. (iii) `spec/FIELD-REVIEW.md` is 1 974 lines,
+  the largest document in the repo, a dated snapshot that is authoritative for
+  nothing in the design. Merging or retiring documents is a deletion, and this
+  repo deletes rather than archives, so each one wants its own ruling.
+
+- **Ticket 0400's honest exit: which requirement rows stay read-only (raised
+  2026-08-31).** The tracker plans a forty-clause conformance suite for a
+  codebase this repo does not control, whose maintainer has reimplemented its
+  seams. Its own body already names the alternative exit — "the author rules
+  that some rows will stay read-only and says which" — and taking it is the
+  single largest scope reduction available. The evidence column stands at 11
+  measured, 11 read in the source, 9 inferred. What is needed is not a
+  verdict on the tracker but a list: which rows are worth a harness, and which
+  are recorded as read-in-the-source permanently.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,

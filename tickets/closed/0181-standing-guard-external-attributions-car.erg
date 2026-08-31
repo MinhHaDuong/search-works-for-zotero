@@ -3,12 +3,14 @@ Title: Standing guard — external attributions carry a source coordinate
 Created: 2026-08-29
 Author: claude
 Blocked-by: 0180
+Closed: Closed as excess weight (author ruling 2026-08-31). The one-time audit (0180) is the real work and is unaffected; this was its regression half. Action 2 requires finding attribution sentences 'by more than the vocabulary that seeded 0180, because a claim can assert platform behaviour in plain words' — i.e. reading prose for semantic intent — and action 3 already anticipates the outcome: 'a hard fail on any uncited attribution will be fought and then disabled'. The discipline it encodes is kept where it pays, in the review of text that leaves the repo.
 
 --- log ---
 2026-08-29T16:05Z claude created
 2026-08-29T16:05Z claude note the regression half of 0180; /gaze is per-PR and cannot catch this class returning in an unrelated future change
 
 2026-08-31T06:35Z claude note ONE MORE DIMENSION for this guard, from the 0180 episode (spec/DECISIONS.md, 2026-08-31): a citation that supports a DESIGN CHOICE rather than a fact is the kind that survives unexamined longest, because nothing downstream breaks when it is wrong. The residue sentence is the case -- it claimed Zotero's embeddings layer documents the same staleness residue, which it does not, and no measurement, test or build would ever have caught it, since it was doing rhetorical work rather than load-bearing work. A guard keyed on measurement-quoting prose would miss the whole class. The other dimension the same episode surfaced is evidence GRADE, distinct from truth: the rowid claim is true and was cited as '#6012's measurement' when it is a rationale in a source comment carrying no figure, so a reader credits the maintainer with numbers he never published
+2026-08-31T09:26Z Claude closed — Closed as excess weight (author ruling 2026-08-31). The one-time audit (0180) is the real work and is unaffected; this was its regression half. Action 2 requires finding attribution sentences 'by more than the vocabulary that seeded 0180, because a claim can assert platform behaviour in plain words' — i.e. reading prose for semantic intent — and action 3 already anticipates the outcome: 'a hard fail on any uncited attribution will be fought and then disabled'. The discipline it encodes is kept where it pays, in the review of text that leaves the repo.
 --- body ---
 ## Context
 0180 corrects the external attributions that are wrong today. This ticket
