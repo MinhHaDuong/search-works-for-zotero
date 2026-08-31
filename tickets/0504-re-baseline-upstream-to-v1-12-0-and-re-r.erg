@@ -7,6 +7,7 @@ Author: claude
 2026-08-31T14:50Z claude created
 
 2026-08-31T15:26Z claude note RE-SCOPED before any work started. The first draft said re-read all 23 rows and claimed ten measured verdicts rest on the smoke run; both were wrong. The smoke is five checks and re-running it re-establishes R10 and R23 only, and the eight code rows were readable from a clone all along. Evidence for the narrowing: the page has no consumer (every mechanized reference is a hygiene guard, check_progress recomputes bars from rows in a closed loop, no CI, and a dangling R30 citation in verification/GPU-CORRECTED-0482.md went stale uncaught); the delivered axis has read 1 shipped across all nine bar changes with every movement in the denominator; and make check is green today because check_baseline fires only after a bump, so deferring is free. Four rows are worth reading -- R10, R12, R16, R23 -- and the bump itself now waits on a trigger rather than on upstream shipping
+2026-08-31T16:10Z claude note renumbered 0501 -> 0504 on the merge into main: main had filed its own 0501 (paragraph-aligned chunking A/B) while this branch was open, and erg check caught the collision. Sibling 0502 and 0503 moved with it to 0505 and 0506. Every reference moved too -- SYNC.md's head note and its upstream row, ticket 0024's staleness note, ticket 0101's two Blocked-by notes, and this ticket's own pointers at 0505 and 0506
 --- body ---
 ## Context
 
@@ -35,7 +36,7 @@ The first draft of this ticket said re-read the whole standing. Re-scoped
   disclosed, not a defect, and `make check` is green: `check_baseline()` fires
   only once `UPSTREAM` is bumped. Not re-baselining costs nothing.
 - **Only four rows are worth reading.** R12, R16 and R23 are falsified by what
-  upstream built; R10 is the one row where a wrong answer matters (see 0502).
+  upstream built; R10 is the one row where a wrong answer matters (see 0505).
 
 ## One correction to this ticket's own first draft
 
@@ -55,8 +56,8 @@ v1.12.0 recorded in their tickets, NOT written into the page -- writing a v1.12.
 reading into a page `UPSTREAM` dates to v1.10.0 is what the guard exists to refuse.
 
 ## Exit criteria
-- [ ] R10 re-read against v1.12.0 -- does #39's silent local-API-to-Web-API fallback touch "MUST NOT leave this machine"? (shared with 0502)
+- [ ] R10 re-read against v1.12.0 -- does #39's silent local-API-to-Web-API fallback touch "MUST NOT leave this machine"? (shared with 0505)
 - [ ] R12, R16, R23 re-read against v1.12.0 from a clone; findings recorded in their tickets
-- [ ] `bench/smoke_upstream.py` repaired before any re-run (see 0503: check 2 asserts retired R28)
+- [ ] `bench/smoke_upstream.py` repaired before any re-run (see 0506: check 2 asserts retired R28)
 - [ ] A decision recorded on WHEN to bump: the trigger above, or a different one
 - [ ] If and when bumped: `UPSTREAM` names v1.12.0 / `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`; every one of the 23 rows re-read; `make check` and `make upstream-status` green together

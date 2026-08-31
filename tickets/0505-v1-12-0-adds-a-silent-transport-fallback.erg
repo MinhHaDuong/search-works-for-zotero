@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-31T14:57Z claude created
+2026-08-31T16:10Z claude note renumbered 0502 -> 0505 on the merge into main, with siblings 0501 -> 0504 and 0503 -> 0506: main had filed its own 0501-0503 while this branch was open. References moved with it -- SYNC.md's #37/#38/#39 row and ticket 0504's two exit criteria
 
 --- body ---
 ## Context

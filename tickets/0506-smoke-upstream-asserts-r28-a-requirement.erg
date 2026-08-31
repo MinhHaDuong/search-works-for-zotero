@@ -5,6 +5,7 @@ Author: claude
 
 --- log ---
 2026-08-31T15:26Z claude created
+2026-08-31T16:10Z claude note renumbered 0503 -> 0506 on the merge into main, with siblings 0501 -> 0504 and 0502 -> 0505: main had filed its own 0501-0503 while this branch was open. References moved with it -- ticket 0504's repair-before-re-run criterion, and this ticket's own pointer back at it
 
 --- body ---
 ## Context
@@ -30,7 +31,7 @@ Two consequences, and the second is the one that costs something.
    requirement's check is doing uncredited work for a live row, which is exactly
    the kind of quiet coupling the evidence column was split to expose.
 
-This is why ticket 0501 says repair before re-run: re-running the smoke at
+This is why ticket 0504 says repair before re-run: re-running the smoke at
 v1.12.0 unrepaired would faithfully reproduce the stale assertion and stamp a
 fresh date on it.
 
