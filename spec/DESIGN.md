@@ -577,18 +577,32 @@ sorted by length first because the runtime pads every member of a batch to
 its longest sequence; the batch is the memory dial, the duplicate-compute
 unit and the yield grain, and nothing is bought by making it large
 (`verification/GPU-ANOMALY-0481.md`, `verification/GPU-CORRECTED-0482.md`;
-the CPU sweep at the deployed rung is ticket 0500's).
+the CPU sweep at the deployed rung is ticket 0500's). Dispatch order at the
+worker's grain restates §2.3's anti-monopoly promise at the pipe: a fetch
+order for a newly changed item goes ahead of queued band-1 embed ranges,
+and an embed backlog yields at batch granularity — one worker serializes
+fetch and embed, so without this rule a band-1 drain would starve every
+fresh item's fetch, reintroducing at the pipe the monopolization the bands
+exist to prevent.
 
-**Orphan repair and flow control.** The worker exits on stdin EOF (parent
-death). The per-worker lease re-check of the three-worker design moves
-rather than vanishes: a P0 that observes it no longer holds the conductor
-lease kills its worker before anything else, because an orphaned worker,
+**Orphan repair and flow control.** Two repairs, on two sides, because the
+failure they cover is a parent that is wedged rather than dead. The worker
+exits on stdin EOF (parent death), and it also polls `leases.holder ==
+parent-uuid` on its own timer between micro-batches, exiting on mismatch —
+the worker-side check of the three-worker design kept, not moved, since a
+SIGSTOP'd or thrashing conductor closes no pipe and runs no cleanup, and
+only a check scheduled in the worker's own process fires then. The
+conductor-side half is the complement: a P0 that observes it no longer holds
+the lease kills its worker before anything else, because an orphaned worker,
 though harmless to a store it never opens, pins the WAL as a long-lived
-reader while the new conductor spawns its own — that kill is what enforces
-the one-worker bound. Lease renewal stays on a timer decoupled from stage
-progress, renewed immediately before any long unit of work. And the pipe
-pair is full-duplex, which is a deadlock shape: the conductor drains
-arriving windows and records before blocking on any write of work orders.
+reader while the new conductor spawns its own. Both together enforce the
+one-worker bound; either alone has a hole. Lease renewal stays on a timer
+decoupled from stage progress, renewed immediately before any long unit of
+work. And the pipe pair is full-duplex, which is a deadlock shape: the
+conductor drains arriving windows and records before blocking on any write
+of work orders, in both directions — returning records drain into the same
+bounded append-fsync-commit loop that bounds the windows, never into a
+queue ahead of it.
 
 **The handshake crosses the pipe** (R31). The model loads in the worker, so
 the requested and actual fingerprint, dimension, runtime, execution provider
@@ -596,12 +610,15 @@ and local-validation standing arrive with the first record of every dispatch,
 and the conductor rejects a mismatch before writing a vector.
 
 Safety never depends on the singleton: during a handover two P0s can each
-believe they are conductor, so immediately before writing a streamed record
-the conductor checks that it still holds the lease and that the key the
-record was computed under still equals the row's current key — on either
-mismatch the record is discarded and nothing is written. The guard is a local
-comparison inside the one process that writes, cheaper than the cross-process
-claim protocol it replaces. R13's letter is restated honestly: never
+believe they are conductor, so every record commit carries the guard **in the
+same transaction as the write** — a conditional `UPDATE … WHERE
+holder = :uuid AND key = :computed_key`, the CAS idiom the lease acquisition
+above already uses, never a separate read followed by a separate write. Two
+deposed-but-running conductors then cannot both pass: SQLite serializes the
+transactions, and the loser's condition reads the winner's committed state
+and writes nothing. A check-then-write in two steps would re-open exactly
+the race the guard exists for, which is why the atomicity is stated here
+rather than left to the implementer. R13's letter is restated honestly: never
 committed twice, and duplicate compute bounded by one embed batch plus one
 in-flight document's re-fetch and re-segmentation per failover, since the
 conductor computes too. The strict letter has no implementation on a
@@ -629,11 +646,18 @@ Sidecar discipline collapses to an ordering: the conductor appends the vector
 bytes, fsyncs, then commits the row that references them, so a crash between
 the two leaves bytes nothing points at — dead weight the compaction rule
 collects. The files stay generation-numbered (`vectors-<embedderKey>.g<N>`,
-the generation stamped in meta) for atomic replacement at compaction; the
-scan-and-verify half of that protocol had one purpose, keeping the sidecar
-consistent with rows another process wrote, and with one writer it has no
-subject. Deletion tombstones cover every live generation. Compaction runs at
->10 % dead rows or in the idle weekly slot.
+the generation stamped in meta) for atomic replacement at compaction, and
+compaction itself carries the same ordering across its two atomic domains:
+write `g<N+1>` whole and fsync it, switch every row reference and the meta
+stamp in one SQLite transaction, and only after that commit delete `g<N>`.
+A crash on either side of the switch leaves one complete, referenced
+generation — before the commit the new file is unreferenced dead weight,
+after it the old one is — so the split state a filesystem rename plus a
+database commit could otherwise produce is unrepresentable. That is what
+lets the scan-and-verify half of the old protocol go: its other purpose,
+keeping the sidecar consistent with rows another process wrote, has no
+subject with one writer. Deletion tombstones cover every live generation.
+Compaction runs at >10 % dead rows or in the idle weekly slot.
 
 ### 2.6 Query path and ranking
 
@@ -982,7 +1006,11 @@ is the pattern, and it binds every surrogate here, not only that one.
   run at the multilingual default — are where terms that look independent fail
   together.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
-  kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
+  kill -9 the conductor twice, and freeze it once (SIGSTOP through a
+  migration) — the wedged-not-dead case: the frozen parent closes no pipe
+  and runs no cleanup, so only the worker's own lease poll can retire the
+  orphan, and the gate asserts it does within the migration gate. Assert:
+  p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 embed batch plus one in-flight document's
   re-fetch and re-segmentation per failover. **The conductor-latency
@@ -1101,7 +1129,12 @@ transient residency only: run-to-drain, at most one, its peak the model plus
 one token-budget batch (§2.5's dial), under C3's re-pinned pipeline ceiling —
 priced by the same measured candidate range quoted above, without the
 server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
-range's top, inside the ceiling (DECISIONS.md, 2026-08-31). Segmentation adds one text
+range's top, inside the ceiling (DECISIONS.md, 2026-08-31). One term of that
+arithmetic is honestly unmeasured: the residency of a live batch — every
+sweep on disk priced batch size in latency, not RSS — so the ceiling's
+sufficiency for the heaviest candidates is a claim §2.8's RSS gate and
+ticket 0500's sweep verify, not one this subtraction establishes; 0500
+records RSS with a real batch in flight, not at rest. Segmentation adds one text
 window plus segmenter state to the conductor, inside the server ceiling. The
 sole-writer topology confines the long-document RSS risk to the worker's
 streaming fetch; it does not buy wall-clock. Whether

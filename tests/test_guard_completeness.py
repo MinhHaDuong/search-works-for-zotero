@@ -116,8 +116,14 @@ def test_check_prerequisites_are_phony_or_pathless():
     import re
 
     text = (REPO / "Makefile").read_text(encoding="utf-8")
-    phony = set(re.search(r"^\.PHONY:(.*)$", text, re.M).group(1).split())
-    prereqs = re.search(r"^check:(.*)$", text, re.M).group(1).split()
+    phony_lines = re.findall(r"^\.PHONY:(.*)$", text, re.M)
+    check_lines = re.findall(r"^check:(.*)$", text, re.M)
+    # A second .PHONY or check: line would silently escape a single-match
+    # read; fail loud instead of under-reading (red-team seat, PR #127).
+    assert len(phony_lines) == 1, "expected exactly one .PHONY line; update this parser"
+    assert len(check_lines) == 1, "expected exactly one check: line; update this parser"
+    phony = set(phony_lines[0].split())
+    prereqs = check_lines[0].split()
     for target in prereqs:
         assert target in phony or not os.path.exists(REPO / target), (
             f"'check' prerequisite {target!r} collides with an existing path "
