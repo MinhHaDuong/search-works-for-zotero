@@ -7,7 +7,7 @@ Blocked-by: 0485
 --- log ---
 2026-08-30T19:48Z Minh Ha-Duong created
 
-2026-08-30T19:55Z claude note renumbered from 0487 on merge: main had landed tickets/closed/0487-specify-curated-embedder-registry-worktr.erg concurrently, so this file took the next free ID per tickets/AGENTS.md and its four cross-references (spec/DECISIONS.md's awaiting entry, and the notes on 0100, 0485, 0486) were repointed in the same change. The pre-merge commit 01473cf refers to this ticket as 0487; nothing else does
+2026-08-30T19:55Z claude note renumbered from 0487 when this branch caught up with main: main had landed tickets/closed/0487-specify-curated-embedder-registry-worktr.erg concurrently, so this file took the next free ID per tickets/AGENTS.md and its four cross-references (spec/DECISIONS.md's awaiting entry, and the notes on 0100, 0485, 0486) were repointed in the same change. the commit that first created this ticket names it 0487 in its message; nothing else does
 --- body ---
 ## Context
 

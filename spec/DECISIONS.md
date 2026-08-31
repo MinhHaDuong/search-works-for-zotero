@@ -715,6 +715,42 @@ larger disclosures than a title. Neither is decided here.
 
 ## Awaiting ratification
 
+- **Reading AGPL source in order to reimplement it is unpriced, and ticket
+  0031 is where it lands (session finding, 2026-08-30).**
+  `spec/FIELD-REVIEW.md` sets the survey's general route for an idea held by a
+  copyleft or unlicensed project — read the design, write the paragraph, build
+  it independently — and then names one place that route is *not* enough:
+  Zotero core's calibration procedure, "an algorithm with parameters rather
+  than an idea", with the instruction that ticket 0031 read
+  `Zotero.Embeddings.Calibration` at source before committing to its own.
+  Nothing in the chain says what that reading may then produce.
+
+  The asymmetry is real. `zotero/zotero` is AGPL-3.0 and zoteus is MIT, and
+  reading an algorithm-with-parameters at source in order to reimplement it is
+  a different act from reading a design and describing it: the closer the
+  reimplementation tracks the parameters, the less "independently built"
+  describes it. This is not a claim that 0031 would infringe — it is the
+  observation that the chain currently gives 0031 an instruction and no bound,
+  and that the bound is the kind of thing decided before the work rather than
+  argued afterwards.
+
+  What this entry does NOT question is reading upstream source to verify a
+  factual claim about upstream behaviour. This session did that at length —
+  the #6012 checkpoint, and three attributions settled for ticket 0180 — and
+  it produces assertions about what upstream does, never code. The two acts
+  should be separated by whatever rule is adopted, because conflating them
+  would forbid the verification `spec/FIELD-REVIEW.md` and ticket 0181 both
+  depend on.
+
+  Options, unranked and for the author: adopt a clean-room split (one reader
+  writes the parameter-free description, a second builds from it and never
+  reads the source); take the parameters as facts about the problem rather
+  than as expression, and record that reasoning; ask upstream for the
+  procedure under a permissive grant; or build 0031's calibration from its own
+  stated pair-generation protocol and never read theirs, accepting a weaker
+  result. Ratifying any of them settles ticket 0031's method; ratifying none
+  leaves the instruction standing without one.
+
 - **Files certify their own embedding chain: calibration chunks in every
   file's header, and one chain per file (author, 2026-08-30).** Two proposals
   that are one mechanism. Every vector file opens with a fixed, public set of

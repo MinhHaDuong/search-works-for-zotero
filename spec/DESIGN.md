@@ -385,12 +385,11 @@ entry. The resolution has four parts. (i) Widen the extract signal to
 the attachment item in the item sequence the tick already sweeps, so
 file-driven re-extraction is caught for free. (ii) The remaining case,
 re-extraction with no file change, is disclosed in the contract as
-accepted staleness ("version-0 text refreshes on file change or rebuild");
-Zotero's own embeddings layer documents the same residue. (iii) A bounded
-idle re-verify sweep is built only if X6 shows local re-extraction
-genuinely re-stamps 0. The experiment (re-extract one attachment on a
-synced and on a never-synced profile, watch the census and the attachment
-item's version) runs before the machinery is written. (iv) A
+accepted staleness ("version-0 text refreshes on file change or rebuild").
+(iii) A bounded idle re-verify sweep is built only if X6 shows local
+re-extraction genuinely re-stamps 0. The experiment (re-extract one
+attachment on a synced and on a never-synced profile, watch the census and
+the attachment item's version) runs before the machinery is written. (iv) A
 **content-presence probe** at verify time, ratified 2026-08-30 on X6's
 decoupling finding (`bench/results/0025-x6-version-dynamics/`): a derived
 cache can vanish — content 404 — with every version signal and the source
