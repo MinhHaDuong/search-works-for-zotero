@@ -908,56 +908,36 @@ settled for ticket 0180. That produces assertions about what upstream does,
 never code, and tickets 0180 and 0181 depend on it continuing.
 
 
+**2026-08-31 — the accepted-staleness residue: the corroboration is withdrawn,
+and no ruling is disturbed.** Ratified as closing, with no further action.
+DESIGN.md disclosed a residue in the freshness contract — re-extraction with no
+file change is not caught, accepted as staleness — and asserted beside it that
+"Zotero's own embeddings layer documents the same residue". Read at source
+(PR head `77e2c4b`, ticket 0180), that does not hold: `embeddings.js` documents
+staleness only as model-revision-driven reindex and as pref-toggle eligibility,
+and addresses re-extraction without a file change nowhere. The sentence is
+removed; the disclosure's own wording is unchanged.
+
+The question this entry was opened to answer — whether the residue was accepted
+partly on the strength of the platform accepting it too — is answered from the
+record, and the answer is that no ruling was influenced because no ruling
+exists. The four-part resolution lives in DESIGN.md §2.4 as design, not as a
+ratified reading; this ledger's only trace of its vocabulary is inside the
+2026-08-30 presence-probe ruling, where the widened signal appears as a
+complement being noted rather than as the thing ratified;
+REQUIREMENTS.md carries no R-item for it. That same presence-probe ruling
+records part (iii) as still gated on X6's profile arms, which have not run, so
+part (ii) is the interim position of an open design — which is what a
+corroboration should never have been load-bearing for. The residue is decided
+when those arms run, on our own measurement.
+
+What the episode earns is a dimension for ticket 0181's guard, recorded there:
+a citation that supports a *design choice* rather than a fact survives
+unexamined longest, because nothing downstream breaks when it is wrong, and no
+measurement-keyed guard would ever have caught this one.
+
+
 ## Awaiting ratification
-
-- **The accepted-staleness residue has lost its corroboration, and whether
-  that changes the ruling is the author's to say (2026-08-31, on his
-  instruction that the removal needed a ledger entry).** `spec/DESIGN.md`
-  disclosed a residue in the freshness contract — re-extraction with no file
-  change is not caught, accepted as staleness — and asserted beside it that
-  "Zotero's own embeddings layer documents the same residue". Read at source
-  on 2026-08-30 (PR head `77e2c4b`, ticket 0180), that assertion does not
-  hold: `embeddings.js` documents staleness only as model-revision-driven
-  reindex and as pref-toggle eligibility, and addresses re-extraction without
-  a file change nowhere. The sentence has been removed; the disclosure's own
-  wording is unchanged.
-
-  The correction was first made without a ledger entry, on the reading that
-  deleting a false corroboration cannot change a reading whose text is
-  byte-identical. The author overruled that and required the entry, on the
-  question a byte-identical text cannot answer: **was the residue accepted
-  partly on the strength of the platform accepting it too?**
-
-  **Answered from the record, and the answer is that no ruling was
-  influenced, because no ruling exists.** The residue's four-part resolution
-  lives in `spec/DESIGN.md` §2.4 as design, not as a ratified reading. This
-  ledger carries no entry establishing it: the vocabulary of that resolution
-  — the widened extract signal, the version-0 case — appears here exactly
-  once, inside the 2026-08-30 presence-probe ruling, and appears there as a
-  complement being noted rather than as the thing ratified ("the md5-widened
-  signal stands as the ingestion-side complement"). `spec/REQUIREMENTS.md`
-  carries no R-item for it either. So the Zotero sentence sat beside a design
-  statement, and its removal changes nothing that was ever ratified.
-
-  Two things make that answer firmer rather than merely technical. The same
-  presence-probe ruling records that part (iii) of the resolution — the
-  bounded idle re-verify sweep — is still gated on X6's profile arms, which
-  have not run; part (ii), the accepted-staleness disclosure, is therefore
-  the interim position of an open design, and an interim position is exactly
-  what a corroboration should not have been load-bearing for. And X6's
-  headless arm has since produced our own evidence that the residue is real
-  — the content endpoint and the version machinery are decoupled
-  (`bench/results/0025-x6-version-dynamics/`) — which is evidence the residue
-  EXISTS, not evidence for accepting it, and the design should not conflate
-  the two.
-
-  **Recommendation: ratify this entry as closing with no further action** —
-  the removal stands, no reading is disturbed, and the residue is decided
-  when X6's profile arms run, on our measurement rather than on anyone's
-  corroboration. What the episode does earn is a note for ticket 0181's
-  guard: a citation that supports a *design choice* rather than a fact is
-  the kind that survives unexamined longest, because nothing downstream
-  breaks when it is wrong.
 
 - **The book segmenter works at page boundaries on the PDF side — and the
   open question is where the split runs relative to the extractor (author,

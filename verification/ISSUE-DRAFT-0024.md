@@ -44,8 +44,8 @@ long reference work above), `--max-chars 0`:
 | index on disk | 938.8 MiB + 147.4 MiB WAL |
 
 At rest afterwards the same server holds 122.7–137.1 MiB and answers warm
-queries at 7.7 ms p50 — so the cost is transient build-time memory, not serving
-memory. A 2 GB peak during a build is a real reason for a default cap. I am not
+queries at 7.7 ms p50, with a p95 of 210.5 ms on the same run — so the cost is
+transient build-time memory, not serving memory. A 2 GB peak during a build is a real reason for a default cap. I am not
 asking for a bigger number.
 
 What is missing is that the truncation leaves no trace. The build status
@@ -104,11 +104,11 @@ Yours to pick; the first is much smaller than the second.
 
 ## One thing that interacts with (2)
 
-I am prototyping entry-aligned chunking on a fork — cutting a long document at
-its own section and entry boundaries rather than at a fixed character stride,
-and prepending each chunk's heading and outline path to the text that gets
-embedded. It is unmeasured. I am not offering it here and not asking you to
-wait for it.
+I have a design for entry-aligned chunking — cutting a long document at its own
+section and entry boundaries rather than at a fixed character stride, and
+prepending each chunk's heading and outline path to the text that gets embedded.
+It is designed and not yet built, and nothing about it is measured. I am not
+offering it here and not asking you to wait for it.
 
 The reason to mention it now is that it and (2) touch the same seam. If a
 streaming reader emits chunks at a fixed stride over a byte window, a chunk in a
