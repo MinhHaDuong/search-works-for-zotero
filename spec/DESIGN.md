@@ -831,6 +831,16 @@ shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
 a 15 000-page PDF, dateAdded ties. The harness MUST fail on the corpus that exercises
 its subtraction terms, not only pass on the gentle one.
 
+Phase 4 is the schema flip, which goal 1's fold added on 2026-08-31: restamp the
+built index to a foreign schema version, in either direction, restart, and
+assert that the terminal state above returns unattended — nothing asked for, no
+file deleted by hand — inside R32's bounds. This is R1's clause and not R23's:
+what it asserts is that coverage comes back, never that it was never lost. Where
+a build serves the foreign stamp rather than abandoning it, which is R23's own
+promise and filed upstream, the same terminal state MUST arrive with the embed
+counters flat, and it is those counters rather than the elapsed time that tell
+the two outcomes apart.
+
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
 `check-slow: check rss-gate convergence soak`):
 
@@ -892,9 +902,10 @@ is the pattern, and it binds every surrogate here, not only that one.
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32 on 2026-08-31 (DECISIONS.md), so this gate no longer
   carries a wall-clock threshold.
-- **R32, the build-time gate.** Two bounds on one build with the default
-  configuration, and **a time bound with no machine attached is not a bound**,
-  so each is stated on disclosed hardware and nowhere else.
+- **R32, the build-time gate.** Two bounds on any full build with the default
+  configuration — the first, and equally a rebuild from nothing after an index
+  is abandoned (ruled 2026-08-31) — and **a time bound with no machine attached
+  is not a bound**, so each is stated on disclosed hardware and nowhere else.
 
   *The reference machine*: a laptop-class x86-64 CPU, four cores, no GPU, in
   the ONNX runtime the implementation ships — the class the feasibility run
