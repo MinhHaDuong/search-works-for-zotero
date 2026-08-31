@@ -71,7 +71,8 @@ one-word name is the handle the rest of the chain cites.
 ### Coverage and convergence
 
 **R1. Coverage.** Every item in the search perimeter MUST become searchable
-without anyone asking for it, and no state MUST ever need a manual rebuild.
+without anyone asking for it, and the system MUST NOT need a manual rebuild,
+whatever state it is in.
 
 Coverage MUST grow in ruling 2's class order, newest-first inside each class:
 the crawler works a priority order, not a page cursor, and recency orders
