@@ -1766,6 +1766,77 @@ calibrated against that class. Demoting the dictionary as a segmenter TARGET
 leaves it exactly where it is as an RSS FIXTURE, and the extraction-cap example
 in §1 is likewise a coverage statement, not a segmenter one. Two roles, one
 document; only the first moves.
+**2026-08-31 — the perimeter review is consumed, and one question outlives it.**
+This entry rules nothing. It records where each finding of the day's perimeter
+review landed, and takes the review off the awaiting list, because the entry had
+begun to say the opposite of what happened: it closed with "nothing above is
+acted on … `spec/README.md` carries the roster unchanged", and by the time it
+could be read the roster had changed twice.
+
+Finding by finding, with the ruling that consumed it. **Hybrid unbound** — R33,
+which puts lexical, semantic and the two combined in the sheet as observable
+behaviour, so a semantic-only system now fails a term instead of passing every
+one. **Nothing asserts that search finds anything** — R34, the absolute floor
+over the pinned set, scoped to the default configuration, with the metric shape
+in the requirement and only the threshold left to measurement. **The latency
+term rests on a clause that does not say so** — R6 gained its second clause and
+points at DESIGN.md §2.9 for the value, on R30's precedent. **R30 bound by its
+wrong half** — split, over the review's recommendation and on measured ground:
+R32 carries the build finishing, R17 the device disclosure, and R30's number is
+gone from the sheet entirely. **R26 excluded and depended on** — R26 is retired
+as apparatus; the newest-first prefix question it carried survives its item and
+is re-addressed below.
+
+The structural question under the five is settled the way the review proposed,
+one member excepted: goal 1 is a conjunction over terms alone, R17 is a term
+against the recommendation (the sheet has no other normative home for honest
+coverage reporting, and a user who cannot be told how much is searchable cannot
+hold anyone to "all"), and the instruments roster the review's shape implied has
+since gone too, its subject removed when the sheet retired the apparatus items.
+Of the two omissions, R12 is in — not on its own argument but on the perimeter
+rule, which decides every question of that kind — and R11 with R3 are out,
+because stale still answers and freshness currency is a different promise.
+
+What outlives the review is its last paragraph, which no ruling has reached:
+R23, and whether the goal is kept by reaching the state or by holding it. It
+moves to the awaiting list as its own question rather than staying buried in a
+consumed one.
+
+The drift is worth naming, because it is the second of the same shape in one
+day. The first: step 1 said R21 would join the instruments once the recall term
+existed, R34 landed, and neither the page nor the ledger moved. Both are open
+text going stale under rulings that answered it, and nothing checks that — the
+guards read the sheet and the ratified stream, never the questions.
+
+**2026-08-31 — three open questions were not open: one answered twice, one
+answered on another branch, one addressed to a retired item.** Bookkeeping,
+recorded rather than performed silently, since the awaiting list is where the
+author's attention is spent, and a list that keeps settled questions spends it
+on nothing.
+
+**R20's letter vs the gate's practice: deleted, having been answered twice.**
+Both halves were ratified on 2026-08-29 — the cadence (the budget assertion
+stays in `check-slow`, with a cheap fixture asserting the mechanism in the fast
+tier) and the fixture (the deterministic synthetic monster at the measured size
+satisfies R20's intent, conditional on revalidation against X3a at each
+release). The question stood open for two days after being settled, then lost
+its item as well this morning; what it argued about now lives in DESIGN.md as
+budget and gate, and in no R-item at all.
+
+**The accepted-staleness residue: deleted, having been closed on 2026-08-31.**
+The closing entry is above in this ledger, ratified as closing with no further
+action; the question stood in the awaiting list beside it. Neither branch was
+wrong — one appended a question, the other answered it — and the merge kept
+both, which is the failure mode of a section that is appended to from several
+places and reconciled from none.
+
+**R26's prefix granularity: kept, re-addressed to R1.** R26 is retired and R2 is
+merged into R1, so the reading belongs to R1's newest-first clause. DESIGN.md
+§2.3 already states it without the retired handle. The substance is unchanged
+and the author's veto stands; what changed is that it is no longer a spare
+interpretive question, because R1 is a term of goal 1 and the assertion ticket
+0026 owes cannot be written without knowing which granularity it asserts.
+
 
 ## Awaiting ratification
 
@@ -1783,107 +1854,19 @@ document; only the first moves.
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.
 
-- **The goal 1 perimeter, reviewed: five things the roster gets wrong, and the
-  author owns all five (2026-08-31, on his instruction to review it).** The
-  bundle was ruled the same day; read back against the sheet's own MUST clauses
-  it does not yet carry the promise it names. The findings, worst first.
-
-  **1. The promise's central word is unbound. "Hybrid" has no requirement.**
-  Nothing in REQUIREMENTS.md obliges a keyword path and a semantic path to both
-  exist and be fused. D5 honours phrase and AND/NOT "on both backends", which
-  presupposes two backends without requiring them; R19 presupposes a query
-  normalizer without requiring what it feeds; the fusion rule itself is
-  DESIGN.md's. So an upstream that shipped semantic-only would fail no member
-  of goal 1, and the word the author used to name the goal would go untested.
-  Either an R-item carries hybrid retrieval, or goal 1 stops claiming it.
-
-  **2. Nothing in the bundle asserts that search finds anything.** R21's golden
-  set was excluded on the ground that it keeps goal 1 green rather than making
-  it true. That reasoning does not survive the conjunction: with all eleven
-  members green, the corpus is complete, multilingual, monster-safe and inside
-  the budget, and a query may still return junk. "Find anything in your own
-  work" is a recall claim, and the pinned query set is the only requirement in
-  the sheet that tests recall. Recommend R21 into the bundle, or an explicit
-  ruling that goal 1 is a coverage goal and does not speak to retrieval
-  quality.
-
-  **3. "Retrieval in reasonable time" rests on a clause that does not say so.**
-  R6's title carries the figure; its only MUST is that freshness work on the
-  query path is O(1) and anything larger is scheduled. The hard budget lives in
-  DESIGN.md §2.9, which states it and attributes it to R6 — but the sheet has no
-  clause to assert, and ticket 0400's unit is the clause. As written, goal 1's
-  latency term is unassertable without either amending R6 or promoting the
-  design sentence.
-
-  **4. R30 is bound by its wrong half, and it is the one member whose design is
-  open.** The author's "all indexed today" is R30's throughput clause — time to
-  full embed coverage on the designated host. The roster binds the disclosure
-  clause instead (status names the execution device), which is the half that can
-  gate everywhere and the half that says nothing about finishing today. The
-  throughput threshold is unpinned by design (§2.8 pins it in the change that
-  first asserts it), so this member blocks on a ruling rather than on work,
-  unlike the other ten.
-
-  **5. R26 both is excluded and is depended on.** R26 carries no MUST at all —
-  rejected as written on 2026-08-29, rewrite owned by ticket 0080 — so the
-  bundle binds a term whose text the author has already refused. Worse, the
-  clause that would be asserted is its newest-first prefix, which presupposes
-  R2's coverage order; R2 was excluded from the bundle as manner rather than
-  substance. Goal 1 cannot both exclude R2 and assert a prefix over it.
-
-  **The structural question under all five.** The roster mixes the promise's
-  terms with the apparatus that decides them. Apply the conjunction's own test —
-  does this member failing falsify the promise as a user meets it? — and R17,
-  R26, and R19's cadence clause fail it: coverage can be complete and findable
-  with no coverage sentence, no convergence harness, and no sweep in `make
-  check`. They are how the other terms are decided, which is exactly ticket
-  0026's and ticket 0029's scope. The recommended shape is a conjunction over
-  terms alone, with the instruments named beside it rather than counted in it.
-  Nothing leaves the work train either way; what changes is what "goal 1 is
-  kept" means.
-
-  **Two omissions, on the same test.** R12: "all my library" includes group
-  libraries for anyone who has them, and R12's second clause fails on stock
-  upstream today — a build for one library against an interrupted index appends
-  to another's rows, which is data loss inside the promise's own perimeter.
-  R11 and R3: "indexed today" is a state that counter churn does not let the
-  library hold, and R11's own cautionary defect re-marked most of a library as
-  changed, forever. Whether goal 1 is about reaching the state or holding it is
-  not currently decided. R23 is the third-tier case — an abandoned schema stamp
-  empties the index until R1 re-earns it — and is raised, not pushed.
-
-  Nothing above is acted on. Membership stands as ruled until the author says
-  otherwise, and `spec/README.md` carries the roster unchanged.
-
-- **The accepted-staleness residue has lost its corroboration, and whether
-  that changes the ruling is the author's to say (2026-08-31, on his
-  instruction that the removal needed a ledger entry).** `spec/DESIGN.md`
-  disclosed a residue in the freshness contract — re-extraction with no file
-  change is not caught, accepted as staleness — and asserted beside it that
-  "Zotero's own embeddings layer documents the same residue". Read at source
-  on 2026-08-30 (PR head `77e2c4b`, ticket 0180), that assertion does not
-  hold: `embeddings.js` documents staleness only as model-revision-driven
-  reindex and as pref-toggle eligibility, and addresses re-extraction without
-  a file change nowhere. The sentence has been removed; the disclosure's own
-  wording is unchanged.
-
-  The correction was first made without a ledger entry, on the reading that
-  deleting a false corroboration cannot change a reading whose text is
-  byte-identical. The author overruled that: an entry is required, because
-  the question a byte-identical text cannot answer is **whether the residue
-  was accepted partly on the strength of the platform accepting it too.** If
-  it was, the ruling has lost part of its basis and is due a re-examination.
-  If it was not — if the residue stands on the contract's own terms, and the
-  Zotero sentence was decoration — then nothing further is owed and this
-  entry closes by saying so.
-
-  Only the author can settle that, because it is a question about why a
-  ruling was made rather than what it says. Two things are worth having in
-  hand either way: X6's headless arm has since shown the content endpoint
-  and the version machinery to be decoupled, which is independent evidence
-  for the residue's existence rather than for accepting it; and the bounded
-  idle re-verify sweep the disclosure defers remains gated on X6's profile
-  arms, which have not run.
+- **Is goal 1 kept by reaching the state or by holding it, and does R23 belong
+  to the terms (raised by the perimeter review of 2026-08-31, whose other
+  findings are consumed; see the closing entry above).** The bundle's terms all
+  read as properties of a state reached: the perimeter is covered, the languages
+  work, the build finished, the answers come back. Step 1 settled the
+  neighbouring case in that direction — counter churn does not unmake
+  searchability, because the old vectors keep answering, so freshness currency
+  is a different promise. R23 is the case that reading does not cover: an index
+  written under an abandoned schema version ends up empty until R1 re-earns it,
+  and an empty index has nothing to answer with, so a promise kept on Tuesday is
+  falsified on Wednesday by an event inside its own perimeter. Two ways to
+  settle it, and either is a ruling: R23 joins the terms, or goal 1 says in
+  words that it speaks to reaching the state and R23's event is R1's to repair.
 
 - **Reading AGPL source in order to reimplement it is unpriced, and ticket
   0031 is where it lands (session finding, 2026-08-30).**
@@ -2160,32 +2143,27 @@ document; only the first moves.
   decision; or hold ratification until the 650k substrate clause is measured.
 
 
-Three readings cycle 2 could not decide on the sheet's text alone (flagged in
-DESIGN.md §2.3, §2.8 and §2.9; put to the author directly — the re-formed
+Two readings cycle 2 could not decide on the sheet's text alone (flagged in
+DESIGN.md §2.3 and §2.9; put to the author directly — the re-formed
 train keeps internal governance out of upstream filings, so they are resolved
-here, not in any issue text):
+here, not in any issue text). A third, R20's letter against the gate's
+practice, was answered on 2026-08-29 and removed on 2026-08-31; the removal
+entry is above.
 
-- **R26's prefix granularity.** The panel asserts newest-first prefix-ness at
-  stated granularities — record coverage as a strict newest-first prefix; body
-  coverage as a band-0 prefix with band-1 as disclosed residue — because the
-  two-band anti-monopoly cap breaks a strict full-coverage prefix by
-  construction. An interpretive reading, vetoable.
+- **The granularity of R1's newest-first clause (re-addressed 2026-08-31,
+  raised as R26's, whose item is retired).** DESIGN.md §2.3 asserts the
+  convergence observable per phase — record coverage as a strict newest-first
+  prefix; body coverage as a band-0 prefix with band-1 as disclosed residue —
+  because the two-band anti-monopoly cap breaks a strict full-coverage prefix
+  by construction, and the same standard has to bind the smallest-first
+  alternative §2.3 rejects on R1's text. R1's clause does not specify its own
+  granularity, so this is an interpretive reading and vetoable. It is now on
+  goal 1's path rather than beside it: R1 is a term, and the assertion ticket
+  0026 owes cannot be written before the granularity is settled.
 - **The 300 MB budget's scope under N processes.** Ratified against a
   single-server picture; the normal deployment is one zoteus per MCP client,
   ~690 MB whole-machine steady at two clients. Per process or per machine is
   the author's call; both figures stated in DESIGN.md §2.9.
-- **R20's letter vs the gate's practice — two readings to ratify.**
-  (i) *Cadence*: the sheet says the budgets are asserted "on every check"; the
-  design places the RSS gate in the slow suite (`check-slow`) because its
-  fixture is a 44.9M-char monster, and names the weakening in Risk 5.
-  Every-check or slow-suite is the author's call. (ii) *Fixture*: the sheet
-  says "against the 44.9 MB dictionary"; the committable gate necessarily uses
-  a synthetic surrogate of its measured size and structure, because the
-  dictionary itself is copyrighted library content that cannot enter a public
-  repo — the real-document run remains X3a on the author's machine. Ratify the
-  surrogate as satisfying R20's intent, or keep R20's letter and accept that
-  the gate half of it lives only on the author's machine.
-
 - **The device ruling of 2026-08-29 rests on a premise that measurement voids.**
   The ruling — the device is always `auto`, never a knob — was made on the
   reading that `auto` hands ONNX Runtime the whole provider list and that ORT's
