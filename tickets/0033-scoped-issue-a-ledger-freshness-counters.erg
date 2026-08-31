@@ -2,7 +2,6 @@
 Title: Scoped issue A: ledger, freshness, counters -- pause and serve-stale as the motivating defects
 Created: 2026-08-26
 Author: claude
-Blocked-by: 0016
 Blocked-by: 0032
 
 --- log ---
@@ -16,6 +15,8 @@ Blocked-by: 0032
 2026-08-29T09:58Z Minh Ha-Duong note blocker 0014 closed — Blocked-by removed.
 2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
 2026-08-30T09:05Z Minh Ha-Duong note scope grows by ruling (spec/DECISIONS.md 2026-08-30, argued from X6's decoupling finding): the ledger design this issue carries upstream includes the content-presence probe and the cache-lost warning state (DESIGN.md 2.4 part iv) — served-not-evicted, counted, Reindex surfaced. The probe's cadence is pinned when this issue's machinery lands
+2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
+2026-08-31T14:54Z claude note upstream advanced to v1.12.0 (b05ed69) 2026-08-31. Blocker 0016 is CLOSED — PR-3 merged as daf576b in v1.11.0 — so the wipe-guard half of the custody work is now upstream and this ticket no longer waits on it. Two of scoped issue A's slices have also been built by the maintainer since it was written: the resume contract (#24, v1.10.0) and now, in v1.11.0, a genuine index migration ladder plus vector salvage (#34), which is ledger machinery this ticket assumed absent. What remains here — freshness, counters, pause, serve-stale, custody and query semantics — must be re-derived against v1.12.0 before it is argued: the search layer moved +1738/-57 over ten files, three new, and index-manager.ts alone took +454. Do not re-file from the v1.10.0 reading
 --- body ---
 ## Context
 DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).

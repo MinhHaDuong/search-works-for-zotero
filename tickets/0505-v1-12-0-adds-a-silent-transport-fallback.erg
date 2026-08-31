@@ -1,0 +1,54 @@
+%erg 0.1
+Title: v1.12.0 adds a silent transport fallback SECURITY.md's egress account does not cover
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T14:57Z claude created
+
+--- body ---
+## Context
+
+`SECURITY.md` accounts for egress in one paragraph, and it is scoped to
+embedding providers: "R10 gives the count directly: two opt-in exfiltration
+paths, no silent fallback" -- the one-time model-weight download, and passage
+text sent to a configured API embedder. Both are opt-in, both are named in
+status, and the local embedder degrades to keyword-only and never to an API
+embedder. That account is still true about embedders.
+
+Upstream v1.12.0 (#39, 2026-08-31) documents a different fallback on a
+different axis, and the changelog's own word for it is silent: a full-text
+build that saturates Zotero's desktop local API drops *every* read and write
+onto the Zotero Web API for the rest of the session, because local-API
+reachability is a session-wide capability. His words: "The fallback works,
+which is exactly the problem: nothing errors, nothing fails, and all the user
+sees is a build that has quietly become several times slower, explained only by
+one INFO line on stderr that desktop hosts discard."
+
+So the user's library reads leave the machine for a cloud service by a path
+the user did not choose for that build. v1.12.0 makes it *visible*
+(`localApiDegradedAt` on `zotero_index action:"status"`, and the summary says
+so in words) but not opt-in.
+
+This is a coverage gap, not a falsified sentence. `SECURITY.md`'s egress
+paragraph is about embedder egress and remains accurate; nothing in the chain
+accounts for read-transport fallback at all, and the adjacent paragraph already
+reports the transport question as silence rather than as a verified negative.
+
+Per `CLAUDE.md`, `SECURITY.md` describes and discloses and decides nothing:
+closing a gap it names is a ruling in `spec/DECISIONS.md` first and a
+requirement in `spec/REQUIREMENTS.md` after. So this ticket poses the question;
+it does not answer it.
+
+## The question for the author
+Does the design owe the reader a statement about *read* transport -- which API
+serves a crawl, and what happens when the local one degrades -- beside the
+account it already gives of embedder egress? If yes, it is a ruling and then a
+requirement, and R10's "two paths" count is the thing it has to be reconciled
+with.
+
+## Exit criteria
+- [ ] The question is put to the author and ruled on in `spec/DECISIONS.md`
+- [ ] If ruled in scope: `spec/REQUIREMENTS.md` carries the requirement, with its RFC 2119 force declared
+- [ ] `SECURITY.md`'s egress section states what the chain does and does not say about read transport
+- [ ] The v1.12.0 behaviour is re-read at source rather than from the changelog before anything is written down

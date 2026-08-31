@@ -1,0 +1,62 @@
+%erg 0.1
+Title: Re-baseline UPSTREAM to v1.12.0 and re-read the standing
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T14:50Z claude created
+
+2026-08-31T15:26Z claude note RE-SCOPED before any work started. The first draft said re-read all 23 rows and claimed ten measured verdicts rest on the smoke run; both were wrong. The smoke is five checks and re-running it re-establishes R10 and R23 only, and the eight code rows were readable from a clone all along. Evidence for the narrowing: the page has no consumer (every mechanized reference is a hygiene guard, check_progress recomputes bars from rows in a closed loop, no CI, and a dangling R30 citation in verification/GPU-CORRECTED-0482.md went stale uncaught); the delivered axis has read 1 shipped across all nine bar changes with every movement in the denominator; and make check is green today because check_baseline fires only after a bump, so deferring is free. Four rows are worth reading -- R10, R12, R16, R23 -- and the bump itself now waits on a trigger rather than on upstream shipping
+--- body ---
+## Context
+
+Upstream advanced two releases past the reviewed baseline on 2026-08-31:
+`UPSTREAM` declares v1.10.0 (`b132f2d`, reviewed 2026-08-29), upstream `main` is
+now v1.12.0 (`b05ed69`), with v1.11.0 (`ee50cea`) between them.
+`make upstream-status` reports STALE. The search layer moved +1738/-57 across ten
+files, three of them new (`own-words-source.ts`, `vector-salvage.ts`,
+`electron.ts`).
+
+## Why this is NOT "re-read all 23 rows"
+
+The first draft of this ticket said re-read the whole standing. Re-scoped
+2026-08-31 on evidence, before any of it was done.
+
+- **The page has no consumer.** Every mechanized reference to `spec/README.md` is
+  a hygiene guard; `check_progress.py` recomputes the bars *from the rows*, a
+  closed loop. There is no CI. The proof is a dangling citation:
+  `verification/GPU-CORRECTED-0482.md:189` still cites "`spec/README.md`'s R30
+  row" and R30 was retired -- nothing caught it, because nothing reads it.
+- **The delivered axis has never moved.** Across the nine times the bar changed,
+  `shipped` stayed at 1; every movement was churn in the denominator as the sheet
+  went 29 - 30 - 31 - 34 - 23.
+- **Nothing is wrong today.** The page is self-scoping ("Measured against upstream
+  v1.10.0") and three rows stamp the version into the verdict. Staleness is
+  disclosed, not a defect, and `make check` is green: `check_baseline()` fires
+  only once `UPSTREAM` is bumped. Not re-baselining costs nothing.
+- **Only four rows are worth reading.** R12, R16 and R23 are falsified by what
+  upstream built; R10 is the one row where a wrong answer matters (see 0502).
+
+## One correction to this ticket's own first draft
+
+It claimed ten `measured` verdicts rest on `bench/results/smoke-1.10.0/checks.json`.
+False. The smoke is five checks; re-running it re-establishes **R10 and R23 only**.
+R6's row cites no smoke artifact. The other seven `measured` rows rest on
+`0025-x1-recall`, `0264-gpu-arm`, `0482-gpu-corrected` and `0266-cross-lingual`,
+which do not depend on upstream's version. And the eight `code` rows are readable
+from a plain clone -- they were never author-gated.
+
+## The trigger
+
+Do NOT bump the baseline because upstream shipped; upstream ships weekly. Bump it
+when there is a reason to claim currency: the acceptance harness (0032) exists, or
+the page faces outward. Until then the four rows below are read as evidence about
+v1.12.0 recorded in their tickets, NOT written into the page -- writing a v1.12.0
+reading into a page `UPSTREAM` dates to v1.10.0 is what the guard exists to refuse.
+
+## Exit criteria
+- [ ] R10 re-read against v1.12.0 -- does #39's silent local-API-to-Web-API fallback touch "MUST NOT leave this machine"? (shared with 0502)
+- [ ] R12, R16, R23 re-read against v1.12.0 from a clone; findings recorded in their tickets
+- [ ] `bench/smoke_upstream.py` repaired before any re-run (see 0503: check 2 asserts retired R28)
+- [ ] A decision recorded on WHEN to bump: the trigger above, or a different one
+- [ ] If and when bumped: `UPSTREAM` names v1.12.0 / `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`; every one of the 23 rows re-read; `make check` and `make upstream-status` green together

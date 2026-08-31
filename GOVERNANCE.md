@@ -53,8 +53,8 @@ and #20. What remains live is SYNC.md's to report, not this file's.
 **Form follows the measured asymmetry.** A contained defect carrying a failing
 test goes as a pull request. Anything design-sized goes as an issue he builds
 himself. This is a rule *we* adopted; the asymmetry it answers is a fact about
-the terrain, measured two-for-two in each direction, and it is owned by
-[`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md) and evidenced in SYNC.md. Gates are
+the terrain, measured in both directions and recounted in SYNC.md as it
+moves, and it is owned by [`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md). Gates are
 repo-side, in this repo's Makefile, and never travel upstream as pull requests.
 
 **A three-week sunset.** Any upstream item unaddressed after three weeks, or

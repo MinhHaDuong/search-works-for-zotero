@@ -10,6 +10,7 @@ Label: deferred
 2026-08-26T16:53Z Claude note blocker 0018 closed — Blocked-by removed.
 2026-08-26T16:53Z Claude label deferred
 2026-08-26T16:53Z claude note reserve list per the ratified re-form: open only on a warm batch or third-party demand (the 13/14 pattern); Blocked-by 0018 is moot now that PR-6 goes issue-form
+2026-08-31T14:54Z claude note the population under this ticket moved twice upstream on 2026-08-31, before its evidence was re-derived. v1.12.0 #37 refuses a full-text index build under Electron outright (Claude Desktop takes the server process down partway through the attachment pass; cause stated as not known, so the refusal is a mitigation), and #39 chose full-text read concurrency by the serving API with back-off to one on observed local-API degradation. Both change which items reach the terminal no-text state and by what path, on top of #29's local extraction. The warn-once was last verified live at fulltext-source.ts:180 against v1.10.0; re-derive against v1.12.0 before arguing this as the remaining reserve item
 --- body ---
 ## Context
 DESIGN.md §4 PR-7, honoring R14 and D1. Upstream logs a no-text attachment

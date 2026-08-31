@@ -2,7 +2,6 @@
 Title: Scoped issue C: multi-process on one data dir
 Created: 2026-08-26
 Author: claude
-Blocked-by: 0016
 Blocked-by: 0032
 
 --- log ---
@@ -12,6 +11,7 @@ Blocked-by: 0032
 2026-08-28T16:24Z Claude note blocker 0015 closed — Blocked-by removed.
 2026-08-29T09:58Z Minh Ha-Duong note blocker 0014 closed — Blocked-by removed.
 2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
+2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
 --- body ---
 ## Context
 DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).
