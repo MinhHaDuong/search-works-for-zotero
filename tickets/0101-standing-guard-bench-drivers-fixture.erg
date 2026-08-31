@@ -3,13 +3,13 @@ Title: Standing guard: every bench driver that opens a real index is exercised a
 Created: 2026-08-29
 Author: claude
 Blocked-by: 0100
-Blocked-by: 0501
 
 --- log ---
 2026-08-29T10:45Z claude created
 2026-08-29T10:46Z claude note filed separately from 0100 on purpose: 0100 fixes two instances, this covers the class. Bundling the guard into the fix would make it a per-PR check, where what is needed is something that fires when an UNRELATED future change breaks the same assumption
 
 2026-08-31T14:57Z claude note gains Blocked-by 0501. Action 4 records in UPSTREAM which schema generation the drivers target, and UPSTREAM cannot name a generation before the baseline it belongs to is reviewed. The need got sharper the same day: upstream v1.11.0 (#34) shipped a schema ladder and vector salvage, so SCHEMA_VERSION is no longer a constant that has never moved -- which is exactly the change this ticket was filed in anticipation of
+2026-08-31T15:26Z claude note Blocked-by 0501 REMOVED, and the schema-generation criterion is recommended for deletion -- both on the same evidence, which contradicts this morning's note. SCHEMA_VERSION has been 1 since eee1000 (v1.7.0) and is STILL 1 at v1.12.0, and the passages DDL is byte-identical between v1.10.0 and main: source TEXT already existed, which is why own-words needed no schema change. So v1.11.0's ladder is machinery built BEFORE the first bump, not a bump. Recording the generation in UPSTREAM therefore records a constant that has never moved, guarding a break that has never happened, and the ladder makes that break cheaper when it comes rather than more likely. The criterion is left in place rather than deleted unilaterally -- it is not this session's to cut -- but it should go at the next touch. This ticket's real content, drivers exercised against a current-schema fixture, is untouched by any of it and still stands
 --- body ---
 ## Context
 The /roar sweep after X2 found two bench drivers pinned to the pre-rename

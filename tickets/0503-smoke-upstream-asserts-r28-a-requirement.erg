@@ -1,0 +1,48 @@
+%erg 0.1
+Title: smoke_upstream asserts R28, a requirement the sheet no longer carries
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T15:26Z claude created
+
+--- body ---
+## Context
+
+`bench/smoke_upstream.py` is the only instrument that moves a `spec/README.md`
+row from `code` to `measured`. Of its five checks, **one asserts a requirement
+that no longer exists**.
+
+`bench/smoke_upstream.py:96` -- `"""R28: the downloaded model does not escape the
+data directory."""` -- and `:101` emits the check id `R28-model-in-data-dir`
+against requirement `R28`. But `grep -c 'R28\.' spec/REQUIREMENTS.md` is **0**:
+R28 did not survive the 34-to-23 cut of 2026-08-31.
+
+Two consequences, and the second is the one that costs something.
+
+1. A fifth of the instrument tests a promise the sheet no longer makes. The
+   committed artifact `bench/results/smoke-1.10.0/checks.json` records it as a
+   pass, so the summary reads `4 pass` where only three checks bear on a live
+   requirement.
+2. `spec/README.md`'s **R15** row silently borrows the result -- "the downloaded
+   model no longer escapes the data directory, observed on a build that actually
+   downloaded one" -- while keeping `evidence: inferred`. So a retired
+   requirement's check is doing uncredited work for a live row, which is exactly
+   the kind of quiet coupling the evidence column was split to expose.
+
+This is why ticket 0501 says repair before re-run: re-running the smoke at
+v1.12.0 unrepaired would faithfully reproduce the stale assertion and stamp a
+fresh date on it.
+
+The fix is a judgement, not a deletion: either R28's clause survives inside
+another requirement (R10 and R15 are the candidates) and the check should be
+re-labelled to say so, or it does not and the check goes. Read the 34-to-23 cut
+before choosing -- what happened to R28's promise is a question about the sheet,
+not about the script.
+
+## Exit criteria
+- [ ] Established where R28's promise went in the 34-to-23 cut, from `spec/REQUIREMENTS.md` and the ratifying entry
+- [ ] The check is re-labelled to a live requirement, or removed
+- [ ] If it is re-labelled, R15's row stops borrowing the result implicitly and says what it rests on
+- [ ] Every check in `bench/smoke_upstream.py` names a requirement that `spec/REQUIREMENTS.md` carries
+- [ ] `make check` green
