@@ -10,6 +10,7 @@ Label: deferred
 2026-08-26T16:46Z Claude label deferred
 
 2026-08-26T17:05Z claude note deferral condition repointed (code review): 0023's PR-12 is closed into scoped issue A (0033)
+2026-08-31T05:38Z claude note METHOD QUESTION RAISED, awaiting ratification in spec/DECISIONS.md (2026-08-30): spec/FIELD-REVIEW.md instructs this ticket to read Zotero.Embeddings.Calibration at source before committing to its own calibration, on the ground that the procedure is an algorithm with parameters rather than an idea and so the survey's usual read-describe-rebuild route does not carry it. zotero/zotero is AGPL-3.0 and zoteus is MIT, and the chain gives this ticket that instruction with no bound on what the reading may produce. Do not start the calibration work against upstream source until the ledger entry is ruled on; the entry lists four options and recommends none
 --- body ---
 ## Context
 DESIGN.md §2.6 defers #6012-style calibration (mean centering, noise floor =

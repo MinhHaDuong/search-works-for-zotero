@@ -120,7 +120,12 @@ The scouts sharpened this constraint on five points:
   Our boundary ruling is therefore stricter than the platform's, a
   deliberate divergence rather than the alignment this bullet used to claim.
 - Once #6012's saved-search serialization merges, it will be the first
-  place platform semantic results appear in the local API.
+  place platform semantic results appear in the local API. The mechanism is
+  verified at source (PR head `77e2c4b`, read 2026-08-30, ticket 0034): the
+  pull request adds a `bestMatch` search *condition* in `searchConditions.js`,
+  and the local API already serves `/api/users/:userID/searches/:searchKey/items`
+  on `main`. So the crack opens with no new endpoint, and without upstream
+  deciding to open one — a saved search carrying that condition is enough.
 
 Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
 author's own installation (10.0, build 20260817151751) and the shipped
