@@ -29,7 +29,7 @@ help:
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
-	@echo "make upstream-catchup  — what upstream did since the reviewed baseline"
+	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 
 check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress check-fast
 

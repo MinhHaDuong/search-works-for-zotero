@@ -67,3 +67,38 @@ def test_release_pattern_admits_releases_only():
         assert uc.RELEASE.match(tag), tag
     for tag in ("v1.10", "1.10.0", "v1.10.0-rc1", "archive/fts5-storage-2026-08-21"):
         assert not uc.RELEASE.match(tag), tag
+
+
+def test_schema_version_pattern_reads_the_constant():
+    src = "const OTHER = 9;\nconst SCHEMA_VERSION = 1;\n"
+    assert uc.SCHEMA_VERSION.search(src).group(1) == "1"
+    assert uc.SCHEMA_VERSION.search("const SCHEMA_VERSION  =  12;").group(1) == "12"
+
+
+def test_schema_version_absent_is_absent_not_zero():
+    """A renamed constant must read as unknown, never as a version that moved."""
+    assert uc.SCHEMA_VERSION.search("const INDEX_GENERATION = 3;") is None
+
+
+def test_passages_ddl_pattern_captures_the_column_list():
+    src = """
+      CREATE TABLE IF NOT EXISTS passages (
+        pid INTEGER PRIMARY KEY,
+        source TEXT,
+        vector BLOB
+      );
+      CREATE INDEX IF NOT EXISTS passages_item ON passages(item_key);
+    """
+    body = uc.PASSAGES_DDL.search(src).group(1)
+    assert "pid INTEGER PRIMARY KEY" in body
+    assert "vector BLOB" in body
+    # It must stop at the table, not run on into the index statements — those
+    # change for reasons that do not move the shape a driver opens.
+    assert "CREATE INDEX" not in body
+
+
+def test_watched_surface_is_the_layer_the_requirements_are_about():
+    """A typo here silently reports QUIET forever, which is the worst failure
+    this script has: it would say "none of it is yours" about everything."""
+    assert uc.WATCHED == ["src/features/search/"]
+    assert uc.SCHEMA_FILE.startswith(uc.WATCHED[0])

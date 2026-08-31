@@ -20,6 +20,7 @@ The mirror is bare and git-ignored. Fetching it is incremental, so the second
 run costs a round trip rather than a clone.
 """
 
+import argparse
 import re
 import subprocess
 import sys
@@ -44,6 +45,22 @@ ITEM = re.compile(r"#(\d{1,3})\b")
 
 #: A release tag. Anything else in refs/tags is not a release here.
 RELEASE = re.compile(r"^v\d+\.\d+\.\d+$")
+
+#: The surface this repository actually reasons about. Upstream ships several
+#: times a day and most of it is none of our business — a docs pass, a tool this
+#: chain never models. Reading every release is not sustainable and was never
+#: required; what is required is knowing whether a release touched US. That is a
+#: path set, so it is answerable in one diff.
+WATCHED = ["src/features/search/"]
+
+#: The two facts that break this repo's own drivers without breaking upstream:
+#: the index schema's version, and the shape of the table the drivers open.
+#: Ticket 0100 exists because a driver was pinned to a schema that had moved.
+SCHEMA_FILE = "src/features/search/sqlite-index.ts"
+SCHEMA_VERSION = re.compile(r"SCHEMA_VERSION\s*=\s*(\d+)")
+PASSAGES_DDL = re.compile(
+    r"CREATE TABLE IF NOT EXISTS passages\s*\((.*?)\)", re.S
+)
 
 
 def upstream_config() -> dict[str, str]:
@@ -105,15 +122,43 @@ def released(sha: str) -> str:
     return ""
 
 
+def schema_at(rev: str) -> tuple[str | None, str | None]:
+    """The index schema version and `passages` shape at `rev`.
+
+    Read rather than inferred, and read separately from the diff: a schema can
+    move without the version moving (an additive column under the same stamp),
+    and that is the shape that breaks a driver silently — it still opens, and
+    returns the wrong thing.
+    """
+    try:
+        src = git("show", f"{rev}:{SCHEMA_FILE}", cwd=MIRROR)
+    except RuntimeError:
+        return None, None
+    version = SCHEMA_VERSION.search(src)
+    ddl = PASSAGES_DDL.search(src)
+    return (
+        version.group(1) if version else None,
+        re.sub(r"\s+", " ", ddl.group(1)).strip() if ddl else None,
+    )
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument(
+        "--full",
+        action="store_true",
+        help="the merge list, pull refs and branches, not only the verdict",
+    )
+    args = ap.parse_args()
+
     cfg = upstream_config()
     url = cfg["UPSTREAM_REPOSITORY"]
     branch = cfg["UPSTREAM_BRANCH"]
     base = cfg["UPSTREAM_REVIEWED_SHA"]
 
     sync_mirror(url)
-
     head = git("rev-parse", branch, cwd=MIRROR).strip()
+
     print(
         f"reviewed  {base[:7]}  {cfg['UPSTREAM_REVIEWED_VERSION']}"
         f"  ({cfg['UPSTREAM_REVIEWED_DATE']})"
@@ -121,63 +166,86 @@ def main() -> int:
     print(f"upstream  {head[:7]}  {released(head) or '(untagged)'}  ({branch})")
 
     if head == base:
-        print("\nOK: the reviewed baseline is current. Nothing to catch up on.")
+        print("\nQUIET: the reviewed baseline is current. Nothing to catch up on.")
         return 0
 
     span = f"{base}..{branch}"
     baseline_date = git("log", "-1", "--format=%cI", base, cwd=MIRROR).strip()
 
-    # Releases, oldest first, so the reader walks forward from the baseline.
     releases = []
     for tag in git("tag", "--merged", branch, cwd=MIRROR).splitlines():
         tag = tag.strip()
         if not RELEASE.match(tag):
             continue
         tag_sha = git("rev-list", "-n1", tag, cwd=MIRROR).strip()
-        # Merged into the branch but not behind the baseline: shipped since.
         if not is_ancestor(tag_sha, base):
             when = git("log", "-1", "--format=%cs", tag_sha, cwd=MIRROR).strip()
             releases.append((when, tag, tag_sha))
     releases.sort()
-    if releases:
-        print(f"\n{len(releases)} release(s) since the baseline:")
-        for date, tag, sha in releases:
-            print(f"  {tag:<10} {sha[:7]}  {date}")
 
     log = git("log", "--format=%H%x1f%s%x1f%b%x1e", span, cwd=MIRROR)
     commits = [c for c in log.split("\x1e") if c.strip()]
-    print(f"\n{len(commits)} commit(s) since the baseline.")
+    print(
+        f"          {len(releases)} release(s), {len(commits)} commit(s) since the baseline"
+    )
+
+    # THE VERDICT. Everything below this line is detail for someone who has
+    # already been told they need it.
+    stat = git("diff", "--shortstat", span, "--", *WATCHED, cwd=MIRROR).strip()
+    was_version, was_ddl = schema_at(base)
+    now_version, now_ddl = schema_at(branch)
+    schema_moved = (was_version, was_ddl) != (now_version, now_ddl)
+
+    if not stat and not schema_moved:
+        print(
+            f"\nQUIET: nothing under {', '.join(WATCHED)}, and the index schema is"
+            f" unchanged.\n       None of it is yours. Catch up when you need"
+            f" currency, not because upstream shipped."
+        )
+        return 0
+
+    print("\nTOUCHED — this one is yours to read:")
+    if stat:
+        names = git("diff", "--name-status", span, "--", *WATCHED, cwd=MIRROR)
+        new = [ln.split("\t")[-1] for ln in names.splitlines() if ln.startswith("A")]
+        print(f"  search layer   {stat}")
+        for path in new:
+            print(f"                 new: {path}")
+    if schema_moved:
+        print(f"  index schema   SCHEMA_VERSION {was_version} -> {now_version}")
+        if was_ddl != now_ddl:
+            print("                 passages table shape CHANGED — bench drivers open it")
+    else:
+        print(f"  index schema   unchanged (SCHEMA_VERSION {now_version}, same passages shape)")
 
     items = sorted({int(n) for c in commits for n in ITEM.findall(c)})
     if items:
-        print("upstream items named in them: " + " ".join(f"#{n}" for n in items))
+        print("  items named    " + " ".join(f"#{n}" for n in items))
 
-    merges = git(
-        "log", "--merges", "--format=  %h %s", span, cwd=MIRROR
-    ).splitlines()
+    if not args.full:
+        print("\n  --full for the release list, merges, pull refs and branches.")
+        return 0
+
+    if releases:
+        print(f"\n{len(releases)} release(s) since the baseline:")
+        for when, tag, sha in releases:
+            print(f"  {tag:<10} {sha[:7]}  {when}")
+
+    merges = git("log", "--merges", "--format=  %h %s", span, cwd=MIRROR).splitlines()
     if merges:
         print(f"\n{len(merges)} merge(s) — what actually landed:")
         print("\n".join(merges))
-
-    stat = git("diff", "--shortstat", span, "--", "src/features/search/", cwd=MIRROR).strip()
-    if stat:
-        added = git("diff", "--name-status", span, "--", "src/features/search/", cwd=MIRROR)
-        new = [ln.split("\t")[-1] for ln in added.splitlines() if ln.startswith("A")]
-        print(f"\nsearch layer: {stat}")
-        for path in new:
-            print(f"  new: {path}")
 
     # A pull ref whose head postdates the baseline is a PR this repo has not
     # seen. It says nothing about whether the PR is open — see the module note.
     fresh = []
     for ref in git("for-each-ref", "--format=%(refname)", "refs/pull/", cwd=MIRROR).splitlines():
-        number = ref.strip().split("/")[2]
-        when = git("log", "-1", "--format=%cI", ref.strip(), cwd=MIRROR).strip()
+        ref = ref.strip()
+        when = git("log", "-1", "--format=%cI", ref, cwd=MIRROR).strip()
         if when > baseline_date:
-            fresh.append((when, int(number)))
+            fresh.append((when, int(ref.split("/")[2])))
     if fresh:
-        nums = " ".join(f"#{n}" for _, n in sorted(fresh))
-        print(f"\npull refs newer than the baseline: {nums}")
+        print("\npull refs newer than the baseline: " + " ".join(f"#{n}" for _, n in sorted(fresh)))
 
     others = [
         b.strip()

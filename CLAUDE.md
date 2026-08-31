@@ -140,10 +140,18 @@ nothing enforces it on the text you send, so read what you send, as sent.
 - `UPSTREAM` owns the reviewed upstream SHA and repository URLs.
   `make upstream-status` detects upstream movement — one bit, and it is not in
   `make check`, so nothing tells you upstream moved unless you ask.
-  `make upstream-catchup` answers the other half: which releases shipped, what
-  landed in them, which items they name, how far the search layer moved, and
-  which pull refs are new. It fetches a git-ignored bare mirror at
-  `upstream.git/`, so it costs a round trip after the first run. It never
+  `make upstream-catchup` answers the other half, and answers it as a **verdict**
+  rather than as reading: QUIET when nothing under `src/features/search/` moved
+  and the index schema is unchanged, TOUCHED with the detail when something did.
+  `--full` adds the releases, merges, pull refs and branches. It fetches a
+  git-ignored bare mirror at `upstream.git/`, so it costs a round trip after the
+  first run.
+
+  Two properties matter more than the output. **Its cost is flat in the number of
+  releases** — it spans `reviewed..main` whatever the distance, so ten releases
+  cost exactly what one costs. Upstream ships several times a day, and nothing
+  here requires reading each one: you catch up per DECISION (before filing,
+  before measuring, before claiming currency), never per release. And it never
   reports whether an issue is open — that state is the forge's, it changes
   without a commit, and a copy here would be stale on arrival; the report ends
   with the query URL instead. `make upstream-checkout` recreates the
