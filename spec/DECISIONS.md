@@ -2282,6 +2282,36 @@ the caution that produced unruled rosters is dropped, because an unruled roster
 is exactly the drift this repository has twice paid for.
 
 
+**2026-08-31 — four clarifications from the sheet review, and none moves a
+decision.** A review of `spec/REQUIREMENTS.md` returned four findings; the
+author's instruction was to clarify all four. Each makes explicit something
+already decided, so the rulings here are wordings rather than thresholds: no
+number moves and no roster moves.
+
+**R1's negation moves into the keyword.** "No state MUST ever need a manual
+rebuild" parses, under the sheet's own RFC 2119 clause, as "no state is
+required to need a rebuild" — vacuously true, the MUST pointing the wrong way.
+The sentence now reads "the system MUST NOT need a manual rebuild, whatever
+state it is in". The force was always meant to bind; the normative guard counts
+a MUST in either direction, which is why it never saw this. The standing row on
+`spec/README.md` quotes the amended sentence, as the progress guard requires.
+
+**R15 says "trash", because ruling 4 already handed it the transition.** On the
+platform, deleting an item moves it to the trash, and the trash is outside the
+perimeter. R15's removal therefore fires at trashing, and emptying the trash
+later changes nothing the index can see; R35's minute on a deletion starts at
+the same event. The sentence is unchanged; the paragraph now says what a reader
+of R15 alone could not previously learn.
+
+**The dictionary's size takes the convention's formatting.** This ledger writes
+"44,9 MB"; the sheet, DESIGN.md and CLAUDE.md still carried the US-point
+"44.9 MB" — drift rather than an exception, and converted. Dated reports under
+`verification/` keep their snapshots as written.
+
+**"warm" enters the glossary.** R6's bounds are stated for warm queries and no
+document defined the word. TERMINOLOGY.md gains the entry, in the Ours bucket;
+the numbers stay R6's and DESIGN.md §2.9's.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
