@@ -104,15 +104,20 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
-## Goal 1 — the first promise, made strong
+## Goal 1 — the README's opening promise, made strong
 
-Thirty promises have no first, so the rows below are read in the order the work
-is done, and the first bundle is not ours. It is the opening line of the
-upstream README — *find anything in your own work*: hybrid keyword and semantic
-search across the library, and, with full-text indexing turned on, the body of
-every PDF as well. That promise is already published upstream, which is exactly
-what makes it the right one to check first: nothing about it has to be argued
-before it can be tested.
+Goal 1 is not the first thing to be done and says nothing about what is: the
+number names the bundle, it does not rank it. What the bundle is, is a
+**conjunction**. Its subject is the opening line of the upstream README —
+*find anything in your own work*: hybrid keyword and semantic search across the
+library, and, with full-text indexing turned on, the body of every PDF as well.
+That promise is already published upstream, so nothing about it has to be argued
+before it can be tested; and it is kept only when every one of the eleven rows
+below holds at once. Any single one of them failing falsifies it, whatever the
+other ten do.
+
+That is the whole reason to name the bundle. Eleven separate rows can be
+reported as ten-elevenths done, and a promise cannot.
 
 **Made strong** is four strengthenings, and each was already a promise here:
 every document, including the monsters, at a library size worth the name;
@@ -125,6 +130,9 @@ out of it, were ruled on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
 
 `◐◐◐◐◐◐○○○○○` &nbsp; 11 in the bundle · 4 rest on something that ran
 
+That bar shows where the members stand. It is not a progress bar: under the
+conjunction the goal is kept at all-shipped and at no state before it.
+
 **Read as test-driven development, this bundle has no failing tests. It has
 eleven unwritten ones.** The `evidence` column is the test column: `measured`
 says an assertion ran, `code` and `inferred` say none exists. A row in those two
@@ -133,14 +141,13 @@ claim about nobody — which is why the four that rest on something that ran are
 counted separately above, and why not one of the eleven is yet a check that runs
 on every build.
 
-So the first deliverable of goal 1 is not upstream code. It is eleven
-assertions, each carrying the way it can fail. Most will go red the day they are
-written, against the reviewed baseline, for the reasons their rows already give. Two or three
-will be green the morning they are written — R6's property holds already, and
-the fold sweep passes — and a test never seen to fail is a test nobody has
-checked yet, which is why ticket 0026's fold gate keeps a red classification
-for a tree that lacks the fold. Green on arrival is a result. Green without a
-way to be red is a decoration.
+So what goal 1 asks for is not upstream code. It is eleven assertions, each
+carrying the way it can fail. Most go red on the reviewed baseline the day they
+are written, for the reasons their rows already give. Two or three arrive green
+— R6's property holds already, and the fold sweep passes — and a test never
+seen to fail is a test nobody has checked, which is why ticket 0026's fold gate
+keeps a red classification for a tree that lacks the fold. Green on arrival is
+a result. Green with no way to be red is a decoration.
 
 Each row below gives the clause the goal binds and the address where its
 assertion would live. The status is not repeated here — it is in the rows for
@@ -162,8 +169,8 @@ these requirements further down, and the bar above is recomputed from them.
 
 None of those addresses is new work. The fixture corpus, the gates and the
 acceptance harness offered upstream were scoped before this goal existed; goal 1
-says which of their assertions get written first, and ticket 0400 keeps the
-count. Membership is a ruling, not a page edit:
+names which of their assertions this one promise hangs on, and ticket 0400 keeps
+the count. Membership is a ruling, not a page edit:
 [`bench/check_progress.py`](../bench/check_progress.py) reads the roster from
 [DECISIONS.md](DECISIONS.md) and fails the build when the two disagree, because
 a bundle that can quietly lose a member is a milestone that finishes early.

@@ -93,8 +93,8 @@ ALLOWED = {
     "version string": re.compile(r"\bv\d+(?:\.\d+)*\b|\b(?:Zotero|SQLite|Node)\s+\d+(?:\.\d+)*\b"),
     # A ticket, cited as `ticket 0028` or by path.
     "ticket ID": re.compile(r"\btickets?[/\s]\d{4}\b"),
-    # `goal 1` — a milestone's name, addressing the ruling that set its
-    # membership. Spelled out, never a bare ordinal, on the ticket rule's logic.
+    # `goal 1` — a goal's name, addressing the ruling that set its membership.
+    # Spelled out, never a bare ordinal, on the ticket rule's logic.
     "goal": re.compile(r"\bgoals?\s+\d{1,2}\b", re.IGNORECASE),
 }
 

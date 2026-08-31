@@ -764,6 +764,27 @@ and the acceptance harness offered upstream (ticket 0032) — and goal 1 orders
 them rather than adding to them: it says which assertions get written first, and
 ticket 0400 keeps the count.
 
+**2026-08-31 — correction: goal 1 is a conjunction, not a queue.** The author,
+on reading the entry above: *"ordering was not significant."* That entry closed
+by saying goal 1 "orders" the already-scoped work and "says which assertions get
+written first". The reading is withdrawn. Nothing about the bundle ranks its
+members against each other or against anything outside it, and the number in its
+name is a label rather than a rank — a second goal, when there is one, is not a
+successor.
+
+What the bundle asserts instead is a conjunction. The upstream README's opening
+promise, made strong, is kept only when all eleven members hold at once, and any
+one of them failing falsifies it whatever the other ten do. That is what makes
+the bundle worth naming: eleven separate rows can be reported as ten-elevenths
+done, and a promise cannot. It also fixes what the goal's bar is for — it shows
+where the members stand, and it is not a progress bar, because there is no
+partial credit in a conjunction.
+
+Membership is unchanged, and so is the rest of the entry above: the TDD reading
+of the evidence column, the three stated exclusions, and the fact that no new
+work enters the train. `spec/README.md`, `spec/TERMINOLOGY.md` and `CLAUDE.md`
+are edited to match; the entry above stands as written, per this ledger.
+
 ## Awaiting ratification
 
 - **The accepted-staleness residue has lost its corroboration, and whether

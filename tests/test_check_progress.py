@@ -60,7 +60,7 @@ Measured against upstream v1.10.0, the reviewed baseline.
 | Coverage | `●○` | `●◐` |
 | Corpus | `●` | `○` |
 
-## Goal 1 — the first bundle
+## Goal 1 — the bundle
 
 `●○` &nbsp; 2 in the bundle · 1 rest on something that ran
 
@@ -91,7 +91,7 @@ UPSTREAM = "UPSTREAM_REVIEWED_SHA=b132f2d\nUPSTREAM_REVIEWED_VERSION=v1.10.0\n"
 #: reporting on it is a scope nothing can contradict.
 LEDGER = """# DECISIONS
 
-**2026-08-31 — the first bundle.**
+**2026-08-31 — the bundle.**
 
 Goal 1 binds: R1, R9.
 """
@@ -313,13 +313,14 @@ def test_a_standing_row_that_no_longer_parses(tmp_path):
 
 # The goal block. A bundle is a claim about scope, and every one of its failure
 # modes is silent in the same way the page's own are: a member dropped leaves a
-# milestone that finishes early, a member added leaves one that never finishes,
-# and a bar left behind after a row moved leaves both looking authoritative.
+# conjunction over fewer terms than were ruled, a member added leaves one that
+# can never be true, and a bar left behind after a row moved leaves both looking
+# authoritative.
 # Every test below asserts a failure, so each is a positive control.
 
 
 def test_a_ruled_member_dropped_from_the_page(tmp_path):
-    """The bundle's own silent failure: a milestone that finishes early."""
+    """The bundle's own silent failure: a conjunction reported over fewer terms."""
     page = PAGE.replace("| R9 | a monster indexed whole | ticket 0024 |\n", "").replace(
         "`●○` &nbsp; 2 in the bundle · 1 rest on something that ran",
         "`●` &nbsp; 1 in the bundle · 0 rest on something that ran",

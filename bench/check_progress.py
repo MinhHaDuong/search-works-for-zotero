@@ -32,11 +32,11 @@ only the document under guard cannot tell an omission from an absence.
    vocabulary, and the tally is recomputed like every other count. The
    requirements themselves are objectively testable; this column is what
    admits how few of the verdicts have yet been tested.
-6. GOAL. The page names one bundle of promises as the first milestone, and a
-   bundle is a claim about scope: drop a member and the goal reads finished
-   early, add one and it never finishes. So membership is checked against the
-   ruling that set it — `spec/DECISIONS.md`, not this page — and the goal's own
-   bar is recomputed from its members' rows like every other bar.
+6. GOAL. The page names one bundle of promises whose conjunction is a goal,
+   and a bundle is a claim about scope: drop a member and the goal reads kept
+   when it is not, add one and it can never be. So membership is checked against
+   the ruling that set it — `spec/DECISIONS.md`, not this page — and the goal's
+   own bar is recomputed from its members' rows like every other bar.
 """
 
 import logging
@@ -168,10 +168,10 @@ ALLOWED = {
     # 0080`. A bare number in a list would have to be admitted as a bare
     # number, which is the exemption this rule exists to refuse.
     "ticket ID": re.compile(r"\btickets?[/\s]\d{4}\b", re.IGNORECASE),
-    # `goal 1` — the name of a milestone, addressing the ruling in the ledger
-    # that set its membership. Spelled out like a ticket citation and never as a
-    # bare ordinal, for the same reason: admitting the bare number would admit
-    # every bare number beside a milestone word.
+    # `goal 1` — a goal's name, addressing the ruling in the ledger that set
+    # its membership. The digit labels the bundle and ranks nothing. Spelled out
+    # like a ticket citation and never as a bare ordinal, for the same reason:
+    # admitting the bare number would admit every bare number beside the word.
     "goal": re.compile(r"\bgoals?\s+\d{1,2}\b", re.IGNORECASE),
     "upstream item": re.compile(r"#\d{1,4}\b"),
     "version string": re.compile(r"\bv\d+(?:\.\d+)*\b|\b(?:Zotero|SQLite|Node)\s+\d+(?:\.\d+)*\b"),
@@ -441,7 +441,7 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
     """The bundle is the one that was ruled, and its bar is its members' rows."""
     if not block.strip():
         return [
-            "GOAL: the page names no first milestone. The bundle is ruled in "
+            "GOAL: the page names no goal bundle. Its membership is ruled in "
             f"{LEDGER}; a page that stops carrying it does not stop the work, it "
             f"stops reporting it"
         ]
@@ -470,7 +470,7 @@ def check_goal(repo: Path, block: str, rows, declared) -> list[str]:
         if not address:
             findings.append(
                 f"GOAL {name}: no address for the test that would settle it. A member "
-                f"whose test lives nowhere is a promise, not a milestone"
+                f"whose test lives nowhere cannot make the conjunction true or false"
             )
 
     ruled = ruled_members(repo)
