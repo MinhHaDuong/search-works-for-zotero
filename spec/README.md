@@ -60,10 +60,12 @@ executed at all — merged pull requests, design documents, reasoning. The
 was checked from one that was argued.
 
 Only the arithmetic is mechanical: every bar and every tally is recomputed
-from the rows, never a row from a measurement. Closing the gap is tracked in
-ticket 0400, whose unit is the MUST clause rather than the requirement, and
-whose first children already exist: the fixture corpus in ticket 0029 and the
-gates in ticket 0026, two of which — R19 and R20 — demand a check that runs.
+from the rows, never a row from a measurement. Closing the gap is the work
+itself rather than a tracker over it: the fixture corpus in ticket 0029, the
+gates in ticket 0026 — two of which, R19 and R20, demand a check that runs —
+and the acceptance harness in ticket 0032. Their unit is the MUST clause rather
+than the requirement, because a compound requirement graded as one token is
+what made `partial` ambiguous before the evidence column split it.
 
 One instrument already moves rows: [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py)
 drives the reviewed baseline over MCP against a real Zotero library, and each of
@@ -190,8 +192,8 @@ the hardware, so it left R30 and became R32.
 
 None of those addresses is new work. The fixture corpus, the gates and the
 acceptance harness offered upstream were scoped before this goal existed; goal 1
-names which of their assertions this one promise hangs on, and ticket 0400 keeps
-the count. Membership is a ruling, not a page edit:
+names which of their assertions this one promise hangs on, and the tally above
+keeps the count. Membership is a ruling, not a page edit:
 [`bench/check_progress.py`](../bench/check_progress.py) reads both rosters from
 [DECISIONS.md](DECISIONS.md) and fails the build when the page and the ledger
 disagree, because a bundle that can quietly lose a member is a milestone that
@@ -314,4 +316,9 @@ Three failures would make it worse than nothing, and each has a guard in
   lives under.
 
 The guard cannot check that a row is *honest*. Each standing sentence rests on
-the ticket, pull request or issue it names, and those carry the evidence.
+the ticket, pull request or issue it names, and those carry the evidence. One
+rule about that is review's rather than the guard's, and it is the one this
+page would rot by first: **a row is not upgraded to `measured` without the
+artifact that measured it**, and an upgrade is a claim about one release, so it
+is read again when the reviewed baseline moves. The guard fails the build on
+the second half; only a reader can hold the first.

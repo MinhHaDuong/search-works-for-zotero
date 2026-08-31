@@ -34,4 +34,7 @@ repo does not promise to track his tree with it.
       would be untestable against half of what upstream ships
 - [ ] offer posted upstream as one issue: what it asserts, how to run it, what
       green means, no code he has to accept
+- [ ] the offered spec asserts one clause per assertion, never one per requirement
+      (absorbed from tracker 0400, dissolved 2026-08-31): a compound requirement
+      graded as a single token is what made `partial` ambiguous here
 - [ ] his response recorded here; sunset per DECISIONS.md's commitment bounds

@@ -1266,6 +1266,31 @@ level, where the second is what re-earns the first's fidelity rather than a
 second suite — is not ruled and no machinery was built for it. The terms table
 carries no level attribute until it is.
 
+**2026-08-31 — tracker 0400 is dissolved into the work it tracked.** The
+author's instruction, and the ground moved under the tracker while goal 1 was
+being written. Its function is now performed continuously by two things it
+cannot compete with: `spec/README.md`'s evidence column states the gap for all
+thirty-four requirements, and `bench/check_progress.py` recomputes the tally on
+every build, so the statement cannot go stale between readings the way a
+tracker's inventory does.
+
+Its substance went where the work is, rather than being deleted: the unit of
+work — one assertion per MUST clause, never one per requirement, since a
+compound requirement graded as a single token is what made `partial` ambiguous
+before the evidence column split it — to tickets 0026 and 0032; R17's four-part
+payload behind one MUST to ticket 0026, written as four; the precondition role,
+no fixture library and no assertion, to ticket 0029; and R26's missing RFC 2119
+force to ticket 0080, which owns its rewrite. One rule had no home but this
+page's own honesty section, because no guard can hold it: **a row is not
+upgraded to `measured` without the artifact that measured it.**
+
+What dies with the tracker is its inventory of which rows sat at `inferred` and
+which at `code`. That is the one thing the evidence column already says
+continuously, which is the argument for dissolving rather than a loss.
+
+Entries above this one cite ticket 0400 as live. They were true when written and
+are not edited, per this ledger; the ticket resolves in `tickets/closed/`.
+
 ## Awaiting ratification
 
 

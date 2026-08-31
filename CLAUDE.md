@@ -19,7 +19,8 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   fails the build when the reviewed baseline moves past it. It also owns goal
   1's two rosters — the terms the conjunction runs over and the instruments that
   decide them, each with the address where its work lives — checked against the
-  ruling in `spec/DECISIONS.md` rather than against itself. Tracker: 0400.
+  ruling in `spec/DECISIONS.md` rather than against itself. The work that earns
+  those verdicts is tickets 0026, 0029 and 0032; the tally is the tracker.
 - `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
 - `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
   every design number: gate thresholds (§2.8), experiment decision rules
