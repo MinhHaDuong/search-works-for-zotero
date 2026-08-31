@@ -2052,6 +2052,90 @@ entry is ratified. The ledger is append-only, so a reversal names what it
 reverses and leaves it standing. That is this ticket's own subject settled by
 the rule rather than by the guard it asked for.
 
+**2026-08-31 — the second perimeter review: goal 1 is the MVP, and the MVP is
+"works for me".** The author, naming the bundle's acceptance standard for the
+first time. Everything below follows from it, and the roster grows by five
+clauses and inverts its levels.
+
+**The frame does three things, and the third is what reopened the roster.** It
+names the user, so the languages are the author's own, the pinned set is his
+questions, and the machine is his machine. It makes the goal an MVP, so what is
+not needed to use the system daily is not in it. And it makes the **library**
+the deciding level rather than the surrogate, which no earlier reading did.
+
+**The structural finding: the roster's inclusions were re-founded and its
+exclusions were not.** The original bundle stated three deliberate exclusions,
+and every one of them is argued from the upstream README's first bullet — the
+page-number strand as "a second goal", R21 as the net, R2 and R4 as "the
+promise's manner rather than its substance". Then the subject changed: goal 1
+stopped being that bullet and became the promise in the user's own terms, and
+the *inclusions* were reworked twice afterwards while the exclusions were never
+re-stated. They had been resting on a subject that no longer exists. Under this
+frame they rest on nothing, so each was put again.
+
+**R29 joins, and it was an omission rather than an exclusion.** Nothing ever
+ruled it out: R29 was ratified on the same day the roster was being reworked and
+no entry asked whether it joins. R7, already a term, promises each language its
+own lane; R29 promises the lanes connect, which the sheet itself requires to be
+gated separately so a regression names which promise it broke. Under *works for
+me* it is the sharpest term in the bundle — the author's three languages are
+exactly R7's MUST tier, and without R29 the library answers only in whichever of
+them he happened to type.
+
+**R24's page clause joins, and its exclusion was a schedule reason.** The strand
+was excluded as gated on the segmenter behind experiment X5. Step 1 later
+established that binding is per clause and not per requirement, which is how R19
+is in by its property and out by its cadence, and R24's clauses have different
+fates: *a hit leads to the page it came from* needs no segmenter and is already
+partly delivered, while *the primary locator is the entry heading* waits on X5
+with the dedup clause. A term is not excluded because its work is blocked. The
+page clause binds; the other two stay out with the segmenter.
+
+**R18 joins as R17's per-query complement.** R17 says how much is searchable;
+R18 says, of this answer, whether nothing matched or the scope is not indexed
+yet. R32's own bounds admit a day in which body text is still arriving, so the
+MVP meets empty answers inside the window the bundle grants, and a null result
+that cannot be told from a gap makes every conclusion drawn from it unsound.
+
+**R4 and R35 join: the additive event.** R4 was excluded as the promise's
+manner; R35 was never considered. The library grows weekly and the perimeter is
+live, so a bundle speaking only to a state reached describes the library as of
+one build unless something binds the arrival of new items. R1 carries the
+additive case in words and no clock; R35 owns the clock; R4 owns what the index
+answers while it is still filling.
+
+**A consequence for this morning's R23 refusal, recorded rather than left to
+rot.** That entry gave three grounds, and the first was that R4 is already out,
+so admitting R23 for an empty index while the direct case sat outside would be
+incoherent. R4 is now in and that ground is spent. The refusal stands on the two
+that never depended on it — R14's precedent, R23's failure mode reaching the
+user as R1 failing, and the cost residue belonging to the family step 1 excluded
+with R3 — and the fold into R1's assertion is untouched. Anyone reading the
+morning entry reads this one beside it.
+
+**Nothing is cut.** The two candidates were put to the author as facts rather
+than as arguments, and both came back standing: group libraries are subscribed,
+so R12 binds whole, and the library is at the design point, so R8's scale clause
+is a claim about something he owns.
+
+**The levels invert, and this is the ruling with the most consequence.** Six of
+the eleven terms decided at `fixture` alone, which means the conjunction could
+have gone all-green on a committable corpus while the author's library had never
+been searched. That is the right reading when goal 1 means *the design is sound*
+and exactly the wrong one when it means *works for me*. So the library level
+decides and the fixture stands in for it, its fidelity re-earned there — the
+pattern DESIGN.md §2.8 already states for the RSS surrogate, applied the other
+way round. Every term a real library can decide is `both`; R16 stays `library`,
+having nowhere else to be decided. What this costs is stated rather than hidden:
+the goal is now kept by an acceptance session against the author's own library,
+and no gate alone can keep it.
+
+Goal 1 binds: R1, R4, R6, R7, R8, R12, R16, R17, R18, R19, R24, R29, R32, R33, R34, R35.
+
+Sixteen terms, R24 by its page clause alone and R19 by its property clause
+alone. `spec/README.md` is edited to match: five rows, the levels, and the bar
+and counts the guard recomputes.
+
 
 ## Awaiting ratification
 
