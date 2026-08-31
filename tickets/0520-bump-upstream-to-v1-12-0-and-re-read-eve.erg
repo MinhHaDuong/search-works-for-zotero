@@ -2,12 +2,15 @@
 Title: Bump UPSTREAM to v1.12.0 and re-read every row
 Created: 2026-08-31
 Author: claude
+Label: needs-human
+Blocked-by: 0505
 Blocked-by: 0506
 
 --- log ---
 2026-08-31T19:44Z claude created
 2026-08-31T19:50Z claude note allocated at 0520 rather than the next free 0508: the frontier is the most contended seat in the repo and a parallel session was filing while this was written (tickets/AGENTS.md). Successor to 0504, which read four rows and recorded the trigger without bumping
 
+2026-08-31T20:21Z claude note labelled needs-human: Blocked-by 0506 is the only machine gate, so once 0506 closes erg ready would surface this despite the trigger in spec/DECISIONS.md still awaiting ratification. The label is what actually holds it -- red-team finding on the 0504 review
 --- body ---
 ## Context
 
@@ -22,6 +25,12 @@ in the awaiting list: the acceptance harness exists (ticket 0032), or the page
 faces outward, or a re-read establishes a `delivered` verdict is wrong rather
 than merely dated. Do not run this ticket on the bare fact that upstream
 shipped again.
+
+Both blockers gate the bump's **evidence** half rather than its trigger, which
+is why they are headers and the trigger is not. Ticket 0506 repairs the smoke,
+without which R10 and R23 silently fall from `measured` to `code` at the new
+baseline; ticket 0505 settles whether the chain owes a statement about read
+transport, which is R10's row and cannot be re-read around.
 
 ## What 0504 already established, and what it did not
 

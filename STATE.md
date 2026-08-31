@@ -36,4 +36,5 @@ would show up in a diff sent upstream.
 needed. Two things a session gets wrong by default. **Work may not be on
 `main`**: fetch and sweep every branch before reading the working tree as the
 whole picture. And **the reviewed baseline is deliberately behind upstream** —
-ticket 0504 owns when it moves, so `make upstream-status` STALE is expected.
+ticket 0520 owns the bump, held until `spec/DECISIONS.md`'s awaiting trigger is
+ratified, so `make upstream-status` STALE is expected.

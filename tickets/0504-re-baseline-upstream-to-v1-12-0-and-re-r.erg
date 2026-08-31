@@ -57,6 +57,15 @@ the page faces outward. Until then the four rows below are read as evidence abou
 v1.12.0 recorded in their tickets, NOT written into the page -- writing a v1.12.0
 reading into a page `UPSTREAM` dates to v1.10.0 is what the guard exists to refuse.
 
+**A third trigger, added by this ticket's own work.** A re-read establishing that
+a row's `delivered` verdict is WRONG rather than merely dated. The four rows found
+R16 kept where the page reads `none`, and R12's second clause kept where the page
+says it fails and names pull request #32 as in flight -- #32 merged. So the page
+under-reports what upstream delivered and names as pending a filing that landed,
+which is a different defect from staleness and one the self-scoping header does
+not disclose. All three go to the author in `spec/DECISIONS.md`'s awaiting list,
+and ticket 0520 is held until one is ratified.
+
 ## Exit criteria
 - [x] R10 re-read against v1.12.0 -- does #39's silent local-API-to-Web-API fallback touch "MUST NOT leave this machine"? (shared with 0505) -- it does not reach a running build, which pins its API and fails rather than re-routing; `verification/UPSTREAM-1.12.0-REREAD.md`, and logged on 0505
 - [x] R12, R16, R23 re-read against v1.12.0 from a clone; findings recorded in their tickets -- the report carries all three, and the tickets those rows cite (0016, 0017, 0022) are closed, so the record lands in the report, in this log, and in `SYNC.md`'s PR #32 row for the one observation that is upstream's rather than ours
