@@ -2183,6 +2183,172 @@ design answered negatively — the constrained path lost to ranking everything �
 and its user-facing residue moved into goal 1 as R18. A decided question with
 its promise already rehoused is not a goal.
 
+**2026-08-31 — the ladder is sequential, the number is the build order, and the
+sheet is partitioned across five goals.** The author, rejecting the reading that
+kept the bands unruled and the conjunction unranked: *I want a clean ladder of
+reqs, with sequential goals. The intention is to prioritize work. We start by
+building the tests for the lower ladder, then making it work.* Put again after
+the objection below was raised, and this entry executes it in full.
+
+**What this reverses, named because the ledger is append-only.** Two rulings go.
+*The number names the bundle and ranks nothing* (2026-08-26, restated
+2026-08-31): the number now ranks — it is the order the work is done in, and
+that is the whole reason the ladder exists. And *goal 1 keeps its number*
+(2026-08-31, earlier today): the bundle that carried that name is now goals 3, 4
+and 5. Entries above this one say "goal 1" meaning the search bundle. They are
+not edited, and this entry is where the renaming is stated; a reader meeting the
+old name in an older entry should read it as goals 3 through 5 together.
+
+**What is NOT reversed, because it is the reason the bundles exist.** Each goal
+is still a conjunction, kept when every one of its members holds and at no state
+before that. Sequencing the goals does not give any of them partial credit, and
+a lower goal kept does not make a higher one partly kept. What the number now
+says is which conjunction to make true first, never how much of one is true.
+
+**The ladder is a partition, and that is what "clean" buys.** Every requirement
+the sheet declares sits on exactly one rung, the rungs number from 1 without a
+gap, and `bench/check_progress.py` now enforces both alongside the per-goal
+rosters it already held: a requirement on no rung is work nobody scheduled, one
+on two rungs is work counted twice, and a gap in the numbering is a rung nobody
+can stand on. The guard reads five rosters from this ledger instead of one, and
+the last line ruling each goal is that goal's live roster.
+
+The five, bottom first, each stated in the user's own terms.
+
+**Goal 1 — I can install it and take it off again.** Nothing leaves this machine
+unasked, one obvious switch stops the work, deleting the data directory is the
+whole uninstall, and a configuration proves it runs here before it is used.
+Lowest because its assertions need no corpus, no build and no library: they are
+decidable the moment the system is installed, which is exactly what the build
+order wants first.
+
+**Goal 2 — it does not lose or corrupt what it built.** The cost of staying
+current is what changed, two server processes on one data directory do not
+corrupt or duplicate, and an index under another schema version ends up served.
+Second because these need a built index but not a good one, and because a build
+that cannot survive its own second day never reaches the goals above.
+
+**Goal 3 — it answers, and it is honest about what it has.** Coverage converges
+unattended, the build finishes inside its bounds, the index answers while it is
+still filling, the query path waits for no freshness work, the normalizers
+agree, and it says how much is behind an answer and which emptiness an empty one
+is.
+
+**Goal 4 — it finds the right thing, in my languages, and I can open it.** All
+three modes, the pinned answer inside the first ten, scoping enforced before
+truncation, three languages unconfigured with the lanes connected, and a hit
+that opens at the page it came from.
+
+**Goal 5 — all of my library.** A 15k library and a 15k-page PDF as ordinary
+input, group libraries searchable and never erasing one another, one's own notes
+and annotations in the corpus, and a new item noticed without anyone asking.
+
+Goal 1 binds: R10, R15, R22, R31.
+
+Goal 2 binds: R3, R13, R23.
+
+Goal 3 binds: R1, R4, R6, R17, R18, R19, R32.
+
+Goal 4 binds: R5, R7, R24, R29, R33, R34.
+
+Goal 5 binds: R8, R12, R16, R35.
+
+**The method, ruled with the ladder: tests for the lower rung first, then make
+it work.** This is what the ordering is for, and it changes what ticket 0026
+does first — the fold, golden, RSS and convergence gates were scoped by
+instrument, and they are now taken in rung order, goal 1's assertions before
+goal 2's. It also gives the evidence column somewhere to go: a rung whose tests
+exist can be red, and red is a claim about the system, which is the state this
+repository has never been able to reach.
+
+**Three consequences worth recording.** The MVP frame survives the renumbering:
+*works for me* is now the standard for goals 3 through 5 together, and the
+levels ruled this evening stand, with the library deciding and the fixture
+standing in. R5 gains a rung — it was on no bundle at all, its design answer
+having come back negative, and a partition has no room for a requirement that
+belongs nowhere; it sits with the finding promises in goal 4, where its honesty
+obligation is met or broken. And R23 stops being homeless: refused as a term of
+the search bundle this morning and folded into R1's assertion, it is now a
+member of goal 2 in its own right, which is where a promise about surviving a
+version flip always belonged.
+
+**What the objection was, and why it is overruled rather than quietly dropped.**
+The reading this entry replaces held that a conjunction should not be sequenced,
+that sub-bundles are promises to a more patient person than the author, and that
+naming rungs without ruled rosters was the safer half-step. The author put the
+instruction again after hearing it. The substance of the objection is kept where
+it belongs — each goal is a conjunction, no band reports partial credit — and
+the caution that produced unruled rosters is dropped, because an unruled roster
+is exactly the drift this repository has twice paid for.
+
+
+**2026-08-31 — four clarifications from the sheet review, and none moves a
+decision.** A review of `spec/REQUIREMENTS.md` returned four findings; the
+author's instruction was to clarify all four. Each makes explicit something
+already decided, so the rulings here are wordings rather than thresholds: no
+number moves and no roster moves.
+
+**R1's negation moves into the keyword.** "No state MUST ever need a manual
+rebuild" parses, under the sheet's own RFC 2119 clause, as "no state is
+required to need a rebuild" — vacuously true, the MUST pointing the wrong way.
+The sentence now reads "the system MUST NOT need a manual rebuild, whatever
+state it is in". The force was always meant to bind; the normative guard counts
+a MUST in either direction, which is why it never saw this. The standing row on
+`spec/README.md` quotes the amended sentence, as the progress guard requires.
+
+**R15 says "trash", because ruling 4 already handed it the transition.** On the
+platform, deleting an item moves it to the trash, and the trash is outside the
+perimeter. R15's removal therefore fires at trashing, and emptying the trash
+later changes nothing the index can see; R35's minute on a deletion starts at
+the same event. The sentence is unchanged; the paragraph now says what a reader
+of R15 alone could not previously learn.
+
+**The dictionary's size takes the convention's formatting.** This ledger writes
+"44,9 MB"; the sheet, DESIGN.md and CLAUDE.md still carried the US-point
+"44.9 MB" — drift rather than an exception, and converted. Dated reports under
+`verification/` keep their snapshots as written.
+
+**"warm" enters the glossary.** R6's bounds are stated for warm queries and no
+document defined the word. TERMINOLOGY.md gains the entry, in the Ours bucket;
+the numbers stay R6's and DESIGN.md §2.9's.
+
+**2026-08-31 — the build-order review: R15 binds goal 1 by its uninstall
+clause, and the pinned set is faceted by corpus.** The author, ratifying the
+review's recommendations as put. Two rulings and two recorded notes; no roster
+moves, so the five binding lines of the ladder entry above stay the live
+rosters.
+
+**R15 is in by its uninstall clause.** Goal 1's rationale — decidable the
+moment the system is installed — is true of the data-directory clause and not
+of the item-deletion clause, which needs a built index with queues in flight.
+On R24's pattern the rung binds the clause: goal 1 asserts that removing the
+data directory removes the system, and the item-deletion clause is asserted
+with goal 2's built-index tests, as event-then-state: after a delete is
+noticed and the tick completes, no store or queue holds the text. No clock
+there; the minute is R35's, on rung 5, where the machinery that delivers it
+lives. Moving R15 whole to goal 2 was rejected because goal 1 would lose the
+uninstall promise, the core of its own words.
+
+**Each pinned query carries a corpus facet, and goal 4 binds the covered
+subset.** A pinned answer can live in a note, a group library or the deep body
+of a long document — corpus that arrives with goal 5 — and nothing said
+whether goal 4 could close before it. Ruled: the set stays one artifact, each
+query records at pinning which corpus its answer needs (core, notes, group,
+deep-body), and goal 4's conjunction binds the queries whose facet the corpus
+already covers, the rest joining goal 5's evaluation when theirs lands. The
+facet rides the review artifact the set already is. Constraining the set to
+the easy corpus was rejected because nothing ever re-expands a corpus-shaped
+set; letting R34 close after goal 5 was rejected because it inverts the one
+ordering the ladder exists to impose. DESIGN.md §2.8 owns the rule; ticket
+0029 carries it into the corpus.
+
+**Two notes, needing no ruling.** R19 stays on goal 3: its sweep is a standing
+gate that runs regardless of rung, so its placement defers nothing, and ticket
+0026 builds the sweep with the goal-1 batch because it is the cheapest gate on
+the sheet. And DESIGN.md §4 now states the split its 2026-08-26 re-forming
+predates: the ladder governs the order repo-side assertions are built, the
+train the order items go upstream — on collision the ladder wins for tests and
+the train for filings, ticket 0488 being the documented case.
 
 ## Awaiting ratification
 

@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the twenty-three promises actually
+documents do not: **where each of the twenty-four promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -53,8 +53,8 @@ evidence:
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-three, ten rest on an experiment or a test that ran, eight on
-opening the upstream source at the reviewed baseline, and five on nothing
+the twenty-four, ten rest on an experiment or a test that ran, eight on
+opening the upstream source at the reviewed baseline, and six on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -106,145 +106,157 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 
 ---
 
-## Goal 1 — search all of my library
+## The goals ladder
 
-Goal 1 is not the first thing to be done and says nothing about what is: the
-number names the bundle, it does not rank it. What the bundle is, is a
-**conjunction**, and its subject is one promise stated in the user's own terms —
-*search all of my library*: every document it holds, in every language it is
-written in, indexed today and answered in reasonable time, by meaning and by
-exact words alike. It is kept only when every one of the sixteen rows below holds
-at once, and any single one of them failing falsifies it whatever the rest
-do.
+Five goals, numbered in the order the work is done. The number is the build
+order and nothing else: goal 1 is what to make true first, not what matters
+most. Every requirement the sheet declares sits on exactly one rung, the rungs
+run from the cheapest to assert to the most expensive to earn, and
+[`bench/check_progress.py`](../bench/check_progress.py) fails the build when a
+requirement sits on none, on two, or when a rung's roster here disagrees with
+the ruling in [DECISIONS.md](DECISIONS.md).
 
-That is the whole reason to name the bundle. Sixteen separate rows can be
-reported as nearly all done, and a promise cannot.
+**Each rung is a conjunction.** It is kept when every one of its members holds
+and at no state before that, so a bar below shows where a rung's members stand
+and never how much of it is kept. Sequencing gives no partial credit: a lower
+goal kept does not make a higher one partly kept.
 
-**Goal 1 is the MVP, and the MVP is *works for me*** (ruled 2026-08-31). That
-names the acceptance standard the bundle never had, and it decides three things
-the earlier readings left open: the user is the author, so the languages are his
-own, the pinned set is his questions and the machine is his machine; what is not
-needed to use the system daily is not in the bundle; and the deciding level is
-his **library**, with the fixture standing in for it rather than the other way
-round. The roster grew by five clauses under that frame, and the exclusions the
-bundle inherited from an older subject were each put again.
-
-The promise is the system's, not any document's. It happens also to be published
-by the implementation this page measures, which is what makes it cheap to test
-rather than argue — but if that text changed tomorrow, goal 1 would not. What a
-hit hands back is split by clause and not by item: *the page it came from* is a
-term, because a hit that cannot be opened is not a working search, while the
-entry heading and the dedup clause wait on the segmenter behind experiment X5
-with the rest of R24.
-
-**It is kept by reaching that state, not by holding it** (ruled 2026-08-31).
-The terms are properties of a state reached — the perimeter is covered, the
-languages work, the build finished, the answers come back — and R1 and R32 are
-events with a clock, which cannot be held even in principle. So an event that
-later empties the index does not retroactively unkeep the goal: it restarts it,
-and the same terms bound the return. R23 is that case, and it is not a term. Its
-clause folds into R1's assertion instead, on R14's pattern: after a
-schema-version flip in either direction, coverage returns unattended, with no
-file deleted by hand, inside R32's bounds. What R23 promises beyond that — that
-migration spares the rebuild altogether — stays R23's, and is filed upstream.
-
-**Made strong** is four strengthenings, and each was already a promise here:
-every document, a 15 000-page PDF included, in a library of the size one really
-has; the three
-languages the default path must serve and the five it should, whose keyword half
-can only match if the two normalizers agree; everything searchable **today** rather than eventually —
-records first, body text behind them, on ordinary hardware — with one's own
-notes in the corpus at all and the whole of it legible, per stage, in one
-sentence; and an answer back inside the budget the query path is held to.
-Searchable at an older extraction, chunking or embedder version still counts;
-indexed by its opening pages does not. The MVP frame added five more, each
-already a promise here too: the language lanes connect rather than merely
-existing (R29), a hit opens at the page it came from (R24), an empty answer says
-which emptiness it is (R18), the index answers while it is still filling (R4),
-and an item added today is noticed without anyone asking (R35). The bundle and
-its exclusions were ruled on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
-
-`◐◐◐◐◐◐◐◐◐◐◐◐○○○○` &nbsp; 16 in the bundle · 7 rest on something that ran
-
-That bar shows where the terms stand. It is not a progress bar: under the
-conjunction the goal is kept at all-shipped and at no state before it.
-
-**Read as test-driven development, this bundle has no failing tests. It has
-sixteen unwritten ones.** The `evidence` column is the test column: `measured`
-says an assertion ran, `code` and `inferred` say none exists. A row in those two states
-is not red — red is a claim about the system, and an unwritten test is a claim
-about nobody — which is why the seven that rest on something that ran are counted
-separately above, and why not one of the sixteen is yet a check that runs on
-every build.
-
-So what goal 1 asks for is not upstream code. It is sixteen assertions, each
-carrying the way it can fail. Most go red on the reviewed baseline the day they
-are written, for the reasons their rows already give. Two or three arrive green
-— R6's property holds already, and the fold sweep passes — and a test never seen
-to fail is a test nobody has checked, which is why ticket 0026's fold gate keeps
-a red classification for a tree that lacks the fold. Green on arrival is a
-result. Green with no way to be red is a decoration.
-
-**Terms.** What the user meets. Each row gives the clause goal 1 binds, where it
-is decided, and the address where its assertion would live; the status is not
-repeated here, and the bar above is recomputed from these requirements' own rows
-further down.
+**The method is tests first, bottom-up.** Build the assertions for the lowest
+rung, then make them pass, then climb. Until a rung's tests exist, its rows can
+only be `code` or `inferred` — a claim about nobody — which is why the evidence
+column is the test column and why no rung can be declared before its assertions
+run. The bundle and its ordering were ruled on 2026-08-31
+([DECISIONS.md](DECISIONS.md)).
 
 *Decided at* is the two levels and the relation between them. `fixture` is the
 committable corpus, which runs wherever the gate runs; `library` is the author's
 real library or a disclosed machine, which cannot be committed; `both` is a
 fixture assertion standing in for something real, whose fidelity the library
 level has to re-earn — the pattern the RSS gate's revalidation clause follows.
-The assignment is a reading, and a vetoable one: it says where each assertion
-can be *decided*, not where it happens to have run.
-
-Under the MVP frame the **library decides and the fixture stands in for it**,
-which is the inversion ruled on 2026-08-31: a conjunction of fixture-only
-assertions could go all-green on a committable corpus while the author's own
+Under the MVP frame the **library decides and the fixture stands in for it**: a
+conjunction of fixture-only assertions could go all-green while the author's own
 library had never been searched, which is the one result *works for me* cannot
-accept. So every term a real library can decide reads `both`, and the goal is
-kept by an acceptance session against that library rather than by a green gate.
+accept.
+
+## Goal 1 — I can install it and take it off again
+
+Nothing leaves this machine unasked, one obvious switch stops the work, deleting
+the data directory is the whole uninstall, and a configuration proves it runs
+here before it is used. Lowest rung because its assertions need no corpus, no
+build and no library: they are decidable the moment the system is installed.
+
+`●◐○○` &nbsp; 4 in the bundle · 1 rest on something that ran
 
 | | the clause goal 1 binds | decided at | where its test would live |
+|---|---|---|---|
+| R10 | my library text and my queries stay on this machine without an opt-in | both | [`../bench/smoke_upstream.py`](../bench/smoke_upstream.py) |
+| R15 | deleting the data directory is the whole uninstall | both | ticket 0017 |
+| R22 | one obvious way to stop all background work, holding across restarts | both | ticket 0033 |
+| R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | ticket 0488 |
+
+## Goal 2 — it does not lose or corrupt what it built
+
+The cost of staying current is what changed, two server processes on one data
+directory do not corrupt or duplicate, and an index under another schema version
+ends up served. Second because these need a built index but not a good one, and
+because a build that cannot survive its own second day never reaches the rungs
+above.
+
+`◐◐○` &nbsp; 3 in the bundle · 1 rest on something that ran
+
+| | the clause goal 2 binds | decided at | where its test would live |
+|---|---|---|---|
+| R3 | what staying current costs is what changed, never the size of the library | both | ticket 0026 |
+| R13 | two server processes on one data directory, no corruption and no duplicated work | both | ticket 0035 |
+| R23 | an index under another schema version ends up serving, either direction, no file deleted by hand | both | ticket 0026 |
+
+## Goal 3 — it answers, and it is honest about what it has
+
+Coverage converges unattended and the build finishes inside its bounds, the
+index answers while it is still filling, the query path waits for no freshness
+work, the two normalizers agree, and it says how much is behind an answer and
+which emptiness an empty one is.
+
+`◐◐◐◐◐◐○` &nbsp; 7 in the bundle · 3 rest on something that ran
+
+| | the clause goal 3 binds | decided at | where its test would live |
 |---|---|---|---|
 | R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, and coverage returning the same way after a schema-version flip | both | ticket 0026 |
 | R4 | the index answers while it is still filling, its first build included | both | ticket 0026 |
 | R6 | the query path waits for no freshness work | both | ticket 0026 |
-| R7 | the default path serves English, French and Vietnamese unconfigured, and should serve one language per script class | both | ticket 0029 |
-| R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
-| R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
-| R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
 | R17 | how much is searchable, per stage, in one sentence, naming the device serving | both | ticket 0026 |
 | R18 | an empty answer says which it is: nothing matched, or this scope is not indexed yet | both | ticket 0026 |
 | R19 | every token the query normalizer makes, the index normalizer can make too | both | ticket 0026 |
+| R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
+
+## Goal 4 — it finds the right thing, in my languages, and I can open it
+
+All three modes, the pinned answer inside the first ten, scoping enforced before
+truncation, three languages served unconfigured with the lanes connected, and a
+hit that opens at the page it came from. Which pinned queries this rung binds is
+faceted by the corpus each answer needs; the rule is DESIGN.md §2.8's
+(DECISIONS.md 2026-08-31).
+
+`◐◐◐◐○○` &nbsp; 6 in the bundle · 4 rest on something that ran
+
+| | the clause goal 4 binds | decided at | where its test would live |
+|---|---|---|---|
+| R5 | a scope is enforced before any answer is truncated, or the refusal is honest | both | ticket 0029 |
+| R7 | the default path serves English, French and Vietnamese unconfigured, and should serve one language per script class | both | ticket 0029 |
 | R24 | a hit leads to the page it came from, an estimated page saying it is one | both | ticket 0029 |
 | R29 | a query in English or French finds the Vietnamese content, nothing translated | both | ticket 0029 |
-| R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
 | R33 | the exact string, the paraphrase, and the document both signals agree on | both | ticket 0029 |
 | R34 | every pinned answer comes back within the first ten results | both | ticket 0029 |
+
+## Goal 5 — all of my library
+
+A 15k library and a 15k-page PDF as ordinary input, group libraries searchable
+and never erasing one another, one's own notes and annotations in the corpus,
+and a new item noticed without anyone asking. The top rung, and the expensive
+one: this is the word *all* in the promise.
+
+`◐◐◐○` &nbsp; 4 in the bundle · 1 rest on something that ran
+
+| | the clause goal 5 binds | decided at | where its test would live |
+|---|---|---|---|
+| R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
+| R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
+| R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
 | R35 | a new, changed or deleted item is noticed without anyone asking | both | ticket 0503 |
 
-Two terms bind a clause rather than an item. R19 is in by its property alone:
+## What the ladder does not say
+
+Three terms bind a clause rather than an item. R19 is in by its property alone:
 its cadence — that the sweep runs on every check — is not a promise to anyone
-and left the sheet on 2026-08-31, with R20, R21 and R26, on the criterion that
-what verifies a promise is not itself a promise, so it belongs to the gates in
-DESIGN.md §2.8. R24 is in by its page clause alone, its entry-heading and dedup
-clauses waiting on the segmenter behind experiment X5; the exclusion that once
-covered the whole item was a schedule reason, and binding is per clause. R30 is
-in neither, having dissolved into R32 and R17.
+and left the sheet on 2026-08-31, on the criterion that what verifies a promise
+is not itself a promise, so it belongs to the gates in DESIGN.md §2.8. R24 is in
+by its page clause alone, its entry-heading and dedup clauses waiting on the
+segmenter behind experiment X5. R15 is in by its uninstall clause: its
+item-deletion clause is asserted with goal 2's built-index tests, as
+event-then-state — after a delete is noticed and the tick completes, no store
+or queue holds the text — and its clock is R35's, on goal 5 (DECISIONS.md
+2026-08-31).
+
+*Works for me* is the acceptance standard for the top three rungs together — the
+promise stated in the user's own terms, *search all of my library*: every
+document it holds, in every language it is written in, indexed today and
+answered in reasonable time, by meaning and by exact words alike. The two rungs
+below are what make trying it and keeping it possible at all.
+
+**Above the top**, unnamed and unruled, sits the bundle this repository exists
+to reach eventually: *works for someone who is not me*. R7's SHOULD tier, R24's
+entry-heading and dedup clauses behind the segmenter, a pinned set that is not
+the author's own questions, and the harness offered upstream. It is named here
+so its absence does not read as an oversight.
 
 None of those addresses is new work. The fixture corpus, the gates and the
-acceptance harness offered upstream were scoped before this goal existed; goal 1
-names which of their assertions this one promise hangs on, and the tally above
-keeps the count. Membership is a ruling, not a page edit:
-[`bench/check_progress.py`](../bench/check_progress.py) reads the roster from
-[DECISIONS.md](DECISIONS.md) and fails the build when the page and the ledger
-disagree, because a bundle that can quietly lose a member is a milestone that
-reports itself kept when it is not.
+acceptance harness offered upstream were scoped before this ladder existed; the
+ladder says which of their assertions comes first, and the guard keeps the
+count.
 
 ---
 
-## The twenty-three
+## The twenty-four
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -260,7 +272,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and no state MUST ever need a manual rebuild | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
+| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and the system MUST NOT need a manual rebuild, whatever state it is in | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
 | R4 | The index MUST answer queries at every moment of its life, including during its first build | ratified | partial | code | A capped or interrupted build answers queries and says it was capped. What it does not yet do is report coverage per stage, which is what makes a partial index distinguishable from a complete one. |
 | R17 | "How much of my library is searchable?" MUST get a human answer, per stage, with a date | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. Two clauses merged in on 2026-08-31 and neither holds either: per-stage counters naming the input that triggered each unit of work do not exist upstream (scoped issue A, ticket 0033), and the local path passes no execution device, so nothing names the one actually serving (`verification/DEVICE-AUTO-0264.md`). |
 | R32 | On a laptop-class machine with no GPU, a full build with the default configuration MUST index at 150 ms per passage or better, which for a 15k library means records searchable within one hour and body text within a day. It SHOULD reach 75 ms per passage, which halves both figures | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. The bound is now pinned and it is a rate — per passage, over the whole pipeline, on a disclosed laptop-class machine (DESIGN.md §2.8), with the wall-clock promise derived from it through the measured census. Only the embed term of that rate rests on measurement; extract and chunk are an allocation until ticket 0500 measures them. A time bound with no machine attached is not a bound, and a wall-clock one alone silently fixes the library size; this row was unfalsifiable without both halves. The constraint that puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |

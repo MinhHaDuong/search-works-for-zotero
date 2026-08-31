@@ -107,25 +107,14 @@ entry points at the question rather than settling it; rulings land in
   indexed for body text, the deterministic first appearing in the full-text
   census, with a stored reason for each attachment skipped. Authoritative:
   REQUIREMENTS.md D6; the choice function is DESIGN.md §2.3.
-- **goal 1** — the bundle of promises that must all hold for one promise stated
-  in the user's own terms, *search all of my library*, to be kept. A
-  conjunction, not a queue: the number names the bundle and ranks nothing, and
-  the goal is kept only when every term is. It is the MVP, and the MVP is
-  *works for me* — the acceptance standard is the author's own library rather
-  than a fixture. Authoritative: README.md in this directory, which carries the
-  roster and recomputes the bar; the membership was ruled in DECISIONS.md
-  (2026-08-31).
-- **goals ladder / rung** — the dependency reading over goals: which promises
-  have to hold before another bundle can be kept at all. A rung is one bundle
-  in it. The ladder ranks nothing and schedules nothing, and only goal 1's
-  roster is ruled — the rungs below it carry candidates, so nothing checks
-  them. Authoritative: REQUIREMENTS.md, last section.
-- **term** — a property the user meets, and what a goal's conjunction runs
-  over. Binding is per clause rather than per requirement, so one item can be
-  in by one clause and out by another. Sorted by one question per clause: if
-  this clause fails and nothing else changes, is what the user can know or do
-  any different? Its retired counterpart, *instrument*, is in the historical
-  section. Authoritative: DECISIONS.md (2026-08-31).
+- **goals ladder / rung** — the order the sheet's promises are made true in:
+  five goals, numbered from the cheapest to assert to the most expensive to
+  earn, each a bundle of requirements named in the user's own words. A rung is
+  one of them. The number is the build order and nothing else, and the ladder is
+  a partition — every requirement sits on exactly one rung. The method it exists
+  for is tests first, bottom-up. Authoritative: REQUIREMENTS.md, last section,
+  for the order; README.md in this directory for each rung's roster; the
+  membership and the ordering were ruled in DECISIONS.md (2026-08-31).
 - **key** — the recorded identity of the inputs that produced a piece of
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: CONSTRAINTS.md C1; the
@@ -199,14 +188,30 @@ entry points at the question rather than settling it; rulings land in
 - **stage** — one step of the indexing pipeline: record, extract, chunk, embed.
   Each carries its own key, its own ledger rows and its own counters.
   Authoritative: REQUIREMENTS.md, intro; the keys are DESIGN.md §2.1.
+- **term** — a property the user meets, and what a goal's conjunction runs
+  over. Binding is per clause rather than per requirement, so one item can be
+  in by one clause and out by another. Sorted by one question per clause: if
+  this clause fails and nothing else changes, is what the user can know or do
+  any different? Its retired counterpart, *instrument*, is in the historical
+  section. Authoritative: DECISIONS.md (2026-08-31).
 - **validation attestation** — an optional content-free report that one exact
   embedder entry passed the automatic compatibility fixture on a stated runtime
   shape; it is not a retrieval-quality judgement. Authoritative:
   REQUIREMENTS.md R31 and DESIGN.md §2.6.
+- **warm** — describes a query answered with the embedder already resident and
+  the store already open: nothing loads and nothing builds when the clock
+  starts, which is the state R6's latency bounds are stated for; the first
+  query after a start is not one. Authoritative: REQUIREMENTS.md R6; what the
+  time is spent on is DESIGN.md §2.9.
 - **watermark** — a resume cursor stored per origin and library, legitimate
   only where the underlying version sequence is genuinely monotonic; the local
   full-text sequence is mixed, so no watermark column exists for it.
   Authoritative: CONSTRAINTS.md C1; its use is DESIGN.md §2.4.
+
+- **works for me** — the acceptance standard for the ladder's top three rungs
+  taken together: the user is the author, the languages are his, the pinned set
+  is his questions, and the deciding level is his own library rather than a
+  fixture standing in for it. Authoritative: DECISIONS.md (2026-08-31).
 
 ## Inherited, Zotero
 
@@ -268,6 +273,11 @@ one dates the text rather than sending the reader hunting.
 
 - **corpus-critic M4** — a panel-era label for one of the cycle-two critique
   seats. Historical: it named a session role, never a component.
+- **goal 1, the search bundle** — what "goal 1" named until 2026-08-31: the
+  single conjunction over *search all of my library*, before the ladder gave the
+  number a meaning. Historical as a name only: the promise survives whole as the
+  ladder's top three rungs, and ratified entries written before the renumbering
+  use the old sense. Authoritative for the renaming: DECISIONS.md (2026-08-31).
 - **instrument** — the other half of what a goal's roster once carried: a thing
   that decides whether a term holds, named beside the bundle rather than
   counted in it. Historical since 2026-08-31, when the apparatus items left the

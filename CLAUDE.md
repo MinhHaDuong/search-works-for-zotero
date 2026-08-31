@@ -16,11 +16,13 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   at the reviewed baseline — plus an `evidence` column saying how each verdict
   was established. It owns no threshold and no design number; the standing is
   read from the upstream source, never computed, and `bench/check_progress.py`
-  fails the build when the reviewed baseline moves past it. It also owns goal
-  1's roster — the terms the conjunction runs over, each with the level it is
-  decided at and the address where its work lives; the instruments roster went
-  when the apparatus items left the sheet — checked against the ruling in
-  `spec/DECISIONS.md` rather than against itself. The work that earns
+  fails the build when the reviewed baseline moves past it. It also owns the
+  goals ladder's five rosters — which requirements sit on each rung, with the
+  level each is decided at and the address where its work lives — checked
+  against the rulings in `spec/DECISIONS.md` rather than against itself. The
+  ladder is a partition and the number is the build order, so the guard fails on
+  a requirement sitting on no rung, on two, or on a gap in the numbering; the
+  order itself is `spec/REQUIREMENTS.md`'s last section. The work that earns
   those verdicts is tickets 0026, 0029 and 0032; the tally is the tracker.
 - `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
 - `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
@@ -159,7 +161,7 @@ nothing enforces it on the text you send, so read what you send, as sent.
   git-ignored `fork/` at the reviewed SHA with both `origin` and `upstream`
   remotes. Do not overwrite an existing checkout.
 - The measurement corpora are NOT in this repo: real vectors, the 477k index,
-  and the 44.9 MB extraction live on the author's machine; `bench/results/`
+  and the 44,9 MB extraction live on the author's machine; `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which
   experiments run where.
 - The author's fork (`FORK_REPOSITORY` in `UPSTREAM`) is authorized for direct
