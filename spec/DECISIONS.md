@@ -787,6 +787,78 @@ are edited to match; the entry above stands as written, per this ledger.
 
 ## Awaiting ratification
 
+- **The goal 1 perimeter, reviewed: five things the roster gets wrong, and the
+  author owns all five (2026-08-31, on his instruction to review it).** The
+  bundle was ruled the same day; read back against the sheet's own MUST clauses
+  it does not yet carry the promise it names. The findings, worst first.
+
+  **1. The promise's central word is unbound. "Hybrid" has no requirement.**
+  Nothing in REQUIREMENTS.md obliges a keyword path and a semantic path to both
+  exist and be fused. D5 honours phrase and AND/NOT "on both backends", which
+  presupposes two backends without requiring them; R19 presupposes a query
+  normalizer without requiring what it feeds; the fusion rule itself is
+  DESIGN.md's. So an upstream that shipped semantic-only would fail no member
+  of goal 1, and the word the author used to name the goal would go untested.
+  Either an R-item carries hybrid retrieval, or goal 1 stops claiming it.
+
+  **2. Nothing in the bundle asserts that search finds anything.** R21's golden
+  set was excluded on the ground that it keeps goal 1 green rather than making
+  it true. That reasoning does not survive the conjunction: with all eleven
+  members green, the corpus is complete, multilingual, monster-safe and inside
+  the budget, and a query may still return junk. "Find anything in your own
+  work" is a recall claim, and the pinned query set is the only requirement in
+  the sheet that tests recall. Recommend R21 into the bundle, or an explicit
+  ruling that goal 1 is a coverage goal and does not speak to retrieval
+  quality.
+
+  **3. "Retrieval in reasonable time" rests on a clause that does not say so.**
+  R6's title carries the figure; its only MUST is that freshness work on the
+  query path is O(1) and anything larger is scheduled. The hard budget lives in
+  DESIGN.md §2.9, which states it and attributes it to R6 — but the sheet has no
+  clause to assert, and ticket 0400's unit is the clause. As written, goal 1's
+  latency term is unassertable without either amending R6 or promoting the
+  design sentence.
+
+  **4. R30 is bound by its wrong half, and it is the one member whose design is
+  open.** The author's "all indexed today" is R30's throughput clause — time to
+  full embed coverage on the designated host. The roster binds the disclosure
+  clause instead (status names the execution device), which is the half that can
+  gate everywhere and the half that says nothing about finishing today. The
+  throughput threshold is unpinned by design (§2.8 pins it in the change that
+  first asserts it), so this member blocks on a ruling rather than on work,
+  unlike the other ten.
+
+  **5. R26 both is excluded and is depended on.** R26 carries no MUST at all —
+  rejected as written on 2026-08-29, rewrite owned by ticket 0080 — so the
+  bundle binds a term whose text the author has already refused. Worse, the
+  clause that would be asserted is its newest-first prefix, which presupposes
+  R2's coverage order; R2 was excluded from the bundle as manner rather than
+  substance. Goal 1 cannot both exclude R2 and assert a prefix over it.
+
+  **The structural question under all five.** The roster mixes the promise's
+  terms with the apparatus that decides them. Apply the conjunction's own test —
+  does this member failing falsify the promise as a user meets it? — and R17,
+  R26, and R19's cadence clause fail it: coverage can be complete and findable
+  with no coverage sentence, no convergence harness, and no sweep in `make
+  check`. They are how the other terms are decided, which is exactly ticket
+  0026's and ticket 0029's scope. The recommended shape is a conjunction over
+  terms alone, with the instruments named beside it rather than counted in it.
+  Nothing leaves the work train either way; what changes is what "goal 1 is
+  kept" means.
+
+  **Two omissions, on the same test.** R12: "all my library" includes group
+  libraries for anyone who has them, and R12's second clause fails on stock
+  upstream today — a build for one library against an interrupted index appends
+  to another's rows, which is data loss inside the promise's own perimeter.
+  R11 and R3: "indexed today" is a state that counter churn does not let the
+  library hold, and R11's own cautionary defect re-marked most of a library as
+  changed, forever. Whether goal 1 is about reaching the state or holding it is
+  not currently decided. R23 is the third-tier case — an abandoned schema stamp
+  empties the index until R1 re-earns it — and is raised, not pushed.
+
+  Nothing above is acted on. Membership stands as ruled until the author says
+  otherwise, and `spec/README.md` carries the roster unchanged.
+
 - **The accepted-staleness residue has lost its corroboration, and whether
   that changes the ruling is the author's to say (2026-08-31, on his
   instruction that the removal needed a ledger entry).** `spec/DESIGN.md`
