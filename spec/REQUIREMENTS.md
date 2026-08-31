@@ -99,16 +99,22 @@ input triggered it, so one edited item shows up as one unit of work rather than
 as a wave. Status MUST name the execution device actually serving, on every
 machine, since a user who cannot see that cannot explain the speed they get.
 
-**R32. Buildtime.** On the reference machine, an initial build with the default
-configuration MUST make records searchable inside the record bound and body text
-inside the build bound.
+**R32. Buildtime.** On a laptop-class machine with no GPU, a first build with
+the default configuration MUST index at 150 ms per passage or better, which for
+a 15k library means records searchable within one hour and body text within a
+day. It SHOULD reach 75 ms per passage, which halves both figures.
 
-Two bounds because the work stages in ruling 2's class order, records ahead of
-body text. Both bounds' values and the reference machine belong to DESIGN.md
-§2.8 and are pinned from measurement, never before it — the pattern C3's
-replacement ceiling already follows. Finishing today is a property of the
-configuration rather than of the hardware, which is why this is its own promise
-and not a clause of one about GPUs.
+The rate is the promise and the wall clock is what it means. A wall-clock number
+alone would silently fix the library size — "inside a day" promises a 15k
+library something and a 60k library nothing — and the rate holds at any size.
+Per passage rather than per item, because R8 makes items deliberately
+non-uniform: a per-item rate measured on short papers says nothing about a
+15 000-page PDF. Records land inside the hour while body text is still arriving,
+which is ruling 2's class order seen from the clock. The machine is named
+because a time bound with no machine attached is not a bound; which laptop, and
+the arithmetic from the measured passage count, are DESIGN.md §2.8's. Finishing
+today is a property of the configuration rather than of the hardware, which is
+why this is its own promise and not a clause of one about GPUs.
 
 ### Change and cost
 
@@ -168,14 +174,15 @@ constraining the MATCH operator of SQLite's FTS5 engine, which measures at
 seconds per query at library scale. The obligation is on the honesty of the
 result, not on which operator enforces it.
 
-**R6. Latency.** A warm query MUST answer inside the hard budget, and MUST never
-wait on freshness work bigger than a single request.
+**R6. Latency.** A warm query MUST answer within 3 seconds and SHOULD answer
+inside 700 ms, and MUST never wait on freshness work bigger than a single
+request.
 
 Freshness work on the query path is limited to O(1) requests; anything larger is
-scheduled and never awaited. The budget's value belongs to DESIGN.md §2.9, which
-also owns the distinction between that hard budget and the typical figure it is
-not — a sufficient reply now beats an optimal one later, which is the trade this
-promise names.
+scheduled and never awaited. The three seconds are the escape and the 700 ms is
+where a warm query lands when nothing is wrong: a sufficient reply now beats an optimal
+one later, which is the trade this promise names. What the time is spent on —
+probe, embed, keyword search, the scan, the fusion — is DESIGN.md §2.9.
 
 **R18. Emptiness.** An empty answer MUST say whether nothing matched or the
 scope is not indexed yet.

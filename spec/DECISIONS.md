@@ -1944,6 +1944,34 @@ costs per tick is unmeasured, unlike the full-text census beside it, so ticket
 finding about the cadence and never about the bound.
 
 
+**2026-08-31 — the rule was general, and R6 and R32 were the rest of it.** The
+author, on being asked whether the same fix applied to them: *but I TOLD YOU
+ALREADY.* He had. "Do not start reintroducing variables" was a rule about
+requirements, not a note about R35, and asking again was asking him to rule
+twice on one thing.
+
+So both are stated. R6 promises an answer within 3 seconds and inside 700 ms in
+the ordinary case, instead of "inside the hard budget". R32 promises 150 ms per
+passage or better on a laptop-class machine with no GPU — an hour to records and
+a day to body text for a 15k library — instead of "inside the record bound and
+the build bound" on "the reference machine", which was three variables in one
+sentence.
+
+The ownership inverts with them, and that is the substantive half. DESIGN.md
+§2.8 and §2.9 no longer pin these numbers; they derive them and say whose they
+are. The design keeps what it is for — which laptop, the census bridge, where
+the query milliseconds go, the per-stage allocation ticket 0500 will re-cut —
+and the sheet keeps the promise. `bench/check_progress.py` already required the
+page's promise cell to quote the sheet exactly and exempted it from the digit
+rule on that ground, so the page followed both sentences with no change to the
+guard.
+
+What is not swept in: R33's combination rule and R31's configuration identity
+still point at DESIGN.md. Neither is a value — they are mechanisms the sheet
+deliberately does not fix, on R5's lesson that the obligation is on the honesty
+of the result and never on which operator enforces it.
+
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

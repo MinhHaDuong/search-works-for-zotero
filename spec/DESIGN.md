@@ -912,10 +912,11 @@ is the pattern, and it binds every surrogate here, not only that one.
 
   *The bound is on the pipeline, not on one stage.* A build finishes when
   extract, chunk and embed have all finished, so a bound on embed alone is not a
-  bound on the build. On the reference machine the whole pipeline MUST hold
-  **≤ 150 ms per passage** and SHOULD hold **≤ 75 ms per passage**. A rate is
-  assertable from a few hundred passages, per stage, so a regression surfaces in
-  a minute instead of at the end of a build.
+  bound on the build. R32 states the rate the gate asserts — **≤ 150 ms per
+  passage**, **≤ 75 ms** as the SHOULD — and this section supplies the machine
+  it is measured on and the arithmetic behind the wall-clock figures it quotes.
+  A rate is assertable from a few hundred passages, per stage, so a regression
+  surfaces in a minute instead of at the end of a build.
 
   *The allocation across stages is provisional, and the total is not.* Embed is
   the dominant term and the only one measured: **≤ 120 ms** at the MUST and
@@ -932,12 +933,10 @@ is the pattern, and it binds every surrogate here, not only that one.
   *The wall clock is the promise*, and it is this rate against the measured
   census of §2.9 — the census is the bridge, and the arithmetic is shown rather
   than folded in, so a reader with a different library can do their own. At the
-  design point's 567 829 passages the two rates land at 23,7 h and 11,8 h, so
-  body text MUST be searchable inside **24 hours** — which is what "indexed
-  today" means once written down — and SHOULD be inside **12 hours**. A 15k
-  library is roughly 22 500 record chunks, so the same bracket puts records
-  inside **1 hour** as a MUST and **30 minutes** as a SHOULD, and no separate
-  rate is needed for them.
+  design point's 567 829 passages the two rates land at 23,7 h and 11,8 h, which
+  is where R32's **day** and its half come from — "indexed today", written down.
+  A 15k library is roughly 22 500 record chunks, so the same bracket puts
+  records inside R32's **hour**, and no separate rate is needed for them.
 
   The two small multilingual candidates and the incumbent sit in the SHOULD
   band on this machine; the base-sized candidates clear neither, and the largest
@@ -1005,11 +1004,9 @@ the aggregate visible (DECISIONS.md, 2026-08-29). Dual-embed no longer threatens
 the budget (the lazy-load rule, §2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
-single-pass sidecar scan (X1) + fusion. A warm query SHOULD land in
-≈ 300–700 ms, and MUST stay inside the hard budget of 3 s (R6), unchanged and
-now without the hidden second scan (§2.6). The typical figure is the
-preference; the hard budget is the escape, which is what makes this a SHOULD
-rather than a MUST.
+single-pass sidecar scan (X1) + fusion, which is where R6's two numbers go —
+≈ 300–700 ms in the ordinary case, against the 3 s it promises never to exceed.
+Unchanged, and now without the hidden second scan (§2.6).
 
 ---
 
