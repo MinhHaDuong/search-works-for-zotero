@@ -237,7 +237,12 @@ def display(value, places: int, pct: bool = False) -> str:
 #: file to isolate why the unpruned arm reads under X2's figure — and for arm C's pooled
 #: pair where its second run is recorded. Both are provenance rather than results, which is
 #: exactly the kind of figure that rots unnoticed.
-MINIMUM_PAIRS = 381
+#:
+#: And to 392 for the snippet probe, the one criterion `bench/query.py` structurally cannot
+#: measure: it records item keys and scores and never the snippet text, so that claim had
+#: rested on a unit fixture. Its four figures are each declared in both prose homes, worded
+#: apart so neither copy can mask the other.
+MINIMUM_PAIRS = 392
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -556,6 +561,33 @@ FIGURES = [
      {"t0091": "it costs {} ms on first call"}),
     ("0091-droplist/query-477k.json", "derivation.scan_ms.warm", 0,
      {"t0091": "call and {} ms on the second"}),
+    # ---- The snippet criterion, the one figure bench/query.py structurally cannot
+    # produce: that driver records item keys and scores and never the snippet text, so
+    # until this probe ran the claim rested on a unit fixture. Declared in three places
+    # each, because the pair is a comparison and one half going stale would leave the
+    # sentence true and the conclusion false.
+    # The ticket carries the pair twice — once in the log, once in the verification block —
+    # and the two are worded apart on purpose, so each anchor has a head of its own. With
+    # identical wording the two slots collapse into one `finditer` result and a stale copy
+    # is masked by its correct twin, which is the exact recurrence this file exists against.
+    ("0091-droplist/snippets-477k.json", "comparable_pairs", 0,
+     {"t0091": "Of {} hits both arms return",
+      "u0091": "of {} hits both arms return"}),
+    ("0091-droplist/snippets-477k.json", "comparable_pairs", 0,
+     {"t0091": "of {} hits both arms return, 82 open"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.unpruned", 0,
+     {"t0091": "return, {} begin at the passage opening unpruned",
+      "u0091": "return, **{}** begin at the"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.unpruned", 0,
+     {"t0091": "return, {} open at"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.pruned", 0,
+     {"t0091": "opening unpruned and {} do pruned",
+      "u0091": "unpruned and **{}** do so pruned"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.pruned", 0,
+     {"t0091": "character unpruned and {} do so pruned"}),
+    ("0091-droplist/snippets-477k.json", "moved_off_the_opening_by_pruning", 0,
+     {"t0091": "so {} moved onto the match",
+      "u0091": "so **{}** moved onto the match"}),
     # Arm D exists only to answer a question the review asked: why the unpruned arm reads
     # well under X2's 1 773,0 ms when the stock control reproduces X2 to 0,05 %. It is X2's
     # OWN binary on this file, so its two figures are the isolation, and a stale one would

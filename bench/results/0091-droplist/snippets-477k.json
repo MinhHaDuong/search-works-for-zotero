@@ -1,0 +1,50 @@
+{
+  "probe": "ticket 0091 — does the droplist move snippets off the passage opening, on a real library",
+  "data_dir": "/home/haduong/data/projets/zoteus-bench/0091-treatment",
+  "queries": 20,
+  "comparable_pairs": 91,
+  "snippets_starting_at_the_passage_opening": {
+    "unpruned": 82,
+    "pruned": 45
+  },
+  "moved_off_the_opening_by_pruning": 37,
+  "examples": [
+    {
+      "query": "the role of the state in the energy transition",
+      "itemKey": "8L6E4UVZ",
+      "unpruned": "nd displace more expensive and carbon-emitting fuels. Cities increasingly are strong drivers in renewable ener",
+      "pruned": "… and carbon-emitting fuels. Cities increasingly are strong drivers in renewable energy deployment, adopting s"
+    },
+    {
+      "query": "the effect of a carbon tax on household income",
+      "itemKey": "QXTFAHUL",
+      "unpruned": "regate demand dominates the increase in energy costs, and a central bank focused on stabilizing core inflation",
+      "pruned": "… Sector Report for a discussion of the impact on the real interest rate).13 GHG taxes generate fiscal revenue"
+    },
+    {
+      "query": "to be or not to be",
+      "itemKey": "TVEPMMGN",
+      "unpruned": "l director 1. Have professional qualifications [and/or] practical experience in business administration or in ",
+      "pruned": "… administration or in the sectors and lines of business of the company. 2. Not be the spouse, natural father,"
+    },
+    {
+      "query": "to be or not to be",
+      "itemKey": "ZFEVBHN2",
+      "unpruned": "of the power generation price difference under Article 17 by fraud or other improper means, or who knowingly p",
+      "pruned": "… knowledge of such fact shall be sentenced to imprisonment with labor for not more than three years, or to a "
+    },
+    {
+      "query": "the origins of index numbers in economics",
+      "itemKey": "DH8EXSVA",
+      "unpruned": "ions; Dunlop, J. T.; endogenous growth; equation of exchange; excess demand and supply; exploitation; Fel'dman",
+      "pruned": "… excess demand and supply; exploitation; Fel'dman, G. A.; Fisher ideal index; Fisher, I.; Fleming, J. M.; Fri"
+    },
+    {
+      "query": "models that are used for integrated assessment of climate",
+      "itemKey": "LF8SY5WE",
+      "unpruned": "all categories of IAMs present important limitations (Annex III.I.9). 1845 Scenarios and Modeling Methods Anex",
+      "pruned": "… Section I.2 details key aspects of economic frameworks and principles used to model climate mitigation respo"
+    }
+  ],
+  "note": "Only hits returned by BOTH arms are compared, since a snippet comparison needs the same passage on both sides. A snippet that begins at character 0 carries no leading ellipsis, which is what makes the discriminator mechanical rather than a judgement about readability."
+}

@@ -80,9 +80,12 @@ set is sent instead.
 
 Snippets take the list too. `makeSnippet` centres on the earliest query term it finds, so
 without it a term the corpus is saturated with is found at character 0 of almost every
-passage and every snippet becomes the passage's opening words. Its threshold is one
-surviving term rather than two: a snippet only needs somewhere to centre, and one content
-word is a good anchor.
+passage and every snippet becomes the passage's opening words — which, for a full-text
+chunk cut at a fixed length, is an arbitrary mid-word fragment. Measured on the same
+library over the same twenty queries: of 91 hits both arms return, **82** begin at the
+passage opening unpruned and **45** do so pruned, so **37** moved onto the match. Its
+threshold is one surviving term rather than two: a snippet only needs somewhere to centre,
+and one content word is a good anchor.
 
 The JSON backend gets the same policy from a different place. It already holds exact
 document frequencies resident and rebuilds them from the raw passage text on every load,
