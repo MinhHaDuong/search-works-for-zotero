@@ -2,7 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements. Numbering runs to R34 with gaps:
+This document lists the user requirements. Numbering runs to R35 with gaps:
 eleven items were retired on 2026-08-31, either because what verifies a promise
 is not itself a promise or because they were clauses of another item, and a
 retired number is never reused (DECISIONS.md). Each is written as a
