@@ -204,23 +204,36 @@ ISO_639_1 = {
     "vietnamese": "vi",
 }
 
-#: R7's operative sentence: what the default path must work for.
-R7_SENTENCE = re.compile(
+#: R7's two operative sentences, since the two tiers were ruled on 2026-08-31.
+#: The MUST tier is a filter — a candidate that does not declare it is not a
+#: candidate. The SHOULD tier is a preference that may be set aside for a stated
+#: reason, so a gap there is reported and not failed; failing it would quietly
+#: promote SHOULD to MUST, which is the one thing RFC 2119 asks a reader not to
+#: do. Both are read from the sheet rather than restated here.
+R7_MUST = re.compile(
     r"\*\*R7[^*]*\*\*(?P<body>.{0,400}?)with no configuration", re.DOTALL | re.IGNORECASE
+)
+R7_SHOULD = re.compile(
+    r"SHOULD work, with no configuration, for(?P<body>.{0,200}?)[.;]", re.DOTALL
 )
 
 
-def r7_language_codes(sheet: Path) -> set[str]:
-    """The ISO codes R7 names. Raises when the sentence cannot be read."""
-    text = sheet.read_text(encoding="utf-8") if sheet.is_file() else ""
-    match = R7_SENTENCE.search(text)
-    if not match:
-        raise ValueError(f"could not read R7's language sentence in {sheet}")
-    body = match.group("body").lower()
-    codes = {code for name, code in ISO_639_1.items() if re.search(rf"\b{name}\b", body)}
+def _codes(body: str, sheet: Path, which: str) -> set[str]:
+    codes = {code for name, code in ISO_639_1.items() if re.search(rf"\b{name}\b", body.lower())}
     if len(codes) < 2:
-        raise ValueError(f"R7's sentence in {sheet} names no language list")
+        raise ValueError(f"R7's {which} sentence in {sheet} names no language list")
     return codes
+
+
+def r7_language_codes(sheet: Path) -> tuple[set[str], set[str]]:
+    """R7's `(must, should)` ISO codes. Raises when either sentence cannot be read."""
+    text = sheet.read_text(encoding="utf-8") if sheet.is_file() else ""
+    must, should = R7_MUST.search(text), R7_SHOULD.search(text)
+    if not must:
+        raise ValueError(f"could not read R7's MUST language sentence in {sheet}")
+    if not should:
+        raise ValueError(f"could not read R7's SHOULD language sentence in {sheet}")
+    return _codes(must.group("body"), sheet, "MUST"), _codes(should.group("body"), sheet, "SHOULD")
 
 
 def load_registry(root: Path) -> dict:
@@ -260,7 +273,7 @@ def check_registry(root: Path, failures: list[str]) -> None:
         failures.append(f"{REGISTRY} does not parse: {error}")
         return
     try:
-        r7 = r7_language_codes(root / R7_SOURCE)
+        r7, r7_should = r7_language_codes(root / R7_SOURCE)
     except (OSError, ValueError) as error:
         failures.append(str(error))
         return
@@ -294,8 +307,17 @@ def check_registry(root: Path, failures: list[str]) -> None:
             codes = set((record["languages"] or {}).get("codes") or [])
             if not r7 <= codes:
                 failures.append(
-                    f"{name}: candidate does not declare R7's languages "
+                    f"{name}: candidate does not declare R7's MUST languages "
                     f"(missing {sorted(r7 - codes)})"
+                )
+            elif not r7_should <= codes:
+                # Not a failure: a SHOULD set aside is allowed and has to be
+                # stated, so this prints where the statement would have to go.
+                logger.info(
+                    "NOTE %s: declares R7's MUST tier and not all of its SHOULD tier "
+                    "(missing %s); setting one aside is allowed and must be said",
+                    name,
+                    sorted(r7_should - codes),
                 )
             # Required on candidates only, and required in a pair. Pooling is the
             # input_template trap one axis over: a wrong value degrades retrieval

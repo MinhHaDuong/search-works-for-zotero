@@ -63,8 +63,9 @@ MINIMAL_RECORD = {
 }
 
 R7_LINE = (
-    "- **R7 — multilingual by default.** The default path MUST work for French,\n"
-    "  German, Vietnamese, Greek and Russian with no configuration.\n"
+    "- **R7 — multilingual by default, in two tiers.** The default path MUST work\n"
+    "  for French, German, Vietnamese, Greek and Russian with no configuration. It\n"
+    "  SHOULD work, with no configuration, for Arabic and Chinese.\n"
 )
 
 
@@ -190,8 +191,15 @@ def test_unreadable_r7_fails_rather_than_passing(tmp_path):
 
 
 def test_r7_languages_are_read_from_the_sheet_not_restated():
-    """The codes come from R7's own sentence, so editing R7 moves the guard with it."""
-    assert cm.r7_language_codes(REPO / cm.R7_SOURCE) == {"fr", "de", "vi", "el", "ru"}
+    """The codes come from R7's own sentences, so editing R7 moves the guard with it.
+
+    Two tiers since 2026-08-31: the MUST tier filters candidates, the SHOULD tier
+    is reported rather than enforced, because failing a SHOULD would promote it.
+    """
+    assert cm.r7_language_codes(REPO / cm.R7_SOURCE) == (
+        {"en", "fr", "vi"},
+        {"ar", "zh", "de", "ru", "es"},
+    )
 
 
 # --- the real repository ---------------------------------------------------------

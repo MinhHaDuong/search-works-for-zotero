@@ -152,13 +152,17 @@ replaces the machinery it described.
   the review artifact (DESIGN.md §2.8).
 ### Multilingual
 
-- **R7 — multilingual by default.** The default path MUST work for French,
-  German, Vietnamese, Greek and Russian with no configuration, and the
-  default embedder MUST be multilingual. The English stopword list is a known
-  ranking bias whose deletion is already decided (the move is ratified into
-  the plan). Any Chinese/Japanese/Korean (CJK) ambition is decided
-  explicitly, never silently. (Arabic and Hebrew use the default path but
-  are not tested; see "Out of scope".)
+- **R7 — multilingual by default, in two tiers.** The default path MUST work
+  for English, French and Vietnamese with no configuration, and the default
+  embedder MUST be multilingual. It SHOULD work, with no configuration, for
+  Arabic, Chinese, German, Russian and Spanish; setting one of those aside is
+  allowed and MUST be stated, which is what separates a tier from a wish. The
+  English stopword list is a known ranking bias whose deletion is already
+  decided (the move is ratified into the plan). Chinese in the second tier is
+  the explicit CJK decision this item used to defer, and it carries the keyword
+  half with it: the two-gram geometry the platform ships is what a Chinese query
+  term has to survive. Every other language, Greek, Hebrew and Portuguese
+  included, rides the default path untested; see "Out of scope".
 
 - **R29 — the query language is not the document language.** A query in
   English or French MUST retrieve relevant Vietnamese content without the
@@ -246,8 +250,10 @@ read as a promise:
 - **OCR is out.** Image-only attachments converge as metadata-only.
 - **Hosted mode is out.** The redesign binds the desktop; the OAuth server
   keeps today's behavior.
-- **Arabic and Hebrew are untested.** Expected to work on the default path,
-  but outside R7's tested matrix.
+- **Untested languages are named, not implied.** Everything outside R7's two
+  tiers rides the default path and is expected to work there — Greek, Hebrew,
+  Portuguese and the rest — but nothing measures it, and a language nobody
+  measured is not a language anybody promised.
 - **Query translation is out.** R29 rides the embedding space, which is the
   only channel that crosses languages. No translation service and no local
   translation model joins the default path.

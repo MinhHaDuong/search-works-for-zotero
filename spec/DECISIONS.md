@@ -1421,6 +1421,44 @@ Entries above this one define goal 1 by the upstream README. They record how the
 bundle was arrived at, which is true, and they are not edited; this entry is
 where its subject is stated.
 
+**2026-08-31 — R7 becomes two tiers, and the languages are named rather than
+implied.** The author: English, French and Vietnamese are MUST; Arabic, Russian,
+Chinese and German are SHOULD; Spanish is SHOULD too.
+
+The old sentence listed five languages at one strength — French, German,
+Vietnamese, Greek, Russian — which said nothing about what may be traded when a
+candidate covers four of them well and the fifth badly. RFC 2119 already has the
+distinction the list was missing, and the sheet's own intro states it: SHOULD is
+a preference that may be set aside **for a stated reason**. That last clause is
+what makes a tier different from a wish, and it is now the operative half of
+R7's second sentence.
+
+Three consequences, and none of them costs anything today. **Chinese in the
+second tier is the explicit CJK decision R7 used to defer** — the sentence
+demanded that any CJK ambition be decided explicitly and never silently, and
+this is the explicit decision. It carries the keyword half with it: the platform
+two-gram geometry read at source on 2026-08-29 stops being context and becomes
+what a Chinese query term has to survive, which lands on R19's
+normalizer-agreement clause. **Arabic moves from the untested bullet into the
+second tier**, RTL and all, and Hebrew stays untested. **Greek leaves the matrix
+altogether** and joins the untested list, which now names what it covers instead
+of implying it: Greek, Hebrew, Portuguese and the rest ride the default path,
+and a language nobody measured is not a language anybody promised.
+
+Checked before ruling rather than after: every candidate the embedder study
+measured — granite-97m, granite-311m, arctic-m-v2, gte-base, e5-small, e5-base —
+declares `en`, `fr`, `vi`, `ar`, `ru`, `zh`, `de` and `es`, so **the filter's
+field does not move** and ticket 0495 inherits no new work. Three legacy
+sentence-transformers models lose Chinese and two granite v1 models lose Russian
+and Vietnamese, none of which was in contention.
+
+`bench/check_models.py` reads both sentences out of the sheet rather than
+restating either. The MUST tier stays a filter: a candidate that does not declare
+it is not a candidate. The SHOULD tier is **reported and not failed**, because a
+guard that fails a SHOULD has promoted it to a MUST, which is the one thing the
+convention asks a reader not to do — so a candidate short of the second tier
+prints where the stated reason would have to go.
+
 ## Awaiting ratification
 
 

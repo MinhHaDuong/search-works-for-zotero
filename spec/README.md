@@ -129,9 +129,9 @@ experiment X5, and it is a second promise rather than a clause of this one.
 
 **Made strong** is four strengthenings, and each was already a promise here:
 every document, a 15 000-page PDF included, in a library of the size one really
-has; every
-language on the default path, whose keyword half can only match if the two
-normalizers agree; everything searchable **today** rather than eventually —
+has; the three
+languages the default path must serve and the five it should, whose keyword half
+can only match if the two normalizers agree; everything searchable **today** rather than eventually —
 records first, body text behind them, on ordinary hardware — with one's own
 notes in the corpus at all and the whole of it legible, per stage, in one
 sentence; and an answer back inside the budget the query path is held to.
@@ -177,7 +177,7 @@ can be *decided*, not where it happens to have run.
 |---|---|---|---|
 | R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason | fixture | ticket 0026 |
 | R6 | the query path waits for no freshness work | fixture | ticket 0026 |
-| R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | fixture | ticket 0029 |
+| R7 | the default path serves English, French and Vietnamese unconfigured, and should serve four more | fixture | ticket 0029 |
 | R8 | a 15k library is answered, and a 15k-page PDF is indexed whole | both | ticket 0029 |
 | R12 | a subscribed group library is searchable, and indexing one library never erases another | both | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | library | ticket 0022 |
@@ -253,7 +253,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R7 | multilingual by default | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so R7's second MUST fails outright at the reviewed baseline, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. Ticket 0240 measured the replacement field and closed with a recommendation that sets no default; ticket 0495 decides what ships. Ticket 0090, ticket 0091. |
+| R7 | multilingual by default, in two tiers | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so the MUST tier fails at English alone and the SHOULD tier is not reachable at all, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. The two tiers were ruled on 2026-08-31 and do not move the verdict; every candidate the study measured declares both tiers, so the filter's field is unchanged. Ticket 0240 measured the replacement field and closed with a recommendation that sets no default; ticket 0495 decides what ships. Ticket 0090, ticket 0091. |
 | R29 | the query language is not the document language | ratified | none | measured | Stock upstream embeds with the incumbent English MiniLM chain, which `verification/SMOKE-1.10.0.md` names as observed on a running server, so no cross-lingual channel exists at the reviewed baseline. That a multilingual embedder supplies one is measured rather than assumed: ticket 0266 ran EN and FR queries against Vietnamese, German and Russian content at every deployed dtype (`bench/results/0266-cross-lingual/SUMMARY.json`), and its negative control clears at every dtype for only two candidates of the six. The promise is a gate criterion for whichever entry the registry ships: ticket 0037, ticket 0495. |
 
 ### Embedding configurations
