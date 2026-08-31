@@ -1672,6 +1672,40 @@ than the reference is not a failure of the promise; it is outside the
 disclosure, and the gate reports which machine it ran on so a reader can tell
 the two cases apart.
 
+**2026-08-31 — the build bound is a rate, and the wall clock is what it means.**
+The author, on the bounds pinned an hour earlier: throughput instead. Ratified
+with one substitution — **per passage, not per item**.
+
+Per item does not survive R8. Items are deliberately non-uniform there: a
+15k-page PDF is one item and a two-page note is one item, so a per-item rate
+measured on short papers says nothing about the PDF, and one loose enough to
+admit the PDF is absurd for papers. The passage is the unit the work is done in
+and the unit every committed artifact already measures.
+
+What the rate fixes is a real defect in the wall-clock form ruled an hour
+before: "inside twelve hours at the design point" promises a 15k-library user
+something and a 60k-library user nothing at all. A rate is library-size
+independent, and it is assertable from a few hundred passages per stage, so a
+regression surfaces in a minute rather than at the end of a build.
+
+What the wall clock keeps is that it is the user's own question — *will my
+library be searchable today?* — which a rate answers only after arithmetic over
+a library size the user may not know. So both stand, as one bound stated once
+and derived twice: on the reference machine the embed stage MUST hold ≤ 150 ms
+per passage and SHOULD hold ≤ 75 ms; against §2.9's measured census those are
+23,7 h and 11,8 h, which is where the 24-hour MUST and 12-hour SHOULD come from,
+and the same bracket over a 15k library's record chunks gives the 1-hour and
+30-minute record bounds with no second rate. **The census is the bridge and the
+arithmetic is shown**, so a reader with a different library can redo it.
+
+Two costs are named in §2.8 rather than left to be found. A rate hides fixed and
+non-linear work — model load, compaction, WAL checkpoints — so a sample can pass
+where a full build does not, which is why the gate asserts the rate every run
+and the wall clock whenever a full build exists, and treats a disagreement as a
+finding about the non-linear part. And a rate does not transfer across passage
+length distributions, which is why the fixture's distribution is pinned with the
+corpus.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

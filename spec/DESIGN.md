@@ -874,19 +874,43 @@ is the pattern, and it binds every surrogate here, not only that one.
   at 1,6 GHz). It is deliberately modest: a bound met only on the author's
   desktop would promise nothing to anyone else.
 
-  *Records* — every item in the perimeter record-searchable. SHOULD land inside
-  **30 minutes** at the design point; MUST stay inside **1 hour**. The typical
-  figure is the arithmetic of the feasibility run over a 15k library's record
-  chunks, which are short — title, abstract, keywords — so the measured
-  per-passage cost of a full-length passage is the conservative direction.
+  *The bound is a rate*, because a wall-clock number silently fixes the library
+  size: "inside twelve hours" promises a 15k-library user something and a
+  60k-library user nothing. Per **passage**, not per item — R8 makes items
+  deliberately non-uniform, so a per-item rate measured on short papers says
+  nothing about a 15k-page PDF and one loose enough to admit that PDF is absurd
+  for papers. The passage is the unit the work is done in and the unit every
+  artifact already measures.
 
-  *Body text* — the same library body-searchable. SHOULD land inside **12
-  hours**; MUST stay inside **24 hours**, which is what "indexed today" means
-  when it is written down. The two small multilingual candidates and the
-  incumbent all land in the SHOULD band on the reference machine; the
-  base-sized candidates clear neither, which is the throughput constraint
-  ticket 0495 now applies (the CPU cells ticket 0481 recovered from
+  On the reference machine, the embed stage MUST hold **≤ 150 ms per passage**
+  and SHOULD hold **≤ 75 ms per passage**. A rate is assertable from a few
+  hundred passages, per stage, so a regression surfaces in a minute instead of
+  at the end of a build.
+
+  *The wall clock is the promise*, and it is this rate against the measured
+  census of §2.9 — the census is the bridge, and the arithmetic is shown rather
+  than folded in, so a reader with a different library can do their own. At the
+  design point's 567 829 passages the two rates land at 23,7 h and 11,8 h, so
+  body text MUST be searchable inside **24 hours** — which is what "indexed
+  today" means once written down — and SHOULD be inside **12 hours**. A 15k
+  library is roughly 22 500 record chunks, so the same bracket puts records
+  inside **1 hour** as a MUST and **30 minutes** as a SHOULD, and no separate
+  rate is needed for them.
+
+  The two small multilingual candidates and the incumbent sit in the SHOULD
+  band on this machine; the base-sized candidates clear neither, and the largest
+  is outside the MUST outright. That is the throughput constraint ticket 0495
+  applies (the CPU cells ticket 0481 recovered from
   `bench/results/0264-gpu-arm/`, beside the feasibility run).
+
+  Two costs of stating it as a rate, named rather than left to be discovered.
+  A rate hides fixed and non-linear work — model load, compaction, WAL
+  checkpoints, the frontier's own bookkeeping — so a sample can pass while a
+  full build does not; the gate therefore asserts the rate on every run and the
+  wall clock whenever a full build is available, and a disagreement between
+  them is a finding about the non-linear part rather than noise. And a rate
+  measured on one passage-length distribution does not transfer to another,
+  which is why the fixture's distribution is pinned with the corpus.
 
   *Second configuration*: the disclosed GPU host, where the same bounds hold
   with room to spare. It is a second place the gate may run, never a substitute
