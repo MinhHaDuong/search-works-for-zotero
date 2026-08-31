@@ -191,9 +191,11 @@ def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
             "q": q, "mode": "semantic", "limit": limit, "auto_build": False}}))
         ms = round((time.perf_counter() - t) * 1000, 1)
         hits = r.get("hits") or []
+        # Keys, not titles: a committed artifact names a library document by its item
+        # key and never by its title or filename (ruling 2026-08-31, spec/DECISIONS.md).
         runs.append({"q": q, "wall_ms": ms, "hits": len(hits),
                      "scores": [h.get("score") for h in hits],
-                     "titles": [(h.get("title") or "")[:80] for h in hits]})
+                     "keys": [h.get("itemKey") or h.get("key") for h in hits]})
     answered = [r for r in runs if r["hits"] > 0]
     # RRF over one list gives 1/(60+rank) exactly; a similarity would not.
     rrf = [round(1 / (60 + i), 6) for i in range(1, limit + 1)]

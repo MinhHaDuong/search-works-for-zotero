@@ -1,6 +1,6 @@
 {
  "purpose": "Isolate the cause of the ~2 GB peak build RSS recorded in ticket 0011.",
- "method": "Rebuild the full library changing exactly one variable: ZOTEUS_INDEX_FULLTEXT_MAX_CHARS from 0 (uncapped) to 2000000. The next-largest .zotero-ft-cache is 1 908 743 B, so this truncates exactly one document -- DH8EXSVA, the New Palgrave, 44 906 152 chars -- and leaves every other document untouched.",
+ "method": "Rebuild the full library changing exactly one variable: ZOTEUS_INDEX_FULLTEXT_MAX_CHARS from 0 (uncapped) to 2000000. The next-largest .zotero-ft-cache is 1 908 743 B, so this truncates exactly one document -- DH8EXSVA, 44 906 152 chars -- and leaves every other document untouched.",
  "node_options": "",
  "node_version": "v22.23.1",
  "backend": "sqlite",
@@ -25,5 +25,6 @@
   "peak_reduction_x": 5.16,
   "passages_lost": 41048,
   "note": "The 41 048 lost passages are almost entirely the one dictionary beyond 2M chars. Peak RSS falls 5.2x. The ~2 GB peak is that single document, not a generic property of the page loop."
- }
+ },
+ "redaction": "Document names removed 2026-08-31 by ruling (spec/DECISIONS.md): committed artifacts identify a library document by its Zotero item key and never by its title or filename. Keys are unchanged, so every figure here remains traceable."
 }

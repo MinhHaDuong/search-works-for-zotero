@@ -228,7 +228,7 @@ is indexed, so it is the user's call and not a default.
 
 ## One dictionary is 9% of the index (0013)
 
-*The New Palgrave Dictionary of Economics* holds **42 963 of 477 512
+Item `DH8EXSVA` holds **42 963 of 477 512
 passages**, against 1 450 for the next largest item — a 30x gap. It depresses
 BM25's idf for the vocabulary it saturates, measured against FTS5's own
 `fts5vocab` counts:

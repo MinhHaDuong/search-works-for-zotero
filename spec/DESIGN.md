@@ -282,7 +282,7 @@ ruling, not on that comparison.)
 - Below confidence 0.5, fall back to synthetic entries of ~6k tokens cut
   at paragraph boundaries, labeled as synthetic.
 
-Palgrave arithmetic (input assumption labeled, unmeasured): 44.9 MB across
+Monster arithmetic (input assumption labeled, unmeasured): 44.9 MB across
 ~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the monster
 becomes ~1 850 first-class peers, which is the entry ruling's whole point.
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates
@@ -385,12 +385,11 @@ entry. The resolution has four parts. (i) Widen the extract signal to
 the attachment item in the item sequence the tick already sweeps, so
 file-driven re-extraction is caught for free. (ii) The remaining case,
 re-extraction with no file change, is disclosed in the contract as
-accepted staleness ("version-0 text refreshes on file change or rebuild");
-Zotero's own embeddings layer documents the same residue. (iii) A bounded
-idle re-verify sweep is built only if X6 shows local re-extraction
-genuinely re-stamps 0. The experiment (re-extract one attachment on a
-synced and on a never-synced profile, watch the census and the attachment
-item's version) runs before the machinery is written. (iv) A
+accepted staleness ("version-0 text refreshes on file change or rebuild").
+(iii) A bounded idle re-verify sweep is built only if X6 shows local
+re-extraction genuinely re-stamps 0. The experiment (re-extract one
+attachment on a synced and on a never-synced profile, watch the census and
+the attachment item's version) runs before the machinery is written. (iv) A
 **content-presence probe** at verify time, ratified 2026-08-30 on X6's
 decoupling finding (`bench/results/0025-x6-version-dynamics/`): a derived
 cache can vanish — content 404 — with every version signal and the source
@@ -710,7 +709,7 @@ with reason; sections only ever the partial qualifier):
 > extracted and keyword-searchable back to 2016-04-11; 538 covered as
 > metadata-only (no extractable text). Semantic: 2,101 items fully embedded
 > back to 2019-09-02, newest first; 1 partially embedded (record + 214 of
-> ~1,850 entries — The New Palgrave). Building in background at idle
+> ~1,850 entries — item DH8EXSVA). Building in background at idle
 > priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 
@@ -1013,7 +1012,7 @@ authoritative for content, this list for ordering.
 ## 5. The biggest remaining risks, and the cheapest falsifiers
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
-it.** Entry collapse, locators, dedup, the golden re-pin, and the Palgrave
+it.** Entry collapse, locators, dedup, the golden re-pin, and the monster
 arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
 seg/1 has never touched the real 44.9 MB extraction. Its failure mode is
 *silent plausible-looking entries*: wrong citeable locators and wrong dedup

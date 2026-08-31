@@ -93,6 +93,18 @@ none of it counts against R10's two paths. It crosses the process boundary
 between zoteus and the Zotero application. Whatever access control exists on
 Zotero's own local API belongs to Zotero, not to this design.
 
+**This repository.** The one surface that is not the system's. Measuring a real
+library produces artifacts about real documents, and this repository is public,
+so a measurement record is an egress path with no opt-in and no delete. It ran
+that way: committed artifacts named documents from the author's library in
+thousands of provenance fields until the ruling of 2026-08-31
+(`spec/DECISIONS.md`) confined identification to Zotero item keys and stopped
+the two drivers that wrote titles. Names published before that date remain in
+the git log by the same ruling, which declines to rewrite history. Two
+disclosures the ruling does not reach stay open here: committed artifacts hold
+`passage` and `snippet` text drawn from the library, and the benchmark query
+sets are the author's own research questions.
+
 ## Current answers, gaps included
 
 | Surface | Current answer |
@@ -103,8 +115,9 @@ Zotero's own local API belongs to Zotero, not to this design.
 | API-embedder credential storage at rest | None yet |
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
+| This repository's committed artifacts | Item keys only, by ruling 2026-08-31; passage text and query sets still open |
 
-Four of the six rows read "none yet". That is the honest state of the design,
+Four of the seven rows read "none yet". That is the honest state of the design,
 and stating it is this document's purpose. Each is a candidate ruling, not a
 defect to fix here.
 

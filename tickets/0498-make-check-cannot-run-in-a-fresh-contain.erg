@@ -1,0 +1,58 @@
+%erg 0.1
+Title: make check cannot run in a fresh container: no declared Python dependencies
+Created: 2026-08-31
+Author: claude
+
+--- log ---
+2026-08-31T05:38Z claude created
+
+2026-08-31T06:32Z claude note REPRODUCED 2026-08-31 in a second fresh container, on the merged tree: identical to the 2026-08-30 observation this ticket was filed on. `make check` printed eight guards green and died at its last step on `No module named pytest`; `pip install pytest` then exposed `No module named numpy` from tests/test_x8_cross_provider_fidelity.py at COLLECTION time, so the whole suite was interrupted rather than one test skipped. After installing both by hand the suite passed (272 passed / 12 skipped on the merged tree, up from 264/12 because bench/check_names.py landed with eight tests). This is the second session in two days to hand-install the same two packages, which is the actions list's point: nothing about the tree tells a session what the gate needs. Action 4 is the one that bit -- the failure arrives after eight success lines, and a session reading its own output tail-first can mistake the run for green. Nothing implemented here; the ticket's actions stand as written.
+--- body ---
+## Context
+
+`CLAUDE.md` opens its conventions with "`make check` must be green before any
+commit". In a fresh Claude-Code-on-the-web container on 2026-08-30 it could
+not run: the gate reached its last step and died on
+`No module named pytest`, and installing pytest then exposed
+`No module named numpy` from `tests/test_x8_cross_provider_fidelity.py`. Both
+were installed by hand and the suite then passed (264 passed, 12 skipped), so
+nothing is wrong with the tests — the dependencies are simply undeclared.
+
+The repository has no `requirements.txt`, `pyproject.toml`, `setup.py` or
+`Pipfile` at root. The Python under `bench/`, `tests/` and
+`verification/probes/` imports `numpy`, `pytest`, `sentence_transformers` and
+`torch` beyond the standard library, plus `ruff` as the lint gate's binary.
+Nothing states which of those a contributor needs for `make check` as opposed
+to for running a measurement driver, and that distinction matters: the heavy
+two are a driver's dependencies, not the gate's.
+
+Why this is above the tidiness floor. The rule that keeps this repository
+honest is that the gate runs before every commit. An agent session that cannot
+run the gate either commits without it or, worse, reports the guards green
+having silently skipped pytest — the failure is at the end of a long output,
+after eight guards have printed success. That is the same shape as the defect
+class ticket 0486 names: a declared thing with no consumer, discovered late.
+
+## Actions
+
+1. Declare the gate's dependencies — the set `make check` alone needs, which
+   on today's tree is `ruff`, `pytest` and `numpy`.
+2. Declare the drivers' dependencies separately, so a documentation reader is
+   not told to install `torch` to run a lint gate.
+3. Decide the delivery: a dependency file the contributor installs, or a
+   `SessionStart` hook that prepares a web session, or both. The hook is what
+   makes a remote session green without a human, and it is the only one that
+   fixes the case this ticket was found in.
+4. Make the gate fail LOUDLY on a missing dependency rather than at the tail
+   of a successful-looking run — a preflight that names what is absent.
+
+## Test
+
+- Red first: in a container with neither package, `make check` must report the
+  missing dependency by name in its first lines, not its last.
+
+## Exit criteria
+
+- [ ] The gate's dependencies declared, separately from the drivers'
+- [ ] A fresh container runs `make check` green with no hand-installation
+- [ ] A missing dependency is reported before the guards run, not after
