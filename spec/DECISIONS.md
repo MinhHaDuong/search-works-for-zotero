@@ -2312,6 +2312,44 @@ of R15 alone could not previously learn.
 document defined the word. TERMINOLOGY.md gains the entry, in the Ours bucket;
 the numbers stay R6's and DESIGN.md §2.9's.
 
+**2026-08-31 — the build-order review: R15 binds goal 1 by its uninstall
+clause, and the pinned set is faceted by corpus.** The author, ratifying the
+review's recommendations as put. Two rulings and two recorded notes; no roster
+moves, so the five binding lines of the ladder entry above stay the live
+rosters.
+
+**R15 is in by its uninstall clause.** Goal 1's rationale — decidable the
+moment the system is installed — is true of the data-directory clause and not
+of the item-deletion clause, which needs a built index with queues in flight.
+On R24's pattern the rung binds the clause: goal 1 asserts that removing the
+data directory removes the system, and the item-deletion clause is asserted
+with goal 2's built-index tests, as event-then-state: after a delete is
+noticed and the tick completes, no store or queue holds the text. No clock
+there; the minute is R35's, on rung 5, where the machinery that delivers it
+lives. Moving R15 whole to goal 2 was rejected because goal 1 would lose the
+uninstall promise, the core of its own words.
+
+**Each pinned query carries a corpus facet, and goal 4 binds the covered
+subset.** A pinned answer can live in a note, a group library or the deep body
+of a long document — corpus that arrives with goal 5 — and nothing said
+whether goal 4 could close before it. Ruled: the set stays one artifact, each
+query records at pinning which corpus its answer needs (core, notes, group,
+deep-body), and goal 4's conjunction binds the queries whose facet the corpus
+already covers, the rest joining goal 5's evaluation when theirs lands. The
+facet rides the review artifact the set already is. Constraining the set to
+the easy corpus was rejected because nothing ever re-expands a corpus-shaped
+set; letting R34 close after goal 5 was rejected because it inverts the one
+ordering the ladder exists to impose. DESIGN.md §2.8 owns the rule; ticket
+0029 carries it into the corpus.
+
+**Two notes, needing no ruling.** R19 stays on goal 3: its sweep is a standing
+gate that runs regardless of rung, so its placement defers nothing, and ticket
+0026 builds the sweep with the goal-1 batch because it is the cheapest gate on
+the sheet. And DESIGN.md §4 now states the split its 2026-08-26 re-forming
+predates: the ladder governs the order repo-side assertions are built, the
+train the order items go upstream — on collision the ladder wins for tests and
+the train for filings, ticket 0488 being the documented case.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
