@@ -864,18 +864,39 @@ is the pattern, and it binds every surrogate here, not only that one.
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32 on 2026-08-31 (DECISIONS.md), so this gate no longer
   carries a wall-clock threshold.
-- **R32, the build-time gate.** Two bounds on one fixture build with the
-  default configuration: time to record coverage of the whole library, and
-  time to body coverage. The reference machine is laptop-class CPU, named with
-  the gate, which is what lets this one run wherever the fixture runs rather
-  than only on the disclosed host — the measured ground for the split is that
-  the small multilingual candidates reach an overnight build on CPU while the
-  base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`,
-  and the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`).
-  The disclosed GPU host stands as a second reference configuration where one
-  is available. Both bounds are unpinned until measured on the reference
-  machine, each pinned in the change that first asserts it — the
-  C3-replacement pattern, ruled 2026-08-30 (DECISIONS.md).
+- **R32, the build-time gate.** Two bounds on one build with the default
+  configuration, and **a time bound with no machine attached is not a bound**,
+  so each is stated on disclosed hardware and nowhere else.
+
+  *The reference machine*: a laptop-class x86-64 CPU, four cores, no GPU, in
+  the ONNX runtime the implementation ships — the class the feasibility run
+  used (`bench/results/0025-x1-recall/embed-feasibility.json`, an Intel i5-8250U
+  at 1,6 GHz). It is deliberately modest: a bound met only on the author's
+  desktop would promise nothing to anyone else.
+
+  *Records* — every item in the perimeter record-searchable. SHOULD land inside
+  **30 minutes** at the design point; MUST stay inside **1 hour**. The typical
+  figure is the arithmetic of the feasibility run over a 15k library's record
+  chunks, which are short — title, abstract, keywords — so the measured
+  per-passage cost of a full-length passage is the conservative direction.
+
+  *Body text* — the same library body-searchable. SHOULD land inside **12
+  hours**; MUST stay inside **24 hours**, which is what "indexed today" means
+  when it is written down. The two small multilingual candidates and the
+  incumbent all land in the SHOULD band on the reference machine; the
+  base-sized candidates clear neither, which is the throughput constraint
+  ticket 0495 now applies (the CPU cells ticket 0481 recovered from
+  `bench/results/0264-gpu-arm/`, beside the feasibility run).
+
+  *Second configuration*: the disclosed GPU host, where the same bounds hold
+  with room to spare. It is a second place the gate may run, never a substitute
+  for the first — the promise is to the user with a laptop.
+
+  Both bounds are design numbers this section owns, pinned here from the
+  measurements cited rather than before them, per the C3-replacement pattern
+  ruled 2026-08-30 (DECISIONS.md). A machine slower than the reference is not a
+  failure of the promise; it is outside the disclosure, and the gate reports
+  the machine it ran on so a reader can tell which case they are looking at.
 
 **R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
 instead of silently duplicating work.

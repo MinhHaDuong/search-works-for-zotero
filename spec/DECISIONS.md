@@ -1640,6 +1640,38 @@ sentence, which the reformat rewrote, so its two patterns moved with it. And the
 status page now quotes the **sentence** rather than the name: a promise column
 reading "Coverage" tells a reader nothing they came to the page for.
 
+**2026-08-31 — the time bounds are specified, and every one of them names its
+hardware.** The author: specify time budgets and bounds — *on given hardware*.
+
+The parenthesis is the ruling. **A time bound with no machine attached is not a
+bound**, and R32 had been carrying two of exactly that kind, deferred under the
+pin-when-first-asserted rule until someone measured. The measurements exist, so
+`spec/DESIGN.md` §2.8 now states them and states the machine they hold on.
+
+*The reference machine* is a laptop-class x86-64 CPU, four cores, no GPU, in the
+runtime the implementation ships — the class the feasibility run used. Modest on
+purpose: a bound met only on the author's desktop promises nothing to anyone
+else, and the promise is to the user with a laptop.
+
+*Records*: SHOULD inside 30 minutes at the design point, MUST inside 1 hour.
+*Body text*: SHOULD inside 12 hours, MUST inside 24 — which is what "indexed
+today" means once it is written down rather than felt. The SHOULD/MUST split is
+§2.9's own shape for the query budget, reused because it says the true thing
+twice over: what one should expect, and what one is owed.
+
+Two consequences fall out with no further decision. The eligibility test ticket
+0495 applies stops being a comparison between candidates and becomes a number:
+on the CPU evidence in hand the two small multilingual candidates land inside
+the SHOULD band and the four base-sized ones clear neither bound. And R32's row
+on the status page becomes falsifiable for the first time — a row asserting a
+bound nobody had written could never have gone red.
+
+The disclosed GPU host stands as a second configuration where the same bounds
+hold with room to spare, never as a substitute for the first. A machine slower
+than the reference is not a failure of the promise; it is outside the
+disclosure, and the gate reports which machine it ran on so a reader can tell
+the two cases apart.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
