@@ -1,1742 +1,1521 @@
 {
-  "rung": "instrument-check (pre-existing 5000-item index from .zoteus-bench-0005, copied)",
-  "timestamp_utc": "2026-08-21T20:18:53.523088+00:00",
-  "note": "Reproduction of bench/results/0005-migration/res5k_json.json with this session's own invocation. Recorded there: peak_rss_kb_final 3876592 kB. No build in this rung -- at-rest only.",
-  "env": {
-    "node_version": "v22.23.1",
-    "python_version": "3.14.4",
-    "platform": "Linux-7.0.0-29-generic-x86_64-inconnu-with-glibc2.43",
-    "NODE_OPTIONS": "--max-old-space-size=12288",
-    "ZOTEUS_SEARCH_BACKEND": "json",
-    "ZOTEUS_INDEX_MAX_ITEMS": "(index pre-built elsewhere; caps unknown)",
-    "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "(unknown)",
-    "ZOTEUS_INDEX_FULLTEXT": "1",
-    "ZOTEUS_EMBEDDINGS": "off",
-    "ZOTEUS_INDEX_AUTO_REFRESH": "false",
-    "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-json-baseline/instr5000",
-    "server": "/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js",
-    "server_mtime": "2026-08-21T21:05:53",
-    "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
-    "wall_clock_contaminated": "yes -- another agent ran tests on this machine concurrently; VmHWM is per-process and unaffected"
-  },
-  "files": {
-    "search-index.json": 321274157,
-    "update-check.json": 120
-  },
-  "atrest": {
-    "backend": "json",
-    "handshake_s": 26.32,
-    "ready_s": 26.32,
-    "peak_rss_kb_after_start": 3645756,
-    "status": {
-      "documents": 237352,
-      "vectors": 0,
-      "items": 5000,
-      "embedder": "none (keyword-only)",
-      "embedderConfigured": "off",
-      "embedderActive": false,
-      "fulltextEnabled": true,
-      "fulltextItems": 3768,
-      "fulltextPassages": 229466,
-      "builtFromVersion": 200,
-      "passages": 237352,
-      "state": "idle",
-      "itemsFetched": 0,
-      "itemsTotal": 0,
-      "itemsAvailable": 0
-    },
-    "queries": {
-      "climate policy": {
-        "n": 20,
-        "keys": [
-          "FGBS9CZN",
-          "NPRSQW47",
-          "BLL9E64L",
-          "8N5WB48F",
-          "C7LYAMZJ",
-          "RQJPNM2Y",
-          "BP6NVI3J",
-          "XED42BVI",
-          "FV3VTQ4W",
-          "3LU5YVCH",
-          "VB53B2JB",
-          "DS9KVEAS",
-          "FVDYLWXS",
-          "Y78332XM",
-          "5CUEHL7H",
-          "BNS2PRPG",
-          "B3UMRE4G",
-          "B6HXUHIS",
-          "KA6D6U9R",
-          "CH9RCPVG"
-        ],
-        "hits": [
-          {
-            "itemKey": "FGBS9CZN",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "Oil rent and diversification facing  climate challenge: The case of Saudi Arabia"
-          },
-          {
-            "itemKey": "NPRSQW47",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Analysis: Why the $300bn climate-finance goal is even less ambitious than it seems"
-          },
-          {
-            "itemKey": "BLL9E64L",
-            "score": 0.015873015873015872,
-            "source": "fulltext",
-            "title": "COP29: Key outcomes agreed at the UN climate talks in Baku"
-          },
-          {
-            "itemKey": "8N5WB48F",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "Climate clubs: politically feasible and desirable?"
-          },
-          {
-            "itemKey": "C7LYAMZJ",
-            "score": 0.015384615384615385,
-            "source": null,
-            "title": "Understanding risks and uncertainties in energy and climate policy"
-          },
-          {
-            "itemKey": "RQJPNM2Y",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Transport and Climate Profile Viet Nam"
-          },
-          {
-            "itemKey": "BP6NVI3J",
-            "score": 0.014925373134328358,
-            "source": "fulltext",
-            "title": "A framework for a new generation of socioeconomic scenarios for climate change impact, adaptation, vulnerability, and mitigation research"
-          },
-          {
-            "itemKey": "XED42BVI",
-            "score": 0.014705882352941176,
-            "source": "fulltext",
-            "title": "Carbon Pricing Potential in East and South Asia"
-          },
-          {
-            "itemKey": "FV3VTQ4W",
-            "score": 0.014492753623188406,
-            "source": "fulltext",
-            "title": "Shifting investment away from fossil fuels in Southeast Asia"
-          },
-          {
-            "itemKey": "3LU5YVCH",
-            "score": 0.014285714285714285,
-            "source": null,
-            "title": "Dealing with Uncertainty - From Climate Research to Integrated Assessment of Policy Options"
-          },
-          {
-            "itemKey": "VB53B2JB",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "The MIT Emissions Prediction and Policy Analysis (EPPA) Model: Version 4"
-          },
-          {
-            "itemKey": "DS9KVEAS",
-            "score": 0.0136986301369863,
-            "source": "fulltext",
-            "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
-          },
-          {
-            "itemKey": "FVDYLWXS",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "Risk Premia and the Social Cost of Carbon: A Review"
-          },
-          {
-            "itemKey": "Y78332XM",
-            "score": 0.013333333333333334,
-            "source": "fulltext",
-            "title": "National Climate Change Response White Paper"
-          },
-          {
-            "itemKey": "5CUEHL7H",
-            "score": 0.013157894736842105,
-            "source": "fulltext",
-            "title": "Land-use implications of energy transition pathways towards decarbonisation – Comparing the footprints of Vietnam, New Zealand and Finland"
-          },
-          {
-            "itemKey": "BNS2PRPG",
-            "score": 0.012987012987012988,
-            "source": "fulltext",
-            "title": "Social Conditions of Technological Change: The Case of Carbon Capture and Storage"
-          },
-          {
-            "itemKey": "B3UMRE4G",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "Dark Clouds or Silver Linings? Knightian Uncertainty and Climate Change"
-          },
-          {
-            "itemKey": "B6HXUHIS",
-            "score": 0.012658227848101266,
-            "source": "fulltext",
-            "title": "Climate Economics: The State of the Art"
-          },
-          {
-            "itemKey": "KA6D6U9R",
-            "score": 0.0125,
-            "source": "fulltext",
-            "title": "Analysing intersections of justice with energy transitions in India - A systematic literature review"
-          },
-          {
-            "itemKey": "CH9RCPVG",
-            "score": 0.012345679012345678,
-            "source": null,
-            "title": "Carbon pricing in climate policy: seven reasons, complementary instruments, and political economy considerations: Carbon pricing in climate policy"
-          }
-        ]
-      },
-      "index numbers": {
-        "n": 20,
-        "keys": [
-          "FIL2JI5M",
-          "XMFQBZQZ",
-          "IC3VB3BZ",
-          "2BK3JGTQ",
-          "I4MCFS4X",
-          "GZK9KAH4",
-          "7GFY7GPX",
-          "SVSCFTWT",
-          "79FCFXE7",
-          "FDTPZRB7",
-          "HC4MN7NM",
-          "2KDVRCNK",
-          "BXEXAMIU",
-          "XVGD8S63",
-          "SJP342MQ",
-          "P36FM7EJ",
-          "72JRJEUR",
-          "7TDQKYHL",
-          "224895YK",
-          "J9JBYHE9"
-        ],
-        "hits": [
-          {
-            "itemKey": "FIL2JI5M",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "System of national accounts 2008"
-          },
-          {
-            "itemKey": "XMFQBZQZ",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Al-Hawārī's Essential Commentary: Arabic Arithmetic in the Fourteenth Century"
-          },
-          {
-            "itemKey": "IC3VB3BZ",
-            "score": 0.015873015873015872,
-            "source": null,
-            "title": "The method of limits in the theory of index-numbers"
-          },
-          {
-            "itemKey": "2BK3JGTQ",
-            "score": 0.015151515151515152,
-            "source": null,
-            "title": "Annual Survey of General Economic Theory: The Problem of Index Numbers"
-          },
-          {
-            "itemKey": "I4MCFS4X",
-            "score": 0.014925373134328358,
-            "source": null,
-            "title": "The Making of Index Numbers: A Study of Their Varieties, Tests, and Reliability"
-          },
-          {
-            "itemKey": "GZK9KAH4",
-            "score": 0.014705882352941176,
-            "source": "fulltext",
-            "title": "Energy security in ASEAN: A quantitative approach for sustainable energy policy"
-          },
-          {
-            "itemKey": "7GFY7GPX",
-            "score": 0.014492753623188406,
-            "source": "fulltext",
-            "title": "2020 Global Go To Think Tank Index Report"
-          },
-          {
-            "itemKey": "SVSCFTWT",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "One-Stop Source: A Global Database of Inflation"
-          },
-          {
-            "itemKey": "79FCFXE7",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "2018 Global Go To Think Tank Index Report"
-          },
-          {
-            "itemKey": "FDTPZRB7",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "Показатели нерациональности потребительского поведения и обобщенный непараметрический метод"
-          },
-          {
-            "itemKey": "HC4MN7NM",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "The system of inequalities ars > Xr − Xs"
-          },
-          {
-            "itemKey": "2KDVRCNK",
-            "score": 0.012658227848101266,
-            "source": "fulltext",
-            "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
-          },
-          {
-            "itemKey": "BXEXAMIU",
-            "score": 0.0125,
-            "source": "fulltext",
-            "title": "Chordal Graphs and Semidefinite Optimization"
-          },
-          {
-            "itemKey": "XVGD8S63",
-            "score": 0.012345679012345678,
-            "source": "fulltext",
-            "title": "China in Africa: Competition for traditional development finance institutions?"
-          },
-          {
-            "itemKey": "SJP342MQ",
-            "score": 0.012048192771084338,
-            "source": "fulltext",
-            "title": "Factorizing changes in energy and environmental indicators through decomposition"
-          },
-          {
-            "itemKey": "P36FM7EJ",
-            "score": 0.011904761904761904,
-            "source": "fulltext",
-            "title": "Trade costs"
-          },
-          {
-            "itemKey": "72JRJEUR",
-            "score": 0.011764705882352941,
-            "source": "fulltext",
-            "title": "Wind power landscapes in France: Landscape and energy decentralization"
-          },
-          {
-            "itemKey": "7TDQKYHL",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Repenser le rôle des scénarios: Construction participative de scénarios bas carbone pour la France"
-          },
-          {
-            "itemKey": "224895YK",
-            "score": 0.011494252873563218,
-            "source": "fulltext",
-            "title": "Wind energy facility siting: Learning from experience and guides for moving forward"
-          },
-          {
-            "itemKey": "J9JBYHE9",
-            "score": 0.011363636363636364,
-            "source": "fulltext",
-            "title": "Planning globally, protesting locally: Patterns in community perceptions towards the installation of wind farms"
-          }
-        ]
-      },
-      "optimal transport": {
-        "n": 9,
-        "keys": [
-          "SCT565MN",
-          "IFR5B8I3",
-          "3F8ERVCM",
-          "MD672UBB",
-          "XVSR2X2R",
-          "GV5U9CPV",
-          "XVU5A5XH",
-          "RG9US92B",
-          "3GZ7DJVN"
-        ],
-        "hits": [
-          {
-            "itemKey": "SCT565MN",
-            "score": 0.01639344262295082,
-            "source": null,
-            "title": "The Optimal Production Transport: Model and Algorithm"
-          },
-          {
-            "itemKey": "IFR5B8I3",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Optimal Transport Networks in Spatial Equilibrium"
-          },
-          {
-            "itemKey": "3F8ERVCM",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "Scaling algorithms for unbalanced optimal transport problems"
-          },
-          {
-            "itemKey": "MD672UBB",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "Multi-marginal optimal transport: theory and applications"
-          },
-          {
-            "itemKey": "XVSR2X2R",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "Optimal Entropy-Transport problems and a new Hellinger-Kantorovich distance between positive measures"
-          },
-          {
-            "itemKey": "GV5U9CPV",
-            "score": 0.011111111111111112,
-            "source": null,
-            "title": "Constrained optimal transport with an application to large markets with indivisible goods"
-          },
-          {
-            "itemKey": "XVU5A5XH",
-            "score": 0.010526315789473684,
-            "source": null,
-            "title": "A Unified Kantorovich Duality for Multimarginal Optimal Transport"
-          },
-          {
-            "itemKey": "RG9US92B",
-            "score": 0.010416666666666666,
-            "source": "fulltext",
-            "title": "Optimal Transport Methods in Economics"
-          },
-          {
-            "itemKey": "3GZ7DJVN",
-            "score": 0.00909090909090909,
-            "source": "fulltext",
-            "title": "Modelling to generate alternatives: A technique to explore uncertainty in energy-environment-economy models"
-          }
-        ]
-      },
-      "arbitrage": {
-        "n": 19,
-        "keys": [
-          "G4KUDUJP",
-          "HEJVJWYV",
-          "PNPVBZDQ",
-          "HRSWWSGX",
-          "MEXGIZD8",
-          "CUP4DV9D",
-          "E3JCGHCU",
-          "JDNF84UG",
-          "UUTET8WM",
-          "4QKDRH94",
-          "GW84G9KE",
-          "H678DN9J",
-          "SZC9665E",
-          "9AJ9A4ZZ",
-          "SXTE5992",
-          "T7RNBMWB",
-          "7W9NIS7N",
-          "P4GRFMFC",
-          "S7AKUVHE"
-        ],
-        "hits": [
-          {
-            "itemKey": "G4KUDUJP",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "Origins of arbitrage"
-          },
-          {
-            "itemKey": "HEJVJWYV",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "The Sufficiency of Three-Point Arbitrage to Insure Consistent Cross Rates of Exchange"
-          },
-          {
-            "itemKey": "PNPVBZDQ",
-            "score": 0.015873015873015872,
-            "source": "fulltext",
-            "title": "Arbitrage: Historical Perspectives"
-          },
-          {
-            "itemKey": "HRSWWSGX",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "The fundamental theorem of asset pricing under proportional transaction costs in finite discrete time"
-          },
-          {
-            "itemKey": "MEXGIZD8",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Detecting and identifying arbitrage in the spot foreign exchange market"
-          },
-          {
-            "itemKey": "CUP4DV9D",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "Cyclic Arbitrage in Decentralized Exchanges"
-          },
-          {
-            "itemKey": "E3JCGHCU",
-            "score": 0.0136986301369863,
-            "source": "fulltext",
-            "title": "Arbitrage and deflators in illiquid markets"
-          },
-          {
-            "itemKey": "JDNF84UG",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "Maximal Extractable Value in Decentralized Finance: Taxonomy, Detection, and Mitigation"
-          },
-          {
-            "itemKey": "UUTET8WM",
-            "score": 0.013157894736842105,
-            "source": "fulltext",
-            "title": "Optimal Routing for Constant Function Market Makers"
-          },
-          {
-            "itemKey": "4QKDRH94",
-            "score": 0.012987012987012988,
-            "source": "fulltext",
-            "title": "Energy storage system in Vietnam's power system"
-          },
-          {
-            "itemKey": "GW84G9KE",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "Arbitrage, linear programming and martingales in securities markets with bid-ask spreads"
-          },
-          {
-            "itemKey": "H678DN9J",
-            "score": 0.012658227848101266,
-            "source": "fulltext",
-            "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
-          },
-          {
-            "itemKey": "SZC9665E",
-            "score": 0.010638297872340425,
-            "source": "fulltext",
-            "title": "Arbitrage detection using max plus product iteration on foreign exchange rate graphs"
-          },
-          {
-            "itemKey": "9AJ9A4ZZ",
-            "score": 0.010526315789473684,
-            "source": "fulltext",
-            "title": "Efficient Triangular Arbitrage Detection via Graph Neural Networks"
-          },
-          {
-            "itemKey": "SXTE5992",
-            "score": 0.01,
-            "source": "fulltext",
-            "title": "Computational Complexity of Arbitrage in Frictional Security Market"
-          },
-          {
-            "itemKey": "T7RNBMWB",
-            "score": 0.00980392156862745,
-            "source": "fulltext",
-            "title": "Computation of Arbitrage in a Financial Market with Various Types of Frictions"
-          },
-          {
-            "itemKey": "7W9NIS7N",
-            "score": 0.009615384615384616,
-            "source": "fulltext",
-            "title": "RICH: Real-Time Identification of Negative Cycles for High-Efficiency Arbitrage"
-          },
-          {
-            "itemKey": "P4GRFMFC",
-            "score": 0.008849557522123894,
-            "source": "fulltext",
-            "title": "Martingales and arbitrage in multiperiod securities markets"
-          },
-          {
-            "itemKey": "S7AKUVHE",
-            "score": 0.008403361344537815,
-            "source": "fulltext",
-            "title": "Markets with Transaction Costs: Mathematical Theory"
-          }
-        ]
-      },
-      "consumer demand": {
-        "n": 20,
-        "keys": [
-          "E6E4L7U8",
-          "2M8DM5BI",
-          "IM84TQGT",
-          "FDTPZRB7",
-          "7IDIKHS2",
-          "RG9US92B",
-          "QSXGG8JB",
-          "2KDVRCNK",
-          "XHW2W49G",
-          "Z7ZW4K4J",
-          "S6JZWDEI",
-          "DS9KVEAS",
-          "UJCHCTYI",
-          "U44E4GPD",
-          "SEYAIPEA",
-          "5UIJPSWI",
-          "CCF7D7AP",
-          "98DI7REN",
-          "RDCE6GRY",
-          "VHVLBJGM"
-        ],
-        "hits": [
-          {
-            "itemKey": "E6E4L7U8",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "Impact of Electricity Pricing Policies on Renewable Energy Investments and Carbon Emissions"
-          },
-          {
-            "itemKey": "2M8DM5BI",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "The nonparametric approach to demand analysis"
-          },
-          {
-            "itemKey": "IM84TQGT",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "Graphical Economics"
-          },
-          {
-            "itemKey": "FDTPZRB7",
-            "score": 0.015384615384615385,
-            "source": "fulltext",
-            "title": "Показатели нерациональности потребительского поведения и обобщенный непараметрический метод"
-          },
-          {
-            "itemKey": "7IDIKHS2",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Demand for livestock products in developing countries with a focus on quality and safety attributes: Evidence from Asia and Africa"
-          },
-          {
-            "itemKey": "RG9US92B",
-            "score": 0.014705882352941176,
-            "source": "fulltext",
-            "title": "Optimal Transport Methods in Economics"
-          },
-          {
-            "itemKey": "QSXGG8JB",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "Formalizing best practice for energy system optimization modelling"
-          },
-          {
-            "itemKey": "2KDVRCNK",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
-          },
-          {
-            "itemKey": "XHW2W49G",
-            "score": 0.013333333333333334,
-            "source": null,
-            "title": "Проблема интегрируемости и обобщённый непараметрический метод анализа потребительского спроса"
-          },
-          {
-            "itemKey": "Z7ZW4K4J",
-            "score": 0.013157894736842105,
-            "source": "fulltext",
-            "title": "Equilibria for Economies with Production: Constant-Returns Technologies and Production Planning Constraints"
-          },
-          {
-            "itemKey": "S6JZWDEI",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "Understanding Hourly Electricity Demand: Implications for Load, Welfare and Emissions"
-          },
-          {
-            "itemKey": "DS9KVEAS",
-            "score": 0.012048192771084338,
-            "source": "fulltext",
-            "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
-          },
-          {
-            "itemKey": "UJCHCTYI",
-            "score": 0.011764705882352941,
-            "source": "fulltext",
-            "title": "The Future of Manufacturing - China.pdf"
-          },
-          {
-            "itemKey": "U44E4GPD",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Estimating economic damage from climate change in the United States"
-          },
-          {
-            "itemKey": "SEYAIPEA",
-            "score": 0.011235955056179775,
-            "source": "fulltext",
-            "title": "Global Bioenergy Supply and Demand Projections: A working paper for REmap 2030"
-          },
-          {
-            "itemKey": "5UIJPSWI",
-            "score": 0.01098901098901099,
-            "source": "fulltext",
-            "title": "Spatial and Temporal Price and Allocation Models"
-          },
-          {
-            "itemKey": "CCF7D7AP",
-            "score": 0.010416666666666666,
-            "source": "fulltext",
-            "title": "2021 World Energy Issues Monitor. Humanising Energy."
-          },
-          {
-            "itemKey": "98DI7REN",
-            "score": 0.010309278350515464,
-            "source": "fulltext",
-            "title": "Innovation Landscape Brief: Time-of-use tariffs"
-          },
-          {
-            "itemKey": "RDCE6GRY",
-            "score": 0.01,
-            "source": "fulltext",
-            "title": "Regional Energy Trends Report 2020. Tracking SDG7 in the ASEAN region"
-          },
-          {
-            "itemKey": "VHVLBJGM",
-            "score": 0.009900990099009901,
-            "source": "fulltext",
-            "title": "Global Alliance for Clean Cookstoves"
-          }
-        ]
-      },
-      "mathematical economics": {
-        "n": 17,
-        "keys": [
-          "6ZMCCBGX",
-          "8LNV6JF4",
-          "XH9UWCKG",
-          "B4APP976",
-          "SFWS38BV",
-          "CEI5RIHI",
-          "V5D49GEX",
-          "MM56C8XH",
-          "ZTXRZKZP",
-          "CSK9WJEW",
-          "CIJ2E7DV",
-          "AGMQMZP9",
-          "H678DN9J",
-          "B3UMRE4G",
-          "UQ9EPQNE",
-          "2KDVRCNK",
-          "4QQDLYXC"
-        ],
-        "hits": [
-          {
-            "itemKey": "6ZMCCBGX",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "The Cultures of Mathematical Economics in the Postwar Soviet Union: More than a Method, Less than a Discipline"
-          },
-          {
-            "itemKey": "8LNV6JF4",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Soviet Mathematics and Economic Theory in the Past Century: An Historical Reappraisal"
-          },
-          {
-            "itemKey": "XH9UWCKG",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
-          },
-          {
-            "itemKey": "B4APP976",
-            "score": 0.011904761904761904,
-            "source": "fulltext",
-            "title": "Soviet Mathematics and Economic Theory in the Past Century: A Historical Reappraisal"
-          },
-          {
-            "itemKey": "SFWS38BV",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Koopmans in the Soviet Union: A Travel Report of the Summer of 1965"
-          },
-          {
-            "itemKey": "CEI5RIHI",
-            "score": 0.011494252873563218,
-            "source": "fulltext",
-            "title": "Finding Equilibrium: Arrow, Debreu, McKenzie and the Problem of Scientific Credit"
-          },
-          {
-            "itemKey": "V5D49GEX",
-            "score": 0.010526315789473684,
-            "source": "fulltext",
-            "title": "Reduced cost functions and their applications"
-          },
-          {
-            "itemKey": "MM56C8XH",
-            "score": 0.010416666666666666,
-            "source": null,
-            "title": "Mathematical Introduction to Economics"
-          },
-          {
-            "itemKey": "ZTXRZKZP",
-            "score": 0.010309278350515464,
-            "source": "fulltext",
-            "title": "The Frame for the Not-Yet Existent: How American, European, and Soviet Scholars Jointly Shaped Modern Mathematical Economics"
-          },
-          {
-            "itemKey": "CSK9WJEW",
-            "score": 0.01020408163265306,
-            "source": null,
-            "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
-          },
-          {
-            "itemKey": "CIJ2E7DV",
-            "score": 0.01,
-            "source": "fulltext",
-            "title": "Intergenerational justice when future worlds are uncertain"
-          },
-          {
-            "itemKey": "AGMQMZP9",
-            "score": 0.009433962264150943,
-            "source": "fulltext",
-            "title": "Programming the USSR: Leonid V. Kantorovich in Context"
-          },
-          {
-            "itemKey": "H678DN9J",
-            "score": 0.008928571428571428,
-            "source": null,
-            "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
-          },
-          {
-            "itemKey": "B3UMRE4G",
-            "score": 0.008771929824561403,
-            "source": "fulltext",
-            "title": "Dark Clouds or Silver Linings? Knightian Uncertainty and Climate Change"
-          },
-          {
-            "itemKey": "UQ9EPQNE",
-            "score": 0.008695652173913044,
-            "source": null,
-            "title": "The Harrison–Pliska arbitrage pricing theorem under transaction costs"
-          },
-          {
-            "itemKey": "2KDVRCNK",
-            "score": 0.008620689655172414,
-            "source": null,
-            "title": "Remarks on Afriat's theorem and the Monge-Kantorovich problem"
-          },
-          {
-            "itemKey": "4QQDLYXC",
-            "score": 0.008547008547008548,
-            "source": null,
-            "title": "A necessary and sufficient condition for rationalizability in a quasi-linear context"
-          }
-        ]
-      },
-      "carbon tax": {
-        "n": 11,
-        "keys": [
-          "Z7A2WC4X",
-          "X69DJS66",
-          "R4HDCVL9",
-          "GP4CV9I3",
-          "LMZZ6L7N",
-          "DS9KVEAS",
-          "KCFDEM2J",
-          "9UYSQKYG",
-          "THADWQTQ",
-          "V38W5GKD",
-          "EEKJSV6H"
-        ],
-        "hits": [
-          {
-            "itemKey": "Z7A2WC4X",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "State and Trends of Carbon Pricing 2019"
-          },
-          {
-            "itemKey": "X69DJS66",
-            "score": 0.013333333333333334,
-            "source": "fulltext",
-            "title": "Opportunities for carbon pricing in Viet Nam"
-          },
-          {
-            "itemKey": "R4HDCVL9",
-            "score": 0.013157894736842105,
-            "source": "fulltext",
-            "title": "Ancillary benefits of reduced air pollution in the US from moderate greenhouse gas mitigation policies in the electricity sector"
-          },
-          {
-            "itemKey": "GP4CV9I3",
-            "score": 0.0125,
-            "source": "fulltext",
-            "title": "The synthesis of bottom-up and top-down approaches to climate policy modeling: Electric power technologies and the cost of limiting US CO2 emissions"
-          },
-          {
-            "itemKey": "LMZZ6L7N",
-            "score": 0.012048192771084338,
-            "source": "fulltext",
-            "title": "Carbon pricing in Vietnam: Options for adoption"
-          },
-          {
-            "itemKey": "DS9KVEAS",
-            "score": 0.011363636363636364,
-            "source": "fulltext",
-            "title": "Reconciling Carbon Pricing and Energy Policies in Developing Countries : Integrating Policies for a Clean Energy Transition"
-          },
-          {
-            "itemKey": "KCFDEM2J",
-            "score": 0.010101010101010102,
-            "source": "fulltext",
-            "title": "Techno-Economic Study of Biomass Co-Firing with and without CO2 Capture in an Australian Black Coal-Fired Power Plant"
-          },
-          {
-            "itemKey": "9UYSQKYG",
-            "score": 0.009174311926605505,
-            "source": "fulltext",
-            "title": "Hypothesis for a Risk Cost of Carbon: Revising the Externalities and Ethics of Climate Change"
-          },
-          {
-            "itemKey": "THADWQTQ",
-            "score": 0.009009009009009009,
-            "source": "fulltext",
-            "title": "Unlocking Climate Finance in Asia-Pacific: Transitioning to a Sustainable Future"
-          },
-          {
-            "itemKey": "V38W5GKD",
-            "score": 0.008771929824561403,
-            "source": "fulltext",
-            "title": "Representing Energy Technologies in Top-Down Economic Models Using Bottom-Up Information"
-          },
-          {
-            "itemKey": "EEKJSV6H",
-            "score": 0.008620689655172414,
-            "source": "fulltext",
-            "title": "Economiically Optimal Use of CO2 Sequestration Technology"
-          }
-        ]
-      },
-      "equilibrium": {
-        "n": 20,
-        "keys": [
-          "K2I876ZW",
-          "QXZAV24W",
-          "UA7S9ZFV",
-          "GS6DK2JI",
-          "C7LYAMZJ",
-          "5UIJPSWI",
-          "IDAACIUE",
-          "AZDFDDWG",
-          "GV5U9CPV",
-          "4DQGPIBI",
-          "IYKSXMNP",
-          "F4ZCUXEF",
-          "Z7ZW4K4J",
-          "MINQVTZE",
-          "XH9UWCKG",
-          "9KSMUGKB",
-          "H678DN9J",
-          "ER4DSTD2",
-          "IY7QQTPG",
-          "ZPXHPF9Q"
-        ],
-        "hits": [
-          {
-            "itemKey": "K2I876ZW",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "The Environment and Directed Technical Change"
-          },
-          {
-            "itemKey": "QXZAV24W",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "A Detailed Overview and Consistent Classification of Climate-Economy Models"
-          },
-          {
-            "itemKey": "UA7S9ZFV",
-            "score": 0.015873015873015872,
-            "source": "fulltext",
-            "title": "Existence of an Equilibrium for a Competitive Economy"
-          },
-          {
-            "itemKey": "GS6DK2JI",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "On the economic theory of socialism: part one"
-          },
-          {
-            "itemKey": "C7LYAMZJ",
-            "score": 0.015384615384615385,
-            "source": "fulltext",
-            "title": "Understanding risks and uncertainties in energy and climate policy"
-          },
-          {
-            "itemKey": "5UIJPSWI",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Spatial and Temporal Price and Allocation Models"
-          },
-          {
-            "itemKey": "IDAACIUE",
-            "score": 0.014705882352941176,
-            "source": "fulltext",
-            "title": "Transboundary Acidification, Eutrophication and Ground Level Ozone in Europe. Part I Unified EMEP Model Description"
-          },
-          {
-            "itemKey": "AZDFDDWG",
-            "score": 0.014285714285714285,
-            "source": "fulltext",
-            "title": "Uncertainty and risk in financial markets"
-          },
-          {
-            "itemKey": "GV5U9CPV",
-            "score": 0.014084507042253521,
-            "source": "fulltext",
-            "title": "Constrained optimal transport with an application to large markets with indivisible goods"
-          },
-          {
-            "itemKey": "4DQGPIBI",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "Stochastic Graphon Games: I. The Static Case"
-          },
-          {
-            "itemKey": "IYKSXMNP",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "On the Existence of a Competitive Equilibrium: 1930–1954"
-          },
-          {
-            "itemKey": "F4ZCUXEF",
-            "score": 0.013333333333333334,
-            "source": "fulltext",
-            "title": "Set Identification in Models with Multiple Equilibria"
-          },
-          {
-            "itemKey": "Z7ZW4K4J",
-            "score": 0.013157894736842105,
-            "source": "fulltext",
-            "title": "Equilibria for Economies with Production: Constant-Returns Technologies and Production Planning Constraints"
-          },
-          {
-            "itemKey": "MINQVTZE",
-            "score": 0.012658227848101266,
-            "source": "fulltext",
-            "title": "Arbitrage, rationality, and equilibrium"
-          },
-          {
-            "itemKey": "XH9UWCKG",
-            "score": 0.011764705882352941,
-            "source": "fulltext",
-            "title": "General Equilibrium Theory behind the Iron Curtain: The Case of Victor Polterovich"
-          },
-          {
-            "itemKey": "9KSMUGKB",
-            "score": 0.011111111111111112,
-            "source": "fulltext",
-            "title": "A survey of the theory of international trade: part 2, the neo-classical theory"
-          },
-          {
-            "itemKey": "H678DN9J",
-            "score": 0.010526315789473684,
-            "source": "fulltext",
-            "title": "Arbitrage and equilibrium in economies with infinitely many commodities"
-          },
-          {
-            "itemKey": "ER4DSTD2",
-            "score": 0.010416666666666666,
-            "source": "fulltext",
-            "title": "Money and the decentralization of exchange"
-          },
-          {
-            "itemKey": "IY7QQTPG",
-            "score": 0.01,
-            "source": "fulltext",
-            "title": "Models of Bounded Rationality, Volume 3: Empirically Grounded Economic Reason"
-          },
-          {
-            "itemKey": "ZPXHPF9Q",
-            "score": 0.009900990099009901,
-            "source": "fulltext",
-            "title": "Energy and Capacity Markets: Tradeoffs in Reliability, Costs, and Risk"
-          }
-        ]
-      },
-      "théorie": {
-        "n": 14,
-        "keys": [
-          "3FU4WF3V",
-          "J7B6FQ86",
-          "GTIGCIFF",
-          "2C933JHA",
-          "R3KFAMIG",
-          "M8T2GBWF",
-          "CSK9WJEW",
-          "52LAGW8S",
-          "W4925VVD",
-          "UKVXPC5P",
-          "CTQGK676",
-          "WY2V3MGB",
-          "GVN8ZBL8",
-          "7DI99UPZ"
-        ],
-        "hits": [
-          {
-            "itemKey": "3FU4WF3V",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "Théorie économique, réalité industrielle et intérêt général. La recherche de l'optimum à Électricité de France (1946-1965)"
-          },
-          {
-            "itemKey": "J7B6FQ86",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
-          },
-          {
-            "itemKey": "GTIGCIFF",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot (1801-1877)"
-          },
-          {
-            "itemKey": "2C933JHA",
-            "score": 0.014285714285714285,
-            "source": "fulltext",
-            "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
-          },
-          {
-            "itemKey": "R3KFAMIG",
-            "score": 0.012987012987012988,
-            "source": "fulltext",
-            "title": "La production jointe : le point de vue de la théorie de l'équilibre général"
-          },
-          {
-            "itemKey": "M8T2GBWF",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "Les doctrines de Cournot sur le commerce international"
-          },
-          {
-            "itemKey": "CSK9WJEW",
-            "score": 0.012345679012345678,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
-          },
-          {
-            "itemKey": "52LAGW8S",
-            "score": 0.010869565217391304,
-            "source": "fulltext",
-            "title": "La grande inversion : « les » valeurs comme objectif, « la » valeur comme conséquence ?"
-          },
-          {
-            "itemKey": "W4925VVD",
-            "score": 0.010309278350515464,
-            "source": null,
-            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
-          },
-          {
-            "itemKey": "UKVXPC5P",
-            "score": 0.009708737864077669,
-            "source": "fulltext",
-            "title": "Note sur les œuvres économiques d'Augustin Cournot"
-          },
-          {
-            "itemKey": "CTQGK676",
-            "score": 0.009345794392523364,
-            "source": null,
-            "title": "Modèles de précaution en économie: introduction aux probabilités imprécises"
-          },
-          {
-            "itemKey": "WY2V3MGB",
-            "score": 0.008695652173913044,
-            "source": null,
-            "title": "Evaluating and extending SCALERS: Implications for social entrepreneurs"
-          },
-          {
-            "itemKey": "GVN8ZBL8",
-            "score": 0.008403361344537815,
-            "source": null,
-            "title": "Sur la théorie générale des jeux où intervient l'habileté des joueurs"
-          },
-          {
-            "itemKey": "7DI99UPZ",
-            "score": 0.008333333333333333,
-            "source": null,
-            "title": "Aspects de la précaution en théorie de la décision rationnelle: choix révisables, imprécision, incomplétude et controverses"
-          }
-        ]
-      },
-      "theorie": {
-        "n": 20,
-        "keys": [
-          "7W6427SB",
-          "MYH839NE",
-          "27RQ3BN4",
-          "J6MXQTJ5",
-          "Z37YMCZH",
-          "VRZG2CKR",
-          "6SRYL45Y",
-          "4574EQ7I",
-          "T8ZTLQW6",
-          "9Q4BL2CB",
-          "ACKDTMZA",
-          "IYKSXMNP",
-          "H37CI38M",
-          "N2WEKU9J",
-          "X8IJ5FRM",
-          "6Y896URW",
-          "HXJEP32C",
-          "MZJAJB5J",
-          "B4APP976",
-          "REU8X9AR"
-        ],
-        "hits": [
-          {
-            "itemKey": "7W6427SB",
-            "score": 0.01639344262295082,
-            "source": null,
-            "title": "Die Grundzüge der Theorie der Statistik"
-          },
-          {
-            "itemKey": "MYH839NE",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Durch die Kriegswirtschaft zur Naturalwirtschaft"
-          },
-          {
-            "itemKey": "27RQ3BN4",
-            "score": 0.015873015873015872,
-            "source": null,
-            "title": "Theorie der einfachen Ungleichungen"
-          },
-          {
-            "itemKey": "J6MXQTJ5",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "A Contextualized Historical Analysis of the Kuhn–Tucker Theorem in Nonlinear Programming: The Impact of World War II"
-          },
-          {
-            "itemKey": "Z37YMCZH",
-            "score": 0.015151515151515152,
-            "source": "fulltext",
-            "title": "Systems of inequalities involving convex functions"
-          },
-          {
-            "itemKey": "VRZG2CKR",
-            "score": 0.014925373134328358,
-            "source": "fulltext",
-            "title": "Linear Inequalities and Related Systems"
-          },
-          {
-            "itemKey": "6SRYL45Y",
-            "score": 0.014285714285714285,
-            "source": "fulltext",
-            "title": "Monotone networks"
-          },
-          {
-            "itemKey": "4574EQ7I",
-            "score": 0.0136986301369863,
-            "source": "fulltext",
-            "title": "Geometrie der Zahlen"
-          },
-          {
-            "itemKey": "T8ZTLQW6",
-            "score": 0.012987012987012988,
-            "source": "fulltext",
-            "title": "Public Acceptance of CCS: Simulation"
-          },
-          {
-            "itemKey": "9Q4BL2CB",
-            "score": 0.0125,
-            "source": "fulltext",
-            "title": "The concept of joint production and ecological economics"
-          },
-          {
-            "itemKey": "ACKDTMZA",
-            "score": 0.012195121951219513,
-            "source": "fulltext",
-            "title": "Joint Production"
-          },
-          {
-            "itemKey": "IYKSXMNP",
-            "score": 0.012048192771084338,
-            "source": "fulltext",
-            "title": "On the Existence of a Competitive Equilibrium: 1930–1954"
-          },
-          {
-            "itemKey": "H37CI38M",
-            "score": 0.011764705882352941,
-            "source": "fulltext",
-            "title": "Characterization of the subdifferentials of convex functions"
-          },
-          {
-            "itemKey": "N2WEKU9J",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Studies in Subjective Probability"
-          },
-          {
-            "itemKey": "X8IJ5FRM",
-            "score": 0.011494252873563218,
-            "source": "fulltext",
-            "title": "William Karush and the KKT Theorem"
-          },
-          {
-            "itemKey": "6Y896URW",
-            "score": 0.011363636363636364,
-            "source": "fulltext",
-            "title": "Die Wirtschaftsrechnung im sozialistischen Gemeinwesen"
-          },
-          {
-            "itemKey": "HXJEP32C",
-            "score": 0.011235955056179775,
-            "source": "fulltext",
-            "title": "Mixed forests and finance — Methodological approaches"
-          },
-          {
-            "itemKey": "MZJAJB5J",
-            "score": 0.011111111111111112,
-            "source": "fulltext",
-            "title": "Linear Programming and Economic Analysis"
-          },
-          {
-            "itemKey": "B4APP976",
-            "score": 0.01098901098901099,
-            "source": "fulltext",
-            "title": "Soviet Mathematics and Economic Theory in the Past Century: A Historical Reappraisal"
-          },
-          {
-            "itemKey": "REU8X9AR",
-            "score": 0.010869565217391304,
-            "source": "fulltext",
-            "title": "On the Development of Optimization Theory"
-          }
-        ]
-      },
-      "mathématiques": {
-        "n": 16,
-        "keys": [
-          "2C933JHA",
-          "J7B6FQ86",
-          "CZD2P36I",
-          "W4925VVD",
-          "MEC4PX3C",
-          "QZ7JFQVC",
-          "UKVXPC5P",
-          "CSK9WJEW",
-          "GTIGCIFF",
-          "Q5MQUGBA",
-          "J6MXQTJ5",
-          "ZT9RVGY7",
-          "3PDGF64X",
-          "JM8NHHM8",
-          "RKN7GLHA",
-          "3FU4WF3V"
-        ],
-        "hits": [
-          {
-            "itemKey": "2C933JHA",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "La science est un jeu. Théorie des jeux en France dans les années 1950"
-          },
-          {
-            "itemKey": "J7B6FQ86",
-            "score": 0.014492753623188406,
-            "source": "fulltext",
-            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
-          },
-          {
-            "itemKey": "CZD2P36I",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "Réponse à Accident nucléaire : une certitude statistique"
-          },
-          {
-            "itemKey": "W4925VVD",
-            "score": 0.013513513513513514,
-            "source": null,
-            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
-          },
-          {
-            "itemKey": "MEC4PX3C",
-            "score": 0.011904761904761904,
-            "source": null,
-            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
-          },
-          {
-            "itemKey": "QZ7JFQVC",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Liste de bases de données et de moteurs de recherche académiques"
-          },
-          {
-            "itemKey": "UKVXPC5P",
-            "score": 0.011494252873563218,
-            "source": "fulltext",
-            "title": "Note sur les œuvres économiques d'Augustin Cournot"
-          },
-          {
-            "itemKey": "CSK9WJEW",
-            "score": 0.011111111111111112,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
-          },
-          {
-            "itemKey": "GTIGCIFF",
-            "score": 0.01098901098901099,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot (1801-1877)"
-          },
-          {
-            "itemKey": "Q5MQUGBA",
-            "score": 0.009900990099009901,
-            "source": null,
-            "title": "L'éducation au développement durable : entre « éducation à » et disciplines scolaires"
-          },
-          {
-            "itemKey": "J6MXQTJ5",
-            "score": 0.009259259259259259,
-            "source": "fulltext",
-            "title": "A Contextualized Historical Analysis of the Kuhn–Tucker Theorem in Nonlinear Programming: The Impact of World War II"
-          },
-          {
-            "itemKey": "ZT9RVGY7",
-            "score": 0.008771929824561403,
-            "source": "fulltext",
-            "title": "DRAFT Rapport de prospective Mandat 2019-2023"
-          },
-          {
-            "itemKey": "3PDGF64X",
-            "score": 0.008695652173913044,
-            "source": "fulltext",
-            "title": "Compte rendu des travaux de la VIIe réunion européenne de la Société internationale d'économétrie (Annecy, 11-15 septembre 1937)"
-          },
-          {
-            "itemKey": "JM8NHHM8",
-            "score": 0.008620689655172414,
-            "source": "fulltext",
-            "title": "Les modèles du futur: changement climatique et scénarios économiques, enjeux scientifiques et politiques"
-          },
-          {
-            "itemKey": "RKN7GLHA",
-            "score": 0.008547008547008548,
-            "source": "fulltext",
-            "title": "Plan Stratégique 2022-2027"
-          },
-          {
-            "itemKey": "3FU4WF3V",
-            "score": 0.00847457627118644,
-            "source": "fulltext",
-            "title": "Théorie économique, réalité industrielle et intérêt général. La recherche de l'optimum à Électricité de France (1946-1965)"
-          }
-        ]
-      },
-      "mathematiques": {
-        "n": 2,
-        "keys": [
-          "REU8X9AR",
-          "4574EQ7I"
-        ],
-        "hits": [
-          {
-            "itemKey": "REU8X9AR",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "On the Development of Optimization Theory"
-          },
-          {
-            "itemKey": "4574EQ7I",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Geometrie der Zahlen"
-          }
-        ]
-      },
-      "probabilità": {
-        "n": 5,
-        "keys": [
-          "4QSZ36XW",
-          "CZD2P36I",
-          "WCWCA5SU",
-          "KBBAPCDS",
-          "V6MWBFPK"
-        ],
-        "hits": [
-          {
-            "itemKey": "4QSZ36XW",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "La prévision : ses lois logiques, ses sources subjectives"
-          },
-          {
-            "itemKey": "CZD2P36I",
-            "score": 0.015873015873015872,
-            "source": "fulltext",
-            "title": "Réponse à Accident nucléaire : une certitude statistique"
-          },
-          {
-            "itemKey": "WCWCA5SU",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "Sur la consigne d'exploitation optimum des réservoirs saisonniers"
-          },
-          {
-            "itemKey": "KBBAPCDS",
-            "score": 0.012195121951219513,
-            "source": "fulltext",
-            "title": "Le calcul du risque dans les investissements publics"
-          },
-          {
-            "itemKey": "V6MWBFPK",
-            "score": 0.008547008547008548,
-            "source": "fulltext",
-            "title": "Accident nucléaire : une certitude statistique"
-          }
-        ]
-      },
-      "probabilita": {
-        "n": 3,
-        "keys": [
-          "V6DS9TBB",
-          "DPKSQULU",
-          "AU8GDCRB"
-        ],
-        "hits": [
-          {
-            "itemKey": "V6DS9TBB",
-            "score": 0.01639344262295082,
-            "source": "fulltext",
-            "title": "Coherence and the axioms of confirmation"
-          },
-          {
-            "itemKey": "DPKSQULU",
-            "score": 0.015873015873015872,
-            "source": "fulltext",
-            "title": "Fair bets and inductive probabilities"
-          },
-          {
-            "itemKey": "AU8GDCRB",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "Consistency in Statistical Inference and Decision"
-          }
-        ]
-      },
-      "Grössenbegriffes": {
-        "n": 11,
-        "keys": [
-          "B6T9NF4T",
-          "GALVDHUT",
-          "QURVGMJD",
-          "AQAHV4QI",
-          "MKQACJEP",
-          "S2FTQ8VI",
-          "4574EQ7I",
-          "VB53B2JB",
-          "LDT76S7V",
-          "YZDFJ9MS",
-          "KPTPHQPQ"
-        ],
-        "hits": [
-          {
-            "itemKey": "B6T9NF4T",
-            "score": 0.01639344262295082,
-            "source": null,
-            "title": "Rechnungsmethoden, die sich auf eine Erweiterung des Grössenbegriffes gründen"
-          },
-          {
-            "itemKey": "GALVDHUT",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "The study on national power development plan for the period of 2006-2015, perspective up to 2025 in Vietnam - Supporting reports"
-          },
-          {
-            "itemKey": "QURVGMJD",
-            "score": 0.015625,
-            "source": "fulltext",
-            "title": "The global structure of locally chordal graphs"
-          },
-          {
-            "itemKey": "AQAHV4QI",
-            "score": 0.015384615384615385,
-            "source": "fulltext",
-            "title": "Locally chordal graphs"
-          },
-          {
-            "itemKey": "MKQACJEP",
-            "score": 0.014492753623188406,
-            "source": "fulltext",
-            "title": "Revealed preference test and shortest path problem; graph theoretic structure of the rationalizability test"
-          },
-          {
-            "itemKey": "S2FTQ8VI",
-            "score": 0.014285714285714285,
-            "source": "fulltext",
-            "title": "Gradient configurations and quadratic functions"
-          },
-          {
-            "itemKey": "4574EQ7I",
-            "score": 0.013888888888888888,
-            "source": "fulltext",
-            "title": "Geometrie der Zahlen"
-          },
-          {
-            "itemKey": "VB53B2JB",
-            "score": 0.0136986301369863,
-            "source": "fulltext",
-            "title": "The MIT Emissions Prediction and Policy Analysis (EPPA) Model: Version 4"
-          },
-          {
-            "itemKey": "LDT76S7V",
-            "score": 0.013513513513513514,
-            "source": "fulltext",
-            "title": "Impact of Social Entrepreneurial Factors on Sustainable Enterprise Development: Mediating Role of Social Network and Moderating Effect of Government Regulations"
-          },
-          {
-            "itemKey": "YZDFJ9MS",
-            "score": 0.010416666666666666,
-            "source": "fulltext",
-            "title": "Énergie éolienne et acceptabilité sociale. Guide à l'inention des élus municipaux du Québec"
-          },
-          {
-            "itemKey": "KPTPHQPQ",
-            "score": 0.008547008547008548,
-            "source": "fulltext",
-            "title": "Handbook on the History of Economic Analysis, Volume III: Developments in Major Fields of Economics"
-          }
-        ]
-      },
-      "richesses": {
-        "n": 15,
-        "keys": [
-          "W4925VVD",
-          "UKVXPC5P",
-          "9QGXJU9N",
-          "MEC4PX3C",
-          "CSK9WJEW",
-          "GTIGCIFF",
-          "J7B6FQ86",
-          "REU8X9AR",
-          "S3MSZRRD",
-          "3XAI3VFE",
-          "CQ6X57NJ",
-          "5VA22A3D",
-          "M8T2GBWF",
-          "JDJUFSZA",
-          "JM8NHHM8"
-        ],
-        "hits": [
-          {
-            "itemKey": "W4925VVD",
-            "score": 0.01639344262295082,
-            "source": null,
-            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
-          },
-          {
-            "itemKey": "UKVXPC5P",
-            "score": 0.016129032258064516,
-            "source": "fulltext",
-            "title": "Note sur les œuvres économiques d'Augustin Cournot"
-          },
-          {
-            "itemKey": "9QGXJU9N",
-            "score": 0.015384615384615385,
-            "source": null,
-            "title": "Un plan mondial pour le climat et contre l'extrême pauvreté"
-          },
-          {
-            "itemKey": "MEC4PX3C",
-            "score": 0.014925373134328358,
-            "source": null,
-            "title": "Recherches sur les principes mathématiques de la théorie des richesses"
-          },
-          {
-            "itemKey": "CSK9WJEW",
-            "score": 0.014705882352941176,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot and the emergence of mathematical economics"
-          },
-          {
-            "itemKey": "GTIGCIFF",
-            "score": 0.014492753623188406,
-            "source": "fulltext",
-            "title": "Antoine-Augustin Cournot (1801-1877)"
-          },
-          {
-            "itemKey": "J7B6FQ86",
-            "score": 0.01282051282051282,
-            "source": "fulltext",
-            "title": "Éléments d'économie politique pure, ou Théorie de la richesse sociale"
-          },
-          {
-            "itemKey": "REU8X9AR",
-            "score": 0.012345679012345678,
-            "source": "fulltext",
-            "title": "On the Development of Optimization Theory"
-          },
-          {
-            "itemKey": "S3MSZRRD",
-            "score": 0.011764705882352941,
-            "source": "fulltext",
-            "title": "Managing tree seed in an uncertain climate: conference summary"
-          },
-          {
-            "itemKey": "3XAI3VFE",
-            "score": 0.011627906976744186,
-            "source": "fulltext",
-            "title": "Handbook on the History of Economic Analysis, Volume I: Great Economists since Petty and Boisguilbert"
-          },
-          {
-            "itemKey": "CQ6X57NJ",
-            "score": 0.011494252873563218,
-            "source": "fulltext",
-            "title": "A Survey of the Theory of International Trade: Part 1, The Classical Theory"
-          },
-          {
-            "itemKey": "5VA22A3D",
-            "score": 0.010101010101010102,
-            "source": "fulltext",
-            "title": "Budget support guidelines"
-          },
-          {
-            "itemKey": "M8T2GBWF",
-            "score": 0.009615384615384616,
-            "source": "fulltext",
-            "title": "Les doctrines de Cournot sur le commerce international"
-          },
-          {
-            "itemKey": "JDJUFSZA",
-            "score": 0.009009009009009009,
-            "source": "fulltext",
-            "title": "Les problèmes économiques de l'équipement hydroélectrique"
-          },
-          {
-            "itemKey": "JM8NHHM8",
-            "score": 0.008620689655172414,
-            "source": "fulltext",
-            "title": "Les modèles du futur: changement climatique et scénarios économiques, enjeux scientifiques et politiques"
-          }
-        ]
-      }
-    },
-    "peak_rss_kb_final": 3881088
-  },
-  "atrest_peak_rss_kb": 3881088,
-  "atrest_peak_rss_mib": 3790.1,
-  "atrest_after_start_kb": 3645756,
-  "atrest_after_start_mib": 3560.3,
+ "rung": "instrument-check (pre-existing 5000-item index from .zoteus-bench-0005, copied)",
+ "timestamp_utc": "2026-08-21T20:18:53.523088+00:00",
+ "note": "Reproduction of bench/results/0005-migration/res5k_json.json with this session's own invocation. Recorded there: peak_rss_kb_final 3876592 kB. No build in this rung -- at-rest only.",
+ "env": {
+  "node_version": "v22.23.1",
+  "python_version": "3.14.4",
+  "platform": "Linux-7.0.0-29-generic-x86_64-inconnu-with-glibc2.43",
+  "NODE_OPTIONS": "--max-old-space-size=12288",
+  "ZOTEUS_SEARCH_BACKEND": "json",
+  "ZOTEUS_INDEX_MAX_ITEMS": "(index pre-built elsewhere; caps unknown)",
+  "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "(unknown)",
+  "ZOTEUS_INDEX_FULLTEXT": "1",
+  "ZOTEUS_EMBEDDINGS": "off",
+  "ZOTEUS_INDEX_AUTO_REFRESH": "false",
+  "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-json-baseline/instr5000",
+  "server": "/home/haduong/CNRS/projets/actifs/zoteus-fts5/fork/dist/index.js",
+  "server_mtime": "2026-08-21T21:05:53",
+  "instrument": "/proc/<pid>/status VmHWM (kernel high-water mark)",
+  "wall_clock_contaminated": "yes -- another agent ran tests on this machine concurrently; VmHWM is per-process and unaffected"
+ },
+ "files": {
+  "search-index.json": 321274157,
+  "update-check.json": 120
+ },
+ "atrest": {
+  "backend": "json",
+  "handshake_s": 26.32,
+  "ready_s": 26.32,
+  "peak_rss_kb_after_start": 3645756,
   "status": {
-    "documents": 237352,
-    "vectors": 0,
-    "items": 5000,
-    "embedder": "none (keyword-only)",
-    "embedderConfigured": "off",
-    "embedderActive": false,
-    "fulltextEnabled": true,
-    "fulltextItems": 3768,
-    "fulltextPassages": 229466,
-    "builtFromVersion": 200,
-    "passages": 237352,
-    "state": "idle",
-    "itemsFetched": 0,
-    "itemsTotal": 0,
-    "itemsAvailable": 0
+   "documents": 237352,
+   "vectors": 0,
+   "items": 5000,
+   "embedder": "none (keyword-only)",
+   "embedderConfigured": "off",
+   "embedderActive": false,
+   "fulltextEnabled": true,
+   "fulltextItems": 3768,
+   "fulltextPassages": 229466,
+   "builtFromVersion": 200,
+   "passages": 237352,
+   "state": "idle",
+   "itemsFetched": 0,
+   "itemsTotal": 0,
+   "itemsAvailable": 0
   },
-  "startup_s": 26.32,
-  "index_bytes": 321274157,
-  "index_mib": 306.4
+  "queries": {
+   "climate policy": {
+    "n": 20,
+    "keys": [
+     "FGBS9CZN",
+     "NPRSQW47",
+     "BLL9E64L",
+     "8N5WB48F",
+     "C7LYAMZJ",
+     "RQJPNM2Y",
+     "BP6NVI3J",
+     "XED42BVI",
+     "FV3VTQ4W",
+     "3LU5YVCH",
+     "VB53B2JB",
+     "DS9KVEAS",
+     "FVDYLWXS",
+     "Y78332XM",
+     "5CUEHL7H",
+     "BNS2PRPG",
+     "B3UMRE4G",
+     "B6HXUHIS",
+     "KA6D6U9R",
+     "CH9RCPVG"
+    ],
+    "hits": [
+     {
+      "itemKey": "FGBS9CZN",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "NPRSQW47",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "BLL9E64L",
+      "score": 0.015873015873015872,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "8N5WB48F",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "C7LYAMZJ",
+      "score": 0.015384615384615385,
+      "source": null
+     },
+     {
+      "itemKey": "RQJPNM2Y",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "BP6NVI3J",
+      "score": 0.014925373134328358,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XED42BVI",
+      "score": 0.014705882352941176,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "FV3VTQ4W",
+      "score": 0.014492753623188406,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3LU5YVCH",
+      "score": 0.014285714285714285,
+      "source": null
+     },
+     {
+      "itemKey": "VB53B2JB",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "DS9KVEAS",
+      "score": 0.0136986301369863,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "FVDYLWXS",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "Y78332XM",
+      "score": 0.013333333333333334,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "5CUEHL7H",
+      "score": 0.013157894736842105,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "BNS2PRPG",
+      "score": 0.012987012987012988,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "B3UMRE4G",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "B6HXUHIS",
+      "score": 0.012658227848101266,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "KA6D6U9R",
+      "score": 0.0125,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CH9RCPVG",
+      "score": 0.012345679012345678,
+      "source": null
+     }
+    ]
+   },
+   "index numbers": {
+    "n": 20,
+    "keys": [
+     "FIL2JI5M",
+     "XMFQBZQZ",
+     "IC3VB3BZ",
+     "2BK3JGTQ",
+     "I4MCFS4X",
+     "GZK9KAH4",
+     "7GFY7GPX",
+     "SVSCFTWT",
+     "79FCFXE7",
+     "FDTPZRB7",
+     "HC4MN7NM",
+     "2KDVRCNK",
+     "BXEXAMIU",
+     "XVGD8S63",
+     "SJP342MQ",
+     "P36FM7EJ",
+     "72JRJEUR",
+     "7TDQKYHL",
+     "224895YK",
+     "J9JBYHE9"
+    ],
+    "hits": [
+     {
+      "itemKey": "FIL2JI5M",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XMFQBZQZ",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IC3VB3BZ",
+      "score": 0.015873015873015872,
+      "source": null
+     },
+     {
+      "itemKey": "2BK3JGTQ",
+      "score": 0.015151515151515152,
+      "source": null
+     },
+     {
+      "itemKey": "I4MCFS4X",
+      "score": 0.014925373134328358,
+      "source": null
+     },
+     {
+      "itemKey": "GZK9KAH4",
+      "score": 0.014705882352941176,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "7GFY7GPX",
+      "score": 0.014492753623188406,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SVSCFTWT",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "79FCFXE7",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "FDTPZRB7",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "HC4MN7NM",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "2KDVRCNK",
+      "score": 0.012658227848101266,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "BXEXAMIU",
+      "score": 0.0125,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XVGD8S63",
+      "score": 0.012345679012345678,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SJP342MQ",
+      "score": 0.012048192771084338,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "P36FM7EJ",
+      "score": 0.011904761904761904,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "72JRJEUR",
+      "score": 0.011764705882352941,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "7TDQKYHL",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "224895YK",
+      "score": 0.011494252873563218,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "J9JBYHE9",
+      "score": 0.011363636363636364,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "optimal transport": {
+    "n": 9,
+    "keys": [
+     "SCT565MN",
+     "IFR5B8I3",
+     "3F8ERVCM",
+     "MD672UBB",
+     "XVSR2X2R",
+     "GV5U9CPV",
+     "XVU5A5XH",
+     "RG9US92B",
+     "3GZ7DJVN"
+    ],
+    "hits": [
+     {
+      "itemKey": "SCT565MN",
+      "score": 0.01639344262295082,
+      "source": null
+     },
+     {
+      "itemKey": "IFR5B8I3",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3F8ERVCM",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MD672UBB",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XVSR2X2R",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GV5U9CPV",
+      "score": 0.011111111111111112,
+      "source": null
+     },
+     {
+      "itemKey": "XVU5A5XH",
+      "score": 0.010526315789473684,
+      "source": null
+     },
+     {
+      "itemKey": "RG9US92B",
+      "score": 0.010416666666666666,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3GZ7DJVN",
+      "score": 0.00909090909090909,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "arbitrage": {
+    "n": 19,
+    "keys": [
+     "G4KUDUJP",
+     "HEJVJWYV",
+     "PNPVBZDQ",
+     "HRSWWSGX",
+     "MEXGIZD8",
+     "CUP4DV9D",
+     "E3JCGHCU",
+     "JDNF84UG",
+     "UUTET8WM",
+     "4QKDRH94",
+     "GW84G9KE",
+     "H678DN9J",
+     "SZC9665E",
+     "9AJ9A4ZZ",
+     "SXTE5992",
+     "T7RNBMWB",
+     "7W9NIS7N",
+     "P4GRFMFC",
+     "S7AKUVHE"
+    ],
+    "hits": [
+     {
+      "itemKey": "G4KUDUJP",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "HEJVJWYV",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "PNPVBZDQ",
+      "score": 0.015873015873015872,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "HRSWWSGX",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MEXGIZD8",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CUP4DV9D",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "E3JCGHCU",
+      "score": 0.0136986301369863,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "JDNF84UG",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "UUTET8WM",
+      "score": 0.013157894736842105,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "4QKDRH94",
+      "score": 0.012987012987012988,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GW84G9KE",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "H678DN9J",
+      "score": 0.012658227848101266,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SZC9665E",
+      "score": 0.010638297872340425,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "9AJ9A4ZZ",
+      "score": 0.010526315789473684,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SXTE5992",
+      "score": 0.01,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "T7RNBMWB",
+      "score": 0.00980392156862745,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "7W9NIS7N",
+      "score": 0.009615384615384616,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "P4GRFMFC",
+      "score": 0.008849557522123894,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "S7AKUVHE",
+      "score": 0.008403361344537815,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "consumer demand": {
+    "n": 20,
+    "keys": [
+     "E6E4L7U8",
+     "2M8DM5BI",
+     "IM84TQGT",
+     "FDTPZRB7",
+     "7IDIKHS2",
+     "RG9US92B",
+     "QSXGG8JB",
+     "2KDVRCNK",
+     "XHW2W49G",
+     "Z7ZW4K4J",
+     "S6JZWDEI",
+     "DS9KVEAS",
+     "UJCHCTYI",
+     "U44E4GPD",
+     "SEYAIPEA",
+     "5UIJPSWI",
+     "CCF7D7AP",
+     "98DI7REN",
+     "RDCE6GRY",
+     "VHVLBJGM"
+    ],
+    "hits": [
+     {
+      "itemKey": "E6E4L7U8",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "2M8DM5BI",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IM84TQGT",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "FDTPZRB7",
+      "score": 0.015384615384615385,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "7IDIKHS2",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "RG9US92B",
+      "score": 0.014705882352941176,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "QSXGG8JB",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "2KDVRCNK",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XHW2W49G",
+      "score": 0.013333333333333334,
+      "source": null
+     },
+     {
+      "itemKey": "Z7ZW4K4J",
+      "score": 0.013157894736842105,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "S6JZWDEI",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "DS9KVEAS",
+      "score": 0.012048192771084338,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "UJCHCTYI",
+      "score": 0.011764705882352941,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "U44E4GPD",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SEYAIPEA",
+      "score": 0.011235955056179775,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "5UIJPSWI",
+      "score": 0.01098901098901099,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CCF7D7AP",
+      "score": 0.010416666666666666,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "98DI7REN",
+      "score": 0.010309278350515464,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "RDCE6GRY",
+      "score": 0.01,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "VHVLBJGM",
+      "score": 0.009900990099009901,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "mathematical economics": {
+    "n": 17,
+    "keys": [
+     "6ZMCCBGX",
+     "8LNV6JF4",
+     "XH9UWCKG",
+     "B4APP976",
+     "SFWS38BV",
+     "CEI5RIHI",
+     "V5D49GEX",
+     "MM56C8XH",
+     "ZTXRZKZP",
+     "CSK9WJEW",
+     "CIJ2E7DV",
+     "AGMQMZP9",
+     "H678DN9J",
+     "B3UMRE4G",
+     "UQ9EPQNE",
+     "2KDVRCNK",
+     "4QQDLYXC"
+    ],
+    "hits": [
+     {
+      "itemKey": "6ZMCCBGX",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "8LNV6JF4",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XH9UWCKG",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "B4APP976",
+      "score": 0.011904761904761904,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "SFWS38BV",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CEI5RIHI",
+      "score": 0.011494252873563218,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "V5D49GEX",
+      "score": 0.010526315789473684,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MM56C8XH",
+      "score": 0.010416666666666666,
+      "source": null
+     },
+     {
+      "itemKey": "ZTXRZKZP",
+      "score": 0.010309278350515464,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CSK9WJEW",
+      "score": 0.01020408163265306,
+      "source": null
+     },
+     {
+      "itemKey": "CIJ2E7DV",
+      "score": 0.01,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "AGMQMZP9",
+      "score": 0.009433962264150943,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "H678DN9J",
+      "score": 0.008928571428571428,
+      "source": null
+     },
+     {
+      "itemKey": "B3UMRE4G",
+      "score": 0.008771929824561403,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "UQ9EPQNE",
+      "score": 0.008695652173913044,
+      "source": null
+     },
+     {
+      "itemKey": "2KDVRCNK",
+      "score": 0.008620689655172414,
+      "source": null
+     },
+     {
+      "itemKey": "4QQDLYXC",
+      "score": 0.008547008547008548,
+      "source": null
+     }
+    ]
+   },
+   "carbon tax": {
+    "n": 11,
+    "keys": [
+     "Z7A2WC4X",
+     "X69DJS66",
+     "R4HDCVL9",
+     "GP4CV9I3",
+     "LMZZ6L7N",
+     "DS9KVEAS",
+     "KCFDEM2J",
+     "9UYSQKYG",
+     "THADWQTQ",
+     "V38W5GKD",
+     "EEKJSV6H"
+    ],
+    "hits": [
+     {
+      "itemKey": "Z7A2WC4X",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "X69DJS66",
+      "score": 0.013333333333333334,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "R4HDCVL9",
+      "score": 0.013157894736842105,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GP4CV9I3",
+      "score": 0.0125,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "LMZZ6L7N",
+      "score": 0.012048192771084338,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "DS9KVEAS",
+      "score": 0.011363636363636364,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "KCFDEM2J",
+      "score": 0.010101010101010102,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "9UYSQKYG",
+      "score": 0.009174311926605505,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "THADWQTQ",
+      "score": 0.009009009009009009,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "V38W5GKD",
+      "score": 0.008771929824561403,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "EEKJSV6H",
+      "score": 0.008620689655172414,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "equilibrium": {
+    "n": 20,
+    "keys": [
+     "K2I876ZW",
+     "QXZAV24W",
+     "UA7S9ZFV",
+     "GS6DK2JI",
+     "C7LYAMZJ",
+     "5UIJPSWI",
+     "IDAACIUE",
+     "AZDFDDWG",
+     "GV5U9CPV",
+     "4DQGPIBI",
+     "IYKSXMNP",
+     "F4ZCUXEF",
+     "Z7ZW4K4J",
+     "MINQVTZE",
+     "XH9UWCKG",
+     "9KSMUGKB",
+     "H678DN9J",
+     "ER4DSTD2",
+     "IY7QQTPG",
+     "ZPXHPF9Q"
+    ],
+    "hits": [
+     {
+      "itemKey": "K2I876ZW",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "QXZAV24W",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "UA7S9ZFV",
+      "score": 0.015873015873015872,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GS6DK2JI",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "C7LYAMZJ",
+      "score": 0.015384615384615385,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "5UIJPSWI",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IDAACIUE",
+      "score": 0.014705882352941176,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "AZDFDDWG",
+      "score": 0.014285714285714285,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GV5U9CPV",
+      "score": 0.014084507042253521,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "4DQGPIBI",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IYKSXMNP",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "F4ZCUXEF",
+      "score": 0.013333333333333334,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "Z7ZW4K4J",
+      "score": 0.013157894736842105,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MINQVTZE",
+      "score": 0.012658227848101266,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "XH9UWCKG",
+      "score": 0.011764705882352941,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "9KSMUGKB",
+      "score": 0.011111111111111112,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "H678DN9J",
+      "score": 0.010526315789473684,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "ER4DSTD2",
+      "score": 0.010416666666666666,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IY7QQTPG",
+      "score": 0.01,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "ZPXHPF9Q",
+      "score": 0.009900990099009901,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "théorie": {
+    "n": 14,
+    "keys": [
+     "3FU4WF3V",
+     "J7B6FQ86",
+     "GTIGCIFF",
+     "2C933JHA",
+     "R3KFAMIG",
+     "M8T2GBWF",
+     "CSK9WJEW",
+     "52LAGW8S",
+     "W4925VVD",
+     "UKVXPC5P",
+     "CTQGK676",
+     "WY2V3MGB",
+     "GVN8ZBL8",
+     "7DI99UPZ"
+    ],
+    "hits": [
+     {
+      "itemKey": "3FU4WF3V",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "J7B6FQ86",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GTIGCIFF",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "2C933JHA",
+      "score": 0.014285714285714285,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "R3KFAMIG",
+      "score": 0.012987012987012988,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "M8T2GBWF",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CSK9WJEW",
+      "score": 0.012345679012345678,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "52LAGW8S",
+      "score": 0.010869565217391304,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "W4925VVD",
+      "score": 0.010309278350515464,
+      "source": null
+     },
+     {
+      "itemKey": "UKVXPC5P",
+      "score": 0.009708737864077669,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CTQGK676",
+      "score": 0.009345794392523364,
+      "source": null
+     },
+     {
+      "itemKey": "WY2V3MGB",
+      "score": 0.008695652173913044,
+      "source": null
+     },
+     {
+      "itemKey": "GVN8ZBL8",
+      "score": 0.008403361344537815,
+      "source": null
+     },
+     {
+      "itemKey": "7DI99UPZ",
+      "score": 0.008333333333333333,
+      "source": null
+     }
+    ]
+   },
+   "theorie": {
+    "n": 20,
+    "keys": [
+     "7W6427SB",
+     "MYH839NE",
+     "27RQ3BN4",
+     "J6MXQTJ5",
+     "Z37YMCZH",
+     "VRZG2CKR",
+     "6SRYL45Y",
+     "4574EQ7I",
+     "T8ZTLQW6",
+     "9Q4BL2CB",
+     "ACKDTMZA",
+     "IYKSXMNP",
+     "H37CI38M",
+     "N2WEKU9J",
+     "X8IJ5FRM",
+     "6Y896URW",
+     "HXJEP32C",
+     "MZJAJB5J",
+     "B4APP976",
+     "REU8X9AR"
+    ],
+    "hits": [
+     {
+      "itemKey": "7W6427SB",
+      "score": 0.01639344262295082,
+      "source": null
+     },
+     {
+      "itemKey": "MYH839NE",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "27RQ3BN4",
+      "score": 0.015873015873015872,
+      "source": null
+     },
+     {
+      "itemKey": "J6MXQTJ5",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "Z37YMCZH",
+      "score": 0.015151515151515152,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "VRZG2CKR",
+      "score": 0.014925373134328358,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "6SRYL45Y",
+      "score": 0.014285714285714285,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "4574EQ7I",
+      "score": 0.0136986301369863,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "T8ZTLQW6",
+      "score": 0.012987012987012988,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "9Q4BL2CB",
+      "score": 0.0125,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "ACKDTMZA",
+      "score": 0.012195121951219513,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "IYKSXMNP",
+      "score": 0.012048192771084338,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "H37CI38M",
+      "score": 0.011764705882352941,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "N2WEKU9J",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "X8IJ5FRM",
+      "score": 0.011494252873563218,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "6Y896URW",
+      "score": 0.011363636363636364,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "HXJEP32C",
+      "score": 0.011235955056179775,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MZJAJB5J",
+      "score": 0.011111111111111112,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "B4APP976",
+      "score": 0.01098901098901099,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "REU8X9AR",
+      "score": 0.010869565217391304,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "mathématiques": {
+    "n": 16,
+    "keys": [
+     "2C933JHA",
+     "J7B6FQ86",
+     "CZD2P36I",
+     "W4925VVD",
+     "MEC4PX3C",
+     "QZ7JFQVC",
+     "UKVXPC5P",
+     "CSK9WJEW",
+     "GTIGCIFF",
+     "Q5MQUGBA",
+     "J6MXQTJ5",
+     "ZT9RVGY7",
+     "3PDGF64X",
+     "JM8NHHM8",
+     "RKN7GLHA",
+     "3FU4WF3V"
+    ],
+    "hits": [
+     {
+      "itemKey": "2C933JHA",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "J7B6FQ86",
+      "score": 0.014492753623188406,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CZD2P36I",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "W4925VVD",
+      "score": 0.013513513513513514,
+      "source": null
+     },
+     {
+      "itemKey": "MEC4PX3C",
+      "score": 0.011904761904761904,
+      "source": null
+     },
+     {
+      "itemKey": "QZ7JFQVC",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "UKVXPC5P",
+      "score": 0.011494252873563218,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CSK9WJEW",
+      "score": 0.011111111111111112,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GTIGCIFF",
+      "score": 0.01098901098901099,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "Q5MQUGBA",
+      "score": 0.009900990099009901,
+      "source": null
+     },
+     {
+      "itemKey": "J6MXQTJ5",
+      "score": 0.009259259259259259,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "ZT9RVGY7",
+      "score": 0.008771929824561403,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3PDGF64X",
+      "score": 0.008695652173913044,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "JM8NHHM8",
+      "score": 0.008620689655172414,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "RKN7GLHA",
+      "score": 0.008547008547008548,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3FU4WF3V",
+      "score": 0.00847457627118644,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "mathematiques": {
+    "n": 2,
+    "keys": [
+     "REU8X9AR",
+     "4574EQ7I"
+    ],
+    "hits": [
+     {
+      "itemKey": "REU8X9AR",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "4574EQ7I",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "probabilità": {
+    "n": 5,
+    "keys": [
+     "4QSZ36XW",
+     "CZD2P36I",
+     "WCWCA5SU",
+     "KBBAPCDS",
+     "V6MWBFPK"
+    ],
+    "hits": [
+     {
+      "itemKey": "4QSZ36XW",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CZD2P36I",
+      "score": 0.015873015873015872,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "WCWCA5SU",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "KBBAPCDS",
+      "score": 0.012195121951219513,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "V6MWBFPK",
+      "score": 0.008547008547008548,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "probabilita": {
+    "n": 3,
+    "keys": [
+     "V6DS9TBB",
+     "DPKSQULU",
+     "AU8GDCRB"
+    ],
+    "hits": [
+     {
+      "itemKey": "V6DS9TBB",
+      "score": 0.01639344262295082,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "DPKSQULU",
+      "score": 0.015873015873015872,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "AU8GDCRB",
+      "score": 0.015625,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "Grössenbegriffes": {
+    "n": 11,
+    "keys": [
+     "B6T9NF4T",
+     "GALVDHUT",
+     "QURVGMJD",
+     "AQAHV4QI",
+     "MKQACJEP",
+     "S2FTQ8VI",
+     "4574EQ7I",
+     "VB53B2JB",
+     "LDT76S7V",
+     "YZDFJ9MS",
+     "KPTPHQPQ"
+    ],
+    "hits": [
+     {
+      "itemKey": "B6T9NF4T",
+      "score": 0.01639344262295082,
+      "source": null
+     },
+     {
+      "itemKey": "GALVDHUT",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "QURVGMJD",
+      "score": 0.015625,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "AQAHV4QI",
+      "score": 0.015384615384615385,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "MKQACJEP",
+      "score": 0.014492753623188406,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "S2FTQ8VI",
+      "score": 0.014285714285714285,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "4574EQ7I",
+      "score": 0.013888888888888888,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "VB53B2JB",
+      "score": 0.0136986301369863,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "LDT76S7V",
+      "score": 0.013513513513513514,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "YZDFJ9MS",
+      "score": 0.010416666666666666,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "KPTPHQPQ",
+      "score": 0.008547008547008548,
+      "source": "fulltext"
+     }
+    ]
+   },
+   "richesses": {
+    "n": 15,
+    "keys": [
+     "W4925VVD",
+     "UKVXPC5P",
+     "9QGXJU9N",
+     "MEC4PX3C",
+     "CSK9WJEW",
+     "GTIGCIFF",
+     "J7B6FQ86",
+     "REU8X9AR",
+     "S3MSZRRD",
+     "3XAI3VFE",
+     "CQ6X57NJ",
+     "5VA22A3D",
+     "M8T2GBWF",
+     "JDJUFSZA",
+     "JM8NHHM8"
+    ],
+    "hits": [
+     {
+      "itemKey": "W4925VVD",
+      "score": 0.01639344262295082,
+      "source": null
+     },
+     {
+      "itemKey": "UKVXPC5P",
+      "score": 0.016129032258064516,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "9QGXJU9N",
+      "score": 0.015384615384615385,
+      "source": null
+     },
+     {
+      "itemKey": "MEC4PX3C",
+      "score": 0.014925373134328358,
+      "source": null
+     },
+     {
+      "itemKey": "CSK9WJEW",
+      "score": 0.014705882352941176,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "GTIGCIFF",
+      "score": 0.014492753623188406,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "J7B6FQ86",
+      "score": 0.01282051282051282,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "REU8X9AR",
+      "score": 0.012345679012345678,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "S3MSZRRD",
+      "score": 0.011764705882352941,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "3XAI3VFE",
+      "score": 0.011627906976744186,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "CQ6X57NJ",
+      "score": 0.011494252873563218,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "5VA22A3D",
+      "score": 0.010101010101010102,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "M8T2GBWF",
+      "score": 0.009615384615384616,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "JDJUFSZA",
+      "score": 0.009009009009009009,
+      "source": "fulltext"
+     },
+     {
+      "itemKey": "JM8NHHM8",
+      "score": 0.008620689655172414,
+      "source": "fulltext"
+     }
+    ]
+   }
+  },
+  "peak_rss_kb_final": 3881088
+ },
+ "atrest_peak_rss_kb": 3881088,
+ "atrest_peak_rss_mib": 3790.1,
+ "atrest_after_start_kb": 3645756,
+ "atrest_after_start_mib": 3560.3,
+ "status": {
+  "documents": 237352,
+  "vectors": 0,
+  "items": 5000,
+  "embedder": "none (keyword-only)",
+  "embedderConfigured": "off",
+  "embedderActive": false,
+  "fulltextEnabled": true,
+  "fulltextItems": 3768,
+  "fulltextPassages": 229466,
+  "builtFromVersion": 200,
+  "passages": 237352,
+  "state": "idle",
+  "itemsFetched": 0,
+  "itemsTotal": 0,
+  "itemsAvailable": 0
+ },
+ "startup_s": 26.32,
+ "index_bytes": 321274157,
+ "index_mib": 306.4,
+ "redaction": "Document names removed 2026-08-31 by ruling (spec/DECISIONS.md): committed artifacts identify a library document by its Zotero item key and never by its title or filename. Keys are unchanged, so every figure here remains traceable."
 }

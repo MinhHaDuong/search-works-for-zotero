@@ -1,167 +1,164 @@
 {
-  "env": {
-    "ZOTEUS_EMBEDDINGS": "off",
-    "ZOTEUS_INDEX_FULLTEXT": "1",
-    "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0",
-    "ZOTEUS_INDEX_MAX_ITEMS": "1000000",
-    "ZOTEUS_SEARCH_BACKEND": "sqlite",
-    "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-bench-0003",
-    "NODE_OPTIONS": ""
+ "env": {
+  "ZOTEUS_EMBEDDINGS": "off",
+  "ZOTEUS_INDEX_FULLTEXT": "1",
+  "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "0",
+  "ZOTEUS_INDEX_MAX_ITEMS": "1000000",
+  "ZOTEUS_SEARCH_BACKEND": "sqlite",
+  "ZOTEUS_DATA_DIR": "/home/haduong/.zoteus-bench-0003",
+  "NODE_OPTIONS": ""
+ },
+ "queries": [
+  {
+   "q": "carbon tax revenue recycling",
+   "latency_ms": 291.5,
+   "n_results": 5,
+   "first": {
+    "itemKey": "YRHZ3P7L",
+    "snippet": "ected Tax cuts for firms Uniform lump-sum transfers to households Directed transfers to particularly affected households Other tax cuts for households Progressive tax cuts for households General funds Green spending (infrastructure, …",
+    "score": 0.01639344262295082,
+    "source": "fulltext"
+   },
+   "raw_keys": [
+    "builtFromVersion",
+    "embedder",
+    "embedderActive",
+    "embedderConfigured",
+    "fulltextEnabled",
+    "hits",
+    "indexBackend",
+    "indexRefresh"
+   ]
   },
-  "queries": [
-    {
-      "q": "carbon tax revenue recycling",
-      "latency_ms": 291.5,
-      "n_results": 5,
-      "first": {
-        "itemKey": "YRHZ3P7L",
-        "title": "Making carbon pricing work for citizens",
-        "snippet": "ected Tax cuts for firms Uniform lump-sum transfers to households Directed transfers to particularly affected households Other tax cuts for households Progressive tax cuts for households General funds Green spending (infrastructure, …",
-        "score": 0.01639344262295082,
-        "source": "fulltext"
-      },
-      "raw_keys": [
-        "builtFromVersion",
-        "embedder",
-        "embedderActive",
-        "embedderConfigured",
-        "fulltextEnabled",
-        "hits",
-        "indexBackend",
-        "indexRefresh"
-      ]
-    },
-    {
-      "q": "biomass energy Vietnam",
-      "latency_ms": 547.6,
-      "n_results": 10,
-      "first": {
-        "itemKey": "QR353BTU",
-        "title": "Biomass potential and material flow in the Mekong Delta of Vietnam",
-        "snippet": "S and Kammen MD: Energy resources and development in Vietnam. Annual Reviews Energy and Environment Vol. 18, pp. 137-67 , 1993. 8) Tran DM: Policy and strategy for biomass development and utilization in Vietnam. 2nd Biomass Asia Workshop. …",
-        "score": 0.01639344262295082,
-        "source": "fulltext"
-      },
-      "raw_keys": [
-        "builtFromVersion",
-        "embedder",
-        "embedderActive",
-        "embedderConfigured",
-        "fulltextEnabled",
-        "hits",
-        "indexBackend",
-        "indexRefresh"
-      ]
-    },
-    {
-      "q": "integrated assessment model uncertainty",
-      "latency_ms": 296.1,
-      "n_results": 10,
-      "first": {
-        "itemKey": "U5QXG2P7",
-        "title": "Modelling and uncertainties in integrated energy planning",
-        "snippet": "Modelling and uncertainties in integrated energy planning. Significant progress has been done in the last decades to characterise and define uncertainty in model based planning and decision making in general and in areas like integrated …",
-        "score": 0.01639344262295082
-      },
-      "raw_keys": [
-        "builtFromVersion",
-        "embedder",
-        "embedderActive",
-        "embedderConfigured",
-        "fulltextEnabled",
-        "hits",
-        "indexBackend",
-        "indexRefresh"
-      ]
-    },
-    {
-      "q": "carbon capture and storage cost",
-      "latency_ms": 281.0,
-      "n_results": 10,
-      "first": {
-        "itemKey": "TPZW6DIH",
-        "title": "Prospect for Carbon Capture and Storage In Southeast Asia",
-        "snippet": "… Gas Fields in the Offshore Sedimentary Basins of Viet Nam 44 6.1 Levelized Cost of Electricity of Power Plants with and without Carbon Capture and Storage 50 6.2 Abatement Costs for Carbon Capture and Storage in Power Plants 51 6.3 …",
-        "score": 0.01639344262295082,
-        "source": "fulltext"
-      },
-      "raw_keys": [
-        "builtFromVersion",
-        "embedder",
-        "embedderActive",
-        "embedderConfigured",
-        "fulltextEnabled",
-        "hits",
-        "indexBackend",
-        "indexRefresh"
-      ]
-    },
-    {
-      "q": "carbon tax revenue recycling",
-      "pass": "warm",
-      "latency_ms": 234.7
-    },
-    {
-      "q": "biomass energy Vietnam",
-      "pass": "warm",
-      "latency_ms": 343.7
-    },
-    {
-      "q": "integrated assessment model uncertainty",
-      "pass": "warm",
-      "latency_ms": 308.1
-    },
-    {
-      "q": "carbon capture and storage cost",
-      "pass": "warm",
-      "latency_ms": 278.3
-    }
-  ],
-  "boot_to_handshake_s": 0.824,
-  "status_on_restart": {
-    "documents": 477511,
-    "vectors": 0,
-    "items": 7540,
-    "embedder": "none (keyword-only)",
-    "embedderConfigured": "off",
-    "embedderActive": false,
-    "fulltextEnabled": true,
-    "fulltextItems": 5562,
-    "fulltextPassages": 465110,
-    "builtFromVersion": 200,
-    "indexBackend": "local",
-    "fulltextPendingItems": 429,
-    "passages": 477511,
-    "state": "idle",
-    "itemsFetched": 0,
-    "itemsTotal": 0,
-    "itemsAvailable": 0
+  {
+   "q": "biomass energy Vietnam",
+   "latency_ms": 547.6,
+   "n_results": 10,
+   "first": {
+    "itemKey": "QR353BTU",
+    "snippet": "S and Kammen MD: Energy resources and development in Vietnam. Annual Reviews Energy and Environment Vol. 18, pp. 137-67 , 1993. 8) Tran DM: Policy and strategy for biomass development and utilization in Vietnam. 2nd Biomass Asia Workshop. …",
+    "score": 0.01639344262295082,
+    "source": "fulltext"
+   },
+   "raw_keys": [
+    "builtFromVersion",
+    "embedder",
+    "embedderActive",
+    "embedderConfigured",
+    "fulltextEnabled",
+    "hits",
+    "indexBackend",
+    "indexRefresh"
+   ]
   },
-  "rss_after_open_kB": {
-    "VmHWM": 123504,
-    "VmRSS": 123504
+  {
+   "q": "integrated assessment model uncertainty",
+   "latency_ms": 296.1,
+   "n_results": 10,
+   "first": {
+    "itemKey": "U5QXG2P7",
+    "snippet": "Modelling and uncertainties in integrated energy planning. Significant progress has been done in the last decades to characterise and define uncertainty in model based planning and decision making in general and in areas like integrated …",
+    "score": 0.01639344262295082
+   },
+   "raw_keys": [
+    "builtFromVersion",
+    "embedder",
+    "embedderActive",
+    "embedderConfigured",
+    "fulltextEnabled",
+    "hits",
+    "indexBackend",
+    "indexRefresh"
+   ]
   },
-  "status_after_queries": {
-    "documents": 477511,
-    "vectors": 0,
-    "items": 7540,
-    "embedder": "none (keyword-only)",
-    "embedderConfigured": "off",
-    "embedderActive": false,
-    "fulltextEnabled": true,
-    "fulltextItems": 5562,
-    "fulltextPassages": 465110,
-    "builtFromVersion": 200,
-    "indexBackend": "local",
-    "fulltextPendingItems": 429,
-    "passages": 477511,
-    "state": "idle",
-    "itemsFetched": 0,
-    "itemsTotal": 0,
-    "itemsAvailable": 0
+  {
+   "q": "carbon capture and storage cost",
+   "latency_ms": 281.0,
+   "n_results": 10,
+   "first": {
+    "itemKey": "TPZW6DIH",
+    "snippet": "… Gas Fields in the Offshore Sedimentary Basins of Viet Nam 44 6.1 Levelized Cost of Electricity of Power Plants with and without Carbon Capture and Storage 50 6.2 Abatement Costs for Carbon Capture and Storage in Power Plants 51 6.3 …",
+    "score": 0.01639344262295082,
+    "source": "fulltext"
+   },
+   "raw_keys": [
+    "builtFromVersion",
+    "embedder",
+    "embedderActive",
+    "embedderConfigured",
+    "fulltextEnabled",
+    "hits",
+    "indexBackend",
+    "indexRefresh"
+   ]
   },
-  "rss_after_queries_kB": {
-    "VmHWM": 138184,
-    "VmRSS": 138184
+  {
+   "q": "carbon tax revenue recycling",
+   "pass": "warm",
+   "latency_ms": 234.7
+  },
+  {
+   "q": "biomass energy Vietnam",
+   "pass": "warm",
+   "latency_ms": 343.7
+  },
+  {
+   "q": "integrated assessment model uncertainty",
+   "pass": "warm",
+   "latency_ms": 308.1
+  },
+  {
+   "q": "carbon capture and storage cost",
+   "pass": "warm",
+   "latency_ms": 278.3
   }
+ ],
+ "boot_to_handshake_s": 0.824,
+ "status_on_restart": {
+  "documents": 477511,
+  "vectors": 0,
+  "items": 7540,
+  "embedder": "none (keyword-only)",
+  "embedderConfigured": "off",
+  "embedderActive": false,
+  "fulltextEnabled": true,
+  "fulltextItems": 5562,
+  "fulltextPassages": 465110,
+  "builtFromVersion": 200,
+  "indexBackend": "local",
+  "fulltextPendingItems": 429,
+  "passages": 477511,
+  "state": "idle",
+  "itemsFetched": 0,
+  "itemsTotal": 0,
+  "itemsAvailable": 0
+ },
+ "rss_after_open_kB": {
+  "VmHWM": 123504,
+  "VmRSS": 123504
+ },
+ "status_after_queries": {
+  "documents": 477511,
+  "vectors": 0,
+  "items": 7540,
+  "embedder": "none (keyword-only)",
+  "embedderConfigured": "off",
+  "embedderActive": false,
+  "fulltextEnabled": true,
+  "fulltextItems": 5562,
+  "fulltextPassages": 465110,
+  "builtFromVersion": 200,
+  "indexBackend": "local",
+  "fulltextPendingItems": 429,
+  "passages": 477511,
+  "state": "idle",
+  "itemsFetched": 0,
+  "itemsTotal": 0,
+  "itemsAvailable": 0
+ },
+ "rss_after_queries_kB": {
+  "VmHWM": 138184,
+  "VmRSS": 138184
+ },
+ "redaction": "Document names removed 2026-08-31 by ruling (spec/DECISIONS.md): committed artifacts identify a library document by its Zotero item key and never by its title or filename. Keys are unchanged, so every figure here remains traceable."
 }

@@ -25,10 +25,11 @@ help:
 	@echo "make chain-dedup — the authority chain is described once, in README.md"
 	@echo "make normative   — every R-item declares its RFC 2119 force"
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
+	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 
-check: lint figures governance terminology chain-dedup normative models progress check-fast
+check: lint figures governance terminology chain-dedup normative models names progress check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -87,6 +88,12 @@ normative:
 # Ticket 0261.
 models:
 	python3 bench/check_models.py
+
+# The public-repository leak: a measurement of a real library produces artifacts
+# about real documents, and this tree is public and permanent. Keys address a
+# document; names disclose one. Ruling 2026-08-31, spec/DECISIONS.md.
+names:
+	python3 bench/check_names.py
 
 # The fourth guard, over spec/README.md. The status page restates nothing —
 # every row is a status and an address — so the figure guard has nothing to

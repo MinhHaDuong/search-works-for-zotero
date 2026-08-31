@@ -17,7 +17,7 @@ Closed: autoclosed — PR #3
 Tracker: 0001. Found 2026-08-22 while checking how much of the corpus Zotero
 truncates.
 
-`DH8EXSVA` -- the New Palgrave Dictionary of Economics, 15 497 pages --
+`DH8EXSVA` -- a 15 497-page dictionary --
 contributes **42 962 passages, 9,00% of the whole 477 511-passage index**. The
 next largest item contributes 1 449, so it is a **30x outlier**, and the top
 eight items together are 10,7% of the index.
@@ -102,7 +102,7 @@ keeps its relative order exactly. Only `walras` reorders below the top, and by
 one position. The climate query is untouched, as the idf table predicted.
 
 **And taking that slot is arguably right.** For `walras general equilibrium`,
-the New Palgrave's entry on Walras is a good answer, not noise. Results are
+the dictionary's entry on Walras is a good answer, not noise. Results are
 de-duplicated by `itemKey`, so the dictionary occupies **one** result of ten
 however many of its 42 962 passages match. The idf distortion is real in the
 corpus statistics and largely cancels in the ranking, because idf scales every
