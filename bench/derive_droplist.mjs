@@ -25,7 +25,7 @@ const { values } = parseArgs({
     dist: { type: 'string' },
     'data-dir': { type: 'string' },
     out: { type: 'string' },
-    'cold-only': { type: 'boolean', default: false },
+    'once': { type: 'boolean', default: false },
   },
 });
 for (const k of ['dist', 'data-dir', 'out']) {
@@ -47,18 +47,23 @@ const index = await factory.createSearchIndex({
 });
 
 const status = await index.status();
-// Two timings, because the cadence argument distinguishes them: a cold scan pays the page
-// cache and the FTS5 segment first touch, a warm one is what a build would actually pay
-// straight after writing every one of those pages.
+// Two timings, FIRST CALL and SECOND CALL — and named that, not cold and warm, which is
+// what this said and what it could not deliver. A genuinely cold scan pays the page cache
+// and the FTS5 segment first touch, and nothing in this process controls the page cache:
+// whatever put the file where this script can read it has already warmed it. Both numbers
+// are therefore floors on a warm cache, and the second is the one that matches what a
+// build actually pays, straight after writing every one of those pages. Measuring a cold
+// scan needs the cache dropped between runs, which is a privileged operation this does not
+// take; if that figure is ever wanted, it is a different probe and it must say so.
 const t0 = process.hrtime.bigint();
 index.refreshDroplist(true);
-const coldMs = Number(process.hrtime.bigint() - t0) / 1e6;
+const firstMs = Number(process.hrtime.bigint() - t0) / 1e6;
 
-let warmMs = null;
-if (!values['cold-only']) {
+let secondMs = null;
+if (!values.once) {
   const t1 = process.hrtime.bigint();
   index.refreshDroplist(true);
-  warmMs = Number(process.hrtime.bigint() - t1) / 1e6;
+  secondMs = Number(process.hrtime.bigint() - t1) / 1e6;
 }
 
 await index.save();
@@ -85,7 +90,8 @@ const out = {
   droplist: droplist,
   numerals_on_the_list: droplist.filter((t) => /^\p{N}+$/u.test(t)),
   derived_at_passages: Number(at) || null,
-  scan_ms: { cold: Math.round(coldMs), warm: warmMs === null ? null : Math.round(warmMs) },
+  scan_ms: { first_call: Math.round(firstMs), second_call: secondMs === null ? null : Math.round(secondMs) },
+  scan_ms_note: 'Both on a page cache already warmed by whatever put the file here. Floors, not cold-start figures; nothing in this process drops the cache.',
 };
 writeFileSync(values.out, `${JSON.stringify(out, null, 2)}\n`);
 console.error(`wrote ${values.out}`);

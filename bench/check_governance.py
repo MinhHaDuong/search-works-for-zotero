@@ -78,6 +78,17 @@ SCANNED = [
     # sentence that must not drift downward into the body. Scanning only below
     # the rule would license writing it above.
     "verification/UPSTREAM-PR-0091-DROPLIST.md",
+    # The issue drafts, and they were the hole the first version of this left. It
+    # covered PR bodies, while GOVERNANCE.md's disclosure rule names "pull request
+    # bodies, issue text, review replies" — and this repo's own form rule sends
+    # anything design-sized as an ISSUE, so the issue drafts are not a rarer case
+    # than the PR bodies, they are the commoner one. Both of these were committed,
+    # paste-ready, and matched no covered glob, so a leak in either passed clean
+    # AND the completeness check could not see them either. Exactly the asymmetry
+    # the PR-body glob was written for, at the sibling address, missed because the
+    # fix was written from the document in front of me.
+    "verification/ISSUE-DRAFT-0024.md",
+    "verification/ISSUE-DRAFT-0488.md",
 ]
 
 #: Not scanned, and each for its own reason. GOVERNANCE.md owns the bounds.
@@ -108,24 +119,44 @@ UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.m
 #: it as evidence rather than authority, a different object class from the
 #: documents whose governance vocabulary this guard polices.
 #:
-#: `verification/UPSTREAM-PR-*.md` is the exception, and it is the sharpest case
-#: the completeness check has: those files are not evidence, they are OUTGOING
-#: TEXT, and a governance sentence that reaches one of them reaches the
-#: maintainer. The glob is here rather than the filename so the SECOND such
-#: document cannot arrive unread — which is precisely how FIELD-REVIEW.md spent
-#: months outside the gate, and precisely what ticket 0221 named.
+#: The OUTGOING drafts in `verification/` are the exception, and they are the
+#: sharpest case the completeness check has: those files are not evidence, they
+#: are text we SEND, and a governance sentence that reaches one of them reaches
+#: the maintainer. Globs rather than filenames, so the next such document cannot
+#: arrive unread — which is precisely how FIELD-REVIEW.md spent months outside
+#: the gate, and precisely what ticket 0221 named.
 #:
-#: `-PR-` and not a bare `UPSTREAM-*`, which is what this first said and which
-#: was wrong twice over. Technically: a sibling branch was adding
+#: Two prefixes and not one, because GOVERNANCE.md's disclosure rule names "pull
+#: request bodies, issue text, review replies" and this repo's own form rule
+#: sends anything design-sized as an ISSUE. A first version covered PR bodies
+#: alone — written from the document in front of it — and left two committed,
+#: paste-ready issue drafts matching no glob at all, so a leak in either passed
+#: clean and the completeness check could not even see them. Adding a prefix is
+#: the whole cost of a new outgoing convention, and this comment is where the
+#: next one goes.
+#:
+#: `UPSTREAM-PR-*` and not a bare `UPSTREAM-*`, which an earlier version said and
+#: which was wrong twice over. Technically: a sibling branch was adding
 #: `verification/UPSTREAM-1.12.0-REREAD.md` at the same moment, so each PR was
 #: green alone and their union was red — nothing here runs CI, so main would
-#: have gone red silently. Semantically, and this is the reason the narrower
-#: glob is not merely a dodge: the class being gated is *text we send*, not
-#: *documents about upstream*. A re-read report is evidence about upstream, the
-#: same object class as every other report in this directory, and reads by the
-#: rule two paragraphs up. Sending is what earns the gate, and the filename says
-#: which is which.
-COVERED_GLOBS = ["*.md", "spec/*.md", "verification/UPSTREAM-PR-*.md"]
+#: have gone red silently. Semantically, and this is why the narrower glob is not
+#: merely a dodge: the class being gated is *text we send*, not *documents about
+#: upstream*. A re-read report is evidence about upstream, the same object class
+#: as every other report in this directory, and reads by the rule above. Sending
+#: is what earns the gate, and the filename prefix is what declares it.
+#:
+#: What this does NOT promise: a third naming convention, invented later, is
+#: outside every glob and therefore invisible to the arrival check as well as to
+#: the scan. That is a real residue and it is left deliberately — globbing all of
+#: `verification/*.md` would close it and would also make every sibling PR that
+#: adds any report go red in combination, which is the failure this file just
+#: had. The guarantee is: inside a declared outgoing prefix, arrival is loud.
+COVERED_GLOBS = [
+    "*.md",
+    "spec/*.md",
+    "verification/UPSTREAM-PR-*.md",
+    "verification/ISSUE-DRAFT-*.md",
+]
 
 #: The named process bounds. Each is a rule the author ratified about how this
 #: repository conducts itself upstream — not a fact about the world, and not a

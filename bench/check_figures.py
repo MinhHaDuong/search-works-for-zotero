@@ -557,9 +557,9 @@ FIGURES = [
      {"t0091": "reproduces the sweep's {} terms over"}),
     ("0091-droplist/query-477k.json", "derivation.vocabulary_terms", 0,
      {"t0091": "terms over {} vocabulary terms"}),
-    ("0091-droplist/query-477k.json", "derivation.scan_ms.cold", 0,
+    ("0091-droplist/query-477k.json", "derivation.scan_ms.first_call", 0,
      {"t0091": "it costs {} ms on first call"}),
-    ("0091-droplist/query-477k.json", "derivation.scan_ms.warm", 0,
+    ("0091-droplist/query-477k.json", "derivation.scan_ms.second_call", 0,
      {"t0091": "call and {} ms on the second"}),
     # ---- The snippet criterion, the one figure bench/query.py structurally cannot
     # produce: that driver records item keys and scores and never the snippet text, so
@@ -640,9 +640,9 @@ FIGURES = [
      {"u0091": "On a {}-passage library"}),
     ("0091-droplist/derivation-477k.json", "vocabulary_terms", 0,
      {"u0091": "scan reads {} terms and"}),
-    ("0091-droplist/derivation-477k.json", "scan_ms.cold", 0,
+    ("0091-droplist/derivation-477k.json", "scan_ms.first_call", 0,
      {"u0091": "about {} ms on a first call"}),
-    ("0091-droplist/derivation-477k.json", "scan_ms.warm", 0,
+    ("0091-droplist/derivation-477k.json", "scan_ms.second_call", 0,
      {"u0091": "call and {} ms on a"}),
     ("0091-droplist/derivation-477k.json", "droplist_terms", 0,
      {"u0091": "small — {} terms, 75 bytes"}),

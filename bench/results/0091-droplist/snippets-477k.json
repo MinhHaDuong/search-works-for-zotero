@@ -1,6 +1,7 @@
 {
   "probe": "ticket 0091 — does the droplist move snippets off the passage opening, on a real library",
   "data_dir": "/home/haduong/data/projets/zoteus-bench/0091-treatment",
+  "data_dir_is_a_dedicated_copy": true,
   "queries": 20,
   "comparable_pairs": 91,
   "snippets_starting_at_the_passage_opening": {
@@ -8,6 +9,11 @@
     "pruned": 45
   },
   "moved_off_the_opening_by_pruning": 37,
+  "immovable_whole_passage_pairs": 0,
+  "whole_passage_snippets_per_arm": {
+    "unpruned": 0,
+    "pruned": 0
+  },
   "examples": [
     {
       "query": "the role of the state in the energy transition",
@@ -46,5 +52,6 @@
       "pruned": "… Section I.2 details key aspects of economic frameworks and principles used to model climate mitigation respo"
     }
   ],
-  "note": "Only hits returned by BOTH arms are compared, since a snippet comparison needs the same passage on both sides. A snippet that begins at character 0 carries no leading ellipsis, which is what makes the discriminator mechanical rather than a judgement about readability."
+  "note": "Only items returned by BOTH arms are compared. Pairing is by ITEM KEY and not by passage, because `query` reports one hit per item and never says which passage it centred on — so a pair is \"the same item's best hit\", read the same way on both sides. A snippet that begins at character 0 carries no leading ellipsis, which makes the discriminator mechanical rather than a judgement about readability; one with no trailing ellipsis either is a passage shorter than the 240-character window, returned whole whatever the query, and those are counted apart because no pruning could move them.",
+  "mutates_the_index": "This probe deletes and restores two meta rows on the index it reads, in a finally. Point it only at a dedicated copy — /home/haduong/data/projets/zoteus-bench/0091-treatment here, which exists for this ticket and is not the author's library."
 }

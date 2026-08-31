@@ -161,6 +161,70 @@ def test_an_arriving_upstream_pr_body_must_be_triaged(tmp_path):
     assert cg.run(repo) == 1
 
 
+def test_an_arriving_issue_draft_must_be_triaged(tmp_path):
+    """The sibling address, and the one the first version of this missed.
+
+    GOVERNANCE.md's disclosure rule names "pull request bodies, issue text, review
+    replies", and this repo's form rule sends anything design-sized as an issue —
+    so the issue drafts are not the rarer outgoing class, they are the commoner
+    one. Two of them sat committed and paste-ready outside every glob while the
+    PR-body glob was being written, because that fix was written from the document
+    in front of it.
+    """
+    repo = build(tmp_path, {})
+    (repo / "verification").mkdir(exist_ok=True)
+    (repo / "verification" / "ISSUE-DRAFT-9999.md").write_text("Outgoing.\n")
+    assert cg.run(repo) == 1
+
+
+def test_a_leak_inside_an_issue_draft_is_caught(tmp_path):
+    """Arrival is half the guard; this is the other half.
+
+    Triaging a document buys nothing unless the scan then reads it, and the two
+    failures are independent: a file can be listed and unread if the glob and the
+    list disagree about its name. This runs against the REAL SCANNED entry rather
+    than a monkeypatched one — `build()` materialises every scanned path, so
+    writing the leak into one of them exercises the list as it actually ships.
+    A first version appended its own fixture name to SCANNED, which made the test
+    pass with or without this change: it was asserting that `scan()` reads
+    SCANNED, which was never in doubt.
+    """
+    draft = "verification/ISSUE-DRAFT-0024.md"
+    assert draft in cg.SCANNED, "the fixture below depends on this being a real scanned path"
+    repo = build(tmp_path, {draft: "We keep at most two PRs in flight upstream.\n"})
+    assert cg.run(repo) == 1
+    # The control: the same file with nothing to hide passes, so the refusal above
+    # is about the sentence and not about the filename.
+    (repo / draft).write_text("A perfectly ordinary paragraph about full-text truncation.\n")
+    assert cg.run(repo) == 0
+
+
+def test_every_committed_outgoing_draft_is_scanned():
+    """Read the TREE, not the lists.
+
+    The version of this that read `SCANNED + UNSCANNED_BY_DESIGN` and checked each
+    outgoing-looking entry was in the first could not fail for the defect that
+    prompted it: the two issue drafts were in NEITHER list, so a list-driven loop
+    never saw them and reported all clear. The files exist on disk; that is what
+    has to be enumerated.
+
+    A draft may be exempted only by ceasing to be a draft — the one move this class
+    of document must never make is sitting in UNSCANNED_BY_DESIGN.
+    """
+    prefixes = ("ISSUE-DRAFT-", "UPSTREAM-PR-")
+    on_disk = sorted(
+        p.relative_to(REPO).as_posix()
+        for p in (REPO / "verification").glob("*.md")
+        if p.name.startswith(prefixes)
+    )
+    assert on_disk, "no outgoing draft on disk — the naming convention has drifted"
+    for name in on_disk:
+        assert name in cg.SCANNED, (
+            f"{name} is outgoing text and is not scanned; add it to SCANNED in "
+            "bench/check_governance.py"
+        )
+
+
 def test_a_report_about_upstream_is_not_an_upstream_pr_body(tmp_path):
     """The boundary, and it is a discrimination rather than a formality.
 

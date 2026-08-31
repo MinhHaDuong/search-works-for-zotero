@@ -37,7 +37,8 @@
   ],
   "derived_at_passages": 477512,
   "scan_ms": {
-    "cold": 2281,
-    "warm": 2013
-  }
+    "first_call": 2020,
+    "second_call": 1774
+  },
+  "scan_ms_note": "Both on a page cache already warmed by whatever put the file here. Floors, not cold-start figures; nothing in this process drops the cache."
 }

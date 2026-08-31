@@ -127,16 +127,16 @@
       "3"
     ],
     "scan_ms": {
-      "cold": 2281,
-      "warm": 2013
+      "first_call": 2020,
+      "second_call": 1774
     },
-    "note": "The 23 terms reproduce df-droplist-sweep.json exactly, including the four the sweep called `others_caught` (1, 2, s, 3), which independently confirms that the shipped derivation computes what the sweep computed by hand. 53 bytes of term text; 75 bytes stored, the difference being the 22 separators. The scan cost 2 281 ms on first call and 2 013 ms on the second — BOTH against a page cache the copy that preceded them had already warmed, so both are floors and neither is a cold-start figure. Below the ~3,4 s this ticket carried; nothing here reproduces its ~7,5 s cold figure, and nothing here tried to."
+    "note": "The 23 terms reproduce df-droplist-sweep.json exactly, including the four the sweep called `others_caught` (1, 2, s, 3), which independently confirms that the shipped derivation computes what the sweep computed by hand. 53 bytes of term text; 75 bytes stored, the difference being the 22 separators. On the scan cost, read `scan_ms` with its own note: the two readings are FIRST CALL and SECOND CALL, not cold and warm, because nothing in the driver controls the page cache and whatever put the file in place has already warmed it. An earlier pair on the same machine read 2 281 and 2 013 ms against the current 2 020 and 1 774, which is the honest reason to say two seconds rather than a constant. Both pairs sit below the ~3,4 s this ticket carried; nothing here reproduces its ~7,5 s cold figure, and nothing here tried to — that needs the cache dropped between runs, which is a different probe."
   },
   "verification_against_the_ticket": {
     "p95 inside the DESIGN §3 budget": "PARTIAL — 491,7 ms excluding the degenerate query, 696,5 ms including it. See verdict.",
     "degenerate query returns the same hits as an unfiltered query": "YES, on the real index: the result sets are identical, not merely similar.",
     "an index built before this change filters nothing until rebuilt": "YES — arm C is that index, and it answers exactly as the unpruned policy does.",
-    "snippets centre on content": "asserted in tests/features/search-droplist.test.ts; not measurable from this driver, which records item keys and not snippets.",
+    "snippets centre on content": "YES, and measured rather than asserted — but by a separate probe, because this driver records item keys and scores and structurally cannot see a snippet. verification/probes/snippet-droplist-probe.mjs, result in bench/results/0091-droplist/snippets-477k.json: of 91 hits both arms return, 82 open at the passage's first character unpruned and 45 do so pruned. Halved, not abolished.",
     "upstream's own gates": "typecheck, eslint and 933 vitest tests green on the fork branch."
   }
 }

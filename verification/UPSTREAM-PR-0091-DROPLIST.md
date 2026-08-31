@@ -1,14 +1,20 @@
 # Upstream PR body — the library-derived droplist (ticket 0091)
 
-Drafted here, sent as written. Branch `t0091-droplist` on the author's fork at `eff9fb9`,
+Drafted here, sent as written. Branch `t0091-droplist` on the author's fork at `f99beba`,
 one commit atop `b05ed69` (v1.12.0), pushed 2026-08-31. **Not filed**: nothing goes
 upstream without the author's authorization. When it is authorized, the PR opens from
 `MinhHaDuong:t0091-droplist` against `oscardvs/zoteus` `main`.
 
 Everything below the rule is the PR body verbatim. Its figures are declared in
 `bench/check_figures.py` under the `u0091` key, so a re-measurement cannot leave this
-document quoting a superseded number — which matters more here than anywhere else in the
-repo, because this is the one text with a reader outside it.
+document quoting a superseded number.
+
+That guard reaches this file and stops there. It is **not** the only text here with a
+reader outside the repo — an earlier draft of this note said so and the ticket log
+retracts it. The fork branch's own code comments, its `docs/` changes and its commit
+message all reach the maintainer through the diff, and no gate in this repo can see any of
+them; two figures were wrong in exactly that blind spot and were caught by reading, not by
+a check. So: read the diff for figures before pushing it, the same way you read this.
 
 ---
 
@@ -56,10 +62,11 @@ Three details are worth stating because each was a decision:
 
 **Why it is stored rather than computed.** `fts5vocab` is ordered by term, not by document
 count, so "which terms exceed 30%" is a full scan of it. On a 477 512-passage library that
-scan reads 639 888 terms and costs about 2 281 ms on a first call and 2 013 ms on a
+scan reads 639 888 terms and costs about 2 020 ms on a first call and 1 774 ms on a
 second — both against a page cache the preceding work had already warmed, so read them as
-a floor rather than as a cold-start figure. Either way far too slow for query time, and
-too slow to pay at startup.
+floors rather than as cold-start figures, and an earlier pair on the same machine read
+2 281 and 2 013 ms, so read the quantity as *about two seconds* rather than as a constant.
+Either way far too slow for query time, and too slow to pay at startup.
 
 Everything else about the answer is small — 23 terms, 75 bytes of text — so it goes in
 `meta` beside `schemaVersion`, and the scan happens where a full walk of the corpus is
