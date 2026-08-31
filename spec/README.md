@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the thirty-two promises actually
+documents do not: **where each of the thirty-four promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -37,24 +37,24 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 30 ratified · 2 still open
+`●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●○○` &nbsp; 32 ratified · 2 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○○` &nbsp; 1 shipped · 16 partial · 15 not yet
+`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○○○○○○○○○○` &nbsp; 1 shipped · 17 partial · 16 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-12 measured · 11 read in the source · 9 inferred
+13 measured · 11 read in the source · 10 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the thirty-two, twelve rest on an experiment or a test that ran, eleven on
-opening the upstream source at the reviewed baseline, and nine on nothing
+the thirty-four, thirteen rest on an experiment or a test that ran, eleven on
+opening the upstream source at the reviewed baseline, and ten on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -95,7 +95,7 @@ upstream, and on what terms, is [`../SYNC.md`](../SYNC.md) and
 | Coverage and convergence | `●●●●●●○○` | `◐◐◐◐○○○○` |
 | Change and cost | `●●●` | `◐◐○` |
 | Corpus | `●●●` | `◐○○` |
-| Query | `●●●●●` | `◐◐◐○○` |
+| Query | `●●●●●●●` | `◐◐◐◐○○○` |
 | Multilingual | `●●` | `◐○` |
 | Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●●` | `●◐◐◐○` |
@@ -132,20 +132,20 @@ Searchable at an older extraction, chunking or embedder version still counts;
 indexed by its opening pages does not. The bundle and its exclusions were ruled
 on 2026-08-31 ([DECISIONS.md](DECISIONS.md)).
 
-`◐◐◐◐◐◐◐○○` &nbsp; 9 in the bundle · 4 rest on something that ran
+`◐◐◐◐◐◐◐◐◐○○○` &nbsp; 12 in the bundle · 6 rest on something that ran
 
 That bar shows where the terms stand. It is not a progress bar: under the
 conjunction the goal is kept at all-shipped and at no state before it.
 
-**Read as test-driven development, this bundle has no failing tests. It has nine
-unwritten ones.** The `evidence` column is the test column: `measured` says an
+**Read as test-driven development, this bundle has no failing tests. It has
+twelve unwritten ones.** The `evidence` column is the test column: `measured` says an
 assertion ran, `code` and `inferred` say none exists. A row in those two states
 is not red — red is a claim about the system, and an unwritten test is a claim
-about nobody — which is why the four that rest on something that ran are counted
-separately above, and why not one of the nine is yet a check that runs on every
-build.
+about nobody — which is why the six that rest on something that ran are counted
+separately above, and why not one of the twelve is yet a check that runs on
+every build.
 
-So what goal 1 asks for is not upstream code. It is nine assertions, each
+So what goal 1 asks for is not upstream code. It is twelve assertions, each
 carrying the way it can fail. Most go red on the reviewed baseline the day they
 are written, for the reasons their rows already give. Two or three arrive green
 — R6's property holds already, and the fold sweep passes — and a test never seen
@@ -164,7 +164,10 @@ bar above is recomputed from these requirements' own rows further down.
 | R7 | the default path serves French, German, Vietnamese, Greek and Russian, unconfigured | ticket 0029 |
 | R8 | the design-point library is answered, not approached | ticket 0025 |
 | R9 | a monster is indexed whole, never by its opening pages | ticket 0029 |
+| R12 | a subscribed group library is searchable, and indexing one library never erases another | ticket 0016 |
 | R16 | my own notes and annotations are in the corpus at all | ticket 0022 |
+| R33 | the exact string, the paraphrase, and the document both signals agree on | ticket 0029 |
+| R34 | every pinned answer comes back within the first ten results | ticket 0029 |
 | R17 | how much is searchable, answered per stage in one sentence | ticket 0026 |
 | R19 | every token the query normalizer makes, the index normalizer can make too | ticket 0026 |
 | R32 | records searchable today and the body behind them, on the reference machine | ticket 0026 |
@@ -196,7 +199,7 @@ reports itself kept when it is not.
 
 ---
 
-## The thirty-two
+## The thirty-four
 
 `designed` is `ratified` or `open`; `delivered` is `shipped`, `partial` or
 `none`; `evidence` is `measured` (something ran), `code` (the source was
@@ -246,6 +249,8 @@ demonstrated. They are not the same kind of statement.
 | R18 | an empty result says which | ratified | none | inferred | An empty answer does not yet distinguish "nothing matches" from "this scope is not indexed yet". The decision it waited on is now made and negative — experiment X4 ran and no constrained step ships, so the `scope{}` block stops being the last resort and becomes the answer whenever a narrow scope outruns the deeper refetch. The ladder edit that follows is awaiting ratification in DECISIONS.md; ticket 0025. |
 | R24 | a citeable page in one step | ratified | partial | code | Local extraction now yields real page ranges and a document's own outline. The primary locator is meant to be the entry heading, which waits on the segmenter: ticket 0028, gated by experiment X5. |
 | R25 | one entry, one hit | ratified | none | inferred | Deduplication is per item, not per section, because sections do not exist yet. Same dependency as R24. |
+| R33 | lexical, semantic and hybrid each work | ratified | partial | measured | Three of the four clauses have something behind them and the load-bearing one does not. Upstream serves a hybrid default, and our own measurement of it drove the two sides apart — the vector side moved while the keyword side stayed put (`verification/issue-30-thread.md`), which is evidence that both paths exist and are separately live. Nothing tests the agreement clause: no check asks whether a document both signals rank mid comes back above one that only a single signal favours, which is the defect shape `spec/FIELD-REVIEW.md` records open in a neighbouring project. The mode-served clause is unread at the reviewed baseline. Ticket 0029 carries the probes. |
+| R34 | if it is in my library, I find it | ratified | none | inferred | No pinned set exists upstream and nothing asserts one, so the promise is unmeasured rather than shown unmet. The adjacent evidence is not this: ticket 0265 scored a synthetic task — relevance being other passages of the same item — on a subsample of the real corpus, which measures retrieval strength and not whether a research question finds its answer. The corpus is ticket 0029, the gate is ticket 0026. |
 
 ### Multilingual
 

@@ -835,7 +835,14 @@ its subtraction terms, not only pass on the gentle one.
   projections and says so. The corpus carries a cross-lingual slice — EN and
   FR queries whose answer sets are Vietnamese entries — gated separately from
   the monolingual queries, so a regression names which of R7 and R29 it broke.
-  Ticket 0029 builds it.
+  The same pinned set decides R34, and the two readings of it are opposite on
+  purpose: R21 compares one run against the last and tolerates legitimate
+  drift, which is what the thresholds above are for, while R34 compares the
+  run against the pinned answers themselves and tolerates none. A corpus that
+  can be stable and wrong is exactly why both readings exist. Ticket 0029
+  builds it, and its intersections — a monster in a non-Latin script, a scale
+  run at the multilingual default — are where terms that look independent fail
+  together.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
   kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,

@@ -1187,6 +1187,85 @@ instruments when step 3's recall term exists; R27 leaves, because R11 did.
 R30 leaves the bundle outright. What step 1 does not settle, and step 2 owes:
 R12, and the two items the review found missing — hybrid retrieval and recall.
 
+**2026-08-31 — steps 2 and 3: the search perimeter is what Zotero shows, and
+retrieval gets the two clauses it never had.** The author's rulings, taken
+together because each was given as an answer to the last.
+
+**The perimeter.** Asked whether R12 was in the bundle, the author answered with
+a rule instead of a verdict: the search perimeter is every item visible in the
+user's Zotero, the group libraries they subscribe to included. That settles R12
+— a subscribed group is visible, so it is in scope, and being subscribed it is
+also synced, so this is the locally-served set and no cloud path is implied —
+and it settles the shape of every future question of the same kind. Two edges
+were ruled where "visible" reached further than intended: the **trash is out**,
+since taking it literally would contradict R15 outright, and R15 keeps owning
+the transition; and **feeds are out**, being neither owned nor curated. One case
+needed no ruling, because the machinery already carries it: in a group readable
+without fetchable attachments, the item is inside the perimeter and its body
+text is not, which is R14 and R17's metadata-only state.
+
+The perimeter is not R12's to state. It is what R1, R8, R9, R12 and R16 each
+presuppose and none of them says, so it enters `spec/REQUIREMENTS.md` as a
+fourth ruling beside the three of 2026-08-26, and the glossary gains **search
+perimeter** as ours — the inherited entry for `library` stays as it is, because
+it correctly says what Zotero means by the word and this is not that.
+
+**R33 — lexical, semantic and hybrid each work.** Ruled in on the author's
+"having all three work is of the essence", as a requirement rather than a
+clarification: D5 is a resolved-decision row and a MUST parked there is
+invisible to the normative pass, and a recall floor cannot see a missing mode,
+since a semantic-only system clears a floor measured over the path it has. It
+is written as observable behaviour and not as mechanism, on R5's own lesson —
+the obligation is on the honesty of the result, never on which operator
+enforces it — so the combination rule stays DESIGN.md §2.6's. Its falsifiers,
+in the order the clauses appear: an embedder-only system misses the exact
+string, a keyword-only system misses the paraphrase, a fusion that drops one
+side misses the agreement case (which is the shape of the open defect
+`spec/FIELD-REVIEW.md` records in a neighbouring project), and a mode parameter
+that silently serves something else misses the last.
+
+**R34 — if it is in my library, I find it.** Minimum retrieval quality enters
+the MVP, and two rulings shaped it. *Default only*: the floor binds the default
+configuration, not every shipped mode. *A requirement cannot defer to a k later
+defined*: the line the author draws is that a **threshold** may be pinned from
+measurement, because "the build finishes inside the bound" means something
+before the number exists, while a **metric shape** may not, since recall at one
+result and recall at a hundred are different properties rather than different
+strictnesses of one. So k is in the requirement, at the ten `spec/DESIGN.md`
+§2.8's golden set and ticket 0029's answer sets already use. Those two rulings
+composed: with the scope narrowed to the default, the absolute clause subsumed
+the keyword-only baseline clause that was drafted beside it, and the baseline
+returns to being what it always was in practice — a diagnostic the harness
+reports, and the one that condemned granite-97m at its q8 rung. R34 therefore
+defers nothing and invents no number.
+
+R21 and R34 read the same pinned set in opposite directions, and DESIGN.md §2.8
+now says so: R21 compares a run against the last and tolerates legitimate drift,
+R34 compares it against the pinned answers and tolerates none. A corpus can be
+stable and wrong, which is why both readings exist.
+
+**R6 gains its second clause.** Its only MUST was that freshness work on the
+query path is O(1); the hard budget lived in DESIGN.md §2.9, which stated it and
+attributed it to R6, so the attribution was aspirational and the term was
+unassertable. R6 now carries the clause and points at §2.9 for the value, on
+R30's precedent.
+
+**The rosters, restated whole.** Terms gain R12, R33 and R34; instruments are
+unchanged. Ticket 0029's exit criteria widen to the intersections, because
+scale and language are independent axes everywhere except through the embedder,
+and a fixture that tests each alone would let a French monster or a
+multilingual library at scale pass unexamined.
+
+Goal 1 binds: R1, R6, R7, R8, R9, R12, R16, R17, R19, R32, R33, R34.
+
+Goal 1 instruments: R19, R26.
+
+Not settled here, and named so the silence does not read as a decision: the
+two-level model the author raised — a portable fixture level and a real-library
+level, where the second is what re-earns the first's fidelity rather than a
+second suite — is not ruled and no machinery was built for it. The terms table
+carries no level attribute until it is.
+
 ## Awaiting ratification
 
 

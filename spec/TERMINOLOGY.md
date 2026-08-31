@@ -160,6 +160,13 @@ entry points at the question rather than settling it; rulings land in
   per-field columns so that a tag match does not score like a title match.
   Authoritative: REQUIREMENTS.md, the second ruling; the column layout is
   DESIGN.md §2.2.
+- **search perimeter** — what the index is obliged to cover: every item
+  visible in the user's Zotero, the group libraries they subscribe to
+  included. The trash is outside it and feeds are outside it; an item whose
+  attachments cannot be fetched is inside it, with its body text absent for a
+  recorded reason. Ours, not Zotero's — the platform word `library` is glossed
+  separately below. Authoritative: REQUIREMENTS.md's fourth ruling (ledger:
+  DECISIONS.md 2026-08-31).
 - **segmenter (seg/1)** — the heuristic that finds entry boundaries in flat
   extracted text, classifying lines, collecting heading candidates from
   numbering, case shape and headword rhythm, cutting at accepted headings, and

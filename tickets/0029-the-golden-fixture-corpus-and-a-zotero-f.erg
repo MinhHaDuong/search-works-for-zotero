@@ -7,6 +7,7 @@ Author: claude
 2026-08-26T16:46Z claude created
 
 2026-08-31T06:32Z claude note scope extended by the R29 ratification of 2026-08-31 (spec/DECISIONS.md): the corpus gains a cross-lingual slice, separately gated. Its thresholds are this ticket's to pin, and DESIGN.md 2.8 is where they land -- the ratification deliberately pinned no number
+2026-08-31T11:54Z claude note WIDENED BY THE STEP 2-3 RULINGS (spec/DECISIONS.md 2026-08-31). Three additions to the exit criteria, each serving a term of goal 1. R33 needs three probe shapes the corpus does not carry today: a rare exact string no embedder would place near its query, a paraphrase sharing no content word with its answer, and an agreement case where a document both signals rank mid must come back above one only a single signal favours. R34 needs the answer sets read absolutely rather than as a stability set: every pinned answer within the first ten results, no tolerance, which is the opposite reading of the same fixture R21 uses. And the corpus must carry the INTERSECTIONS, not only one axis at a time: scale and language are independent everywhere except through the embedder, so a monster in a non-Latin script and a scale run at the multilingual default are where terms that look orthogonal fail together. The perimeter ruling also lands here: the fixture stands for what Zotero shows, so a group-library slice belongs in it and a trash or feed slice does not
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -28,3 +29,10 @@ gate then enforces live once in DESIGN.md §2.8.
 - [ ] Zotero-free index-build harness in bench/
 - [ ] ~40 queries with pinned answer sets, re-pin procedure documented
 - [ ] 0026's golden gate consumes it in make check
+- [ ] R33's three probe shapes present: a rare exact string, a paraphrase sharing
+      no content word with its answer, and an agreement case
+- [ ] R34's reading supported: every pinned answer inside the first ten, absolute,
+      beside R21's tolerant reading of the same sets
+- [ ] the intersections carried, not one axis at a time: a monster in a non-Latin
+      script, and a scale run at the multilingual default
+- [ ] a group-library slice, per the perimeter ruling; no trash and no feed slice

@@ -2,7 +2,7 @@
 
 ## Intro
 
-This document lists the user requirements, R1 to R32. Each is written as a
+This document lists the user requirements, R1 to R34. Each is written as a
 testable property: something the test harness, or a careful reader, can
 check. They were agreed with the author and consolidated on 2026-08-26; the
 documents they were consolidated from are superseded and live only in git
@@ -23,7 +23,7 @@ One R-item carries no keyword yet. R26 was rejected as written on 2026-08-29
 (DECISIONS.md) and ticket 0080 owns its rewrite; giving it a force now would
 record rejected text as contract.
 
-## The three rulings that shape everything
+## The four rulings that shape everything
 
 1. **The unit of answer is the entry.** A dictionary or encyclopedia is one
    Zotero item but many entries, so retrieval and deduplication work on the
@@ -43,6 +43,16 @@ record rejected text as contract.
    entry boundaries, so a chunk never straddles two entries. Each chunk's
    embedded text starts with its context: the entry heading, the outline
    path, and the item title.
+
+4. **The search perimeter is what Zotero shows.** Every item visible in the
+   user's Zotero is in scope, the group libraries they subscribe to included.
+   What Zotero does not show as library content is out: the trash is outside
+   the perimeter, and R15 owns the transition into it; feeds are outside it
+   altogether, being neither owned nor curated. Where a group is readable but
+   its attachments are not fetchable, the item is inside the perimeter and its
+   body text is not, which is the metadata-only state R14 and R17 already
+   carry. This is the perimeter R1, R8, R9, R12 and R16 each presuppose and
+   none of them states.
 
 ## Requirements
 
@@ -125,7 +135,9 @@ record rejected text as contract.
   honesty of the result, not on which operator enforces it.
 - **R6 — a sufficient reply in 3 s beats the optimum in 3 min.** Freshness
   work on the query path MUST be limited to O(1) requests; anything bigger
-  MUST be scheduled, never awaited.
+  MUST be scheduled, never awaited. A warm query MUST answer inside the hard
+  budget, whose value belongs to DESIGN.md §2.9 — the same section that owns
+  the distinction between that budget and the typical figure it is not.
 - **R18 — an empty result says which.** The answer MUST be "nothing matches"
   or "this scope is not indexed yet", stated for the scope the query asked
   about, not for the library as a whole.
@@ -137,6 +149,19 @@ record rejected text as contract.
   items out of the candidate pool before that deduplication happens. When
   many of the returned hits come from one document, the result says so.
 
+- **R33 — lexical, semantic and hybrid each work.** A query naming a rare
+  exact string MUST return the item carrying it; a query that paraphrases its
+  answer without sharing a content word MUST return that answer; and where
+  both signals are present but weak, the combined answer MUST rank the
+  document they agree on above one that only a single signal favours. Where
+  the interface offers a retrieval mode, the mode selected MUST be the mode
+  served. The combination rule belongs to DESIGN.md §2.6.
+- **R34 — if it is in my library, I find it.** For every query of the pinned
+  set, whose answers are known-correct and known to be in the corpus, the
+  default configuration MUST return the pinned answer within the first ten
+  results. Per D11 this fixes the answer set and not its order: order inside
+  those ten is unconstrained. Re-pinning the set is a commit whose set diff is
+  the review artifact (DESIGN.md §2.8).
 ### Multilingual
 
 - **R7 — multilingual by default.** The default path MUST work for French,
