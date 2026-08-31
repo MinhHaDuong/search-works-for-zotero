@@ -937,6 +937,21 @@ unexamined longest, because nothing downstream breaks when it is wrong, and no
 measurement-keyed guard would ever have caught this one.
 
 
+**2026-08-31 — the session-start hook is project state, and `.gitignore` now
+says which part.** The `.claude/` ignore rule was written for per-session agent
+runtime state, and a `SessionStart` hook is not that: a hook only runs if it is
+already in the tree the session opens on, so ticket 0498's exit criterion — a
+fresh container that runs `make check` with no human installing anything —
+cannot be met while the rule covers it. The rule is narrowed to `.claude/*`
+with two exceptions, `.claude/settings.json` and `.claude/hooks/`, and the
+reason is stated in the file beside them. Everything else under `.claude/`
+stays out, which was the original rule's whole point.
+
+Ratified after the change was flagged for veto rather than merged quietly,
+because it edits a rule the author wrote deliberately. It sets no precedent for
+the rest of the directory: a third exception is a third ruling.
+
+
 ## Awaiting ratification
 
 - **The book segmenter works at page boundaries on the PDF side — and the
