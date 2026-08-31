@@ -279,10 +279,14 @@ checks.
 
 **R6, latency — at risk; see F2.**
 
-**R32, buildtime — held, on an assumption.** The proposal adds one serialization
-hop per batch to a per-passage budget stated in tens of milliseconds. The hop is
-negligible against it by arithmetic, not by measurement; ticket 0500 is where the
-number would come from.
+**R32, buildtime — held, on an assumption, and the assumption got wider.** The
+proposal adds one serialization hop per batch to a per-passage budget stated in
+tens of milliseconds. The hop is negligible against it by arithmetic, not by
+measurement; ticket 0500 is where the number would come from. The 2026-08-31
+ruling that R32's bounds are any full build's rather than only the first sharpens
+F2 rather than this verdict: a rebuild happens on a library already in service,
+so the conductor is answering real queries while it does the work, which is
+exactly the case F2 says nothing measures.
 
 **R16, notes — unaffected, on a path worth naming.** Notes and annotations are
 child items whose text comes from Zotero's item API rather than from the

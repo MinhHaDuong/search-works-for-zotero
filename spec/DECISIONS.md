@@ -2457,7 +2457,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   Streaming it is ordinary work, but it is work nothing currently measures, and
   a library of ordinary papers never exposes the omission.
 
-  The full proposal, the requirement-by-requirement review behind it, and the
-  four findings are `verification/SOLE-WRITER-0507.md`. The propagation into
+  The full proposal, the requirement-by-requirement review behind it, and its
+  five findings are `verification/SOLE-WRITER-0507.md`. The propagation into
   DESIGN.md §2.4/§2.5/§2.9, TERMINOLOGY.md and SECURITY.md is ticket 0507 and
   waits on this ruling.
