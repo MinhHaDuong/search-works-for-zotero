@@ -371,3 +371,54 @@ read as a promise:
   translation model joins the default path.
 - **No enumeration.** Semantic search returns a bounded page; exhaustiveness
   is the job of R5 narrowing, not of paging.
+
+## The goals ladder
+
+A goal is a bundle of promises named in the user's own words and kept only when
+every member holds at once. The sheet has one such bundle today — goal 1,
+*search all of my library* — and this section says what stands under it. It is a
+**dependency reading**: which promises have to hold before another bundle can be
+kept at all. It is not a ranking, not a schedule, and not a statement of where
+anything stands; the number in a goal's name is a label, and standing lives on
+[README.md](README.md).
+
+Read from the bottom.
+
+| rung | the promise, in the user's words | candidate members |
+|---|---|---|
+| bottom | **It is mine, and I can leave.** Nothing goes anywhere unasked, one switch stops the work, and removing the data directory removes the system | R10, R15, R22, R31 |
+| middle | **It survives the second day.** What it costs to stay current is what changed, a second process is not a catastrophe, and a version flip is not a hand-repair | R3, R13, R23 |
+| top | **Search all of my library**, which is goal 1 — every document, every language, indexed today, answered in time, by meaning and by exact words | ruled; see [README.md](README.md) |
+
+**Only goal 1's roster is ruled.** Its membership is a ruling in
+[DECISIONS.md](DECISIONS.md) with a machine-readable line, and
+`bench/check_progress.py` fails the build when the status page and that ruling
+disagree. The two rungs below carry candidates and no ruling, so nothing checks
+them and nothing should read them as settled. Naming a bundle is cheap; ruling
+its membership is what makes it able to fail.
+
+**Why the bottom rung is the entry condition.** Every promise on it is about
+being able to *try* the system: nobody points an indexer at a real library for a
+day unless stopping it is one action and leaving is deleting one directory. Its
+promises are also the least conditional in the sheet — they hold or fail the
+moment the system is installed, before a single item is indexed.
+
+**Why the middle rung comes before the top and not after it.** R32 admits a
+build that runs for a day. An index a second process corrupts, or a version flip
+abandons while the build is still filling it, never reaches the state goal 1
+measures — the day restarts instead. So durability here is what makes arrival
+possible, rather than what protects it afterwards. This is also where R23 sits:
+refused as a term of goal 1 on 2026-08-31 and folded into R1's assertion, it is
+this rung's charter member, and the refusal decided which bundle it belongs to
+rather than whether it matters.
+
+**R5 is on no rung.** Its design answer came back negative — the constrained
+path lost to ranking everything, so no constrained step ships — and its
+user-facing residue moved into goal 1 as R18. A decided question whose promise
+has been rehoused is not a goal.
+
+**Above the top**, unnamed and unruled, sits the bundle this repository exists
+to reach eventually: *works for someone who is not me*. R7's SHOULD tier, R24's
+entry-heading and dedup clauses behind the segmenter, a pinned set that is not
+the author's own questions, and the harness offered upstream. It is named here
+so its absence does not read as an oversight.
