@@ -2183,6 +2183,104 @@ design answered negatively — the constrained path lost to ranking everything �
 and its user-facing residue moved into goal 1 as R18. A decided question with
 its promise already rehoused is not a goal.
 
+**2026-08-31 — the ladder is sequential, the number is the build order, and the
+sheet is partitioned across five goals.** The author, rejecting the reading that
+kept the bands unruled and the conjunction unranked: *I want a clean ladder of
+reqs, with sequential goals. The intention is to prioritize work. We start by
+building the tests for the lower ladder, then making it work.* Put again after
+the objection below was raised, and this entry executes it in full.
+
+**What this reverses, named because the ledger is append-only.** Two rulings go.
+*The number names the bundle and ranks nothing* (2026-08-26, restated
+2026-08-31): the number now ranks — it is the order the work is done in, and
+that is the whole reason the ladder exists. And *goal 1 keeps its number*
+(2026-08-31, earlier today): the bundle that carried that name is now goals 3, 4
+and 5. Entries above this one say "goal 1" meaning the search bundle. They are
+not edited, and this entry is where the renaming is stated; a reader meeting the
+old name in an older entry should read it as goals 3 through 5 together.
+
+**What is NOT reversed, because it is the reason the bundles exist.** Each goal
+is still a conjunction, kept when every one of its members holds and at no state
+before that. Sequencing the goals does not give any of them partial credit, and
+a lower goal kept does not make a higher one partly kept. What the number now
+says is which conjunction to make true first, never how much of one is true.
+
+**The ladder is a partition, and that is what "clean" buys.** Every requirement
+the sheet declares sits on exactly one rung, the rungs number from 1 without a
+gap, and `bench/check_progress.py` now enforces both alongside the per-goal
+rosters it already held: a requirement on no rung is work nobody scheduled, one
+on two rungs is work counted twice, and a gap in the numbering is a rung nobody
+can stand on. The guard reads five rosters from this ledger instead of one, and
+the last line ruling each goal is that goal's live roster.
+
+The five, bottom first, each stated in the user's own terms.
+
+**Goal 1 — I can install it and take it off again.** Nothing leaves this machine
+unasked, one obvious switch stops the work, deleting the data directory is the
+whole uninstall, and a configuration proves it runs here before it is used.
+Lowest because its assertions need no corpus, no build and no library: they are
+decidable the moment the system is installed, which is exactly what the build
+order wants first.
+
+**Goal 2 — it does not lose or corrupt what it built.** The cost of staying
+current is what changed, two server processes on one data directory do not
+corrupt or duplicate, and an index under another schema version ends up served.
+Second because these need a built index but not a good one, and because a build
+that cannot survive its own second day never reaches the goals above.
+
+**Goal 3 — it answers, and it is honest about what it has.** Coverage converges
+unattended, the build finishes inside its bounds, the index answers while it is
+still filling, the query path waits for no freshness work, the normalizers
+agree, and it says how much is behind an answer and which emptiness an empty one
+is.
+
+**Goal 4 — it finds the right thing, in my languages, and I can open it.** All
+three modes, the pinned answer inside the first ten, scoping enforced before
+truncation, three languages unconfigured with the lanes connected, and a hit
+that opens at the page it came from.
+
+**Goal 5 — all of my library.** A 15k library and a 15k-page PDF as ordinary
+input, group libraries searchable and never erasing one another, one's own notes
+and annotations in the corpus, and a new item noticed without anyone asking.
+
+Goal 1 binds: R10, R15, R22, R31.
+
+Goal 2 binds: R3, R13, R23.
+
+Goal 3 binds: R1, R4, R6, R17, R18, R19, R32.
+
+Goal 4 binds: R5, R7, R24, R29, R33, R34.
+
+Goal 5 binds: R8, R12, R16, R35.
+
+**The method, ruled with the ladder: tests for the lower rung first, then make
+it work.** This is what the ordering is for, and it changes what ticket 0026
+does first — the fold, golden, RSS and convergence gates were scoped by
+instrument, and they are now taken in rung order, goal 1's assertions before
+goal 2's. It also gives the evidence column somewhere to go: a rung whose tests
+exist can be red, and red is a claim about the system, which is the state this
+repository has never been able to reach.
+
+**Three consequences worth recording.** The MVP frame survives the renumbering:
+*works for me* is now the standard for goals 3 through 5 together, and the
+levels ruled this evening stand, with the library deciding and the fixture
+standing in. R5 gains a rung — it was on no bundle at all, its design answer
+having come back negative, and a partition has no room for a requirement that
+belongs nowhere; it sits with the finding promises in goal 4, where its honesty
+obligation is met or broken. And R23 stops being homeless: refused as a term of
+the search bundle this morning and folded into R1's assertion, it is now a
+member of goal 2 in its own right, which is where a promise about surviving a
+version flip always belonged.
+
+**What the objection was, and why it is overruled rather than quietly dropped.**
+The reading this entry replaces held that a conjunction should not be sequenced,
+that sub-bundles are promises to a more patient person than the author, and that
+naming rungs without ruled rosters was the safer half-step. The author put the
+instruction again after hearing it. The substance of the objection is kept where
+it belongs — each goal is a conjunction, no band reports partial credit — and
+the caution that produced unruled rosters is dropped, because an unruled roster
+is exactly the drift this repository has twice paid for.
+
 
 ## Awaiting ratification
 

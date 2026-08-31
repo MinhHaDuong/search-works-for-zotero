@@ -374,51 +374,38 @@ read as a promise:
 
 ## The goals ladder
 
-A goal is a bundle of promises named in the user's own words and kept only when
-every member holds at once. The sheet has one such bundle today — goal 1,
-*search all of my library* — and this section says what stands under it. It is a
-**dependency reading**: which promises have to hold before another bundle can be
-kept at all. It is not a ranking, not a schedule, and not a statement of where
-anything stands; the number in a goal's name is a label, and standing lives on
-[README.md](README.md).
+The sheet is one flat list of promises. The ladder is the order they are made
+true in: **five goals, numbered from the cheapest to assert to the most
+expensive to earn**, each a bundle of these requirements named in the user's own
+words. Every requirement here sits on exactly one rung.
 
-Read from the bottom.
-
-| rung | the promise, in the user's words | candidate members |
+| | the goal, in the user's words | why it sits there |
 |---|---|---|
-| bottom | **It is mine, and I can leave.** Nothing goes anywhere unasked, one switch stops the work, and removing the data directory removes the system | R10, R15, R22, R31 |
-| middle | **It survives the second day.** What it costs to stay current is what changed, a second process is not a catastrophe, and a version flip is not a hand-repair | R3, R13, R23 |
-| top | **Search all of my library**, which is goal 1 — every document, every language, indexed today, answered in time, by meaning and by exact words | ruled; see [README.md](README.md) |
+| 1 | **I can install it and take it off again.** Nothing leaves this machine unasked, one switch stops the work, deleting the data directory is the whole uninstall, and a configuration proves it runs here before it is used | its assertions need no corpus, no build and no library — they are decidable the moment the system is installed |
+| 2 | **It does not lose or corrupt what it built.** Staying current costs what changed, two processes on one data directory neither corrupt nor duplicate, and an index under another schema version ends up served | needs a built index but not a good one, and a build that cannot survive its own second day never reaches the rungs above |
+| 3 | **It answers, and it is honest about what it has.** Coverage converges unattended and finishes inside its bounds, the index answers while still filling, and it says how much is behind an answer and which emptiness an empty one is | the first rung a user can actually use, and the last one that can be judged without asking whether the answers are any good |
+| 4 | **It finds the right thing, in my languages, and I can open it.** Three modes, the pinned answer inside the first ten, three languages with the lanes connected, and a hit that opens at its page | where it stops being an index and becomes search; every promise here is about the answer rather than the corpus |
+| 5 | **All of my library.** A 15k library and a 15k-page PDF as ordinary input, group libraries in and never erasing one another, one's own notes and annotations, and a new item noticed unasked | the word *all* in the promise, and the expensive rung |
 
-**Only goal 1's roster is ruled.** Its membership is a ruling in
-[DECISIONS.md](DECISIONS.md) with a machine-readable line, and
-`bench/check_progress.py` fails the build when the status page and that ruling
-disagree. The two rungs below carry candidates and no ruling, so nothing checks
-them and nothing should read them as settled. Naming a bundle is cheap; ruling
-its membership is what makes it able to fail.
+**The number is the build order and nothing else.** It says which bundle to make
+true first, never which matters most and never how much of one is true. Each
+rung is a conjunction: kept when every one of its members holds and at no state
+before that, so a lower goal kept does not make a higher one partly kept.
 
-**Why the bottom rung is the entry condition.** Every promise on it is about
-being able to *try* the system: nobody points an indexer at a real library for a
-day unless stopping it is one action and leaving is deleting one directory. Its
-promises are also the least conditional in the sheet — they hold or fail the
-moment the system is installed, before a single item is indexed.
+**The method is tests first, bottom-up.** Write the assertions for the lowest
+rung, make them pass, then climb. Until a rung's assertions exist its rows can
+only be read from the source or inferred — a claim about nobody rather than
+about the system — which is why a rung cannot be declared before its tests run.
 
-**Why the middle rung comes before the top and not after it.** R32 admits a
-build that runs for a day. An index a second process corrupts, or a version flip
-abandons while the build is still filling it, never reaches the state goal 1
-measures — the day restarts instead. So durability here is what makes arrival
-possible, rather than what protects it afterwards. This is also where R23 sits:
-refused as a term of goal 1 on 2026-08-31 and folded into R1's assertion, it is
-this rung's charter member, and the refusal decided which bundle it belongs to
-rather than whether it matters.
-
-**R5 is on no rung.** Its design answer came back negative — the constrained
-path lost to ranking everything, so no constrained step ships — and its
-user-facing residue moved into goal 1 as R18. A decided question whose promise
-has been rehoused is not a goal.
+**Which requirements sit on which rung is not repeated here.** The rosters are
+on [README.md](README.md), where `bench/check_progress.py` holds each of them to
+the ruling in [DECISIONS.md](DECISIONS.md) and fails the build when a
+requirement sits on no rung, on two, or when the page and the ledger disagree. A
+second copy in this document would drift from that one, which is this
+repository's most expensive recurring defect.
 
 **Above the top**, unnamed and unruled, sits the bundle this repository exists
-to reach eventually: *works for someone who is not me*. R7's SHOULD tier, R24's
+to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24's
 entry-heading and dedup clauses behind the segmenter, a pinned set that is not
 the author's own questions, and the harness offered upstream. It is named here
 so its absence does not read as an oversight.
