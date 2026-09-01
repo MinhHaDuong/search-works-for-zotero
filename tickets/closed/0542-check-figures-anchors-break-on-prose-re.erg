@@ -1,0 +1,36 @@
+%erg 0.1
+Title: check_figures anchors break on prose re-wrap: match across line breaks
+Created: 2026-09-01
+Author: MinhHaDuong
+Closed: anchors now match across a prose re-wrap; despace-before-unwrap ordering established and tested both ways
+
+--- log ---
+2026-09-01T11:30Z MinhHaDuong created
+
+2026-09-01T16:52Z claude done despace() now runs BEFORE an unwrap() that collapses every whitespace run, line breaks included, on both the anchor and the scanned text (bench/check_figures.py). Red first, both ways: the re-wrap case failed against the pre-fix matcher with exactly the reported symptom, and the FIRST cut of the fix -- unwrap before despace -- turned two live declarations red, which is the finding worth recording. Unwrapping first hands despace() a space where the document had a line break, and despace() removes any separator between two digits, so 2026-08-22\n93022 collapsed to 2026-08-2293022 and the slot swallowed the date. Order reversed; both cases now hold a test of their own. STATED COST, not hidden: a break landing on a figure's OWN thousands separator (360\n811) still will not match, because nothing distinguishes it from the break between two adjacent tokens -- asserted in the test so nobody re-introduces the gluing while fixing it. All 410 anchored pairs green, 0 stale, make check green. The one-physical-line folklore lived in agent prompts, not in committed prose, so there was nothing to delete: its retirement is stated in check_figures.py's module docstring instead, where the next session reads it
+2026-09-01T16:53Z Claude closed — anchors now match across a prose re-wrap; despace-before-unwrap ordering established and tested both ways
+--- body ---
+## Context
+`bench/check_figures.py` anchors match against the file's raw text, so an
+anchored phrase split by an ordinary prose re-wrap stops matching and reports
+STALE with the figure unchanged. It fired twice on 2026-09-01 during the 0091
+round-4/round-5 body edits (`of {} hits both arms return`, `so {} moved onto
+the match`), and the workaround — keeping every figure-bearing phrase on one
+physical line — is now folklore in two agent prompts, which is the tell that
+the guard is fighting the document format instead of reading it.
+
+## Actions
+Normalize whitespace (newlines included) on both the anchor and the scanned
+text before matching, preserving the positional-slot semantics and the
+duplicate-anchor separation the file's comments defend.
+
+## Test
+Red first: an existing green anchor re-wrapped across a line break must stay
+green after the fix and be shown red against the pre-fix matcher.
+
+## Exit criteria
+- [x] a line break inside an anchored phrase no longer produces STALE
+- [x] the positional/dedup semantics keep their existing tests green
+- [x] `make check` green; the one-physical-line folklore removed from prose
+      (it lived in agent prompts, not committed text — retirement stated in the
+      guard's own module docstring instead)

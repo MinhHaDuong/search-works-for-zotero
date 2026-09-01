@@ -213,3 +213,74 @@ def test_a_ticket_is_found_whether_open_or_archived(tmp_path, monkeypatch):
     # Gone entirely: reported, never skipped.
     closed_path.unlink()
     assert cf.main_for_test(str(artifact.parent)) == 1
+
+
+def test_a_line_break_inside_an_anchored_phrase_still_matches(tmp_path, monkeypatch):
+    """Ticket 0542: an ordinary prose re-wrap must not report STALE on an unchanged figure.
+
+    Anchors are one-line Python literals; the documents are re-wrapped prose. Before the
+    whitespace normalization this asserted, a phrase the author split across two physical
+    lines stopped matching, and the workaround — keeping every figure-bearing phrase on
+    one line — had become folklore in two agent prompts.
+    """
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"hits": 1234}))
+    doc = tmp_path / "DOC.md"
+
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
+    monkeypatch.setattr(cf, "FIGURES", [("a.json", "hits", 0, {"doc": "of {} hits both"})])
+
+    doc.write_text("So of 1234 hits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, "the one-line form must pass"
+
+    # The same sentence, re-wrapped. The figure did not move.
+    doc.write_text("So of 1234\nhits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, (
+        "a line break inside the anchored phrase is a re-wrap, not a stale figure"
+    )
+
+    # A spaced figure inside the phrase is fine, and so is a break beside it.
+    doc.write_text("So of 1 234 hits\nboth arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0
+
+    # The stated remainder: a break landing on the figure's OWN thousands separator is
+    # not matched, and deliberately so. despace() runs before unwrap() precisely so that
+    # a line break is never read as a thousands separator — reading it as one glued
+    # `2026-08-22` to the next line's `93022` and made the slot swallow the date, a false
+    # STALE of exactly the kind this ticket removes. This asserts the trade, so nobody
+    # "fixes" it by swapping the order and re-introducing the gluing.
+    doc.write_text("So of 1\n234 hits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 1
+
+    # Staleness still fails: normalization widens what counts as the same phrase,
+    # never what counts as the same number.
+    doc.write_text("So of 9999\nhits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 1
+
+
+def test_unwrap_never_lets_a_break_glue_two_numbers_into_one_slot(tmp_path, monkeypatch):
+    """The regression the whitespace normalization introduced, and the order that fixed it.
+
+    Ticket 0542's first cut unwrapped before despacing, so a line break between two
+    unrelated tokens became a space and despace() then removed it as a thousands
+    separator. `2026-08-22\\n93022 passages` collapsed to `2026-08-2293022` and the slot
+    reported the date as part of the figure. Both real documents that broke this way are
+    covered by the live declarations; this holds the mechanism on its own.
+    """
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"vectors": 93022}))
+    doc = tmp_path / "DOC.md"
+
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
+    monkeypatch.setattr(
+        cf, "FIGURES", [("a.json", "vectors", 0, {"doc": "{} passages of the real library"})]
+    )
+
+    doc.write_text("Measured 2026-08-22\n93022 passages of the real library, warm.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, (
+        "the digits ending the previous line must not be glued into the slot"
+    )

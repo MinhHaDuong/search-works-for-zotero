@@ -20,6 +20,14 @@ snippet with `{}` where the value belongs; the check is then positional and a wr
 in that slot fails. Anchors are declared for every figure that has actually gone stale
 here.
 
+**An anchored phrase may wrap.** Stated here because the opposite was believed: until
+2026-09-01 the match ran against the raw text, so a phrase split by an ordinary prose
+re-wrap reported STALE with the figure unchanged, and "keep every figure-bearing phrase
+on one physical line" had spread as folklore. It is retired — see `unwrap()`. Write the
+prose the way the paragraph wants to read; the only remaining shape constraint is that a
+figure's own thousands separator should not be the wrap point, and `unwrap()`'s docstring
+says why that one cannot be lifted.
+
 **What it does not do**, deliberately: it does not scan prose for numbers and try to
 attribute them. That direction has no ground truth (a document legitimately cites other
 artifacts, fixtures, and derived values), and a check that guesses produces noise until
@@ -155,6 +163,43 @@ def resolve(key: str) -> Path | None:
 SEPARATORS = " \u00a0\u202f\u2009_"
 
 _DIGIT_SEP = re.compile(rf"(?<=\d)[{SEPARATORS}](?=\d)")
+
+_WHITESPACE = re.compile(r"\s+")
+
+
+def unwrap(text: str) -> str:
+    """Collapse every run of whitespace, line breaks included, to a single space.
+
+    Anchors are one-line Python literals; the documents they match are re-wrapped prose.
+    Matching against the raw text therefore made an anchored phrase's SHAPE load-bearing:
+    an ordinary re-wrap that split the phrase across two physical lines stopped it
+    matching and reported STALE with the figure unchanged. It fired twice on 2026-09-01
+    during the 0091 body edits, and the workaround — keeping every figure-bearing phrase
+    on one physical line — had reached two agent prompts as folklore, which is the tell
+    that the guard was fighting the document format instead of reading it (ticket 0542).
+
+    Runs collapse to ONE space rather than to nothing, so the single spaces an anchor head
+    deliberately carries still mean what they meant: the heads ending in `p50 ` / `p95 `
+    were written that way to keep a spaced figure from gluing onto its label, and a
+    collapse-to-nothing would silently retire that.
+
+    Applied AFTER despace(), and the order is load-bearing in the other direction too.
+    Unwrapping first hands despace() a space where the document had a LINE BREAK, and
+    despace() removes any separator between two digits — so `2026-08-22\n93022 passages`
+    became `2026-08-2293022`, one contiguous run, and the slot swallowed the date. That
+    is a false STALE on an unchanged figure, which is the very defect this ticket exists
+    to remove. Despacing first confines the rule to separators the author actually wrote
+    on one line, which is what a thousands separator is.
+
+    The cost is stated rather than hidden: a figure whose OWN thousands separator is the
+    wrap point (`360\n811`) still will not match, because nothing can tell that break
+    from the one between two adjacent tokens. That case stays on the author, and it is
+    the narrow remainder of what used to be every break in the phrase.
+
+    This widens what counts as the same PHRASE. It does not touch what counts as the same
+    NUMBER — the slot is still compared exactly, so a stale figure fails as before.
+    """
+    return _WHITESPACE.sub(" ", text)
 
 
 def despace(text: str) -> str:
@@ -1388,7 +1433,7 @@ def run(
                 )
                 continue
             if key not in text:
-                text[key] = despace(doc.read_text())
+                text[key] = unwrap(despace(doc.read_text()))
             checked += 1
             if anchor is None:
                 ok = want in text[key]
@@ -1405,7 +1450,7 @@ def run(
                 # suite green, which is recorded in the test rather than hidden. Kept as
                 # defence in depth against an anchor whose tail begins with a digit-like
                 # character, not claimed as the load-bearing guard.
-                head, _, tail = despace(anchor).partition("{}")
+                head, _, tail = unwrap(despace(anchor)).partition("{}")
                 pattern = re.compile(
                     # `/` so a per-run sequence (2,99/3,01/…) is one slot, `-` so a
                     # range (1,8-10,0) is one slot.
