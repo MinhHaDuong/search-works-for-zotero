@@ -8,6 +8,7 @@ Author: claude
 
 2026-08-31T15:41Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
 
+2026-09-01T14:03Z claude note propagated: SPEC.md 5.2.2 (heuristics, entry arithmetic, fallback), the glossary entry for seg/1, SPEC.md 5.3's X5 rule and 5.4 risk 1, ticket 0025's X5 line and substrate map, ticket 0028's exit criteria. ONE QUESTION LEFT TO THE AUTHOR, not decided here: whether >= 45/50 is still the right bar for X5 now that ground truth is a book's own table of contents rather than a human with a printed dictionary. The number is carried over unchanged with an inline note saying so. RSS-fixture sites verified untouched by diff inspection -- no removed line names the 2 084,9 MiB class, the 15 000-page PDF, the RSS gate or X3a
 --- body ---
 ## Context
 
@@ -64,11 +65,21 @@ hit takes the fixture with it.
 
 ## Exit criteria
 
-- [ ] §2.2's heuristics rewritten for the primary class, the rhythm statistic
+- [x] §2.2's heuristics rewritten for the primary class, the rhythm statistic
       kept as the rare case's special case rather than deleted
-- [ ] the entry arithmetic reframed, and §2.9 checked rather than assumed
-- [ ] the synthetic fallback re-sized against a chapter, or its size defended
-- [ ] X5's corpus and ground truth restated in §3 and ticket 0025, with the
+      (SPEC.md 5.2.2; the glossary entry at SPEC.md 3 repointed with it)
+- [x] the entry arithmetic reframed, and §2.9 checked rather than assumed
+      (SPEC.md 5.2.9's 567 829 is measured over total text and does not move;
+      what moves is entry collapse, and 5.2.2 now says so)
+- [x] the synthetic fallback re-sized against a chapter, or its size defended
+      (re-stated as a policy: largest synthetic entries the downstream geometry
+      accepts; the ~6k figure kept as the rare case's calibration, and the
+      primary class's number left to X5 rather than invented)
+- [x] X5's corpus and ground truth restated in §3 and ticket 0025, with the
       bar's number put to the author rather than carried over
-- [ ] 0028's exit criteria repointed
-- [ ] the RSS-fixture sites verified untouched, by name: §1, §2.8, X3a, R-scale
+      (SPEC.md 5.3 and 5.4 risk 1; >= 45/50 flagged in place as carried over
+      pending the author -- NOT re-set by inference)
+- [x] 0028's exit criteria repointed
+- [x] the RSS-fixture sites verified untouched, by name: §1, §2.8, X3a, R-scale
+      (no removed line in the diff names the 2 084,9 MiB class, the 15 000-page
+      PDF, the RSS gate or X3a)

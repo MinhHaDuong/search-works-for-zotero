@@ -24,6 +24,7 @@ Blocked-by: 0502
 2026-09-01T13:27Z Ruling refined 2026-09-01 (author correction): no third, PDF-side fixed-size fallback. When the PDF path's two tiers (outline, layout) come up empty or low-confidence, control falls through to seg/1 itself rather than a duplicate fixed-size mechanism in PDF-page terms -- seg/1 already owns confidence-gated synthetic entries. Also: the length trigger is a fallback chain, not a single field -- indexedPages or a literal page-break count first, a character-count estimate when neither is available, so the gate degrades to an estimate rather than never firing. DECISIONS.md entry edited in place (same PR, unmerged, same-day correction, not a rewrite of settled history).
 2026-09-01T13:36Z claude note privacy correction (author directive, 2026-09-01): specific document titles from the author's private Zotero library -- named in earlier log lines above, the SOTA review, DECISIONS.md, and ticket 0562 -- do not belong in this public repo. Redacted to generic structural-class descriptions everywhere (this ticket's own log text edited in place, unmerged/same-PR, not a rewrite of settled history). The commit-level exposure on this branch's already-pushed history is a separate, larger question raised to the author directly.
 2026-09-01T13:57Z claude note formalized the substantive gate: seg/1 must build to spec/DESIGN.md §2.2, which is still the dictionary-only heuristic (headword rhythm/MAD, ~6k-token fallback) superseded by the 2026-08-31 books-and-proceedings ruling; 0502 propagates that ruling into the spec and X5's rule and was open/ready with no dependency link. Added Blocked-by: 0502 so erg ready stops surfacing 0028 as workable before the spec it must be built to is current
+2026-09-01T14:03Z claude note exit criteria repointed by 0502: the primary target class is books and proceedings, the 44,9 MB dictionary is the rare case (and keeps its separate monster-document RSS-fixture role, untouched). A second criterion now names the primary-class signal set explicitly -- table of contents as validator, chapter/section numbering, author bylines, page-boundary form feeds -- with the rhythm/MAD statistic built only as the dictionary special case
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; that review is now
@@ -39,9 +40,19 @@ panel/cycle2/review-political.md).
 
 ## Exit criteria
 - [x] #6012 checkpoint recorded here 2026-08-30 — read at source; seg/1 not obsoleted
-- [ ] seg/1 runnable over flat /fulltext text, emitting entries + confidence
+- [ ] seg/1 runnable over flat /fulltext text of its PRIMARY TARGET CLASS --
+      books and proceedings, per the 2026-08-31 ruling (0502 propagated it into
+      SPEC.md 5.2.2) -- emitting entries + confidence. The 44,9 MB dictionary is
+      the rare case, not the target this criterion is read against; it keeps its
+      separate, untouched role as the monster-document RSS fixture (X3a)
+- [ ] the primary-class signals built, not the dictionary's: table of contents
+      as validator of the cut set, chapter/section numbering, author bylines,
+      and page-boundary form feeds where the extraction carries them. The
+      headword rhythm/MAD statistic is built only as the dictionary's special
+      case, never applied to the primary class
 - [ ] deterministic on fixture text; identity string (seg/1) for the chunker key
-- [ ] X5 (0025) can consume it on the author's machine
+- [ ] X5 (0025) can consume it on the author's machine, over books and
+      proceedings scored against their own tables of contents
 - [ ] the embed path asserts the cap and declares truncation explicitly on the
       call — 0140's action 4, ruled into this bundle (DECISIONS.md
       2026-08-30): the guard ships inside the upstream PR this ticket
