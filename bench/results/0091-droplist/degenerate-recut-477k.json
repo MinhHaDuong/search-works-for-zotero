@@ -1,0 +1,367 @@
+{
+ "index": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "passages": 477512,
+ "probes": [
+  {
+   "arm": "stock",
+   "id": "soliloquy",
+   "query": "to be or not to be",
+   "why": "the motivating query: every word common, one accidental survivor",
+   "ms": 320.9,
+   "n": 10,
+   "top": [
+    "THXPN4ZP",
+    "KXKFFLZA",
+    "8EB4JHQL",
+    "Y3QZZEWH",
+    "PKEDRC6E"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "bare-the",
+   "query": "the",
+   "why": "one listed word alone — stock answers [] for free",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "bare-the-accented",
+   "query": "thé",
+   "why": "French for tea; folds to `the`, so it reaches the same path",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "of-the",
+   "query": "of the",
+   "why": "two listed words — must still fall back",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "the-brain",
+   "query": "the brain",
+   "why": "one common word, one rare content word — the over-fire case",
+   "ms": 3.4,
+   "n": 9,
+   "top": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "in-the-brain",
+   "query": "in the brain",
+   "why": "TWO common words, one rare one — the case the first rule got wrong",
+   "ms": 3.5,
+   "n": 9,
+   "top": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "on-the-moon",
+   "query": "on the moon",
+   "why": "same shape, ordinary query",
+   "ms": 3.1,
+   "n": 10,
+   "top": [
+    "CBEBU7EH",
+    "Z7WJ6NKX",
+    "DH8EXSVA",
+    "3NSSBD3J",
+    "P55G4G6E"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "is-it-a-bird",
+   "query": "is it a bird",
+   "why": "same shape again, three common words",
+   "ms": 3.3,
+   "n": 10,
+   "top": [
+    "82TJNL6G",
+    "UZK8SA2W",
+    "AEHZFSFU",
+    "DAIB5WV6",
+    "T2EHJ83H"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "of-energy",
+   "query": "of energy",
+   "why": "one common word, one COMMON content word (26,2%)",
+   "ms": 294.1,
+   "n": 10,
+   "top": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68"
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "etre-ou-ne-pas-etre",
+   "query": "être ou ne pas être",
+   "why": "the French degenerate query — no English list touches it",
+   "ms": 53.5,
+   "n": 10,
+   "top": [
+    "S33JAUCG",
+    "V4QRQRVL",
+    "386DHVX2",
+    "WVA2DH5N",
+    "29DVG4FS"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "soliloquy",
+   "query": "to be or not to be",
+   "why": "the motivating query: every word common, one accidental survivor",
+   "ms": 874.1,
+   "n": 10,
+   "top": [
+    "TVEPMMGN",
+    "ZFEVBHN2",
+    "JTWGMZ2X",
+    "Z9IS7FPY",
+    "DEV2WYTJ"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "bare-the",
+   "query": "the",
+   "why": "one listed word alone — stock answers [] for free",
+   "ms": 0.1,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "bare-the-accented",
+   "query": "thé",
+   "why": "French for tea; folds to `the`, so it reaches the same path",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "of-the",
+   "query": "of the",
+   "why": "two listed words — must still fall back",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "the-brain",
+   "query": "the brain",
+   "why": "one common word, one rare content word — the over-fire case",
+   "ms": 6.8,
+   "n": 9,
+   "top": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "in-the-brain",
+   "query": "in the brain",
+   "why": "TWO common words, one rare one — the case the first rule got wrong",
+   "ms": 4.8,
+   "n": 9,
+   "top": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "on-the-moon",
+   "query": "on the moon",
+   "why": "same shape, ordinary query",
+   "ms": 3.2,
+   "n": 10,
+   "top": [
+    "CBEBU7EH",
+    "Z7WJ6NKX",
+    "DH8EXSVA",
+    "3NSSBD3J",
+    "P55G4G6E"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "is-it-a-bird",
+   "query": "is it a bird",
+   "why": "same shape again, three common words",
+   "ms": 5.2,
+   "n": 10,
+   "top": [
+    "82TJNL6G",
+    "UZK8SA2W",
+    "AEHZFSFU",
+    "DAIB5WV6",
+    "T2EHJ83H"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "of-energy",
+   "query": "of energy",
+   "why": "one common word, one COMMON content word (26,2%)",
+   "ms": 280.7,
+   "n": 10,
+   "top": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68"
+   ]
+  },
+  {
+   "arm": "pr1-recut",
+   "id": "etre-ou-ne-pas-etre",
+   "query": "être ou ne pas être",
+   "why": "the French degenerate query — no English list touches it",
+   "ms": 46.6,
+   "n": 10,
+   "top": [
+    "S33JAUCG",
+    "V4QRQRVL",
+    "386DHVX2",
+    "WVA2DH5N",
+    "29DVG4FS"
+   ]
+  }
+ ],
+ "df": {
+  "to": {
+   "doc": 369130,
+   "pct": 77.3,
+   "idfClamped": true
+  },
+  "be": {
+   "doc": 198464,
+   "pct": 41.56,
+   "idfClamped": false
+  },
+  "or": {
+   "doc": 146265,
+   "pct": 30.63,
+   "idfClamped": false
+  },
+  "not": {
+   "doc": 130379,
+   "pct": 27.3,
+   "idfClamped": false
+  },
+  "the": {
+   "doc": 403131,
+   "pct": 84.42,
+   "idfClamped": true
+  },
+  "thé": {
+   "doc": 0,
+   "pct": 0,
+   "idfClamped": false
+  },
+  "of": {
+   "doc": 405701,
+   "pct": 84.96,
+   "idfClamped": true
+  },
+  "brain": {
+   "doc": 480,
+   "pct": 0.1,
+   "idfClamped": false
+  },
+  "in": {
+   "doc": 377280,
+   "pct": 79.01,
+   "idfClamped": true
+  },
+  "on": {
+   "doc": 251682,
+   "pct": 52.71,
+   "idfClamped": true
+  },
+  "moon": {
+   "doc": 250,
+   "pct": 0.05,
+   "idfClamped": false
+  },
+  "is": {
+   "doc": 265740,
+   "pct": 55.65,
+   "idfClamped": true
+  },
+  "it": {
+   "doc": 139042,
+   "pct": 29.12,
+   "idfClamped": false
+  },
+  "bird": {
+   "doc": 463,
+   "pct": 0.1,
+   "idfClamped": false
+  },
+  "energy": {
+   "doc": 125198,
+   "pct": 26.22,
+   "idfClamped": false
+  },
+  "être": {
+   "doc": 0,
+   "pct": 0,
+   "idfClamped": false
+  },
+  "ou": {
+   "doc": 10961,
+   "pct": 2.3,
+   "idfClamped": false
+  },
+  "ne": {
+   "doc": 8269,
+   "pct": 1.73,
+   "idfClamped": false
+  },
+  "pas": {
+   "doc": 7995,
+   "pct": 1.67,
+   "idfClamped": false
+  }
+ }
+}

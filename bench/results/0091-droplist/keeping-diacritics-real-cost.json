@@ -1,0 +1,220 @@
+{
+ "source": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "sampled_passages": 60000,
+ "words_the_corpus_only_spells_accented": 503,
+ "passages_holding_at_least_one": 6797,
+ "share_of_sampled_passages": 11.33,
+ "reading": "These are the words for which folding is the only thing that makes an unaccented query work: the bare spelling does not occur, so an unfolded index answers such a query with nothing. The share is an upper bound on the benefit — it counts a passage if it holds ANY such word, not if the user would have searched for it.",
+ "top": [
+  {
+   "form": "đây",
+   "folded": "đay",
+   "occurrences": 622,
+   "bareOccurrences": 1,
+   "passages": 540
+  },
+  {
+   "form": "đánh",
+   "folded": "đanh",
+   "occurrences": 650,
+   "bareOccurrences": 1,
+   "passages": 451
+  },
+  {
+   "form": "même",
+   "folded": "meme",
+   "occurrences": 542,
+   "bareOccurrences": 0,
+   "passages": 450
+  },
+  {
+   "form": "điện",
+   "folded": "đien",
+   "occurrences": 2609,
+   "bareOccurrences": 0,
+   "passages": 444
+  },
+  {
+   "form": "cña",
+   "folded": "cna",
+   "occurrences": 756,
+   "bareOccurrences": 1,
+   "passages": 409
+  },
+  {
+   "form": "đáp",
+   "folded": "đap",
+   "occurrences": 405,
+   "bareOccurrences": 0,
+   "passages": 345
+  },
+  {
+   "form": "được",
+   "folded": "đuoc",
+   "occurrences": 786,
+   "bareOccurrences": 0,
+   "passages": 344
+  },
+  {
+   "form": "phía",
+   "folded": "phia",
+   "occurrences": 345,
+   "bareOccurrences": 0,
+   "passages": 288
+  },
+  {
+   "form": "également",
+   "folded": "egalement",
+   "occurrences": 311,
+   "bareOccurrences": 2,
+   "passages": 273
+  },
+  {
+   "form": "thñy",
+   "folded": "thny",
+   "occurrences": 291,
+   "bareOccurrences": 0,
+   "passages": 260
+  },
+  {
+   "form": "điều",
+   "folded": "đieu",
+   "occurrences": 638,
+   "bareOccurrences": 0,
+   "passages": 256
+  },
+  {
+   "form": "nghìn",
+   "folded": "nghin",
+   "occurrences": 502,
+   "bareOccurrences": 0,
+   "passages": 242
+  },
+  {
+   "form": "après",
+   "folded": "apres",
+   "occurrences": 270,
+   "bareOccurrences": 2,
+   "passages": 231
+  },
+  {
+   "form": "résultats",
+   "folded": "resultats",
+   "occurrences": 296,
+   "bareOccurrences": 0,
+   "passages": 214
+  },
+  {
+   "form": "nuôi",
+   "folded": "nuoi",
+   "occurrences": 652,
+   "bareOccurrences": 2,
+   "passages": 212
+  },
+  {
+   "form": "thèng",
+   "folded": "theng",
+   "occurrences": 232,
+   "bareOccurrences": 0,
+   "passages": 204
+  },
+  {
+   "form": "đào",
+   "folded": "đao",
+   "occurrences": 301,
+   "bareOccurrences": 1,
+   "passages": 203
+  },
+  {
+   "form": "différents",
+   "folded": "differents",
+   "occurrences": 223,
+   "bareOccurrences": 0,
+   "passages": 201
+  },
+  {
+   "form": "giúp",
+   "folded": "giup",
+   "occurrences": 232,
+   "bareOccurrences": 1,
+   "passages": 198
+  },
+  {
+   "form": "thêi",
+   "folded": "thei",
+   "occurrences": 289,
+   "bareOccurrences": 0,
+   "passages": 190
+  },
+  {
+   "form": "années",
+   "folded": "annees",
+   "occurrences": 218,
+   "bareOccurrences": 0,
+   "passages": 186
+  },
+  {
+   "form": "première",
+   "folded": "premiere",
+   "occurrences": 190,
+   "bareOccurrences": 2,
+   "passages": 176
+  },
+  {
+   "form": "đổi",
+   "folded": "đoi",
+   "occurrences": 331,
+   "bareOccurrences": 0,
+   "passages": 173
+  },
+  {
+   "form": "đối",
+   "folded": "đoi",
+   "occurrences": 279,
+   "bareOccurrences": 0,
+   "passages": 171
+  },
+  {
+   "form": "matière",
+   "folded": "matiere",
+   "occurrences": 190,
+   "bareOccurrences": 0,
+   "passages": 169
+  },
+  {
+   "form": "manière",
+   "folded": "maniere",
+   "occurrences": 182,
+   "bareOccurrences": 0,
+   "passages": 165
+  },
+  {
+   "form": "quèc",
+   "folded": "quec",
+   "occurrences": 219,
+   "bareOccurrences": 0,
+   "passages": 162
+  },
+  {
+   "form": "phóc",
+   "folded": "phoc",
+   "occurrences": 159,
+   "bareOccurrences": 2,
+   "passages": 159
+  },
+  {
+   "form": "différentes",
+   "folded": "differentes",
+   "occurrences": 166,
+   "bareOccurrences": 0,
+   "passages": 154
+  },
+  {
+   "form": "année",
+   "folded": "annee",
+   "occurrences": 201,
+   "bareOccurrences": 0,
+   "passages": 152
+  }
+ ]
+}

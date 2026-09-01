@@ -1,0 +1,1455 @@
+{
+ "index": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "sampled_passages": 40000,
+ "tokens": 7080012,
+ "distinct_folded_groups": 177046,
+ "groups_with_more_than_one_spelling": 3211,
+ "groups_where_the_unaccented_spelling_never_occurs_alone": 158,
+ "groups_where_the_two_spellings_are_comparable": 2198,
+ "groups_where_the_unaccented_spelling_dominates_10x_or_more": 855,
+ "reading": "Comparable groups are what folding buys: one word, two spellings, united. Dominating groups are what it costs: the accented word is absorbed into an unaccented word that stands on its own. Groups where the unaccented spelling never occurs alone are unaffected either way — folding unites nothing and merges nothing.",
+ "benefit_examples": [
+  {
+   "folded": "va",
+   "forms": [
+    {
+     "form": "và",
+     "count": 9930
+    },
+    {
+     "form": "va",
+     "count": 3307
+    },
+    {
+     "form": "vã",
+     "count": 45
+    },
+    {
+     "form": "vá",
+     "count": 28
+    },
+    {
+     "form": "vâ",
+     "count": 6
+    },
+    {
+     "form": "vä",
+     "count": 3
+    },
+    {
+     "form": "vả",
+     "count": 1
+    }
+   ],
+   "bare": 3307,
+   "accentedTotal": 10013,
+   "ratio": 0.3
+  },
+  {
+   "folded": "cac",
+   "forms": [
+    {
+     "form": "các",
+     "count": 8709
+    },
+    {
+     "form": "cac",
+     "count": 203
+    }
+   ],
+   "bare": 203,
+   "accentedTotal": 8709,
+   "ratio": 0
+  },
+  {
+   "folded": "co",
+   "forms": [
+    {
+     "form": "co",
+     "count": 6138
+    },
+    {
+     "form": "có",
+     "count": 4691
+    },
+    {
+     "form": "cơ",
+     "count": 402
+    },
+    {
+     "form": "cô",
+     "count": 89
+    },
+    {
+     "form": "cổ",
+     "count": 38
+    },
+    {
+     "form": "cố",
+     "count": 32
+    },
+    {
+     "form": "cò",
+     "count": 5
+    },
+    {
+     "form": "cỏ",
+     "count": 4
+    },
+    {
+     "form": "cờ",
+     "count": 2
+    },
+    {
+     "form": "cỡ",
+     "count": 2
+    }
+   ],
+   "bare": 6138,
+   "accentedTotal": 5265,
+   "ratio": 1.2
+  },
+  {
+   "folded": "cong",
+   "forms": [
+    {
+     "form": "công",
+     "count": 5148
+    },
+    {
+     "form": "cong",
+     "count": 315
+    },
+    {
+     "form": "cộng",
+     "count": 44
+    },
+    {
+     "form": "cổng",
+     "count": 16
+    },
+    {
+     "form": "cống",
+     "count": 5
+    },
+    {
+     "form": "còng",
+     "count": 2
+    },
+    {
+     "form": "cöng",
+     "count": 1
+    },
+    {
+     "form": "cồng",
+     "count": 1
+    }
+   ],
+   "bare": 315,
+   "accentedTotal": 5217,
+   "ratio": 0.1
+  },
+  {
+   "folded": "phat",
+   "forms": [
+    {
+     "form": "phát",
+     "count": 3240
+    },
+    {
+     "form": "phat",
+     "count": 73
+    },
+    {
+     "form": "phạt",
+     "count": 13
+    }
+   ],
+   "bare": 73,
+   "accentedTotal": 3253,
+   "ratio": 0
+  },
+  {
+   "folded": "la",
+   "forms": [
+    {
+     "form": "la",
+     "count": 11529
+    },
+    {
+     "form": "là",
+     "count": 2947
+    },
+    {
+     "form": "lá",
+     "count": 42
+    },
+    {
+     "form": "lã",
+     "count": 26
+    },
+    {
+     "form": "lâ",
+     "count": 3
+    },
+    {
+     "form": "lạ",
+     "count": 3
+    },
+    {
+     "form": "lả",
+     "count": 1
+    },
+    {
+     "form": "lå",
+     "count": 1
+    }
+   ],
+   "bare": 11529,
+   "accentedTotal": 3023,
+   "ratio": 3.8
+  },
+  {
+   "folded": "nha",
+   "forms": [
+    {
+     "form": "nhà",
+     "count": 2753
+    },
+    {
+     "form": "nha",
+     "count": 2664
+    },
+    {
+     "form": "nhâ",
+     "count": 12
+    },
+    {
+     "form": "nhá",
+     "count": 8
+    },
+    {
+     "form": "nhã",
+     "count": 5
+    }
+   ],
+   "bare": 2664,
+   "accentedTotal": 2778,
+   "ratio": 1
+  },
+  {
+   "folded": "gia",
+   "forms": [
+    {
+     "form": "gia",
+     "count": 3991
+    },
+    {
+     "form": "giá",
+     "count": 2306
+    },
+    {
+     "form": "giả",
+     "count": 46
+    },
+    {
+     "form": "già",
+     "count": 10
+    },
+    {
+     "form": "giã",
+     "count": 5
+    },
+    {
+     "form": "gía",
+     "count": 2
+    },
+    {
+     "form": "giâ",
+     "count": 1
+    }
+   ],
+   "bare": 3991,
+   "accentedTotal": 2370,
+   "ratio": 1.7
+  },
+  {
+   "folded": "khong",
+   "forms": [
+    {
+     "form": "không",
+     "count": 2156
+    },
+    {
+     "form": "khong",
+     "count": 47
+    },
+    {
+     "form": "khổng",
+     "count": 4
+    },
+    {
+     "form": "khöng",
+     "count": 1
+    }
+   ],
+   "bare": 47,
+   "accentedTotal": 2161,
+   "ratio": 0
+  },
+  {
+   "folded": "chinh",
+   "forms": [
+    {
+     "form": "chính",
+     "count": 2101
+    },
+    {
+     "form": "chinh",
+     "count": 176
+    },
+    {
+     "form": "chỉnh",
+     "count": 59
+    }
+   ],
+   "bare": 176,
+   "accentedTotal": 2160,
+   "ratio": 0.1
+  },
+  {
+   "folded": "may",
+   "forms": [
+    {
+     "form": "may",
+     "count": 7483
+    },
+    {
+     "form": "máy",
+     "count": 2069
+    },
+    {
+     "form": "mây",
+     "count": 35
+    },
+    {
+     "form": "mấy",
+     "count": 6
+    }
+   ],
+   "bare": 7483,
+   "accentedTotal": 2110,
+   "ratio": 3.5
+  },
+  {
+   "folded": "tinh",
+   "forms": [
+    {
+     "form": "tính",
+     "count": 1553
+    },
+    {
+     "form": "tình",
+     "count": 290
+    },
+    {
+     "form": "tinh",
+     "count": 273
+    },
+    {
+     "form": "tỉnh",
+     "count": 239
+    },
+    {
+     "form": "tĩnh",
+     "count": 14
+    }
+   ],
+   "bare": 273,
+   "accentedTotal": 2096,
+   "ratio": 0.1
+  },
+  {
+   "folded": "tai",
+   "forms": [
+    {
+     "form": "tài",
+     "count": 940
+    },
+    {
+     "form": "tái",
+     "count": 615
+    },
+    {
+     "form": "tại",
+     "count": 394
+    },
+    {
+     "form": "tai",
+     "count": 213
+    },
+    {
+     "form": "tải",
+     "count": 138
+    },
+    {
+     "form": "täi",
+     "count": 2
+    }
+   ],
+   "bare": 213,
+   "accentedTotal": 2089,
+   "ratio": 0.1
+  },
+  {
+   "folded": "khi",
+   "forms": [
+    {
+     "form": "khí",
+     "count": 2054
+    },
+    {
+     "form": "khi",
+     "count": 978
+    },
+    {
+     "form": "khỉ",
+     "count": 1
+    }
+   ],
+   "bare": 978,
+   "accentedTotal": 2055,
+   "ratio": 0.5
+  },
+  {
+   "folded": "thong",
+   "forms": [
+    {
+     "form": "thông",
+     "count": 1725
+    },
+    {
+     "form": "thống",
+     "count": 215
+    },
+    {
+     "form": "thong",
+     "count": 99
+    },
+    {
+     "form": "thöng",
+     "count": 1
+    }
+   ],
+   "bare": 99,
+   "accentedTotal": 1941,
+   "ratio": 0.1
+  },
+  {
+   "folded": "hanh",
+   "forms": [
+    {
+     "form": "hành",
+     "count": 1820
+    },
+    {
+     "form": "hanh",
+     "count": 110
+    },
+    {
+     "form": "hạnh",
+     "count": 6
+    },
+    {
+     "form": "hánh",
+     "count": 1
+    }
+   ],
+   "bare": 110,
+   "accentedTotal": 1827,
+   "ratio": 0.1
+  },
+  {
+   "folded": "binh",
+   "forms": [
+    {
+     "form": "bình",
+     "count": 1784
+    },
+    {
+     "form": "binh",
+     "count": 598
+    }
+   ],
+   "bare": 598,
+   "accentedTotal": 1784,
+   "ratio": 0.3
+  },
+  {
+   "folded": "se",
+   "forms": [
+    {
+     "form": "se",
+     "count": 1702
+    },
+    {
+     "form": "sè",
+     "count": 1328
+    },
+    {
+     "form": "së",
+     "count": 213
+    },
+    {
+     "form": "sẽ",
+     "count": 173
+    },
+    {
+     "form": "sẻ",
+     "count": 23
+    },
+    {
+     "form": "sê",
+     "count": 12
+    },
+    {
+     "form": "sé",
+     "count": 1
+    }
+   ],
+   "bare": 1702,
+   "accentedTotal": 1750,
+   "ratio": 1
+  },
+  {
+   "folded": "xay",
+   "forms": [
+    {
+     "form": "xây",
+     "count": 1686
+    },
+    {
+     "form": "xay",
+     "count": 78
+    },
+    {
+     "form": "xảy",
+     "count": 16
+    },
+    {
+     "form": "xáy",
+     "count": 1
+    }
+   ],
+   "bare": 78,
+   "accentedTotal": 1703,
+   "ratio": 0
+  },
+  {
+   "folded": "hoa",
+   "forms": [
+    {
+     "form": "hoa",
+     "count": 3247
+    },
+    {
+     "form": "hóa",
+     "count": 913
+    },
+    {
+     "form": "hòa",
+     "count": 414
+    },
+    {
+     "form": "hoá",
+     "count": 210
+    },
+    {
+     "form": "hoà",
+     "count": 82
+    },
+    {
+     "form": "họa",
+     "count": 29
+    },
+    {
+     "form": "hỏa",
+     "count": 3
+    },
+    {
+     "form": "hoã",
+     "count": 1
+    },
+    {
+     "form": "hoă",
+     "count": 1
+    }
+   ],
+   "bare": 3247,
+   "accentedTotal": 1653,
+   "ratio": 2
+  }
+ ],
+ "cost_examples": [
+  {
+   "folded": "an",
+   "forms": [
+    {
+     "form": "an",
+     "count": 20131
+    },
+    {
+     "form": "án",
+     "count": 1674
+    },
+    {
+     "form": "ấn",
+     "count": 19
+    },
+    {
+     "form": "ăn",
+     "count": 14
+    },
+    {
+     "form": "ân",
+     "count": 7
+    },
+    {
+     "form": "àn",
+     "count": 2
+    },
+    {
+     "form": "ẩn",
+     "count": 2
+    },
+    {
+     "form": "ần",
+     "count": 1
+    },
+    {
+     "form": "ẫn",
+     "count": 1
+    }
+   ],
+   "bare": 20131,
+   "accentedTotal": 1720,
+   "ratio": 11.7
+  },
+  {
+   "folded": "so",
+   "forms": [
+    {
+     "form": "so",
+     "count": 9977
+    },
+    {
+     "form": "số",
+     "count": 454
+    },
+    {
+     "form": "sở",
+     "count": 177
+    },
+    {
+     "form": "sơ",
+     "count": 55
+    },
+    {
+     "form": "sö",
+     "count": 38
+    },
+    {
+     "form": "sô",
+     "count": 21
+    },
+    {
+     "form": "sổ",
+     "count": 8
+    },
+    {
+     "form": "sợ",
+     "count": 6
+    },
+    {
+     "form": "sờ",
+     "count": 1
+    },
+    {
+     "form": "sộ",
+     "count": 1
+    }
+   ],
+   "bare": 9977,
+   "accentedTotal": 761,
+   "ratio": 13.1
+  },
+  {
+   "folded": "du",
+   "forms": [
+    {
+     "form": "du",
+     "count": 10089
+    },
+    {
+     "form": "dự",
+     "count": 525
+    },
+    {
+     "form": "dù",
+     "count": 138
+    },
+    {
+     "form": "dư",
+     "count": 26
+    },
+    {
+     "form": "dữ",
+     "count": 23
+    },
+    {
+     "form": "dû",
+     "count": 18
+    },
+    {
+     "form": "dụ",
+     "count": 6
+    }
+   ],
+   "bare": 10089,
+   "accentedTotal": 736,
+   "ratio": 13.7
+  },
+  {
+   "folded": "be",
+   "forms": [
+    {
+     "form": "be",
+     "count": 31230
+    },
+    {
+     "form": "bé",
+     "count": 606
+    },
+    {
+     "form": "bê",
+     "count": 62
+    },
+    {
+     "form": "bè",
+     "count": 17
+    },
+    {
+     "form": "bế",
+     "count": 2
+    },
+    {
+     "form": "bề",
+     "count": 2
+    },
+    {
+     "form": "bể",
+     "count": 1
+    }
+   ],
+   "bare": 31230,
+   "accentedTotal": 690,
+   "ratio": 45.3
+  },
+  {
+   "folded": "đa",
+   "forms": [
+    {
+     "form": "đa",
+     "count": 7421
+    },
+    {
+     "form": "đã",
+     "count": 359
+    },
+    {
+     "form": "đà",
+     "count": 228
+    },
+    {
+     "form": "đá",
+     "count": 92
+    },
+    {
+     "form": "đâ",
+     "count": 7
+    },
+    {
+     "form": "đă",
+     "count": 1
+    }
+   ],
+   "bare": 7421,
+   "accentedTotal": 687,
+   "ratio": 10.8
+  },
+  {
+   "folded": "nam",
+   "forms": [
+    {
+     "form": "nam",
+     "count": 6372
+    },
+    {
+     "form": "năm",
+     "count": 565
+    },
+    {
+     "form": "nằm",
+     "count": 12
+    },
+    {
+     "form": "nắm",
+     "count": 8
+    },
+    {
+     "form": "näm",
+     "count": 3
+    },
+    {
+     "form": "nậm",
+     "count": 2
+    }
+   ],
+   "bare": 6372,
+   "accentedTotal": 590,
+   "ratio": 10.8
+  },
+  {
+   "folded": "can",
+   "forms": [
+    {
+     "form": "can",
+     "count": 12549
+    },
+    {
+     "form": "cân",
+     "count": 195
+    },
+    {
+     "form": "cần",
+     "count": 148
+    },
+    {
+     "form": "cán",
+     "count": 82
+    },
+    {
+     "form": "căn",
+     "count": 47
+    },
+    {
+     "form": "cận",
+     "count": 16
+    },
+    {
+     "form": "cản",
+     "count": 11
+    },
+    {
+     "form": "cạn",
+     "count": 6
+    },
+    {
+     "form": "cấn",
+     "count": 2
+    },
+    {
+     "form": "çan",
+     "count": 1
+    },
+    {
+     "form": "cẩn",
+     "count": 1
+    }
+   ],
+   "bare": 12549,
+   "accentedTotal": 509,
+   "ratio": 24.7
+  },
+  {
+   "folded": "thu",
+   "forms": [
+    {
+     "form": "thu",
+     "count": 6222
+    },
+    {
+     "form": "thủ",
+     "count": 188
+    },
+    {
+     "form": "thứ",
+     "count": 99
+    },
+    {
+     "form": "thư",
+     "count": 82
+    },
+    {
+     "form": "thù",
+     "count": 42
+    },
+    {
+     "form": "thụ",
+     "count": 35
+    },
+    {
+     "form": "thú",
+     "count": 16
+    },
+    {
+     "form": "thử",
+     "count": 13
+    },
+    {
+     "form": "thự",
+     "count": 10
+    }
+   ],
+   "bare": 6222,
+   "accentedTotal": 485,
+   "ratio": 12.8
+  },
+  {
+   "folded": "the",
+   "forms": [
+    {
+     "form": "the",
+     "count": 324482
+    },
+    {
+     "form": "thể",
+     "count": 266
+    },
+    {
+     "form": "thế",
+     "count": 166
+    },
+    {
+     "form": "thê",
+     "count": 11
+    },
+    {
+     "form": "thẻ",
+     "count": 7
+    }
+   ],
+   "bare": 324482,
+   "accentedTotal": 450,
+   "ratio": 721.1
+  },
+  {
+   "folded": "he",
+   "forms": [
+    {
+     "form": "he",
+     "count": 4878
+    },
+    {
+     "form": "hệ",
+     "count": 257
+    },
+    {
+     "form": "hé",
+     "count": 134
+    },
+    {
+     "form": "hè",
+     "count": 43
+    },
+    {
+     "form": "hê",
+     "count": 12
+    },
+    {
+     "form": "hề",
+     "count": 2
+    }
+   ],
+   "bare": 4878,
+   "accentedTotal": 448,
+   "ratio": 10.9
+  },
+  {
+   "folded": "to",
+   "forms": [
+    {
+     "form": "to",
+     "count": 128911
+    },
+    {
+     "form": "tổ",
+     "count": 159
+    },
+    {
+     "form": "tô",
+     "count": 140
+    },
+    {
+     "form": "tố",
+     "count": 30
+    },
+    {
+     "form": "tờ",
+     "count": 17
+    },
+    {
+     "form": "tö",
+     "count": 16
+    },
+    {
+     "form": "tơ",
+     "count": 14
+    },
+    {
+     "form": "tỏ",
+     "count": 3
+    },
+    {
+     "form": "tó",
+     "count": 1
+    }
+   ],
+   "bare": 128911,
+   "accentedTotal": 380,
+   "ratio": 339.2
+  },
+  {
+   "folded": "ho",
+   "forms": [
+    {
+     "form": "ho",
+     "count": 7115
+    },
+    {
+     "form": "hồ",
+     "count": 107
+    },
+    {
+     "form": "hộ",
+     "count": 89
+    },
+    {
+     "form": "hỗ",
+     "count": 73
+    },
+    {
+     "form": "hô",
+     "count": 43
+    },
+    {
+     "form": "họ",
+     "count": 17
+    },
+    {
+     "form": "hó",
+     "count": 6
+    },
+    {
+     "form": "hơ",
+     "count": 2
+    },
+    {
+     "form": "hò",
+     "count": 1
+    },
+    {
+     "form": "hở",
+     "count": 1
+    },
+    {
+     "form": "hổ",
+     "count": 1
+    }
+   ],
+   "bare": 7115,
+   "accentedTotal": 340,
+   "ratio": 20.9
+  },
+  {
+   "folded": "vo",
+   "forms": [
+    {
+     "form": "vo",
+     "count": 3630
+    },
+    {
+     "form": "vô",
+     "count": 278
+    },
+    {
+     "form": "vợ",
+     "count": 10
+    },
+    {
+     "form": "vò",
+     "count": 7
+    },
+    {
+     "form": "võ",
+     "count": 6
+    },
+    {
+     "form": "vỡ",
+     "count": 4
+    },
+    {
+     "form": "vơ",
+     "count": 3
+    },
+    {
+     "form": "vỏ",
+     "count": 3
+    },
+    {
+     "form": "vớ",
+     "count": 2
+    }
+   ],
+   "bare": 3630,
+   "accentedTotal": 313,
+   "ratio": 11.6
+  },
+  {
+   "folded": "emissions",
+   "forms": [
+    {
+     "form": "emissions",
+     "count": 8307
+    },
+    {
+     "form": "émissions",
+     "count": 309
+    }
+   ],
+   "bare": 8307,
+   "accentedTotal": 309,
+   "ratio": 26.9
+  },
+  {
+   "folded": "ba",
+   "forms": [
+    {
+     "form": "ba",
+     "count": 5761
+    },
+    {
+     "form": "bà",
+     "count": 122
+    },
+    {
+     "form": "bá",
+     "count": 61
+    },
+    {
+     "form": "bã",
+     "count": 28
+    },
+    {
+     "form": "bă",
+     "count": 3
+    }
+   ],
+   "bare": 5761,
+   "accentedTotal": 214,
+   "ratio": 26.9
+  },
+  {
+   "folded": "nhu",
+   "forms": [
+    {
+     "form": "nhu",
+     "count": 2627
+    },
+    {
+     "form": "như",
+     "count": 201
+    }
+   ],
+   "bare": 2627,
+   "accentedTotal": 201,
+   "ratio": 13.1
+  },
+  {
+   "folded": "tha",
+   "forms": [
+    {
+     "form": "tha",
+     "count": 3457
+    },
+    {
+     "form": "thä",
+     "count": 112
+    },
+    {
+     "form": "thá",
+     "count": 51
+    },
+    {
+     "form": "thã",
+     "count": 27
+    },
+    {
+     "form": "thà",
+     "count": 4
+    },
+    {
+     "form": "thâ",
+     "count": 2
+    },
+    {
+     "form": "thả",
+     "count": 1
+    }
+   ],
+   "bare": 3457,
+   "accentedTotal": 197,
+   "ratio": 17.5
+  },
+  {
+   "folded": "le",
+   "forms": [
+    {
+     "form": "le",
+     "count": 7101
+    },
+    {
+     "form": "lê",
+     "count": 93
+    },
+    {
+     "form": "lệ",
+     "count": 63
+    },
+    {
+     "form": "lẻ",
+     "count": 17
+    },
+    {
+     "form": "lễ",
+     "count": 15
+    },
+    {
+     "form": "lé",
+     "count": 3
+    },
+    {
+     "form": "lẽ",
+     "count": 2
+    },
+    {
+     "form": "lề",
+     "count": 2
+    },
+    {
+     "form": "lë",
+     "count": 1
+    }
+   ],
+   "bare": 7101,
+   "accentedTotal": 196,
+   "ratio": 36.2
+  },
+  {
+   "folded": "tra",
+   "forms": [
+    {
+     "form": "tra",
+     "count": 2063
+    },
+    {
+     "form": "trà",
+     "count": 101
+    },
+    {
+     "form": "trả",
+     "count": 56
+    },
+    {
+     "form": "trã",
+     "count": 15
+    },
+    {
+     "form": "trá",
+     "count": 13
+    }
+   ],
+   "bare": 2063,
+   "accentedTotal": 185,
+   "ratio": 11.2
+  },
+  {
+   "folded": "vu",
+   "forms": [
+    {
+     "form": "vu",
+     "count": 2787
+    },
+    {
+     "form": "vụ",
+     "count": 167
+    },
+    {
+     "form": "vũ",
+     "count": 12
+    },
+    {
+     "form": "vư",
+     "count": 2
+    },
+    {
+     "form": "vù",
+     "count": 1
+    }
+   ],
+   "bare": 2787,
+   "accentedTotal": 182,
+   "ratio": 15.3
+  },
+  {
+   "folded": "tho",
+   "forms": [
+    {
+     "form": "tho",
+     "count": 3421
+    },
+    {
+     "form": "thô",
+     "count": 126
+    },
+    {
+     "form": "thọ",
+     "count": 14
+    },
+    {
+     "form": "thợ",
+     "count": 10
+    },
+    {
+     "form": "thó",
+     "count": 9
+    },
+    {
+     "form": "thơ",
+     "count": 6
+    },
+    {
+     "form": "thổ",
+     "count": 6
+    },
+    {
+     "form": "thö",
+     "count": 6
+    },
+    {
+     "form": "thở",
+     "count": 2
+    }
+   ],
+   "bare": 3421,
+   "accentedTotal": 179,
+   "ratio": 19.1
+  },
+  {
+   "folded": "it",
+   "forms": [
+    {
+     "form": "it",
+     "count": 18192
+    },
+    {
+     "form": "ít",
+     "count": 157
+    },
+    {
+     "form": "ît",
+     "count": 21
+    }
+   ],
+   "bare": 18192,
+   "accentedTotal": 178,
+   "ratio": 102.2
+  },
+  {
+   "folded": "trong",
+   "forms": [
+    {
+     "form": "trong",
+     "count": 5568
+    },
+    {
+     "form": "trọng",
+     "count": 107
+    },
+    {
+     "form": "trồng",
+     "count": 61
+    },
+    {
+     "form": "trông",
+     "count": 5
+    },
+    {
+     "form": "trống",
+     "count": 3
+    },
+    {
+     "form": "tròng",
+     "count": 1
+    }
+   ],
+   "bare": 5568,
+   "accentedTotal": 177,
+   "ratio": 31.5
+  },
+  {
+   "folded": "kha",
+   "forms": [
+    {
+     "form": "kha",
+     "count": 1745
+    },
+    {
+     "form": "khá",
+     "count": 76
+    },
+    {
+     "form": "khả",
+     "count": 64
+    },
+    {
+     "form": "khã",
+     "count": 15
+    },
+    {
+     "form": "khâ",
+     "count": 1
+    }
+   ],
+   "bare": 1745,
+   "accentedTotal": 156,
+   "ratio": 11.2
+  },
+  {
+   "folded": "ty",
+   "forms": [
+    {
+     "form": "ty",
+     "count": 2657
+    },
+    {
+     "form": "tỷ",
+     "count": 153
+    }
+   ],
+   "bare": 2657,
+   "accentedTotal": 153,
+   "ratio": 17.4
+  }
+ ]
+}

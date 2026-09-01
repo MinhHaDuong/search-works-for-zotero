@@ -1,0 +1,882 @@
+{
+ "index": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "passages": 477512,
+ "sampled_passages": 40000,
+ "tokens_seen": 7988104,
+ "distinct_accented_forms": 12038,
+ "collisions_total": 11963,
+ "collisions_onto_common_tokens": 94,
+ "note": "A collision is an accented form whose folded spelling is ALSO a real token of this index. Severity is the document frequency of the token it lands on: the higher, the more completely the accented word disappears into it.",
+ "worst": [
+  {
+   "term": "óf",
+   "foldsTo": "of",
+   "occurrences": 3,
+   "landsOnDoc": 405701,
+   "landsOnPct": 84.96
+  },
+  {
+   "term": "thế",
+   "foldsTo": "the",
+   "occurrences": 166,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thể",
+   "foldsTo": "the",
+   "occurrences": 266,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thẻ",
+   "foldsTo": "the",
+   "occurrences": 7,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thê",
+   "foldsTo": "the",
+   "occurrences": 11,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "ín",
+   "foldsTo": "in",
+   "occurrences": 1,
+   "landsOnDoc": 377280,
+   "landsOnPct": 79.01
+  },
+  {
+   "term": "ïn",
+   "foldsTo": "in",
+   "occurrences": 1,
+   "landsOnDoc": 377280,
+   "landsOnPct": 79.01
+  },
+  {
+   "term": "tổ",
+   "foldsTo": "to",
+   "occurrences": 159,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tờ",
+   "foldsTo": "to",
+   "occurrences": 17,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tơ",
+   "foldsTo": "to",
+   "occurrences": 14,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tỏ",
+   "foldsTo": "to",
+   "occurrences": 3,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tô",
+   "foldsTo": "to",
+   "occurrences": 140,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tố",
+   "foldsTo": "to",
+   "occurrences": 30,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tö",
+   "foldsTo": "to",
+   "occurrences": 16,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tó",
+   "foldsTo": "to",
+   "occurrences": 1,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "för",
+   "foldsTo": "for",
+   "occurrences": 7,
+   "landsOnDoc": 318562,
+   "landsOnPct": 66.71
+  },
+  {
+   "term": "ổn",
+   "foldsTo": "on",
+   "occurrences": 43,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ơn",
+   "foldsTo": "on",
+   "occurrences": 4,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ồn",
+   "foldsTo": "on",
+   "occurrences": 1,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ôn",
+   "foldsTo": "on",
+   "occurrences": 6,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ốn",
+   "foldsTo": "on",
+   "occurrences": 1,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "thất",
+   "foldsTo": "that",
+   "occurrences": 12,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "thắt",
+   "foldsTo": "that",
+   "occurrences": 6,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "thật",
+   "foldsTo": "that",
+   "occurrences": 10,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "bé",
+   "foldsTo": "be",
+   "occurrences": 606,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bê",
+   "foldsTo": "be",
+   "occurrences": 62,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bè",
+   "foldsTo": "be",
+   "occurrences": 17,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bế",
+   "foldsTo": "be",
+   "occurrences": 2,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bể",
+   "foldsTo": "be",
+   "occurrences": 1,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bề",
+   "foldsTo": "be",
+   "occurrences": 2,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  }
+ ],
+ "severe": [
+  {
+   "term": "óf",
+   "foldsTo": "of",
+   "occurrences": 3,
+   "landsOnDoc": 405701,
+   "landsOnPct": 84.96
+  },
+  {
+   "term": "thế",
+   "foldsTo": "the",
+   "occurrences": 166,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thể",
+   "foldsTo": "the",
+   "occurrences": 266,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thẻ",
+   "foldsTo": "the",
+   "occurrences": 7,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "thê",
+   "foldsTo": "the",
+   "occurrences": 11,
+   "landsOnDoc": 403131,
+   "landsOnPct": 84.42
+  },
+  {
+   "term": "ín",
+   "foldsTo": "in",
+   "occurrences": 1,
+   "landsOnDoc": 377280,
+   "landsOnPct": 79.01
+  },
+  {
+   "term": "ïn",
+   "foldsTo": "in",
+   "occurrences": 1,
+   "landsOnDoc": 377280,
+   "landsOnPct": 79.01
+  },
+  {
+   "term": "tổ",
+   "foldsTo": "to",
+   "occurrences": 159,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tờ",
+   "foldsTo": "to",
+   "occurrences": 17,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tơ",
+   "foldsTo": "to",
+   "occurrences": 14,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tỏ",
+   "foldsTo": "to",
+   "occurrences": 3,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tô",
+   "foldsTo": "to",
+   "occurrences": 140,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tố",
+   "foldsTo": "to",
+   "occurrences": 30,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tö",
+   "foldsTo": "to",
+   "occurrences": 16,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "tó",
+   "foldsTo": "to",
+   "occurrences": 1,
+   "landsOnDoc": 369130,
+   "landsOnPct": 77.3
+  },
+  {
+   "term": "för",
+   "foldsTo": "for",
+   "occurrences": 7,
+   "landsOnDoc": 318562,
+   "landsOnPct": 66.71
+  },
+  {
+   "term": "ổn",
+   "foldsTo": "on",
+   "occurrences": 43,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ơn",
+   "foldsTo": "on",
+   "occurrences": 4,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ồn",
+   "foldsTo": "on",
+   "occurrences": 1,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ôn",
+   "foldsTo": "on",
+   "occurrences": 6,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "ốn",
+   "foldsTo": "on",
+   "occurrences": 1,
+   "landsOnDoc": 251682,
+   "landsOnPct": 52.71
+  },
+  {
+   "term": "thất",
+   "foldsTo": "that",
+   "occurrences": 12,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "thắt",
+   "foldsTo": "that",
+   "occurrences": 6,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "thật",
+   "foldsTo": "that",
+   "occurrences": 10,
+   "landsOnDoc": 230649,
+   "landsOnPct": 48.3
+  },
+  {
+   "term": "bé",
+   "foldsTo": "be",
+   "occurrences": 606,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bê",
+   "foldsTo": "be",
+   "occurrences": 62,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bè",
+   "foldsTo": "be",
+   "occurrences": 17,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bế",
+   "foldsTo": "be",
+   "occurrences": 2,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bể",
+   "foldsTo": "be",
+   "occurrences": 1,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "bề",
+   "foldsTo": "be",
+   "occurrences": 2,
+   "landsOnDoc": 198464,
+   "landsOnPct": 41.56
+  },
+  {
+   "term": "án",
+   "foldsTo": "an",
+   "occurrences": 1674,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ăn",
+   "foldsTo": "an",
+   "occurrences": 14,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ân",
+   "foldsTo": "an",
+   "occurrences": 7,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ần",
+   "foldsTo": "an",
+   "occurrences": 1,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ấn",
+   "foldsTo": "an",
+   "occurrences": 19,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "àn",
+   "foldsTo": "an",
+   "occurrences": 2,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ẩn",
+   "foldsTo": "an",
+   "occurrences": 2,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ẫn",
+   "foldsTo": "an",
+   "occurrences": 1,
+   "landsOnDoc": 171908,
+   "landsOnPct": 36
+  },
+  {
+   "term": "ör",
+   "foldsTo": "or",
+   "occurrences": 1,
+   "landsOnDoc": 146265,
+   "landsOnPct": 30.63
+  },
+  {
+   "term": "ạt",
+   "foldsTo": "at",
+   "occurrences": 5,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "åt",
+   "foldsTo": "at",
+   "occurrences": 1,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "ât",
+   "foldsTo": "at",
+   "occurrences": 1,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "ãt",
+   "foldsTo": "at",
+   "occurrences": 1,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "át",
+   "foldsTo": "at",
+   "occurrences": 4,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "ất",
+   "foldsTo": "at",
+   "occurrences": 1,
+   "landsOnDoc": 141683,
+   "landsOnPct": 29.67
+  },
+  {
+   "term": "ít",
+   "foldsTo": "it",
+   "occurrences": 157,
+   "landsOnDoc": 139042,
+   "landsOnPct": 29.12
+  },
+  {
+   "term": "ît",
+   "foldsTo": "it",
+   "occurrences": 21,
+   "landsOnDoc": 139042,
+   "landsOnPct": 29.12
+  },
+  {
+   "term": "cấn",
+   "foldsTo": "can",
+   "occurrences": 2,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cần",
+   "foldsTo": "can",
+   "occurrences": 148,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "căn",
+   "foldsTo": "can",
+   "occurrences": 47,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cân",
+   "foldsTo": "can",
+   "occurrences": 195,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cận",
+   "foldsTo": "can",
+   "occurrences": 16,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cán",
+   "foldsTo": "can",
+   "occurrences": 82,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "çan",
+   "foldsTo": "can",
+   "occurrences": 1,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cản",
+   "foldsTo": "can",
+   "occurrences": 11,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cẩn",
+   "foldsTo": "can",
+   "occurrences": 1,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "cạn",
+   "foldsTo": "can",
+   "occurrences": 6,
+   "landsOnDoc": 112891,
+   "landsOnPct": 23.64
+  },
+  {
+   "term": "thèse",
+   "foldsTo": "these",
+   "occurrences": 28,
+   "landsOnDoc": 93407,
+   "landsOnPct": 19.56
+  },
+  {
+   "term": "thân",
+   "foldsTo": "than",
+   "occurrences": 59,
+   "landsOnDoc": 85378,
+   "landsOnPct": 17.88
+  },
+  {
+   "term": "thận",
+   "foldsTo": "than",
+   "occurrences": 3,
+   "landsOnDoc": 85378,
+   "landsOnPct": 17.88
+  },
+  {
+   "term": "thần",
+   "foldsTo": "than",
+   "occurrences": 11,
+   "landsOnDoc": 85378,
+   "landsOnPct": 17.88
+  },
+  {
+   "term": "thán",
+   "foldsTo": "than",
+   "occurrences": 2,
+   "landsOnDoc": 85378,
+   "landsOnPct": 17.88
+  },
+  {
+   "term": "thắn",
+   "foldsTo": "than",
+   "occurrences": 1,
+   "landsOnDoc": 85378,
+   "landsOnPct": 17.88
+  },
+  {
+   "term": "bứt",
+   "foldsTo": "but",
+   "occurrences": 3,
+   "landsOnDoc": 82472,
+   "landsOnPct": 17.27
+  },
+  {
+   "term": "bút",
+   "foldsTo": "but",
+   "occurrences": 2,
+   "landsOnDoc": 82472,
+   "landsOnPct": 17.27
+  },
+  {
+   "term": "máy",
+   "foldsTo": "may",
+   "occurrences": 2069,
+   "landsOnDoc": 75228,
+   "landsOnPct": 15.75
+  },
+  {
+   "term": "mấy",
+   "foldsTo": "may",
+   "occurrences": 6,
+   "landsOnDoc": 75228,
+   "landsOnPct": 15.75
+  },
+  {
+   "term": "mây",
+   "foldsTo": "may",
+   "occurrences": 35,
+   "landsOnDoc": 75228,
+   "landsOnPct": 15.75
+  },
+  {
+   "term": "usé",
+   "foldsTo": "use",
+   "occurrences": 1,
+   "landsOnDoc": 71832,
+   "landsOnPct": 15.04
+  },
+  {
+   "term": "èt",
+   "foldsTo": "et",
+   "occurrences": 80,
+   "landsOnDoc": 69173,
+   "landsOnPct": 14.49
+  },
+  {
+   "term": "ét",
+   "foldsTo": "et",
+   "occurrences": 1,
+   "landsOnDoc": 69173,
+   "landsOnPct": 14.49
+  },
+  {
+   "term": "théré",
+   "foldsTo": "there",
+   "occurrences": 2,
+   "landsOnDoc": 68921,
+   "landsOnPct": 14.43
+  },
+  {
+   "term": "sơ",
+   "foldsTo": "so",
+   "occurrences": 55,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "số",
+   "foldsTo": "so",
+   "occurrences": 454,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sở",
+   "foldsTo": "so",
+   "occurrences": 177,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sợ",
+   "foldsTo": "so",
+   "occurrences": 6,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sö",
+   "foldsTo": "so",
+   "occurrences": 38,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sổ",
+   "foldsTo": "so",
+   "occurrences": 8,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sô",
+   "foldsTo": "so",
+   "occurrences": 21,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sờ",
+   "foldsTo": "so",
+   "occurrences": 1,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "sộ",
+   "foldsTo": "so",
+   "occurrences": 1,
+   "landsOnDoc": 65288,
+   "landsOnPct": 13.67
+  },
+  {
+   "term": "îts",
+   "foldsTo": "its",
+   "occurrences": 1,
+   "landsOnDoc": 64519,
+   "landsOnPct": 13.51
+  },
+  {
+   "term": "nó",
+   "foldsTo": "no",
+   "occurrences": 75,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "nỗ",
+   "foldsTo": "no",
+   "occurrences": 7,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "nợ",
+   "foldsTo": "no",
+   "occurrences": 22,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "nổ",
+   "foldsTo": "no",
+   "occurrences": 5,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "nọ",
+   "foldsTo": "no",
+   "occurrences": 1,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "nô",
+   "foldsTo": "no",
+   "occurrences": 6,
+   "landsOnDoc": 61703,
+   "landsOnPct": 12.92
+  },
+  {
+   "term": "changé",
+   "foldsTo": "change",
+   "occurrences": 3,
+   "landsOnDoc": 61192,
+   "landsOnPct": 12.81
+  },
+  {
+   "term": "möst",
+   "foldsTo": "most",
+   "occurrences": 1,
+   "landsOnDoc": 53487,
+   "landsOnPct": 11.2
+  },
+  {
+   "term": "gás",
+   "foldsTo": "gas",
+   "occurrences": 1,
+   "landsOnDoc": 50685,
+   "landsOnPct": 10.61
+  },
+  {
+   "term": "émissions",
+   "foldsTo": "emissions",
+   "occurrences": 309,
+   "landsOnDoc": 50332,
+   "landsOnPct": 10.54
+  },
+  {
+   "term": "ál",
+   "foldsTo": "al",
+   "occurrences": 1,
+   "landsOnDoc": 47818,
+   "landsOnPct": 10.01
+  },
+  {
+   "term": "àl",
+   "foldsTo": "al",
+   "occurrences": 1,
+   "landsOnDoc": 47818,
+   "landsOnPct": 10.01
+  }
+ ]
+}
