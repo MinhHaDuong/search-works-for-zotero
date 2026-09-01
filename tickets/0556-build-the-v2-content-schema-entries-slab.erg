@@ -53,9 +53,11 @@ separately, it does not need to wait on this ticket.
 ## Relevant files
 
 - `SPEC.md` §5.2.2 (Storage: one file, one schema, every row library-keyed)
-  — authoritative: WAL mode, `synchronous=NORMAL`, `busy_timeout=5000` on
-  every connection, `PRAGMA auto_vacuum=INCREMENTAL` set **before the first
-  table** (a no-op if set later — the section says so explicitly); the
+  — authoritative, and read there rather than restated here: the connection
+  pragmas and **the order they must be applied in** (that order was
+  corrected on this branch — the sentence this bullet used to quote was
+  wrong in effect, so quoting it again is exactly the drift the correction
+  was for); the
   entry layer (`entries`, `slabs`, `passages` columns and shapes); FTS5
   per-field columns and tokenizer (`unicode61 remove_diacritics 2`),
   contentless (`content=''`, `contentless_delete=1`) where SQLite >= 3.43,
