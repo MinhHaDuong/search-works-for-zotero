@@ -10,6 +10,7 @@ Author: minh
 2026-09-01T13:57Z claude note tranche 3 landed on fork branch tranche-3-extract-shim at e8784df (MinhHaDuong/zoteus); three commits — the shim, the suite, run-to-drain. 1067 tests green, tsc clean, eslint clean.
 2026-09-01T13:57Z claude note constants disclosed as arbitrations, not measurements: the ruling declined a measurement, so PACE_WINDOW 8, PACE_DEGRADED_RATIO 2, PACE_DEGRADED_FLOOR_MS 50 and PACE_STEP_MS 250 are chosen and documented as such in fetch-pacer.ts. Only PACE_CEILING_MS 8000 is derived — below the row-claim TTL of 30x the ~1 s quantum, since a pacing delay long enough to expire the claim would duplicate the fetch it was slowing down.
 2026-09-01T13:57Z claude note scope: the pipe is not built. The worker runs in-process behind ExtractDispatcher, which is where the process boundary falls — what crosses it is already an assignment and a result. Windows have no consumer until the segmenter exists (tranche 4, blocked on 0556), and a pipe protocol written against no consumer would claim the design was built. Also deferred: re-enqueueing the rows staleExtracts() finds, which needs a conductor-side sweep rather than a query.
+2026-09-01T14:03Z claude note correction to the constants entry above: it named four chosen constants and there are five. PACE_MIN_SAMPLES = 4 — below which there is no verdict, since a median of two is not a median — is chosen on the same footing as the other four. Appended rather than corrected in place, per append-only.
 --- body ---
 ## Context
 
@@ -63,7 +64,7 @@ and arrives here for free.
   Held: the only `src/api/` change is one added method on the LOCAL
   client, `fetchFullTextStream`, and it goes through the same
   `RateLimitedFetcher` and its four-slot semaphore as every other read.
-  Nothing under the web transport was touched. 1067 tests pass, `tsc`
+  Nothing under the web transport was touched. 1 067 tests pass, `tsc`
   and `eslint` clean.
 
 ## Exit criteria
