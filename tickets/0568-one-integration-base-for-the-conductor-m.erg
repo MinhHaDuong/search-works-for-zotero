@@ -1,0 +1,97 @@
+%erg 0.1
+Title: One integration base for the conductor: merge the divergent tranche branches into a single tree
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0553
+
+--- log ---
+2026-09-01T16:53Z claude created
+
+2026-09-01T16:55Z claude note filed by the raid on 0565/0566, which went to read the code those two tickets join and found it on two branches that have never met. `tranche-1-ledger-schema` → `tranche-2-conductor-election` is a chain, but `tranche-3-extract-shim` (0553) and `tranche-schema-v2-content` (0556) are SIBLINGS, both cut from `tranche-2` at a00091b, and both rewrite `ledger.ts` — +323 lines on tranche 3, +649 on the schema branch. Trial merge run 2026-09-01 on a scratch branch: `src/config.ts`, `src/registry/registry.ts`, `src/server.ts`, `store.ts` and the two test files all auto-merge; `src/features/search/conductor/ledger.ts` CONFLICTS. Nothing owned forming one tree, and both 0565 and 0566 assume one exists — 0566's "Relevant files" says "everything tranches 1-3, 0556, and 0565 built" as though it were one checkout, and 0565's loop literally joins tranche 3's `onWindow` callback to the schema branch's `putSlab`/`putEntry`/`putPassage`. Same shape as the gap that produced 0556: a step every dependent assumes and no ticket owns.
+
+--- body ---
+
+## Context
+
+The conductor's work has landed one fork branch per tranche, by the
+tracker's own design (0550: "one fork branch per tranche; each lands
+alone, none commits the next"). That worked while the tranches were
+sequential. It stopped being true at tranche 3: 0553 and 0556 were built
+in parallel off `tranche-2-conductor-election`, and neither is an
+ancestor of the other.
+
+Every remaining ticket in the family needs them together:
+
+- **0565** calls `streamFullText`'s `onWindow` callback (tranche 3) and
+  writes through `Ledger.putSlab` / `putEntry` / `putPassage` /
+  `indexText` (schema branch). It cannot be written against either
+  branch alone.
+- **0554**'s embed worker needs both the extract stage's work orders and
+  the passages the schema branch defines.
+- **0566** is the assembly, and reads as though one checkout already
+  held all of it.
+
+This ticket is that tree, and nothing more: no new behaviour, no new
+tests beyond what the merge requires to stay green.
+
+## Blocked by, and why
+
+`Blocked-by: 0553` — tranche 3 is parked, not merged, with two
+confirmed concurrency blockers (PR #156's parking comment, 2026-09-01;
+blocker 1 is ticketed separately as 0567). Merging it forward now would
+carry both defects into the base every later tranche builds on, which is
+exactly the cost the parking decision was taken to avoid.
+
+Not blocked by 0567: 0567 hardens `markDone`/`markFailed` on the MERGED
+tranche-1 primitive, so it can land before, after or independently of
+this merge — but landing it first is cheaper, since the conflict region
+is the same file.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — the one conflicting
+  file. Both sides append methods and schema DDL to the same class; the
+  conflict is textual adjacency, not a semantic disagreement, as far as
+  the trial merge showed. Verify that claim on the real merge rather
+  than inheriting it from this sentence.
+- Fork branches `tranche-3-extract-shim`, `tranche-schema-v2-content`,
+  and their common parent `tranche-2-conductor-election`.
+
+## Actions
+
+1. Land 0553's two blockers first (its own ticket), so the merge carries
+   no known defect forward.
+2. Create the integration branch off `tranche-2-conductor-election`,
+   merge both siblings into it, resolve `ledger.ts`.
+3. Decide and record the going-forward convention: whether later
+   tranches (0554, 0565, 0566) branch from this integration branch
+   rather than from tranche 2, and whether the per-tranche branch rule
+   in 0550 is amended to say so.
+
+## Test
+
+- The union of both branches' suites passes on the merged tree — not
+  each branch's suite on its own branch. `vitest`, `tsc --noEmit`,
+  `eslint` clean, as every tranche has reported.
+- The schema branch's own migration test still passes against a v1 file
+  brought forward, since the merge touches the DDL region.
+
+## Verification
+
+- [ ] Every test from both branches present in the merged tree and green
+      (count them; a test lost in a conflict resolution is the failure
+      mode this box exists for)
+- [ ] The incumbent MiniLM byte-identical vector check green, per the
+      tracker's standing invariant
+
+## Invariants
+
+- v1's `search-index.sqlite` and its query path untouched.
+- No behaviour change: this ticket resolves a merge, it does not fix or
+  extend either side.
+
+## Exit criteria
+
+- [ ] One fork branch holds tranches 1-3 and the v2 content schema
+- [ ] Both suites green on it, with the test count reconciled
+- [ ] The branch convention for 0554/0565/0566 recorded (Action 3)
