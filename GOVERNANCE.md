@@ -88,3 +88,14 @@ Where a bound above needs to be mentioned in the specification chain, cite this
 file on the line that mentions it. That is what the guard looks for, and it is
 also what a reader needs — a pointer they have to hunt for is a pointer that
 does not resolve.
+
+## The courtesy filing
+
+One norm runs the other direction — toward the maintainer rather than about
+him (ratified 2026-09-01, spec/DECISIONS.md). A repo-side record that
+documents a defect-shaped seam in upstream's shipped code at file-line
+precision is accompanied by a short upstream filing of its own — standalone,
+never folded into an unrelated filing — or carries an explicit line stating
+why it is deliberately unfiled. The ground is the disclosure rule's own: this
+repository is public and he reads it, so the seam is disclosed either way;
+the norm makes it a note addressed to him rather than a row about him.

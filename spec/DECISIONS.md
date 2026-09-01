@@ -2441,6 +2441,21 @@ ruling's immediate effect is therefore that ticket 0520 is authorized: its
 `Blocked-by` 0505 and 0506, which own the bump's evidence half — the ruling
 settles the trigger, not the evidence.
 
+**2026-09-01 — the courtesy filing: upstream seams are notified, not only
+recorded.** The author's ruling, in the same adjudication round as the bump
+trigger. When a repo-side record documents a defect-shaped seam in upstream's
+shipped code at file-line precision — the instance that raised the question is
+the `vector-salvage.ts` observation in SYNC.md's PR #32 row, recorded at the
+v1.12.0 re-read — the record is accompanied by a short upstream filing of its
+own, or carries an explicit line stating why it is deliberately unfiled. Two
+amendments are the author's verbatim. The filing is **an issue**, matching
+the measured form asymmetry for anything the maintainer would rather build
+his own way. And it is **standalone** — "not folded here; I favour
+short-lived branches and atomic changes" — never bundled into an unrelated
+filing. The norm's text lives in GOVERNANCE.md (§ The courtesy filing); the
+live instance is authorized and files as its own short issue, with the draft
+shown to the author before it goes out in his name.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
