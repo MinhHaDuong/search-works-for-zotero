@@ -1,0 +1,333 @@
+PRIME MINISTER
+
+SOCIALIST REPUBLIC OF VIETNAM
+
+______________
+
+Independence – Freedom – Happiness
+
+No: 11 /2017/QD-TTg
+
+Ha Noi, 11th April 2017
+
+DECISION
+On the
+Support mechanisms for the Development of Solar Power Projects in Vietnam
+Pursuant to the Law on Government Organization dated 19/06/2015;
+Pursuant to the Electricity Law dated 03/12/2004 and the Law on Amendment of the
+Electricity Law dated 20/11/2012;
+Pursuant to the Investment Law dated 26/11/2014;
+Pursuant to the Construction Law dated 18/06/2014;
+According to the proposal of the Minister of Industry and Trade,
+The Prime Minister hereby enacts the Decision on Mechanisms for Promoting the
+Development of Solar Projects in Vietnam.
+Chapter I
+GENERAL PROVISIONS
+Article 1. Scope of Regulation
+This Decision regulates the mechanisms for promoting the development of solar power
+projects in Vietnam.
+Article 2. Subject of Application
+The subject of application of this Decision includes organizations and individuals
+participating in the development of solar power projects in Vietnam and other related
+stakeholder.
+Article 3. Interpretation of Terms
+In this Decision, the following terms shall be construed as follows:
+1. Electricity Buyer means Vietnam Electricity Corporation (EVN) or its authorized
+member companies.
+
+1
+
+2. Electricity Seller means any organization or individual having license for generating
+electricity from grid-connected solar power power plant; organization or individual having
+solar roof-mounted power project and selling surplus electricity to the grid.
+3. Solar PV Project means the project producing electricity from solar modules based on
+Photovoltaics principal.
+4. Roof-mounted Solar Power Project (referred to as “Roof-mounted Project”) is a solar
+power project that uses solar panels installed on the rooftop or around the building and
+connected to the grid of the Electricity Buyer.
+5. Grid-connected Solar Power Project (referred to as “Grid-connected Project”) means
+the project which is connected to the national grid or the grid of the Electricity Buyer, except
+the projects as specified in the Clause 4 of this Article.
+6. Connection Point means the position where electrical line of the Electricity Seller is
+connected to electrical system of the Electricity Buyer.
+7. Electricity Delivery Point means the position where an electricity counter is placed to
+determine electricity production sold by the Electricity Seller as agreed in the Power Purchase
+Agreement.
+8. Standardized Power Purchase Agreement used for all Grid-connected and Roofmounted Projects means the contract promulgated by the Ministry of Industry and Trade and
+applicable to the selling and purchasing of electricity produced Electricity Seller and Buyer.
+9. Feed in Tariff (FiT) of solar power projects means the fixed tariff by which electricity
+shall be paid to the Electricity Seller by the Electricity Buyer.
+Chapter II
+PLANNING AND INVESTMENT FOR DEVELOPING SOLAR POWER PROJECTS
+Article 4. Solar power development planning
+
+1. Solar power development planning consists of national and provincial solar power
+development planning. Solar power development planning is necessary for investment
+activities in solar power development and shall be adjusted in accordance with studies and
+assessment on solar potentials in different periods.
+2. The national and provincial solar power development planning is established once for
+2
+
+the period 2020 with avision to 2030, and shall be adjusted and supplemented if needed. In the
+subsequent planning period, the solar power development planning will be integrated into the
+national and provincial power development planning.
+
+3. The solar power development planning is only applicable to grid-connected projects
+andnon-applicable to roof-mounted solar power projects.
+Article 5. Preparation, approval and Promulgation of the solar power development
+planning
+1. The Ministry of Industry and Trade shall be responsible for preparing and submitting
+the national solar power development planning to the Prime Minister for approval;
+promulgating, guiding, monitoring and inspecting the implementation of the approved national
+solar power development planning.
+2. People’s Committees of municipalities and provinces (collectively referred to as
+provincial People’s Committees) where solar potential is considerable are responsible for
+preparingand submit the provincial solar power development planning to the Minister of
+Industry and Trade for approval.
+3. The promulgation and amendment of the planning must be implemented in compliance
+with existing regulations.
+4. Details of solar power development planning:
+
+a) The national solar power development planning comprises of:
+- Solar potential of localities;
+- List of solar power projects;
+- Orientations for connecting solar power projects to the national grid.
+
+b) The provincial solar power development planning comprises of:
+- Solar potential of province;
+- Areas and boundaries of regions where solar power projects are developed;
+- List of solar power projects;
+
+3
+
+- Capacities of solar power projects and method for connecting them to the national grid.
+
+5. The Ministry of Industry and Trade stipulates the details, sequences and procedures for
+preparing, appraisal and approving solar power development planning.
+Article 6. Expenditures for the preparation of the solar power development
+planning
+1. State budget shall guarantee the expenditures for the preparation, appraisal,
+promulgation and adjustment of national solar power development planning.
+2. Provincial and Central cities’ budget shall guarantee the expenditures for the
+preparation, appraisal, promulgation and adjustment of provincialsolar power development.
+3. Other legitimate financial resources for the preparation and adjustment of the solar
+power development planning should beencouraged.
+Article 7. Investment in the development ofsolar power projects
+1. Investment in the development of grid-connected projects must be in conformity with
+the power development planning as approved by competent authorities.
+2. This investment in the development of solar power projects shall be in compliance
+with existing regulations on investment, construction, fire prevention, environmental
+protection and other relevant regulations.
+3. Main components of solar power projects should fullfil PV technical standards.
+Electricity generated from solar power projects shall conform to technical specifications such
+as voltage, frequency and other relevant requirements as per prevailing laws.
+4. The Electricity Seller shall be responsible for investing in installing electricity meters
+and testing and calibrating them in compliance with measurement regulations.
+5. Organization or individual investing in the development of solar power projects
+responsible for installation of solar PV components must ensure the structural and
+constructionsafety pursuant to current rgulations.
+6. The development of Roof-mounted Projects must satisfy the following requirements:
+a) The roof or construction structure are strong enough for mounted solar panelstheir
+accessories.
+4
+
+b) All regulations concerning electrical safety shall be observed.
+c) Surrounding landscape and environment should be maintained.
+Article 8. Connecting solar power projects to electrical systems
+1. The Electricity Seller shall be responsible for investing, operating and maintaining
+transmission lines and booster transformers (if any) from power plants of the Electricity Seller
+to the Connection Points of the grid of the Electricity Buyer.
+2. Connection Points shall be agreed by the Electricity Seller and Buyer and based on
+the principle of the nearest Connection Points to the existing grid of the Electricity Buyer
+according to the capacities of power plants of the Electricity Seller and the approved provincial
+electrical planning. In case these Connection Points are different from the positions of
+electricity meters, the Electricity Seller shall take liability for energy loss of connection lines
+and loss of booster transformers of power plants. The Ministry of Industry and Trade must
+stipulate method for calculation of energy loss of connection lines.
+Chapter III
+SUPPORT MECHANISMS THE DEVELOPMENT OF SOLAR POWER PROJECTS
+Article 9. Obligation of Power Purchase from solar power projects
+1. The Electricity Buyer shall be responsible for purchasing the entire electricity
+generated from solar power projects; with priority given to deploy full generating capacity of
+commercially operating solar power.
+2. The purchase and selling shall be performed via the power purchase agreement in
+accordance with the standardized power purchase agreement issued by the Ministry of Industry
+and Trade for solar power projects.
+3. Within thirty (30) days since the Seller has prepared completed required dossier and
+Power Selling Proposal, the Purchaser and Seller shall enter into the PPA in accordance with
+regulations.
+4. The PPA of solar power projectsis valid for 20 (twenty) years from the date of
+commercial use. After 20 years, the PPA may be extended or renewed by both parties pursuant
+to existing regulations.
+
+5
+
+Article 10. Investment capital and tax incentives
+1. Mobilization of investment capital: Any organization or individual participating in the
+development of solar power projects shall be entitled to mobilize capital from both domestic
+and foreign organizations and individuals for their solar power projects as per existing
+regulations.
+2. Import duty: all solar projects shall be exempted from import duty for imported goods
+as fixed assets of the projects. Apply the current regulations of export and import duties for
+imported goods which serve project production including raw materials, supplies, semifinished products which have not been domestically produced.
+3. Corporate income tax (CIT): the exemption and reduction of corporate income tax
+imposed on solar power projects is similar to the projects in the fields of investment priorities
+as stipulated in the existing laws on taxes.
+Article 11. Preferential treatment on land
+1. Solar power projects, transmission lines and transformers connected to the grid must
+be reduced or exempted from land use charge and rent pursuant to current regulations
+regarding the projects having investment incentives.
+2. Based on the approved planning by the competent authorities, the Provincial People’s
+Committee must allocate appropriate land for the Investor to carry out their projects.
+Compensation for land clearance must be subject to land regulations.
+Article 12. Feed-in tariff (FiT) of solar projects
+1. Grid-connected Projects
+a. The Electricity Buyer shall buy all electricity production generated from the Gridconnected Projects at a FiT of VND 2.086/kWh (USDcents 9.35/kWh, exclusive of
+VAT) at the Electricity Delivery Points according to exchange rate of VND
+22,316/USD announced on 10/04/2017 by the State Bank of Vietnam. The FiT shall
+be subject to fluctuations of VND-USD exchange rate. This tariff shall be applied
+only for the Grid-connected Projects with solar cell efficiency of more than 16% or
+with module of over 15%.
+b. The adjustment of FIT subject to fluctuations of VND-USD exchange rate shall be
+executed according to SPPA issued by MoIT.
+
+6
+
+2. Roof-mounted Projects
+a. The Roof-mounted Projects shall benefit net-metering mechanism by using two-way
+electricity meters. In a payment cycle, if the generated electricity is bigger than
+consumption, it must be transferred to subsequent payment cycle. At the end of the
+year or when the PPA is terminated, excessive generated electricity shall be sold to
+the Electricity Buyer at tariff regulated in the clause 1 of this Article.
+b. Annually, based on the central rate of VND versus USD quoted by the State Bank of
+Vietnam on the last quoting date of the previous year, the MoIT shall promulgate
+purchase price for roof-mounted projects for the following year.
+3. All electricity amounts from solar power projects as stated in the Clause 1 and 2 of
+this Article shall be calculated and included into the input data of annual FiT provided by
+EVN.
+4. The Ministry of Industry and Commerce shall supervise and suggest FiT adjustment
+as defined in the Point A, Clause 1 in this Article and report it to the Prime Minister for for
+consideration and decision.
+Chapter IV
+IMPLEMENTATION PROVISIONS
+Article 13. Responsibilities of State Management Authorities
+1. The Ministry of Industry and Trade
+
+a) Organizing, guiding and coordinating with the People’s Committees of municipalities
+and provinces in examining and supervising the compliance with this Decision.
+b) Promulgating the Standardized Power Purchase Agreement for the Grid-connected and
+Roof-mounted Projects and guiding to implement such Agreement.
+c) Promulgating calculation methodology of energy loss over transmission lines in case
+measuring points are different from connection points.
+d) Promulgating technical standards in relation to solar power power and regulations of
+electricity measurement for solar power projects; guiding to execute procedures for connecting
+and installing electricity meters and applying the net-metering for the Roof-mounted Projects.
+
+7
+
+đ) Conducting study on bidding process for solar power projects and organizing the
+performance of such process properly to improve investment efficiency and reduce cost prices
+of solar power projects.
+
+e) Conducting study on and proposing support mechanisms for solar power projects for
+the period after 30th June 2019.
+g) Coordinating with the People’s Committees of municipalities and provinces in
+allocating land fund for power and solar projects and ensuring such projects reach the
+progress as determined in the adopted planning.
+h) Issuing FIT for solar power project according to fluctuations of VND-USD exchange
+rate for the coming year.
+i) For solar power project has not been included into approved solar power development
+planning and approved power development plan, MoIT examine and approve the inclusion of
+solar power projects with capacity under or equal 50 MW; submit to Prime Minister for
+approval if project’s capacity is above 50 MW.
+2. The Ministry of Planning and Investment
+Coordinating with relevant Ministries and Departments in initiating support mechanisms
+for investment in manufacturing solar devices in Vietnam and submitting them to the
+Prime Minister for appraisal and approval.
+3.
+
+The Ministry of Finance
+
+Taking lead in researching and supplementing fee and tax exemption regulations for roofmounted solar power projects (capacity under or equal 50KW), and submit to competent
+authorities for appraisal and approval.
+4. The People’s Committees of municipalities and provinces
+a) Combining and supporting the employers in implementing compensation for land
+clearance, infrastructure and human resources to invest, carry out and develop their solar
+power projects in the municipalities and provinces.
+b) Publicly allocating and specifying land fund for solar power projects on land use
+planning.
+c) Monitoring, controlling and inspecting the execution of solar power projects in the
+8
+
+municipalities and provinces.
+d) Following state management relating to solar power activities in the municipalities
+and provinces pursuant to existing regulations.
+e) Prior to January 31st of each year, the People’s Committees of municipalities and
+provinces shall inform the Ministry of Industry and Trade on total installed capacity of the
+Grid-connected and Roof-mounted Projects as of December 31st of previous year.
+Article 14. Responsibilities of relevant organizations and individuals
+1. EVN or its authorized member companies
+a) Negotiating and entering into the PPA with the Electricity Seller and FiT as indicated
+in Article 12 of this Decision if the Electricity Seller has satisfied all conditions concerning
+investment in building solar projects as set out in Article 7 of this Decision.
+b) EVN shall calculate and include electricity amounts from solar projects into the input
+data of the FiT as annually offered by EVN and present them to the competent authorities for
+adoption.
+c) Prior to January 31st of each year, EVN must notify the Ministry of Industry and Trade
+on total installed capacity of solar power projects as of December 31st of previous year.
+2. The Electricity Seller
+a) Negotiating and contracting with the Electricity Buyer under the SPPA and FiT as
+indicated in Article 12 of this Decision.
+b) Installing electricity meters in conformity with prevailing laws to measure the used
+electricity consumption as proof for electricity payment.
+c) Sending 1 (one) copy of the signed PPA for the Grid-connected Projects to the
+Ministry of Industry and Trade no later than 30 (thirty) days from the signing date of this
+contract.
+d) Complying with all regulations relating to the operation of electrical, electrical
+transmission, electrical distribution and electrical measurement systems as well as relevant
+regulations enacted by the Ministry of Industry and Trade.
+
+9
+
+Article 15. Transition
+For the Grid-connected and Roof-mounted Projects with the PPA before this Decision is
+effective, both parties are responsible for negotiating and entering into an amended Agreement
+in accordance with this Decision.
+Article 16. Validity
+1. This Decision is valid from 01/06/2017 until 30/06/2019.
+2. Ministers, Heads of Ministry-level agencies, Chiefs of governmental bodies,
+Chairmen of the People’s Committees of municipalities and provinces and Directors of
+organizations concerning the development of solar projects in Vietnam must follow this
+Decision.
+
+Copies to:
+
+- Secretariat of the Party Central Committee;
+- Prime Minister and Deputy Prime Ministers;
+- Ministries, Ministry-level agencies and governmental bodies;
+- People’s Councils and People’s Committees of municipalities
+and provinces;
+- The Party’s Central Office and Committees;
+- Office of the General Secretary;
+- Office of the President;
+- The National Assembly’s Ethnic Council and Committees;
+- Office of the National Assembly;
+- People’s Supreme Court;
+- State Audit Office of Vietnam
+- National Financial Supervisory Commission;
+- Vietnam Bank for Social Policies;
+- Vietnam Development Bank;
+- Central Committee of the Vietnam Fatherland Front;
+- Central agencies of the Unions;
+- Government’s Office: BTCN, Vice Chairmen, Assistant of
+Government Information, General Director of Government Portal,
+relevant Departments, Government Gazette;
+- Kept in the archives, KTN (3b).
+
+PRIME MINISTER
+
+NGUYEN XUAN PHUC
+
+10
+
+
