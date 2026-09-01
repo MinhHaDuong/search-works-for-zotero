@@ -2,6 +2,7 @@
 Title: Tranche 1: ledger schema, reconcile tick, and the three fixtures
 Created: 2026-09-01
 Author: minh
+Closed: autoclosed — PR #150
 
 --- log ---
 2026-09-01T16:30Z claude created, child of 0550
@@ -20,6 +21,7 @@ Author: minh
 
 2026-09-01T12:28Z claude note WALL-CLOCK checkbox LEFT UNTICKED, honestly. The conductor tranche holds no timer and no wall-time read: `tests/features/conductor-no-wall-clock.test.ts` scans `src/features/search/conductor/`, `tests/features/conductor-*.ts` and `tests/fixtures/` by DIRECTORY (a hand-written file list guards removal, not arrival) and fails on `setTimeout` / `setInterval` / `setImmediate` / `Date.now()` unless the line carries an explicit marker; the two lines that legitimately read wall time — `systemClock`'s definition, and the replay fake's stamp when no clock is injected — carry it. Verified in both directions: an inline control on the detector, and a real `setTimeout` appended to `reconcile-tick.ts`, which turned exactly that file's row red. What is NOT true is the checkbox as written, "anywhere in the test suite": 20 pre-existing upstream test files await `setTimeout` (1-100 ms scheduling yields — `tests/lib/semaphore.test.ts`, `tests/lib/lifecycle.test.ts`, `tests/features/search-resume.test.ts` and others). Touching them would breach this ticket's own additive-only invariant, so the claim is scoped to the tranche and the box stays unticked
 
+2026-09-01T12:40Z MinhHaDuong closed — autoclosed — PR #150
 --- body ---
 ## Context
 
