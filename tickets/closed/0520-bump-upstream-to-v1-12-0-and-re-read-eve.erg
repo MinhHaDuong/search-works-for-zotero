@@ -2,8 +2,7 @@
 Title: Bump UPSTREAM to v1.12.0 and re-read every row
 Created: 2026-08-31
 Author: claude
-Blocked-by: 0505
-Blocked-by: 0506
+Closed: autoclosed — PR #153
 
 --- log ---
 2026-08-31T19:44Z claude created
@@ -11,6 +10,10 @@ Blocked-by: 0506
 
 2026-08-31T20:21Z claude note labelled needs-human: Blocked-by 0506 is the only machine gate, so once 0506 closes erg ready would surface this despite the trigger in spec/DECISIONS.md still awaiting ratification. The label is what actually holds it -- red-team finding on the 0504 review
 2026-09-01T05:38Z needs-human label lifted: the bump trigger is ratified with (b) sharpened (DECISIONS.md 2026-09-01); trigger (c) has fired, so this ticket is authorized and waits only on its Blocked-by gates (0505, 0506)
+2026-09-01T13:17Z BUMPED 2026-09-01. Trigger: (c), a re-read establishing a delivered verdict was wrong rather than merely dated -- fired by ticket 0504's own R12 and R16 findings (page said 'fails'/'none', upstream had already shipped both). make upstream-catchup confirmed b05ed69/v1.12.0 as main's tip; smoke repaired (0506) and re-run twice against the built fork over the cloud API (no local desktop on this host) -- once bare for R10/R15, once against a 1-item fixture built for the purpose for R23's schema-restamp checks (bench/results/smoke-1.12.0/checks.json). The re-run itself caught and fixed a second stale assertion: R23-no-migration-path's hardcoded consequence string predated vector salvage (#34) and the live storageNotice contradicted it -- repaired in the same script. Remaining twenty rows read from the reviewed-baseline diff, bounded exhaustively (13 non-merge commits, 27 non-doc/non-test files, six upstream issues) rather than sampled; only R31 moved (evidence inferred->code, #38's diagnostic improvement), the other nineteen confirmed unchanged (verification/UPSTREAM-1.12.0-REREAD.md, extended). UPSTREAM bumped to v1.12.0/b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c. README.md rewritten: R10/R12/R15(unaffected)/R16/R22/R23/R31 rows, both summary bars, both section-summary glyphs, the goal-5 bar, the evidence tally, the Measured-against line. SYNC.md's head note updated. make check and make upstream-status both green
+2026-09-01T13:21Z MinhHaDuong note blocker 0505 closed — Blocked-by removed.
+2026-09-01T13:21Z MinhHaDuong note blocker 0506 closed — Blocked-by removed.
+2026-09-01T13:21Z MinhHaDuong closed — autoclosed — PR #153
 --- body ---
 ## Context
 
@@ -80,10 +83,15 @@ is not a guard, and this one fires in exactly one direction.
 
 ## Verification
 
-- [ ] `make check` and `make upstream-status` green together
-- [ ] Every row's evidence column reflects what was actually done for it —
-      `measured` only where an artifact from the new baseline says so
-- [ ] No row keeps a standing sentence naming a filing that has since merged
+- [x] `make check` and `make upstream-status` green together
+- [x] Every row's evidence column reflects what was actually done for it —
+      `measured` only where an artifact from the new baseline says so —
+      R10 and R23 re-measured against `bench/results/smoke-1.12.0/checks.json`;
+      R31 moved `inferred` → `code` on a direct source read; the other
+      twenty-one rows' evidence is untouched by this bump
+- [x] No row keeps a standing sentence naming a filing that has since merged —
+      R12's "pull request #32 is in flight" replaced; R16's "verified nil"
+      replaced
 
 ## Invariants
 
@@ -91,8 +99,11 @@ is not a guard, and this one fires in exactly one direction.
 - A row is not upgraded to `measured` without the artifact that measured it.
 
 ## Exit criteria
-- [ ] The trigger that fired is named in the log
-- [ ] `UPSTREAM` names the release and SHA the read was done against
-- [ ] Every row re-read, with its evidence column earned rather than inherited
-- [ ] `make check` and `make upstream-status` green together
-- [ ] `SYNC.md`'s upstream row no longer points at a pending re-baseline
+- [x] The trigger that fired is named in the log — trigger (c): 0504's own
+      R12/R16 findings showed a `delivered` verdict was wrong, not merely dated
+- [x] `UPSTREAM` names the release and SHA the read was done against — v1.12.0
+      / `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`
+- [x] Every row re-read, with its evidence column earned rather than inherited —
+      `verification/UPSTREAM-1.12.0-REREAD.md` covers all twenty-four
+- [x] `make check` and `make upstream-status` green together
+- [x] `SYNC.md`'s upstream row no longer points at a pending re-baseline

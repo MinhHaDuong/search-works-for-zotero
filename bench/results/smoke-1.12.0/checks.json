@@ -1,0 +1,130 @@
+{
+  "probe": "smoke the reviewed upstream baseline against a real Zotero library, by requirement",
+  "not_a_test_suite": "each check exercises ONE clause of one requirement, once, against one library. It earns a README row the word 'measured' rather than 'code' — something ran — and nothing stronger.",
+  "upstream_version": "1.12.0",
+  "server_info": null,
+  "date": "2026-09-01",
+  "data_dir": "/home/haduong/.claude/jobs/43e58a38/tmp/smoke-1.12.0-mini-build",
+  "checks": [
+    {
+      "check": "R10-local-embedder",
+      "requirement": "R10",
+      "clause": "the embedder is local by default",
+      "falsified_by": "effective embeddings resolving to a hosted provider, or an inactive local embedder",
+      "result": "pass",
+      "detail": {
+        "whoami_embeddings": {
+          "configured": "local",
+          "active": true,
+          "effective": "local"
+        },
+        "status_embedder": "local",
+        "embedderActive": true,
+        "model": "Xenova/all-MiniLM-L6-v2",
+        "cloud": true,
+        "localApi": false
+      }
+    },
+    {
+      "check": "R15-model-in-data-dir",
+      "requirement": "R15",
+      "clause": "the model cache lives under the data directory",
+      "falsified_by": "a model cache created outside the data directory (a shared HF cache, or $HOME)",
+      "result": "pass",
+      "detail": {
+        "models_dir": "/home/haduong/.claude/jobs/43e58a38/tmp/smoke-1.12.0-mini-build/models",
+        "exists": true,
+        "entries": [
+          "Xenova"
+        ],
+        "note": null
+      }
+    },
+    {
+      "check": "R6-query-answers",
+      "requirement": "R6",
+      "clause": "a query returns something usable, warm, within the budget",
+      "falsified_by": "a query returning no hits on a populated index, or no run completing",
+      "result": "fail",
+      "detail": {
+        "runs": [
+          {
+            "q": "carbon tax and household energy spending",
+            "wall_ms": 335.8,
+            "hits": 0,
+            "scores": [],
+            "keys": []
+          },
+          {
+            "q": "permafrost thaw feedback",
+            "wall_ms": 7.7,
+            "hits": 0,
+            "scores": [],
+            "keys": []
+          },
+          {
+            "q": "integrated assessment model discount rate",
+            "wall_ms": 4.4,
+            "hits": 1,
+            "scores": [
+              0.01639344262295082
+            ],
+            "keys": [
+              "5WTSRQKW"
+            ]
+          }
+        ],
+        "warm_ms": [
+          7.7,
+          335.8
+        ],
+        "queries_whose_scores_are_exactly_1_over_60_plus_rank": 3,
+        "score_note": "a score equal to 1/(60+rank) is reciprocal-rank fusion over a single list — a relabelled rank, carrying no similarity magnitude, so a caller cannot threshold it to mean 'nothing good was found'"
+      }
+    },
+    {
+      "check": "R23-foreign-schema-sidelined",
+      "requirement": "R23",
+      "clause": "an index this build must not write into is detected before anything writes to it",
+      "falsified_by": "the foreign index modified or deleted, or its rows served as if current",
+      "result": "pass",
+      "detail": {
+        "older_stamp": {
+          "original_schemaVersion": "1",
+          "restamped_to": "0",
+          "sidelined_file": "search-index.sqlite.incompatible-2026-09-01T13-12-05-967Z",
+          "sidelined_bytes_match_original": true,
+          "served_index_is_empty": true,
+          "storageNotice": "The search index at /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-0/search-index.sqlite is stamped schema version 0, which this build does not understand. It was moved aside to /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-0/search-index.sqlite.incompatible-2026-09-01T13-12-05-967Z (nothing was deleted) and a fresh index was created; rebuild it with zotero_index action:\"build\". That rebuild re-indexes 1 passage(s), but not their vectors: 1 of them were embedded by local:Xenova/all-MiniLM-L6-v2, which is what this server still uses, so every passage whose text is unchanged takes its vector from the moved-aside index instead of being embedded again. Only genuinely new or edited text costs embedding time."
+        },
+        "newer_stamp": {
+          "original_schemaVersion": "1",
+          "restamped_to": "9999",
+          "sidelined_file": "search-index.sqlite.incompatible-2026-09-01T13-12-06-612Z",
+          "sidelined_bytes_match_original": true,
+          "served_index_is_empty": true,
+          "storageNotice": "The search index at /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-9999/search-index.sqlite is stamped schema version 9999, which this build does not understand. It was moved aside to /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-9999/search-index.sqlite.incompatible-2026-09-01T13-12-06-612Z (nothing was deleted) and a fresh index was created; rebuild it with zotero_index action:\"build\". That rebuild re-indexes 1 passage(s), but not their vectors: 1 of them were embedded by local:Xenova/all-MiniLM-L6-v2, which is what this server still uses, so every passage whose text is unchanged takes its vector from the moved-aside index instead of being embedded again. Only genuinely new or edited text costs embedding time."
+        },
+        "treated_alike": true
+      }
+    },
+    {
+      "check": "R23-no-migration-path",
+      "requirement": "R23",
+      "clause": "an index stamped with a different version is read in place rather than abandoned",
+      "falsified_by": "a rebuilt index reading the old index's passages or vectors in place",
+      "result": "observed",
+      "detail": {
+        "index_was_abandoned_not_read_in_place": true,
+        "consequence": "no in-place upgrade ladder runs (SCHEMA_MIGRATIONS is empty at v1.12.0), but a rebuild against the sidelined file may salvage vectors for unchanged text rather than re-embedding everything -- see detail.storageNotice for what this run found",
+        "storageNotice": "The search index at /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-0/search-index.sqlite is stamped schema version 0, which this build does not understand. It was moved aside to /scratch/tmp/zoteus-smoke-iw7_bkh7/schema-0/search-index.sqlite.incompatible-2026-09-01T13-12-05-967Z (nothing was deleted) and a fresh index was created; rebuild it with zotero_index action:\"build\". That rebuild re-indexes 1 passage(s), but not their vectors: 1 of them were embedded by local:Xenova/all-MiniLM-L6-v2, which is what this server still uses, so every passage whose text is unchanged takes its vector from the moved-aside index instead of being embedded again. Only genuinely new or edited text costs embedding time.",
+        "cost_reference": "bench/results/0025-x1-recall/embed-feasibility.json"
+      }
+    }
+  ],
+  "summary": {
+    "pass": 3,
+    "fail": 1,
+    "observed": 1
+  }
+}

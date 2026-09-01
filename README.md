@@ -98,7 +98,7 @@ the rows below carry status and addresses, nothing else, and
 [`bench/check_progress.py`](bench/check_progress.py) fails the build on any
 digit here that is not an address.
 
-Measured against upstream **v1.10.0**, the reviewed baseline in
+Measured against upstream **v1.12.0**, the reviewed baseline in
 [`UPSTREAM`](UPSTREAM). The implementation is not in this repository: it
 is [`oscardvs/zoteus`](https://github.com/oscardvs/zoteus), so "delivered"
 always means *holds on stock upstream*, never *we wrote it*.
@@ -109,20 +109,20 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○○` &nbsp; 1 shipped · 16 partial · 7 not yet
+`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○` &nbsp; 3 shipped · 15 partial · 6 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 8 read in the source · 6 inferred
+10 measured · 9 read in the source · 5 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-four\*, ten\* rest on an experiment or a test that ran, eight\* on
-opening the upstream source at the reviewed baseline, and six\* on nothing
+the twenty-four\*, ten\* rest on an experiment or a test that ran, nine\* on
+opening the upstream source at the reviewed baseline, and five\* on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -164,12 +164,12 @@ upstream, and on what terms, is [`SYNC.md`](SYNC.md) and
 |---|---|---|---|
 | Coverage and convergence | `●●●●` | `◐◐◐◐` |
 | Change and cost | `●●` | `◐◐` |
-| Corpus | `●●` | `◐○` |
+| Corpus | `●●` | `●◐` |
 | Query | `●●●●●●` | `◐◐◐◐○○` |
 | Multilingual | `●●` | `◐○` |
 | Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●` | `●◐◐○` |
-| Multi-library and multi-process | `●●` | `◐○` |
+| Multi-library and multi-process | `●●` | `●○` |
 | Normalization | `●` | `◐` |
 
 ---
@@ -283,7 +283,7 @@ and never erasing one another, one's own notes and annotations in the corpus,
 and a new item noticed without anyone asking. The top rung, and the expensive
 one: this is the word *all* in the promise.
 
-`◐◐◐○` &nbsp; 4 in the bundle · 1 rest on something that ran
+`●●◐◐` &nbsp; 4 in the bundle · 1 rest on something that ran
 
 | | the clause goal 5 binds | decided at | where its test would live |
 |---|---|---|---|
@@ -357,7 +357,7 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R8 | A 15k library and a 15k-page PDF MUST both be ordinary input | ratified | partial | code | The item cap is configurable and says when it truncates, and the two-stage vector search retired the full-scan red zone; the default cap still sits below the design point. The long-document clause merged in on 2026-08-31 fails outright: full text is capped per item by default, so a 15 000-page PDF is indexed by its opening pages, which is the one place a default contradicts a promise. Ticket 0024 carries the filing. |
-| R16 | My own notes and annotations MUST be searchable, not only the papers I collected | ratified | none | code | Verified nil at v1.10.0: every crawl asks for top-level items, and neither a child note nor an annotation is one, so `zotero_annotate` writes what search can never find. Filed upstream as issue #33 with a working prototype; ticket 0022. |
+| R16 | My own notes and annotations MUST be searchable, not only the papers I collected | ratified | shipped | code | Issue #33, filed with a working prototype, was built by the maintainer and shipped: every child note and PDF annotation (highlighted passage plus comment) is crawled as its own passage carrying the parent item's key, on by default, opposite full text's off. One result slot per item; a hit is labelled `source:"note"` or `source:"annotation"`. Wired into both build and update — an index built before this existed fills its gap once, on its first update, and a note or annotation's deletion is found by census. Read in the source rather than measured; ticket 0022. |
 
 ### Query
 
@@ -381,22 +381,22 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R31 | A search configuration offered to me MUST prove it works on my machine before it is used, or fail loudly there | ratified | none | inferred | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation, so nothing validates before an index is created or queried and nothing fails explicitly. The invariant-first implementation is ticket 0488. |
+| R31 | A search configuration offered to me MUST prove it works on my machine before it is used, or fail loudly there | ratified | none | code | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation, so nothing validates before an index is created or queried. Issue #38 makes one existing failure louder — a `@huggingface/transformers` package that will not resolve or import now names the configured directory and the Node version, platform and architecture it was loaded under — but the check still fires reactively, when the embedder is actually invoked, on one dependency-resolution failure class rather than as upfront validation of the configuration. The invariant-first implementation is ticket 0488. |
 
 ### Custody and lifecycle
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R10 | Without an explicit opt-in, my library text and my queries MUST NOT leave this machine | ratified | shipped | measured | The default embedder is local, the model cache sits under the data directory, and the one API key that used to travel in a URL now travels in a header. Asserted against a running server rather than read: `bench/smoke_upstream.py` checks that effective embeddings resolve local and the embedder is active. Closed as ticket 0017. |
-| R15 | Deleting an item MUST remove its text everywhere, and deleting the data directory MUST be the whole uninstall | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The uninstall clause merged in on 2026-08-31 is measured and partial: the downloaded model no longer escapes the data directory, observed on a build that actually downloaded one, and nothing has swept for other survivors. Ticket 0017. |
-| R22 | There MUST be one obvious way to stop all background work, and it MUST hold across restarts | ratified | none | code | Verified absent at v1.10.0: there is no pause. Scoped issue A, ticket 0033. |
-| R23 | An index written under a different schema version MUST end up serving, in either direction, without anyone deleting files by hand | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served. Serving in both directions is still design — an older stamp is abandoned rather than migrated, which is filed upstream as issue #34. |
+| R10 | Without an explicit opt-in, my library text and my queries MUST NOT leave this machine | ratified | shipped | measured | The default embedder is local, the model cache sits under the data directory, and the one API key that used to travel in a URL now travels in a header. Asserted against a running server rather than read: `bench/smoke_upstream.py` checks that effective embeddings resolve local and the embedder is active (`bench/results/smoke-1.12.0/checks.json`). A build pins its own transport once and fails rather than re-routing, so this stays about the embedder — see the neighbouring read-transport-fallback paragraph in `SPEC.md` §6 for the narrower, separate gap on the live-routed metadata surface. Closed as ticket 0017. |
+| R15 | Deleting an item MUST remove its text everywhere, and deleting the data directory MUST be the whole uninstall | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The uninstall clause merged in on 2026-08-31 is measured and partial: `bench/smoke_upstream.py`'s `R15-model-in-data-dir` check (filed against the since-retired R28, relabelled 2026-09-01) found the downloaded model does not escape the data directory, observed on a build that actually downloaded one, and nothing has swept for other survivors. Ticket 0017. |
+| R22 | There MUST be one obvious way to stop all background work, and it MUST hold across restarts | ratified | none | code | Verified absent: there is no pause. Scoped issue A, ticket 0033. |
+| R23 | An index written under a different schema version MUST end up serving, in either direction, without anyone deleting files by hand | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served (`bench/results/smoke-1.12.0/checks.json`). Serving in both directions is still design — no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS` is empty. Issue #34 softened the cost of that rather than closing it: a rebuild against a sidelined older-stamp file salvages vectors for any passage whose text is unchanged, observed directly on this run, so "abandoned" describes what is served — nothing, until a rebuild — not what a rebuild then costs. |
 
 ### Multi-library and multi-process
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R12 | Group libraries MUST be searchable exactly like my own, and indexing one library MUST NOT erase another | ratified | partial | measured | Group libraries are served locally and merged into one index. The second clause fails today: a build for one library against an interrupted index appends to another's rows. Ten tests, all red on stock v1.10.0; the guard is in flight as pull request #32, ticket 0016. |
+| R12 | Group libraries MUST be searchable exactly like my own, and indexing one library MUST NOT erase another | ratified | shipped | measured | Pull request #32 merged: the store now stamps the canonical identity of the library it holds and refuses a build or update for a different one, both at the tool boundary and again inside the engine, above the branch that used to clear or silently append. Ten tests assert it, all red before the fix. One narrow seam the guard does not reach: `vector-salvage.ts` matches a reused vector on passage id and text alone, never library identity, so a remote conjunction (a schema-triggered sideline, a different library's build against the fresh replacement, the same embedder, a colliding item key, byte-identical text) is unguarded — reported as an observation, not a row erasure of the kind #32 fixed. Ticket 0016. |
 | R13 | Two server processes on one data directory MUST both answer queries without corrupting the index or doing the same work twice | ratified | none | inferred | Two processes on one data directory are undesigned in the code and unsoaked here. Scoped issue C, ticket 0035. |
 
 ### Normalization

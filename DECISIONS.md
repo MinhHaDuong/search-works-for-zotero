@@ -2736,6 +2736,40 @@ one; the I/O class is opportunistic per platform, and the platform-neutral
 dampers — one fsync per micro-batch, the fetch back-off above — do not
 depend on it.
 
+**2026-09-01 — Read-transport fallback: disclosure, not a new requirement
+(ticket 0505).** The question the same day's conductor-scheduling entry
+deferred: does the live-routed local-to-cloud fallback that upstream's #39
+exposed owe SPEC.md §6 a statement, and if so, is that statement a new
+ratified MUST/SHOULD clause or a disclosure paragraph?
+
+`verification/UPSTREAM-1.12.0-REREAD.md`'s R10 section supplies the factual
+half. The fallback does not reach an index build — `build.ts:315` pins the
+API once per build and `library-router.ts:78` refuses to re-route a pinned
+read, so a local-pinned build whose desktop app stops answering fails rather
+than falling back, and no library text or passage content ever crosses. What
+the fallback *does* reach is the live-routed surface — `getItem`,
+`getItemChildren`, `listCollections` (`library-router.ts:116-133,156-163`) —
+metadata reads, not body text. That local-preferred-with-cloud-fallback rule
+predates v1.12.0; the release added a new cause (a self-induced full-text
+crawl can itself saturate the local API) and a report (`localApiDegradedAt`),
+not a new path. And it cannot fire at all without a cloud API key already
+configured (`build.ts:177`, `library-router.ts:129-130`) — a keyless install
+fails the read rather than sending it anywhere.
+
+Ratified: **disclosure only.** SPEC.md §6's egress paragraph is scoped to
+embedding providers and stays accurate as written; it gets a neighboring
+paragraph stating plainly that item-metadata reads can fall back from the
+local Zotero API to a configured cloud Web API when the local one degrades,
+naming the condition (a cloud key already configured) and what does not
+reach it (index builds, passage and full-text content). No new MUST/SHOULD
+clause, and R10's "two opt-in exfiltration paths" count is not amended: the
+fallback is metadata-only, gated behind a static configuration the user
+already made, and one clause narrower than what R10's embedder-egress
+guarantee covers. The author's ground: minting a requirement here would be
+requirement inflation for a router rule that predates v1.12.0 and was never
+in scope for R10 in the first place — the gap is real but narrow enough that
+naming it is sufficient.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

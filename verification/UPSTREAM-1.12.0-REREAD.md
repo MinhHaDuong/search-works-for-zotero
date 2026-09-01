@@ -1,10 +1,11 @@
-# The four rows re-read at upstream v1.12.0
+# The twenty-four rows read at upstream v1.12.0
 
-*Evidence, not authority. Read 2026-08-31 for ticket 0504. Where anything here
-touches the design, the owning document in `CLAUDE.md`'s document set is the
-record. Nothing here is written into `spec/README.md`: `UPSTREAM` still dates
-that page to v1.10.0, and a v1.12.0 reading entered on a v1.10.0 page is what
-the baseline guard exists to refuse.*
+*Evidence, not authority. The first four rows (R10, R23, R12, R16) were read
+2026-08-31 for ticket 0504, before the bump trigger fired. The remaining
+twenty were read 2026-09-01 for ticket 0520, once ticket 0505 ruled and
+ticket 0506 repaired the smoke script — the two blockers on the bump's
+evidence half. Where anything here touches the design, the owning document in
+`CLAUDE.md`'s document set is the record.*
 
 **Subject:** upstream `oscardvs/zoteus` at `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c`,
 tag `v1.12.0`, which was also `main`'s tip when the clone was taken. Every
@@ -239,17 +240,128 @@ top-level items, and neither a child note nor an annotation is one, so
 
 ---
 
+## The remaining twenty — read 2026-09-01, for ticket 0520
+
+*Method: source read only, same substrate discipline as above — a fresh
+read-only clone, not `fork/`. The diff between the reviewed baseline and
+v1.12.0 is bounded exhaustively first, then each row is checked against it,
+rather than read row-by-row against an unbounded diff.*
+
+**The window, bounded.** `git log --no-merges b132f2d..b05ed69` names 13
+commits (7 merge commits wrap them, 20 total); `git diff --stat` over the same
+range, excluding docs and tests, touches 27 files, every one under
+`src/{api,config.ts,features/search,features/fulltext,lib,router,tools}` or a
+top-level manifest. The 13 commits resolve to six upstream issues: #32
+(cross-library guard), #33 (own words), #34 (schema migration and vector
+salvage), #37 (Electron full-text refusal), #38 (transformers install path and
+diagnostics), #39 (local-API throttle). Four are already read above —
+#32→R12, #33→R16, #34→R23, #39→R10. Two are new: #37 and #38.
+
+**#37 — refuse a full-text index build under Electron.** Adds
+`src/features/search/electron.ts`. It gates one thing: `startIndexBuild`
+throws before crawling when full text is requested and the host runtime is
+Electron's `UtilityProcess`, working around a native-layer crash the commit
+message says is unreproduced and unattributed. It touches no clause of any
+row below — not R22's pause (this refuses to *start* one job on one host, it
+does not stop running work), not R31's configuration validation (it is a
+runtime-crash mitigation, not a proof a search configuration works), not
+R13's multi-process contract.
+
+**#38 — transformers install path and failure diagnostics.** Touches
+`config.ts` and `embeddings.ts`, plus install instructions. It bears on one
+row, R31, below, and nothing else — the manifest and doc changes are install
+instructions, not behavior.
+
+**The other eighteen rows are unchanged by this window: R1, R3, R4, R5, R6,
+R7, R8, R13, R17, R18, R19, R22, R24, R29, R32, R33, R34, R35.** None of
+their promises names a file this diff touches, and the diffstat above is
+exhaustive, not sampled. Every one of these rows' standing sentences rests on
+this repository's own tickets, experiments, and `bench/results/`
+measurements, none of which depend on upstream's version. Re-reading them
+against v1.12.0 confirms the same absence, presence or partial state the row
+already recorded; nothing in their standing text changes.
+
+### R31 — a search configuration proves it works, or fails loudly
+
+*The row read `none` / `inferred`.*
+
+Stock upstream still hardcodes the local MiniLM construction with no
+entry-level validation before an index is created or queried — that half of
+the row's finding is unchanged. What #38 (shipped in v1.11.0) adds is
+diagnostic detail on one existing, reactive failure: when
+`@huggingface/transformers` will not resolve or import, `embeddings.ts` now
+names the configured `ZOTEUS_TRANSFORMERS_PATH` directory and, for a package
+that resolves and then throws on import, the Node version, platform and
+architecture it loaded under. Read directly at `embeddings.ts` and
+`config.ts` in the v1.12.0 tree.
+
+Two things this does not do. It does not validate **before** an index is
+created or queried — the message fires when the embedder is first invoked,
+inside a build or a query, after the promise's "before it is used" clause.
+And it covers one failure class, a transformers package that will not load,
+not the general promise that a search configuration proves itself on this
+machine (a wrong device pinning or an unreachable API embedder are not
+covered).
+
+**Verdict: `delivered` stays `none`.** `evidence` moves `inferred` → `code`:
+the specific failure path is now read at source, where nothing here had
+looked before. The standing sentence updates to name what #38 did and did
+not close; ticket 0488 is unchanged as the row's exit.
+
+---
+
 ## What this read does not establish
 
-- **Nothing here was run.** Every verdict is a source read at one SHA. A source
-  read cannot see a runtime behaviour, and it cannot upgrade a row to
-  `measured`. Where a row's evidence column would move, it moves within `code`.
+- **Nothing above this line was run.** Every verdict in the sections above is a
+  source read at one SHA. A source read cannot see a runtime behaviour, and it
+  cannot upgrade a row to `measured` by itself.
 - **The test counts are static reads.** Test names and case counts were read
   from the files; the upstream suite was not executed.
-- **No positive control.** The seams reported above — the pinned crawl failing
-  rather than falling back, the empty ladder, the unscoped salvage — are read
-  from code that says what it does. None was provoked into doing it.
-- **This settles no question the ledger owns.** R10's transport gap is ticket
-  0505's question for the author; the smoke repair is ticket 0506's; when the
-  baseline is bumped and all the rows re-read is recorded in
-  `spec/DECISIONS.md`.
+- **No positive control, except where the bump's own smoke re-run supplied
+  one.** The seams reported above — the pinned crawl failing rather than
+  falling back, the empty ladder, the unscoped salvage — were read from code
+  that says what it does, not provoked into doing it, at the time of the
+  source read. `bench/results/smoke-1.12.0/checks.json` (below) is the
+  exception: a real server, a real cloud-served library, and a real restamped
+  index file.
+- **This settled two questions the ledger owns; the rest is settled now.**
+  R10's transport gap was ticket 0505's question for the author, ruled
+  2026-09-01 (`DECISIONS.md`); the smoke repair was ticket 0506's, done the
+  same day. Both blockers cleared, so ticket 0520 bumped `UPSTREAM` to
+  v1.12.0 the same session — this document's title and every row above
+  reflect that bump, not a pending one.
+
+## The smoke re-run at v1.12.0 — ticket 0520
+
+`bench/smoke_upstream.py`, repaired (ticket 0506), was run twice against the
+built fork at `b05ed69`: once with no `--index`, to get R10 and R15 without
+needing a pre-existing index file; once with `--index` pointing at a 1-item
+index built for the purpose (`action:"build"`, `limit:1`, metadata only,
+against the real cloud-served library, `ZOTEUS_LOCAL=off` since no desktop
+Zotero runs on this host), to exercise the schema-restamp checks. Output:
+`bench/results/smoke-1.12.0/checks.json`.
+
+- **R10-local-embedder: PASS.** Effective embeddings resolve `local`, the
+  embedder is active, `cloud: true` / `localApi: false` on `zotero_whoami` —
+  confirming directly what the source read already established: the Zotero
+  API transport (cloud here, for lack of a local desktop app on this host) is
+  independent of the embedder transport, which stayed local throughout.
+- **R15-model-in-data-dir: PASS.** The model cache (`Xenova/all-MiniLM-L6-v2`)
+  landed under the fresh data directory.
+- **R23-foreign-schema-sidelined: PASS**, both directions. A copy of the
+  1-item index restamped to schema `0` and to `9999` is moved aside byte-
+  identical and never served.
+- **R23-no-migration-path: OBSERVED**, and the observation itself was
+  falsified and repaired mid-run: the check's hardcoded `consequence` string
+  ("every passage must be re-embedded after any SCHEMA_VERSION change") is
+  wrong at v1.12.0, and this run is what caught it. The live
+  `storageNotice` on the older-stamp open states that a rebuild against the
+  sidelined file salvages vectors for unchanged text rather than
+  re-embedding — issue #34's vector-salvage feature, working, on a real
+  restamp. `bench/smoke_upstream.py` now reports the salvage-aware
+  consequence and carries the raw `storageNotice` in its detail instead of a
+  fixed string that predates salvage.
+- **R6-query-answers: FAIL**, expected and out of scope — no real index was
+  built (the fixture is 1 metadata-only item with no embeddable content
+  matching the smoke's stock queries), and R6's row does not cite this
+  script.

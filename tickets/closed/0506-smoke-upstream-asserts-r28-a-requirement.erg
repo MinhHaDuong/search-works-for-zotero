@@ -2,12 +2,15 @@
 Title: smoke_upstream asserts R28, a requirement the sheet no longer carries
 Created: 2026-08-31
 Author: claude
+Closed: autoclosed — PR #153
 
 --- log ---
 2026-08-31T15:26Z claude created
 2026-08-31T16:10Z claude note renumbered 0503 -> 0506 on the merge into main, with siblings 0501 -> 0504 and 0502 -> 0505: main had filed its own 0501-0503 while this branch was open. References moved with it -- ticket 0504's repair-before-re-run criterion, and this ticket's own pointer back at it
 
 2026-08-31T19:45Z claude note THE SMOKE WAS NOT RE-RUN at v1.12.0, honouring ticket 0504's repair-before-re-run criterion: verification/UPSTREAM-1.12.0-REREAD.md is a source read only, so it settles four rows as code evidence and can upgrade none to measured. One consequence for the repair's ordering: ticket 0520 now depends on this ticket, because R10 and R23 keep their measured evidence only if a repaired smoke re-runs at the new baseline. Unrepaired, the bump silently demotes them to code
+2026-09-01T12:57Z REPAIRED. bench/smoke_upstream.py's check relabelled R28 -> R15 (DECISIONS.md: R28 into R15's uninstall clause, 2026-08-31); README.md's R15 row now cites the check by name instead of borrowing its result silently; a new guard, tests/test_smoke_upstream_requirements.py, cross-checks every requirement label in smoke_upstream.py against SPEC.md's live requirements list, red on the R28 case before the fix and green after. make check green
+2026-09-01T13:21Z MinhHaDuong closed — autoclosed — PR #153
 --- body ---
 ## Context
 
@@ -43,8 +46,8 @@ before choosing -- what happened to R28's promise is a question about the sheet,
 not about the script.
 
 ## Exit criteria
-- [ ] Established where R28's promise went in the 34-to-23 cut, from `spec/REQUIREMENTS.md` and the ratifying entry
-- [ ] The check is re-labelled to a live requirement, or removed
-- [ ] If it is re-labelled, R15's row stops borrowing the result implicitly and says what it rests on
-- [ ] Every check in `bench/smoke_upstream.py` names a requirement that `spec/REQUIREMENTS.md` carries
-- [ ] `make check` green
+- [x] Established where R28's promise went in the 34-to-23 cut, from `spec/REQUIREMENTS.md` and the ratifying entry -- `DECISIONS.md:1492`: "R28 into R15, removal being complete at the item scale and the install scale"
+- [x] The check is re-labelled to a live requirement, or removed -- relabelled R28 -> R15, `bench/smoke_upstream.py`
+- [x] If it is re-labelled, R15's row stops borrowing the result implicitly and says what it rests on -- `README.md`'s R15 row now names `bench/smoke_upstream.py`'s `R15-model-in-data-dir` check
+- [x] Every check in `bench/smoke_upstream.py` names a requirement that `spec/REQUIREMENTS.md` carries -- guarded by `tests/test_smoke_upstream_requirements.py`
+- [x] `make check` green
