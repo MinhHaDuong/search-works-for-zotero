@@ -1,6 +1,6 @@
 """The names guard, exercised against fixture artifacts and the live repository.
 
-Same shape as tests/test_check_chain_dedup.py: each test builds a small artifact
+Each test builds a small artifact
 tree under tmp_path and runs the real `run()` against it, so the wiring is
 covered and not just the predicate. The defects worth catching are the ones that
 actually shipped — a plural `titles`, a prefixed `first_title`, a name nested
