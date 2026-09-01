@@ -2,8 +2,8 @@
 
 ## Intro
 
-This document lists the user requirements. Numbering runs to R35 with gaps:
-eleven items were retired on 2026-08-31, either because what verifies a promise
+This document lists the user requirements. Numbering runs to R35\* with gaps:
+eleven\* items were retired on 2026-08-31, either because what verifies a promise
 is not itself a promise or because they were clauses of another item, and a
 retired number is never reused (DECISIONS.md). Each is written as a
 testable property: something the test harness, or a careful reader, can
@@ -362,7 +362,7 @@ gate rather than a promise, and DESIGN.md §2.8 owns it with every other gate.
 
 ## Out of scope, said out loud
 
-These eight things are deliberately not promised, so that silence does not
+These eight\* things are deliberately not promised, so that silence does not
 read as a promise:
 
 - **Work does not travel by itself — but it may arrive by copy.** The index
@@ -428,3 +428,8 @@ to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24
 entry-heading and dedup clauses behind the segmenter, a pinned set that is not
 the author's own questions, and the harness offered upstream. It is named here
 so its absence does not read as an oversight.
+
+---
+
+\* A hand-maintained count: no guard recomputes it, so re-verify it whenever
+the sheet changes (DECISIONS.md 2026-09-01).
