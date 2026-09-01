@@ -1,0 +1,82 @@
+%erg 0.1
+Title: Compose upstream 43 comment: registry design, bench evidence, staging
+Created: 2026-09-01
+Author: claude
+
+--- log ---
+2026-09-01T07:13Z claude created
+2026-09-01T07:52Z claude note draft composed and self-verified at verification/ISSUE-DRAFT-0043.md: every code citation re-grepped against fork/src/features/search/embeddings.ts and fork/src/config.ts at draft time (embedderIdentity :29, model default :186, hardcoded pooling/normalize :258, local-provider construction :394, embeddingModel parse config.ts:329 -- one off-by-one caught, :393 to :394), every dimension and dtype-availability claim re-checked against bench/models.json (caught and fixed a 1024-dim overclaim -- the six benchmarked candidates top out at 768), and the multilingual-e5-small quantization-stability claim corrected after re-deriving the actual per-lane deltas from 0266's log (max delta is 0.25 on the thin Russian lane, not 0.12 as first drafted). The intfloat-vs-Xenova ONNX-availability claim was also softened after the raw availability record showed intfloat's repo does serve one dtype (fp32), not zero -- rewritten to the verifiable claim (fewer/irregular dtype variants, not "no addressable file"). NOT YET SENT -- awaiting the author's content sign-off and posting decision
+
+--- body ---
+## Context
+
+Upstream issue #43 (filed 2026-08-31 by a third party, not the maintainer)
+asks for `ZOTEUS_LOCAL_EMBEDDING_MODEL=<hf-id>` so users can point the local
+embedder at a different transformers.js model, motivated by German/multilingual
+retrieval, and names `Xenova/multilingual-e5-small`. As literally proposed it
+swaps only the model string: `LocalEmbeddingProvider.embed()`
+(`fork/src/features/search/embeddings.ts:258`) hardcodes
+`{ pooling: 'mean', normalize: true }` and applies no input-template prefix,
+so a naive implementation of #43 would silently mis-pool or mis-normalize any
+model that isn't MiniLM, and would embed E5 models with no `"query: "`/
+`"passage: "` prefix -- the exact defect this repo's own registry work exists
+to prevent (0488's ladder). The author asked for a substantive comment on #43,
+not a light courtesy note: share the registry design, the measured evidence
+behind it, the code points, and a staged rollout -- enough for someone else to
+implement it correctly, without leaking this repo's internal governance
+(GOVERNANCE.md's disclosure rule).
+
+## Relevant files
+
+- `fork/src/features/search/embeddings.ts` -- `LocalEmbeddingProvider`
+  (model default line 186, hardcoded pooling/normalize line 258),
+  `embedderIdentity()` (line 29, the existing vector-space-mismatch hook),
+  `createEmbeddingProvider()` (line 393, constructs the local provider with no
+  model argument -- `ZOTEUS_EMBEDDING_MODEL` is wired to API providers only)
+- `bench/models.json` -- the registry schema and the 21 candidates already
+  probed for ONNX availability
+- `tickets/0266-cross-lingual-probe-on-the-multilingual.erg` (closed) --
+  the cross-lingual measurement with controls
+- `tickets/0495-gate-which-embedder-entries-ship.erg` -- the per-passage
+  build-time figures
+- `tickets/0488-deliver-curated-embedder-registry-invari.erg` and its children
+  -- the registry ladder this comment summarizes
+
+## Actions
+
+1. Draft the comment text as a standalone file, upstream-formatting
+   conventions (decimal point, no internal ticket/document names, no
+   governance references), citing only code points and measured evidence.
+2. Self-review against the actual sources above -- every number and every
+   file:line must be re-verified, not recalled, per this repo's own drafting
+   discipline (see 0024's log on the two defects caught in the I-3 review
+   pass).
+3. Present the draft to the author for content sign-off before anything is
+   posted -- posting to a public upstream thread is an outward action that
+   needs explicit authorization each time (CLAUDE.md).
+
+## Test
+
+- Grep the draft for any of: ticket numbers, `spec/`, `R7`/`R29`/`R32` or
+  similar internal labels, PR-cap or sunset language, any reading of the
+  maintainer's behavior. None should appear.
+- Every quoted number traces to a committed artifact or a file:line in
+  `fork/`; every code claim is re-checked against the actual file content at
+  draft time, not against this ticket's paraphrase of it.
+
+## Verification
+
+- [ ] Draft file committed under `verification/`
+- [ ] Draft shown to the author for review
+- [ ] Author decides: post as-is, revise, or hold
+
+## Invariants
+
+- Nothing is posted to GitHub without explicit per-instance authorization
+- The disclosure rule holds: substance and measurement travel, internal
+  governance and reading of the maintainer do not
+
+## Exit criteria
+
+- [ ] Paste-ready draft exists, reviewed, and the author has made a posting
+      decision (recorded in this ticket's log)
