@@ -18,7 +18,13 @@ stopwords-follow-up slot under the one-slot-per-PR ruling (`DECISIONS.md`
 remaining slots — PRs 2 (diacritics + optional gated expansion,
 `pr2-expansion` `6a201fa`) and 3 (library-derived droplist,
 `pr3-droplist-r5` `11385a2`) file next, bodies as drafted under
-`verification/`, filing recorded here once each PR page is verified.
+`verification/`, filing recorded here once each PR page is verified —
+**filed the same day and verified on their pages: PR #46 (diacritics +
+optional expansion, head `6a201fa`) and PR #47 (droplist, head `11385a2`),
+both OPEN**; with #45 that is the whole 0091 series in flight, all three
+granted slots spent, and #47's head stacks on `6b7c152` (pre-flag), so it
+carries #46's substance minus the flag commit until #46 merges and #47
+rebases.
 The reviewed baseline in `UPSTREAM` still names
 v1.10.0 and is now two releases and one search-layer rewrite stale.
 Ticket 0504 read the four rows worth reading at v1.12.0 from a clone

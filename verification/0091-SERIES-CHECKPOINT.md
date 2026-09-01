@@ -44,8 +44,13 @@ fork branch `degenerate-query` at `47461b7`, body sent verbatim from
 landed the same day (ledger): PR 1 files now; the budget is **one slot per PR** — PR 1
 spends the held stopwords-follow-up slot, PRs 2 and 3 each need a fresh grant when ready;
 and PR 2's design question is answered by **measuring the query-expansion alternative**
-before ruling, not by ruling on one measured arm. Nothing else has been filed against
-`oscardvs/zoteus`.
+before ruling, not by ruling on one measured arm.
+
+The other two filed 2026-09-01 with the author's slot grants (ledger, same day),
+bodies sent verbatim and verified on their pages: **PR #46** (diacritics + optional
+expansion, from `pr2-expansion` @ `6a201fa`) and **PR #47** (droplist, from
+`pr3-droplist-r5` @ `11385a2`). The whole series is now in flight; #47 stacks on
+`6b7c152` (pre-flag) and rebases once #46 merges.
 
 ## The design decision — SETTLED by measurement, 2026-09-01
 
