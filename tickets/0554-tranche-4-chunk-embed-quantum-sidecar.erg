@@ -1,0 +1,54 @@
+%erg 0.1
+Title: Tranche 4: chunk and embed workers, quantum autotune, sidecar
+Created: 2026-09-01
+Author: minh
+Blocked-by: 0553
+
+--- log ---
+2026-09-01T16:30Z claude created, child of 0550
+
+--- body ---
+## Context
+
+Fourth tranche (tracker 0550): the compute stages. The micro-batch
+becomes the schedulable unit everywhere, sized by the ratified quantum.
+
+## Relevant files
+
+- SPEC.md §5.2.5 (quantum ~1 s ratified, EWMA autotune with per-step
+  clamp [0,5, 2], fixed-cost floor, memory ceiling; claim TTL 30 × the
+  quantum; sidecar ordering: append, fsync, then commit the row),
+  DECISIONS.md 2026-09-01 (quantum ruling, slow/stuck split),
+  bench/results/0481-gpu-anomaly (flat-throughput finding the autotune
+  wording rests on).
+
+## Actions
+
+1. Chunk worker over stored text, keyed idempotent derivations.
+2. Embed worker: batch packed to a token budget, length-sorted; size
+   autotuned to the quantum (EWMA, step clamp, floor, ceiling); yields
+   between micro-batches (activity file, holder check, queue re-read).
+3. Claim TTL = 30 × quantum; expired claims reclaimable; duplicate
+   compute bounded to one micro-batch — test it, don't assert it.
+4. Sidecar writes per SPEC's ordering; generation stamping.
+
+## Test
+
+- Red first: on the injected clock with a stubbed engine of programmable
+  per-item cost, the autotuned size converges to the quantum for two
+  synthetic devices (fast/slow) and oscillation stays inside the step
+  clamp when the cost curve is made non-monotonic.
+
+## Verification
+
+- [ ] A worker killed mid-batch: claim expires at 30 × quantum, another
+      finishes it, exactly one commit (CAS guard)
+- [ ] Incumbent MiniLM vectors byte-identical to stock upstream's
+
+## Invariants
+
+- Vector fingerprint handshake per SPEC §5.2.5; upstream tests green.
+
+## Exit criteria
+
+- [ ] Both stages merged on a fork branch, convergence + TTL tests green

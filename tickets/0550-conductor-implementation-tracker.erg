@@ -1,0 +1,48 @@
+%erg 0.1
+Title: Conductor implementation: tracker for the five tranches
+Created: 2026-09-01
+Author: minh
+
+--- log ---
+2026-09-01T16:30Z claude created, roadmap settled in the 2026-09-01 scheduling session
+
+--- body ---
+## Context
+
+SPEC.md §5.2.3–§5.2.5 is finalized and the three scheduling constants are
+ratified (DECISIONS.md, 2026-09-01): weighted round robin r = 3, the ~1 s
+micro-batch quantum with per-device size derivation and a claim TTL of
+30 × the quantum, and the extract worker's latency-observed back-off.
+Implementation starts. The ledger's staged decoupling is what makes the
+tranches independently useful: each lands alone, none commits the next.
+
+The TypeScript lands on the author's fork (FORK_REPOSITORY in UPSTREAM),
+one fork branch per tranche; these tickets track scope and evidence here.
+Upstream filing is governed by GOVERNANCE.md and is NOT part of this
+tracker — the fork accumulates until an upstream PR is prepared
+deliberately.
+
+A Python discrete-event simulation was considered and rejected (author,
+2026-09-01): it would prove properties of a model that drifts from the
+TypeScript. Validation is the real scheduler run in virtual time instead —
+the injected clock plus the synthetic library, asserted as fast property
+tests, red first.
+
+## Children
+
+- 0551 — ledger schema, reconcile tick, the three fixtures
+- 0552 — conductor election and lease machinery
+- 0553 — extract shim, class order, latency back-off
+- 0554 — chunk and embed workers, quantum autotune, sidecar
+- 0555 — fresh/backfill interleave and the scheduling property suite
+
+Children chain by Blocked-by on their real prerequisite, never on this
+tracker. Invariant across every tranche: the incumbent MiniLM entry
+reproduces its old vectors and keys byte for byte, and upstream's own
+test suite stays green on the fork branch.
+
+## Exit criteria
+
+- [ ] All five children closed
+- [ ] Integration review: full suite on the fork's assembled branch,
+      scheduling properties green, byte-identical vector check green
