@@ -44,7 +44,7 @@ external sourcing was needed for the languages it covers.
 | vn-decision-11-2017-qdttg-solar-fit | vi | MUST | 2017 | 10 | 17 720 | core |
 | vn-circular-25-2016-ttbct-transmission | vi | MUST | 2016 | 106 | 232 452 | core |
 
-Total: 1 191 pages, ≈2.95M chars, 3.1 MB as committed plain text.
+Total: 1 191 pages, 2 949 498 chars, 3,1 MB as committed plain text.
 
 **The two Vietnamese items are a real cross-lingual anchor.** Decision
 11/2017 (solar FIT) exists in the library as an official bilingual pair —
@@ -70,6 +70,14 @@ produced an empty text layer on this signed PDF even with
 `--invalidate-digital-signatures`; direct per-page `tesseract -l vie` on
 `pdftoppm`-rendered pages worked and is what produced the committed text —
 worth knowing if a later pass re-OCRs anything here.
+
+**Reproducibility is contingent on the library not changing underneath
+it.** Each document is fetched by Zotero item/attachment key from the
+author's live library, not from a pinned snapshot. `manifest.json` records
+`source_pdf_sha256` per document precisely so a future re-run that fetches
+different bytes (a corrected scan, a replaced attachment) is visible as a
+hash diff rather than a silent content change under the same doc id — the
+hash detects drift, it does not prevent it.
 
 ## What remains (ticket 0029's other exit criteria — not attempted this pass)
 
@@ -119,6 +127,12 @@ worth knowing if a later pass re-OCRs anything here.
   corpus cannot yet be queried, so R33/R34/the golden gate stay unopened.
 - **The golden gate wiring in `make check`** (ticket 0026) — blocked on the
   harness and the query set above.
+- **No standing guard checks `manifest.json` against a fresh run of `DOCS`**,
+  unlike `bench/models.json`/`registry.py`'s `check_models.py`. A hand-edit
+  to `manifest.json`, or `DOCS` drifting from it, would go undetected —
+  the repo's own "one statement per fact" convention names this as its most
+  expensive recurring defect class. Worth a `check_corpus.py` once the
+  corpus is queried by something that would actually notice a drift.
 
 None of the unmet items block what this pass delivers: a real, licensed,
 page-addressable multilingual document set an index harness can be pointed

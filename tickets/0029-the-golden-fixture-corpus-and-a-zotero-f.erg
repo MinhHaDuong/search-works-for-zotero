@@ -20,11 +20,13 @@ Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
 a panel document now lost; DECISIONS.md, 2026-08-31): no pinned fixture corpus
 exists — bench/queries.txt is 16 queries, and every
 answer-set artifact was measured against the author's private library, which
-cannot be committed. Needed: a committable multilingual document set (FR/DE/
-VI/EL/RU per R7), ~40 queries, pinned answer sets at k=10, and a harness that
-builds an index over it WITHOUT Zotero — drive the backend classes directly
-and call putPassage, per the review's note. 2-3 days. The thresholds the
-gate then enforces live once in DESIGN.md §2.8.
+cannot be committed. Needed: a committable multilingual document set (EN/FR/
+VI MUST, AR/RU/ZH/DE/HI/ES SHOULD per R7's 2026-08-31 language-set ruling —
+this note originally said FR/DE/VI/EL/RU, the pre-ruling list), ~40 queries,
+pinned answer sets at k=10, and a harness that builds an index over it
+WITHOUT Zotero — drive the backend classes directly and call putPassage, per
+the review's note. 2-3 days. The thresholds the gate then enforces live once
+in SPEC.md §5.2.8 (moved there from DESIGN.md on the spec-chain dissolution).
 
 ## Exit criteria
 - [x] fixture corpus committed, multilingual per R7's tested list --
@@ -33,7 +35,7 @@ gate then enforces live once in DESIGN.md §2.8.
 - [ ] a cross-lingual slice: EN and FR queries whose pinned answer sets are
       Vietnamese entries, gated separately from the monolingual queries so a
       regression names which of R7 and R29 it broke (R29 ratified 2026-08-31;
-      DESIGN.md §2.8 owns the thresholds, this ticket pins them)
+      SPEC.md §5.2.8 owns the thresholds, this ticket pins them)
 - [ ] Zotero-free index-build harness in bench/
 - [ ] ~40 queries with pinned answer sets, re-pin procedure documented
 - [ ] 0026's golden gate consumes it in make check
