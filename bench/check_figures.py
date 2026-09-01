@@ -124,6 +124,16 @@ PROSE = {
         "tickets/0265-recall-at-the-deployed-dtype-and-the-fus.erg",
         "tickets/closed/0265-recall-at-the-deployed-dtype-and-the-fus.erg",
     ],
+    "t0091": [
+        "tickets/0091-library-derived-droplist-plus-degeneracy.erg",
+        "tickets/closed/0091-library-derived-droplist-plus-degeneracy.erg",
+    ],
+    # The upstream PR body, drafted here and sent as-is. Every figure it carries is one
+    # the maintainer will read, which makes it the LAST place a stale number may sit —
+    # and the one document in this repo whose readers are outside it.
+    "u0091": ["verification/UPSTREAM-PR-0091-DROPLIST.md"],
+    # Same contract, for the series' first PR — the degenerate query.
+    "u0091a": ["verification/UPSTREAM-PR-0091-DEGENERATE.md"],
 }
 
 
@@ -218,7 +228,23 @@ def display(value, places: int, pct: bool = False) -> str:
 #: left main's deliberately-ratcheted coverage with 28 pairs of slack, and this
 #: floor exists precisely because coverage can fall without anything failing.
 #: 346 is the merged tree's actual count, so the floor is tight again.
-MINIMUM_PAIRS = 346
+#:
+#: RAISED to 377 on 2026-08-31 by ticket 0091: seventeen declarations for the droplist
+#: measurement in the ticket, two more re-declaring the figures it borrows from the X2
+#: verdict and the threshold sweep to place its own, and twelve for the upstream PR body,
+#: which is the first document here written to be read outside the repo and therefore the
+#: one where a stale figure costs most. No coverage was removed.
+#:
+#: RAISED again to 381 in review round 1, for arm D — X2's own binary re-run on the same
+#: file to isolate why the unpruned arm reads under X2's figure — and for arm C's pooled
+#: pair where its second run is recorded. Both are provenance rather than results, which is
+#: exactly the kind of figure that rots unnoticed.
+#:
+#: And to 392 for the snippet probe, the one criterion `bench/query.py` structurally cannot
+#: measure: it records item keys and scores and never the snippet text, so that claim had
+#: rested on a unit fixture. Its four figures are each declared in both prose homes, worded
+#: apart so neither copy can mask the other.
+MINIMUM_PAIRS = 392
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -495,6 +521,142 @@ FIGURES = [
      "recommended_policy.mean_top30_overlap_with_unfiltered", 0,
      {"t0025": "ms, {}% top-30 overlap with the unfiltered",
       "t0014": "with {}% of the unfiltered"}, "pct"),
+    # ---- 0091, the droplist implemented and measured end to end (REAL 477k index) ----
+    # Three arms against ONE file, so all six latency figures move together or not at all;
+    # every one is declared, because the claim is a comparison and a re-measurement that
+    # moved only one arm would leave every figure true and the conclusion false. Anchor
+    # heads that end in `p50`/`p95` carry no space before the slot: `p95` ends in a digit,
+    # so despace() glues the separator that follows it (see the note above zotero-native).
+    ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p50_ms", 1,
+     {"t0091": "answers the twenty queries at p50{} ms and"}),
+    ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p95_ms", 1,
+     {"t0091": "and p95{} ms, which lands"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 1,
+     {"t0091": "costs p50{} ms and"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 1,
+     {"t0091": "and p95{} ms: X2's failure mode"}),
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p50_ms", 1,
+     {"t0091": "brings it to p50{} ms and"}),
+    # Quoted three times in the ticket — the measurement entry, the findings entry, and the
+    # verification block — and each slot is declared. Two of the three copies exist because
+    # the figure is the one the exit criterion turns on, which is exactly the shape of the
+    # duplicate-goes-stale defect this file was written against.
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 1,
+     {"t0091": "and p95{} ms. The tail"}),
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 1,
+     {"t0091": "can move the {} ms figure"}),
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 1,
+     {"t0091": "allowance; {} ms over all twenty"}),
+    ("0091-droplist/query-477k.json",
+     "arms.B_droplist_plus_fallback.latency_excluding_the_degenerate_query.p95_ms", 1,
+     {"t0091": "reads p95{} ms, inside"}),
+    ("0091-droplist/query-477k.json",
+     "arms.B_droplist_plus_fallback.latency_excluding_the_degenerate_query.p95_ms", 1,
+     {"t0091": "is split: {} ms over the nineteen"}),
+    ("0091-droplist/query-477k.json", "result_quality.mean_jaccard_vs_stock_droplist", 3,
+     {"t0091": "mean Jaccard against stock {}, no query"}),
+    ("0091-droplist/query-477k.json", "derivation.droplist_terms", 0,
+     {"t0091": "reproduces the sweep's {} terms over"}),
+    ("0091-droplist/query-477k.json", "derivation.vocabulary_terms", 0,
+     {"t0091": "terms over {} vocabulary terms"}),
+    ("0091-droplist/query-477k.json", "derivation.scan_ms.first_call", 0,
+     {"t0091": "it costs {} ms on first call"}),
+    ("0091-droplist/query-477k.json", "derivation.scan_ms.second_call", 0,
+     {"t0091": "call and {} ms on the second"}),
+    # ---- The snippet criterion, the one figure bench/query.py structurally cannot
+    # produce: that driver records item keys and scores and never the snippet text, so
+    # until this probe ran the claim rested on a unit fixture. Declared in three places
+    # each, because the pair is a comparison and one half going stale would leave the
+    # sentence true and the conclusion false.
+    # The ticket carries the pair twice — once in the log, once in the verification block —
+    # and the two are worded apart on purpose, so each anchor has a head of its own. With
+    # identical wording the two slots collapse into one `finditer` result and a stale copy
+    # is masked by its correct twin, which is the exact recurrence this file exists against.
+    ("0091-droplist/snippets-477k.json", "comparable_pairs", 0,
+     {"t0091": "Of {} hits both arms return",
+      "u0091": "of {} hits both arms return"}),
+    ("0091-droplist/snippets-477k.json", "comparable_pairs", 0,
+     {"t0091": "of {} hits both arms return, 82 open"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.unpruned", 0,
+     {"t0091": "return, {} begin at the passage opening unpruned",
+      "u0091": "return, **{}** begin at the"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.unpruned", 0,
+     {"t0091": "return, {} open at"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.pruned", 0,
+     {"t0091": "opening unpruned and {} do pruned",
+      "u0091": "unpruned and **{}** do so pruned"}),
+    ("0091-droplist/snippets-477k.json", "snippets_starting_at_the_passage_opening.pruned", 0,
+     {"t0091": "character unpruned and {} do so pruned"}),
+    ("0091-droplist/snippets-477k.json", "moved_off_the_opening_by_pruning", 0,
+     {"t0091": "so {} moved onto the match",
+      "u0091": "so **{}** moved onto the match"}),
+    # Arm D exists only to answer a question the review asked: why the unpruned arm reads
+    # well under X2's 1 773,0 ms when the stock control reproduces X2 to 0,05 %. It is X2's
+    # OWN binary on this file, so its two figures are the isolation, and a stale one would
+    # turn a ruled-out cause back into an open one.
+    ("0091-droplist/query-477k.json", "arms.D_x2_own_binary.latency.p50_ms", 1,
+     {"t0091": "reading p50{} ms and"}),
+    ("0091-droplist/query-477k.json", "arms.D_x2_own_binary.latency.p95_ms", 1,
+     {"t0091": "and p95{} ms. Statistically"}),
+    # Arm C's pooled pair, quoted a second time where its second run is recorded.
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 1,
+     {"t0091": "(pooled p50{} ms, p95"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 1,
+     {"t0091": "965,6 ms, p95{} ms) since"}),
+    # The two figures the ticket quotes from OTHER artifacts to place its own. The stock
+    # control is what says the machine and the harness still agree with August; the sweep's
+    # prediction is what says the implementation lands where the design said it would.
+    ("0025-x2-stopwordless/x2-verdict.json", "warm_p95_ms.stock_with_stoplist", 1,
+     {"t0091": "lands on the {} ms the X2"}),
+    ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_30pct.p95_ms", 1,
+     {"t0091": "near the {} ms the sweep predicted"}),
+    # ---- The same measurement as the upstream PR body carries it. Rounded to whole
+    # milliseconds, deliberately: that document is written for a reader outside this repo,
+    # where a decimal comma reads as a typo, and an integer has no decimal mark to disagree
+    # about. The THOUSANDS mark still does — the document writes `1 012 ms` beside its
+    # `477 512` and `639 888`, consistently with itself, and despace() is what lets the
+    # anchor match either way. So `places=0` sidesteps the decimal question and nothing
+    # else; the spaced form in the anchors is not decoration.
+    #
+    # The p95 anchors embed their row's p50 because a markdown table gives them no other
+    # left-hand boundary — a one-way coupling, so a p50 edit fails its neighbour too, which
+    # is the safe direction.
+    # ---- u0091a, the outgoing body for the series' first PR. Its two figures are the
+    # library size and the still-free degenerate short queries; the rest of that body is
+    # deliberately figure-light because the contract is "everything else unchanged".
+    ("0091-droplist/degenerate-recut-477k.json", "passages", 0,
+     {"u0091a": "a real {}-passage library"}),
+    ("0091-droplist/degenerate-recut-477k.json", "probes.12.ms", 0,
+     {"u0091a": "still cost {} ms and return nothing"}),
+    ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p50_ms", 0,
+     {"u0091": "29-word list | {} ms |"}),
+    ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p95_ms", 0,
+     {"u0091": "29-word list | 222 ms | {} ms |"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p50_ms", 0,
+     {"u0091": "nothing pruned | {} ms |"}),
+    ("0091-droplist/query-477k.json", "arms.C_no_stoplist_no_droplist.latency.p95_ms", 0,
+     {"u0091": "nothing pruned | 966 ms | {} ms |"}),
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p50_ms", 0,
+     {"u0091": "degeneracy fallback | {} ms |"}),
+    ("0091-droplist/query-477k.json", "arms.B_droplist_plus_fallback.latency.p95_ms", 0,
+     {"u0091": "degeneracy fallback | 282 ms | {} ms |"}),
+    ("0091-droplist/query-477k.json",
+     "arms.B_droplist_plus_fallback.latency_excluding_the_degenerate_query.p95_ms", 0,
+     {"u0091": "reads **{} ms** p95"}),
+    ("0091-droplist/query-477k.json", "result_quality.mean_jaccard_vs_stock_droplist", 0,
+     {"u0091": "mean Jaccard {}% over the twenty"}, "pct"),
+    ("0091-droplist/derivation-477k.json", "passages", 0,
+     {"u0091": "On a {}-passage library"}),
+    ("0091-droplist/derivation-477k.json", "vocabulary_terms", 0,
+     {"u0091": "scan reads {} terms and"}),
+    ("0091-droplist/derivation-477k.json", "scan_ms.first_call", 0,
+     {"u0091": "about {} ms on a first call"}),
+    ("0091-droplist/derivation-477k.json", "scan_ms.second_call", 0,
+     {"u0091": "call and {} ms on a"}),
+    ("0091-droplist/derivation-477k.json", "droplist_terms", 0,
+     {"u0091": "small — {} terms, 75 bytes"}),
+    ("0091-droplist/derivation-477k.json", "droplist_bytes", 0,
+     {"u0091": "terms, {} bytes of text"}),
     # ---- Multilingual cost. The French/English pair is the claim; `in`'s frequency is
     # the mechanism behind the German anomaly. Anchor heads end in non-digits, as above.
     ("0025-x2-stopwordless/multilingual-cost.json", "latency_ms_median.French.no_filter", 0,

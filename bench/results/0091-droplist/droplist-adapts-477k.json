@@ -1,0 +1,541 @@
+{
+ "source": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "source_passages": 477512,
+ "ratio": 0.3,
+ "subsets": {
+  "french": {
+   "passages": 21729,
+   "derived_terms": 38,
+   "terms": [
+    {
+     "term": "de",
+     "pct": 99.5
+    },
+    {
+     "term": "la",
+     "pct": 96.7
+    },
+    {
+     "term": "et",
+     "pct": 96.1
+    },
+    {
+     "term": "des",
+     "pct": 95.7
+    },
+    {
+     "term": "a",
+     "pct": 95.2
+    },
+    {
+     "term": "les",
+     "pct": 95.2
+    },
+    {
+     "term": "l",
+     "pct": 93.5
+    },
+    {
+     "term": "le",
+     "pct": 91.9
+    },
+    {
+     "term": "d",
+     "pct": 91.5
+    },
+    {
+     "term": "en",
+     "pct": 88.7
+    },
+    {
+     "term": "du",
+     "pct": 82.6
+    },
+    {
+     "term": "dans",
+     "pct": 76.2
+    },
+    {
+     "term": "une",
+     "pct": 75.1
+    },
+    {
+     "term": "pour",
+     "pct": 74.5
+    },
+    {
+     "term": "un",
+     "pct": 71.9
+    },
+    {
+     "term": "par",
+     "pct": 69.5
+    },
+    {
+     "term": "est",
+     "pct": 68.2
+    },
+    {
+     "term": "sur",
+     "pct": 64
+    },
+    {
+     "term": "que",
+     "pct": 59.8
+    },
+    {
+     "term": "au",
+     "pct": 59.1
+    },
+    {
+     "term": "qui",
+     "pct": 53.5
+    },
+    {
+     "term": "ou",
+     "pct": 48.2
+    },
+    {
+     "term": "il",
+     "pct": 47
+    },
+    {
+     "term": "sont",
+     "pct": 45
+    },
+    {
+     "term": "plus",
+     "pct": 44.2
+    },
+    {
+     "term": "ce",
+     "pct": 43.7
+    },
+    {
+     "term": "s",
+     "pct": 40.5
+    },
+    {
+     "term": "pas",
+     "pct": 36
+    },
+    {
+     "term": "aux",
+     "pct": 35.9
+    },
+    {
+     "term": "1",
+     "pct": 34.4
+    },
+    {
+     "term": "2",
+     "pct": 34
+    },
+    {
+     "term": "avec",
+     "pct": 33.6
+    },
+    {
+     "term": "ces",
+     "pct": 32.1
+    },
+    {
+     "term": "n",
+     "pct": 31.4
+    },
+    {
+     "term": "se",
+     "pct": 31.2
+    },
+    {
+     "term": "ne",
+     "pct": 30.7
+    },
+    {
+     "term": "etre",
+     "pct": 30.3
+    },
+    {
+     "term": "qu",
+     "pct": 30
+    }
+   ]
+  },
+  "vietnamese": {
+   "passages": 1188,
+   "derived_terms": 59,
+   "terms": [
+    {
+     "term": "nam",
+     "pct": 90.3
+    },
+    {
+     "term": "trong",
+     "pct": 69.4
+    },
+    {
+     "term": "va",
+     "pct": 67.8
+    },
+    {
+     "term": "viet",
+     "pct": 64.8
+    },
+    {
+     "term": "nang",
+     "pct": 63.5
+    },
+    {
+     "term": "cac",
+     "pct": 62.4
+    },
+    {
+     "term": "cua",
+     "pct": 61
+    },
+    {
+     "term": "cong",
+     "pct": 60.7
+    },
+    {
+     "term": "1",
+     "pct": 57.4
+    },
+    {
+     "term": "co",
+     "pct": 57.3
+    },
+    {
+     "term": "tai",
+     "pct": 55.6
+    },
+    {
+     "term": "2",
+     "pct": 53.6
+    },
+    {
+     "term": "the",
+     "pct": 50.9
+    },
+    {
+     "term": "to",
+     "pct": 49.7
+    },
+    {
+     "term": "gia",
+     "pct": 48.1
+    },
+    {
+     "term": "an",
+     "pct": 47.4
+    },
+    {
+     "term": "quy",
+     "pct": 47.3
+    },
+    {
+     "term": "ban",
+     "pct": 46.6
+    },
+    {
+     "term": "3",
+     "pct": 46.3
+    },
+    {
+     "term": "dung",
+     "pct": 45.7
+    },
+    {
+     "term": "tu",
+     "pct": 45.6
+    },
+    {
+     "term": "chinh",
+     "pct": 44.7
+    },
+    {
+     "term": "4",
+     "pct": 42.8
+    },
+    {
+     "term": "bao",
+     "pct": 42.6
+    },
+    {
+     "term": "thong",
+     "pct": 42.3
+    },
+    {
+     "term": "chi",
+     "pct": 40.3
+    },
+    {
+     "term": "phat",
+     "pct": 40.1
+    },
+    {
+     "term": "a",
+     "pct": 39.7
+    },
+    {
+     "term": "so",
+     "pct": 39.7
+    },
+    {
+     "term": "quan",
+     "pct": 39.4
+    },
+    {
+     "term": "do",
+     "pct": 38.9
+    },
+    {
+     "term": "du",
+     "pct": 38.6
+    },
+    {
+     "term": "la",
+     "pct": 38.5
+    },
+    {
+     "term": "cho",
+     "pct": 38.3
+    },
+    {
+     "term": "dinh",
+     "pct": 37.4
+    },
+    {
+     "term": "van",
+     "pct": 37.1
+    },
+    {
+     "term": "nha",
+     "pct": 36.6
+    },
+    {
+     "term": "tinh",
+     "pct": 36.6
+    },
+    {
+     "term": "vi",
+     "pct": 35.9
+    },
+    {
+     "term": "5",
+     "pct": 35.4
+    },
+    {
+     "term": "hanh",
+     "pct": 35.4
+    },
+    {
+     "term": "6",
+     "pct": 35.1
+    },
+    {
+     "term": "luong",
+     "pct": 34.8
+    },
+    {
+     "term": "in",
+     "pct": 34.4
+    },
+    {
+     "term": "thu",
+     "pct": 34.4
+    },
+    {
+     "term": "n",
+     "pct": 33.8
+    },
+    {
+     "term": "ve",
+     "pct": 33.7
+    },
+    {
+     "term": "of",
+     "pct": 33.2
+    },
+    {
+     "term": "t",
+     "pct": 33
+    },
+    {
+     "term": "thanh",
+     "pct": 33
+    },
+    {
+     "term": "and",
+     "pct": 32.9
+    },
+    {
+     "term": "c",
+     "pct": 32.9
+    },
+    {
+     "term": "dien",
+     "pct": 32.7
+    },
+    {
+     "term": "phu",
+     "pct": 31.9
+    },
+    {
+     "term": "d",
+     "pct": 31.6
+    },
+    {
+     "term": "hien",
+     "pct": 31.1
+    },
+    {
+     "term": "ngay",
+     "pct": 31.1
+    },
+    {
+     "term": "khong",
+     "pct": 30.4
+    },
+    {
+     "term": "trinh",
+     "pct": 30.1
+    }
+   ]
+  },
+  "english": {
+   "passages": 60000,
+   "derived_terms": 32,
+   "terms": [
+    {
+     "term": "the",
+     "pct": 99.8
+    },
+    {
+     "term": "of",
+     "pct": 99
+    },
+    {
+     "term": "and",
+     "pct": 98.5
+    },
+    {
+     "term": "in",
+     "pct": 94
+    },
+    {
+     "term": "to",
+     "pct": 92.3
+    },
+    {
+     "term": "a",
+     "pct": 91.8
+    },
+    {
+     "term": "that",
+     "pct": 76.6
+    },
+    {
+     "term": "is",
+     "pct": 74.6
+    },
+    {
+     "term": "for",
+     "pct": 73.5
+    },
+    {
+     "term": "by",
+     "pct": 62.6
+    },
+    {
+     "term": "as",
+     "pct": 61.2
+    },
+    {
+     "term": "with",
+     "pct": 60.8
+    },
+    {
+     "term": "on",
+     "pct": 59
+    },
+    {
+     "term": "this",
+     "pct": 58.7
+    },
+    {
+     "term": "be",
+     "pct": 55.5
+    },
+    {
+     "term": "are",
+     "pct": 51.7
+    },
+    {
+     "term": "an",
+     "pct": 49
+    },
+    {
+     "term": "from",
+     "pct": 48.8
+    },
+    {
+     "term": "it",
+     "pct": 47
+    },
+    {
+     "term": "s",
+     "pct": 45.2
+    },
+    {
+     "term": "which",
+     "pct": 43.5
+    },
+    {
+     "term": "1",
+     "pct": 42.9
+    },
+    {
+     "term": "not",
+     "pct": 40.3
+    },
+    {
+     "term": "or",
+     "pct": 37.8
+    },
+    {
+     "term": "new",
+     "pct": 35.7
+    },
+    {
+     "term": "economics",
+     "pct": 35.1
+    },
+    {
+     "term": "at",
+     "pct": 33.7
+    },
+    {
+     "term": "number",
+     "pct": 32.6
+    },
+    {
+     "term": "have",
+     "pct": 32.2
+    },
+    {
+     "term": "can",
+     "pct": 31.7
+    },
+    {
+     "term": "2",
+     "pct": 31.4
+    },
+    {
+     "term": "result",
+     "pct": 30.8
+    }
+   ]
+  }
+ }
+}

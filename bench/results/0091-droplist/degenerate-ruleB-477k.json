@@ -1,0 +1,502 @@
+{
+ "index": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "passages": 477512,
+ "probes": [
+  {
+   "arm": "stock",
+   "id": "soliloquy",
+   "query": "to be or not to be",
+   "why": "the motivating query: every word common, one accidental survivor",
+   "ms": 306.3,
+   "n": 10,
+   "top": [
+    {
+     "key": "THXPN4ZP"
+    },
+    {
+     "key": "KXKFFLZA"
+    },
+    {
+     "key": "8EB4JHQL"
+    },
+    {
+     "key": "Y3QZZEWH"
+    },
+    {
+     "key": "PKEDRC6E"
+    }
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "bare-the",
+   "query": "the",
+   "why": "one listed word alone — stock answers [] for free",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "bare-the-accented",
+   "query": "thé",
+   "why": "French for tea; folds to `the`, so it reaches the same path",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "of-the",
+   "query": "of the",
+   "why": "two listed words — must still fall back",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "stock",
+   "id": "the-brain",
+   "query": "the brain",
+   "why": "one common word, one rare content word — the over-fire case",
+   "ms": 3.3,
+   "n": 9,
+   "top": [
+    {
+     "key": "DH8EXSVA"
+    },
+    {
+     "key": "B4892N96"
+    },
+    {
+     "key": "ZIBPXXTW"
+    },
+    {
+     "key": "EZ422VSK"
+    },
+    {
+     "key": "Q94N2ZMJ"
+    }
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "of-energy",
+   "query": "of energy",
+   "why": "one common word, one COMMON content word (26,2%)",
+   "ms": 270.1,
+   "n": 10,
+   "top": [
+    {
+     "key": "LSM2ALHS"
+    },
+    {
+     "key": "GALVDHUT"
+    },
+    {
+     "key": "PVT4EW6X"
+    },
+    {
+     "key": "MH5LYWYA"
+    },
+    {
+     "key": "FY5FEZ68"
+    }
+   ]
+  },
+  {
+   "arm": "stock",
+   "id": "etre-ou-ne-pas-etre",
+   "query": "être ou ne pas être",
+   "why": "the French degenerate query — no English list touches it",
+   "ms": 52.3,
+   "n": 10,
+   "top": [
+    {
+     "key": "S33JAUCG"
+    },
+    {
+     "key": "V4QRQRVL"
+    },
+    {
+     "key": "386DHVX2"
+    },
+    {
+     "key": "WVA2DH5N"
+    },
+    {
+     "key": "29DVG4FS"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "soliloquy",
+   "query": "to be or not to be",
+   "why": "the motivating query: every word common, one accidental survivor",
+   "ms": 746.5,
+   "n": 10,
+   "top": [
+    {
+     "key": "TVEPMMGN"
+    },
+    {
+     "key": "ZFEVBHN2"
+    },
+    {
+     "key": "JTWGMZ2X"
+    },
+    {
+     "key": "Z9IS7FPY"
+    },
+    {
+     "key": "DEV2WYTJ"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "bare-the",
+   "query": "the",
+   "why": "one listed word alone — stock answers [] for free",
+   "ms": 722.1,
+   "n": 10,
+   "top": [
+    {
+     "key": "7DN9H2J5"
+    },
+    {
+     "key": "T8ZTLQW6"
+    },
+    {
+     "key": "B4892N96"
+    },
+    {
+     "key": "YJVYI27A"
+    },
+    {
+     "key": "FZMKUQPW"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "bare-the-accented",
+   "query": "thé",
+   "why": "French for tea; folds to `the`, so it reaches the same path",
+   "ms": 677.3,
+   "n": 10,
+   "top": [
+    {
+     "key": "7DN9H2J5"
+    },
+    {
+     "key": "T8ZTLQW6"
+    },
+    {
+     "key": "B4892N96"
+    },
+    {
+     "key": "YJVYI27A"
+    },
+    {
+     "key": "FZMKUQPW"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "of-the",
+   "query": "of the",
+   "why": "two listed words — must still fall back",
+   "ms": 791.5,
+   "n": 10,
+   "top": [
+    {
+     "key": "DH8EXSVA"
+    },
+    {
+     "key": "TVEPMMGN"
+    },
+    {
+     "key": "T8ZTLQW6"
+    },
+    {
+     "key": "N52REBES"
+    },
+    {
+     "key": "GS6DK2JI"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "the-brain",
+   "query": "the brain",
+   "why": "one common word, one rare content word — the over-fire case",
+   "ms": 701.5,
+   "n": 9,
+   "top": [
+    {
+     "key": "DH8EXSVA"
+    },
+    {
+     "key": "ZIBPXXTW"
+    },
+    {
+     "key": "B4892N96"
+    },
+    {
+     "key": "EZ422VSK"
+    },
+    {
+     "key": "Q94N2ZMJ"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "of-energy",
+   "query": "of energy",
+   "why": "one common word, one COMMON content word (26,2%)",
+   "ms": 706.9,
+   "n": 10,
+   "top": [
+    {
+     "key": "LSM2ALHS"
+    },
+    {
+     "key": "GALVDHUT"
+    },
+    {
+     "key": "PVT4EW6X"
+    },
+    {
+     "key": "MH5LYWYA"
+    },
+    {
+     "key": "FY5FEZ68"
+    }
+   ]
+  },
+  {
+   "arm": "droplist",
+   "id": "etre-ou-ne-pas-etre",
+   "query": "être ou ne pas être",
+   "why": "the French degenerate query — no English list touches it",
+   "ms": 45.8,
+   "n": 10,
+   "top": [
+    {
+     "key": "S33JAUCG"
+    },
+    {
+     "key": "V4QRQRVL"
+    },
+    {
+     "key": "386DHVX2"
+    },
+    {
+     "key": "WVA2DH5N"
+    },
+    {
+     "key": "29DVG4FS"
+    }
+   ]
+  },
+  {
+   "arm": "ruleB",
+   "id": "soliloquy",
+   "query": "to be or not to be",
+   "why": "the motivating query: every word common, one accidental survivor",
+   "ms": 745.4,
+   "n": 10,
+   "top": [
+    {
+     "key": "TVEPMMGN"
+    },
+    {
+     "key": "ZFEVBHN2"
+    },
+    {
+     "key": "JTWGMZ2X"
+    },
+    {
+     "key": "Z9IS7FPY"
+    },
+    {
+     "key": "DEV2WYTJ"
+    }
+   ]
+  },
+  {
+   "arm": "ruleB",
+   "id": "bare-the",
+   "query": "the",
+   "why": "one listed word alone — stock answers [] for free",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "ruleB",
+   "id": "bare-the-accented",
+   "query": "thé",
+   "why": "French for tea; folds to `the`, so it reaches the same path",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "ruleB",
+   "id": "of-the",
+   "query": "of the",
+   "why": "two listed words — must still fall back",
+   "ms": 0,
+   "n": 0,
+   "top": []
+  },
+  {
+   "arm": "ruleB",
+   "id": "the-brain",
+   "query": "the brain",
+   "why": "one common word, one rare content word — the over-fire case",
+   "ms": 3.5,
+   "n": 9,
+   "top": [
+    {
+     "key": "DH8EXSVA"
+    },
+    {
+     "key": "B4892N96"
+    },
+    {
+     "key": "ZIBPXXTW"
+    },
+    {
+     "key": "EZ422VSK"
+    },
+    {
+     "key": "Q94N2ZMJ"
+    }
+   ]
+  },
+  {
+   "arm": "ruleB",
+   "id": "of-energy",
+   "query": "of energy",
+   "why": "one common word, one COMMON content word (26,2%)",
+   "ms": 231.8,
+   "n": 10,
+   "top": [
+    {
+     "key": "LSM2ALHS"
+    },
+    {
+     "key": "GALVDHUT"
+    },
+    {
+     "key": "PVT4EW6X"
+    },
+    {
+     "key": "MH5LYWYA"
+    },
+    {
+     "key": "FY5FEZ68"
+    }
+   ]
+  },
+  {
+   "arm": "ruleB",
+   "id": "etre-ou-ne-pas-etre",
+   "query": "être ou ne pas être",
+   "why": "the French degenerate query — no English list touches it",
+   "ms": 44.8,
+   "n": 10,
+   "top": [
+    {
+     "key": "S33JAUCG"
+    },
+    {
+     "key": "V4QRQRVL"
+    },
+    {
+     "key": "386DHVX2"
+    },
+    {
+     "key": "WVA2DH5N"
+    },
+    {
+     "key": "29DVG4FS"
+    }
+   ]
+  }
+ ],
+ "df": {
+  "to": {
+   "doc": 369130,
+   "pct": 77.3,
+   "idfClamped": true
+  },
+  "be": {
+   "doc": 198464,
+   "pct": 41.56,
+   "idfClamped": false
+  },
+  "or": {
+   "doc": 146265,
+   "pct": 30.63,
+   "idfClamped": false
+  },
+  "not": {
+   "doc": 130379,
+   "pct": 27.3,
+   "idfClamped": false
+  },
+  "the": {
+   "doc": 403131,
+   "pct": 84.42,
+   "idfClamped": true
+  },
+  "thé": {
+   "doc": 0,
+   "pct": 0,
+   "idfClamped": false
+  },
+  "of": {
+   "doc": 405701,
+   "pct": 84.96,
+   "idfClamped": true
+  },
+  "brain": {
+   "doc": 480,
+   "pct": 0.1,
+   "idfClamped": false
+  },
+  "energy": {
+   "doc": 125198,
+   "pct": 26.22,
+   "idfClamped": false
+  },
+  "être": {
+   "doc": 0,
+   "pct": 0,
+   "idfClamped": false
+  },
+  "ou": {
+   "doc": 10961,
+   "pct": 2.3,
+   "idfClamped": false
+  },
+  "ne": {
+   "doc": 8269,
+   "pct": 1.73,
+   "idfClamped": false
+  },
+  "pas": {
+   "doc": 7995,
+   "pct": 1.67,
+   "idfClamped": false
+  }
+ }
+}

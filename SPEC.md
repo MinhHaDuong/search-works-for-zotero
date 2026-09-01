@@ -88,6 +88,14 @@ the entry points at the question rather than settling it.
 - **custody string** — the one-line statement, carried on every reply, of where
   the query text and the library text went. Authoritative: SPEC.md
   R10; the mechanism is SPEC.md §5.2.7.
+- **droplist** — the terms a particular library's own document frequencies put
+  out of a query, derived from its keyword index at build time and applied on
+  the query side only. Not a stoplist and not a translation of one: a stoplist
+  is a fixed list of one language's function words, which cannot be right in a
+  token space holding every language at once, where a homograph is one string.
+  What a term costs in *this* corpus has a single answer, and that is what is
+  asked. Authoritative: SPEC.md §5.3, which sets the threshold and the rule for
+  a query that loses too many terms to it; the implementation is ticket 0091.
 - **entry** — the unit of answer: a section of a document rather than the
   document, so an encyclopedia is one item and many entries. Authoritative:
   SPEC.md, the first ruling; the storage layer is SPEC.md §5.2.2.

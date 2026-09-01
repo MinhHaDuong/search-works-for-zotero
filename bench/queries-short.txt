@@ -1,0 +1,32 @@
+# Short queries (ticket 0091) — the population the long-sentence sets structurally exclude.
+#
+# Why it exists. queries-x2.txt was built from sentences carrying at least three stopwords
+# each, which is the right population for measuring what deleting a stoplist costs and the
+# wrong one for measuring what the degeneracy floor costs. A query of two or three words
+# with one common word among them keeps ONE term after pruning, misses a floor of two, and
+# runs unpruned — so the floor's cost is concentrated in exactly the queries the other set
+# has none of. Real exploratory search is full of them.
+#
+# Twenty, half English and half French, all of the shape a person types when they are
+# looking rather than asking: a content word or two with whatever grammar came along.
+
+the brain
+of energy
+the carbon tax
+in Vietnam
+a discount rate
+the market
+on growth
+the state
+these models
+from theory
+le climat
+des ménages
+la croissance
+une taxe carbone
+le prix de l'électricité
+les modèles
+du marché
+en économie
+sur le long terme
+dans les pays

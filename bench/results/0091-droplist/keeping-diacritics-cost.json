@@ -1,0 +1,2289 @@
+{
+ "source": "/home/haduong/data/projets/zoteus-bench/0091-treatment/search-index.sqlite",
+ "sampled_passages": 60000,
+ "folded_index": {
+  "vocabulary_terms": 227178,
+  "fts_bytes": 31338335
+ },
+ "unfolded_index": {
+  "vocabulary_terms": 236311,
+  "fts_bytes": 31680118
+ },
+ "words_spelled_more_than_one_way": 150,
+ "mean_recall_kept_typing_accented": 0.156,
+ "mean_recall_kept_typing_unaccented": 0.65,
+ "reading": "recall_kept is the share of the folding index’s documents that the unfolded index still returns for a query typed that way. 1,0 means dropping the fold costs nothing for that word; 0,1 means nine documents in ten become unreachable.",
+ "rows": [
+  {
+   "folded": "the",
+   "spellings": [
+    "the:484279",
+    "thể:421",
+    "thế:220",
+    "thê:13",
+    "thẻ:3",
+    "thë:1",
+    "thè:1"
+   ],
+   "folded_hits": 50478,
+   "unfolded_hits_typing_accented": 252,
+   "unfolded_hits_typing_unaccented": 48675,
+   "recall_kept_typing_accented": 0.005,
+   "recall_kept_typing_unaccented": 0.964
+  },
+  {
+   "folded": "of",
+   "spellings": [
+    "of:327229",
+    "óf:2"
+   ],
+   "folded_hits": 50652,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 50651,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "in",
+   "spellings": [
+    "in:201081",
+    "ín:3",
+    "în:1",
+    "ïn:1"
+   ],
+   "folded_hits": 47013,
+   "unfolded_hits_typing_accented": 3,
+   "unfolded_hits_typing_unaccented": 47011,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "to",
+   "spellings": [
+    "to:192278",
+    "tô:280",
+    "tổ:231",
+    "tố:34",
+    "tö:24",
+    "tờ:22",
+    "tơ:15",
+    "tỏ:5",
+    "tó:1"
+   ],
+   "folded_hits": 45930,
+   "unfolded_hits_typing_accented": 136,
+   "unfolded_hits_typing_unaccented": 44384,
+   "recall_kept_typing_accented": 0.003,
+   "recall_kept_typing_unaccented": 0.966
+  },
+  {
+   "folded": "for",
+   "spellings": [
+    "for:103920",
+    "för:2"
+   ],
+   "folded_hits": 39695,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 39695,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "that",
+   "spellings": [
+    "that:62936",
+    "thất:19",
+    "thật:6",
+    "thắt:4"
+   ],
+   "folded_hits": 28349,
+   "unfolded_hits_typing_accented": 18,
+   "unfolded_hits_typing_unaccented": 28149,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.993
+  },
+  {
+   "folded": "on",
+   "spellings": [
+    "on:57306",
+    "ổn:44",
+    "ôn:12",
+    "ơn:3",
+    "ồn:2",
+    "òn:2",
+    "óñ:2"
+   ],
+   "folded_hits": 31174,
+   "unfolded_hits_typing_accented": 39,
+   "unfolded_hits_typing_unaccented": 30797,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.988
+  },
+  {
+   "folded": "as",
+   "spellings": [
+    "as:54425",
+    "ãš:1",
+    "às:1"
+   ],
+   "folded_hits": 27861,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 27858,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "be",
+   "spellings": [
+    "be:46305",
+    "bé:939",
+    "bê:101",
+    "bè:42",
+    "bế:2"
+   ],
+   "folded_hits": 24071,
+   "unfolded_hits_typing_accented": 645,
+   "unfolded_hits_typing_unaccented": 23293,
+   "recall_kept_typing_accented": 0.027,
+   "recall_kept_typing_unaccented": 0.968
+  },
+  {
+   "folded": "an",
+   "spellings": [
+    "an:29873",
+    "án:2592",
+    "ăn:24",
+    "ấn:23",
+    "ân:16",
+    "ận:3",
+    "ẩn:3",
+    "àn:2"
+   ],
+   "folded_hits": 21486,
+   "unfolded_hits_typing_accented": 1100,
+   "unfolded_hits_typing_unaccented": 20336,
+   "recall_kept_typing_accented": 0.051,
+   "recall_kept_typing_unaccented": 0.946
+  },
+  {
+   "folded": "de",
+   "spellings": [
+    "de:28932",
+    "dễ:18",
+    "dê:18",
+    "dé:5",
+    "dë:5"
+   ],
+   "folded_hits": 4375,
+   "unfolded_hits_typing_accented": 17,
+   "unfolded_hits_typing_unaccented": 4251,
+   "recall_kept_typing_accented": 0.004,
+   "recall_kept_typing_unaccented": 0.972
+  },
+  {
+   "folded": "at",
+   "spellings": [
+    "at:27582",
+    "át:6",
+    "ạt:3",
+    "ất:2",
+    "åt:1",
+    "ât:1",
+    "ặt:1"
+   ],
+   "folded_hits": 17639,
+   "unfolded_hits_typing_accented": 6,
+   "unfolded_hits_typing_unaccented": 17604,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.998
+  },
+  {
+   "folded": "it",
+   "spellings": [
+    "it:26690",
+    "ít:211",
+    "ît:29"
+   ],
+   "folded_hits": 16912,
+   "unfolded_hits_typing_accented": 191,
+   "unfolded_hits_typing_unaccented": 16696,
+   "recall_kept_typing_accented": 0.011,
+   "recall_kept_typing_unaccented": 0.987
+  },
+  {
+   "folded": "la",
+   "spellings": [
+    "la:18136",
+    "là:4602",
+    "lá:69",
+    "lã:21",
+    "lạ:11",
+    "lâ:3",
+    "lä:2"
+   ],
+   "folded_hits": 5581,
+   "unfolded_hits_typing_accented": 2179,
+   "unfolded_hits_typing_unaccented": 3467,
+   "recall_kept_typing_accented": 0.39,
+   "recall_kept_typing_unaccented": 0.621
+  },
+  {
+   "folded": "et",
+   "spellings": [
+    "et:21463",
+    "èt:107",
+    "ét:2",
+    "ệt:2",
+    "ẹt:1"
+   ],
+   "folded_hits": 8108,
+   "unfolded_hits_typing_accented": 96,
+   "unfolded_hits_typing_unaccented": 7941,
+   "recall_kept_typing_accented": 0.012,
+   "recall_kept_typing_unaccented": 0.979
+  },
+  {
+   "folded": "va",
+   "spellings": [
+    "và:15655",
+    "va:5131",
+    "vá:72",
+    "vã:70",
+    "vâ:16",
+    "vä:6",
+    "vå:3",
+    "vạ:2",
+    "vả:1"
+   ],
+   "folded_hits": 4684,
+   "unfolded_hits_typing_accented": 4271,
+   "unfolded_hits_typing_unaccented": 376,
+   "recall_kept_typing_accented": 0.912,
+   "recall_kept_typing_unaccented": 0.08
+  },
+  {
+   "folded": "can",
+   "spellings": [
+    "can:18855",
+    "cân:278",
+    "cần:190",
+    "cán:127",
+    "cận:51",
+    "căn:46",
+    "cản:12",
+    "cạn:9",
+    "cẩn:5",
+    "cấn:1",
+    "càn:1"
+   ],
+   "folded_hits": 14085,
+   "unfolded_hits_typing_accented": 201,
+   "unfolded_hits_typing_unaccented": 12751,
+   "recall_kept_typing_accented": 0.014,
+   "recall_kept_typing_unaccented": 0.905
+  },
+  {
+   "folded": "đo",
+   "spellings": [
+    "đo:14918",
+    "đó:1584",
+    "đô:625",
+    "độ:198",
+    "đồ:65",
+    "đổ:15",
+    "đỗ:11",
+    "đỏ:10",
+    "đỡ:5",
+    "đò:3",
+    "đọ:2",
+    "đơ:1",
+    "đố:1"
+   ],
+   "folded_hits": 2529,
+   "unfolded_hits_typing_accented": 1144,
+   "unfolded_hits_typing_unaccented": 174,
+   "recall_kept_typing_accented": 0.452,
+   "recall_kept_typing_unaccented": 0.069
+  },
+  {
+   "folded": "co",
+   "spellings": [
+    "co:9295",
+    "có:7205",
+    "cơ:607",
+    "cô:152",
+    "cổ:40",
+    "cố:33",
+    "cỡ:9",
+    "cỏ:6",
+    "cò:6",
+    "cờ:2",
+    "cở:1",
+    "cộ:1",
+    "cớ:1"
+   ],
+   "folded_hits": 6178,
+   "unfolded_hits_typing_accented": 2892,
+   "unfolded_hits_typing_unaccented": 2624,
+   "recall_kept_typing_accented": 0.468,
+   "recall_kept_typing_unaccented": 0.425
+  },
+  {
+   "folded": "so",
+   "spellings": [
+    "so:15620",
+    "số:610",
+    "sở:302",
+    "sơ:72",
+    "sö:56",
+    "sô:30",
+    "sổ:8",
+    "sợ:2",
+    "sò:2"
+   ],
+   "folded_hits": 8452,
+   "unfolded_hits_typing_accented": 294,
+   "unfolded_hits_typing_unaccented": 5826,
+   "recall_kept_typing_accented": 0.035,
+   "recall_kept_typing_unaccented": 0.689
+  },
+  {
+   "folded": "du",
+   "spellings": [
+    "du:15513",
+    "dự:806",
+    "dù:213",
+    "dû:37",
+    "dư:31",
+    "dữ:25",
+    "dụ:6"
+   ],
+   "folded_hits": 4936,
+   "unfolded_hits_typing_accented": 300,
+   "unfolded_hits_typing_unaccented": 3236,
+   "recall_kept_typing_accented": 0.061,
+   "recall_kept_typing_unaccented": 0.656
+  },
+  {
+   "folded": "than",
+   "spellings": [
+    "than:14980",
+    "thân:93",
+    "thần:15",
+    "thận:5",
+    "thắn:3",
+    "thẩn:1"
+   ],
+   "folded_hits": 10540,
+   "unfolded_hits_typing_accented": 77,
+   "unfolded_hits_typing_unaccented": 10425,
+   "recall_kept_typing_accented": 0.007,
+   "recall_kept_typing_unaccented": 0.989
+  },
+  {
+   "folded": "these",
+   "spellings": [
+    "these:14737",
+    "thèse:51"
+   ],
+   "folded_hits": 11376,
+   "unfolded_hits_typing_accented": 37,
+   "unfolded_hits_typing_unaccented": 11339,
+   "recall_kept_typing_accented": 0.003,
+   "recall_kept_typing_unaccented": 0.997
+  },
+  {
+   "folded": "may",
+   "spellings": [
+    "may:11092",
+    "máy:3450",
+    "mây:58",
+    "mấy:3",
+    "mày:1"
+   ],
+   "folded_hits": 9118,
+   "unfolded_hits_typing_accented": 1176,
+   "unfolded_hits_typing_unaccented": 7918,
+   "recall_kept_typing_accented": 0.129,
+   "recall_kept_typing_unaccented": 0.868
+  },
+  {
+   "folded": "đie",
+   "spellings": [
+    "đie:14346",
+    "điê:41",
+    "điẹ:13"
+   ],
+   "folded_hits": 21,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 0,
+   "recall_kept_typing_accented": 0.095,
+   "recall_kept_typing_unaccented": 0
+  },
+  {
+   "folded": "cac",
+   "spellings": [
+    "các:13635",
+    "cac:346",
+    "cäc:1"
+   ],
+   "folded_hits": 3678,
+   "unfolded_hits_typing_accented": 3540,
+   "unfolded_hits_typing_unaccented": 121,
+   "recall_kept_typing_accented": 0.962,
+   "recall_kept_typing_unaccented": 0.033
+  },
+  {
+   "folded": "no",
+   "spellings": [
+    "no:13196",
+    "nó:119",
+    "nô:22",
+    "nỗ:20",
+    "nợ:8",
+    "nổ:8",
+    "ño:4",
+    "nở:3",
+    "nọ:1",
+    "ñó:1"
+   ],
+   "folded_hits": 7758,
+   "unfolded_hits_typing_accented": 88,
+   "unfolded_hits_typing_unaccented": 7492,
+   "recall_kept_typing_accented": 0.011,
+   "recall_kept_typing_unaccented": 0.966
+  },
+  {
+   "folded": "gas",
+   "spellings": [
+    "gas:12991",
+    "gás:2"
+   ],
+   "folded_hits": 6030,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 6029,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "na",
+   "spellings": [
+    "na:12732",
+    "ná:50",
+    "nã:24",
+    "nà:10",
+    "nä:6",
+    "nă:2",
+    "nạ:1",
+    "ña:1"
+   ],
+   "folded_hits": 558,
+   "unfolded_hits_typing_accented": 20,
+   "unfolded_hits_typing_unaccented": 521,
+   "recall_kept_typing_accented": 0.036,
+   "recall_kept_typing_unaccented": 0.934
+  },
+  {
+   "folded": "emissions",
+   "spellings": [
+    "emissions:12312",
+    "émissions:489"
+   ],
+   "folded_hits": 5973,
+   "unfolded_hits_typing_accented": 250,
+   "unfolded_hits_typing_unaccented": 5727,
+   "recall_kept_typing_accented": 0.042,
+   "recall_kept_typing_unaccented": 0.959
+  },
+  {
+   "folded": "but",
+   "spellings": [
+    "but:12565",
+    "bút:4",
+    "bût:2"
+   ],
+   "folded_hits": 10069,
+   "unfolded_hits_typing_accented": 4,
+   "unfolded_hits_typing_unaccented": 10064,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "đa",
+   "spellings": [
+    "đa:11376",
+    "đã:528",
+    "đà:294",
+    "đá:129",
+    "đâ:17",
+    "đă:3"
+   ],
+   "folded_hits": 1854,
+   "unfolded_hits_typing_accented": 275,
+   "unfolded_hits_typing_unaccented": 364,
+   "recall_kept_typing_accented": 0.148,
+   "recall_kept_typing_unaccented": 0.196
+  },
+  {
+   "folded": "cu",
+   "spellings": [
+    "cu:12127",
+    "cụ:71",
+    "cư:62",
+    "cứ:47",
+    "cũ:17",
+    "cù:5",
+    "cú:5",
+    "cử:4",
+    "çu:2",
+    "cû:1",
+    "cự:1",
+    "củ:1"
+   ],
+   "folded_hits": 1152,
+   "unfolded_hits_typing_accented": 60,
+   "unfolded_hits_typing_unaccented": 139,
+   "recall_kept_typing_accented": 0.052,
+   "recall_kept_typing_unaccented": 0.121
+  },
+  {
+   "folded": "ta",
+   "spellings": [
+    "ta:11972",
+    "tá:66",
+    "tã:42",
+    "tà:12",
+    "tä:11",
+    "tâ:10",
+    "tả:6"
+   ],
+   "folded_hits": 606,
+   "unfolded_hits_typing_accented": 29,
+   "unfolded_hits_typing_unaccented": 441,
+   "recall_kept_typing_accented": 0.048,
+   "recall_kept_typing_unaccented": 0.728
+  },
+  {
+   "folded": "ca",
+   "spellings": [
+    "ca:10721",
+    "cá:481",
+    "cà:297",
+    "cả:146",
+    "cã:113",
+    "ça:22",
+    "câ:19"
+   ],
+   "folded_hits": 2378,
+   "unfolded_hits_typing_accented": 282,
+   "unfolded_hits_typing_unaccented": 702,
+   "recall_kept_typing_accented": 0.119,
+   "recall_kept_typing_unaccented": 0.295
+  },
+  {
+   "folded": "change",
+   "spellings": [
+    "change:11717",
+    "changé:5"
+   ],
+   "folded_hits": 6921,
+   "unfolded_hits_typing_accented": 5,
+   "unfolded_hits_typing_unaccented": 6916,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "ho",
+   "spellings": [
+    "ho:11166",
+    "hộ:184",
+    "hồ:145",
+    "hỗ:121",
+    "hô:55",
+    "họ:37",
+    "hở:3",
+    "hó:2",
+    "hơ:1",
+    "hò:1"
+   ],
+   "folded_hits": 2026,
+   "unfolded_hits_typing_accented": 59,
+   "unfolded_hits_typing_unaccented": 680,
+   "recall_kept_typing_accented": 0.029,
+   "recall_kept_typing_unaccented": 0.336
+  },
+  {
+   "folded": "des",
+   "spellings": [
+    "des:11247",
+    "dès:118",
+    "dés:1"
+   ],
+   "folded_hits": 2664,
+   "unfolded_hits_typing_accented": 103,
+   "unfolded_hits_typing_unaccented": 2661,
+   "recall_kept_typing_accented": 0.039,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "system",
+   "spellings": [
+    "system:11072",
+    "systèm:3"
+   ],
+   "folded_hits": 6888,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 6887,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "al",
+   "spellings": [
+    "al:11047",
+    "àl:2",
+    "ál:1"
+   ],
+   "folded_hits": 5704,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 5700,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "le",
+   "spellings": [
+    "le:10729",
+    "lê:150",
+    "lệ:89",
+    "lẻ:26",
+    "lễ:18",
+    "lẽ:3",
+    "lë:2",
+    "lề:1"
+   ],
+   "folded_hits": 3726,
+   "unfolded_hits_typing_accented": 116,
+   "unfolded_hits_typing_unaccented": 2773,
+   "recall_kept_typing_accented": 0.031,
+   "recall_kept_typing_unaccented": 0.744
+  },
+  {
+   "folded": "there",
+   "spellings": [
+    "there:10788",
+    "théré:2"
+   ],
+   "folded_hits": 8344,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 8343,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "nam",
+   "spellings": [
+    "nam:9809",
+    "năm:923",
+    "nằm:15",
+    "nắm:11",
+    "nậm:5",
+    "nấm:2",
+    "näm:1"
+   ],
+   "folded_hits": 6213,
+   "unfolded_hits_typing_accented": 334,
+   "unfolded_hits_typing_unaccented": 4879,
+   "recall_kept_typing_accented": 0.054,
+   "recall_kept_typing_unaccented": 0.785
+  },
+  {
+   "folded": "tu",
+   "spellings": [
+    "tu:8556",
+    "tư:684",
+    "từ:487",
+    "tû:468",
+    "tự:129",
+    "tử:118",
+    "tù:110",
+    "tụ:13",
+    "tủ:9",
+    "tú:9",
+    "tü:1",
+    "tứ:1"
+   ],
+   "folded_hits": 3608,
+   "unfolded_hits_typing_accented": 293,
+   "unfolded_hits_typing_unaccented": 241,
+   "recall_kept_typing_accented": 0.081,
+   "recall_kept_typing_unaccented": 0.067
+  },
+  {
+   "folded": "les",
+   "spellings": [
+    "les:10501",
+    "lès:1"
+   ],
+   "folded_hits": 2393,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 2392,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "thu",
+   "spellings": [
+    "thu:9583",
+    "thủ:236",
+    "thứ:123",
+    "thư:95",
+    "thụ:52",
+    "thù:45",
+    "thú:27",
+    "thử:24",
+    "thự:5"
+   ],
+   "folded_hits": 2234,
+   "unfolded_hits_typing_accented": 144,
+   "unfolded_hits_typing_unaccented": 1222,
+   "recall_kept_typing_accented": 0.064,
+   "recall_kept_typing_unaccented": 0.547
+  },
+  {
+   "folded": "gia",
+   "spellings": [
+    "gia:6541",
+    "giá:3423",
+    "giả:72",
+    "già:16",
+    "giã:5",
+    "gía:4",
+    "giâ:1"
+   ],
+   "folded_hits": 3176,
+   "unfolded_hits_typing_accented": 1433,
+   "unfolded_hits_typing_unaccented": 2147,
+   "recall_kept_typing_accented": 0.451,
+   "recall_kept_typing_unaccented": 0.676
+  },
+  {
+   "folded": "carbon",
+   "spellings": [
+    "carbon:9796",
+    "carbón:3"
+   ],
+   "folded_hits": 5012,
+   "unfolded_hits_typing_accented": 3,
+   "unfolded_hits_typing_unaccented": 5009,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "lu",
+   "spellings": [
+    "lu:9500",
+    "lũ:23",
+    "lư:16",
+    "lü:1",
+    "lữ:1"
+   ],
+   "folded_hits": 278,
+   "unfolded_hits_typing_accented": 10,
+   "unfolded_hits_typing_unaccented": 209,
+   "recall_kept_typing_accented": 0.036,
+   "recall_kept_typing_unaccented": 0.752
+  },
+  {
+   "folded": "ba",
+   "spellings": [
+    "ba:9001",
+    "bà:224",
+    "bá:84",
+    "bã:28",
+    "bă:4",
+    "bâ:2",
+    "bạ:2"
+   ],
+   "folded_hits": 899,
+   "unfolded_hits_typing_accented": 176,
+   "unfolded_hits_typing_unaccented": 645,
+   "recall_kept_typing_accented": 0.196,
+   "recall_kept_typing_unaccented": 0.717
+  },
+  {
+   "folded": "figure",
+   "spellings": [
+    "figure:9059",
+    "figuré:3"
+   ],
+   "folded_hits": 5052,
+   "unfolded_hits_typing_accented": 3,
+   "unfolded_hits_typing_unaccented": 5049,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "trong",
+   "spellings": [
+    "trong:8656",
+    "trọng:147",
+    "trồng:114",
+    "trông:4",
+    "trống:1",
+    "tròng:1"
+   ],
+   "folded_hits": 3805,
+   "unfolded_hits_typing_accented": 106,
+   "unfolded_hits_typing_unaccented": 3617,
+   "recall_kept_typing_accented": 0.028,
+   "recall_kept_typing_unaccented": 0.951
+  },
+  {
+   "folded": "cong",
+   "spellings": [
+    "công:8059",
+    "cong:485",
+    "cộng:62",
+    "cổng:22",
+    "còng:10",
+    "cống:3",
+    "cöng:1",
+    "cóng:1"
+   ],
+   "folded_hits": 3200,
+   "unfolded_hits_typing_accented": 2872,
+   "unfolded_hits_typing_unaccented": 196,
+   "recall_kept_typing_accented": 0.897,
+   "recall_kept_typing_unaccented": 0.061
+  },
+  {
+   "folded": "nha",
+   "spellings": [
+    "nhà:4431",
+    "nha:4172",
+    "nhã:16",
+    "nhâ:6",
+    "nhá:5",
+    "nhă:1"
+   ],
+   "folded_hits": 1999,
+   "unfolded_hits_typing_accented": 1789,
+   "unfolded_hits_typing_unaccented": 187,
+   "recall_kept_typing_accented": 0.895,
+   "recall_kept_typing_unaccented": 0.094
+  },
+  {
+   "folded": "generation",
+   "spellings": [
+    "generation:8446",
+    "génération:41"
+   ],
+   "folded_hits": 5123,
+   "unfolded_hits_typing_accented": 35,
+   "unfolded_hits_typing_unaccented": 5089,
+   "recall_kept_typing_accented": 0.007,
+   "recall_kept_typing_unaccented": 0.993
+  },
+  {
+   "folded": "en",
+   "spellings": [
+    "en:8375",
+    "ên:15",
+    "ën:11",
+    "ện:3",
+    "ền:2",
+    "ến:2",
+    "ển:1",
+    "én:1",
+    "êñ:1"
+   ],
+   "folded_hits": 3038,
+   "unfolded_hits_typing_accented": 13,
+   "unfolded_hits_typing_unaccented": 2966,
+   "recall_kept_typing_accented": 0.004,
+   "recall_kept_typing_unaccented": 0.976
+  },
+  {
+   "folded": "ha",
+   "spellings": [
+    "ha:6573",
+    "hà:1254",
+    "hạ:104",
+    "há:33",
+    "hã:28",
+    "hä:6",
+    "hâ:1"
+   ],
+   "folded_hits": 2193,
+   "unfolded_hits_typing_accented": 658,
+   "unfolded_hits_typing_unaccented": 1099,
+   "recall_kept_typing_accented": 0.3,
+   "recall_kept_typing_unaccented": 0.501
+  },
+  {
+   "folded": "he",
+   "spellings": [
+    "he:7280",
+    "hệ:387",
+    "hé:198",
+    "hè:46",
+    "hê:10",
+    "hề:3",
+    "hẹ:1",
+    "hế:1",
+    "hë:1"
+   ],
+   "folded_hits": 3904,
+   "unfolded_hits_typing_accented": 216,
+   "unfolded_hits_typing_unaccented": 2430,
+   "recall_kept_typing_accented": 0.055,
+   "recall_kept_typing_unaccented": 0.622
+  },
+  {
+   "folded": "over",
+   "spellings": [
+    "over:7873",
+    "över:1"
+   ],
+   "folded_hits": 6267,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 6266,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "hoa",
+   "spellings": [
+    "hoa:4955",
+    "hóa:1422",
+    "hòa:683",
+    "hoá:320",
+    "hoà:138",
+    "họa:38",
+    "hỏa:11",
+    "hoã:7",
+    "hoạ:4"
+   ],
+   "folded_hits": 1922,
+   "unfolded_hits_typing_accented": 899,
+   "unfolded_hits_typing_unaccented": 459,
+   "recall_kept_typing_accented": 0.468,
+   "recall_kept_typing_unaccented": 0.239
+  },
+  {
+   "folded": "different",
+   "spellings": [
+    "different:7083",
+    "différent:22",
+    "diffèrent:9"
+   ],
+   "folded_hits": 5516,
+   "unfolded_hits_typing_accented": 21,
+   "unfolded_hits_typing_unaccented": 5486,
+   "recall_kept_typing_accented": 0.004,
+   "recall_kept_typing_unaccented": 0.995
+  },
+  {
+   "folded": "đu",
+   "spellings": [
+    "đu:6956",
+    "đủ:74",
+    "đû:2",
+    "đư:1"
+   ],
+   "folded_hits": 307,
+   "unfolded_hits_typing_accented": 59,
+   "unfolded_hits_typing_unaccented": 1,
+   "recall_kept_typing_accented": 0.192,
+   "recall_kept_typing_unaccented": 0.003
+  },
+  {
+   "folded": "however",
+   "spellings": [
+    "however:7029",
+    "howèver:1"
+   ],
+   "folded_hits": 6444,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 6444,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "đe",
+   "spellings": [
+    "đe:6163",
+    "để:504",
+    "đề:301",
+    "đê:50",
+    "đẻ:8",
+    "đế:3"
+   ],
+   "folded_hits": 2026,
+   "unfolded_hits_typing_accented": 286,
+   "unfolded_hits_typing_unaccented": 13,
+   "recall_kept_typing_accented": 0.141,
+   "recall_kept_typing_unaccented": 0.006
+  },
+  {
+   "folded": "long",
+   "spellings": [
+    "long:6856",
+    "lòng:59",
+    "lỏng:10",
+    "lông:7",
+    "lồng:5"
+   ],
+   "folded_hits": 5163,
+   "unfolded_hits_typing_accented": 47,
+   "unfolded_hits_typing_unaccented": 5028,
+   "recall_kept_typing_accented": 0.009,
+   "recall_kept_typing_unaccented": 0.974
+  },
+  {
+   "folded": "do",
+   "spellings": [
+    "do:6700",
+    "dò:80",
+    "dǫ:3",
+    "dỡ:3",
+    "dô:2",
+    "dö:1",
+    "dó:1"
+   ],
+   "folded_hits": 5128,
+   "unfolded_hits_typing_accented": 44,
+   "unfolded_hits_typing_unaccented": 5068,
+   "recall_kept_typing_accented": 0.009,
+   "recall_kept_typing_unaccented": 0.988
+  },
+  {
+   "folded": "mo",
+   "spellings": [
+    "mo:5247",
+    "mô:1279",
+    "mở:129",
+    "mỏ:23",
+    "mơ:4",
+    "mó:1",
+    "mộ:1",
+    "mổ:1",
+    "mò:1",
+    "mö:1"
+   ],
+   "folded_hits": 1205,
+   "unfolded_hits_typing_accented": 739,
+   "unfolded_hits_typing_unaccented": 111,
+   "recall_kept_typing_accented": 0.613,
+   "recall_kept_typing_unaccented": 0.092
+  },
+  {
+   "folded": "bo",
+   "spellings": [
+    "bo:5139",
+    "bộ:655",
+    "bổ:156",
+    "bò:135",
+    "bố:130",
+    "bỏ:54",
+    "bờ:31",
+    "bô:30",
+    "bó:11",
+    "bơ:3",
+    "bồ:3",
+    "bỡ:1",
+    "bọ:1"
+   ],
+   "folded_hits": 2479,
+   "unfolded_hits_typing_accented": 277,
+   "unfolded_hits_typing_unaccented": 119,
+   "recall_kept_typing_accented": 0.112,
+   "recall_kept_typing_unaccented": 0.048
+  },
+  {
+   "folded": "up",
+   "spellings": [
+    "up:6198",
+    "üp:1",
+    "úp:1"
+   ],
+   "folded_hits": 5119,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 5117,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "see",
+   "spellings": [
+    "see:6177",
+    "sée:1"
+   ],
+   "folded_hits": 5019,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 5018,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "vo",
+   "spellings": [
+    "vo:5577",
+    "vô:400",
+    "võ:20",
+    "vơ:14",
+    "vỡ:10",
+    "vợ:9",
+    "vò:8",
+    "vỏ:3",
+    "vǫ:1",
+    "vở:1"
+   ],
+   "folded_hits": 424,
+   "unfolded_hits_typing_accented": 232,
+   "unfolded_hits_typing_unaccented": 65,
+   "recall_kept_typing_accented": 0.547,
+   "recall_kept_typing_unaccented": 0.153
+  },
+  {
+   "folded": "non",
+   "spellings": [
+    "non:5940",
+    "nón:4"
+   ],
+   "folded_hits": 4409,
+   "unfolded_hits_typing_accented": 4,
+   "unfolded_hits_typing_unaccented": 4396,
+   "recall_kept_typing_accented": 0.001,
+   "recall_kept_typing_unaccented": 0.997
+  },
+  {
+   "folded": "phu",
+   "spellings": [
+    "phu:4531",
+    "phù:523",
+    "phú:476",
+    "phủ:265",
+    "phụ:105",
+    "phü:3",
+    "phư:1"
+   ],
+   "folded_hits": 2061,
+   "unfolded_hits_typing_accented": 405,
+   "unfolded_hits_typing_unaccented": 284,
+   "recall_kept_typing_accented": 0.197,
+   "recall_kept_typing_unaccented": 0.138
+  },
+  {
+   "folded": "cho",
+   "spellings": [
+    "cho:5776",
+    "chó:48",
+    "chỗ:12",
+    "chờ:9",
+    "chợ:9",
+    "chở:8",
+    "chõ:2",
+    "chơ:2",
+    "chô:2",
+    "chớ:1",
+    "chò:1"
+   ],
+   "folded_hits": 2666,
+   "unfolded_hits_typing_accented": 44,
+   "unfolded_hits_typing_unaccented": 2394,
+   "recall_kept_typing_accented": 0.017,
+   "recall_kept_typing_unaccented": 0.898
+  },
+  {
+   "folded": "tho",
+   "spellings": [
+    "tho:5494",
+    "thô:161",
+    "thó:20",
+    "thổ:19",
+    "thọ:12",
+    "thơ:11",
+    "thö:6",
+    "thờ:4",
+    "thợ:2",
+    "thò:1",
+    "thỏ:1"
+   ],
+   "folded_hits": 938,
+   "unfolded_hits_typing_accented": 99,
+   "unfolded_hits_typing_unaccented": 172,
+   "recall_kept_typing_accented": 0.106,
+   "recall_kept_typing_unaccented": 0.183
+  },
+  {
+   "folded": "tru",
+   "spellings": [
+    "tru:5401",
+    "trữ:118",
+    "trú:83",
+    "trụ:24",
+    "trừ:18",
+    "trư:5",
+    "trù:3"
+   ],
+   "folded_hits": 587,
+   "unfolded_hits_typing_accented": 55,
+   "unfolded_hits_typing_unaccented": 11,
+   "recall_kept_typing_accented": 0.094,
+   "recall_kept_typing_unaccented": 0.019
+  },
+  {
+   "folded": "qua",
+   "spellings": [
+    "qua:4436",
+    "quá:921",
+    "quả:231",
+    "quà:6",
+    "quã:5",
+    "quâ:3"
+   ],
+   "folded_hits": 1975,
+   "unfolded_hits_typing_accented": 631,
+   "unfolded_hits_typing_unaccented": 761,
+   "recall_kept_typing_accented": 0.319,
+   "recall_kept_typing_unaccented": 0.385
+  },
+  {
+   "folded": "chi",
+   "spellings": [
+    "chi:4609",
+    "chí:548",
+    "chỉ:291",
+    "chì:26",
+    "chî:6",
+    "chị:2"
+   ],
+   "folded_hits": 2529,
+   "unfolded_hits_typing_accented": 402,
+   "unfolded_hits_typing_unaccented": 1387,
+   "recall_kept_typing_accented": 0.159,
+   "recall_kept_typing_unaccented": 0.548
+  },
+  {
+   "folded": "ve",
+   "spellings": [
+    "ve:4480",
+    "về:783",
+    "vệ:97",
+    "vé:47",
+    "vẽ:14",
+    "vê:12"
+   ],
+   "folded_hits": 2477,
+   "unfolded_hits_typing_accented": 388,
+   "unfolded_hits_typing_unaccented": 288,
+   "recall_kept_typing_accented": 0.157,
+   "recall_kept_typing_unaccented": 0.116
+  },
+  {
+   "folded": "se",
+   "spellings": [
+    "se:2643",
+    "sè:2063",
+    "së:333",
+    "sẽ:261",
+    "sẻ:47",
+    "sê:20",
+    "sé:2"
+   ],
+   "folded_hits": 2954,
+   "unfolded_hits_typing_accented": 910,
+   "unfolded_hits_typing_unaccented": 1111,
+   "recall_kept_typing_accented": 0.308,
+   "recall_kept_typing_unaccented": 0.376
+  },
+  {
+   "folded": "set",
+   "spellings": [
+    "set:5339",
+    "sét:22"
+   ],
+   "folded_hits": 3993,
+   "unfolded_hits_typing_accented": 14,
+   "unfolded_hits_typing_unaccented": 3979,
+   "recall_kept_typing_accented": 0.004,
+   "recall_kept_typing_unaccented": 0.996
+  },
+  {
+   "folded": "sa",
+   "spellings": [
+    "sa:5253",
+    "sá:43",
+    "sã:10",
+    "sà:6",
+    "sä:5",
+    "så:3",
+    "sâ:2"
+   ],
+   "folded_hits": 559,
+   "unfolded_hits_typing_accented": 20,
+   "unfolded_hits_typing_unaccented": 515,
+   "recall_kept_typing_accented": 0.036,
+   "recall_kept_typing_unaccented": 0.921
+  },
+  {
+   "folded": "then",
+   "spellings": [
+    "then:5283",
+    "thên:1"
+   ],
+   "folded_hits": 4132,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 4131,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "quy",
+   "spellings": [
+    "quy:5191",
+    "quý:41",
+    "quỹ:22",
+    "qùy:1"
+   ],
+   "folded_hits": 2094,
+   "unfolded_hits_typing_accented": 20,
+   "unfolded_hits_typing_unaccented": 1992,
+   "recall_kept_typing_accented": 0.01,
+   "recall_kept_typing_unaccented": 0.951
+  },
+  {
+   "folded": "tha",
+   "spellings": [
+    "tha:4925",
+    "thä:194",
+    "thá:60",
+    "thã:33",
+    "thâ:8",
+    "thả:1",
+    "thà:1",
+    "thă:1"
+   ],
+   "folded_hits": 256,
+   "unfolded_hits_typing_accented": 180,
+   "unfolded_hits_typing_unaccented": 28,
+   "recall_kept_typing_accented": 0.703,
+   "recall_kept_typing_unaccented": 0.109
+  },
+  {
+   "folded": "ma",
+   "spellings": [
+    "ma:4471",
+    "mà:400",
+    "má:261",
+    "mã:53",
+    "mă:7",
+    "mâ:2",
+    "må:1"
+   ],
+   "folded_hits": 1313,
+   "unfolded_hits_typing_accented": 340,
+   "unfolded_hits_typing_unaccented": 766,
+   "recall_kept_typing_accented": 0.259,
+   "recall_kept_typing_unaccented": 0.583
+  },
+  {
+   "folded": "out",
+   "spellings": [
+    "out:5005",
+    "oût:2"
+   ],
+   "folded_hits": 4269,
+   "unfolded_hits_typing_accented": 2,
+   "unfolded_hits_typing_unaccented": 4267,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "emission",
+   "spellings": [
+    "emission:4938",
+    "émission:50"
+   ],
+   "folded_hits": 2744,
+   "unfolded_hits_typing_accented": 47,
+   "unfolded_hits_typing_unaccented": 2697,
+   "recall_kept_typing_accented": 0.017,
+   "recall_kept_typing_unaccented": 0.983
+  },
+  {
+   "folded": "phat",
+   "spellings": [
+    "phát:4864",
+    "phat:111",
+    "phạt:12",
+    "phật:1"
+   ],
+   "folded_hits": 2338,
+   "unfolded_hits_typing_accented": 2217,
+   "unfolded_hits_typing_unaccented": 76,
+   "recall_kept_typing_accented": 0.948,
+   "recall_kept_typing_unaccented": 0.033
+  },
+  {
+   "folded": "su",
+   "spellings": [
+    "su:4131",
+    "sử:484",
+    "sự:269",
+    "sù:24",
+    "sư:21",
+    "sü:12",
+    "sú:8",
+    "sứ:7",
+    "sủ:1"
+   ],
+   "folded_hits": 2273,
+   "unfolded_hits_typing_accented": 187,
+   "unfolded_hits_typing_unaccented": 255,
+   "recall_kept_typing_accented": 0.082,
+   "recall_kept_typing_unaccented": 0.112
+  },
+  {
+   "folded": "viet",
+   "spellings": [
+    "viet:4134",
+    "việt:776",
+    "viết:26",
+    "viêt:10"
+   ],
+   "folded_hits": 3501,
+   "unfolded_hits_typing_accented": 339,
+   "unfolded_hits_typing_unaccented": 2043,
+   "recall_kept_typing_accented": 0.097,
+   "recall_kept_typing_unaccented": 0.584
+  },
+  {
+   "folded": "chu",
+   "spellings": [
+    "chu:4284",
+    "chủ:334",
+    "chú:284",
+    "chư:10",
+    "chứ:9",
+    "chữ:7"
+   ],
+   "folded_hits": 1465,
+   "unfolded_hits_typing_accented": 212,
+   "unfolded_hits_typing_unaccented": 216,
+   "recall_kept_typing_accented": 0.145,
+   "recall_kept_typing_unaccented": 0.147
+  },
+  {
+   "folded": "com",
+   "spellings": [
+    "com:4910",
+    "cộm:1",
+    "côm:1"
+   ],
+   "folded_hits": 3879,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 3867,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.997
+  },
+  {
+   "folded": "vu",
+   "spellings": [
+    "vu:4524",
+    "vụ:254",
+    "vũ:24",
+    "vù:2"
+   ],
+   "folded_hits": 1248,
+   "unfolded_hits_typing_accented": 166,
+   "unfolded_hits_typing_unaccented": 197,
+   "recall_kept_typing_accented": 0.133,
+   "recall_kept_typing_unaccented": 0.158
+  },
+  {
+   "folded": "un",
+   "spellings": [
+    "un:4762",
+    "ùn:17",
+    "ún:1"
+   ],
+   "folded_hits": 2322,
+   "unfolded_hits_typing_accented": 14,
+   "unfolded_hits_typing_unaccented": 2306,
+   "recall_kept_typing_accented": 0.006,
+   "recall_kept_typing_unaccented": 0.993
+  },
+  {
+   "folded": "general",
+   "spellings": [
+    "general:4580",
+    "général:194"
+   ],
+   "folded_hits": 4019,
+   "unfolded_hits_typing_accented": 165,
+   "unfolded_hits_typing_unaccented": 3854,
+   "recall_kept_typing_accented": 0.041,
+   "recall_kept_typing_unaccented": 0.959
+  },
+  {
+   "folded": "vie",
+   "spellings": [
+    "vie:4751",
+    "viê:12"
+   ],
+   "folded_hits": 156,
+   "unfolded_hits_typing_accented": 0,
+   "unfolded_hits_typing_unaccented": 142,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.91
+  },
+  {
+   "folded": "scenario",
+   "spellings": [
+    "scenario:4466",
+    "scénario:216"
+   ],
+   "folded_hits": 2310,
+   "unfolded_hits_typing_accented": 114,
+   "unfolded_hits_typing_unaccented": 2196,
+   "recall_kept_typing_accented": 0.049,
+   "recall_kept_typing_unaccented": 0.951
+  },
+  {
+   "folded": "khi",
+   "spellings": [
+    "khí:3104",
+    "khi:1528"
+   ],
+   "folded_hits": 1926,
+   "unfolded_hits_typing_accented": 1124,
+   "unfolded_hits_typing_unaccented": 1057,
+   "recall_kept_typing_accented": 0.584,
+   "recall_kept_typing_unaccented": 0.549
+  },
+  {
+   "folded": "finance",
+   "spellings": [
+    "finance:4524",
+    "financé:7"
+   ],
+   "folded_hits": 2230,
+   "unfolded_hits_typing_accented": 7,
+   "unfolded_hits_typing_unaccented": 2223,
+   "recall_kept_typing_accented": 0.003,
+   "recall_kept_typing_unaccented": 0.997
+  },
+  {
+   "folded": "areas",
+   "spellings": [
+    "areas:4498",
+    "áreas:1"
+   ],
+   "folded_hits": 3198,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 3198,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "hie",
+   "spellings": [
+    "hie:4388",
+    "hiê:25",
+    "hiẹ:5"
+   ],
+   "folded_hits": 14,
+   "unfolded_hits_typing_accented": 5,
+   "unfolded_hits_typing_unaccented": 2,
+   "recall_kept_typing_accented": 0.357,
+   "recall_kept_typing_unaccented": 0.143
+  },
+  {
+   "folded": "pha",
+   "spellings": [
+    "pha:4142",
+    "phá:148",
+    "phã:54",
+    "phả:8",
+    "phâ:3",
+    "phà:1"
+   ],
+   "folded_hits": 293,
+   "unfolded_hits_typing_accented": 113,
+   "unfolded_hits_typing_unaccented": 119,
+   "recall_kept_typing_accented": 0.386,
+   "recall_kept_typing_unaccented": 0.406
+  },
+  {
+   "folded": "trung",
+   "spellings": [
+    "trung:4293",
+    "trùng:27",
+    "trúng:15",
+    "trưng:4",
+    "trừng:1",
+    "trũng:1"
+   ],
+   "folded_hits": 2294,
+   "unfolded_hits_typing_accented": 21,
+   "unfolded_hits_typing_unaccented": 2242,
+   "recall_kept_typing_accented": 0.009,
+   "recall_kept_typing_unaccented": 0.977
+  },
+  {
+   "folded": "nhu",
+   "spellings": [
+    "nhu:3924",
+    "như:293"
+   ],
+   "folded_hits": 1501,
+   "unfolded_hits_typing_accented": 204,
+   "unfolded_hits_typing_unaccented": 507,
+   "recall_kept_typing_accented": 0.136,
+   "recall_kept_typing_unaccented": 0.338
+  },
+  {
+   "folded": "ty",
+   "spellings": [
+    "ty:3942",
+    "tỷ:218",
+    "tý:1"
+   ],
+   "folded_hits": 1489,
+   "unfolded_hits_typing_accented": 89,
+   "unfolded_hits_typing_unaccented": 564,
+   "recall_kept_typing_accented": 0.06,
+   "recall_kept_typing_unaccented": 0.379
+  },
+  {
+   "folded": "area",
+   "spellings": [
+    "area:4148",
+    "área:1"
+   ],
+   "folded_hits": 2663,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 2662,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "tro",
+   "spellings": [
+    "tro:3526",
+    "trò:194",
+    "trợ:154",
+    "trở:82",
+    "tró:44",
+    "trô:19",
+    "trơ:5",
+    "trọ:1"
+   ],
+   "folded_hits": 1224,
+   "unfolded_hits_typing_accented": 164,
+   "unfolded_hits_typing_unaccented": 53,
+   "recall_kept_typing_accented": 0.134,
+   "recall_kept_typing_unaccented": 0.043
+  },
+  {
+   "folded": "vi",
+   "spellings": [
+    "vi:3279",
+    "vì:403",
+    "ví:174",
+    "vị:119",
+    "vĩ:16"
+   ],
+   "folded_hits": 2246,
+   "unfolded_hits_typing_accented": 340,
+   "unfolded_hits_typing_unaccented": 901,
+   "recall_kept_typing_accented": 0.151,
+   "recall_kept_typing_unaccented": 0.401
+  },
+  {
+   "folded": "even",
+   "spellings": [
+    "even:3967",
+    "évén:4"
+   ],
+   "folded_hits": 3519,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 3518,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "thanh",
+   "spellings": [
+    "thành:2528",
+    "thanh:1372",
+    "thạnh:9",
+    "thánh:2",
+    "thânh:1"
+   ],
+   "folded_hits": 2347,
+   "unfolded_hits_typing_accented": 1512,
+   "unfolded_hits_typing_unaccented": 933,
+   "recall_kept_typing_accented": 0.644,
+   "recall_kept_typing_unaccented": 0.398
+  },
+  {
+   "folded": "region",
+   "spellings": [
+    "region:3708",
+    "région:79",
+    "región:1"
+   ],
+   "folded_hits": 2600,
+   "unfolded_hits_typing_accented": 60,
+   "unfolded_hits_typing_unaccented": 2543,
+   "recall_kept_typing_accented": 0.023,
+   "recall_kept_typing_unaccented": 0.978
+  },
+  {
+   "folded": "scenarios",
+   "spellings": [
+    "scenarios:3534",
+    "scénarios:211"
+   ],
+   "folded_hits": 2208,
+   "unfolded_hits_typing_accented": 126,
+   "unfolded_hits_typing_unaccented": 2087,
+   "recall_kept_typing_accented": 0.057,
+   "recall_kept_typing_unaccented": 0.945
+  },
+  {
+   "folded": "tie",
+   "spellings": [
+    "tie:3712",
+    "tiê:13"
+   ],
+   "folded_hits": 56,
+   "unfolded_hits_typing_accented": 0,
+   "unfolded_hits_typing_unaccented": 54,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.964
+  },
+  {
+   "folded": "cao",
+   "spellings": [
+    "cao:2830",
+    "cáo:889",
+    "ção:1",
+    "cào:1"
+   ],
+   "folded_hits": 2317,
+   "unfolded_hits_typing_accented": 573,
+   "unfolded_hits_typing_unaccented": 1866,
+   "recall_kept_typing_accented": 0.247,
+   "recall_kept_typing_unaccented": 0.805
+  },
+  {
+   "folded": "doi",
+   "spellings": [
+    "doi:3691",
+    "dõi:11",
+    "dời:7",
+    "dồi:4",
+    "dôi:2",
+    "dội:2"
+   ],
+   "folded_hits": 1986,
+   "unfolded_hits_typing_accented": 7,
+   "unfolded_hits_typing_unaccented": 1893,
+   "recall_kept_typing_accented": 0.004,
+   "recall_kept_typing_unaccented": 0.953
+  },
+  {
+   "folded": "tinh",
+   "spellings": [
+    "tính:2442",
+    "tình:462",
+    "tinh:439",
+    "tỉnh:308",
+    "tĩnh:13",
+    "tịnh:2"
+   ],
+   "folded_hits": 2532,
+   "unfolded_hits_typing_accented": 1468,
+   "unfolded_hits_typing_unaccented": 299,
+   "recall_kept_typing_accented": 0.58,
+   "recall_kept_typing_unaccented": 0.118
+  },
+  {
+   "folded": "net",
+   "spellings": [
+    "net:3622",
+    "nét:17"
+   ],
+   "folded_hits": 2417,
+   "unfolded_hits_typing_accented": 16,
+   "unfolded_hits_typing_unaccented": 2398,
+   "recall_kept_typing_accented": 0.007,
+   "recall_kept_typing_unaccented": 0.992
+  },
+  {
+   "folded": "thi",
+   "spellings": [
+    "thi:2724",
+    "thì:544",
+    "thị:268",
+    "thí:92"
+   ],
+   "folded_hits": 1852,
+   "unfolded_hits_typing_accented": 397,
+   "unfolded_hits_typing_unaccented": 498,
+   "recall_kept_typing_accented": 0.214,
+   "recall_kept_typing_unaccented": 0.269
+  },
+  {
+   "folded": "quan",
+   "spellings": [
+    "quan:2777",
+    "quân:528",
+    "quản:215",
+    "quán:55",
+    "quận:10",
+    "quần:2",
+    "quàn:1",
+    "quấn:1"
+   ],
+   "folded_hits": 2355,
+   "unfolded_hits_typing_accented": 318,
+   "unfolded_hits_typing_unaccented": 1659,
+   "recall_kept_typing_accented": 0.135,
+   "recall_kept_typing_unaccented": 0.704
+  },
+  {
+   "folded": "chinh",
+   "spellings": [
+    "chính:3220",
+    "chinh:232",
+    "chỉnh:110"
+   ],
+   "folded_hits": 2095,
+   "unfolded_hits_typing_accented": 1754,
+   "unfolded_hits_typing_unaccented": 125,
+   "recall_kept_typing_accented": 0.837,
+   "recall_kept_typing_unaccented": 0.06
+  },
+  {
+   "folded": "binh",
+   "spellings": [
+    "bình:2687",
+    "binh:865",
+    "bính:2",
+    "bỉnh:1"
+   ],
+   "folded_hits": 1717,
+   "unfolded_hits_typing_accented": 1270,
+   "unfolded_hits_typing_unaccented": 462,
+   "recall_kept_typing_accented": 0.74,
+   "recall_kept_typing_unaccented": 0.269
+  },
+  {
+   "folded": "decision",
+   "spellings": [
+    "decision:3438",
+    "décision:113",
+    "decisión:2"
+   ],
+   "folded_hits": 2459,
+   "unfolded_hits_typing_accented": 90,
+   "unfolded_hits_typing_unaccented": 2367,
+   "recall_kept_typing_accented": 0.037,
+   "recall_kept_typing_unaccented": 0.963
+  },
+  {
+   "folded": "ban",
+   "spellings": [
+    "ban:1628",
+    "bán:1247",
+    "bản:380",
+    "bàn:195",
+    "bạn:83",
+    "bận:2",
+    "băn:2",
+    "bắn:2",
+    "bân:2",
+    "bẩn:1"
+   ],
+   "folded_hits": 2202,
+   "unfolded_hits_typing_accented": 551,
+   "unfolded_hits_typing_unaccented": 938,
+   "recall_kept_typing_accented": 0.25,
+   "recall_kept_typing_unaccented": 0.426
+  },
+  {
+   "folded": "them",
+   "spellings": [
+    "them:3083",
+    "thêm:413",
+    "thềm:4",
+    "thèm:1"
+   ],
+   "folded_hits": 3010,
+   "unfolded_hits_typing_accented": 315,
+   "unfolded_hits_typing_unaccented": 2684,
+   "recall_kept_typing_accented": 0.105,
+   "recall_kept_typing_unaccented": 0.892
+  },
+  {
+   "folded": "ke",
+   "spellings": [
+    "ke:2722",
+    "kê:513",
+    "kế:198",
+    "kể:53",
+    "kè:4",
+    "kẻ:2",
+    "kề:1",
+    "ké:1"
+   ],
+   "folded_hits": 1270,
+   "unfolded_hits_typing_accented": 305,
+   "unfolded_hits_typing_unaccented": 66,
+   "recall_kept_typing_accented": 0.24,
+   "recall_kept_typing_unaccented": 0.052
+  },
+  {
+   "folded": "tra",
+   "spellings": [
+    "tra:3167",
+    "trà:203",
+    "trả:51",
+    "trã:24",
+    "trá:15"
+   ],
+   "folded_hits": 779,
+   "unfolded_hits_typing_accented": 136,
+   "unfolded_hits_typing_unaccented": 478,
+   "recall_kept_typing_accented": 0.175,
+   "recall_kept_typing_unaccented": 0.614
+  },
+  {
+   "folded": "tai",
+   "spellings": [
+    "tài:1477",
+    "tái:887",
+    "tại:522",
+    "tai:373",
+    "tải:197",
+    "täi:1"
+   ],
+   "folded_hits": 2999,
+   "unfolded_hits_typing_accented": 872,
+   "unfolded_hits_typing_unaccented": 206,
+   "recall_kept_typing_accented": 0.291,
+   "recall_kept_typing_unaccented": 0.069
+  },
+  {
+   "folded": "trie",
+   "spellings": [
+    "trie:3438",
+    "triê:15",
+    "triẹ:1"
+   ],
+   "folded_hits": 3,
+   "unfolded_hits_typing_accented": 0,
+   "unfolded_hits_typing_unaccented": 2,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.667
+  },
+  {
+   "folded": "implementation",
+   "spellings": [
+    "implementation:3383",
+    "implémentation:5"
+   ],
+   "folded_hits": 2566,
+   "unfolded_hits_typing_accented": 5,
+   "unfolded_hits_typing_unaccented": 2561,
+   "recall_kept_typing_accented": 0.002,
+   "recall_kept_typing_unaccented": 0.998
+  },
+  {
+   "folded": "khong",
+   "spellings": [
+    "không:3292",
+    "khong:79",
+    "khổng:4",
+    "khống:3",
+    "khöng:1"
+   ],
+   "folded_hits": 1720,
+   "unfolded_hits_typing_accented": 1667,
+   "unfolded_hits_typing_unaccented": 43,
+   "recall_kept_typing_accented": 0.969,
+   "recall_kept_typing_unaccented": 0.025
+  },
+  {
+   "folded": "lo",
+   "spellings": [
+    "lo:2880",
+    "lò:319",
+    "lô:84",
+    "lộ:56",
+    "lơ:7",
+    "lỗ:7",
+    "lồ:4",
+    "lở:3",
+    "lờ:2",
+    "lỡ:1",
+    "lọ:1"
+   ],
+   "folded_hits": 741,
+   "unfolded_hits_typing_accented": 138,
+   "unfolded_hits_typing_unaccented": 204,
+   "recall_kept_typing_accented": 0.186,
+   "recall_kept_typing_unaccented": 0.275
+  },
+  {
+   "folded": "nhie",
+   "spellings": [
+    "nhie:3349",
+    "nhiê:11"
+   ],
+   "folded_hits": 3,
+   "unfolded_hits_typing_accented": 0,
+   "unfolded_hits_typing_unaccented": 0,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0
+  },
+  {
+   "folded": "nu",
+   "spellings": [
+    "nu:3285",
+    "nữ:24",
+    "ñù:11",
+    "nư:3",
+    "ñu:1"
+   ],
+   "folded_hits": 216,
+   "unfolded_hits_typing_accented": 17,
+   "unfolded_hits_typing_unaccented": 75,
+   "recall_kept_typing_accented": 0.079,
+   "recall_kept_typing_unaccented": 0.347
+  },
+  {
+   "folded": "id",
+   "spellings": [
+    "id:3315",
+    "íd:1"
+   ],
+   "folded_hits": 2772,
+   "unfolded_hits_typing_accented": 1,
+   "unfolded_hits_typing_unaccented": 2771,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 1
+  },
+  {
+   "folded": "reduction",
+   "spellings": [
+    "reduction:3103",
+    "réduction:195"
+   ],
+   "folded_hits": 2450,
+   "unfolded_hits_typing_accented": 153,
+   "unfolded_hits_typing_unaccented": 2300,
+   "recall_kept_typing_accented": 0.062,
+   "recall_kept_typing_unaccented": 0.939
+  },
+  {
+   "folded": "re",
+   "spellings": [
+    "re:3235",
+    "rẻ:21",
+    "ré:14",
+    "rẽ:12",
+    "rê:6"
+   ],
+   "folded_hits": 1860,
+   "unfolded_hits_typing_accented": 20,
+   "unfolded_hits_typing_unaccented": 1714,
+   "recall_kept_typing_accented": 0.011,
+   "recall_kept_typing_unaccented": 0.922
+  },
+  {
+   "folded": "sur",
+   "spellings": [
+    "sur:3248",
+    "sûr:24"
+   ],
+   "folded_hits": 1665,
+   "unfolded_hits_typing_accented": 23,
+   "unfolded_hits_typing_unaccented": 1658,
+   "recall_kept_typing_accented": 0.014,
+   "recall_kept_typing_unaccented": 0.996
+  },
+  {
+   "folded": "role",
+   "spellings": [
+    "role:3093",
+    "rôle:158"
+   ],
+   "folded_hits": 2860,
+   "unfolded_hits_typing_accented": 143,
+   "unfolded_hits_typing_unaccented": 2715,
+   "recall_kept_typing_accented": 0.05,
+   "recall_kept_typing_unaccented": 0.949
+  },
+  {
+   "folded": "kinh",
+   "spellings": [
+    "kinh:3006",
+    "kính:231"
+   ],
+   "folded_hits": 1784,
+   "unfolded_hits_typing_accented": 145,
+   "unfolded_hits_typing_unaccented": 1680,
+   "recall_kept_typing_accented": 0.081,
+   "recall_kept_typing_unaccented": 0.942
+  },
+  {
+   "folded": "te",
+   "spellings": [
+    "te:2719",
+    "tế:416",
+    "tê:45",
+    "tè:26",
+    "tệ:13",
+    "té:11",
+    "tề:2",
+    "të:2"
+   ],
+   "folded_hits": 1609,
+   "unfolded_hits_typing_accented": 236,
+   "unfolded_hits_typing_unaccented": 167,
+   "recall_kept_typing_accented": 0.147,
+   "recall_kept_typing_unaccented": 0.104
+  },
+  {
+   "folded": "bao",
+   "spellings": [
+    "báo:1557",
+    "bao:1180",
+    "bảo:411",
+    "bào:21",
+    "bão:15",
+    "bạo:4"
+   ],
+   "folded_hits": 2419,
+   "unfolded_hits_typing_accented": 921,
+   "unfolded_hits_typing_unaccented": 860,
+   "recall_kept_typing_accented": 0.381,
+   "recall_kept_typing_unaccented": 0.356
+  },
+  {
+   "folded": "thong",
+   "spellings": [
+    "thông:2633",
+    "thống:368",
+    "thong:153",
+    "thöng:1"
+   ],
+   "folded_hits": 2358,
+   "unfolded_hits_typing_accented": 1345,
+   "unfolded_hits_typing_unaccented": 81,
+   "recall_kept_typing_accented": 0.57,
+   "recall_kept_typing_unaccented": 0.034
+  },
+  {
+   "folded": "nghie",
+   "spellings": [
+    "nghie:3145",
+    "nghiê:2",
+    "nghiẹ:2"
+   ],
+   "folded_hits": 2,
+   "unfolded_hits_typing_accented": 0,
+   "unfolded_hits_typing_unaccented": 1,
+   "recall_kept_typing_accented": 0,
+   "recall_kept_typing_unaccented": 0.5
+  },
+  {
+   "folded": "ii",
+   "spellings": [
+    "ii:3018",
+    "íi:98",
+    "iî:1"
+   ],
+   "folded_hits": 2325,
+   "unfolded_hits_typing_accented": 53,
+   "unfolded_hits_typing_unaccented": 2271,
+   "recall_kept_typing_accented": 0.023,
+   "recall_kept_typing_unaccented": 0.977
+  },
+  {
+   "folded": "que",
+   "spellings": [
+    "que:3098",
+    "quê:7",
+    "qué:2"
+   ],
+   "folded_hits": 1496,
+   "unfolded_hits_typing_accented": 4,
+   "unfolded_hits_typing_unaccented": 1483,
+   "recall_kept_typing_accented": 0.003,
+   "recall_kept_typing_unaccented": 0.991
+  },
+  {
+   "folded": "ra",
+   "spellings": [
+    "ra:2899",
+    "rà:133",
+    "rạ:10",
+    "râ:7",
+    "rá:6",
+    "rã:3",
+    "ră:1"
+   ],
+   "folded_hits": 1466,
+   "unfolded_hits_typing_accented": 109,
+   "unfolded_hits_typing_unaccented": 1348,
+   "recall_kept_typing_accented": 0.074,
+   "recall_kept_typing_unaccented": 0.92
+  },
+  {
+   "folded": "hanh",
+   "spellings": [
+    "hành:2791",
+    "hanh:196",
+    "hạnh:3"
+   ],
+   "folded_hits": 1690,
+   "unfolded_hits_typing_accented": 1546,
+   "unfolded_hits_typing_unaccented": 109,
+   "recall_kept_typing_accented": 0.915,
+   "recall_kept_typing_unaccented": 0.064
+  },
+  {
+   "folded": "capture",
+   "spellings": [
+    "capture:2977",
+    "capturé:9"
+   ],
+   "folded_hits": 1648,
+   "unfolded_hits_typing_accented": 8,
+   "unfolded_hits_typing_unaccented": 1646,
+   "recall_kept_typing_accented": 0.005,
+   "recall_kept_typing_unaccented": 0.999
+  },
+  {
+   "folded": "ly",
+   "spellings": [
+    "ly:2575",
+    "lý:403",
+    "lỵ:1"
+   ],
+   "folded_hits": 1658,
+   "unfolded_hits_typing_accented": 228,
+   "unfolded_hits_typing_unaccented": 250,
+   "recall_kept_typing_accented": 0.138,
+   "recall_kept_typing_unaccented": 0.151
+  }
+ ]
+}

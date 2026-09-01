@@ -1,0 +1,17 @@
+{
+ "index": "/home/haduong/data/projets/zoteus-bench/0091-unfolded/search-index.sqlite",
+ "migration_ms": 137589,
+ "before": {
+  "schemaVersion": "1",
+  "passages": 477512,
+  "vectors": 0
+ },
+ "after": {
+  "schemaVersion": "2",
+  "passages": 477512,
+  "vectors": 0,
+  "vocabulary_terms": 682969
+ },
+ "embedder_texts": 0,
+ "storage_notice": "The search index at /home/haduong/data/projets/zoteus-bench/0091-unfolded/search-index.sqlite was upgraded in place from schema version 1 to 2 (keeps diacritics in the keyword index, with the folded form indexed beside each accented word). Nothing was re-indexed and no vectors were re-computed."
+}
