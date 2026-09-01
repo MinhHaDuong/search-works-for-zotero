@@ -8,6 +8,11 @@ Author: MinhHaDuong
 
 2026-09-01T13:24Z claude note filed from the raid on tickets 0550-0555: SPEC.md section5.2.2 content schema (entries/slabs/passages/FTS) has zero footprint anywhere in the fork, and no open ticket owns building it as code -- 0028 builds the segmenter algorithm, 0034 is an upstream issue draft explicitly with no code to accept. Tranches 4 and 5 (0554, 0555) dispatch against this schema; tranche 3 (0553) does not, on a closer read -- its actions (extract fetch, class-order dispatch, first-with-text choice) run entirely against tables tranche 1 already built (stage_queue, item_census, fulltext_census), so it is not blocked by this ticket. Author directive, 2026-09-01: the schema lands in search-index-v2.sqlite, in parallel with v1's search-index.sqlite, so v1 development continues undisturbed.
 2026-09-01T13:38Z bump verify-reroll — round 1: PR body Ticket: line must not auto-close 0556 (unmet exit criteria); use Ticket: none or Ticket-ref: tickets/0556
+2026-09-01T14:00Z claude note implemented on fork branch tranche-schema-v2-content @ 05b40e0, based on tranche-2-conductor-election @ a00091b (the tip this ticket names). Two commits: 4055296 the schema, primitives and tests; 05b40e0 the production call site. Fork suite 1054 passed / 0 failed / 7 skipped, eslint clean, tsc clean.
+2026-09-01T14:01Z claude note the auto_vacuum trap is worse than SPEC.md 5.2.2 states, and the sentence would have misled an implementer. Measured on SQLite 3.51.3: PRAGMA journal_mode = WAL writes the header too, so auto_vacuum set AFTER WAL is lost with no table in the file yet (wal-then-av gives 0, av-then-wal gives 2). Copying v1's openHandle() order -- busy_timeout, WAL, synchronous -- and appending auto_vacuum would have silently lost incremental vacuum forever. The implemented order is busy_timeout, auto_vacuum, WAL, synchronous, foreign_keys, and a third test pins the WAL-first case red. Worth propagating into SPEC.md 5.2.2's wording as a separate ticket.
+2026-09-01T14:01Z claude note positive controls: 12 deliberate defects applied one at a time to ledger.ts, each caught by the test aimed at it -- 1 MiB CHECK dropped, ifnull expression index reduced to a plain UNIQUE, kind CHECK dropped, source CHECK dropped, char-range CHECKs dropped, auto_vacuum moved after WAL, snippet fingerprint comparison skipped, newer-stamp refusal disabled, eight FTS columns collapsed to one, external-layout delete protocol replaced by a bare delete, recorded FTS layout re-probed instead of read, contentless_delete dropped. Zero mutations survived. Runner: /tmp/mutrun.py (throwaway, not committed -- it patches src in place).
+2026-09-01T14:01Z claude note ZOTEUS_CONDUCTOR defaults to OFF -- flagged for the author. The exit criterion asks for a real production file path, and the call site is production code on the startup path exercised by the same function the tests drive; but nothing on the query path reads v2 yet, so opening it unconditionally would put a new file in every user's data directory in exchange for no behaviour. One line to flip once a tranche actually reads it.
+2026-09-01T14:01Z claude note sibling tranche 3 (ticket 0553) pushed origin/tranche-3-extract-shim @ e8784df, which also extends ledger.ts (+308). git merge-tree reports a content conflict there against this branch -- expected parallel development on one file, not a defect; whoever integrates second resolves. Neither branch is merged into the fork's main yet.
 --- body ---
 ## Context
 
@@ -109,16 +114,19 @@ separately, it does not need to wait on this ticket.
 
 ## Verification
 
-- [ ] Every §5.2.2 table/column/CHECK present and tested
-- [ ] `auto_vacuum=INCREMENTAL` ordering trap has a red-first test on both
-      sides (set-before-first-table works; set-after is provably a no-op)
-- [ ] v1's own existing test suite, run unmodified, stays green — proof
-      `search-index.sqlite` and its code path are untouched, not just an
-      unchanged-diff claim
-- [ ] Both files coexist under concurrent open in one data directory
-- [ ] Positive control per fixture/assertion (house discipline): each new
-      test demonstrated failing against a deliberately broken schema
-      before trusted
+- [x] Every §5.2.2 table/column/CHECK present and tested
+- [x] `auto_vacuum=INCREMENTAL` ordering trap has a red-first test on both
+      sides (set-before-first-table works; set-after is provably a no-op).
+      A third direction was found and pinned: `journal_mode = WAL` voids it
+      too, with no table in the file yet — see the log entry.
+- [x] v1's own existing test suite, run unmodified, stays green — 1054
+      passed, 0 failed, 7 skipped. `git diff --name-only` against the base
+      confirms the stronger claim the checkbox is proxy for: nothing under
+      `src/features/search/` outside `conductor/` is in the diff at all.
+- [x] Both files coexist under concurrent open in one data directory
+- [x] Positive control per fixture/assertion (house discipline): 12
+      deliberate defects, each caught by the test aimed at it, zero
+      survivors — see the log entry for the list
 
 ## Invariants
 
@@ -131,10 +139,16 @@ separately, it does not need to wait on this ticket.
 
 ## Exit criteria
 
-- [ ] entries/slabs/passages/FTS schema merged on a fork branch, built on
-      tranche 2's tip (`tranche-2-conductor-election` @ `a00091b`, or a
-      later tranche's tip if more have landed by the time this starts)
-- [ ] `search-index-v2.sqlite` exists as a real, opened, production file
-      path — not only exercised from test fixtures
-- [ ] Ticket 0554 (tranche 4: chunk/embed workers) has its `Blocked-by`
-      updated to include this ticket
+- [x] entries/slabs/passages/FTS schema merged on a fork branch, built on
+      tranche 2's tip — `tranche-schema-v2-content` @ `05b40e0`, based on
+      `tranche-2-conductor-election` @ `a00091b`, the tip this ticket names
+- [x] `search-index-v2.sqlite` exists as a real, opened, production file
+      path — not only exercised from test fixtures. `openConductorLedger`
+      is called from `buildContext` and closed on shutdown beside the v1
+      index. Opened only under `ZOTEUS_CONDUCTOR`, which defaults to OFF:
+      nothing on the query path reads v2 yet, so creating the file in every
+      user's data directory would buy no behaviour. Flagged for the author
+      in the log — one line to flip once a tranche reads it.
+- [x] Ticket 0554 (tranche 4: chunk/embed workers) has its `Blocked-by`
+      updated to include this ticket — landed in the filing PR, verified
+      still present on this branch
