@@ -1,0 +1,108 @@
+%erg 0.1
+Title: A failed work order is terminal: nothing re-derives it, because the tick stamps the census at enqueue
+Created: 2026-09-01
+Author: MinhHaDuong
+
+--- log ---
+2026-09-01T19:02Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found by the round-3 review of ticket 0553 (PR #156), probed against the
+fork's own code rather than read. It is not 0553's defect — every piece of
+it predates that tranche — but 0553 is what made it reachable, since the
+extract stage is the first caller that fails a row at all.
+
+A work order that ends `failed` is never worked again:
+
+- `Ledger.releaseExpiredClaims()` moves only `status = 'claimed'` rows.
+- `Ledger.nextExtractOrder`/`nextWorkOrder` select only `pending`.
+- `Ledger.enqueue` deduplicates against `status IN ('pending','claimed')`,
+  so a `failed` row does not block a *new* row being minted — but nothing
+  mints one, and that is the whole of the problem: the reconcile tick
+  writes `putFulltextCensus(lib, [[key, {ftVersion, itemVersion}]])` in
+  the same loop iteration as the `enqueue`, before the work is done. On
+  the next tick `previous.ftVersion === ftVersion && previous.itemVersion
+  === itemVersion` is true and the attachment is `continue`d.
+
+So the census records "we have accounted for version N of this
+attachment" at the moment the order is *filed*, not at the moment it is
+*extracted*, and the tick's completeness promise (§5.2.4: "the reconcile
+tick re-derives what should exist and re-queues whatever is missing")
+does not hold for anything that failed. A dropped connection, a Zotero
+closed mid-fetch, or a truncated response drops that attachment's body
+text from the index until its version changes in Zotero — which for a
+stable PDF is never.
+
+Two paths reach `markFailed` today, both in `extract-stage.ts`: the
+worker's fetch threw (`ExtractWorker.drain`'s catch, which is where an
+unreachable local API and both truncation raises land), and the two
+dispatch-time defensive failures. The first is the live one.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/reconcile-tick.ts` — the full-text
+  loop that enqueues and stamps the census in the same iteration. The
+  stamp is what makes failure terminal; moving it, or covering failure
+  another way, is the decision this ticket owes.
+- Fork `src/features/search/conductor/ledger.ts` — `enqueue`'s dedupe
+  window, `releaseExpiredClaims`, `nextExtractOrder`, `markFailed`.
+- Fork `src/features/search/conductor/extract-worker.ts` — the catch that
+  calls `dispatcher.fail`, and the only live producer of `failed` rows.
+- `SPEC.md` §5.2.4 (the tick re-derives what should exist), §5.2.5.
+- Ticket 0019 — "no text is a terminal state, stored reasons" — the
+  adjacent vocabulary question. This ticket is about a row that failed to
+  be *read*, not about an attachment that has nothing to read.
+
+## The question this ticket has to answer first
+
+Whether a failure is retried at all, and on what policy, is a design
+question and not an implementation detail — it is the difference between
+"a failure is a thing to retry forever" and D1's settled empty state, a
+distinction `extract-stage.ts` already draws in prose. Candidate shapes,
+for the author:
+
+1. **Stamp the census on completion rather than on enqueue.** The most
+   honest: the census then means "extracted", and the tick re-derives
+   anything that is not. Costs a write on the completion path and needs
+   the stamp to move across the conductor/worker line.
+2. **Sweep failed rows back to pending on a policy** (an attempt count
+   and a floor, so a permanently broken attachment is not re-fetched
+   every tick forever). Local to the ledger and the conductor's poll,
+   next to `releaseExpiredClaims`.
+3. **Leave it terminal and say so**, with the failure surfaced on the
+   panel and a manual repair. Cheapest, and it makes the tick's
+   completeness claim conditional in a way §5.2.4 currently is not.
+
+Do not pick one here. This ticket exists so the choice is made
+deliberately rather than by default.
+
+## Test
+
+- Red first, at the ledger/tick level with `ManualClock`: an attachment
+  whose fetch throws once, then a tick with the census unchanged, and the
+  attachment is asserted to be re-offered by `nextExtractOrder`. Against
+  the code as it stands that assertion fails, which is the reproduction.
+- A control: an attachment that failed and whose Zotero version then
+  changed IS re-queued today, so the fix must not be justified by a case
+  that already works.
+
+## Verification
+
+- [ ] The chosen shape is recorded as a ruling in `DECISIONS.md` before
+      the code changes
+- [ ] A failed extraction is recovered without a version change in Zotero
+- [ ] A permanently failing attachment does not re-fetch on every tick
+- [ ] The tick's own tests stay green; the census stamp's meaning, if it
+      moves, is stated in `SPEC.md` rather than only in code
+
+## Invariants
+
+- The conductor stays the only writer.
+- No design number changes without a ruling.
+
+## Exit criteria
+
+- [ ] A failure is either recoverable or documented as terminal, by
+      ruling, and the code matches the ruling

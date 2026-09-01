@@ -1,0 +1,102 @@
+%erg 0.1
+Title: Tranche 3: extract shim, class order, latency back-off
+Created: 2026-09-01
+Author: minh
+Closed: round 2's two blockers fixed and mutation-verified on fork tranche-3-extract-shim at da3be32; claim TTL reconciled to SPEC 5.2.5's ratified 30x quantum
+
+--- log ---
+2026-09-01T16:30Z claude created, child of 0550
+
+2026-09-01T13:18Z MinhHaDuong note blocker 0552 closed — Blocked-by removed.
+2026-09-01T13:57Z claude note tranche 3 landed on fork branch tranche-3-extract-shim at e8784df (MinhHaDuong/zoteus); three commits — the shim, the suite, run-to-drain. 1067 tests green, tsc clean, eslint clean.
+2026-09-01T13:57Z claude note constants disclosed as arbitrations, not measurements: the ruling declined a measurement, so PACE_WINDOW 8, PACE_DEGRADED_RATIO 2, PACE_DEGRADED_FLOOR_MS 50 and PACE_STEP_MS 250 are chosen and documented as such in fetch-pacer.ts. Only PACE_CEILING_MS 8000 is derived — below the row-claim TTL of 30x the ~1 s quantum, since a pacing delay long enough to expire the claim would duplicate the fetch it was slowing down.
+2026-09-01T13:57Z claude note scope: the pipe is not built. The worker runs in-process behind ExtractDispatcher, which is where the process boundary falls — what crosses it is already an assignment and a result. Windows have no consumer until the segmenter exists (tranche 4, blocked on 0556), and a pipe protocol written against no consumer would claim the design was built. Also deferred: re-enqueueing the rows staleExtracts() finds, which needs a conductor-side sweep rather than a query.
+2026-09-01T14:03Z claude note correction to the constants entry above: it named four chosen constants and there are five. PACE_MIN_SAMPLES = 4 — below which there is no verdict, since a median of two is not a median — is chosen on the same footing as the other four. Appended rather than corrected in place, per append-only.
+2026-09-01T14:35Z claude note review round 1 (PR 156): three blockers fixed on the fork at ff1d41a. (1) a cut stream was stored as a short document — the scanner now reports whether the content string closed and a read that stopped inside it raises. (2) the back-off condemned healthy machines: an all-time-minimum baseline pinned near zero by a burst of instant answers. Root cause was a vacuous ratio test, not the minimum — against a baseline near zero everything exceeds twice nothing. Fixed by clamping the baseline at the degradation floor, plus a bounded horizon and a low quantile, and by measuring time-to-response rather than time-to-last-byte, which was confounded by document size. (3) lowerWorkerPriority and the pacer report had no call site; the pacer report now rides the drain report and the OS floor is a seam the forking entry point passes, off by default because until the worker is its own process the process it would renice is the one answering queries. Also: releaseExpiredClaims had no caller, so a hard-killed worker stranded its rows; the conductor now sweeps in poll.
+2026-09-01T17:00Z claude note review round 2 (PR 156): both parked blockers fixed on the fork at da3be32. (1) the claim race — Ledger.markDone/markFailed wrote WHERE wid = ? with no ownership check, so a worker whose claim releaseExpiredClaims had swept could land its late write over the worker that actually finished the row, older read winning because it arrived second. Completion now takes the ClaimTicket claim grants and guards on the triple holder + claimed_input + claim_expires_at, returning whether the write applied. The expiry is what carries the identity: one conductor spawns one worker under one holder string, so the re-claim after an expiry usually has the same name and input, and a claimed_by check alone passes the case that matters. ExtractStage keeps the tickets conductor-side, so the worker still holds nothing about writes; a rejected completion writes nothing at all and is counted on the drain report as staleCompletions. (2) the sibling truncation case — a stream cut after the content string closed but before the trailing page counts left truncated reading false on a document whose coverage is unknown; the scanner now requires the response object itself to close, counted over head plus tail with string literals skipped.
+2026-09-01T17:00Z claude note the claim TTL is now the ratified one, closing round 2's third finding. ExtractStage defaulted claimTtlMs to LEASE_TTL_MS — 20 s, the conductor election's lease constant reused for an unrelated purpose — where SPEC 5.2.5 pins the row claim at 30x the ~1 s quantum. CLAIM_TTL_MS in extract-stage.ts is that number and the default now reads from it; the code moved to the document, not the other way round, so no design number changed. fetch-pacer.ts's ceiling derivation gets back the 22 s margin it was reasoning about (8 s ceiling under a 30 s claim), where round 1 had corrected it to 12 s against the wrong constant.
+2026-09-01T17:00Z claude note positive controls for round 2, each run: stripping the ownership guard from the completion SQL turns six tests red — three in conductor-ledger.test.ts (swept-and-retaken, same-holder re-claim, a completed row completed twice) and three in conductor-extract.test.ts (the swept row finished by another stage, the swept row nobody retook, the three completion shapes) — while the control arms stay green, among them a live holder completing past its unswept TTL, which is the arm a guard that merely checked expiry would fail. Disabling the envelope-closed check turns the new stream arm red on its own. Gate on the fork at da3be32: 1 087 tests pass, 7 skipped, tsc clean, eslint clean.
+2026-09-01T17:01Z Claude closed — round 2's two blockers fixed and mutation-verified on fork tranche-3-extract-shim at da3be32; claim TTL reconciled to SPEC 5.2.5's ratified 30x quantum
+2026-09-01T18:22Z claude note BLOCKER #1 HAS A FIX WAITING, one level below where this ticket's round-2 review diagnosed it. Ticket 0567 (closed 2026-09-01, fork branch `t0567-ledger-ownership-guard` off `tranche-2-conductor-election`) gives `Ledger.markDone`/`markFailed` the compare-and-swap `claim()` always had: guarded on `claimed_by` AND `claimed_input`, returning whether the write applied. The clobber this ticket's review reproduced against `ExtractStage.putExtractState` is prevented in the shared primitive, so every stage gets it rather than each stage re-deriving it. WHAT THIS TICKET STILL OWES WHEN IT RESUMES: (a) adopt the new signatures — `markDone(wid, holder, claimedInput)` is now required, so `ExtractStage` will not compile until it passes its holder, deliberately; (b) decide what a rejected completion does at the stage level, since 0567 only reports it — the ledger returns false, and what the extract stage should do with a document it finished for a row it no longer owns is this ticket's call, not the primitive's; (c) `putExtractState` writes the extract-side row and is NOT covered by 0567 — it needs the same guard or must be folded into the guarded completion, whichever this ticket judges right; (d) blocker #2, the truncation sibling case (a stream cut after `content` closes but before the trailing page-count fields), is untouched by any of this and has no ticket of its own — it stays this ticket's.
+2026-09-01T19:11Z claude note the entry above crossed this ticket's own round-2 fix in flight — two sessions, no sight of each other, the same defect fixed twice (see 0567's log for the reconciliation). Its three questions are answered here rather than left: (a) the signature adopted is a `ClaimTicket` value rather than positional holder+input, because it also has to cross the extract shim's pipe; (b) a rejected completion at the stage level discards the document, counts it as `staleCompletions` on the drain report, and leaves the row for the sweep to re-dispatch — the duplicate §5.2.5 budgeted for, redone and discarded; (c) `putExtractState` IS covered: the guard runs first inside the same transaction, so a rejected completion writes nothing at all, extract row and D6's choice included.
+2026-09-01T19:03Z claude note review round 3 (a code review over round 2's own diff, ff1d41a..da3be32): four findings on the round-2 work, fixed on the fork at b700bbd. The first was a guard that compared a claim to itself — the completion check matched the ticket's input against claimed_input, a column nothing writes but a new claim. The column that moves under a LIVE claim is signal: enqueue dedupes against pending AND claimed rows and coalesces the newer order into the row it finds, and reconcile-tick stamps the fulltext census in the same loop iteration as that enqueue, so a completion that retired a coalesced row lost the newer version permanently — nothing re-derives an order the census already accounts for. The ticket now carries the row's signal as read back at acquisition (claimed_input is caller data and need not be the row's signal, which is exactly why it cannot stand in for one). Also: staleCompletions was a lifetime total reported in a per-drain report, so every later drain inherited the first one's discards — the worker snapshots at drain start; next()'s three dispatch-time rejections were counted as discarded documents though they read none; and the stream test's mid-number cut arm cut at the leading digit, testing the same shape as the arm above it.
+2026-09-01T19:04Z claude note two round-3 findings are NOT this ticket's and are filed rather than fixed here: 0569 — a failed work order is terminal, because the tick stamps the census at enqueue rather than at extraction, so a dropped connection drops an attachment's body text until its Zotero version changes; the retry policy is a design question and wants a ruling first. 0570 — decide()'s choice-set write is atomic from complete() and not from next()/isChosen(), where putAttachmentChoice's N-row loop runs in autocommit. Both predate this tranche; 0553 is what made the first reachable, being the first caller that fails a row at all.
+--- body ---
+## Context
+
+Third tranche (tracker 0550): the first pipeline worker. Sequential
+extract, run-to-drain, FIFO within class — no lanes, no bands yet. The
+§5.2.3 class order (metadata > notes/annotations > body) is an ORDER BY
+and arrives here for free.
+
+## Relevant files
+
+- SPEC.md §5.2.4 (shim split: bookkeeping conductor-side, the
+  whole-document GET worker-side; back-off ratified 2026-09-01),
+  §5.2.3 (classes, first-with-text), DECISIONS.md 2026-09-01 (back-off
+  ruling).
+
+## Actions
+
+1. Extract worker: spawned on queue work, drains, exits; one document
+   GET at a time, nice 19 + background I/O class where the platform
+   exposes one (per the ruling's capability wording).
+2. Class order in the dispatch query; first-with-text choice function
+   with stored skip reasons.
+3. Latency back-off: rising local-API latency median inserts a decaying
+   delay between fetches; reported on the instrument panel. No Web-API
+   fallback (ticket 0505 is separate).
+4. Activity-file yield between documents.
+
+## Test
+
+- Red first: against the replay fixture with programmed latency ramp,
+  the inter-fetch delay appears and decays; without the ramp, none.
+
+## Verification
+
+- [x] Per item, nothing has body text extracted before its record
+      bookkeeping exists (class order, per SPEC's per-item assertion).
+      `Ledger.nextExtractOrder`'s NOT EXISTS clause; asserted over a
+      whole interleaved run in `conductor-extract.test.ts`, where
+      records are completed one at a time while the worker drains.
+      Deleting the clause turns that assertion into 22 violations,
+      which is how we know it is looking rather than passing vacuously.
+- [x] Worker exits on stdin EOF and on lease-holder mismatch. Both
+      through tranche 2's `WorkerOrphanGuard`, not re-implemented; with
+      the control arm (parented and leased, it drains all five) and the
+      lease case asserted with the pipe still open, which is the half
+      the pipe cannot see.
+- [x] A completion writes only to a row its author still holds, and only
+      for the work that row still asks for (rounds 2 and 3).
+      `markDone`/`markFailed` guard on the claim ticket and report
+      whether the write applied; a rejected completion writes nothing,
+      not even the extract row, and is counted on the drain report.
+      Reproduced first as the failure, then as the fix, at both levels:
+      the ledger primitive and a slow worker driven through `drain()`.
+- [x] A stream that stopped anywhere before the response closed raises
+      rather than storing a document (round 2). Round 1 covered the cut
+      inside the text; the envelope check covers the cut after it, where
+      `truncated` would otherwise read `false` on unknown coverage.
+
+## Invariants
+
+- Politeness constraints (web transport) untouched; upstream tests green.
+  Held: the only `src/api/` change is one added method on the LOCAL
+  client, `fetchFullTextStream`, and it goes through the same
+  `RateLimitedFetcher` and its four-slot semaphore as every other read.
+  Nothing under the web transport was touched. At round 3's tip
+  (`b700bbd`) 1 089 tests pass and 7 skip, `tsc` and `eslint` clean.
+
+## Exit criteria
+
+- [x] Extract stage merged on a fork branch, back-off test green.
+      `tranche-3-extract-shim` at `b700bbd` on MinhHaDuong/zoteus,
+      branched from `tranche-2-conductor-election` as the tranche
+      branches accumulate. Read "merged on a fork branch" as tranches 1
+      and 2 were: the tranche branch is where the work lands, and no
+      tranche branch has been merged to the fork's own main.
+      `conductor-extract-backoff.test.ts` is green, and its floor arm
+      was re-cut after the first draft proved undiscriminating — a flat
+      slow library never trips the ratio either, so that arm would have
+      passed with the floor deleted.
