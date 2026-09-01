@@ -21,6 +21,10 @@ tranches independently useful: each lands alone, none commits the next.
 
 The TypeScript lands on the author's fork (FORK_REPOSITORY in UPSTREAM),
 one fork branch per tranche; these tickets track scope and evidence here.
+**From 0568 (2026-09-01) those branches are cut from `conductor-integration`,
+not from tranche 2**: the tranches stopped being sequential at tranche 3, the
+two siblings that resulted cost one `ledger.ts` merge, and a second pair
+running at once would cost another. Branch per ticket still; different base.
 Upstream filing is governed by GOVERNANCE.md and is NOT part of this
 tracker — the fork accumulates until an upstream PR is prepared
 deliberately.

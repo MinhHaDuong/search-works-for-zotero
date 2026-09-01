@@ -3,7 +3,6 @@ Title: Wire seg/1 into the conductor's write loop: segment worker-forwarded wind
 Created: 2026-09-01
 Author: MinhHaDuong
 Blocked-by: 0028
-Blocked-by: 0568
 
 --- log ---
 2026-09-01T14:11Z MinhHaDuong created
@@ -11,6 +10,7 @@ Blocked-by: 0568
 
 2026-09-01T15:17Z MinhHaDuong note blocker 0556 closed — Blocked-by removed.
 2026-09-01T16:52Z claude note RAID RECON, against the merged fork code rather than against this ticket's own description, and the 0554-overlap question SETTLED — early, from the spec, not at execution time. (i) BOTH SURFACES EXIST AND WERE READ. The window source is `streamFullText` (`document-stream.ts`, fork branch `tranche-3-extract-shim`): `onWindow?: (window: DocumentWindow) => void | Promise<void>`, awaited per window, `WINDOW_CHARS = 64 KiB`, `MAX_ENVELOPE_CHARS = 1 MiB`. The write surface is `Ledger.putSlab / putEntry / putPassage / indexText / snippet / slabText` — on the OTHER fork branch, `tranche-schema-v2-content`. This ticket's loop is exactly the join of those two, and the join has no tree to live in yet: see (iv). (ii) THE 0554 OVERLAP IS NOT AMBIGUOUS ONCE SPEC §5.2.5 IS READ WHOLE. "The boundary between chunk and embed survives as a **write ordering** rather than a process boundary: the conductor segments, and an item's slabs, entries and passages are durable before any vector for it is computed"; and the worker's embed order, for body text, "carries an entry-sized range — the slab addresses §5.2.2 gives every passage — which the worker reads back read-only, slices, embeds and streams home". So there is NO chunk stage over stored body text: passage cutting is this ticket's, performed during segmentation, and what crosses the pipe for body text afterwards is a RANGE over text already stored. READING TAKEN: this ticket owns passage geometry end to end; 0554 keeps the embed worker, the quantum autotune and the sidecar. 0554's Action 1 ("chunk worker over stored text") is a survival of the three-process design §5.2.5 collapsed — noted on 0554 itself, and its Action 1 corrected there. 0554 is NOT added as a Blocked-by here: nothing in this ticket needs the embed side. (iii) Exit criterion 4 (the 0554-overlap question resolved and recorded) is therefore ticked by this entry. (iv) NEW BLOCKER, 0568: the two branches this ticket joins are divergent siblings off `tranche-2-conductor-election`, and both rewrite `ledger.ts` (+323 lines on tranche 3, +649 on the schema branch). A trial merge was run and CONFLICTS in `src/features/search/conductor/ledger.ts` — everything else auto-merges. No ticket owned forming one tree; 0568 does now, and this ticket is Blocked-by it.
+2026-09-01T19:31Z claude note blocker 0568 closed — Blocked-by removed.
 --- body ---
 ## Context
 
