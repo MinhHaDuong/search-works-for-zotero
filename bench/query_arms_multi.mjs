@@ -59,7 +59,7 @@ for (const p of pairs) {
   probe.close();
   const vdb = hasVariants ? new DatabaseSync(p.index, { readOnly: true }) : null;
   const vstmt = vdb ? vdb.prepare('SELECT term, df FROM accent_variants WHERE folded = ?') : null;
-  opened.push({ ...p, idx, tk, qt, vstmt });
+  opened.push({ ...p, idx, tk, qt, vdb, vstmt });
 }
 
 const rows = new Map();
@@ -114,7 +114,10 @@ for (const a of opened) {
     };
   }
 }
-for (const a of opened) await a.idx.close();
+for (const a of opened) {
+  await a.idx.close();
+  a.vdb?.close();
+}
 
 const rbo = (a, b, p = 0.9) => {
   const depth = Math.max(a.length, b.length);
