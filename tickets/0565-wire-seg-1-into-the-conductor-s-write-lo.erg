@@ -3,12 +3,12 @@ Title: Wire seg/1 into the conductor's write loop: segment worker-forwarded wind
 Created: 2026-09-01
 Author: MinhHaDuong
 Blocked-by: 0028
-Blocked-by: 0556
 
 --- log ---
 2026-09-01T14:11Z MinhHaDuong created
 2026-09-01T14:12Z claude note filed alongside 0566 after the author asked "what comes after 0550-0556, then the real thing?" -- SPEC.md §5.2.5 describes the conductor as "the only writer, and the segmenter", running seg/1 over worker-forwarded text windows and committing entries/slabs/passages as entries close, but no ticket in the 0550-0556 family or the newly-filed segmenter family (0028, now itself Blocked-by 0502, with children 0557-0564) owns actually calling seg/1 from that write loop. 0554's "chunk worker over stored text" reads ambiguously as to whether it includes this step -- this ticket makes the integration explicit rather than leaving it to be discovered missing when 0554 is executed. Blocked-by 0028 (the segmenter algorithm -- read its exit criteria, not this note, for what "done" means there; do not assume a shape for seg/1's interface here) and 0556 (the schema this writes into, in flight).
 
+2026-09-01T15:17Z MinhHaDuong note blocker 0556 closed — Blocked-by removed.
 --- body ---
 ## Context
 

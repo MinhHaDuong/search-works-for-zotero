@@ -2,6 +2,7 @@
 Title: Build the v2 content schema (entries, slabs, passages, FTS) into search-index-v2.sqlite, parallel to v1
 Created: 2026-09-01
 Author: MinhHaDuong
+Closed: autoclosed — PR #160
 
 --- log ---
 2026-09-01T13:24Z MinhHaDuong created
@@ -19,6 +20,7 @@ Author: MinhHaDuong
 2026-09-01T15:08Z claude note review round 1 also fixed two defects in the control probe itself. The auto_vacuum mutation DELETED the pragma rather than moving it, so it controlled 'the statement is present' while its name and the finding are about where it sits; it is now a real reorder -- removed from before WAL, reinserted after synchronous -- with every pragma still executed. And a red was scored from status != passed, which counts a SKIPPED test as a catch; only status == failed counts now. MUTATIONS entries became (name, edits, expects) so a multi-edit mutation is expressible and all-or-nothing on its anchor check. Re-run after both: 14 mutations, 14 caught by the aimed-at test, 0 survived or misaimed, 0 unapplied.
 2026-09-01T15:08Z claude note the SPEC.md 5.2.2 edit is now recorded in DECISIONS.md under Awaiting ratification, per the consistency reviewer's objection in PR 160. The question is procedural -- may an agent correct a measured fact in an authoritative document without a ruling first -- with the default stated as the correction standing, since that is the side the measurement protects and 0554 is written against SPEC.md. Nothing ratified was overwritten: the ledger held no entry on 5.2.2. The cited X1 precedent is disanalogous (a design substitution the author owns, versus a claim about SQLite that was simply false), and the entry says so rather than hiding the disagreement.
 2026-09-01T15:09Z claude note fork tip moved to 384fc49 (the forever-overclaim fix in ledger.ts's docstring); the exit criterion now records that SHA. Earlier log entries keep 05b40e0, which is what was true when they were written.
+2026-09-01T15:17Z MinhHaDuong closed — autoclosed — PR #160
 --- body ---
 ## Context
 
