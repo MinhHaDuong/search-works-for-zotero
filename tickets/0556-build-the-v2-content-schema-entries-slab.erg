@@ -1,0 +1,139 @@
+%erg 0.1
+Title: Build the v2 content schema (entries, slabs, passages, FTS) into search-index-v2.sqlite, parallel to v1
+Created: 2026-09-01
+Author: MinhHaDuong
+
+--- log ---
+2026-09-01T13:24Z MinhHaDuong created
+
+2026-09-01T13:24Z claude note filed from the raid on tickets 0550-0555: SPEC.md section5.2.2 content schema (entries/slabs/passages/FTS) has zero footprint anywhere in the fork, and no open ticket owns building it as code -- 0028 builds the segmenter algorithm, 0034 is an upstream issue draft explicitly with no code to accept. Tranches 4 and 5 (0554, 0555) dispatch against this schema; tranche 3 (0553) does not, on a closer read -- its actions (extract fetch, class-order dispatch, first-with-text choice) run entirely against tables tranche 1 already built (stage_queue, item_census, fulltext_census), so it is not blocked by this ticket. Author directive, 2026-09-01: the schema lands in search-index-v2.sqlite, in parallel with v1's search-index.sqlite, so v1 development continues undisturbed.
+--- body ---
+## Context
+
+The raid on tickets 0550-0555 (conductor implementation) found that SPEC.md
+§5.2.2's content schema — `entries`, `slabs`, `passages`, the per-field FTS5
+table — has zero footprint anywhere in the fork, and no open ticket owns
+building it as code: 0028 builds the seg/1 segmenter *algorithm* (logical,
+works on flat text, not SQL); 0034 is an upstream *issue draft*, explicitly
+"no code to accept". Tranches 4 and 5 (0554, 0555) dispatch against this
+schema and cannot proceed without it.
+
+Tranches 1-2 (0551, 0552, both merged) already built the schema's
+*bookkeeping* half in the fork's `ledger.ts`: `origins`, `libraries`,
+`cursors`, `item_census`, `fulltext_census`, `stage_queue`, `leases`, each
+under one `ledger_meta`/`schemaVersion` stamp. That file's own docstring
+already names it "search-index-v2's bookkeeping half" — this ticket is the
+other half, in the same file and the same schema, per §5.2.2's own framing
+("one file, one schema, every row library-keyed"). Do not create a
+competing schema or a second stamp.
+
+Author directive, 2026-09-01: the schema lands in `search-index-v2.sqlite`,
+a real file that exists in **parallel** with v1's `search-index.sqlite`, so
+v1 development (the in-flight stopword series, PRs #4/#5/#6 on the fork)
+continues undisturbed. This ticket touches nothing under
+`src/features/search/` outside the `conductor/` module.
+
+On closer reading, tranche 3 (0553, extract shim) is **not** blocked by
+this gap: its actions — the fetch, class-order dispatch, the
+first-with-text choice function — run entirely against tables tranche 1
+already built (`stage_queue`'s `class_rank`, `item_census`,
+`fulltext_census`). Only tranche 4's chunk worker ("chunk worker over
+stored text") and tranche 5's band dispatch (K = passages per item) need
+`entries`/`slabs`/`passages` to exist. If the author resumes tranche 3
+separately, it does not need to wait on this ticket.
+
+## Relevant files
+
+- `SPEC.md` §5.2.2 (Storage: one file, one schema, every row library-keyed)
+  — authoritative: WAL mode, `synchronous=NORMAL`, `busy_timeout=5000` on
+  every connection, `PRAGMA auto_vacuum=INCREMENTAL` set **before the first
+  table** (a no-op if set later — the section says so explicitly); the
+  entry layer (`entries`, `slabs`, `passages` columns and shapes); FTS5
+  per-field columns and tokenizer (`unicode61 remove_diacritics 2`),
+  contentless (`content=''`, `contentless_delete=1`) where SQLite >= 3.43,
+  v1's external-content layout as the probed fallback recorded in meta.
+- Fork `src/features/search/conductor/ledger.ts` — the bookkeeping half
+  already built (tranches 1-2): `Ledger.open(path)` is file-path
+  parameterized (no production call site yet — only test fixtures use it
+  today), `createSchema()` is one `db.exec` DDL block under a single
+  `ledger_meta`/`schemaVersion` stamp. Extend this, don't compete with it.
+- Fork `src/features/search/sqlite-index.ts` — v1's schema-stamp discipline
+  to mirror as a *pattern* (stamp read before any DDL/write; a database
+  this build does not understand is moved aside, never deleted or
+  overwritten) — read for the shape, do not import from or modify it; v1
+  stays untouched, byte-for-byte.
+- Fork `src/features/search/index-manager.ts`, `backend.ts` — v1's backend
+  factory/interface shape, so a future v2 backend has somewhere sane to
+  plug in later. Wiring an actual v2 backend into the query path is out of
+  scope here — just don't collide with the existing module layout.
+
+## Actions
+
+1. Extend `ledger.ts`'s `createSchema()` (same file, same `db.exec` block,
+   same connection — or a sibling module writing through the same open
+   `Database` handle) with §5.2.2's content tables: `entries`, `slabs`,
+   `passages`, and the FTS5 table, per the spec's exact column lists and
+   constraints.
+2. Wire a real production file path: `search-index-v2.sqlite`, opened with
+   every pragma §5.2.2 specifies, in the order it specifies (auto_vacuum
+   before the first table — this is the one ordering trap the spec calls
+   out by name).
+3. Schema-stamp discipline: the content tables bump the *same*
+   `ledger_meta`/`schemaVersion` the bookkeeping half already stamps — one
+   file, one schema, one version number, per §5.2.2's own framing. Don't
+   invent a second stamp for "the other half" of the same file.
+4. Purely additive: no file under `src/features/search/` outside
+   `conductor/` changes. `search-index.sqlite` and every v1 module are
+   untouched.
+5. Explicitly out of scope: the calibration header (SPEC.md marks it "owed
+   here, and not by this entry" — a later ticket); the segmenter itself
+   (0028); actually writing rows from a running pipeline (tranches 4/5).
+   This ticket builds the schema and direct read/write primitives for it
+   (insert/query helpers, the same shape `ledger.ts` already provides for
+   its own tables) — not the segmentation logic that will call them.
+
+## Test
+
+- Red first: assert every §5.2.2 table, column, and CHECK constraint is
+  present, on a fresh file, before any pipeline code depends on them.
+- The ordering trap named in Actions 2: a test that sets `auto_vacuum`
+  *after* the first table exists and asserts it did NOT take effect (the
+  spec's own documented no-op), beside one that sets it first and asserts
+  it did — so a future edit that reorders the pragmas is caught red rather
+  than silently losing incremental vacuum.
+- Coexistence: open `search-index.sqlite` (v1) and `search-index-v2.sqlite`
+  in the same data directory concurrently, write to both, confirm no lock
+  contention beyond ordinary per-file WAL semantics and no cross-file
+  interference.
+
+## Verification
+
+- [ ] Every §5.2.2 table/column/CHECK present and tested
+- [ ] `auto_vacuum=INCREMENTAL` ordering trap has a red-first test on both
+      sides (set-before-first-table works; set-after is provably a no-op)
+- [ ] v1's own existing test suite, run unmodified, stays green — proof
+      `search-index.sqlite` and its code path are untouched, not just an
+      unchanged-diff claim
+- [ ] Both files coexist under concurrent open in one data directory
+- [ ] Positive control per fixture/assertion (house discipline): each new
+      test demonstrated failing against a deliberately broken schema
+      before trusted
+
+## Invariants
+
+- `search-index.sqlite`, `sqlite-index.ts`, and every file under
+  `src/features/search/` outside `conductor/` are untouched.
+- Upstream tests green throughout.
+- One file, one schema, one stamp: the bookkeeping half (tranches 1-2) and
+  the content half (this ticket) share `search-index-v2.sqlite` and its
+  single `schemaVersion`.
+
+## Exit criteria
+
+- [ ] entries/slabs/passages/FTS schema merged on a fork branch, built on
+      tranche 2's tip (`tranche-2-conductor-election` @ `a00091b`, or a
+      later tranche's tip if more have landed by the time this starts)
+- [ ] `search-index-v2.sqlite` exists as a real, opened, production file
+      path — not only exercised from test fixtures
+- [ ] Ticket 0554 (tranche 4: chunk/embed workers) has its `Blocked-by`
+      updated to include this ticket

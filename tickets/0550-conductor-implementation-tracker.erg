@@ -5,6 +5,7 @@ Author: minh
 
 --- log ---
 2026-09-01T16:30Z claude created, roadmap settled in the 2026-09-01 scheduling session
+2026-09-01T13:25Z claude note raid on 0551-0555: 0551 (ledger/tick) and 0552 (election/lease) merged, fork branches tranche-1-ledger-schema and tranche-2-conductor-election. Paused before 0553 on a schema-gap finding: SPEC 5.2.2's content schema (entries/slabs/passages/FTS) has no code owner among the open tickets. Filed 0556 to build it in search-index-v2.sqlite, parallel to v1, per author directive. On closer reading 0553 is NOT blocked by the gap (its actions run against tables 0551 already built); 0554 is, and its Blocked-by now names 0556.
 
 --- body ---
 ## Context
@@ -35,6 +36,8 @@ tests, red first.
 - 0553 — extract shim, class order, latency back-off
 - 0554 — chunk and embed workers, quantum autotune, sidecar
 - 0555 — fresh/backfill interleave and the scheduling property suite
+- 0556 — the v2 content schema (entries/slabs/passages/FTS) 0554 needs;
+  not a child tranche, filed alongside once the gap surfaced
 
 Children chain by Blocked-by on their real prerequisite, never on this
 tracker. Invariant across every tranche: the incumbent MiniLM entry
