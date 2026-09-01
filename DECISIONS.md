@@ -2663,6 +2663,30 @@ and §5 gains one framing sentence saying so at its own opening; §5's body
 stays exactly as concrete as before; nothing already measured or promised
 changes.
 
+**2026-09-01 — the stopword series files one PR per slot, and PR 1 files now.**
+The three-PR series prepared under ticket 0091 (degenerate query, diacritics,
+library-derived droplist) does not spend the budget as a bundle: the author
+rules **one slot per PR**. PR 1 — the degenerate-query fix — is authorized and
+filed the same day as upstream PR #45, from fork branch `degenerate-query` at
+`47461b7`, its body sent verbatim from
+`verification/UPSTREAM-PR-0091-DEGENERATE.md` (series branch); it spends the
+held stopwords-follow-up slot, discharging the hold X2's verdict placed on
+ticket 0014's deletion-only form. PRs 2 and 3 each need a fresh grant when
+ready, decided when asked. The two-in-flight volume bound is untouched.
+
+**2026-09-01 — PR 2's design question is answered by measurement, not by
+ruling on one arm.** Review of the built PR 2 (index the mark-stripped form
+beside the written one) measured three costs that were not on the table when
+the shape was chosen: a pinned 944-codepoint joining set becomes load-bearing;
+BM25 length normalisation penalises accented documents by about 17% on a
+controlled pair; the stripped token's IDF roughly halves. The alternative —
+keep the index as written and expand unaccented query terms to the accented
+variants the vocabulary actually holds — is untried. The author rules:
+**build and measure the query-expansion arm first**, on the same frozen
+477 512-passage substrate, then decide between two measured designs. Until
+then PR 2's held documentation findings stay held, since several reverse
+polarity with the design.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
