@@ -1,3 +1,42 @@
+BỘ CÔNG THƯƠNG CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+
+Số: øẺ'2  /2016/TT-BCT Hà Nội, ngày ÄfQ\ tháng 44 năm 2016
+
+THÔNG TƯ
+Quy định hệ thống điện truyền tải
+
+Căn cứ Nghị định số 95/2012/NĐ-CP ngày l2 tháng l] năm 2012 của
+Chính phủ quy định chức năng, nhiệm vụ, quyên hạn và cơ cấu tổ chức của Bộ
+Công Thương;
+
+Căn cứ Luật Điện lực ngày 03 tháng 12 năm 2004 và Luật sửa đổi, bồ sung
+một sô điểu của Luật Điện lực ngày 20 tháng I1 năm 2012;
+
+Căn cứ Nghị định số 137/2013/NĐ-CP ngày 21 tháng 10 năm 2013 của
+Chính phủ quy định chỉ tiết thi hành một số điều của Luật Điện lực và Luật sửa
+đổi, bồ sung một số điều của Luật Điện lực;
+
+Theo đề nghị của Cục trưởng Cục Điễu tiết điện lục,
+Bộ trưởng Bộ Công Thương ban hành Tì hông tư quy định hệ thống điện
+truyền tải.
+Chương ÏI
+QUY ĐỊNH CHUNG
+Điều I. Phạm vi điều chỉnh
+Thông tư này quy định về:
+1. Các yêu cầu trong vận hành hệ thống điện truyền tải.
+2. Dự báo nhu cầu phụ tải điện.
+3. Lập kế hoạch phát triển lưới điện truyền tải.
+4. Điều kiện, yêu cầu kỹ thuật và trình tự đấu nối vào lưới điện truyền tải.
+5. Đánh giá an ninh hệ thống điện.
+6. Vận hành hệ thống điện truyền tải.
+Điều 2. Đối tượng áp dụng
+1. Thông tư này áp dụng cho các đối tượng sau đây:
+a) Đơn vị truyền tải điện;
+b) Đơn vị vận hành hệ thống điện và thị trường điện;
+c) Đơn vị bán buôn điện;
+d) Đơn vị phân phối điện;
+đ) Đơn vị phân phối và bán lẻ điện;
 e) Đơn vị phát điện;
 g) Khách hàng sử dụng điện nhận điện trực tiếp từ lưới điện truyền tải;
 h) Tập đoàn Điện lực Việt Nam;
@@ -3632,7 +3671,77 @@ trong hệ thống điện quốc gia;
 c) Quy trình thực hiện đánh giá an ninh hệ thống điện trung hạn và ngắn hạn;
 83
 
-Phụ lục 1A
+đ) Quy trình lập kế hoạch vận hành hệ thống điện quốc gia;
+
+đ) Quy trình xác định và vận hành dịch vụ phụ trợ;
+
+e) Quy định yêu cầu kỹ thuật đối với hệ thống rơ le bảo vệ và tự động hóa
+trong nhà máy điện và trạm biến áp;
+
+ø) Quy định về yêu cầu kỹ thuật và quản lý vận hành hệ thống SCADA;
+
+h) Quy trình thử nghiệm và giám sát thử nghiệm;
+
+¡) Quy trình sa thải phụ tải điện trong hệ thống điện quốc gia.
+
+4. Đơn vị truyền tải điện và Khách hàng sử dụng lưới điện truyền tải có
+trách nhiệm xây dựng kế hoạch để đầu tư, nâng cấp và cải tạo lưới điện, thiết bị
+
+điện trong phạm vi quản lý đảm bảo đáp ứng các yêu cầu kỹ thuật và yêu cầu
+trong vận hành quy định tại Thông tư này.
+
+Điều 102. Hiệu lực thi hành
+
+1. Thông tư này có hiệu lực kế từ ngày tháng Zƒnăm 201Z. Thông tư số
+12/2010/TT-BCT ngày 15 tháng 4 năm 2010 của Bộ trưởng Bộ Công Thương
+quy định hệ thống điện truyền tải hết hiệu lực từ ngày Thông tư này có hiệu lực.
+
+— 2. Trường hợp đã có hợp đồng mua sắm, lắp đặt thiết bị được ký trước
+ngày 01 tháng 6 năm 2010 có nội dung khác với quy định tại Thông tư số
+12/2010/TT-BCT ngày 15 tháng 4 năm 2010 của Bộ trưởng Bộ Công Thương
+quy định hệ thống điện truyền tải hoặc được ký trước ngày Thông tư này có hiệu
+lực mà có nội dung khác với một số nội dung mới được quy định tại Thông tư
+này, Đơn vị truyền tải điện và Khách hàng sử dụng lưới điện truyền tải được tiếp
+tục thực hiện theo hợp đồng đã ký.
+
+3. Trong quá trình thực hiện Thông tư này, nếu có vấn đề vướng mắc, yêu
+cầu các đơn vị có liên quan phản ánh trực tiếp về Cục Điều tiết điện lực để xem
+xét, giải quyết theo thầm quyên hoặc báo cáo Bộ Công Thương để giải quyết./.
+
+Nơi nhận:
+
+- Thủ tướng, các Phó Thủ tướng Chính phủ;
+
+- Các Bộ, Cơ quan ngang Bộ, Cơ quan thuộc Chính phủ;
+- UBND các tỉnh, thành phố trực thuộc Trung ương;
+
+- Viện Kiểm sát Nhân dân tối cao,
+
+- Tòa án Nhân dân tối cao;
+
+- Các Thứ trưởng Bộ Công Thương;
+
+- Cục Kiểm tra văn bản QPPL (Bộ Tư pháp);
+
+- Công báo;
+
+- Kiêm toán nhà nước; À F‹
+
+- Website: Chính phủ, Bộ Công Thương: Trần Tuần Anh
+- Tập đoàn Điện lực Việt Nam;
+
+- Tổng công ty Truyền tải điện quốc gia;
+
+- Các Tổng công ty Điện lực;
+
+- Các Tổng công ty Phát điện;
+
+- Trung tâm Điều độ hệ thống điện quốc gia;
+
+- Lưu: VT, PC, ĐTĐL.
+
+84
+Phụ lục 1A
 THÔNG TIN ĐĂNG KÝ ĐẤU NỐI
 CHO KHÁCH HÀNG CÓ NHU CẦU ĐẤU NỐI
 (Ban hành kèm theo Thông tư số 25 /2016/TT-BCT

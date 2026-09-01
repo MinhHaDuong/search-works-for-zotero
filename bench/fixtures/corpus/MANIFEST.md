@@ -77,21 +77,21 @@ one page is honest rather than a fallback compromise.
 
 | id | language | tier | year | pages | chars | facet |
 |---|---|---|---|---|---|---|
-| cournot-1838-recherches | fr | MUST | 1838 | 230 | 250 144 | core |
-| walras-1900-elements | fr | MUST | 1900 | 270 | 955 830 | core |
-| porte-1770-science-des-negocians | fr | MUST | 1770 | 788 | 842 279 | core |
+| cournot-1838-recherches | fr | MUST | 1838 | 230 | 250 728 | core |
+| walras-1900-elements | fr | MUST | 1900 | 270 | 956 242 | core |
+| porte-1770-science-des-negocians | fr | MUST | 1770 | 788 | 851 111 | core |
 | depitre-1908-oeuvres-cournot | fr | MUST | 1908 | 10 | 23 077 | core |
 | ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | 2005 | 180 | 466 312 | core |
 | malynes-1622-lex-mercatoria-extrait | en | MUST | 1622 | 45 | 110 725 | core |
 | ramsey-1926-truth-and-probability | en | MUST | 1926 | 41 | 109 131 | core |
-| neurath-1919-durch-die-kriegswirtschaft | de | SHOULD | 1919 | 251 | 887 724 | core |
-| minkowski-1896-geometrie-der-zahlen | de | SHOULD | 1896 | 274 | 571 192 | core |
+| neurath-1919-durch-die-kriegswirtschaft | de | SHOULD | 1919 | 251 | 887 797 | core |
+| minkowski-1896-geometrie-der-zahlen | de | SHOULD | 1896 | 274 | 571 244 | core |
 | vn-decision-11-2017-qdttg-solar-fit | vi | MUST | 2017 | 10 | 17 720 | core |
-| vn-circular-25-2016-ttbct-transmission | vi | MUST | 2016 | 106 | 232 451 | core |
+| vn-circular-25-2016-ttbct-transmission | vi | MUST | 2016 | 106 | 236 081 | core |
 | vn-circular-41-2010-btnmt-emissions | vi | MUST | 2010 | 1 | 16 897 | core |
 | vn-circular-42-2010-btnmt-emissions | vi | MUST | 2010 | 1 | 43 333 | core |
 
-Total: 2 207 pages, 4 526 815 chars, 5,2 MB as committed plain text.
+Total: 2 207 pages, 4 540 398 chars, 4,8 MB as committed plain text.
 
 ## Variety dimensions, and what each addition buys
 
@@ -158,6 +158,17 @@ Vietnamese is not part of this machine's default tesseract install, only
 text layer on this signed PDF even with `--invalidate-digital-signatures`;
 direct per-page `tesseract -l vie` on `pdftoppm`-rendered pages worked and
 is what `extract_text()`'s automatic density-fallback path now does.
+
+**A whole-document average density check cannot see a handful of failed
+pages inside an otherwise dense document.** Confirmed directly: Porte's
+page 72 (a real 1770 ledger scan) sits between flowing content on pages 71
+and 73 but extracted to 0 characters -- a failed OCR pass on that one
+page, not a genuine blank leaf. `rescue_sparse_pages()` re-OCRs any page
+under a per-page floor individually and keeps the result only if it found
+more than pdftotext already had. Rescued real content on 40 pages across
+six documents in this pass (Porte alone: 22 pages, ~8 800 chars) --
+without it, those pages would have stayed silently empty in the committed
+corpus, invisible to R24 page-locator work later.
 
 **One Zotero attachment turned out to be mislabeled entirely**, not just
 noisy: Westergaard 1890 (`AAIDIRUF`, `contentType: application/pdf`) is

@@ -32,8 +32,9 @@ in SPEC.md §5.2.8 (moved there from DESIGN.md on the spec-chain dissolution).
 ## Exit criteria
 - [x] fixture corpus committed, multilingual per R7's tested list --
       bench/fixtures/corpus/, 13 documents across EN/FR/VI (MUST) and DE
-      (SHOULD), spanning 5 subjects, 4 item types and 10x in document length
-      (10-788 pages); AR/ZH/HI/ES/RU set aside per R7's own allowance,
+      (SHOULD), spanning 5 subjects, 4 Zotero item types (book,
+      journalArticle, bookSection, report) and 1-788 pages per document;
+      AR/ZH/HI/ES/RU set aside per R7's own allowance,
       reasons in corpus/MANIFEST.md
 - [ ] a cross-lingual slice: EN and FR queries whose pinned answer sets are
       Vietnamese entries, gated separately from the monolingual queries so a

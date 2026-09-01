@@ -16,7 +16,7 @@ Reproducibility is contingent, not guaranteed: each attachment is fetched by
 Zotero item/attachment key from a live, mutable library. If the author
 replaces an attachment (a corrected scan, a different edition), a re-run
 against a cleared cache will fetch different bytes and commit different
-text under the same doc id. `source_pdf_sha256` in manifest.json exists to
+text under the same doc id. `source_attachment_sha256` in manifest.json exists to
 make that visible -- a re-run whose hash for an id changed is a signal to
 review the diff before trusting it, not proof nothing changed.
 """
@@ -43,10 +43,24 @@ TESSDATA_FAST_URL = "https://github.com/tesseract-ocr/tessdata_fast/raw/main/{la
 # re-extracted via tesseract instead of trusted as-is.
 MIN_CHARS_PER_PAGE = 50
 
+# Per-page floor for rescue_sparse_pages(): below this, a page inside an
+# otherwise-dense document is re-OCR'd individually rather than trusted as a
+# genuine blank leaf. Lower than MIN_CHARS_PER_PAGE deliberately -- this is a
+# per-page check, not the whole-document average MIN_CHARS_PER_PAGE guards.
+MIN_CHARS_PER_SPARSE_PAGE = 20
+
 # tesseract/tessdata use ISO 639-2/T three-letter codes; DOCS uses the
 # two-letter codes the rest of this repo (and Zotero's own `language` field)
 # uses. Only the languages DOCS actually needs are mapped.
 TESSERACT_LANG = {"fr": "fra", "en": "eng", "de": "deu", "vi": "vie"}
+
+# A ceiling for local tool invocations (pandoc/tesseract/pdftoppm/pdftotext),
+# separate from --timeout (which bounds network requests only): a pathological
+# input (a decompression-bomb XObject, a font-subsetting trap) can make one of
+# these tools spin or balloon memory forever with no recovery otherwise.
+# Generous because pdftoppm renders a whole document in one call -- Porte's
+# 788 pages need real wall-clock, not a per-page budget.
+SUBPROCESS_TIMEOUT = 300.0
 
 DOCS = [
     {
@@ -401,7 +415,9 @@ def extract_docx_text(docx_path: Path) -> str:
     docx->pdf route; it failed outright on one of the two docx sources here
     with 'source file could not be loaded' while pandoc extracted both
     cleanly, so pandoc is the primary path, not a fallback.)"""
-    result = subprocess.run(["pandoc", "-t", "plain", str(docx_path)], capture_output=True, text=True)
+    result = subprocess.run(
+        ["pandoc", "-t", "plain", str(docx_path)], capture_output=True, text=True, timeout=SUBPROCESS_TIMEOUT
+    )
     if result.returncode != 0:
         raise SystemExit(f"pandoc failed on {docx_path} (exit {result.returncode}): {result.stderr.strip()}")
     return result.stdout
@@ -411,7 +427,9 @@ def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
     """Return a tessdata dir containing `tess_lang`, fetching it if this
     machine's system tesseract install doesn't already have it (e.g. only
     eng/fra here)."""
-    system_check = subprocess.run(["tesseract", "--list-langs"], capture_output=True, text=True)
+    system_check = subprocess.run(
+        ["tesseract", "--list-langs"], capture_output=True, text=True, timeout=SUBPROCESS_TIMEOUT
+    )
     if system_check.returncode != 0:
         raise SystemExit(f"tesseract --list-langs failed (exit {system_check.returncode}): {system_check.stderr.strip()}")
     if tess_lang in system_check.stdout.splitlines():
@@ -429,38 +447,93 @@ def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
     return local
 
 
-def ocr_pdf(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
+def _tesseract_env(lang: str, cache_dir: Path, timeout: float) -> tuple[str, dict]:
     tess_lang = TESSERACT_LANG.get(lang)
     if tess_lang is None:
         raise SystemExit(f"no tesseract language mapping for {lang!r} -- add one to TESSERACT_LANG")
     tessdata_dir = ensure_tessdata(tess_lang, cache_dir, timeout)
     env = {"TESSDATA_PREFIX": str(tessdata_dir)} if tessdata_dir != Path() else {}
+    return tess_lang, env
+
+
+def _tesseract_page(png: Path, tess_lang: str, env: dict) -> str:
+    result = subprocess.run(
+        ["tesseract", str(png), "-", "-l", tess_lang],
+        capture_output=True,
+        text=True,
+        env={**os.environ, **env},
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    if result.returncode != 0:
+        raise SystemExit(f"tesseract failed on {png} (exit {result.returncode}): {result.stderr.strip()}")
+    return result.stdout
+
+
+def ocr_pdf(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
+    tess_lang, env = _tesseract_env(lang, cache_dir, timeout)
     pages_dir = cache_dir / f"{pdf_path.stem}-pages"
     pages_dir.mkdir(parents=True, exist_ok=True)
     subprocess.run(
-        ["pdftoppm", "-png", "-r", "300", str(pdf_path), str(pages_dir / "p")], check=True
+        ["pdftoppm", "-png", "-r", "300", str(pdf_path), str(pages_dir / "p")],
+        check=True,
+        timeout=SUBPROCESS_TIMEOUT,
     )
-    chunks = []
-    for png in sorted(pages_dir.glob("p-*.png")):
-        result = subprocess.run(
-            ["tesseract", str(png), "-", "-l", tess_lang],
-            capture_output=True,
-            text=True,
-            env={**os.environ, **env},
-        )
-        if result.returncode != 0:
-            raise SystemExit(
-                f"tesseract failed on {png} (exit {result.returncode}): {result.stderr.strip()}"
-            )
-        chunks.append(result.stdout)
+    chunks = [_tesseract_page(png, tess_lang, env) for png in sorted(pages_dir.glob("p-*.png"))]
     return "\f".join(chunks) + "\f"
+
+
+def ocr_single_page(pdf_path: Path, page_num: int, lang: str, cache_dir: Path, timeout: float) -> str:
+    """OCR one 1-indexed page, to rescue a page pdftotext extracted as
+    near-empty inside an otherwise-dense document -- confirmed directly
+    (Porte 1770, page 72) to more often be a failed OCR pass in the
+    source scan than a genuine blank leaf."""
+    tess_lang, env = _tesseract_env(lang, cache_dir, timeout)
+    rescue_dir = cache_dir / f"{pdf_path.stem}-rescue"
+    rescue_dir.mkdir(parents=True, exist_ok=True)
+    stem = rescue_dir / f"p{page_num}"
+    subprocess.run(
+        ["pdftoppm", "-png", "-r", "300", "-f", str(page_num), "-l", str(page_num), str(pdf_path), str(stem)],
+        check=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    pngs = sorted(rescue_dir.glob(f"{stem.name}*.png"))
+    if not pngs:
+        return ""
+    return _tesseract_page(pngs[0], tess_lang, env)
+
+
+def rescue_sparse_pages(pdf_path: Path, pages: list[str], lang: str, cache_dir: Path, timeout: float) -> list[str]:
+    """Re-OCR any page under MIN_CHARS_PER_SPARSE_PAGE, individually, and
+    keep the OCR result only if it found more than what pdftotext already
+    had -- so a page that really is blank stays blank rather than picking
+    up OCR noise from a scan artifact. This is the per-page counterpart to
+    extract_text's whole-document density check, which averages over every
+    page and so cannot see a handful of failed pages inside an otherwise
+    dense document (a mid-document average stays well above the floor)."""
+    rescued = list(pages)
+    for i, page_text in enumerate(pages):
+        if len(page_text.strip()) >= MIN_CHARS_PER_SPARSE_PAGE:
+            continue
+        ocr_text = ocr_single_page(pdf_path, i + 1, lang, cache_dir, timeout)
+        if len(ocr_text.strip()) > len(page_text.strip()):
+            log.info(
+                "%s page %d: rescued %d chars via per-page OCR (pdftotext had %d)",
+                pdf_path.name,
+                i + 1,
+                len(ocr_text.strip()),
+                len(page_text.strip()),
+            )
+            rescued[i] = ocr_text
+    return rescued
 
 
 def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt: str = "pdf") -> str:
     if fmt == "docx":
         return unicodedata.normalize("NFC", extract_docx_text(src_path))
     pdf_path = src_path
-    result = subprocess.run(["pdftotext", str(pdf_path), "-"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, timeout=SUBPROCESS_TIMEOUT
+    )
     if result.returncode != 0:
         raise SystemExit(f"pdftotext failed on {pdf_path} (exit {result.returncode}): {result.stderr.strip()}")
     text = result.stdout
@@ -476,6 +549,13 @@ def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt
             len(pages),
         )
         text = ocr_pdf(pdf_path, lang, cache_dir, timeout)
+    else:
+        # The whole-document average above cannot see a handful of failed
+        # pages inside an otherwise dense document -- confirmed directly on
+        # Porte 1770 (page 72, sandwiched between flowing content). Rescue
+        # those individually rather than trust the average.
+        pages = rescue_sparse_pages(pdf_path, pages, lang, cache_dir, timeout)
+        text = "\f".join(pages) + "\f"
     # NFC, not whatever pdftotext/tesseract happened to emit -- so a future
     # re-run (different tesseract build, a replaced Zotero attachment) can't
     # silently commit NFD text under the same doc id that looks identical
@@ -521,13 +601,22 @@ def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict
 
     if "cross_lingual_pair" in doc:
         pair = doc["cross_lingual_pair"]
-        pair_pdf = fetch_attachment(pair, cache_dir, timeout)
-        pair_text = extract_text(pair_pdf, pair["language"], cache_dir, timeout)
+        pair_src = fetch_attachment(pair, cache_dir, timeout)
+        pair_text = extract_text(pair_src, pair["language"], cache_dir, timeout)
         pair_text_path = doc_dir / "cross-lingual-reference-en.txt"
         pair_text_path.write_text(pair_text, encoding="utf-8")
+        pair_pages = pair_text.split("\f")
+        if pair_pages and pair_pages[-1] == "":
+            pair_pages = pair_pages[:-1]
         meta["cross_lingual_pair"] = {
             **pair,
             "text_path": str(pair_text_path.relative_to(out_dir.parent)),
+            # Same fields as the main document's meta, for the same reason:
+            # this file is fetched and committed too, so it deserves the
+            # same drift-detection and size record, not just a path.
+            "page_count": len(pair_pages),
+            "char_count": len(pair_text),
+            "source_attachment_sha256": hashlib.sha256(pair_src.read_bytes()).hexdigest(),
         }
     return meta
 
