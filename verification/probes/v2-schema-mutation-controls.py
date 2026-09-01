@@ -27,6 +27,12 @@ the char-range control on `CHECK (char_end >= char_start)`, which matches twice,
 `slabs` was ever mutated while `entries` and `passages` reported "caught" without having
 been touched. Hence the exactly-once rule and the per-mutation expected title below —
 both of them guards against this file lying in the direction that feels like success.
+
+Two later corrections, same family. The auto_vacuum mutation used to DELETE the pragma
+rather than move it, so it controlled "the statement is present" while its name and the
+finding it supports are about WHERE it sits. And a red was scored from `status !=
+"passed"`, which counts a skipped test as a catch — a test that did not run has not
+noticed anything.
 """
 
 import argparse
@@ -38,103 +44,126 @@ from pathlib import Path
 TEST = "tests/features/conductor-content-schema.test.ts"
 LEDGER_REL = "src/features/search/conductor/ledger.ts"
 
-#: (name, anchor, replacement, expected-test-title).
+#: (name, edits, expected-test-title), where `edits` is a list of (anchor, replacement)
+#: applied together as one mutation.
 #:
-#: Two properties are enforced rather than documented, because both failures are silent.
-#: The anchor must occur EXACTLY once: zero means the mutation no longer applies, and more
-#: than one means `replace(..., 1)` patches an arbitrary first site while the others keep
-#: their guard — a control that has quietly stopped covering what its name says. (That is
-#: not hypothetical: `CHECK (char_end >= char_start)` occurs twice, in `slabs` and in
-#: `entries`, and a single ambiguous entry left `entries` and `passages` uncontrolled while
-#: reporting "caught".) And the expected title must be among the reds, so a mutation that
-#: happens to break some unrelated test is not scored as caught.
+#: Three properties are enforced rather than documented, because each failure is silent.
+#: Every anchor must occur EXACTLY once: zero means the mutation no longer applies, and
+#: more than one means an arbitrary first site is patched while the others keep their
+#: guard — a control that has quietly stopped covering what its name says. (Not
+#: hypothetical: `CHECK (char_end >= char_start)` occurs twice, in `slabs` and in
+#: `entries`, and a single ambiguous entry left `entries` and `passages` uncontrolled
+#: while reporting "caught".) The expected title must be among the reds, so a mutation
+#: that happens to break something unrelated is not scored as caught. And a mutation
+#: whose subject is an ORDERING is expressed as a real reorder — a deletion would redden
+#: the same test while controlling a weaker claim than the one being made.
 MUTATIONS = [
     (
         "drop the 1 MiB slab CHECK",
-        "CHECK (length(bytes) <= ${MAX_SLAB_BYTES})",
-        "CHECK (length(bytes) >= 0)",
+        [("CHECK (length(bytes) <= ${MAX_SLAB_BYTES})", "CHECK (length(bytes) >= 0)")],
         "refuses a slab over the 1 MiB ceiling",
     ),
     (
         "plain UNIQUE instead of the ifnull expression index",
-        "ON entries(lib, item_key, ifnull(attachment_key, ''), ordinal)",
-        "ON entries(lib, item_key, attachment_key, ordinal)",
+        [(
+            "ON entries(lib, item_key, ifnull(attachment_key, ''), ordinal)",
+            "ON entries(lib, item_key, attachment_key, ordinal)",
+        )],
         "refuses two entries at the same ordinal in one source stream, attachment or not",
     ),
     (
         "drop the entry kind CHECK",
-        "CHECK (kind IN ('record', 'note', 'annotation', 'body', 'synthetic'))",
-        "CHECK (kind IS NOT NULL)",
+        [(
+            "CHECK (kind IN ('record', 'note', 'annotation', 'body', 'synthetic'))",
+            "CHECK (kind IS NOT NULL)",
+        )],
         "refuses an entry kind outside the five §5.2.2 lists",
     ),
     (
         "drop the slab source CHECK",
-        "CHECK (source IN ('attachment', 'record', 'note', 'annotation'))",
-        "CHECK (source IS NOT NULL)",
+        [(
+            "CHECK (source IN ('attachment', 'record', 'note', 'annotation'))",
+            "CHECK (source IS NOT NULL)",
+        )],
         "refuses a slab source outside the four §5.2.2 lists",
     ),
     # Three separate sites, three separate controls. Anchored with enough surrounding
     # context to be unique, since the CHECK text alone is not.
     (
         "drop the char-range CHECK on slabs",
-        "        content_hash TEXT NOT NULL,\n        CHECK (char_end >= char_start),",
-        "        content_hash TEXT NOT NULL,\n        CHECK (char_end >= -1),",
+        [(
+            "        content_hash TEXT NOT NULL,\n        CHECK (char_end >= char_start),",
+            "        content_hash TEXT NOT NULL,\n        CHECK (char_end >= -1),",
+        )],
         "refuses a backwards char range on an entry, a slab and a passage",
     ),
     (
         "drop the char-range CHECK on entries",
-        "        page_est_kind  TEXT,\n        CHECK (char_end >= char_start)",
-        "        page_est_kind  TEXT,\n        CHECK (char_end >= -1)",
+        [(
+            "        page_est_kind  TEXT,\n        CHECK (char_end >= char_start)",
+            "        page_est_kind  TEXT,\n        CHECK (char_end >= -1)",
+        )],
         "refuses a backwards char range on an entry, a slab and a passage",
     ),
     (
         "drop the off-range CHECK on passages",
-        "CHECK (off_end >= off_start)",
-        "CHECK (off_end >= -1)",
+        [("CHECK (off_end >= off_start)", "CHECK (off_end >= -1)")],
         "refuses a backwards char range on an entry, a slab and a passage",
     ),
+    # A real reorder: the statement is removed from before WAL and reinserted after it.
+    # Every pragma is still executed; only the order changes, which is the whole claim.
     (
-        "set auto_vacuum after WAL (the measured trap)",
-        "    db.exec('PRAGMA auto_vacuum = INCREMENTAL');\n    // WAL for the same reason",
-        "    // WAL for the same reason",
+        "move auto_vacuum after WAL (the measured trap)",
+        [
+            (
+                "    // Before WAL and before the first table. See the class docstring above.\n"
+                "    db.exec('PRAGMA auto_vacuum = INCREMENTAL');\n",
+                "",
+            ),
+            (
+                "    db.exec('PRAGMA synchronous = NORMAL');",
+                "    db.exec('PRAGMA synchronous = NORMAL');\n"
+                "    db.exec('PRAGMA auto_vacuum = INCREMENTAL');",
+            ),
+        ],
         "leaves a real ledger file at auto_vacuum=INCREMENTAL",
     ),
     (
         "skip the snippet fingerprint comparison",
-        "return fingerprint(slice) === row.fp ? slice : null;",
-        "return slice;",
+        [("return fingerprint(slice) === row.fp ? slice : null;", "return slice;")],
         "returns null rather than wrong words when the fingerprint does not match",
     ),
     (
         "accept a newer schema stamp",
-        "if (stored === 'unstamped' || (typeof stored === 'number' && stored > LEDGER_SCHEMA_VERSION)) {",
-        "if (false) {",
+        [(
+            "if (stored === 'unstamped' || (typeof stored === 'number' && stored > LEDGER_SCHEMA_VERSION)) {",
+            "if (false) {",
+        )],
         "refuses a file stamped by a build this one cannot understand",
     ),
     (
         "one joined FTS column instead of eight",
-        "const cols = FTS_FIELDS.join(', ');",
-        "const cols = 'title';",
+        [("const cols = FTS_FIELDS.join(', ');", "const cols = 'title';")],
         "gives the FTS table one column per field, not v1s two joined ones",
     ),
     (
         "bare delete in the external FTS layout",
-        "    this.db\n      .prepare(\n        `INSERT INTO fts(fts, rowid, ${FTS_FIELDS.join(', ')}) "
-        "VALUES ('delete', ?, ${placeholders(FTS_FIELDS.length)})`,\n      )\n"
-        "      .run(pid, ...FTS_FIELDS.map((f) => row[f]));\n",
-        "",
+        [(
+            "    this.db\n      .prepare(\n        `INSERT INTO fts(fts, rowid, ${FTS_FIELDS.join(', ')}) "
+            "VALUES ('delete', ?, ${placeholders(FTS_FIELDS.length)})`,\n      )\n"
+            "      .run(pid, ...FTS_FIELDS.map((f) => row[f]));\n",
+            "",
+        )],
         "indexes, scopes and retires a row through the shadow table",
     ),
     (
         "re-probe the FTS layout instead of reading the recorded one",
-        "  const recorded = readRecordedFtsStorage(db);\n  if (recorded) return recorded;",
-        "",
+        [("  const recorded = readRecordedFtsStorage(db);\n  if (recorded) return recorded;", "")],
         "reopens a file in the layout its rows are in, not the one this runtime prefers",
     ),
     (
         "drop contentless_delete",
-        "           contentless_delete = 1",
-        "           contentless_delete = 0",
+        [("           contentless_delete = 1", "           contentless_delete = 0")],
         "retires a row on delete, whichever storage mode was probed",
     ),
 ]
@@ -190,28 +219,35 @@ def main() -> int:
             print("REFUSING: the baseline must be green before a mutation means anything", file=sys.stderr)
             return 2
         # Every expected title must exist, or the mutation is aimed at nothing.
-        for name, _anchor, _replacement, expects in MUTATIONS:
+        for name, _edits, expects in MUTATIONS:
             if expects not in baseline:
                 print(f"REFUSING: {name} expects a test that does not exist: {expects!r}", file=sys.stderr)
                 return 2
         print()
 
-        for name, anchor, replacement, expects in MUTATIONS:
-            hits = pristine.count(anchor)
-            if hits != 1:
-                # Zero and many are the same failure: the control is not running where it
-                # says it is. Neither may be scored as a pass.
+        for name, edits, expects in MUTATIONS:
+            # Zero occurrences and many are the same failure: the control is not running
+            # where it says it is. Neither may be scored as a pass. Checked for every edit
+            # before any is applied, so a multi-edit mutation is all-or-nothing.
+            counts = [pristine.count(anchor) for anchor, _ in edits]
+            if any(n != 1 for n in counts):
                 unapplied.append(name)
-                print(f"UNAPPLIED {name}: anchor occurs {hits}x in {LEDGER_REL}, need exactly 1")
+                print(f"UNAPPLIED {name}: anchor occurrences {counts} in {LEDGER_REL}, need exactly 1 each")
                 continue
-            ledger.write_text(pristine.replace(anchor, replacement, 1))
+            mutated = pristine
+            for anchor, replacement in edits:
+                mutated = mutated.replace(anchor, replacement, 1)
+            ledger.write_text(mutated)
             result = run_suite(args.fork)
             ledger.write_text(pristine)
             if result is None:
                 unapplied.append(name)
                 print(f"UNAPPLIED {name}: the runner produced no report — infrastructure, not a catch")
                 continue
-            reds = sorted(t for t, s in result.items() if s != "passed")
+            # Only an actual failure counts. A test the mutation caused to be SKIPPED has
+            # not noticed anything, and scoring it as red would credit the control for a
+            # test that did not run.
+            reds = sorted(t for t, s in result.items() if s == "failed")
             if expects in reds:
                 print(f"caught    {name}: {len(reds)} red, incl. the aimed-at test")
             elif reds:
