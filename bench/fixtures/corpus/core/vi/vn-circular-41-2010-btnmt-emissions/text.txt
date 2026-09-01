@@ -1,0 +1,438 @@
+  -----------------------------------------------------------------------
+  BỘ TÀI NGUYÊN VÀ           CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+  MÔI TRƯỜNG                 Độc lập - Tự do - Hạnh phúc
+  -------                    ---------------
+  -------------------------- --------------------------------------------
+  Số: 41/2010/TT-BTNMT       Hà Nội, ngày 28 tháng 12 năm 2010
+
+  -----------------------------------------------------------------------
+
+ 
+
+THÔNG TƯ
+
+QUY ĐỊNH QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ MÔI TRƯỜNG
+
+BỘ TRƯỞNG BỘ TÀI NGUYÊN VÀ MÔI TRƯỜNG
+
+Căn cứ Luật Tiêu chuẩn và Quy chuẩn kỹ thuật ngày 29 tháng 6 năm 2006;
+Căn cứ Nghị định số 127/2007/NĐ-CP ngày 01 tháng 8 năm 2007 của Chính
+phủ quy định chi tiết thi hành một số điều của Luật Tiêu chuẩn và Quy
+chuẩn kỹ thuật;
+Căn cứ Nghị định 25/2008/NĐ-CP ngày 04 tháng 3 năm 2008 của Chính phủ
+quy định chức năng, nhiệm vụ, quyền hạn và cơ cấu tổ chức của Bộ Tài
+nguyên và Môi trường;
+Theo đề nghị của Tổng cục trưởng Tổng cục Môi trường, Vụ trưởng Vụ Khoa
+học và Công nghệ, Vụ trưởng Vụ Pháp chế,
+
+QUY ĐỊNH:
+
+Điều 1. Ban hành kèm theo Thông tư này một (01) quy chuẩn kỹ thuật quốc
+gia về môi trường:
+
+QCVN 30:2010/BTNMT - Quy chuẩn kỹ thuật quốc gia về khí thải lò đốt chất
+thải công nghiệp.
+
+Điều 2. Thông tư này có hiệu lực thi hành kể từ ngày 15 tháng 02 năm
+2011.
+
+Điều 3. Tổng cục trưởng Tổng cục Môi trường, Thủ trưởng các đơn vị thuộc
+Bộ Tài nguyên và Môi trường, Giám đốc Sở Tài nguyên và Môi trường các
+tỉnh, thành phố trực thuộc Trung ương và các tổ chức, cá nhân liên quan
+có trách nhiệm thi hành Thông tư này.
+
+ 
+
++---------------------------------------+------------------------------+
+|                                       | KT. BỘ TRƯỞNG                |
+|                                       | THỨ TRƯỞNG                   |
+| Nơi nhận:                             | Bùi Cách Tuyến               |
+| - Văn phòng Trung ương và các Ban của |                              |
+| Đảng;                                 |                              |
+| - Văn phòng Quốc hội;                 |                              |
+| - Văn phòng Chủ tịch nước;            |                              |
+| - Văn phòng Chính phủ;                |                              |
+| - Tòa án nhân dân tối cao;            |                              |
+| - Viện kiểm sát nhân dân tối cao;     |                              |
+| - Các Bộ, cơ quan ngang Bộ, cơ quan   |                              |
+| thuộc Chính phủ;                      |                              |
+| - Cơ quan Trung ương của các đoàn     |                              |
+| thể;                                  |                              |
+| - HĐND, UBND các tỉnh, thành phố trực |                              |
+| thuộc Trung ương;                     |                              |
+| - Sở Tài nguyên và Môi trường các     |                              |
+| tỉnh, thành phố trực thuộc Trung      |                              |
+| ương;                                 |                              |
+| - Cục Kiểm tra văn bản QPPL (Bộ Tư    |                              |
+| pháp);                                |                              |
+| - Công báo, Cổng TTĐT Chính phủ;      |                              |
+| - Các đơn vị thuộc Bộ TN&MT; Website  |                              |
+| của Bộ TN&MT;                         |                              |
+| - Lưu: VT, TCMT, KHCN, PC, Th (230).  |                              |
++=======================================+==============================+
++---------------------------------------+------------------------------+
+
+ 
+
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+
+ 
+
+ 
+
+ 
+
+ 
+
+QCVN 30: 2010/BTNMT
+
+ 
+
+ 
+
+QUY CHUẨN KỸ THUẬT QUỐC GIA
+VỀ KHÍ THẢI LÒ ĐỐT CHẤT THẢI CÔNG NGHIỆP
+
+National technical regulation on emission
+of industrial waste incinerators
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+HÀ NỘI - 2010
+
+Lời nói đầu
+
+QCVN 30:2010/BTNMT do Ban soạn thảo quy chuẩn kỹ thuật quốc gia về chất
+lượng không khí biên soạn, Tổng cục Môi trường, Vụ Khoa học và Công
+nghệ, Vụ Pháp chế trình duyệt và được ban hành theo Thông tư số
+41/2010/TT-BTNMT ngày 28 tháng 12 năm 2010 của Bộ trưởng Bộ Tài nguyên
+và Môi trường.
+
+ 
+
+QUY CHUẨN KỸ THUẬT QUỐC GIA
+
+VỀ KHÍ THẢI LÒ ĐỐT CHẤT THẢI CÔNG NGHIỆP
+National technical regulation on emission of industrial waste
+incinerators
+
+1. QUY ĐỊNH CHUNG
+
+1.1. Phạm vi điều chỉnh
+
+Quy chuẩn này quy định giá trị tối đa cho phép của các thông số ô nhiễm
+trong khí thải lò đốt chất thải công nghiệp và một số yêu cầu cơ bản
+liên quan đến bảo vệ môi trường trong thiết kế và vận hành lò đốt chất
+thải công nghiệp.
+
+1.2. Đối tượng áp dụng
+
+Quy chuẩn này áp dụng đối với tổ chức, cá nhân sử dụng, sản xuất, nhập
+khẩu, phân phối lò đốt chất thải công nghiệp trên lãnh thổ nước Cộng hòa
+xã hội chủ nghĩa Việt Nam.
+
+1.3. Giải thích từ ngữ
+
+Trong Quy chuẩn này, các từ ngữ dưới đây được hiểu như sau:
+
+1.3.1. Chất thải công nghiệp là những chất thải phát sinh từ các quá
+trình sản xuất công nghiệp, gồm có chất thải nguy hại và các chất thải
+thông thường.
+
+1.3.2. Lò đốt chất thải công nghiệp là hệ thống thiết bị xử lý chất thải
+công nghiệp bằng phương pháp thiêu đốt kèm theo hệ thống xử lý khí thải
+và nước thải.
+
+1.3.3. Vùng đốt (hoặc buồng đốt) gồm có:
+
+a) Vùng đốt sơ cấp (buồng đốt sơ cấp) là khu vực sử dụng nhiệt để chuyển
+hóa chất thải công nghiệp thành thể khí và tro xỉ.
+
+b) Vùng đốt thứ cấp (buồng đốt thứ cấp) là khu vực sử dụng nhiệt để tiếp
+tục thiêu hủy các thành phần độc hại của dòng khí được chuyển hóa từ
+vùng đốt sơ cấp.
+
+1.3.4. Thời gian lưu cháy là thời gian dòng khí lưu chuyển từ điểm vào
+đến điểm ra của vùng đốt (buồng đốt) thứ cấp.
+
+1.3.5. Khí thải là hỗn hợp các thành phần vật chất phát thải ra môi
+trường không khí từ ống khói của lò đốt chất thải công nghiệp.
+
+1.3.6. Tro xỉ là chất thải rắn còn lại sau khi thiêu đốt chất thải công
+nghiệp tại vùng đốt sơ cấp.
+
+1.3.7. Tro bụi gồm có tro bay và bụi được giữ lại trong quá trình xử lý
+khí thải lò đốt.
+
+2. QUY ĐỊNH KỸ THUẬT
+
+2.1. Thông số kỹ thuật cơ bản của lò đốt chất thải công nghiệp
+
+2.1.1. Lò đốt chất thải công nghiệp phải được thiết kế theo nguyên lý
+thiêu đốt nhiều cấp, tối thiểu phải có hai vùng đốt (hoặc buồng đốt) sơ
+cấp và thứ cấp.
+
+2.1.2. Trong lò đốt phải tạo áp suất âm so với bên ngoài để hạn chế khói
+thoát ra khỏi lò qua cửa nạp chất thải và xì hở ra môi trường.
+
+2.1.3. Chiều cao ống khói phải được tính toán phù hợp, đảm bảo yêu cầu
+về chất lượng không khí xung quanh khi khí thải phát tán vào môi trường
+không khí, nhưng không dưới 15 m tính từ mặt đất. Ống khói của lò đốt
+phải thiết kế điểm lấy mẫu khí thải ở độ cao không quá 03 (ba) m tính từ
+điểm khí thoát ra khỏi hệ thống xử lý khí thải của lò đốt và đi vào ống
+khói. Tại vị trí lấy mẫu phải có sàn thao tác, bảo đảm an toàn và thuận
+lợi để lấy mẫu.
+
+2.1.4. Các thông số kỹ thuật cơ bản của lò đốt chất thải công nghiệp
+được quy định tại Bảng 1 dưới đây:
+
+Bảng 1. Các thông số kỹ thuật cơ bản của lò đốt chất thải công nghiệp
+
++-----------------------------------------------+---------+-----------+
+| Thông số                                      | Đơn vị  | Giá trị   |
++===============================================+=========+===========+
+| Nhiệt độ đốt (⁰C):                            | ⁰C      |           |
+|                                               |         |           |
+| + Tại vùng đốt sơ cấp                         |         | ≥ 700     |
+|                                               |         |           |
+| + Tại vùng đốt thứ cấp                        |         | ≥ 1050    |
+|                                               |         |           |
+| + Tại vùng đốt thứ cấp khi đốt chất thải công |         | ≥ 1300    |
+| nghiệp có chứa các thành phần halogen hữu cơ  |         |           |
++-----------------------------------------------+---------+-----------+
+| Thời gian lưu cháy                            | s       | ≥ 2       |
++-----------------------------------------------+---------+-----------+
+| Lượng oxy dư                                  | %       | ≥ 6       |
++-----------------------------------------------+---------+-----------+
+| Nhiệt độ khí thải khi thải ra môi trường (đo  | ⁰C      | ≤ 250     |
+| tại điểm lấy mẫu ở chân ống khói)             |         |           |
++-----------------------------------------------+---------+-----------+
+| Nhiệt độ bên ngoài vỏ lò                      | ⁰C      | ≤ 60      |
++-----------------------------------------------+---------+-----------+
+| An toàn điện, điện trở nối đất đối với các bộ | Ω       | ≤ 4       |
+| phận kim loại có thể tiếp xúc trực tiếp với   |         |           |
+| người                                         |         |           |
++-----------------------------------------------+---------+-----------+
+
+2.2. Giá trị tối đa cho phép của các thông số ô nhiễm trong khí thải lò
+đốt chất thải công nghiệp
+
+Trong quá trình hoạt động bình thường, giá trị các thông số ô nhiễm
+trong khí thải lò đốt chất thải công nghiệp khi thải ra môi trường không
+được vượt quá các giá trị quy định tại Bảng 2 dưới đây.
+
+Bảng 2. Giá trị tối đa cho phép của các thông số ô nhiễm trong khí thải
+lò đốt chất thải công nghiệp
+
+  -------------------------------------------------------------------------
+  TT   Thông số ô nhiễm                         Đơn vị         Giá trị tối
+                                                               đa cho phép
+  ---- ---------------------------------------- -------------- ------------
+  1    Bụi tổng                                 mg/Nm³         150
+
+  2    Axit clohydric, HCl                      mg/Nm³         50
+
+  3    Axit flohydric, HF                       mg/Nm³         5
+
+  4    Cacbon monoxit, CO                       mg/Nm³         300
+
+  5    Lưu huỳnh đioxit, SO₂                    mg/Nm³         300
+
+  6    Nitơ oxit, NO_(x) (tính theo NO₂)        mg/Nm³         500
+
+  7    Thủy ngân, Hg                            mg/Nm³         0,55
+
+  8    Cadimi và hợp chất, tính theo Cd         mg/Nm³         0,16
+
+  9    Tổng các kim loại nặng khác              mg/Nm³         2
+
+  10   Dioxin/furan (PCDD/PCDF)                 ngTEQ/Nm³      0,6
+  -------------------------------------------------------------------------
+
+Ghi chú: Nm³ (mét khối khí thải chuẩn) là mét khối khí thải ở nhiệt độ
+25⁰C và áp suất tuyệt đối 760 mm thủy ngân.
+
+2.3. Kiểm soát nước thải
+
+Nước thải phát sinh từ quá trình vận hành lò đốt và xử lý khí thải lò
+đốt chất thải công nghiệp phải được xử lý theo quy định tại QCVN
+24:2009/BTNMT - Quy chuẩn kỹ thuật quốc gia về nước thải công nghiệp.
+
+2.4. Kiểm soát chất thải rắn và bùn thải
+
+Tro xỉ, tro bụi và bùn thải phát sinh từ lò đốt chất thải công nghiệp
+phải được phân loại, đánh giá theo quy định tại QCVN 07:2009/BTNMT -
+Ngưỡng chất thải nguy hại và phải có biện pháp quản lý phù hợp.
+
+3. QUY ĐỊNH VỀ VẬN HÀNH, ỨNG PHÓ SỰ CỐ VÀ GIÁM SÁT
+
+3.1. Vận hành
+
+3.1.1. Việc vận hành và bảo dưỡng lò đốt chất thải công nghiệp phải theo
+đúng các quy định của nhà sản xuất.
+
+3.1.2. Lò đốt chất thải công nghiệp phải lắp thiết bị giám sát tự động,
+liên tục để đo và ghi lại các thông số nhiệt độ và mức oxy dư trong các
+vùng đốt. Các thiết bị giám sát vận hành và giám sát môi trường phải
+được kiểm tra, bảo đảm việc hoạt động bình thường trước mỗi lần vận hành
+lò đốt.
+
+3.1.3. Phải bố trí cửa sổ quan sát trực tiếp hoặc máy ghi hình (camera)
+trong vùng đốt sơ cấp.
+
+3.1.4. Trong quá trình khởi động lò đốt, chỉ được phép nạp chất thải khi
+các vùng đốt đạt được giá trị nhiệt độ quy định tại Bảng 1 của Quy chuẩn
+này. Hệ thống xử lý khí thải phải được vận hành ngay khi bắt đầu khởi
+động lò đốt.
+
+3.1.5. Chỉ bắt đầu quá trình ngừng hoạt động của lò đốt khi đã đốt cháy
+hết chất thải trong vùng đốt sơ cấp và phải vận hành hệ thống xử lý khí
+thải cho đến khi hoàn toàn không còn khí thải và nhiệt độ vùng đốt sơ
+cấp thấp hơn 400⁰C.
+
+3.1.6. Phải có nhật ký cho việc vận hành lò đốt, trong đó ghi rõ số
+lượng, loại chất thải phải được thiêu đốt và thời gian thực hiện.
+
+3.2. Phòng ngừa và ứng phó sự cố
+
+3.2.1. Phải xây dựng phương án phòng ngừa và ứng phó sự cố cháy nổ theo
+quy định về phòng cháy, chữa cháy dưới sự hướng dẫn của cơ quan có chức
+năng quản lý về công tác phòng cháy chữa cháy.
+
+3.2.2. Xây dựng các phương án dự phòng và ứng phó đối với các sự cố khác
+theo quy định về quản lý chất thải nguy hại và các quy định có liên
+quan.
+
+3.2.3. Lò đốt phải có cơ chế tự động ngắt khi xảy ra sự cố bất thường
+song song với cơ chế ngắt tay.
+
+3.2.4. Các vùng đốt phải có phương án hạ nhiệt độ khi nhiệt độ đột ngột
+tăng quá cao.
+
+3.2.5. Hệ thống xử lý khí thải lò đốt phải có van xả tắt (by-pass) để xả
+khí thải trực tiếp ra ống khói mà không qua hệ thống xử lý khí thải khi
+có sự cố. Van xả tắt phải có niêm phong của cơ quan quản lý nhà nước về
+môi trường (việc niêm phong này được thực hiện khi tiến hành xác nhận
+việc hoàn thành các yêu cầu về bảo vệ môi trường) để tránh sử dụng tùy
+tiện. Sau khi phá niêm phong để xử lý sự cố phải thông báo cho cơ quan
+quản lý nhà nước về môi trường địa phương để tiến hành niêm phong lại.
+
+3.3. Giám sát môi trường
+
+3.3.1. Chất thải nguy hại phải được phân loại, quản lý theo quy định.
+Chỉ những chất thải nguy hại xử lý được bằng phương pháp thiêu đốt mới
+được đưa vào thiêu đốt trong lò đốt chất thải công nghiệp. Nghiêm cấm
+thiêu đốt chất thải phóng xạ trong lò đốt chất thải công nghiệp.
+
+3.3.2. Trước khi đốt chất thải có chứa các thành phần halogen hữu cơ
+vượt ngưỡng chất thải nguy hại quy định tại QCVN 07:2009/BTNMT trong lò
+đốt chất thải công nghiệp, đơn vị vận hành lò đốt phải có văn bản thông
+báo cho cơ quan quản lý nhà nước về môi trường địa phương và cơ quan cấp
+giấy phép hành nghề quản lý chất thải nguy hại để giám sát.
+
+3.3.3. Lò đốt chất thải công nghiệp phải được giám sát môi trường định
+kỳ đối với khí thải, nước thải, bùn thải, tro xỉ, tro bụi theo tần suất
+và thông số giám sát do cơ quan có thẩm quyền quy định.
+
+3.3.4. Việc lấy mẫu giám sát đối với dioxin/furan thực hiện khi cơ quan
+quản lý nhà nước về môi trường xác nhận việc hoàn thành các yêu cầu về
+bảo vệ môi trường để đưa lò đốt chất thải công nghiệp vào vận hành và
+tối thiểu một lần (01) một năm.
+
+4. PHƯƠNG PHÁP XÁC ĐỊNH
+
+4.1. Phương pháp xác định các thông số ô nhiễm trong khí thải lò đốt
+chất thải công nghiệp thực hiện theo các tiêu chuẩn quốc gia dưới đây:
+
+- TCVN 5977:2005 Sự phát thải của nguồn tĩnh - Xác định giá trị và lưu
+lượng bụi trong các ống dẫn khí - Phương pháp khối lượng thủ công;
+
+- TCVN 6750:2005 Sự phát thải của nguồn tĩnh - Xác định nồng độ khối
+lượng lưu huỳnh điôxit - Phương pháp sắc ký khí ion;
+
+- TCVN 7172:2002 Sự phát thải của nguồn tĩnh - Xác định nồng độ khối
+lượng nitơ oxit - Phương pháp trắc quang dùng naphtyletylendiamin;
+
+- TCVN 7242:2003 Lò đốt chất thải rắn y tế. Phương pháp xác định nồng độ
+cacbon monoxit (CO) trong khí thải;
+
+- TCVN 7243:2003 Lò đốt chất thải rắn y tế. Phương pháp xác định nồng độ
+axit flohydric (HF) trong khí thải;
+
+- TCVN 7244:2003 Lò đốt chất thải rắn y tế. Phương pháp xác định nồng độ
+axit clohydric (HCl) trong khí thải;
+
+- TCVN 7557:2005 (Phần 1, Phần 2 và Phần 3) Lò đốt chất thải rắn y tế.
+Phương pháp xác định kim loại nặng trong khí thải;
+
+- TCVN 7556:2005 (Phần 1, Phần 2 và Phần 3) Lò đốt chất thải rắn y tế.
+Phương pháp xác định nồng độ khối lượng PCDD/PCDF;
+
+4.2. Chấp nhận áp dụng các phương pháp xác định theo những tiêu chuẩn
+quốc gia và quốc tế có độ chính xác tương đương hoặc cao hơn tiêu chuẩn
+quốc gia quy định tại mục 4.1. Khi chưa có các tiêu chuẩn quốc gia để
+xác định các thông số quy định trong Quy chuẩn này thì áp dụng các tiêu
+chuẩn quốc tế.
+
+5. TỔ CHỨC THỰC HIỆN
+
+5.1. Tổ chức, cá nhân liên quan đến hoạt động sử dụng, sản xuất, nhập
+khẩu, phân phối lò đốt chất thải công nghiệp phải tuân thủ các quy định
+tại Quy chuẩn này.
+
+Tổ chức, cá nhân sử dụng lò đốt chất thải công nghiệp đã hoạt động theo
+giấy phép hành nghề quản lý chất thải nguy hại trước ngày Quy chuẩn này
+có hiệu lực phải nâng cấp, điều chỉnh để đáp ứng các quy định của Quy
+chuẩn này trước ngày 31 tháng 12 năm 2014. Trong thời hạn nêu trên, các
+lò đốt chất thải công nghiệp tuân thủ các yêu cầu nêu trong báo cáo đánh
+giá tác động môi trường đã được phê duyệt hoặc các giấy phép môi trường
+đã được cấp.
+
+5.2. Lò đốt chất thải công nghiệp tuân thủ đúng các quy định tại Quy
+chuẩn này được sử dụng để thiêu đốt các chất thải khác với chất thải
+công nghiệp. Trong trường hợp sử dụng để đốt chất thải y tế, khí thải ra
+môi trường phải đáp ứng các yêu cầu của QCVN 02:2008/BTNMT - Quy chuẩn
+kỹ thuật quốc gia về khí thải lò đốt chất thải rắn y tế.
+
+5.3. Trường hợp các quy chuẩn kỹ thuật quốc gia, tiêu chuẩn quốc gia
+viện dẫn trong Quy chuẩn này có sửa đổi, bổ sung hoặc thay thế thì áp
+dụng theo văn bản mới.
+
+5.4. Cơ quan quản lý nhà nước về môi trường có trách nhiệm hướng dẫn,
+kiểm tra, giám sát việc thực hiện Quy chuẩn này./.

@@ -1,0 +1,823 @@
+  -----------------------------------------------------------------------
+  BỘ TÀI NGUYÊN VÀ             CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM
+  MÔI TRƯỜNG                   Độc lập – Tự do – Hạnh phúc
+  -------                      --------
+  ---------------------------- ------------------------------------------
+  Số: 42/2010/TT-BTNMT         Hà Nội, ngày 29 tháng 12 năm 2010
+
+  -----------------------------------------------------------------------
+
+ 
+
+THÔNG TƯ
+
+QUY ĐỊNH QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ MÔI TRƯỜNG
+
+BỘ TRƯỞNG BỘ TÀI NGUYÊN VÀ MÔI TRƯỜNG
+
+Căn cứ Luật Tiêu chuẩn và Quy chuẩn kỹ thuật ngày 29 tháng 6 năm 2006;
+Căn cứ Nghị định số 127/2007/NĐ-CP ngày 01 tháng 8 năm 2007 của Chính
+phủ quy định chi tiết thi hành một số điều của Luật Tiêu chuẩn và Quy
+chuẩn kỹ thuật;
+Căn cứ Nghị định số 25/2008/NĐ-CP ngày 04 tháng 3 năm 2008 của Chính phủ
+quy định chức năng, nhiệm vụ, quyền hạn và cơ cấu tổ chức của Bộ Tài
+nguyên và Môi trường;
+Theo đề nghị của Tổng Cục trưởng Tổng cục Môi trường, Vụ trưởng Vụ Khoa
+học và Công nghệ, Vụ trưởng Vụ Pháp chế,
+
+QUY ĐỊNH:
+
+Điều 1. Ban hành kèm theo Thông tư này ba (03) Quy chuẩn kỹ thuật quốc
+gia về môi trường:
+
+1. QCVN: 34:2010/BTNMT – Quy chuẩn kỹ thuật quốc gia về khí thải công
+nghiệp lọc hoá dầu đối với bụi và các chất vô cơ.
+
+2. QCVN: 35:2010/BTNMT – Quy chuẩn kỹ thuật quốc gia về nước khai thác
+thải từ các công trình dầu khí trên biển.
+
+3. QCVN: 36:2010/BTNMT – Quy chuẩn kỹ thuật quốc gia về dung dịch khoan
+và mùn khoan thải từ các công trình dầu khí trên biển.
+
+Điều 2. Thông tư này có hiệu lực thi hành kể từ ngày 15 tháng 02 năm
+2011.
+
+Điều 3. Tổng cục trưởng Tổng cục Môi trường, Thủ trưởng các đơn vị thuộc
+Bộ Tài nguyên và Môi trường, Giám đốc Sở Tài nguyên và Môi trường các
+tỉnh, thành phố trực thuộc Trung ương và các tổ chức, cá nhân liên quan
+có trách nhiệm thi hành Thông tư này./.
+
+ 
+
++-----------------------------------+-----------------------------------+
+|                                   | KT. BỘ TRƯỞNG                     |
+|                                   | THỨ TRƯỞNG                        |
+| Nơi nhận:                         | Bùi Cách Tuyến                    |
+| - Văn phòng Trung ương và các Ban |                                   |
+| của Đảng;                         |                                   |
+| - Văn phòng Quốc hội;             |                                   |
+| - Văn phòng Chủ tịch nước;        |                                   |
+| - Văn phòng Chính phủ;            |                                   |
+| - Toà án nhân dân tối cao;        |                                   |
+| - Các Bộ, cơ quan ngang Bộ, cơ    |                                   |
+| quan thuộc Chính phủ;             |                                   |
+| - Cơ quan Trung ương của các đoàn |                                   |
+| thể;                              |                                   |
+| - HĐND, UBND các tỉnh, thành phố  |                                   |
+| trực thuộc Trung ương;            |                                   |
+| - Sở Tài nguyên và Môi trường các |                                   |
+| tỉnh, thành phố trực thuộc Trung  |                                   |
+| ương;                             |                                   |
+| - Cục Kiểm tra văn bản QPPL (Bộ   |                                   |
+| Tư pháp);                         |                                   |
+| - Công báo, Cổng TTĐT của Chính   |                                   |
+| phủ;                              |                                   |
+| - Các đơn vị thuộc Bộ TN&MT,      |                                   |
+| Website của Bộ TN&MT;             |                                   |
+| - Lưu: VT, TCMT, KHCN, PC, Th     |                                   |
+| (230).                            |                                   |
++===================================+===================================+
++-----------------------------------+-----------------------------------+
+
++-----------------------------------------------------------------------+
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM                                    |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QCVN 34 : 2010/BTNMT                                                  |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ KHÍ THẢI CÔNG NGHIỆP LỌC HOÁ DẦU ĐỐI   |
+| VỚI BỤI VÀ CÁC CHẤT VÔ CƠ                                             |
+|                                                                       |
+| National technical Regulation on Emission of Refining and             |
+| Petrochemical Industry of Inorganic Substances and Dusts              |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| Hà Nội - 2010                                                         |
+|                                                                       |
+|                                                                       |
++=======================================================================+
++-----------------------------------------------------------------------+
+
+Lời nói đầu
+
+QCVN 34:2010/BTNMT do Ban soạn thảo quy chuẩn kỹ thuật quốc gia về chất
+lượng không khí biên soạn, Tổng cục Môi trường, Vụ Khoa học và Công
+nghệ, Vụ Pháp chế trình duyệt và được ban hành theo Thông tư số
+42/2010/TT-BTNMT ngày 29 tháng 12 năm 2010 của Bộ trưởng Bộ Tài nguyên
+và Môi trường.
+
+QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ KHÍ THẢI CÔNG NGHIỆP LỌC HOÁ DẦU ĐỐI VỚI
+BỤI VÀ CÁC CHẤT VÔ CƠ
+
+National technical Regulation on Emission of Refining and Petrochemical
+Industry of Inorganic Substances and Dusts
+
+1. QUY ĐỊNH CHUNG
+
+1.1. Phạm vi điều chỉnh
+
+Quy chuẩn này quy định giá trị tối đa cho phép của bụi và các chất vô cơ
+trong khí thải công nghiệp lọc hoá dầu khi phát thải vào môi trường
+không khí.
+
+1.2. Đối tượng áp dụng
+
+Quy chuẩn này áp dụng đối với tổ chức, cá nhân liên quan đến hoạt động
+phát thải khí thải công nghiệp lọc hoá dầu vào môi trường không khí.
+
+Không áp dụng Quy chuẩn này đối với các lĩnh vực sản xuất nằm trong cơ
+sở lọc hoá dầu đã ban hành quy chuẩn riêng.
+
+1.3. Giải thích thuật ngữ
+
+Trong Quy chuẩn này, các thuật ngữ dưới đây được hiểu như sau:
+
+1.3.1. Khí thải công nghiệp lọc hoá dầu là hỗn hợp các thành phần vật
+chất phát thải từ mỗi ống khói cố định của cơ sở lọc hoá dầu vào môi
+trường không khí.
+
+1.3.2. Kp là hệ số lưu lượng nguồn thải ứng với lưu lượng khí thải từng
+ống khói theo thiết kế của cơ sở lọc hoá dầu.
+
+1.3.3. Kv là hệ số vùng, khu vực ứng với địa điểm đặt các cơ sở lọc hoá
+dầu.
+
+1.3.4. Mét khối khí thải chuẩn (Nm³) là mét khối khí thải ở nhiệt độ
+25⁰C và áp suất tuyệt đối 760 mm thủy ngân.
+
+2. QUY ĐỊNH KỸ THUẬT
+
+2.1. Trong quá trình hoạt động bình thường, giá trị tối đa cho phép của
+bụi và các chất vô cơ trong khí thải công nghiệp lọc hoá dầu được tính
+như sau:
+
+Cmax = C x Kp x Kv
+
+Trong đó:
+
+- Cmax là giá trị tối đa cho phép của bụi và các chất vô cơ trong khí
+thải công nghiệp lọc hoá dầu, tính bằng miligam trên mét khối khí thải
+chuẩn (mg/Nm³);
+
+- C là giá trị của bụi và các chất vô cơ trong khí thải công nghiệp lọc
+hoá dầu quy định tại mục 2.2;
+
+- Kp là hệ số lưu lượng nguồn thải quy định tại mục 2.3;
+
+- Kv là hệ số vùng, khu vực quy định tại mục 2.4.
+
+2.2. Giá trị C làm cơ sở tính toán giá trị tối đa cho phép Cmax của bụi
+và các chất vô cơ trong khí thải công nghiệp lọc hoá dầu được quy định
+tại Bảng 1:
+
+Bảng 1: Giá trị C của bụi và các chất vô cơ trong khí thải công nghiệp
+lọc hoá dầu
+
+  ---------------------------------------------------------------------------
+  STT   Thông số                     Giá trị C                      
+                                     (mg/Nm³)                       
+                                     (Theo loại                     
+                                     nhiên liệu                     
+                                     sử dụng)                       
+  ----- ---------------------------- ---------- --------- --------- ---------
+                                     Dầu                  Khí       
+
+                                     A          B         A         B
+
+  1     Bụi tổng                     200        150       50        50
+
+  2     Nitơ oxit, NOx (tính theo    850        600       250       250
+        NO₂)                                                        
+
+  3     Lưu huỳnh đioxit, SO₂        650        500       300       300
+
+  4     Carbon monoxit, CO           1000       1000      200       200
+
+  5     Hydro Sunphua, H₂S           10         10        7,5       7,5
+  ---------------------------------------------------------------------------
+
+Trong đó:
+
+- Cột A quy định giá trị C làm cơ sở tính toán giá trị tối đa cho phép
+Cmax của các thông số ô nhiễm trong khí thải của cơ sở lọc hoá dầu hoạt
+động trước ngày quy chuẩn này có hiệu lực thi hành.
+
+- Cột B quy định giá trị C làm cơ sở tính toán giá trị tối đa cho phép
+Cmax của các thông số ô nhiễm trong khí thải của cơ sở lọc hoá dầu xây
+dựng mới.
+
+- Ngoài 05 thông số quy định tại Bảng 1, tùy theo yêu cầu và mục đích
+quản lý và kiểm soát ô nhiễm môi trường, các thông số ô nhiễm khác phải
+áp dụng theo quy định tại QCVN 19:2009/BTNMT – Quy chuẩn kỹ thuật quốc
+gia về khí thải công nghiệp đối với bụi và các chất vô cơ.
+
+2.3. Hệ số lưu lượng nguồn thải Kp của các cơ sở lọc hoá dầu tính riêng
+cho từng ống khói và được quy định tại Bảng 2:
+
+Bảng 2: Hệ số Kp áp dụng cho từng ống khói
+
++-----------------------------+----------------------------------------+
+| Lưu lượng nguồn thải P      | Hệ số Kp                               |
+| (m³/h)                      |                                        |
+|                             |                                        |
+| (lưu lượng theo thiết kế)   |                                        |
++=============================+========================================+
+| P ≤ 20.000                  | 1                                      |
++-----------------------------+----------------------------------------+
+| 20.000 < P ≤ 100.000        | 0,9                                    |
++-----------------------------+----------------------------------------+
+| P > 100.000                 | 0,8                                    |
++-----------------------------+----------------------------------------+
+
+2.4. Hệ số vùng, khu vực Kv ứng với địa điểm đặt các cơ sở lọc hoá dầu
+được quy định tại Bảng 3:
+
+Bảng 3: Hệ số khu vực Kv
+
++--------+-----------------------------------------------+-------------+
+| Phân   |                                               | Hệ số Kv    |
+| vùng,  |                                               |             |
+| khu    |                                               |             |
+| vực    |                                               |             |
++========+===============================================+=============+
+| Loại 1 | Nội thành đô thị loại đặc biệt (¹) và đô thị  | 0,8         |
+|        | loại I (¹); rừng đặc dụng (²); di sản thiên   |             |
+|        | nhiên, di tích lịch sử, văn hoá được xếp hạng |             |
+|        | (³); cơ sở lọc hoá dầu có khoảng cách đến     |             |
+|        | ranh giới các khu vực này dưới 02 km.         |             |
++--------+-----------------------------------------------+-------------+
+| Loại 2 | Nội thành, nội thị đô thị loại II, III, IV    | 0,8         |
+|        | (¹); vùng ngoại thành đô thị loại đặc biệt,   |             |
+|        | đô thị loại I có khoảng cách đến ranh giới    |             |
+|        | nội thành lớn hơn hoặc bằng 02 km; cơ sở lọc  |             |
+|        | hoá dầu có khoảng cách đến ranh giới các khu  |             |
+|        | vực này dưới 02 km.                           |             |
++--------+-----------------------------------------------+-------------+
+| Loại 3 | Khu công nghiệp; đô thị loại V (¹); vùng      | 1,0         |
+|        | ngoại thành, ngoại thị đô thị loại II, III,   |             |
+|        | IV có khoảng cách đến ranh giới nội thành,    |             |
+|        | nội thị lớn hơn hoặc bằng 02 km; cơ sở lọc    |             |
+|        | hoá dầu có khoảng cách đến ranh giới các khu  |             |
+|        | vực này dưới 02 km.                           |             |
++--------+-----------------------------------------------+-------------+
+| Loại 4 | Nông thôn                                     | 1,2         |
++--------+-----------------------------------------------+-------------+
+| Loại 5 | Nông thôn miền núi                            | 1,4         |
++--------+-----------------------------------------------+-------------+
+| Chú    |                                               |             |
+| thích: |                                               |             |
+|        |                                               |             |
+| ⁽¹⁾ Đô |                                               |             |
+| thị    |                                               |             |
+| được   |                                               |             |
+| xác    |                                               |             |
+| định   |                                               |             |
+| theo   |                                               |             |
+| quy    |                                               |             |
+| định   |                                               |             |
+| tại    |                                               |             |
+| Nghị   |                                               |             |
+| định   |                                               |             |
+| số     |                                               |             |
+| 4      |                                               |             |
+| 2/2009 |                                               |             |
+| /NĐ-CP |                                               |             |
+| ngày   |                                               |             |
+| 07     |                                               |             |
+| tháng  |                                               |             |
+| 5 năm  |                                               |             |
+| 2009   |                                               |             |
+| của    |                                               |             |
+| Chính  |                                               |             |
+| phủ về |                                               |             |
+| việc   |                                               |             |
+| phân   |                                               |             |
+| loại   |                                               |             |
+| đô     |                                               |             |
+| thị;   |                                               |             |
+|        |                                               |             |
+| ⁽²⁾    |                                               |             |
+| Rừng   |                                               |             |
+| đặc    |                                               |             |
+| dụng   |                                               |             |
+| xác    |                                               |             |
+| định   |                                               |             |
+| theo   |                                               |             |
+| Luật   |                                               |             |
+| Bảo vệ |                                               |             |
+| và     |                                               |             |
+| phát   |                                               |             |
+| triển  |                                               |             |
+| rừng   |                                               |             |
+| ngày   |                                               |             |
+| 14     |                                               |             |
+| tháng  |                                               |             |
+| 12 năm |                                               |             |
+| 2004   |                                               |             |
+| gồm:   |                                               |             |
+| vườn   |                                               |             |
+| quốc   |                                               |             |
+| gia;   |                                               |             |
+| khu    |                                               |             |
+| bảo    |                                               |             |
+| tồn    |                                               |             |
+| thiên  |                                               |             |
+| nhiên; |                                               |             |
+| khu    |                                               |             |
+| bảo vệ |                                               |             |
+| cảnh   |                                               |             |
+| quan;  |                                               |             |
+| khu    |                                               |             |
+| rừng   |                                               |             |
+| nghiên |                                               |             |
+| cứu,   |                                               |             |
+| thực   |                                               |             |
+| nghiệm |                                               |             |
+| khoa   |                                               |             |
+| học;   |                                               |             |
+|        |                                               |             |
+| ⁽³⁾ Di |                                               |             |
+| sản    |                                               |             |
+| thiên  |                                               |             |
+| nhiên, |                                               |             |
+| di     |                                               |             |
+| tích   |                                               |             |
+| lịch   |                                               |             |
+| sử,    |                                               |             |
+| văn    |                                               |             |
+| hoá    |                                               |             |
+| được   |                                               |             |
+| U      |                                               |             |
+| NESCO, |                                               |             |
+| Thủ    |                                               |             |
+| tướng  |                                               |             |
+| Chính  |                                               |             |
+| phủ    |                                               |             |
+| hoặc   |                                               |             |
+| bộ chủ |                                               |             |
+| quán   |                                               |             |
+| ra     |                                               |             |
+| quyết  |                                               |             |
+| định   |                                               |             |
+| thành  |                                               |             |
+| lập và |                                               |             |
+| xếp    |                                               |             |
+| hạng;  |                                               |             |
+|        |                                               |             |
+| ⁽⁴⁾    |                                               |             |
+| Trường |                                               |             |
+| hợp    |                                               |             |
+| nguồn  |                                               |             |
+| phát   |                                               |             |
+| thải   |                                               |             |
+| có     |                                               |             |
+| khoảng |                                               |             |
+| cách   |                                               |             |
+| đến 02 |                                               |             |
+| vùng   |                                               |             |
+| trở    |                                               |             |
+| lên    |                                               |             |
+| nhỏ    |                                               |             |
+| hơn 02 |                                               |             |
+| km thì |                                               |             |
+| áp     |                                               |             |
+| dụng   |                                               |             |
+| hệ số  |                                               |             |
+| vùng,  |                                               |             |
+| khu    |                                               |             |
+| vực Kv |                                               |             |
+| đối    |                                               |             |
+| với    |                                               |             |
+| vùng   |                                               |             |
+| có hệ  |                                               |             |
+| số nhỏ |                                               |             |
+| nhất;  |                                               |             |
+|        |                                               |             |
+| ⁽⁵⁾    |                                               |             |
+| Khoảng |                                               |             |
+| cách   |                                               |             |
+| quy    |                                               |             |
+| định   |                                               |             |
+| tại    |                                               |             |
+| bảng 3 |                                               |             |
+| được   |                                               |             |
+| tính   |                                               |             |
+| từ     |                                               |             |
+| nguồn  |                                               |             |
+| phát   |                                               |             |
+| thải.  |                                               |             |
++--------+-----------------------------------------------+-------------+
+
+3. PHƯƠNG PHÁP XÁC ĐỊNH
+
+3.1. Phương pháp xác định giá trị các thông số ô nhiễm trong khí thải
+công nghiệp lọc hoá dầu thực hiện theo các tiêu chuẩn quốc gia dưới đây:
+
+- TCVN 5907:2005 – Sự phát thải của nguồn tĩnh – Xác định nồng độ và lưu
+lượng bụi trong các ống dẫn khí – Phương pháp khối lượng thủ công.
+
+- TCVN 6750:2005 – Sự phát thải của nguồn tĩnh – Xác định nồng độ khối
+lượng lưu huỳnh điôxit – Phương pháp sắc ký khí ion;
+
+- TCVN 7172:2002 – Sự phát thải của nguồn tĩnh – Xác định nồng độ khối
+lượng nitơ ôxit – Phương pháp trắc quang dùng naphtyletylendiamin;
+
+- TCVN 7242:2003 – Lò đốt chất thải y tế – Phương pháp xác định nồng độ
+carbon monoxit trong khí thải;
+
+3.2. Chấp nhận áp dụng các phương pháp xác định theo những tiêu chuẩn
+quốc gia và quốc tế có độ chính xác tương đương hoặc cao hơn tiêu chuẩn
+quốc gia quy định tại mục 3.1. Khi chưa có các tiêu chuẩn quốc gia để
+xác định các thông số quy định trong Quy chuẩn này thì áp dụng các tiêu
+chuẩn quốc tế.
+
+4. TỔ CHỨC THỰC HIỆN
+
+4.1. Tổ chức, cá nhân liên quan đến hoạt động phát thải khí thải công
+nghiệp lọc hoá dầu vào môi trường không khí phải tuân thủ các quy định
+tại Quy chuẩn này.
+
+Các dự án lọc hoá dầu đã được phê duyệt nhưng chưa đi vào hoạt động
+trước ngày Quy chuẩn này có hiệu lực thi hành, thực hiện theo Quyết định
+phê duyệt Báo cáo đánh giá tác động môi trường.
+
+4.2. Cơ quan quản lý nhà nước về môi trường có trách nhiệm hướng dẫn,
+kiểm tra, giám sát việc thực hiện Quy chuẩn này.
+
+4.3. Trường hợp các quy chuẩn kỹ thuật quốc gia, tiêu chuẩn quốc gia
+viện dẫn trong Quy chuẩn này có sửa đổi, bổ sung hoặc thay thế thì áp
+dụng theo văn bản mới.
+
++-----------------------------------------------------------------------+
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM                                    |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QCVN 35 : 2010/BTNMT                                                  |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ NƯỚC KHAI THÁC THẢI TỪ CÁC CÔNG TRÌNH  |
+| DẦU KHÍ TRÊN BIỂN                                                     |
+|                                                                       |
+| National technical Regulation on Discharged Produced Water for        |
+| Offshore Oil and Gas Facilities                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| Hà Nội - 2010                                                         |
+|                                                                       |
+|                                                                       |
++=======================================================================+
++-----------------------------------------------------------------------+
+
+Lời nói đầu
+
+QCVN 35:2010/BTNMT do Ban soạn thảo quy chuẩn kỹ thuật quốc gia về chất
+lượng nước biên soạn, Tổng cục Môi trường, Vụ Khoa học và Công nghệ, Vụ
+Pháp chế trình duyệt và được ban hành theo Thông tư số 42/2010/TT-BTNMT
+ngày 29 tháng 12 năm 2010 của Bộ trưởng Bộ Tài nguyên và Môi trường.
+
+QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ NƯỚC KHAI THÁC THẢI TỪ CÁC CÔNG TRÌNH DẦU
+KHÍ TRÊN BIỂN
+
+National technical Regulation on Discharged Produced Water for Offshore
+Oil and Gas Facilities
+
+1. QUY ĐỊNH CHUNG
+
+1.1. Phạm vi điều chỉnh
+
+Quy chuẩn này quy định giá trị tối đa cho phép của dầu trong nước khai
+thác thải xuống biển từ các công trình khai thác dầu khí.
+
+1.2. Đối tượng áp dụng
+
+Quy chuẩn này áp dụng đối với tổ chức, cá nhân liên quan đến hoạt động
+thải nước khai thác từ các hoạt động khai thác dầu khí xuống vùng biển
+thuộc chủ quyền Việt Nam.
+
+1.3. Giải thích thuật ngữ
+
+Trong Quy chuẩn này, các thuật ngữ dưới đây được hiểu như sau:
+
+1.3.1. Nước khai thác là nước từ các vỉa dầu khí, được tách ra trong quá
+trình khai thác dầu, khí; Nước khai thác bao gồm: nước vỉa, nước bơm ép
+và dung dịch hỗn hợp các chất được đưa vào trong giếng.
+
+1.3.2. Hàm lượng dầu trung bình ngày: là trung bình cộng giá trị hàm
+lượng dầu của 04 (bốn) mẫu nước khai thác, mỗi mẫu được lấy cách nhau 06
+(sáu) giờ trong 01 (một) ngày;
+
+2. QUY ĐỊNH KỸ THUẬT
+
+Giá trị tối đa cho phép của hàm lượng dầu trong nước khai thác khi thải
+xuống biển được quy định tại Bảng 1.
+
+Bảng 1: Giá trị tối đa cho phép của hàm lượng dầu trong nước khai thác
+khí thải xuống biển
+
+  -------------------------------------------------------------------------
+  STT    Vị trí thải                                      Giới hạn trung
+                                                          bình ngày (đơn
+                                                          vị: mg/l)
+  ------ ------------------------------------------------ -----------------
+  1      Cách ranh giới khu vực nuôi trồng thủy sản, bảo   
+         vệ thuỷ sinh, vui chơi giải trí dưới nước nhỏ    
+         hơn 01 (một) hải lý                              
+
+  2      Cách bờ nhỏ hơn 03 (ba) hải lý                    
+
+  3      Cách bờ từ 03 (ba) đến 12 (mười hai) hải lý       
+
+  4      Cách bờ lớn hơn 12 (mười hai) hải lý              
+
+  Ghi                                                     
+  chú:                                                    
+  “bờ”                                                    
+  được                                                    
+  hiểu                                                    
+  là                                                      
+  ranh                                                    
+  giới                                                    
+  giữa                                                    
+  đất                                                     
+  liền                                                    
+  và                                                      
+  biển                                                    
+  -------------------------------------------------------------------------
+
+3. PHƯƠNG PHÁP XÁC ĐỊNH
+
+3.1. Phương pháp xác định dầu trong nước khai thác thực hiện theo tiêu
+chuẩn quốc gia TCVN 5070:1995 – Chất lượng nước – Phương pháp khối lượng
+xác định dầu mỏ và sản phẩm dầu mỏ.
+
+3.2. Chấp nhận áp dụng tiêu chuẩn quốc gia hoặc quốc tế có độ chính xác
+tương đương hoặc cao hơn tiêu chuẩn quốc gia TCVN 5070:1995.
+
+4. TỔ CHỨC THỰC HIỆN
+
+4.1. Quy chuẩn này thay thế Quy định tạm thời về hàm lượng dầu cho phép
+trong nước thải và trong mùn khoan áp dụng cho các công trình dầu khí
+hoạt động tại vùng biển Việt Nam, ban hành kèm theo Quyết định số
+3951/1998/QĐ-BKHCNMT ngày 10 tháng 4 năm 1998 của Bộ Khoa học, Công nghệ
+và Môi trường về việc ban hành Quy chế bảo vệ môi trường trong việc tìm
+kiếm, thăm dò, phát triển mỏ, khai thác, tàng trữ, vận chuyển, chế biến
+dầu khí và các dịch vụ liên quan.
+
+4.2. Cơ quan quản lý nhà nước về môi trường có trách nhiệm hướng dẫn,
+kiểm tra, giám sát việc thực hiện Quy chuẩn này.
+
+4.3. Trường hợp tiêu chuẩn quốc gia viện dẫn trong quy chuẩn này có sửa
+đổi, bổ sung hoặc thay thế thì áp dụng theo văn bản mới.
+
++-----------------------------------------------------------------------+
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM                                    |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QCVN 36 : 2010/BTNMT                                                  |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ DUNG DỊCH KHOAN VÀ MÙN KHOAN THẢI TỪ   |
+| CÁC CÔNG TRÌNH DẦU KHÍ TRÊN BIỂN                                      |
+|                                                                       |
+| National technical Regulation on Discharge of Drilling Fluids and     |
+| Drilling Cuttings for Offshore Oil and Gas Facilities                 |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+|                                                                       |
+| Hà Nội - 2010                                                         |
+|                                                                       |
+|                                                                       |
++=======================================================================+
++-----------------------------------------------------------------------+
+
+Lời nói đầu
+
+QCVN 36:2010/BTNMT do Ban soạn thảo quy chuẩn kỹ thuật quốc gia về chất
+lượng nước biên soạn, Tổng cục Môi trường, Vụ Khoa học và Công nghệ, Vụ
+Pháp chế trình duyệt và được ban hành theo Thông tư số 42/2010/TT-BTNMT
+ngày 29 tháng 12 năm 2010 của Bộ trưởng Bộ Tài nguyên và Môi trường.
+
+QUY CHUẨN KỸ THUẬT QUỐC GIA VỀ DUNG DỊCH KHOAN VÀ MÙN KHOAN THẢI TỪ CÁC
+CÔNG TRÌNH DẦU KHÍ TRÊN BIỂN
+
+National technical Regulation on Discharge of Drilling Fluids and
+Drilling Cuttings for Offshore Oil and Gas Facilities
+
+1. QUY ĐỊNH CHUNG
+
+1.1. Phạm vi điều chỉnh
+
+Quy chuẩn này quy định các thông số cơ bản liên quan đến môi trường của
+dung dịch khoan được phép sử dụng và giá trị tối đa cho phép của dung
+dịch nền bám dính trong mùn khoan khi thải xuống biển từ các công trình
+thăm dò, khai thác dầu khí.
+
+1.2. Đối tượng áp dụng
+
+Quy chuẩn này áp dụng đối với tổ chức, cá nhân liên quan đến hoạt động
+thải dung dịch khoan và mùn khoan từ các hoạt động thăm dò, khai thác
+dầu khí xuống vùng biển thuộc chủ quyền Việt Nam.
+
+1.3. Giải thích thuật ngữ
+
+Trong Quy chuẩn này, các thuật ngữ dưới đây được hiểu như sau:
+
+1.3.1. Dung dịch nền là dầu khoáng, dầu khoáng tinh luyện hoặc dầu tổng
+hợp được sử dụng làm pha liên tục để pha chế dung dịch khoan nền không
+nước.
+
+1.3.2. Dung dịch khoan là dung dịch tuần hoàn được sử dụng trong quá
+trình khoan thăm dò và khai thác dầu khí để đưa mùn khoan lên khỏi giếng
+khoan và cân bằng áp suất trong giếng khoan, làm mát và bôi trơn mũi
+khoan, truyền năng lượng thuỷ lực đến mũi khoan, trám kín các chỗ thấm
+và bảo trì thành giếng.
+
+1.3.2.1 Dung dịch khoan nền nước (Water – Based Drilling Fluids - WBDF)
+là dung dịch khoan sử dụng nước làm pha liên tục và một số phụ gia khác.
+
+1.3.2.2. Dung dịch khoan nền không nước (Non – Aqueous Drilling Fluids -
+NADF) là dung dịch khoan sử dụng dung dịch nền làm pha liên tục và một
+số phụ gia khác.
+
+1.3.3. Mùn khoan là hỗn hợp các mảnh vụn đất đá được mang tên khỏi giếng
+khoan cùng với dung dịch khoan.
+
+2. QUY ĐỊNH KỸ THUẬT
+
+2.1. Quy định về mùn khoan và dung dịch khoan nền nước
+
+2.1.1. Dung dịch khoan nền nước được phép sử dụng trong hoạt động thăm
+dò và khai thác dầu khí trên vùng biển Việt Nam khi giá trị của Thuỷ
+ngân và Cadimi trong Barit dùng để pha dung dịch khoan không vượt quá
+giá trị tối đa cho phép quy định tại Bảng 1.
+
+Bảng 1: Giá trị tối đa cho phép của Hg và Cd trong Barit
+
+  ------------------------------------------------------------------------
+  STT   Thông số                   Đơn vị                   Giá trị tối đa
+  ----- -------------------------- ------------------------ --------------
+  1     Thủy ngân (Hg)             mg/kg trọng lượng khô    1,0
+
+  2     Cadimi (Cd)                mg/kg trọng lượng khô    3,0
+  ------------------------------------------------------------------------
+
+2.1.2. Mùn khoan và dung dịch khoan nền nước sau khi sử dụng trong hoạt
+động thăm dò, khai thác dầu khí được phép thải xuống vùng biển cách bờ
+(đất liền), ranh giới khu vực nuôi trồng thuỷ sản, khu bảo vệ thủy sinh
+và khu vui chơi giải trí dưới nước lớn hơn 03 (ba) hải lý.
+
+22. Quy định về mùn khoan và dung dịch khoan nền không nước
+
+2.2.1. Dung dịch khoan nền không nước chỉ được phép sử dụng trong hoạt
+động thăm dò và khai thác dầu khí khi được cơ quan quản lý nhà nước về
+môi trường có thẩm quyền cấp phép đối với từng dự án, công trình khai
+thác cụ thể. Nghiêm cấm sử dụng dung dịch khoan nền dầu diesel trong
+hoạt động thăm dò và khai thác dầu khí tại vùng biển thuộc chủ quyền
+Việt Nam.
+
+2.2.2. Dung dịch khoan nền không nước được cấp phép sử dụng phải thỏa
+mãn các yêu cầu sau:
+
+2.2.2.1. Giá trị của Thủy ngân, Cadimi trong Barit và PAHs trong dung
+dịch nền dùng để pha dung dịch khoan nền không nước không vượt quá giá
+trị tối đa cho phép quy định tại Bảng 2.
+
+Bảng 2: Giá trị tối đa cho phép của Hg, Cd trong Barit và PAHs trong
+dung dịch nền dùng để pha dung dịch khoan nền không nước
+
+  ------------------------------------------------------------------------
+  STT   Thông số                             Đơn vị         Giá trị tối đa
+  ----- ------------------------------------ -------------- --------------
+  1     Hàm lượng Thủy ngân (Hg) trong Barit mg/kg trọng    1,0
+                                             lượng khô      
+
+  2     Hàm lượng Cadimi (Cd) trong Barit    mg/kg trọng    3,0
+                                             lượng khô      
+
+  3     Hàm lượng PAHs (Polycyclic Aromatic  mg/kg          10
+        Hydrocarbons) trong dung dịch nền                   
+  ------------------------------------------------------------------------
+
+2.2.2.2. Dung dịch khoan nền không nước phải thử độc độc trầm tích và
+khả năng phân rã sinh học.
+
+Độ độc trầm tích: Liều lượng gây tử vong 50% sinh vật thí nghiệm là Vẹm
+xanh trong 96 giờ (LC50) của dung dịch khoan nền không nước phải lớn hơn
+giá trị tương ứng của dung dịch chuẩn dùng để đối chứng là Internal
+Olefin C16-C18.
+
+Khả năng phân rã sinh học của dung dịch khoan nền không nước phải lớn
+hơn giá trị tương ứng của dung dịch chuẩn dùng để đối chứng là Internal
+Olefin C16-C18.
+
+2.2.3. Cấm thải dung dịch khoan nền không nước xuống vùng biển thuộc chủ
+quyền Việt Nam.
+
+2.2.4. Mùn khoan phát sinh trong hoạt động thăm dò, khai thác dầu khí sử
+dụng dung dịch khoan nền không nước chỉ được phép thải xuống biển khi
+thỏa mãn các yêu cầu sau:
+
+- Hàm lượng dung dịch nền của dung dịch khoan nền không nước có trong
+mùn khoan thải không vượt quá 9,5% tính theo trọng lượng ướt .
+
+- Vị trí thải cách bờ, ranh giới khu vực nuôi trồng thủy sản, khu bảo vệ
+thủy sinh và khu vui chơi giải trí dưới nước lớn hơn 12 (mười hai) hải
+lý.
+
+3. PHƯƠNG PHÁP XÁC ĐỊNH
+
+3.1. Phương pháp xác định thực hiện theo các tiêu chuẩn sau đây:
+
+- TCVN 5070:1995 – Chất lượng nước – Phương pháp khối lượng xác định dầu
+mỏ và sản phẩm dầu mỏ;
+
+- TCVN 6496:2009 – Chất lượng đất – Xác định Cadimi, Crom, Coban, Đồng,
+Chì, Kẽm, Mangan, Niken trong dịch chiết bằng cường thuỷ - Phương pháp
+phổ hấp thụ ngọn lửa và không ngọn lửa;
+
+- EPA Method 1654A: PAH Content of Oil by High Performance liquid
+Chromatography with a UV Detector;
+
+- Protocol for the determination of degradation of NAFs in a marine
+closed bottle test system: Modifield ISO 11734;
+
+- ISO 11734: Water quality – Evaluation of the – “ultimate” anaerobic
+biodegradability of organic compounds in digested sludge – Method by
+measurement of the biogas production;
+
+- Quy trình thử nghiệm độ độc trầm tích (LC50) theo hướng dẫn của phương
+pháp ATM E1367 – 99 (Standard Guide for Conducting 10-day Static
+Sediment Toxicity with Marine and Estuarine Amphipods) cải biên, thực
+hiện trên Vẹm xanh (Perna viridis) trong 96 giờ;
+
+3.2. Chấp nhận áp dụng các phương pháp xác định theo những tiêu chuẩn
+quốc gia và quốc tế có độ chính xác tương đương hoặc cao hơn tiêu chuẩn
+quy định tại mục 3.1.
+
+4. TỔ CHỨC THỰC HIỆN
+
+4.1. Quy chuẩn này thay thế Quy định tạm thời về hàm lượng dầu cho phép
+trong nước thải và trong mùn khoan áp dụng cho các công trình dầu khí
+hoạt động tại vùng biển Việt Nam, ban hành kèm theo Quyết định số
+395/1998/QĐ-BKTCNMT ngày 10 tháng 4 năm 1998 của Bộ Khoa học, Công nghệ
+và Môi trường về việc ban hành Quy chế bảo vệ môi trường trong việc tìm
+kiếm, thăm dò, phát triển mỏ, khai thác, tàng trữ, vận chuyển, chế biến
+dầu khí và các dịch vụ liên quan.
+
+4.2. Cơ quan quản lý nhà nước về môi trường có trách nhiệm hướng dẫn,
+kiểm tra, giám sát việc thực hiện Quy chuẩn này.
+
+4.3. Trường hợp các tiêu chuẩn về phương pháp xác định viện dẫn trong
+Quy chuẩn này có sửa đổi, bổ sung hoặc thay thế thì áp dụng theo tiêu
+chuẩn mới.

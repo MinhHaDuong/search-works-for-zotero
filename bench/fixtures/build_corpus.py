@@ -80,21 +80,190 @@ DOCS = [
             "in mathematical passages (period typeface); prose passages are legible."
         ),
     },
+    # Soddy 1926 "Wealth, Virtual Wealth and Debt" was dropped from this
+    # corpus (was here in the first assembly pass): the only attachment
+    # found, in the author's library and re-checked via an independent
+    # archive.org upload, is a scan of the 1983 George Allen & Unwin
+    # REPRINT ("1983 reprint" appears in the PDF's own embedded metadata),
+    # not the 1926 original. A reprint edition can carry its own separate
+    # copyright over its specific typesetting even when the underlying text
+    # is public domain -- exactly the Dover-reissue risk. No verified
+    # original-edition scan turned up in the time available; if one is
+    # found later, this is the slot to re-add it to.
     {
-        "id": "soddy-1926-wealth-virtual-wealth-and-debt",
-        "title": "Wealth, Virtual Wealth and Debt: The Solution of the Economic Paradox",
-        "author": "Frederick Soddy",
+        "id": "malynes-1622-lex-mercatoria-extrait",
+        "title": "Consuetudo, vel Lex Mercatoria, or The Ancient Law-Merchant (excerpt: Of Exchanges)",
+        "author": "Gerard de Malynes",
+        "year": 1622,
+        "language": "en",
+        "facet": "core",
+        "zotero_item_key": "DPJEV5DK",
+        "zotero_attachment_key": "AHXHAQZ3",
+        "source": "scanned attachment in the author's Zotero library",
+        "license_basis": (
+            "Public domain everywhere: published 1622, author died c. 1641 "
+            "(life+70 expired centuries ago); clear under any reading."
+        ),
+        "notes": (
+            "A 45-page excerpt of the full work (the chapter on foreign "
+            "exchange), not the complete c. 500-page treatise -- title "
+            "reflects that. Early-modern typography (long s, black-letter "
+            "passages) makes for noisier OCR than the 18th/19th-century items."
+        ),
+    },
+    {
+        "id": "ramsey-1926-truth-and-probability",
+        "title": 'Truth and Probability',
+        "author": "Frank P. Ramsey",
         "year": 1926,
         "language": "en",
         "facet": "core",
-        "zotero_item_key": "QTXB5WHP",
-        "zotero_attachment_key": "M42ES9TQ",
+        "zotero_item_key": "X2T4QRRG",
+        "zotero_attachment_key": "E72C73RG",
         "source": "scanned attachment in the author's Zotero library",
         "license_basis": (
-            "Public domain in the US: published 1926, pre-1931 bright-line. "
-            "UK/EU term (life+70; Soddy died 1956) runs to 31 Dec 2026 -- note this "
-            "if the corpus is ever redistributed under UK/EU law specifically."
+            "Public domain everywhere: author died 1930 (life+70 expired "
+            "2000). NOT via the pre-1931 US bright-line -- the essay was "
+            "written in 1926 but only published posthumously in 1931, in "
+            "Ramsey's Foundations of Mathematics, so the publication date "
+            "sits right on the wrong side of that heuristic. Age (life+70) "
+            "carries this one instead, cleanly."
         ),
+        "notes": (
+            "The committed file's own first page identifies itself as an "
+            "'Electronic Edition... adapted from Chapter VII' of the 1931 "
+            "posthumous collection -- a transcription prepared for open "
+            "teaching use, not a scan of the original book. Read as a "
+            "faithful reproduction (no added commentary found), but flagged "
+            "since it isn't a facsimile like the rest of this corpus."
+        ),
+    },
+    {
+        "id": "porte-1770-science-des-negocians",
+        "title": "La Science des négocians et teneurs de livres",
+        "author": "Mathieu de La Porte",
+        "year": 1770,
+        "language": "fr",
+        "facet": "core",
+        "zotero_item_key": "UUU5NQ2D",
+        "zotero_attachment_key": "43IKDWRP",
+        "source": "Internet Archive digitization",
+        "license_basis": (
+            "Public domain everywhere: published 1770, author died 18th "
+            "century (exact date unattested but centuries past life+70 "
+            "under any reading); clear under the US bright-line too."
+        ),
+        "notes": (
+            "788 pages -- a bookkeeping/accounting manual, not economic "
+            "theory: genre variety against the Cournot/Walras value-theory "
+            "pair, and currently the longest single document in the corpus."
+        ),
+    },
+    {
+        "id": "depitre-1908-oeuvres-cournot",
+        "title": "Note sur les œuvres économiques d'Augustin Cournot",
+        "author": "Edgard Depitre",
+        "year": 1908,
+        "language": "fr",
+        "facet": "core",
+        "zotero_item_key": "UKVXPC5P",
+        "zotero_attachment_key": "E6I9MXB3",
+        "source": "scanned attachment in the author's Zotero library",
+        "license_basis": (
+            "Public domain everywhere: published 1908, pre-1931 US "
+            "bright-line; author's dates place life+70 long expired too."
+        ),
+        "notes": "10-page journal article -- historiography of Cournot, a genre this corpus otherwise lacks entirely.",
+    },
+    {
+        "id": "minkowski-1896-geometrie-der-zahlen",
+        "title": "Geometrie der Zahlen",
+        "author": "Hermann Minkowski",
+        "year": 1896,
+        "language": "de",
+        "facet": "core",
+        "tier": "SHOULD",
+        "zotero_item_key": "4574EQ7I",
+        "zotero_attachment_key": "CK7UC6EI",
+        "source": "Internet Archive digitization",
+        "license_basis": (
+            "Public domain everywhere: Minkowski died 1909 (life+70 "
+            "expired 1979); the digitized copy is the 1910 second printing, "
+            "still within his lifetime's copyright term either way, and "
+            "pre-1931 under the US bright-line regardless of printing."
+        ),
+        "notes": (
+            "274 pages of pure mathematics (number theory), not economics "
+            "at all -- deliberately off-topic within the German slot, "
+            "useful for testing that unrelated-subject documents don't "
+            "falsely dominate an economics query."
+        ),
+    },
+    # Westergaard 1890 was considered (a single-page excerpt) but dropped:
+    # its Zotero attachment is tagged contentType application/pdf but is
+    # actually a raw JPEG (magic bytes ffd8ffe0) -- a mislabeled image, not
+    # a PDF. Caught by fetch_attachment's magic-byte check. Not worth
+    # building one-off image-OCR handling for a single marginal page.
+    {
+        "id": "vn-circular-41-2010-btnmt-emissions",
+        "title": "Thông tư 41/2010/TT-BTNMT quy chuẩn kỹ thuật quốc gia về khí thải lò đốt chất thải công nghiệp",
+        "author": "Bộ Tài nguyên và Môi trường (Ministry of Natural Resources and Environment of Vietnam)",
+        "year": 2010,
+        "language": "vi",
+        "facet": "core",
+        "zotero_item_key": "KDED28A7",
+        "zotero_attachment_key": "GFBQ4ISC",
+        "attachment_format": "docx",
+        "source": "scanned/digital attachment in the author's Zotero library",
+        "license_basis": (
+            "Public domain under Vietnamese law: Luật Sở hữu trí tuệ, "
+            "Article 15.2 -- a Circular issued by a ministry is a legal "
+            "normative document, excluded from copyright protection."
+        ),
+        "notes": (
+            "Ministry of Natural Resources and Environment (MONRE), not "
+            "Industry and Trade (BCT) like the other VI documents here -- "
+            "agency and topic variety (industrial-emissions technical "
+            "standards, not energy-market regulation)."
+        ),
+    },
+    {
+        "id": "vn-circular-42-2010-btnmt-emissions",
+        "title": "Thông tư 42/2010/TT-BTNMT quy chuẩn kỹ thuật quốc gia về môi trường",
+        "author": "Bộ Tài nguyên và Môi trường (Ministry of Natural Resources and Environment of Vietnam)",
+        "year": 2010,
+        "language": "vi",
+        "facet": "core",
+        "zotero_item_key": "VY23EJ37",
+        "zotero_attachment_key": "JU8GBECQ",
+        "attachment_format": "docx",
+        "source": "scanned/digital attachment in the author's Zotero library",
+        "license_basis": (
+            "Public domain under Vietnamese law: Luật Sở hữu trí tuệ, "
+            "Article 15.2 -- a Circular issued by a ministry is a legal "
+            "normative document, excluded from copyright protection."
+        ),
+        "notes": "Companion MONRE circular to 41/2010, same agency and topic class.",
+    },
+    {
+        "id": "ha-duong-2005-modeles-de-precaution-hdr",
+        "title": "Modèles de précaution en économie : introduction aux probabilités imprécises",
+        "author": "Minh Ha-Duong",
+        "year": 2005,
+        "language": "fr",
+        "facet": "core",
+        "source_url": "https://minh.haduong.com/files/HaDuong-20051223-ModelesDePrecautionEnEconomieIntroductionAuxProbabilitesImprecises.pdf",
+        "source": "the author's own homepage (minh.haduong.com)",
+        "license_basis": (
+            "Author-owned, not public domain: this is Minh Ha-Duong's own "
+            "Habilitation à diriger des recherches (HDR), and he is this "
+            "corpus's commissioning author -- he holds copyright and "
+            "authorized its inclusion directly (2026-09-01). Recorded here "
+            "as a distinct basis from the public-domain items above, since "
+            "it rests on the rightsholder's own permission rather than "
+            "expired or excluded copyright."
+        ),
+        "notes": "His PhD thesis (1998, EHESS) was requested alongside this but is not yet included -- see MANIFEST.md.",
     },
     {
         "id": "neurath-1919-durch-die-kriegswirtschaft",
@@ -200,16 +369,42 @@ def _download_atomic(
     os.replace(tmp, dest)
 
 
-def fetch_pdf(attachment_key: str, cache_dir: Path, timeout: float) -> Path:
-    dest = cache_dir / f"{attachment_key}.pdf"
+def fetch_attachment(doc: dict, cache_dir: Path, timeout: float) -> Path:
+    """Fetch a document's source file -- a Zotero attachment by key, or a
+    direct URL for a document that isn't in Zotero at all (e.g. a PDF
+    hosted on the author's own homepage). PDF and DOCX are the two formats
+    DOCS uses; each gets its own magic-byte check (DOCX is a zip archive,
+    so `PK`) and size floor."""
+    fmt = doc.get("attachment_format", "pdf")
+    magic = {"pdf": b"%PDF", "docx": b"PK"}[fmt]
+    min_size = {"pdf": 1_000, "docx": 5_000}[fmt]
+    if "zotero_attachment_key" in doc:
+        key = doc["zotero_attachment_key"]
+        dest = cache_dir / f"{key}.{fmt}"
+        url = ZOTERO_FILE_URL.format(key=key)
+    else:
+        url = doc["source_url"]
+        dest = cache_dir / f"{doc['id']}.{fmt}"
     if dest.exists():
         return dest
-    url = ZOTERO_FILE_URL.format(key=attachment_key)
     log.info("fetching %s", url)
-    # 1 KB floor: PDF structural overhead (xref table, trailer, at least one
-    # object) puts even a near-empty real PDF above this.
-    _download_atomic(url, dest, timeout, magic=b"%PDF", min_size=1_000)
+    _download_atomic(url, dest, timeout, magic=magic, min_size=min_size)
     return dest
+
+
+def extract_docx_text(docx_path: Path) -> str:
+    """DOCX has no fixed print pagination the way a scanned PDF's original
+    artifact does -- a docx->pdf conversion's page breaks are the renderer's
+    opinion, not the source's. Extract with pandoc and treat the whole
+    document as one page (no \\f) rather than manufacture a fake one.
+    (soffice --headless --convert-to pdf was tried first and used for the
+    docx->pdf route; it failed outright on one of the two docx sources here
+    with 'source file could not be loaded' while pandoc extracted both
+    cleanly, so pandoc is the primary path, not a fallback.)"""
+    result = subprocess.run(["pandoc", "-t", "plain", str(docx_path)], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise SystemExit(f"pandoc failed on {docx_path} (exit {result.returncode}): {result.stderr.strip()}")
+    return result.stdout
 
 
 def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
@@ -261,7 +456,10 @@ def ocr_pdf(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
     return "\f".join(chunks) + "\f"
 
 
-def extract_text(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
+def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt: str = "pdf") -> str:
+    if fmt == "docx":
+        return unicodedata.normalize("NFC", extract_docx_text(src_path))
+    pdf_path = src_path
     result = subprocess.run(["pdftotext", str(pdf_path), "-"], capture_output=True, text=True)
     if result.returncode != 0:
         raise SystemExit(f"pdftotext failed on {pdf_path} (exit {result.returncode}): {result.stderr.strip()}")
@@ -286,8 +484,9 @@ def extract_text(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> 
 
 
 def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict:
-    pdf_path = fetch_pdf(doc["zotero_attachment_key"], cache_dir, timeout)
-    text = extract_text(pdf_path, doc["language"], cache_dir, timeout)
+    src_path = fetch_attachment(doc, cache_dir, timeout)
+    fmt = doc.get("attachment_format", "pdf")
+    text = extract_text(src_path, doc["language"], cache_dir, timeout, fmt=fmt)
 
     doc_dir = out_dir / doc["facet"] / doc["language"] / doc["id"]
     doc_dir.mkdir(parents=True, exist_ok=True)
@@ -303,13 +502,15 @@ def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict
     meta.update(
         {
             "text_path": str(text_path.relative_to(out_dir.parent)),
-            # The Zotero attachment behind zotero_attachment_key is a live,
-            # mutable source -- someone could replace it with a different
+            # The source (a Zotero attachment, or a direct URL) is a live,
+            # mutable location -- someone could replace it with a different
             # scan or a correction. This hash is recorded so a future re-run
-            # that gets a different PDF surfaces as a manifest diff (a
+            # that gets different bytes surfaces as a manifest diff (a
             # committed-text change with no corresponding DOCS edit) rather
             # than silently overwriting "reproducible" text with new content.
-            "source_pdf_sha256": hashlib.sha256(pdf_path.read_bytes()).hexdigest(),
+            # Hashed on the fetched source file, not the docx->pdf conversion
+            # output, so it tracks what was actually fetched from the source.
+            "source_attachment_sha256": hashlib.sha256(src_path.read_bytes()).hexdigest(),
             "page_count": len(pages),
             "char_count": len(text),
             "page_length_chars_min": min(page_lengths),
@@ -320,7 +521,7 @@ def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict
 
     if "cross_lingual_pair" in doc:
         pair = doc["cross_lingual_pair"]
-        pair_pdf = fetch_pdf(pair["zotero_attachment_key"], cache_dir, timeout)
+        pair_pdf = fetch_attachment(pair, cache_dir, timeout)
         pair_text = extract_text(pair_pdf, pair["language"], cache_dir, timeout)
         pair_text_path = doc_dir / "cross-lingual-reference-en.txt"
         pair_text_path.write_text(pair_text, encoding="utf-8")
