@@ -8,10 +8,20 @@ plus its manifest.json. Every document is picked for a documented public-domain
 basis -- see MANIFEST.md for the selection rationale and what's still missing.
 
 Re-run this to refresh the corpus (e.g. after DOCS gains an entry). Raw PDFs
-and OCR language data are cached under bench/fixtures/.cache/ (gitignored) so
-a re-run does not re-fetch or re-download tessdata unless the cache is cleared.
+and OCR language data are cached under corpus-cache/ at the repo root
+(gitignored, same convention as fork/ and upstream.git/) so a re-run does not
+re-fetch or re-download tessdata unless the cache is cleared.
+
+Reproducibility is contingent, not guaranteed: each attachment is fetched by
+Zotero item/attachment key from a live, mutable library. If the author
+replaces an attachment (a corrected scan, a different edition), a re-run
+against a cleared cache will fetch different bytes and commit different
+text under the same doc id. `source_pdf_sha256` in manifest.json exists to
+make that visible -- a re-run whose hash for an id changed is a signal to
+review the diff before trusting it, not proof nothing changed.
 """
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -161,15 +171,31 @@ DOCS = [
 ]
 
 
+def _download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None = None) -> None:
+    """Fetch `url` to `dest` via a temp file + rename, so a mid-transfer
+    failure (network drop, timeout) never leaves a truncated file sitting at
+    `dest` for a later run to trust unconditionally. `magic`, if given, is
+    checked against the first bytes before the rename -- a short or corrupt
+    response fails loudly here rather than silently poisoning the cache."""
+    tmp = dest.with_suffix(dest.suffix + ".partial")
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req, timeout=timeout) as resp, open(tmp, "wb") as fh:
+        shutil.copyfileobj(resp, fh)
+    if magic is not None:
+        head = tmp.read_bytes()[: len(magic)]
+        if head != magic:
+            tmp.unlink()
+            raise SystemExit(f"{url}: expected {magic!r} at file start, got {head!r} -- download corrupt")
+    os.replace(tmp, dest)
+
+
 def fetch_pdf(attachment_key: str, cache_dir: Path, timeout: float) -> Path:
     dest = cache_dir / f"{attachment_key}.pdf"
     if dest.exists():
         return dest
     url = ZOTERO_FILE_URL.format(key=attachment_key)
     log.info("fetching %s", url)
-    req = urllib.request.Request(url)
-    with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest, "wb") as fh:
-        shutil.copyfileobj(resp, fh)
+    _download_atomic(url, dest, timeout, magic=b"%PDF")
     return dest
 
 
@@ -187,9 +213,7 @@ def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
     if not dest.exists():
         url = TESSDATA_FAST_URL.format(lang=tess_lang)
         log.info("fetching tessdata for %r (not in system tesseract) from %s", tess_lang, url)
-        req = urllib.request.Request(url)
-        with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest, "wb") as fh:
-            shutil.copyfileobj(resp, fh)
+        _download_atomic(url, dest, timeout)
     return local
 
 
@@ -212,14 +236,20 @@ def ocr_pdf(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
             text=True,
             env={**os.environ, **env},
         )
+        if result.returncode != 0:
+            raise SystemExit(
+                f"tesseract failed on {png} (exit {result.returncode}): {result.stderr.strip()}"
+            )
         chunks.append(result.stdout)
     return "\f".join(chunks) + "\f"
 
 
 def extract_text(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> str:
     result = subprocess.run(["pdftotext", str(pdf_path), "-"], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise SystemExit(f"pdftotext failed on {pdf_path} (exit {result.returncode}): {result.stderr.strip()}")
     text = result.stdout
-    pages = [p for p in text.split("\f") if p or True]
+    pages = text.split("\f")
     if pages and pages[-1] == "":
         pages = pages[:-1]
     density = len(text) / max(len(pages), 1)
@@ -252,6 +282,13 @@ def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict
     meta.update(
         {
             "text_path": str(text_path.relative_to(out_dir.parent)),
+            # The Zotero attachment behind zotero_attachment_key is a live,
+            # mutable source -- someone could replace it with a different
+            # scan or a correction. This hash is recorded so a future re-run
+            # that gets a different PDF surfaces as a manifest diff (a
+            # committed-text change with no corresponding DOCS edit) rather
+            # than silently overwriting "reproducible" text with new content.
+            "source_pdf_sha256": hashlib.sha256(pdf_path.read_bytes()).hexdigest(),
             "page_count": len(pages),
             "char_count": len(text),
             "page_length_chars_min": min(page_lengths),
