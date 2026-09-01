@@ -7,6 +7,9 @@ Author: minh
 2026-09-01T16:30Z claude created, child of 0550
 
 2026-09-01T13:18Z MinhHaDuong note blocker 0552 closed — Blocked-by removed.
+2026-09-01T13:57Z claude note tranche 3 landed on fork branch tranche-3-extract-shim at e8784df (MinhHaDuong/zoteus); three commits — the shim, the suite, run-to-drain. 1067 tests green, tsc clean, eslint clean.
+2026-09-01T13:57Z claude note constants disclosed as arbitrations, not measurements: the ruling declined a measurement, so PACE_WINDOW 8, PACE_DEGRADED_RATIO 2, PACE_DEGRADED_FLOOR_MS 50 and PACE_STEP_MS 250 are chosen and documented as such in fetch-pacer.ts. Only PACE_CEILING_MS 8000 is derived — below the row-claim TTL of 30x the ~1 s quantum, since a pacing delay long enough to expire the claim would duplicate the fetch it was slowing down.
+2026-09-01T13:57Z claude note scope: the pipe is not built. The worker runs in-process behind ExtractDispatcher, which is where the process boundary falls — what crosses it is already an assignment and a result. Windows have no consumer until the segmenter exists (tranche 4, blocked on 0556), and a pipe protocol written against no consumer would claim the design was built. Also deferred: re-enqueueing the rows staleExtracts() finds, which needs a conductor-side sweep rather than a query.
 --- body ---
 ## Context
 
@@ -41,14 +44,37 @@ and arrives here for free.
 
 ## Verification
 
-- [ ] Per item, nothing has body text extracted before its record
-      bookkeeping exists (class order, per SPEC's per-item assertion)
-- [ ] Worker exits on stdin EOF and on lease-holder mismatch
+- [x] Per item, nothing has body text extracted before its record
+      bookkeeping exists (class order, per SPEC's per-item assertion).
+      `Ledger.nextExtractOrder`'s NOT EXISTS clause; asserted over a
+      whole interleaved run in `conductor-extract.test.ts`, where
+      records are completed one at a time while the worker drains.
+      Deleting the clause turns that assertion into 22 violations,
+      which is how we know it is looking rather than passing vacuously.
+- [x] Worker exits on stdin EOF and on lease-holder mismatch. Both
+      through tranche 2's `WorkerOrphanGuard`, not re-implemented; with
+      the control arm (parented and leased, it drains all five) and the
+      lease case asserted with the pipe still open, which is the half
+      the pipe cannot see.
 
 ## Invariants
 
 - Politeness constraints (web transport) untouched; upstream tests green.
+  Held: the only `src/api/` change is one added method on the LOCAL
+  client, `fetchFullTextStream`, and it goes through the same
+  `RateLimitedFetcher` and its four-slot semaphore as every other read.
+  Nothing under the web transport was touched. 1067 tests pass, `tsc`
+  and `eslint` clean.
 
 ## Exit criteria
 
-- [ ] Extract stage merged on a fork branch, back-off test green
+- [x] Extract stage merged on a fork branch, back-off test green.
+      `tranche-3-extract-shim` at `e8784df` on MinhHaDuong/zoteus,
+      branched from `tranche-2-conductor-election` as the tranche
+      branches accumulate. Read "merged on a fork branch" as tranches 1
+      and 2 were: the tranche branch is where the work lands, and no
+      tranche branch has been merged to the fork's own main.
+      `conductor-extract-backoff.test.ts` is green, and its floor arm
+      was re-cut after the first draft proved undiscriminating — a flat
+      slow library never trips the ratio either, so that arm would have
+      passed with the floor deleted.
