@@ -4,8 +4,8 @@ Created: 2026-08-30
 Author: Minh Ha-Duong
 
 --- log ---
-2026-08-30T15:55Z Minh Ha-Duong created
-2026-08-30T15:56Z claude note filed on the author's ruling in the batched round: the adopt-a-foreign-index ratification HOLDS until this measures. The 0,999 bar is a field-borrowed vector-compatibility proxy; whether failing it at 0,97-0,998 costs any task recall has never been measured, and this repo's own history (the truncation priced at 22 points by a self-referential metric and 4,8 % by the task metric) says the proxy can be off by an order of magnitude in either direction.
+2026-08-30T13:46Z Minh Ha-Duong created
+2026-08-30T13:46Z claude note filed on the author's ruling in the batched round: the adopt-a-foreign-index ratification HOLDS until this measures. The 0,999 bar is a field-borrowed vector-compatibility proxy; whether failing it at 0,97-0,998 costs any task recall has never been measured, and this repo's own history (the truncation priced at 22 points by a self-referential metric and 4,8 % by the task metric) says the proxy can be off by an order of magnitude in either direction.
 
 2026-08-30T19:49Z claude note ticket 0497 (portable corpus format) is Blocked-by this ticket, and the dependency is substantive: the author's calibration-header proposal of 2026-08-30 (spec/DECISIONS.md, awaiting ratification) makes every vector file certify its own chain, and what 0485 measures -- whether cosine tracks task recall -- decides what that header is compared ON, hence what the file's manifest must store. Two cells of the X8 artifact carry the argument and are now quoted and figure-declared in the ledger entry: multilingual-e5-base reaches a minimum cosine of 0,999974 at fp32, so fp32 is cross-provider compatible WITHOUT being bit-identical and a hash over a header would false-positive; and granite-97m-multilingual-r2 at q8 clears the bar while keeping 0,4164 of its top-30 overlap, which is this ticket's hypothesis already visible in the committed artifact
 --- body ---

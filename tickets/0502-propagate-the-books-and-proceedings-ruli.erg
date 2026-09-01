@@ -4,9 +4,9 @@ Created: 2026-08-31
 Author: claude
 
 --- log ---
-2026-08-31T15:41Z claude created
+2026-08-31T15:38Z claude created
 
-2026-08-31T15:41Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
+2026-08-31T15:38Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
 
 2026-09-01T14:22Z claude bump circuit-breaker — execute agent (adc3d0972dc23c4c8) stalled in a bash sleep loop after its own 5-dimension review batch completed; killed after confirming clean worktree (nothing to salvage, PR #157 branch t0502-books-proceedings-ruling already had everything it pushed). Review findings posted to PR #157 as a comment instead of being lost with the agent
 --- body ---

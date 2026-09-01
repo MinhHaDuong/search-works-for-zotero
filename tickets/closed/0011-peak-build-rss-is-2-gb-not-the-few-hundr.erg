@@ -7,7 +7,7 @@ Closed: autoclosed — PR #3
 --- log ---
 2026-08-21T19:25Z minh created
 2026-08-22T04:40Z claude note cause isolated: capping chars at 2M truncates only the dictionary and cuts peak build RSS 2 085 -> 404 MiB, a 5,2x reduction
-2026-08-22T00:35Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
+2026-08-21T22:09Z claude note closed: cause isolated to one document, 5,2x reduction available, author decided no default cap; third build reproduces the peak
 
 2026-08-21T22:40Z bump verify-reroll — round 1: third-build figures had no committed artifact; committed and citation corrected
 2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3

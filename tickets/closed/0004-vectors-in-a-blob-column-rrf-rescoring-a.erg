@@ -7,8 +7,8 @@ Closed: autoclosed — PR #1
 --- log ---
 2026-08-21T13:48Z minh created
 2026-08-21T15:47Z claude note planned against 0002's PassageStore port: vectors join the port rather than a parallel store, so one seam carries both rankings
-2026-08-21T19:10Z minh decided sqlite-vec ruling reversed -- it rested on a false premise; embedding stays in embeddings.ts
-2026-08-21T20:50Z claude note implemented and verified: 652 passed 7 skipped, tsc and eslint clean; direction guard sabotage-checked
+2026-08-21T16:49Z minh decided sqlite-vec ruling reversed -- it rested on a false premise; embedding stays in embeddings.ts
+2026-08-21T17:43Z claude note implemented and verified: 652 passed 7 skipped, tsc and eslint clean; direction guard sabotage-checked
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0003 closed — Blocked-by removed.
 2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1

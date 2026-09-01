@@ -3,11 +3,14 @@ Title: Hand-written log stamps: 41 of 131 ticket logs are non-monotone
 Created: 2026-09-01
 Author: claude
 Label: needs-human
+Closed: rule ruled, corpus swept, guard in make check
 
 --- log ---
 2026-09-01T18:51Z claude created
 
 2026-09-01T18:52Z Claude label needs-human
+2026-09-01T19:25Z claude note SWEPT AND GUARDED under rule (a), ruled the same day. 169 stamps corrected in 68 tickets; the guard reads 723 log entries across 132 tickets and is green. Two things the work turned up that the filing did not know. (1) The corrected count is 169, not the 37 non-monotone logs this ticket was filed on: monotonicity and this rule select different sets — a log can read forwards and still carry a stamp from the future, and 14 logs read backwards while carrying none. (2) `git log --follow --name-only` does not list merge commits, so a line introduced by a conflict resolution is invisible to a history walk; 0320:14 was found only because the standing guard reads `git blame`, which sees it. The sweep script was a one-off and is not committed — the guard plus this note is the durable half
+2026-09-01T19:25Z Claude closed — rule ruled, corpus swept, guard in make check
 --- body ---
 ## Context
 
@@ -65,6 +68,21 @@ rule it should enforce is not, and the rule is the author's.
 
 ## Exit criteria
 
-- [ ] The rule is ruled in DECISIONS.md
-- [ ] The corpus satisfies it, with every corrected stamp evidenced by git
-- [ ] A guard exists, or the ruling says why none can
+- [x] The rule is ruled in DECISIONS.md
+      — 2026-09-01, candidate (a): no entry may be stamped after the commit
+      that wrote it, and monotonicity is explicitly NOT required. (b) was
+      rejected as unenforceable (the file does not record which session wrote
+      a line), (c) because it fires on the honest merge case.
+- [x] The corpus satisfies it, with every corrected stamp evidenced by git
+      — 169 stamps in 68 tickets, each set to the author time of the commit
+      that introduced the line, found by walking the file's own history per
+      line. One straggler (0320:14) came in through a MERGE commit, which
+      `git log --follow --name-only` does not list, and was corrected against
+      `git blame`. No entry's text changed. 14 logs still read out of order
+      and stay that way: under this rule they are not defects.
+- [x] A guard exists, or the ruling says why none can
+      — `bench/check_ticket_logs.py`, in `make check` as `ticket-logs`, with
+      `tests/test_check_ticket_logs.py` exercising it on real git checkouts:
+      a future stamp is caught, an out-of-order log is not, an uncommitted
+      future stamp is caught against the clock, and the live corpus is clean.
+      Not a rule in `erg` — that binary is upstream of this repo.

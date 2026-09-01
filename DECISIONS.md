@@ -2846,6 +2846,43 @@ this ruling ships is very likely to become redundant with what Zotero
 itself already computed — re-check the local API's surface before treating
 this path as permanent, the same discipline the earlier checkpoint used.
 
+**2026-09-01 — A ticket log entry may not be stamped after the commit that
+wrote it. Monotonicity is not required.** Ruled on ticket 0569's three ranked
+candidates, which Copilot's review of PR #150 raised: it found ticket 0551's
+`created` entry stamped 16:30Z above its own evidence notes at 12:28Z. The
+sweep behind the ticket found the defect was not local — 41 of 131 logs read
+non-monotone, and 169 individual entries named a time later than the commit
+that carried them, among them all six tickets one commit filed at 11:51Z UTC
+while stamping each 16:30Z.
+
+The rule ruled is the weakest of the three, and the only one that is both
+checkable and true. `tickets/AGENTS.md` calls the log append-only, but this
+repository runs parallel sessions by design, so a ticket's log is a merge of
+several append streams: a note written on one branch and merged later lands
+below entries stamped after it, and that is honest. Strict monotonicity — the
+simple rule — would fire on those files, and a guard that fires on honest work
+gets suppressed. Per-session monotonicity was rejected as unenforceable: the
+file does not record which session wrote a line. What no honest stream can do
+is name a time that has not happened, and `git` evidences that independently of
+merge order.
+
+Two consequences, both landed with this entry. The corpus was **swept**: 169
+stamps corrected, in 68 tickets, each to the author time of the commit that
+introduced the line — found by walking the file's own history per line, not by
+`git blame`, which names the last touch and would push a stamp later than the
+line was written. No entry's text changed; 14 logs still read out of order and
+stay that way, because under this rule they are not defects. And a guard,
+`bench/check_ticket_logs.py`, is in `make check`.
+
+The guard's blind spot is stated in its own docstring rather than left to be
+discovered: it reads `git blame`, so a line touched by a later commit — a
+corrected stamp among them — is checked against a laxer bound than the truth.
+The direction is safe (it can miss a violation, it cannot invent one), and it
+is why the sweep used the stricter per-line walk while the standing guard uses
+the cheap one. Root cause of the whole class, for whoever writes the next
+entry: `erg log` reads the real clock and cannot produce a future stamp. These
+were typed by hand.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

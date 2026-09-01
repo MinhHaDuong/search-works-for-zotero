@@ -7,7 +7,7 @@ Closed: autoclosed — PR #1
 --- log ---
 2026-08-21T13:48Z minh created
 2026-08-21T15:49Z claude note planned: watermark persists in a meta table with its backend label; deleteByItem lands on the port in 0002
-2026-08-21T21:10Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
+2026-08-21T17:43Z claude note implemented and verified: 668 passed 7 skipped, tsc and eslint clean; deletion red-step failed first for the right reason
 
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0003 closed — Blocked-by removed.
 2026-08-21T18:46Z Minh Ha-Duong closed — autoclosed — PR #1

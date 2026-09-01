@@ -1,15 +1,19 @@
 """How many ticket logs run backwards, and where does each first break?
 
-Ticket 0569. Log entries are append-only (`tickets/AGENTS.md`), so a log's
-stamps should not decrease. They do: the stamps are typed by hand as often as
-they come from `erg log`, which reads the real clock, and a typed one can name
-a time that has not happened — commit 2a5b04f stamped six tickets 2026-09-01
-at 16:30Z while the commit itself landed at 11:51Z UTC.
+Ticket 0569's reconnaissance, kept because it is the measurement the ruling
+turned AGAINST. Log entries are append-only (`tickets/AGENTS.md`), so a naive
+reading says the stamps should not decrease. They did, in 41 of 131 logs — and
+the ruling of 2026-09-01 (`DECISIONS.md`) is that this is the wrong question:
+this repository runs parallel sessions, so a log is a merge of several append
+streams, and a note written on one branch and merged later honestly lands below
+entries stamped after it.
 
-Measured 2026-09-01 over 131 tickets: 41 non-monotone. Six were the 2a5b04f
-family (first entry, corrected in this branch); the rest break mid-log, where
-the cause is not necessarily a bad stamp — a note appended on a parallel branch
-and merged later lands after entries stamped before it.
+What is a defect is a stamp naming a time that has not happened, which is a
+different set: 14 logs still read backwards after the sweep and carry no such
+stamp, while logs that read forwards carried plenty. That rule has a standing
+guard — `bench/check_ticket_logs.py`, in `make check`. This script has none of
+that authority. It reports a shape, not a verdict, and is useful for one thing:
+seeing what the merge of parallel streams actually looks like.
 
     python3 verification/probes/ticket-log-monotonicity.py
     python3 verification/probes/ticket-log-monotonicity.py --first-entry-only
