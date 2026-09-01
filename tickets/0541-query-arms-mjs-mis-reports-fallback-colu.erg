@@ -1,0 +1,36 @@
+%erg 0.1
+Title: query_arms.mjs mis-reports fallback columns against r5-shaped arms
+Created: 2026-09-01
+Author: MinhHaDuong
+
+--- log ---
+2026-09-01T11:30Z MinhHaDuong created
+
+--- body ---
+## Context
+The committed `bench/query_arms.mjs` reads each arm's `MIN_MATCH_TERMS` /
+`isStopword` exports for its fallback bookkeeping. The 0091 series (fork
+branches `pr2-expansion`, `pr3-droplist-r5`, upstream PRs #46/#47) no longer
+exports either — pruning lives in `pruneTerms`. Run against r5-shaped arms,
+the committed driver would silently mis-report the fallback columns while the
+latency columns look fine (found during the r5 full-stack re-measurement,
+ticket 0091 log 2026-09-01; the measurement used an adapted runner reading
+each arm's own `pruneTerms`, left at `~/data/projets/zoteus-bench/query_arms_r5.mjs`).
+
+## Actions
+1. Port the adapted per-arm `pruneTerms` introspection into
+   `bench/query_arms.mjs` (or absorb `query_arms_r5.mjs` as its successor),
+   keeping compatibility with pre-r5 arms or failing loudly on them.
+2. Fold in the shared `rbo`/`pct` helpers duplicated with
+   `bench/query_arms_multi.mjs` (deferred by the 2026-09-01 gaze simplify
+   pass as out-of-diff).
+
+## Test
+A fixture arm without `MIN_MATCH_TERMS`/`isStopword` exports: the driver must
+either report correct fallback columns via `pruneTerms` or refuse — never
+report zeros silently.
+
+## Exit criteria
+- [ ] driver measures r5-shaped arms with correct fallback columns
+- [ ] loud failure (not silent zeros) on an arm shape it cannot introspect
+- [ ] `make check` green
