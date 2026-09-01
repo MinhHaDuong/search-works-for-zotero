@@ -92,7 +92,7 @@ tickets:
 # The other half of the ticket store: erg checks that a log entry is well
 # formed, not that its time is real. Six tickets filed by one commit each
 # claimed a stamp four hours ahead of it — `erg log` reads the clock, a typed
-# stamp does not. Rule ruled 2026-09-01 (DECISIONS.md), ticket 0569. It is
+# stamp does not. Rule ruled 2026-09-01 (DECISIONS.md), ticket 0571. It is
 # deliberately weaker than monotonicity: parallel sessions merge into one log,
 # so out-of-order arrival is honest and only a time that has not happened is a
 # defect. Needs real history — the guard says so on a shallow checkout.

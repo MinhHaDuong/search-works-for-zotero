@@ -108,7 +108,7 @@ level too, as do `README.md` and this file.
   drifts: the Makefile's `check` target is what actually runs — it gained two
   guards before this sentence did, and five retired on 2026-09-01 on their
   record of zero catches (their rules bind as before, kept by the reader).
-  The log-stamp guard is the newest (2026-09-01, ticket 0569): no ticket log
+  The log-stamp guard is the newest (2026-09-01, ticket 0571): no ticket log
   entry may be stamped after the commit that wrote it. Stamp with `erg log`,
   which reads the real clock — a hand-typed stamp is how 169 entries came to
   name times that had not happened. Out-of-order logs are fine and are not

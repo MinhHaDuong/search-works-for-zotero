@@ -1,6 +1,6 @@
 """How many ticket logs run backwards, and where does each first break?
 
-Ticket 0569's reconnaissance, kept because it is the measurement the ruling
+Ticket 0571's reconnaissance, kept because it is the measurement the ruling
 turned AGAINST. Log entries are append-only (`tickets/AGENTS.md`), so a naive
 reading says the stamps should not decrease. They did, in 41 of 131 logs — and
 the ruling of 2026-09-01 (`DECISIONS.md`) is that this is the wrong question:

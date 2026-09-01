@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """No ticket log entry may be stamped after the commit that wrote it.
 
-The rule the author ratified 2026-09-01 (`DECISIONS.md`), from ticket 0569's
+The rule the author ratified 2026-09-01 (`DECISIONS.md`), from ticket 0571's
 three candidates. It is the weakest of the three and the only one that is both
 checkable and true: a log is an append-only record, but this repository runs
 parallel sessions, so a ticket's log is a merge of several append streams and

@@ -2847,7 +2847,7 @@ itself already computed — re-check the local API's surface before treating
 this path as permanent, the same discipline the earlier checkpoint used.
 
 **2026-09-01 — A ticket log entry may not be stamped after the commit that
-wrote it. Monotonicity is not required.** Ruled on ticket 0569's three ranked
+wrote it. Monotonicity is not required.** Ruled on ticket 0571's three ranked
 candidates, which Copilot's review of PR #150 raised: it found ticket 0551's
 `created` entry stamped 16:30Z above its own evidence notes at 12:28Z. The
 sweep behind the ticket found the defect was not local — 41 of 131 logs read
@@ -2884,6 +2884,40 @@ entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
 ## Awaiting ratification
+
+- **Whether a failed work order is ever retried, and on what policy (ticket
+  0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The
+  reconcile tick writes the full-text census in the same loop iteration as
+  the `enqueue` — before the work is done — so a row that ends `failed` is
+  never re-derived: on the next tick the attachment's versions match what the
+  census already records and it is skipped. Nothing else moves a `failed`
+  row: the expiry sweep touches only `claimed`, dispatch selects only
+  `pending`. One dropped connection, one Zotero closed mid-fetch, one
+  truncated response, and that attachment's body text is out of the index
+  until its version changes in Zotero — which for a stable PDF is never.
+
+  This is a gap between two things the chain already says. SPEC.md §5.2.4
+  makes the tick the source of completeness — it "re-derives what should
+  exist and re-queues whatever is missing" — and the extract stage's own
+  prose draws the line the other way round, treating an empty extraction as
+  a settled state (D1) and a failure as "a thing to retry forever". Neither
+  is true of the code: a failure is currently terminal and silent.
+
+  Options, unranked and for the author. (i) Stamp the census on completion
+  rather than on enqueue, so the census means "extracted" and the tick's
+  promise holds unchanged — the most honest, and it moves a write across the
+  conductor/worker line. (ii) Sweep failed rows back to `pending` on a
+  policy, with an attempt count and a floor so a permanently broken
+  attachment is not re-fetched every tick forever — local to the ledger and
+  the conductor's poll, beside `releaseExpiredClaims`. (iii) Leave it
+  terminal, surface the failure on the instrument panel, and repair by hand
+  — cheapest, and it makes §5.2.4's completeness claim conditional in a way
+  the text currently is not, so it would have to be written there.
+
+  Ticket 0569 holds the reproduction and the test shape; it is deliberately
+  blocked on this ruling rather than picking a shape by default, because the
+  choice is what a failure *means*, not how it is implemented.
+
 
 - **Which of the prose guards come out, and whether thirteen documents is the
   right number — resolved 2026-09-01: eight, see the ledger entry above
