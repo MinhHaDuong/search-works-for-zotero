@@ -19,6 +19,14 @@ bench/*.sqlite-*
 bench/data/
 *.log
 
+
+# bench/fixtures/build_corpus.py's own scratch cache: raw PDFs and OCR page
+# renders it downloads from Zotero, regenerable by re-running the script.
+# Kept at the repo root, same convention as fork/ and upstream.git/ above, so
+# its binaries never land inside bench/ where check_models.py scans for text.
+# Only bench/fixtures/corpus/ (its committed text + manifest output) is state.
+corpus-cache/
+
 # Python bytecode from the bench drivers.
 __pycache__/
 *.pyc
