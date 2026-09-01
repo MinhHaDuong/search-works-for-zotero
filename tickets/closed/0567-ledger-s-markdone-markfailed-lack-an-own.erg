@@ -2,11 +2,15 @@
 Title: Ledger's markDone/markFailed lack an ownership check — any caller can complete a claim it doesn't hold
 Created: 2026-09-01
 Author: MinhHaDuong
+Closed: ownership guard built and pushed: fork branch t0567-ledger-ownership-guard, a85c918
 
 --- log ---
 2026-09-01T15:28Z MinhHaDuong created
 2026-09-01T15:28Z claude note found by the roar sweep after parking ticket 0553: 0553's review found a claim-race where a released-but-still-working worker's completion silently clobbers a second worker's. That was diagnosed against `putExtractState` (tranche-3, unmerged), but the same defect is already in the MERGED shared primitive -- `Ledger.markDone`/`markFailed` (tranche 1, `fork/src/features/search/conductor/ledger.ts:925-943`) write `UPDATE stage_queue ... WHERE wid = ?` with no `claimed_by`/`status` guard. `claim()` is properly CAS-guarded; completion is not. No merged caller exercises this yet (tranche 3 is the only one and it is parked), so this is latent, not live -- but it will fire the moment ANY future stage calls these without its own extra check, and fixing it once here removes 0553's blocker #1 for free when that ticket resumes.
 
+2026-09-01T18:20Z claude note BUILT, fork branch `t0567-ledger-ownership-guard`, cut from `tranche-2-conductor-election` — the tip of the undisputed chain and the common ancestor of both siblings, so 0568's merge picks the fix up on either side rather than needing it twice. Commit a85c918. THE DEFECT, REPRODUCED END TO END against the unguarded build before anything was changed (manual clock, no process timing): A claims wid at TTL 30 s; the clock advances 30 001 ms; `releaseExpiredClaims()` returns the row; B claims it and `markDone` succeeds, row `done`; A's late `markFailed(wid, 'connection reset')` ALSO returns success and leaves the row `failed` with A's note. B's result is gone, silently. Re-run against the guarded build, same script: A's late completion returns false and the row stays `done`, note null. THE SHAPE BUILT. `markDone(wid, holder, claimedInput): boolean` and `markFailed(wid, holder, claimedInput, note?): boolean`, both guarded `WHERE wid = :wid AND status = 'claimed' AND claimed_by = :holder AND claimed_input = :input`, both returning whether the write applied, the way `claim()` already does. Signature required rather than optional: an optional holder would let a caller keep the unguarded behaviour by omission, which is the defect. There are no merged callers to break (0553 is the only one and it is parked), so the breakage is deliberate and loud — tranche 3's `ExtractStage` will fail to compile on 0568's merge until it passes its holder, which is exactly the signal that ticket needs. THREE DESIGN CALLS, each recorded in the source comment rather than only here. (i) Input as well as holder, per this ticket's Action 1: the same worker can re-claim a row it lost against an input the tick has since re-derived, and a holder-only check would let the abandoned attempt complete the current one — its own test. (ii) EXPIRY IS DELIBERATELY NOT IN THE GUARD: a claim that ran out while nobody else took the row is still that holder's to finish, and rejecting it there would throw away a completed document for being late. The only thing the guard has to prevent is writing over somebody else. Tested both ways. (iii) A row nobody has claimed cannot be completed at all — `nextWorkOrder` is a read, not a claim, so a stage must take a row before finishing it. Two existing test drain loops assumed otherwise and now claim first; that is a behaviour change to the primitive, disclosed here rather than buried. ONE WIDENING BEYOND THIS TICKET, deliberate and small: `note` joins `WorkOrderRow`. Since tranche 1 `markFailed` has written a column nothing could read, and a test that shows a clobber has to see whose note survived. Purely additive. EVIDENCE. Positive control run before the guard was trusted: with the ownership terms dropped from both statements and the parameters left bound (a mutation that keeps the statement valid — dropping the whole WHERE instead only produces `Unknown named parameter`, which proves nothing), 3 of the 5 new tests go red and the two legitimate-completion tests stay green, which is the discrimination the control is for. Fork suite 1 020 → 1 025 passed, 7 skipped, the +5 being this ticket's; `tsc --noEmit` clean; `eslint` clean. Exit criterion 2 is ticked as far as this ticket can reach it: 0553's own log now carries the note, and adopting the new signature is 0553's work when it resumes, per this ticket's Action 2.
+
+2026-09-01T18:15Z claude closed — ownership guard built and pushed: fork branch t0567-ledger-ownership-guard, a85c918
 --- body ---
 ## Context
 
@@ -82,13 +86,14 @@ main.
 
 ## Verification
 
-- [ ] `markDone`/`markFailed` reject a completion from a holder that no
+- [x] `markDone`/`markFailed` reject a completion from a holder that no
       longer owns the row (claim expired and reclaimed by another holder)
-- [ ] A legitimate holder's completion still succeeds
-- [ ] `claim()`'s existing CAS tests stay green — this ticket touches
+- [x] A legitimate holder's completion still succeeds
+- [x] `claim()`'s existing CAS tests stay green — this ticket touches
       completion, not acquisition
-- [ ] Positive control: the guard demonstrably rejects before it is
-      trusted (a test with the guard stubbed out must go red)
+- [x] Positive control: the guard demonstrably rejects before it is
+      trusted (a test with the guard stubbed out must go red) — 3 of 5
+      red, the two legitimate-completion tests green
 
 ## Invariants
 
@@ -97,7 +102,8 @@ main.
 
 ## Exit criteria
 
-- [ ] `markDone`/`markFailed` ownership-guarded, merged on a fork branch,
-      tests green
-- [ ] Ticket 0553's blocker #1 (claim-race duplicate completion) noted as
-      resolved by this fix once 0553 resumes and adopts it
+- [x] `markDone`/`markFailed` ownership-guarded, merged on a fork branch,
+      tests green — `t0567-ledger-ownership-guard`, a85c918
+- [x] Ticket 0553's blocker #1 (claim-race duplicate completion) noted as
+      resolved by this fix once 0553 resumes and adopts it — noted on
+      0553; the adoption is 0553's own work, per Action 2
