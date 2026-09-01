@@ -1,0 +1,58 @@
+%erg 0.1
+Title: Tranche 5: fresh/backfill interleave, bands, scheduling property suite
+Created: 2026-09-01
+Author: minh
+Blocked-by: 0554
+
+--- log ---
+2026-09-01T16:30Z claude created, child of 0550
+
+--- body ---
+## Context
+
+Fifth tranche (tracker 0550): the ratified arbitration lands last,
+deliberately — before it, FIFO-per-class is correct behavior, just less
+fresh. This tranche also carries the scheduling property suite: the real
+scheduler run in virtual time on the synthetic library, replacing the
+rejected Python simulation (see tracker).
+
+## Relevant files
+
+- SPEC.md §5.2.5 (priority tree; r = 3 ratified; drain bound and its
+  scope; band 0 before band 1; the two units outside the yield interval),
+  §5.2.3 (bands, K), DECISIONS.md 2026-09-01 (interleave ruling and its
+  three stated semantics), ticket 0080 (adjacent per-item question — do
+  not fold it in here).
+
+## Actions
+
+1. The interleave: counter draw, backfill on 0 mod (r+1); work-conserving
+   fall-through; no carried credit; counter advances only on body-class
+   dispatches.
+2. Band 0 / band 1 in the dispatch ORDER BY, K per SPEC §5.2.3.
+3. Property suite in virtual time on the synthetic library, red first:
+   - backfill progresses under sustained fresh arrival (no starvation);
+   - the monster item does not monopolize (band cap holds — heads of all
+     items indexed before any tail);
+   - fresh-lane snapshot drains within ceil(N/r) × (r+1) × quantum in
+     body-class slots;
+   - foreground activity idles every worker within one micro-batch.
+
+## Test
+
+- The suite above IS the test. Each property demonstrated red against a
+  deliberately broken scheduler variant first.
+
+## Verification
+
+- [ ] Observed fresh:backfill service ratio over a mixed run is 3:1
+      within tolerance when both lanes are non-empty
+- [ ] Empty-lane fall-through: backfill gets 100 % when fresh is empty
+
+## Invariants
+
+- All earlier tranches' tests stay green; byte-identical MiniLM check.
+
+## Exit criteria
+
+- [ ] Interleave + bands + property suite merged on a fork branch
