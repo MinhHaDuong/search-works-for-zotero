@@ -2,6 +2,7 @@
 Title: Re-baseline UPSTREAM to v1.12.0 and re-read the standing
 Created: 2026-08-31
 Author: claude
+Closed: autoclosed — PR #128
 
 --- log ---
 2026-08-31T14:50Z claude created
@@ -10,6 +11,7 @@ Author: claude
 2026-08-31T16:10Z claude note renumbered 0501 -> 0504 on the merge into main: main had filed its own 0501 (paragraph-aligned chunking A/B) while this branch was open, and erg check caught the collision. Sibling 0502 and 0503 moved with it to 0505 and 0506. Every reference moved too -- SYNC.md's head note and its upstream row, ticket 0024's staleness note, ticket 0101's two Blocked-by notes, and this ticket's own pointers at 0505 and 0506
 2026-08-31T19:40Z claude note THE CATCH-UP VERDICT IS UNCHANGED AT SESSION CLOSE 2026-08-31, and the four rows worth reading now have rung addresses. make upstream-catchup re-run: reviewed b132f2d v1.10.0, upstream b05ed69 v1.12.0, 2 releases and 20 commits, TOUCHED -- search layer 10 files +1738/-57 with own-words-source.ts, vector-salvage.ts and electron.ts new, index schema unchanged at SCHEMA_VERSION 1 with the same passages shape. Nothing here re-baselines: this ticket's own argument stands, the page is self-scoping, check_baseline fires only once UPSTREAM is bumped, and not re-baselining costs nothing. What today's ladder adds is WHERE each of the four rows lands, so the re-read is done in rung order like everything else: R10 sits on goal 1 (the one row where a wrong answer matters, per 0505), R23 on goal 2 -- and vector-salvage.ts is the file to read for it, since salvage is exactly the abandon-versus-migrate question R23 forbids resolving by abandonment -- R12 and R16 on goal 5, with own-words-source.ts the file for R16, which is our issue #33 built by the maintainer. Read them bottom-up: R10 first, then R23, then the goal 5 pair, which is also cheapest-first
 2026-08-31T19:45Z claude note ALL FOUR ROWS RE-READ at b05ed69 from a fresh read-only clone, not fork/, which a parallel session held. verification/UPSTREAM-1.12.0-REREAD.md. R10 does not move: the fallback does not reach a running build, which pins its API and fails rather than re-routing, and the row's three sub-facts still hold. R16 is KEPT where the page reads none -- own words shipped in v1.11.0, on by default against full text's off. R12's second clause is KEPT for both documented shapes; the third seam found is vector-salvage.ts, which names no library at all and is armed before assertLibrary exists in the stack, reported as an observation not an alarm. R23 splits by direction and the load-bearing fact is that SCHEMA_MIGRATIONS is EMPTY and SCHEMA_VERSION is still 1, so the ladder has never carried a real index; the newer-stamp direction is still sidelined, so R23 is not kept. The page is stale in the UNDER-REPORTING direction, which the trigger entry now argues from
+2026-09-01T05:34Z Minh Ha-Duong closed — autoclosed — PR #128
 --- body ---
 ## Context
 
