@@ -31,20 +31,30 @@ level too, as do `README.md` and this file.
   numbering; the order itself is `SPEC.md` §3's last section. The work that
   earns those verdicts is tickets 0026, 0029 and 0032; the tally is the
   tracker.
-- `SPEC.md` — the specification, RFC-ordered. §1 Introduction (how to read
-  the rest, and the authority statement). §2 Terminology, the glossary,
-  alphabetical in three marked buckets (ours, inherited from Zotero,
-  inherited from SQLite) plus a historical section — owns no design number
-  and settles no open question, it points at the owner instead, and any
-  digit in it that is not an address is drift (the rule outlived its guard,
-  retired 2026-09-01). §3 Requirements and §4 Constraints — the sheet,
-  materialized, stable. §5 Design, the current design ("The Instrumented
-  Ledger", cycle 2) — owns every design number: gate thresholds §5.2.8,
-  experiment decision rules §5.3, budgets §5.2.9. §6 Security
-  Considerations — what the system holds, where it can leak, and what the
-  design currently says about each point; it describes and discloses, it
-  decides nothing, so closing a gap it names is a ruling in `DECISIONS.md`
-  and then a requirement in §3.
+- `SPEC.md` — the specification, RFC-ordered, carrying a PEP-style header
+  (`Status: DRAFT`, `Author: Minh Ha-Duong (CNRS)`, `Date: 2026-09-01`)
+  directly under its title. The date is the version — there is no separate
+  version number, and the convention is to bump it whenever the document
+  changes substantively. Status stays `DRAFT` until the author himself
+  declares otherwise. §1 Introduction (what zoteus is, and the section map).
+  §2 Terminology, the glossary, alphabetical in three marked buckets (ours,
+  inherited from Zotero, inherited from SQLite) — owns no design number and
+  settles no open question, it points at the owner instead, and any digit in
+  it that is not an address is drift (the rule outlived its guard, retired
+  2026-09-01). §3 Requirements and §4 Constraints — the sheet, materialized,
+  stable. §5 Design, the current design ("The Instrumented Ledger") — owns
+  every design number: gate thresholds §5.2.8, experiment decision rules
+  §5.3, budgets §5.2.9. §6 Security Considerations — what the system holds,
+  where it can leak, and what the design currently says about each point; it
+  describes and discloses, it decides nothing, so closing a gap it names is a
+  ruling in `DECISIONS.md` and then a requirement in §3. SPEC.md speaks only
+  of the system (ruled 2026-09-01, `DECISIONS.md`): ruling provenance, ticket
+  tracking and document/process narration live in `DECISIONS.md`, the
+  tickets, and this file, never restated there undated. Handles are
+  position-independent and outlive a section's own renumbering: R1–R35 name
+  requirements, C1–C4 constraints, D1–D11 resolved decisions, X1–X8
+  experiments. Cite a handle on its own; cite a section address as `SPEC.md
+  §N.M`.
 - `DECISIONS.md` — append-only ratification ledger, at the top level since
   2026-09-01. The author's rulings land here FIRST; `SPEC.md` is edited to
   match. Owns the record of every ruling, technical and process alike, and
@@ -54,8 +64,8 @@ level too, as do `README.md` and this file.
   that made them, and `SYNC.md` keeps the live counts. Split ratified
   2026-08-29.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
-  authoritative for each item's scope, evidence, and live state. `SPEC.md`
-  §5.4 carries only the ordering.
+  authoritative for each item's scope, evidence, and live state.
+  `GOVERNANCE.md`'s increment train carries only the ordering.
 - `verification/FIELD-REVIEW.md` — the survey of prior art: what other people have already
   built for Zotero AI retrieval, what it teaches, and what is
   license-compatible to borrow. Authoritative for the inventory and for each

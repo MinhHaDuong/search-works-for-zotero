@@ -1,77 +1,39 @@
-# SPEC — the specification chain
+# SPEC — search-works-for-zotero
+
+- **Status:** DRAFT
+- **Author:** Minh Ha-Duong (CNRS)
+- **Date:** 2026-09-01
 
 ## 1. Introduction
 
-This is the specification for search-works-for-zotero, in one document since
-2026-09-01 (DECISIONS.md): what the system promises to users (§3
-Requirements), what the world imposes on it (§4 Constraints), how it answers
-both (§5 Design), the shared vocabulary the three use (§2 Terminology), and
-where the design can leak (§6 Security Considerations) — five prior
-documents merged, in RFC section order, essentially verbatim.
+zoteus is an MCP server over a local Zotero library; this document specifies
+the redesign of its search.
 
-Rulings enter `DECISIONS.md` first; this document is then edited to match. A
-ratified line stays open to a later veto, which lands in `DECISIONS.md` as a
-new entry before this document follows. Read `DECISIONS.md` chronologically,
-because ratification happens in time and the record must show what came
-before what; read this document by section, because each reads the way its
-own content demands rather than the way a single chronological or
-enumerative spine would flatten it — §3 and §4 as checklists, one promise or
-one fact about the world per row (R1 to R35, C1 to C4); §5 architecturally,
-by subsystem; §2 alphabetically, so a reader arriving mid-document has
-somewhere to look a term up.
+§2 defines the vocabulary the rest of this document uses. §3 states what the
+system promises to its users, one testable requirement per row (R1 to R35).
+§4 states what the world — Zotero, the upstream project, the user's machine —
+imposes on any design that would keep those promises (C1 to C4). §5 is the
+design that answers both. §6 is where it can leak.
 
-Handles are position-independent and outlive a section's own renumbering:
-R1–R35 name requirements, C1–C4 constraints, D1–D11 resolved decisions,
-X1–X8 experiments. Cite a handle on its own; cite a section address as
-`SPEC.md §N.M`.
-
-`README.md` carries where each requirement stands today — designed and
-delivered, against the reviewed upstream baseline — and the goals ladder's
-rung-by-rung rosters; this document carries the promises and the design
-themselves, not their current standing against either. `GOVERNANCE.md` and
-`SYNC.md` sit outside this chain entirely: process rules for our own conduct
-upstream, and the live account of what that conduct has produced, neither of
-which a specification has a use for. `verification/FIELD-REVIEW.md` sits
-beside the chain rather than inside it: it surveys what already exists, owns
-no design number, and points at the owning section here wherever it touches
-this design. Panel documents were inputs, not conclusions; the adversarial
-design-review record of cycle 2 is gone, lost with the pre-restart history
-(DECISIONS.md, 2026-08-31), as are the superseded design documents that
-preceded this one.
+Rulings are ratified in `DECISIONS.md` first, and this document is edited to
+match. Where each promise stands today, against the reviewed upstream
+baseline, is `README.md`'s.
 
 ## 2. Terminology
 
 ### Intro
 
-Every term of art in this chain is glossed where it first appears. That serves
-a reader going through a document from the top, and nobody reads a
-specification that way twice: tickets, reviews and forge threads all enter in
-the middle. This section is the entry point for that reader. It defines, in
-one alphabetical place, the words the Requirements, Constraints and Design
-sections use as if they were already understood.
+Every term of art is glossed where it first appears in this document, in one
+alphabetical place, so a reader who enters mid-document has somewhere to look
+a word up. Three buckets, marked because a newcomer cannot otherwise tell
+which words this project coined. **Ours** is this design's own vocabulary.
+**Inherited, Zotero** is the platform's, and means here exactly what it means
+there. **Inherited, SQLite** is the storage engine's.
 
-Three buckets, marked because a newcomer cannot otherwise tell which words this
-project coined. **Ours** are this design's own vocabulary. **Inherited,
-Zotero** are the platform's, and mean here exactly what they mean there.
-**Inherited, SQLite** are the storage engine's. A short historical section at
-the end covers words that appear in git history and in closed tickets but name
-nothing in the current design.
-
-Each entry gives the term, one sentence, and where it is authoritative.
-
-**This document owns no numbers.** A definition names the document that holds a
-threshold, a budget or a cadence; it never restates the figure. Two copies of a
-design number is this repository's most expensive recurring defect, and a
-glossary is the most tempting place to make the second one. The rule is
-mechanical rather than a matter of care: `bench/check_terminology.py` fails on
-any digit here that is not an address — a commit, a date, a reference code, a
-section mark, a version, a ticket. A citation beside a number does not excuse
-it. What the guard cannot see is a threshold restated in words, so that stays a
-matter of review.
-
-The glossary also never decides. Where a term's meaning is still open, the
-entry points at the question rather than settling it; rulings land in
-`DECISIONS.md` first, and every other document, this one included, follows.
+Each entry gives the term, one sentence, and where it is authoritative. A
+definition names the section that holds a threshold, a budget or a cadence
+rather than restating the figure, and where a term's meaning is still open,
+the entry points at the question rather than settling it.
 
 ---
 
@@ -259,8 +221,8 @@ entry points at the question rather than settling it; rulings land in
 
 ### Inherited, Zotero
 
-These mean here what they mean in the platform. Each entry says where the chain
-relies on it, because that is the part a reader of our documents needs.
+These mean here what they mean in the platform. Each entry says where this
+document relies on it.
 
 - **attachment** — the child object holding a file, from which body text is
   extracted; an item itself has none. Zotero's; our use of it is SPEC.md
@@ -309,61 +271,14 @@ relies on it, because that is the part a reader of our documents needs.
   while a writer commits, which is what makes several servers on one file
   possible. SQLite's; the connection settings are SPEC.md §5.2.2.
 
-### Historical
-
-Words a reader meets in git history, in closed tickets, or in the panel record,
-and which name nothing in the current design. They are listed so that finding
-one dates the text rather than sending the reader hunting.
-
-- **corpus-critic M4** — a panel-era label for one of the cycle-two critique
-  seats. Historical: it named a session role, never a component.
-- **goal 1, the search bundle** — what "goal 1" named until 2026-08-31: the
-  single conjunction over *search all of my library*, before the ladder gave the
-  number a meaning. Historical as a name only: the promise survives whole as the
-  ladder's top three rungs, and ratified entries written before the renumbering
-  use the old sense. Authoritative for the renaming: DECISIONS.md (2026-08-31).
-- **instrument** — the other half of what a goal's roster once carried: a thing
-  that decides whether a term holds, named beside the bundle rather than
-  counted in it. Historical since 2026-08-31, when the apparatus items left the
-  sheet on the criterion that what verifies a promise is not itself a promise,
-  which removed the roster's subject entirely. A goal keeps one roster now.
-- **graft** — a panel-era word for attaching new machinery onto an existing
-  pipeline stage. Historical: removed from the chain by ticket 0036's rewrite,
-  which required every term of art to be defined where it first appears.
-- **kill 9** — a panel-era shorthand for the abrupt process termination the
-  soak gate exercises. Historical as a phrase; the property it named survives
-  as the soak gate's assertions in SPEC.md §5.2.8.
-- **prefix** — the coverage-order property the design once asserted: at every
-  moment the indexed set is the newest items with no gap in the middle.
-  Rejected by the author on 2026-08-29 (DECISIONS.md), because a library
-  changes while the build runs, so the property is asserted over a set that has
-  already moved. What stands in its place is the class order — metadata, then
-  notes and annotations, then body text, newer first inside each — whose
-  promise is SPEC.md R1 and whose statement is SPEC.md §5.2.3.
-- **`panel/cycle2/`** — the cycle-two design panel's verbatim session record:
-  memos, critiques, and the political and implementation reviews. Deleted from
-  the tree, then lost outright with the pre-restart history (DECISIONS.md,
-  2026-08-31). It was never authoritative, and SPEC.md was always the record;
-  a document elsewhere in the chain that cites a panel memo by name is citing
-  something no reader can open.
-- **The Settled Ledger (v1)** — the cycle-one design, superseded by the current
-  "Instrumented Ledger". Historical: what changed and why is SPEC.md §5.1, which
-  is now the whole of it — the document itself went with the pre-restart history
-  (DECISIONS.md, 2026-08-31).
-
 ## 3. Requirements
 
 ### Intro
 
-This section lists the user requirements. Numbering runs to R35\* with gaps:
-eleven\* items were retired on 2026-08-31, either because what verifies a promise
-is not itself a promise or because they were clauses of another item, and a
-retired number is never reused (DECISIONS.md). Each is written as a
-testable property: something the test harness, or a careful reader, can
-check. They were agreed with the author and consolidated on 2026-08-26; the
-documents they were consolidated from are superseded and live only in git
-history. A "stage" below is one step of the indexing pipeline: record,
-extract, chunk, embed.
+This section lists the user requirements, numbered R1 to R35\* with gaps — a
+retired number is never reused. Each is written as a testable property:
+something the test harness, or a careful reader, can check. A "stage" below
+is one step of the indexing pipeline: record, extract, chunk, embed.
 
 **Normative language.** The R-items below follow RFC 2119. MUST, and its
 synonym SHALL, marks a firm requirement. SHOULD marks a preference that may be
@@ -371,13 +286,7 @@ set aside for a stated reason. MAY marks something optional. These words bind
 only in upper case. The same words in lower case are ordinary prose and carry
 no such force, which is what lets the surrounding narrative use them freely.
 
-Every R-item carries a force. The one that did not — R26, rejected as written on
-2026-08-29 — was retired on 2026-08-31 rather than rewritten: it described this
-repository's convergence harness, and what verifies a promise is not itself a
-promise (DECISIONS.md). Ticket 0080 still owns the tier-priority change that
-replaces the machinery it described.
-
-### The four rulings that shape everything
+### The four foundational rules
 
 1. **The unit of answer is the entry.** A dictionary or encyclopedia is one
    Zotero item but many entries, so retrieval and deduplication work on the
@@ -415,7 +324,7 @@ Each item is a name, one sentence, and a paragraph. The **sentence** is the
 promise, written so it can be read alone and tested by someone who has read
 nothing else here. The **paragraph** unpacks it: what the sentence implies, what
 was decided about it, and which document owns any number it depends on. The
-one-word name is the handle the rest of the chain cites.
+one-word name is the handle the rest of this document cites.
 
 #### Coverage and convergence
 
@@ -474,8 +383,8 @@ which is ruling 2's class order seen from the clock. The machine is named
 because a time bound with no machine attached is not a bound; which laptop, and
 the arithmetic from the measured passage count, are SPEC.md §5.2.8's. Finishing
 today is a property of the configuration rather than of the hardware, which is
-why this is its own promise and not a clause of one about GPUs. A full build and
-not only the first, ruled 2026-08-31: a rebuild from nothing is the same work on
+why this is its own promise and not a clause of one about GPUs. A full build,
+not only the first: a rebuild from nothing is the same work on
 the same machine, and a user whose index was abandoned under a foreign schema
 stamp waits exactly as long as one who has just installed. What these bounds are
 not is a library already in service, where R3 bounds the cost of staying current
@@ -693,7 +602,7 @@ failure is invisible: the search returns nothing and looks like an honest miss.
 The character-folding sweep that checks the agreement over 1 301 codepoints is a
 gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
 
-### The resolved decisions (ratified by delegation, 2026-08-26)
+### The resolved decisions
 
 | | resolution |
 |---|---|
@@ -717,7 +626,7 @@ read as a promise:
 - **Work does not travel by itself — but it may arrive by copy.** The index
   is per-machine, and vector export and sync stay out of scope; a second
   machine re-earns its own index unattended via R1. What is admitted is
-  one-shot adoption, ratified 2026-09-01: a data directory copied whole from
+  one-shot adoption: a data directory copied whole from
   another machine proves its own embedding chain before a row serves and is
   adopted rather than rebuilt, its foreign change signals count for nothing
   until re-earned, and R1 converges the difference. Never a shared live file.
@@ -766,11 +675,8 @@ only be read from the source or inferred — a claim about nobody rather than
 about the system — which is why a rung cannot be declared before its tests run.
 
 **Which requirements sit on which rung is not repeated here.** The rosters are
-on [README.md](README.md), where `bench/check_progress.py` holds each of them to
-the ruling in [DECISIONS.md](DECISIONS.md) and fails the build when a
-requirement sits on no rung, on two, or when the page and the ledger disagree. A
-second copy in this document would drift from that one, which is this
-repository's most expensive recurring defect.
+on [README.md](README.md); a second copy in this document would drift from
+that one.
 
 **Above the top**, unnamed and unruled, sits the bundle this repository exists
 to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24's
@@ -780,8 +686,7 @@ so its absence does not read as an oversight.
 
 ---
 
-\* A hand-maintained count: no guard recomputes it, so re-verify it whenever
-the sheet changes (DECISIONS.md 2026-09-01).
+\* A hand-maintained count: re-verify it whenever the sheet changes.
 
 ## 4. Constraints
 
@@ -789,11 +694,6 @@ the sheet changes (DECISIONS.md 2026-09-01).
 
 This section lists the constraints, C1 to C4: facts about Zotero, the
 upstream project, and the user's machine that the design must operate under.
-They were consolidated on 2026-08-26 from three earlier documents (the
-ratified sheet, its delta, and the scout report), which are superseded and
-live only in git history. Where the scouts, code-reading and measurement
-passes over Zotero and upstream, sharpened a constraint, the sharpened form
-is stated here and is binding.
 
 ### C1 — everything the index stores is derived data
 
@@ -802,8 +702,7 @@ The index stores derived data only, in a chain of three links:
 1. extracted text derives from (attachment file, extractor);
 2. chunks derive from (extracted text *or* item metadata, chunker identity
    and geometry), where the heuristic segmenter's identity folds into the
-   chunker key, per the boundary ruling (the third ruling in
-   SPEC.md);
+   chunker key, per the boundary ruling (§3's third foundational rule);
 3. vectors derive from (chunks, the complete embedder-entry fingerprint and
    model). The fingerprint includes every registry field that can change a
    vector; a display label and aggregate validation standing do not. Execution
@@ -818,11 +717,11 @@ The extractor's identity is visible only in-process. Over HTTP, the
 observable proxy is the `/fulltext?since=` counter, which Zotero bumps when
 it re-extracts synced content. Does a purely local re-extraction re-stamp
 version 0, which would make it invisible to this counter? We do not know
-yet. Experiment X6 (ticket 0025) will measure it, and SPEC.md §5.2.4 is
+yet — open, pending experiment X6 — and SPEC.md §5.2.4 is
 designed to work under either answer. Items and full-text extractions are
 numbered on two unrelated sequences (measured: 410 versus 0..25 036).
 
-The scouts sharpened this constraint on three points:
+This constraint is sharpened on three points:
 
 - The local `/fulltext?since=` sequence is mixed. Web stamps, local client
   versions, and 0 for local extraction all appear in one column, so the
@@ -863,7 +762,7 @@ decomposes into small PRs the maintainer will actually merge. The index
 describes itself (schema version plus artifact keys), so it is openable or
 cleanly rebuildable, never silently wrong.
 
-The scouts sharpened this constraint on five points:
+This constraint is sharpened on five points:
 
 - The local API documentation states that "only one API version will ever
   be supported at a time", so a client reads the `Zotero-API-Version` and
@@ -982,21 +881,18 @@ memory is proportional to a section batch, not to the document. The embed
 stage is the core-hog and MUST be isolatable. One scheduling rule covers
 everything: foreground always beats background.
 
-#### Ratified budgets (2026-08-26)
+#### Budgets
 
 - background ≤ ~1 core, low priority
-- server steady-state RSS ≤ ~750 MB (replaced 2026-08-30, DECISIONS.md: the
-  original figure was ratified against an English-embedder picture, and R7
-  outranks it)
-- pipeline worker peak ≤ ~750 MB regardless of document size (re-pinned
-  2026-08-31, DECISIONS.md: the original figure predates the multilingual
-  ruling, and under the sole-writer topology the worker is the model plus
-  one batch)
+- server steady-state RSS ≤ ~750 MB (the original figure was against an
+  English-embedder picture, and R7 outranks it)
+- pipeline worker peak ≤ ~750 MB regardless of document size (the original
+  figure predates the multilingual requirement, and under the sole-writer
+  topology the worker is the model plus one batch)
 - pipeline worker killable/restartable at any time with zero index damage
 
 The server ceiling binds per process, the scope its gate can assert; SPEC.md
-§5.2.9 states the whole-machine arithmetic alongside it (DECISIONS.md,
-2026-08-29).
+§5.2.9 states the whole-machine arithmetic alongside it.
 
 Whether an ONNX entry actually loads and preserves its declared geometry is an
 environment fact, not a property of the model name alone. Runtime version,
@@ -1022,42 +918,25 @@ including 2xx; honor 429/`Retry-After` with exponential fallback. The local
 API has no rate limits and is unpaginated by default, so this constraint is
 scoped to the web transport, not to the design.
 
-### The author's structural hint (standing instruction to any panel)
+### The concurrency hint
 
-A "panel" is one of this repo's recorded design-review sessions; cycle 2's
-record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31). The
-hint: three asynchronous processes (extract, chunk, embed), independently
-paced, with queues between them. Two justifications were found: (a) keyword
-availability never waits on embedding, and (b) an OS process can be
-nice'd, observed, and restarted. Panels take the hint seriously, not as
-gospel. (Cycle 2's answer: two OS processes, three ledger-paced loops; see
-SPEC.md §5.2.5.)
+Three asynchronous processes (extract, chunk, embed), independently paced,
+with queues between them, for two reasons: keyword availability never waits
+on embedding, and an OS process can be nice'd, observed, and restarted. The
+design realizes this as two OS processes and three ledger-paced loops
+(§5.2.5).
 
 ## 5. Design
 
 ### Intro
 
-This is the current design, produced by design cycle 2 (2026-08-26). It owns
-every design number: the gate thresholds (§5.2.8), the experiment decision
-rules (§5.3), and the budgets (§5.2.9). The raw panel record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31); where it once disagreed with this
-document, this document was already the record, and is now the only one. The predecessor design (cycle 1's
-"The Settled Ledger", called v1 below) is superseded and lives in git
-history.
+This is the current design. It owns every design number: the gate
+thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets
+(§5.2.9). The predecessor design ("The Settled Ledger", called v1 below) is
+superseded.
 
-How cycle 2 worked, in two sentences: six architects each re-ran the design
-through one lens (derivation, corpus, custody, concurrency, query, operator)
-against the consolidated requirements and constraints; each result was
-adversarially critiqued, and this synthesis assembles what survived, plus
-the named repairs. Every load-bearing claim about upstream code was
-re-verified against `oscardvs/zoteus` at HEAD `edf2748` (v1.7.0; upstream
-has moved several releases since, and SYNC.md carries where to and what
-changed — each ticket re-verifies its own evidence on moved files before
-acting), and the disputed numbers were recomputed from the committed
-artifacts in `bench/results/`. Two process bounds held throughout: decisions and rulings
-already ratified were not reopened, and the scout findings entered as
-binding input.
-
-Seven facts were verified live at edf2748 and are relied on below. The
+Seven facts about upstream (`oscardvs/zoteus` at v1.7.0; SYNC.md carries
+where it has moved since) are relied on below. The
 query tokenizer is broken for non-English text (`tokenize.ts`:
 `/[a-z0-9]+/g` plus 29 English stopwords). There is no `busy_timeout` and
 no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
@@ -1065,8 +944,7 @@ no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
 40_000` truncates the 44,9 MB living example roughly 1 100-fold. Changing
 embedder drops every vector at open (`dropStaleVectors` →
 `clearVectors()`). Builds crawl `top:true` only, and `clearStore()` sits in
-the build path. Two artifact recomputations
-decided disputes: the golden-answer stability sample (60 queries with
+the build path. Two measurements bear on it: the golden-answer stability sample (60 queries with
 pinned known-correct results, from
 `bench/results/0013-concentration/uncapped-477512.json`) has a per-query
 Jaccard minimum of 0.25 under legitimate perturbation (two of the 60 fall
@@ -1080,8 +958,8 @@ fulltext entries at version 0.
 
 v1's skeleton survived every lens and every critique with one amendment:
 durable (item × stage) ledger rows in SQLite — compute → guarded commit, the
-per-row lease claim retired by the sole-writer ruling (§5.2.5; DECISIONS.md
-2026-08-31) — control through a pipe and durable work through the database, a
+per-row lease claim retired by the sole-writer ruling (§5.2.5) — control
+through a pipe and durable work through the database, a
 write-free query path, and two OS processes. R13 (second process), R22 (durable pause)
 and R17's work counters each turn out to *want* that skeleton: every one is
 a one-row concern on a substrate that already exists. Also carried over:
@@ -1094,8 +972,8 @@ sideline-never-delete (an unreadable index file is moved aside, never
 deleted), the recovery-verb grammar, and the failure policy. The failure
 policy
 (transient/persistent split, bisection quarantine, reachability gating,
-backpressure counted in items; mechanism spec unchanged from v1 §5.2.6, whose
-document is lost) carries two amendments. Quarantine auto-clear now keys on the
+backpressure counted in items; mechanism spec unchanged from v1) carries two
+amendments. Quarantine auto-clear now keys on the
 *content* signal chain, not on raw counter movement, so a resync cannot
 mass-replay every poison input. And R1's terminal states (`empty`) are
 *done*, not failures: different bookkeeping, different sentence in status.
@@ -1141,15 +1019,8 @@ on the next query (§5.2.7). Unknown-schema handling is read-compatibility
 gating plus a new filename (`search-index-v2.sqlite`), because no protocol
 can bind binaries that predate it: a v1.7.0 sibling reaching `clearStore()`
 against an in-place upgraded file would erase every library (§5.2.7). And
-v1's item-collapse PR is folded into the entries conversation (scoped issue
-B, §5.4): shipping item-collapse now would ship exactly the framing the entry
-ruling rejected.
-
-The full verdict-by-verdict record (what survived, what was amended by
-which critique, what died and what killed it) no longer exists. It lived in
-this file before the plain-language rewrite and in `panel/cycle2/`, both of
-them only in the pre-restart history, abandoned by ruling (DECISIONS.md,
-2026-08-31). The narrative above is what remains of it.
+v1's item-collapse PR is folded into the entries conversation: shipping
+item-collapse now would ship exactly the framing the entry ruling rejected.
 
 ---
 
@@ -1225,7 +1096,7 @@ not.
   never from Zotero: gunzip one slab, slice, verify the fingerprint, and
   return null rather than wrong words on a mismatch, and slab cuts land on
   entry boundaries, not byte counts. The slab range is also the **dispatch
-  address** (ratified 2026-08-31): an embed work order for body text carries
+  address**: an embed work order for body text carries
   an entry-sized run of these ranges (§5.2.5), so text already stored never
   crosses the pipe again.
 
@@ -1252,7 +1123,7 @@ meta.
 
 **Chunking.** Tokens on structural boundaries: 120 minimum / 48 overlap,
 never across entries, with overlap only inside a split paragraph. The maximum
-is not a constant but a budget, resolved once per model (ratified 2026-08-29):
+is not a constant but a budget, resolved once per model:
 
     budget = min(500, modelMax) − specialTokens − count(passagePrefix)
 
@@ -1284,8 +1155,7 @@ A construction naming no field is therefore underspecified. At this ceiling the
 ambiguity never bites, and the rule is stated so it stays that way should the
 ceiling ever move.
 
-The unit is the authored paragraph; the budget is a guard, not a target
-(ratified 2026-08-30). Real paragraphs measure roughly 130–390 tokens across
+The unit is the authored paragraph; the budget is a guard, not a target. Real paragraphs measure roughly 130–390 tokens across
 both tokenizer families in play — inside the budget with room to spare — so
 the cap binds only on extraction artifacts: glued paragraphs, reference
 lists, mangled layout. Splitting those loses nothing an author wrote.
@@ -1303,15 +1173,14 @@ inheriting whatever the runtime does in silence (measured: the incumbent
 embeds the first 512 tokens and discards the rest without a word, ticket
 0140's founding identity). The guard ships inside the seg/1 upstream change
 (ticket 0028), the change that creates the exposure — never as a standalone
-filing (DECISIONS.md, 2026-08-30).
+filing.
 
 (For the record: the claim that upstream chunks below Zotero's minimum holds
 only for its 512-char *metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
 inside the band. The move to token-structural chunking rests on the boundary
 ruling, not on that comparison.)
 
-**The calibration header's cheap read: a projected vector at a published seed**
-(ratified 2026-08-31). Every vector file certifies its own chain by carrying a
+**The calibration header's cheap read: a projected vector at a published seed**. Every vector file certifies its own chain by carrying a
 fixed calibration set its chain produced, and a reader decides locally by
 embedding the same chunks and comparing. That comparison is two tests — per-vector
 cosine, and rank agreement over the set's own similarity matrix — and both want
@@ -1339,11 +1208,11 @@ boundary §5.2.5's device rule reaches from the cosine side. A hash of any kind 
 ruled out cross-machine, sign bits included, and the ledger records why.
 
 *Owed here, and not by this entry:* the header itself, its never-mix invariant and
-its fixed 64-chunk set are ratified (DECISIONS.md, 2026-08-31) and this section
+its fixed 64-chunk set are ratified and this section
 still has to carry them, along with §5.2.1's stage keys and the per-file
 `embed_hash` guard that ruling reshapes.
 
-**Adopting a foreign index** (ratified 2026-09-01). A data directory copied
+**Adopting a foreign index**. A data directory copied
 whole from another machine — one-shot, never a shared live file — is opened,
 not rebuilt. The copy registers under a new origin row: versions scope by
 `Zotero-Server-ID`, so every change signal it carries is foreign on arrival
@@ -1370,8 +1239,8 @@ design and inside ticket 0491's comparison (§5.2.5).
 Dictionary arithmetic (input assumption labeled, unmeasured): 44,9 MB across
 ~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the dictionary
 becomes ~1 850 first-class peers, which is the entry ruling's whole point.
-The segmenter is the design's biggest unmeasured bet; experiment X5 gates
-scoped issue B on it (§5.5, risk 1).
+The segmenter is the design's biggest unmeasured bet; experiment X5 gates it
+(§5.4, risk 1).
 
 #### 5.2.3 Discovery order: three priority classes, newest first inside each
 
@@ -1419,11 +1288,11 @@ author or abstract, and body text fills in behind that for hours.
 **What is checked, and what is not.** The harness asserts the class order
 above, per item, and it asserts that discovery keeps up. It does not assert a
 position. The reading that record coverage is a strict
-newest-first prefix was rejected on 2026-08-29 and the veto is in DECISIONS.md:
+newest-first prefix is rejected:
 items enter and leave the library while the build runs, so an invariant over a
 positional prefix is asserted over a set that has already moved. The two bands
-stay, as anti-monopoly machinery rather than as an observable; ticket 0080 owns
-what else has to replace them, since the class order stops a 15k-page PDF
+stay, as anti-monopoly machinery rather than as an observable; open: what else
+has to replace them, since the class order stops a 15k-page PDF
 delaying every *record* and does not stop it monopolizing the body tier.
 
 Zotero's own draft PR #6012 (SPEC.md C2) orders attachments
@@ -1444,7 +1313,7 @@ from there.
 The reconcile tick asks Zotero what changed and queues the work. It does not
 extract anything itself. It is conductor-owned (§5.2.5), runs every 60 s when
 idle, backs off when Zotero is unreachable, and writes work orders. **No
-document fetch happens inside the tick** (ratified 2026-08-31): the
+document fetch happens inside the tick**: the
 whole-document GET has no micro-batch boundary inside it, and a tick that
 performs one does not run for as long as the document takes, which is where
 R35's minute would go — the tick dispatches, the pipeline worker fetches
@@ -1514,7 +1383,7 @@ re-extraction really does re-stamp 0. The experiment runs before the machinery
 is written: re-extract one attachment on a synced profile and on a never-synced
 one, and watch the census and the attachment item's version.
 
-(iv) A **content-presence probe** at verify time, ratified 2026-08-30 on X6's
+(iv) A **content-presence probe** at verify time, on X6's
 decoupling finding (`bench/results/0025-x6-version-dynamics/`). A derived cache
 can vanish — content 404 — with every version signal and the source md5
 unmoved, so nothing in (i)–(iii) sees it. A 404 on an item whose passages are
@@ -1561,7 +1430,7 @@ Ticket 0496 asks whether an official local bridge can expose query and batched
 passage embedding with the same fingerprint handshake. Sharing Zotero's stored
 embedding database or depending on private in-process symbols is not that bridge.
 
-**Process topology** (sole-writer form, ratified 2026-08-31 — the proposal and
+**Process topology** (sole-writer form; the proposal and
 its review are `verification/SOLE-WRITER-0507.md`). Three process roles appear
 below: P0, a query-serving zoteus server; the *conductor*, the one P0 elected
 to write; and one *pipeline worker*, which fetches and embeds and writes
@@ -1680,8 +1549,7 @@ The worker stats that file between micro-batches and idles 2 s while it is
 fresh — and so does the conductor's own write loop, since the process serving
 queries is now also the process draining the stream; the fsync is off-thread,
 the serialization of a long run of records is not. If §5.2.8's
-conductor-latency soak clause fails R6's budget, the pre-authorized fallback
-(DECISIONS.md 2026-08-31) is a dedicated small writer process, not a
+conductor-latency soak clause fails R6's budget, the pre-authorized fallback is a dedicated small writer process, not a
 re-ruling. The conductor's stdio pipes remain the low-latency fast path;
 `nice 19` remains the OS floor. Upstream's BEGIN-at-first-mutation transaction is repaired
 surgically: the build path commits per page (its 200-item/10 s persist
@@ -1885,7 +1753,8 @@ sidecar, disclosed.
 The *small PR* version of D3 is narrower: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is
 keep-vectors plus pinning the query-side embedder to the stored id until a
-rebuild switches both. Dual-embed lives in scoped issue A (§5.4).
+rebuild switches both. Dual-embed itself is not built here; the contract
+survives even if it is built upstream instead.
 
 **R23 — upgrade and downgrade.** The open protocol: read
 `meta.schemaVersion` before any DDL or write (verified defect:
@@ -2009,11 +1878,11 @@ the two outcomes apart.
 - **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
   the band cap are exercised. Assert: pipeline-worker peak ≤ 750 MB (the one
-  run-to-drain worker; re-pinned 2026-08-31, DECISIONS.md), server p95 ≤ 750 MB, the
-  ratified budgets verbatim, against the document class whose
+  run-to-drain worker), server p95 ≤ 750 MB, the
+  budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
-  deviation from the ratified letter ("against the 44,9 MB dictionary", content
-  that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
+  deviation from the budgets' letter ("against the 44,9 MB dictionary", content
+  that cannot be committed to a public repo). The
   real-document X3a run revalidates it at each release on the author's machine.
   **The transport clause**, same gate: resident memory across a fetch of the
   library's largest attachment, measured on both processes of the fetch path
@@ -2024,7 +1893,7 @@ the two outcomes apart.
   otherwise an instruction rather than a verified property; finding F5,
   `verification/SOLE-WRITER-0507.md`).
 Every gate below is decided at one of two levels, and the relation between them
-is calibration rather than coverage (DECISIONS.md, 2026-08-31). The **fixture
+is calibration rather than coverage. The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
 level** runs against the author's real library or a disclosed machine and cannot
 be committed. A fixture that stands in for something real — the synthetic
@@ -2049,8 +1918,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   its answer needs — core, notes, group, or deep-body — and the facet rides the
   same review artifact as the set. Rung evaluation binds the queries whose
   facet the corpus already covers: goal 4 closes on the covered subset, and
-  the rest join goal 5's evaluation when their corpus lands (DECISIONS.md
-  2026-08-31). The corpus carries a cross-lingual slice — EN and
+  the rest join goal 5's evaluation when their corpus lands. The corpus carries a cross-lingual slice — EN and
   FR queries whose answer sets are Vietnamese entries — gated separately from
   the monolingual queries, so a regression names which of R7 and R29 it broke.
   The same pinned set decides R34, and the two readings of it are opposite on
@@ -2071,17 +1939,16 @@ is the pattern, and it binds every surrogate here, not only that one.
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 embed batch plus one in-flight document's
   re-fetch and re-segmentation per failover. **The conductor-latency
-  clause**, the sole-writer ruling's acceptance gate (DECISIONS.md
-  2026-08-31): query p95 measured on the conductor itself while it drains,
+  clause**, the sole-writer form's acceptance gate: query p95 measured on the conductor itself while it drains,
   against §5.2.9's warm-query band — on a failure the pre-authorized fallback
   is a dedicated writer process, not a re-ruling.
 - **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
-  half moved to R32 on 2026-08-31 (DECISIONS.md), so this gate no longer
+  half moved to R32, so this gate no longer
   carries a wall-clock threshold.
 - **R32, the build-time gate.** Two bounds on any full build with the default
   configuration — the first, and equally a rebuild from nothing after an index
-  is abandoned (ruled 2026-08-31) — and **a time bound with no machine attached
+  is abandoned — and **a time bound with no machine attached
   is not a bound**, so each is stated on disclosed hardware and nowhere else.
 
   *The reference machine*: a laptop-class x86-64 CPU, four cores, no GPU, in
@@ -2146,8 +2013,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   for the first — the promise is to the user with a laptop.
 
   Both bounds are design numbers this section owns, pinned here from the
-  measurements cited rather than before them, per the C3-replacement pattern
-  ruled 2026-08-30 (DECISIONS.md). A machine slower than the reference is not a
+  measurements cited rather than before them. A machine slower than the reference is not a
   failure of the promise; it is outside the disclosure, and the gate reports
   the machine it ran on so a reader can tell which case they are looking at.
 
@@ -2186,7 +2052,7 @@ transient residency only: run-to-drain, at most one, its peak the model plus
 one token-budget batch (§5.2.5's dial), under C3's re-pinned pipeline ceiling —
 priced by the same measured candidate range quoted above, without the
 server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
-range's top, inside the ceiling (DECISIONS.md, 2026-08-31). One term of that
+range's top, inside the ceiling. One term of that
 arithmetic is honestly unmeasured: the residency of a live batch — every
 sweep on disk priced batch size in latency, not RSS — so the ceiling's
 sufficiency for the heaviest candidates is a claim §5.2.8's RSS gate and
@@ -2197,7 +2063,7 @@ sole-writer topology confines the long-document RSS risk to the worker's
 streaming fetch; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
 scope the gate can assert; the two-client whole-machine arithmetic above keeps
-the aggregate visible (DECISIONS.md, 2026-08-29). Dual-embed no longer threatens
+the aggregate visible. Dual-embed no longer threatens
 the budget (the lazy-load rule, §5.2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
@@ -2263,14 +2129,13 @@ Unchanged, and now without the hidden second scan (§5.2.6).
   verification/FIELD-REVIEW.md) the execution provider stays out of the embedder key —
   device is an execution detail recorded in results, never in vector identity,
   and an index embedded on one machine can serve on another; below the bar,
-  the provider enters the key and the adopt-a-foreign-index path
-  (DECISIONS.md, ratified 2026-09-01 in the copy shape) dies on the evidence
-  at that rung. Either way fp16
+  the provider enters the key and the adopt-a-foreign-index path (the copy
+  shape) dies on the evidence at that rung. Either way fp16
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is the measured failure ticket 0240 records.
-- **Budget scoping under N processes** — awaiting the author's ratification
-  (DECISIONS.md; both figures stated there and in §5.2.9).
+- **Budget scoping under N processes** — open: per process, or per machine.
+  Both figures are stated in §5.2.9.
 - **Autonomous embedding service — architectural direction, open ownership.**
   The interface seam and its future `local_endpoint` execution mode are
   committed in §5.2.5; implementing a daemon in zoteus is not. Ticket 0491
@@ -2281,86 +2146,20 @@ Unchanged, and now without the hidden second scan (§5.2.6).
   whether this responsibility belongs in zoteus at all. The experiment is
   parallel to, and never a blocker for, registry entries or validation.
 
-**Rejected this cycle, for the record** (each killed by a verified fact or a
-critique, whose details are lost with the pre-restart history): cursoring any fulltext sequence on the
-local transport, a universal fulltext census across transports (it would
-hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered token
-stream for phrase parity, the always-resident dual model, the 0.5 golden
-floor (artifact-refuted), item-granularity smallest-first, trigram CJK (the
-modal Chinese word is two characters), `carray` (not shipped in
+#### Rejected alternatives
+
+Each killed by a verified fact or a critique: cursoring any fulltext sequence
+on the local transport, a universal fulltext census across transports (it
+would hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered
+token stream for phrase parity, the always-resident dual model, the 0.5
+golden floor (artifact-refuted), item-granularity smallest-first, trigram CJK
+(the modal Chinese word is two characters), `carray` (not shipped in
 `node:sqlite`), an in-place v2 schema under the old filename, pause gating
 deletions, and the "contained" D3 PR as first proposed.
 
 ---
 
-### 5.4 The increment sequence from v1.7.0
-
-*(Re-formed 2026-08-26 by the political and implementation reviews and
-ratified in DECISIONS.md. Both those reviews and the original fifteen-step
-train are gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31): what
-survived the re-forming is this section.)*
-
-Upstream code root: `/home/user/oscardvs/zoteus/src/features/search/`.
-SYNC.md's measured asymmetry governs the form each item takes: a contained
-defect with a failing test goes as a **[PR]** (merged twice), and anything
-design-sized goes as an **[issue]** he builds himself (the precedent is
-upstream issue #10; two for two).
-**[X]** means measure first, and gates are repo-side, in this repo's
-Makefile, never PRs.
-
-This section carries the train's *shape* only. The terms it runs under live
-once in GOVERNANCE.md, which points at the entries that ratified them; each
-item's scope, evidence, and live state live in its ticket. The tickets are
-authoritative for content, this list for ordering.
-
-Two orders coexist. The ladder on `README.md` governs the order repo-side
-assertions are built; this train governs the order items go upstream. On
-collision the ladder wins for tests and the train for filings — ticket 0488, a
-rung-1 member filed at item 8, is the documented case (DECISIONS.md
-2026-08-31).
-
-1. **The head, resolved** — PR #19 (accent fold) and #20 (corruption path)
-   merged 2026-08-27 (`4f61b2a`, `6e4637b`); the stopwords follow-up
-   (ticket 0014) is now the head.
-2. **The contained-PR items** (the budget is GOVERNANCE.md's, the live
-   remainder SYNC.md's) — schema read-before-write (0015), the wipe guard
-   (0016; `busy_timeout` closed under the sunset, overtaken by v1.7.1 —
-   DECISIONS.md 2026-08-27), cacheDir and key-to-header (0017).
-3. **The reserve, demand-triggered** — terminal states (0019), own words
-   (0022).
-4. **Issues I-1..I-3** (0024) — the fulltext-delta finding, the measurements
-   as an extension of his own #10 citation, the 40k cap behind the #6012
-   checkpoint; I-4 is folded into scoped issue A, not filed.
-5. **The harness offer, the first design conversation** (0032) — the
-   acceptance spec he can run against whatever he builds; a one-time
-   transfer.
-6. **Three #10-shaped scoped issues, after the train and the offer** — A:
-   ledger/freshness/counters (0033); B: entries and the segmenter (0034); C:
-   multi-process on one data dir (0035). The contract survives even if he
-   reimplements the machinery in his own idiom, which is where C2 says the
-   durable value lives.
-7. **Experiments before their dependents** (0025 carries the substrate map;
-   the rules live in §5.3): X1 before the sidecar work, X4 before any ladder
-   constant, X5 (seg/1 built first, 0028) before issue B, X6 with I-1, X7
-   before the tick cadence is documented, X3a feeding the rss-gate fixture,
-   and X3b traveling with issue B.
-8. **The curated embedder registry** (tracker 0488) — singleton extraction;
-   authoritative fields and parity; curated entries plus entry-id selection;
-   local automatic compatibility validation; optional content-free
-   attestations; then the separate gate that decides what ships — R7 and R29
-   conformance first and untraded, the golden and resource gates choosing
-   among the entries that pass it (ticket 0495; the ruling on why the swap
-   happens at all is DECISIONS.md 2026-08-31).
-   The autonomous-service experiment (0491) reuses the interface seam
-   but does not block this sequence. One upstream design issue carries staged
-   acceptance tests; it is not a prepared PR series.
-9. **The commitment bounds** — stated in GOVERNANCE.md, ratified in
-   DECISIONS.md's re-form entry; the fork's end state is **archived** once
-   the train resolves.
-
----
-
-### 5.5 The biggest remaining risks, and the cheapest falsifiers
+### 5.4 The biggest remaining risks, and the cheapest falsifiers
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
 it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
@@ -2412,8 +2211,8 @@ artifact that justifies it, so re-pins and waivers leave evidence.
 ---
 
 The bet: the ledger keeps failures boring, and the contract keeps answers
-honest. Cycle 2 adds four things: the units are now the ones the author
-ratified (entries, records, items), the freshness protocol can no longer be
+honest. This design adds four things over its predecessor: the units are the
+ones ratified (entries, records, items), the freshness protocol can no longer be
 fooled by the counter it watches, N processes are a designed state rather
 than an accident, and every promise is either watched by a gate whose
 threshold cites its artifact or named as an experiment with a decision rule
@@ -2436,10 +2235,9 @@ Two words are used throughout. An *asset* is something a user would mind losing
 or having read by someone else. A *surface* is a place where an asset can be
 read, changed, or leave the machine.
 
-The chain had no such document. Silence reads the same as "considered and found
-safe" — to a reviewer, to the upstream maintainer, and to the author in six
-months. Ticket 0052 filed this to end the silence, not to assert that anything
-is mishandled.
+Silence reads the same as "considered and found safe" — to a reviewer, to the
+upstream maintainer, and to the author in six months. This section exists to
+end the silence, not to assert that anything is mishandled.
 
 ### Assets
 
@@ -2459,7 +2257,7 @@ about one.
 
 **Vectors.** Once semantic indexing has run, the index also holds a dense
 embedding for each passage. Whether those numbers can be turned back into the
-words that produced them is not established anywhere in this chain. They are not
+words that produced them is not established anywhere in this document. They are not
 stored as compressed text and they are not designed to be reversible, but that
 is a design intent, not a proof: published work on embedding inversion has
 recovered short passages from vectors alone. This document does not resolve the
@@ -2479,14 +2277,14 @@ library: how large, how current, how much is annotated.
 ### Surfaces
 
 **The local database file.** One file, WAL mode (`SPEC.md` §5.2.2). File
-permissions: none yet. Nothing in the chain states the mode the file is created
+permissions: none yet. Nothing here states the mode the file is created
 with, or whether another account on a shared machine can read it. C3
 (`SPEC.md`) treats the machine as the user's; it does not say the
 file is unreadable by anyone else with an account on it.
 
 **Query and status tools.** These are MCP tools. The only transport the design
 names is a stdio pipe between the conductor and its worker, with one zoteus per
-MCP client (`SPEC.md` §5.2.5). No line in the chain says zoteus opens a
+MCP client (`SPEC.md` §5.2.5). No line here says zoteus opens a
 network port for these tools, and no line says it never will. This is silence,
 reported as silence, not a verified negative.
 
@@ -2497,12 +2295,12 @@ status, degrading to keyword-only and never to an API embedder. The other is
 passage text sent to a configured API embedder, which quotes a cost and requires
 an explicit go-ahead per index generation. The default path sends nothing.
 
-**Credential storage at rest.** None yet. The chain records one fix — the Gemini
+**Credential storage at rest.** None yet. This document records one fix — the Gemini
 key moves out of the URL query string and into a header (`SPEC.md` §5.2.7)
 — but not where the key is read from or kept between runs. No file, environment
 variable, or OS keychain is named.
 
-**Logs.** None yet. Nothing in the chain says whether queries, passage text, or
+**Logs.** None yet. Nothing here says whether queries, passage text, or
 errors are written anywhere, and if so where, for how long, or who can read
 them.
 
@@ -2523,11 +2321,11 @@ Zotero's own local API belongs to Zotero, not to this design.
 library produces artifacts about real documents, and this repository is public,
 so a measurement record is an egress path with no opt-in and no delete. It ran
 that way: committed artifacts named documents from the author's library in
-thousands of provenance fields until the ruling of 2026-08-31
-(`DECISIONS.md`) confined identification to Zotero item keys and stopped
-the two drivers that wrote titles. Names published before that date remain in
-the git log by the same ruling, which declines to rewrite history. Two
-disclosures the ruling does not reach stay open here: committed artifacts hold
+thousands of provenance fields until a ruling confined identification to
+Zotero item keys and stopped the two drivers that wrote titles. Names
+published before that ruling remain in the git log by the same ruling, which
+declines to rewrite history. Two disclosures the ruling does not reach stay
+open here: committed artifacts hold
 `passage` and `snippet` text drawn from the library, and the benchmark query
 sets are the author's own research questions.
 
@@ -2541,7 +2339,7 @@ sets are the author's own research questions.
 | API-embedder credential storage at rest | None yet |
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
-| This repository's committed artifacts | Item keys only, by ruling 2026-08-31; passage text and query sets still open |
+| This repository's committed artifacts | Item keys only; passage text and query sets still open |
 
 Four of the seven rows read "none yet". That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a

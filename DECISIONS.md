@@ -2593,6 +2593,61 @@ awaiting excess-weight question below; clause (i), the figures guard's fate,
 is re-priced now that the merge has landed rather than before it, and clause
 (iii), `verification/FIELD-REVIEW.md`'s own standing, stays open.
 
+**2026-09-01 — SPEC.md speaks only of the system; ruling provenance lives
+here alone.** The author's editorial rule for the document the two entries
+above merged and relocated, given after reading the merged result: it read as
+a building's maintenance manual displayed in its lobby. The discriminator —
+text about the system stays, text about the documents, the rulings, the
+tickets and the process that produced the system goes. Kept: every promise,
+mechanism, number, budget, gate and experiment decision rule, and the
+rationale behind them, including system-incident cautionaries ("this project
+once shipped a defect that re-marked 92,7 % of a library as changed,
+forever") — that is history of the system, which a specification legitimately
+teaches from. Removed from the body: ruling breadcrumbs ("(ratified
+2026-08-31)", "(DECISIONS.md, 2026-08-30)", "ruled 2026-…", "re-pinned…",
+"ratified by delegation") — a ruling's date and provenance are this ledger's
+job, not the specification's, so SPEC.md states the rule it settled on,
+declaratively and undated; live process state ("awaiting the author's
+ratification", debt notes) — a genuinely open point says so in one clause with
+no address, the detail stays this ledger's, found by date rather than by
+pointer; work-tracking asides ("ticket 0028 builds to it") that carry no fact
+about the system itself, kept only where the fact does matter to the system
+("endpoint syntax and discovery have no owner yet"); and document/panel/cycle
+narration — merge notes, the cycle-2 story, guard mentions, references to what
+other repository documents do.
+
+Two exceptions, both explicit rather than swept. The rejected-alternatives
+material stays and moves in-body under a PEP-style heading, "Rejected
+alternatives", stripped of dates and ceremony rather than deleted — the
+reasoning a design rejected is part of what the design is. The D1–D11
+resolved-decisions table stays whole, handles and all; only the process words
+in its heading ("ratified by delegation, 2026-08-26") go, since D-numbers are
+handles the rest of the document cites exactly as R-, C- and X-numbers are.
+
+One relocation, not a deletion. The Design section's increment train — the
+order items go upstream — is process planning, not a promise the system
+keeps or a fact the world imposes on it, so it moves to `GOVERNANCE.md`,
+which already owns our upstream conduct; `SYNC.md`'s live counts are
+untouched, on the same split that already separates a stable bound from how
+much of it is spent this week.
+
+Two protections carry over unchanged through this pass. R-item promise
+sentences stay quote-coupled to `README.md`'s standing table — byte-identical,
+never touched even where the paragraph around one is — and `check_figures.py`
+is re-run and its anchors repointed wherever an edited paragraph moved one,
+never its numbers. TERMINOLOGY's "Authoritative: …" pointers are ownership,
+not scaffolding, and stay with their current addresses.
+
+**The header block, the same pass.** SPEC.md carries a PEP/RFC-style header
+immediately under its title, before §1: `Status: DRAFT`, `Author: Minh
+Ha-Duong (CNRS)`, `Date: 2026-09-01`. The date is the version — there is no
+separate version number, and the convention, recorded once in CLAUDE.md's
+maintenance material rather than restated here, is to bump the date whenever
+the document changes substantively. The signature is the author's, never an
+agent's, and carries no email. Status stays DRAFT until the author himself
+declares otherwise; the one word carries the state, and the document narrates
+nothing about when or how that might change.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
