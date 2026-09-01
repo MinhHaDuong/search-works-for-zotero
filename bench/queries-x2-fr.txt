@@ -1,0 +1,43 @@
+# The French counterpart of queries-x2.txt (ticket 0091, the multilingual arm).
+#
+# Why it exists. The argument for deriving the common-word list from the library rather
+# than shipping one turns on a token space that holds every language at once. That claim
+# cannot be tested against a query set in which every query is English, and the library
+# this is measured on is 11,8 % French by passage sample — so the French queries are real
+# users' queries, not a hypothetical.
+#
+# How it is built. Twenty questions of the same shape and the same subject matter as the
+# English set — climate and energy economics, the history of economic thought, Vietnam —
+# because the two sets have to differ in language and in nothing else, or the comparison
+# measures the topic instead. Each carries the French function words a French speaker
+# cannot avoid: le, la, les, des, une, dans, pour, sur, est, sont, qui, que.
+#
+# Line 20 is the French analogue of `to be or not to be`: a query made of nothing but
+# function words. It is the degeneracy case in a language no shipped stoplist covers.
+#
+# What it is expected to show, stated before running so the result can contradict it: at a
+# 30 % cutoff on THIS library no French function word is prunable — `des` is the most
+# common at 5,04 % — so the droplist should prune nothing here and French queries should
+# cost the same in every arm. That is the rule behaving correctly, and it is also the
+# reason the language claim needs the French-majority sub-index to be demonstrated.
+
+le rôle de l'État dans la transition énergétique
+quel est le coût social du carbone
+l'effet d'une taxe carbone sur le revenu des ménages
+les modèles utilisés pour l'évaluation intégrée du climat
+le prix de l'électricité au Vietnam
+la demande d'énergie dans les pays en développement
+c'est le coût marginal qui compte et non le coût moyen
+ces résultats sont robustes au choix du taux d'actualisation
+de la théorie à la politique dans les négociations climatiques
+nos estimations de l'effet rebond et leurs limites
+le modèle standard de la croissance optimale
+l'histoire de l'économie mathématique comme discipline
+la capture et le stockage du carbone dans l'atmosphère
+la distribution des revenus et de la richesse sur le long terme
+mesuré par l'élasticité de substitution entre les facteurs
+leur contribution à l'équilibre du marché
+sur la théorie de la valeur et de la distribution
+la transition vers les renouvelables dans ces pays était-elle inévitable
+les origines des nombres indices en économie
+être ou ne pas être
