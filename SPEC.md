@@ -2383,6 +2383,20 @@ status, degrading to keyword-only and never to an API embedder. The other is
 passage text sent to a configured API embedder, which quotes a cost and requires
 an explicit go-ahead per index generation. The default path sends nothing.
 
+**Read-transport fallback, a narrower and separate gap.** The two paths above
+are the only ones R10 counts, and both stay accurate. Item-metadata reads —
+`getItem`, `getItemChildren`, `listCollections` — are a different surface: the
+router prefers the local Zotero API and falls back to the cloud Web API when
+the local one is unreachable, a rule that predates this design's review and is
+not gated on a per-call opt-in. It cannot fire without a cloud API key already
+configured, and a keyless install fails such a read rather than sending it
+anywhere; where a key is configured, the fallback is silent — nothing asks
+again at the moment it fires. It does not reach an index build: a build pins
+its transport once and fails rather than re-routing, so no passage or
+full-text content crosses this way. Ratified as disclosure rather than a
+requirement (`DECISIONS.md`, 2026-09-01, ticket 0505): the gap is real,
+metadata-only, and narrower than what R10 covers.
+
 **Credential storage at rest.** None yet. This document records one fix — the Gemini
 key moves out of the URL query string and into a header (`SPEC.md` §5.2.7)
 — but not where the key is read from or kept between runs. No file, environment
@@ -2424,12 +2438,13 @@ sets are the author's own research questions.
 | Database file permissions | None yet |
 | Query and status transport | stdio per client (§5.2.5); no stated network listener, absence not verified |
 | Egress to remote providers | Two opt-in paths, both named (§5.2.7); the default path sends nothing |
+| Read-transport fallback (item metadata) | Falls back to cloud when a key is configured and local degrades; disclosed, not opt-in per call — ratified 2026-09-01, ticket 0505 |
 | API-embedder credential storage at rest | None yet |
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
 
-Four of the seven rows read "none yet". That is the honest state of the design,
+Four of the eight rows read "none yet". That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
 defect to fix here.
 
