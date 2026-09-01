@@ -1,0 +1,588 @@
+1968] DEPITRE : LES ŒUVRES ÉCONOMIQUES D'AUG. courNoT. [187
+
+NOTE SUR LES ŒUVRES ECONOMIQUES
+D'AUGUSTIN COURNOT (1)
+
+par Encanr Drvrrre,
+Chargé de Conférences à la Faculté de Droit de Paris.
+G. Tarde, dans l'hommage qu'il faisait des Loës de l'Imitation à la mémoire d’Antoine-Augustin Cournot, a pu le dénom-
+
+mer à la fois, « le Sainte-Beuve de la critique philosophique,
+esprit aussi original que judicieux, aussi encyclopédique et
+compréhensif que pénétrant, géomètre profond, logicien hors
+ligne, économiste hors cadre, précurseur méconnu des économistes nouveaux. » (2) A ces titres, on pourrait adjoindre
+encore ceux de statisticien, d’historien et de « précurseur en
+
+même temps qu'un des maitres de la pédagogie contempo-
+
+raine. » (s) Il est en effet, peu d'œuvres scientifiques, —
+
+au XIX! siècle du moins, — qui présentent au même degré
+
+que l'œuvre de Cournot, un caractère de richesse et de
+complexité et qui aient eu cette rare fortune de pouvoir
+
+concentrer sur elle l'attention de savants et de chercheurs
+très étrangers les uns aux autres, très spécialisés chacun dans
+ik
+
+D'un tronc commun, s’élèvent des branches maîtres-
+
+es par la même forte sève, mais cependant séparables
+
+et dont chacune est assez nombreuse de ramifications et de
+
+feuillage pour valoir une étude distincte : le numéro que la
+Revue de Métaphysique et de Morale consacrait à Cournot en
+mai 1905, en a donné la preuve et l'ilustrationr-les plus précises.
+Ce n'est point à proprement parler, un nouvel aspect de
+
+l'œuvre de Cournot que nous nous proposons de faire apparaître.
+
+Cournot économiste n'est plus aujourd’hui l'inconnu ni le
+
+(1) Ces pages sont détachées de l'Introduction d'une étude sur Cournot 4con0miste qui parat'ra prochainement chez Paul Geuthuer,
+(2) Les Lois de l'Imitation, 4 63, p. XXIV.
+(3) F. Vial: Couraot et l'Enseiguement, Revue de Métaph. et de Morale, mai
+1905, p. 449,
+
+Source gallica.bnf.fr
+/ Bibliothèque nationale de France
+
+188]
+
+*ReH:D*+E-S-
+
+[1908
+
+méconnu dont parlait G. T'arde et à qui, dès 1873, M. Walras
+
+demandait « en plein Institut » que justice soit rendue. Sans
+
+parler même de la place très importante faite à Cournot dans
+, par les économistes-mathémad'abord
+tout
+ique
+l'école mathémat
+
+ticiens eux-mêmes, et de leurs études, soit générale, comme celle
+
+de M. Aupetit dans la Revue précitée, — soit plus spéciales,
+
+comme celles que l'on rencontre dans l’œuvre des Walras, des
+Edgeworth ou des Marshall, — Cournot semble bien désormais
+
+avoir conquis droit de cité dans l'histoire et dans l'enseignement
+
+de l'économie politique. Bastable discute, succinctement il est
+vrai, sa théorie du Commerce International (1) ; M. Ch. Rist,
+
+dans ses études sur l’Origine et les Caractères du Socialisme
+
+d'Etat, cite Cournot « dont la pensée pénétrante, malgré son
+peu d'influence immédiate, importe beaucoup à l’histoire des
+
+doctrines » et il détermine brièvement son attitude en face du
+problème de l'intervention de l'Etat (2) ; G. Tarde, et plus
+
+récemment son fils, M. A. de Tarde, ont exposé quelques uns
+des principaux résultats auxquels était parvenu Cournot (s),
+dont le nom, maintes fois cité dans les amphithéâtres des
+Facultés de Droit, figure, à l'heure présente, dans les traités
+
+les plus élémentaires d'économie politique et d'histoire des
+
+doctrines économiques.
+
+Et cependant l'on peut dire que Cournot est encore aujour-
+
+d’hui sinon totalement méconnu, du moins généralement mal
+connu et fort imparfaitement compris et apprécié. Dans la
+de rares
+plupart des livres et des cours, en effet, — et sauf
+
+exceptions — il n'est guère parlé de lui qu'au seul chapitre de la
+méthode ou des écoles économiques. Cournot est donné comme
+un des fondateurs de la méthode mathématique, — ce qui est
+
+exact, encore que cette vérité soit parfois traduite en des termes
+d’une simplicité déconcertante, (4) — mais il ne paraît avoir été
+
+Q) Bastable: La Théorie du Commerce International. Traduction SauvaireJourdan : p. 242 ss.
+(2) Revue d'économie poétique, mai 1907, p. 325.
+(3) G. Tardo : Psychologie Economique, passim. À. de Tarde : L'Idée du Juste
+Pris, pe 398, 55.
+(4) « [Cournot] prenait, par exemple, une proposition d'Adam Smith ou de
+Jean-Baptiste Say, il la mettait en formule algébrique et tâchait d'en déduire los
+transformations nécessaires 4 l'aide des procé.lés usités peur les Mathématiques, »
+Rambaud : Aistoire des Doctrines Economiques, 2 édition, p. 485.
+
+ce gallica.bnf.fr / Bibliothèque nationale de France
+
+1908] puprr ? LES ŒUVRES ÉCONOMIQUES D'AUG. COURNOT. [189
+que cela, — ce qui est, croyons-nous, tout à fait erronné et
+
+insuffisant. Aussi bien, les premiers responsables de cette
+injustice nouvelle, semblent-ils être les économistes-mathématiciens eux-mêmes qui n’ont voulu voir dans Cournot qu'un de
+
+leurs précurseurs et ont, à peu près systématiquement, laissé
+
+dans l'ombre toute une partie de son œuvre économique fort
+
+importante et très personnelle cependant et en relations des
+plus étroites avec son œuvre générale philosophique et critique.
+Cournot économiste, en effet, n'est point l'auteur uniquement
+
+des Recherches sur les Principes Mathématiques de la Théorie
+des Richesses et si, en un sens, on peut dire qu'il n’a fait qu’un
+seul livre, il faut ajouter aussitôt que ce livre il l'a fait rois fois,
+
+— renonçant, dès la première réfection, à user de l'analyse et
+
+des symboles mathématiques, — complétant son œuvre primi-
+
+tive, — l'enrichissant toujours d’éclaircissements et de dévelop-
+
+pements nouveaux.
+
+Quand il « aborde décidément le métier d'auteur », en
+
+publiant, en 1838, les Recherches sur les Principes Mathématiques de la Théorie des Richesses, Cournot n'a guère lu
+qu'A. Smith, J. B. Say et Ricardo: il voit seulement que
+
+< l'économie politique est plus répandue que jamais, qu'elle est
+
+entrée, avec la politique proprement dite, en partage de ces
+grands journaux qui sont le plus puissant instrument de
+
+publicité. » Philosophe, — qui cherche, suivant le mot de
+Taine, « à trouver et à prouver des vérités générales, sans rien
+de plus, > — il ne veut pas que la théorie soit confondue avec
+
+les systèmes et les applications : « la théorie doit toujours avoir
+sa part, si petite qu’on veuille la lui faire, et il doit être permis
+
+à un homme dé ma profession, plus qu'à tout autre, d'envisager
+exclusivement sous le point de vue théorique un sujet d'intérêt
+général qui a tant de faces diverses. » (p. VI) — Mathématicien,
+il appliquera à ses recherches théoriques les formes et les
+symboles de l'analyse mathématique: « l'emploi des signes
+mathématiques est chose toute naturelle toutes les fois qu'il
+
+s'agit de discuter des relations entre des grandeurs : et lors
+
+même qu'ils ne seraient pas rigoureusement nécessaires, s'ils
+peuvent faciliter l'exposition, la rendre plus concise, mettre
+sur la voie de développements plus étendus, prévenir les écarts
+
+Source gallica.bnf.fr
+/ Bibliothèque nationale de France
+
+190]
+
+*ReH-D-+E-8S+
+
+[1908
+
+d'une vague argumentation, il serait peu philosophique de les
+rebuter parce qu'ils ne sont pas également familiers à tous les
+lecteurs et qu'on s'en est quelque fois servi à faux. » Et plus
+précisément encore il ajoute, — ce en quoi il va inaugurer la
+
+méthode mathématique proprement dite: « Je me propose
+
+d'établir dans cet essai que la solution des questions générales
+
+auxquelles donne lieu la théorie des richesses, dépend essen-
+
+tellement, non pas de l'algèbre élémentaire, mais de cette
+branche de l'analyse qui a pour objet des fonctions arbitraires,
+assujetties seulement à satisfaire à certaines conditions. »
+
+(. VIII-IX) Toutefois Cournot, — et ceci est à noter soigneusement, — ne se méprend point sur la portée de la méthode
+nouvelle : il en délimite nettement le champ d'application : « Je
+
+n'ai point prétendu, dit-il, faire un traité dogmatique et complet sur l'économie politique: j'ai laissé les questions où l'analyse
+
+mathématique n'a aucune prise et celles qui me paraissent déjà
+parfaitement, éclaircies. » (p. X). Il va se montrer plus tard
+
+préoccupé de faire œuvre d'ensemble et plus complète.
+Dans les Principes de la Théorie des Richesses qu'il publie
+
+en 1863, le but principal de Cournot reste le même et c'est
+
+dans les termes mêmes de la précédente préface qu'il l'expose
+aux premières lignes: « Il s'agit toujours de principes et de
+
+théorie. La théorie ne doit pas être confondue avec les systèmes,
+etc. » Cependant au cours de ces vingt-cinq années, Cournot
+
+a lu Stuart Mill, List et Bastiat ; il a pu comparer le mouve-
+
+ment des idées et la marche des faits et observer plus avant les
+
+effets de cette « révolution économique du XIX° siècle » qu'il
+analysera plus tard d'une façon si pénétrante (1); enfin, il a
+publié en 1861, son Traité de l'enchaînement des idées fondamentates (préparé lui-même par l'Æssai sur le fondement de
+
+nos connaissances de 1851) « où les idées fondamentales de la
+
+Science Economique ont dû figurer à leur rang. » Et, s'il croit
+toujours que « sa tâche est de soumettre à une critique nouvelle non des faits mais des idées, en rapprochant dans ce but
+des idées que la marche du travail scientifique tend trop à
+isoler, comme on rapproche dans un herbier pour les mieux
+
+(1) Considérations sur la Marche des Idées et des Foënements dans Les temps
+modernes, 1872, T. I, Chap. VL.
+
+ce gallica.bnf.fr / Bibliothèque nationale de France
+
+190$] DEPITRE : LES ŒUVRES ÉCONOMIQUES D'AUG. COURNOT. [197
+connaître des plantes que la nature a fait naître à de grandes
+distances », il n'entend plus faire sculement œuvre d'analyse
+
+et de critique, mais aussi construction dogmatique et essai de
+
+synthèse nouvelle (p. LV). Il va s'attacher, nous dit-il, « à bien
+
+caractériser la nature de cette science à laquelle on donne
+
+communément le nom d'économie politique, à montrer ses affinités avec d'autres sciences, sa place dans le codre scientifique,
+
+les idées sur lesquelles elle se fonde, les procédés qu'elle emploie, la valeur des résuliats auxquels elle peut atteindre, la
+part qu'elle laisse nécessairement à l'empirisme et aux entrainements de l'opinion. » (p. III).
+Les Principes de la Théorie des Richesses semblent donc
+
+procéder d'une conception plus large de la Science économique.
+En réalité, la conception générale que Cournot se fait de la
+Science Economique est toujours, croyons nous, restée la
+même: l'ouvrage de 1838 en est déjà une application directe
+mais aussi une application purement partielle et qui ne nous
+renseigne pas en termes sufisamment explicites sur cette
+conception générale, — point capital cependant, un de ceux où
+apparaît le mieux en lumière l'originalité de Cournot, esprit
+
+philosophique avant tout, et pénétré de la complexité des
+choses, soucieux de déterminer leurs rapports exacts. À ne
+considérer que les Recherches, on risquerait fort de se méprendre sur la pensée de Cournot; c'est ce que nous voudrions
+
+préciser rapidement et ceci montrera aussi bien l'importance
+que l'on est en droit d'attribuer, pour la compréhension de
+l'œuvre économique de Cournot, à ses deux derniers livres,
+Pour Cournot, l’économie politique dans son ensemble, — et
+
+ce mot étant pris au sens le plus large, car la terminologie que
+
+lui-même proposera est différente, — l'économie politique est
+bien une science: « On nous mettrait, dit-il, en contradiction
+
+trop sensible avec nous-même, si l’on nous accusait de refuser
+à la doctrine économique le nom de science et le genre de
+
+dignité qui s’y rattache. » Mais il ajoute aussitôt : « cette
+
+science est encore et dans certaines dé ces parties elle restera
+toujours à l'état fragmentaire : elle n’admet pas et n'admettra
+
+jamais complètement la construction régulière, systématique,
+constamment progressive qui appartient aux sciences que l'on
+regarde comme définitivement constituées, en ce sens qu'elles
+
+rce gallica.bnf.fr / Bibl
+
+ale de France
+
+192]
+
+*R-H°D+E+S+
+
+[x908
+
+reposent sur des bases inébranlables et universellement admi-
+
+ses. » (1)
+Cournot, en effet, distingue et oppose nettement, — quant à
+
+l'étendue, quant à la matière, quant à la méthode et quant aux
+
+résultats, — l'économie sociale (véritable dénomination de ce
+
+que par suite d'un usage incorrect on affecte aujourd'hui l'éco-
+
+nomie politique (2)) — science générale, « science mère » dont
+l'objet déborde du domaine proprement économique, pour se
+
+compliquer de considérations empruntées à la morale, à la
+philosophie, à la politique, à la religion, — dont les solutions
+ne comportent qu'une « application contestable + ne sauraient
+admettre une « preuve positive, formelle » — et la éhéorie des
+richesses proprement dite, partie proprement économique de
+l'économie sociale, susceptible de recevoir et qui a déjà reçu la
+forme scientifique. « S'agit-il en effet de savoir comment par
+
+suite de changements dans les conditions de la production où
+dans les relations commerciales, les prix hausseront, se baisse-
+
+ront, se nivelleront, comment les profits ou les pertes se repartiront entre les propriétaires, les entrepreneurs, les ouvriers:
+
+chacun sentira que de telles questions sont purement scientifi-
+
+ques, autant que pourrait l'être un problème de mécanique où
+de chimie ; qu'elles comportent une solution fondée sur l’appli-
+
+cation du calcul à certaines données de l'observation. » Et les
+
+solutions que comportent ces problèmes < ne dépendent pas de
+
+la manière d'entendre des questions d’un autre ordre, en
+
+religion, en politique, en philosophie, en morale... Certaines
+
+parties de la théorie des richesses et par cela même certaines
+parties de la science de l'économie sociale acquerront de la
+
+sorte une rigueur scientifique qui les recommanderaient à la
+curiosité des philosophes, lors même que l'on ferait abstraction
+de toute utilité pratique. » (3)
+
+Mais ne voit-on pas combien ces parties de l’économie sociale
+
+susceptibles d’une rédaction et d’une solution scientifiques sont
+
+peu nombreuses, limitées : « La théorie des richesses reste à
+
+l'état fragmentaire si elle veut conserver sa rigueur et sa pureté
+A) Principes p. 52.
+(2) Id. p. 23.
+G) 14. … p. 19-20.
+
+ce gallica.bnf.fr / Bibliothèque nationale de France
+
+1908] DEPITRE : LES ŒUVRES ÉCONOMIQUES D'AUG. COURNOT. [193
+
+scientifiques. ses divers chapitres ne peuvent se coordonner,
+
+s'unir que par des considérations tirées de l'économie sociale
+dans celles de ses parties qui sont incapables d'acquérir ou qui
+n'ont pas encore acquis la forme scientifique. » (1) Cournot dans
+les Recherches sur les principes mathématiques s'était cantonné
+
+dans le domaine proprement dit et limité de la #kéorie des
+
+richesses, mais ce n'est point, quoi qu'on en ait dit, à cette tâche
+unique et « volontairement restreinte » qu'il s'est proposé de
+
+collaborer (2). Dans les Principes de la théorie des Richesses des
+développements nouveaux et importants moins purement
+théoriques vont apparaître qui relieront, coordonneront préci-
+
+sément ces parties incomplètes ct fragmentaires : la théorie des
+
+richesses, partie de l'économie sociale, est réintégrée dans son
+cadre : c’est là l'apport nouveau, la première différence fondamentale d'avec les recherches de 1838 (3).
+
+IL est une seconde différence non moins remarquable : ces
+
+parties mêmes de la {héorie des richesses, qui dans le nouveau
+livre ont conservé une place importante, Cournot ne les aborde
+
+plus avec cette méthode qui, dès l'abord, lui était apparue
+
+«essentielle» : voulant voir, nous dit-il, s'il a, dans son premier
+
+essai, péché par le fond des idées ou seulement par la forme, il
+
+dépouille absolument « de l’attirail d'algèbre qui effarouche tant
+en ces matières » le nouveau livre : il va s'efforcer « d’être à
+
+la fois clair et succinct pour conserver la rigueur de l'esprit
+géométrique, sans employer l'appareil de démonstration des
+géomètres » (p. IV). Sans doute l'usage discret des symboles
+et des formes mathématiques lui paraît toujours pouvoir étre
+utile dans la discussion des questions économiques. Mais « il
+faut craindre, dit-il, le mélange et l’abâtardissement des genres.
+
+L'appareil mathématique, très propre à conduire promptement
+aux conséquences de certaines hypothèses abstraites, a l'incon-
+
+vénient de donner à penser qu'on attribue à ces hypothèses
+
+une valeur qu’elles ont effectivement dans l'interprétation des
+phénomènes naturels et qu'elles ne sauraient avoir au même
+
+QD Ja. p. 20-21.
+{2) Aupetit, Loc. cit. p. 380.
+(3) « J'ai repris mon travail de 1838 en le corrigeant, en le développant la où
+les développements manquaient, en le complétant sur les points auxquels je
+m'étais ubstenu de toucher... » Principes. Au Lecteur (p. I).
+
+Source gallica.bnf.fr
+/ Bibliothèque nationale de France
+
+194]
+
+*R‘H-D+E-+S:
+
+[908
+
+degré dans l'interprétation des phénomènes sociaux. On n'en
+doit user qu'avec de grandes précautions où même on doit se
+résigner à n'en pas user du tout, si le jugement du publie y
+paraît contraire; car ce jugement a ses raisons secrètes, presque
+toujours plus sûres que celles qui déterminent les jugements
+individuels (1). » — Faut-il s'inscrire en faux contre ces conclusions de l'inaugurateur même de la méthode et doit-on
+
+regretter avec M. Aupetit, & cette traduction en langage
+
+ordinaire des démonstrations que Cournot avait précédemment
+
+données sous forme symbolique. L'œuvre n'y gagna pas beaucoup de lecteurs: elle y perdit certainement en clarté, en
+
+concision, en élégance (2). » C'est là le point de vue du pur
+mathématicien. Il semble bien au contraire que les économistes
+doivent savoir gré à Cournot, — dont l'innovation d'ailleurs ne
+
+devait point rester stérile, — d'avoir dépouillé l'attirail du
+
+géomètre et, — exprimant désormais des vues nouvelles dans
+le langage commun, que pourtant sa sobriété et sa précision
+
+rendent si personnel, — d'avoir ajouté à la pensée économique
+des développements et des aperçus nouveaux auxquels ne l'eüt
+point conduit, comme lui-même l'avait constaté, la seule analyse
+
+mathématique.
+
+Cournot devait en 1877 reprendre une troisième fois ses
+
+précédents ouvrages et céder, nous dit-il,
+
+« à la tentation de
+
+donner, non pas une seconde édition, mais une nouvelle rédaction du traité de 1863 : rédaction mise dans un meilleur ordre,
+
+allégée de beaucoup de détails, de manière à la condenser dans
+un format plus populaire à l'avantage économique des consommateurs aussi bien que du producteur. » La Revue Sommaire
+des Doctrines Economiques, trop peu connue et trop peu citée(s),
+
+— peut étre parce que le titre prête à quelque confusion, —
+
+n'est donc autre chose que « la forme dernière et la plus accessible » de l'œuvre économique de Cournot. Non plus que dans
+
+les Principes de la Théorie des Richesses, l'analyse mathémati-
+
+que n'y est appliquée: de même, la pure théorie économique
+n'est plus l'objet unique de la recherche de Cournot; il va
+
+(2) Principes, p. 518-519.
+(2) A. Aupetit, Le, cit. p. 378.
+(3) V. cependent Cauwès, Cours d'Economie politique, 3° éd. T. IV p. 591 et
+608.
+
+ce gallica.bnf.fr / Bibliothèque nationale de France
+
+1908] DEPITRE : LES ŒUVRES ÉCONOMIQUES D'AUG. COURNOT. [195
+
+traiter aussi de questions plus concrètes et plus pratiques, et
+
+plus encore peut être que dans les Principes, « coordonner,
+
+unir par des « considérations tirées de l’économie sociale » ces
+
+théories qu'il a dès son premier essai, dégagées ou construites.
+
+Aussi bien la distinction fondamentale entre l'économie sociale
+
+et la éhéorie des Richesses n'est-elle point la seule à laquelle
+
+Cournot se soit arrêté. Cette économie sociale, s'est-il en effet
+déjà demandé dans les Principes, at-elle la prétention d’être
+
+une économie cosmopolite et jusqu'à ce qu’elle puisse devenir
+telle pourra-t-il y avoir autre chose qu'une économie politique
+à l'usage de chaque nation particulière ? Il reviendra plus longuement sur ce point dans la Revue sommaire montrant que la
+
+science de l'économie sociale doit comprendre des chapitres
+d'une application générale et d'autres exclusivement ou plus
+spécialement applicables aux peuples de tel tempérament,
+placés dans telles conditions déterminées. De même que la
+théorie des richesses, l'étude des diverses économies politiques,
+— des économies nationales dirions-nous aujourd'hui, — est
+
+une partie importante de l'économie sociale. Nous sommes
+loin, on le voit, des recherches purement théoriques de 1838 :
+un nouveau Cournot va nous apparaître, moins novateur sans
+
+doute — lui-même nous dit tout ce qu'il doit, entre autres, à
+
+F. List, — mais toujours personnel cependant et qu'il est utile
+de connaître et de pratiquer.
+On notera dans ce dernier ouvrage un changement plus marqué encore de méthode et de but. Cournot part de l'Fconomie
+Rurale et nous expose « les raisons pour lesquelles à? esé don
+en théorie, de faire de l'économie rurale une sorte d'introduc-
+
+tion aux spéculations économiques... ; le paysan touche de
+plus près à la réalité concrète, à la vérité positive, à celle que
+
+l'expérience fait voir et confirme () » ; — point de vue qui
+sera repris, mais dans un but tout différent, par un autre
+théoricien contemporain (9. Pour Cournot en effet, ces raisons
+qu'il invoque sont « précisément celles qui font regarder, de
+
+() Revue Sommaire, p. 7.
+(2) 6. Sorel. Introduction à l'Economie Moderne, p. 13: « Je veux montrer ici
+combien il est essentiel de prendre pour base des recherches actuelles sur
+l'économie, les phénomènes que présente la vie rurale. »
+
+Source gallica.bnf.fr
+/ Bibliothèque nationale de France
+
+196]
+
+-R°H°D°E-8-
+
+Li908
+
+nos jours, les populations rurales comme les plus propresà
+se défendre et à défendre avec elles la société tout entière
+
+contre les entreprises de ces hommes téméraires toujours prêts
+
+à trouver que la vieille société tombe en ruines et qu'il faut se
+hâter d'en refaire une autre. » C’est donc moins au côté propre-
+
+ment économique et éechnique de l'économie rurale qu'à son
+
+côté social qu'il va s'attacher, — pour aboutir, dans l'important
+chapitre de la Question Sociale, à la démonstration de l'impossibilité d'une réforme systématique de l'Etat social et plus
+
+particulièrement à la critique des systèmes socialistes.
+Ainsi la Revue Sommaire des Doctrines, critique des systé-
+
+mes déjà annoncée dans les Considérations sur la marche des
+idées el des événements dans les temps modernes de 1872, fait
+
+encore apparaître de nouveaux aspects et de nouveaux compléments de la pensée économique de Cournot. Et l'on peut
+voir, d'après ces quelques considérations, — cette sorte de justification qu'un point de vue jusqu'ici dominant, mais trop
+étroit et exclusif, a rendue nécessaire, — que l'œuvre économi-
+
+que de Cournot n'est point limitée aux seuls résultats des
+
+Recherches sur les Principes Mathématiques, — qu'elle est, à
+
+la fois, et quant à la méthode et quant aux résultats, moins
+
+systématique et plus compréhensive, — et qu'il n'est rien de
+plus juste et de moins paradoxal que de prétendre l'étudier
+dans son ensemble en considérant autant,
+
+— nous dirions
+
+presque surtout, — les œuvres postérieures: les Principes de
+la Théorie des Richesses et la Revue Sommaire des Doctrines
+Economiques.
+
+ce gallica.bnf.fr / Bibliothèque nationale de France
+
+
