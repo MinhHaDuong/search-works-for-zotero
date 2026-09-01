@@ -93,12 +93,17 @@ def check_local_by_default(s: Server) -> dict:
 
 
 def check_model_stays_in_data_dir(data_dir: Path) -> dict:
-    """R28: the downloaded model does not escape the data directory."""
+    """R15: the downloaded model does not escape the data directory (the uninstall clause).
+
+    Filed against R28 originally; R28 merged into R15's uninstall clause on
+    2026-08-31 (DECISIONS.md), "removal being complete at the item scale and
+    the install scale" -- relabelled here rather than kept on a retired number.
+    """
     models = data_dir / "models"
     present = models.is_dir()
     files = sorted(p.name for p in models.iterdir()) if present else []
     return check(
-        "R28-model-in-data-dir", "R28", "the model cache lives under the data directory",
+        "R15-model-in-data-dir", "R15", "the model cache lives under the data directory",
         "a model cache created outside the data directory (a shared HF cache, or $HOME)",
         "pass" if present else "observed",
         {"models_dir": str(models), "exists": present, "entries": files[:10],
@@ -166,19 +171,33 @@ def check_migration_absent(a: argparse.Namespace, scratch: Path, sideline: dict)
     """The other half of R23: 'serving in both directions is still design.'
 
     The sideline check above proves the DAMAGE half. This one names what the same
-    evidence shows about the remaining half: a stamped older version is not migrated,
-    it is abandoned. Reported as `observed`, since one restamp cannot prove no code
-    path anywhere migrates — it shows this one does not.
+    evidence shows about the remaining half: a stamped older version is not read in
+    place (SCHEMA_MIGRATIONS is empty at v1.12.0, so no in-place upgrade ladder ever
+    runs), it is set aside and a fresh index opened. Reported as `observed`, since
+    one restamp cannot prove no code path anywhere migrates — it shows this one does
+    not read the old file in place.
+
+    v1.12.0 (#34, ticket 0504/0520) softened the cost of that, without closing the
+    row: `storageNotice` on the older-stamp open (recorded in `detail`, below)
+    documents that a rebuild against the sidelined file salvages vectors for
+    unchanged text via `vector-salvage.ts` rather than re-embedding everything, so
+    "abandoned" is true of what is SERVED (nothing, until a rebuild), not of what a
+    rebuild then costs. Read `detail.storageNotice` for what actually happens on
+    this run, rather than trusting the fixed consequence string below, which predates
+    salvage and overstates the cost on any passage whose text is unchanged.
     """
     d = sideline["detail"]
     abandoned = sideline["result"] == "pass" and d["older_stamp"]["served_index_is_empty"]
     return check(
         "R23-no-migration-path", "R23",
-        "an index stamped with a different version is read rather than abandoned",
-        "a rebuilt index carrying the old index's passages or vectors",
+        "an index stamped with a different version is read in place rather than abandoned",
+        "a rebuilt index reading the old index's passages or vectors in place",
         "observed",
-        {"index_was_abandoned_not_migrated": bool(abandoned),
-         "consequence": "every passage must be re-embedded after any SCHEMA_VERSION change",
+        {"index_was_abandoned_not_read_in_place": bool(abandoned),
+         "consequence": ("no in-place upgrade ladder runs (SCHEMA_MIGRATIONS is empty at v1.12.0), but a "
+                          "rebuild against the sidelined file may salvage vectors for unchanged text rather "
+                          "than re-embedding everything -- see detail.storageNotice for what this run found"),
+         "storageNotice": d["older_stamp"].get("storageNotice"),
          "cost_reference": "bench/results/0025-x1-recall/embed-feasibility.json"})
 
 
