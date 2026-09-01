@@ -11,6 +11,7 @@ Author: minh
 2026-09-01T13:57Z claude note constants disclosed as arbitrations, not measurements: the ruling declined a measurement, so PACE_WINDOW 8, PACE_DEGRADED_RATIO 2, PACE_DEGRADED_FLOOR_MS 50 and PACE_STEP_MS 250 are chosen and documented as such in fetch-pacer.ts. Only PACE_CEILING_MS 8000 is derived — below the row-claim TTL of 30x the ~1 s quantum, since a pacing delay long enough to expire the claim would duplicate the fetch it was slowing down.
 2026-09-01T13:57Z claude note scope: the pipe is not built. The worker runs in-process behind ExtractDispatcher, which is where the process boundary falls — what crosses it is already an assignment and a result. Windows have no consumer until the segmenter exists (tranche 4, blocked on 0556), and a pipe protocol written against no consumer would claim the design was built. Also deferred: re-enqueueing the rows staleExtracts() finds, which needs a conductor-side sweep rather than a query.
 2026-09-01T14:03Z claude note correction to the constants entry above: it named four chosen constants and there are five. PACE_MIN_SAMPLES = 4 — below which there is no verdict, since a median of two is not a median — is chosen on the same footing as the other four. Appended rather than corrected in place, per append-only.
+2026-09-01T14:35Z claude note review round 1 (PR 156): three blockers fixed on the fork at ff1d41a. (1) a cut stream was stored as a short document — the scanner now reports whether the content string closed and a read that stopped inside it raises. (2) the back-off condemned healthy machines: an all-time-minimum baseline pinned near zero by a burst of instant answers. Root cause was a vacuous ratio test, not the minimum — against a baseline near zero everything exceeds twice nothing. Fixed by clamping the baseline at the degradation floor, plus a bounded horizon and a low quantile, and by measuring time-to-response rather than time-to-last-byte, which was confounded by document size. (3) lowerWorkerPriority and the pacer report had no call site; the pacer report now rides the drain report and the OS floor is a seam the forking entry point passes, off by default because until the worker is its own process the process it would renice is the one answering queries. Also: releaseExpiredClaims had no caller, so a hard-killed worker stranded its rows; the conductor now sweeps in poll.
 --- body ---
 ## Context
 
@@ -64,13 +65,13 @@ and arrives here for free.
   Held: the only `src/api/` change is one added method on the LOCAL
   client, `fetchFullTextStream`, and it goes through the same
   `RateLimitedFetcher` and its four-slot semaphore as every other read.
-  Nothing under the web transport was touched. 1 067 tests pass, `tsc`
+  Nothing under the web transport was touched. 1 075 tests pass, `tsc`
   and `eslint` clean.
 
 ## Exit criteria
 
 - [x] Extract stage merged on a fork branch, back-off test green.
-      `tranche-3-extract-shim` at `e8784df` on MinhHaDuong/zoteus,
+      `tranche-3-extract-shim` at `ff1d41a` on MinhHaDuong/zoteus,
       branched from `tranche-2-conductor-election` as the tranche
       branches accumulate. Read "merged on a fork branch" as tranches 1
       and 2 were: the tranche branch is where the work lands, and no
