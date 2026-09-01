@@ -76,35 +76,35 @@ code change) in exchange for every offered option being known to load, pool,
 and normalize correctly — which for a local-first, no-telemetry tool matters
 more than it would for something with usage data to catch regressions.
 
-For what it's worth, this shape already exists one layer down. Zotero's own
-`#6012` (still an open PR at the time of writing, not yet merged) adds native
-ONNX inference in Firefox's own process, and its `Zotero.Embeddings` module
-owns a curated model registry with role-aware `embedQuery()` /
-`embedPassages()` calls, rather than an open model string — the same
-curated-registry, role-aware shape suggested above.
+This shape already exists one layer down. Zotero's own `#6012` (still an open
+PR at the time of writing, not yet merged) adds native ONNX inference in
+Firefox's own ML runtime, in its own memory-gated process, and its
+`Zotero.Embeddings` module owns a curated model registry with role-aware
+`embedQuery()` / `embedPassages()` calls, rather than an open model string —
+the same curated-registry, role-aware shape suggested above.
 
 ## Measured evidence, for whatever it's worth in picking the first entries
 
 I benchmarked six multilingual ONNX candidates (all in the 384–768 dimension
 range: `multilingual-e5-small`/`-base`, two IBM Granite multilingual sizes,
 Snowflake `arctic-embed-m-v2`, and Alibaba `gte-multilingual-base`) against a
-hand-built cross-lingual probe: 24 topics (8 Vietnamese, 8 German, 4 Russian —
-the Russian lane is thin and I'd weight it less), each with an English query,
-a French query, and a native-language query, scored for hit@10 against a fixed
-257-passage pool.
+hand-built cross-lingual probe: 20 cross-lingual topics (8 Vietnamese, 8
+German, 4 Russian — the Russian lane is thin and I'd weight it less), each
+with an English query, a French query, and a native-language query, scored
+for hit@10 against a fixed 257-passage pool.
 
 The instructive part is the controls, not just the headline numbers. A query
 topically unrelated to anything in the pool (four of them: e.g. Japanese
 tea-ceremony ritual) should retrieve none of the non-English gold passages
 into its top 10. That negative control came back clean at every quantization
 level for the E5 family only (`multilingual-e5-small`, `multilingual-e5-base`).
-The other four candidates leaked 1–3 of 4 negative probes at almost every
-dtype, concentrated on a handful of "hub" passages that rank near the top for
-unrelated queries regardless of topic — a known effect in high-dimensional
-nearest-neighbor retrieval, not a probe artifact; an English-only contrast
-model run through the identical harness leaked too. So several of those
-models' raw hit@10 numbers look competitive or better, but aren't trustworthy
-as clean cross-lingual signal without that caveat attached.
+The other four candidates leaked 1–4 of 4 negative probes at every dtype
+measured, concentrated on a handful of "hub" passages that rank near the top
+for unrelated queries regardless of topic — a known effect in
+high-dimensional nearest-neighbor retrieval, not a probe artifact; an
+English-only contrast model run through the identical harness leaked too. So
+several of those models' raw hit@10 numbers look competitive or better, but
+aren't trustworthy as clean cross-lingual signal without that caveat attached.
 
 For what it's worth, `multilingual-e5-small`'s own hit@10 at fp32 (deployed
 dtype, negative control clean): en→vi 0.62, fr→vi 0.25, en→de 0.50, fr→de
@@ -116,15 +116,18 @@ does not degrade gracefully the same way: fp32 is respectable (0.62–1.00
 across the same lanes), but 8-bit collapses on several lanes to 0.00–0.25.
 That's worth flagging on its own, since int8/q8 is often assumed a safe
 default speed/size tradeoff, and here it specifically isn't for that model.
-`multilingual-e5-base` scores meaningfully higher than `-small` on every clean
-lane (e.g. en→vi 1.00 vs 0.62 at fp32), at roughly double the parameter count
-and vector width: a real quality-vs-cost tradeoff, not a strict improvement.
+`multilingual-e5-base` scores meaningfully higher than `-small` on every
+clean lane at fp32 (e.g. en→vi 1.00 vs 0.62), though the gap narrows or
+disappears under quantization (e.g. en→de ties at q8, fr→de inverts in
+`-small`'s favor at uint8) — at roughly double the parameter count and vector
+width, a real quality-vs-cost tradeoff, not a strict improvement.
 
-On throughput: measured together on one CPU host (no GPU acceleration),
-per-passage embedding time was `multilingual-e5-small` 59.8 ms,
-`granite-97m-multilingual-r2` 68.5 ms, `multilingual-e5-base` 137.6 ms,
-`gte-multilingual-base` 153.9 ms, `arctic-embed-m-v2` 166.7 ms,
-`granite-311m-multilingual-r2` 231.7 ms. On an ordinary laptop CPU, an initial
+On throughput: measured together on one CPU host (no GPU acceleration, single
+runs rather than a dedicated throughput benchmark, so read these as
+approximate), per-passage embedding time was `multilingual-e5-small` ≈60 ms,
+`granite-97m-multilingual-r2` ≈70 ms, `multilingual-e5-base` ≈140 ms,
+`gte-multilingual-base` ≈150 ms, `arctic-embed-m-v2` ≈170 ms,
+`granite-311m-multilingual-r2` ≈230 ms. On an ordinary laptop CPU, an initial
 build over a large library is roughly 2–4x longer for the four larger
 candidates than for the two smaller ones. (A MiniLM figure of 77.6 ms/passage
 exists too, but from a different host and a different measurement pass, so
@@ -133,9 +136,10 @@ comparison against the six above.)
 
 Net: of the six, only the E5 family passed the negative control cleanly at
 every quantization level I tested, and within that family `-small` is the
-closer size/speed match for the current MiniLM default (same 384 dimensions,
-comparable build cost) while `-base` trades roughly 2x the build time and
-storage for a consistent quality gain. I'm not suggesting a specific default —
+closer size match for the current MiniLM default (same 384 dimensions) and
+the fastest of the six candidates benchmarked together, while `-base` trades
+roughly 2x the build time and storage for a consistent quality gain at fp32.
+I'm not suggesting a specific default —
 just flagging that these two are the ones whose cross-lingual numbers I'd
 actually trust, and why the other four's better-looking numbers come with an
 asterisk.
