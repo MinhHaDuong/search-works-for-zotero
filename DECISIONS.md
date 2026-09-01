@@ -2710,6 +2710,32 @@ proceeds with the shipped zero-survivor fallback rule; the soliloquy-survivor
 question (`not` at 27,3 %) was presented and not reopened, so the shipped rule
 stands unless upstream review reopens it.
 
+**2026-09-01 — Conductor scheduling: the three drafted constants are ruled.**
+The author ratified the three scheduling entries below, each now marked in
+place. The body-class interleave takes the proposed shape and value:
+stateless weighted round robin at r = 3. The micro-batch quantum is ratified
+at about 1 s with per-device size derivation as proposed, with one addition
+from the same exchange: the quantum guards only slowness, so a *stuck* worker
+is recovered by the row-claim machinery, whose TTL is pinned at 30 × the
+quantum (~30 s) — above the worst honest stall a working machine produces
+(swap, thermal throttle, a suspend/resume), below the 60 s tick that already
+bounds how fast anything is noticed; an expired claim costs at most one
+duplicated micro-batch. The 30 is an arbitration, not a measurement, and it
+lands on the constant the lease machinery already carries as its migration
+gate. The extract worker gains the latency-observed back-off (the second
+shape of its entry): on a rising local-API latency median it delays between
+document fetches, decaying on recovery, reported on the instrument panel.
+The author's ground: a measurement would have spoken for one machine, where
+the back-off protects every installation. The Web-API fallback stays out
+(ticket 0505). One subsidiary ruled in the same exchange: pipeline workers
+run at minimum CPU priority — portable, POSIX nice through the runtime's
+cross-platform call — and, where the platform exposes one, in a background
+I/O class (idle I/O on Linux, the background policy on macOS, background
+mode on Windows), best effort elsewhere. The strong guarantee is the CPU
+one; the I/O class is opportunistic per platform, and the platform-neutral
+dampers — one fsync per micro-batch, the fetch back-off above — do not
+depend on it.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
@@ -2981,7 +3007,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   untouched by the measurement and no knob is proposed.
 
 - **The fresh-against-backfill ratio inside the body class (session finding,
-  2026-09-01).** SPEC.md §5.2.5 names level 3 of the priority tree and states
+  2026-09-01) — ratified 2026-09-01: r = 3 as proposed, see the ledger entry
+  above.** SPEC.md §5.2.5 names level 3 of the priority tree and states
   that it needs a weighted arbitration without fixing the weight. This entry
   proposes the weight.
 
@@ -3062,7 +3089,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   make.
 
 - **The micro-batch quantum, and deriving its size per device (session
-  finding, 2026-09-01).** The micro-batch is the schedulable unit of the whole
+  finding, 2026-09-01) — ratified 2026-09-01: ~1 s as proposed, plus a claim
+  TTL of 30 × the quantum for stuck workers, see the ledger entry above.** The micro-batch is the schedulable unit of the whole
   priority tree: queues, the activity file and the lease are re-checked
   between micro-batches and nowhere else, so the batch constant sets how fast
   preemption can be. Fixing it as a *size* fixes the wrong quantity, and the
@@ -3111,7 +3139,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   code.
 
 - **Whether the extract worker backs off on observed local-API latency
-  (session finding, 2026-09-01).** Upstream's #39 (SYNC.md) is the case worth
+  (session finding, 2026-09-01) — ratified 2026-09-01: yes, the second shape,
+  see the ledger entry above.** Upstream's #39 (SYNC.md) is the case worth
   reading before deciding. Its full-text pass fetched four attachment bodies
   at a time, and the desktop local API is one process shared with Zotero's UI,
   its sync engine and its own PDF indexer; enough concurrency stopped it
