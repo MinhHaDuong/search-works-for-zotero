@@ -80,9 +80,8 @@ For what it's worth, this shape already exists one layer down. Zotero's own
 `#6012` (still an open PR at the time of writing, not yet merged) adds native
 ONNX inference in Firefox's own process, and its `Zotero.Embeddings` module
 owns a curated model registry with role-aware `embedQuery()` /
-`embedPassages()` calls, rather than an open model string. That's the same
-curated-registry, role-aware shape as above, arrived at independently on the
-other side of the same integration.
+`embedPassages()` calls, rather than an open model string — the same
+curated-registry, role-aware shape suggested above.
 
 ## Measured evidence, for whatever it's worth in picking the first entries
 
