@@ -1,0 +1,108 @@
+%erg 0.1
+Title: Conductor scheduling: name the lane tree, ratify the fresh/backfill arbitration
+Created: 2026-09-01
+Author: minh
+Closed: autoclosed — PR #143
+
+--- log ---
+2026-09-01T12:00Z claude created, from the author's scheduling discussion of 2026-09-01
+
+2026-09-01T11:07Z MinhHaDuong closed — autoclosed — PR #143
+--- body ---
+## Context
+
+The author asked for a theoretical framing of the conductor's scheduling:
+how it guarantees completeness, freshness, and priority between lanes
+(the factory metaphor: 15k pieces, three stages of increasing cost, some
+pieces are batches). The discussion settled the following reading of
+SPEC.md §5.2.3–5.2.5, and found exactly one gap.
+
+What the design already has, restated in scheduling-theory terms:
+
+- **Completeness is a reconciliation invariant, not a scheduler
+  property.** The census diff re-derives "what should exist" every tick
+  and re-queues anything missing (self-stabilization). The scheduler
+  optimizes; the reconciler guarantees. Correct as designed.
+- **The priority structure is a tree, not flat lanes.** Foreground
+  (activity file) preempts everything; then the three §2.3 classes
+  (metadata > notes/annotations > body) under strict priority — safe
+  without arbitration constants because the upper classes are finite and
+  short (metadata drains in ~8–10 min), so strict priority cannot
+  starve; then, inside body only, band 0 > band 1.
+- **Strict class priority already delivers cross-class freshness**: a
+  fresh metadata change beats all body backfill with no dedicated lane.
+- **The batch/monster problem is solved per-item by the bands, which is
+  strictly better than a per-lane split by item size** (a "collections"
+  lane would delay the monster's head too; banding indexes every item's
+  head early). A proposed 4-classes × fresh/backfill = 8 flat lanes was
+  examined and rejected on this ground: the tree needs one weighted
+  arbitration where 8 flat lanes would need seven.
+- **The micro-batch is the schedulable unit**; band/lane order is
+  re-evaluated between micro-batches, which is what makes preemption and
+  the band cap effective against a 15 000-page PDF.
+- **Scheduler state lives in the ledger** (queues as rows, priority as
+  ORDER BY, lease, claims, cursors); the only ephemeral state (current
+  micro-batch, activity file, 30 s memoized probe) is crash-disposable.
+
+## The gap
+
+Inside the body class, nothing arbitrates between freshly-changed items
+and the initial backfill. Freshness-optimal service is LCFS; fair
+completeness is FIFO; a single queue cannot do both, and strict
+fresh-first would starve backfill under sustained arrival. The standard
+remedy is deficit round robin at a fixed ratio (serve k fresh
+micro-batches per 1 backfill, k ≈ 3–4), which makes the fresh-lane
+traversal bound computable: time ≤ (fresh-lane size × micro-batch cost)
+/ (fresh share of the bottleneck). Stateless implementation available:
+deterministic draw on the micro-batch counter (k fresh, 1 backfill,
+modulo k+1) — no deficit counter needed in the ledger.
+
+Refinement (author, 2026-09-01): the micro-batch constant is a TIME
+budget, not a size. Batch size trades throughput (amortizing fixed
+kernel/transfer costs — dominant on GPU, so optimal size is 10–100x the
+CPU's) against preemption latency (queues, activity file and lease are
+only re-checked between batches). So ratify one quantum (~1 s) and
+derive the size adaptively per device: B <- B x (target / observed
+duration), EWMA-smoothed, clamped by a fixed-cost floor and a memory
+ceiling (VRAM on GPU; consistent with the per-device rung ruling). The
+invariant "yields every ~1 s" then holds on any hardware, and R35's
+minute stays discovery-dominated: tick <= 60 s, then fresh-lane
+traversal of a few quanta. The only threat to the bound remains the one
+unit with no internal boundary, the extract stage's whole-document GET.
+
+Adjacent, not the same question: ticket 0080 asks what else has to hold
+per item inside the body tier. The fresh-against-backfill level arbitrates
+between two populations of items; 0080 is about one item's own ranges.
+
+Secondary, from the #39 postmortem (SYNC.md): upstream's fix chose
+extraction concurrency by observed degradation of the serving API.
+Our extract worker is already sequential; adopting a latency-observed
+back-off on top (slow down before Zotero stops answering, not only on
+error) is worth a look while specifying the scheduling section.
+
+## Actions
+
+1. Put the lane-tree reading above into SPEC.md's scheduling prose
+   (§5.2.3/§5.2.5), so the priority structure is named once rather than
+   implied by three separate mechanisms.
+2. Draft the fresh/backfill arbitration as an awaiting-ratification
+   question in DECISIONS.md, with the recommended default and the
+   drain figure it buys.
+3. Decide (same ruling or a separate one) whether the extract worker
+   gains a latency-observed back-off toward the local API.
+
+## Verification
+
+- [ ] SPEC.md names the priority tree in one place, and §5.2.3 points at
+      it rather than restating it.
+- [ ] DECISIONS.md carries the arbitration question with a recommended
+      constant, marked awaiting ratification.
+- [ ] make check passes — the guard list is the Makefile's `check` target
+      (deps, ruff, figures, models, names, progress, erg check, pytest).
+
+## Exit criteria
+
+- [ ] The lane tree is stated once in SPEC.md and the three constants it
+      needs are drafted in DECISIONS.md's awaiting-ratification section,
+      none of them presented as ruled. Ratification is the author's and is
+      tracked by those entries, not by this ticket.
