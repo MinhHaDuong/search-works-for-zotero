@@ -55,6 +55,19 @@ traversal bound computable: time ≤ (fresh-lane size × micro-batch cost)
 deterministic draw on the micro-batch counter (k fresh, 1 backfill,
 modulo k+1) — no deficit counter needed in the ledger.
 
+Refinement (author, 2026-09-01): the micro-batch constant is a TIME
+budget, not a size. Batch size trades throughput (amortizing fixed
+kernel/transfer costs — dominant on GPU, so optimal size is 10–100x the
+CPU's) against preemption latency (queues, activity file and lease are
+only re-checked between batches). So ratify one quantum (~1 s) and
+derive the size adaptively per device: B <- B x (target / observed
+duration), EWMA-smoothed, clamped by a fixed-cost floor and a memory
+ceiling (VRAM on GPU; consistent with the per-device rung ruling). The
+invariant "yields every ~1 s" then holds on any hardware, and R35's
+minute stays discovery-dominated: tick <= 60 s, then fresh-lane
+traversal of a few quanta. The only threat to the bound remains the one
+unit with no internal boundary, the extract stage's whole-document GET.
+
 Secondary, from the #39 postmortem (SYNC.md): upstream's fix chose
 extraction concurrency by observed degradation of the serving API.
 Our extract worker is already sequential; adopting a latency-observed
