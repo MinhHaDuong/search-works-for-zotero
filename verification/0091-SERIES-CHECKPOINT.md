@@ -158,3 +158,6 @@ Two things about the numbers:
     ticket currently scopes "keep diacritics + first migration rung".
 - PR 3 has not been through a review panel.
 - No speed doctor pass on the latency claims.
+- The round-2 panel's full record landed after this checkpoint:
+  `verification/REVIEW-PR2-PANEL-R2.md`. Its migration-sideline blocker (B3) is
+  verified live in r3 and design-independent; its fix rides the expansion-arm branch.
