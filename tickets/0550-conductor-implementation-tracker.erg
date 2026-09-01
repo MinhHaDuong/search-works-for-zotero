@@ -38,6 +38,12 @@ tests, red first.
 - 0555 — fresh/backfill interleave and the scheduling property suite
 - 0556 — the v2 content schema (entries/slabs/passages/FTS) 0554 needs;
   not a child tranche, filed alongside once the gap surfaced
+- 0565 — wires seg/1 (ticket 0028) into the conductor's write loop;
+  filed once "chunk worker over stored text" turned out to assume
+  entries already exist, with no ticket owning how they get there
+- 0566 — assembles tick+conductor+extract+chunk/embed into one runnable
+  process, and is the ticket that actually answers "point at a fixture
+  library and index it"; none of 0551-0556/0565 do that alone
 
 Children chain by Blocked-by on their real prerequisite, never on this
 tracker. Invariant across every tranche: the incumbent MiniLM entry

@@ -1,0 +1,124 @@
+%erg 0.1
+Title: Wire seg/1 into the conductor's write loop: segment worker-forwarded windows into entries, slabs, passages
+Created: 2026-09-01
+Author: MinhHaDuong
+Blocked-by: 0028
+Blocked-by: 0556
+
+--- log ---
+2026-09-01T14:11Z MinhHaDuong created
+2026-09-01T14:12Z claude note filed alongside 0566 after the author asked "what comes after 0550-0556, then the real thing?" -- SPEC.md §5.2.5 describes the conductor as "the only writer, and the segmenter", running seg/1 over worker-forwarded text windows and committing entries/slabs/passages as entries close, but no ticket in the 0550-0556 family or the newly-filed segmenter family (0028, now itself Blocked-by 0502, with children 0557-0564) owns actually calling seg/1 from that write loop. 0554's "chunk worker over stored text" reads ambiguously as to whether it includes this step -- this ticket makes the integration explicit rather than leaving it to be discovered missing when 0554 is executed. Blocked-by 0028 (the segmenter algorithm -- read its exit criteria, not this note, for what "done" means there; do not assume a shape for seg/1's interface here) and 0556 (the schema this writes into, in flight).
+
+--- body ---
+## Context
+
+SPEC.md §5.2.5: "The conductor is the only writer, and the segmenter... It
+runs seg/1 (§5.2.2) as a streaming state machine over the text windows the
+worker forwards: it closes entries at structural boundaries..., cuts the
+passages inside each entry as deterministic token windows over text it is
+already holding, and commits slab, entry and passage rows as entries
+close." Ticket 0553 (tranche 3, merged as PR #156 pending review) built
+the worker side of this: `document-stream.ts` forwards windows via a
+callback, and its own ticket log discloses plainly "windows have no
+consumer until the segmenter exists" — this ticket is that consumer.
+
+Two things exist independently and don't yet meet: seg/1 (ticket 0028 and
+its children 0557-0564, the segmentation *algorithm*, itself blocked on
+0502's spec propagation) and the schema to write into (ticket 0556, the
+`entries`/`slabs`/`passages` tables, in flight). Neither ticket owns the
+wiring between them — 0028's exit criteria stop at "seg/1 runnable over
+flat /fulltext text, emitting entries + confidence"; 0556's are explicit
+that "actually writing rows from a running pipeline" is tranches 4/5's
+job, not its own. This ticket is that missing middle: the conductor-side
+loop that calls seg/1 as windows arrive and commits what it returns.
+
+Whether this subsumes part of 0554's "chunk worker" action, or whether
+0554's chunk worker is a distinct post-segmentation step, is genuinely
+unclear from the ticket texts as written (SPEC's own description has
+segmentation cut passages directly — token windows — with no separate
+"chunking" step named). Resolve this at execution time by reading 0554's
+current text and this ticket's actual output shape; do not guess now.
+Flag it in the log either way so the record says which reading was taken.
+
+## Relevant files
+
+- `SPEC.md` §5.2.2 — `entries`/`slabs`/`passages` shapes (already built by
+  0556); the chunking/passage-budget rule (120 min / 48 overlap tokens,
+  `budget = min(500, modelMax) − specialTokens − count(passagePrefix)`,
+  heading path charged to the same budget and dropped rather than
+  truncated past a quarter of it); slab gzip ≤ 1 MiB, `content_hash`.
+- `SPEC.md` §5.2.5 — the conductor-as-segmenter paragraph quoted above in
+  full; "peak memory is one window plus the segmenter's own state" and
+  "the conductor never materializes a whole document" — both testable
+  properties, not just prose.
+- Fork `src/features/search/conductor/document-stream.ts` (tranche 3) —
+  the window-forwarding source this ticket consumes. Read its actual
+  callback shape; don't assume one.
+- Fork wherever ticket 0028 lands seg/1's own module and interface — read
+  it fresh when it exists; this ticket's Actions below describe the
+  integration shape, not seg/1's internals.
+- Fork `src/features/search/conductor/ledger.ts` (0556's additions) — the
+  tables this ticket's commits land in.
+
+## Actions
+
+1. Call seg/1 as text windows arrive from the extract worker's forwarding
+   channel (`document-stream.ts` or whatever 0553 actually shipped —
+   verify against the merged code, not this description).
+2. Implement the streaming state machine: accumulate windows, detect
+   structural boundaries via seg/1, close entries at accepted boundaries,
+   cut passages inside each closed entry as deterministic token windows
+   respecting §5.2.2's budget rule.
+3. Commit slab, entry, and passage rows as entries close — one slab per
+   closed unit of source text (gzip ≤ 1 MiB, `content_hash` computed),
+   entries and passages referencing it per the schema 0556 built.
+4. Bound peak memory to one window plus segmenter state — this is a
+   tested property (see Test), not a comment.
+5. Never materialize a whole document: assert directly (a test, or an
+   invariant check) that no code path in this loop holds a full
+   document's text in memory at once — this is what makes the "44,9 MB
+   attachment inside the query-serving process" failure mode structurally
+   impossible, per §5.2.9's arithmetic that motivates it.
+
+## Test
+
+- Red first: feed a multi-window synthetic document (extend tranche 1's
+  synthetic library with real segmentable text — a small multi-heading
+  document is enough) through the streaming state machine; assert the
+  committed entries/slabs/passages match what segmenting the same text
+  non-streaming (all at once) would produce — the streaming property must
+  not change the result, only how it's computed.
+- A memory-bound test: construct a document whose total text would not
+  fit in a small fixed budget if buffered whole, and assert the streaming
+  path completes within that budget (e.g. process-level RSS delta, or a
+  more direct unit-level proof that no accumulator ever holds more than a
+  bounded number of windows).
+
+## Verification
+
+- [ ] Entries close at seg/1's structural boundaries — reuse seg/1's own
+      fixtures (ticket 0028) rather than inventing parallel ones
+- [ ] Passages respect the token-budget geometry from §5.2.2, including
+      the heading-path-charged-to-budget rule
+- [ ] Slab gzip ≤ 1 MiB per slab; `content_hash` verifiable by the
+      gunzip-slice-verify-fingerprint contract §5.2.2 states for snippets
+- [ ] Peak-memory-one-window property demonstrated, not asserted in prose
+- [ ] Positive control: a deliberately broken boundary detector (e.g. one
+      that never closes an entry) fails the streaming-vs-non-streaming
+      equivalence test before the test suite is trusted
+
+## Invariants
+
+- v1 (`search-index.sqlite` and everything outside `conductor/`) untouched.
+- The conductor remains the sole writer — no other process writes
+  `entries`/`slabs`/`passages`.
+- Upstream tests green throughout.
+
+## Exit criteria
+
+- [ ] Streaming segmentation integration merged on a fork branch
+- [ ] `entries`/`slabs`/`passages` populated correctly from real (fixture)
+      text, end to end, through the actual window-forwarding path
+- [ ] The memory-bound property has a test, and it passes
+- [ ] The 0554-overlap question (Context, above) is resolved and recorded
+      in this ticket's log, whichever way it goes
