@@ -170,13 +170,33 @@ in one change:
    cross-provider floating-point noise (CPU vs. GPU, different BLAS) even for
    a correct, identical config, so an exact-match check will false-negative on
    working setups. This only works at full precision; nothing rescues the
-   comparison once the model is 8-bit quantized. Independent of
-   retrieval-quality benchmarking, to catch an ONNX file that resolves but
-   misbehaves on the machine actually running it.
+   comparison once the model is 8-bit quantized. Cache the result against the
+   entry id *and* the runtime shape that actually ran (execution provider
+   actually selected, not just `auto`; ONNX runtime version), not only against
+   the configured model id. That way a driver update or a provider silently
+   falling back from GPU to CPU forces a fresh check on the next start,
+   without re-running the full comparison on every identical restart.
+   Independent of retrieval-quality benchmarking, to catch an ONNX file that
+   resolves but misbehaves on the machine actually running it.
 
 None of this needs new migration machinery: `embedderIdentity()` already
 refuses to mix vector spaces across model changes and reports that a rebuild
 is needed, which is exactly the mechanism a model swap should trigger.
+
+One more axis, worth naming separately: per-library calibration. Everything
+above is about whether an entry is wired correctly and produces the vectors
+it should, a property of the model, portable across every install. Whether a
+chosen model actually separates relevant from irrelevant results *on a given
+library* is a different question, and Zotero's own `#6012` already answers it
+under `Zotero.Embeddings.Calibration`: mean-center the vectors, take a noise
+floor from the p99 of unrelated query/passage pairs, a ceiling from the
+median of matched pairs, and reject a model whose matched-median doesn't
+clear the floor. I'd keep this out of the registry record and the four stages
+above. The numbers it produces are corpus-specific, so a threshold calibrated
+on one library is the wrong threshold for another, the same way a hardcoded
+stopword list is wrong for a corpus in a different language. It belongs as a
+later step that runs against the user's own index, consuming the model's
+registry entry as an input rather than being baked into it.
 
 Happy to share the raw probe results (pool, queries, per-cell scores) if
 useful — they're not attached here since this got long enough already.
