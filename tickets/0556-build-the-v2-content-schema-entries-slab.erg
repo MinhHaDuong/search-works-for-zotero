@@ -14,6 +14,7 @@ Author: MinhHaDuong
 2026-09-01T14:01Z claude note ZOTEUS_CONDUCTOR defaults to OFF -- flagged for the author. The exit criterion asks for a real production file path, and the call site is production code on the startup path exercised by the same function the tests drive; but nothing on the query path reads v2 yet, so opening it unconditionally would put a new file in every user's data directory in exchange for no behaviour. One line to flip once a tranche actually reads it.
 2026-09-01T14:01Z claude note sibling tranche 3 (ticket 0553) pushed origin/tranche-3-extract-shim @ e8784df, which also extends ledger.ts (+308). git merge-tree reports a content conflict there against this branch -- expected parallel development on one file, not a defect; whoever integrates second resolves. Neither branch is merged into the fork's main yet.
 2026-09-01T14:08Z claude note superseding the note above: the SPEC.md correction is applied on this branch, not deferred to a separate ticket. Section 5.2.2 now gives the order as busy_timeout, auto_vacuum, then WAL and synchronous, and states that WAL writes the header so auto_vacuum after it is lost with no table in the file. A fact correction about SQLite, not a ruling, so no DECISIONS.md entry -- flagged for the author to overrule if he reads it as a design change. The body's Relevant files section still quotes the old wording; it records what was read at filing time and is left as filed.
+2026-09-01T14:15Z claude note correcting the positive-control note above, which overclaimed. The first runner anchored the char-range control on CHECK (char_end >= char_start), which matches TWICE (slabs and entries), so replace(...,1) mutated slabs alone while entries and passages -- the latter keyed on off_end >= off_start and never mutated at all -- reported caught without having been touched. Two of the twelve were hollow. Fixed: three separate char/off-range mutations with unique anchors, an exactly-once guard on every anchor (zero and many are the same failure), and a per-mutation expected test title so a mutation that reddens something unrelated scores MISAIMED rather than caught. Corrected run: 14 mutations, 14 caught each by its aimed-at test, 0 survived or misaimed, 0 unapplied. The guard itself was positive-controlled against the ambiguous anchor and a nonexistent one; both refused.
 --- body ---
 ## Context
 
@@ -85,6 +86,11 @@ separately, it does not need to wait on this ticket.
    every pragma §5.2.2 specifies, in the order it specifies (auto_vacuum
    before the first table — this is the one ordering trap the spec calls
    out by name).
+   *Superseded during execution, 2026-09-01:* "before the first table" is
+   not sufficient. WAL writes the header too, so auto_vacuum must precede
+   `journal_mode=WAL` as well. §5.2.2 was corrected on this branch and is
+   the statement of record; this step is left as filed, with the pointer,
+   rather than rewritten — see the log.
 3. Schema-stamp discipline: the content tables bump the *same*
    `ledger_meta`/`schemaVersion` the bookkeeping half already stamps — one
    file, one schema, one version number, per §5.2.2's own framing. Don't
@@ -125,9 +131,11 @@ separately, it does not need to wait on this ticket.
       confirms the stronger claim the checkbox is proxy for: nothing under
       `src/features/search/` outside `conductor/` is in the diff at all.
 - [x] Both files coexist under concurrent open in one data directory
-- [x] Positive control per fixture/assertion (house discipline): 12
+- [x] Positive control per fixture/assertion (house discipline): 14
       deliberate defects, each caught by the test aimed at it, zero
-      survivors — see the log entry for the list
+      survivors — `verification/probes/v2-schema-mutation-controls.py`.
+      A first run scored 12/12 and was wrong about two of them; see the
+      log for what the ambiguous anchor hid and what now guards it.
 
 ## Invariants
 
