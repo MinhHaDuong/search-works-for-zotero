@@ -61,7 +61,7 @@ the entry points at the question rather than settling it.
   cheap read and never the decision: the ratified comparison is the per-vector
   cosine and the rank agreement over the header itself. Authoritative:
   SPEC.md §5.2.2, which owns its width and its bound (ruling: DECISIONS.md
-  2026-08-31; evidence: ticket 0499).
+  2026-08-31).
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: SPEC.md §5.2.4.
@@ -96,7 +96,7 @@ the entry points at the question rather than settling it.
 - **embedding service** — the shareable local endpoint toward which the
   transport-neutral query/passage interface can evolve; whether zoteus should
   provide, bundle or merely consume one remains open. Authoritative: SPEC.md
-  §5.3 and ticket 0491.
+  §5.3.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
@@ -179,8 +179,8 @@ the entry points at the question rather than settling it.
   extracted text, classifying lines, collecting heading candidates from
   numbering, case shape and headword rhythm, cutting at accepted headings, and
   falling back to labelled synthetic entries below its confidence threshold.
-  Authoritative: SPEC.md §5.2.2 for the spec and the threshold; ticket 0028
-  builds it and experiment X5 gates what depends on it.
+  Authoritative: SPEC.md §5.2.2 for the spec and the threshold; experiment X5
+  gates what depends on it.
 - **sideline-never-delete** — the response to an index file a binary cannot
   safely read: move it aside and build fresh, never remove it, so the evidence
   of the skew survives. Authoritative: SPEC.md R23; the protocol, and
@@ -772,7 +772,7 @@ This constraint is sharpened on five points:
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
   per row, which costs seconds at library scale. That is #6012's stated
   rationale rather than a measurement of theirs, and the distinction is the
-  correction ticket 0180 found: read at PR head `77e2c4b`, `lexical.js`
+  correction: read at PR head `77e2c4b`, `lexical.js`
   says exactly this in a source comment and cites no figure, then reaches
   our own conclusion in the lines beneath it — the MATCH runs unconstrained
   and the candidate filter is applied after it. The numbers under the claim
@@ -809,7 +809,7 @@ This constraint is sharpened on five points:
   deliberate divergence rather than the alignment this bullet used to claim.
 - Once #6012's saved-search serialization merges, it will be the first
   place platform semantic results appear in the local API. The mechanism is
-  verified at source (PR head `77e2c4b`, read 2026-08-30, ticket 0034): the
+  verified at source (PR head `77e2c4b`, read 2026-08-30): the
   pull request adds a `bestMatch` search *condition* in `searchConditions.js`,
   and the local API already serves `/api/users/:userID/searches/:searchKey/items`
   on `main`. So the crack opens with no new endpoint, and without upstream
@@ -817,9 +817,8 @@ This constraint is sharpened on five points:
 
 Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
 author's own installation (10.0, build 20260817151751) and the shipped
-`fulltext.js` of that build; the evidence is in
-`verification/VERIFY-FULLTEXT-SQLITE.md`, and for the vocabulary and cache
-measurements in the log of ticket 0120.
+`fulltext.js` of that build; the evidence, including the vocabulary and cache
+measurements, is in `verification/VERIFY-FULLTEXT-SQLITE.md`.
 
 - The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
   and `fulltextItemWords` and moved the keyword index into a separate
@@ -870,8 +869,7 @@ measurements in the log of ticket 0120.
 - Zoteus does not read it. It reaches full text over the local API
   (`/items/<key>/fulltext` and `/fulltext?since=`), so the move did not
   break it, and the platform's finished keyword index currently goes
-  unused. Whether to depend on it is a design question, carried by ticket
-  0120.
+  unused. Whether to depend on it is an open design question.
 
 ### C3 — the machine belongs to the user
 
@@ -1136,7 +1134,7 @@ a target, and dropped the minimum — which is what left a 768-token chunk
 unreadable by a 512-token embedder with nothing raised.
 
 The ceiling is 500 because it sits below every window in play. Across the nine
-embedders of ticket 0240 plus the one zoteus loads today, the tightest declared
+candidate embedders plus the one zoteus loads today, the tightest declared
 window is 512 tokens, so the minimum never binds: the budget resolves to the
 same number under every candidate, which is what keeps the chunk key stable
 across a model swap. Measured, not assumed
@@ -1170,10 +1168,9 @@ The embed call is part of this contract. Seg/1's embed path asserts the cap
 before embedding — an over-length chunk is a bug and surfaces loudly — and
 declares its truncation behaviour explicitly on the call, rather than
 inheriting whatever the runtime does in silence (measured: the incumbent
-embeds the first 512 tokens and discards the rest without a word, ticket
-0140's founding identity). The guard ships inside the seg/1 upstream change
-(ticket 0028), the change that creates the exposure — never as a standalone
-filing.
+embeds the first 512 tokens and discards the rest without a word). The guard
+ships inside the seg/1 upstream change, the change that creates the exposure
+— never as a standalone filing.
 
 (For the record: the claim that upstream chunks below Zotero's minimum holds
 only for its 512-char *metadata* stride; its 1 200-char body chunks are roughly 250–300 tokens,
@@ -1196,11 +1193,11 @@ does not depend on the geometry of any one model. What it preserves is the ratio
 the decision reads — the distance to the nearest other chain over the distance
 this chain moves when only the provider changes — at **8 192 bytes per header,
 24,0x smaller than the full fp32 header**, keeping a worst case of **29,68x**
-against the narrowest unprojected **31,67x** (ticket 0499,
-`bench/results/0499-chain-identifier/`).
+against the narrowest unprojected **31,67x**
+(`bench/results/0499-chain-identifier/`).
 
 Two bounds ship with it. The threshold this distance is compared against is not
-set here: it waits on X8's successor question (§5.3, ticket 0485) and must be sized
+set here: it waits on X8's successor question (§5.3) and must be sized
 from measured distributions rather than simulation. And the read is meaningful at
 fp32 only — at the 8-bit rungs the same chain read on another execution provider
 already moves further than the nearest different chain does, which is the same
@@ -1223,10 +1220,9 @@ provider to land on. Keys are content hashes, so the verify sweep converges
 the copy by fetch-and-hash — re-embedding nothing whose content matches — and
 R1 re-earns the delta from there. The intended use is embed on the GPU host,
 retrieve on the laptop; the remote-embedder alternative stays out of the
-design and inside ticket 0491's comparison (§5.2.5).
+design and inside the execution-mode comparison (§5.2.5).
 
-**The segmenter, seg/1** is new machinery: the spec lives here, and ticket
-0028 builds to it.
+**The segmenter, seg/1** is new machinery; the spec lives here.
 
 - Classify lines, and collect heading candidates from numbering patterns,
   case shape, and the dictionary's headword *rhythm*, the median gap and
@@ -1323,8 +1319,8 @@ waits for the next. Backing off is not a violation — a Zotero that is not
 answering has nothing to report, and R35 starts its minute when it comes back.
 The **extract shim** — the stage adapter that talks to Zotero only — splits
 along the write line: its bookkeeping is the conductor's, since all of it is
-writing — the item cursor, the full-text census, extractor-version staleness
-(ticket 0480's class), and per-attachment truncation flags — while its one
+writing — the item cursor, the full-text census, extractor-version staleness,
+and per-attachment truncation flags — while its one
 reading duty, the whole-document GET, is the worker's, arriving back as
 windows. The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
@@ -1355,7 +1351,7 @@ Three things per library.
    promise. The `sync` verb still forces it immediately. The local API has no
    `/deleted` endpoint (C2), so census subtraction is the only local route.
    What the item census costs per tick is unmeasured, unlike the full-text one
-   above; ticket 0503 measures it, and if it proves too expensive to run every
+   above — open, and if it proves too expensive to run every
    minute the finding is about the cadence, never about the bound.
 
 The shim passes Zotero's bytes through unchanged. The local API serves the
@@ -1421,13 +1417,13 @@ contract or a prerequisite for curated entries. Conceptually the execution
 choice is `provider: in_process` now or `provider: local_endpoint` later; it
 does not alter the selected entry. The actual execution provider contributes to
 the vector fingerprint only when §5.3's X8 rule says its vectors are not
-interchangeable. Endpoint syntax and discovery stay out of the registry until
-ticket 0491 decides their owner.
+interchangeable. Endpoint syntax and discovery stay out of the registry —
+open, no owner yet.
 A future `provider: zotero` is the preferred reuse probe: #6012 already runs
 native ONNX inference in Firefox's separate memory-gated process, but its
 `Zotero.ML` and `Zotero.Embeddings` calls are internal at the reviewed head.
-Ticket 0496 asks whether an official local bridge can expose query and batched
-passage embedding with the same fingerprint handshake. Sharing Zotero's stored
+Whether an official local bridge can expose query and batched
+passage embedding with the same fingerprint handshake is open. Sharing Zotero's stored
 embedding database or depending on private in-process symbols is not that bridge.
 
 **Process topology** (sole-writer form; the proposal and
@@ -1494,7 +1490,7 @@ sorted by length first because the runtime pads every member of a batch to
 its longest sequence; the batch is the memory dial, the duplicate-compute
 unit and the yield grain, and nothing is bought by making it large
 (`verification/GPU-ANOMALY-0481.md`, `verification/GPU-CORRECTED-0482.md`;
-the CPU sweep at the deployed rung is ticket 0500's). Dispatch order at the
+the CPU sweep at the deployed rung is open). Dispatch order at the
 worker's grain restates §5.2.3's anti-monopoly promise at the pipe: a fetch
 order for a newly changed item goes ahead of queued band-1 embed ranges,
 and an embed backlog yields at batch granularity — one worker serializes
@@ -1637,7 +1633,7 @@ for this local gate.
 
 Second, #6012-style library calibration (mean centering, noise floor = p99 of
 unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
-remains deferred to ticket 0031. One item's title and abstract form a matched
+remains deferred. One item's title and abstract form a matched
 pair, cross-item pairs are unrelated, and the private library is the corpus.
 Those texts and scores never enter a shared attestation. An optional,
 content-free compatibility attestation may report only pass/fail, exact entry
@@ -1676,13 +1672,13 @@ whatever the tokenizer folds. The embedding space is the only channel, so the
 promise stands or falls on the embedder and rides the semantic path with no new
 query-side machinery. On such a query the keyword list is empty or noise, so
 fusion has to let a semantic hit surface without keyword confirmation — the
-`frac_vec` question ticket 0031 owns, with the cross-lingual slice as its
+open `frac_vec` question, with the cross-lingual slice as its
 hardest case. When the semantic path is unavailable the reply carries a typed
 `CROSS_LINGUAL_DEGRADED` disclosure beside R18's sentences, the CJK posture
 below transposed. Alignment is a property of the embedder's training and varies
 by language pair, so it is measured per candidate at the deployed dtype rather
-than read off a model card; ticket 0266 is that measurement, and R29 is a
-conformance criterion in the registry's ship gate (ticket 0495).
+than read off a model card, and R29 is a
+conformance criterion in the registry's ship gate.
 
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
@@ -1840,7 +1836,7 @@ It asserts four things.
   indexed before its record. A positional prefix is not asserted — the reading
   that it should be was vetoed on 2026-08-29 — and the counter arithmetic
   written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
-  partial − quarantined + outOfBand`) is ticket 0080's to rework or retire.
+  partial − quarantined + outOfBand`) is open to rework or retire.
 - The terminal state arrives: all stages at total, drift 0, `pipeline: idle`
   (the #6012 engine-shutdown observable), work counters stationary.
 
@@ -1910,7 +1906,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   0.35, and a hard floor of 0.2, below the observed legitimate minimum and
   far above the failure class's measured 0.00. Order is deliberately ungated
   (`identical_ordered` was 22/60 under legitimate perturbation; an order
-  gate flakes, gets turned off, and that is how ticket 0009's defect
+  gate flakes, gets turned off, and that is how a past defect
   happened). Re-pins are commits
   whose set diff is the review artifact, and the golden set is re-pinned at
   entry granularity when entries exist; until then it gates item
@@ -1925,8 +1921,8 @@ is the pattern, and it binds every surrogate here, not only that one.
   purpose: the stability reading compares one run against the last and
   tolerates legitimate drift, which is what the thresholds above are for, while
   R34 compares the run against the pinned answers and tolerates none. A corpus that
-  can be stable and wrong is exactly why both readings exist. Ticket 0029
-  builds it, and its intersections — a 15 000-page PDF in a non-Latin script, a
+  can be stable and wrong is exactly why both readings exist, and its
+  intersections — a 15 000-page PDF in a non-Latin script, a
   scale
   run at the multilingual default — are where terms that look independent fail
   together.
@@ -1982,8 +1978,8 @@ is the pattern, and it binds every surrogate here, not only that one.
   feels and the split is an engineering convenience. What is known without
   measurement: extraction is usually a read of the platform's own full-text
   cache rather than a parse, and the expensive path is the file the platform has
-  not indexed, where a 15k-page PDF yields tens of MiB (ticket 0480). Ticket
-  0500 measures both stages on the reference machine and pins their share.
+  not indexed, where a 15k-page PDF yields tens of MiB. Both stages remain to
+  be measured on the reference machine, which will pin their share.
 
   *The wall clock is the promise*, and it is this rate against the measured
   census of §5.2.9 — the census is the bridge, and the arithmetic is shown rather
@@ -1995,8 +1991,8 @@ is the pattern, and it binds every surrogate here, not only that one.
 
   The two small multilingual candidates and the incumbent sit in the SHOULD
   band on this machine; the base-sized candidates clear neither, and the largest
-  is outside the MUST outright. That is the throughput constraint ticket 0495
-  applies (the CPU cells ticket 0481 recovered from
+  is outside the MUST outright. That is the throughput constraint applied at
+  the registry's ship gate (the CPU cells recovered from
   `bench/results/0264-gpu-arm/`, beside the feasibility run).
 
   Two costs of stating it as a rate, named rather than left to be discovered.
@@ -2026,10 +2022,10 @@ instead of silently duplicating work.
 **The passage count is measured, not derived**: 567 829 passages at the
 resolved budget of 498 tokens, counted over all 13 630 fulltext caches
 (211 342 921 tokens through the embedder's own tokenizer;
-`bench/results/0140-passage-census/census.json`, ticket 0140). The earlier
+`bench/results/0140-passage-census/census.json`). The earlier
 ≈ 250–300k figure was arithmetic at a 768-token maximum and understated the
-count by nearly half — the measurement, not a rescaling, was the ticket's
-instruction, and it was right to insist: under structural chunking the
+count by nearly half — the measurement, not a rescaling, was necessary,
+and it was right to insist: under structural chunking the
 maximum rarely binds, so no ratio could have produced this number. One stated
 approximation: the census chunks each cache as one paragraph sequence (seg/1
 does not exist yet), and entry boundaries only add chunk closures, so the
@@ -2044,8 +2040,8 @@ references into slabs) and the chunks are fewer. The float32 fallback adds
 
 **RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
 ≈ 570–660 MB of multilingual query model at its 8-bit rung on first
-semantic use ≈ ~670–760 MB (the measured range across candidates, ticket
-0263; the ceiling is C3's). At drain-complete steady state only P0s remain,
+semantic use ≈ ~670–760 MB (the measured range across candidates;
+the ceiling is C3's). At drain-complete steady state only P0s remain,
 so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
 incorrectly kept a pipeline worker resident. The one pipeline worker adds
 transient residency only: run-to-drain, at most one, its peak the model plus
@@ -2056,7 +2052,7 @@ range's top, inside the ceiling. One term of that
 arithmetic is honestly unmeasured: the residency of a live batch — every
 sweep on disk priced batch size in latency, not RSS — so the ceiling's
 sufficiency for the heaviest candidates is a claim §5.2.8's RSS gate and
-ticket 0500's sweep verify, not one this subtraction establishes; 0500
+a further sweep verify, not one this subtraction establishes; that sweep
 records RSS with a real batch in flight, not at rest. Segmentation adds one text
 window plus segmenter state to the conductor, inside the server ceiling. The
 sole-writer topology confines the long-document RSS risk to the worker's
@@ -2133,14 +2129,15 @@ Unchanged, and now without the hidden second scan (§5.2.6).
   shape) dies on the evidence at that rung. Either way fp16
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
-  is the measured failure ticket 0240 records.
+  is a measured failure.
 - **Budget scoping under N processes** — open: per process, or per machine.
   Both figures are stated in §5.2.9.
 - **Autonomous embedding service — architectural direction, open ownership.**
   The interface seam and its future `local_endpoint` execution mode are
-  committed in §5.2.5; implementing a daemon in zoteus is not. Ticket 0491
-  compares the in-process default with Zotero #6012 runtime reuse (probe 0496),
-  a bundled child, a per-user service and an external OS/community facility.
+  committed in §5.2.5; implementing a daemon in zoteus is not. Under
+  comparison: the in-process default against Zotero #6012 runtime reuse
+  (probe 0496), a bundled child, a per-user service and an external
+  OS/community facility.
   The decision rule includes install time, cross-platform packaging, custody
   and uninstall behavior, single- and multi-P0 RAM, failure semantics, and
   whether this responsibility belongs in zoteus at all. The experiment is
@@ -2202,7 +2199,7 @@ is information, not noise.
 **Risk 5 — gate decay.** The fold gate's waiver retired with #19's merge
 (2026-08-27), the rss and convergence gates sit in `check-slow`, and a
 14-day-stale WARN is advisory. This is the normalization-of-deviance
-channel that produced ticket 0011's defect, reintroduced at a slower time
+channel that produced a past defect, reintroduced at a slower time
 constant with better signage: designed around, not away, and named so the
 author can choose to tighten it. *Falsifier:* none needed, because the risk
 is organizational. The mitigation is that every gate threshold cites the
