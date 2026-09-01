@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-01T13:24Z MinhHaDuong created
 
 2026-09-01T13:24Z claude note filed from the raid on tickets 0550-0555: SPEC.md section5.2.2 content schema (entries/slabs/passages/FTS) has zero footprint anywhere in the fork, and no open ticket owns building it as code -- 0028 builds the segmenter algorithm, 0034 is an upstream issue draft explicitly with no code to accept. Tranches 4 and 5 (0554, 0555) dispatch against this schema; tranche 3 (0553) does not, on a closer read -- its actions (extract fetch, class-order dispatch, first-with-text choice) run entirely against tables tranche 1 already built (stage_queue, item_census, fulltext_census), so it is not blocked by this ticket. Author directive, 2026-09-01: the schema lands in search-index-v2.sqlite, in parallel with v1's search-index.sqlite, so v1 development continues undisturbed.
+2026-09-01T13:38Z bump verify-reroll — round 1: PR body Ticket: line must not auto-close 0556 (unmet exit criteria); use Ticket: none or Ticket-ref: tickets/0556
 --- body ---
 ## Context
 
