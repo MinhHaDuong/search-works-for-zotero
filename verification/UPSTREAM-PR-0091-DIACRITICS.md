@@ -1,9 +1,11 @@
 # Upstream PR body — keep diacritics (series 2/3, ticket 0091)
 
 Drafted here, to be sent as written once the author grants the slot (one slot per PR,
-ruling of 2026-09-01). Branch `pr2-expansion` on the author's fork at `6b7c152`, three
+ruling of 2026-09-01). Branch `pr2-expansion` on the author's fork at `6a201fa`, four
 commits stacked on `pr1-degenerate-r3` (`47461b7`) atop `b05ed69` (v1.12.0). **Not
-filed.**
+filed.** The fourth commit implements the author's same-day ruling that expansion be
+optional (`ZOTEUS_ACCENT_EXPANSION`, on by default); gates re-verified on it — 958 tests
+passed, 7 skipped.
 
 The design was decided by measurement, per the same day's ruling: the dual-token
 alternative (`pr2-diacritics-r3`, `f80d860`, index the stripped form beside the written
@@ -103,6 +105,13 @@ times as typed — does not get dragged toward its rarer accented siblings, whos
 would otherwise outrank what the user typed. An accented term never expands toward its
 stripped form: that is the merge this change exists to end. The gate is corpus-derived;
 there is no threshold to tune.
+
+**Expansion is optional: `ZOTEUS_ACCENT_EXPANSION`, on by default.** It exists to
+compensate the recall that keeping diacritics in the index removes for unaccented
+queries, which is why the default is on; setting it to `false` opts into strict as-typed
+exactness. The flag gates the query-time step only, on both backends — what is indexed,
+the migration and the variants-map derivation are the same either way, so flipping it
+never needs a rebuild.
 
 **Existing indexes are migrated in place, and a failed migration no longer destroys an
 intact one.** Schema 1 → 2 rides the migration ladder: the keyword table is re-tokenized

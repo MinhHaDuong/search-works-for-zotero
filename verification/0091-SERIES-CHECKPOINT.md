@@ -27,7 +27,7 @@ Fork `MinhHaDuong/zoteus`, pushed and durable:
 | branch | tip | what |
 |---|---|---|
 | `pr1-degenerate-r3` | `47461b7` | the degeneracy fix — **filed upstream as PR #45** |
-| `pr2-expansion` | `6b7c152` | keep diacritics + dominance-gated query expansion + migration rung + B3 fix |
+| `pr2-expansion` | `6a201fa` | keep diacritics + dominance-gated query expansion (optional, ZOTEUS_ACCENT_EXPANSION, default on) + migration rung + B3 fix |
 | `pr3-droplist-r5` | `11385a2` | the derived list, restacked on the settled PR 2 |
 
 Stacked in that order on `base-v1.12.0` (= upstream `b05ed69`, v1.12.0). Gates green on
@@ -162,7 +162,7 @@ with two interaction tests and a full-stack re-measurement,
 Remaining:
 
 - **The author's two rulings before filing**: grant a slot for PR 2 (files from
-  `pr2-expansion` @ `6b7c152`, body `UPSTREAM-PR-0091-DIACRITICS.md`) and one for PR 3
+  `pr2-expansion` @ `6a201fa`, body `UPSTREAM-PR-0091-DIACRITICS.md`) and one for PR 3
   (`pr3-droplist-r5` @ `11385a2`, body `UPSTREAM-PR-0091-DROPLIST.md`); and rule whether
   the soliloquy running on its one under-bar survivor (`not`, 27,3 %) is acceptable, or
   the fallback threshold gets a refinement first (ruleB artifacts exist).

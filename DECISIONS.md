@@ -2687,6 +2687,29 @@ variants the vocabulary actually holds — is untried. The author rules:
 then PR 2's held documentation findings stay held, since several reverse
 polarity with the design.
 
+**2026-09-01 — Accent expansion ships optional, on by default.** PR 2's design
+was settled the same day by the ruled measurement (query expansion over
+dual-token, the decision record is `verification/UPSTREAM-PR-0091-DIACRITICS.md`),
+and the author then ruled the expansion step itself optional: a configuration
+flag (`ZOTEUS_ACCENT_EXPANSION`), default **on**, gating only the query-time
+expansion — index, migration and derivation cadence unchanged, so flipping it
+never needs a rebuild. The default is on because expansion is not a
+convenience: it compensates the recall the un-folding removes for unaccented
+queries, so off-by-default would make the change a regression against stock.
+Disabling it opts into strict exactness. The premise the author found weak —
+that unaccented queries reaching accented documents matters to every user — is
+thereby priced per user instead of ruled once for all.
+
+**2026-09-01 — Slots granted: PRs 2 and 3 of the 0091 series file upstream.**
+Under the one-slot-per-PR ruling of the same day, the author granted the two
+remaining slots and ordered the filing: PR 2 from fork branch `pr2-expansion`
+(`6a201fa`, body `verification/UPSTREAM-PR-0091-DIACRITICS.md`) and PR 3 from
+`pr3-droplist-r5` (`11385a2`, body `verification/UPSTREAM-PR-0091-DROPLIST.md`),
+each sent as drafted, after the repo-side record merges through review. Filing
+proceeds with the shipped zero-survivor fallback rule; the soliloquy-survivor
+question (`not` at 27,3 %) was presented and not reopened, so the shipped rule
+stands unless upstream review reopens it.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the

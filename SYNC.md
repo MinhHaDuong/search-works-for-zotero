@@ -14,7 +14,12 @@ the maintainer and closed, two releases shipped in one day; updated
 2026-09-01 with the stopword series' first filing — **PR #45 (degenerate
 query) is in flight**, the only item of ours that is, spending the held
 stopwords-follow-up slot under the one-slot-per-PR ruling (`DECISIONS.md`
-2026-09-01). The reviewed baseline in `UPSTREAM` still names
+2026-09-01); updated 2026-09-01 again with the author's grant of the two
+remaining slots — PRs 2 (diacritics + optional gated expansion,
+`pr2-expansion` `6a201fa`) and 3 (library-derived droplist,
+`pr3-droplist-r5` `11385a2`) file next, bodies as drafted under
+`verification/`, filing recorded here once each PR page is verified.
+The reviewed baseline in `UPSTREAM` still names
 v1.10.0 and is now two releases and one search-layer rewrite stale.
 Ticket 0504 read the four rows worth reading at v1.12.0 from a clone
 (`verification/UPSTREAM-1.12.0-REREAD.md`) and deliberately did not
