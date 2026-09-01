@@ -8,6 +8,7 @@ Blocked-by: 0496
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-09-01T05:57Z claude note ruling 2026-09-01: the remote network embedder (embed on the GPU host, connect from the laptop) enters this ticket's execution-mode comparison as one more candidate — priced on library text crossing the network, GPU-host-off fallback semantics, and ownership; the adopt-by-copy path was ratified instead, DECISIONS.md 2026-09-01
 --- body ---
 ## Scope
 

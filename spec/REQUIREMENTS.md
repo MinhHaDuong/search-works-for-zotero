@@ -2,8 +2,8 @@
 
 ## Intro
 
-This document lists the user requirements. Numbering runs to R35 with gaps:
-eleven items were retired on 2026-08-31, either because what verifies a promise
+This document lists the user requirements. Numbering runs to R35\* with gaps:
+eleven\* items were retired on 2026-08-31, either because what verifies a promise
 is not itself a promise or because they were clauses of another item, and a
 retired number is never reused (DECISIONS.md). Each is written as a
 testable property: something the test harness, or a careful reader, can
@@ -81,6 +81,16 @@ text MUST be treated as done rather than retried forever — it counts as covere
 marked metadata-only, its reason recorded and reported — so full coverage stays
 reachable and honest at once. Per D8 below, OCR is out for now and the stage keys
 leave room for a future extractor.
+
+Upgrading the machinery is one of those states. When an upgrade anywhere in
+the chain — extractor, segmenter, embedding model — supersedes work already
+done, full coverage SHOULD converge to the latest chain: the superseded items
+are reprocessed unattended, newest-first in the same class order, so a library
+of 5 000 documents extracted old-style refreshes itself with nobody asking.
+Until overtaken, the old results keep answering, labeled as such — an upgrade
+never empties the index and never demands a rebuild, and at most two
+generations coexist, so this is a migration promise, not a fleet of resident
+models.
 
 **R4. Availability.** The index MUST answer queries at every moment of its life,
 including during its first build.
@@ -352,11 +362,16 @@ gate rather than a promise, and DESIGN.md §2.8 owns it with every other gate.
 
 ## Out of scope, said out loud
 
-These seven things are deliberately not promised, so that silence does not
+These eight\* things are deliberately not promised, so that silence does not
 read as a promise:
 
-- **Work does not travel.** The index is per-machine; a second machine
-  re-earns it unattended via R1. Vector export and sync are out of scope.
+- **Work does not travel by itself — but it may arrive by copy.** The index
+  is per-machine, and vector export and sync stay out of scope; a second
+  machine re-earns its own index unattended via R1. What is admitted is
+  one-shot adoption, ratified 2026-09-01: a data directory copied whole from
+  another machine proves its own embedding chain before a row serves and is
+  adopted rather than rebuilt, its foreign change signals count for nothing
+  until re-earned, and R1 converges the difference. Never a shared live file.
 - **The rebuild is the backup.** The index is derived data, exempt from
   backup; no snapshot tooling.
 - **Recency orders coverage, not answers.** R1's newest-first clause is an
@@ -413,3 +428,8 @@ to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24
 entry-heading and dedup clauses behind the segmenter, a pinned set that is not
 the author's own questions, and the harness offered upstream. It is named here
 so its absence does not read as an oversight.
+
+---
+
+\* A hand-maintained count: no guard recomputes it, so re-verify it whenever
+the sheet changes (DECISIONS.md 2026-09-01).

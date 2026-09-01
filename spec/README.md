@@ -1,7 +1,7 @@
 # The specification chain
 
 This is the entry point to the chain, and it owns one thing the other
-documents do not: **where each of the twenty-four promises actually
+documents do not: **where each of the twenty-four\* promises actually
 stands**, designed and delivered.
 
 It owns no threshold, no budget and no decision rule. Every number in this
@@ -53,8 +53,8 @@ evidence:
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-four, ten rest on an experiment or a test that ran, eight on
-opening the upstream source at the reviewed baseline, and six on nothing
+the twenty-four\*, ten\* rest on an experiment or a test that ran, eight\* on
+opening the upstream source at the reviewed baseline, and six\* on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -181,7 +181,7 @@ which emptiness an empty one is.
 
 | | the clause goal 3 binds | decided at | where its test would live |
 |---|---|---|---|
-| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, and coverage returning the same way after a schema-version flip | both | ticket 0026 |
+| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, coverage returning the same way after a schema-version flip, and superseded work draining to the latest chain unattended | both | ticket 0026 |
 | R4 | the index answers while it is still filling, its first build included | both | ticket 0026 |
 | R6 | the query path waits for no freshness work | both | ticket 0026 |
 | R17 | how much is searchable, per stage, in one sentence, naming the device serving | both | ticket 0026 |
@@ -272,7 +272,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and the system MUST NOT need a manual rebuild, whatever state it is in | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). |
+| R1 | Every item in the search perimeter MUST become searchable without anyone asking for it, and the system MUST NOT need a manual rebuild, whatever state it is in | ratified | partial | code | Incremental update, build resume and the coverage-gap catch-up all landed upstream. That convergence actually reaches every item, unattended, is unmeasured: the harness that would watch it is ticket 0026. Two clauses arrived by merge on 2026-08-31 and neither holds — the crawl pages the library rather than working a priority order, and an attachment yielding no text is not recorded as done-with-a-reason, so it is re-examined and counted as missing (ticket 0019). The convergence-to-latest-chain clause of 2026-09-01 postdates the reviewed baseline and is unassessed here. |
 | R4 | The index MUST answer queries at every moment of its life, including during its first build | ratified | partial | code | A capped or interrupted build answers queries and says it was capped. What it does not yet do is report coverage per stage, which is what makes a partial index distinguishable from a complete one. |
 | R17 | "How much of my library is searchable?" MUST get a human answer, per stage, with a date | ratified | partial | code | Build status carries counters, not the sentence: N of M items, per stage, with the most-recent-covered date. Ticket 0120, ticket 0140. Two clauses merged in on 2026-08-31 and neither holds either: per-stage counters naming the input that triggered each unit of work do not exist upstream (scoped issue A, ticket 0033), and the local path passes no execution device, so nothing names the one actually serving (`verification/DEVICE-AUTO-0264.md`). |
 | R32 | On a laptop-class machine with no GPU, a full build with the default configuration MUST index at 150 ms per passage or better, which for a 15k library means records searchable within one hour and body text within a day. It SHOULD reach 75 ms per passage, which halves both figures | ratified | partial | measured | The timing half holds and the contract half does not exist. In the runtime zoteus ships, on a laptop CPU, the incumbent model reaches an overnight build of a design-point library, and so do the two small multilingual candidates R7 will choose between, while the base-sized ones do not (`bench/results/0025-x1-recall/embed-feasibility.json`, sampled and projected; the CPU cells ticket 0481 recovered from `bench/results/0264-gpu-arm/`; genuine GPU figures in `bench/results/0482-gpu-corrected/`). What is absent upstream is the whole contract: no reference machine, no bound of either kind, and no record-first phase order for the record bound to be measured against — the crawl pages the library rather than working a priority order, which is R1's newest-first clause going unmet. The bound is now pinned and it is a rate — per passage, over the whole pipeline, on a disclosed laptop-class machine (DESIGN.md §2.8), with the wall-clock promise derived from it through the measured census. Only the embed term of that rate rests on measurement; extract and chunk are an allocation until ticket 0500 measures them. A time bound with no machine attached is not a bound, and a wall-clock one alone silently fixes the library size; this row was unfalsifiable without both halves. The constraint that puts on which embedder may be the default lands in ticket 0495, the ticket that decides what ships. |
@@ -363,3 +363,8 @@ page would rot by first: **a row is not upgraded to `measured` without the
 artifact that measured it**, and an upgrade is a claim about one release, so it
 is read again when the reviewed baseline moves. The guard fails the build on
 the second half; only a reader can hold the first.
+
+---
+
+\* Marks a count maintained by hand — the guard recomputes the bars and the
+evidence tally, never these spelled-out words (DECISIONS.md 2026-09-01).
