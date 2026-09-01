@@ -1,11 +1,1045 @@
-# DESIGN v2 — The Instrumented Ledger
+# SPEC — the specification chain
 
-## Intro
+## 1. Introduction
+
+This is the specification for search-works-for-zotero, in one document since
+2026-09-01 (DECISIONS.md): what the system promises to users (§3
+Requirements), what the world imposes on it (§4 Constraints), how it answers
+both (§5 Design), the shared vocabulary the three use (§2 Terminology), and
+where the design can leak (§6 Security Considerations) — five prior
+documents merged, in RFC section order, essentially verbatim.
+
+Rulings enter `DECISIONS.md` first; this document is then edited to match. A
+ratified line stays open to a later veto, which lands in `DECISIONS.md` as a
+new entry before this document follows. Read `DECISIONS.md` chronologically,
+because ratification happens in time and the record must show what came
+before what; read this document by section, because each reads the way its
+own content demands rather than the way a single chronological or
+enumerative spine would flatten it — §3 and §4 as checklists, one promise or
+one fact about the world per row (R1 to R35, C1 to C4); §5 architecturally,
+by subsystem; §2 alphabetically, so a reader arriving mid-document has
+somewhere to look a term up.
+
+Handles are position-independent and outlive a section's own renumbering:
+R1–R35 name requirements, C1–C4 constraints, D1–D11 resolved decisions,
+X1–X8 experiments. Cite a handle on its own; cite a section address as
+`SPEC.md §N.M`.
+
+`README.md` carries where each requirement stands today — designed and
+delivered, against the reviewed upstream baseline — and the goals ladder's
+rung-by-rung rosters; this document carries the promises and the design
+themselves, not their current standing against either. `GOVERNANCE.md` and
+`SYNC.md` sit outside this chain entirely: process rules for our own conduct
+upstream, and the live account of what that conduct has produced, neither of
+which a specification has a use for. `verification/FIELD-REVIEW.md` sits
+beside the chain rather than inside it: it surveys what already exists, owns
+no design number, and points at the owning section here wherever it touches
+this design. Panel documents were inputs, not conclusions; the adversarial
+design-review record of cycle 2 is gone, lost with the pre-restart history
+(DECISIONS.md, 2026-08-31), as are the superseded design documents that
+preceded this one.
+
+## 2. Terminology
+
+### Intro
+
+Every term of art in this chain is glossed where it first appears. That serves
+a reader going through a document from the top, and nobody reads a
+specification that way twice: tickets, reviews and forge threads all enter in
+the middle. This section is the entry point for that reader. It defines, in
+one alphabetical place, the words the Requirements, Constraints and Design
+sections use as if they were already understood.
+
+Three buckets, marked because a newcomer cannot otherwise tell which words this
+project coined. **Ours** are this design's own vocabulary. **Inherited,
+Zotero** are the platform's, and mean here exactly what they mean there.
+**Inherited, SQLite** are the storage engine's. A short historical section at
+the end covers words that appear in git history and in closed tickets but name
+nothing in the current design.
+
+Each entry gives the term, one sentence, and where it is authoritative.
+
+**This document owns no numbers.** A definition names the document that holds a
+threshold, a budget or a cadence; it never restates the figure. Two copies of a
+design number is this repository's most expensive recurring defect, and a
+glossary is the most tempting place to make the second one. The rule is
+mechanical rather than a matter of care: `bench/check_terminology.py` fails on
+any digit here that is not an address — a commit, a date, a reference code, a
+section mark, a version, a ticket. A citation beside a number does not excuse
+it. What the guard cannot see is a threshold restated in words, so that stays a
+matter of review.
+
+The glossary also never decides. Where a term's meaning is still open, the
+entry points at the question rather than settling it; rulings land in
+`DECISIONS.md` first, and every other document, this one included, follows.
+
+---
+
+### Ours
+
+- **band 0 / band 1** — the two lanes of the body-text frontier: each item's
+  first K passages ride the newest-first frontier, and its remaining passages
+  queue behind them, so one 15 000-page PDF cannot monopolise the pipeline.
+  Authoritative: SPEC.md §5.2.3, which derives K.
+- **cache-lost** — the stored warning state of passages whose item answers
+  not-found on the full-text content endpoint while every version signal is
+  unmoved: the derived cache is gone, the source is not, so the passages stay
+  served and counted rather than evicted, and the user's Reindex is the
+  healing path. Authoritative: SPEC.md §5.2.4 (ruling: DECISIONS.md
+  2026-08-30).
+- **calibration header** — the fixed, public set of chunks that opens a vector
+  file, embedded by the same chain in the same run as the corpus behind it, so
+  the file certifies its own embedding chain and a reader verifies it locally
+  rather than trusting declared metadata. It lives in the manifest, never in the
+  slab's row space, so no consumer can return a calibration chunk as a hit.
+  Authoritative: SPEC.md §5.2.2 (rulings: DECISIONS.md 2026-08-31).
+- **calibration probe** — the projected copy of the calibration header carried
+  beside it, each vector multiplied by a matrix drawn from a seed published with
+  the format, read first because it fails fast and carries no corpus. It is a
+  cheap read and never the decision: the ratified comparison is the per-vector
+  cosine and the rank agreement over the header itself. Authoritative:
+  SPEC.md §5.2.2, which owns its width and its bound (ruling: DECISIONS.md
+  2026-08-31; evidence: ticket 0499).
+- **census** — a full listing fetched whole rather than paged, every item or
+  every full-text version in one response, compared against stored state by
+  equality. Authoritative: SPEC.md §5.2.4.
+- **conductor** — the one query-serving server, elected through a lease row,
+  that is the sole writer and the segmenter, runs the reconcile tick, and owns
+  the single background worker, so the pipeline budget does not multiply with
+  the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the
+  lease timing.
+- **coverage** — how much of the library is searchable, counted in items per
+  stage, with metadata-only items in the denominator and their reason
+  recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
+  and its counters are SPEC.md §5.2.8.
+- **cross-lingual** — the property that a query in one language retrieves
+  documents in another: an English or French query finding Vietnamese content.
+  Stronger than *multilingual* and routinely confused with it — multilingual is
+  each language working in its own lane, cross-lingual is the lanes connecting.
+  Only the embedding space crosses languages; the keyword path cannot.
+  Authoritative: SPEC.md R29 (ruling: DECISIONS.md 2026-08-31); the
+  mechanism is SPEC.md §5.2.6.
+- **custody string** — the one-line statement, carried on every reply, of where
+  the query text and the library text went. Authoritative: SPEC.md
+  R10; the mechanism is SPEC.md §5.2.7.
+- **entry** — the unit of answer: a section of a document rather than the
+  document, so an encyclopedia is one item and many entries. Authoritative:
+  SPEC.md, the first ruling; the storage layer is SPEC.md §5.2.2.
+- **entry collapse** — reducing a document's matching passages to one ranked
+  hit per entry, scored as the maximum over its chunks, before either engine
+  assigns ranks. Authoritative: SPEC.md §5.2.6.
+- **embedder entry** — one indivisible curated configuration whose complete
+  vector-affecting fields produce its fingerprint. Authoritative:
+  SPEC.md R31 and SPEC.md §5.2.5.
+- **embedding service** — the shareable local endpoint toward which the
+  transport-neutral query/passage interface can evolve; whether zoteus should
+  provide, bundle or merely consume one remains open. Authoritative: SPEC.md
+  §5.3 and ticket 0491.
+- **the four gates** — the standing checks that hold the promises the design
+  cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
+  soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
+  requirements they serve are R13 and R19; the RAM and golden gates serve no
+  requirement of their own since 2026-08-31, a gate being apparatus rather than
+  a promise.
+- **fraction-RRF** — fraction-weighted reciprocal-rank fusion, the rule that
+  merges the keyword and semantic ranked lists into one. Authoritative:
+  SPEC.md §5.2.6, which owns the constant, the seam invariant and the ship
+  gate.
+- **first-with-text** — the rule that per item exactly one attachment is
+  indexed for body text, the deterministic first appearing in the full-text
+  census, with a stored reason for each attachment skipped. Authoritative:
+  SPEC.md D6; the choice function is SPEC.md §5.2.3.
+- **goals ladder / rung** — the order the sheet's promises are made true in:
+  five goals, numbered from the cheapest to assert to the most expensive to
+  earn, each a bundle of requirements named in the user's own words. A rung is
+  one of them. The number is the build order and nothing else, and the ladder is
+  a partition — every requirement sits on exactly one rung. The method it exists
+  for is tests first, bottom-up. Authoritative: SPEC.md, last section,
+  for the order; README.md in this directory for each rung's roster; the
+  membership and the ordering were ruled in DECISIONS.md (2026-08-31).
+- **key** — the recorded identity of the inputs that produced a piece of
+  derived data, so that work is stale exactly when the stored key differs from
+  the current one (contrast *signal*). Authoritative: SPEC.md C1; the
+  per-stage keys are SPEC.md §5.2.1.
+- **fixture level / library level** — where an assertion is decided. The
+  fixture level is the committable corpus, running wherever the gate runs; the
+  library level is the author's real library or a disclosed machine, which
+  cannot be committed. Not two suites over the same ground: the fixture level
+  is where assertions run, and the library level is what re-earns the fidelity
+  of every fixture standing in for something real. Authoritative: SPEC.md
+  §5.2.8 for the gates, README.md in this directory for which level decides each
+  term of goal 1 (ruling: DECISIONS.md 2026-08-31).
+- **the ledger** — the durable table of item-by-stage rows, computed and then
+  committed by the conductor behind the commit guard, where all background
+  work is scheduled and all of its state survives a restart. Authoritative:
+  SPEC.md §5.1 and §5.2.5.
+- **the locator** — what a hit hands back so the reader can cite it: the entry
+  heading path first, exact character offsets, and for body hits a page number
+  explicitly labelled an estimate. Authoritative: SPEC.md R24; the
+  shape per hit kind is SPEC.md §5.2.6.
+- **metadata-only** — the terminal state of an attachment that yields no text:
+  covered rather than failed, with its reason recorded and counted in the
+  denominator. Authoritative: SPEC.md R1 and R17.
+- **multilingual** — the property that the default path works in each of the
+  tested languages on its own terms and with no configuration, which is what
+  makes a multilingual default embedder a requirement rather than a preference.
+  Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
+  over Vietnamese content and still have no path from an English one.
+  Authoritative: SPEC.md R7.
+- **P0 / pipeline worker** — the query-serving zoteus server may have several
+  instances; exactly one, the elected *conductor*, is the sole writer and the
+  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
+  text, embeds, and writes nothing. Authoritative: SPEC.md §5.2.5.
+- **passage** — a stored reference into a slab rather than a copy of text, and
+  the chunk-sized unit both engines index. Authoritative: SPEC.md §5.2.2.
+- **probe-don't-fix** — the freshness posture of the query path: when the tick
+  is stale, one bounded probe reports and nudges rather than blocking the
+  answer. Authoritative: SPEC.md §5.2.4, which owns the deadline.
+- **quarantine** — the state of an input that has failed persistently: work
+  stops, status says so, and it clears on a change in the content signal chain
+  rather than on counter movement. Authoritative: SPEC.md §5.1 and §5.2.8.
+- **reconcile tick** — the conductor's periodic pass over each library: items
+  by watermark, full text by census equality, deletions by census subtraction.
+  Authoritative: SPEC.md §5.2.4, which owns the cadence and the backoff.
+- **the record** — an item's own metadata as an indexed unit (title, abstract,
+  keywords, creators, venue, date), indexed before any body text and held in
+  per-field columns so that a tag match does not score like a title match.
+  Authoritative: SPEC.md, the second ruling; the column layout is
+  SPEC.md §5.2.2.
+- **search perimeter** — what the index is obliged to cover: every item
+  visible in the user's Zotero, the group libraries they subscribe to
+  included. The trash is outside it and feeds are outside it; an item whose
+  attachments cannot be fetched is inside it, with its body text absent for a
+  recorded reason. Ours, not Zotero's — the platform word `library` is glossed
+  separately below. Authoritative: SPEC.md's fourth ruling (ledger:
+  DECISIONS.md 2026-08-31).
+- **segmenter (seg/1)** — the heuristic that finds entry boundaries in flat
+  extracted text, classifying lines, collecting heading candidates from
+  numbering, case shape and headword rhythm, cutting at accepted headings, and
+  falling back to labelled synthetic entries below its confidence threshold.
+  Authoritative: SPEC.md §5.2.2 for the spec and the threshold; ticket 0028
+  builds it and experiment X5 gates what depends on it.
+- **sideline-never-delete** — the response to an index file a binary cannot
+  safely read: move it aside and build fresh, never remove it, so the evidence
+  of the skew survives. Authoritative: SPEC.md R23; the protocol, and
+  who may perform it, is SPEC.md §5.2.7.
+- **signal** — a Zotero version counter, scoped by server identity and only
+  ever compared for equality, whose mismatch schedules verification rather than
+  recomputation (contrast *key*). Authoritative: SPEC.md §5.2.1.
+- **slab** — a compressed span of source text, stored by us and cut on entry
+  boundaries, from which every snippet is re-derived instead of refetched from
+  Zotero. Authoritative: SPEC.md §5.2.2, which owns the size ceiling.
+- **stage** — one step of the indexing pipeline: record, extract, chunk, embed.
+  Each carries its own key, its own ledger rows and its own counters.
+  Authoritative: SPEC.md, intro; the keys are SPEC.md §5.2.1.
+- **term** — a property the user meets, and what a goal's conjunction runs
+  over. Binding is per clause rather than per requirement, so one item can be
+  in by one clause and out by another. Sorted by one question per clause: if
+  this clause fails and nothing else changes, is what the user can know or do
+  any different? Its retired counterpart, *instrument*, is in the historical
+  section. Authoritative: DECISIONS.md (2026-08-31).
+- **validation attestation** — an optional content-free report that one exact
+  embedder entry passed the automatic compatibility fixture on a stated runtime
+  shape; it is not a retrieval-quality judgement. Authoritative:
+  SPEC.md R31 and SPEC.md §5.2.6.
+- **warm** — describes a query answered with the embedder already resident and
+  the store already open: nothing loads and nothing builds when the clock
+  starts, which is the state R6's latency bounds are stated for; the first
+  query after a start is not one. Authoritative: SPEC.md R6; what the
+  time is spent on is SPEC.md §5.2.9.
+- **watermark** — a resume cursor stored per origin and library, legitimate
+  only where the underlying version sequence is genuinely monotonic; the local
+  full-text sequence is mixed, so no watermark column exists for it.
+  Authoritative: SPEC.md C1; its use is SPEC.md §5.2.4.
+
+- **works for me** — the acceptance standard for the ladder's top three rungs
+  taken together: the user is the author, the languages are his, the pinned set
+  is his questions, and the deciding level is his own library rather than a
+  fixture standing in for it. Authoritative: DECISIONS.md (2026-08-31).
+
+### Inherited, Zotero
+
+These mean here what they mean in the platform. Each entry says where the chain
+relies on it, because that is the part a reader of our documents needs.
+
+- **attachment** — the child object holding a file, from which body text is
+  extracted; an item itself has none. Zotero's; our use of it is SPEC.md
+  §5.2.3.
+- **`dateAdded`** — an item's creation timestamp, which is what "newest" means
+  throughout this design's ordering. Zotero's; the total-order key built on it
+  is SPEC.md §5.2.8.
+- **`/fulltext` census endpoint** — the local API route listing every
+  attachment's full-text version in one unpaginated response. Zotero's; how the
+  design diffs it is SPEC.md §5.2.4, and why it must never be cursored on the
+  local transport is SPEC.md C1.
+- **item** — the platform's unit of bibliography, one record with zero or more
+  child attachments and notes. It is deliberately *not* this design's unit of
+  answer. Zotero's; the entry ruling is SPEC.md, the first ruling.
+- **`Last-Modified-Version`** — the response header carrying the library
+  version a read observed, and the value a client stores to resume from.
+  Zotero's; the watermark built on it is SPEC.md §5.2.4.
+- **library / `libraryVersion`** — a personal or group collection of items, and
+  its version counter; item keys are unique only within a library. Zotero's;
+  the merged-index consequence is SPEC.md D4 and SPEC.md §5.2.2.
+- **local API** — the HTTP interface the desktop application serves on
+  loopback, unpaginated and unthrottled, and the transport this design uses.
+  Zotero's; the politeness rules that apply to the web transport and not to
+  this one are SPEC.md.
+- **`?since=` version cursor** — the query parameter asking for everything
+  changed after a given version. Zotero's; it is a legitimate cursor on the
+  item sequence and not on the local full-text sequence, per SPEC.md C1.
+- **`Zotero-Server-ID`** — the response header identifying which database
+  answered, within which alone versions and keys are comparable. Zotero's; the
+  partition it forces on stored state is SPEC.md C1 and SPEC.md §5.2.2.
+
+### Inherited, SQLite
+
+- **`bm25`** — the ranking function the full-text engine exposes, scoring a row
+  against a query under per-column weights. SQLite's; the weights, and when
+  they are tuned, are SPEC.md §5.2.2.
+- **FTS5** — SQLite's full-text search extension, the keyword half of this
+  design's retrieval. SQLite's; the table layout, the tokenizer and the
+  contentless mode are SPEC.md §5.2.2, and the measured cost of constraining a
+  match to a row set is SPEC.md C2.
+- **`unicode61`** — the tokenizer the full-text index uses, configurable for
+  diacritic folding; the query and index normalizers must agree on it or a term
+  can never match. SQLite's; the configuration is SPEC.md §5.2.2 and the
+  agreement check is SPEC.md R19.
+- **WAL** — write-ahead logging, the journal mode under which readers answer
+  while a writer commits, which is what makes several servers on one file
+  possible. SQLite's; the connection settings are SPEC.md §5.2.2.
+
+### Historical
+
+Words a reader meets in git history, in closed tickets, or in the panel record,
+and which name nothing in the current design. They are listed so that finding
+one dates the text rather than sending the reader hunting.
+
+- **corpus-critic M4** — a panel-era label for one of the cycle-two critique
+  seats. Historical: it named a session role, never a component.
+- **goal 1, the search bundle** — what "goal 1" named until 2026-08-31: the
+  single conjunction over *search all of my library*, before the ladder gave the
+  number a meaning. Historical as a name only: the promise survives whole as the
+  ladder's top three rungs, and ratified entries written before the renumbering
+  use the old sense. Authoritative for the renaming: DECISIONS.md (2026-08-31).
+- **instrument** — the other half of what a goal's roster once carried: a thing
+  that decides whether a term holds, named beside the bundle rather than
+  counted in it. Historical since 2026-08-31, when the apparatus items left the
+  sheet on the criterion that what verifies a promise is not itself a promise,
+  which removed the roster's subject entirely. A goal keeps one roster now.
+- **graft** — a panel-era word for attaching new machinery onto an existing
+  pipeline stage. Historical: removed from the chain by ticket 0036's rewrite,
+  which required every term of art to be defined where it first appears.
+- **kill 9** — a panel-era shorthand for the abrupt process termination the
+  soak gate exercises. Historical as a phrase; the property it named survives
+  as the soak gate's assertions in SPEC.md §5.2.8.
+- **prefix** — the coverage-order property the design once asserted: at every
+  moment the indexed set is the newest items with no gap in the middle.
+  Rejected by the author on 2026-08-29 (DECISIONS.md), because a library
+  changes while the build runs, so the property is asserted over a set that has
+  already moved. What stands in its place is the class order — metadata, then
+  notes and annotations, then body text, newer first inside each — whose
+  promise is SPEC.md R1 and whose statement is SPEC.md §5.2.3.
+- **`panel/cycle2/`** — the cycle-two design panel's verbatim session record:
+  memos, critiques, and the political and implementation reviews. Deleted from
+  the tree, then lost outright with the pre-restart history (DECISIONS.md,
+  2026-08-31). It was never authoritative, and SPEC.md was always the record;
+  a document elsewhere in the chain that cites a panel memo by name is citing
+  something no reader can open.
+- **The Settled Ledger (v1)** — the cycle-one design, superseded by the current
+  "Instrumented Ledger". Historical: what changed and why is SPEC.md §5.1, which
+  is now the whole of it — the document itself went with the pre-restart history
+  (DECISIONS.md, 2026-08-31).
+
+## 3. Requirements
+
+### Intro
+
+This section lists the user requirements. Numbering runs to R35\* with gaps:
+eleven\* items were retired on 2026-08-31, either because what verifies a promise
+is not itself a promise or because they were clauses of another item, and a
+retired number is never reused (DECISIONS.md). Each is written as a
+testable property: something the test harness, or a careful reader, can
+check. They were agreed with the author and consolidated on 2026-08-26; the
+documents they were consolidated from are superseded and live only in git
+history. A "stage" below is one step of the indexing pipeline: record,
+extract, chunk, embed.
+
+**Normative language.** The R-items below follow RFC 2119. MUST, and its
+synonym SHALL, marks a firm requirement. SHOULD marks a preference that may be
+set aside for a stated reason. MAY marks something optional. These words bind
+only in upper case. The same words in lower case are ordinary prose and carry
+no such force, which is what lets the surrounding narrative use them freely.
+
+Every R-item carries a force. The one that did not — R26, rejected as written on
+2026-08-29 — was retired on 2026-08-31 rather than rewritten: it described this
+repository's convergence harness, and what verifies a promise is not itself a
+promise (DECISIONS.md). Ticket 0080 still owns the tier-priority change that
+replaces the machinery it described.
+
+### The four rulings that shape everything
+
+1. **The unit of answer is the entry.** A dictionary or encyclopedia is one
+   Zotero item but many entries, so retrieval and deduplication work on the
+   section, not the item. An encyclopedic item may legitimately give several
+   distinct hits where a focused article gives one, and where an entry
+   heading is known, the heading is the citation locator.
+
+2. **The record is the semantic core.** Title, abstract, and keywords are
+   the main semantic targets, and indexing works three priority classes in
+   this order: an item's record, then its notes and annotations, then its
+   body text. Fields keep their identity for ranking: a tag match must not
+   score like a title match. Notes, annotations, and body text are added on
+   top of the core; they must not weaken the ranking weight of the record
+   fields.
+
+3. **Chunking respects entry boundaries; context is prepended.** Where
+   document structure is detectable, chunk boundaries align to section and
+   entry boundaries, so a chunk never straddles two entries. Each chunk's
+   embedded text starts with its context: the entry heading, the outline
+   path, and the item title.
+
+4. **The search perimeter is what Zotero shows.** Every item visible in the
+   user's Zotero is in scope, the group libraries they subscribe to included.
+   What Zotero does not show as library content is out: the trash is outside
+   the perimeter, and R15 owns the transition into it; feeds are outside it
+   altogether, being neither owned nor curated. Where a group is readable but
+   its attachments are not fetchable, the item is inside the perimeter and its
+   body text is not, which is the metadata-only state R1 and R17 already carry.
+   This is the perimeter R1, R8, R12 and R16 each presuppose and none of them
+   states.
+
+### Requirements
+
+Each item is a name, one sentence, and a paragraph. The **sentence** is the
+promise, written so it can be read alone and tested by someone who has read
+nothing else here. The **paragraph** unpacks it: what the sentence implies, what
+was decided about it, and which document owns any number it depends on. The
+one-word name is the handle the rest of the chain cites.
+
+#### Coverage and convergence
+
+**R1. Coverage.** Every item in the search perimeter MUST become searchable
+without anyone asking for it, and the system MUST NOT need a manual rebuild,
+whatever state it is in.
+
+Coverage MUST grow in ruling 2's class order, newest-first inside each class:
+the crawler works a priority order, not a page cursor, and recency orders
+*coverage*, not answers. An attachment that yields no
+text MUST be treated as done rather than retried forever — it counts as covered,
+marked metadata-only, its reason recorded and reported — so full coverage stays
+reachable and honest at once. Per D8 below, OCR is out for now and the stage keys
+leave room for a future extractor.
+
+Upgrading the machinery is one of those states. When an upgrade anywhere in
+the chain — extractor, segmenter, embedding model — supersedes work already
+done, full coverage SHOULD converge to the latest chain: the superseded items
+are reprocessed unattended, newest-first in the same class order, so a library
+of 5 000 documents extracted old-style refreshes itself with nobody asking.
+Until overtaken, the old results keep answering, labeled as such — an upgrade
+never empties the index and never demands a rebuild, and at most two
+generations coexist, so this is a migration promise, not a fleet of resident
+models.
+
+**R4. Availability.** The index MUST answer queries at every moment of its life,
+including during its first build.
+
+An index that goes dark while it works is worse than a partial one, so partial
+answers ship from the first passage indexed. This obliges honest coverage
+reporting, which R17 carries: without it, a partial index is indistinguishable
+from a complete one and the user cannot tell a gap from an absence.
+
+**R17. Reporting.** "How much of my library is searchable?" MUST get a human
+answer, per stage, with a date.
+
+The answer is N of M items — items per D1 — for each stage, with the
+most-recent-covered date, and metadata-only items counted in the denominator
+with their reason. Every stage MUST also report what it processed and which
+input triggered it, so one edited item shows up as one unit of work rather than
+as a wave. Status MUST name the execution device actually serving, on every
+machine, since a user who cannot see that cannot explain the speed they get.
+
+**R32. Buildtime.** On a laptop-class machine with no GPU, a full build with
+the default configuration MUST index at 150 ms per passage or better, which for
+a 15k library means records searchable within one hour and body text within a
+day. It SHOULD reach 75 ms per passage, which halves both figures.
+
+The rate is the promise and the wall clock is what it means. A wall-clock number
+alone would silently fix the library size — "inside a day" promises a 15k
+library something and a 60k library nothing — and the rate holds at any size.
+Per passage rather than per item, because R8 makes items deliberately
+non-uniform: a per-item rate measured on short papers says nothing about a
+15 000-page PDF. Records land inside the hour while body text is still arriving,
+which is ruling 2's class order seen from the clock. The machine is named
+because a time bound with no machine attached is not a bound; which laptop, and
+the arithmetic from the measured passage count, are SPEC.md §5.2.8's. Finishing
+today is a property of the configuration rather than of the hardware, which is
+why this is its own promise and not a clause of one about GPUs. A full build and
+not only the first, ruled 2026-08-31: a rebuild from nothing is the same work on
+the same machine, and a user whose index was abandoned under a foreign schema
+stamp waits exactly as long as one who has just installed. What these bounds are
+not is a library already in service, where R3 bounds the cost of staying current
+and R35 the delay before a change is noticed.
+
+#### Change and cost
+
+**R3. Proportionality.** The cost of staying current MUST be proportional to
+what changed, never to the size of the library.
+
+Recompute exactly what is downstream of a changed input; the unit of
+invalidation is (item × stage). A resync or an extractor upgrade that advances
+version counters MUST re-embed nothing whose bytes are unchanged. This project
+once shipped a defect that re-marked 92,7 % of a library as changed, forever,
+and that is the cautionary example the clause exists for.
+
+**R35. Discovery.** The system MUST notice a new, changed or deleted item
+within one minute, without anyone asking.
+
+Noticing is not indexing. A new or edited item is queued inside the minute and
+becomes searchable in its class's turn, so a 15 000-page PDF is noticed as fast
+as a note and indexed a great deal slower. Deleting is the strict case, because
+removing text costs nothing: text the user deleted MUST stop being served
+inside the same minute. When Zotero is not running there is nothing to notice,
+and the minute starts when it comes back. This is the other half of staying
+current — R3 bounds what it costs, this bounds how long it takes — and they
+fail apart, since a library can be re-indexed at exactly the right cost and
+still take a day to notice a deletion. R1 says an item becomes searchable and
+never says when the system learns it exists; R15 says deleting removes text
+everywhere and never says when; R32's bounds are a full build's, not those
+of a library already in service.
+
+#### Corpus
+
+**R8. Scale.** A 15k library and a 15k-page PDF MUST both be ordinary input.
+
+The design point is at least 10 000 documents with full text and the system MUST
+work at that size; the known red zone is that a full vector scan approaches 1 s
+there. A 15 000-page PDF MUST be first-class too, not an outlier to cap away —
+the 44,9 MB dictionary is the one in hand — and under ruling 1 it is a
+collection of entries among peers. The two sizes are one promise because a
+library is large in both directions at once.
+
+**R16. Notes.** My own notes and annotations MUST be searchable, not only the
+papers I collected.
+
+Per D7 both are in: a note written in the reader and an annotation anchored to a
+page are the reader's own words about the corpus, and a search that cannot find
+them searches somebody else's library. They are child items, which is what makes
+them easy to miss in a crawl that asks only for top-level items.
+
+#### Query
+
+**R5. Scoping.** Scoping a search by collection, tag, item type or date MUST be
+enforced before any answer is truncated.
+
+Never by filtering a top-k list after the fact — the k best-scoring results —
+and then presenting it as complete. One correction from the pre-design
+code-reading and measurement passes: "pushed into SQL" MUST NOT be read as
+constraining the MATCH operator of SQLite's FTS5 engine, which measures at
+seconds per query at library scale. The obligation is on the honesty of the
+result, not on which operator enforces it.
+
+**R6. Latency.** A warm query MUST answer within 3 seconds and SHOULD answer
+inside 700 ms, and MUST never wait on freshness work bigger than a single
+request.
+
+Freshness work on the query path is limited to O(1) requests; anything larger is
+scheduled and never awaited. The three seconds are the escape and the 700 ms is
+where a warm query lands when nothing is wrong: a sufficient reply now beats an optimal
+one later, which is the trade this promise names. What the time is spent on —
+probe, embed, keyword search, the scan, the fusion — is SPEC.md §5.2.9.
+
+**R18. Emptiness.** An empty answer MUST say whether nothing matched or the
+scope is not indexed yet.
+
+Stated for the scope the query asked about, never for the library as a whole: a
+user who searched one collection is owed the truth about that collection. The
+two cases call for opposite actions — rephrase, or wait — so collapsing them
+into one blank result wastes the user's next move.
+
+**R24. Locator.** A hit MUST lead to the page it came from, and one entry MUST
+give one hit.
+
+A full-text hit leads to its page; an estimated page number MUST say it is an
+estimate, per D10; and the primary locator MUST be the entry heading, per ruling
+1. As that ruling amends it — D9 dissolved — deduplication is per section, and a
+single document MUST NOT crowd other items out of the candidate pool before
+deduplication happens. When many returned hits come from one document, the
+result says so.
+
+**R33. Modes.** Exact-word search, meaning-based search, and the two combined
+MUST each work.
+
+A query naming a rare exact string MUST return the item carrying it. A query
+that paraphrases its answer without sharing a content word MUST return that
+answer. Where both signals are present but weak, the combined answer MUST rank
+the document they agree on above one that only a single signal favours — the
+case that catches a fusion which has quietly dropped a side. Where the interface
+offers a retrieval mode, the mode selected MUST be the mode served. The
+combination rule belongs to SPEC.md §5.2.6.
+
+**R34. Recall.** For every query of the pinned set, the answer MUST come back
+within the first ten results.
+
+The pinned set's answers are known-correct and known to be in the corpus, so
+this is a floor on what comes back rather than a score. Per D11 it fixes the
+answer set and not its order: order inside those ten is unconstrained. Re-pinning
+the set is a commit whose set diff is the review artifact, per SPEC.md §5.2.8,
+which is what stops a failing query being deleted instead of fixed.
+
+#### Multilingual
+
+**R7. Languages.** The default path MUST work in English, French and
+Vietnamese with no configuration, and SHOULD work in Arabic, Chinese, German,
+Hindi, Russian and Spanish.
+
+The default embedder MUST be multilingual. Setting a second-tier language aside
+is allowed and MUST be stated, which is what separates a tier from a wish. The
+second tier names one language per script and morphology class and never one per
+community: right-to-left, Cyrillic, no word boundaries, compounding, abugida,
+and Latin-with-diacritics, which Spanish stands for. Chinese in that tier is the
+explicit CJK decision this item used to defer, and it carries the keyword half
+with it — the two-gram geometry the platform ships is what a Chinese query term
+has to survive. The English stopword list is a known ranking bias whose deletion
+is already decided. Every other language rides the default path untested; see
+"Out of scope".
+
+**R29. Crosslingual.** A query in English or French MUST retrieve relevant
+Vietnamese content without the user translating anything.
+
+R7 promises each language its own lane; this promises the lanes connect. The
+cross-lingual property MUST be gated separately from the monolingual one, so a
+regression names which promise it broke. When the semantic path is unavailable
+the reply MUST say that cross-language matching is down, rather than return a
+silent miss that reads as an honest empty. Query translation is not the
+mechanism; see "Out of scope".
+
+#### Embedding configurations
+
+**R31. Validation.** A search configuration offered to me MUST prove it works on
+my machine before it is used, or fail loudly there.
+
+Before it creates or queries an index on a concrete machine it MUST pass the
+bundled automatic validation there or fail explicitly, and that failure MUST NOT
+silently select another configuration. What identifies such a configuration —
+every field that changes its vectors, carried as one versioned entry — is
+SPEC.md's. Sharing a content-free validation attestation MAY be offered only
+by explicit opt-in, and library text, query text and Zotero identifiers MUST NOT
+enter it.
+
+#### Custody and lifecycle
+
+**R10. Locality.** Without an explicit opt-in, my library text and my queries
+MUST NOT leave this machine.
+
+The default build and query path make zero external calls. The one-time
+model-weight download is the sole exception, and it is named rather than
+discovered: an exception a user has to find out about is not an exception, it is
+a surprise.
+
+**R15. Deletion.** Deleting an item MUST remove its text everywhere, and
+deleting the data directory MUST be the whole uninstall.
+
+Deleting an item removes its text from every stage's store and from the queues
+between them, not merely from search results — text that survives in a queue
+comes back. Deleting means what the platform shows: an item moved to the trash
+has left the search perimeter, per ruling 4, so removal fires at trashing, and
+emptying the trash later changes nothing the index can see; R35's minute starts
+at the same event. At the other scale, index state, queues, watermarks and downloaded
+models MUST NOT survive anywhere outside the data directory, so removing that
+directory removes the system.
+
+**R22. Pause.** There MUST be one obvious way to stop all background work, and
+it MUST hold across restarts.
+
+One way, because a user hunting for a second switch has already lost the machine
+they were trying to quiet. Holding across restarts, because background work that
+resumes on its own after a reboot was never stopped, only interrupted.
+
+**R23. Migration.** An index written under a different schema version MUST end
+up serving, in either direction, without anyone deleting files by hand.
+
+Either direction: a newer build meeting an older index, and an older build
+meeting a newer one, which is the case every user hits the day a version is
+rolled back. The clause is about ending up serving — abandoning the file and
+rebuilding silently is a failure of this promise, not a way of keeping it.
+
+#### Multi-library and multi-process
+
+**R12. Libraries.** Group libraries MUST be searchable exactly like my own, and
+indexing one library MUST NOT erase another.
+
+Per D4 there is one merged index, with the library as one more R5 filter
+alongside collection and tag. The second clause is the sharper one: a build for
+one library that meets an index belonging to another MUST refuse rather than
+overwrite it or append to its rows, because the failure is silent data loss
+reported as success.
+
+**R13. Concurrency.** Two server processes on one data directory MUST both
+answer queries without corrupting the index or doing the same work twice.
+
+The honest restatement accepted in SPEC.md §5.2.5: no passage is ever
+*committed* twice, and duplicate *compute* is bounded at one embed batch plus
+one in-flight document's re-fetch and re-segmentation per failover. Two processes is the ordinary case rather than the exotic one — one
+per client application — so the index has to expect company.
+
+#### Normalization
+
+**R19. Normalization.** Every token the query side produces MUST be one the
+index side can also produce.
+
+Otherwise that query term can never match anything, in any language, and the
+failure is invisible: the search returns nothing and looks like an honest miss.
+The character-folding sweep that checks the agreement over 1 301 codepoints is a
+gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
+
+### The resolved decisions (ratified by delegation, 2026-08-26)
+
+| | resolution |
+|---|---|
+| D1 denominator | Coverage counts **items**; metadata-only items count, with their reason. |
+| D2 hosted mode | **Out.** The redesign binds the desktop; the four privacy requirements that only applied to hosted mode are dropped. |
+| D3 embedder change | **Serve-stale.** The old model's vectors keep answering, labeled, until re-embedding overtakes them newest-first; semantic coverage never drops to zero at the moment the new embedder is adopted. |
+| D4 group shape | One **merged** index; the library is a filter facet. |
+| D5 query semantics | A quoted **phrase** matches as a phrase, and AND/NOT are honored, on both backends (keyword and semantic); bare terms stay recall-friendly. |
+| D6 twin attachments | **First-with-text.** Per item, one attachment is indexed for body text; skipped ones get a recorded reason. |
+| D7 own-words scope | **Both** notes and annotations. |
+| D8 image-only PDFs | **Leave room** (OCR is out today). |
+| D9 long-document weight | **Dissolved** by the entry ruling. |
+| D10 page fidelity | **Labeled estimate.** |
+| D11 what the golden pins | The answer **set**, not the order. |
+
+### Out of scope, said out loud
+
+These eight\* things are deliberately not promised, so that silence does not
+read as a promise:
+
+- **Work does not travel by itself — but it may arrive by copy.** The index
+  is per-machine, and vector export and sync stay out of scope; a second
+  machine re-earns its own index unattended via R1. What is admitted is
+  one-shot adoption, ratified 2026-09-01: a data directory copied whole from
+  another machine proves its own embedding chain before a row serves and is
+  adopted rather than rebuilt, its foreign change signals count for nothing
+  until re-earned, and R1 converges the difference. Never a shared live file.
+- **The rebuild is the backup.** The index is derived data, exempt from
+  backup; no snapshot tooling.
+- **Recency orders coverage, not answers.** R1's newest-first clause is an
+  indexing frontier; ranking stays relevance-only.
+- **OCR is out.** Image-only attachments converge as metadata-only.
+- **Hosted mode is out.** The redesign binds the desktop; the OAuth server
+  keeps today's behavior.
+- **Untested languages are named, not implied.** Everything outside R7's two
+  tiers rides the default path and is expected to work there, but nothing
+  measures it, and a language nobody measured is not a language anybody
+  promised. Portuguese and Italian sit in the class Spanish represents, so they
+  are covered by argument and not by measurement, which is the weaker thing and
+  is said as one. Greek and Hebrew are in no tier's class at all.
+- **Query translation is out.** R29 rides the embedding space, which is the
+  only channel that crosses languages. No translation service and no local
+  translation model joins the default path.
+- **No enumeration.** Semantic search returns a bounded page; exhaustiveness
+  is the job of R5 narrowing, not of paging.
+
+### The goals ladder
+
+The sheet is one flat list of promises. The ladder is the order they are made
+true in: **five goals, numbered from the cheapest to assert to the most
+expensive to earn**, each a bundle of these requirements named in the user's own
+words. Every requirement here sits on exactly one rung.
+
+| | the goal, in the user's words | why it sits there |
+|---|---|---|
+| 1 | **I can install it and take it off again.** Nothing leaves this machine unasked, one switch stops the work, deleting the data directory is the whole uninstall, and a configuration proves it runs here before it is used | its assertions need no corpus, no build and no library — they are decidable the moment the system is installed |
+| 2 | **It does not lose or corrupt what it built.** Staying current costs what changed, two processes on one data directory neither corrupt nor duplicate, and an index under another schema version ends up served | needs a built index but not a good one, and a build that cannot survive its own second day never reaches the rungs above |
+| 3 | **It answers, and it is honest about what it has.** Coverage converges unattended and finishes inside its bounds, the index answers while still filling, and it says how much is behind an answer and which emptiness an empty one is | the first rung a user can actually use, and the last one that can be judged without asking whether the answers are any good |
+| 4 | **It finds the right thing, in my languages, and I can open it.** Three modes, the pinned answer inside the first ten, three languages with the lanes connected, and a hit that opens at its page | where it stops being an index and becomes search; every promise here is about the answer rather than the corpus |
+| 5 | **All of my library.** A 15k library and a 15k-page PDF as ordinary input, group libraries in and never erasing one another, one's own notes and annotations, and a new item noticed unasked | the word *all* in the promise, and the expensive rung |
+
+**The number is the build order and nothing else.** It says which bundle to make
+true first, never which matters most and never how much of one is true. Each
+rung is a conjunction: kept when every one of its members holds and at no state
+before that, so a lower goal kept does not make a higher one partly kept.
+
+**The method is tests first, bottom-up.** Write the assertions for the lowest
+rung, make them pass, then climb. Until a rung's assertions exist its rows can
+only be read from the source or inferred — a claim about nobody rather than
+about the system — which is why a rung cannot be declared before its tests run.
+
+**Which requirements sit on which rung is not repeated here.** The rosters are
+on [README.md](README.md), where `bench/check_progress.py` holds each of them to
+the ruling in [DECISIONS.md](DECISIONS.md) and fails the build when a
+requirement sits on no rung, on two, or when the page and the ledger disagree. A
+second copy in this document would drift from that one, which is this
+repository's most expensive recurring defect.
+
+**Above the top**, unnamed and unruled, sits the bundle this repository exists
+to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24's
+entry-heading and dedup clauses behind the segmenter, a pinned set that is not
+the author's own questions, and the harness offered upstream. It is named here
+so its absence does not read as an oversight.
+
+---
+
+\* A hand-maintained count: no guard recomputes it, so re-verify it whenever
+the sheet changes (DECISIONS.md 2026-09-01).
+
+## 4. Constraints
+
+### Intro
+
+This section lists the constraints, C1 to C4: facts about Zotero, the
+upstream project, and the user's machine that the design must operate under.
+They were consolidated on 2026-08-26 from three earlier documents (the
+ratified sheet, its delta, and the scout report), which are superseded and
+live only in git history. Where the scouts, code-reading and measurement
+passes over Zotero and upstream, sharpened a constraint, the sharpened form
+is stated here and is binding.
+
+### C1 — everything the index stores is derived data
+
+The index stores derived data only, in a chain of three links:
+
+1. extracted text derives from (attachment file, extractor);
+2. chunks derive from (extracted text *or* item metadata, chunker identity
+   and geometry), where the heuristic segmenter's identity folds into the
+   chunker key, per the boundary ruling (the third ruling in
+   SPEC.md);
+3. vectors derive from (chunks, the complete embedder-entry fingerprint and
+   model). The fingerprint includes every registry field that can change a
+   vector; a display label and aggregate validation standing do not. Execution
+   provider enters it only where SPEC.md §5.3's cross-provider rule requires
+   that distinction.
+
+A "key" is the recorded identity of the inputs that produced a piece of
+derived data. Work is stale exactly when a stored key no longer equals the
+current key, and invalidation propagates downstream only.
+
+The extractor's identity is visible only in-process. Over HTTP, the
+observable proxy is the `/fulltext?since=` counter, which Zotero bumps when
+it re-extracts synced content. Does a purely local re-extraction re-stamp
+version 0, which would make it invisible to this counter? We do not know
+yet. Experiment X6 (ticket 0025) will measure it, and SPEC.md §5.2.4 is
+designed to work under either answer. Items and full-text extractions are
+numbered on two unrelated sequences (measured: 410 versus 0..25 036).
+
+The scouts sharpened this constraint on three points:
+
+- The local `/fulltext?since=` sequence is mixed. Web stamps, local client
+  versions, and 0 for local extraction all appear in one column, so the
+  correct filter is `since=0 OR version>since`. Versions can be compared
+  for equality per item, but they are never a monotonic cursor: any design
+  that uses this counter as a resume cursor on the local transport will
+  silently miss locally-extracted text. (Measured: 584 of 8 037 fulltext
+  entries at version 0 on the reference library.)
+- Version validity is scoped by the `Zotero-Server-ID` header. A different
+  server ID means a different database, different versions, different keys;
+  stored state MUST therefore be partitioned by server ID. A local/cloud
+  label is not enough, because two local profiles share the label and share
+  nothing else.
+- Even Zotero accepts a staleness residue here: their embeddings layer
+  deliberately does not chase a processor bump without a file change
+  ("vectors stay derived from the older extraction until the file changes
+  or the index is rebuilt").
+
+### C2 — the platform and the upstream project are both moving
+
+Three facts about the terrain:
+
+- zotero/zotero#6012, the draft pull request in which Zotero is building
+  its own semantic search, is active and exposes nothing over the local API
+  yet.
+- The upstream maintainer (oscardvs/zoteus) merges small contained PRs and
+  reimplements design-sized proposals himself; the asymmetry is measured in
+  both directions, and SYNC.md carries the live count.
+- Some twenty other AI plugins are evolutionary pressure, not a runtime
+  concern.
+
+The consequence for the design: every pipeline stage (extract, chunk,
+embed) is a swappable component, an adapter, identified by its key. The
+lasting value is the contract — the MCP tools, coverage honesty, the
+freshness protocol, and the filters, all defined in SPEC.md. The
+machinery behind the contract is replaceable. Anything sent upstream
+decomposes into small PRs the maintainer will actually merge. The index
+describes itself (schema version plus artifact keys), so it is openable or
+cleanly rebuildable, never silently wrong.
+
+The scouts sharpened this constraint on five points:
+
+- The local API documentation states that "only one API version will ever
+  be supported at a time", so a client reads the `Zotero-API-Version` and
+  `Zotero-Schema-Version` headers rather than assuming a version.
+- The local API has no `/deleted` endpoint; the documented deletion route
+  is a key-set diff (`format=versions`, unpaginated).
+- Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
+  per row, which costs seconds at library scale. That is #6012's stated
+  rationale rather than a measurement of theirs, and the distinction is the
+  correction ticket 0180 found: read at PR head `77e2c4b`, `lexical.js`
+  says exactly this in a source comment and cites no figure, then reaches
+  our own conclusion in the lines beneath it — the MATCH runs unconstrained
+  and the candidate filter is applied after it. The numbers under the claim
+  are ours, from X4, and are SPEC.md §5.3's to state.
+  MATCH therefore runs unconstrained on the general path, with scoping
+  enforced elsewhere. SPEC.md §5.2.6 owns the conditional fallback and the
+  threshold experiment X4 measures; it is never the default path.
+- If the local API ever serves structured extraction, the SDT pack
+  (zotero/structured-document-text) is the concrete thing to adapt to: a
+  random-access container with a reader contract
+  `{byteLength, read(offset,length)}`, describing itself with exactly the
+  key shape of C1. Zotero's own chunker splits on structural boundaries,
+  measured in tokens, and embeds the heading path with the text. Two details
+  of it are easy to state wrongly, and both were, so they are stated here in
+  the platform's terms (read at PR head `77e2c4b`, 2026-08-29).
+
+  The geometry is 120 minimum, 48 overlap, and a maximum of 768 that is
+  **a ceiling, not a chunk size**. The source says so in as many words:
+  "A ceiling rather than a target: chunks come out paragraph-sized, so this
+  decides only how long a text has to be before it's split at all." The
+  effective budget is a minimum against the live model, not the constant —
+  `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
+  count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
+  declare `maxTokens: 512`; the two at 8 192 (`jina-embeddings-v2-small-en`,
+  `bge-m3`) are labelled `test:`. So 768 never binds today, and exists to
+  stop a future long-window model from emitting 8 000-token chunks. A
+  consumer that copies 768 without the minimum copies a ceiling and uses it
+  as a target, which is the opposite of what the number is for.
+
+  The chunker also **does not** never cross a section: it merges sections
+  below the 120-token minimum forward into their neighbour, asserted by
+  #6012's own tests. It never merges two sections each able to stand alone.
+  Our boundary ruling is therefore stricter than the platform's, a
+  deliberate divergence rather than the alignment this bullet used to claim.
+- Once #6012's saved-search serialization merges, it will be the first
+  place platform semantic results appear in the local API. The mechanism is
+  verified at source (PR head `77e2c4b`, read 2026-08-30, ticket 0034): the
+  pull request adds a `bestMatch` search *condition* in `searchConditions.js`,
+  and the local API already serves `/api/users/:userID/searches/:searchKey/items`
+  on `main`. So the crack opens with no new endpoint, and without upstream
+  deciding to open one — a saved search carrying that condition is enough.
+
+Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
+author's own installation (10.0, build 20260817151751) and the shipped
+`fulltext.js` of that build; the evidence is in
+`verification/VERIFY-FULLTEXT-SQLITE.md`, and for the vocabulary and cache
+measurements in the log of ticket 0120.
+
+- The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
+  and `fulltextItemWords` and moved the keyword index into a separate
+  attached database, `fulltext.sqlite`. Upstream commit `7c2a1d1`,
+  2026-06-30, tagged in 10.0.0 and 10.0.1 only.
+- The schema is four contentless FTS5 tables plus their bookkeeping:
+  `fulltextContent` (unicode61), `fulltextContentCJK` (ascii, fed
+  overlapping 2-grams), `fulltextNotes` (trigram), `fulltextNotesCJK`,
+  with `fulltextIndexState`, `noteText` and `fulltextIndexMeta`. On the
+  author's library: 13 090 content documents, 386 CJK, 1 200 notes.
+- A row identifies an item directly. `fulltextContent.rowid` is the local
+  `itemID`, joined 13 090 of 13 090 against `fulltextIndexState`.
+- Contentless means the source text is discarded, not that the index is
+  opaque. The stored column and `snippet()` both return nothing, measured,
+  so a document cannot be printed back. What survives is the whole inverted
+  index, and `fts5vocab` reads it: 670 680 distinct terms, 19 139 711
+  (term, document) pairs, 135 973 731 occurrences with their positions.
+  Constrained by term, `fts5vocab(…, 'instance')` returns the pair
+  `(itemID, token offset)` in under a millisecond; constrained by document
+  it is a 7,0 s full scan, so reconstructing a document works but is not a
+  route. The bound is weaker than "which items, never which passage": a
+  query term locates itself inside an item. Turning that token offset into
+  a character position means reproducing Zotero's own tokenization, which
+  an approximation did not — occurrence counts matched exactly on three
+  documents while token indices drifted +13, +2 and 0.
+- The extracted text lives in `.zotero-ft-cache`, one file per indexed
+  attachment: 13 631 files, 819,4 MiB, plain UTF-8 carrying no markup. It
+  is two extractor generations. Of 8 590 PDF caches, 4 708 carry form-feed
+  page separators and 3 882 do not, split by mtime at roughly 2024, and the
+  form-feed count equals `fulltextItems.indexedPages` for 4 471 of the
+  4 708. The current path is `Zotero.PDFWorker.getFullText` writing straight
+  through; nothing in the shipped app writes the older `.zotero-ft-info`
+  sidecars, of which 2 788 survive on disk. What is observed is that caches
+  written between 2019 and 2024 are still present on a machine now running
+  10.0, so upgrading did not rewrite them; that no upgrade ever re-extracts
+  is an inference from it, untested here. `rebuildIndex()` in `fulltext.js`
+  would re-extract and has no caller in the shipped app. Either way both
+  generations are live today, so page boundaries cannot be assumed.
+- It is readable while Zotero runs, and fast. A read-only open of the live
+  file returned a count in 7 ms and a `MATCH` in 8 ms with the application
+  up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
+  WAL, so a writer takes an exclusive lock and a reader is cheap but not
+  guaranteed available.
+- Nothing documents any of this. The 10.0 changelog says only "Much faster
+  full-text content searches", naming neither the file, nor FTS5, nor the
+  split. This is an internal implementation file that has already moved
+  once without announcement, which is the C2 risk in its purest form.
+- Zoteus does not read it. It reaches full text over the local API
+  (`/items/<key>/fulltext` and `/fulltext?since=`), so the move did not
+  break it, and the platform's finished keyword index currently goes
+  unused. Whether to depend on it is a design question, carried by ticket
+  0120.
+
+### C3 — the machine belongs to the user
+
+Background work runs at leftover priority. The RAM ceiling is independent
+of library and document size: extraction and chunking stream, so peak
+memory is proportional to a section batch, not to the document. The embed
+stage is the core-hog and MUST be isolatable. One scheduling rule covers
+everything: foreground always beats background.
+
+#### Ratified budgets (2026-08-26)
+
+- background ≤ ~1 core, low priority
+- server steady-state RSS ≤ ~750 MB (replaced 2026-08-30, DECISIONS.md: the
+  original figure was ratified against an English-embedder picture, and R7
+  outranks it)
+- pipeline worker peak ≤ ~750 MB regardless of document size (re-pinned
+  2026-08-31, DECISIONS.md: the original figure predates the multilingual
+  ruling, and under the sole-writer topology the worker is the model plus
+  one batch)
+- pipeline worker killable/restartable at any time with zero index damage
+
+The server ceiling binds per process, the scope its gate can assert; SPEC.md
+§5.2.9 states the whole-machine arithmetic alongside it (DECISIONS.md,
+2026-08-29).
+
+Whether an ONNX entry actually loads and preserves its declared geometry is an
+environment fact, not a property of the model name alone. Runtime version,
+operating system, architecture and execution provider can turn the same entry
+into a working, degraded or unloadable one. A remote attestation can establish
+that another installation saw a shape; it cannot replace the local check on the
+machine that will create or query the index.
+
+### C4 — status answers from counters
+
+Status MUST answer in a few milliseconds while all three queues run, and
+never by scanning a table a stage is writing. Status is the only window
+into requirement R1, coverage and its newest-first order
+(SPEC.md), and agents poll it every few seconds, forever. The
+obvious implementation, a GROUP BY over the table the build is writing, was
+measured at 374 ms with a cold cache. R6 budgets the query path; C4 budgets
+the observation path.
+
+### Politeness (web transport only, from the official API docs)
+
+At most 4 concurrent requests; honor `Backoff: <seconds>` on ANY response,
+including 2xx; honor 429/`Retry-After` with exponential fallback. The local
+API has no rate limits and is unpaginated by default, so this constraint is
+scoped to the web transport, not to the design.
+
+### The author's structural hint (standing instruction to any panel)
+
+A "panel" is one of this repo's recorded design-review sessions; cycle 2's
+record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31). The
+hint: three asynchronous processes (extract, chunk, embed), independently
+paced, with queues between them. Two justifications were found: (a) keyword
+availability never waits on embedding, and (b) an OS process can be
+nice'd, observed, and restarted. Panels take the hint seriously, not as
+gospel. (Cycle 2's answer: two OS processes, three ledger-paced loops; see
+SPEC.md §5.2.5.)
+
+## 5. Design
+
+### Intro
 
 This is the current design, produced by design cycle 2 (2026-08-26). It owns
-every design number: the gate thresholds (§2.8), the experiment decision
-rules (§3), and the budgets (§2.9). Its place in the authority chain is
-stated once, in README.md. The raw panel record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31); where it once disagreed with this
+every design number: the gate thresholds (§5.2.8), the experiment decision
+rules (§5.3), and the budgets (§5.2.9). The raw panel record is gone, lost with the pre-restart history (DECISIONS.md, 2026-08-31); where it once disagreed with this
 document, this document was already the record, and is now the only one. The predecessor design (cycle 1's
 "The Settled Ledger", called v1 below) is superseded and lives in git
 history.
@@ -42,11 +1076,11 @@ fulltext entries at version 0.
 
 ---
 
-## 1. What changed since v1
+### 5.1 What changed since v1
 
 v1's skeleton survived every lens and every critique with one amendment:
 durable (item × stage) ledger rows in SQLite — compute → guarded commit, the
-per-row lease claim retired by the sole-writer ruling (§2.5; DECISIONS.md
+per-row lease claim retired by the sole-writer ruling (§5.2.5; DECISIONS.md
 2026-08-31) — control through a pipe and durable work through the database, a
 write-free query path, and two OS processes. R13 (second process), R22 (durable pause)
 and R17's work counters each turn out to *want* that skeleton: every one is
@@ -60,7 +1094,7 @@ sideline-never-delete (an unreadable index file is moved aside, never
 deleted), the recovery-verb grammar, and the failure policy. The failure
 policy
 (transient/persistent split, bisection quarantine, reachability gating,
-backpressure counted in items; mechanism spec unchanged from v1 §2.6, whose
+backpressure counted in items; mechanism spec unchanged from v1 §5.2.6, whose
 document is lost) carries two amendments. Quarantine auto-clear now keys on the
 *content* signal chain, not on raw counter movement, so a resync cannot
 mass-replay every poison input. And R1's terminal states (`empty`) are
@@ -74,15 +1108,16 @@ Three forces changed the rest.
    the item; the record is the semantic core and indexes first; chunks
    respect entry boundaries and carry their context. This killed v1's
    two-column FTS layout (FTS: SQLite's full-text search engine; replaced by
-   per-field columns, §2.2), its
-   collapse-to-items ranking (replaced by entry collapse, §2.6), and its
+   per-field columns, §5.2.2), its
+   collapse-to-items ranking (replaced by entry collapse, §5.2.6), and its
    single-figure coverage (replaced by the coverage sentence and counters,
-   §2.8).
+   §5.2.8).
 
 2. **Observability became the requirement.** v1 designed an engine whose
    promises (convergence, newest-first, budgets, edit costs, custody) were
    mostly unobservable. Sheet v2, the consolidated requirements and
-   constraints now in REQUIREMENTS.md and CONSTRAINTS.md, makes
+   constraints now in this document's Requirements and Constraints
+   sections, makes
    observability itself the requirement, so v2 designs the instrument panel
    and the gates beside the engine.
 
@@ -90,24 +1125,24 @@ Three forces changed the rest.
    sequence is mixed and must never be cursored: v1's ascending-sweep
    freshness would have silently lost locally-extracted text (the 584
    measured version-0 entries prove the loss non-empty), and
-   census-equality replaces it (§2.4). And constraining FTS5 MATCH costs
+   census-equality replaces it (§5.2.4). And constraining FTS5 MATCH costs
    seconds at library scale (FTS5 evaluates a rowid-constrained MATCH once
    per row), so v1's filter pushdown dies as worded. Unconstrained MATCH
-   plus a guaranteed-fill bitmap filter replaces it (§2.6).
+   plus a guaranteed-fill bitmap filter replaces it (§5.2.6).
 
 Other reversals worth naming, each with its reason. Extract is no longer
 keyed by the version counter alone, because R3's counter-churn clause and the shipped
 92,7 %-changed-forever defect killed that reading: signals and keys are now
-separate (§2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted
-behind the golden gate (§2.6): v1's rejection rested on wrong arithmetic,
+separate (§5.2.1). Fraction-weighted reciprocal-rank fusion (RRF) is adopted
+behind the golden gate (§5.2.6): v1's rejection rested on wrong arithmetic,
 verified empirically. Pause is a durable row, not a pipe message, because
 today's `stop` was verified to cancel one job while `auto_build` restarts
-on the next query (§2.7). Unknown-schema handling is read-compatibility
+on the next query (§5.2.7). Unknown-schema handling is read-compatibility
 gating plus a new filename (`search-index-v2.sqlite`), because no protocol
 can bind binaries that predate it: a v1.7.0 sibling reaching `clearStore()`
-against an in-place upgraded file would erase every library (§2.7). And
+against an in-place upgraded file would erase every library (§5.2.7). And
 v1's item-collapse PR is folded into the entries conversation (scoped issue
-B, §4): shipping item-collapse now would ship exactly the framing the entry
+B, §5.4): shipping item-collapse now would ship exactly the framing the entry
 ruling rejected.
 
 The full verdict-by-verdict record (what survived, what was amended by
@@ -118,9 +1153,9 @@ them only in the pre-restart history, abandoned by ruling (DECISIONS.md,
 
 ---
 
-## 2. The architecture
+### 5.2 The architecture
 
-### 2.1 Signals vs keys
+#### 5.2.1 Signals vs keys
 
 Every stage row stores *signals* and *keys*, never mixed.
 
@@ -157,12 +1192,12 @@ disclosed R3 residue: a counter-churning resync still costs
 O(changed-attachments) local fetches before the hashes stop the chain.
 Fetch-and-hash is the price of verification, stated rather than hidden.
 
-### 2.2 Storage: one file, one schema, every row library-keyed
+#### 5.2.2 Storage: one file, one schema, every row library-keyed
 
 The store is `search-index-v2.sqlite`: WAL mode, `synchronous=NORMAL`,
 `busy_timeout=5000` on every connection, and `PRAGMA
 auto_vacuum=INCREMENTAL` set before the first table. Set any later it is a
-no-op, and the idle `incremental_vacuum` promised in §2.7 would never
+no-op, and the idle `incremental_vacuum` promised in §5.2.7 would never
 reclaim a page.
 
 **Identity.** `origins(oid, server_id)` is the `Zotero-Server-ID` partition
@@ -173,7 +1208,7 @@ so a merged index without the column would turn R15's delete into an R12
 violation. `clearStore()` is abolished from the build path: "rebuild"
 is a ledger state (`UPDATE … SET status='pending' WHERE lib=?`), never a
 `DELETE FROM passages`. That makes an R12 violation unwritable for
-protocol-aware binaries; the new filename (§1) fences the binaries that are
+protocol-aware binaries; the new filename (§5.1) fences the binaries that are
 not.
 
 **The entry layer.**
@@ -191,7 +1226,7 @@ not.
   return null rather than wrong words on a mismatch, and slab cuts land on
   entry boundaries, not byte counts. The slab range is also the **dispatch
   address** (ratified 2026-08-31): an embed work order for body text carries
-  an entry-sized run of these ranges (§2.5), so text already stored never
+  an entry-sized run of these ranges (§5.2.5), so text already stored never
   crosses the pipe again.
 
 **FTS.** FTS5 with per-field columns, tokenizer `unicode61
@@ -296,16 +1331,16 @@ against the narrowest unprojected **31,67x** (ticket 0499,
 `bench/results/0499-chain-identifier/`).
 
 Two bounds ship with it. The threshold this distance is compared against is not
-set here: it waits on X8's successor question (§3, ticket 0485) and must be sized
+set here: it waits on X8's successor question (§5.3, ticket 0485) and must be sized
 from measured distributions rather than simulation. And the read is meaningful at
 fp32 only — at the 8-bit rungs the same chain read on another execution provider
 already moves further than the nearest different chain does, which is the same
-boundary §2.5's device rule reaches from the cosine side. A hash of any kind is
+boundary §5.2.5's device rule reaches from the cosine side. A hash of any kind is
 ruled out cross-machine, sign bits included, and the ledger records why.
 
 *Owed here, and not by this entry:* the header itself, its never-mix invariant and
 its fixed 64-chunk set are ratified (DECISIONS.md, 2026-08-31) and this section
-still has to carry them, along with §2.1's stage keys and the per-file
+still has to carry them, along with §5.2.1's stage keys and the per-file
 `embed_hash` guard that ruling reshapes.
 
 **Adopting a foreign index** (ratified 2026-09-01). A data directory copied
@@ -319,7 +1354,7 @@ provider to land on. Keys are content hashes, so the verify sweep converges
 the copy by fetch-and-hash — re-embedding nothing whose content matches — and
 R1 re-earns the delta from there. The intended use is embed on the GPU host,
 retrieve on the laptop; the remote-embedder alternative stays out of the
-design and inside ticket 0491's comparison (§2.5).
+design and inside ticket 0491's comparison (§5.2.5).
 
 **The segmenter, seg/1** is new machinery: the spec lives here, and ticket
 0028 builds to it.
@@ -336,9 +1371,9 @@ Dictionary arithmetic (input assumption labeled, unmeasured): 44,9 MB across
 ~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the dictionary
 becomes ~1 850 first-class peers, which is the entry ruling's whole point.
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates
-scoped issue B on it (§5, risk 1).
+scoped issue B on it (§5.5, risk 1).
 
-### 2.3 Discovery order: three priority classes, newest first inside each
+#### 5.2.3 Discovery order: three priority classes, newest first inside each
 
 Three priority classes, in this order: **metadata**, then **notes and
 annotations**, then **body text**. Within each class, newer first. That is the
@@ -347,7 +1382,7 @@ indexed before its record.
 
 Ordering is not the only promise. New and deleted data in any class must be
 discovered in reasonable time, which is the reconcile tick's job and is stated
-in §2.4 rather than here.
+in §5.2.4 rather than here.
 
 What the order buys: within minutes a user can find any item by its title,
 author or abstract, and body text fills in behind that for hours.
@@ -369,7 +1404,7 @@ author or abstract, and body text fills in behind that for hours.
   15 000-page PDF cannot monopolize the pipeline. Under the sole-writer
   topology the bands are a dispatch policy, not machinery: band 0 is the first
   K ranges of each item in the conductor's dispatch order, band 1 the rest
-  (§2.5). K is derived from this corpus
+  (§5.2.5). K is derived from this corpus
   rather than transplanted: K = ceil(median passages per item), floor 16,
   stated in meta.
 
@@ -391,7 +1426,7 @@ stay, as anti-monopoly machinery rather than as an observable; ticket 0080 owns
 what else has to replace them, since the class order stops a 15k-page PDF
 delaying every *record* and does not stop it monopolizing the body tier.
 
-Zotero's own draft PR #6012 (CONSTRAINTS.md C2) orders attachments
+Zotero's own draft PR #6012 (SPEC.md C2) orders attachments
 smallest-first. Ours orders by recency and stops monopoly with the band cap
 instead, and the same standard binds both: neither ordering is asserted as an
 invariant over a moving set.
@@ -404,16 +1439,16 @@ honesty without reopening the decision. If a later extraction gives an earlier
 attachment text, the choice function's output changes and the chain re-derives
 from there.
 
-### 2.4 Freshness: how the index finds out what changed
+#### 5.2.4 Freshness: how the index finds out what changed
 
 The reconcile tick asks Zotero what changed and queues the work. It does not
-extract anything itself. It is conductor-owned (§2.5), runs every 60 s when
+extract anything itself. It is conductor-owned (§5.2.5), runs every 60 s when
 idle, backs off when Zotero is unreachable, and writes work orders. **No
 document fetch happens inside the tick** (ratified 2026-08-31): the
 whole-document GET has no micro-batch boundary inside it, and a tick that
 performs one does not run for as long as the document takes, which is where
 R35's minute would go — the tick dispatches, the pipeline worker fetches
-(§2.5). The 60 s cadence is what delivers R35's one-minute
+(§5.2.5). The 60 s cadence is what delivers R35's one-minute
 promise, so the worst case is one full tick: a change landing just after a tick
 waits for the next. Backing off is not a violation — a Zotero that is not
 answering has nothing to report, and R35 starts its minute when it comes back.
@@ -422,7 +1457,7 @@ along the write line: its bookkeeping is the conductor's, since all of it is
 writing — the item cursor, the full-text census, extractor-version staleness
 (ticket 0480's class), and per-attachment truncation flags — while its one
 reading duty, the whole-document GET, is the worker's, arriving back as
-windows. The stage keeps its key: `text_hash` (§2.1) is computed over the
+windows. The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
 
@@ -439,7 +1474,7 @@ Three things per library.
    client version, or 0 for locally extracted text (C1). The schema makes that
    trap unrepresentable rather than documenting it. Cloud scopes are different
    — the web sequence really is monotonic — so they use an ordinary `?since=`
-   cursor, under the web politeness constraint CONSTRAINTS.md states once. The
+   cursor, under the web politeness constraint SPEC.md states once. The
    census is cheap: ~8 037 entries ≈ 120–200 KB serialized per tick,
    O(attachments) in memory, no extra requests. If X7 measures the parse above
    50 ms at 30k entries, the cadence backs off to every 5th tick — a decision
@@ -494,7 +1529,7 @@ its cadence is pinned when the machinery lands.
 tick ran within ~30 s, otherwise one memoized probe with a 500 ms deadline that
 reports and nudges rather than blocks, with `probedMsAgo` in replies.
 
-### 2.5 Embedder registry, topology and concurrency
+#### 5.2.5 Embedder registry, topology and concurrency
 
 **The registry is configuration, not a menu of model names.** One indivisible,
 versioned entry owns the model repository and revision, graph and dtype,
@@ -516,7 +1551,7 @@ adapter without making a daemon, supervisor or OS facility part of the registry
 contract or a prerequisite for curated entries. Conceptually the execution
 choice is `provider: in_process` now or `provider: local_endpoint` later; it
 does not alter the selected entry. The actual execution provider contributes to
-the vector fingerprint only when §3's X8 rule says its vectors are not
+the vector fingerprint only when §5.3's X8 rule says its vectors are not
 interchangeable. Endpoint syntax and discovery stay out of the registry until
 ticket 0491 decides their owner.
 A future `provider: zotero` is the preferred reuse probe: #6012 already runs
@@ -554,11 +1589,11 @@ the conductor segments, and an item's slabs, entries and passages are durable
 before any vector for it is computed. Keyword availability never waits on
 embedding, and a worker death loses only the vectors in flight, never the
 segmentation of a 15 000-page book. The two-band frontier is a dispatch
-policy over ranges (§2.3), not machinery of its own.
+policy over ranges (§5.2.3), not machinery of its own.
 
 **The conductor is the only writer, and the segmenter.** Every durable
 artifact — ledger rows, slabs, entries, passages, FTS, the vector sidecar —
-is written by the conductor and by nothing else. It runs seg/1 (§2.2) as a
+is written by the conductor and by nothing else. It runs seg/1 (§5.2.2) as a
 streaming state machine over the text windows the worker forwards: it closes
 entries at structural boundaries — a book into chapters, the dictionary into
 entries, proceedings into presentations — cuts the passages inside each entry
@@ -568,9 +1603,9 @@ the segmenter's own state, which is the streaming property C3 already
 asserts. **The conductor never materializes a whole document**: the local API
 answers with the text inside one JSON object, and the convenient read puts a
 44,9 MB attachment inside the process that holds the query embedder and
-answers queries — §2.9's arithmetic says that does not fit. The fetch is
-therefore the worker's, §2.4 states the same clause as the tick's
-prohibition, and §2.8's transport clause on the RSS gate is its instrument.
+answers queries — §5.2.9's arithmetic says that does not fit. The fetch is
+therefore the worker's, §5.2.4 states the same clause as the tick's
+prohibition, and §5.2.8's transport clause on the RSS gate is its instrument.
 
 **The worker writes nothing.** No lease, no write handle, no file of its own;
 a WAL reader like any sibling P0, which is what makes C3's
@@ -581,7 +1616,7 @@ accumulating nothing — the incremental decode of the one-JSON-object answer
 is written here, once, in the process whose failure costs a restart rather
 than a breached ceiling. And it embeds: an embed order for a small input
 (record, note, annotation) carries its text outright; for body text it
-carries an entry-sized range — the slab addresses §2.2 gives every passage —
+carries an entry-sized range — the slab addresses §5.2.2 gives every passage —
 which the worker reads back read-only, slices, embeds and streams home. A
 book crosses the pipe once as text and never again; a re-embed after a model
 change, a band-1 backfill and a resumed run all dispatch ranges over text
@@ -591,7 +1626,7 @@ its longest sequence; the batch is the memory dial, the duplicate-compute
 unit and the yield grain, and nothing is bought by making it large
 (`verification/GPU-ANOMALY-0481.md`, `verification/GPU-CORRECTED-0482.md`;
 the CPU sweep at the deployed rung is ticket 0500's). Dispatch order at the
-worker's grain restates §2.3's anti-monopoly promise at the pipe: a fetch
+worker's grain restates §5.2.3's anti-monopoly promise at the pipe: a fetch
 order for a newly changed item goes ahead of queued band-1 embed ranges,
 and an embed backlog yields at batch granularity — one worker serializes
 fetch and embed, so without this rule a band-1 drain would starve every
@@ -644,7 +1679,7 @@ operation, so the query path stays write-free even in the database sense).
 The worker stats that file between micro-batches and idles 2 s while it is
 fresh — and so does the conductor's own write loop, since the process serving
 queries is now also the process draining the stream; the fsync is off-thread,
-the serialization of a long run of records is not. If §2.8's
+the serialization of a long run of records is not. If §5.2.8's
 conductor-latency soak clause fails R6's budget, the pre-authorized fallback
 (DECISIONS.md 2026-08-31) is a dedicated small writer process, not a
 re-ruling. The conductor's stdio pipes remain the low-latency fast path;
@@ -672,7 +1707,7 @@ keeping the sidecar consistent with rows another process wrote, has no
 subject with one writer. Deletion tombstones cover every live generation.
 Compaction runs at >10 % dead rows or in the idle weekly slot.
 
-### 2.6 Query path and ranking
+#### 5.2.6 Query path and ranking
 
 **Query semantics (D5), granularity decided out loud.** Hard units (quoted
 phrases, explicit AND, NOT) are filters, while bare terms are soft: they
@@ -740,7 +1775,7 @@ Those texts and scores never enter a shared attestation. An optional,
 content-free compatibility attestation may report only pass/fail, exact entry
 fingerprint and runtime shape, after explicit opt-in; it is evidence that a
 configuration executes, not that it retrieves well. Ship gate (D11): golden-set
-Jaccard at or above §2.8's thresholds against plain RRF, both behind one flag.
+Jaccard at or above §5.2.8's thresholds against plain RRF, both behind one flag.
 
 **The locator (R24)** is discriminated by the hit's entry kind: a record or
 note hit has no attachment and no page, and the reply never fabricates
@@ -789,7 +1824,7 @@ exact trigram), backfilled from slabs for CJK-bearing passages only,
 query-routed, fused as a third list. SentencePiece quadratic-encode caution
 inherited: cap encode segments at ~1 000 chars.
 
-### 2.7 Custody and lifecycle
+#### 5.2.7 Custody and lifecycle
 
 **R10 — local by default.** Verified: exactly two opt-in exfiltration paths,
 no silent fallback. The sole permitted external call on the default path is
@@ -811,8 +1846,8 @@ of the text has a named removal path:
 - slabs (keyed per attachment/source, never shared)
 - sidecar tombstone bitmaps, across *all* generations
 - ledger rows (the conductor committing on a deleted item fails its own
-  commit guard, §2.5 — workers write nothing)
-- WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§2.2), plus
+  commit guard, §5.2.5 — workers write nothing)
+- WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§5.2.2), plus
   idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction
 - the legacy `search-index.json`, which upstream leaves in place forever,
   renamed `.migrated-<ts>` after the first post-migration save and swept at
@@ -850,7 +1885,7 @@ sidecar, disclosed.
 The *small PR* version of D3 is narrower: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is
 keep-vectors plus pinning the query-side embedder to the stored id until a
-rebuild switches both. Dual-embed lives in scoped issue A (§4).
+rebuild switches both. Dual-embed lives in scoped issue A (§5.4).
 
 **R23 — upgrade and downgrade.** The open protocol: read
 `meta.schemaVersion` before any DDL or write (verified defect:
@@ -869,7 +1904,7 @@ census-diff, let R1 re-earn. The retroactive limit is stated plainly:
 binaries that predate the protocol (every release through v1.8.0; v1.9.0
 ships the read-before-write + sideline slice via PR #25, but not the
 conductor rule or `min_reader_version`) are unreachable by it; the new
-filename (§1) is what actually protects against them.
+filename (§5.1) is what actually protects against them.
 
 **R15's uninstall clause.** Pin `env.cacheDir` under the data directory before
 constructing the pipeline (the transformers default lands outside it, per
@@ -879,7 +1914,7 @@ uninstall = byte-clean. D2 hosted-out deletes, explicitly: per-tenant
 contract keying, multi-tenant consent bookkeeping, encryption-at-rest,
 quota arithmetic; the four returned privacy lines stay dead.
 
-### 2.8 The instrument panel
+#### 5.2.8 The instrument panel
 
 **The coverage sentence** (D1 denominator = items; metadata-only covered
 with reason; sections only ever the partial qualifier):
@@ -900,7 +1935,7 @@ covered, the "of 6,100" clause scopes the with-attachments subset, so
 `covered.embed == items.total` is stateable on a real library. Beyond the
 sentence, status carries per-library rows, the pause line ("paused since
 <date>"), the custody string, the record/body coverage split, and the
-version-0 residue disclosure (§2.4).
+version-0 residue disclosure (§5.2.4).
 
 **Counters (C4).** `counters(name, value)`, updated in the same
 transaction as the ledger transition each one describes. Per stage:
@@ -932,7 +1967,7 @@ It asserts four things.
 
 - Status answers in ≤ 50 ms.
 - Coverage is monotone.
-- The class order §2.3 states holds, per item: nothing has body passages
+- The class order §5.2.3 states holds, per item: nothing has body passages
   indexed before its record. A positional prefix is not asserted — the reading
   that it should be was vetoed on 2026-08-29 — and the counter arithmetic
   written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
@@ -944,7 +1979,7 @@ Phase 2: edit
 one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
 sections(record)`, everything else 0; then a simulated identical-bytes
 resync → zero recompute: every `*.done` delta 0, the touched items
-appearing only under `work.*.resync.noop` (§2.1 says verification runs, and
+appearing only under `work.*.resync.noop` (§5.2.1 says verification runs, and
 the gate MUST permit exactly that and nothing downstream of it). This is
 R3's counter-churn clause measured by R17's own counters, the test that would have caught the
 shipped 92,7 % defect. Phase 3 is the hostile fixture: one quarantine, one
@@ -985,7 +2020,7 @@ the two outcomes apart.
   — the worker across the streamed fetch and its incremental decode, and the
   conductor, the process that has already loaded the query embedder, across
   the same ingest — because the clause it instruments is that no process on
-  the path ever holds the document whole (§2.5's no-materialize clause,
+  the path ever holds the document whole (§5.2.5's no-materialize clause,
   otherwise an instruction rather than a verified property; finding F5,
   `verification/SOLE-WRITER-0507.md`).
 Every gate below is decided at one of two levels, and the relation between them
@@ -1038,7 +2073,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   re-fetch and re-segmentation per failover. **The conductor-latency
   clause**, the sole-writer ruling's acceptance gate (DECISIONS.md
   2026-08-31): query p95 measured on the conductor itself while it drains,
-  against §2.9's warm-query band — on a failure the pre-authorized fallback
+  against §5.2.9's warm-query band — on a failure the pre-authorized fallback
   is a dedicated writer process, not a re-ruling.
 - **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
@@ -1084,7 +2119,7 @@ is the pattern, and it binds every surrogate here, not only that one.
   0500 measures both stages on the reference machine and pins their share.
 
   *The wall clock is the promise*, and it is this rate against the measured
-  census of §2.9 — the census is the bridge, and the arithmetic is shown rather
+  census of §5.2.9 — the census is the bridge, and the arithmetic is shown rather
   than folded in, so a reader with a different library can do their own. At the
   design point's 567 829 passages the two rates land at 23,7 h and 11,8 h, which
   is where R32's **day** and its half come from — "indexed today", written down.
@@ -1119,7 +2154,7 @@ is the pattern, and it binds every surrogate here, not only that one.
 **R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
 instead of silently duplicating work.
 
-### 2.9 Budgets, recomputed and honestly scoped
+#### 5.2.9 Budgets, recomputed and honestly scoped
 
 **Disk** at the design point, under the token geometry (both counts stated).
 **The passage count is measured, not derived**: 567 829 passages at the
@@ -1148,13 +2183,13 @@ semantic use ≈ ~670–760 MB (the measured range across candidates, ticket
 so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
 incorrectly kept a pipeline worker resident. The one pipeline worker adds
 transient residency only: run-to-drain, at most one, its peak the model plus
-one token-budget batch (§2.5's dial), under C3's re-pinned pipeline ceiling —
+one token-budget batch (§5.2.5's dial), under C3's re-pinned pipeline ceiling —
 priced by the same measured candidate range quoted above, without the
 server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
 range's top, inside the ceiling (DECISIONS.md, 2026-08-31). One term of that
 arithmetic is honestly unmeasured: the residency of a live batch — every
 sweep on disk priced batch size in latency, not RSS — so the ceiling's
-sufficiency for the heaviest candidates is a claim §2.8's RSS gate and
+sufficiency for the heaviest candidates is a claim §5.2.8's RSS gate and
 ticket 0500's sweep verify, not one this subtraction establishes; 0500
 records RSS with a real batch in flight, not at rest. Segmentation adds one text
 window plus segmenter state to the conductor, inside the server ceiling. The
@@ -1163,16 +2198,16 @@ streaming fetch; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
 scope the gate can assert; the two-client whole-machine arithmetic above keeps
 the aggregate visible (DECISIONS.md, 2026-08-29). Dual-embed no longer threatens
-the budget (the lazy-load rule, §2.7).
+the budget (the lazy-load rule, §5.2.7).
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion, which is where R6's two numbers go —
 ≈ 300–700 ms in the ordinary case, against the 3 s it promises never to exceed.
-Unchanged, and now without the hidden second scan (§2.6).
+Unchanged, and now without the hidden second scan (§5.2.6).
 
 ---
 
-## 3. Open decisions: committed, or experiments with decision rules
+### 5.3 Open decisions: committed, or experiments with decision rules
 
 - **Semantic path at scale — X1.** int8 ships if recall@30 ≥ 0.98, pool ≤
   32×topK, and scan+rerank ≤ 400 ms at 650k; the float32 slab is the
@@ -1193,9 +2228,9 @@ Unchanged, and now without the hidden second scan (§2.6).
   BM25 already down-weights common terms continuously, while a hard cutoff
   can only approximate that signal.
 - **Fairness — committed.** Record phase, then two-band body with derived K
-  (§2.3); smallest-first rejected on the record.
+  (§5.2.3); smallest-first rejected on the record.
 - **Fraction-RRF — conditional.** Ships behind the golden gate; calibration
-  deferred to its own ticket with the library-derived pair protocol (§2.6).
+  deferred to its own ticket with the library-derived pair protocol (§5.2.6).
 - **Version-0 freshness residue — X6 decides.** If local re-extraction
   re-stamps 0, build the bounded re-verify sweep (M entries per tick,
   horizon reported); if it bumps anything observable, the md5-widened signal
@@ -1235,10 +2270,10 @@ Unchanged, and now without the hidden second scan (§2.6).
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is the measured failure ticket 0240 records.
 - **Budget scoping under N processes** — awaiting the author's ratification
-  (DECISIONS.md; both figures stated there and in §2.9).
+  (DECISIONS.md; both figures stated there and in §5.2.9).
 - **Autonomous embedding service — architectural direction, open ownership.**
   The interface seam and its future `local_endpoint` execution mode are
-  committed in §2.5; implementing a daemon in zoteus is not. Ticket 0491
+  committed in §5.2.5; implementing a daemon in zoteus is not. Ticket 0491
   compares the in-process default with Zotero #6012 runtime reuse (probe 0496),
   a bundled child, a per-user service and an external OS/community facility.
   The decision rule includes install time, cross-platform packaging, custody
@@ -1258,7 +2293,7 @@ deletions, and the "contained" D3 PR as first proposed.
 
 ---
 
-## 4. The increment sequence from v1.7.0
+### 5.4 The increment sequence from v1.7.0
 
 *(Re-formed 2026-08-26 by the political and implementation reviews and
 ratified in DECISIONS.md. Both those reviews and the original fifteen-step
@@ -1278,7 +2313,7 @@ once in GOVERNANCE.md, which points at the entries that ratified them; each
 item's scope, evidence, and live state live in its ticket. The tickets are
 authoritative for content, this list for ordering.
 
-Two orders coexist. The ladder on `spec/README.md` governs the order repo-side
+Two orders coexist. The ladder on `README.md` governs the order repo-side
 assertions are built; this train governs the order items go upstream. On
 collision the ladder wins for tests and the train for filings — ticket 0488, a
 rung-1 member filed at item 8, is the documented case (DECISIONS.md
@@ -1305,7 +2340,7 @@ rung-1 member filed at item 8, is the documented case (DECISIONS.md
    reimplements the machinery in his own idiom, which is where C2 says the
    durable value lives.
 7. **Experiments before their dependents** (0025 carries the substrate map;
-   the rules live in §3): X1 before the sidecar work, X4 before any ladder
+   the rules live in §5.3): X1 before the sidecar work, X4 before any ladder
    constant, X5 (seg/1 built first, 0028) before issue B, X6 with I-1, X7
    before the tick cadence is documented, X3a feeding the rss-gate fixture,
    and X3b traveling with issue B.
@@ -1325,7 +2360,7 @@ rung-1 member filed at item 8, is the documented case (DECISIONS.md
 
 ---
 
-## 5. The biggest remaining risks, and the cheapest falsifiers
+### 5.5 The biggest remaining risks, and the cheapest falsifiers
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
 it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
@@ -1361,7 +2396,7 @@ edges the soak must catch.** The conductor election, the activity-file
 yield, and the lease timing are designed against named failure states
 (orphaned worker, a steal mid-document, torn sidecar) but unmeasured, and
 filesystem mtime granularity and WAL growth are folklore until soaked.
-*Falsifier:* the §2.8 soak gate: scripted, 30 minutes, kill -9 twice. Its
+*Falsifier:* the §5.2.8 soak gate: scripted, 30 minutes, kill -9 twice. Its
 assertions are constants the protocol can arithmetically meet, so a failure
 is information, not noise.
 
@@ -1382,4 +2417,142 @@ ratified (entries, records, items), the freshness protocol can no longer be
 fooled by the counter it watches, N processes are a designed state rather
 than an accident, and every promise is either watched by a gate whose
 threshold cites its artifact or named as an experiment with a decision rule
-(§3), each falsifiable in under a day, before the expensive code exists.
+(§5.3), each falsifiable in under a day, before the expensive code exists.
+
+## 6. Security Considerations
+
+### Intro
+
+This section describes what the system stores, where that data can be read,
+changed, or sent off the machine, and what the design currently says about each
+point. It decides nothing. Where an answer below is a gap, closing it is a new
+obligation, and a new obligation is a ruling: `DECISIONS.md` first, then
+`SPEC.md`. This document only reports the gap.
+
+The scope is local-only. Hosted mode is closed (D2, `SPEC.md`) and
+nothing here reopens it. See "Out of scope" at the end.
+
+Two words are used throughout. An *asset* is something a user would mind losing
+or having read by someone else. A *surface* is a place where an asset can be
+read, changed, or leave the machine.
+
+The chain had no such document. Silence reads the same as "considered and found
+safe" — to a reviewer, to the upstream maintainer, and to the author in six
+months. Ticket 0052 filed this to end the silence, not to assert that anything
+is mishandled.
+
+### Assets
+
+**The derived index.** `search-index-v2.sqlite` (`SPEC.md` §5.2.2) is not a
+set of pointers into the Zotero library. It is a working copy of it. The slabs
+table holds the source text itself, compressed, cut on entry boundaries;
+passages are references into that text. The design slabs record and own-words
+text for the same reason it slabs body text — otherwise a hit could not show
+what it found.
+
+So an attacker who reads this one file, without touching Zotero at all,
+recovers titles, abstracts, keywords, creators, tags, the text of notes and
+annotations (R16), and body-text passages for every attachment the pipeline has
+reached, each with its heading path and character offsets. The right way to
+think about the index file is as a second copy of the library, not as metadata
+about one.
+
+**Vectors.** Once semantic indexing has run, the index also holds a dense
+embedding for each passage. Whether those numbers can be turned back into the
+words that produced them is not established anywhere in this chain. They are not
+stored as compressed text and they are not designed to be reversible, but that
+is a design intent, not a proof: published work on embedding inversion has
+recovered short passages from vectors alone. This document does not resolve the
+question. It lists vectors as an asset rather than assuming they are safe
+because they look like numbers.
+
+**Credentials for opt-in providers.** A user who turns on an API embedder
+configures a key for it (`SPEC.md` §5.2.7 names one, Gemini). The key is
+worth whatever unauthorized use of the paying account is worth.
+
+**Query text.** What a user searches for says something about what they are
+working on, whether or not the index itself ever leaks.
+
+**Coverage and status.** Less sensitive alone, but it describes the shape of a
+library: how large, how current, how much is annotated.
+
+### Surfaces
+
+**The local database file.** One file, WAL mode (`SPEC.md` §5.2.2). File
+permissions: none yet. Nothing in the chain states the mode the file is created
+with, or whether another account on a shared machine can read it. C3
+(`SPEC.md`) treats the machine as the user's; it does not say the
+file is unreadable by anyone else with an account on it.
+
+**Query and status tools.** These are MCP tools. The only transport the design
+names is a stdio pipe between the conductor and its worker, with one zoteus per
+MCP client (`SPEC.md` §5.2.5). No line in the chain says zoteus opens a
+network port for these tools, and no line says it never will. This is silence,
+reported as silence, not a verified negative.
+
+**Egress to remote providers.** R10 gives the count directly: two opt-in
+exfiltration paths, no silent fallback (`SPEC.md` §5.2.7). One is the
+one-time model-weight download the default local embedder needs, named in
+status, degrading to keyword-only and never to an API embedder. The other is
+passage text sent to a configured API embedder, which quotes a cost and requires
+an explicit go-ahead per index generation. The default path sends nothing.
+
+**Credential storage at rest.** None yet. The chain records one fix — the Gemini
+key moves out of the URL query string and into a header (`SPEC.md` §5.2.7)
+— but not where the key is read from or kept between runs. No file, environment
+variable, or OS keychain is named.
+
+**Logs.** None yet. Nothing in the chain says whether queries, passage text, or
+errors are written anywhere, and if so where, for how long, or who can read
+them.
+
+**Local Zotero traffic.** The pipeline reads items, records, and full text from
+Zotero's own local API on the same machine (`SPEC.md` §5.2.3, §5.2.4). The
+conversation splits by process (`SPEC.md` §5.2.5): the conductor runs the
+item and full-text census ticks, any query-serving process may issue the query
+path's one bounded freshness probe (§5.2.4), and the pipeline worker alone
+performs the whole-document text fetch. Bulk text reaches the conductor only
+as bounded windows, never resident as a whole document — that, not "never
+reaches a query-serving process", is the isolation the design provides.
+None of this leaves the machine and
+none of it counts against R10's two paths. It crosses the process boundary
+between zoteus and the Zotero application. Whatever access control exists on
+Zotero's own local API belongs to Zotero, not to this design.
+
+**This repository.** The one surface that is not the system's. Measuring a real
+library produces artifacts about real documents, and this repository is public,
+so a measurement record is an egress path with no opt-in and no delete. It ran
+that way: committed artifacts named documents from the author's library in
+thousands of provenance fields until the ruling of 2026-08-31
+(`DECISIONS.md`) confined identification to Zotero item keys and stopped
+the two drivers that wrote titles. Names published before that date remain in
+the git log by the same ruling, which declines to rewrite history. Two
+disclosures the ruling does not reach stay open here: committed artifacts hold
+`passage` and `snippet` text drawn from the library, and the benchmark query
+sets are the author's own research questions.
+
+### Current answers, gaps included
+
+| Surface | Current answer |
+|---|---|
+| Database file permissions | None yet |
+| Query and status transport | stdio per client (§5.2.5); no stated network listener, absence not verified |
+| Egress to remote providers | Two opt-in paths, both named (§5.2.7); the default path sends nothing |
+| API-embedder credential storage at rest | None yet |
+| Logs (queries, passage text, errors) | None yet |
+| Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
+| This repository's committed artifacts | Item keys only, by ruling 2026-08-31; passage text and query sets still open |
+
+Four of the seven rows read "none yet". That is the honest state of the design,
+and stating it is this section's purpose. Each is a candidate ruling, not a
+defect to fix here.
+
+### Out of scope
+
+Hosted mode is closed. D2 (`SPEC.md`) dropped the four privacy
+requirements that applied only to it, and `SPEC.md` §5.2.7 confirms they
+stay dropped: per-tenant contract keying, multi-tenant consent bookkeeping,
+encryption-at-rest, and quota arithmetic. That ruling is not reopened here.
+
+This section does not evaluate Zotero's own local API as a security surface,
+only the point where this design's pipeline touches it.

@@ -34,7 +34,7 @@ const { values: opt } = parseArgs({
     // A registry id (bench/models.json). Default: the model zoteus loads today.
     model: { type: 'string', default: 'all-minilm-l6-v2' },
     // The resolved budget, from the construction in bench/geometry.py
-    // (DESIGN.md §2.2). Passed in rather than recomputed here so the
+    // (SPEC.md §5.2.2). Passed in rather than recomputed here so the
     // construction stays stated in one place; the guard test cross-checks
     // this artifact's value against that construction.
     budget: { type: 'string' },

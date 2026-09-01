@@ -3,7 +3,7 @@
 //
 // The query-semantics ladder (scoped issue A's territory) wants to run FTS5 MATCH inside
 // a bounded rowid set — an entry, an item, a collection — via `json_each`, the mechanism
-// that actually exists. The rule (DESIGN.md §3, X4): the ladder step sits at the largest
+// that actually exists. The rule (SPEC.md §5.3, X4): the ladder step sits at the largest
 // measured scope whose constrained-MATCH p95 <= 150 ms (the filter allowance inside the
 // 300-700 ms typical budget); if even 1k exceeds it, no constrained step ships and the
 // ladder ends at the honest R18 give-up.
@@ -239,7 +239,7 @@ if (!PROBE_ONLY) for (const f of [DBPATH, `${DBPATH}-wal`, `${DBPATH}-shm`]) if 
 const out = {
   probe: 'ticket 0025 X4 — json_each-constrained MATCH cost by rowid-set scope, on a synthetic 477k corpus',
   rule:
-    'DESIGN.md §3 X4: ladder step at the largest scope with constrained-MATCH p95 <= 150 ms; ' +
+    'SPEC.md §5.3 X4: ladder step at the largest scope with constrained-MATCH p95 <= 150 ms; ' +
     'if even 1k exceeds it, no constrained step ships',
   substrate: PROBE_ONLY
     ? `REAL corpus at ${DBPATH}: ${N} passages of the author's own library, probed with terms ` +

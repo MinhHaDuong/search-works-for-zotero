@@ -71,7 +71,7 @@ def test_every_settled_chunk_fits_the_window():
 
 
 def test_the_artifact_ran_at_the_ratified_budget():
-    # Ties the committed run to DESIGN.md §2.2's construction as implemented in
+    # Ties the committed run to SPEC.md §5.2.2's construction as implemented in
     # bench/geometry.py, resolved against the committed census. If the ceiling
     # moves or the census is re-measured, this fails until the regression is
     # re-run — the artifact cannot outlive the ratification it certifies.

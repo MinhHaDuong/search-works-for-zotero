@@ -2,12 +2,12 @@
 // for ONE (candidate, dtype) cell -- scored against the SAME probe set and the SAME keyword
 // ranklists bench/fts5_keyword_arm.mjs already computed once for the whole campaign.
 //
-// Fusion rule: fraction-weighted RRF at k=60 (spec/DESIGN.md §2.6). The calibration that
+// Fusion rule: fraction-weighted RRF at k=60 (SPEC.md §5.2.6). The calibration that
 // sets frac_vec (#6012-style mean-centering against a noise floor / ceiling) is deferred to
-// ticket 0031 -- it has no data source yet, and DESIGN §2.6 says so itself ("as first
+// ticket 0031 -- it has no data source yet, and SPEC.md §5.2.6 says so itself ("as first
 // adopted it had no data source and left frac_vec undefined at minute zero"). This driver
 // therefore runs the rule at its own stated upper bound, frac=1 for both arms, which
-// DESIGN §2.6 defines as recovering PLAIN RRF ("frac in [0,1] bounds every contribution
+// SPEC.md §5.2.6 defines as recovering PLAIN RRF ("frac in [0,1] bounds every contribution
 // above by plain RRF"). That is a scope decision, not an approximation of convenience:
 // plain RRF is the one point on the fraction-weighted family that needs no calibration
 // data, and it is exactly the family's own upper bound, so nothing here disagrees with the
@@ -145,7 +145,7 @@ function scoreSet(rankedIds, relevant) {
   return { recall, mrr };
 }
 
-/** Fraction-weighted RRF at frac=1 for both arms == plain RRF (DESIGN §2.6's own stated
+/** Fraction-weighted RRF at frac=1 for both arms == plain RRF (SPEC.md §5.2.6's own stated
  * upper bound; see header). Rank is 0-indexed within each arm's own list. */
 function fuse(vectorIds, keywordIds) {
   const score = new Map();

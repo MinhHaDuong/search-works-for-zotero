@@ -1,8 +1,8 @@
-"""Counting pass of the §2.9 passage census (ticket 0140).
+"""Counting pass of the §5.2.9 passage census (ticket 0140).
 
 Consumes the JSONL that bench/passage_census.mjs measured with the embedder's
 own tokenizer, applies the ratified geometry (bench/geometry.py — the one
-implementation the fast tests cover), and writes the summary artifact §2.9
+implementation the fast tests cover), and writes the summary artifact §5.2.9
 quotes: passages in total, per attachment kind, and the median per attachment
 that derives band cap K.
 

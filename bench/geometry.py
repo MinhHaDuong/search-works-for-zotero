@@ -1,10 +1,10 @@
-"""The ratified chunk geometry (DESIGN.md §2.2, ratified 2026-08-29), as code.
+"""The ratified chunk geometry (SPEC.md §5.2.2, ratified 2026-08-29), as code.
 
-One statement per fact: DESIGN.md §2.2 owns the construction and the ceiling;
+One statement per fact: SPEC.md §5.2.2 owns the construction and the ceiling;
 this module implements it so the passage census and the regression tests share
 one resolution instead of each re-deriving it. Ticket 0140.
 
-The construction, verbatim from §2.2:
+The construction, verbatim from §5.2.2:
 
     budget = min(CEILING, modelMax) − specialTokens − count(passagePrefix)
 
@@ -25,13 +25,13 @@ diverge at 8 192.
 
 import math
 
-# DESIGN.md §2.2. The ceiling sits below every window in play (census:
+# SPEC.md §5.2.2. The ceiling sits below every window in play (census:
 # bench/results/0140-model-windows/candidate-windows.json), so the budget
 # resolves identically under every candidate and the chunk key stays stable
 # across a model swap.
 CEILING = 500
 
-# Structural chunking parameters, §2.2: tokens on structural boundaries.
+# Structural chunking parameters, §5.2.2: tokens on structural boundaries.
 MIN_TOKENS = 120
 OVERLAP_TOKENS = 48
 
@@ -90,9 +90,9 @@ def chunk_count(paragraph_tokens: list[int], budget: int,
     budget; a chunk closes only once it holds at least `minimum` tokens. A
     single paragraph larger than the budget is split with overlap — overlap
     exists only inside a split paragraph, never between whole paragraphs
-    (§2.2). Chunks never cross entries, so the caller calls this per entry.
+    (§5.2.2). Chunks never cross entries, so the caller calls this per entry.
 
-    This is a counting model of the chunker, for the §2.9 census: it decides
+    This is a counting model of the chunker, for the §5.2.9 census: it decides
     how many passages a text yields, not where their exact boundaries land.
     The minimum shows up in two places: a fill still below it is absorbed into
     an oversized paragraph's split rather than closed as its own runt chunk,

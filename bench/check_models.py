@@ -20,7 +20,7 @@ and ones it has never heard of: a guard built from the registry's own vocabulary
 catches a model being removed and misses one being added, which is the direction
 that matters.
 
-R7's language list is read from `spec/REQUIREMENTS.md`, not restated here. Editing
+R7's language list is read from `SPEC.md`, not restated here. Editing
 R7 moves this guard with it, and a sheet this script cannot parse is an error rather
 than a pass.
 
@@ -39,7 +39,7 @@ logger = logging.getLogger("check_models")
 REGISTRY = "bench/models.json"
 
 #: R7's owner. The five languages are its sentence's, not this file's.
-R7_SOURCE = "spec/REQUIREMENTS.md"
+R7_SOURCE = "SPEC.md"
 
 #: Scanned in full, minus the exemptions and the data directory below.
 SCANNED_ROOT = "bench"

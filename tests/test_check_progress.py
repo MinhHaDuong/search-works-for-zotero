@@ -27,11 +27,13 @@ def load():
 
 cp = load()
 
-SHEET = """# REQUIREMENTS
+SHEET = """# SPEC
 
-## Requirements
+## 3. Requirements
 
-### Coverage
+### Requirements
+
+#### Coverage
 
 **R1. Coverage.** eventually the whole library is indexed
 
@@ -41,13 +43,13 @@ With no further edits.
 
 Coverage grows newest-first.
 
-### Corpus
+#### Corpus
 
 **R9. Length.** 15 000-page documents are included
 
 They are first-class input.
 
-## The resolved decisions
+### The resolved decisions
 
 | D1 | counted in items. |
 """
@@ -134,7 +136,7 @@ def build(
     if page is not None:
         (root / "spec" / "README.md").write_text(page, encoding="utf-8")
     if sheet is not None:
-        (root / "spec" / "REQUIREMENTS.md").write_text(sheet, encoding="utf-8")
+        (root / "SPEC.md").write_text(sheet, encoding="utf-8")
     if ledger is not None:
         (root / "spec" / "DECISIONS.md").write_text(ledger, encoding="utf-8")
     return root
@@ -157,8 +159,8 @@ def test_missing_sheet_is_loud(tmp_path):
 def test_requirement_added_to_the_sheet_and_not_the_page(tmp_path):
     """The failure this guard exists for: a promise with no standing, and nothing looks wrong."""
     sheet = SHEET.replace(
-        "### Corpus",
-        "### Corpus\n\n**R16. Notes.** Notes and annotations are part of the corpus.\n",
+        "#### Corpus",
+        "#### Corpus\n\n**R16. Notes.** Notes and annotations are part of the corpus.\n",
     )
     assert cp.run(build(tmp_path, sheet=sheet)) == 1
 
@@ -255,7 +257,7 @@ def test_addresses_are_not_measurements(tmp_path):
     """The exemptions, each exercised: an exemption nothing tests is one nobody notices widening."""
     page = PAGE.replace(
         "Landed upstream.",
-        "Landed upstream as issue #33 at v1.10.0, ratified 2026-08-29, DESIGN §2.8, "
+        "Landed upstream as issue #33 at v1.10.0, ratified 2026-08-29, SPEC.md §5.2.8, "
         "experiment X3a, commit b132f2d, ticket 0080, bound into goal 1.",
     )
     assert cp.run(build(tmp_path, page=page)) == 0

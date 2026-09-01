@@ -9,7 +9,7 @@ looking authoritative. A threshold quoted here to save the reader a click
 becomes the second copy that drifts.
 
 So three things are checked, and the first is checked against
-`spec/REQUIREMENTS.md` rather than against the page itself: a guard that reads
+`SPEC.md` rather than against the page itself: a guard that reads
 only the document under guard cannot tell an omission from an absence.
 
 1. COVERAGE. Every requirement in the sheet has exactly one row, under the
@@ -50,7 +50,7 @@ log = logging.getLogger("progress")
 
 REPO = Path(__file__).resolve().parent.parent
 
-SHEET = "spec/REQUIREMENTS.md"
+SHEET = "SPEC.md"
 PAGE = "spec/README.md"
 
 #: The machine-readable review baseline, and the key naming the release the
@@ -69,8 +69,11 @@ VERSION_KEY = "UPSTREAM_REVIEWED_VERSION"
 #: which is SYNC.md's, and widening this needs a test rather than a habit.
 PAGE_VERSION = re.compile(r"\bv\d+(?:\.\d+)+\b")
 
-#: The sheet's own section headings, inside its `## Requirements` block.
-SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
+#: The sheet's own section headings, inside its `### Requirements` block. One
+#: level deeper than before the 2026-09-01 merge (DECISIONS.md): the sheet's
+#: own "## Requirements" heading is now nested a level under SPEC.md's "## 3.
+#: Requirements", and every heading inside it demoted to match.
+SHEET_SECTION = re.compile(r"^#### (.+?)\s*$")
 #: `- **R1 — eventually the whole library is indexed.**` — the name, then the title.
 #: `**R1. Coverage.** Every item in the search perimeter MUST become…` — the
 #: name, then the promise's first sentence, which is what the page quotes. The
@@ -80,8 +83,8 @@ SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
 #: reads "Coverage" tells a reader nothing they came for.
 SHEET_ITEM = re.compile(r"^\*\*(R\d{1,2})\. (?:[\w-]+)\.\*\* (.+)$")
 #: Where the sheet's requirement list begins and ends.
-SHEET_START = "## Requirements"
-SHEET_END = "## The resolved decisions"
+SHEET_START = "### Requirements"
+SHEET_END = "### The resolved decisions"
 
 #: A standing row: `| R1 | promise | designed | delivered | evidence | standing |`.
 PAGE_ROW = re.compile(
@@ -182,7 +185,7 @@ GOAL_HEAD = re.compile(
 #: before the digit test, so what remains is whatever was written as a quantity.
 ALLOWED = {
     "requirement": re.compile(r"\bR\d{1,2}\b"),
-    # C3, D8, X5 — and X3a, since DESIGN §3 splits that experiment in two. The
+    # C3, D8, X5 — and X3a, since SPEC.md §5.3 splits that experiment in two. The
     # suffix is part of the address: without it the bare digit survives the
     # strip and X3a reads as a quantity.
     "reference code": re.compile(r"\b[CDX]\d{1,2}[ab]?\b"),
