@@ -1,0 +1,62 @@
+%erg 0.1
+Title: Layout heading heuristic on pdf.js text runs (tier 2)
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557, runs when tier 1 (0560) finds no embedded outline.
+No maintained, license-clean pure-JS heading classifier exists to vendor
+(survey behind the ruling checked `pdf-struct`, Docling, `pdf.tocgen`,
+GROBID -- Python/Java or copyleft, or both). The ruled answer is a
+hand-rolled heuristic on `pdf.js`'s own positioned-text output
+(`getTextContent()`: font size, weight, position per run).
+**Deliberately not** seg/1's flat-text case-shape heuristic (Title Case /
+ALL CAPS) -- the SOTA review found that close to non-signal on French
+headings. Font size does not depend on a language's capitalization
+convention, which is the whole reason this tier is expected to generalize
+past English where seg/1's does not.
+
+**Ruled out explicitly, same session**: no Python/Docling subprocess
+bridge as an escalation path, even though Docling's MIT-licensed,
+CPU-viable-without-OCR backend was the strongest non-JS candidate found.
+Stays pure JS/TS on `pdf.js`'s own primitives, whatever quality ceiling
+that implies.
+
+**No third tier.** When this heuristic also comes up empty or
+low-confidence, control falls through to seg/1 (0028) itself -- not a
+separate PDF-page fixed-size fallback. seg/1 already owns confidence-gated
+synthetic entries; duplicating that in PDF-page terms was explicitly
+rejected (DECISIONS.md, same-day correction).
+
+## Actions
+
+1. Extract font size/weight/position per text run via `getTextContent()`.
+2. Cluster by font-size jump (a heading-sized run is larger/bolder than
+   the surrounding body text) and position (start-of-line, whitespace
+   before/after) to produce heading candidates.
+3. Score candidates into a confidence figure, the same shape seg/1 already
+   uses (fraction of text inside confirmed entries).
+4. Below whatever confidence bar is set (calibrate against real fixtures,
+   don't guess a number), fall through to seg/1 -- do not build a
+   fixed-size fallback here.
+
+## Test
+
+- A scanned/non-outline PDF with clear font-size heading structure --
+  assert headings are found and roughly match a hand-checked answer.
+- A PDF with no clear font-size structure (e.g. uniform body text
+  throughout) -- assert the low-confidence path actually falls through to
+  seg/1, and that the fallthrough is observable/testable, not silent.
+
+## Exit criteria
+
+- [ ] font-size/position clustering implemented
+- [ ] confidence scoring matches seg/1's existing shape
+- [ ] fallthrough to seg/1 on low confidence verified, not a third
+      fallback tier

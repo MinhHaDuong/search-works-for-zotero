@@ -1,0 +1,54 @@
+%erg 0.1
+Title: Language robustness: NFC normalization and legacy-encoding sanity check
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557. EN/FR/VN are MUST languages (author directive,
+2026-09-01); the rest are SHOULD. Two real, silent failure modes surfaced
+by the SOTA review's third pass:
+
+1. PDF text extraction can return NFD-decomposed combining marks instead
+   of NFC-precomposed glyphs, which breaks naive string/font comparison
+   on any diacritic-heavy language (French, Vietnamese) unless normalized
+   first.
+2. Legacy 8-bit Vietnamese encodings (VNI, TCVN, VISCII), common in
+   pre-Unicode Vietnamese PDFs, produce silently garbled text on
+   extraction -- no library in the survey auto-detects this; it looks
+   like successful extraction and isn't.
+
+## Actions
+
+1. Apply native `.normalize('NFC')` to every extracted string before any
+   heading/byline pattern matching -- zero new dependency, fixes (1) for
+   every Latin-script language including French and Vietnamese.
+2. Build a garbled-text/legacy-encoding sanity check (e.g. a statistical
+   check on the proportion of unexpected/control-range codepoints, or a
+   basic per-language character-frequency plausibility check) that flags
+   a document as extraction-unreliable rather than emitting garbage
+   headings.
+3. Route a flagged document into the existing confidence -> synthetic
+   fallback pattern (ultimately seg/1's, per the ruling), not a silent
+   pass-through.
+
+## Test
+
+- Fixtures: clean Unicode French and Vietnamese PDFs (should segment
+  normally); an NFD-decomposed extraction (should normalize and segment
+  correctly); a synthetic legacy-encoding-garbled fixture (should be
+  flagged, not silently mis-segmented).
+
+## Exit criteria
+
+- [ ] NFC normalization applied at the single choke point every extracted
+      string passes through
+- [ ] legacy-encoding sanity check implemented and tested against a
+      garbled fixture
+- [ ] EN/FR/VN fixtures pass; a garbled fixture is flagged, not
+      mis-segmented

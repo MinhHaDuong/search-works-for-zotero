@@ -1,0 +1,59 @@
+%erg 0.1
+Title: Attachment file access: resolve stored and linked PDFs via the local API
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557 (PDF-layout segmenter). Confirmed capability (session
+finding, 2026-09-01): Zotero's local HTTP API (port 23119) exposes
+`<userOrGroupPrefix>/items/<itemKey>/file/view/url`, which returns a plain
+`file://` path for a *stored* attachment (`Zotero.org/support/dev/web_api/
+v3/local_api`) -- zero-copy, no download needed. Stored attachments live at
+`<dataDir>/storage/<8-char-key>/<filename>.pdf`. *Linked* attachments are
+not copied into `storage/` and live wherever the user pointed them; the
+guessable path does not apply, and the item's own `path` field must be read
+instead.
+
+## Relevant files
+
+- zoteus fork, `server_localAPI.js` and whatever module already talks to
+  the local API for `/fulltext` (fulltext.js) -- follow its existing
+  request/auth pattern rather than inventing a new one.
+
+## Actions
+
+1. Given an item key, determine attachment kind (`imported_file`/
+   `imported_url` vs `linked_file`).
+2. Stored: call `.../file/view/url`, parse the `file://` redirect target.
+3. Linked: read the item's `path` field directly (via the local API's item
+   record, not the file-view endpoint).
+4. Return a usable local path (or, if the `file://` scheme can't be
+   dereferenced in some execution context, fall back to following the
+   plain `.../file/view` redirect for bytes).
+
+## Test
+
+- Fixture: a stored PDF and a linked PDF in a test library; assert both
+  resolve to a path/stream that actually opens.
+- Negative: a linked attachment whose target has moved -- assert a clean,
+  typed failure (not a silent empty result), since 0557's selection rule
+  (0564) needs to fall through to seg/1 on this failure.
+
+## Invariants
+
+- No filesystem path is *guessed* for anything but stored attachments; a
+  linked attachment always goes through its `path` field.
+- Auth/session handling matches whatever the existing `/fulltext` local-API
+  call already does -- do not invent a second convention.
+
+## Exit criteria
+
+- [ ] both attachment kinds resolve to a working path/stream
+- [ ] the moved/missing-linked-file case fails cleanly and typed
+- [ ] unit-tested against fixtures for both kinds

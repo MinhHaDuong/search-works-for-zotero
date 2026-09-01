@@ -1,0 +1,49 @@
+%erg 0.1
+Title: Byline and author detection layer
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557. Needed for the acceptance test's edited-collection
+and signed-encyclopedia document classes -- neither
+tier 1's embedded outline nor tier 2's layout heuristic ever carries who
+wrote an entry; no boundary tool does. The SOTA review's finding 6
+(`verification/SEGMENTER-FIELD-REVIEW-0028.md`) names ParsCit as citable
+proof that plain-text byline detection is feasible without layout at all
+(a semi-Markov CRF over capitalization run, punctuation, name-form
+dictionaries, sentence position, absence of a verb) -- and notes using it
+as a *chapter-boundary confirmation signal* (not just its own
+header-extraction task) is a novel application, not an import of a
+published one.
+
+## Actions
+
+1. Design a lexical-pattern detector for byline lines: short line,
+   capitalization run, name-form tokens, no verb, positioned immediately
+   under an accepted heading (from tier 1 or tier 2).
+2. Apply it near each accepted entry boundary, not globally.
+3. Decide whether byline presence should also *feed back* into boundary
+   confidence (an accept-signal, as ticket 0028's 2026-08-31 note
+   proposed) or stay a pure enrichment step -- open design question, not
+   settled by the ruling.
+
+## Invariants
+
+- Runs on real layout/position data (from tier 1/2's output), not flat
+  text -- this should be more reliable than the flat-text ParsCit-style
+  sketch the SOTA review only speculated about for seg/1.
+- Must not require an author line to accept a boundary -- a thesis (single
+  author, no per-chapter byline) is a named acceptance-test document and
+  must segment correctly with zero byline signal.
+
+## Exit criteria
+
+- [ ] byline detector implemented and tested against a multi-author
+      fixture (edited collection) and a single-author fixture (thesis)
+- [ ] the accept-signal-vs-enrichment-only question resolved and recorded

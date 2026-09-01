@@ -1,0 +1,51 @@
+%erg 0.1
+Title: Vendor pdf.js and extract embedded TOC (tier 1)
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557. `pdf.js` (`mozilla/pdf.js`, Apache-2.0, confirmed
+from its LICENSE file) is the ruled segmenter substrate -- JS-native,
+license-clean against zoteus's MIT license, unlike the AGPL `PyMuPDF`/
+`fitz` the same survey found and rejected. `getOutline()` returns the
+PDF's embedded bookmark tree (the `/Outlines` catalog): title, and a
+`dest` per node that must be resolved to a page index, not a page number
+directly.
+
+## Actions
+
+1. Vendor `pdf.js` (or `pdfjs-dist` for Node) at a pinned version.
+2. Given a PDF path/stream (from 0558), call `getOutline()`.
+3. Resolve each node's `dest` to a page index via
+   `pdfDocument.getPageIndex(destRef)`.
+4. Build the ordered `{title, start_page}` list from the (possibly nested)
+   outline tree; nesting itself is a signal (front/back matter and
+   sub-sections) worth preserving, not flattening away.
+5. `getOutline()` returns `null` when no outline exists -- this is the
+   clean, already-anticipated trigger into tier 2 (ticket 0561), not an
+   error.
+
+## Test
+
+- Fixture PDFs with a real embedded outline (many LaTeX/Word-exported PDFs
+  carry one) and one confirmed to have none -- assert the second produces
+  a clean `null`/empty result, not a crash or a wrong guess.
+- A nested outline (parts containing chapters) -- assert nesting survives.
+
+## Invariants
+
+- Author is NOT expected from this tier -- no embedded outline carries
+  contributor bylines. That's ticket 0562, applied on top of whatever
+  boundaries tier 1 or tier 2 finds.
+
+## Exit criteria
+
+- [ ] `pdf.js` vendored at a pinned version
+- [ ] outline extraction + dest-to-page resolution implemented and tested
+- [ ] clean `null` handling verified against a no-outline fixture

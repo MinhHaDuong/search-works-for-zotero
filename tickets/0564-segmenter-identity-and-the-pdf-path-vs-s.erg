@@ -1,0 +1,48 @@
+%erg 0.1
+Title: Segmenter identity and the PDF-path-vs-seg/1 selection rule
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0557
+
+--- log ---
+2026-09-01T13:31Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0557, the natural last child -- it is the integration
+point and needs both a working seg/1 (0028) and at least tier 1 (0560) to
+have something to select between. `SPEC.md` §5.2.1 (stage keys) already
+fixes the shape: the chunk key is `(text_hash, segmenter id+version,
+chunker id+geometry)` -- "the segmenter lives inside the chunker key,
+exactly as the boundary ruling directs." A second segmenter needs its own
+identity string distinct from `seg/1`, or a segmenter-bump re-embed would
+silently conflate two different segmentation methods under one key.
+
+## Actions
+
+1. Name the new segmenter's identity string (e.g. `seg/2` or similar --
+   pick something that reads unambiguously in logs and chunk keys next to
+   `seg/1`).
+2. Record the selection rule: PDF path attempted when the length trigger
+   (0559) fires AND attachment file access (0558) succeeds; falls through
+   to seg/1 when the trigger doesn't fire, file access fails, tier 1 finds
+   no outline AND tier 2 is low-confidence.
+3. Confirm the re-embed-on-segmenter-bump behavior (SPEC.md §2.1) holds
+   correctly across BOTH segmenters -- switching an attachment from seg/1
+   to the PDF path (or back, on a PDF-access regression) must re-embed,
+   not silently keep stale chunks under a mismatched key.
+
+## Test
+
+- A document that qualifies for the PDF path on one run and falls back to
+  seg/1 on a later run (simulated file-access failure) -- assert the chunk
+  key changes and re-embedding actually happens, not a stale mix.
+
+## Exit criteria
+
+- [ ] segmenter identity string chosen and recorded (SPEC.md and/or a
+      DECISIONS.md note, per the chain -- this is a design-number change,
+      not a code-only one)
+- [ ] selection rule implemented, matching the fallthrough order in 0557
+- [ ] segmenter-switch re-embed behavior tested

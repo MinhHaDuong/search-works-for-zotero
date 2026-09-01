@@ -2770,6 +2770,82 @@ requirement inflation for a router rule that predates v1.12.0 and was never
 in scope for R10 in the first place — the gap is real but narrow enough that
 naming it is sufficient.
 
+**2026-09-01 — The segmenter gets a second, PDF-layout path; seg/1 stays as
+its fallback.** Following the acceptance-test statement earlier the same day
+(ticket 0028 log) and the SOTA review it triggered
+(`verification/SEGMENTER-FIELD-REVIEW-0028.md`), the author ruled a second
+segmentation path rather than extending seg/1's flat-text heuristic to cover
+books, proceedings, dictionaries, handbooks and encyclopedias: for an
+attachment at or above a page threshold, zoteus reaches for the PDF file
+itself — confirmed reachable without any new Zotero-side capability, via the
+local API's `.../items/<key>/file/view/url`, which redirects to a `file://`
+path for stored attachments (linked attachments need the item's own `path`
+field instead of the guessable `storage/<key>/` layout) — and hands it to a
+vendored segmenter returning `{title, author, start_page, end_page}` per
+entry, front and back matter included. **seg/1 (the flat-text heuristic
+ticket 0028 already builds) stays live as the fallback**: below the
+threshold, and whenever the PDF can't be reached (a linked attachment whose
+target moved, a permission error, a file the local API 404s). It is not
+superseded.
+
+The segmenter is `pdf.js` (Apache-2.0), vendored, not the functionally
+stronger `PyMuPDF`/`fitz` — AGPL-3.0-or-commercial — which the survey behind
+this ruling flags as the field's single most tempting license trap: zoteus
+is MIT (recorded above, `ticket 0031` entry), and AGPL is not vendorable
+into an MIT project without relicensing the combination. `poppler`
+(GPL-2/3) and `pdf.tocgen` (GPLv3 code, non-commercial recipes) are excluded
+on the same ground; `GROBID` (Apache-2.0, clean) is excluded on fitness —
+built for journal-article headers, not book or dictionary structure.
+
+Two tiers, in order, inside the PDF path: `getOutline()`'s embedded
+bookmark tree, when present, needs no fuzzy matching and returns page
+targets directly. Absent that, a heuristic built on `pdf.js`'s own
+positioned-text output (font size, weight, position per run) —
+deliberately not the flat-text case-shape heuristic, which the review
+found close to non-signal on French headings; font size does not depend
+on a language's capitalization convention, so this tier is expected to
+generalize past English for free in a way seg/1's does not. **There is no
+third, PDF-side fixed-size fallback.** When both tiers come up empty —
+no outline and the layout heuristic finds too little structure to trust
+— control falls through entirely to seg/1, the same way it does when the
+PDF can't be reached at all: seg/1 already owns confidence-gated
+synthetic entries, and building a second fixed-size fallback in PDF-page
+terms would duplicate that logic rather than add anything (author
+correction, same day: the PDF path's earlier three-tier sketch overbuilt
+this). **Ruled out explicitly: no Python/Docling subprocess
+bridge as an escalation path for the layout tier, even though Docling's
+MIT-licensed, CPU-viable-without-OCR backend was the strongest non-JS
+candidate found.** The layout heuristic stays pure JS/TS on `pdf.js`'s own
+primitives, whatever quality ceiling that implies; a second runtime
+dependency was judged the wrong trade even against a quality gap, per this
+same exchange.
+
+Two open ends this ruling does not close. **The author signal**: no boundary
+tool — TOC or layout — carries who wrote an entry, so the byline layer
+(needed for edited-collection chapters and signed, irregular-length
+encyclopedia entries) is separate work, still to be designed, on top of whichever
+tier locates the boundary. **The trigger**: the author ruled the length gate a fallback chain rather
+than a single field. First choice: Zotero's own `indexedPages` field, or a
+literal count of page breaks where that is what is actually available —
+whether `indexedPages` is itself exposed on the local API is unconfirmed
+and belongs to whichever ticket implements the trigger. Where neither is
+available (the extract-layer entry above already shows form-feed page
+separators are blind on roughly 45% of cached PDFs, 4 708 of 8 590), the
+gate estimates page count from character count instead, so the trigger
+degrades to an estimate rather than failing to fire at all. The threshold
+itself — around 40 pages, from the acceptance-test statement earlier the
+same day — is not separately re-argued for the estimated case.
+
+This ruling is a bridge, not a final answer, and is written as one: it
+exists because the earlier #6012 checkpoint (ticket 0028 log, 2026-08-30)
+found `server_localAPI.js` carries zero structured-extraction references
+today, so Zotero's own layout-aware extraction (`sdt.js`, or whatever #6012
+or a successor eventually exposes) does not reach zoteus regardless of
+upstream's own progress. If that ever changes, the vendored `pdf.js` path
+this ruling ships is very likely to become redundant with what Zotero
+itself already computed — re-check the local API's surface before treating
+this path as permanent, the same discipline the earlier checkpoint used.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
