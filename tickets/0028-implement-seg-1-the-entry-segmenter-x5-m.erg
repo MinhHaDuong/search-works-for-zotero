@@ -2,6 +2,7 @@
 Title: Implement seg/1, the entry segmenter X5 measures
 Created: 2026-08-26
 Author: claude
+Blocked-by: 0502
 
 --- log ---
 2026-08-26T16:46Z claude created
@@ -22,6 +23,7 @@ Author: claude
 2026-09-01T13:23Z DECISIONS.md ruling recorded 2026-09-01: a second, PDF-layout segmentation path is adopted for the acceptance test's wider corpus (books, proceedings, dicts, handbooks, encyclopedias); seg/1 (this ticket) stays live as the fallback for sub-threshold documents and PDF-access failures, not superseded. Segmenter: pdf.js (Apache-2.0, vendored) -- PyMuPDF/fitz (AGPL-3.0-or-commercial) explicitly rejected since zoteus is MIT. Tier 1 getOutline(), tier 2 a hand-rolled font-size/position heuristic on pdf.js's own text-run data (no Python/Docling bridge, ruled out explicitly), tier 3 reuses seg/1's synthetic fallback. Trigger: Zotero's indexedPages field, not form-feed counts (blind on ~45% of cached PDFs per the extract-layer measurement). Byline detection and the exact trigger-field availability are open, named in the ruling as follow-up work. See DECISIONS.md 2026-09-01 entry and verification/SEGMENTER-FIELD-REVIEW-0028.md for the evidence.
 2026-09-01T13:27Z Ruling refined 2026-09-01 (author correction): no third, PDF-side fixed-size fallback. When the PDF path's two tiers (outline, layout) come up empty or low-confidence, control falls through to seg/1 itself rather than a duplicate fixed-size mechanism in PDF-page terms -- seg/1 already owns confidence-gated synthetic entries. Also: the length trigger is a fallback chain, not a single field -- indexedPages or a literal page-break count first, a character-count estimate when neither is available, so the gate degrades to an estimate rather than never firing. DECISIONS.md entry edited in place (same PR, unmerged, same-day correction, not a rewrite of settled history).
 2026-09-01T13:36Z claude note privacy correction (author directive, 2026-09-01): specific document titles from the author's private Zotero library -- named in earlier log lines above, the SOTA review, DECISIONS.md, and ticket 0562 -- do not belong in this public repo. Redacted to generic structural-class descriptions everywhere (this ticket's own log text edited in place, unmerged/same-PR, not a rewrite of settled history). The commit-level exposure on this branch's already-pushed history is a separate, larger question raised to the author directly.
+2026-09-01T13:57Z claude note formalized the substantive gate: seg/1 must build to spec/DESIGN.md §2.2, which is still the dictionary-only heuristic (headword rhythm/MAD, ~6k-token fallback) superseded by the 2026-08-31 books-and-proceedings ruling; 0502 propagates that ruling into the spec and X5's rule and was open/ready with no dependency link. Added Blocked-by: 0502 so erg ready stops surfacing 0028 as workable before the spec it must be built to is current
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; that review is now
