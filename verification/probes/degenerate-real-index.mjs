@@ -39,6 +39,9 @@ const PROBES = [
   { id: 'bare-the-accented', q: 'thé', why: 'French for tea; folds to `the`, so it reaches the same path' },
   { id: 'of-the', q: 'of the', why: 'two listed words — must still fall back' },
   { id: 'the-brain', q: 'the brain', why: 'one common word, one rare content word — the over-fire case' },
+  { id: 'in-the-brain', q: 'in the brain', why: 'TWO common words, one rare one — the case the first rule got wrong' },
+  { id: 'on-the-moon', q: 'on the moon', why: 'same shape, ordinary query' },
+  { id: 'is-it-a-bird', q: 'is it a bird', why: 'same shape again, three common words' },
   { id: 'of-energy', q: 'of energy', why: 'one common word, one COMMON content word (26,2%)' },
   { id: 'etre-ou-ne-pas-etre', q: 'être ou ne pas être', why: 'the French degenerate query — no English list touches it' },
 ];

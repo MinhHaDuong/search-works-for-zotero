@@ -103,7 +103,17 @@ SCANNED = [
 #: unscanned. It is written down because "why is SYNC.md not checked?" is the
 #: question that would otherwise be answered by adding it and breaking the
 #: build.
-UNSCANNED_BY_DESIGN = ["GOVERNANCE.md", "spec/DECISIONS.md", "SYNC.md", "STATE.md"]
+UNSCANNED_BY_DESIGN = [
+    "GOVERNANCE.md",
+    "spec/DECISIONS.md",
+    "SYNC.md",
+    "STATE.md",
+    # An internal handoff for the 0091 series: where the branches are, what is settled and
+    # on what evidence, and the one decision still open. It records our own conduct toward
+    # upstream on purpose — which is exactly why it must NOT be named `UPSTREAM-PR-*`, the
+    # glob for text we send. It goes to a cold session here, never to the maintainer.
+    "verification/0091-SERIES-CHECKPOINT.md",
+]
 
 #: Where the two lists above must, between them, account for every document.
 #: A hand-written scope fails asymmetrically: a document that LEAVES breaks the
