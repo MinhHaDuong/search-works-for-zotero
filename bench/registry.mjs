@@ -1,6 +1,12 @@
 // Read the model registry. The drivers name models by registry id; `models.json`
 // is the only file in bench/ that knows what a registry id points at.
 //
+// Three per-model axes travel with the repository, and every one of them has been
+// silently dropped by a wrapper at least once: `pooling` (hardcoded 'mean' against four
+// cls candidates, ticket 0421), the device flag (ticket 0481), and `normalize` (declared
+// by ticket 0262 and read by nobody until ticket 0486). Destructure them from
+// resolveModel; a literal at the call site is the defect, not a shortcut.
+//
 // Two repositories per record, and the difference matters. `hf_repo` is what the
 // ONNX runtime loads — usually a mirror, because the mirror is what publishes the
 // filenames the dtype knob can address. `upstream_repo` is the author's own
@@ -8,7 +14,7 @@
 // the card, the licence and the language list live.
 //
 //   import { resolveModel } from './registry.mjs';
-//   const { repo, template } = resolveModel('multilingual-e5-small');
+//   const { repo, template, pooling, normalize } = resolveModel('multilingual-e5-small');
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -41,6 +47,11 @@ export function resolveModel(token, options = {}) {
       repo,
       template: record.input_template,
       pooling: record.pooling ?? null,
+      // `unknown` travels as null, exactly like an absent pooling. The registry uses
+      // that string for "the model card could not be read", which is a different fact
+      // from `false` and must never collapse into it — a driver handed null stops,
+      // a driver handed false quietly measures the wrong geometry. Ticket 0486.
+      normalize: typeof record.normalize === 'boolean' ? record.normalize : null,
       record,
     };
   }
@@ -57,6 +68,7 @@ export function resolveModel(token, options = {}) {
       repo: token,
       template: { query: '', passage: '' },
       pooling: null,
+      normalize: null,
       record: null,
     };
   }

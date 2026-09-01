@@ -93,7 +93,16 @@ def score_ladder(prefix: Path, k: int) -> list[dict]:
         if vectors.shape != ref_vectors.shape:
             logger.warning("rung %s shape %s != fp32 %s, skipping", dtype, vectors.shape, ref_vectors.shape)
             continue
-        row = {"dtype": dtype, "ms_per_passage": meta["ms_per_passage"], "load_ms": meta["load_ms"]}
+        # `warm` is carried from the rung's own meta, never restated here: this scorer
+        # reads quant_fidelity.mjs's output and opens no timing window of its own, so
+        # inventing the flag would turn a second-hand claim into a measurement. A rung
+        # measured before ticket 0260 has no flag and travels as None — cannot say.
+        row = {
+            "dtype": dtype,
+            "warm": meta.get("warm"),
+            "ms_per_passage": meta["ms_per_passage"],
+            "load_ms": meta["load_ms"],
+        }
         row.update(compare(ref_vectors, vectors, k))
         rows.append(row)
     logger.info("scored %d rungs against fp32 (%d rows, dim %d)", len(rows), ref_meta["rows"], ref_meta["dim"])

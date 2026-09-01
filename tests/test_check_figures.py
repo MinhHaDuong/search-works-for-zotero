@@ -213,3 +213,146 @@ def test_a_ticket_is_found_whether_open_or_archived(tmp_path, monkeypatch):
     # Gone entirely: reported, never skipped.
     closed_path.unlink()
     assert cf.main_for_test(str(artifact.parent)) == 1
+
+
+def test_a_line_break_inside_an_anchored_phrase_still_matches(tmp_path, monkeypatch):
+    """Ticket 0542: an ordinary prose re-wrap must not report STALE on an unchanged figure.
+
+    Anchors are one-line Python literals; the documents are re-wrapped prose. Before the
+    whitespace normalization this asserted, a phrase the author split across two physical
+    lines stopped matching, and the workaround — keeping every figure-bearing phrase on
+    one line — had become folklore in two agent prompts.
+    """
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"hits": 1234}))
+    doc = tmp_path / "DOC.md"
+
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
+    monkeypatch.setattr(cf, "FIGURES", [("a.json", "hits", 0, {"doc": "of {} hits both"})])
+
+    doc.write_text("So of 1234 hits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, "the one-line form must pass"
+
+    # The same sentence, re-wrapped. The figure did not move.
+    doc.write_text("So of 1234\nhits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, (
+        "a line break inside the anchored phrase is a re-wrap, not a stale figure"
+    )
+
+    # A spaced figure inside the phrase is fine, and so is a break beside it.
+    doc.write_text("So of 1 234 hits\nboth arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0
+
+    # The stated remainder: a break landing on the figure's OWN thousands separator is
+    # not matched, and deliberately so. despace() runs before unwrap() precisely so that
+    # a line break is never read as a thousands separator — reading it as one glued
+    # `2026-08-22` to the next line's `93022` and made the slot swallow the date, a false
+    # STALE of exactly the kind this ticket removes. This asserts the trade, so nobody
+    # "fixes" it by swapping the order and re-introducing the gluing.
+    doc.write_text("So of 1\n234 hits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 1
+
+    # Staleness still fails: normalization widens what counts as the same phrase,
+    # never what counts as the same number.
+    doc.write_text("So of 9999\nhits both arms return the same head.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 1
+
+
+def test_unwrap_never_lets_a_break_glue_two_numbers_into_one_slot(tmp_path, monkeypatch):
+    """The regression the whitespace normalization introduced, and the order that fixed it.
+
+    Ticket 0542's first cut unwrapped before despacing, so a line break between two
+    unrelated tokens became a space and despace() then removed it as a thousands
+    separator. `2026-08-22\\n93022 passages` collapsed to `2026-08-2293022` and the slot
+    reported the date as part of the figure. Both real documents that broke this way are
+    covered by the live declarations; this holds the mechanism on its own.
+    """
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text(json.dumps({"vectors": 93022}))
+    doc = tmp_path / "DOC.md"
+
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
+    monkeypatch.setattr(
+        cf, "FIGURES", [("a.json", "vectors", 0, {"doc": "{} passages of the real library"})]
+    )
+
+    doc.write_text("Measured 2026-08-22\n93022 passages of the real library, warm.\n")
+    assert cf.main_for_test(str(artifact.parent)) == 0, (
+        "the digits ending the previous line must not be glued into the slot"
+    )
+
+
+# --- ticket 0260: a cold number must not be quotable in prose ----------------------
+
+
+def _warm_case(tmp_path, monkeypatch, blob, declare_warm=True):
+    artifact = tmp_path / "results" / "a.json"
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(json.dumps(blob))
+    (tmp_path / "DOC.md").write_text("The rate is 12,3 ms per passage.\n")
+    monkeypatch.setattr(cf, "REPO", tmp_path)
+    monkeypatch.setattr(cf, "PROSE", {"doc": ["DOC.md"]})
+    entry = ("a.json", "ms_per_passage", 1, {"doc": "is {} ms per passage"})
+    monkeypatch.setattr(cf, "FIGURES", [entry + ("warm",) if declare_warm else entry])
+    return cf.main_for_test(str(artifact.parent))
+
+
+def test_a_warm_artifact_is_accepted(tmp_path, monkeypatch):
+    assert _warm_case(tmp_path, monkeypatch, {"ms_per_passage": 12.3, "warm": True}) == 0
+
+
+def test_a_cold_artifact_is_refused(tmp_path, monkeypatch):
+    """The headline rule. quant_fidelity.mjs timed embed_ms from the first batch, so
+    graph initialisation and, on an uncached model, the download landed inside
+    ms_per_passage — and nothing in the artifact said so."""
+    assert _warm_case(tmp_path, monkeypatch, {"ms_per_passage": 12.3, "warm": False}) == 1
+
+
+def test_an_artifact_that_does_not_know_is_refused(tmp_path, monkeypatch):
+    """`null` is the pre-0260 state: recorded as not-knowing, never as warm.
+
+    Refused rather than given the benefit of the doubt — the ticket's rule is to
+    re-measure anything a document quotes.
+    """
+    assert _warm_case(tmp_path, monkeypatch, {"ms_per_passage": 12.3, "warm": None}) == 1
+
+
+def test_a_missing_warm_key_is_refused_rather_than_assumed_warm(tmp_path, monkeypatch):
+    """The case that matters most: assuming warm on absence would make the whole check
+    satisfiable by deleting a key."""
+    assert _warm_case(tmp_path, monkeypatch, {"ms_per_passage": 12.3}) == 1
+
+
+def test_the_flag_is_per_declaration_so_an_undeclared_figure_is_only_counted(
+    tmp_path, monkeypatch, caplog
+):
+    """Without the flag a pre-0260 artifact still passes, and is counted instead.
+
+    Failing all 93 of them would make the gate unpassable from a repository that holds
+    none of the corpora, and an unpassable gate gets turned off. The count is the
+    ratchet that keeps the debt visible while it is paid down.
+    """
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="figures"):
+        assert (
+            _warm_case(tmp_path, monkeypatch, {"ms_per_passage": 12.3}, declare_warm=False) == 0
+        )
+    assert "cannot say it was warm" in caplog.text
+
+
+def test_a_row_wise_artifact_is_read_per_row(tmp_path, monkeypatch):
+    """The sweep drivers write one row per model, so the flag sits on the row."""
+    assert cf.warm_verdict({"models": [{"warm": True}, {"warm": True}]}) is None
+    assert cf.warm_verdict({"models": [{"warm": True}, {"warm": False}]}) is not None
+    assert cf.warm_verdict({"models": [{"warm": True}, {}]}) is not None
+
+
+def test_the_warm_debt_ceiling_is_a_one_way_ratchet(monkeypatch):
+    """A green check must not be reachable by quoting one more unwarmed rate."""
+    monkeypatch.setattr(cf, "MAXIMUM_CANNOT_SAY", 0)
+    assert cf.main_for_test(str(REPO / "bench" / "results")) == 1
