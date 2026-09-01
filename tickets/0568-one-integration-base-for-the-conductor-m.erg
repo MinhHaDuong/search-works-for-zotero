@@ -9,6 +9,7 @@ Author: claude
 2026-09-01T16:55Z claude note filed by the raid on 0565/0566, which went to read the code those two tickets join and found it on two branches that have never met. `tranche-1-ledger-schema` → `tranche-2-conductor-election` is a chain, but `tranche-3-extract-shim` (0553) and `tranche-schema-v2-content` (0556) are SIBLINGS, both cut from `tranche-2` at a00091b, and both rewrite `ledger.ts` — +323 lines on tranche 3, +649 on the schema branch. Trial merge run 2026-09-01 on a scratch branch: `src/config.ts`, `src/registry/registry.ts`, `src/server.ts`, `store.ts` and the two test files all auto-merge; `src/features/search/conductor/ledger.ts` CONFLICTS. Nothing owned forming one tree, and both 0565 and 0566 assume one exists — 0566's "Relevant files" says "everything tranches 1-3, 0556, and 0565 built" as though it were one checkout, and 0565's loop literally joins tranche 3's `onWindow` callback to the schema branch's `putSlab`/`putEntry`/`putPassage`. Same shape as the gap that produced 0556: a step every dependent assumes and no ticket owns.
 
 2026-09-01T18:11Z claude note blocker 0553 closed — Blocked-by removed. Tranche 3 landed on fork tranche-3-extract-shim at da3be32 with round 2's two concurrency blockers fixed; this ticket's integration base can take the extract stage as it stands.
+2026-09-01T19:08Z the ledger.ts conflict is no longer only adjacency: 0567 was built twice in parallel, on tranche-3-extract-shim (with its caller) and on t0567-ledger-ownership-guard (a85c918). Take tranche 3's side whole — its guard is (holder, acquisition expiry, live signal) against the sibling's (holder, claimed_input), which cannot see a same-holder re-claim against an unchanged input or newer work coalesced into a live-claimed row. Recorded in the body and in 0567's own log.
 --- body ---
 
 ## Context
@@ -48,10 +49,20 @@ than separately, which is what it asked for if 0553 resumed first, so
 the "landing it first is cheaper, the conflict region is the same file"
 note is settled: `ledger.ts` carries both changes already.
 
-What survives for whoever merges: the conflict region is still that one
-file, and the trial merge's claim that the conflict is textual adjacency
-rather than semantic disagreement is still to be verified on the real
-merge, not taken on trust.
+What survives for whoever merges, and it is now more than adjacency:
+**0567 was built twice, in parallel, on two fork branches** — inside
+tranche 3 (`tranche-3-extract-shim`, with its caller wired) and on
+`t0567-ledger-ownership-guard` (`a85c918`, cut from tranche 2). Both guard
+completion; they differ on what the guard compares, and tranche 3's is the
+stronger of the two (see 0567's log for the reconciliation and the two
+cases `claimed_input` cannot see). **Take tranche 3's side whole rather
+than merging the two guards** — a merge that keeps both would carry two
+signatures for the same method and a guard that reads as belt-and-braces
+while actually being the weaker one's semantics.
+
+The rest of the trial merge's claim — textual adjacency rather than
+semantic disagreement in `ledger.ts` — is still to be verified on the real
+merge rather than taken on trust.
 
 ## Relevant files
 
