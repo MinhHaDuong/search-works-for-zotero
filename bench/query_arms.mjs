@@ -96,6 +96,39 @@ for (let pass = 0; pass <= repeat; pass++) {
 }
 for (const a of opened) await a.index.close();
 
+/**
+ * Rank-biased overlap: how much two ranked lists agree, weighted toward the top.
+ *
+ * Set overlap and strict ordered-equality were the two columns this reported before, and
+ * between them they missed the thing a reader wants: neither says how much the ORDER moved.
+ * Jaccard cannot see order at all, and ordered-equality is all-or-nothing, so a list with
+ * two adjacent items swapped scores the same as one that is unrecognisable. The two also
+ * track each other closely enough on real data to look like one column reported twice.
+ *
+ * RBO fixes both. It compares prefixes of increasing depth and discounts by p^(d-1), so a
+ * disagreement at rank 1 costs far more than one at rank 20, and it is defined for lists
+ * that do not hold the same items. p = 0.9 puts roughly 86% of the weight in the first ten
+ * ranks, which is the part of a search result anyone reads.
+ */
+const rbo = (a, b, p = 0.9) => {
+  const depth = Math.max(a.length, b.length);
+  if (!depth) return 1;
+  const A = new Set();
+  const B = new Set();
+  let sum = 0;
+  let weight = 0;
+  for (let d = 1; d <= depth; d++) {
+    if (a[d - 1] !== undefined) A.add(a[d - 1]);
+    if (b[d - 1] !== undefined) B.add(b[d - 1]);
+    let shared = 0;
+    for (const x of A) if (B.has(x)) shared++;
+    const w = Math.pow(p, d - 1);
+    sum += w * (shared / d);
+    weight += w;
+  }
+  return sum / weight;
+};
+
 const pct = (xs, p) => {
   const s = [...xs].sort((x, y) => x - y);
   return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null;
@@ -125,15 +158,19 @@ for (const arm of arms) {
   const all = rs.flatMap((r) => r.ms);
   let identical = 0;
   let jac = 0;
+  let ord = 0;
+  let top1 = 0;
   for (const r of rs) {
     const u = ref.find((x) => x.query === r.query);
     if (!u) continue;
     if (JSON.stringify(r.ids) === JSON.stringify(u.ids)) identical++;
+    if (r.ids[0] !== undefined && r.ids[0] === u.ids[0]) top1++;
     const A = new Set(r.ids);
     const B = new Set(u.ids);
     const inter = [...A].filter((x) => B.has(x)).length;
     const uni = new Set([...A, ...B]).size;
     jac += uni ? inter / uni : 1;
+    ord += rbo(r.ids ?? [], u.ids ?? []);
   }
   out.summary[arm] = {
     n: all.length,
@@ -141,8 +178,15 @@ for (const arm of arms) {
     p95_ms: +pct(all, 0.95).toFixed(1),
     max_ms: +Math.max(...all).toFixed(1),
     fellBack: rs.filter((r) => r.fellBack).length,
-    ordered_identical_to_unpruned: ref.length ? identical : null,
-    mean_jaccard_to_unpruned: ref.length ? +(jac / rs.length).toFixed(3) : null,
+    // Which items came back, ignoring order.
+    mean_jaccard_to_reference: ref.length ? +(jac / rs.length).toFixed(3) : null,
+    // How much the ORDER agrees, weighted toward the top. The column Jaccard cannot give.
+    mean_rbo_to_reference: ref.length ? +(ord / rs.length).toFixed(3) : null,
+    // The single result most people actually look at.
+    top1_same_as_reference: ref.length ? top1 : null,
+    // Strict all-or-nothing equality of the whole ordered list, kept because it is the
+    // hardest bar and it is what "identical" honestly means.
+    ordered_identical_to_reference: ref.length ? identical : null,
     queries: rs.length,
   };
 }

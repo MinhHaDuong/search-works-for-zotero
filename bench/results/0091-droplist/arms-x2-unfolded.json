@@ -40,12 +40,12 @@
    "arm": "pr2-diacritics",
    "query": "the role of the state in the energy transition",
    "ms": [
-    387.65,
-    376.97,
-    440.49,
-    442.31,
-    391.95,
-    351.77
+    342.61,
+    334.99,
+    343.35,
+    418.34,
+    399.82,
+    380.66
    ],
    "terms": [
     "role",
@@ -86,12 +86,12 @@
    "arm": "pr2-diacritics",
    "query": "what is the social cost of carbon",
    "ms": [
-    321.53,
-    333.72,
-    387.06,
-    387.88,
-    328.02,
-    321.34
+    287.5,
+    313.32,
+    303.94,
+    346.36,
+    338.96,
+    319.81
    ],
    "terms": [
     "what",
@@ -132,12 +132,12 @@
    "arm": "pr2-diacritics",
    "query": "the effect of a carbon tax on household income",
    "ms": [
-    230.67,
-    247.19,
-    274.51,
-    275.81,
-    222.72,
-    252.93
+    207.71,
+    223.19,
+    213.66,
+    219.03,
+    281.74,
+    258.2
    ],
    "terms": [
     "effect",
@@ -179,12 +179,12 @@
    "arm": "pr2-diacritics",
    "query": "to be or not to be",
    "ms": [
-    791.81,
-    813.4,
-    966.86,
-    977.63,
-    809.39,
-    802.27
+    713.68,
+    848.57,
+    770.28,
+    755.43,
+    893.52,
+    755.34
    ],
    "terms": [
     "to",
@@ -225,12 +225,12 @@
    "arm": "pr2-diacritics",
    "query": "the origins of index numbers in economics",
    "ms": [
-    123.57,
-    133.99,
-    163.76,
-    153.84,
-    141.24,
-    143.05
+    118.12,
+    131.41,
+    129.06,
+    119.02,
+    141.91,
+    128.28
    ],
    "terms": [
     "origins",
@@ -257,12 +257,12 @@
    "arm": "pr2-diacritics",
    "query": "models that are used for integrated assessment of climate",
    "ms": [
-    355.72,
-    372.65,
-    422,
-    429.71,
-    353.88,
-    351.89
+    318.63,
+    363.15,
+    337.41,
+    315.51,
+    356.78,
+    373.82
    ],
    "terms": [
     "models",
@@ -305,12 +305,12 @@
    "arm": "pr2-diacritics",
    "query": "the price of electricity in Vietnam",
    "ms": [
-    230.19,
-    231.25,
-    292.68,
-    314.39,
-    233.17,
-    245.44
+    207.65,
+    253.57,
+    267.87,
+    215.54,
+    236.45,
+    253.83
    ],
    "terms": [
     "price",
@@ -350,12 +350,12 @@
    "arm": "pr2-diacritics",
    "query": "it is the marginal cost that matters and not the average",
    "ms": [
-    429.5,
-    447.56,
-    502.66,
-    504.12,
-    423.09,
-    414.85
+    388.67,
+    417.83,
+    459.21,
+    381.7,
+    461.79,
+    454.78
    ],
    "terms": [
     "marginal",
@@ -399,12 +399,12 @@
    "arm": "pr2-diacritics",
    "query": "these results are robust to the choice of a discount rate",
    "ms": [
-    221.24,
-    247.27,
-    272.55,
-    250.1,
-    226.08,
-    209.1
+    190.31,
+    186.49,
+    252.3,
+    185.79,
+    216.87,
+    306.78
    ],
    "terms": [
     "results",
@@ -448,12 +448,12 @@
    "arm": "pr2-diacritics",
    "query": "from theory to policy in the climate negotiations",
    "ms": [
-    270.99,
-    358.16,
-    363.74,
-    360.55,
-    293.93,
-    300.6
+    248.81,
+    259.29,
+    300.74,
+    265.58,
+    294.39,
+    304.9
    ],
    "terms": [
     "theory",
@@ -495,12 +495,12 @@
    "arm": "pr2-diacritics",
    "query": "the demand for energy in developing countries",
    "ms": [
-    378.68,
-    467.67,
-    470.08,
-    462.02,
-    408.8,
-    380.99
+    344.07,
+    365.8,
+    398.58,
+    383.53,
+    378.89,
+    391.52
    ],
    "terms": [
     "demand",
@@ -541,12 +541,12 @@
    "arm": "pr2-diacritics",
    "query": "our estimates of the rebound effect and their limits",
    "ms": [
-    111.42,
-    129.59,
-    151.48,
-    132.44,
-    109.82,
-    115.63
+    100.09,
+    102.87,
+    115.89,
+    104.91,
+    130.98,
+    126.57
    ],
    "terms": [
     "estimates",
@@ -589,12 +589,12 @@
    "arm": "pr2-diacritics",
    "query": "this is the standard model of optimal growth",
    "ms": [
-    240.33,
-    251.94,
-    308.41,
-    284.52,
-    230.14,
-    237.56
+    212.59,
+    250.49,
+    252.07,
+    227.19,
+    251.43,
+    267.93
    ],
    "terms": [
     "standard",
@@ -636,12 +636,12 @@
    "arm": "pr2-diacritics",
    "query": "the history of mathematical economics as a discipline",
    "ms": [
-    118.02,
-    158.87,
-    147.78,
-    141.49,
-    127.96,
-    113.02
+    104.68,
+    112.22,
+    129.23,
+    121.27,
+    124.65,
+    116.33
    ],
    "terms": [
     "history",
@@ -675,12 +675,12 @@
    "arm": "pr2-diacritics",
    "query": "capture and storage of carbon in the atmosphere",
    "ms": [
-    174.41,
-    174.29,
-    209.01,
-    217.88,
-    187.4,
-    177.82
+    154.44,
+    189.6,
+    191.34,
+    171.44,
+    197.13,
+    212.06
    ],
    "terms": [
     "capture",
@@ -722,12 +722,12 @@
    "arm": "pr2-diacritics",
    "query": "the distribution of income and wealth in the long run",
    "ms": [
-    233.21,
-    252.92,
-    276.93,
-    272.85,
-    234.35,
-    244.49
+    210.97,
+    212.27,
+    246.11,
+    247.13,
+    240.71,
+    261.72
    ],
    "terms": [
     "distribution",
@@ -766,12 +766,12 @@
    "arm": "pr2-diacritics",
    "query": "as measured by the elasticity of substitution",
    "ms": [
-    40.54,
-    45.93,
-    46.87,
-    47.07,
-    39.51,
-    41.25
+    35.72,
+    40.25,
+    37.11,
+    47.22,
+    39.9,
+    53.16
    ],
    "terms": [
     "measured",
@@ -812,12 +812,12 @@
    "arm": "pr2-diacritics",
    "query": "their contribution to the equilibrium of the market",
    "ms": [
-    175.32,
-    159.58,
-    204.36,
-    182.64,
-    163.58,
-    156.14
+    140.03,
+    176.44,
+    163.56,
+    174.77,
+    166.18,
+    156.05
    ],
    "terms": [
     "contribution",
@@ -853,12 +853,12 @@
    "arm": "pr2-diacritics",
    "query": "on the theory of value and of distribution",
    "ms": [
-    197.21,
-    232.41,
-    232.69,
-    215.37,
-    198.18,
-    185.19
+    174.42,
+    179.07,
+    195.3,
+    211.97,
+    215.19,
+    191.71
    ],
    "terms": [
     "theory",
@@ -885,12 +885,12 @@
    "arm": "pr2-diacritics",
    "query": "was the transition to renewables in these countries inevitable",
    "ms": [
-    171.59,
-    214.43,
-    210.62,
-    174.44,
-    164.77,
-    177.29
+    164,
+    184.81,
+    197.63,
+    187.16,
+    184.49,
+    179.07
    ],
    "terms": [
     "transition",
@@ -933,12 +933,12 @@
    "arm": "pr3-droplist",
    "query": "the role of the state in the energy transition",
    "ms": [
-    368.46,
-    379.14,
-    448.78,
-    430.3,
-    375.08,
-    365.98
+    359.1,
+    334.44,
+    340.96,
+    380.05,
+    405.24,
+    433.96
    ],
    "terms": [
     "role",
@@ -979,12 +979,12 @@
    "arm": "pr3-droplist",
    "query": "what is the social cost of carbon",
    "ms": [
-    335.72,
-    313.59,
-    405.22,
-    390.61,
-    318.04,
-    313.05
+    291.27,
+    296.67,
+    324.99,
+    361.08,
+    351.7,
+    349.9
    ],
    "terms": [
     "what",
@@ -1025,12 +1025,12 @@
    "arm": "pr3-droplist",
    "query": "the effect of a carbon tax on household income",
    "ms": [
-    229.32,
-    226.73,
-    293.96,
-    288.31,
-    239.47,
-    230.72
+    202.32,
+    223.06,
+    211,
+    216.19,
+    251.93,
+    236.78
    ],
    "terms": [
     "effect",
@@ -1072,12 +1072,12 @@
    "arm": "pr3-droplist",
    "query": "to be or not to be",
    "ms": [
-    798.66,
-    865.4,
-    976.17,
-    966.67,
-    808.4,
-    815.02
+    718.12,
+    778.61,
+    789.19,
+    781.59,
+    843.35,
+    826.96
    ],
    "terms": [
     "to",
@@ -1118,12 +1118,12 @@
    "arm": "pr3-droplist",
    "query": "the origins of index numbers in economics",
    "ms": [
-    130.74,
-    131.84,
-    170.29,
-    162.66,
-    132.33,
-    138.89
+    123.86,
+    146.07,
+    126.99,
+    121.34,
+    146.12,
+    136.86
    ],
    "terms": [
     "origins",
@@ -1150,12 +1150,12 @@
    "arm": "pr3-droplist",
    "query": "models that are used for integrated assessment of climate",
    "ms": [
-    366.4,
-    356.9,
-    433.16,
-    419.2,
-    360.92,
-    340.6
+    332.32,
+    337.45,
+    395.83,
+    328.06,
+    417.37,
+    395.12
    ],
    "terms": [
     "models",
@@ -1198,12 +1198,12 @@
    "arm": "pr3-droplist",
    "query": "the price of electricity in Vietnam",
    "ms": [
-    249.53,
-    287.11,
-    287.39,
-    286.41,
-    249.57,
-    242.13
+    212.72,
+    250.2,
+    235.33,
+    211.93,
+    257.5,
+    263.37
    ],
    "terms": [
     "price",
@@ -1243,12 +1243,12 @@
    "arm": "pr3-droplist",
    "query": "it is the marginal cost that matters and not the average",
    "ms": [
-    549.51,
-    652.64,
-    667.36,
-    639.2,
-    536.62,
-    580
+    525.72,
+    526.62,
+    514.69,
+    508.09,
+    608.94,
+    665.31
    ],
    "terms": [
     "it",
@@ -1292,12 +1292,12 @@
    "arm": "pr3-droplist",
    "query": "these results are robust to the choice of a discount rate",
    "ms": [
-    378.75,
-    483.06,
-    454.87,
-    439.68,
-    381.1,
-    381.21
+    339.52,
+    347.13,
+    401.28,
+    347,
+    403.24,
+    485.61
    ],
    "terms": [
     "these",
@@ -1341,12 +1341,12 @@
    "arm": "pr3-droplist",
    "query": "from theory to policy in the climate negotiations",
    "ms": [
-    296.18,
-    345.5,
-    343.89,
-    344.31,
-    284.56,
-    299.55
+    259.72,
+    252.43,
+    296.57,
+    253.84,
+    323.76,
+    313.41
    ],
    "terms": [
     "theory",
@@ -1388,12 +1388,12 @@
    "arm": "pr3-droplist",
    "query": "the demand for energy in developing countries",
    "ms": [
-    405.93,
-    497.56,
-    488.25,
-    451.45,
-    411.12,
-    377.62
+    341.23,
+    361.86,
+    407.68,
+    376.11,
+    406.7,
+    375.54
    ],
    "terms": [
     "demand",
@@ -1434,12 +1434,12 @@
    "arm": "pr3-droplist",
    "query": "our estimates of the rebound effect and their limits",
    "ms": [
-    313.55,
-    351.31,
-    387.44,
-    378.52,
-    333.13,
-    322.45
+    287.15,
+    312.61,
+    327.95,
+    295.44,
+    329.25,
+    336.38
    ],
    "terms": [
     "our",
@@ -1482,12 +1482,12 @@
    "arm": "pr3-droplist",
    "query": "this is the standard model of optimal growth",
    "ms": [
-    246.59,
-    281.46,
-    287,
-    320.45,
-    231.9,
-    232.95
+    254.98,
+    244.33,
+    261.55,
+    224.14,
+    246.1,
+    272.55
    ],
    "terms": [
     "standard",
@@ -1529,12 +1529,12 @@
    "arm": "pr3-droplist",
    "query": "the history of mathematical economics as a discipline",
    "ms": [
-    129.58,
-    133.24,
-    148.1,
-    136.62,
-    146.96,
-    116.05
+    109.35,
+    117.49,
+    130.15,
+    117.07,
+    125.18,
+    137.87
    ],
    "terms": [
     "history",
@@ -1568,12 +1568,12 @@
    "arm": "pr3-droplist",
    "query": "capture and storage of carbon in the atmosphere",
    "ms": [
+    176.7,
     183.89,
-    212.53,
-    210.26,
-    204.13,
-    183.23,
-    193.72
+    171.95,
+    176.6,
+    188.42,
+    177.82
    ],
    "terms": [
     "capture",
@@ -1615,12 +1615,12 @@
    "arm": "pr3-droplist",
    "query": "the distribution of income and wealth in the long run",
    "ms": [
-    273.95,
-    240.45,
-    283.81,
-    276.5,
-    238.23,
-    232.98
+    214.32,
+    211.11,
+    259.37,
+    230.14,
+    235.45,
+    262.7
    ],
    "terms": [
     "distribution",
@@ -1659,12 +1659,12 @@
    "arm": "pr3-droplist",
    "query": "as measured by the elasticity of substitution",
    "ms": [
-    44.12,
-    51.32,
-    50.99,
-    53.16,
-    40.13,
-    39.05
+    36.31,
+    49.86,
+    43.93,
+    49.99,
+    49.25,
+    43.62
    ],
    "terms": [
     "measured",
@@ -1705,12 +1705,12 @@
    "arm": "pr3-droplist",
    "query": "their contribution to the equilibrium of the market",
    "ms": [
-    318.75,
-    325.55,
-    384.36,
-    362,
-    337.63,
-    310.67
+    270.5,
+    308.31,
+    340.09,
+    327.98,
+    314.12,
+    331.02
    ],
    "terms": [
     "their",
@@ -1749,12 +1749,12 @@
    "arm": "pr3-droplist",
    "query": "on the theory of value and of distribution",
    "ms": [
-    195.32,
-    229.56,
-    223.45,
-    178.16,
-    202.37,
-    196.62
+    177.13,
+    200.22,
+    193.49,
+    215.12,
+    215.1,
+    201.03
    ],
    "terms": [
     "theory",
@@ -1781,12 +1781,12 @@
    "arm": "pr3-droplist",
    "query": "was the transition to renewables in these countries inevitable",
    "ms": [
-    435.28,
-    551.6,
-    549.32,
-    446.47,
-    447.44,
-    465.34
+    424.64,
+    421.46,
+    470.9,
+    519.32,
+    488.47,
+    466.97
    ],
    "terms": [
     "was",
@@ -1829,12 +1829,12 @@
    "arm": "pr3-none",
    "query": "the role of the state in the energy transition",
    "ms": [
-    1080.32,
-    1133.4,
-    1281.75,
-    1298.94,
-    1073.73,
-    1062.09
+    970.05,
+    966.66,
+    1000.84,
+    1227.28,
+    1143.4,
+    1219.39
    ],
    "terms": [
     "role",
@@ -1875,12 +1875,12 @@
    "arm": "pr3-none",
    "query": "what is the social cost of carbon",
    "ms": [
-    1075.75,
-    1092.93,
-    1280.85,
-    1298.17,
-    1027.69,
-    1036.9
+    938.41,
+    1018.78,
+    1031.97,
+    1039.57,
+    1163.37,
+    1098.07
    ],
    "terms": [
     "what",
@@ -1921,12 +1921,12 @@
    "arm": "pr3-none",
    "query": "the effect of a carbon tax on household income",
    "ms": [
-    1037.19,
-    1062.53,
-    1273.82,
-    1279.59,
-    1063.25,
-    1064.95
+    947.64,
+    1017.92,
+    1139.89,
+    1110.43,
+    1115.11,
+    1198.2
    ],
    "terms": [
     "effect",
@@ -1968,12 +1968,12 @@
    "arm": "pr3-none",
    "query": "to be or not to be",
    "ms": [
-    805.43,
-    838.35,
-    989.7,
-    952.93,
-    850.65,
-    779.88
+    723.72,
+    791.34,
+    794.31,
+    748.5,
+    834.11,
+    844.34
    ],
    "terms": [
     "to",
@@ -2014,12 +2014,12 @@
    "arm": "pr3-none",
    "query": "the origins of index numbers in economics",
    "ms": [
-    1051.12,
-    1035.58,
-    1255.11,
-    1235.15,
-    1028.18,
-    1025.27
+    955.09,
+    1071.52,
+    1041.45,
+    958.86,
+    1079.02,
+    1085.82
    ],
    "terms": [
     "origins",
@@ -2046,12 +2046,12 @@
    "arm": "pr3-none",
    "query": "models that are used for integrated assessment of climate",
    "ms": [
-    1022.98,
-    1074.25,
-    1242.35,
-    1208.96,
-    1003.86,
-    1044.73
+    910.64,
+    985.75,
+    1098.64,
+    912.86,
+    1091.24,
+    1099.65
    ],
    "terms": [
     "models",
@@ -2094,12 +2094,12 @@
    "arm": "pr3-none",
    "query": "the price of electricity in Vietnam",
    "ms": [
-    1042.77,
-    1081.29,
-    1281.41,
-    1321.23,
-    1035.17,
-    1102.23
+    932.56,
+    1008.23,
+    1055.91,
+    958.9,
+    1103.09,
+    1214.59
    ],
    "terms": [
     "price",
@@ -2139,12 +2139,12 @@
    "arm": "pr3-none",
    "query": "it is the marginal cost that matters and not the average",
    "ms": [
-    1201.42,
-    1370.63,
-    1442.32,
-    1391.78,
-    1217.05,
-    1185.86
+    1076.82,
+    1112.5,
+    1227.72,
+    1079.54,
+    1234.71,
+    1393.92
    ],
    "terms": [
     "it",
@@ -2188,12 +2188,12 @@
    "arm": "pr3-none",
    "query": "these results are robust to the choice of a discount rate",
    "ms": [
-    1165.81,
-    1326.23,
-    1422.41,
-    1477.99,
-    1189.89,
-    1185.68
+    1073.55,
+    1082.07,
+    1261.88,
+    1078.89,
+    1312.14,
+    1664.89
    ],
    "terms": [
     "these",
@@ -2237,12 +2237,12 @@
    "arm": "pr3-none",
    "query": "from theory to policy in the climate negotiations",
    "ms": [
-    1100.64,
-    1331.03,
-    1363.53,
-    1311.2,
-    1113.87,
-    1089.83
+    1002.76,
+    1050.76,
+    1125.63,
+    1084.72,
+    1237.63,
+    1336.37
    ],
    "terms": [
     "theory",
@@ -2284,12 +2284,12 @@
    "arm": "pr3-none",
    "query": "the demand for energy in developing countries",
    "ms": [
-    1048.95,
-    1172.29,
-    1284.92,
-    1311.58,
-    1063.34,
-    1066.4
+    967.78,
+    1008.88,
+    1084.39,
+    962.55,
+    1079.44,
+    1080.86
    ],
    "terms": [
     "demand",
@@ -2330,12 +2330,12 @@
    "arm": "pr3-none",
    "query": "our estimates of the rebound effect and their limits",
    "ms": [
-    1107.25,
-    1281.18,
-    1363.24,
-    1356.38,
-    1102.67,
-    1087.27
+    985.39,
+    1190.92,
+    1144.62,
+    1027.74,
+    1158.74,
+    1183.5
    ],
    "terms": [
     "our",
@@ -2378,12 +2378,12 @@
    "arm": "pr3-none",
    "query": "this is the standard model of optimal growth",
    "ms": [
-    1084.05,
-    1181.5,
-    1332.69,
-    1342.49,
-    1067.59,
-    1078.19
+    1021.76,
+    1052.06,
+    1176.17,
+    1096.15,
+    1135.28,
+    1288.56
    ],
    "terms": [
     "standard",
@@ -2425,12 +2425,12 @@
    "arm": "pr3-none",
    "query": "the history of mathematical economics as a discipline",
    "ms": [
-    1025.58,
-    1075.5,
-    1186.88,
-    1172.3,
-    1037.23,
-    1013.37
+    899.16,
+    1000.33,
+    1035.71,
+    1017.21,
+    1019.35,
+    1073.61
    ],
    "terms": [
     "history",
@@ -2464,12 +2464,12 @@
    "arm": "pr3-none",
    "query": "capture and storage of carbon in the atmosphere",
    "ms": [
-    1231.77,
-    1252.17,
-    1449.96,
-    1388.61,
-    1259.55,
-    1165.27
+    1088.95,
+    1125.28,
+    1281.73,
+    1232.27,
+    1268.65,
+    1241.1
    ],
    "terms": [
     "capture",
@@ -2511,12 +2511,12 @@
    "arm": "pr3-none",
    "query": "the distribution of income and wealth in the long run",
    "ms": [
-    1204.4,
-    1368.16,
-    1432.19,
-    1505.91,
-    1277.51,
-    1215.06
+    1068.76,
+    1278.91,
+    1279.18,
+    1336.4,
+    1247.08,
+    1326.99
    ],
    "terms": [
     "distribution",
@@ -2555,12 +2555,12 @@
    "arm": "pr3-none",
    "query": "as measured by the elasticity of substitution",
    "ms": [
-    1021.17,
-    1195.72,
-    1267.75,
-    1240.55,
-    1080.77,
-    1031.77
+    940.32,
+    1095.61,
+    1083.05,
+    1090.31,
+    1098.51,
+    1085.68
    ],
    "terms": [
     "measured",
@@ -2601,12 +2601,12 @@
    "arm": "pr3-none",
    "query": "their contribution to the equilibrium of the market",
    "ms": [
-    1079.54,
-    1244.31,
-    1270.34,
-    1266.7,
-    1060.85,
-    1106.72
+    938.87,
+    1092.33,
+    1088.62,
+    1132.03,
+    1110.15,
+    1110.76
    ],
    "terms": [
     "their",
@@ -2645,12 +2645,12 @@
    "arm": "pr3-none",
    "query": "on the theory of value and of distribution",
    "ms": [
-    1223.37,
-    1430.69,
-    1379.02,
-    1103.98,
-    1145.33,
-    1131.88
+    1093.8,
+    1118.37,
+    1168.22,
+    1240.07,
+    1209.6,
+    1181.56
    ],
    "terms": [
     "theory",
@@ -2677,12 +2677,12 @@
    "arm": "pr3-none",
    "query": "was the transition to renewables in these countries inevitable",
    "ms": [
-    1081.73,
-    1346.68,
-    1338.55,
-    1050.94,
-    1094.68,
-    1083.3
+    987.07,
+    1047.22,
+    1194.62,
+    1179.86,
+    1182.72,
+    1176.51
    ],
    "terms": [
     "was",
@@ -2725,32 +2725,38 @@
  "summary": {
   "pr2-diacritics": {
    "n": 120,
-   "p50_ms": 240.3,
-   "p95_ms": 791.8,
-   "max_ms": 977.6,
+   "p50_ms": 223.2,
+   "p95_ms": 713.7,
+   "max_ms": 893.5,
    "fellBack": 1,
-   "ordered_identical_to_unpruned": 11,
-   "mean_jaccard_to_unpruned": 0.886,
+   "mean_jaccard_to_reference": 0.886,
+   "mean_rbo_to_reference": 0.905,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 11,
    "queries": 20
   },
   "pr3-droplist": {
    "n": 120,
-   "p50_ms": 318,
-   "p95_ms": 798.7,
-   "max_ms": 976.2,
+   "p50_ms": 295.4,
+   "p95_ms": 718.1,
+   "max_ms": 843.4,
    "fellBack": 1,
-   "ordered_identical_to_unpruned": 14,
-   "mean_jaccard_to_unpruned": 0.973,
+   "mean_jaccard_to_reference": 0.973,
+   "mean_rbo_to_reference": 0.982,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 14,
    "queries": 20
   },
   "pr3-none": {
    "n": 120,
-   "p50_ms": 1165.8,
-   "p95_ms": 1430.7,
-   "max_ms": 1505.9,
+   "p50_ms": 1089,
+   "p95_ms": 1312.1,
+   "max_ms": 1664.9,
    "fellBack": 1,
-   "ordered_identical_to_unpruned": 20,
-   "mean_jaccard_to_unpruned": 1,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
    "queries": 20
   }
  }

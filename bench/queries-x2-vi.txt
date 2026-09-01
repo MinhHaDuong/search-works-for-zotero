@@ -1,0 +1,44 @@
+# The Vietnamese counterpart of queries-x2.txt (ticket 0091, the multilingual arm).
+#
+# Why it exists. This library is EN/FR/VI, not EN/FR — a fact this ticket's own probes
+# established and its first measurement then ignored. Folded `nam` sits in 9,18 % of
+# passages, `trong` in 5,68 %, `viet` in 5,27 %, `cua` in 5,15 %, and the diacritic probe
+# found Vietnamese on both sides of the folding ledger. Measuring a multilingual claim on
+# two of three languages is measuring the two that were easy to think of.
+#
+# Vietnamese is also the language with the most at stake here. Its tone marks are lexical,
+# not decorative — `ma má mà mả mã mạ` are six different words — so the diacritic decision
+# is felt here first, and the words that folding merged into English function words (`án`
+# into `an`, `bé` into `be`, `thể` and `thế` into `the`) are ordinary vocabulary in exactly
+# these sentences.
+#
+# How it is built. Twenty questions of the same shape and subject matter as the English and
+# French sets — energy, electricity, climate, Vietnam — so the three differ in language and
+# in nothing else. Each carries the function words a Vietnamese speaker cannot avoid: và,
+# của, trong, có, là, không, được, cho, với, từ.
+#
+# Line 20 is the degenerate case in Vietnamese: a query of nothing but function words. No
+# shipped English stoplist touches any of them, and at a 30 % cutoff on this library none of
+# them is prunable either, so it should behave identically in every arm — which is the
+# prediction, recorded before the run so the result can contradict it.
+
+điện lực và phát triển bền vững ở Việt Nam
+giá điện của các hộ gia đình
+năng lượng tái tạo và môi trường
+chi phí xã hội của phát thải carbon
+quy hoạch điện quốc gia trong giai đoạn tới
+phát thải khí nhà kính từ giao thông
+hiệu quả năng lượng trong công nghiệp
+biến đổi khí hậu và nông nghiệp
+thị trường điện cạnh tranh có hiệu quả không
+đầu tư vào năng lượng mặt trời
+than đá và nhiệt điện của Việt Nam
+chính sách năng lượng của chính phủ
+tiêu thụ điện của các hộ gia đình nông thôn
+tác động của thủy điện đến môi trường
+an ninh năng lượng quốc gia
+dự án điện gió ngoài khơi
+kinh tế học môi trường và tài nguyên
+giảm phát thải trong ngành giao thông vận tải
+tăng trưởng kinh tế và nhu cầu năng lượng
+có và không có trong đó là của
