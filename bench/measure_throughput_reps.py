@@ -66,10 +66,12 @@ def run_once(pkg_root: Path, corpus: Path, out_prefix: Path, model: str, dtype: 
 def measure(pkg_root: Path, corpus: Path, scratch_dir: Path, model: str, dtype: str, device: str, rows: int, batch: int, reps: int) -> dict:
     scratch_dir.mkdir(parents=True, exist_ok=True)
     reps_data = []
+    warm_flags: list[object] = []
     for rep in range(reps):
         prefix = scratch_dir / f"{model}__{dtype}__{device}__b{batch}__r{rows}__rep{rep}"
         meta = run_once(pkg_root, corpus, prefix, model, dtype, device, rows, batch)
         reps_data.append(meta["ms_per_passage"])
+        warm_flags.append(meta.get("warm"))
         logger.info("%s %s %s batch=%d rep=%d: %.2f ms/passage", model, dtype, device, batch, rep, meta["ms_per_passage"])
     median = statistics.median(reps_data)
     return {
@@ -79,6 +81,15 @@ def measure(pkg_root: Path, corpus: Path, scratch_dir: Path, model: str, dtype: 
         "rows": rows,
         "batch": batch,
         "reps": reps,
+        # PROPAGATED, never invented. This driver opens no timing window of its own:
+        # it invokes the .mjs measurer once per rep and reads the rate back, so the
+        # warmth is a property of that run and stating it here would be a second-hand
+        # claim dressed as a measurement. True only if every rep says so; anything
+        # else — one cold rep, or a rep that could not say — travels as the weaker
+        # value, because an aggregate is no warmer than its coldest term. Ticket 0260.
+        "warm": True if warm_flags and all(w is True for w in warm_flags) else (
+            False if any(w is False for w in warm_flags) else None
+        ),
         "ms_per_passage_reps": reps_data,
         "ms_per_passage_median": round(median, 2),
         "ms_per_passage_spread": round(max(reps_data) - min(reps_data), 2),

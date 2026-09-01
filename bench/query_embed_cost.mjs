@@ -109,7 +109,9 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
 
   // One warm call before timing and before reading RSS: the first call pays graph
   // initialisation and allocates the arena, both of which a user pays once per session.
+  const tWarm = performance.now();
   const warm = await extractor(QUERIES[0], { pooling, normalize });
+  const warmMs = performance.now() - tWarm;
   const rssAfter = process.memoryUsage().rss;
 
   const times = [];
@@ -138,7 +140,13 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
     dim: warm.data.length,
     dtype: opt.dtype ?? '(runtime default)',
     device: opt.device ?? '(runtime default)',
+    // Set from the code path that ran, never by hand — ticket 0260. The RSS pair
+    // below is read AFTER the warm call for the same reason the timing window starts
+    // there: on a first load the weight download sat inside the measured window and
+    // put 45 to 49 MB of error into the figures, in both directions.
+    warm: true,
     load_ms: Number(loadMs.toFixed(1)),
+    warm_ms: Number(warmMs.toFixed(1)),
     rss_before_mb: mb(rssBefore),
     rss_after_load_mb: mb(rssAfter),
     rss_delta_mb: mb(rssAfter - rssBefore),

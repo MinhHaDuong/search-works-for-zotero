@@ -207,6 +207,79 @@ def despace(text: str) -> str:
     return _DIGIT_SEP.sub("", text)
 
 
+#: The pre-0260 debt, measured on 2026-09-01: rate figures quoted in prose whose
+#: artifact cannot say whether its timing window held a one-time cost. A one-way
+#: ceiling, like MINIMUM_PAIRS below and for the same reason — a number nobody can
+#: exceed is a number that gets paid down, and a warning nobody counts is a warning
+#: that survives forever. Every one of these needs a warm re-measurement on the
+#: reference machine; the corpora are not in this repository, so none of it can be
+#: discharged from here. Lower this line when a campaign discharges some of it, and
+#: never raise it without saying which prose gained an unwarmed rate and why.
+MAXIMUM_CANNOT_SAY = 93
+
+
+#: A figure whose value is a per-unit rate or a resident-memory reading — the two
+#: shapes a one-time cost inside the timing window corrupts. Matched on the declared
+#: KEY PATH rather than on the value, because a number cannot say what it measures.
+RATE_PATH = re.compile(
+    r"(ms_per_|passages_per_min|hours_to_index|query_ms_|_rss|rss_|_mb$|median_ms|p95_ms)"
+)
+
+
+def is_rate(path: str) -> bool:
+    return bool(RATE_PATH.search(path))
+
+
+#: Every place a driver may record whether it warmed. The sweep drivers write one row
+#: per model, so the flag can sit on the row rather than at the top level.
+WARM_KEYS = ("warm", "models[].warm")
+
+
+def warm_verdict(blob) -> str | None:
+    """None if this artifact is a warm run; otherwise why it cannot be quoted.
+
+    Ticket 0260. A figure declared `"warm"` is a per-unit rate or a resident-memory
+    reading, and both are wrong by a one-time cost when the window that produced them
+    contained one. The four states are deliberately distinct:
+
+    - ``True``  — the driver did a warm pass, and set this from the code path that ran.
+    - ``False`` — a known cold run. Refused: a cold number must not be quotable.
+    - ``None``  — recorded as not-knowing. Every artifact taken before this ticket is
+      in this state, stamped by hand exactly once, because those runs genuinely do not
+      know what they were. Refused too: the ticket's rule is to re-measure anything a
+      document quotes, not to assume the benefit of the doubt.
+    - absent    — refused, and this is the case that matters most. An artifact that
+      cannot say is as bad as one that lies, and assuming warm on absence would make
+      the whole check satisfiable by deleting a key.
+    """
+    if not isinstance(blob, dict):
+        return "the artifact is not an object, so it cannot carry a warm flag"
+    if "warm" in blob:
+        found = blob["warm"]
+    else:
+        rows = blob.get("models")
+        if isinstance(rows, list) and rows and all(isinstance(r, dict) for r in rows):
+            values = [r.get("warm", "absent") for r in rows]
+            if any(v == "absent" for v in values):
+                return "some rows carry no `warm` key; the run cannot say what it was"
+            found = True if all(v is True for v in values) else next(
+                (v for v in values if v is not True)
+            )
+        else:
+            return (
+                "no `warm` key. An artifact that cannot say whether its timing window "
+                "held a one-time cost is not quotable — re-measure it"
+            )
+    if found is True:
+        return None
+    if found is False:
+        return "recorded as a COLD run. A cold number must not be quoted in prose"
+    return (
+        "recorded as `null` — taken before ticket 0260 and it does not know what it "
+        "was. Re-measure rather than assume"
+    )
+
+
 def render_value(value, places: int, pct: bool = False) -> str:
     """A scalar, or a two-element range rendered as `lo-hi`.
 
@@ -1403,12 +1476,15 @@ def run(
     text: dict[str, str] = {}
     failures: list[str] = []
     unanchored: list[str] = []
+    cannot_say: set[str] = set()
     checked = 0
     anchored = 0
 
     for entry in FIGURES:
         artifact, path, places, prose_keys = entry[:4]
-        pct = len(entry) > 4 and entry[4] == "pct"
+        flags = set(entry[4:])
+        pct = "pct" in flags
+        wants_warm = "warm" in flags
         f = Path(results_dir) / artifact
         if not f.exists():
             failures.append(f"MISSING ARTIFACT {artifact} (declared for {path})")
@@ -1419,6 +1495,20 @@ def run(
         if value is None:
             failures.append(f"MISSING KEY {artifact}:{path}")
             continue
+        if wants_warm:
+            verdict = warm_verdict(cache[artifact])
+            if verdict is not None:
+                failures.append(f"COLD   {artifact}:{path} — {verdict}")
+                continue
+        elif warm_verdict(cache[artifact]) is not None and is_rate(path):
+            # Counted, not failed. Every artifact taken before ticket 0260 is in this
+            # state and none can be re-measured from this repository — the corpora live
+            # on the reference machine. Failing them would make the gate unpassable and
+            # the ratchet would be turned off within a week; reporting them keeps the
+            # debt in front of whoever next runs a campaign, and the number only ever
+            # needs to go down. A figure re-measured warm gets `"warm"` on its
+            # declaration and moves from this count into the enforced set.
+            cannot_say.add(f"{artifact}:{path}")
         want = render_value(value, places, pct)
         if listing:
             log.info("%-46s %-58s %s", artifact, path, display(value, places, pct))
@@ -1470,6 +1560,13 @@ def run(
 
     if listing:
         return 0
+    if len(cannot_say) > MAXIMUM_CANNOT_SAY:
+        failures.append(
+            f"WARM DEBT GREW: {len(cannot_say)} rate figures cannot say they were warm, "
+            f"above the {MAXIMUM_CANNOT_SAY} ceiling. A new figure quoting an unwarmed "
+            f"rate is ticket 0260's defect recurring — warm the run, or say here which "
+            f"prose deliberately gained one and why"
+        )
     if checked < minimum_pairs:
         failures.append(
             f"COVERAGE SHRANK: {checked} pairs checked, below the {minimum_pairs}-pair "
@@ -1487,6 +1584,18 @@ def run(
         "%d pairs checked: %d anchored (positional), %d presence-only (maskable), %d stale",
         checked, anchored, len(unanchored), len(failures),
     )
+    if cannot_say:
+        # Reported apart from the stale count because it is a different fact: not "this
+        # number is wrong" but "this number cannot say whether its window held a
+        # one-time cost". Ticket 0260.
+        log.info(
+            "%d rate figure(s) drawn from an artifact that cannot say it was warm "
+            "(pre-0260; re-measure warm, then declare the figure \"warm\")",
+            len(cannot_say),
+        )
+        if verbose:
+            for entry in sorted(cannot_say):
+                log.info("  cannot say warm: %s", entry)
     if unanchored and verbose:
         for u in unanchored:
             log.info("  presence-only: %s", u)

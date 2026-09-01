@@ -78,6 +78,18 @@ const t0 = performance.now();
 const extractor = await pipeline('feature-extraction', modelRepo, pipelineOpts);
 const loadMs = performance.now() - t0;
 
+
+// One warm batch before the clock, matching embed_feasibility.mjs. Without it the first
+// batch pays graph initialisation — and, on a model the cache has never seen, the
+// download — inside the window that becomes ms_per_passage. Ticket 0260: that protocol
+// error put 45 to 49 MB of error into a set of RSS figures, in BOTH directions, four
+// times larger than the 11,7 MB difference they were being used to argue about, and the
+// mechanism built on them reached the ratification ledger before a re-measurement
+// retracted it. The cost is one batch; the alternative is a number nobody can audit.
+const tWarm = performance.now();
+await extractor(prefixed.slice(0, BATCH), { pooling, normalize: false }); // raw-geometry: the consumer chooses, not this driver
+const warmMs = performance.now() - tWarm;
+
 const t1 = performance.now();
 let dim = 0;
 const chunks = [];
@@ -127,7 +139,12 @@ writeFileSync(
       input_template_prefix: prefix,
       pooling,
       batch: BATCH,
+      // One-time costs apart from the per-unit rate — see quant_fidelity.mjs and
+      // ticket 0260. This driver carried the same defect and the ticket named only
+      // its sibling; the adherence test is what found it.
+      warm: true,
       load_ms: Number(loadMs.toFixed(1)),
+      warm_ms: Number(warmMs.toFixed(1)),
       embed_ms: Number(embedMs.toFixed(1)),
       ms_per_passage: Number((embedMs / prefixed.length).toFixed(2)),
       // The registry's declared value, beside the value this run APPLIED. They differ

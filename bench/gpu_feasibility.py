@@ -70,6 +70,10 @@ def read_run(path: Path) -> dict | None:
         "dim": int(done["dim"]),
         "rows": rows,
         "wall_seconds": round(seconds, 1),
+        # This reads a rate out of a LOG, so it cannot know whether the run warmed
+        # and must not guess. `None` is the honest value and check_figures refuses a
+        # figure declared warm that rests on it. Ticket 0260.
+        "warm": None,
         "ms_per_passage": round(per_row_ms, 2),
         "passages_per_min": round(60000 / per_row_ms),
         "log": str(path),

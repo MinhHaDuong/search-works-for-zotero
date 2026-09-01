@@ -93,7 +93,9 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
 
   // One warm batch before timing: the first call pays graph initialisation, which a user
   // pays once per session rather than once per passage.
+  const tWarm = performance.now();
   await extractor(texts.slice(0, BATCH), { pooling, normalize });
+  const warmMs = performance.now() - tWarm;
 
   const t1 = performance.now();
   let dim = 0;
@@ -115,7 +117,12 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
     pooling,
     normalize,
     dim,
+    // This driver already had the discipline; ticket 0260 made it declarable. `warm`
+    // is set from the code path that ran, never by hand, so an artifact can say which
+    // kind of run produced it — and one that cannot say is as bad as one that lies.
+    warm: true,
     load_ms: +loadMs.toFixed(0),
+    warm_ms: +warmMs.toFixed(0),
     ms_per_passage: +perRow.toFixed(1),
     passages_per_min: Math.round(60000 / perRow),
     hours_to_index: +((SCALE * perRow) / 3600000).toFixed(2),
