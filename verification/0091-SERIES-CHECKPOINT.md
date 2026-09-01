@@ -129,7 +129,25 @@ Two things about the numbers:
 ## Still to do
 
 - The design decision above.
-- PR 3 has not been through a review panel.
-- No speed doctor pass on the latency claims.
 - Blocker 3 (the 944-codepoint token class) is unfixed, and is the thing the design decision
   may make moot.
+- **PR 2's review findings below the two blockers are unapplied**, deliberately: they are
+  documentation about a design that may change, and fixing them now could be wrong in both
+  directions. Held rather than forgotten:
+  - Five sites still describe the pre-change `remove_diacritics 2` symmetric fold —
+    `docs/semantic-search.md:475` (which contradicts its own paragraph fourteen lines
+    below), the DDL comment in `sqlite-index.ts` immediately above the line the diff
+    changed, `normalizeForSearch`'s header, `accent-folding.test.ts`'s module header
+    ("every case below is a symmetry assertion", now falsified by the asymmetry test the
+    same commit adds), and a `search-backends.test.ts` comment naming the wrong mechanism.
+    If the design moves to query expansion, the tokenizer stays at `2` and several of these
+    become correct again — which is precisely why they are not being edited yet.
+  - `CHANGELOG.md` has no `[Unreleased]` entry for PR 2, though the change alters search
+    semantics and forces a migration with a hard downgrade break. PR 1 has one.
+  - The `SCHEMA_MIGRATIONS` docstring still says the ladder is empty and the stamp is 1;
+    `search-schema-migration.test.ts`'s header still says a migration re-reads nothing,
+    which the first real rung does.
+  - `Ticket-ref` on PR 2 points at ticket 0091, which scopes PR 3's droplist work. No
+    ticket currently scopes "keep diacritics + first migration rung".
+- PR 3 has not been through a review panel.
+- No speed doctor pass on the latency claims.
