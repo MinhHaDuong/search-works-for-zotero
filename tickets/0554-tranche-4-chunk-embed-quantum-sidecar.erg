@@ -2,13 +2,13 @@
 Title: Tranche 4: chunk and embed workers, quantum autotune, sidecar
 Created: 2026-09-01
 Author: minh
-Blocked-by: 0553
 
 --- log ---
 2026-09-01T16:30Z claude created, child of 0550
 2026-09-01T13:24Z claude note blocked-by 0556 added: the chunk worker's "chunk worker over stored text" action needs entries/slabs/passages to exist, and the raid on 0550-0555 found no open ticket owned building that schema as code (0028 is the segmenter algorithm, 0034 is an upstream issue draft) -- 0556 files it. Tranche 3 (0553) was checked on the same pass and is NOT blocked by 0556: its actions run against stage_queue/item_census/fulltext_census, already built by 0551.
 
 2026-09-01T15:17Z MinhHaDuong note blocker 0556 closed — Blocked-by removed.
+2026-09-01T17:01Z Claude note blocker 0553 closed — Blocked-by removed.
 --- body ---
 ## Context
 

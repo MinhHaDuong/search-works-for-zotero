@@ -2,6 +2,7 @@
 Title: Tranche 3: extract shim, class order, latency back-off
 Created: 2026-09-01
 Author: minh
+Closed: round 2's two blockers fixed and mutation-verified on fork tranche-3-extract-shim at da3be32; claim TTL reconciled to SPEC 5.2.5's ratified 30x quantum
 
 --- log ---
 2026-09-01T16:30Z claude created, child of 0550
@@ -12,6 +13,10 @@ Author: minh
 2026-09-01T13:57Z claude note scope: the pipe is not built. The worker runs in-process behind ExtractDispatcher, which is where the process boundary falls — what crosses it is already an assignment and a result. Windows have no consumer until the segmenter exists (tranche 4, blocked on 0556), and a pipe protocol written against no consumer would claim the design was built. Also deferred: re-enqueueing the rows staleExtracts() finds, which needs a conductor-side sweep rather than a query.
 2026-09-01T14:03Z claude note correction to the constants entry above: it named four chosen constants and there are five. PACE_MIN_SAMPLES = 4 — below which there is no verdict, since a median of two is not a median — is chosen on the same footing as the other four. Appended rather than corrected in place, per append-only.
 2026-09-01T14:35Z claude note review round 1 (PR 156): three blockers fixed on the fork at ff1d41a. (1) a cut stream was stored as a short document — the scanner now reports whether the content string closed and a read that stopped inside it raises. (2) the back-off condemned healthy machines: an all-time-minimum baseline pinned near zero by a burst of instant answers. Root cause was a vacuous ratio test, not the minimum — against a baseline near zero everything exceeds twice nothing. Fixed by clamping the baseline at the degradation floor, plus a bounded horizon and a low quantile, and by measuring time-to-response rather than time-to-last-byte, which was confounded by document size. (3) lowerWorkerPriority and the pacer report had no call site; the pacer report now rides the drain report and the OS floor is a seam the forking entry point passes, off by default because until the worker is its own process the process it would renice is the one answering queries. Also: releaseExpiredClaims had no caller, so a hard-killed worker stranded its rows; the conductor now sweeps in poll.
+2026-09-01T17:00Z review round 2 (PR 156): both parked blockers fixed on the fork at da3be32. (1) the claim race — Ledger.markDone/markFailed wrote WHERE wid = ? with no ownership check, so a worker whose claim releaseExpiredClaims had swept could land its late write over the worker that actually finished the row, older read winning because it arrived second. Completion now takes the ClaimTicket claim grants and guards on the triple holder + claimed_input + claim_expires_at, returning whether the write applied. The expiry is what carries the identity: one conductor spawns one worker under one holder string, so the re-claim after an expiry usually has the same name and input, and a claimed_by check alone passes the case that matters. ExtractStage keeps the tickets conductor-side, so the worker still holds nothing about writes; a rejected completion writes nothing at all and is counted on the drain report as staleCompletions. (2) the sibling truncation case — a stream cut after the content string closed but before the trailing page counts left truncated reading false on a document whose coverage is unknown; the scanner now requires the response object itself to close, counted over head plus tail with string literals skipped.
+2026-09-01T17:00Z the claim TTL is now the ratified one, closing round 2's third finding. ExtractStage defaulted claimTtlMs to LEASE_TTL_MS — 20 s, the conductor election's lease constant reused for an unrelated purpose — where SPEC 5.2.5 pins the row claim at 30x the ~1 s quantum. CLAIM_TTL_MS in extract-stage.ts is that number and the default now reads from it; the code moved to the document, not the other way round, so no design number changed. fetch-pacer.ts's ceiling derivation gets back the 22 s margin it was reasoning about (8 s ceiling under a 30 s claim), where round 1 had corrected it to 12 s against the wrong constant.
+2026-09-01T17:00Z positive controls for round 2, each run: stripping the ownership guard from the completion SQL turns six tests red — three in conductor-ledger.test.ts (swept-and-retaken, same-holder re-claim, a completed row completed twice) and three in conductor-extract.test.ts (the swept row finished by another stage, the swept row nobody retook, the three completion shapes) — while the control arms stay green, among them a live holder completing past its unswept TTL, which is the arm a guard that merely checked expiry would fail. Disabling the envelope-closed check turns the new stream arm red on its own. Gate on the fork at da3be32: 1 087 tests pass, 7 skipped, tsc clean, eslint clean.
+2026-09-01T17:01Z Claude closed — round 2's two blockers fixed and mutation-verified on fork tranche-3-extract-shim at da3be32; claim TTL reconciled to SPEC 5.2.5's ratified 30x quantum
 --- body ---
 ## Context
 
@@ -58,6 +63,16 @@ and arrives here for free.
       the control arm (parented and leased, it drains all five) and the
       lease case asserted with the pipe still open, which is the half
       the pipe cannot see.
+- [x] A completion writes only to a row its author still holds (round 2).
+      `markDone`/`markFailed` guard on the claim ticket and report
+      whether the write applied; a rejected completion writes nothing,
+      not even the extract row, and is counted on the drain report.
+      Reproduced first as the failure, then as the fix, at both levels:
+      the ledger primitive and a slow worker driven through `drain()`.
+- [x] A stream that stopped anywhere before the response closed raises
+      rather than storing a document (round 2). Round 1 covered the cut
+      inside the text; the envelope check covers the cut after it, where
+      `truncated` would otherwise read `false` on unknown coverage.
 
 ## Invariants
 
@@ -65,13 +80,13 @@ and arrives here for free.
   Held: the only `src/api/` change is one added method on the LOCAL
   client, `fetchFullTextStream`, and it goes through the same
   `RateLimitedFetcher` and its four-slot semaphore as every other read.
-  Nothing under the web transport was touched. 1 075 tests pass, `tsc`
-  and `eslint` clean.
+  Nothing under the web transport was touched. At round 2's tip
+  (`da3be32`) 1 087 tests pass and 7 skip, `tsc` and `eslint` clean.
 
 ## Exit criteria
 
 - [x] Extract stage merged on a fork branch, back-off test green.
-      `tranche-3-extract-shim` at `ff1d41a` on MinhHaDuong/zoteus,
+      `tranche-3-extract-shim` at `da3be32` on MinhHaDuong/zoteus,
       branched from `tranche-2-conductor-election` as the tranche
       branches accumulate. Read "merged on a fork branch" as tranches 1
       and 2 were: the tranche branch is where the work lands, and no

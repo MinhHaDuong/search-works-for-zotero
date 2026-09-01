@@ -2,11 +2,15 @@
 Title: Ledger's markDone/markFailed lack an ownership check — any caller can complete a claim it doesn't hold
 Created: 2026-09-01
 Author: MinhHaDuong
+Closed: delivered with ticket 0553's round-2 fix on fork branch tranche-3-extract-shim at da3be32
 
 --- log ---
 2026-09-01T15:28Z MinhHaDuong created
 2026-09-01T15:28Z claude note found by the roar sweep after parking ticket 0553: 0553's review found a claim-race where a released-but-still-working worker's completion silently clobbers a second worker's. That was diagnosed against `putExtractState` (tranche-3, unmerged), but the same defect is already in the MERGED shared primitive -- `Ledger.markDone`/`markFailed` (tranche 1, `fork/src/features/search/conductor/ledger.ts:925-943`) write `UPDATE stage_queue ... WHERE wid = ?` with no `claimed_by`/`status` guard. `claim()` is properly CAS-guarded; completion is not. No merged caller exercises this yet (tranche 3 is the only one and it is parked), so this is latent, not live -- but it will fire the moment ANY future stage calls these without its own extra check, and fixing it once here removes 0553's blocker #1 for free when that ticket resumes.
 
+2026-09-01T17:01Z delivered inside ticket 0553's round-2 commit (fork da3be32), per this ticket's own Action 2: 0553 was resumed before this landed, so the primitive and its one caller were done together rather than leaving a guarded ledger with an unguarded stage. markDone/markFailed take a ClaimTicket — the row, the holder, the input, and the expiry that acquisition was granted — and guard the UPDATE on all four, returning whether the write applied. The expiry is the field this ticket's Action 1 did not name and the case that needs it: one conductor spawns one worker under one holder string, so the re-claim after a sweep usually carries the same holder AND the same input, and a claimed_by check (with or without claimed_input) accepts the stale completion. claim() is unchanged and returns a boolean; claimTicket() is the same statement handing back the ticket, so tranche 1's acquisition tests are untouched.
+2026-09-01T17:01Z verification, each box earned: swept-and-retaken rejected; same-holder re-claim rejected; a live holder accepted, including one whose claim has aged past its TTL while the sweep has not run — expiry is a timestamp, not an event, and rejecting the holder's own completion there would throw away work for nothing; claim()'s CAS tests green throughout; positive control run — stripping the guard turns six tests red across conductor-ledger.test.ts and conductor-extract.test.ts while every control arm stays green.
+2026-09-01T17:01Z Claude closed — delivered with ticket 0553's round-2 fix on fork branch tranche-3-extract-shim at da3be32
 --- body ---
 ## Context
 
@@ -82,13 +86,19 @@ main.
 
 ## Verification
 
-- [ ] `markDone`/`markFailed` reject a completion from a holder that no
-      longer owns the row (claim expired and reclaimed by another holder)
-- [ ] A legitimate holder's completion still succeeds
-- [ ] `claim()`'s existing CAS tests stay green — this ticket touches
-      completion, not acquisition
-- [ ] Positive control: the guard demonstrably rejects before it is
-      trusted (a test with the guard stubbed out must go red)
+- [x] `markDone`/`markFailed` reject a completion from a holder that no
+      longer owns the row (claim expired and reclaimed by another holder),
+      and reject it when the re-claim carries the same holder and input —
+      the case the ticket's own Action 1 would have let through
+- [x] A legitimate holder's completion still succeeds, including past an
+      unswept TTL
+- [x] `claim()`'s existing CAS tests stay green — this ticket touches
+      completion, not acquisition. `claim()` keeps its boolean signature
+      and delegates to `claimTicket()`, the same statement returning the
+      ticket
+- [x] Positive control: the guard demonstrably rejects before it is
+      trusted — stubbed out, six tests go red and every control arm stays
+      green
 
 ## Invariants
 
@@ -97,7 +107,8 @@ main.
 
 ## Exit criteria
 
-- [ ] `markDone`/`markFailed` ownership-guarded, merged on a fork branch,
-      tests green
-- [ ] Ticket 0553's blocker #1 (claim-race duplicate completion) noted as
-      resolved by this fix once 0553 resumes and adopts it
+- [x] `markDone`/`markFailed` ownership-guarded, on fork branch
+      `tranche-3-extract-shim` at `da3be32`, 1 087 tests green
+- [x] Ticket 0553's blocker #1 (claim-race duplicate completion) resolved:
+      0553 resumed in the same session and its stage adopted the guard in
+      the same commit — see its log
