@@ -163,7 +163,7 @@ def main():
                     "n": len(hits), "keys": keys, "latency_ms": [],
                     # No title: a committed artifact names a library document by its
                     # item key and never by its title or filename (ruling 2026-08-31,
-                    # spec/DECISIONS.md). The key is the identifier; the title was only
+                    # DECISIONS.md). The key is the identifier; the title was only
                     # ever there to make a hit list readable at a glance.
                     "hits": [{"itemKey": h.get("itemKey"), "score": h.get("score"),
                               "source": h.get("source")}

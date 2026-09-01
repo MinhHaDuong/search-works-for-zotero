@@ -1,6 +1,6 @@
 # How this repository conducts itself upstream
 
-Process rules live here. The specification chain in [`spec/`](spec/) says what
+Process rules live here. The specification in [`SPEC.md`](SPEC.md) says what
 the system promises, what the world imposes, and how the design answers; none of
 that tells you how many pull requests we may have open at once, or what we do
 when one goes unanswered for a month. Those are different questions, with a
@@ -14,13 +14,13 @@ upstream maintainer reads it. Keeping strategy in one file is what makes
 "never put our internal governance into upstream text" checkable at all: one
 place to read before anything goes out. The mechanical guard that once
 enforced the separation was retired on its record of zero catches
-(spec/DECISIONS.md, 2026-09-01); the rule binds exactly as before, kept by
+(DECISIONS.md, 2026-09-01); the rule binds exactly as before, kept by
 the reader.
 
 ## Where the rulings themselves live
 
 This document owns process rules **going forward**. It does not own the record.
-Every bound below was ratified in [`spec/DECISIONS.md`](spec/DECISIONS.md) and
+Every bound below was ratified in [`DECISIONS.md`](DECISIONS.md) and
 stays there, unmoved, cited by date. That ledger is append-only, and its
 append-only-ness is the whole of its evidential value: a record you may rewrite
 is a document, not a record. Relocating ratified entries into this file was
@@ -55,7 +55,7 @@ and #20. What remains live is SYNC.md's to report, not this file's.
 test goes as a pull request. Anything design-sized goes as an issue he builds
 himself. This is a rule *we* adopted; the asymmetry it answers is a fact about
 the terrain, measured in both directions and recounted in SYNC.md as it
-moves, and it is owned by [`spec/CONSTRAINTS.md`](spec/CONSTRAINTS.md). Gates are
+moves, and it is owned by [`SPEC.md` §4](SPEC.md). Gates are
 repo-side, in this repo's Makefile, and never travel upstream as pull requests.
 
 **A three-week sunset.** Any upstream item unaddressed after three weeks, or
@@ -93,7 +93,7 @@ does not resolve.
 ## The courtesy filing
 
 One norm runs the other direction — toward the maintainer rather than about
-him (ratified 2026-09-01, spec/DECISIONS.md). A repo-side record that
+him (ratified 2026-09-01, DECISIONS.md). A repo-side record that
 documents a defect-shaped seam in upstream's shipped code at file-line
 precision is accompanied by a short upstream filing of its own — standalone,
 never folded into an unrelated filing — or carries an explicit line stating

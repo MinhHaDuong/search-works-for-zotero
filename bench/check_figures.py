@@ -66,7 +66,7 @@ PROSE = {
     # was unguarded, and the X1 entry drifted onto a superseded run within a day of being
     # written. An append-only ledger is the worst place for a stale figure: a ratified
     # entry is never edited again, so a wrong number there becomes permanent.
-    "decisions": ["spec/DECISIONS.md"],
+    "decisions": ["DECISIONS.md"],
     # verification/ reports settle a factual question and quote artifact figures to do
     # it, so they need the guard as much as the tracker does. The map is hand-listed,
     # which fails asymmetrically: removing a guarded file is loud, a new file ARRIVING
@@ -277,7 +277,7 @@ FIGURES = [
      {"t0008": "At 8x it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
     # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
-    # (spec/DECISIONS.md): the §5 prose that quoted these figures is gone.
+    # (DECISIONS.md): the §5 prose that quoted these figures is gone.
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
      {"t0001": None, "readme": "one corpus of {} passages"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,

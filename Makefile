@@ -73,11 +73,11 @@ models:
 
 # The public-repository leak: a measurement of a real library produces artifacts
 # about real documents, and this tree is public and permanent. Keys address a
-# document; names disclose one. Ruling 2026-08-31, spec/DECISIONS.md.
+# document; names disclose one. Ruling 2026-08-31, DECISIONS.md.
 names:
 	python3 bench/check_names.py
 
-# The guard over spec/README.md. The status page restates nothing —
+# The guard over README.md's standing report. The status page restates nothing —
 # every row is a status and an address — so the figure guard has nothing to
 # anchor there. What can rot instead is coverage and arithmetic: a requirement
 # added to the sheet and never given a row, or a status edited in the table and

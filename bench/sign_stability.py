@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Can a hash over sign bits identify the chain that produced a vector file?
 
-Ticket 0499. The calibration-header ruling (`spec/DECISIONS.md`, 2026-08-31) makes
+Ticket 0499. The calibration-header ruling (`DECISIONS.md`, 2026-08-31) makes
 every vector file carry vectors its own chain produced, and rules a hash over that
 header out cross-machine on one measured fact: X8's fp32 rows are cross-provider
 compatible without being bit-identical, so a byte hash calls the same chain a
