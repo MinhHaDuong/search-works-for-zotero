@@ -1,0 +1,94 @@
+%erg 0.1
+Title: Tranche 1: ledger schema, reconcile tick, and the three fixtures
+Created: 2026-09-01
+Author: minh
+Closed: autoclosed — PR #150
+
+--- log ---
+2026-09-01T16:30Z claude created, child of 0550
+
+2026-09-01T12:28Z claude note BUILT on the fork, branch `tranche-1-ledger-schema`, tip e563570844bb2a8711911296af491d15fdfb2444, three commits, based on `base-v1.12.0` rather than the reviewed v1.10.0 SHA (the fork's own live development baseline; three open fork PRs already stack there). Purely additive: 10 new files, 2 420 insertions, 0 deletions, no existing file touched — so the query-path invariant holds structurally rather than by inspection. `src/features/search/conductor/{clock,ledger,reconcile-tick}.ts`; `tests/fixtures/{clock,local-api-replay,synthetic-library}.ts`; `tests/features/conductor-{ledger,fixtures,reconcile-tick,no-wall-clock}.test.ts`. Upstream suite 923 → 979 passing, 7 skipped throughout, `npm run build` and `npm run typecheck` clean, eslint clean. NOT filed as a fork PR: the branch accumulates and tranche 2 (0552) branches from this tip
+
+2026-09-01T12:28Z claude note SCOPE, stated because the ticket's premise assumed more exists upstream than does. SPEC.md's cycle-2 foundation — search-index-v2.sqlite, the origins/libraries/entries/slabs/passages schema, seg/1 — exists NOWHERE in the fork: zero hits for `search-index-v2`, an `entries` table, `conductor` or `ledger` across every branch, and the tickets that would build it (0026, 0028, 0029, 0031-0035) are all open. Per the author's direction this tranche was built against a MINIMAL schema slice: `origins(oid, server_id)` and `libraries(lib, oid, kind, remote_id, scope, item_watermark, fulltext_watermark)` — only enough to scope a watermark by (oid, lib) — plus the ledger's own tables. No entries, no slabs, no passages, no segmenter. Resequencing 0026/0028/0029 against this work is a separate decision
+
+2026-09-01T12:28Z claude note DESIGN CHOICES worth the author's eye. (1) Two SPEC traps are now unrepresentable rather than documented: `libraries` CHECKs that a `fulltext_watermark` is NULL unless the scope is cloud (§5.2.4(2)'s mixed local sequence), and `cursors` CHECKs that no row is named `fulltext` so the generic table cannot serve as the back door. (2) Priority is one indexed ORDER BY over a STORED generated `class_rank` column — no scheduler object, per Action 1; `nextWorkOrder` takes a lane filter rather than arbitrating, because the r = 3 interleave is the conductor choosing which lane to ask. (3) The tick's item read is `?since=` on `/items`, NOT on `?format=versions`, and the redundancy with the deletion census is deliberate: only the data read carries `dateAdded` and `itemType`, which are the newest-first sort key and the discovery class. Collapsing the two reads saves one request and costs the ordering. (4) Back-off doubles from 60 s and caps at FIVE minutes, not the usual fifteen, because the ceiling is what bounds how long after Zotero returns the tick notices — i.e. the ceiling is R35's recovery time. Closing that properly wants a cheap liveness probe on its own cadence, which belongs to the tranche that wires the conductor loop; disclosed, not solved
+
+2026-09-01T12:28Z claude note ACTION 3(a) DEVIATION, flagged rather than glossed: the canned responses are NOT captured from the author's profile — no local Zotero was reachable from this session. They are synthesized to the wire shape verified by reading `src/api/local-client.ts` (the `format=versions` object, the data-wrapped `/items` array, the `Total-Results` / `Last-Modified-Version` headers, the 404-means-no-fulltext contract, the `/file` redirect). The fake is a real record/replay pair: `recorder(realFetch)` passes calls through to a live Zotero and captures them into the same route table `put()` fills, and `cassette()` / `load()` round-trip it — so one run against the author's profile replaces the synthesized set with a real one and no test changes. Until that run happens the shapes are read off the client, not off Zotero
+
+2026-09-01T12:28Z claude note POSITIVE CONTROLS, all executed, all red before green. Fixture (a) replay fake: re-canning the same route changes the answer (proving it serves the cassette rather than a fixed thing), and an unregistered route throws instead of answering 404 — the 404 reading is the dangerous one, since a mistyped route would surface as "this attachment has no full text", a plausible silent negative. Fixture (b) synthetic library: `assertInvariants()` was run against five deliberate corruptions — reordered dateAdded, an orphaned child note, a census naming a non-item, the version-0 residue stamped away, the monster attachment flattened — and threw on each. Fixture (c) clock: it refuses to run backwards, and the tick was run with the clock NOT advanced, where `runIfDue` returns undefined and nothing fires. Beyond the fixtures, SIX MUTANTS were run against the tick implementation and each killed exactly the test that should have caught it: deletion subtraction removed, the item-version half of the full-text signal dropped, the full-text diff always firing, the discovery class collapsed to metadata, a document fetch injected into the tick, and the back-off flattened to the cadence. The document-fetch mutant matters most — "never fetches a document" is a NEGATIVE assertion, worth nothing until something makes it fire, and it fired
+
+2026-09-01T12:28Z claude note VERSION-0 RESIDUE, both halves implemented and both tested. Resolution (i): the census diff compares `(fulltext version, attachment item version)`, so replacing a file — which bumps the attachment item in the sequence the tick already sweeps — is caught for free; tested, the tick discovers it. Resolution (ii): a local re-extraction that re-stamps 0 with no file change is invisible, and the test asserts exactly that blindness rather than papering over it — the tick reports zero changes and enqueues nothing. What makes it a disclosure rather than a silent hole is `TickReport.versionZeroResidue`, the count of census entries stamped 0, which is the number the contract sentence "version-0 text refreshes on file change or rebuild" is measured against. Resolutions (iii) and (iv) are out of scope by the ticket's own text
+
+2026-09-01T12:28Z claude note WALL-CLOCK checkbox LEFT UNTICKED, honestly. The conductor tranche holds no timer and no wall-time read: `tests/features/conductor-no-wall-clock.test.ts` scans `src/features/search/conductor/`, `tests/features/conductor-*.ts` and `tests/fixtures/` by DIRECTORY (a hand-written file list guards removal, not arrival) and fails on `setTimeout` / `setInterval` / `setImmediate` / `Date.now()` unless the line carries an explicit marker; the two lines that legitimately read wall time — `systemClock`'s definition, and the replay fake's stamp when no clock is injected — carry it. Verified in both directions: an inline control on the detector, and a real `setTimeout` appended to `reconcile-tick.ts`, which turned exactly that file's row red. What is NOT true is the checkbox as written, "anywhere in the test suite": 20 pre-existing upstream test files await `setTimeout` (1-100 ms scheduling yields — `tests/lib/semaphore.test.ts`, `tests/lib/lifecycle.test.ts`, `tests/features/search-resume.test.ts` and others). Touching them would breach this ticket's own additive-only invariant, so the claim is scoped to the tranche and the box stays unticked
+
+2026-09-01T12:40Z MinhHaDuong closed — autoclosed — PR #150
+--- body ---
+## Context
+
+First tranche of the conductor implementation (tracker 0550): discovery
+only, no pipeline worker. Delivers R35's promise-half — knowing what
+changed within a minute — before anything processes it. Also builds the
+three fixtures every later tranche tests against, so they are shaped by
+the first consumer rather than retrofitted.
+
+## Relevant files
+
+- SPEC.md §5.2.1 (ledger, keys), §5.2.4 (tick: item watermark, fulltext
+  census diff, deletion subtraction, version-0 residue)
+- Fork: `src/features/search/` at the reviewed SHA (UPSTREAM)
+
+## Actions
+
+1. Ledger schema: stage queues as rows (class, band, lane, timestamps),
+   cursors, per-row claims with `claimed_input`, lease table. Priority is
+   an ORDER BY over these columns — no scheduler object.
+2. Reconcile tick: 60 s cadence, item `?since=` watermark scoped
+   (oid, lib), full census diff for local fulltext, deletion subtraction
+   every tick, back-off when Zotero is unreachable.
+3. Fixtures: (a) record/replay fake of the Zotero local API — canned
+   `?since=`, census, `/file` responses captured from the author's
+   profile, plus programmable silence and latency; (b) synthetic library
+   — ~50 items, controlled dateAdded, child notes and annotations, one
+   monster attachment (~500 passages), one near-empty HTML snapshot;
+   (c) injected clock — every "each N seconds" in the design reads it,
+   no test sleeps.
+
+## Test
+
+- Red first: tick against the replay fixture discovers a new item, an
+  edited fulltext version, and a deletion, each within one virtual tick.
+
+## Verification
+
+- [x] Census diff flags the version-0 residue case per SPEC §5.2.4
+      — `TickReport.versionZeroResidue`, plus a test per half of the
+      resolution: (i) a file change is discovered, (ii) a re-stamp at 0 is
+      not, asserted as the disclosed staleness it is.
+- [ ] No wall-clock sleep anywhere in the test suite
+      — HELD SHORT DELIBERATELY. The tranche holds none, machine-gated by
+      `tests/features/conductor-no-wall-clock.test.ts` (directory scan, so an
+      arriving file cannot slip past; verified red against a real injected
+      `setTimeout`). But 20 pre-existing upstream test files await
+      `setTimeout`, and rewriting them would breach this ticket's own
+      additive-only invariant. The box stays unticked rather than being read
+      down to what was achieved.
+- [x] Positive control: each fixture demonstrated failing against a
+      deliberately broken input before trusted (house discipline)
+      — replay fake: re-canned route changes the answer, unregistered route
+      throws rather than 404s; synthetic library: five deliberate
+      corruptions, each caught by `assertInvariants()`; clock: refuses to run
+      backwards, and an unadvanced clock fires nothing. Six further mutants
+      run against the tick itself, each killing the one test that owns it.
+
+## Invariants
+
+- Query path unchanged; upstream tests green on the fork branch.
+
+## Exit criteria
+
+- [x] Tick + ledger + fixtures merged on a fork branch, tests green
+      — `MinhHaDuong/zoteus` branch `tranche-1-ledger-schema`, tip
+      e563570, suite 923 → 979 passing with 7 skipped throughout, build and
+      typecheck clean. Read as "landed on a fork branch": no PR against the
+      fork's `main` or `base-v1.12.0` was opened, deliberately — the branch
+      accumulates and 0552 branches from this tip.
