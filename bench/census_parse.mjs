@@ -1,8 +1,8 @@
 // X7 (ticket 0025): what does one census tick cost, at the sizes that decide the cadence?
 //
 // The design's freshness loop re-fetches the local full-text census whole every tick
-// (DESIGN.md §2.4: the mixed sequence must never be cursored) and diffs it against the
-// previous one. The rule (DESIGN.md §3): local census every tick, unless the parse
+// (SPEC.md §5.2.4: the mixed sequence must never be cursored) and diffs it against the
+// previous one. The rule (SPEC.md §5.3): local census every tick, unless the parse
 // exceeds 50 ms at 30k entries — then every 5th tick.
 //
 // "Parse" here is the whole per-tick CPU cost the rule is guarding: JSON.parse of the
@@ -107,7 +107,7 @@ for (const n of SIZES) {
 
 const out = {
   probe: 'ticket 0025 X7 — census parse+diff cost per tick, at the sizes that decide the cadence',
-  rule: 'DESIGN.md §3: local census every tick unless parse > 50 ms at 30k entries, then every 5th tick',
+  rule: 'SPEC.md §5.3: local census every tick unless parse > 50 ms at 30k entries, then every 5th tick',
   substrate:
     'SYNTHETIC census bodies in the measured wire shape (flat {key: version}, 8-char keys, ' +
     'versions 0..25036 per bench/results/0012-fulltext-sequence). The shape is fixed by the ' +

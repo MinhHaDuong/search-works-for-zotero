@@ -27,11 +27,13 @@ def load():
 
 cp = load()
 
-SHEET = """# REQUIREMENTS
+SHEET = """# SPEC
 
-## Requirements
+## 3. Requirements
 
-### Coverage
+### Requirements
+
+#### Coverage
 
 **R1. Coverage.** eventually the whole library is indexed
 
@@ -41,13 +43,13 @@ With no further edits.
 
 Coverage grows newest-first.
 
-### Corpus
+#### Corpus
 
 **R9. Length.** 15 000-page documents are included
 
 They are first-class input.
 
-## The resolved decisions
+### The resolved decisions
 
 | D1 | counted in items. |
 """
@@ -122,7 +124,6 @@ def build(
     ledger: str | None = LEDGER,
 ) -> Path:
     """A fixture repository, with either document optionally absent."""
-    (root / "spec").mkdir(parents=True, exist_ok=True)
     (root / "tickets" / "closed").mkdir(parents=True, exist_ok=True)
     # The two tickets the fixture page cites, so the ticket check has something
     # to resolve. One closed, one open: closing a ticket moves its file, and a
@@ -132,11 +133,11 @@ def build(
     if upstream is not None:
         (root / "UPSTREAM").write_text(upstream, encoding="utf-8")
     if page is not None:
-        (root / "spec" / "README.md").write_text(page, encoding="utf-8")
+        (root / "README.md").write_text(page, encoding="utf-8")
     if sheet is not None:
-        (root / "spec" / "REQUIREMENTS.md").write_text(sheet, encoding="utf-8")
+        (root / "SPEC.md").write_text(sheet, encoding="utf-8")
     if ledger is not None:
-        (root / "spec" / "DECISIONS.md").write_text(ledger, encoding="utf-8")
+        (root / "DECISIONS.md").write_text(ledger, encoding="utf-8")
     return root
 
 
@@ -157,8 +158,8 @@ def test_missing_sheet_is_loud(tmp_path):
 def test_requirement_added_to_the_sheet_and_not_the_page(tmp_path):
     """The failure this guard exists for: a promise with no standing, and nothing looks wrong."""
     sheet = SHEET.replace(
-        "### Corpus",
-        "### Corpus\n\n**R16. Notes.** Notes and annotations are part of the corpus.\n",
+        "#### Corpus",
+        "#### Corpus\n\n**R16. Notes.** Notes and annotations are part of the corpus.\n",
     )
     assert cp.run(build(tmp_path, sheet=sheet)) == 1
 
@@ -255,7 +256,7 @@ def test_addresses_are_not_measurements(tmp_path):
     """The exemptions, each exercised: an exemption nothing tests is one nobody notices widening."""
     page = PAGE.replace(
         "Landed upstream.",
-        "Landed upstream as issue #33 at v1.10.0, ratified 2026-08-29, DESIGN §2.8, "
+        "Landed upstream as issue #33 at v1.10.0, ratified 2026-08-29, SPEC.md §5.2.8, "
         "experiment X3a, commit b132f2d, ticket 0080, bound into goal 1.",
     )
     assert cp.run(build(tmp_path, page=page)) == 0
@@ -264,6 +265,44 @@ def test_addresses_are_not_measurements(tmp_path):
 def test_the_real_page_passes_its_own_guard(tmp_path):
     """The shipped documents, not a fixture — the wiring the fixtures cannot see."""
     assert cp.run(REPO) == 0
+
+
+# The standing window. README.md folded in the standing report on 2026-09-01
+# and became the landing page at the same time, so BASELINE and DIGIT now read
+# only the slice between STANDING_START and STANDING_END rather than the whole
+# file — see check_progress.py. The fixture PAGE above has neither marker, so
+# every test up to here exercises the whole-page fallback; these three
+# exercise the window itself, both directions.
+
+WINDOWED_PAGE = (
+    PAGE.replace("# The specification chain", "## Where the promises stand", 1)
+    + "\n## How work leaves this repository\n"
+)
+
+
+def test_digit_outside_the_standing_window_is_not_policed(tmp_path):
+    """The rest of the landing page this file folded into may carry ordinary
+    numbers — a stray count, an old version — the standing report never governed."""
+    page = "Landing-page prose with a stray count of 42 documents.\n\n" + WINDOWED_PAGE.replace(
+        "## How work leaves this repository",
+        "## How work leaves this repository\n\nShipped since v1.7.0, and another stray count: 99.\n",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
+def test_digit_inside_the_standing_window_is_still_policed(tmp_path):
+    """The window narrows what the guard reads, not what it enforces inside it."""
+    page = WINDOWED_PAGE.replace(
+        "Landed upstream.", "Landed upstream at a warm p95 of 392,3 ms."
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_baseline_mismatch_inside_the_standing_window_is_still_policed(tmp_path):
+    """Same direction as the digit check: narrowing the window must not widen
+    what BASELINE tolerates inside it."""
+    page = WINDOWED_PAGE.replace("Landed upstream.", "Landed upstream in v1.7.1.")
+    assert cp.run(build(tmp_path, page=page)) == 1
 
 
 def test_the_baseline_moved_and_the_page_did_not(tmp_path):

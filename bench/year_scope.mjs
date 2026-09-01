@@ -197,7 +197,7 @@ const out = {
   items_stamped: stamped,
   probes_per_arm: PROBES,
   topk: TOPK,
-  rule: 'DESIGN.md §3 X4: the filter allowance is p95 <= 150 ms inside the 300-700 ms typical budget',
+  rule: 'SPEC.md §5.3 X4: the filter allowance is p95 <= 150 ms inside the 300-700 ms typical budget',
   baseline: rows,
   scopes,
   host: execSync('hostname').toString().trim(),

@@ -1,4 +1,4 @@
-// Tokenization pass of the §2.9 passage census (ticket 0140): paragraph token
+// Tokenization pass of the §5.2.9 passage census (ticket 0140): paragraph token
 // counts for every fulltext cache, measured with the embedder's own tokenizer.
 //
 // Measure, do not divide: the ~1,35 tokens-per-word figure in the ticket was a
@@ -32,7 +32,7 @@ const { values: opt } = parseArgs({
     output: { type: 'string' },
     model: { type: 'string', default: 'all-minilm-l6-v2' },
     // 0 = the whole corpus. A sample is for validating the pass, and its
-    // artifact says so; §2.9 quotes only a full run.
+    // artifact says so; §5.2.9 quotes only a full run.
     sample: { type: 'string', default: '0' },
     seed: { type: 'string', default: '0' },
   },

@@ -43,7 +43,7 @@ def test_no_census_model_can_be_over_fed():
 
 
 def test_budget_resolves_identically_across_every_census_candidate():
-    # §2.2's stability claim, the reason the ceiling is 500: the min never
+    # §5.2.2's stability claim, the reason the ceiling is 500: the min never
     # binds, so a model swap cannot move the chunk key.
     budgets = {g.resolve_budget(r["window"], 2, 0) for r in census["models"].values()}
     assert len(budgets) == 1
@@ -90,7 +90,7 @@ def test_heading_path_over_a_quarter_is_dropped_entirely_not_truncated():
 # --- the counting model ------------------------------------------------------------
 
 def test_an_entry_shorter_than_the_budget_is_one_chunk_regardless():
-    # The max rarely binds: this is why §2.9 must be measured, not divided.
+    # The max rarely binds: this is why §5.2.9 must be measured, not divided.
     assert g.chunk_count([30, 40, 50], budget=498) == 1
 
 

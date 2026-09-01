@@ -2554,24 +2554,135 @@ names, small and guarding documented failures; and figures, whose fate the
 same awaiting entry sequences after the document-count question — which the
 author put under review in the same message.
 
+**2026-09-01 — the chain becomes one document: `SPEC.md`, RFC-ordered, at the
+root; `DECISIONS.md` joins it there; `spec/` dissolves.** The author's ruling
+on the document-count half of the excess-weight question raised 2026-08-31 —
+the other half, sequenced after it, was resolved by the entry above.
+`spec/REQUIREMENTS.md`, `spec/CONSTRAINTS.md`, `spec/DESIGN.md`,
+`spec/TERMINOLOGY.md` and `SECURITY.md` merge into one top-level `SPEC.md`, in
+RFC section order: Introduction, Terminology, Requirements, Constraints,
+Design, Security Considerations, with the goals ladder closing the
+Requirements section. Content moves essentially verbatim — a merge, not a
+rewrite — trimmed only of each document's authority-chain self-description,
+duplicated preambles, and cross-document pointer boilerplate that a merge
+turns into an ordinary section reference. Every citation in living prose is
+swept to the new addresses; frozen material — ratified entries in this
+ledger, dated reports under `verification/`, ticket log histories — keeps its
+old addresses and is never edited for this: "history belongs to git", in the
+author's own words.
+
+`spec/` dissolves as a directory. `SPEC.md` and this ledger both move to the
+repository root. `spec/README.md`'s standing page — the progress bars, the
+requirement-by-requirement table, the goals-ladder rosters — folds into the
+top-level `README.md`, which becomes both the repository's landing page and
+the chain's entry point, its guard-parsed blocks kept structurally intact.
+
+Folding `SECURITY.md` in, with no stub left at its old path, reverses the
+2026-08-29 ruling that kept it standalone (the ratified entry above naming
+that ruling is unmoved by this — the reversal is recorded here, not there,
+per the append-only rule). The author said so explicitly: the standalone
+ruling optimized for a document count this repository no longer has room for
+at thirteen, and folding costs the security disclosures nothing — they read
+as this document's Security Considerations section, at the authority they
+held apart.
+
+End state: eight documents. `README.md`, `SPEC.md`, `DECISIONS.md`,
+`GOVERNANCE.md`, `SYNC.md`, `STATE.md`, `CLAUDE.md`,
+`verification/FIELD-REVIEW.md`. This resolves the document-count half of the
+awaiting excess-weight question below; clause (i), the figures guard's fate,
+is re-priced now that the merge has landed rather than before it, and clause
+(iii), `verification/FIELD-REVIEW.md`'s own standing, stays open.
+
+**2026-09-01 — SPEC.md speaks only of the system; ruling provenance lives
+here alone.** The author's editorial rule for the document the two entries
+above merged and relocated, given after reading the merged result: it read as
+a building's maintenance manual displayed in its lobby. The discriminator —
+text about the system stays, text about the documents, the rulings, the
+tickets and the process that produced the system goes. Kept: every promise,
+mechanism, number, budget, gate and experiment decision rule, and the
+rationale behind them, including system-incident cautionaries ("this project
+once shipped a defect that re-marked 92,7 % of a library as changed,
+forever") — that is history of the system, which a specification legitimately
+teaches from. Removed from the body: ruling breadcrumbs ("(ratified
+2026-08-31)", "(DECISIONS.md, 2026-08-30)", "ruled 2026-…", "re-pinned…",
+"ratified by delegation") — a ruling's date and provenance are this ledger's
+job, not the specification's, so SPEC.md states the rule it settled on,
+declaratively and undated; live process state ("awaiting the author's
+ratification", debt notes) — a genuinely open point says so in one clause with
+no address, the detail stays this ledger's, found by date rather than by
+pointer; work-tracking asides ("ticket 0028 builds to it") that carry no fact
+about the system itself, kept only where the fact does matter to the system
+("endpoint syntax and discovery have no owner yet"); and document/panel/cycle
+narration — merge notes, the cycle-2 story, guard mentions, references to what
+other repository documents do.
+
+Two exceptions, both explicit rather than swept. The rejected-alternatives
+material stays and moves in-body under a PEP-style heading, "Rejected
+alternatives", stripped of dates and ceremony rather than deleted — the
+reasoning a design rejected is part of what the design is. The D1–D11
+resolved-decisions table stays whole, handles and all; only the process words
+in its heading ("ratified by delegation, 2026-08-26") go, since D-numbers are
+handles the rest of the document cites exactly as R-, C- and X-numbers are.
+
+One relocation, not a deletion. The Design section's increment train — the
+order items go upstream — is process planning, not a promise the system
+keeps or a fact the world imposes on it, so it moves to `GOVERNANCE.md`,
+which already owns our upstream conduct; `SYNC.md`'s live counts are
+untouched, on the same split that already separates a stable bound from how
+much of it is spent this week.
+
+Two protections carry over unchanged through this pass. R-item promise
+sentences stay quote-coupled to `README.md`'s standing table — byte-identical,
+never touched even where the paragraph around one is — and `check_figures.py`
+is re-run and its anchors repointed wherever an edited paragraph moved one,
+never its numbers. TERMINOLOGY's "Authoritative: …" pointers are ownership,
+not scaffolding, and stay with their current addresses.
+
+**The header block, the same pass.** SPEC.md carries a PEP/RFC-style header
+immediately under its title, before §1: `Status: DRAFT`, `Author: Minh
+Ha-Duong (CNRS)`, `Date: 2026-09-01`. The date is the version — there is no
+separate version number, and the convention, recorded once in CLAUDE.md's
+maintenance material rather than restated here, is to bump the date whenever
+the document changes substantively. The signature is the author's, never an
+agent's, and carries no email. Status stays DRAFT until the author himself
+declares otherwise; the one word carries the state, and the document narrates
+nothing about when or how that might change.
+
+**2026-09-01 — the spec's subject is the capability, not the vehicle.** The
+author's correction to the freshly-rewritten §1, in his own words: "Only
+Zoteus is not the target. The RFC is what I want — I am not in love with any
+solution, and integrated into Zotero comes first." SPEC.md specifies search
+that works over a local Zotero library — the capability — solution-neutral by
+design; the requirements in §3 bind any implementation, not one vehicle.
+Among possible homes for that capability, native integration into Zotero
+itself ranks first. `zoteus`, the MCP server the prototype and every
+measurement in this document ran on, is the vehicle the design is currently
+stated against and measured on — not the target the capability is judged
+against. §1 is rewritten to lead with the capability rather than the vehicle,
+and §5 gains one framing sentence saying so at its own opening; §5's body
+stays exactly as concrete as before; nothing already measured or promised
+changes.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
-  right number (raised 2026-08-31 by the excess-weight ruling, which settled
+  right number — resolved 2026-09-01: eight, see the ledger entry above
+  (raised 2026-08-31 by the excess-weight ruling, which settled
   the principle and left the instances open).** Three questions the ruling
   implies but does not decide, because each destroys something on the author's
   say-so rather than an agent's. (i) `bench/check_figures.py` is 1 141 lines,
   a third of all guard code; its value is real but proportional to how much
-  prose is kept, so it is decided *after* the document count, not before.
+  prose is kept, so it is decided *after* the document count, not before —
+  now landed, so this re-prices in a follow-up rather than staying blocked.
   (ii) — resolved 2026-09-01: five guards retired, see the ledger entry.
-  (iii) `spec/FIELD-REVIEW.md` is 1 974 lines,
+  (iii) `verification/FIELD-REVIEW.md` is 1 974 lines,
   the largest document in the repo, a dated snapshot that is authoritative for
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.
 
 - **Reading AGPL source in order to reimplement it is unpriced, and ticket
   0031 is where it lands (session finding, 2026-08-30).**
-  `spec/FIELD-REVIEW.md` sets the survey's general route for an idea held by a
+  `verification/FIELD-REVIEW.md` sets the survey's general route for an idea held by a
   copyleft or unlicensed project — read the design, write the paragraph, build
   it independently — and then names one place that route is *not* enough:
   Zotero core's calibration procedure, "an algorithm with parameters rather
@@ -2593,7 +2704,7 @@ author put under review in the same message.
   the #6012 checkpoint, and three attributions settled for ticket 0180 — and
   it produces assertions about what upstream does, never code. The two acts
   should be separated by whatever rule is adopted, because conflating them
-  would forbid the verification `spec/FIELD-REVIEW.md` and ticket 0181 both
+  would forbid the verification `verification/FIELD-REVIEW.md` and ticket 0181 both
   depend on.
 
   Options, unranked and for the author: adopt a clean-room split (one reader
@@ -2681,7 +2792,7 @@ author put under review in the same message.
   upstream half — that `zotero_semantic_search` accepts no filters at all and the
   index carries no date to filter on — is an upstream ask and is not filed.
 
-- **X4 fired, and the ladder loses its middle rung.** DESIGN.md §3 states the
+- **X4 fired, and the ladder loses its middle rung.** SPEC.md §5.3 states the
   rule as *"the ladder step sits at the largest measured scope whose
   constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step
   ships and the ladder ends at the honest R18 give-up."* The real-corpus arm ran
@@ -2698,7 +2809,7 @@ author put under review in the same message.
   dominated by not scoping at all. The synthetic arm reached the same verdict;
   this is its confirmation on real text with a real vocabulary.
 
-  **What this changes in DESIGN.md §2, which is why it is here and not only in
+  **What this changes in SPEC.md §5.2, which is why it is here and not only in
   the ticket.** The ladder is written there as three rungs — refetch deeper to
   4 096; then, *"for scopes of roughly <= 20k passages"*, a constrained MATCH via
   `json_each`; then the honest give-up. The middle rung is now void, and with it
@@ -2720,7 +2831,7 @@ author put under review in the same message.
   **R18 is promoted by this, and it is the least-evidenced row in the area.**
   With the middle rung gone, the `scope{}` block stops being the last resort and
   becomes the primary answer whenever a narrow scope outruns the deeper refetch.
-  R18 stands at delivered `none`, evidence `inferred`, and spec/README's standing
+  R18 stands at delivered `none`, evidence `inferred`, and README's standing
   sentence still says the decision it depends on sits in ticket 0025 — that
   decision is this entry.
 
@@ -2733,18 +2844,18 @@ author put under review in the same message.
   stream *before* truncation). Note the burden any such retry now carries: the
   mechanism it replaces lost to doing nothing.
 
-  Three ways to rule. Delete the middle rung from §2 and record the ladder as
+  Three ways to rule. Delete the middle rung from §5.2 and record the ladder as
   two, leaving the give-up frequency unmeasured; or the same, and commission the
   frequency experiment before R5's row is called again; or commission the
-  indexed-temp-table experiment first, as a candidate third rung, and hold §2's
+  indexed-temp-table experiment first, as a candidate third rung, and hold §5.2's
   edit until it reports.
 
-- **X1's quantizer: 1-bit measured where the rule says int8.** DESIGN.md §3
+- **X1's quantizer: 1-bit measured where the rule says int8.** SPEC.md §5.3
   states the rule as *"int8 ships if recall@30 >= 0.98, pool <= 32xtopK, and
   scan+rerank <= 400 ms at 650k; the float32 slab is the permanent fallback."*
   The X1 recall half was measured with **1-bit** codes rather than int8, and the
   substitution was justified in ticket 0025's log rather than here, which is the
-  wrong order — DESIGN.md owns the rule and the ruling lands in this ledger
+  wrong order — SPEC.md owns the rule and the ruling lands in this ledger
   first. Put to the author now rather than left in the log.
 
   The substitution is not a convenience. Ticket 0008 measured both on real
@@ -2780,7 +2891,7 @@ author put under review in the same message.
 
 
 One reading cycle 2 could not decide on the sheet's text alone (flagged in
-DESIGN.md §2.9; put to the author directly — the re-formed train keeps
+SPEC.md §5.2.9; put to the author directly — the re-formed train keeps
 internal governance out of upstream filings, so it is resolved here, not in any
 issue text). The other two are gone: R20's letter against the gate's practice
 was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
@@ -2788,7 +2899,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
 - **The 300 MB budget's scope under N processes.** Ratified against a
   single-server picture; the normal deployment is one zoteus per MCP client,
   ~690 MB whole-machine steady at two clients. Per process or per machine is
-  the author's call; both figures stated in DESIGN.md §2.9.
+  the author's call; both figures stated in SPEC.md §5.2.9.
 - **The device ruling of 2026-08-29 rests on a premise that measurement voids.**
   The ruling — the device is always `auto`, never a knob — was made on the
   reading that `auto` hands ONNX Runtime the whole provider list and that ORT's

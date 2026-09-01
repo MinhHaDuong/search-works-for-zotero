@@ -7,56 +7,71 @@ and in the author's fork, not here.
 
 ## The document set, and who is authoritative for what
 
-The specification chain lives in `spec/`. What changes week to week — `STATE.md`,
-`SYNC.md` — stays at the top level, as do `README.md` and this file.
+The specification is one document, `SPEC.md`, at the top level, in RFC
+section order — merged 2026-09-01 (`DECISIONS.md`) from the five documents
+this section used to list separately, and their subdirectory dissolved in the
+same change. What changes week to week — `STATE.md`, `SYNC.md` — stays at the top
+level too, as do `README.md` and this file.
 
-- `spec/README.md` — the chain's entry point, and `spec/`'s landing page on the
-  forge. Owns one thing nothing else does: where each of the twenty-four
-  requirements stands, on two axes — designed, and delivered on stock upstream
-  at the reviewed baseline — plus an `evidence` column saying how each verdict
-  was established. It owns no threshold and no design number; the standing is
-  read from the upstream source, never computed, and `bench/check_progress.py`
-  fails the build when the reviewed baseline moves past it. It also owns the
-  goals ladder's five rosters — which requirements sit on each rung, with the
+- `README.md` — the chain's entry point, and this repository's landing page
+  on the forge, folded together 2026-09-01. Owns one thing nothing else
+  does: where each of the twenty-four requirements stands, on two axes —
+  designed, and delivered on stock upstream at the reviewed baseline — plus
+  an `evidence` column saying how each verdict was established. It owns no
+  threshold and no design number; the standing is read from the upstream
+  source, never computed, and `bench/check_progress.py` fails the build when
+  the reviewed baseline moves past it, reading only its own standing window
+  (`## Where the promises stand` through `## How work leaves this
+  repository`) rather than the whole landing page. It also owns the goals
+  ladder's five rosters — which requirements sit on each rung, with the
   level each is decided at and the address where its work lives — checked
-  against the rulings in `spec/DECISIONS.md` rather than against itself. The
-  ladder is a partition and the number is the build order, so the guard fails on
-  a requirement sitting on no rung, on two, or on a gap in the numbering; the
-  order itself is `spec/REQUIREMENTS.md`'s last section. The work that earns
-  those verdicts is tickets 0026, 0029 and 0032; the tally is the tracker.
-- `spec/REQUIREMENTS.md` / `spec/CONSTRAINTS.md` — the sheet, materialized. Stable.
-- `spec/DESIGN.md` — the current design ("The Instrumented Ledger", cycle 2). Owns
-  every design number: gate thresholds (§2.8), experiment decision rules
-  (§3), budgets (§2.9).
-- `spec/TERMINOLOGY.md` — the glossary, alphabetical, in three marked buckets
-  (ours, inherited from Zotero, inherited from SQLite) plus a historical
-  section. Authoritative for what a word means and for which document owns it.
-  Owns no design number and settles no open question: it points at the owner
-  instead, and any digit in it that is not an address is drift (the rule
-  outlived its guard, retired 2026-09-01). Serves the chain without being in
-  it — enter a document in the middle and look the vocabulary up here.
-- `spec/DECISIONS.md` — append-only ratification ledger. The author's rulings land
-  here FIRST; the other documents are edited to match. Owns the record of
-  every ruling, technical and process alike, and the awaiting-ratification
-  questions. Never edit a ratified entry.
+  against the rulings in `DECISIONS.md` rather than against itself. The
+  ladder is a partition and the number is the build order, so the guard
+  fails on a requirement sitting on no rung, on two, or on a gap in the
+  numbering; the order itself is `SPEC.md` §3's last section. The work that
+  earns those verdicts is tickets 0026, 0029 and 0032; the tally is the
+  tracker.
+- `SPEC.md` — the specification, RFC-ordered, carrying a PEP-style header
+  (`Status: DRAFT`, `Author: Minh Ha-Duong (CNRS)`, `Date: 2026-09-01`)
+  directly under its title. The date is the version — there is no separate
+  version number, and the convention is to bump it whenever the document
+  changes substantively. Status stays `DRAFT` until the author himself
+  declares otherwise. §1 Introduction (what zoteus is, and the section map).
+  §2 Terminology, the glossary, alphabetical in three marked buckets (ours,
+  inherited from Zotero, inherited from SQLite) — owns no design number and
+  settles no open question, it points at the owner instead, and any digit in
+  it that is not an address is drift (the rule outlived its guard, retired
+  2026-09-01). §3 Requirements and §4 Constraints — the sheet, materialized,
+  stable. §5 Design, the current design ("The Instrumented Ledger") — owns
+  every design number: gate thresholds §5.2.8, experiment decision rules
+  §5.3, budgets §5.2.9. §6 Security Considerations — what the system holds,
+  where it can leak, and what the design currently says about each point; it
+  describes and discloses, it decides nothing, so closing a gap it names is a
+  ruling in `DECISIONS.md` and then a requirement in §3. SPEC.md speaks only
+  of the system (ruled 2026-09-01, `DECISIONS.md`): ruling provenance, ticket
+  tracking and document/process narration live in `DECISIONS.md`, the
+  tickets, and this file, never restated there undated. Handles are
+  position-independent and outlive a section's own renumbering: R1–R35 name
+  requirements, C1–C4 constraints, D1–D11 resolved decisions, X1–X8
+  experiments. Cite a handle on its own; cite a section address as `SPEC.md
+  §N.M`.
+- `DECISIONS.md` — append-only ratification ledger, at the top level since
+  2026-09-01. The author's rulings land here FIRST; `SPEC.md` is edited to
+  match. Owns the record of every ruling, technical and process alike, and
+  the awaiting-ratification questions. Never edit a ratified entry.
 - `GOVERNANCE.md` — how this repo conducts itself upstream: the bounds on our
   own conduct, going forward. It owns the rules; the ledger keeps the rulings
   that made them, and `SYNC.md` keeps the live counts. Split ratified
   2026-08-29.
-- `SECURITY.md` — what the system holds, where it can leak, and what the design
-  currently says about each point. It describes and discloses; it decides
-  nothing, so closing a gap it names is a ruling in `spec/DECISIONS.md` and then
-  a requirement in `spec/REQUIREMENTS.md`. Standalone by ratification,
-  2026-08-29.
 - Tickets `0014`–`0037` (`tickets/`, git-erg) — the executable work train;
-  authoritative for each item's scope, evidence, and live state. `DESIGN.md
-  §4` carries only the ordering.
+  authoritative for each item's scope, evidence, and live state.
+  `GOVERNANCE.md`'s increment train carries only the ordering.
 - `verification/FIELD-REVIEW.md` — the survey of prior art: what other people have already
   built for Zotero AI retrieval, what it teaches, and what is
   license-compatible to borrow. Authoritative for the inventory and for each
   project's observed state at its stated observation date. Owns no design
   number, no requirement, and no threshold; where it touches our design it
-  points at the owning document. A dated snapshot, not a live tracker, which is why it sits in
+  points at the owning section of `SPEC.md`. A dated snapshot, not a live tracker, which is why it sits in
   `verification/` as evidence rather than in the chain as spec (ruled
   2026-08-31).
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
@@ -67,18 +82,21 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 - The cycle-2 panel's verbatim session record (memos, critiques, the political
   and implementation reviews) is GONE. It lived only in the history `main` was
   re-rooted away from on 2026-08-29, and 2026-08-31's ruling abandoned it
-  (spec/DECISIONS.md). It was never authoritative and DESIGN.md was always the
-  record; DESIGN.md is now the only one. Cite it for nothing.
+  (`DECISIONS.md`). It was never authoritative and `SPEC.md`'s design section
+  was always the record; it is now the only one. Cite it for nothing.
 - `verification/` — evidence, not authority. Reports that settle a factual
   question (a platform probe, an acceptance dossier, a voice measurement) and
   the scripts under `verification/probes/` that produced them. A report is
   cited by path from the ticket it serves and never becomes a source of
-  truth: where it touches the design, the owning document above is the
+  truth: where it touches the design, the owning section of `SPEC.md` is the
   record. Reports live here rather than in an agent worktree because an
   uncommitted artifact dies with the worktree — the report about the work is
   not the work.
 - Superseded documents are DELETED, not archived in the tree — git is the
-  archive. Do not create `history/` directories or versioned doc copies.
+  archive. Do not create `history/` directories or versioned doc copies. The
+  merge of the five prior specification documents into `SPEC.md` (2026-09-01,
+  `DECISIONS.md`) followed exactly this rule — five files gone, `git log` is
+  where their history lives.
 
 ## Conventions
 

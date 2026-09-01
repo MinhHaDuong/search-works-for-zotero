@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Committed artifacts identify a library document by its key, never by its name.
 
-Ratified 2026-08-31 (`spec/DECISIONS.md`): a measurement record names a document
+Ratified 2026-08-31 (`DECISIONS.md`): a measurement record names a document
 in the author's library by its Zotero item key and by nothing else. The reason is
 not that a title is secret. It is that this repository is public and permanent,
 so every provenance field naming what the author reads discloses the library one
@@ -91,7 +91,7 @@ def run(repo: Path) -> int:
     if failures:
         print(
             f"\n{failures} name field(s) in committed artifacts. A library document "
-            f"is identified by its item key (spec/DECISIONS.md, 2026-08-31).",
+            f"is identified by its item key (DECISIONS.md, 2026-08-31).",
             file=sys.stderr,
         )
         return 1

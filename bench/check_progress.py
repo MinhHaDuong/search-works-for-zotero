@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""`spec/README.md` states where each requirement stands. This checks it can be believed.
+"""`README.md` states where each requirement stands. This checks it can be believed.
 
 A status page is the cheapest document in a repository to write and the most
 expensive to trust, because every one of its failure modes is silent. A
@@ -9,7 +9,7 @@ looking authoritative. A threshold quoted here to save the reader a click
 becomes the second copy that drifts.
 
 So three things are checked, and the first is checked against
-`spec/REQUIREMENTS.md` rather than against the page itself: a guard that reads
+`SPEC.md` rather than against the page itself: a guard that reads
 only the document under guard cannot tell an omission from an absence.
 
 1. COVERAGE. Every requirement in the sheet has exactly one row, under the
@@ -36,7 +36,7 @@ only the document under guard cannot tell an omission from an absence.
 6. GOAL. The page names one bundle of promises whose conjunction is a goal,
    and a bundle is a claim about scope: drop a member and the goal reads kept
    when it is not, add one and it can never be. So membership is checked against
-   the ruling that set it — `spec/DECISIONS.md`, not this page — and the goal's
+   the ruling that set it — `DECISIONS.md`, not this page — and the goal's
    own bar is recomputed from its members' rows like every other bar.
 """
 
@@ -50,8 +50,22 @@ log = logging.getLogger("progress")
 
 REPO = Path(__file__).resolve().parent.parent
 
-SHEET = "spec/REQUIREMENTS.md"
-PAGE = "spec/README.md"
+SHEET = "SPEC.md"
+PAGE = "README.md"
+
+#: The window within `PAGE` this guard actually governs. `README.md` folded in
+#: the standing report on 2026-09-01 (DECISIONS.md) and became the repository's
+#: landing page at the same time, so it now carries ordinary prose — the
+#: proposition, the prototype-phase record, the bench command list — that
+#: legitimately names dates, versions and plain numbers this guard was never
+#: meant to police. BASELINE and DIGIT read only the slice between these two
+#: markers; COVERAGE, ARITHMETIC and GOAL keep reading the whole page, because
+#: their patterns (a standing row, a goal heading, a headline bar) are precise
+#: enough that nothing outside the standing report can match one by accident.
+#: A page with neither marker — the test fixtures below — falls back to the
+#: whole page, so this changes nothing for them.
+STANDING_START = "## Where the promises stand"
+STANDING_END = "## How work leaves this repository"
 
 #: The machine-readable review baseline, and the key naming the release the
 #: standing was read against.
@@ -69,8 +83,11 @@ VERSION_KEY = "UPSTREAM_REVIEWED_VERSION"
 #: which is SYNC.md's, and widening this needs a test rather than a habit.
 PAGE_VERSION = re.compile(r"\bv\d+(?:\.\d+)+\b")
 
-#: The sheet's own section headings, inside its `## Requirements` block.
-SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
+#: The sheet's own section headings, inside its `### Requirements` block. One
+#: level deeper than before the 2026-09-01 merge (DECISIONS.md): the sheet's
+#: own "## Requirements" heading is now nested a level under SPEC.md's "## 3.
+#: Requirements", and every heading inside it demoted to match.
+SHEET_SECTION = re.compile(r"^#### (.+?)\s*$")
 #: `- **R1 — eventually the whole library is indexed.**` — the name, then the title.
 #: `**R1. Coverage.** Every item in the search perimeter MUST become…` — the
 #: name, then the promise's first sentence, which is what the page quotes. The
@@ -80,8 +97,8 @@ SHEET_SECTION = re.compile(r"^### (.+?)\s*$")
 #: reads "Coverage" tells a reader nothing they came for.
 SHEET_ITEM = re.compile(r"^\*\*(R\d{1,2})\. (?:[\w-]+)\.\*\* (.+)$")
 #: Where the sheet's requirement list begins and ends.
-SHEET_START = "## Requirements"
-SHEET_END = "## The resolved decisions"
+SHEET_START = "### Requirements"
+SHEET_END = "### The resolved decisions"
 
 #: A standing row: `| R1 | promise | designed | delivered | evidence | standing |`.
 PAGE_ROW = re.compile(
@@ -139,7 +156,7 @@ SUMMARY_ROW = re.compile(r"^\|\s*([A-Z][^|]+?)\s*\|\s*`([●○]+)`\s*\|\s*`([�
 #: goal's membership is a ruling, so it is read from there rather than from the
 #: page: a guard that takes a bundle's scope from the document under guard can
 #: see a member spelt wrong, and can never see one quietly dropped.
-LEDGER = "spec/DECISIONS.md"
+LEDGER = "DECISIONS.md"
 #: `Goal 3 binds: R1, R6, ...` — a ruling's machine-readable membership line,
 #: one per goal of the ladder. The ledger is append-only, so a later ruling that
 #: changes a bundle appends a new line rather than editing the old one, and the
@@ -182,7 +199,7 @@ GOAL_HEAD = re.compile(
 #: before the digit test, so what remains is whatever was written as a quantity.
 ALLOWED = {
     "requirement": re.compile(r"\bR\d{1,2}\b"),
-    # C3, D8, X5 — and X3a, since DESIGN §3 splits that experiment in two. The
+    # C3, D8, X5 — and X3a, since SPEC.md §5.3 splits that experiment in two. The
     # suffix is part of the address: without it the bare digit survives the
     # strip and X3a reads as a quantity.
     "reference code": re.compile(r"\b[CDX]\d{1,2}[ab]?\b"),
@@ -215,7 +232,7 @@ ALLOWED = {
     # paths rooted at a known top-level directory are admitted, so this cannot become a
     # general exemption for a digit that merely sits near a slash: a bare quantity in
     # prose still fails, and so does a path to somewhere this repository does not have.
-    "repo path": re.compile(r"\.{0,2}/?(?:bench|spec|tickets|verification)/[\w./-]+"),
+    "repo path": re.compile(r"\.{0,2}/?(?:bench|tickets|verification)/[\w./-]+"),
 }
 
 DIGIT = re.compile(r"\d")
@@ -624,8 +641,29 @@ def check_goal(number: int, block: str, ruled: list[str], rows, declared) -> lis
     return findings
 
 
-def check_digits(text: str, rows, promises, owned_extra: list[str]) -> list[str]:
-    """Every digit an address. The counts the guard itself computes are its own."""
+def standing_bounds(text: str) -> tuple[int, int]:
+    """0-based `(start, end)` line indices of the page's own standing report.
+
+    Falls back to the whole page when either marker is absent, which is what
+    keeps this a no-op for a page that never adopted them — the test fixtures
+    below, and any future page shaped like the pre-2026-09-01 one.
+    """
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.startswith(STANDING_START)), 0)
+    end = next(
+        (i for i, line in enumerate(lines) if i > start and line.startswith(STANDING_END)),
+        len(lines),
+    )
+    return start, end
+
+
+def check_digits(text: str, rows, promises, owned_extra: list[str], offset: int = 0) -> list[str]:
+    """Every digit an address. The counts the guard itself computes are its own.
+
+    `text` is the standing window, not necessarily the whole page; `offset` is
+    the 0-based line the window starts at, so a reported line number still
+    points at the real file rather than counting from the window's own top.
+    """
     designed = [d for _, _, d, _, _, _ in rows]
     delivered = [d for _, _, _, d, _, _ in rows]
     evidence = [e for _, _, _, _, e, _ in rows]
@@ -649,7 +687,7 @@ def check_digits(text: str, rows, promises, owned_extra: list[str]) -> list[str]
         for pattern in ALLOWED.values():
             stripped = pattern.sub(" ", stripped)
         if DIGIT.search(stripped):
-            findings.append(f"DIGIT line {n}: {line.strip()}")
+            findings.append(f"DIGIT line {n + offset}: {line.strip()}")
     return findings
 
 
@@ -665,6 +703,11 @@ def run(repo: Path) -> int:
             return 1
 
     text = page.read_text(encoding="utf-8")
+    # BASELINE and DIGIT read only the page's own standing window — see
+    # STANDING_START/STANDING_END — so the rest of the landing page this file
+    # folded into (2026-09-01) can carry ordinary dates and numbers unpoliced.
+    window_start, window_end = standing_bounds(text)
+    window_text = "\n".join(text.splitlines()[window_start:window_end])
     # The goal block's rows open exactly like standing rows. Split first, so
     # every check below reads the half it was written for.
     outside, goals = goal_split(text)
@@ -695,10 +738,10 @@ def run(repo: Path) -> int:
         + check_coverage(declared, rows, promises)
         + check_tokens(rows)
         + check_bars(outside, rows)
-        + check_baseline(repo, text)
+        + check_baseline(repo, window_text)
         + check_tickets(repo, rows)
         + check_ladder(repo, goals, rows, declared)
-        + check_digits(text, rows, promises, owned)
+        + check_digits(window_text, rows, promises, owned, offset=window_start)
     )
 
     if findings:

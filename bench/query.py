@@ -163,7 +163,7 @@ def main():
                     "n": len(hits), "keys": keys, "latency_ms": [],
                     # No title: a committed artifact names a library document by its
                     # item key and never by its title or filename (ruling 2026-08-31,
-                    # spec/DECISIONS.md). The key is the identifier; the title was only
+                    # DECISIONS.md). The key is the identifier; the title was only
                     # ever there to make a hit list readable at a glance.
                     "hits": [{"itemKey": h.get("itemKey"), "score": h.get("score"),
                               "source": h.get("source")}
@@ -177,7 +177,7 @@ def main():
                      a.backend, pass_no, q[:40], len(hits), dt_ms)
 
     # Three populations, reported separately and never silently pooled. The decision rule
-    # (DESIGN §3) is about steady-state query cost, so it reads `warm`; `cold` is kept
+    # (SPEC.md §5.3) is about steady-state query cost, so it reads `warm`; `cold` is kept
     # because a first-touch tail an order of magnitude worse is itself a finding, and
     # `all` is kept so nobody has to recombine them by hand to check.
     out["latency"] = {"cold_pass": summarize(cold),

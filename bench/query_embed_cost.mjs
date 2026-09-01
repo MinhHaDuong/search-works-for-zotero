@@ -6,9 +6,9 @@
 // question and they do not have the same answer: a GPU erases the build cost and leaves the
 // query cost untouched, because at batch 1 there is nothing left to parallelise.
 //
-// Both numbers matter, and the second one is the one DESIGN.md §2.9 budgets: "embed 20–50 ms"
+// Both numbers matter, and the second one is the one SPEC.md §5.2.9 budgets: "embed 20–50 ms"
 // inside a 300–700 ms typical query, and "~120 MB of query model" inside the ratified 300 MB
-// server RSS of CONSTRAINTS.md C3. A model that misses either bound is unshippable on the
+// server RSS of SPEC.md C3. A model that misses either bound is unshippable on the
 // default path no matter how well it retrieves.
 //
 // Two properties make the measurement mean something:
@@ -141,7 +141,7 @@ writeFileSync(
     {
       what: 'query-time embedding cost at batch 1 — the cost every semantic query pays',
       when: new Date().toISOString(),
-      why: 'DESIGN.md §2.9 budgets 20–50 ms and ~120 MB for the query model; a model that misses either bound is unshippable on the default path however well it retrieves',
+      why: 'SPEC.md §5.2.9 budgets 20–50 ms and ~120 MB for the query model; a model that misses either bound is unshippable on the default path however well it retrieves',
       runtime: '@huggingface/transformers in Node (ONNX), the runtime zoteus ships',
       batch: 1,
       reps: REPS,

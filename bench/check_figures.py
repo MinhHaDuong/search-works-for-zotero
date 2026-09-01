@@ -53,20 +53,20 @@ REPO = Path(__file__).resolve().parent.parent
 PROSE = {
     "readme": ["README.md"],
     "sync": ["SYNC.md"],
-    "design": ["spec/DESIGN.md"],
-    "requirements": ["spec/REQUIREMENTS.md"],
-    # Ticket 0160: CONSTRAINTS.md quotes 0012's sequence-probe figures as "measured" —
+    "design": ["SPEC.md"],
+    "requirements": ["SPEC.md"],
+    # Ticket 0160: SPEC.md quotes 0012's sequence-probe figures as "measured" —
     # C1's two-sequences sentence and C1's since=0 scoping bullet — and was the one live
     # instance the first pass of that ticket missed, because its figures use space
     # thousands with no decimal comma, so a decimal-comma grep returns zero. A scan finds
     # figures only in the shape it was written for.
-    "constraints": ["spec/CONSTRAINTS.md"],
+    "constraints": ["SPEC.md"],
     # The ratification ledger quotes measured figures while a ruling is pending, and until
     # 2026-08-29 it was the one prose document with no entry here — so every number in it
     # was unguarded, and the X1 entry drifted onto a superseded run within a day of being
     # written. An append-only ledger is the worst place for a stale figure: a ratified
     # entry is never edited again, so a wrong number there becomes permanent.
-    "decisions": ["spec/DECISIONS.md"],
+    "decisions": ["DECISIONS.md"],
     # verification/ reports settle a factual question and quote artifact figures to do
     # it, so they need the guard as much as the tracker does. The map is hand-listed,
     # which fails asymmetrically: removing a guarded file is loud, a new file ARRIVING
@@ -277,7 +277,7 @@ FIGURES = [
      {"t0008": "At 8x it is {} ms of the"}),
     # ---- 0001, the like-for-like comparison ----
     # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
-    # (spec/DECISIONS.md): the §5 prose that quoted these figures is gone.
+    # (DECISIONS.md): the §5 prose that quoted these figures is gone.
     ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
      {"t0001": None, "readme": "one corpus of {} passages"}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
@@ -298,7 +298,7 @@ FIGURES = [
     ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0,
      {"requirements": "over {} codepoints"}),
     # ---- 0012, the two version sequences ----
-    # CONSTRAINTS.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
+    # SPEC.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
     # 410 versus 0..25 036" — plus the entries-total in the since=0 scoping bullet. Anchored,
     # not presence-only: "0" and "25 036" both recur as bare small numbers elsewhere in the
     # document, so a bare containment check would stay green with either one stale.
@@ -323,7 +323,7 @@ FIGURES = [
     # duplicate-value case a bare presence check cannot see.
     ("0140-model-windows/candidate-windows.json", "min_window", 0,
      {"design": "window is {} tokens, so the minimum never binds"}),
-    # ---- 0140, the passage census. §2.9's count is a measurement, and these anchors
+    # ---- 0140, the passage census. §5.2.9's count is a measurement, and these anchors
     # are what make a re-measurement propagate: re-run the census, and every quoted
     # figure below goes stale together instead of drifting one by one.
     ("0140-passage-census/census.json", "summary.passages_total", 0,
@@ -477,7 +477,7 @@ FIGURES = [
     ("0025-x2-stopwordless/zotero-native-baseline.json", "matches_per_query.median", 0,
      {"t0025": "the median query matches {} items"}),
     # ---- The library-derived droplist sweep. Three figures decide the design: the
-    # threshold DESIGN §3 names and does not reach the budget at, and the working policy's
+    # threshold SPEC.md §5.3 names and does not reach the budget at, and the working policy's
     # cost and fidelity. Every anchor head here ends in a non-digit on purpose — `p50 ` and
     # `p95 ` would be glued to the value by despace(), per the note above.
     ("0025-x2-stopwordless/df-droplist-sweep.json", "threshold_sweep.df_ge_50pct.p95_ms", 1,

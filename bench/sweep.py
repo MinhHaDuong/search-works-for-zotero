@@ -304,7 +304,7 @@ class RealExecutor:
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None
     #: Where a fidelity cell's raw vectors are persisted, keyed by (model, fidelity
-    #: driver version) — ticket 0263: they are experiment X8's CPU side (DESIGN §3),
+    #: driver version) — ticket 0263: they are experiment X8's CPU side (SPEC.md §5.3),
     #: and ticket 0264's GPU side reads the same convention to score one arm's vectors
     #: against the other's. Must stay addressable after scoring, not discarded with a
     #: tmp dir. `None` keeps the old ephemeral-tmp-dir behaviour (the sole path any

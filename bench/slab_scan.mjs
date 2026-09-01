@@ -4,9 +4,9 @@
 // Three layouts, same top-30 selection, same stored-norm dot product (norms kept beside
 // the vectors so cosine needs no renormalization pass):
 //   rows    — per-row BLOBs read out of SQLite, the layout upstream has today;
-//   slab    — one contiguous Float32Array, the derived-sidecar layout DESIGN §2 commits to;
+//   slab    — one contiguous Float32Array, the derived-sidecar layout SPEC.md §5.2 commits to;
 //   int8    — the same slab quantized to Int8 with per-vector scales, integer dot.
-// The rule this feeds (DESIGN.md §3, X1): int8 ships only if recall@30 >= 0.98, pool <=
+// The rule this feeds (SPEC.md §5.3, X1): int8 ships only if recall@30 >= 0.98, pool <=
 // 32x topK, AND scan+rerank <= 400 ms at 650k; the float32 slab is the permanent
 // fallback. This driver measures the timing clause for all three layouts; the RECALL
 // clause is deliberately not measured here — synthetic isotropic vectors cannot exhibit
@@ -161,7 +161,7 @@ for (const N of Ns) {
 
 const out = {
   probe: 'ticket 0025 X1 (timing half) — full-scan top-30 cost per vector layout',
-  rule: 'DESIGN.md §3 X1 timing clause: scan+rerank <= 400 ms at 650k; float32 slab is the permanent fallback',
+  rule: 'SPEC.md §5.3 X1 timing clause: scan+rerank <= 400 ms at 650k; float32 slab is the permanent fallback',
   not_measured_here:
     'the recall clause (int8 recall@30 >= 0.98 at pool <= 32x topK) — synthetic isotropic ' +
     'vectors cannot exhibit the anisotropy that decides it; it runs on the workstation ' +

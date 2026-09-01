@@ -1,4 +1,4 @@
-# X2 (ticket 0014, DESIGN §3) — the query population for the stopword-less OR p95.
+# X2 (ticket 0014, SPEC.md §5.3) — the query population for the stopword-less OR p95.
 #
 # What this measures. Deleting the stoplist means every one of these 29 English words
 # now reaches the OR-query instead of being thrown away:

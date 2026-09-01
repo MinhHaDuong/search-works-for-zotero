@@ -17,7 +17,7 @@ they quantize the small angle away entirely, which is exactly how an angle of
 
 Three properties make the projection admissible here where a data-derived reduction
 is not. It is **oblivious**: `R` is drawn from a published seed, so it carries no
-corpus, which SECURITY.md's asset list requires of anything shipped in a file
+corpus, which SPEC.md's asset list requires of anything shipped in a file
 handed out. It is **reproducible**: both machines derive the same `R` from the same
 seed, with no basis to transmit. And its guarantee is **distribution-free**, so the
 anisotropy that broke the sign-bit argument (0008's dead dimensions) does not

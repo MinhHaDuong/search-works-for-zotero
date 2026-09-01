@@ -3,7 +3,7 @@
 
 `verification/SMOKE-1.10.0.md` recorded one session driven by hand. This is the
 repeatable form: each check names the requirement clause it exercises, states what
-would falsify it, and lands in a JSON artifact so `spec/README.md` can cite a run
+would falsify it, and lands in a JSON artifact so `README.md` can cite a run
 rather than a memory.
 
 What it is NOT: a requirements test suite. R-items are sets of MUST clauses, and a
@@ -192,7 +192,7 @@ def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
         ms = round((time.perf_counter() - t) * 1000, 1)
         hits = r.get("hits") or []
         # Keys, not titles: a committed artifact names a library document by its item
-        # key and never by its title or filename (ruling 2026-08-31, spec/DECISIONS.md).
+        # key and never by its title or filename (ruling 2026-08-31, DECISIONS.md).
         runs.append({"q": q, "wall_ms": ms, "hits": len(hits),
                      "scores": [h.get("score") for h in hits],
                      "keys": [h.get("itemKey") or h.get("key") for h in hits]})
@@ -255,7 +255,7 @@ def main() -> None:
         "probe": "smoke the reviewed upstream baseline against a real Zotero library, by requirement",
         "not_a_test_suite": (
             "each check exercises ONE clause of one requirement, once, against one library. It "
-            "earns a spec/README row the word 'measured' rather than 'code' — something ran — and "
+            "earns a README row the word 'measured' rather than 'code' — something ran — and "
             "nothing stronger."),
         "upstream_version": version or None,
         "server_info": server_info,
