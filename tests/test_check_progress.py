@@ -1,6 +1,6 @@
 """The progress guard, exercised against fixture repositories.
 
-Same shape as `test_check_governance.py` and `test_check_terminology.py`: each
+Each
 test builds a small repository under tmp_path and runs the real `run()` against
 it. The defects worth catching live in the wiring — a sheet that is never
 opened, a page whose rows stopped parsing — and a test that only ever feeds a
