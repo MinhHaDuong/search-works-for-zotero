@@ -2,6 +2,7 @@
 Title: smoke_upstream asserts R28, a requirement the sheet no longer carries
 Created: 2026-08-31
 Author: claude
+Closed: autoclosed — PR #153
 
 --- log ---
 2026-08-31T15:26Z claude created
@@ -9,6 +10,7 @@ Author: claude
 
 2026-08-31T19:45Z claude note THE SMOKE WAS NOT RE-RUN at v1.12.0, honouring ticket 0504's repair-before-re-run criterion: verification/UPSTREAM-1.12.0-REREAD.md is a source read only, so it settles four rows as code evidence and can upgrade none to measured. One consequence for the repair's ordering: ticket 0520 now depends on this ticket, because R10 and R23 keep their measured evidence only if a repaired smoke re-runs at the new baseline. Unrepaired, the bump silently demotes them to code
 2026-09-01T12:57Z REPAIRED. bench/smoke_upstream.py's check relabelled R28 -> R15 (DECISIONS.md: R28 into R15's uninstall clause, 2026-08-31); README.md's R15 row now cites the check by name instead of borrowing its result silently; a new guard, tests/test_smoke_upstream_requirements.py, cross-checks every requirement label in smoke_upstream.py against SPEC.md's live requirements list, red on the R28 case before the fix and green after. make check green
+2026-09-01T13:21Z MinhHaDuong closed — autoclosed — PR #153
 --- body ---
 ## Context
 

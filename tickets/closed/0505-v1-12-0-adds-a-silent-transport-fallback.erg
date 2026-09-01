@@ -2,6 +2,7 @@
 Title: v1.12.0 adds a silent transport fallback SECURITY.md's egress account does not cover
 Created: 2026-08-31
 Author: claude
+Closed: autoclosed — PR #153
 
 --- log ---
 2026-08-31T14:57Z claude created
@@ -9,6 +10,7 @@ Author: claude
 
 2026-08-31T19:45Z claude note THE V1.12.0 BEHAVIOUR IS NOW READ AT SOURCE, which this ticket's fourth exit criterion requires before anything is written down. verification/UPSTREAM-1.12.0-REREAD.md, R10 section, at b05ed69. The changelog's wording is true of the router's general surface and false of a running crawl: a build pins its API once (build.ts:315, reasoning at :310-314) and every read in the build path carries that pin, and a pinned read never consults capabilities.localApi (library-router.ts:78), so a local-pinned build whose desktop app stops answering FAILS with no stamp written rather than continuing over the cloud. What the fallback does reach is the live-routed surface -- getItem, getItemChildren, listCollections take no pin (library-router.ts:116-133,156-163) -- which is the router's ordinary preference rule and predates v1.12.0. It cannot fire without a cloud key at all (build.ts:177; library-router.ts:129-130). What v1.12.0 added is a CAUSE and a REPORT, not a path: the full-text pass can itself saturate the local API, and the degradation is now visible as localApiDegradedAt. So the question this ticket poses stands and its scope narrows: the gap is real on the live-routed surface and does not reach indexing
 2026-09-01T13:03Z RULED 2026-09-01: disclosure only, no new requirement. DECISIONS.md carries the ruling; SPEC.md section 6 gains a read-transport-fallback paragraph plus a table row, both citing the ruling. R10's two-paths count is not amended -- the fallback is metadata-only (getItem/getItemChildren/listCollections), gated on a cloud key already configured, and does not reach an index build. make check green
+2026-09-01T13:21Z MinhHaDuong closed — autoclosed — PR #153
 --- body ---
 ## Context
 
