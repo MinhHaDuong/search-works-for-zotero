@@ -1,6 +1,7 @@
 # STATE — Search Works for Zotero
 
-*Reconciled 2026-08-31, and held under forty lines by ruling of the same day.*
+*Reconciled 2026-08-31, and held under forty lines by ruling of the same day.
+Last updated 2026-09-01.*
 
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
@@ -33,8 +34,13 @@ would show up in a diff sent upstream.
 ## Handoff
 
 `main` is clean, `make check` green on the system interpreter, no `.venv`
-needed. Two things a session gets wrong by default. **Work may not be on
+needed. Three things a session gets wrong by default. **Work may not be on
 `main`**: fetch and sweep every branch before reading the working tree as the
-whole picture. And **the reviewed baseline is deliberately behind upstream** —
+whole picture. **The reviewed baseline is deliberately behind upstream** —
 ticket 0520 owns the bump, held until `DECISIONS.md`'s awaiting trigger is
-ratified, so `make upstream-status` STALE is expected.
+ratified, so `make upstream-status` STALE is expected. And **the PR 2
+measurement campaign runs on padme, not here** — frozen substrates, both
+repos, and the instruction were staged there 2026-09-01; its record lands on
+branch `t0091-pr2-expansion` (state: ticket 0091's log and
+`verification/0091-SERIES-CHECKPOINT.md`). Harvest that branch before
+re-measuring anything diacritics-related on this machine.
