@@ -2,6 +2,7 @@
 Title: Tranche 2: conductor election and lease machinery
 Created: 2026-09-01
 Author: minh
+Closed: autoclosed — PR #152
 
 --- log ---
 2026-09-01T16:30Z claude created, child of 0550
@@ -23,6 +24,7 @@ Author: minh
 2026-09-01T15:20Z claude note TWO REAL FINDINGS from the red tests, both fixed in the second commit rather than worked around. (1) `Conductor.standDown()` and the election's deposition path both reached the worker kill, racing to name one event: a deliberate shutdown reported itself as `lease lost`, whichever fired first. The callback now carries a `DepositionReason` from the site that knows, and `standDown` no longer repeats the kill. (2) The first draft of the "a P0 that never checks kills nothing" control was constructed wrong — it advanced past the TTL, which is also past the cadence, so the check WAS due and the control asserted a false premise. Rebuilt as the cadence-above-TTL mutant described above, which tests the same claim and can actually come out the other way
 
 2026-09-01T15:20Z claude note R13's DUPLICATE-COMPUTE BOUND LEFT UNTICKED, honestly. The checkbox reads "failover duplicate work bounded per SPEC's honest R13 restatement" — "never committed twice, and duplicate compute bounded by one embed batch plus one in-flight document's re-fetch and re-segmentation per failover". The `never committed twice` half is demonstrated: the deposed conductor's conditional UPDATE affects zero rows and its write body never executes. The compute half CANNOT be demonstrated in this tranche, because there is no embed batch and no document fetch or segmentation to duplicate — those arrive in tranches 3 and 4. What is built is the mechanism the whole bound rests on. The box stays unticked rather than being read down to the half that was achievable
+2026-09-01T13:18Z MinhHaDuong closed — autoclosed — PR #152
 --- body ---
 ## Context
 
