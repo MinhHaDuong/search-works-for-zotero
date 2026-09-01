@@ -1601,7 +1601,7 @@ trời gây ra tại điểm đấu nối không vượt quá giá trị 03 %.
 9. Mức nhấp nháy điện áp do nhà máy điện gió, nhà máy điện mặt trời gây ra
 tại điểm đấu nối không được vượt quá giá trị quy định tại Điều 9 Thông tư này.
 Mục 5
-TRÌNH TỰ THỎA THUẬN ĐẤU NỐI
+TRÌNH TỰ THỎA THUẬN ĐẤU NỐI
 Điều 43. Trình tự thoả thuận đấu nối
 1. Khi có nhu cầu đấu nối mới hoặc thay đổi điểm đấu nối hiện tại, khách
 35

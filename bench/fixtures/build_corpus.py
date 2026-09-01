@@ -27,6 +27,7 @@ import logging
 import os
 import shutil
 import subprocess
+import unicodedata
 import urllib.request
 from pathlib import Path
 
@@ -171,16 +172,26 @@ DOCS = [
 ]
 
 
-def _download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None = None) -> None:
+def _download_atomic(
+    url: str, dest: Path, timeout: float, magic: bytes | None = None, min_size: int = 0
+) -> None:
     """Fetch `url` to `dest` via a temp file + rename, so a mid-transfer
     failure (network drop, timeout) never leaves a truncated file sitting at
     `dest` for a later run to trust unconditionally. `magic`, if given, is
-    checked against the first bytes before the rename -- a short or corrupt
-    response fails loudly here rather than silently poisoning the cache."""
+    checked against the first bytes before the rename; `min_size` rejects an
+    implausibly small response (e.g. an HTML error page served with a 200) --
+    either failing loud here beats silently poisoning the cache. tessdata
+    files have no stable magic-byte prefix to check (inspected one directly:
+    it opens with a version/count header, not fixed bytes), which is why
+    `ensure_tessdata` below uses `min_size` instead of `magic`."""
     tmp = dest.with_suffix(dest.suffix + ".partial")
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req, timeout=timeout) as resp, open(tmp, "wb") as fh:
         shutil.copyfileobj(resp, fh)
+    size = tmp.stat().st_size
+    if size < min_size:
+        tmp.unlink()
+        raise SystemExit(f"{url}: got {size} bytes, expected at least {min_size} -- download corrupt")
     if magic is not None:
         head = tmp.read_bytes()[: len(magic)]
         if head != magic:
@@ -195,7 +206,9 @@ def fetch_pdf(attachment_key: str, cache_dir: Path, timeout: float) -> Path:
         return dest
     url = ZOTERO_FILE_URL.format(key=attachment_key)
     log.info("fetching %s", url)
-    _download_atomic(url, dest, timeout, magic=b"%PDF")
+    # 1 KB floor: PDF structural overhead (xref table, trailer, at least one
+    # object) puts even a near-empty real PDF above this.
+    _download_atomic(url, dest, timeout, magic=b"%PDF", min_size=1_000)
     return dest
 
 
@@ -204,6 +217,8 @@ def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
     machine's system tesseract install doesn't already have it (e.g. only
     eng/fra here)."""
     system_check = subprocess.run(["tesseract", "--list-langs"], capture_output=True, text=True)
+    if system_check.returncode != 0:
+        raise SystemExit(f"tesseract --list-langs failed (exit {system_check.returncode}): {system_check.stderr.strip()}")
     if tess_lang in system_check.stdout.splitlines():
         # Empty string tells tesseract to use its own default search path.
         return Path()
@@ -213,7 +228,9 @@ def ensure_tessdata(tess_lang: str, cache_dir: Path, timeout: float) -> Path:
     if not dest.exists():
         url = TESSDATA_FAST_URL.format(lang=tess_lang)
         log.info("fetching tessdata for %r (not in system tesseract) from %s", tess_lang, url)
-        _download_atomic(url, dest, timeout)
+        # 100 KB floor: the smallest tessdata_fast files are several hundred
+        # KB; anything under this is an error page or a truncated transfer.
+        _download_atomic(url, dest, timeout, min_size=100_000)
     return local
 
 
@@ -260,8 +277,12 @@ def extract_text(pdf_path: Path, lang: str, cache_dir: Path, timeout: float) -> 
             density,
             len(pages),
         )
-        return ocr_pdf(pdf_path, lang, cache_dir, timeout)
-    return text
+        text = ocr_pdf(pdf_path, lang, cache_dir, timeout)
+    # NFC, not whatever pdftotext/tesseract happened to emit -- so a future
+    # re-run (different tesseract build, a replaced Zotero attachment) can't
+    # silently commit NFD text under the same doc id that looks identical
+    # rendered but fails exact/substring matches against NFC query text.
+    return unicodedata.normalize("NFC", text)
 
 
 def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict:

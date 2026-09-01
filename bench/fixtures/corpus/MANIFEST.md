@@ -15,8 +15,8 @@ states which:
 
 - **Age.** Published before 1931, which is the current (2026) US 95-year
   bright-line: anything published in 1930 or earlier is unconditionally
-  public domain in the US regardless of the author's death date. All five
-  MUST/SHOULD-tier classics below clear this by a wide margin (1838–1926),
+  public domain in the US regardless of the author's death date. All four
+  classics below (Cournot, Walras, Soddy, Neurath) clear this by a wide margin (1838–1926),
   and each author's death year is also recorded, so the entry is clear even
   under a life+70 reading — except Soddy (1877–1956), whose UK/EU term runs
   to 31 Dec 2026; flagged in his entry.
@@ -26,9 +26,15 @@ states which:
   their official translations from copyright protection outright, with no
   age requirement. A government Decision or Circular is such a document
   regardless of its year, which is why the Vietnamese items below are 2016
-  and 2017 rather than pre-1931.
+  and 2017 rather than pre-1931. Unaddressed: whether the Government
+  Portal's own site terms of use could still restrict redistribution of the
+  PDF file as a file, separately from the text's copyright status, and
+  whether the scan's non-text elements (national emblem, e-signature
+  certificate block) fall under a different, non-copyright regime. Neither
+  is a copyright question, so Article 15.2 doesn't settle either — flagged
+  rather than resolved.
 
-The library queried is the author's own (Zotero userID 95318, 7,541
+The library queried is the author's own (Zotero userID 95318, 7 541
 top-level items, publicly readable without a key) — "preferably from my
 lib" per the ticket's directive. Every document below was found there; no
 external sourcing was needed for the languages it covers.
@@ -94,7 +100,7 @@ hash detects drift, it does not prevent it.
     aside.
   - **Chinese, Spanish, Hindi.** Zero items in the library are tagged with
     these languages at all (`zh`/`es`/`hi` prefix match on the `language`
-    field, checked against all 7,541 items). Not "no PD candidate found" —
+    field, checked against all 7 541 items). Not "no PD candidate found" —
     no candidate of any kind. Set aside; would need external sourcing.
   - **Arabic.** Four items tagged, all modern UNFCCC/CBD documents, none
     public domain. Set aside.

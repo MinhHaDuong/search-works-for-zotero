@@ -118,7 +118,7 @@
     "text_path": "corpus/core/vi/vn-circular-25-2016-ttbct-transmission/text.txt",
     "source_pdf_sha256": "bf7c42d7cda3d8da6d3947c21cfa095fb05dfc7d4e65b78a63f7117d5b0e35b3",
     "page_count": 106,
-    "char_count": 232452,
+    "char_count": 232451,
     "page_length_chars_min": 0,
     "page_length_chars_median": 2404,
     "page_length_chars_max": 3045
