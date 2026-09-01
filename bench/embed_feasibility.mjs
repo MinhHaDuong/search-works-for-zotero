@@ -68,13 +68,22 @@ const meanChars = Math.round(texts.reduce((a, t) => a + t.length, 0) / texts.len
 
 const models = [];
 for (const token of opt.models.split(',').map((s) => s.trim())) {
-  const { repo: model, pooling } = resolveModel(token);
+  const { repo: model, pooling, normalize } = resolveModel(token);
   if (!pooling) {
     // Never silently 'mean': that default is wrong for four of the six
     // candidates, and wrong pooling reads as the model being worse.
     throw new Error(
       `[pooling] ${token} declares no pooling. Add it to models.json (read it from ` +
         `the model's own 1_Pooling/config.json) before measuring with it.`,
+    );
+  }
+  if (normalize === null) {
+    // Same stop as pooling, for the same reason. `unknown` in the registry means the
+    // model card could not be read, and guessing `true` there is how a declared axis
+    // becomes a driver's opinion — the defect ticket 0486 was filed for.
+    throw new Error(
+      `[normalize] ${token} declares no normalize. Add it to models.json (read it from ` +
+        `the model's own modules.json) before measuring with it.`,
     );
   }
 
@@ -84,12 +93,14 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
 
   // One warm batch before timing: the first call pays graph initialisation, which a user
   // pays once per session rather than once per passage.
-  await extractor(texts.slice(0, BATCH), { pooling, normalize: true });
+  const tWarm = performance.now();
+  await extractor(texts.slice(0, BATCH), { pooling, normalize });
+  const warmMs = performance.now() - tWarm;
 
   const t1 = performance.now();
   let dim = 0;
   for (let i = 0; i < texts.length; i += BATCH) {
-    const out = await extractor(texts.slice(i, i + BATCH), { pooling, normalize: true });
+    const out = await extractor(texts.slice(i, i + BATCH), { pooling, normalize });
     dim = out.dims[out.dims.length - 1];
   }
   const perRow = (performance.now() - t1) / texts.length;
@@ -99,8 +110,19 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
     // for. They differ whenever a model is loaded from a mirror.
     model,
     model_id: token,
+    // The two per-model axes the run APPLIED, recorded rather than inferred. Ticket
+    // 0262 put `normalize` in the registry and ticket 0486 made the drivers read it;
+    // an artifact that cannot say which geometry produced it is not comparable with
+    // one that can, and neither of these two rows could say before.
+    pooling,
+    normalize,
     dim,
+    // This driver already had the discipline; ticket 0260 made it declarable. `warm`
+    // is set from the code path that ran, never by hand, so an artifact can say which
+    // kind of run produced it — and one that cannot say is as bad as one that lies.
+    warm: true,
     load_ms: +loadMs.toFixed(0),
+    warm_ms: +warmMs.toFixed(0),
     ms_per_passage: +perRow.toFixed(1),
     passages_per_min: Math.round(60000 / perRow),
     hours_to_index: +((SCALE * perRow) / 3600000).toFixed(2),

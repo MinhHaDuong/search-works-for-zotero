@@ -439,6 +439,58 @@ EXEMPT_MARKER = "model-id-literal:"
 
 POOLING_LITERAL = re.compile(r"""(?<![\w.])['"]?pooling['"]?\s*[:=]\s*['"]""")
 
+#: `normalize: true` — the third axis of the same class, and the one that stayed
+#: larval longest. Ticket 0262 added the column and its well-formedness check;
+#: nothing ever read it, so every driver kept passing a literal for two campaigns.
+#: A registry axis with no consumer is this defect's larval form: the declaration
+#: looks like coverage, and the behaviour is whatever the driver felt like.
+#:
+#: Unquoted value, unlike pooling — the mode is a string from a closed enum, this is
+#: a boolean — so the scan matches the literal `true`/`false` rather than an opening
+#: quote. Python's capitalised spellings are included because `registry.py` and the
+#: probes are Python and the same mistake reads the same way there.
+#:
+#: `normalized:` (the RESULT-file key three drivers write) and `normalize_source`
+#: (the registry's provenance field) both survive the scan for free: the character
+#: after `normalize` is `d` or `_`, and neither can begin the `['"]?\s*[:=]` that
+#: follows. That is why the pattern is written against the key's exact end rather
+#: than as a substring — checked, not assumed, and covered by a test.
+NORMALIZE_LITERAL = re.compile(
+    r"""(?<![\w.])['"]?normalize['"]?\s*[:=]\s*(?:true|false|True|False)\b"""
+)
+
+
+#: Per line, and it must carry its reason on the line — the same trade as
+#: EXEMPT_MARKER, for the same argument. Three drivers want RAW geometry on purpose:
+#: `quant_fidelity` and `recall_embed` measure what quantisation does to the vector
+#: itself, and `cross_lingual_probe` scores its own cosine, so normalising first
+#: would erase the very thing being measured. Those literals are choices. Marking
+#: them is what makes them read as choices, and `grep -rn raw-geometry: bench/` is
+#: the whole inventory of places this repo deliberately departs from the registry.
+RAW_GEOMETRY_MARKER = "raw-geometry:"
+
+
+def check_no_hard_coded_normalize(root: Path, failures: list[str]) -> None:
+    """A normalize flag written at a call site instead of resolved from the registry."""
+    for path in scanned_files(root):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            # Already reported by the id scan over the same file set.
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            if EXEMPT_MARKER in line or RAW_GEOMETRY_MARKER in line:
+                continue
+            if NORMALIZE_LITERAL.search(line):
+                failures.append(
+                    f"{path.relative_to(root).as_posix()}:{number}: names a normalize "
+                    f"flag literally. Resolve it from {REGISTRY} — whether the pooled "
+                    f"vector is L2-normalised is a property of the model, not of the "
+                    f"driver. A deliberate raw-geometry run marks the line "
+                    f"`{RAW_GEOMETRY_MARKER} <why>` instead."
+                )
+
+
 
 def template_literals(root: Path) -> set[str]:
     """Every non-empty input_template value the registry declares."""
@@ -544,6 +596,7 @@ def run(root: Path) -> int:
     check_registry(root, failures)
     check_no_hard_coded_ids(root, failures)
     check_no_hard_coded_pooling(root, failures)
+    check_no_hard_coded_normalize(root, failures)
     check_no_hard_coded_templates(root, failures)
     for failure in failures:
         logger.error("%s", failure)
@@ -552,7 +605,7 @@ def run(root: Path) -> int:
         return 1
     logger.info(
         "OK: the registry is well formed, and nothing else in bench/ names a model, "
-        "a pooling mode, or an input template"
+        "a pooling mode, a normalize flag, or an input template"
     )
     return 0
 

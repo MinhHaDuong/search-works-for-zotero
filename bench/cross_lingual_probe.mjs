@@ -66,7 +66,7 @@ function readJsonl(path) {
 const pool = readJsonl(opt.pool);
 const queries = readJsonl(opt.queries);
 
-const { id: modelId, repo: modelRepo, template, pooling } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, template, pooling, normalize } = resolveModel(opt.model);
 if (!pooling) {
   throw new Error(
     `[pooling] ${opt.model} declares no pooling. Add it to models.json before measuring.`,
@@ -90,7 +90,10 @@ async function embedAll(texts, prefix, label) {
   const t1 = performance.now();
   for (let i = 0; i < texts.length; i += BATCH) {
     const batch = texts.slice(i, i + BATCH).map((t) => `${prefix}${t}`);
-    const tensor = await extractor(batch, { pooling, normalize: false });
+    // raw-geometry: the probe computes its own cosine over the pool, so raw geometry
+    // is what it needs. Normalising first would silently change what the score is
+    // taken over. Ticket 0486.
+    const tensor = await extractor(batch, { pooling, normalize: false }); // raw-geometry: the probe scores its own cosine
     const data = tensor.data;
     dim = data.length / batch.length;
     chunks.push(Float32Array.from(data));
@@ -135,6 +138,11 @@ writeFileSync(
       query_ids: queries.map((q) => q.query_id),
       pool_rows: pool.length,
       query_rows: queries.length,
+      // The registry's declared value, beside the value this run APPLIED. They differ
+      // on purpose here (see the raw-geometry line above), and an artifact that
+      // recorded only one of them could not say whether the difference was a choice
+      // or the class recurring. Ticket 0486.
+      normalize_declared: normalize,
       normalized: false,
       load_ms: Number(loadMs.toFixed(1)),
       pool_embed_ms: Number(poolEmb.embedMs.toFixed(1)),
