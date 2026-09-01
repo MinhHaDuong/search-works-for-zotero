@@ -2421,6 +2421,37 @@ the train for filings, ticket 0488 being the documented case.
 
 ## Awaiting ratification
 
+- **When the reviewed baseline is bumped, and on what trigger (ticket 0504,
+  2026-08-31).** Upstream ships several times a day and the baseline moved two
+  releases in one of them, so "bump because upstream shipped" is a cadence this
+  repository cannot hold and does not want: a bump obliges a re-read of every
+  row on the status page, and `check_baseline` keeps the build red until that
+  re-read is done. Not bumping costs nothing today — the page is self-scoping
+  and the guard fires only after a bump — which is why the question is what
+  makes the bump worth its own price, not when upstream next releases.
+
+  The proposal is three triggers, any one sufficient. **(a) The acceptance
+  harness exists** (ticket 0032): once a row's verdict is produced by something
+  that runs, re-reading twenty-four of them stops being twenty-four judgements
+  and becomes one run. **(b) The page faces outward** — offered upstream,
+  linked from an issue, or read by anyone who did not write it — because a
+  dated page is honest scaffolding internally and a misleading claim in public.
+  **(c) A re-read establishes that a row's `delivered` verdict is wrong rather
+  than merely dated.** The third is the one this ticket's own work argues for,
+  and the argument cuts against the comfortable reading: the four rows read at
+  v1.12.0 (`verification/UPSTREAM-1.12.0-REREAD.md`) found R16 kept where the
+  page says `none`, and R12's second clause kept where the page says it fails
+  and names a pull request still in flight. The page is not merely stale there;
+  it under-reports what upstream delivered, and it names as pending a filing
+  that merged. Under-reporting is the safe direction for a specification
+  repository, which is why this is a trigger for the author to weigh rather
+  than an emergency.
+
+  What ratifying this settles is which ticket carries the bump and when it is
+  allowed to run. What it does not settle is R10's transport question (ticket
+  0505) or the smoke repair the re-run needs first (ticket 0506); both gate the
+  bump's evidence half independently of the trigger.
+
 - **Which of the prose guards come out, and whether thirteen documents is the
   right number (raised 2026-08-31 by the excess-weight ruling, which settled
   the principle and left the instances open).** Three questions the ruling
