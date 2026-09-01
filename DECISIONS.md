@@ -3277,3 +3277,34 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   to the Web API, which sends library reads to a cloud service by a path the
   user did not choose for that build. Ticket 0505 poses that separately and it
   is not part of this question.
+
+- **§5.2.2's pragma order was corrected by an agent, on a measurement, with no
+  ruling first — ticket 0556, 2026-09-01.** The section said `PRAGMA
+  auto_vacuum=INCREMENTAL` is a no-op "set any later" than the first table, and
+  listed WAL first among the connection settings. Following that order loses
+  incremental vacuum: `PRAGMA journal_mode=WAL` writes the database header too,
+  so auto_vacuum set after it is discarded with no table in the file yet.
+  Measured three times, on three SQLite versions and two clients (3.51.3 via
+  node:sqlite, 3.45.1 via python sqlite3, and again at review), each with a
+  discriminating control arm — auto_vacuum alone, no WAL, which gives
+  INCREMENTAL and so distinguishes "we set it correctly" from "it defaults that
+  way here". §5.2.2 now states the order and why it is the order.
+
+  **The question is procedural, not factual.** CLAUDE.md says rulings land in
+  this ledger first and the other documents are edited to match; SPEC.md is
+  authoritative and an agent rewrote a normative sentence in it. The precedent
+  cited against it is X1's quantizer above, which is disanalogous in the one
+  respect that matters — that was a design *substitution* (1-bit shipped where
+  the rule said int8), a choice the author owns, whereas this is a claim about
+  SQLite that is true or false independently of any ruling, and it was false.
+  Nothing ratified was overwritten: this ledger held no entry on §5.2.2.
+
+  **Default, absent a ruling: the correction stands.** It is the side the
+  measurement protects — leaving the old wording in place costs the tranche-4
+  implementer incremental vacuum silently, and 0554 is written against SPEC.md.
+  What is open is whether a measured fact correction to an authoritative
+  document may be made by an agent at all, or whether it owes a ledger entry
+  first like any ruling. If the latter, this entry is that record and wants
+  ratifying; the alternative is to revert §5.2.2 and re-land it behind a
+  ruling, which changes no code — `ledger.ts` already implements the corrected
+  order and pins all three directions with tests.
