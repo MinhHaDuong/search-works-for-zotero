@@ -2520,6 +2520,23 @@ serving, labeled. R1's promise sentence is untouched — the clause unpacks
 "whatever state it is in", it does not amend the sentence, so the standing
 row's quote holds.
 
+**2026-09-01 — hand-maintained counts carry a footnote mark, not a guard.**
+The count-claim staleness class surfaced twice in two days: "runs to R34"
+went stale the day R35 was ratified, and "these seven things" sat over eight
+bullets. The natural reflex — extend the progress guard to tie the spelled-out
+count words — was declined by the author: the guard population is already a
+cost the excess-weight ruling names, and these counts are noncritical and
+invisible to the guards by construction (a word is not a digit). Ruled
+instead: a spelled-out count that no guard recomputes carries a commercial
+footnote mark — an asterisk beside the number, and one footnote line per
+document saying what the mark means — so a reader knows which numbers are
+maintained by hand, and a session editing the sheet knows which ones to
+re-verify. Applied at adoption to the known sites: the sheet's
+numbering-and-retirement sentence, its out-of-scope count, and the standing
+page's two twenty-four tallies. A count a guard already owns (the headline
+bars, the evidence tally) never takes the mark — marking a guarded number
+would teach readers the mark means nothing.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
