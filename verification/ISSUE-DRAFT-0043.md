@@ -174,13 +174,13 @@ in one change:
    a correct, identical config, so an exact-match check will false-negative on
    working setups. This only works at full precision; nothing rescues the
    comparison once the model is 8-bit quantized. Cache the result against the
-   entry id *and* the runtime shape that actually ran (execution provider
-   actually selected, not just `auto`; ONNX runtime version), not only against
-   the configured model id. That way a driver update or a provider silently
-   falling back from GPU to CPU forces a fresh check on the next start,
-   without re-running the full comparison on every identical restart.
-   Independent of retrieval-quality benchmarking, to catch an ONNX file that
-   resolves but misbehaves on the machine actually running it.
+   entry id *and* the runtime shape that actually ran (transformers.js /
+   onnxruntime version, OS/arch, and the resolved execution provider if one
+   is ever added beyond CPU), not only against the configured model id. That
+   way a runtime upgrade forces a fresh check on the next start, without
+   re-running the full comparison on every identical restart. Independent of
+   retrieval-quality benchmarking, to catch an ONNX file that resolves but
+   misbehaves on the machine actually running it.
 
 None of this needs new migration machinery: `embedderIdentity()` already
 refuses to mix vector spaces across model changes and reports that a rebuild
