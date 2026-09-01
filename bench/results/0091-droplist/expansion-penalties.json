@@ -1,0 +1,107 @@
+{
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent"
+ },
+ "arms": [
+  {
+   "dist": "./dists/stock",
+   "label": "stock",
+   "style": "fold",
+   "length_penalty": {
+    "accented_doc": 2.2238,
+    "plain_doc": 2.2238,
+    "penalty_pct": 0
+   },
+   "aboutness": {
+    "match": "\"theorie\"",
+    "scores": {
+     "ABOUT": 2.6116,
+     "A2": 2.0346,
+     "A3": 2.0346,
+     "PASSING": 1.5772
+    },
+    "order": [
+     "ABOUT",
+     "A2",
+     "A3",
+     "PASSING"
+    ],
+    "about_beats_passing": true
+   },
+   "avgdl_contamination": {
+    "score_without_filler": 6.166,
+    "score_with_filler": 8.3177,
+    "shift_pct": 34.9
+   }
+  },
+  {
+   "dist": "./dists/armA",
+   "label": "armA",
+   "style": "dual",
+   "length_penalty": {
+    "accented_doc": 1.7226,
+    "plain_doc": 2.2508,
+    "penalty_pct": 23.5
+   },
+   "aboutness": {
+    "match": "\"theorie\"",
+    "scores": {
+     "A3": 1.9623,
+     "A2": 1.8883,
+     "PASSING": 1.5886,
+     "ABOUT": 1.2997
+    },
+    "order": [
+     "A3",
+     "A2",
+     "PASSING",
+     "ABOUT"
+    ],
+    "about_beats_passing": false
+   },
+   "avgdl_contamination": {
+    "score_without_filler": 6.166,
+    "score_with_filler": 8.5576,
+    "shift_pct": 38.8
+   }
+  },
+  {
+   "dist": "./dists/armB",
+   "label": "armB",
+   "style": "expand",
+   "length_penalty": {
+    "accented_doc": 2.2238,
+    "plain_doc": 2.2238,
+    "penalty_pct": 0
+   },
+   "aboutness": {
+    "match": "(\"theorie\" OR \"th\u00e9orie\")",
+    "scores": {
+     "ABOUT": 3.1265,
+     "PASSING": 2.862,
+     "A2": 2.4357,
+     "A3": 2.4357
+    },
+    "order": [
+     "ABOUT",
+     "PASSING",
+     "A2",
+     "A3"
+    ],
+    "about_beats_passing": true
+   },
+   "avgdl_contamination": {
+    "score_without_filler": 6.166,
+    "score_with_filler": 8.3177,
+    "shift_pct": 34.9
+   }
+  }
+ ]
+}

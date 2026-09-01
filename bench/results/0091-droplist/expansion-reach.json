@@ -1,0 +1,527 @@
+{
+ "reach": [
+  {
+   "query": "theorie generale",
+   "accented": "th\u00e9orie",
+   "stock": [
+    "GVN8ZBL8",
+    "R3KFAMIG",
+    "DH8EXSVA",
+    "2C933JHA",
+    "M2DTHZUG",
+    "J7B6FQ86",
+    "JM8NHHM8",
+    "UKVXPC5P",
+    "3FU4WF3V",
+    "CJHUAB3J"
+   ],
+   "armA": [
+    "GVN8ZBL8",
+    "CJHUAB3J",
+    "2C933JHA",
+    "ZTXRZKZP",
+    "I3GMMBEC",
+    "DH8EXSVA",
+    "386DHVX2",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "HI5DIZA3"
+   ],
+   "armB": [
+    "LKS8Q82L",
+    "GVN8ZBL8",
+    "DH8EXSVA",
+    "SK3NN2MM",
+    "ZTXRZKZP",
+    "R3KFAMIG",
+    "2C933JHA",
+    "M2DTHZUG",
+    "DET3XL5B",
+    "UUU5NQ2D"
+   ],
+   "armB_stock_overlap10": 5,
+   "armB_hits_with_accented_form": 7
+  },
+  {
+   "query": "modele d equilibre",
+   "accented": "mod\u00e8le",
+   "stock": [
+    "QNZ84WSR",
+    "R3KFAMIG",
+    "2C933JHA",
+    "C4EJHFK8",
+    "LKS8Q82L",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "WCKCETLC",
+    "VDSJLMYG",
+    "JM8NHHM8"
+   ],
+   "armA": [
+    "R3KFAMIG",
+    "QNZ84WSR",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "UA98FIYQ",
+    "DH8EXSVA",
+    "6BHG99CW",
+    "WCKCETLC",
+    "VDSJLMYG",
+    "C4EJHFK8"
+   ],
+   "armB": [
+    "QNZ84WSR",
+    "R3KFAMIG",
+    "LKS8Q82L",
+    "2C933JHA",
+    "C4EJHFK8",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "WCKCETLC",
+    "YSQHTSA5",
+    "VDSJLMYG"
+   ],
+   "armB_stock_overlap10": 9,
+   "armB_hits_with_accented_form": 9
+  },
+  {
+   "query": "developpement durable",
+   "accented": "d\u00e9veloppement",
+   "stock": [
+    "CIYZ4WTV",
+    "L74M9FXA",
+    "G7T56I29",
+    "KL4MXP56",
+    "Q5MQUGBA",
+    "M9PK4V6I",
+    "7737XL9P",
+    "577I7HMV",
+    "2CAPZ2ZJ",
+    "9Z7KM7NF"
+   ],
+   "armA": [
+    "CT7MSMSU",
+    "CIYZ4WTV",
+    "KL4MXP56",
+    "L74M9FXA",
+    "EMA4NZPC",
+    "M9PK4V6I",
+    "2CAPZ2ZJ",
+    "NDWYKG7Y",
+    "SXSJC49X",
+    "G7T56I29"
+   ],
+   "armB": [
+    "KL4MXP56",
+    "M9PK4V6I",
+    "NDWYKG7Y",
+    "EMA4NZPC",
+    "SXSJC49X",
+    "CT7MSMSU",
+    "S8ERMEE8",
+    "F4QH8JQW",
+    "9ITP36AN",
+    "7737XL9P"
+   ],
+   "armB_stock_overlap10": 3,
+   "armB_hits_with_accented_form": 10
+  },
+  {
+   "query": "nang luong tai tao",
+   "accented": "n\u0103ng l\u01b0\u1ee3ng",
+   "stock": [
+    "CPHAF3SG",
+    "RMWJHUDV",
+    "TRIX5JI6",
+    "6Q3ZJ24R",
+    "2MFLD4A4",
+    "2KKQ9VFD",
+    "TYANFIMB",
+    "QB5E2T43",
+    "YXUG4DDE",
+    "QJUB46GE"
+   ],
+   "armA": [
+    "GIGDTI5A",
+    "TS3FYVNH",
+    "Q6NZRHSS",
+    "TFLW34PS",
+    "DPSN7CSI",
+    "RYYR7KWX",
+    "YDINDFXN",
+    "FX7986D8",
+    "B6NQHSL4",
+    "URWV8J9S"
+   ],
+   "armB": [
+    "QDZHHDWK",
+    "GIGDTI5A",
+    "FPMJP2P5",
+    "889NMHQC",
+    "5IHG2IDD",
+    "CQI33YE4",
+    "Q6NZRHSS",
+    "8NI7ZA95",
+    "TYANFIMB",
+    "RMWJHUDV"
+   ],
+   "armB_stock_overlap10": 2,
+   "armB_hits_with_accented_form": 9
+  },
+  {
+   "query": "phat trien ben vung",
+   "accented": "ph\u00e1t tri\u1ec3n",
+   "stock": [
+    "M56YN2LD",
+    "TYANFIMB",
+    "EEMZJRQ2",
+    "NM7R5Z89",
+    "6UZ6L2F4",
+    "HEC9XJNF",
+    "AYZ5XL43",
+    "GKPN849L",
+    "8NI7ZA95",
+    "5IHG2IDD"
+   ],
+   "armA": [
+    "EEMZJRQ2",
+    "FX7986D8",
+    "TBPFWWTX",
+    "APHXVP74",
+    "Y62QGMKH",
+    "3E6WP23I",
+    "82SI6WCF",
+    "2CK8J43U",
+    "TD6KNNK8",
+    "X2TWIN76"
+   ],
+   "armB": [
+    "TD6KNNK8",
+    "82SI6WCF",
+    "2CK8J43U",
+    "RYYR7KWX",
+    "VT78U4AR",
+    "LUU4KD2L",
+    "L42B9ZKX",
+    "6UZ6L2F4",
+    "5IHG2IDD",
+    "YNF7CMLR"
+   ],
+   "armB_stock_overlap10": 2,
+   "armB_hits_with_accented_form": 8
+  },
+  {
+   "query": "dien luc viet nam",
+   "accented": "\u0111i\u1ec7n l\u1ef1c",
+   "stock": [
+    "8ZP7BY3E",
+    "VUCL3VTP",
+    "6UZ6L2F4",
+    "TBPFWWTX",
+    "PLSBWYL6",
+    "S4ZP47EJ",
+    "YKE92ZFZ",
+    "5PJHR79Q",
+    "6JHQSCUG",
+    "AYZ5XL43"
+   ],
+   "armA": [
+    "8ZP7BY3E",
+    "VUCL3VTP",
+    "87DGFUIU",
+    "22EQ9L84",
+    "G67GUHAL",
+    "2INY2PBU",
+    "QDZHHDWK",
+    "VN394S2N",
+    "UBNKH53H",
+    "554SQCXH"
+   ],
+   "armB": [
+    "VN394S2N",
+    "8ZP7BY3E",
+    "VUCL3VTP",
+    "22EQ9L84",
+    "S4ZP47EJ",
+    "87DGFUIU",
+    "QDZHHDWK",
+    "2INY2PBU",
+    "G67GUHAL",
+    "6UZ6L2F4"
+   ],
+   "armB_stock_overlap10": 4,
+   "armB_hits_with_accented_form": 5
+  },
+  {
+   "query": "marche de l electricite",
+   "accented": "march\u00e9",
+   "stock": [
+    "4QZRLI5M",
+    "G5M4MH5Y",
+    "3FU4WF3V",
+    "PBNHXN4Q",
+    "A2SNAFG8",
+    "7737XL9P",
+    "43BGLBTU",
+    "C4EJHFK8",
+    "I3LX55EG"
+   ],
+   "armA": [
+    "4QZRLI5M",
+    "3FU4WF3V",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "7737XL9P",
+    "A2SNAFG8",
+    "PBNHXN4Q",
+    "YX3ZZ5PX",
+    "43BGLBTU",
+    "GL4EW6II"
+   ],
+   "armB": [
+    "P9IZUNMH",
+    "3FU4WF3V",
+    "4QZRLI5M",
+    "G5M4MH5Y",
+    "PBNHXN4Q",
+    "UJSMFKCF",
+    "IRIWSNII",
+    "GQT22QQQ",
+    "A2SNAFG8",
+    "JD6WR8JB"
+   ],
+   "armB_stock_overlap10": 5,
+   "armB_hits_with_accented_form": 10
+  },
+  {
+   "query": "cout social du carbone",
+   "accented": "co\u00fbt",
+   "stock": [
+    "QNZ84WSR",
+    "43BGLBTU",
+    "62APDUYI",
+    "FHBW22XI",
+    "7737XL9P",
+    "C4EJHFK8",
+    "FDHNTRJA",
+    "QPHNI4BA",
+    "6Y9Z8YTJ",
+    "JD6WR8JB"
+   ],
+   "armA": [
+    "FHBW22XI",
+    "QNZ84WSR",
+    "7737XL9P",
+    "QPHNI4BA",
+    "RNSR2MPW",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "62APDUYI",
+    "ZST4R564",
+    "43BGLBTU"
+   ],
+   "armB": [
+    "QNZ84WSR",
+    "MCR55KTK",
+    "43BGLBTU",
+    "K6ISXUI2",
+    "62APDUYI",
+    "FHBW22XI",
+    "XRWZU4DZ",
+    "C4EJHFK8",
+    "7737XL9P",
+    "FDHNTRJA"
+   ],
+   "armB_stock_overlap10": 7,
+   "armB_hits_with_accented_form": 9
+  },
+  {
+   "query": "eleve applique",
+   "accented": "\u00e9l\u00e8ve",
+   "stock": [
+    "NG3RW6AR",
+    "QNZ84WSR",
+    "43BGLBTU",
+    "UR5H2MVQ",
+    "9FEJVHQB",
+    "FDIUT62I",
+    "4DY2YRWA",
+    "YUPJRNVP",
+    "PNIKVVBH",
+    "YZDFJ9MS"
+   ],
+   "armA": [
+    "NG3RW6AR",
+    "UR5H2MVQ",
+    "QNZ84WSR",
+    "43BGLBTU",
+    "9FEJVHQB",
+    "FDIUT62I",
+    "4DY2YRWA",
+    "YUPJRNVP",
+    "YZDFJ9MS",
+    "3FU4WF3V"
+   ],
+   "armB": [
+    "QNZ84WSR",
+    "7737XL9P",
+    "M9MMB8C7",
+    "UR5H2MVQ",
+    "KL4MXP56",
+    "A2SNAFG8",
+    "8CPE4ZZ7",
+    "NG3RW6AR",
+    "9FEJVHQB",
+    "4DY2YRWA"
+   ],
+   "armB_stock_overlap10": 5,
+   "armB_hits_with_accented_form": 8
+  },
+  {
+   "query": "economie de l energie",
+   "accented": "\u00e9conomie",
+   "stock": [
+    "9B3TXADW",
+    "FHBW22XI",
+    "XDK5NQSF",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "FGBS9CZN",
+    "BFR4WS5T",
+    "XH98KDFT",
+    "7737XL9P",
+    "8293V5DD"
+   ],
+   "armA": [
+    "8293V5DD",
+    "M2DTHZUG",
+    "A5X3FPPU",
+    "SISCYEG6",
+    "XDK5NQSF",
+    "7US5XVGD",
+    "577I7HMV",
+    "BUC4K9DM",
+    "XH98KDFT",
+    "QNZ84WSR"
+   ],
+   "armB": [
+    "SISCYEG6",
+    "MR7Z4SPY",
+    "M2DTHZUG",
+    "J6SX7TW8",
+    "XH98KDFT",
+    "7737XL9P",
+    "BUC4K9DM",
+    "QNZ84WSR",
+    "IRIWSNII",
+    "GQT22QQQ"
+   ],
+   "armB_stock_overlap10": 2,
+   "armB_hits_with_accented_form": 10
+  }
+ ],
+ "degenerate": [
+  {
+   "query": "to be or not to be",
+   "stock": {
+    "n": 20,
+    "ms": 205.3,
+    "top3": [
+     "THXPN4ZP",
+     "KXKFFLZA",
+     "8EB4JHQL"
+    ]
+   },
+   "armA": {
+    "n": 20,
+    "ms": 561.8,
+    "top3": [
+     "TVEPMMGN",
+     "ZFEVBHN2",
+     "JTWGMZ2X"
+    ]
+   },
+   "armB": {
+    "n": 20,
+    "ms": 505.2,
+    "top3": [
+     "TVEPMMGN",
+     "ZFEVBHN2",
+     "DEV2WYTJ"
+    ]
+   }
+  },
+  {
+   "query": "the",
+   "stock": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   },
+   "armA": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   },
+   "armB": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   }
+  },
+  {
+   "query": "th\u00e9",
+   "stock": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   },
+   "armA": {
+    "n": 13,
+    "ms": 3.1,
+    "top3": [
+     "88GZ9ZSY",
+     "823UU4A6",
+     "WD9QYWQH"
+    ]
+   },
+   "armB": {
+    "n": 13,
+    "ms": 3.5,
+    "top3": [
+     "88GZ9ZSY",
+     "823UU4A6",
+     "WD9QYWQH"
+    ]
+   }
+  },
+  {
+   "query": "of the",
+   "stock": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   },
+   "armA": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   },
+   "armB": {
+    "n": 0,
+    "ms": 0,
+    "top3": []
+   }
+  }
+ ],
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent"
+ }
+}
