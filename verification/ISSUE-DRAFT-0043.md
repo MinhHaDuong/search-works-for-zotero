@@ -139,10 +139,9 @@ every quantization level I tested, and within that family `-small` is the
 closer size match for the current MiniLM default (same 384 dimensions) and
 the fastest of the six candidates benchmarked together, while `-base` trades
 roughly 2x the build time and storage for a consistent quality gain at fp32.
-I'm not suggesting a specific default —
-just flagging that these two are the ones whose cross-lingual numbers I'd
-actually trust, and why the other four's better-looking numbers come with an
-asterisk.
+I'm not suggesting a specific default, just flagging that these two are the
+ones whose cross-lingual numbers I'd actually trust, and why the other four's
+better-looking numbers come with an asterisk.
 
 ## A staging sketch, since the wiring isn't quite a one-line change
 
