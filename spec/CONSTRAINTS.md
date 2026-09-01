@@ -205,8 +205,11 @@ everything: foreground always beats background.
 - server steady-state RSS ≤ ~750 MB (replaced 2026-08-30, DECISIONS.md: the
   original figure was ratified against an English-embedder picture, and R7
   outranks it)
-- pipeline peak ≤ ~500 MB regardless of document size
-- embed worker killable/restartable at any time with zero index damage
+- pipeline worker peak ≤ ~750 MB regardless of document size (re-pinned
+  2026-08-31, DECISIONS.md: the original figure predates the multilingual
+  ruling, and under the sole-writer topology the worker is the model plus
+  one batch)
+- pipeline worker killable/restartable at any time with zero index damage
 
 The server ceiling binds per process, the scope its gate can assert; DESIGN.md
 §2.9 states the whole-machine arithmetic alongside it (DECISIONS.md,

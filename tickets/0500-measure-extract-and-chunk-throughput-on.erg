@@ -6,6 +6,7 @@ Author: Claude
 --- log ---
 2026-08-31T14:26Z Claude created
 
+2026-08-31T20:24Z scope widened by PR #127's red-team review: the CPU sweep records worker RSS with a real batch in flight (not at rest) for at least the two heaviest 8-bit multilingual candidates — the 750 MB pipeline ceiling's sufficiency rests on this, since every existing sweep priced batch size in latency only (DESIGN §2.9 now says so in terms)
 --- body ---
 ## Context
 

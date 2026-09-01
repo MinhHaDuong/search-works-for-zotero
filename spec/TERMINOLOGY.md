@@ -63,9 +63,10 @@ entry points at the question rather than settling it; rulings land in
   every full-text version in one response, compared against stored state by
   equality. Authoritative: DESIGN.md §2.4.
 - **conductor** — the one query-serving server, elected through a lease row,
-  that runs the reconcile tick and owns the single background worker, so the
-  pipeline budget does not multiply with the number of servers running.
-  Authoritative: DESIGN.md §2.5, which owns the lease timing.
+  that is the sole writer and the segmenter, runs the reconcile tick, and owns
+  the single background worker, so the pipeline budget does not multiply with
+  the number of servers running. Authoritative: DESIGN.md §2.5, which owns the
+  lease timing.
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: REQUIREMENTS.md R1 and R17; the coverage sentence
@@ -127,9 +128,10 @@ entry points at the question rather than settling it; rulings land in
   of every fixture standing in for something real. Authoritative: DESIGN.md
   §2.8 for the gates, README.md in this directory for which level decides each
   term of goal 1 (ruling: DECISIONS.md 2026-08-31).
-- **the ledger** — the durable table of item-by-stage rows, each claimed under
-  a lease, computed, then committed, where all background work is scheduled and
-  all of its state survives a restart. Authoritative: DESIGN.md §1 and §2.5.
+- **the ledger** — the durable table of item-by-stage rows, computed and then
+  committed by the conductor behind the commit guard, where all background
+  work is scheduled and all of its state survives a restart. Authoritative:
+  DESIGN.md §1 and §2.5.
 - **the locator** — what a hit hands back so the reader can cite it: the entry
   heading path first, exact character offsets, and for body hits a page number
   explicitly labelled an estimate. Authoritative: REQUIREMENTS.md R24; the
@@ -143,9 +145,10 @@ entry points at the question rather than settling it; rulings land in
   Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
   over Vietnamese content and still have no path from an English one.
   Authoritative: REQUIREMENTS.md R7.
-- **P0 / pipeline workers** — the query-serving zoteus server may have several
-  instances; the conductor owns one run-to-drain worker of each pipeline kind:
-  extract, chunk, embed. Authoritative: DESIGN.md §2.5.
+- **P0 / pipeline worker** — the query-serving zoteus server may have several
+  instances; exactly one, the elected *conductor*, is the sole writer and the
+  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
+  text, embeds, and writes nothing. Authoritative: DESIGN.md §2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: DESIGN.md §2.2.
 - **probe-don't-fix** — the freshness posture of the query path: when the tick

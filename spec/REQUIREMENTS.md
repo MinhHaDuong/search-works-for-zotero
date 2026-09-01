@@ -320,8 +320,8 @@ reported as success.
 answer queries without corrupting the index or doing the same work twice.
 
 The honest restatement accepted in DESIGN.md §2.5: no passage is ever
-*committed* twice, and duplicate *compute* is bounded at one micro-batch per
-failover. Two processes is the ordinary case rather than the exotic one — one
+*committed* twice, and duplicate *compute* is bounded at one embed batch plus
+one in-flight document's re-fetch and re-segmentation per failover. Two processes is the ordinary case rather than the exotic one — one
 per client application — so the index has to expect company.
 
 ### Normalization

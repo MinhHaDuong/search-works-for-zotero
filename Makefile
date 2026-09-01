@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models vocabulary progress help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -27,11 +27,13 @@ help:
 	@echo "make normative   — every R-item declares its RFC 2119 force"
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
+	@echo "make vocabulary  — banned vague words stay out of the chain"
+	@echo "make tickets     — erg check over the ticket store"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 
-check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress check-fast
+check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -122,6 +124,13 @@ vocabulary:
 
 progress:
 	python3 bench/check_progress.py
+
+# CLAUDE.md declares "erg check must pass" beside the guards, yet the gate ran
+# fully green on a tree where it was red (a closed ticket outside closed/,
+# t0507, 2026-08-31). The declared-mandatory check joins the target that makes
+# the declaration true.
+tickets:
+	./tickets/erg check tickets/
 
 upstream-status:
 	@set -eu; \

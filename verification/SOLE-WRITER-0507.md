@@ -396,3 +396,69 @@ or any threshold. It does not decide whether the embedding path later becomes a
 local endpoint — that is ticket 0491's, and W2 is compatible with either answer,
 since a pure worker is already the shape an endpoint client takes. It does not
 re-open the query embedder's location: in-process, per the author.
+
+---
+
+## Addendum — the second pass, the granularity precision, and the ratification (2026-08-31)
+
+A second review pass in the ratification round added five findings and one
+precision; the author adopted the proposal with them. The ruling is
+`spec/DECISIONS.md` 2026-08-31 ("the sole-writer conductor is adopted"), which
+also settles F1 (pipeline ceiling re-pinned on the 0263 evidence) and F2
+(adopted with the conductor-latency soak clause as an acceptance gate, the
+dedicated-writer fallback pre-authorized). This addendum records the review
+content; the ruling owns the decisions.
+
+**The precision: dispatch is by entry, and the conductor cuts the passages.**
+The author's clarification of W2/W2′: segmentation is seg/1's structural cut —
+a book into chapters, the dictionary into entries, proceedings into
+presentations — and the work order handed to the worker is an article-sized
+**entry** range, not a raw document and not one passage at a time; the worker
+packs its own token-budget batches inside it (W5). The passage cutter stays in
+the conductor, which commits an entry's passage rows at segmentation time —
+that is what keeps W3's property (chunk rows durable before any vector). The
+alternative reading, the worker cutting passages from raw text ranges, was
+named and declined: passage commits would then wait on the worker round-trip,
+and a deterministic decision would move into the process that decides nothing.
+W2's original wording, which read as per-passage dispatch, is superseded by
+this coarser and better grain.
+
+**F6 — the dropped orphan repair moves; it does not vanish.** W2 argued the
+lease re-check has no subject in a worker that writes nothing, and kept only
+stdin-EOF. That covers parent death, not parent deposition: a conductor that
+loses the lease while alive leaves its worker embedding — harmless to the
+store behind W4, but a live WAL reader whose long-held snapshot pins the WAL,
+while the new conductor spawns its own worker. The one-worker bound the
+ratified design enforced by that repair is then enforced by nothing. The
+restored clause: a P0 that observes it no longer holds the conductor lease
+kills its worker before anything else.
+
+**F7 — R13's honesty statement widened.** "Duplicate compute ≤ one batch per
+failover" was stated when all compute lived in workers. Under W2′ the
+conductor segments, so a conductor failover redoes the in-flight document's
+fetch and segmentation from the top (idempotent by the keyed derivations, so
+correctness holds). The bound as restated: one embed batch, plus one
+in-flight document's re-fetch and re-segmentation.
+
+**F8 — the pipe is a deadlock shape.** Windows stream up while work orders
+stream down the same pipe pair. A conductor blocked writing work orders while
+unread windows back up, against a worker blocked writing windows, is the
+classic full-duplex pipe deadlock. The rule the design now carries: the
+conductor drains reads before blocking on any write.
+
+**F9 — one worker serializes fetch and embed.** The three-kind pipeline
+overlapped I/O-bound fetching with CPU-bound embedding; the single worker
+does them in turn. Under C3's one-core budget the loss is bounded to the I/O
+overlap — probably noise, and it belongs inside ticket 0500's measurement
+rather than inside this argument. It is the one dimension where the proposal
+is slower by construction.
+
+**F10 — F5's cheaper rung, priced and declined.** The unwritten incremental
+JSON decoder is mandatory only in a process that must never materialize a
+document. Letting the *worker* call `response.json()` and window the decoded
+text would cost a known transient bounded by the library's largest attachment,
+in the process whose failure costs a restart — trading novel stream code for
+arithmetic against the pipeline ceiling. Declined: it collides with R8's
+letter ("never resident whole in any process"), and with the ceiling re-pinned
+against the multilingual candidates the headroom is not there. The incremental
+decode stays, with F5's instrument as the RSS gate's transport clause.

@@ -2281,6 +2281,75 @@ it belongs — each goal is a conjunction, no band reports partial credit — an
 the caution that produced unruled rosters is dropped, because an unruled roster
 is exactly the drift this repository has twice paid for.
 
+**2026-08-31 — the sole-writer conductor is adopted: one writer, one pipeline
+worker, dispatch by entry.** The author's ruling ("I will follow your reco"),
+on the proposal his own three-process sketch became
+(`verification/SOLE-WRITER-0507.md`) and on the second-pass review recorded in
+that artifact's addendum. This resolves the awaiting entry raised earlier the
+same day; ticket 0507 carries the propagation, executed with this entry.
+
+The topology as adopted. Exactly one process writes: the conductor — the
+elected P0 — commits ledger rows, slabs, entries, passages, FTS and the vector
+sidecar, and also runs the segmenter. One pipeline worker replaces the three
+worker kinds: it streams an attachment's text in from Zotero in bounded
+windows, it embeds, and it writes nothing — no lease, no write handle, a WAL
+reader like any sibling P0. The stage boundary survives as a write ordering:
+an item's slabs, entries and passages are committed as the text arrives,
+before any vector for it is computed, so keyword availability never waits on
+embedding and a worker death loses only the vectors in flight.
+
+Granularity, per the author's clarification in the ratification round. The
+conductor's segmentation is seg/1's structural cut — a book into chapters, the
+dictionary into entries, proceedings into presentations — and the conductor
+also cuts the passages inside each entry at commit time: deterministic token
+windows over text it is already holding. An embed order for a small input
+(record, note, annotation) carries its text outright; for body text it carries
+an entry-sized range — the slab addresses DESIGN.md §2.2 gives every passage —
+never a raw document and never one passage at a time; the worker packs its own
+token-budget batches inside the range it was handed. Moving the passage cutter
+into the worker was named and declined: it would put passage commits behind
+the worker round-trip and move a deterministic decision into the process that
+is supposed to decide nothing.
+
+F1 ruled: the pipeline ceiling is re-pinned at ≤ ~750 MB, from the same
+evidence that re-pinned the server ceiling (the 2026-08-30 entry above;
+`bench/results/0263-cpu-arm/SUMMARY.json`). The arithmetic, labelled derived:
+under this topology the pipeline worker is the smallest process that can embed
+— the model plus one batch, and the batch is the dial packed to a token budget
+— so the candidates' measured 8-bit residency band prices it directly, without
+the server's cache share. The original figure was ratified 2026-08-26 against
+an English-embedder picture and no multilingual candidate fits under it; the
+finding's alternative — chunking keeps its own process and the ceiling covers
+the smaller of the two — dissolves under this ruling, since chunking is the
+conductor's and no chunk process exists to give the ceiling to.
+
+F2 ruled: adopted with the instrument as an acceptance gate. The conductor now
+serves queries while segmenting and performing every durable write, and
+nothing has measured what that does to R6. The soak gate gains the clause:
+query latency measured on the conductor itself while it drains a full build,
+against §2.9's budget. The fallback is pre-authorized rather than left to a
+future round: if the clause fails, the durable writes move to a dedicated
+small writer process — the third process bought back — and this ruling does
+not reopen for it.
+
+The second pass adds five findings, recorded as F6–F10 in the artifact's
+addendum and propagated with the rest. F6: the orphan repair the proposal
+dropped moves rather than vanishes — a P0 that observes it no longer holds the
+conductor lease kills its worker before anything else, or the one-worker bound
+is enforced by nothing and an orphaned worker, harmless to the store, pins the
+WAL as a long-lived reader. F7: R13's honesty statement widens — duplicate
+compute is bounded by one embed batch plus one in-flight document's re-fetch
+and re-segmentation per conductor failover, since the conductor now computes
+too. F8: the full-duplex pipe is a deadlock shape, and the design carries the
+flow-control rule — the conductor drains arriving windows and records before
+blocking on any write of work orders. F9: one worker serializes fetch and
+embed; under C3's one-core budget the loss is bounded to the I/O overlap, and
+it lands in ticket 0500's measurement rather than in an argument. F10: the
+cheaper rung under finding F5 — letting the worker materialize the one
+document, bounded by the library's measured maximum — was priced and declined:
+R8's letter stays "never resident whole in any process", and the incremental
+decode keeps its instrument on the RSS gate.
+
 
 **2026-08-31 — four clarifications from the sheet review, and none moves a
 decision.** A review of `spec/REQUIREMENTS.md` returned four findings; the
@@ -2705,56 +2774,3 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   path (new origin row, signals marked stale, verify sweep, R1 from there); or
   keep the sentence as ratified and record the copy path as unsupported. The
   ruling waits for X8 — if X8 fails the bar, the question answers itself.
-
-- **The sole-writer conductor and the pure streaming worker (raised 2026-08-31,
-  from the author's own three-process sketch reviewed against the ratified
-  topology).** The 2026-08-30 ruling gave the pipeline three worker kinds, each
-  opening the store and committing its own stage's rows, plus the query servers.
-  The author's amendment is that the conductor does the writing, and that it
-  also segments: the worker streams an attachment's text in from Zotero in
-  bounded windows, the conductor decides the boundaries and writes the slabs,
-  entries and passages as they close, and the worker is then handed **ranges** —
-  the slab addresses §2.2 already gives every passage — which it embeds and
-  streams back as vectors for the conductor to commit. A book therefore crosses
-  the pipe once as text and never again; a re-embed after a model change moves
-  no text at all. Query embedding stays in-process, per the same amendment, and
-  is not reopened here.
-
-  What the change buys, in one sentence each. The vector sidecar and the ledger
-  stop being two artifacts with two writers kept in agreement by a generation
-  stamp, and become one ordering decision in one process. C3's
-  killable-at-any-time bullet becomes structural rather than argued, since a
-  worker holding no durable state cannot damage a store it never opens, and one
-  of the two mandatory orphan repairs loses its subject. And streaming chunk
-  records ahead of vectors keeps the ledger a stage boundary — resumability
-  stays at the chunk, not at the document — while delivering the structural
-  hint's first justification, keyword availability never waiting on embedding,
-  without a third process — under the amendment it is stronger than a streaming
-  order, since an item's slabs and passages are committed before any vector for
-  it is computed. The two-band frontier becomes a dispatch policy over ranges
-  rather than machinery of its own.
-
-  What it costs, and the two questions that decide it. The conductor becomes a
-  query-serving process that performs every durable write, so C3's
-  foreground-beats-background rule has to move inside it, and nothing has
-  measured query latency on a conductor draining a build against R6's budget.
-  And a single worker running a multilingual model plus a section batch makes
-  the collision between C3's pipeline ceiling and the candidates' measured
-  residency concrete: that ceiling was ratified against an English-embedder
-  picture and was explicitly left untouched when the server ceiling was re-pinned
-  on the 0263 measurements. Either it is re-pinned on the same evidence, or
-  chunking keeps its own process and the ceiling covers the smaller of the two.
-  Both questions are the author's; neither is an agent's to settle.
-
-  One clause carries the rest and is worth ratifying explicitly: the conductor
-  must never materialize a whole document. The local API answers with the text
-  inside one JSON object, so the convenient read is the one that puts a 44,9 MB
-  attachment into the process that holds the query embedder and answers queries,
-  and the arithmetic against C3's per-process ceiling says that does not fit.
-  Streaming it is ordinary work, but it is work nothing currently measures, and
-  a library of ordinary papers never exposes the omission.
-
-  The full proposal, the requirement-by-requirement review behind it, and its
-  five findings are `verification/SOLE-WRITER-0507.md`. The propagation into
-  DESIGN.md §2.4/§2.5/§2.9, TERMINOLOGY.md and SECURITY.md is ticket 0507 and
-  waits on this ruling.

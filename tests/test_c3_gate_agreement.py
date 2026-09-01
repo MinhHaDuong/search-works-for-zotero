@@ -29,3 +29,33 @@ def test_the_old_ceiling_survives_only_in_the_ledger():
     for name in ("CONSTRAINTS.md", "DESIGN.md", "REQUIREMENTS.md", "README.md"):
         text = (REPO / "spec" / name).read_text(encoding="utf-8")
         assert OLD not in text, f"spec/{name} still carries the superseded {OLD} ceiling"
+
+
+# The sole-writer ruling (DECISIONS.md 2026-08-31) re-pinned the pipeline
+# ceiling on the same 0263 evidence: the one pipeline worker is the model plus
+# one batch, and no multilingual candidate fit under the 500 MB figure ratified
+# against the English-embedder picture. Same shape as above: constraint and
+# gate carry the number together, the ledger alone keeps the old era.
+PIPELINE_CEILING = "750 MB"
+OLD_PIPELINE = "500 MB"
+
+
+def test_pipeline_constraint_and_gate_carry_the_same_ceiling():
+    constraints = " ".join((REPO / "spec" / "CONSTRAINTS.md").read_text(encoding="utf-8").split())
+    design = " ".join((REPO / "spec" / "DESIGN.md").read_text(encoding="utf-8").split())
+    assert f"pipeline worker peak ≤ ~{PIPELINE_CEILING}" in constraints, (
+        "C3's pipeline budget line does not carry the re-pinned ceiling"
+    )
+    assert f"pipeline-worker peak ≤ {PIPELINE_CEILING}" in design, (
+        "DESIGN §2.8's RSS gate does not carry the re-pinned pipeline ceiling"
+    )
+
+
+def test_the_old_pipeline_ceiling_survives_only_in_the_ledger():
+    # "500 MB" never names anything else in the chain: the token budget's 500
+    # is unitless, so the string with the unit is unambiguous drift.
+    for name in ("CONSTRAINTS.md", "DESIGN.md", "REQUIREMENTS.md", "README.md"):
+        text = (REPO / "spec" / name).read_text(encoding="utf-8")
+        assert OLD_PIPELINE not in text, (
+            f"spec/{name} still carries the superseded {OLD_PIPELINE} pipeline ceiling"
+        )

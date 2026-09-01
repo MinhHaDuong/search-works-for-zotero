@@ -44,10 +44,11 @@ fulltext entries at version 0.
 
 ## 1. What changed since v1
 
-v1's skeleton survived every lens and every critique untouched: durable
-(item × stage) ledger rows in SQLite with lease claim → compute → commit,
-control through a pipe and durable work through the database, a write-free
-query path, and two OS processes. R13 (second process), R22 (durable pause)
+v1's skeleton survived every lens and every critique with one amendment:
+durable (item × stage) ledger rows in SQLite — compute → guarded commit, the
+per-row lease claim retired by the sole-writer ruling (§2.5; DECISIONS.md
+2026-08-31) — control through a pipe and durable work through the database, a
+write-free query path, and two OS processes. R13 (second process), R22 (durable pause)
 and R17's work counters each turn out to *want* that skeleton: every one is
 a one-row concern on a substrate that already exists. Also carried over:
 census-seeded newest-first discovery (a census is a full listing, every
@@ -188,7 +189,10 @@ not.
   references, not text. Snippets re-derive from our own slab store,
   never from Zotero: gunzip one slab, slice, verify the fingerprint, and
   return null rather than wrong words on a mismatch, and slab cuts land on
-  entry boundaries, not byte counts.
+  entry boundaries, not byte counts. The slab range is also the **dispatch
+  address** (ratified 2026-08-31): an embed work order for body text carries
+  an entry-sized run of these ranges (§2.5), so text already stored never
+  crosses the pipe again.
 
 **FTS.** FTS5 with per-field columns, tokenizer `unicode61
 remove_diacritics 2`: `fts(title, abstract, creators, tags, pub, ctx, own,
@@ -349,7 +353,10 @@ author or abstract, and body text fills in behind that for hours.
 
 - **Phase B — body text.** Entry-segmented. Each item's first K passages ride
   the main frontier (band 0) and the rest queue behind it (band 1), so one
-  15 000-page PDF cannot monopolize the pipeline. K is derived from this corpus
+  15 000-page PDF cannot monopolize the pipeline. Under the sole-writer
+  topology the bands are a dispatch policy, not machinery: band 0 is the first
+  K ranges of each item in the conductor's dispatch order, band 1 the rest
+  (§2.5). K is derived from this corpus
   rather than transplanted: K = ceil(median passages per item), floor 16,
   stated in meta.
 
@@ -388,15 +395,23 @@ from there.
 
 The reconcile tick asks Zotero what changed and queues the work. It does not
 extract anything itself. It is conductor-owned (§2.5), runs every 60 s when
-idle, backs off when Zotero is unreachable, and schedules the **extract shim**,
-which runs to drain. The 60 s cadence is what delivers R35's one-minute
+idle, backs off when Zotero is unreachable, and writes work orders. **No
+document fetch happens inside the tick** (ratified 2026-08-31): the
+whole-document GET has no micro-batch boundary inside it, and a tick that
+performs one does not run for as long as the document takes, which is where
+R35's minute would go — the tick dispatches, the pipeline worker fetches
+(§2.5). The 60 s cadence is what delivers R35's one-minute
 promise, so the worst case is one full tick: a change landing just after a tick
 waits for the next. Backing off is not a violation — a Zotero that is not
-answering has nothing to report, and R35 starts its minute when it comes back. The shim talks to Zotero only. It drains the extract-stage
-ledger queue and keeps the bookkeeping that makes extraction converge, and
-converge to the latest extractor: the item cursor, the full-text census,
-extractor-version staleness, and per-attachment truncation flags. Three things
-per library.
+answering has nothing to report, and R35 starts its minute when it comes back.
+The **extract shim** — the stage adapter that talks to Zotero only — splits
+along the write line: its bookkeeping is the conductor's, since all of it is
+writing — the item cursor, the full-text census, extractor-version staleness
+(ticket 0480's class), and per-attachment truncation flags — while its one
+reading duty, the whole-document GET, is the worker's, arriving back as
+windows. The stage keeps its key: `text_hash` (§2.1) is computed over the
+stream as it passes, so nothing has to hold the document to identify it.
+Three things per library.
 
 1. **Items.** Fetch `?since=item_watermark`, the watermark scoped to
    (oid, lib). A cursor is legitimate here because library versions are
@@ -498,9 +513,11 @@ Ticket 0496 asks whether an official local bridge can expose query and batched
 passage embedding with the same fingerprint handshake. Sharing Zotero's stored
 embedding database or depending on private in-process symbols is not that bridge.
 
-**Process topology.** Four process roles appear below: P0, a query-serving
-zoteus server, and one worker kind for each asynchronous pipeline stage —
-extract, chunk, embed.
+**Process topology** (sole-writer form, ratified 2026-08-31 — the proposal and
+its review are `verification/SOLE-WRITER-0507.md`). Three process roles appear
+below: P0, a query-serving zoteus server; the *conductor*, the one P0 elected
+to write; and one *pipeline worker*, which fetches and embeds and writes
+nothing.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
 default data directory (verified). Every P0 answers queries, as a WAL reader
@@ -514,44 +531,133 @@ The holder is a UUID, not a recyclable pid. A lockfile was rejected because
 lockfiles go stale exactly when their holder dies. Lease timing: TTL = 2×
 heartbeat (20 s), an election-check cadence of 10 s in every server, and a
 migration gate < TTL + cadence = 30 s. The constants satisfy their own
-gate. The conductor runs the reconcile tick and owns at most one worker of
-each kind (`nice 19`), so the pipeline does not multiply with N. Each worker
-is run-to-drain: it is spawned when its stage's ledger queue has work, drains
-that queue, and exits. The ledger's keyed, idempotent derivations — not an
-in-memory pipe — are the boundary between stages. When every queue is drained,
-steady state contains no pipeline worker.
+gate. The conductor runs the reconcile tick and owns at most one pipeline
+worker (`nice 19`), so the pipeline does not multiply with N. The worker is
+run-to-drain: spawned when the ledger queues hold work, it drains them and
+exits, so steady state contains no pipeline worker. The queues are ledger
+queues still — keyed, idempotent derivations — but the boundary between chunk
+and embed survives as a **write ordering** rather than a process boundary:
+the conductor segments, and an item's slabs, entries and passages are durable
+before any vector for it is computed. Keyword availability never waits on
+embedding, and a worker death loses only the vectors in flight, never the
+segmentation of a 15 000-page book. The two-band frontier is a dispatch
+policy over ranges (§2.3), not machinery of its own.
 
-Two orphan repairs are mandatory for every worker kind, because without them
-nothing actually enforces the one-of-each bound. Each worker exits on stdin
-EOF (parent death) and re-verifies `leases.holder == parent-uuid` between
-micro-batches, exiting on mismatch. Lease renewal runs on a timer decoupled
-from stage progress and is renewed immediately before any long unit of work;
-the extract stage's whole-document GET has no micro-batch boundary inside it.
+**The conductor is the only writer, and the segmenter.** Every durable
+artifact — ledger rows, slabs, entries, passages, FTS, the vector sidecar —
+is written by the conductor and by nothing else. It runs seg/1 (§2.2) as a
+streaming state machine over the text windows the worker forwards: it closes
+entries at structural boundaries — a book into chapters, the dictionary into
+entries, proceedings into presentations — cuts the passages inside each entry
+as deterministic token windows over text it is already holding, and commits
+slab, entry and passage rows as entries close. Peak memory is one window plus
+the segmenter's own state, which is the streaming property C3 already
+asserts. **The conductor never materializes a whole document**: the local API
+answers with the text inside one JSON object, and the convenient read puts a
+44,9 MB attachment inside the process that holds the query embedder and
+answers queries — §2.9's arithmetic says that does not fit. The fetch is
+therefore the worker's, §2.4 states the same clause as the tick's
+prohibition, and §2.8's transport clause on the RSS gate is its instrument.
 
-Safety never depends on the singleton: per-row leases with the
-`claimed_input` commit guard are the correctness layer, cross-process by
-construction. R13's letter is restated honestly: never committed twice, and
-duplicate compute ≤ one micro-batch per failover. The strict letter has no
-implementation on a single-file SQLite substrate, and the design says so
-rather than implying otherwise.
+**The worker writes nothing.** No lease, no write handle, no file of its own;
+a WAL reader like any sibling P0, which is what makes C3's
+killable-at-any-time bullet structural rather than argued. It does two jobs.
+It streams one attachment's extracted text from Zotero's local API and
+forwards it to the conductor in bounded windows, deciding nothing and
+accumulating nothing — the incremental decode of the one-JSON-object answer
+is written here, once, in the process whose failure costs a restart rather
+than a breached ceiling. And it embeds: an embed order for a small input
+(record, note, annotation) carries its text outright; for body text it
+carries an entry-sized range — the slab addresses §2.2 gives every passage —
+which the worker reads back read-only, slices, embeds and streams home. A
+book crosses the pipe once as text and never again; a re-embed after a model
+change, a band-1 backfill and a resumed run all dispatch ranges over text
+already stored. The worker packs each engine call to a token budget, ranges
+sorted by length first because the runtime pads every member of a batch to
+its longest sequence; the batch is the memory dial, the duplicate-compute
+unit and the yield grain, and nothing is bought by making it large
+(`verification/GPU-ANOMALY-0481.md`, `verification/GPU-CORRECTED-0482.md`;
+the CPU sweep at the deployed rung is ticket 0500's). Dispatch order at the
+worker's grain restates §2.3's anti-monopoly promise at the pipe: a fetch
+order for a newly changed item goes ahead of queued band-1 embed ranges,
+and an embed backlog yields at batch granularity — one worker serializes
+fetch and embed, so without this rule a band-1 drain would starve every
+fresh item's fetch, reintroducing at the pipe the monopolization the bands
+exist to prevent.
 
-Foreground beats background across processes: each P0 touches
-`<dataDir>/activity` on query arrival (a filesystem operation, so the query
-path stays write-free even in the database sense). Every active worker stats
-that file between micro-batches and idles 2 s while it is fresh. The
-conductor's stdio pipes remain the low-latency fast path; `nice 19` remains
-the OS floor. Upstream's BEGIN-at-first-mutation transaction is repaired
+**Orphan repair and flow control.** Two repairs, on two sides, because the
+failure they cover is a parent that is wedged rather than dead. The worker
+exits on stdin EOF (parent death), and it also polls `leases.holder ==
+parent-uuid` on its own timer between micro-batches, exiting on mismatch —
+the worker-side check of the three-worker design kept, not moved, since a
+SIGSTOP'd or thrashing conductor closes no pipe and runs no cleanup, and
+only a check scheduled in the worker's own process fires then. The
+conductor-side half is the complement: a P0 that observes it no longer holds
+the lease kills its worker before anything else, because an orphaned worker,
+though harmless to a store it never opens, pins the WAL as a long-lived
+reader while the new conductor spawns its own. Both together enforce the
+one-worker bound; either alone has a hole. Lease renewal stays on a timer
+decoupled from stage progress, renewed immediately before any long unit of
+work. And the pipe pair is full-duplex, which is a deadlock shape: the
+conductor drains arriving windows and records before blocking on any write
+of work orders, in both directions — returning records drain into the same
+bounded append-fsync-commit loop that bounds the windows, never into a
+queue ahead of it.
+
+**The handshake crosses the pipe** (R31). The model loads in the worker, so
+the requested and actual fingerprint, dimension, runtime, execution provider
+and local-validation standing arrive with the first record of every dispatch,
+and the conductor rejects a mismatch before writing a vector.
+
+Safety never depends on the singleton: during a handover two P0s can each
+believe they are conductor, so every record commit carries the guard **in the
+same transaction as the write** — a conditional `UPDATE … WHERE
+holder = :uuid AND key = :computed_key`, the CAS idiom the lease acquisition
+above already uses, never a separate read followed by a separate write. Two
+deposed-but-running conductors then cannot both pass: SQLite serializes the
+transactions, and the loser's condition reads the winner's committed state
+and writes nothing. A check-then-write in two steps would re-open exactly
+the race the guard exists for, which is why the atomicity is stated here
+rather than left to the implementer. R13's letter is restated honestly: never
+committed twice, and duplicate compute bounded by one embed batch plus one
+in-flight document's re-fetch and re-segmentation per failover, since the
+conductor computes too. The strict letter has no implementation on a
+single-file SQLite substrate, and the design says so rather than implying
+otherwise.
+
+Foreground beats background across processes, and now inside the conductor
+too: each P0 touches `<dataDir>/activity` on query arrival (a filesystem
+operation, so the query path stays write-free even in the database sense).
+The worker stats that file between micro-batches and idles 2 s while it is
+fresh — and so does the conductor's own write loop, since the process serving
+queries is now also the process draining the stream; the fsync is off-thread,
+the serialization of a long run of records is not. If §2.8's
+conductor-latency soak clause fails R6's budget, the pre-authorized fallback
+(DECISIONS.md 2026-08-31) is a dedicated small writer process, not a
+re-ruling. The conductor's stdio pipes remain the low-latency fast path;
+`nice 19` remains the OS floor. Upstream's BEGIN-at-first-mutation transaction is repaired
 surgically: the build path commits per page (its 200-item/10 s persist
 cadence already exists; the hold window shrinks below the busy_timeout),
 while the update path keeps its single-transaction rollback. Upstream's
 own comment is right that a half-applied delta is a wrong index, not a
 partial one.
 
-Sidecar discipline: the conductor's single embed worker alone writes, into
-generation-numbered files (`vectors-<embedderKey>.g<N>`), fsynced then
-atomically renamed. The generation is stamped in meta and verified by scans,
-and deletion tombstones cover every live generation. Compaction runs at >10 %
-dead rows or in the idle weekly slot.
+Sidecar discipline collapses to an ordering: the conductor appends the vector
+bytes, fsyncs, then commits the row that references them, so a crash between
+the two leaves bytes nothing points at — dead weight the compaction rule
+collects. The files stay generation-numbered (`vectors-<embedderKey>.g<N>`,
+the generation stamped in meta) for atomic replacement at compaction, and
+compaction itself carries the same ordering across its two atomic domains:
+write `g<N+1>` whole and fsync it, switch every row reference and the meta
+stamp in one SQLite transaction, and only after that commit delete `g<N>`.
+A crash on either side of the switch leaves one complete, referenced
+generation — before the commit the new file is unreferenced dead weight,
+after it the old one is — so the split state a filesystem rename plus a
+database commit could otherwise produce is unrepresentable. That is what
+lets the scan-and-verify half of the old protocol go: its other purpose,
+keeping the sidecar consistent with rows another process wrote, has no
+subject with one writer. Deletion tombstones cover every live generation.
+Compaction runs at >10 % dead rows or in the idle weekly slot.
 
 ### 2.6 Query path and ranking
 
@@ -691,7 +797,8 @@ of the text has a named removal path:
 - vectors
 - slabs (keyed per attachment/source, never shared)
 - sidecar tombstone bitmaps, across *all* generations
-- ledger rows (a worker committing on a deleted item fails its guard)
+- ledger rows (the conductor committing on a deleted item fails its own
+  commit guard, §2.5 — workers write nothing)
 - WAL and free pages: `auto_vacuum=INCREMENTAL` actually set (§2.2), plus
   idle checkpoint, plus the `purge` verb = checkpoint + VACUUM + compaction
 - the legacy `search-index.json`, which upstream leaves in place forever,
@@ -853,13 +960,21 @@ the two outcomes apart.
   green by right.
 - **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
-  the band cap are exercised. Assert: concurrent background-pipeline peak ≤
-  500 MB across the run-to-drain stage workers, server p95 ≤ 750 MB, the
+  the band cap are exercised. Assert: pipeline-worker peak ≤ 750 MB (the one
+  run-to-drain worker; re-pinned 2026-08-31, DECISIONS.md), server p95 ≤ 750 MB, the
   ratified budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from the ratified letter ("against the 44,9 MB dictionary", content
   that cannot be committed to a public repo). Per the 2026-08-29 ruling, the
   real-document X3a run revalidates it at each release on the author's machine.
+  **The transport clause**, same gate: resident memory across a fetch of the
+  library's largest attachment, measured on both processes of the fetch path
+  — the worker across the streamed fetch and its incremental decode, and the
+  conductor, the process that has already loaded the query embedder, across
+  the same ingest — because the clause it instruments is that no process on
+  the path ever holds the document whole (§2.5's no-materialize clause,
+  otherwise an instruction rather than a verified property; finding F5,
+  `verification/SOLE-WRITER-0507.md`).
 Every gate below is decided at one of two levels, and the relation between them
 is calibration rather than coverage (DECISIONS.md, 2026-08-31). The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
@@ -900,9 +1015,18 @@ is the pattern, and it binds every surrogate here, not only that one.
   run at the multilingual default — are where terms that look independent fail
   together.
 - **R13, the soak gate.** Three P0s, a full 10k drain, 1 query/s each,
-  kill -9 the conductor twice. Assert: p95 ≤ 1.5 s, zero SQLITE_BUSY
+  kill -9 the conductor twice, and freeze it once (SIGSTOP through a
+  migration) — the wedged-not-dead case: the frozen parent closes no pipe
+  and runs no cleanup, so only the worker's own lease poll can retire the
+  orphan, and the gate asserts it does within the migration gate. Assert:
+  p95 ≤ 1.5 s, zero SQLITE_BUSY
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
-  and duplicate compute ≤ 1 micro-batch per failover.
+  and duplicate compute ≤ 1 embed batch plus one in-flight document's
+  re-fetch and re-segmentation per failover. **The conductor-latency
+  clause**, the sole-writer ruling's acceptance gate (DECISIONS.md
+  2026-08-31): query p95 measured on the conductor itself while it drains,
+  against §2.9's warm-query band — on a failure the pre-authorized fallback
+  is a dedicated writer process, not a re-ruling.
 - **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32 on 2026-08-31 (DECISIONS.md), so this gate no longer
@@ -1009,11 +1133,20 @@ references into slabs) and the chunks are fewer. The float32 fallback adds
 semantic use ≈ ~670–760 MB (the measured range across candidates, ticket
 0263; the ceiling is C3's). At drain-complete steady state only P0s remain,
 so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
-incorrectly kept a pipeline worker resident. Extract, chunk, and embed add
-transient residency only: they are run-to-drain, one of each kind at most,
-and together remain under C3's ≤ 500 MB pipeline peak with hard kill rather
-than multiplying that budget by stage. The chunk split isolates the long-document
-RSS risk from the memory-steady embedder; it does not buy wall-clock. Whether
+incorrectly kept a pipeline worker resident. The one pipeline worker adds
+transient residency only: run-to-drain, at most one, its peak the model plus
+one token-budget batch (§2.5's dial), under C3's re-pinned pipeline ceiling —
+priced by the same measured candidate range quoted above, without the
+server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
+range's top, inside the ceiling (DECISIONS.md, 2026-08-31). One term of that
+arithmetic is honestly unmeasured: the residency of a live batch — every
+sweep on disk priced batch size in latency, not RSS — so the ceiling's
+sufficiency for the heaviest candidates is a claim §2.8's RSS gate and
+ticket 0500's sweep verify, not one this subtraction establishes; 0500
+records RSS with a real batch in flight, not at rest. Segmentation adds one text
+window plus segmenter state to the conductor, inside the server ceiling. The
+sole-writer topology confines the long-document RSS risk to the worker's
+streaming fetch; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
 scope the gate can assert; the two-client whole-machine arithmetic above keeps
 the aggregate visible (DECISIONS.md, 2026-08-29). Dual-embed no longer threatens
@@ -1066,7 +1199,7 @@ Unchanged, and now without the hidden second scan (§2.6).
 - **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
   baselines stock upstream on the uncapped 44,9 MB document (the 2 084,9 MiB
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
-  against the 500 MB rule, travels with the entries machinery (scoped issue
+  against C3's pipeline rule, travels with the entries machinery (scoped issue
   B).
 - **Segmenter — X5 gates scoped issue B.** Run seg/1 over the real 44,9 MB
   extraction; sample 50 cut points uniformly at random (seeded, recorded)
