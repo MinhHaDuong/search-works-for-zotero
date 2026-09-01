@@ -164,10 +164,15 @@ in one change:
    `ZOTEUS_EMBEDDING_MODEL`. An unrecognized id fails before touching the
    index.
 4. **A small runtime check on first use of a newly selected record**: load,
-   output shape, finite values, correct dimension, template applied,
-   deterministic on repeat. Independent of retrieval-quality benchmarking, to
-   catch an ONNX file that resolves but misbehaves on the machine actually
-   running it.
+   output shape, finite values, correct dimension, template applied, compared
+   against a small set of published reference vectors by cosine distance, not
+   by hash. A byte- or sign-bit hash of the embedding doesn't survive ordinary
+   cross-provider floating-point noise (CPU vs. GPU, different BLAS) even for
+   a correct, identical config, so an exact-match check will false-negative on
+   working setups. This only works at full precision; nothing rescues the
+   comparison once the model is 8-bit quantized. Independent of
+   retrieval-quality benchmarking, to catch an ONNX file that resolves but
+   misbehaves on the machine actually running it.
 
 None of this needs new migration machinery: `embedderIdentity()` already
 refuses to mix vector spaces across model changes and reports that a rebuild
