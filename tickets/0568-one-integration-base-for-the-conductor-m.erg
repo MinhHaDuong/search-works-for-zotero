@@ -8,7 +8,7 @@ Author: claude
 
 2026-09-01T16:55Z claude note filed by the raid on 0565/0566, which went to read the code those two tickets join and found it on two branches that have never met. `tranche-1-ledger-schema` → `tranche-2-conductor-election` is a chain, but `tranche-3-extract-shim` (0553) and `tranche-schema-v2-content` (0556) are SIBLINGS, both cut from `tranche-2` at a00091b, and both rewrite `ledger.ts` — +323 lines on tranche 3, +649 on the schema branch. Trial merge run 2026-09-01 on a scratch branch: `src/config.ts`, `src/registry/registry.ts`, `src/server.ts`, `store.ts` and the two test files all auto-merge; `src/features/search/conductor/ledger.ts` CONFLICTS. Nothing owned forming one tree, and both 0565 and 0566 assume one exists — 0566's "Relevant files" says "everything tranches 1-3, 0556, and 0565 built" as though it were one checkout, and 0565's loop literally joins tranche 3's `onWindow` callback to the schema branch's `putSlab`/`putEntry`/`putPassage`. Same shape as the gap that produced 0556: a step every dependent assumes and no ticket owns.
 
-2026-09-01T18:11Z blocker 0553 closed — Blocked-by removed. Tranche 3 landed on fork tranche-3-extract-shim at da3be32 with round 2's two concurrency blockers fixed; this ticket's integration base can take the extract stage as it stands.
+2026-09-01T18:11Z claude note blocker 0553 closed — Blocked-by removed. Tranche 3 landed on fork tranche-3-extract-shim at da3be32 with round 2's two concurrency blockers fixed; this ticket's integration base can take the extract stage as it stands.
 --- body ---
 
 ## Context

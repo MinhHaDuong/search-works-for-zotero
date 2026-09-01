@@ -1,0 +1,91 @@
+%erg 0.1
+Title: decide() is atomic on the completion path and not on the dispatch path
+Created: 2026-09-01
+Author: MinhHaDuong
+
+--- log ---
+2026-09-01T19:03Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found by the round-3 review of ticket 0553 (PR #156). Pre-existing: both
+call sites are tranche 3's, but the asymmetry is in how they call, not in
+what round 2 changed.
+
+`ExtractStage.decide()` reads the candidate set and then writes the whole
+choice set for an item:
+
+- From `complete()` it runs inside the stage's own transaction, with the
+  extract row and the work order's completion — one commit, all or
+  nothing.
+- From `next()` via `isChosen()` it runs in autocommit, and
+  `Ledger.putAttachmentChoice` writes its N decision rows one statement
+  at a time with no transaction of its own (`ledger.ts`, the `for (const
+  d of decisions)` loop).
+
+Two consequences, unequal in weight:
+
+1. **A crash mid-loop leaves a partial choice set** — some siblings
+   carrying the new decision, some the old, with no marker saying so.
+   `isChosen` short-circuits on whatever `attachmentChoice` returns, so a
+   half-written set is read as settled. This one is real today: one
+   process, one conductor, no concurrency needed.
+2. **A concurrent stage could overwrite a correctly committed choice with
+   a stale read.** This needs two live stages over one ledger, which the
+   lease is supposed to make impossible (§5.2.5: the conductor is the only
+   writer) — so it is a defence-in-depth argument, not a live defect, and
+   worth saying so rather than overstating it.
+
+The fix is small — the write is already one method — but it is a change to
+a merged tranche-1 primitive, so it gets its own ticket rather than
+widening 0553's PR at round 3.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — `putAttachmentChoice`,
+  the multi-row write; `transaction()`, the wrapper it does not use.
+- Fork `src/features/search/conductor/extract-stage.ts` — `decide()` and
+  its two callers, `complete()` (transactional) and `isChosen()` (not).
+- `SPEC.md` §5.2.3 — D6, first-with-text, and the two named skip reasons
+  the choice set carries.
+
+## Actions
+
+1. Make the choice set's write atomic in the primitive rather than at one
+   call site: wrap `putAttachmentChoice`'s loop in `this.transaction()`,
+   so it is atomic however it is reached. Nesting: check what
+   `transaction()` does when already inside one — `BEGIN IMMEDIATE` inside
+   a transaction throws on SQLite — and use a savepoint, or have the
+   method detect the open transaction, whichever the codebase can carry
+   without a second transaction abstraction.
+2. Re-read `decide()`'s read-then-write with that in place and say
+   plainly, in a comment, which of the two consequences above is closed
+   and which is not.
+
+## Test
+
+- Red first: interrupt the decision loop between two siblings (an
+  injected write that throws on the second row) and assert the stored
+  choice set is the one that was there before, not half of the new one.
+  Against the code as it stands, half the new set is stored.
+- Control: an uninterrupted decision still writes every row, and the
+  existing D6 tests stay green.
+
+## Verification
+
+- [ ] A choice set is stored whole or not at all, from both call sites
+- [ ] No nested-transaction failure on the `complete()` path, which is
+      already inside one — asserted, since this is the way the fix breaks
+- [ ] Positive control: the interruption test fails without the wrapper
+
+## Invariants
+
+- D6's semantics unchanged: this is about atomicity, not about which
+  attachment is chosen.
+- Upstream tests green.
+
+## Exit criteria
+
+- [ ] The choice set's write is atomic from both paths, merged on a fork
+      branch, tests green
