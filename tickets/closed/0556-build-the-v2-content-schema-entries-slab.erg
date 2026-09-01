@@ -1,0 +1,171 @@
+%erg 0.1
+Title: Build the v2 content schema (entries, slabs, passages, FTS) into search-index-v2.sqlite, parallel to v1
+Created: 2026-09-01
+Author: MinhHaDuong
+Closed: autoclosed — PR #160
+
+--- log ---
+2026-09-01T13:24Z MinhHaDuong created
+
+2026-09-01T13:24Z claude note filed from the raid on tickets 0550-0555: SPEC.md section5.2.2 content schema (entries/slabs/passages/FTS) has zero footprint anywhere in the fork, and no open ticket owns building it as code -- 0028 builds the segmenter algorithm, 0034 is an upstream issue draft explicitly with no code to accept. Tranches 4 and 5 (0554, 0555) dispatch against this schema; tranche 3 (0553) does not, on a closer read -- its actions (extract fetch, class-order dispatch, first-with-text choice) run entirely against tables tranche 1 already built (stage_queue, item_census, fulltext_census), so it is not blocked by this ticket. Author directive, 2026-09-01: the schema lands in search-index-v2.sqlite, in parallel with v1's search-index.sqlite, so v1 development continues undisturbed.
+2026-09-01T13:38Z bump verify-reroll — round 1: PR body Ticket: line must not auto-close 0556 (unmet exit criteria); use Ticket: none or Ticket-ref: tickets/0556
+2026-09-01T14:00Z claude note implemented on fork branch tranche-schema-v2-content @ 05b40e0, based on tranche-2-conductor-election @ a00091b (the tip this ticket names). Two commits: 4055296 the schema, primitives and tests; 05b40e0 the production call site. Fork suite 1 054 passed / 0 failed / 7 skipped, eslint clean, tsc clean.
+2026-09-01T14:01Z claude note the auto_vacuum trap is worse than SPEC.md 5.2.2 states, and the sentence would have misled an implementer. Measured on SQLite 3.51.3: PRAGMA journal_mode = WAL writes the header too, so auto_vacuum set AFTER WAL is lost with no table in the file yet (wal-then-av gives 0, av-then-wal gives 2). Copying v1's openHandle() order -- busy_timeout, WAL, synchronous -- and appending auto_vacuum would have silently lost incremental vacuum forever. The implemented order is busy_timeout, auto_vacuum, WAL, synchronous, foreign_keys, and a third test pins the WAL-first case red. Worth propagating into SPEC.md 5.2.2's wording as a separate ticket.
+2026-09-01T14:01Z claude note positive controls: 12 deliberate defects applied one at a time to ledger.ts, each caught by the test aimed at it -- 1 MiB CHECK dropped, ifnull expression index reduced to a plain UNIQUE, kind CHECK dropped, source CHECK dropped, char-range CHECKs dropped, auto_vacuum moved after WAL, snippet fingerprint comparison skipped, newer-stamp refusal disabled, eight FTS columns collapsed to one, external-layout delete protocol replaced by a bare delete, recorded FTS layout re-probed instead of read, contentless_delete dropped. Zero mutations survived. Runner: verification/probes/v2-schema-mutation-controls.py, committed so the control is reproducible; it patches ledger.ts in place and restores it, so run it on a clean tree.
+2026-09-01T14:01Z claude note ZOTEUS_CONDUCTOR defaults to OFF -- flagged for the author. The exit criterion asks for a real production file path, and the call site is production code on the startup path exercised by the same function the tests drive; but nothing on the query path reads v2 yet, so opening it unconditionally would put a new file in every user's data directory in exchange for no behaviour. One line to flip once a tranche actually reads it.
+2026-09-01T14:01Z claude note sibling tranche 3 (ticket 0553) pushed origin/tranche-3-extract-shim @ e8784df, which also extends ledger.ts (+308). git merge-tree reports a content conflict there against this branch -- expected parallel development on one file, not a defect; whoever integrates second resolves. Neither branch is merged into the fork's main yet.
+2026-09-01T14:08Z claude note superseding the note above: the SPEC.md correction is applied on this branch, not deferred to a separate ticket. Section 5.2.2 now gives the order as busy_timeout, auto_vacuum, then WAL and synchronous, and states that WAL writes the header so auto_vacuum after it is lost with no table in the file. A fact correction about SQLite, not a ruling, so no DECISIONS.md entry -- flagged for the author to overrule if he reads it as a design change. The body's Relevant files section still quotes the old wording; it records what was read at filing time and is left as filed.
+2026-09-01T14:15Z claude note correcting the positive-control note above, which overclaimed. The first runner anchored the char-range control on CHECK (char_end >= char_start), which matches TWICE (slabs and entries), so replace(...,1) mutated slabs alone while entries and passages -- the latter keyed on off_end >= off_start and never mutated at all -- reported caught without having been touched. Two of the twelve were hollow. Fixed: three separate char/off-range mutations with unique anchors, an exactly-once guard on every anchor (zero and many are the same failure), and a per-mutation expected test title so a mutation that reddens something unrelated scores MISAIMED rather than caught. Corrected run: 14 mutations, 14 caught each by its aimed-at test, 0 survived or misaimed, 0 unapplied. The guard itself was positive-controlled against the ambiguous anchor and a nonexistent one; both refused.
+2026-09-01T15:08Z claude note correcting two overclaims found in PR 160 review round 1. (1) The 14:08Z note said the Relevant-files bullet was left as filed; commit 8da5910, later in the same PR, rewrote it to a pointer. The append-only log described a state the file left one commit on. (2) 'silently lost incremental vacuum forever' is wrong. Measured: after WAL strands it at 0, PRAGMA auto_vacuum=INCREMENTAL followed by VACUUM restores it to 2 and it survives reopen. The defect is that it is not self-correcting and nothing reports it, not that it is unrecoverable. SPEC.md 5.2.2's own sentence was already careful and stays true -- it claims only that the idle incremental_vacuum never fires; the overclaim was in this log and the PR body. ledger.ts's docstring now says the same precisely.
+2026-09-01T15:08Z claude note review round 1 also fixed two defects in the control probe itself. The auto_vacuum mutation DELETED the pragma rather than moving it, so it controlled 'the statement is present' while its name and the finding are about where it sits; it is now a real reorder -- removed from before WAL, reinserted after synchronous -- with every pragma still executed. And a red was scored from status != passed, which counts a SKIPPED test as a catch; only status == failed counts now. MUTATIONS entries became (name, edits, expects) so a multi-edit mutation is expressible and all-or-nothing on its anchor check. Re-run after both: 14 mutations, 14 caught by the aimed-at test, 0 survived or misaimed, 0 unapplied.
+2026-09-01T15:08Z claude note the SPEC.md 5.2.2 edit is now recorded in DECISIONS.md under Awaiting ratification, per the consistency reviewer's objection in PR 160. The question is procedural -- may an agent correct a measured fact in an authoritative document without a ruling first -- with the default stated as the correction standing, since that is the side the measurement protects and 0554 is written against SPEC.md. Nothing ratified was overwritten: the ledger held no entry on 5.2.2. The cited X1 precedent is disanalogous (a design substitution the author owns, versus a claim about SQLite that was simply false), and the entry says so rather than hiding the disagreement.
+2026-09-01T15:09Z claude note fork tip moved to 384fc49 (the forever-overclaim fix in ledger.ts's docstring); the exit criterion now records that SHA. Earlier log entries keep 05b40e0, which is what was true when they were written.
+2026-09-01T15:17Z MinhHaDuong closed — autoclosed — PR #160
+--- body ---
+## Context
+
+The raid on tickets 0550-0555 (conductor implementation) found that SPEC.md
+§5.2.2's content schema — `entries`, `slabs`, `passages`, the per-field FTS5
+table — has zero footprint anywhere in the fork, and no open ticket owns
+building it as code: 0028 builds the seg/1 segmenter *algorithm* (logical,
+works on flat text, not SQL); 0034 is an upstream *issue draft*, explicitly
+"no code to accept". Tranches 4 and 5 (0554, 0555) dispatch against this
+schema and cannot proceed without it.
+
+Tranches 1-2 (0551, 0552, both merged) already built the schema's
+*bookkeeping* half in the fork's `ledger.ts`: `origins`, `libraries`,
+`cursors`, `item_census`, `fulltext_census`, `stage_queue`, `leases`, each
+under one `ledger_meta`/`schemaVersion` stamp. That file's own docstring
+already names it "search-index-v2's bookkeeping half" — this ticket is the
+other half, in the same file and the same schema, per §5.2.2's own framing
+("one file, one schema, every row library-keyed"). Do not create a
+competing schema or a second stamp.
+
+Author directive, 2026-09-01: the schema lands in `search-index-v2.sqlite`,
+a real file that exists in **parallel** with v1's `search-index.sqlite`, so
+v1 development (the in-flight stopword series, PRs #4/#5/#6 on the fork)
+continues undisturbed. This ticket touches nothing under
+`src/features/search/` outside the `conductor/` module.
+
+On closer reading, tranche 3 (0553, extract shim) is **not** blocked by
+this gap: its actions — the fetch, class-order dispatch, the
+first-with-text choice function — run entirely against tables tranche 1
+already built (`stage_queue`'s `class_rank`, `item_census`,
+`fulltext_census`). Only tranche 4's chunk worker ("chunk worker over
+stored text") and tranche 5's band dispatch (K = passages per item) need
+`entries`/`slabs`/`passages` to exist. If the author resumes tranche 3
+separately, it does not need to wait on this ticket.
+
+## Relevant files
+
+- `SPEC.md` §5.2.2 (Storage: one file, one schema, every row library-keyed)
+  — authoritative, and read there rather than restated here: the connection
+  pragmas and **the order they must be applied in** (that order was
+  corrected on this branch — the sentence this bullet used to quote was
+  wrong in effect, so quoting it again is exactly the drift the correction
+  was for); the
+  entry layer (`entries`, `slabs`, `passages` columns and shapes); FTS5
+  per-field columns and tokenizer (`unicode61 remove_diacritics 2`),
+  contentless (`content=''`, `contentless_delete=1`) where SQLite >= 3.43,
+  v1's external-content layout as the probed fallback recorded in meta.
+- Fork `src/features/search/conductor/ledger.ts` — the bookkeeping half
+  already built (tranches 1-2): `Ledger.open(path)` is file-path
+  parameterized (no production call site yet — only test fixtures use it
+  today), `createSchema()` is one `db.exec` DDL block under a single
+  `ledger_meta`/`schemaVersion` stamp. Extend this, don't compete with it.
+- Fork `src/features/search/sqlite-index.ts` — v1's schema-stamp discipline
+  to mirror as a *pattern* (stamp read before any DDL/write; a database
+  this build does not understand is moved aside, never deleted or
+  overwritten) — read for the shape, do not import from or modify it; v1
+  stays untouched, byte-for-byte.
+- Fork `src/features/search/index-manager.ts`, `backend.ts` — v1's backend
+  factory/interface shape, so a future v2 backend has somewhere sane to
+  plug in later. Wiring an actual v2 backend into the query path is out of
+  scope here — just don't collide with the existing module layout.
+
+## Actions
+
+1. Extend `ledger.ts`'s `createSchema()` (same file, same `db.exec` block,
+   same connection — or a sibling module writing through the same open
+   `Database` handle) with §5.2.2's content tables: `entries`, `slabs`,
+   `passages`, and the FTS5 table, per the spec's exact column lists and
+   constraints.
+2. Wire a real production file path: `search-index-v2.sqlite`, opened with
+   every pragma §5.2.2 specifies, in the order it specifies (auto_vacuum
+   before the first table — this is the one ordering trap the spec calls
+   out by name).
+   *Superseded during execution, 2026-09-01:* "before the first table" is
+   not sufficient. WAL writes the header too, so auto_vacuum must precede
+   `journal_mode=WAL` as well. §5.2.2 was corrected on this branch and is
+   the statement of record; this step is left as filed, with the pointer,
+   rather than rewritten — see the log.
+3. Schema-stamp discipline: the content tables bump the *same*
+   `ledger_meta`/`schemaVersion` the bookkeeping half already stamps — one
+   file, one schema, one version number, per §5.2.2's own framing. Don't
+   invent a second stamp for "the other half" of the same file.
+4. Purely additive: no file under `src/features/search/` outside
+   `conductor/` changes. `search-index.sqlite` and every v1 module are
+   untouched.
+5. Explicitly out of scope: the calibration header (SPEC.md marks it "owed
+   here, and not by this entry" — a later ticket); the segmenter itself
+   (0028); actually writing rows from a running pipeline (tranches 4/5).
+   This ticket builds the schema and direct read/write primitives for it
+   (insert/query helpers, the same shape `ledger.ts` already provides for
+   its own tables) — not the segmentation logic that will call them.
+
+## Test
+
+- Red first: assert every §5.2.2 table, column, and CHECK constraint is
+  present, on a fresh file, before any pipeline code depends on them.
+- The ordering trap named in Actions 2: a test that sets `auto_vacuum`
+  *after* the first table exists and asserts it did NOT take effect (the
+  spec's own documented no-op), beside one that sets it first and asserts
+  it did — so a future edit that reorders the pragmas is caught red rather
+  than silently losing incremental vacuum.
+- Coexistence: open `search-index.sqlite` (v1) and `search-index-v2.sqlite`
+  in the same data directory concurrently, write to both, confirm no lock
+  contention beyond ordinary per-file WAL semantics and no cross-file
+  interference.
+
+## Verification
+
+- [x] Every §5.2.2 table/column/CHECK present and tested
+- [x] `auto_vacuum=INCREMENTAL` ordering trap has a red-first test on both
+      sides (set-before-first-table works; set-after is provably a no-op).
+      A third direction was found and pinned: `journal_mode = WAL` voids it
+      too, with no table in the file yet — see the log entry.
+- [x] v1's own existing test suite, run unmodified, stays green — 1 054
+      passed, 0 failed, 7 skipped. `git diff --name-only` against the base
+      confirms the stronger claim the checkbox is proxy for: nothing under
+      `src/features/search/` outside `conductor/` is in the diff at all.
+- [x] Both files coexist under concurrent open in one data directory
+- [x] Positive control per fixture/assertion (house discipline): 14
+      deliberate defects, each caught by the test aimed at it, zero
+      survivors — `verification/probes/v2-schema-mutation-controls.py`.
+      A first run scored 12/12 and was wrong about two of them; see the
+      log for what the ambiguous anchor hid and what now guards it.
+
+## Invariants
+
+- `search-index.sqlite`, `sqlite-index.ts`, and every file under
+  `src/features/search/` outside `conductor/` are untouched.
+- Upstream tests green throughout.
+- One file, one schema, one stamp: the bookkeeping half (tranches 1-2) and
+  the content half (this ticket) share `search-index-v2.sqlite` and its
+  single `schemaVersion`.
+
+## Exit criteria
+
+- [x] entries/slabs/passages/FTS schema merged on a fork branch, built on
+      tranche 2's tip — `tranche-schema-v2-content` @ `384fc49`, based on
+      `tranche-2-conductor-election` @ `a00091b`, the tip this ticket names
+- [x] `search-index-v2.sqlite` exists as a real, opened, production file
+      path — not only exercised from test fixtures. `openConductorLedger`
+      is called from `buildContext` and closed on shutdown beside the v1
+      index. Opened only under `ZOTEUS_CONDUCTOR`, which defaults to OFF:
+      nothing on the query path reads v2 yet, so creating the file in every
+      user's data directory would buy no behaviour. Flagged for the author
+      in the log — one line to flip once a tranche reads it.
+- [x] Ticket 0554 (tranche 4: chunk/embed workers) has its `Blocked-by`
+      updated to include this ticket — landed in the filing PR, verified
+      still present on this branch
