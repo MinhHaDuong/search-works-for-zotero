@@ -1,9 +1,11 @@
 # Upstream PR body — the degenerate query (series 1/3, ticket 0091)
 
 Drafted here, sent as written. Branch `pr1-degenerate-r3` on the author's fork at
-`47461b7`, one commit atop `b05ed69` (v1.12.0), pushed 2026-09-01. **Not filed**: nothing
-goes upstream without the author's authorization. When it is authorized, the PR opens
-from a cleanly named fork branch at the same commit against `oscardvs/zoteus` `main`.
+`47461b7`, one commit atop `b05ed69` (v1.12.0), pushed 2026-09-01. **Filed 2026-09-01
+with the author's authorization** as upstream PR #45, from fork branch `degenerate-query`
+at the same commit, body below the rule sent verbatim; verified on the PR page (one
+commit, `47461b7`, body as written). It spends the held stopwords-follow-up slot under
+the author's one-slot-per-PR ruling of the same day (ledger entry in `DECISIONS.md`).
 
 Gates re-verified on the exact commit before drafting this body, 2026-09-01: typecheck,
 lint, and the full suite — 939 tests passed, 7 skipped.

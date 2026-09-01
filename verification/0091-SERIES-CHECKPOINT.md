@@ -38,10 +38,16 @@ Fork PRs #4 #5 #6 hold the previous round and are **stale**; #1 #2 #3 are closed
 superseded. The round-3 branches are not attached to a PR, because opening a fourth set
 before the open design question below would be premature.
 
-## Nothing has gone upstream
+## What has gone upstream
 
-No PR, issue or comment has been filed against `oscardvs/zoteus`. Everything above is inside
-the author's own fork.
+PR 1 was filed 2026-09-01 with the author's authorization as upstream **PR #45**, from
+fork branch `degenerate-query` at `47461b7`, body sent verbatim from
+`verification/UPSTREAM-PR-0091-DEGENERATE.md` and verified on the PR page. Three rulings
+landed the same day (ledger): PR 1 files now; the budget is **one slot per PR** — PR 1
+spends the held stopwords-follow-up slot, PRs 2 and 3 each need a fresh grant when ready;
+and PR 2's design question is answered by **measuring the query-expansion alternative**
+before ruling, not by ruling on one measured arm. Nothing else has been filed against
+`oscardvs/zoteus`.
 
 ## The one open decision
 
@@ -128,7 +134,8 @@ Two things about the numbers:
 
 ## Still to do
 
-- The design decision above.
+- The design decision above — **direction ruled 2026-09-01**: build and measure the
+  query-expansion arm first, then decide between two measured designs.
 - Blocker 3 (the 944-codepoint token class) is unfixed, and is the thing the design decision
   may make moot.
 - **PR 2's review findings below the two blockers are unapplied**, deliberately: they are
