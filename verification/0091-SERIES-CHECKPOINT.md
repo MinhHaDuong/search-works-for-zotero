@@ -161,11 +161,20 @@ with two interaction tests and a full-stack re-measurement,
 
 Remaining:
 
-- **The author's two rulings before filing**: grant a slot for PR 2 (files from
-  `pr2-expansion` @ `6a201fa`, body `UPSTREAM-PR-0091-DIACRITICS.md`) and one for PR 3
-  (`pr3-droplist-r5` @ `11385a2`, body `UPSTREAM-PR-0091-DROPLIST.md`); and rule whether
-  the soliloquy running on its one under-bar survivor (`not`, 27,3 %) is acceptable, or
-  the fallback threshold gets a refinement first (ruleB artifacts exist).
+- **The two upstream filings.** Both rulings that blocked them landed 2026-09-01
+  (DECISIONS.md, two ledger entries): the author granted the remaining two slots — PR 2
+  from `pr2-expansion` @ `6a201fa` (body `UPSTREAM-PR-0091-DIACRITICS.md`), then PR 3 from
+  `pr3-droplist-r5` @ `11385a2` (body `UPSTREAM-PR-0091-DROPLIST.md`), each sent as
+  drafted once the repo-side record merges through review — and the soliloquy-survivor
+  question (`not` at 27,3 %) was presented and not reopened, so the shipped zero-survivor
+  fallback rule stands unless upstream review reopens it. What remains is the filing
+  itself: neither PR is filed.
+- **PR 3's stack, before it files.** Verified on the fork 2026-09-01:
+  `pr3-droplist-r5` (`11385a2`) has `6b7c152` as its parent, while `pr2-expansion` has
+  advanced to `6a201fa` (the `ZOTEUS_ACCENT_EXPANSION` commit) — the compare endpoint
+  reads the two as diverged, one ahead and one behind. So PR 3 does not carry the flag
+  commit. Harmless while PR 2 files first and carries it, but decide whether to restack
+  before filing, and do not describe PR 3 as stacked on the current PR 2 tip.
 - `Ticket-ref` scoping: no ticket scopes "keep diacritics + first migration rung"; PR 2
   currently rides ticket 0091.
 - No speed doctor pass on the latency claims.

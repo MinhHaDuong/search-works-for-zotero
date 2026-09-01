@@ -1,10 +1,19 @@
 # Upstream PR body — the library-derived droplist (ticket 0091, PR 3 of the series)
 
 Drafted here, sent as written. Branch `pr3-droplist-r5` on the author's fork at `11385a2`,
-one commit stacked on `pr2-expansion` (`6b7c152`, the settled query-expansion design) on
-`base-v1.12.0` (= upstream `b05ed69`). **Not filed**: nothing goes upstream without the
-author's authorization, and this PR needs a fresh slot grant (one slot per PR, ruled
-2026-09-01).
+one commit stacked on `6b7c152` — the query-expansion design as it stood when PR 3 was
+built — on `base-v1.12.0` (= upstream `b05ed69`). **Not filed**: the slot is granted
+(2026-09-01, DECISIONS.md), and filing waits on the repo-side record merging through
+review.
+
+**Pre-filing step, verified on the fork 2026-09-01.** `pr2-expansion` has since advanced
+to `6a201fa`, the commit making accent expansion optional (`ZOTEUS_ACCENT_EXPANSION`,
+default on). `pr3-droplist-r5` still has `6b7c152` as its parent — the fork's compare
+endpoint reads `6a201fa...pr3-droplist-r5` as diverged, one ahead and one behind — so
+**PR 3 as it stands does not carry the flag commit**. That was deliberate at the time (it
+kept PR 3's stack valid without a rebase) and it is harmless while PR 2 files first and
+carries the flag itself. Decide before filing whether PR 3 is restacked onto `6a201fa`;
+do not file it describing itself as stacked on the current PR 2 tip, because it is not.
 
 Everything below the rule is the PR body verbatim. Its figures are declared in
 `bench/check_figures.py` under the `u0091` key, so a re-measurement cannot leave this
@@ -45,8 +54,9 @@ or keeps a stopword, and which one depends on a coincidence of spelling.
 
 **It is a guess about frequency rather than a measurement of it.** The words that are
 expensive to retrieve on are the words *this* library is saturated with, and that is a
-different set for every library. Measured on a 7 541-item library: `energy` appears in
-26,2% of its passages, more often than several words on the hard-coded list — and dropping
+different set for every library. Measured on a 7 541-item library,
+`energy` appears in 26,2% of its passages,
+more often than several words on the hard-coded list — and dropping
 it would be a catastrophic answer to a query about energy. Meanwhile the same library is
 saturated with vocabulary the list has never heard of.
 

@@ -656,6 +656,14 @@ FIGURES = [
      {"u0091d": "ranked first ({} vs 2,86)"}),
     ("0091-droplist/expansion-migration.json", "runs.1.accent_variants_rows_at_first_derivation", 0,
      {"u0091d": "map, {} variant pairs at first derivation"}),
+    # The one figure in the body that comes from outside the 0091 artifacts: the
+    # document frequency of `energy`, measured under X2 (2026-08-25) and quoted as the
+    # motivating example. It was unanchored until 2026-09-01 — a number the maintainer
+    # reads, traceable to no declaration, which is exactly the shape this guard exists
+    # for. Its source is X2's mechanism probe, and `pct` because the body writes the
+    # fraction as a percentage.
+    ("0025-x2-stopwordless/x2-mechanism.json", "most_frequent.energy.share_of_passages", 1,
+     {"u0091": "`energy` appears in {}% of its passages"}, "pct"),
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p50_ms", 0,
      {"u0091": "29-word list | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p95_ms", 0,
