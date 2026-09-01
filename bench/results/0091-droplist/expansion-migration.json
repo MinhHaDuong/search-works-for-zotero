@@ -1,0 +1,43 @@
+{
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent"
+ },
+ "runs": [
+  {
+   "arm": "armA",
+   "rung": "dual-token rebuild",
+   "from": "schema 1 (x2-rebuild copy)",
+   "open_ms": 116377.7,
+   "open_s": 116.4
+  },
+  {
+   "arm": "armB",
+   "rung": "as-written rebuild + variants derivation",
+   "from": "schema 1 (x2-rebuild copy)",
+   "open_ms": 43489.5,
+   "accent_variants_rows_at_first_derivation": 43139,
+   "open_s": 43.5
+  },
+  {
+   "arm": "armB",
+   "rung": "variants self-heal on a schema-2 file lacking the map",
+   "from": "0091-unfolded copy",
+   "open_ms": 14181.8,
+   "open_s": 14.2
+  },
+  {
+   "arm": "armB",
+   "rung": "re-derivation with df (drift-triggered)",
+   "open_ms": 6656.9,
+   "accent_variants_rows": 53690,
+   "open_s": 6.7
+  }
+ ]
+}

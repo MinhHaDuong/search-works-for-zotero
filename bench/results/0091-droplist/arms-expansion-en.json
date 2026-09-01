@@ -1,0 +1,2125 @@
+{
+ "pairs": [
+  {
+   "arm": "stock",
+   "dist": "./dists/stock",
+   "index": "./idx-stock.sqlite"
+  },
+  {
+   "arm": "armA",
+   "dist": "./dists/armA",
+   "index": "./idx-armA.sqlite"
+  },
+  {
+   "arm": "armB",
+   "dist": "./dists/armB",
+   "index": "./idx-armB2.sqlite"
+  }
+ ],
+ "queries": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0091-914250/bench/queries-x2.txt",
+ "reference": "stock",
+ "repeat": 6,
+ "limit": 20,
+ "channel": "SqliteSearchIndex.query() directly, mode=keyword \u2014 NOT the MCP server. Each arm on ITS OWN index file (the designs differ in what the file holds); latency columns are cross-file, content columns are not.",
+ "per_query": [
+  {
+   "arm": "stock",
+   "query": "the role of the state in the energy transition",
+   "ms": [
+    229.7,
+    230.51,
+    230.33,
+    229.48,
+    229.34,
+    231.56
+   ],
+   "ids": [
+    "JEJ2R6JF",
+    "35ZGLRZS",
+    "ZB9UTKG4",
+    "8L6E4UVZ",
+    "BNVPWNIS",
+    "HK3SJZDC",
+    "CRMGK5W8",
+    "SMPHC27H",
+    "9T67P2UY",
+    "P2KI5CVM",
+    "8XL87GQT",
+    "5L2C2XD2",
+    "KXKFFLZA",
+    "EMXDBMQ8",
+    "DXDNGI7S",
+    "E27H5TMF",
+    "SE7KI4YR",
+    "KKY728VV",
+    "VN3LL565",
+    "K224T6QM"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "what is the social cost of carbon",
+   "ms": [
+    199.2,
+    201.1,
+    221.37,
+    200.43,
+    199.79,
+    201.77
+   ],
+   "ids": [
+    "ZHCI6BCR",
+    "86EC9MMZ",
+    "4LK7VW2V",
+    "W7UZKDAL",
+    "NE9H2CJ3",
+    "P5WDCV9I",
+    "HE5RVLYP",
+    "PKEDRC6E",
+    "K864WYKS",
+    "PPH6VFF5",
+    "B6HXUHIS",
+    "FVDYLWXS",
+    "UXW9L5QI",
+    "VHVLBJGM",
+    "6XC83HS9",
+    "IKVN75MV",
+    "H5R3XXTM",
+    "3IPR4M8J",
+    "FWQ6VHWG",
+    "UQG8B2QW"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the effect of a carbon tax on household income",
+   "ms": [
+    141.65,
+    141.99,
+    150.88,
+    142.27,
+    154.17,
+    142.32
+   ],
+   "ids": [
+    "DS9KVEAS",
+    "PIA5Q2MD",
+    "CJVEWKK3",
+    "DH8EXSVA",
+    "QXTFAHUL",
+    "TVP24JKR",
+    "LMZZ6L7N",
+    "H22UKQD7",
+    "LG368KPB",
+    "HE96I95C",
+    "WZ9SNRZM",
+    "NKSK3SIQ",
+    "XFN2ZM2B",
+    "X69DJS66",
+    "I3LX55EG",
+    "YDUBHPNQ",
+    "TAMLP8PA",
+    "BMAN5W8Q",
+    "MF9QE5BS",
+    "2Z8NWQSU"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "to be or not to be",
+   "ms": [
+    187.27,
+    187.58,
+    187.39,
+    188.2,
+    204.61,
+    188.13
+   ],
+   "ids": [
+    "THXPN4ZP",
+    "KXKFFLZA",
+    "8EB4JHQL",
+    "Y3QZZEWH",
+    "PKEDRC6E",
+    "XS7PAHEW",
+    "2H5VK525",
+    "2XN9ZI8R",
+    "L74M9FXA",
+    "GZK9KAH4",
+    "8SGNNTQD",
+    "UMLS2I5P",
+    "Z9IS7FPY",
+    "CGZXTQPF",
+    "QIHV285M",
+    "XKM86PRR",
+    "XLKKKFV7",
+    "36XWMNUJ",
+    "F2KWWAQE",
+    "DH8EXSVA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the origins of index numbers in economics",
+   "ms": [
+    84.16,
+    84.08,
+    83.59,
+    83.89,
+    91.33,
+    83.84
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "MKNXF3F9",
+    "FIL2JI5M",
+    "JEJ2R6JF",
+    "VTDH929P",
+    "XMFQBZQZ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "models that are used for integrated assessment of climate",
+   "ms": [
+    219.13,
+    219.98,
+    220.53,
+    220.98,
+    239.01,
+    220.46
+   ],
+   "ids": [
+    "C4NAWBK6",
+    "QYFSIQ2P",
+    "LF8SY5WE",
+    "L6YPKQ5R",
+    "DIVGR3HZ",
+    "D83UNZ42",
+    "PKEDRC6E",
+    "A3XK63W2",
+    "T7RIV5E6",
+    "TT3HRT7K",
+    "TJ8ACXKG",
+    "2TM3QHQT",
+    "IKVN75MV",
+    "E43ZKH59",
+    "QXZAV24W",
+    "F8Y3IIJU",
+    "AM8AA9UR",
+    "JZ8UGBS3",
+    "C7LYAMZJ",
+    "H5R3XXTM"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the price of electricity in Vietnam",
+   "ms": [
+    147.86,
+    161.93,
+    148.35,
+    147.77,
+    160.97,
+    148.14
+   ],
+   "ids": [
+    "7SNK7V3C",
+    "GALVDHUT",
+    "IPHQWKUW",
+    "8ZP7BY3E",
+    "4ZM3E3UP",
+    "5UN65QQ3",
+    "SYK6YDMF",
+    "SMX95QCE",
+    "6ENKLJFR",
+    "ABMFQE6K",
+    "UYEQLPY3",
+    "NEQMYQIJ",
+    "VIHWNYPI",
+    "5V9AVA6A",
+    "AGTKX9QD",
+    "MRHXX4VK",
+    "SATNVLJ6",
+    "3BGRUUSE",
+    "JVIDUGNY",
+    "T92GVX24"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "it is the marginal cost that matters and not the average",
+   "ms": [
+    265.2,
+    281.81,
+    267.02,
+    264.95,
+    290.81,
+    291.72
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KFMST55P",
+    "KTKVPKF6",
+    "MS7672HF",
+    "HKDLMRGF",
+    "JKKC2Q29",
+    "KXZ4RM4R",
+    "DWGG53Y2",
+    "JGIMQJN8",
+    "5VRI9R42",
+    "QHEWRBGU",
+    "GS6DK2JI",
+    "86EC9MMZ",
+    "RUMRDTCJ",
+    "R4HDCVL9",
+    "B6HXUHIS",
+    "VIHWNYPI",
+    "H6E5JT6G",
+    "HIHLXI37"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "these results are robust to the choice of a discount rate",
+   "ms": [
+    129.52,
+    129.68,
+    129.98,
+    129.9,
+    138.65,
+    139.92
+   ],
+   "ids": [
+    "RKVRDT97",
+    "D83UNZ42",
+    "6UC8W8M9",
+    "2CEXRV4N",
+    "NQQG34H8",
+    "SGTJ9T9K",
+    "PZESJ4U9",
+    "P5WDCV9I",
+    "DJUAWMAT",
+    "XJZFW9IN",
+    "LF8SY5WE",
+    "TUK3BDYK",
+    "2GJCXUZ6",
+    "EAVTN9WP",
+    "C8UIC2VE",
+    "KMNRTKJZ",
+    "CXGEGATN",
+    "5JXD7BXV",
+    "KIH5D6GG",
+    "K2I876ZW"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "from theory to policy in the climate negotiations",
+   "ms": [
+    177.12,
+    177.97,
+    178.07,
+    177.36,
+    177.97,
+    193.08
+   ],
+   "ids": [
+    "B6HXUHIS",
+    "ITEHVIWP",
+    "DXDAGUQ5",
+    "ZJXQAGLA",
+    "CJVEWKK3",
+    "UFN7G8TP",
+    "8GYWBGW4",
+    "E43ZKH59",
+    "TJ8ACXKG",
+    "VXUKIDJE",
+    "DH8EXSVA",
+    "GW43MPQE",
+    "5ARAN8H9",
+    "AWFDVJAD",
+    "M2QJT73P",
+    "VMB9I9TC",
+    "I3GMMBEC",
+    "FDBETNFC",
+    "WNBS6I87",
+    "9DEGKGET"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the demand for energy in developing countries",
+   "ms": [
+    241.62,
+    242.48,
+    242.81,
+    241.36,
+    243.44,
+    265.36
+   ],
+   "ids": [
+    "6ANUEM8Q",
+    "XWS2CB6X",
+    "YQKUAVUC",
+    "B834W2VX",
+    "PLKJWIJ9",
+    "SEYAIPEA",
+    "2KFGGS7P",
+    "RWYUV5S8",
+    "IM6RGTUB",
+    "DS9KVEAS",
+    "Y3QZZEWH",
+    "Z8R3LLQR",
+    "4LK7VW2V",
+    "5BV78IFB",
+    "CEUU6NU3",
+    "JLC6DTZ4",
+    "NMZJJYM5",
+    "GNQAPZU2",
+    "E5KTP4MU",
+    "W7I6YSHL"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "our estimates of the rebound effect and their limits",
+   "ms": [
+    69.76,
+    69.33,
+    69.58,
+    70,
+    69.88,
+    70.04
+   ],
+   "ids": [
+    "LG368KPB",
+    "5VYJMXL3",
+    "47Z4MPUY",
+    "QSXGG8JB",
+    "AHCH6M93",
+    "2W3S2XMV",
+    "LHDC6WYL",
+    "5TSM2I7M",
+    "E5KTP4MU",
+    "8M94P4IN",
+    "DQSZZL9H",
+    "CSCX9V49",
+    "Q78MGVWZ",
+    "UA9AKPGZ",
+    "3VGIK7AD",
+    "7US5XVGD",
+    "B6HXUHIS",
+    "DS9KVEAS",
+    "MGHSIJFK",
+    "C7LYAMZJ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "this is the standard model of optimal growth",
+   "ms": [
+    146.27,
+    145.56,
+    162.96,
+    150.14,
+    146.83,
+    147.23
+   ],
+   "ids": [
+    "EEKJSV6H",
+    "DH8EXSVA",
+    "JYQJWBN8",
+    "D88STV6G",
+    "F8Y3IIJU",
+    "B7QCQR68",
+    "AM8AA9UR",
+    "ZNBUC32I",
+    "TSTDJRP6",
+    "UT4FF28F",
+    "T3MBD2GH",
+    "H22UKQD7",
+    "5ESN4L69",
+    "67PU5RLM",
+    "C7LYAMZJ",
+    "H5R3XXTM",
+    "EZS5JZHR",
+    "IFR5B8I3",
+    "X8UP76WX",
+    "QXZAV24W"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the history of mathematical economics as a discipline",
+   "ms": [
+    74.71,
+    74.96,
+    81.21,
+    75.16,
+    74.91,
+    74.89
+   ],
+   "ids": [
+    "6ZMCCBGX",
+    "DH8EXSVA",
+    "AGMQMZP9",
+    "DD6QH3L3",
+    "B4APP976",
+    "8LNV6JF4",
+    "SFWS38BV",
+    "CEI5RIHI",
+    "MEDUEPBU",
+    "XH9UWCKG",
+    "S5C2JCCR",
+    "ZTXRZKZP",
+    "TUK3BDYK"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "capture and storage of carbon in the atmosphere",
+   "ms": [
+    109.36,
+    108.94,
+    119.2,
+    109.89,
+    109.14,
+    109.44
+   ],
+   "ids": [
+    "2HAHT8FF",
+    "6RBE78IG",
+    "3NSSBD3J",
+    "C23BVZ49",
+    "JVLABAUE",
+    "EQXZQXI9",
+    "4E6GIGW4",
+    "CGZXTQPF",
+    "W479XJRA",
+    "UGZXFNF8",
+    "ST3TTUZS",
+    "6RXMQ6DH",
+    "PES9HNDA",
+    "82JMZIJC",
+    "X35QKX7N",
+    "YYRJVG9M",
+    "8D7DBR2J",
+    "9R7WG8GL",
+    "MKTB245M",
+    "57FXJGQ3"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the distribution of income and wealth in the long run",
+   "ms": [
+    144.33,
+    144.98,
+    156.98,
+    144.97,
+    143.87,
+    144.64
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "N8VBZK3C",
+    "QLPFHB76",
+    "MECBHRCE",
+    "FIL2JI5M",
+    "ITUYNL2C",
+    "I2973H2U",
+    "XRD7T2QI",
+    "XWS2CB6X",
+    "SKWEQXNP",
+    "FQTVKDV8",
+    "6ANUEM8Q",
+    "GS6DK2JI",
+    "VTDH929P",
+    "AIT7VRSM",
+    "HPJNEJD7"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "as measured by the elasticity of substitution",
+   "ms": [
+    24.87,
+    25.16,
+    26.86,
+    24.99,
+    24.8,
+    25.01
+   ],
+   "ids": [
+    "GP4CV9I3",
+    "DH8EXSVA",
+    "P36FM7EJ",
+    "K2I876ZW",
+    "R3TWDJRT",
+    "WNXARC83",
+    "97TRZG98",
+    "BPVTKWCI",
+    "KTXGSAZB",
+    "6J24CEWN",
+    "AWGKZIA6",
+    "4842PMV4",
+    "SGTJ9T9K",
+    "P95NRBEV",
+    "KTKVPKF6",
+    "4ZM3E3UP",
+    "KFMST55P",
+    "2JRDYHML",
+    "VB53B2JB",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "their contribution to the equilibrium of the market",
+   "ms": [
+    98.53,
+    98.3,
+    102.58,
+    98.34,
+    98.92,
+    98.82
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "GV5U9CPV",
+    "XH9UWCKG",
+    "RUMRDTCJ",
+    "WNTRTQ6Q",
+    "5UIJPSWI",
+    "CEI5RIHI",
+    "9KSMUGKB",
+    "GP4CV9I3",
+    "Z7ZW4K4J",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "LMZZ6L7N",
+    "7BSCP2IA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "on the theory of value and of distribution",
+   "ms": [
+    119.61,
+    119.21,
+    119.59,
+    119.42,
+    119.85,
+    119.96
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KPTPHQPQ",
+    "RUMRDTCJ",
+    "MJUV6HKF",
+    "PHUPZ6P3",
+    "RG9US92B"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "was the transition to renewables in these countries inevitable",
+   "ms": [
+    111.24,
+    110.87,
+    111.04,
+    111.09,
+    111.42,
+    111.44
+   ],
+   "ids": [
+    "N6IVA2NE",
+    "GXQ4VZ3U",
+    "GNAIWL4I",
+    "YLJ72U3G",
+    "K224T6QM",
+    "T5LLDKG5",
+    "TER775S9",
+    "WT49X7FK",
+    "ZFJMNIRI",
+    "2PVNHP4F",
+    "DH8EXSVA",
+    "SLKHINE5",
+    "4H5K2TBS",
+    "J52Q42E5",
+    "5VUMJR6Z",
+    "5ARZFT7M",
+    "JEJ2R6JF",
+    "CG333B2A",
+    "GMRIK5PD",
+    "NAV4AV3P"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the role of the state in the energy transition",
+   "ms": [
+    229.72,
+    229.68,
+    232.36,
+    229.17,
+    232.8,
+    235.07
+   ],
+   "ids": [
+    "JEJ2R6JF",
+    "35ZGLRZS",
+    "ZB9UTKG4",
+    "8L6E4UVZ",
+    "BNVPWNIS",
+    "HK3SJZDC",
+    "CRMGK5W8",
+    "SMPHC27H",
+    "9T67P2UY",
+    "P2KI5CVM",
+    "8XL87GQT",
+    "5L2C2XD2",
+    "KXKFFLZA",
+    "EMXDBMQ8",
+    "DXDNGI7S",
+    "E27H5TMF",
+    "KKY728VV",
+    "VN3LL565",
+    "SE7KI4YR",
+    "K224T6QM"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "what is the social cost of carbon",
+   "ms": [
+    201.14,
+    200.34,
+    220.02,
+    201.03,
+    212.41,
+    201.61
+   ],
+   "ids": [
+    "ZHCI6BCR",
+    "86EC9MMZ",
+    "4LK7VW2V",
+    "W7UZKDAL",
+    "NE9H2CJ3",
+    "P5WDCV9I",
+    "HE5RVLYP",
+    "PKEDRC6E",
+    "K864WYKS",
+    "B6HXUHIS",
+    "PPH6VFF5",
+    "UXW9L5QI",
+    "FVDYLWXS",
+    "VHVLBJGM",
+    "6XC83HS9",
+    "3IPR4M8J",
+    "IKVN75MV",
+    "H5R3XXTM",
+    "UQG8B2QW",
+    "FWQ6VHWG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the effect of a carbon tax on household income",
+   "ms": [
+    142.52,
+    142.13,
+    143.24,
+    141.66,
+    154.66,
+    142.87
+   ],
+   "ids": [
+    "DS9KVEAS",
+    "PIA5Q2MD",
+    "CJVEWKK3",
+    "DH8EXSVA",
+    "QXTFAHUL",
+    "TVP24JKR",
+    "LMZZ6L7N",
+    "H22UKQD7",
+    "LG368KPB",
+    "HE96I95C",
+    "WZ9SNRZM",
+    "NKSK3SIQ",
+    "XFN2ZM2B",
+    "X69DJS66",
+    "I3LX55EG",
+    "TAMLP8PA",
+    "YDUBHPNQ",
+    "BMAN5W8Q",
+    "MF9QE5BS",
+    "2Z8NWQSU"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "to be or not to be",
+   "ms": [
+    513.64,
+    518.7,
+    517.08,
+    529.41,
+    566.39,
+    520.73
+   ],
+   "ids": [
+    "TVEPMMGN",
+    "ZFEVBHN2",
+    "JTWGMZ2X",
+    "Z9IS7FPY",
+    "DEV2WYTJ",
+    "76Q6ADSP",
+    "UE969MDX",
+    "885PU2KD",
+    "XKM86PRR",
+    "CVA7Z7SZ",
+    "XS7PAHEW",
+    "AXKI6W6L",
+    "UMLS2I5P",
+    "P9IZUNMH",
+    "S7AS7T69",
+    "DH8EXSVA",
+    "L8MN7375",
+    "KPYDNLEJ",
+    "VXUKIDJE",
+    "FIL2JI5M"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the origins of index numbers in economics",
+   "ms": [
+    83.21,
+    83.37,
+    83.13,
+    83.69,
+    90.47,
+    83.4
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "MKNXF3F9",
+    "FIL2JI5M",
+    "JEJ2R6JF",
+    "VTDH929P",
+    "XMFQBZQZ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "models that are used for integrated assessment of climate",
+   "ms": [
+    219.59,
+    228.9,
+    220.82,
+    220.69,
+    239.22,
+    221.04
+   ],
+   "ids": [
+    "C4NAWBK6",
+    "QYFSIQ2P",
+    "LF8SY5WE",
+    "L6YPKQ5R",
+    "DIVGR3HZ",
+    "D83UNZ42",
+    "PKEDRC6E",
+    "A3XK63W2",
+    "T7RIV5E6",
+    "TJ8ACXKG",
+    "TT3HRT7K",
+    "2TM3QHQT",
+    "IKVN75MV",
+    "F8Y3IIJU",
+    "QXZAV24W",
+    "E43ZKH59",
+    "AM8AA9UR",
+    "JZ8UGBS3",
+    "C7LYAMZJ",
+    "H5R3XXTM"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the price of electricity in Vietnam",
+   "ms": [
+    148.39,
+    163.27,
+    148.24,
+    148.06,
+    161.03,
+    148.42
+   ],
+   "ids": [
+    "7SNK7V3C",
+    "GALVDHUT",
+    "IPHQWKUW",
+    "8ZP7BY3E",
+    "4ZM3E3UP",
+    "5UN65QQ3",
+    "SYK6YDMF",
+    "SMX95QCE",
+    "6ENKLJFR",
+    "ABMFQE6K",
+    "UYEQLPY3",
+    "NEQMYQIJ",
+    "VIHWNYPI",
+    "5V9AVA6A",
+    "MRHXX4VK",
+    "AGTKX9QD",
+    "SATNVLJ6",
+    "3BGRUUSE",
+    "JVIDUGNY",
+    "T92GVX24"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "it is the marginal cost that matters and not the average",
+   "ms": [
+    126.23,
+    126.79,
+    127.12,
+    127.63,
+    138.71,
+    138.22
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KFMST55P",
+    "KTKVPKF6",
+    "JKKC2Q29",
+    "JGIMQJN8",
+    "QHEWRBGU",
+    "HKDLMRGF",
+    "MS7672HF",
+    "GS6DK2JI",
+    "5VRI9R42",
+    "R4HDCVL9",
+    "KXZ4RM4R",
+    "DWGG53Y2",
+    "5W5GU2QG",
+    "GUTXUMQT",
+    "86EC9MMZ",
+    "B6HXUHIS",
+    "RUMRDTCJ",
+    "3PYCD8A3",
+    "3QPEU7MS"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "these results are robust to the choice of a discount rate",
+   "ms": [
+    130.39,
+    130.57,
+    130.57,
+    130.74,
+    132.02,
+    141.75
+   ],
+   "ids": [
+    "RKVRDT97",
+    "D83UNZ42",
+    "6UC8W8M9",
+    "2CEXRV4N",
+    "NQQG34H8",
+    "SGTJ9T9K",
+    "PZESJ4U9",
+    "P5WDCV9I",
+    "DJUAWMAT",
+    "XJZFW9IN",
+    "2GJCXUZ6",
+    "TUK3BDYK",
+    "LF8SY5WE",
+    "EAVTN9WP",
+    "C8UIC2VE",
+    "CXGEGATN",
+    "KMNRTKJZ",
+    "5JXD7BXV",
+    "KIH5D6GG",
+    "K2I876ZW"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "from theory to policy in the climate negotiations",
+   "ms": [
+    177.88,
+    178.61,
+    177.93,
+    176.68,
+    177.74,
+    193.21
+   ],
+   "ids": [
+    "B6HXUHIS",
+    "ITEHVIWP",
+    "DXDAGUQ5",
+    "ZJXQAGLA",
+    "CJVEWKK3",
+    "UFN7G8TP",
+    "8GYWBGW4",
+    "E43ZKH59",
+    "TJ8ACXKG",
+    "VXUKIDJE",
+    "GW43MPQE",
+    "DH8EXSVA",
+    "5ARAN8H9",
+    "AWFDVJAD",
+    "M2QJT73P",
+    "VMB9I9TC",
+    "I3GMMBEC",
+    "FDBETNFC",
+    "WNBS6I87",
+    "PLNHZ9QG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the demand for energy in developing countries",
+   "ms": [
+    241.6,
+    241.9,
+    241.77,
+    241.78,
+    244.85,
+    256.88
+   ],
+   "ids": [
+    "6ANUEM8Q",
+    "XWS2CB6X",
+    "YQKUAVUC",
+    "B834W2VX",
+    "PLKJWIJ9",
+    "SEYAIPEA",
+    "2KFGGS7P",
+    "RWYUV5S8",
+    "IM6RGTUB",
+    "DS9KVEAS",
+    "Y3QZZEWH",
+    "4LK7VW2V",
+    "Z8R3LLQR",
+    "5BV78IFB",
+    "CEUU6NU3",
+    "JLC6DTZ4",
+    "NMZJJYM5",
+    "GNQAPZU2",
+    "E5KTP4MU",
+    "W7I6YSHL"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "our estimates of the rebound effect and their limits",
+   "ms": [
+    71.34,
+    70.87,
+    73.21,
+    71.09,
+    71.41,
+    71.34
+   ],
+   "ids": [
+    "LG368KPB",
+    "5VYJMXL3",
+    "47Z4MPUY",
+    "QSXGG8JB",
+    "AHCH6M93",
+    "2W3S2XMV",
+    "LHDC6WYL",
+    "5TSM2I7M",
+    "E5KTP4MU",
+    "8M94P4IN",
+    "DQSZZL9H",
+    "CSCX9V49",
+    "3VGIK7AD",
+    "Q78MGVWZ",
+    "UA9AKPGZ",
+    "7US5XVGD",
+    "B6HXUHIS",
+    "DS9KVEAS",
+    "MGHSIJFK",
+    "C7LYAMZJ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "this is the standard model of optimal growth",
+   "ms": [
+    146.9,
+    146.97,
+    159.76,
+    147.19,
+    146.68,
+    147.03
+   ],
+   "ids": [
+    "EEKJSV6H",
+    "DH8EXSVA",
+    "JYQJWBN8",
+    "D88STV6G",
+    "F8Y3IIJU",
+    "B7QCQR68",
+    "AM8AA9UR",
+    "ZNBUC32I",
+    "TSTDJRP6",
+    "UT4FF28F",
+    "T3MBD2GH",
+    "H22UKQD7",
+    "5ESN4L69",
+    "67PU5RLM",
+    "H5R3XXTM",
+    "C7LYAMZJ",
+    "EZS5JZHR",
+    "IFR5B8I3",
+    "C8UIC2VE",
+    "X8UP76WX"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the history of mathematical economics as a discipline",
+   "ms": [
+    74.25,
+    73.92,
+    80.86,
+    74.65,
+    74.97,
+    74.65
+   ],
+   "ids": [
+    "6ZMCCBGX",
+    "DH8EXSVA",
+    "AGMQMZP9",
+    "DD6QH3L3",
+    "B4APP976",
+    "8LNV6JF4",
+    "SFWS38BV",
+    "CEI5RIHI",
+    "MEDUEPBU",
+    "XH9UWCKG",
+    "S5C2JCCR",
+    "ZTXRZKZP",
+    "TUK3BDYK"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "capture and storage of carbon in the atmosphere",
+   "ms": [
+    109.37,
+    109.27,
+    119.8,
+    113.02,
+    109.33,
+    109.79
+   ],
+   "ids": [
+    "2HAHT8FF",
+    "6RBE78IG",
+    "3NSSBD3J",
+    "C23BVZ49",
+    "JVLABAUE",
+    "EQXZQXI9",
+    "4E6GIGW4",
+    "CGZXTQPF",
+    "W479XJRA",
+    "UGZXFNF8",
+    "ST3TTUZS",
+    "6RXMQ6DH",
+    "X35QKX7N",
+    "PES9HNDA",
+    "82JMZIJC",
+    "YYRJVG9M",
+    "8D7DBR2J",
+    "9R7WG8GL",
+    "LPP487ND",
+    "XLIKTSI3"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the distribution of income and wealth in the long run",
+   "ms": [
+    144.88,
+    144.71,
+    156.64,
+    144.67,
+    144.77,
+    145.07
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "N8VBZK3C",
+    "QLPFHB76",
+    "MECBHRCE",
+    "ITUYNL2C",
+    "FIL2JI5M",
+    "I2973H2U",
+    "XRD7T2QI",
+    "XWS2CB6X",
+    "SKWEQXNP",
+    "FQTVKDV8",
+    "6ANUEM8Q",
+    "GS6DK2JI",
+    "AIT7VRSM",
+    "VTDH929P",
+    "HPJNEJD7"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "as measured by the elasticity of substitution",
+   "ms": [
+    25.99,
+    26.09,
+    27.91,
+    25.9,
+    26.25,
+    25.96
+   ],
+   "ids": [
+    "GP4CV9I3",
+    "DH8EXSVA",
+    "K2I876ZW",
+    "P36FM7EJ",
+    "R3TWDJRT",
+    "WNXARC83",
+    "97TRZG98",
+    "BPVTKWCI",
+    "KTXGSAZB",
+    "6J24CEWN",
+    "AWGKZIA6",
+    "4842PMV4",
+    "SGTJ9T9K",
+    "P95NRBEV",
+    "4ZM3E3UP",
+    "KTKVPKF6",
+    "KFMST55P",
+    "2JRDYHML",
+    "VB53B2JB",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "their contribution to the equilibrium of the market",
+   "ms": [
+    98.3,
+    98.45,
+    98.9,
+    98.32,
+    98.52,
+    98.53
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "GV5U9CPV",
+    "XH9UWCKG",
+    "RUMRDTCJ",
+    "WNTRTQ6Q",
+    "5UIJPSWI",
+    "CEI5RIHI",
+    "9KSMUGKB",
+    "GP4CV9I3",
+    "Z7ZW4K4J",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "LMZZ6L7N",
+    "7BSCP2IA",
+    "NGVECB7I"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "on the theory of value and of distribution",
+   "ms": [
+    119.61,
+    119.61,
+    119.63,
+    119.79,
+    119.72,
+    119.56
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KPTPHQPQ",
+    "RUMRDTCJ",
+    "MJUV6HKF",
+    "PHUPZ6P3",
+    "RG9US92B"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "was the transition to renewables in these countries inevitable",
+   "ms": [
+    111.63,
+    111.4,
+    111.32,
+    111.87,
+    111.97,
+    111.56
+   ],
+   "ids": [
+    "N6IVA2NE",
+    "GXQ4VZ3U",
+    "GNAIWL4I",
+    "YLJ72U3G",
+    "K224T6QM",
+    "T5LLDKG5",
+    "TER775S9",
+    "WT49X7FK",
+    "ZFJMNIRI",
+    "2PVNHP4F",
+    "DH8EXSVA",
+    "4H5K2TBS",
+    "SLKHINE5",
+    "J52Q42E5",
+    "5VUMJR6Z",
+    "5ARZFT7M",
+    "JEJ2R6JF",
+    "CG333B2A",
+    "HVH8UHJE",
+    "NAV4AV3P"
+   ]
+  },
+  {
+   "arm": "armB",
+   "query": "the role of the state in the energy transition",
+   "ms": [
+    225.97,
+    225.82,
+    224.91,
+    225.48,
+    227.47,
+    226.9
+   ],
+   "ids": [
+    "JEJ2R6JF",
+    "35ZGLRZS",
+    "ZB9UTKG4",
+    "8L6E4UVZ",
+    "BNVPWNIS",
+    "CRMGK5W8",
+    "HK3SJZDC",
+    "SMPHC27H",
+    "9T67P2UY",
+    "P2KI5CVM",
+    "8XL87GQT",
+    "5L2C2XD2",
+    "KXKFFLZA",
+    "DXDNGI7S",
+    "EMXDBMQ8",
+    "E27H5TMF",
+    "SE7KI4YR",
+    "KKY728VV",
+    "VN3LL565",
+    "K224T6QM"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.21,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "what is the social cost of carbon",
+   "ms": [
+    198.08,
+    197.97,
+    215.55,
+    198.36,
+    216.28,
+    199.02
+   ],
+   "ids": [
+    "ZHCI6BCR",
+    "86EC9MMZ",
+    "4LK7VW2V",
+    "W7UZKDAL",
+    "NE9H2CJ3",
+    "P5WDCV9I",
+    "HE5RVLYP",
+    "PKEDRC6E",
+    "K864WYKS",
+    "PPH6VFF5",
+    "B6HXUHIS",
+    "FVDYLWXS",
+    "UXW9L5QI",
+    "VHVLBJGM",
+    "6XC83HS9",
+    "IKVN75MV",
+    "H5R3XXTM",
+    "3IPR4M8J",
+    "FWQ6VHWG",
+    "UQG8B2QW"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.036,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the effect of a carbon tax on household income",
+   "ms": [
+    139.93,
+    139.38,
+    139.48,
+    140.45,
+    153.53,
+    140.21
+   ],
+   "ids": [
+    "DS9KVEAS",
+    "PIA5Q2MD",
+    "CJVEWKK3",
+    "DH8EXSVA",
+    "QXTFAHUL",
+    "TVP24JKR",
+    "LMZZ6L7N",
+    "H22UKQD7",
+    "LG368KPB",
+    "HE96I95C",
+    "WZ9SNRZM",
+    "NKSK3SIQ",
+    "XFN2ZM2B",
+    "X69DJS66",
+    "I3LX55EG",
+    "YDUBHPNQ",
+    "TAMLP8PA",
+    "BMAN5W8Q",
+    "MF9QE5BS",
+    "2Z8NWQSU"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.052,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "to be or not to be",
+   "ms": [
+    487.31,
+    489.42,
+    489.18,
+    486.8,
+    533.19,
+    488.26
+   ],
+   "ids": [
+    "TVEPMMGN",
+    "ZFEVBHN2",
+    "DEV2WYTJ",
+    "JTWGMZ2X",
+    "Z9IS7FPY",
+    "76Q6ADSP",
+    "XKM86PRR",
+    "UE969MDX",
+    "885PU2KD",
+    "AXKI6W6L",
+    "CVA7Z7SZ",
+    "XS7PAHEW",
+    "P9IZUNMH",
+    "UMLS2I5P",
+    "S7AS7T69",
+    "VXUKIDJE",
+    "KPYDNLEJ",
+    "7EEJ37P6",
+    "DH8EXSVA",
+    "FIL2JI5M"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.069,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the origins of index numbers in economics",
+   "ms": [
+    82.48,
+    82.55,
+    82.5,
+    82.41,
+    89.7,
+    82.47
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "MKNXF3F9",
+    "FIL2JI5M",
+    "JEJ2R6JF",
+    "VTDH929P",
+    "XMFQBZQZ"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.023,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "models that are used for integrated assessment of climate",
+   "ms": [
+    216.98,
+    240.48,
+    218.14,
+    218.22,
+    237.14,
+    217.14
+   ],
+   "ids": [
+    "C4NAWBK6",
+    "QYFSIQ2P",
+    "LF8SY5WE",
+    "L6YPKQ5R",
+    "DIVGR3HZ",
+    "D83UNZ42",
+    "PKEDRC6E",
+    "A3XK63W2",
+    "T7RIV5E6",
+    "TT3HRT7K",
+    "TJ8ACXKG",
+    "2TM3QHQT",
+    "IKVN75MV",
+    "E43ZKH59",
+    "QXZAV24W",
+    "F8Y3IIJU",
+    "AM8AA9UR",
+    "JZ8UGBS3",
+    "C7LYAMZJ",
+    "H5R3XXTM"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.029,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the price of electricity in Vietnam",
+   "ms": [
+    144.72,
+    159.77,
+    145.49,
+    145.78,
+    158.73,
+    156.57
+   ],
+   "ids": [
+    "7SNK7V3C",
+    "GALVDHUT",
+    "IPHQWKUW",
+    "8ZP7BY3E",
+    "4ZM3E3UP",
+    "5UN65QQ3",
+    "SYK6YDMF",
+    "SMX95QCE",
+    "6ENKLJFR",
+    "ABMFQE6K",
+    "UYEQLPY3",
+    "NEQMYQIJ",
+    "VIHWNYPI",
+    "5V9AVA6A",
+    "AGTKX9QD",
+    "MRHXX4VK",
+    "SATNVLJ6",
+    "3BGRUUSE",
+    "JVIDUGNY",
+    "T92GVX24"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.025,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "it is the marginal cost that matters and not the average",
+   "ms": [
+    125.44,
+    125.58,
+    126.51,
+    125.14,
+    136.62,
+    136.57
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KFMST55P",
+    "KTKVPKF6",
+    "JKKC2Q29",
+    "JGIMQJN8",
+    "HKDLMRGF",
+    "MS7672HF",
+    "QHEWRBGU",
+    "GS6DK2JI",
+    "5VRI9R42",
+    "R4HDCVL9",
+    "KXZ4RM4R",
+    "DWGG53Y2",
+    "5W5GU2QG",
+    "GUTXUMQT",
+    "86EC9MMZ",
+    "B6HXUHIS",
+    "RUMRDTCJ",
+    "3PYCD8A3",
+    "3QPEU7MS"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.022,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "these results are robust to the choice of a discount rate",
+   "ms": [
+    129.03,
+    128.86,
+    128.69,
+    128.77,
+    129.36,
+    139.71
+   ],
+   "ids": [
+    "RKVRDT97",
+    "D83UNZ42",
+    "6UC8W8M9",
+    "2CEXRV4N",
+    "NQQG34H8",
+    "SGTJ9T9K",
+    "PZESJ4U9",
+    "P5WDCV9I",
+    "DJUAWMAT",
+    "XJZFW9IN",
+    "LF8SY5WE",
+    "TUK3BDYK",
+    "2GJCXUZ6",
+    "EAVTN9WP",
+    "C8UIC2VE",
+    "KMNRTKJZ",
+    "CXGEGATN",
+    "5JXD7BXV",
+    "KIH5D6GG",
+    "K2I876ZW"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.033,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "from theory to policy in the climate negotiations",
+   "ms": [
+    175.48,
+    175.71,
+    175.32,
+    176.16,
+    175.32,
+    190.24
+   ],
+   "ids": [
+    "B6HXUHIS",
+    "ITEHVIWP",
+    "DXDAGUQ5",
+    "ZJXQAGLA",
+    "CJVEWKK3",
+    "UFN7G8TP",
+    "8GYWBGW4",
+    "E43ZKH59",
+    "TJ8ACXKG",
+    "VXUKIDJE",
+    "DH8EXSVA",
+    "GW43MPQE",
+    "5ARAN8H9",
+    "AWFDVJAD",
+    "M2QJT73P",
+    "VMB9I9TC",
+    "I3GMMBEC",
+    "FDBETNFC",
+    "WNBS6I87",
+    "9DEGKGET"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.022,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the demand for energy in developing countries",
+   "ms": [
+    237.94,
+    236.03,
+    238.62,
+    237.81,
+    239.07,
+    237.47
+   ],
+   "ids": [
+    "6ANUEM8Q",
+    "XWS2CB6X",
+    "YQKUAVUC",
+    "B834W2VX",
+    "PLKJWIJ9",
+    "SEYAIPEA",
+    "2KFGGS7P",
+    "RWYUV5S8",
+    "IM6RGTUB",
+    "DS9KVEAS",
+    "Y3QZZEWH",
+    "Z8R3LLQR",
+    "4LK7VW2V",
+    "5BV78IFB",
+    "CEUU6NU3",
+    "JLC6DTZ4",
+    "NMZJJYM5",
+    "GNQAPZU2",
+    "E5KTP4MU",
+    "W7I6YSHL"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.027,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "our estimates of the rebound effect and their limits",
+   "ms": [
+    71.83,
+    70.6,
+    78.91,
+    71.32,
+    71.17,
+    71.26
+   ],
+   "ids": [
+    "LG368KPB",
+    "5VYJMXL3",
+    "47Z4MPUY",
+    "QSXGG8JB",
+    "AHCH6M93",
+    "2W3S2XMV",
+    "LHDC6WYL",
+    "5TSM2I7M",
+    "E5KTP4MU",
+    "8M94P4IN",
+    "DQSZZL9H",
+    "CSCX9V49",
+    "Q78MGVWZ",
+    "UA9AKPGZ",
+    "3VGIK7AD",
+    "7US5XVGD",
+    "B6HXUHIS",
+    "DS9KVEAS",
+    "MGHSIJFK",
+    "C7LYAMZJ"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.022,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "this is the standard model of optimal growth",
+   "ms": [
+    145.25,
+    144.14,
+    157.92,
+    145.27,
+    145.47,
+    144.76
+   ],
+   "ids": [
+    "EEKJSV6H",
+    "DH8EXSVA",
+    "JYQJWBN8",
+    "D88STV6G",
+    "F8Y3IIJU",
+    "B7QCQR68",
+    "AM8AA9UR",
+    "ZNBUC32I",
+    "TSTDJRP6",
+    "UT4FF28F",
+    "T3MBD2GH",
+    "H22UKQD7",
+    "5ESN4L69",
+    "67PU5RLM",
+    "C7LYAMZJ",
+    "H5R3XXTM",
+    "EZS5JZHR",
+    "IFR5B8I3",
+    "X8UP76WX",
+    "QXZAV24W"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.025,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the history of mathematical economics as a discipline",
+   "ms": [
+    73.69,
+    73.66,
+    80.2,
+    74.2,
+    73.73,
+    74.15
+   ],
+   "ids": [
+    "6ZMCCBGX",
+    "DH8EXSVA",
+    "AGMQMZP9",
+    "DD6QH3L3",
+    "B4APP976",
+    "8LNV6JF4",
+    "SFWS38BV",
+    "CEI5RIHI",
+    "MEDUEPBU",
+    "XH9UWCKG",
+    "S5C2JCCR",
+    "ZTXRZKZP",
+    "TUK3BDYK"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.019,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "capture and storage of carbon in the atmosphere",
+   "ms": [
+    107.32,
+    106.63,
+    116.18,
+    116.84,
+    107.22,
+    106.54
+   ],
+   "ids": [
+    "2HAHT8FF",
+    "6RBE78IG",
+    "3NSSBD3J",
+    "C23BVZ49",
+    "JVLABAUE",
+    "EQXZQXI9",
+    "4E6GIGW4",
+    "CGZXTQPF",
+    "W479XJRA",
+    "UGZXFNF8",
+    "ST3TTUZS",
+    "6RXMQ6DH",
+    "PES9HNDA",
+    "82JMZIJC",
+    "X35QKX7N",
+    "YYRJVG9M",
+    "8D7DBR2J",
+    "9R7WG8GL",
+    "MKTB245M",
+    "57FXJGQ3"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.037,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the distribution of income and wealth in the long run",
+   "ms": [
+    141.22,
+    140.73,
+    153.61,
+    142.84,
+    140.89,
+    141.95
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "N8VBZK3C",
+    "QLPFHB76",
+    "MECBHRCE",
+    "FIL2JI5M",
+    "ITUYNL2C",
+    "I2973H2U",
+    "XRD7T2QI",
+    "XWS2CB6X",
+    "SKWEQXNP",
+    "6ANUEM8Q",
+    "FQTVKDV8",
+    "GS6DK2JI",
+    "VTDH929P",
+    "AIT7VRSM",
+    "HPJNEJD7"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.037,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "as measured by the elasticity of substitution",
+   "ms": [
+    26.32,
+    26.3,
+    27.99,
+    26.53,
+    26.51,
+    26.12
+   ],
+   "ids": [
+    "GP4CV9I3",
+    "DH8EXSVA",
+    "P36FM7EJ",
+    "K2I876ZW",
+    "R3TWDJRT",
+    "WNXARC83",
+    "97TRZG98",
+    "BPVTKWCI",
+    "KTXGSAZB",
+    "6J24CEWN",
+    "AWGKZIA6",
+    "4842PMV4",
+    "SGTJ9T9K",
+    "P95NRBEV",
+    "KTKVPKF6",
+    "4ZM3E3UP",
+    "KFMST55P",
+    "2JRDYHML",
+    "VB53B2JB",
+    "TJ8ACXKG"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.019,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "their contribution to the equilibrium of the market",
+   "ms": [
+    97.52,
+    97.14,
+    97.22,
+    97.75,
+    97.66,
+    97.49
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "GV5U9CPV",
+    "XH9UWCKG",
+    "RUMRDTCJ",
+    "WNTRTQ6Q",
+    "5UIJPSWI",
+    "CEI5RIHI",
+    "9KSMUGKB",
+    "GP4CV9I3",
+    "Z7ZW4K4J",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "LMZZ6L7N",
+    "7BSCP2IA"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.016,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "on the theory of value and of distribution",
+   "ms": [
+    117.79,
+    117.83,
+    118.29,
+    118.51,
+    117.73,
+    117.4
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "KPTPHQPQ",
+    "RUMRDTCJ",
+    "MJUV6HKF",
+    "PHUPZ6P3",
+    "RG9US92B"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.015,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "was the transition to renewables in these countries inevitable",
+   "ms": [
+    109.82,
+    110.16,
+    109.68,
+    110.12,
+    110.11,
+    109.69
+   ],
+   "ids": [
+    "N6IVA2NE",
+    "GXQ4VZ3U",
+    "GNAIWL4I",
+    "YLJ72U3G",
+    "K224T6QM",
+    "T5LLDKG5",
+    "TER775S9",
+    "WT49X7FK",
+    "ZFJMNIRI",
+    "2PVNHP4F",
+    "DH8EXSVA",
+    "SLKHINE5",
+    "4H5K2TBS",
+    "J52Q42E5",
+    "5VUMJR6Z",
+    "5ARZFT7M",
+    "JEJ2R6JF",
+    "CG333B2A",
+    "GMRIK5PD",
+    "NAV4AV3P"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.026,
+    "detail": []
+   }
+  }
+ ],
+ "summary": {
+  "stock": {
+   "index": "./idx-stock.sqlite",
+   "n": 120,
+   "p50_ms": 144.6,
+   "p95_ms": 265.2,
+   "max_ms": 291.7,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
+   "queries": 20
+  },
+  "armA": {
+   "index": "./idx-armA.sqlite",
+   "n": 120,
+   "p50_ms": 141.8,
+   "p95_ms": 513.6,
+   "max_ms": 566.4,
+   "mean_jaccard_to_reference": 0.915,
+   "mean_rbo_to_reference": 0.939,
+   "top1_same_as_reference": 19,
+   "ordered_identical_to_reference": 3,
+   "queries": 20
+  },
+  "armB": {
+   "index": "./idx-armB2.sqlite",
+   "n": 120,
+   "p50_ms": 139.5,
+   "p95_ms": 486.8,
+   "max_ms": 533.2,
+   "mean_jaccard_to_reference": 0.942,
+   "mean_rbo_to_reference": 0.944,
+   "top1_same_as_reference": 19,
+   "ordered_identical_to_reference": 16,
+   "queries": 20,
+   "expansion": {
+    "queries_with_expansion": 0,
+    "total_added_variants": 0,
+    "mean_lookup_ms": 0.038,
+    "max_lookup_ms": 0.21
+   }
+  }
+ },
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent"
+ }
+}

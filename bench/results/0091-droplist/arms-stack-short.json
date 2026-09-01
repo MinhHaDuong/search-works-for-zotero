@@ -1,0 +1,1567 @@
+{
+ "indexes": {
+  "stock": "/home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite",
+  "stack": "/home/haduong/data/projets/zoteus-bench/0091-r5stack/search-index.sqlite"
+ },
+ "queries": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0091-914250/bench/queries-short.txt",
+ "arms": [
+  "stock",
+  "stack"
+ ],
+ "reference": "stock",
+ "repeat": 6,
+ "limit": 20,
+ "channel": "SqliteSearchIndex.query() directly, mode=keyword, embeddings off — NOT the MCP server. ARMS ON SEPARATE FILES (stock cannot read schema 2; the stack would migrate schema 1): latency is cross-file and comparable only with that caveat; result quality compares item-key lists over the same corpus and is unaffected.",
+ "droplist": [
+  "1",
+  "2",
+  "3",
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "be",
+  "by",
+  "for",
+  "from",
+  "in",
+  "is",
+  "of",
+  "on",
+  "or",
+  "s",
+  "that",
+  "the",
+  "this",
+  "to",
+  "with"
+ ],
+ "per_query": [
+  {
+   "arm": "stock",
+   "query": "the brain",
+   "ms": [
+    2.76,
+    2.97,
+    2.8,
+    2.93,
+    2.75,
+    3.31
+   ],
+   "terms": [
+    "brain"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ",
+    "RKA49GPF",
+    "BNZ3RSZ8",
+    "LFZDPPYC",
+    "TE8DRDF5",
+    "HI7A9DM6",
+    "UGTDZDMB",
+    "ZAKEGIFI",
+    "9WB3KL2J",
+    "Z96TJ9GU",
+    "ZH4KC7J7",
+    "WS4N7QK6",
+    "KWWT9QZJ",
+    "SH5953QQ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "of energy",
+   "ms": [
+    160.57,
+    174.36,
+    162.06,
+    175.13,
+    161.14,
+    175.78
+   ],
+   "terms": [
+    "energy"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68",
+    "2QPF7Y7Q",
+    "V2S855Z3",
+    "NC3KEHJP",
+    "GZK9KAH4",
+    "7EAQZXUE",
+    "U8XJBMP8",
+    "VT44QYTD",
+    "G9JP9BQU",
+    "RMMB2Z9K",
+    "RMWJHUDV",
+    "SUZC6GYM",
+    "EZWNKH8K",
+    "69GS3ZJZ",
+    "W2HRFCUF",
+    "CHXKM4I7"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the carbon tax",
+   "ms": [
+    88.26,
+    85.79,
+    80.53,
+    85.77,
+    80.32,
+    86.15
+   ],
+   "terms": [
+    "carbon",
+    "tax"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "Z7A2WC4X",
+    "R4HDCVL9",
+    "X69DJS66",
+    "XFN2ZM2B",
+    "3IPR4M8J",
+    "DWW5EJ9X",
+    "LMZZ6L7N",
+    "2GJCXUZ6"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "in Vietnam",
+   "ms": [
+    50.38,
+    50.71,
+    47.7,
+    50.28,
+    47.32,
+    51.72
+   ],
+   "terms": [
+    "vietnam"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "7486A6MY",
+    "R65I2TII",
+    "LP94SNAX",
+    "6UZ6L2F4",
+    "88GZ9ZSY",
+    "DCM7UR8B",
+    "N6IHNIA7",
+    "QF83SUUD",
+    "EQSQHW27",
+    "PLKJWIJ9",
+    "AUGDIZYS",
+    "QQSIGRY8",
+    "HK3SJZDC",
+    "8383GFIU",
+    "9M2TFAIA",
+    "2XNZ3E9Z",
+    "P7UCCAA7",
+    "74P6J8VJ",
+    "4EDGI7NH",
+    "GALVDHUT"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "a discount rate",
+   "ms": [
+    60.22,
+    60.67,
+    62.2,
+    60.03,
+    60.79,
+    60.81
+   ],
+   "terms": [
+    "discount",
+    "rate"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "36HH9NZE",
+    "47Z4MPUY",
+    "33YBCXY3",
+    "5JXD7BXV",
+    "PZESJ4U9",
+    "AM8AA9UR",
+    "5VYJMXL3",
+    "DH8EXSVA",
+    "AQCBB3M9",
+    "C8UIC2VE",
+    "UT4FF28F",
+    "3IPR4M8J",
+    "SGTJ9T9K",
+    "TUK3BDYK",
+    "GWY5WRZE",
+    "IKVN75MV",
+    "UMGD2DMN",
+    "2CEXRV4N",
+    "5ETGKN46",
+    "9IGTE5WM"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the market",
+   "ms": [
+    72.05,
+    72.52,
+    72.38,
+    72.96,
+    68.63,
+    73.16
+   ],
+   "terms": [
+    "market"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "QDKHQM78",
+    "3FXE5DMD",
+    "DCJL5DT3",
+    "DH8EXSVA",
+    "7NLWFJZC",
+    "IQPAZCFS",
+    "6Q3ZJ24R",
+    "VSX2S482",
+    "HZZCFT2X",
+    "W84JXKQP",
+    "7C8WLS9T",
+    "5IHG2IDD",
+    "WSN7AMA5",
+    "LHDC6WYL",
+    "DWXZBQHG",
+    "YNF7CMLR",
+    "2QTCB2KS",
+    "WF2RZPFQ",
+    "27E6QC72",
+    "J8V2JMDD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "on growth",
+   "ms": [
+    57.96,
+    58.3,
+    58.32,
+    56.52,
+    54.05,
+    58.23
+   ],
+   "terms": [
+    "growth"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "DH8EXSVA",
+    "3VCQG8PD",
+    "MPKDEXFP",
+    "I2973H2U",
+    "6CPYN6FE",
+    "GALVDHUT",
+    "N3HV2RNG",
+    "L9H9K9PA",
+    "KPTPHQPQ",
+    "V2S855Z3",
+    "65F8X6C6",
+    "Z7DZMLYL",
+    "EBZTFCP5",
+    "EVNTVINJ",
+    "XNWW6KSH",
+    "WY2V3MGB",
+    "6HI4N5HZ",
+    "DRBT2DBV",
+    "4842PMV4",
+    "TA7QJE7L"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the state",
+   "ms": [
+    55.07,
+    54.48,
+    55.39,
+    50.79,
+    55.95,
+    55.56
+   ],
+   "terms": [
+    "state"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "NZH3A7CR",
+    "KYB7S7WW",
+    "DH8EXSVA",
+    "6933WYQF",
+    "LSS2VTJB",
+    "Y39ZWHFX",
+    "JDV8DQR7",
+    "Q934NYJB",
+    "I97KV4H5",
+    "M2D4GVPS",
+    "YDUBHPNQ",
+    "8LEFH7ZG",
+    "JP5GT33L",
+    "UVNWXVYX",
+    "LSJBSMBU",
+    "IT2QEJDJ",
+    "6AES6TRK",
+    "5KNWHZTJ",
+    "2Z8NWQSU",
+    "WZFZBP5I"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "these models",
+   "ms": [
+    50.65,
+    48.06,
+    51.55,
+    46.76,
+    51.74,
+    51.36
+   ],
+   "terms": [
+    "models"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "DH8EXSVA",
+    "CSCX9V49",
+    "SKWEQXNP",
+    "GGLDRLCN",
+    "27AAYHJZ",
+    "KG7BTI2H",
+    "LF8SY5WE",
+    "DGDD7A7Q",
+    "C4NAWBK6",
+    "MH5LYWYA",
+    "PKEDRC6E",
+    "F8Y3IIJU",
+    "9HDB5ZXF",
+    "Z8R3LLQR",
+    "DWJH2JDU",
+    "HL9JYWPS",
+    "63Q8IEI4",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "XRD7T2QI"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "from theory",
+   "ms": [
+    38.74,
+    35.84,
+    38.65,
+    35.47,
+    38.27,
+    38.35
+   ],
+   "terms": [
+    "theory"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "DH8EXSVA",
+    "IY7QQTPG",
+    "3IFP396P",
+    "GT4A6KZB",
+    "SA6FDBDT",
+    "U7EHQ9UN",
+    "FGJ8XGEP",
+    "6Y896URW",
+    "JFF2T4UU",
+    "QICETN5X"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le climat",
+   "ms": [
+    52.48,
+    48.97,
+    52.97,
+    48.35,
+    52.25,
+    52.57
+   ],
+   "terms": [
+    "le",
+    "climat"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "FHBW22XI",
+    "4D4JKT7W",
+    "3P8JJ94E",
+    "CT7MSMSU",
+    "7737XL9P",
+    "FM4RBRMA",
+    "JM8NHHM8",
+    "DEDGZZ6V",
+    "4CQUM969",
+    "NG3RW6AR",
+    "8LJ9IEMH",
+    "9FEJVHQB",
+    "V4QRQRVL",
+    "HCRBLQB3",
+    "BDSZBL9D",
+    "DHGEVFKN",
+    "9C77TRZR",
+    "2CAPZ2ZJ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "des ménages",
+   "ms": [
+    36.49,
+    33.96,
+    37.24,
+    33.69,
+    36.31,
+    36.34
+   ],
+   "terms": [
+    "des",
+    "menages"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "VLGLDHWT",
+    "UJSMFKCF",
+    "ETUNZV57",
+    "9B3TXADW",
+    "5XNZN52S",
+    "XDGM4GHD",
+    "62APDUYI"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la croissance",
+   "ms": [
+    71.62,
+    66.49,
+    72.3,
+    65.95,
+    71.63,
+    72.51
+   ],
+   "terms": [
+    "la",
+    "croissance"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "EBTHA66U",
+    "WCKCETLC",
+    "5VA22A3D",
+    "FDIUT62I",
+    "7737XL9P",
+    "6Y9Z8YTJ",
+    "IRIWSNII",
+    "JM8NHHM8",
+    "YFVTLIGW",
+    "GQT22QQQ",
+    "KBBAPCDS",
+    "FHBW22XI",
+    "PZSXW7IX",
+    "QKIZ8A35",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "XA3R2KZP",
+    "C4EJHFK8",
+    "83HNDSJA",
+    "VDSJLMYG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "une taxe carbone",
+   "ms": [
+    27.68,
+    25.86,
+    27.77,
+    26.81,
+    27.55,
+    27.96
+   ],
+   "terms": [
+    "une",
+    "taxe",
+    "carbone"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "QNZ84WSR",
+    "62APDUYI",
+    "QPHNI4BA",
+    "FDHNTRJA",
+    "6BHG99CW",
+    "VDSJLMYG",
+    "6EX3KBTU",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "3P8JJ94E",
+    "PBNHXN4Q"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le prix de l'électricité",
+   "ms": [
+    85.29,
+    84.89,
+    85.91,
+    80.83,
+    85.27,
+    85.75
+   ],
+   "terms": [
+    "le",
+    "prix",
+    "de",
+    "electricite"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "PBNHXN4Q",
+    "4PUIK9EJ",
+    "9FEJVHQB",
+    "I3LX55EG",
+    "NG3RW6AR",
+    "A2SNAFG8",
+    "43BGLBTU",
+    "4DY2YRWA",
+    "7737XL9P",
+    "YX3ZZ5PX",
+    "GL4EW6II",
+    "3IE84KHC",
+    "G5M4MH5Y",
+    "VDSJLMYG",
+    "YP5AIYAP"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "les modèles",
+   "ms": [
+    33.76,
+    33.21,
+    34.43,
+    31.04,
+    33.17,
+    32.95
+   ],
+   "terms": [
+    "les",
+    "modeles"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "HCRBLQB3",
+    "QNZ84WSR",
+    "6RK722CN",
+    "JM8NHHM8",
+    "EMA4NZPC",
+    "TNIEVJQG",
+    "DIVGR3HZ",
+    "QPHNI4BA",
+    "4CQUM969",
+    "CJHUAB3J",
+    "CTQGK676",
+    "43BGLBTU",
+    "L74M9FXA",
+    "NWMRZYIZ",
+    "E75I664Z",
+    "MQSGK3EW",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "V4QRQRVL",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "du marché",
+   "ms": [
+    66.49,
+    67.24,
+    66.03,
+    61.04,
+    66.26,
+    66.1
+   ],
+   "terms": [
+    "du",
+    "marche"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "G5M4MH5Y",
+    "P9IZUNMH",
+    "3FU4WF3V",
+    "FDIUT62I",
+    "7737XL9P",
+    "KBBAPCDS",
+    "J7B6FQ86",
+    "43BGLBTU",
+    "3AC8ZQRU",
+    "I3LX55EG",
+    "C4EJHFK8",
+    "6Y9Z8YTJ",
+    "QNZ84WSR",
+    "SI2GSZGN",
+    "A2SNAFG8"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "en économie",
+   "ms": [
+    45.4,
+    44.24,
+    45.39,
+    45.94,
+    45.73,
+    45.63
+   ],
+   "terms": [
+    "en",
+    "economie"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "CIYZ4WTV",
+    "QPHNI4BA",
+    "2C933JHA",
+    "MR7Z4SPY",
+    "FGBS9CZN",
+    "QNZ84WSR",
+    "FDIUT62I",
+    "I46N5NWW",
+    "5Z7R4UM4",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "J7B6FQ86",
+    "83HNDSJA",
+    "7737XL9P",
+    "KKX8PKDC",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "RSNN3S8T",
+    "YQCZPAX6",
+    "HVH8UHJE"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "sur le long terme",
+   "ms": [
+    126.96,
+    119.84,
+    127.17,
+    118.49,
+    127.37,
+    126.4
+   ],
+   "terms": [
+    "sur",
+    "le",
+    "long",
+    "terme"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "86SEC5EJ",
+    "RNSR2MPW",
+    "7737XL9P",
+    "KN7ZNUN3",
+    "5LLA2B6K",
+    "C4EJHFK8",
+    "JM8NHHM8",
+    "QED2Q2A4",
+    "HDKJ6N28",
+    "DPF2TFTU",
+    "YUPJRNVP",
+    "TD9ZA2IB",
+    "BIS4H29J",
+    "8PEXVGY9",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "EDDFR57G",
+    "QNZ84WSR",
+    "8GCW46SR",
+    "8ZPBZ53M"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "dans les pays",
+   "ms": [
+    39.59,
+    36.9,
+    39.31,
+    36.84,
+    39.43,
+    36.94
+   ],
+   "terms": [
+    "dans",
+    "les",
+    "pays"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "NWMRZYIZ",
+    "FDIUT62I",
+    "P9IZUNMH",
+    "5VA22A3D",
+    "BDSZBL9D",
+    "NP4XZXF9",
+    "UI27N9XV",
+    "D98DWSX2",
+    "RSNN3S8T",
+    "BMFA245R",
+    "TWBYNHER",
+    "3P8JJ94E",
+    "I3LX55EG",
+    "9FEJVHQB",
+    "7737XL9P",
+    "B7AZXMR2",
+    "CIYZ4WTV",
+    "L74M9FXA",
+    "FM4RBRMA",
+    "52AQUUGT"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "the brain",
+   "ms": [
+    4.84,
+    4.99,
+    4.63,
+    4.96,
+    4.65,
+    5.57
+   ],
+   "terms": [
+    "brain"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "the"
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ",
+    "RKA49GPF",
+    "BNZ3RSZ8",
+    "LFZDPPYC",
+    "TE8DRDF5",
+    "HI7A9DM6",
+    "UGTDZDMB",
+    "ZAKEGIFI",
+    "9WB3KL2J",
+    "Z96TJ9GU",
+    "ZH4KC7J7",
+    "WS4N7QK6",
+    "KWWT9QZJ",
+    "SH5953QQ",
+    "FKAVYXAE"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "of energy",
+   "ms": [
+    178.95,
+    172.4,
+    160.24,
+    171.14,
+    169.44,
+    172.24
+   ],
+   "terms": [
+    "energy"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "of"
+   ],
+   "ids": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68",
+    "2QPF7Y7Q",
+    "V2S855Z3",
+    "NC3KEHJP",
+    "GZK9KAH4",
+    "7EAQZXUE",
+    "U8XJBMP8",
+    "VT44QYTD",
+    "G9JP9BQU",
+    "RMMB2Z9K",
+    "RMWJHUDV",
+    "SUZC6GYM",
+    "EZWNKH8K",
+    "W2HRFCUF",
+    "CHXKM4I7",
+    "69GS3ZJZ"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "the carbon tax",
+   "ms": [
+    84.62,
+    84.73,
+    79.31,
+    84.35,
+    79.69,
+    85.24
+   ],
+   "terms": [
+    "carbon",
+    "tax"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "the"
+   ],
+   "ids": [
+    "Z7A2WC4X",
+    "R4HDCVL9",
+    "X69DJS66",
+    "XFN2ZM2B",
+    "3IPR4M8J",
+    "DWW5EJ9X",
+    "LMZZ6L7N",
+    "2GJCXUZ6"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "in Vietnam",
+   "ms": [
+    50.44,
+    50.06,
+    50.85,
+    50.13,
+    49.13,
+    51.36
+   ],
+   "terms": [
+    "vietnam"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "in"
+   ],
+   "ids": [
+    "7486A6MY",
+    "R65I2TII",
+    "LP94SNAX",
+    "6UZ6L2F4",
+    "DCM7UR8B",
+    "N6IHNIA7",
+    "QF83SUUD",
+    "EQSQHW27",
+    "PLKJWIJ9",
+    "AUGDIZYS",
+    "QQSIGRY8",
+    "HK3SJZDC",
+    "88GZ9ZSY",
+    "9M2TFAIA",
+    "8383GFIU",
+    "2XNZ3E9Z",
+    "P7UCCAA7",
+    "74P6J8VJ",
+    "4EDGI7NH",
+    "GALVDHUT"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "a discount rate",
+   "ms": [
+    60.29,
+    61.12,
+    63.48,
+    60.03,
+    58.94,
+    60.32
+   ],
+   "terms": [
+    "discount",
+    "rate"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "36HH9NZE",
+    "47Z4MPUY",
+    "33YBCXY3",
+    "5JXD7BXV",
+    "PZESJ4U9",
+    "AM8AA9UR",
+    "5VYJMXL3",
+    "DH8EXSVA",
+    "AQCBB3M9",
+    "C8UIC2VE",
+    "UT4FF28F",
+    "3IPR4M8J",
+    "SGTJ9T9K",
+    "TUK3BDYK",
+    "GWY5WRZE",
+    "IKVN75MV",
+    "UMGD2DMN",
+    "2CEXRV4N",
+    "5ETGKN46",
+    "9IGTE5WM"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "the market",
+   "ms": [
+    71.28,
+    71.67,
+    72.04,
+    71.75,
+    66.47,
+    71.95
+   ],
+   "terms": [
+    "market"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "the"
+   ],
+   "ids": [
+    "QDKHQM78",
+    "3FXE5DMD",
+    "DCJL5DT3",
+    "DH8EXSVA",
+    "7NLWFJZC",
+    "IQPAZCFS",
+    "6Q3ZJ24R",
+    "VSX2S482",
+    "HZZCFT2X",
+    "W84JXKQP",
+    "7C8WLS9T",
+    "5IHG2IDD",
+    "WSN7AMA5",
+    "LHDC6WYL",
+    "DWXZBQHG",
+    "YNF7CMLR",
+    "2QTCB2KS",
+    "WF2RZPFQ",
+    "27E6QC72",
+    "J8V2JMDD"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "on growth",
+   "ms": [
+    58.01,
+    57.8,
+    58.1,
+    54.52,
+    54.1,
+    57.8
+   ],
+   "terms": [
+    "growth"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "on"
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "3VCQG8PD",
+    "MPKDEXFP",
+    "I2973H2U",
+    "6CPYN6FE",
+    "GALVDHUT",
+    "N3HV2RNG",
+    "L9H9K9PA",
+    "KPTPHQPQ",
+    "V2S855Z3",
+    "Z7DZMLYL",
+    "65F8X6C6",
+    "EBZTFCP5",
+    "EVNTVINJ",
+    "XNWW6KSH",
+    "WY2V3MGB",
+    "DRBT2DBV",
+    "4842PMV4",
+    "6HI4N5HZ",
+    "TA7QJE7L"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "the state",
+   "ms": [
+    54.97,
+    53.26,
+    55.15,
+    51.03,
+    56.67,
+    54.79
+   ],
+   "terms": [
+    "state"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "the"
+   ],
+   "ids": [
+    "NZH3A7CR",
+    "KYB7S7WW",
+    "DH8EXSVA",
+    "6933WYQF",
+    "LSS2VTJB",
+    "Y39ZWHFX",
+    "JDV8DQR7",
+    "Q934NYJB",
+    "I97KV4H5",
+    "M2D4GVPS",
+    "8LEFH7ZG",
+    "JP5GT33L",
+    "UVNWXVYX",
+    "YDUBHPNQ",
+    "LSJBSMBU",
+    "6AES6TRK",
+    "WZFZBP5I",
+    "IT2QEJDJ",
+    "5KNWHZTJ",
+    "GXNQTPUD"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "these models",
+   "ms": [
+    183.2,
+    170.94,
+    184.46,
+    168.67,
+    183.8,
+    184.28
+   ],
+   "terms": [
+    "these",
+    "models"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "B4892N96",
+    "DH8EXSVA",
+    "U795LFFX",
+    "LMYMYTX8",
+    "BAG2R3DV",
+    "RG9US92B",
+    "63Q8IEI4",
+    "U3S3C9YR",
+    "TUK3BDYK",
+    "MHCVBS3T",
+    "QXZAV24W",
+    "2573J4RW",
+    "C4NAWBK6",
+    "RED9PQN5",
+    "LF8SY5WE",
+    "9HDB5ZXF",
+    "REEMGBRK",
+    "27AAYHJZ",
+    "C7LYAMZJ",
+    "DIVGR3HZ"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "from theory",
+   "ms": [
+    38.23,
+    35.4,
+    38.54,
+    34.95,
+    38.04,
+    38.36
+   ],
+   "terms": [
+    "theory"
+   ],
+   "fellBack": false,
+   "pruned": [
+    "from"
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "IY7QQTPG",
+    "3IFP396P",
+    "GT4A6KZB",
+    "SA6FDBDT",
+    "U7EHQ9UN",
+    "FGJ8XGEP",
+    "6Y896URW",
+    "JFF2T4UU",
+    "QICETN5X"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "le climat",
+   "ms": [
+    51.72,
+    48.66,
+    52.31,
+    48.07,
+    51.96,
+    52.19
+   ],
+   "terms": [
+    "le",
+    "climat"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "FHBW22XI",
+    "4D4JKT7W",
+    "3P8JJ94E",
+    "CT7MSMSU",
+    "FM4RBRMA",
+    "7737XL9P",
+    "JM8NHHM8",
+    "DEDGZZ6V",
+    "9FEJVHQB",
+    "NG3RW6AR",
+    "V4QRQRVL",
+    "4CQUM969",
+    "8LJ9IEMH",
+    "BDSZBL9D",
+    "9C77TRZR",
+    "HCRBLQB3",
+    "DHGEVFKN",
+    "2CAPZ2ZJ"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "des ménages",
+   "ms": [
+    36.34,
+    33.47,
+    36.34,
+    32.99,
+    35.68,
+    35.87
+   ],
+   "terms": [
+    "des",
+    "ménages"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "VLGLDHWT",
+    "UJSMFKCF",
+    "ETUNZV57",
+    "9B3TXADW",
+    "5XNZN52S",
+    "XDGM4GHD",
+    "62APDUYI"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "la croissance",
+   "ms": [
+    71.02,
+    66.2,
+    70.63,
+    68.36,
+    71.35,
+    71.06
+   ],
+   "terms": [
+    "la",
+    "croissance"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "EBTHA66U",
+    "5VA22A3D",
+    "WCKCETLC",
+    "FDIUT62I",
+    "7737XL9P",
+    "IRIWSNII",
+    "6Y9Z8YTJ",
+    "GQT22QQQ",
+    "YFVTLIGW",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "FHBW22XI",
+    "QKIZ8A35",
+    "PZSXW7IX",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "XA3R2KZP",
+    "C4EJHFK8",
+    "83HNDSJA",
+    "VDSJLMYG"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "une taxe carbone",
+   "ms": [
+    27.44,
+    25.98,
+    28.08,
+    26.06,
+    27.56,
+    27.25
+   ],
+   "terms": [
+    "une",
+    "taxe",
+    "carbone"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "QNZ84WSR",
+    "62APDUYI",
+    "QPHNI4BA",
+    "FDHNTRJA",
+    "6BHG99CW",
+    "VDSJLMYG",
+    "6EX3KBTU",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "RHGVQKTR",
+    "3P8JJ94E"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "le prix de l'électricité",
+   "ms": [
+    86.42,
+    87.32,
+    84.97,
+    78.68,
+    84.45,
+    83.95
+   ],
+   "terms": [
+    "le",
+    "prix",
+    "de",
+    "électricité"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "PBNHXN4Q",
+    "4PUIK9EJ",
+    "9FEJVHQB",
+    "I3LX55EG",
+    "NG3RW6AR",
+    "A2SNAFG8",
+    "43BGLBTU",
+    "4DY2YRWA",
+    "7737XL9P",
+    "YX3ZZ5PX",
+    "GL4EW6II",
+    "3IE84KHC",
+    "G5M4MH5Y",
+    "YP5AIYAP",
+    "SSZIWAV9"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "les modèles",
+   "ms": [
+    33.44,
+    32.9,
+    32.64,
+    30.31,
+    33.57,
+    32.2
+   ],
+   "terms": [
+    "les",
+    "modèles"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "HCRBLQB3",
+    "QNZ84WSR",
+    "6RK722CN",
+    "JM8NHHM8",
+    "EMA4NZPC",
+    "TNIEVJQG",
+    "DIVGR3HZ",
+    "QPHNI4BA",
+    "4CQUM969",
+    "CJHUAB3J",
+    "CTQGK676",
+    "43BGLBTU",
+    "NWMRZYIZ",
+    "E75I664Z",
+    "MQSGK3EW",
+    "L74M9FXA",
+    "V4QRQRVL",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "du marché",
+   "ms": [
+    65.99,
+    65.25,
+    64.99,
+    62.75,
+    65.63,
+    64.64
+   ],
+   "terms": [
+    "du",
+    "marché"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "G5M4MH5Y",
+    "P9IZUNMH",
+    "3FU4WF3V",
+    "FDIUT62I",
+    "7737XL9P",
+    "J7B6FQ86",
+    "KBBAPCDS",
+    "43BGLBTU",
+    "3AC8ZQRU",
+    "I3LX55EG",
+    "C4EJHFK8",
+    "6Y9Z8YTJ",
+    "SI2GSZGN",
+    "QNZ84WSR",
+    "A2SNAFG8",
+    "M8T2GBWF"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "en économie",
+   "ms": [
+    45.52,
+    43.72,
+    45.13,
+    44.25,
+    45.65,
+    44.61
+   ],
+   "terms": [
+    "en",
+    "économie"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "CIYZ4WTV",
+    "QPHNI4BA",
+    "2C933JHA",
+    "MR7Z4SPY",
+    "FGBS9CZN",
+    "QNZ84WSR",
+    "I46N5NWW",
+    "FDIUT62I",
+    "J7B6FQ86",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "83HNDSJA",
+    "7737XL9P",
+    "RSNN3S8T",
+    "YQCZPAX6",
+    "JM8NHHM8",
+    "BGUV2TZV",
+    "KBBAPCDS",
+    "3FU4WF3V",
+    "9B3TXADW"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "sur le long terme",
+   "ms": [
+    126.94,
+    117.59,
+    125.95,
+    118.37,
+    126.16,
+    122.88
+   ],
+   "terms": [
+    "sur",
+    "le",
+    "long",
+    "terme"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "RNSR2MPW",
+    "86SEC5EJ",
+    "7737XL9P",
+    "KN7ZNUN3",
+    "5LLA2B6K",
+    "JM8NHHM8",
+    "C4EJHFK8",
+    "QED2Q2A4",
+    "HDKJ6N28",
+    "DPF2TFTU",
+    "YUPJRNVP",
+    "8PEXVGY9",
+    "TD9ZA2IB",
+    "BIS4H29J",
+    "8ZPBZ53M",
+    "EDDFR57G",
+    "QNZ84WSR",
+    "8GCW46SR",
+    "JD6WR8JB",
+    "GYMA8FBF"
+   ]
+  },
+  {
+   "arm": "stack",
+   "query": "dans les pays",
+   "ms": [
+    39.51,
+    36.49,
+    39.05,
+    36.27,
+    39.96,
+    38.28
+   ],
+   "terms": [
+    "dans",
+    "les",
+    "pays"
+   ],
+   "fellBack": false,
+   "pruned": [],
+   "ids": [
+    "NWMRZYIZ",
+    "FDIUT62I",
+    "P9IZUNMH",
+    "5VA22A3D",
+    "BDSZBL9D",
+    "NP4XZXF9",
+    "D98DWSX2",
+    "BMFA245R",
+    "RSNN3S8T",
+    "UI27N9XV",
+    "TWBYNHER",
+    "I3LX55EG",
+    "3P8JJ94E",
+    "7737XL9P",
+    "L74M9FXA",
+    "B7AZXMR2",
+    "CIYZ4WTV",
+    "9FEJVHQB",
+    "52AQUUGT",
+    "FM4RBRMA"
+   ]
+  }
+ ],
+ "summary": {
+  "stock": {
+   "n": 120,
+   "p50_ms": 52.97,
+   "p95_ms": 160.57,
+   "max_ms": 175.78,
+   "fellBack": 0,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
+   "queries": 20
+  },
+  "stack": {
+   "n": 120,
+   "p50_ms": 55.15,
+   "p95_ms": 172.4,
+   "max_ms": 184.46,
+   "fellBack": 0,
+   "mean_jaccard_to_reference": 0.924,
+   "mean_rbo_to_reference": 0.937,
+   "top1_same_as_reference": 18,
+   "ordered_identical_to_reference": 5,
+   "queries": 20
+  }
+ }
+}

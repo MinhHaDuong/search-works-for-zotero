@@ -26,17 +26,15 @@ Fork `MinhHaDuong/zoteus`, pushed and durable:
 
 | branch | tip | what |
 |---|---|---|
-| `pr1-degenerate-r3` | `47461b7` | the degeneracy fix |
-| `pr2-diacritics-r3` | `f80d860` | keep diacritics |
-| `pr3-droplist-r3` | `bb5bb4c` | the derived list |
+| `pr1-degenerate-r3` | `47461b7` | the degeneracy fix — **filed upstream as PR #45** |
+| `pr2-expansion` | `6b7c152` | keep diacritics + dominance-gated query expansion + migration rung + B3 fix |
+| `pr3-droplist-r5` | `11385a2` | the derived list, restacked on the settled PR 2 |
 
-Stacked in that order on `base-v1.12.0` (= upstream `b05ed69`, v1.12.0). Working checkout:
-`~/data/projets/zoteus-bench/fork-0091`, outside any worktree, on `pr3-droplist`. Each commit
-stands alone: tsc, eslint and the full suite green on each (939 / 948 / 949 tests).
-
-Fork PRs #4 #5 #6 hold the previous round and are **stale**; #1 #2 #3 are closed as
-superseded. The round-3 branches are not attached to a PR, because opening a fourth set
-before the open design question below would be premature.
+Stacked in that order on `base-v1.12.0` (= upstream `b05ed69`, v1.12.0). Gates green on
+each tip; the full stack runs 958 vitest passed / 7 skipped. Superseded branches left
+intact for the record: `pr2-diacritics-r3` (`f80d860`, the measured-and-rejected
+dual-token design), `pr3-droplist-r3`/`-r4` (`bb5bb4c`/`cf0be56`). Fork PRs #4 #5 #6
+hold an earlier round and are stale; #1 #2 #3 closed as superseded.
 
 ## What has gone upstream
 
@@ -49,7 +47,26 @@ and PR 2's design question is answered by **measuring the query-expansion altern
 before ruling, not by ruling on one measured arm. Nothing else has been filed against
 `oscardvs/zoteus`.
 
-## The one open decision
+## The design decision — SETTLED by measurement, 2026-09-01
+
+Per the author's ruling, the query-expansion alternative was built and measured
+head-to-head against the dual-token design over copies of the same 477 512-passage index.
+**Expansion won on every structural axis** — 0 % BM25 length penalty against 23,5 %, no
+IDF distortion, migration 43,5 s against 116,4 s, no 944-codepoint pinned set needed,
+per-query cost ≤ 0,18 ms — and needed one refinement the fixtures could not show: naive
+expansion collapsed top-1 agreement (rare accented siblings of common words outranking the
+typed term), fixed by a knob-free dominance gate (expand only where accented spellings
+outweigh the typed one by document frequency). One premise disproven with evidence: the
+tokenizer declaration changes either way, so expansion does NOT avoid the migration —
+blocker B3 is therefore not moot and is fixed on the branch (non-corruption migration
+failure refuses and preserves the file; only corruption sidelines). Decision record and
+figures: `verification/UPSTREAM-PR-0091-DIACRITICS.md`, artifacts
+`arms-expansion-*.json`, `expansion-{penalties,reach,migration}.json`. Transform order on
+the restacked PR 3: prune first, then expand the survivors — the order the code already
+forced, verified sensible and asserted end to end on both backends.
+
+The section below records the question as it stood before the measurement, kept for
+provenance.
 
 **PR 2's design costs more than it was proposed at, and the alternative has not been tried.**
 
@@ -134,30 +151,26 @@ Two things about the numbers:
 
 ## Still to do
 
-- The design decision above — **direction ruled 2026-09-01**: build and measure the
-  query-expansion arm first, then decide between two measured designs.
-- Blocker 3 (the 944-codepoint token class) is unfixed, and is the thing the design decision
-  may make moot.
-- **PR 2's review findings below the two blockers are unapplied**, deliberately: they are
-  documentation about a design that may change, and fixing them now could be wrong in both
-  directions. Held rather than forgotten:
-  - Five sites still describe the pre-change `remove_diacritics 2` symmetric fold —
-    `docs/semantic-search.md:475` (which contradicts its own paragraph fourteen lines
-    below), the DDL comment in `sqlite-index.ts` immediately above the line the diff
-    changed, `normalizeForSearch`'s header, `accent-folding.test.ts`'s module header
-    ("every case below is a symmetry assertion", now falsified by the asymmetry test the
-    same commit adds), and a `search-backends.test.ts` comment naming the wrong mechanism.
-    If the design moves to query expansion, the tokenizer stays at `2` and several of these
-    become correct again — which is precisely why they are not being edited yet.
-  - `CHANGELOG.md` has no `[Unreleased]` entry for PR 2, though the change alters search
-    semantics and forces a migration with a hard downgrade break. PR 1 has one.
-  - The `SCHEMA_MIGRATIONS` docstring still says the ladder is empty and the stamp is 1;
-    `search-schema-migration.test.ts`'s header still says a migration re-reads nothing,
-    which the first real rung does.
-  - `Ticket-ref` on PR 2 points at ticket 0091, which scopes PR 3's droplist work. No
-    ticket currently scopes "keep diacritics + first migration rung".
-- PR 3 has not been through a review panel.
+Closed since the previous revision of this list: the design decision (measured, expansion
+won — see above); the 944-codepoint blocker (moot under expansion); B3 (fixed on
+`pr2-expansion`, red-first); the held documentation findings (the five stale sites,
+CHANGELOG entries for both PRs, the `SCHEMA_MIGRATIONS` docstring — all applied under the
+winning design); PR 3's review panel (round 4, six findings fixed, then restacked as r5
+with two interaction tests and a full-stack re-measurement,
+`arms-stack-{en,fr,vi,short}.json`).
+
+Remaining:
+
+- **The author's two rulings before filing**: grant a slot for PR 2 (files from
+  `pr2-expansion` @ `6b7c152`, body `UPSTREAM-PR-0091-DIACRITICS.md`) and one for PR 3
+  (`pr3-droplist-r5` @ `11385a2`, body `UPSTREAM-PR-0091-DROPLIST.md`); and rule whether
+  the soliloquy running on its one under-bar survivor (`not`, 27,3 %) is acceptable, or
+  the fallback threshold gets a refinement first (ruleB artifacts exist).
+- `Ticket-ref` scoping: no ticket scopes "keep diacritics + first migration rung"; PR 2
+  currently rides ticket 0091.
 - No speed doctor pass on the latency claims.
-- The round-2 panel's full record landed after this checkpoint:
-  `verification/REVIEW-PR2-PANEL-R2.md`. Its migration-sideline blocker (B3) is
-  verified live in r3 and design-independent; its fix rides the expansion-arm branch.
+- `bench/query_arms.mjs` assumes the pre-r5 exports (`MIN_MATCH_TERMS`/`isStopword`) and
+  would mis-report fallback columns against r5-shaped arms; the adapted runner used for
+  the stack measurement reads each arm's own `pruneTerms`.
+- Filing note for PR 3: the stack's first open of a variants-less schema-2 index derives
+  and writes `accent_variants` (~2 s) — a read-path expectation worth one line.

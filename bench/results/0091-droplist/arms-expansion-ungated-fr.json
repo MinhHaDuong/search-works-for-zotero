@@ -1,0 +1,2272 @@
+{
+ "pairs": [
+  {
+   "arm": "stock",
+   "dist": "./dists/stock",
+   "index": "./idx-stock.sqlite"
+  },
+  {
+   "arm": "armA",
+   "dist": "./dists/armA",
+   "index": "./idx-armA.sqlite"
+  },
+  {
+   "arm": "armB",
+   "dist": "./dists/armB",
+   "index": "./idx-armB2.sqlite"
+  }
+ ],
+ "queries": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0091-914250/bench/queries-x2-fr.txt",
+ "reference": "stock",
+ "repeat": 6,
+ "limit": 20,
+ "channel": "SqliteSearchIndex.query() directly, mode=keyword \u2014 NOT the MCP server. Each arm on ITS OWN index file (the designs differ in what the file holds); latency columns are cross-file, content columns are not.",
+ "per_query": [
+  {
+   "arm": "stock",
+   "query": "le r\u00f4le de l'\u00c9tat dans la transition \u00e9nerg\u00e9tique",
+   "ms": [
+    170.7,
+    171.98,
+    187.9,
+    170.25,
+    186.7,
+    183.3
+   ],
+   "ids": [
+    "62APDUYI",
+    "7737XL9P",
+    "CT7MSMSU",
+    "VDSJLMYG",
+    "J7AMHDK2",
+    "YQCZPAX6",
+    "4CQUM969",
+    "3AC8ZQRU",
+    "ETUNZV57",
+    "3P8JJ94E",
+    "7UJY8A7C",
+    "UJSMFKCF",
+    "9B3TXADW",
+    "EBTHA66U",
+    "PR2CIVJK",
+    "6Y9Z8YTJ",
+    "QED2Q2A4",
+    "W4HCTG8U",
+    "VLGLDHWT"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "quel est le co\u00fbt social du carbone",
+   "ms": [
+    139.59,
+    140.32,
+    152.32,
+    154.92,
+    151.75,
+    139.37
+   ],
+   "ids": [
+    "FDHNTRJA",
+    "QNZ84WSR",
+    "9FEJVHQB",
+    "VDSJLMYG",
+    "NG3RW6AR",
+    "M2DTHZUG",
+    "7737XL9P",
+    "3HNW65TS",
+    "FHBW22XI",
+    "EBTHA66U",
+    "6Y9Z8YTJ",
+    "C4EJHFK8",
+    "3FU4WF3V",
+    "47XY654X",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "6BHG99CW",
+    "V4QRQRVL",
+    "QPHNI4BA",
+    "6EX3KBTU"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "l'effet d'une taxe carbone sur le revenu des m\u00e9nages",
+   "ms": [
+    67.01,
+    67.68,
+    73.77,
+    74.47,
+    74.7,
+    66.9
+   ],
+   "ids": [
+    "62APDUYI",
+    "QNZ84WSR",
+    "I3LX55EG",
+    "VLGLDHWT",
+    "QPHNI4BA",
+    "VDSJLMYG",
+    "6BHG99CW",
+    "9B3TXADW",
+    "FDHNTRJA",
+    "6EX3KBTU",
+    "5XNZN52S",
+    "RHGVQKTR",
+    "UJSMFKCF",
+    "KL4MXP56",
+    "HCRBLQB3",
+    "EEKCIW48",
+    "TDI24G98",
+    "43BGLBTU"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "les mod\u00e8les utilis\u00e9s pour l'\u00e9valuation int\u00e9gr\u00e9e du climat",
+   "ms": [
+    93.87,
+    93.56,
+    101,
+    101.95,
+    102.33,
+    92.65
+   ],
+   "ids": [
+    "DIVGR3HZ",
+    "EMA4NZPC",
+    "HCRBLQB3",
+    "JM8NHHM8",
+    "XDK5NQSF",
+    "TJ8ACXKG",
+    "KL4MXP56",
+    "N52REBES",
+    "9FEJVHQB",
+    "NG3RW6AR",
+    "QPHNI4BA",
+    "PNIKVVBH",
+    "6RK722CN",
+    "43BGLBTU",
+    "HDKJ6N28",
+    "FM4RBRMA",
+    "P9IZUNMH",
+    "V4QRQRVL",
+    "6BRBQCPN",
+    "L74M9FXA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le prix de l'\u00e9lectricit\u00e9 au Vietnam",
+   "ms": [
+    126.72,
+    125.7,
+    138.24,
+    136.81,
+    138.26,
+    126.3
+   ],
+   "ids": [
+    "9FEJVHQB",
+    "4DY2YRWA",
+    "4PUIK9EJ",
+    "NG3RW6AR",
+    "I3LX55EG",
+    "PBNHXN4Q",
+    "43BGLBTU",
+    "NPBZI3D5",
+    "7737XL9P",
+    "G5M4MH5Y",
+    "I46N5NWW",
+    "A2SNAFG8",
+    "P4IWPWA3",
+    "GL4EW6II",
+    "3IE84KHC",
+    "LS3KJIXI",
+    "PZSXW7IX",
+    "M2DTHZUG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la demande d'\u00e9nergie dans les pays en d\u00e9veloppement",
+   "ms": [
+    95.48,
+    96.43,
+    104.28,
+    103.72,
+    104.68,
+    94.96
+   ],
+   "ids": [
+    "43BGLBTU",
+    "LKS8Q82L",
+    "XH98KDFT",
+    "UI27N9XV",
+    "L74M9FXA",
+    "P9IZUNMH",
+    "BMFA245R",
+    "TD9ZA2IB",
+    "FDIUT62I",
+    "GQT22QQQ",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "TWBYNHER",
+    "NWMRZYIZ",
+    "D98DWSX2",
+    "IRIWSNII",
+    "GL4EW6II",
+    "3IE84KHC",
+    "D72XYAN9",
+    "G7T56I29"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "c'est le co\u00fbt marginal qui compte et non le co\u00fbt moyen",
+   "ms": [
+    190.79,
+    191.68,
+    207.64,
+    206.41,
+    208.51,
+    189.38
+   ],
+   "ids": [
+    "M2DTHZUG",
+    "KBBAPCDS",
+    "GL4EW6II",
+    "3IE84KHC",
+    "8PEXVGY9",
+    "G5M4MH5Y",
+    "NG3RW6AR",
+    "XRWZU4DZ",
+    "43BGLBTU",
+    "3FU4WF3V",
+    "HLLIE7DX",
+    "JGMSARTT",
+    "UJSMFKCF",
+    "7737XL9P",
+    "FDHNTRJA",
+    "WVA2DH5N",
+    "PBNHXN4Q",
+    "CIYZ4WTV",
+    "VDSJLMYG",
+    "I46N5NWW"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "ces r\u00e9sultats sont robustes au choix du taux d'actualisation",
+   "ms": [
+    76.38,
+    76.59,
+    76.5,
+    75.51,
+    82.98,
+    83.41
+   ],
+   "ids": [
+    "KBBAPCDS",
+    "KL4MXP56",
+    "9B3TXADW",
+    "VDSJLMYG",
+    "43BGLBTU",
+    "BDSZBL9D",
+    "NWMRZYIZ",
+    "5VA22A3D",
+    "EEKCIW48",
+    "9FEJVHQB",
+    "4CQUM969",
+    "83HNDSJA",
+    "3PDGF64X",
+    "QED2Q2A4"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "de la th\u00e9orie \u00e0 la politique dans les n\u00e9gociations climatiques",
+   "ms": [
+    104.36,
+    104.28,
+    104.57,
+    102.86,
+    108.29,
+    113.55
+   ],
+   "ids": [
+    "D98DWSX2",
+    "BMFA245R",
+    "WXWKEIKD",
+    "94SVAGVV",
+    "JM8NHHM8",
+    "J7B6FQ86",
+    "3P8JJ94E",
+    "2C933JHA",
+    "NP4XZXF9",
+    "V4QRQRVL",
+    "HCRBLQB3",
+    "3FU4WF3V",
+    "3EYIX5PR",
+    "7737XL9P",
+    "L74M9FXA",
+    "FDIUT62I",
+    "UKVXPC5P",
+    "YQCZPAX6",
+    "5VA22A3D",
+    "KBBAPCDS"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "nos estimations de l'effet rebond et leurs limites",
+   "ms": [
+    132.64,
+    132.79,
+    132.71,
+    132.19,
+    132.81,
+    144.89
+   ],
+   "ids": [
+    "47XY654X",
+    "I46N5NWW",
+    "FM4RBRMA",
+    "V4QRQRVL",
+    "43BGLBTU",
+    "WXWKEIKD",
+    "J7AMHDK2",
+    "B7AZXMR2",
+    "FHBW22XI",
+    "4D4JKT7W",
+    "WCKCETLC",
+    "9FEJVHQB",
+    "JM8NHHM8",
+    "W4925VVD",
+    "JDJUFSZA",
+    "5HU2I877",
+    "4FSGQBJP",
+    "386DHVX2",
+    "3ITVZN3P",
+    "8PEXVGY9"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le mod\u00e8le standard de la croissance optimale",
+   "ms": [
+    133.72,
+    134.82,
+    134.55,
+    146.79,
+    134.85,
+    145.52
+   ],
+   "ids": [
+    "JM8NHHM8",
+    "CJHUAB3J",
+    "WCKCETLC",
+    "QNZ84WSR",
+    "S7C7QVZG",
+    "FHBW22XI",
+    "KBBAPCDS",
+    "YFVTLIGW",
+    "UQRGW8Q4",
+    "XA3R2KZP",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "FFX3RRMC",
+    "HCRBLQB3"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "l'histoire de l'\u00e9conomie math\u00e9matique comme discipline",
+   "ms": [
+    62.94,
+    63.63,
+    63.35,
+    67.32,
+    63.14,
+    68.61
+   ],
+   "ids": [
+    "2C933JHA",
+    "UKVXPC5P",
+    "3FU4WF3V",
+    "J7B6FQ86",
+    "ZT9RVGY7",
+    "QPHNI4BA",
+    "DH8EXSVA",
+    "SVED9CET",
+    "3XAI3VFE",
+    "I46N5NWW",
+    "BM3DIM8E",
+    "4D4JKT7W",
+    "W4925VVD",
+    "JDJUFSZA",
+    "KBBAPCDS",
+    "RKN7GLHA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la capture et le stockage du carbone dans l'atmosph\u00e8re",
+   "ms": [
+    210.27,
+    209.54,
+    209.58,
+    209.09,
+    208.54,
+    227.95
+   ],
+   "ids": [
+    "V4QRQRVL",
+    "RNSR2MPW",
+    "RSNN3S8T",
+    "BFR4WS5T",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "NG3RW6AR",
+    "9FEJVHQB",
+    "GL4EW6II",
+    "3IE84KHC",
+    "5LLA2B6K",
+    "QC36DZCB",
+    "HDKJ6N28",
+    "43BGLBTU",
+    "XH98KDFT",
+    "TZFUXUYP",
+    "BIS4H29J",
+    "4CQUM969",
+    "EBTHA66U",
+    "Z6UE6IFD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la distribution des revenus et de la richesse sur le long terme",
+   "ms": [
+    276.13,
+    300.65,
+    273.48,
+    270.89,
+    273.21,
+    271.47
+   ],
+   "ids": [
+    "QNZ84WSR",
+    "JM8NHHM8",
+    "6BHG99CW",
+    "HCRBLQB3",
+    "7737XL9P",
+    "5LLA2B6K",
+    "86SEC5EJ",
+    "83HNDSJA",
+    "KBBAPCDS",
+    "KN7ZNUN3",
+    "YZDFJ9MS",
+    "C4EJHFK8",
+    "N52REBES",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "J7B6FQ86",
+    "62APDUYI",
+    "M8T2GBWF",
+    "QED2Q2A4",
+    "6YW5F9RD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "mesur\u00e9 par l'\u00e9lasticit\u00e9 de substitution entre les facteurs",
+   "ms": [
+    74.51,
+    81.07,
+    74.47,
+    73.9,
+    74.3,
+    80.26
+   ],
+   "ids": [
+    "WCKCETLC",
+    "4D4JKT7W",
+    "6YW5F9RD",
+    "8PEXVGY9",
+    "KBBAPCDS",
+    "JDJUFSZA",
+    "3PDGF64X",
+    "FDIUT62I",
+    "BIS4H29J",
+    "62APDUYI",
+    "L74M9FXA",
+    "FHBW22XI",
+    "P9IZUNMH",
+    "SVED9CET",
+    "5VA22A3D",
+    "CJHUAB3J",
+    "PBNHXN4Q",
+    "CIYZ4WTV",
+    "EDDFR57G",
+    "WXWKEIKD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "leur contribution \u00e0 l'\u00e9quilibre du march\u00e9",
+   "ms": [
+    82.64,
+    90.06,
+    83.36,
+    83.2,
+    82.3,
+    89.35
+   ],
+   "ids": [
+    "J7B6FQ86",
+    "3FU4WF3V",
+    "7737XL9P",
+    "A2SNAFG8",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "2C933JHA",
+    "QNZ84WSR",
+    "WCKCETLC",
+    "FDIUT62I",
+    "R3KFAMIG",
+    "6YW5F9RD",
+    "JDJUFSZA",
+    "43BGLBTU",
+    "G5M4MH5Y",
+    "PBNHXN4Q",
+    "6BHG99CW"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "sur la th\u00e9orie de la valeur et de la distribution",
+   "ms": [
+    196.72,
+    214.78,
+    196.56,
+    195.56,
+    194.8,
+    212.41
+   ],
+   "ids": [
+    "3FU4WF3V",
+    "J7B6FQ86",
+    "2C933JHA",
+    "KBBAPCDS",
+    "W4925VVD",
+    "4QSZ36XW",
+    "M8T2GBWF",
+    "CIYZ4WTV",
+    "JM8NHHM8",
+    "I3LX55EG",
+    "XSSNH2JE",
+    "UKVXPC5P",
+    "JDJUFSZA",
+    "6GGEC94X"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la transition vers les renouvelables dans ces pays \u00e9tait-elle in\u00e9vitable",
+   "ms": [
+    115.35,
+    115.09,
+    115.33,
+    121,
+    127.07,
+    124.84
+   ],
+   "ids": [
+    "XH98KDFT",
+    "XA3R2KZP",
+    "JM8NHHM8",
+    "FDIUT62I",
+    "YQCZPAX6",
+    "WXWKEIKD",
+    "FM4RBRMA",
+    "43BGLBTU",
+    "LKS8Q82L",
+    "B7AZXMR2",
+    "SXSJC49X",
+    "QED2Q2A4",
+    "NWMRZYIZ",
+    "EDDFR57G",
+    "PR2CIVJK",
+    "7737XL9P",
+    "FHBW22XI",
+    "5VA22A3D",
+    "W4HCTG8U",
+    "3P8JJ94E"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "les origines des nombres indices en \u00e9conomie",
+   "ms": [
+    59.85,
+    64.98,
+    59.46,
+    65.07,
+    64.38,
+    63.31
+   ],
+   "ids": [
+    "4QSZ36XW",
+    "W4925VVD",
+    "STBDFRHF",
+    "2C933JHA",
+    "KBBAPCDS",
+    "TNIEVJQG",
+    "QNZ84WSR",
+    "J7B6FQ86",
+    "P9IZUNMH",
+    "3XAI3VFE",
+    "FHBW22XI",
+    "823UU4A6",
+    "8MZIXLA8",
+    "C4EJHFK8",
+    "3P8JJ94E",
+    "FDIUT62I",
+    "B7AZXMR2",
+    "FGBS9CZN",
+    "MR7Z4SPY",
+    "HCRBLQB3"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "\u00eatre ou ne pas \u00eatre",
+   "ms": [
+    31.09,
+    34.29,
+    30.9,
+    33.78,
+    33.53,
+    30.95
+   ],
+   "ids": [
+    "S33JAUCG",
+    "V4QRQRVL",
+    "386DHVX2",
+    "WVA2DH5N",
+    "29DVG4FS",
+    "KBBAPCDS",
+    "83HNDSJA",
+    "KL4MXP56",
+    "2C933JHA",
+    "M9MMB8C7",
+    "P9IZUNMH",
+    "L74M9FXA",
+    "62APDUYI",
+    "BI39DXUM",
+    "9FEJVHQB",
+    "43BGLBTU",
+    "HI5DIZA3",
+    "3HNW65TS",
+    "QED2Q2A4",
+    "NG3RW6AR"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "le r\u00f4le de l'\u00c9tat dans la transition \u00e9nerg\u00e9tique",
+   "ms": [
+    139.11,
+    139.7,
+    152.04,
+    138.6,
+    150.7,
+    142.28
+   ],
+   "ids": [
+    "7737XL9P",
+    "VDSJLMYG",
+    "J7AMHDK2",
+    "CT7MSMSU",
+    "YQCZPAX6",
+    "9B3TXADW",
+    "7UJY8A7C",
+    "62APDUYI",
+    "88DX9BE3",
+    "ETUNZV57",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "3P8JJ94E",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "4CQUM969",
+    "43BGLBTU",
+    "8GCW46SR",
+    "FAERSZCE",
+    "3AC8ZQRU"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "quel est le co\u00fbt social du carbone",
+   "ms": [
+    138.93,
+    140.26,
+    153.07,
+    152.46,
+    151.3,
+    139.43
+   ],
+   "ids": [
+    "FDHNTRJA",
+    "QNZ84WSR",
+    "9FEJVHQB",
+    "VDSJLMYG",
+    "NG3RW6AR",
+    "M2DTHZUG",
+    "3HNW65TS",
+    "7737XL9P",
+    "FHBW22XI",
+    "3FU4WF3V",
+    "EBTHA66U",
+    "6BHG99CW",
+    "6Y9Z8YTJ",
+    "C4EJHFK8",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "47XY654X",
+    "V4QRQRVL",
+    "6EX3KBTU",
+    "QPHNI4BA"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "l'effet d'une taxe carbone sur le revenu des m\u00e9nages",
+   "ms": [
+    67.24,
+    66.97,
+    72.69,
+    72.64,
+    73.08,
+    66.38
+   ],
+   "ids": [
+    "62APDUYI",
+    "QNZ84WSR",
+    "VLGLDHWT",
+    "I3LX55EG",
+    "QPHNI4BA",
+    "VDSJLMYG",
+    "6BHG99CW",
+    "9B3TXADW",
+    "FDHNTRJA",
+    "5XNZN52S",
+    "RHGVQKTR",
+    "6EX3KBTU",
+    "UJSMFKCF",
+    "TDI24G98",
+    "KL4MXP56",
+    "HCRBLQB3",
+    "EEKCIW48",
+    "8FMBWDJ8",
+    "8SNBSC8T"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "les mod\u00e8les utilis\u00e9s pour l'\u00e9valuation int\u00e9gr\u00e9e du climat",
+   "ms": [
+    74.78,
+    74.67,
+    80.88,
+    80.99,
+    81.05,
+    74.25
+   ],
+   "ids": [
+    "DIVGR3HZ",
+    "EMA4NZPC",
+    "JM8NHHM8",
+    "HCRBLQB3",
+    "TJ8ACXKG",
+    "N52REBES",
+    "KL4MXP56",
+    "XDK5NQSF",
+    "QPHNI4BA",
+    "9FEJVHQB",
+    "NG3RW6AR",
+    "PNIKVVBH",
+    "HDKJ6N28",
+    "TIHH7M4K",
+    "43BGLBTU",
+    "6RK722CN",
+    "V4QRQRVL",
+    "6YW5F9RD",
+    "DEDGZZ6V",
+    "UQRGW8Q4"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "le prix de l'\u00e9lectricit\u00e9 au Vietnam",
+   "ms": [
+    126.23,
+    126.19,
+    137.44,
+    136.98,
+    136.96,
+    126.9
+   ],
+   "ids": [
+    "9FEJVHQB",
+    "4PUIK9EJ",
+    "4DY2YRWA",
+    "NG3RW6AR",
+    "I3LX55EG",
+    "PBNHXN4Q",
+    "43BGLBTU",
+    "NPBZI3D5",
+    "7737XL9P",
+    "GL4EW6II",
+    "3IE84KHC",
+    "G5M4MH5Y",
+    "A2SNAFG8",
+    "P4IWPWA3",
+    "PZSXW7IX",
+    "LS3KJIXI",
+    "M2DTHZUG",
+    "LKS8Q82L"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "la demande d'\u00e9nergie dans les pays en d\u00e9veloppement",
+   "ms": [
+    94.47,
+    94.79,
+    104.01,
+    102.88,
+    102.62,
+    94.44
+   ],
+   "ids": [
+    "43BGLBTU",
+    "LKS8Q82L",
+    "UI27N9XV",
+    "XH98KDFT",
+    "BMFA245R",
+    "L74M9FXA",
+    "P9IZUNMH",
+    "TD9ZA2IB",
+    "FDIUT62I",
+    "TWBYNHER",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "GQT22QQQ",
+    "NWMRZYIZ",
+    "GL4EW6II",
+    "3IE84KHC",
+    "D98DWSX2",
+    "IRIWSNII",
+    "D72XYAN9",
+    "ZMBI3F8N"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "c'est le co\u00fbt marginal qui compte et non le co\u00fbt moyen",
+   "ms": [
+    190.75,
+    191.98,
+    208.96,
+    200.9,
+    208.24,
+    190.78
+   ],
+   "ids": [
+    "M2DTHZUG",
+    "KBBAPCDS",
+    "GL4EW6II",
+    "3IE84KHC",
+    "8PEXVGY9",
+    "G5M4MH5Y",
+    "NG3RW6AR",
+    "43BGLBTU",
+    "HLLIE7DX",
+    "JGMSARTT",
+    "3FU4WF3V",
+    "FDHNTRJA",
+    "UJSMFKCF",
+    "PBNHXN4Q",
+    "7737XL9P",
+    "WVA2DH5N",
+    "CIYZ4WTV",
+    "I46N5NWW",
+    "VDSJLMYG",
+    "K6ISXUI2"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "ces r\u00e9sultats sont robustes au choix du taux d'actualisation",
+   "ms": [
+    76.52,
+    76.01,
+    76.67,
+    75.39,
+    82.47,
+    82.74
+   ],
+   "ids": [
+    "KBBAPCDS",
+    "KL4MXP56",
+    "9B3TXADW",
+    "VDSJLMYG",
+    "43BGLBTU",
+    "BDSZBL9D",
+    "NWMRZYIZ",
+    "5VA22A3D",
+    "EEKCIW48",
+    "9FEJVHQB",
+    "4CQUM969",
+    "83HNDSJA",
+    "3PDGF64X"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "de la th\u00e9orie \u00e0 la politique dans les n\u00e9gociations climatiques",
+   "ms": [
+    102.92,
+    102.93,
+    103.97,
+    102.48,
+    103.01,
+    112.27
+   ],
+   "ids": [
+    "D98DWSX2",
+    "BMFA245R",
+    "WXWKEIKD",
+    "94SVAGVV",
+    "JM8NHHM8",
+    "J7B6FQ86",
+    "3P8JJ94E",
+    "2C933JHA",
+    "NP4XZXF9",
+    "V4QRQRVL",
+    "3FU4WF3V",
+    "HCRBLQB3",
+    "3EYIX5PR",
+    "7737XL9P",
+    "L74M9FXA",
+    "FDIUT62I",
+    "UKVXPC5P",
+    "YQCZPAX6",
+    "KBBAPCDS",
+    "5VA22A3D"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "nos estimations de l'effet rebond et leurs limites",
+   "ms": [
+    133.44,
+    132.91,
+    132.95,
+    132.18,
+    132.11,
+    145.12
+   ],
+   "ids": [
+    "47XY654X",
+    "I46N5NWW",
+    "FM4RBRMA",
+    "V4QRQRVL",
+    "43BGLBTU",
+    "WXWKEIKD",
+    "J7AMHDK2",
+    "B7AZXMR2",
+    "FHBW22XI",
+    "4D4JKT7W",
+    "WCKCETLC",
+    "W4925VVD",
+    "9FEJVHQB",
+    "4FSGQBJP",
+    "JM8NHHM8",
+    "JDJUFSZA",
+    "5HU2I877",
+    "386DHVX2",
+    "C4EJHFK8",
+    "8PEXVGY9"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "le mod\u00e8le standard de la croissance optimale",
+   "ms": [
+    133.44,
+    135.3,
+    133.66,
+    146.57,
+    134.07,
+    145.2
+   ],
+   "ids": [
+    "JM8NHHM8",
+    "CJHUAB3J",
+    "WCKCETLC",
+    "QNZ84WSR",
+    "S7C7QVZG",
+    "FHBW22XI",
+    "YFVTLIGW",
+    "KBBAPCDS",
+    "XA3R2KZP",
+    "UQRGW8Q4",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "FFX3RRMC",
+    "HCRBLQB3"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "l'histoire de l'\u00e9conomie math\u00e9matique comme discipline",
+   "ms": [
+    63.09,
+    63.5,
+    63.62,
+    65.76,
+    63.27,
+    69.46
+   ],
+   "ids": [
+    "2C933JHA",
+    "UKVXPC5P",
+    "J7B6FQ86",
+    "3FU4WF3V",
+    "ZT9RVGY7",
+    "QPHNI4BA",
+    "SVED9CET",
+    "3XAI3VFE",
+    "BM3DIM8E",
+    "4D4JKT7W",
+    "DH8EXSVA",
+    "W4925VVD",
+    "I46N5NWW",
+    "JDJUFSZA",
+    "KBBAPCDS",
+    "Q5MQUGBA",
+    "RKN7GLHA"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "la capture et le stockage du carbone dans l'atmosph\u00e8re",
+   "ms": [
+    201.82,
+    202.52,
+    202.06,
+    201.2,
+    201.6,
+    220.64
+   ],
+   "ids": [
+    "V4QRQRVL",
+    "RNSR2MPW",
+    "NG3RW6AR",
+    "RSNN3S8T",
+    "9FEJVHQB",
+    "BFR4WS5T",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "GL4EW6II",
+    "3IE84KHC",
+    "QC36DZCB",
+    "5LLA2B6K",
+    "HDKJ6N28",
+    "43BGLBTU",
+    "4CQUM969",
+    "XH98KDFT",
+    "BIS4H29J",
+    "Z6UE6IFD",
+    "ZMBI3F8N",
+    "S33JAUCG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "la distribution des revenus et de la richesse sur le long terme",
+   "ms": [
+    274.44,
+    296.26,
+    273.16,
+    273.35,
+    271.68,
+    274.81
+   ],
+   "ids": [
+    "QNZ84WSR",
+    "JM8NHHM8",
+    "6BHG99CW",
+    "7737XL9P",
+    "HCRBLQB3",
+    "86SEC5EJ",
+    "5LLA2B6K",
+    "83HNDSJA",
+    "KN7ZNUN3",
+    "YZDFJ9MS",
+    "C4EJHFK8",
+    "KBBAPCDS",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "QED2Q2A4",
+    "M8T2GBWF",
+    "J7B6FQ86",
+    "N52REBES",
+    "62APDUYI",
+    "BIS4H29J"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "mesur\u00e9 par l'\u00e9lasticit\u00e9 de substitution entre les facteurs",
+   "ms": [
+    73.93,
+    79.56,
+    73.88,
+    73.22,
+    73.44,
+    80.09
+   ],
+   "ids": [
+    "WCKCETLC",
+    "FHBW22XI",
+    "CJHUAB3J",
+    "FDIUT62I",
+    "L8KEZCWX",
+    "SVED9CET",
+    "PBNHXN4Q",
+    "BDSZBL9D",
+    "CIYZ4WTV",
+    "6YW5F9RD",
+    "5VA22A3D",
+    "62APDUYI",
+    "8PEXVGY9",
+    "YXRUL3EA",
+    "VLGLDHWT",
+    "WJYHKUKM",
+    "4D4JKT7W",
+    "WXWKEIKD",
+    "P9IZUNMH",
+    "KBBAPCDS"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "leur contribution \u00e0 l'\u00e9quilibre du march\u00e9",
+   "ms": [
+    83,
+    89.92,
+    83.31,
+    83.05,
+    85.17,
+    90.25
+   ],
+   "ids": [
+    "7737XL9P",
+    "3FU4WF3V",
+    "A2SNAFG8",
+    "J7B6FQ86",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "2C933JHA",
+    "WCKCETLC",
+    "FDIUT62I",
+    "QNZ84WSR",
+    "R3KFAMIG",
+    "JDJUFSZA",
+    "6YW5F9RD",
+    "G5M4MH5Y",
+    "43BGLBTU",
+    "PBNHXN4Q",
+    "6BHG99CW"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "sur la th\u00e9orie de la valeur et de la distribution",
+   "ms": [
+    195.83,
+    212.54,
+    195.35,
+    195.2,
+    195.94,
+    213.81
+   ],
+   "ids": [
+    "J7B6FQ86",
+    "3FU4WF3V",
+    "2C933JHA",
+    "KBBAPCDS",
+    "W4925VVD",
+    "4QSZ36XW",
+    "M8T2GBWF",
+    "CIYZ4WTV",
+    "JM8NHHM8",
+    "I3LX55EG",
+    "UKVXPC5P",
+    "6GGEC94X"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "la transition vers les renouvelables dans ces pays \u00e9tait-elle in\u00e9vitable",
+   "ms": [
+    113.33,
+    112.03,
+    112.92,
+    125.12,
+    124.76,
+    122.45
+   ],
+   "ids": [
+    "XA3R2KZP",
+    "XH98KDFT",
+    "JM8NHHM8",
+    "FDIUT62I",
+    "B7AZXMR2",
+    "YQCZPAX6",
+    "FM4RBRMA",
+    "WXWKEIKD",
+    "43BGLBTU",
+    "LKS8Q82L",
+    "SXSJC49X",
+    "QED2Q2A4",
+    "NWMRZYIZ",
+    "7737XL9P",
+    "FHBW22XI",
+    "EDDFR57G",
+    "PR2CIVJK",
+    "5VA22A3D",
+    "3P8JJ94E",
+    "W4HCTG8U"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "les origines des nombres indices en \u00e9conomie",
+   "ms": [
+    59,
+    64.78,
+    59.87,
+    64.4,
+    64.26,
+    61.52
+   ],
+   "ids": [
+    "4QSZ36XW",
+    "W4925VVD",
+    "STBDFRHF",
+    "2C933JHA",
+    "KBBAPCDS",
+    "J7B6FQ86",
+    "QNZ84WSR",
+    "TNIEVJQG",
+    "3XAI3VFE",
+    "P9IZUNMH",
+    "FHBW22XI",
+    "823UU4A6",
+    "8MZIXLA8",
+    "FDIUT62I",
+    "3P8JJ94E",
+    "FGBS9CZN",
+    "C4EJHFK8",
+    "QPHNI4BA",
+    "MR7Z4SPY",
+    "YQCZPAX6"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "\u00eatre ou ne pas \u00eatre",
+   "ms": [
+    31.04,
+    34.23,
+    31.04,
+    33.86,
+    33.84,
+    30.88
+   ],
+   "ids": [
+    "S33JAUCG",
+    "V4QRQRVL",
+    "386DHVX2",
+    "29DVG4FS",
+    "WVA2DH5N",
+    "KBBAPCDS",
+    "83HNDSJA",
+    "KL4MXP56",
+    "M9MMB8C7",
+    "P9IZUNMH",
+    "L74M9FXA",
+    "2C933JHA",
+    "62APDUYI",
+    "9FEJVHQB",
+    "43BGLBTU",
+    "SC7SU52Z",
+    "3HNW65TS",
+    "NG3RW6AR",
+    "BI39DXUM",
+    "RIXKDMTX"
+   ]
+  },
+  {
+   "arm": "armB",
+   "query": "le r\u00f4le de l'\u00c9tat dans la transition \u00e9nerg\u00e9tique",
+   "ms": [
+    178.77,
+    179.91,
+    195.91,
+    182.99,
+    195.06,
+    177.72
+   ],
+   "ids": [
+    "J7AMHDK2",
+    "7737XL9P",
+    "VDSJLMYG",
+    "CT7MSMSU",
+    "YQCZPAX6",
+    "9B3TXADW",
+    "7UJY8A7C",
+    "62APDUYI",
+    "88DX9BE3",
+    "ETUNZV57",
+    "3P8JJ94E",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "43BGLBTU",
+    "4CQUM969",
+    "KBBAPCDS",
+    "FAERSZCE",
+    "8GCW46SR"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 3,
+    "added_variants": 31,
+    "lookup_ms": 0.181,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "quel est le co\u00fbt social du carbone",
+   "ms": [
+    157.59,
+    158.07,
+    171.43,
+    172.8,
+    171.83,
+    157.08
+   ],
+   "ids": [
+    "FDHNTRJA",
+    "NG3RW6AR",
+    "PBNHXN4Q",
+    "QNZ84WSR",
+    "V3XL4Y87",
+    "9FEJVHQB",
+    "VDSJLMYG",
+    "M2DTHZUG",
+    "3HNW65TS",
+    "7737XL9P",
+    "FHBW22XI",
+    "EBTHA66U",
+    "TNIEVJQG",
+    "IA79MZ48",
+    "6Y9Z8YTJ",
+    "V4QRQRVL",
+    "C4EJHFK8",
+    "3FU4WF3V",
+    "YP5AIYAP",
+    "SSZIWAV9"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 3,
+    "added_variants": 16,
+    "lookup_ms": 0.071,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1",
+     "carbone->carbon\u00e9"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "l'effet d'une taxe carbone sur le revenu des m\u00e9nages",
+   "ms": [
+    75.92,
+    76.27,
+    83.07,
+    83.27,
+    82.83,
+    75.82
+   ],
+   "ids": [
+    "62APDUYI",
+    "QNZ84WSR",
+    "I3LX55EG",
+    "VLGLDHWT",
+    "QPHNI4BA",
+    "C4EJHFK8",
+    "VDSJLMYG",
+    "8FMBWDJ8",
+    "8SNBSC8T",
+    "6BHG99CW",
+    "9B3TXADW",
+    "FDHNTRJA",
+    "FHBW22XI",
+    "6EX3KBTU",
+    "5XNZN52S",
+    "RHGVQKTR",
+    "7737XL9P",
+    "UJSMFKCF",
+    "YP5AIYAP",
+    "SSZIWAV9"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 5,
+    "added_variants": 15,
+    "lookup_ms": 0.061,
+    "detail": [
+     "taxe->tax\u00e9",
+     "carbone->carbon\u00e9",
+     "sur->s\u00f9r|s\u00fbr",
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "des->d\u00e8s|d\u00e9s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "les mod\u00e8les utilis\u00e9s pour l'\u00e9valuation int\u00e9gr\u00e9e du climat",
+   "ms": [
+    80.19,
+    80.49,
+    87.78,
+    87.48,
+    88.06,
+    80.05
+   ],
+   "ids": [
+    "DIVGR3HZ",
+    "EMA4NZPC",
+    "HCRBLQB3",
+    "JM8NHHM8",
+    "TJ8ACXKG",
+    "N52REBES",
+    "KL4MXP56",
+    "XDK5NQSF",
+    "9FEJVHQB",
+    "QPHNI4BA",
+    "NG3RW6AR",
+    "4CQUM969",
+    "PNIKVVBH",
+    "VDSJLMYG",
+    "HDKJ6N28",
+    "43BGLBTU",
+    "TIHH7M4K",
+    "V4QRQRVL",
+    "6RK722CN",
+    "DEDGZZ6V"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 2,
+    "added_variants": 8,
+    "lookup_ms": 0.039,
+    "detail": [
+     "les->l\u00e8s|l\u00e9s",
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "le prix de l'\u00e9lectricit\u00e9 au Vietnam",
+   "ms": [
+    167,
+    165.56,
+    181.73,
+    180.05,
+    180.78,
+    165.29
+   ],
+   "ids": [
+    "9FEJVHQB",
+    "4DY2YRWA",
+    "4PUIK9EJ",
+    "NG3RW6AR",
+    "I3LX55EG",
+    "PBNHXN4Q",
+    "W4925VVD",
+    "43BGLBTU",
+    "NPBZI3D5",
+    "J7B6FQ86",
+    "7737XL9P",
+    "62APDUYI",
+    "G5M4MH5Y",
+    "GL4EW6II",
+    "3IE84KHC",
+    "A2SNAFG8",
+    "P4IWPWA3",
+    "LS3KJIXI",
+    "PZSXW7IX",
+    "M8T2GBWF"
+   ],
+   "expansion": {
+    "terms": 6,
+    "expanded_terms": 4,
+    "added_variants": 34,
+    "lookup_ms": 0.054,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "au->a\u00fc|\u00e0u|\u00e0\u00fa|\u00e1\u00fb|\u00e2u|\u00e3\u00fa|\u0103u|\u1ea5u|\u1ea7u|\u1ea9u|\u1eabu|\u1eadu",
+     "vietnam->vi\u00eatnam|vi\u1ec7tnam"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "la demande d'\u00e9nergie dans les pays en d\u00e9veloppement",
+   "ms": [
+    117.56,
+    117.22,
+    126.54,
+    126.14,
+    127.7,
+    116.43
+   ],
+   "ids": [
+    "UI27N9XV",
+    "43BGLBTU",
+    "FDIUT62I",
+    "LKS8Q82L",
+    "XH98KDFT",
+    "BMFA245R",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "L74M9FXA",
+    "P9IZUNMH",
+    "TD9ZA2IB",
+    "D98DWSX2",
+    "I46N5NWW",
+    "GQT22QQQ",
+    "NWMRZYIZ",
+    "TWBYNHER",
+    "7737XL9P",
+    "XA3R2KZP",
+    "IRIWSNII",
+    "GL4EW6II"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 4,
+    "added_variants": 26,
+    "lookup_ms": 0.053,
+    "detail": [
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "demande->demand\u00e9",
+     "les->l\u00e8s|l\u00e9s",
+     "en->\u00e8n|\u00e9n|\u00ean|\u00ea\u00f1|\u00ebn|\u0113n|\u1ebdn|\u1ebfn|\u1ec1n|\u1ec3n|\u1ec5n|\u1ec7n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "c'est le co\u00fbt marginal qui compte et non le co\u00fbt moyen",
+   "ms": [
+    231.58,
+    230.37,
+    245.75,
+    228.54,
+    251.9,
+    242.32
+   ],
+   "ids": [
+    "M2DTHZUG",
+    "KBBAPCDS",
+    "GL4EW6II",
+    "3IE84KHC",
+    "8PEXVGY9",
+    "G5M4MH5Y",
+    "NG3RW6AR",
+    "43BGLBTU",
+    "3FU4WF3V",
+    "HLLIE7DX",
+    "JGMSARTT",
+    "UJSMFKCF",
+    "7737XL9P",
+    "WVA2DH5N",
+    "FDHNTRJA",
+    "PBNHXN4Q",
+    "CIYZ4WTV",
+    "VDSJLMYG",
+    "I46N5NWW",
+    "5VA22A3D"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 5,
+    "added_variants": 26,
+    "lookup_ms": 0.068,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "qui->qu\u00ed|qu\u00ee|qu\u0129",
+     "compte->compt\u00e9",
+     "et->\u00e8t|\u00e9t|\u00eat|\u00ebt|\u1eb9t|\u1ebft|\u1ec7t",
+     "non->n\u00f2n|n\u00f3n|n\u00f4n|n\u01a1n|n\u1ed9n|\u00f1\u01a1n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "ces r\u00e9sultats sont robustes au choix du taux d'actualisation",
+   "ms": [
+    88.12,
+    87.85,
+    89.6,
+    87.62,
+    95.69,
+    96.23
+   ],
+   "ids": [
+    "KBBAPCDS",
+    "KL4MXP56",
+    "9B3TXADW",
+    "VDSJLMYG",
+    "BDSZBL9D",
+    "43BGLBTU",
+    "NWMRZYIZ",
+    "8FMBWDJ8",
+    "8SNBSC8T",
+    "5VA22A3D",
+    "HCRBLQB3",
+    "EEKCIW48",
+    "4CQUM969",
+    "9FEJVHQB",
+    "83HNDSJA"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 3,
+    "added_variants": 19,
+    "lookup_ms": 0.064,
+    "detail": [
+     "ces->c\u00e8s",
+     "au->a\u00fc|\u00e0u|\u00e0\u00fa|\u00e1\u00fb|\u00e2u|\u00e3\u00fa|\u0103u|\u1ea5u|\u1ea7u|\u1ea9u|\u1eabu|\u1eadu",
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "de la th\u00e9orie \u00e0 la politique dans les n\u00e9gociations climatiques",
+   "ms": [
+    127.94,
+    126.63,
+    128.08,
+    126.4,
+    126.72,
+    137.69
+   ],
+   "ids": [
+    "J7B6FQ86",
+    "D98DWSX2",
+    "BMFA245R",
+    "WXWKEIKD",
+    "94SVAGVV",
+    "UKVXPC5P",
+    "JM8NHHM8",
+    "3FU4WF3V",
+    "KBBAPCDS",
+    "3P8JJ94E",
+    "W4925VVD",
+    "2C933JHA",
+    "V4QRQRVL",
+    "NP4XZXF9",
+    "7737XL9P",
+    "HCRBLQB3",
+    "3EYIX5PR",
+    "L74M9FXA",
+    "FDIUT62I",
+    "YQCZPAX6"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 3,
+    "added_variants": 24,
+    "lookup_ms": 0.049,
+    "detail": [
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "les->l\u00e8s|l\u00e9s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "nos estimations de l'effet rebond et leurs limites",
+   "ms": [
+    157.43,
+    159.37,
+    157.29,
+    165.95,
+    156.06,
+    170.05
+   ],
+   "ids": [
+    "47XY654X",
+    "25S5R628",
+    "I46N5NWW",
+    "FM4RBRMA",
+    "V4QRQRVL",
+    "43BGLBTU",
+    "WXWKEIKD",
+    "J7AMHDK2",
+    "W4925VVD",
+    "B7AZXMR2",
+    "4D4JKT7W",
+    "FHBW22XI",
+    "WCKCETLC",
+    "9FEJVHQB",
+    "JM8NHHM8",
+    "JDJUFSZA",
+    "4FSGQBJP",
+    "5HU2I877",
+    "386DHVX2",
+    "3ITVZN3P"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 4,
+    "added_variants": 21,
+    "lookup_ms": 0.057,
+    "detail": [
+     "nos->n\u00f5s",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "et->\u00e8t|\u00e9t|\u00eat|\u00ebt|\u1eb9t|\u1ebft|\u1ec7t",
+     "limites->limit\u00e9s|l\u00edmites"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "le mod\u00e8le standard de la croissance optimale",
+   "ms": [
+    172.86,
+    178.47,
+    174.23,
+    187.36,
+    180.55,
+    187.48
+   ],
+   "ids": [
+    "JM8NHHM8",
+    "S7C7QVZG",
+    "CJHUAB3J",
+    "WCKCETLC",
+    "QNZ84WSR",
+    "FHBW22XI",
+    "YFVTLIGW",
+    "KBBAPCDS",
+    "XA3R2KZP",
+    "UQRGW8Q4",
+    "3P8JJ94E",
+    "V3XL4Y87",
+    "QE6U4RNI",
+    "8PEXVGY9",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "HCRBLQB3",
+    "FFX3RRMC"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 3,
+    "added_variants": 31,
+    "lookup_ms": 0.051,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "l'histoire de l'\u00e9conomie math\u00e9matique comme discipline",
+   "ms": [
+    69.22,
+    69.55,
+    69.39,
+    69.34,
+    69.48,
+    75.72
+   ],
+   "ids": [
+    "2C933JHA",
+    "UKVXPC5P",
+    "3FU4WF3V",
+    "J7B6FQ86",
+    "CIYZ4WTV",
+    "ZT9RVGY7",
+    "W4925VVD",
+    "QPHNI4BA",
+    "SVED9CET",
+    "3XAI3VFE",
+    "BM3DIM8E",
+    "4D4JKT7W",
+    "I46N5NWW",
+    "JDJUFSZA",
+    "DH8EXSVA",
+    "KBBAPCDS",
+    "RKN7GLHA"
+   ],
+   "expansion": {
+    "terms": 6,
+    "expanded_terms": 1,
+    "added_variants": 11,
+    "lookup_ms": 0.036,
+    "detail": [
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "la capture et le stockage du carbone dans l'atmosph\u00e8re",
+   "ms": [
+    268.62,
+    282.58,
+    263.11,
+    262.91,
+    264,
+    281.71
+   ],
+   "ids": [
+    "V4QRQRVL",
+    "QC36DZCB",
+    "RSNN3S8T",
+    "GL4EW6II",
+    "3IE84KHC",
+    "RNSR2MPW",
+    "TZFUXUYP",
+    "NG3RW6AR",
+    "9FEJVHQB",
+    "BFR4WS5T",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "5LLA2B6K",
+    "QNZ84WSR",
+    "3HNW65TS",
+    "HDKJ6N28",
+    "43BGLBTU",
+    "EBTHA66U",
+    "6Y9Z8YTJ",
+    "4CQUM969"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 6,
+    "added_variants": 35,
+    "lookup_ms": 0.063,
+    "detail": [
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "capture->captur\u00e9",
+     "et->\u00e8t|\u00e9t|\u00eat|\u00ebt|\u1eb9t|\u1ebft|\u1ec7t",
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1",
+     "carbone->carbon\u00e9"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "la distribution des revenus et de la richesse sur le long terme",
+   "ms": [
+    382.91,
+    417.22,
+    382.82,
+    380.34,
+    384.07,
+    412
+   ],
+   "ids": [
+    "JM8NHHM8",
+    "QNZ84WSR",
+    "J7B6FQ86",
+    "KBBAPCDS",
+    "8ZPBZ53M",
+    "F8A3J4RF",
+    "W4925VVD",
+    "6BHG99CW",
+    "V4QRQRVL",
+    "WXWKEIKD",
+    "S7C7QVZG",
+    "QED2Q2A4",
+    "E527VCPM",
+    "HCRBLQB3",
+    "3FU4WF3V",
+    "62APDUYI",
+    "C4EJHFK8",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "7737XL9P"
+   ],
+   "expansion": {
+    "terms": 11,
+    "expanded_terms": 7,
+    "added_variants": 47,
+    "lookup_ms": 0.084,
+    "detail": [
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "des->d\u00e8s|d\u00e9s",
+     "et->\u00e8t|\u00e9t|\u00eat|\u00ebt|\u1eb9t|\u1ebft|\u1ec7t",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "sur->s\u00f9r|s\u00fbr",
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "long->l\u00f2ng|l\u00f4ng|l\u1ecfng|l\u1ed3ng|l\u1ed9ng"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "mesur\u00e9 par l'\u00e9lasticit\u00e9 de substitution entre les facteurs",
+   "ms": [
+    84.76,
+    91.42,
+    84.05,
+    84.13,
+    83.98,
+    91.92
+   ],
+   "ids": [
+    "WCKCETLC",
+    "FHBW22XI",
+    "CJHUAB3J",
+    "FDIUT62I",
+    "W4925VVD",
+    "L8KEZCWX",
+    "SVED9CET",
+    "BDSZBL9D",
+    "PBNHXN4Q",
+    "62APDUYI",
+    "CIYZ4WTV",
+    "6YW5F9RD",
+    "8PEXVGY9",
+    "4D4JKT7W",
+    "5VA22A3D",
+    "WXWKEIKD",
+    "WJYHKUKM",
+    "YXRUL3EA",
+    "KBBAPCDS",
+    "ZMBI3F8N"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 4,
+    "added_variants": 15,
+    "lookup_ms": 0.049,
+    "detail": [
+     "par->p\u00e0r",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "entre->entr\u00e9",
+     "les->l\u00e8s|l\u00e9s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "leur contribution \u00e0 l'\u00e9quilibre du march\u00e9",
+   "ms": [
+    87.71,
+    95.31,
+    87.63,
+    87.63,
+    86.97,
+    95.3
+   ],
+   "ids": [
+    "3FU4WF3V",
+    "7737XL9P",
+    "A2SNAFG8",
+    "KBBAPCDS",
+    "JM8NHHM8",
+    "J7B6FQ86",
+    "2C933JHA",
+    "MCR55KTK",
+    "K6ISXUI2",
+    "DUGQPB59",
+    "73JY5ZZK",
+    "WCKCETLC",
+    "UY9IYAY7",
+    "QNZ84WSR",
+    "FDIUT62I",
+    "AZNQ95BY",
+    "R3KFAMIG",
+    "6YW5F9RD",
+    "NWMRZYIZ",
+    "JDJUFSZA"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.024,
+    "detail": [
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "sur la th\u00e9orie de la valeur et de la distribution",
+   "ms": [
+    249.25,
+    268.42,
+    249.48,
+    257.15,
+    258.79,
+    272.41
+   ],
+   "ids": [
+    "J7B6FQ86",
+    "W4925VVD",
+    "M8T2GBWF",
+    "2C933JHA",
+    "3FU4WF3V",
+    "KBBAPCDS",
+    "UKVXPC5P",
+    "WCWCA5SU",
+    "N3ZG66KK",
+    "4QSZ36XW"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 4,
+    "added_variants": 31,
+    "lookup_ms": 0.052,
+    "detail": [
+     "sur->s\u00f9r|s\u00fbr",
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe",
+     "et->\u00e8t|\u00e9t|\u00eat|\u00ebt|\u1eb9t|\u1ebft|\u1ec7t"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "la transition vers les renouvelables dans ces pays \u00e9tait-elle in\u00e9vitable",
+   "ms": [
+    125.96,
+    135.85,
+    125.72,
+    138.13,
+    137.3,
+    137.22
+   ],
+   "ids": [
+    "XH98KDFT",
+    "XA3R2KZP",
+    "JM8NHHM8",
+    "FDIUT62I",
+    "B7AZXMR2",
+    "YQCZPAX6",
+    "WXWKEIKD",
+    "FM4RBRMA",
+    "43BGLBTU",
+    "LKS8Q82L",
+    "QED2Q2A4",
+    "SXSJC49X",
+    "NWMRZYIZ",
+    "EDDFR57G",
+    "PR2CIVJK",
+    "7737XL9P",
+    "FHBW22XI",
+    "W4925VVD",
+    "5VA22A3D",
+    "W4HCTG8U"
+   ],
+   "expansion": {
+    "terms": 11,
+    "expanded_terms": 3,
+    "added_variants": 14,
+    "lookup_ms": 0.06,
+    "detail": [
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf",
+     "les->l\u00e8s|l\u00e9s",
+     "ces->c\u00e8s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "les origines des nombres indices en \u00e9conomie",
+   "ms": [
+    69.65,
+    75.35,
+    69.05,
+    75.19,
+    75.66,
+    70.52
+   ],
+   "ids": [
+    "W4925VVD",
+    "KBBAPCDS",
+    "4QSZ36XW",
+    "STBDFRHF",
+    "QNZ84WSR",
+    "JM8NHHM8",
+    "2C933JHA",
+    "FHBW22XI",
+    "YP5AIYAP",
+    "SSZIWAV9",
+    "UKVXPC5P",
+    "3FU4WF3V",
+    "FEH7ME4P",
+    "E527VCPM",
+    "J7B6FQ86",
+    "TNIEVJQG",
+    "7ETK6EHB",
+    "P9IZUNMH",
+    "C4EJHFK8",
+    "EBTHA66U"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 4,
+    "added_variants": 18,
+    "lookup_ms": 0.045,
+    "detail": [
+     "les->l\u00e8s|l\u00e9s",
+     "des->d\u00e8s|d\u00e9s",
+     "indices->indic\u00e9s|\u00edndices",
+     "en->\u00e8n|\u00e9n|\u00ean|\u00ea\u00f1|\u00ebn|\u0113n|\u1ebdn|\u1ebfn|\u1ec1n|\u1ec3n|\u1ec5n|\u1ec7n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "\u00eatre ou ne pas \u00eatre",
+   "ms": [
+    37.05,
+    40.08,
+    36.77,
+    40.31,
+    40.13,
+    36.38
+   ],
+   "ids": [
+    "8PBT7WRJ",
+    "2C933JHA",
+    "386DHVX2",
+    "83HNDSJA",
+    "P9IZUNMH",
+    "QKIZ8A35",
+    "HI5DIZA3",
+    "L74M9FXA",
+    "V4QRQRVL",
+    "9FEJVHQB",
+    "B7AZXMR2",
+    "4QSZ36XW",
+    "XXXKR2NX",
+    "3HNW65TS",
+    "BUC4K9DM",
+    "7737XL9P",
+    "SC7SU52Z",
+    "S33JAUCG",
+    "QED2Q2A4",
+    "KBBAPCDS"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 2,
+    "added_variants": 21,
+    "lookup_ms": 0.035,
+    "detail": [
+     "ou->o\u00f9|o\u00fc|\u00f2u|\u00f2\u00f9|\u00f2\u00fa|\u00f3u|\u00f4\u00f9|\u00f4\u00fa|\u00f5u|\u00f6u|\u00f6\u00fb|\u00f6\u00fc|\u01a1u",
+     "ne->n\u00e9|n\u00ea|n\u1ebb|n\u1ebf|n\u1ec1|n\u1ec3|\u00f1\u1ec1|\u00f1\u1ec3"
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "stock": {
+   "index": "./idx-stock.sqlite",
+   "n": 120,
+   "p50_ms": 115.1,
+   "p95_ms": 270.9,
+   "max_ms": 300.6,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
+   "queries": 20
+  },
+  "armA": {
+   "index": "./idx-armA.sqlite",
+   "n": 120,
+   "p50_ms": 112.3,
+   "p95_ms": 271.7,
+   "max_ms": 296.3,
+   "mean_jaccard_to_reference": 0.863,
+   "mean_rbo_to_reference": 0.886,
+   "top1_same_as_reference": 16,
+   "ordered_identical_to_reference": 0,
+   "queries": 20
+  },
+  "armB": {
+   "index": "./idx-armB2.sqlite",
+   "n": 120,
+   "p50_ms": 128.1,
+   "p95_ms": 380.3,
+   "max_ms": 417.2,
+   "mean_jaccard_to_reference": 0.666,
+   "mean_rbo_to_reference": 0.71,
+   "top1_same_as_reference": 12,
+   "ordered_identical_to_reference": 0,
+   "queries": 20,
+   "expansion": {
+    "queries_with_expansion": 20,
+    "total_added_variants": 449,
+    "mean_lookup_ms": 0.06,
+    "max_lookup_ms": 0.181
+   }
+  }
+ },
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent",
+  "note": "armB BEFORE the dominance gate \u2014 the run that motivated it"
+ }
+}

@@ -1,0 +1,2274 @@
+{
+ "pairs": [
+  {
+   "arm": "stock",
+   "dist": "./dists/stock",
+   "index": "./idx-stock.sqlite"
+  },
+  {
+   "arm": "armA",
+   "dist": "./dists/armA",
+   "index": "./idx-armA.sqlite"
+  },
+  {
+   "arm": "armB",
+   "dist": "./dists/armB",
+   "index": "./idx-armB2.sqlite"
+  }
+ ],
+ "queries": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0091-914250/bench/queries-x2-vi.txt",
+ "reference": "stock",
+ "repeat": 6,
+ "limit": 20,
+ "channel": "SqliteSearchIndex.query() directly, mode=keyword \u2014 NOT the MCP server. Each arm on ITS OWN index file (the designs differ in what the file holds); latency columns are cross-file, content columns are not.",
+ "per_query": [
+  {
+   "arm": "stock",
+   "query": "\u0111i\u1ec7n l\u1ef1c v\u00e0 ph\u00e1t tri\u1ec3n b\u1ec1n v\u1eefng \u1edf Vi\u1ec7t Nam",
+   "ms": [
+    106.87,
+    107.21,
+    116.71,
+    118.59,
+    107.81,
+    107.15
+   ],
+   "ids": [
+    "2KKQ9VFD",
+    "4GIGDK75",
+    "MSJ8HXNS",
+    "VT78U4AR",
+    "TBPFWWTX",
+    "TYANFIMB",
+    "J7FYQHF8",
+    "7JKHWDLM",
+    "N9H85NZD",
+    "KDPEQTQA",
+    "AYZ5XL43",
+    "M56YN2LD",
+    "YXUG4DDE",
+    "6UZ6L2F4",
+    "HEC9XJNF",
+    "RCUCUHJ2",
+    "SQSKVQH5",
+    "XFRG24EZ",
+    "Y4IP7PAG",
+    "DHI8WN5P"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "gi\u00e1 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh",
+   "ms": [
+    75.76,
+    75.42,
+    82.03,
+    83.29,
+    75.34,
+    75.49
+   ],
+   "ids": [
+    "2DP4XMDM",
+    "Z9JFMHHC",
+    "BPTESJUZ",
+    "5UK5548N",
+    "V3XL4Y87",
+    "NKRQRQQN",
+    "3XAULE38",
+    "W72SVRW4",
+    "KH4L3W88",
+    "VGTXDM7M",
+    "SZVTZA2B",
+    "6Q3ZJ24R",
+    "SRMNPJUG",
+    "Z6C5MCMH",
+    "SZG9W39L",
+    "HVBZVDLX",
+    "2KKJDTTM",
+    "4F7J39M7",
+    "7L7XMULY",
+    "5E4MI9W6"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "n\u0103ng l\u01b0\u1ee3ng t\u00e1i t\u1ea1o v\u00e0 m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    73.46,
+    73.24,
+    79.87,
+    80.6,
+    73.1,
+    73.43
+   ],
+   "ids": [
+    "FPMJP2P5",
+    "XFRG24EZ",
+    "92UZ4GNF",
+    "TYANFIMB",
+    "889NMHQC",
+    "5IHG2IDD",
+    "QJUB46GE",
+    "UXPQUV38",
+    "2MFLD4A4",
+    "TRIX5JI6",
+    "R7E54VXQ",
+    "V2A3IIHE",
+    "Y62QGMKH",
+    "S4ZP47EJ",
+    "RHHJ4VHX",
+    "JNKVP38W",
+    "M99X6L7F",
+    "2KKQ9VFD",
+    "BHGCGRIU",
+    "XGCAMG3K"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "chi ph\u00ed x\u00e3 h\u1ed9i c\u1ee7a ph\u00e1t th\u1ea3i carbon",
+   "ms": [
+    134.34,
+    133.42,
+    146.36,
+    147.16,
+    133.83,
+    134.5
+   ],
+   "ids": [
+    "HFJQ44DW",
+    "I9WLM5V2",
+    "UVNWXVYX",
+    "Q934NYJB",
+    "P8LLBDQ2",
+    "XJZFW9IN",
+    "7PKAVQTW",
+    "4NBTVB4V",
+    "HEC9XJNF",
+    "DG3BFN6T",
+    "V3XL4Y87",
+    "BHINL5RR",
+    "SJYCJUMY",
+    "DXVHDQQT",
+    "VT78U4AR",
+    "6HI4N5HZ",
+    "XFRG24EZ",
+    "4GIGDK75",
+    "VVKVIUU9",
+    "HAMFG2N3"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "quy ho\u1ea1ch \u0111i\u1ec7n qu\u1ed1c gia trong giai \u0111o\u1ea1n t\u1edbi",
+   "ms": [
+    75.9,
+    82.06,
+    82.12,
+    83,
+    75.29,
+    74.96
+   ],
+   "ids": [
+    "S4ZP47EJ",
+    "SRMNPJUG",
+    "3Y7TC6N5",
+    "YDHTA2X3",
+    "PLSBWYL6",
+    "6SIECFIC",
+    "XBD52HR6",
+    "KKYIDNQF",
+    "CCN5UTBI",
+    "3XAULE38",
+    "6NWWLLT2",
+    "TRIX5JI6",
+    "XJZFW9IN",
+    "JGUMGMZW",
+    "WFB4PUM8",
+    "WQC7X9ZD",
+    "8ZTQAMGH",
+    "LJXKRA8W",
+    "B7E3NY3Y",
+    "4GIGDK75"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "ph\u00e1t th\u1ea3i kh\u00ed nh\u00e0 k\u00ednh t\u1eeb giao th\u00f4ng",
+   "ms": [
+    74.87,
+    75.04,
+    76.18,
+    81.88,
+    74.34,
+    74.67
+   ],
+   "ids": [
+    "VFVY8TA7",
+    "F2W5XCKJ",
+    "JXHSECCF",
+    "HFJQ44DW",
+    "R39M5NSY",
+    "RA6MRB2H",
+    "8G3ZTIB6",
+    "I9WLM5V2",
+    "PPWWLZ6Z",
+    "AYZ5XL43",
+    "DYKPJYAR",
+    "ZJZBT6J4",
+    "APMQIGYX",
+    "M99X6L7F",
+    "DC8SF8RE",
+    "R7TYJFLL",
+    "7DWUTB7D",
+    "HEC9XJNF",
+    "QB5E2T43",
+    "SGQE2LH4"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "hi\u1ec7u qu\u1ea3 n\u0103ng l\u01b0\u1ee3ng trong c\u00f4ng nghi\u1ec7p",
+   "ms": [
+    69.54,
+    69.41,
+    72.18,
+    76.27,
+    69.61,
+    69.46
+   ],
+   "ids": [
+    "5IHG2IDD",
+    "ELRI4DGE",
+    "X2TWIN76",
+    "RMWJHUDV",
+    "R39M5NSY",
+    "I9WLM5V2",
+    "LS4SJLGK",
+    "HEC9XJNF",
+    "V3XL4Y87",
+    "LE43VPF5",
+    "ZQARA9FJ",
+    "YNF7CMLR",
+    "WRBJ7U47",
+    "2MFLD4A4",
+    "P8LLBDQ2",
+    "SCVBFR9S",
+    "6JHQSCUG",
+    "73JY5ZZK",
+    "KSX6IDFY",
+    "92UZ4GNF"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "bi\u1ebfn \u0111\u1ed5i kh\u00ed h\u1eadu v\u00e0 n\u00f4ng nghi\u1ec7p",
+   "ms": [
+    71.04,
+    71.06,
+    70.66,
+    77.87,
+    70.9,
+    70.49
+   ],
+   "ids": [
+    "2269W6HI",
+    "R39M5NSY",
+    "24JL9W2L",
+    "AFG8ZZTX",
+    "TB6Y29QN",
+    "6UZ6L2F4",
+    "TYANFIMB",
+    "BFXN48S4",
+    "AYZ5XL43",
+    "JT2DUFHM",
+    "UXPQUV38",
+    "U3QNR9AN",
+    "RA6MRB2H",
+    "HEC9XJNF",
+    "JXHSECCF",
+    "7DWUTB7D",
+    "HVH8UHJE",
+    "DEDGZZ6V"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "th\u1ecb tr\u01b0\u1eddng \u0111i\u1ec7n c\u1ea1nh tranh c\u00f3 hi\u1ec7u qu\u1ea3 kh\u00f4ng",
+   "ms": [
+    101.65,
+    101.8,
+    102.47,
+    112.22,
+    105.87,
+    101.83
+   ],
+   "ids": [
+    "VN394S2N",
+    "6Q3ZJ24R",
+    "WQC7X9ZD",
+    "S4ZP47EJ",
+    "SRMNPJUG",
+    "YNF7CMLR",
+    "5IHG2IDD",
+    "DXVHDQQT",
+    "BPTESJUZ",
+    "WFB4PUM8",
+    "V3XL4Y87",
+    "TMQNRWIW",
+    "PL98PVRG",
+    "6HI4N5HZ",
+    "TFPYJM3U",
+    "RE636TB2",
+    "VRJIT4F9",
+    "6NWWLLT2",
+    "XFRG24EZ",
+    "66PC2GAN"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "\u0111\u1ea7u t\u01b0 v\u00e0o n\u0103ng l\u01b0\u1ee3ng m\u1eb7t tr\u1eddi",
+   "ms": [
+    69.78,
+    63.75,
+    64.02,
+    69.43,
+    64.01,
+    64.14
+   ],
+   "ids": [
+    "8IJH7ZNV",
+    "DHEXLHMH",
+    "5IHG2IDD",
+    "WRU6XD8S",
+    "SNEMVZMF",
+    "YNF7CMLR",
+    "FPMJP2P5",
+    "AGBXALFN",
+    "DHI8WN5P",
+    "TBPFWWTX",
+    "XFRG24EZ",
+    "AV72FBZZ",
+    "889NMHQC",
+    "HEC9XJNF",
+    "JECZAVV4",
+    "I9WLM5V2",
+    "MGK9EA2W",
+    "LD2EVEFV",
+    "7JKHWDLM",
+    "KDPEQTQA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "than \u0111\u00e1 v\u00e0 nhi\u1ec7t \u0111i\u1ec7n c\u1ee7a Vi\u1ec7t Nam",
+   "ms": [
+    238.29,
+    226.61,
+    225.9,
+    227.49,
+    225.41,
+    224.93
+   ],
+   "ids": [
+    "XYQIY9W9",
+    "JNKVP38W",
+    "5V3WG2BF",
+    "3KBMD9WC",
+    "8N3TDMV6",
+    "DIVND7U9",
+    "9RUJJW3F",
+    "4SYWJUNA",
+    "5J7AL2BB",
+    "5H38T2KX",
+    "FPMJP2P5",
+    "VITEIAVW",
+    "IA79MZ48",
+    "WH6ET2C3",
+    "62AQGREQ",
+    "I9WLM5V2",
+    "UXPQUV38",
+    "XIMX2E3D",
+    "KF8AU82A",
+    "HAMFG2N3"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "ch\u00ednh s\u00e1ch n\u0103ng l\u01b0\u1ee3ng c\u1ee7a ch\u00ednh ph\u1ee7",
+   "ms": [
+    61.81,
+    61.75,
+    61.46,
+    67.12,
+    61.98,
+    61.47
+   ],
+   "ids": [
+    "JDBEQCWC",
+    "P8LLBDQ2",
+    "EH2KP9BN",
+    "Z6F7NHQ9",
+    "889NMHQC",
+    "5IHG2IDD",
+    "RHHJ4VHX",
+    "JXHSECCF",
+    "J7FYQHF8",
+    "XFRG24EZ",
+    "UJL9XM7X",
+    "45HDX8NX",
+    "CPHAF3SG",
+    "FPMJP2P5",
+    "IC45TIJF",
+    "JNKVP38W",
+    "V3XL4Y87",
+    "YNF7CMLR",
+    "LAIBW6Z7",
+    "V9FKIT6S"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "ti\u00eau th\u1ee5 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh n\u00f4ng th\u00f4n",
+   "ms": [
+    90.59,
+    90.11,
+    90.16,
+    99.98,
+    90.07,
+    92.45
+   ],
+   "ids": [
+    "2KKJDTTM",
+    "4F7J39M7",
+    "BPTESJUZ",
+    "2DP4XMDM",
+    "5IHG2IDD",
+    "YNF7CMLR",
+    "9CF2AQRJ",
+    "V3XL4Y87",
+    "889NMHQC",
+    "DG3BFN6T",
+    "5Q5LY7I4",
+    "VGTXDM7M",
+    "6Q3ZJ24R",
+    "KNIPRK59",
+    "B38YCA8E",
+    "4GIGDK75",
+    "LE3RRC7B",
+    "7ZXAFJ57",
+    "RE636TB2",
+    "VRJIT4F9"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "t\u00e1c \u0111\u1ed9ng c\u1ee7a th\u1ee7y \u0111i\u1ec7n \u0111\u1ebfn m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    69.96,
+    77.84,
+    74.77,
+    76.18,
+    69.26,
+    72.94
+   ],
+   "ids": [
+    "SRMNPJUG",
+    "Z9JFMHHC",
+    "S4ZP47EJ",
+    "VT78U4AR",
+    "8IJH7ZNV",
+    "SIFK7B5B",
+    "DUGQPB59",
+    "73JY5ZZK",
+    "RE636TB2",
+    "VRJIT4F9",
+    "RCEJBL9G",
+    "LYZNY24S",
+    "LNTYJISV",
+    "8PLSICVM",
+    "4GYTCVAJ",
+    "2S2LKPG9",
+    "J5EL3XXU",
+    "2W6LSGHT",
+    "4GIGDK75",
+    "WE6NFX7W"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "an ninh n\u0103ng l\u01b0\u1ee3ng qu\u1ed1c gia",
+   "ms": [
+    63.26,
+    69,
+    64.11,
+    69.09,
+    63.33,
+    63.35
+   ],
+   "ids": [
+    "2GQEPHVC",
+    "XJZFW9IN",
+    "CPHAF3SG",
+    "RE636TB2",
+    "VRJIT4F9",
+    "M56YN2LD",
+    "92UZ4GNF",
+    "NBECRVUC",
+    "5V3WG2BF",
+    "E9DDR476",
+    "XYKRJEX9",
+    "V3XL4Y87",
+    "2MFLD4A4",
+    "HVBBNH25",
+    "LUU4KD2L",
+    "5IHG2IDD",
+    "HWQRY7AW",
+    "BSYQAV9Q",
+    "QJUB46GE",
+    "HA3BLKYA"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "d\u1ef1 \u00e1n \u0111i\u1ec7n gi\u00f3 ngo\u00e0i kh\u01a1i",
+   "ms": [
+    81.01,
+    88.43,
+    86.65,
+    87.66,
+    80.49,
+    81.17
+   ],
+   "ids": [
+    "32M2BI9U",
+    "6HI4N5HZ",
+    "73JY5ZZK",
+    "ANJHXQMF",
+    "LYZNY24S",
+    "6T5ACPWS",
+    "LHMKLB2X",
+    "69B9H5TQ",
+    "XFRG24EZ",
+    "XJZFW9IN",
+    "K6KT3D2T",
+    "I9WLM5V2",
+    "2TWJBUBF",
+    "LPSJ9NKS",
+    "JRQ4LPJN",
+    "BBY3QHZJ",
+    "BHGCGRIU",
+    "TRIX5JI6",
+    "HRHU73TG",
+    "QJUB46GE"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "kinh t\u1ebf h\u1ecdc m\u00f4i tr\u01b0\u1eddng v\u00e0 t\u00e0i nguy\u00ean",
+   "ms": [
+    86.56,
+    93.67,
+    86.52,
+    94.4,
+    86.14,
+    86.12
+   ],
+   "ids": [
+    "AYZ5XL43",
+    "4L4RRXMR",
+    "Z7AZNDV8",
+    "NM7R5Z89",
+    "XBD52HR6",
+    "VT78U4AR",
+    "RDKSZ8VN",
+    "5H38T2KX",
+    "FETUIPZQ",
+    "TYANFIMB",
+    "PPWWLZ6Z",
+    "TD6KNNK8",
+    "Z9JFMHHC",
+    "P8LLBDQ2",
+    "TZ85BMCI",
+    "YXUG4DDE",
+    "DQ3B4CTT",
+    "DG3BFN6T",
+    "JXHSECCF",
+    "2KKQ9VFD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "gi\u1ea3m ph\u00e1t th\u1ea3i trong ng\u00e0nh giao th\u00f4ng v\u1eadn t\u1ea3i",
+   "ms": [
+    88.48,
+    96.6,
+    88.98,
+    96.6,
+    88.14,
+    88.89
+   ],
+   "ids": [
+    "I9WLM5V2",
+    "XJZFW9IN",
+    "VFVY8TA7",
+    "F2W5XCKJ",
+    "XFRG24EZ",
+    "JXHSECCF",
+    "WRBJ7U47",
+    "3ISF9BT2",
+    "RA6MRB2H",
+    "RTXT83CY",
+    "LS4SJLGK",
+    "HEC9XJNF",
+    "R39M5NSY",
+    "E9DDR476",
+    "M99X6L7F",
+    "DYKPJYAR",
+    "6UZ6L2F4"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "t\u0103ng tr\u01b0\u1edfng kinh t\u1ebf v\u00e0 nhu c\u1ea7u n\u0103ng l\u01b0\u1ee3ng",
+   "ms": [
+    84.47,
+    91.95,
+    88.13,
+    89.49,
+    88,
+    85.56
+   ],
+   "ids": [
+    "JDBEQCWC",
+    "XFRG24EZ",
+    "V3XL4Y87",
+    "I9WLM5V2",
+    "7D49C7AF",
+    "UHFI558L",
+    "FPMJP2P5",
+    "6QPIQSHS",
+    "SRMNPJUG",
+    "BYYSM4IL",
+    "UZ7WV53N",
+    "Y62QGMKH",
+    "VVKVIUU9",
+    "XJZFW9IN",
+    "AA7PRRJG",
+    "5IHG2IDD",
+    "QCFLT8F7",
+    "2GQEPHVC",
+    "AYZ5XL43",
+    "5BWSAXW2"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "c\u00f3 v\u00e0 kh\u00f4ng c\u00f3 trong \u0111\u00f3 l\u00e0 c\u1ee7a",
+   "ms": [
+    145.5,
+    159.22,
+    159.74,
+    145.55,
+    146.36,
+    145.85
+   ],
+   "ids": [
+    "JHWAWU58",
+    "HWEAXYIL",
+    "XHEDFB8L",
+    "LYDMHCWM",
+    "Q934NYJB",
+    "W3J3ZPGZ",
+    "UVNWXVYX",
+    "HUI8MDEA",
+    "U3QNR9AN",
+    "JNUTFUYG",
+    "3MV4R7Z7",
+    "RA6MRB2H",
+    "TY2SY93Z",
+    "N3ZG66KK",
+    "3KBMD9WC",
+    "MZ4CBL9K",
+    "66PC2GAN",
+    "EHN9P6NJ",
+    "3XUVZIUW",
+    "JVU2RCB8"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "\u0111i\u1ec7n l\u1ef1c v\u00e0 ph\u00e1t tri\u1ec3n b\u1ec1n v\u1eefng \u1edf Vi\u1ec7t Nam",
+   "ms": [
+    93.69,
+    93.33,
+    101.94,
+    102.7,
+    99.93,
+    93.37
+   ],
+   "ids": [
+    "TYANFIMB",
+    "MSJ8HXNS",
+    "M56YN2LD",
+    "2KKQ9VFD",
+    "AYZ5XL43",
+    "TBPFWWTX",
+    "4GIGDK75",
+    "VT78U4AR",
+    "N9H85NZD",
+    "J7FYQHF8",
+    "5L5GU3ME",
+    "6UZ6L2F4",
+    "APHXVP74",
+    "K6KT3D2T",
+    "YXUG4DDE",
+    "H2LQAWGR",
+    "RGI2BUZV",
+    "889NMHQC",
+    "5IHG2IDD",
+    "5BWSAXW2"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "gi\u00e1 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh",
+   "ms": [
+    65.04,
+    64.92,
+    70.9,
+    71.64,
+    65.98,
+    64.95
+   ],
+   "ids": [
+    "V3XL4Y87",
+    "SZG9W39L",
+    "2DP4XMDM",
+    "BPTESJUZ",
+    "2KKJDTTM",
+    "4F7J39M7",
+    "4GIGDK75",
+    "UXPQUV38",
+    "NKRQRQQN",
+    "VGTXDM7M",
+    "6HLJ3LMA",
+    "GPIGZ8CX",
+    "LPNX3QLE",
+    "5IHG2IDD",
+    "PL98PVRG",
+    "RMWJHUDV",
+    "RQUCTF5A",
+    "8NI7ZA95"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "n\u0103ng l\u01b0\u1ee3ng t\u00e1i t\u1ea1o v\u00e0 m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    55.57,
+    60.74,
+    60.73,
+    62.39,
+    55.8,
+    55.5
+   ],
+   "ids": [
+    "XFRG24EZ",
+    "92UZ4GNF",
+    "FPMJP2P5",
+    "TRIX5JI6",
+    "R7E54VXQ",
+    "69B9H5TQ",
+    "889NMHQC",
+    "5IHG2IDD",
+    "JNKVP38W",
+    "XBD52HR6",
+    "QJUB46GE",
+    "UXPQUV38",
+    "TYANFIMB",
+    "2KKQ9VFD",
+    "BNVPWNIS",
+    "RHHJ4VHX",
+    "XYKRJEX9",
+    "NM7R5Z89",
+    "RYYR7KWX",
+    "M56YN2LD"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "chi ph\u00ed x\u00e3 h\u1ed9i c\u1ee7a ph\u00e1t th\u1ea3i carbon",
+   "ms": [
+    125.13,
+    126.6,
+    135.61,
+    137.32,
+    125.62,
+    124.88
+   ],
+   "ids": [
+    "HFJQ44DW",
+    "I9WLM5V2",
+    "P8LLBDQ2",
+    "XJZFW9IN",
+    "4NBTVB4V",
+    "HEC9XJNF",
+    "BHINL5RR",
+    "7PKAVQTW",
+    "V3XL4Y87",
+    "XFRG24EZ",
+    "DG3BFN6T",
+    "HAMFG2N3",
+    "JDIU2NLR",
+    "VVKVIUU9",
+    "6HI4N5HZ",
+    "HJKR2YJ6",
+    "4GYTCVAJ",
+    "DXVHDQQT",
+    "F2W5XCKJ",
+    "3DH86DCH"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "quy ho\u1ea1ch \u0111i\u1ec7n qu\u1ed1c gia trong giai \u0111o\u1ea1n t\u1edbi",
+   "ms": [
+    72.18,
+    73.47,
+    77.51,
+    80.85,
+    73.06,
+    72.7
+   ],
+   "ids": [
+    "S4ZP47EJ",
+    "SRMNPJUG",
+    "3Y7TC6N5",
+    "YDHTA2X3",
+    "KKYIDNQF",
+    "6NWWLLT2",
+    "3XAULE38",
+    "B7E3NY3Y",
+    "TRIX5JI6",
+    "JGUMGMZW",
+    "RE636TB2",
+    "VRJIT4F9",
+    "XBD52HR6",
+    "TFPYJM3U",
+    "8ZTQAMGH",
+    "H9EPJ7EC",
+    "WQC7X9ZD",
+    "6SIECFIC",
+    "4GIGDK75",
+    "LJXKRA8W"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "ph\u00e1t th\u1ea3i kh\u00ed nh\u00e0 k\u00ednh t\u1eeb giao th\u00f4ng",
+   "ms": [
+    51.72,
+    52.25,
+    57.29,
+    57.63,
+    51.75,
+    51.58
+   ],
+   "ids": [
+    "VFVY8TA7",
+    "R39M5NSY",
+    "JXHSECCF",
+    "F2W5XCKJ",
+    "AYZ5XL43",
+    "RXFQQYP5",
+    "3IIT4322",
+    "8G3ZTIB6",
+    "7DWUTB7D",
+    "DYKPJYAR",
+    "JX4FRQPL",
+    "I9WLM5V2",
+    "PPWWLZ6Z",
+    "XBD52HR6",
+    "RA6MRB2H",
+    "HFJQ44DW",
+    "QB5E2T43",
+    "M99X6L7F",
+    "2269W6HI",
+    "3XUVZIUW"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "hi\u1ec7u qu\u1ea3 n\u0103ng l\u01b0\u1ee3ng trong c\u00f4ng nghi\u1ec7p",
+   "ms": [
+    61.64,
+    61.89,
+    63.49,
+    68.95,
+    61.91,
+    62.1
+   ],
+   "ids": [
+    "5IHG2IDD",
+    "ELRI4DGE",
+    "X2TWIN76",
+    "RMWJHUDV",
+    "R39M5NSY",
+    "LS4SJLGK",
+    "I9WLM5V2",
+    "HEC9XJNF",
+    "V3XL4Y87",
+    "ZQARA9FJ",
+    "YNF7CMLR",
+    "SCVBFR9S",
+    "LE43VPF5",
+    "WRBJ7U47",
+    "2MFLD4A4",
+    "KSX6IDFY",
+    "HWQRY7AW",
+    "P8LLBDQ2",
+    "XFRG24EZ",
+    "XJZFW9IN"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "bi\u1ebfn \u0111\u1ed5i kh\u00ed h\u1eadu v\u00e0 n\u00f4ng nghi\u1ec7p",
+   "ms": [
+    54.46,
+    54.97,
+    55.19,
+    60.48,
+    58.22,
+    54.68
+   ],
+   "ids": [
+    "2269W6HI",
+    "24JL9W2L",
+    "R39M5NSY",
+    "AFG8ZZTX",
+    "TB6Y29QN",
+    "6UZ6L2F4",
+    "AYZ5XL43",
+    "TYANFIMB",
+    "JXHSECCF",
+    "HEC9XJNF",
+    "JT2DUFHM",
+    "HVH8UHJE",
+    "XBD52HR6",
+    "7DWUTB7D",
+    "BFXN48S4"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "th\u1ecb tr\u01b0\u1eddng \u0111i\u1ec7n c\u1ea1nh tranh c\u00f3 hi\u1ec7u qu\u1ea3 kh\u00f4ng",
+   "ms": [
+    57.82,
+    58.16,
+    58.26,
+    63.51,
+    58.47,
+    57.88
+   ],
+   "ids": [
+    "VN394S2N",
+    "6Q3ZJ24R",
+    "S4ZP47EJ",
+    "DXVHDQQT",
+    "YNF7CMLR",
+    "SRMNPJUG",
+    "WQC7X9ZD",
+    "5IHG2IDD",
+    "BPTESJUZ",
+    "WFB4PUM8",
+    "XFRG24EZ",
+    "V3XL4Y87",
+    "66PC2GAN",
+    "TFPYJM3U",
+    "6HI4N5HZ",
+    "6NWWLLT2",
+    "RE636TB2",
+    "VRJIT4F9",
+    "Z6F7NHQ9",
+    "3Y7TC6N5"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "\u0111\u1ea7u t\u01b0 v\u00e0o n\u0103ng l\u01b0\u1ee3ng m\u1eb7t tr\u1eddi",
+   "ms": [
+    49.4,
+    46.54,
+    47.23,
+    50.04,
+    46.86,
+    46.4
+   ],
+   "ids": [
+    "8IJH7ZNV",
+    "WRU6XD8S",
+    "DHEXLHMH",
+    "DHI8WN5P",
+    "5IHG2IDD",
+    "FPMJP2P5",
+    "XFRG24EZ",
+    "JECZAVV4",
+    "YNF7CMLR",
+    "TBPFWWTX",
+    "I9WLM5V2",
+    "AGBXALFN",
+    "889NMHQC",
+    "AV72FBZZ",
+    "SRMNPJUG",
+    "LD2EVEFV",
+    "HEC9XJNF",
+    "TRIX5JI6",
+    "MGK9EA2W",
+    "RE636TB2"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "than \u0111\u00e1 v\u00e0 nhi\u1ec7t \u0111i\u1ec7n c\u1ee7a Vi\u1ec7t Nam",
+   "ms": [
+    215.52,
+    215.66,
+    215.78,
+    231.67,
+    215.22,
+    214.67
+   ],
+   "ids": [
+    "IA79MZ48",
+    "4YYXJDP7",
+    "FPMJP2P5",
+    "JNKVP38W",
+    "DIVND7U9",
+    "VN394S2N",
+    "XYQIY9W9",
+    "NBECRVUC",
+    "9RUJJW3F",
+    "RA6MRB2H",
+    "5J7AL2BB",
+    "WH6ET2C3",
+    "JDBEQCWC",
+    "3KBMD9WC",
+    "UXPQUV38",
+    "Y62QGMKH",
+    "XLUFFQMR",
+    "4GIGDK75",
+    "5V3WG2BF",
+    "8N3TDMV6"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "ch\u00ednh s\u00e1ch n\u0103ng l\u01b0\u1ee3ng c\u1ee7a ch\u00ednh ph\u1ee7",
+   "ms": [
+    50.03,
+    50.23,
+    50.22,
+    54.64,
+    49.87,
+    49.88
+   ],
+   "ids": [
+    "P8LLBDQ2",
+    "JDBEQCWC",
+    "XFRG24EZ",
+    "Z6F7NHQ9",
+    "IC45TIJF",
+    "45HDX8NX",
+    "EH2KP9BN",
+    "JNKVP38W",
+    "889NMHQC",
+    "5IHG2IDD",
+    "J7FYQHF8",
+    "UJL9XM7X",
+    "RMWJHUDV",
+    "RHHJ4VHX",
+    "5BWSAXW2",
+    "V3XL4Y87",
+    "2MFLD4A4",
+    "6Q3ZJ24R",
+    "XVAJNF8A",
+    "CPHAF3SG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "ti\u00eau th\u1ee5 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh n\u00f4ng th\u00f4n",
+   "ms": [
+    70.58,
+    78.2,
+    70.67,
+    76.9,
+    70.46,
+    72.36
+   ],
+   "ids": [
+    "2KKJDTTM",
+    "4F7J39M7",
+    "BPTESJUZ",
+    "5IHG2IDD",
+    "YNF7CMLR",
+    "SZG9W39L",
+    "V3XL4Y87",
+    "B38YCA8E",
+    "RQUCTF5A",
+    "HEC9XJNF",
+    "2DP4XMDM",
+    "9CF2AQRJ",
+    "NBECRVUC",
+    "WH6ET2C3",
+    "5E4MI9W6",
+    "TRIX5JI6",
+    "PK4VDN2Y",
+    "I9WLM5V2",
+    "UXPQUV38",
+    "VGTXDM7M"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "t\u00e1c \u0111\u1ed9ng c\u1ee7a th\u1ee7y \u0111i\u1ec7n \u0111\u1ebfn m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    58.86,
+    64.61,
+    65.08,
+    64.05,
+    58.64,
+    58.71
+   ],
+   "ids": [
+    "SRMNPJUG",
+    "S4ZP47EJ",
+    "VT78U4AR",
+    "8IJH7ZNV",
+    "DUGQPB59",
+    "Z9JFMHHC",
+    "RE636TB2",
+    "VRJIT4F9",
+    "73JY5ZZK",
+    "LYZNY24S",
+    "4GYTCVAJ",
+    "LNTYJISV",
+    "XBD52HR6",
+    "6HI4N5HZ",
+    "WE6NFX7W",
+    "RCEJBL9G",
+    "J5EL3XXU",
+    "8PLSICVM",
+    "M99X6L7F",
+    "3KBMD9WC"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "an ninh n\u0103ng l\u01b0\u1ee3ng qu\u1ed1c gia",
+   "ms": [
+    58.91,
+    63.97,
+    60.45,
+    64.3,
+    58.97,
+    58.82
+   ],
+   "ids": [
+    "2GQEPHVC",
+    "CPHAF3SG",
+    "XJZFW9IN",
+    "RE636TB2",
+    "VRJIT4F9",
+    "92UZ4GNF",
+    "M56YN2LD",
+    "NBECRVUC",
+    "5V3WG2BF",
+    "E9DDR476",
+    "XYKRJEX9",
+    "LUU4KD2L",
+    "2MFLD4A4",
+    "5IHG2IDD",
+    "HWQRY7AW",
+    "V3XL4Y87",
+    "S4ZP47EJ",
+    "QJUB46GE",
+    "6J4IDUCB",
+    "BSYQAV9Q"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "d\u1ef1 \u00e1n \u0111i\u1ec7n gi\u00f3 ngo\u00e0i kh\u01a1i",
+   "ms": [
+    39.49,
+    42.87,
+    40.69,
+    42.98,
+    39.22,
+    39.44
+   ],
+   "ids": [
+    "32M2BI9U",
+    "73JY5ZZK",
+    "6HI4N5HZ",
+    "ANJHXQMF",
+    "6T5ACPWS",
+    "UGF63EJ4",
+    "LHMKLB2X",
+    "LYZNY24S",
+    "BHGCGRIU",
+    "BBY3QHZJ",
+    "69B9H5TQ",
+    "TRIX5JI6",
+    "HRHU73TG",
+    "6Q3ZJ24R",
+    "XJZFW9IN",
+    "2TWJBUBF",
+    "JRQ4LPJN",
+    "LPSJ9NKS",
+    "K6KT3D2T",
+    "XFRG24EZ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "kinh t\u1ebf h\u1ecdc m\u00f4i tr\u01b0\u1eddng v\u00e0 t\u00e0i nguy\u00ean",
+   "ms": [
+    61.54,
+    66.73,
+    61.91,
+    67.15,
+    61.61,
+    61.18
+   ],
+   "ids": [
+    "AYZ5XL43",
+    "4L4RRXMR",
+    "Z7AZNDV8",
+    "NM7R5Z89",
+    "XBD52HR6",
+    "RDKSZ8VN",
+    "FETUIPZQ",
+    "VT78U4AR",
+    "TD6KNNK8",
+    "Z9JFMHHC",
+    "PPWWLZ6Z",
+    "TYANFIMB",
+    "F9MXL2H7",
+    "RXFQQYP5",
+    "3IIT4322",
+    "M99X6L7F",
+    "DD4PK9I5",
+    "GKPN849L",
+    "8XFYLXRG",
+    "N2XHJSKJ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "gi\u1ea3m ph\u00e1t th\u1ea3i trong ng\u00e0nh giao th\u00f4ng v\u1eadn t\u1ea3i",
+   "ms": [
+    61.43,
+    67.11,
+    61.85,
+    67.02,
+    61.11,
+    61.29
+   ],
+   "ids": [
+    "I9WLM5V2",
+    "VFVY8TA7",
+    "F2W5XCKJ",
+    "WRBJ7U47",
+    "XJZFW9IN",
+    "RTXT83CY",
+    "XFRG24EZ",
+    "B38YCA8E",
+    "R39M5NSY",
+    "HEC9XJNF",
+    "RA6MRB2H",
+    "AYZ5XL43",
+    "LS4SJLGK",
+    "APHXVP74",
+    "3ISF9BT2",
+    "6UZ6L2F4",
+    "DYKPJYAR",
+    "M99X6L7F",
+    "TY2SY93Z"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "t\u0103ng tr\u01b0\u1edfng kinh t\u1ebf v\u00e0 nhu c\u1ea7u n\u0103ng l\u01b0\u1ee3ng",
+   "ms": [
+    67.44,
+    73.03,
+    72.66,
+    68.96,
+    68.97,
+    73.56
+   ],
+   "ids": [
+    "JDBEQCWC",
+    "V3XL4Y87",
+    "XFRG24EZ",
+    "7D49C7AF",
+    "FPMJP2P5",
+    "I9WLM5V2",
+    "XJZFW9IN",
+    "Y62QGMKH",
+    "VVKVIUU9",
+    "SRMNPJUG",
+    "5IHG2IDD",
+    "UHFI558L",
+    "BYYSM4IL",
+    "6HI4N5HZ",
+    "7AJDPLR5",
+    "AA7PRRJG",
+    "LE43VPF5",
+    "6QPIQSHS",
+    "N2XHJSKJ",
+    "S4ZP47EJ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "c\u00f3 v\u00e0 kh\u00f4ng c\u00f3 trong \u0111\u00f3 l\u00e0 c\u1ee7a",
+   "ms": [
+    70.67,
+    76.61,
+    77.44,
+    70.39,
+    70.29,
+    71.28
+   ],
+   "ids": [
+    "66PC2GAN",
+    "RA6MRB2H",
+    "3KBMD9WC",
+    "MZ4CBL9K",
+    "DYKPJYAR",
+    "QB5E2T43",
+    "DMKDMKBS",
+    "EZV5XHCW",
+    "6HI4N5HZ",
+    "BYYSM4IL",
+    "8IJH7ZNV",
+    "N3ZG66KK",
+    "KX9K47Y6",
+    "U3QNR9AN",
+    "UTXZCR4B",
+    "NM7R5Z89",
+    "DXVHDQQT",
+    "VN394S2N",
+    "7DWUTB7D",
+    "73JY5ZZK"
+   ]
+  },
+  {
+   "arm": "armB",
+   "query": "\u0111i\u1ec7n l\u1ef1c v\u00e0 ph\u00e1t tri\u1ec3n b\u1ec1n v\u1eefng \u1edf Vi\u1ec7t Nam",
+   "ms": [
+    104.16,
+    105.04,
+    114.45,
+    115.25,
+    109.83,
+    104.44
+   ],
+   "ids": [
+    "2KKQ9VFD",
+    "AYZ5XL43",
+    "M56YN2LD",
+    "TYANFIMB",
+    "4GIGDK75",
+    "LNTYJISV",
+    "SFQEEAB6",
+    "MSJ8HXNS",
+    "YXUG4DDE",
+    "YNF7CMLR",
+    "J7FYQHF8",
+    "5BWSAXW2",
+    "XFRG24EZ",
+    "7JKHWDLM",
+    "SQSKVQH5",
+    "RE636TB2",
+    "VRJIT4F9",
+    "KDPEQTQA",
+    "VT78U4AR",
+    "K6KT3D2T"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 1,
+    "added_variants": 12,
+    "lookup_ms": 0.154,
+    "detail": [
+     "nam->n\u00e1m|n\u00e2m|n\u00e3m|n\u00e4m|n\u0103m|n\u1ea1m|n\u1ea5m|n\u1ea7m|n\u1eadm|n\u1eafm|n\u1eb1m|n\u1eb7m"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "gi\u00e1 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh",
+   "ms": [
+    69.53,
+    70.18,
+    76.78,
+    77.28,
+    70.36,
+    69.8
+   ],
+   "ids": [
+    "BPTESJUZ",
+    "V3XL4Y87",
+    "2DP4XMDM",
+    "SZG9W39L",
+    "2KKJDTTM",
+    "4F7J39M7",
+    "NKRQRQQN",
+    "UXPQUV38",
+    "4GIGDK75",
+    "GPIGZ8CX",
+    "DG3BFN6T",
+    "PL98PVRG",
+    "VGTXDM7M",
+    "LPNX3QLE",
+    "6HLJ3LMA",
+    "PK4VDN2Y",
+    "KH4L3W88",
+    "RQUCTF5A"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.039,
+    "detail": [
+     "gia->gi\u00e0|gi\u00e1|gi\u00e2|gi\u00e3|gi\u1ea3|g\u00eda"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "n\u0103ng l\u01b0\u1ee3ng t\u00e1i t\u1ea1o v\u00e0 m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    57.3,
+    54.86,
+    59.93,
+    61.31,
+    55.56,
+    55.22
+   ],
+   "ids": [
+    "92UZ4GNF",
+    "FPMJP2P5",
+    "XFRG24EZ",
+    "TRIX5JI6",
+    "69B9H5TQ",
+    "889NMHQC",
+    "5IHG2IDD",
+    "R7E54VXQ",
+    "JNKVP38W",
+    "XBD52HR6",
+    "QJUB46GE",
+    "UXPQUV38",
+    "NM7R5Z89",
+    "2KKQ9VFD",
+    "M56YN2LD",
+    "V3XL4Y87",
+    "RYYR7KWX",
+    "S4ZP47EJ",
+    "XYKRJEX9",
+    "TYANFIMB"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.018,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "chi ph\u00ed x\u00e3 h\u1ed9i c\u1ee7a ph\u00e1t th\u1ea3i carbon",
+   "ms": [
+    131.72,
+    136.38,
+    143.38,
+    146.27,
+    132.64,
+    132.71
+   ],
+   "ids": [
+    "HFJQ44DW",
+    "XJZFW9IN",
+    "I9WLM5V2",
+    "7PKAVQTW",
+    "4NBTVB4V",
+    "6HI4N5HZ",
+    "DG3BFN6T",
+    "HEC9XJNF",
+    "P8LLBDQ2",
+    "LHMKLB2X",
+    "V3XL4Y87",
+    "QX98644H",
+    "BHINL5RR",
+    "XFRG24EZ",
+    "LYZNY24S",
+    "DXVHDQQT",
+    "3DH86DCH",
+    "GJFL7JRF",
+    "LAIBW6Z7",
+    "NQ4HDK6S"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 2,
+    "added_variants": 7,
+    "lookup_ms": 0.039,
+    "detail": [
+     "chi->ch\u00ec|ch\u00ed|ch\u00ee|ch\u00ef|ch\u1ec9|ch\u1ecb",
+     "carbon->carb\u00f3n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "quy ho\u1ea1ch \u0111i\u1ec7n qu\u1ed1c gia trong giai \u0111o\u1ea1n t\u1edbi",
+   "ms": [
+    88.69,
+    89.33,
+    91.08,
+    98.59,
+    89.13,
+    88.71
+   ],
+   "ids": [
+    "3XAULE38",
+    "SRMNPJUG",
+    "6SIECFIC",
+    "S4ZP47EJ",
+    "YDHTA2X3",
+    "5NZ2H36Y",
+    "XBD52HR6",
+    "TB6Y29QN",
+    "CCN5UTBI",
+    "6NWWLLT2",
+    "3Y7TC6N5",
+    "FZRFIHW6",
+    "CPHAF3SG",
+    "I9WLM5V2",
+    "TFPYJM3U",
+    "FPMJP2P5",
+    "C5RUKFNU",
+    "PLSBWYL6"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 4,
+    "added_variants": 23,
+    "lookup_ms": 0.053,
+    "detail": [
+     "quy->qu\u00fd|qu\u1ef3|qu\u1ef5|qu\u1ef7|qu\u1ef9|q\u00f9y|q\u00fay|q\u0169y",
+     "gia->gi\u00e0|gi\u00e1|gi\u00e2|gi\u00e3|gi\u1ea3|g\u00eda",
+     "trong->tr\u00f2ng|tr\u00f4ng|tr\u00f5ng|tr\u1ecdng|tr\u1ed1ng|tr\u1ed3ng",
+     "giai->gi\u00e1i|gi\u00e2i|gi\u1ea3i"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "ph\u00e1t th\u1ea3i kh\u00ed nh\u00e0 k\u00ednh t\u1eeb giao th\u00f4ng",
+   "ms": [
+    51.65,
+    51.87,
+    55.72,
+    57.09,
+    51.79,
+    51.55
+   ],
+   "ids": [
+    "VFVY8TA7",
+    "JXHSECCF",
+    "F2W5XCKJ",
+    "R39M5NSY",
+    "AYZ5XL43",
+    "7DWUTB7D",
+    "I9WLM5V2",
+    "QB5E2T43",
+    "RXFQQYP5",
+    "3IIT4322",
+    "8G3ZTIB6",
+    "JX4FRQPL",
+    "PPWWLZ6Z",
+    "HWQRY7AW",
+    "DYKPJYAR",
+    "M99X6L7F",
+    "3XUVZIUW",
+    "RA6MRB2H",
+    "HFJQ44DW",
+    "XBD52HR6"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 1,
+    "added_variants": 1,
+    "lookup_ms": 0.02,
+    "detail": [
+     "giao->gi\u00e1o"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "hi\u1ec7u qu\u1ea3 n\u0103ng l\u01b0\u1ee3ng trong c\u00f4ng nghi\u1ec7p",
+   "ms": [
+    66.74,
+    65.74,
+    66.57,
+    72.84,
+    66.39,
+    66.43
+   ],
+   "ids": [
+    "36XWMNUJ",
+    "X2TWIN76",
+    "I9WLM5V2",
+    "R39M5NSY",
+    "ELRI4DGE",
+    "HEC9XJNF",
+    "V3XL4Y87",
+    "5IHG2IDD",
+    "NBECRVUC",
+    "SCVBFR9S",
+    "LS4SJLGK",
+    "XFRG24EZ",
+    "AFG8ZZTX",
+    "TB6Y29QN",
+    "RTXT83CY",
+    "LE43VPF5",
+    "RMWJHUDV",
+    "TSSDRNW4",
+    "YNF7CMLR",
+    "SB5PVBAQ"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.022,
+    "detail": [
+     "trong->tr\u00f2ng|tr\u00f4ng|tr\u00f5ng|tr\u1ecdng|tr\u1ed1ng|tr\u1ed3ng"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "bi\u1ebfn \u0111\u1ed5i kh\u00ed h\u1eadu v\u00e0 n\u00f4ng nghi\u1ec7p",
+   "ms": [
+    54.16,
+    54.12,
+    53.95,
+    60.1,
+    58.93,
+    53.78
+   ],
+   "ids": [
+    "2269W6HI",
+    "24JL9W2L",
+    "R39M5NSY",
+    "AFG8ZZTX",
+    "TB6Y29QN",
+    "6UZ6L2F4",
+    "AYZ5XL43",
+    "TYANFIMB",
+    "HEC9XJNF",
+    "JT2DUFHM",
+    "JXHSECCF",
+    "7DWUTB7D",
+    "BFXN48S4",
+    "HVH8UHJE",
+    "RA6MRB2H",
+    "I9WLM5V2"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.013,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "th\u1ecb tr\u01b0\u1eddng \u0111i\u1ec7n c\u1ea1nh tranh c\u00f3 hi\u1ec7u qu\u1ea3 kh\u00f4ng",
+   "ms": [
+    59.45,
+    57.92,
+    58.14,
+    64.74,
+    59.66,
+    57.92
+   ],
+   "ids": [
+    "SRMNPJUG",
+    "VN394S2N",
+    "S4ZP47EJ",
+    "6Q3ZJ24R",
+    "WQC7X9ZD",
+    "DXVHDQQT",
+    "YNF7CMLR",
+    "BPTESJUZ",
+    "5IHG2IDD",
+    "V3XL4Y87",
+    "XFRG24EZ",
+    "6HI4N5HZ",
+    "WFB4PUM8",
+    "66PC2GAN",
+    "6NWWLLT2",
+    "Z6F7NHQ9",
+    "3Y7TC6N5",
+    "TFPYJM3U",
+    "5XE6WL29",
+    "RE636TB2"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.026,
+    "detail": [
+     "tranh->tr\u00e1nh|tr\u1ea1nh"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "\u0111\u1ea7u t\u01b0 v\u00e0o n\u0103ng l\u01b0\u1ee3ng m\u1eb7t tr\u1eddi",
+   "ms": [
+    45.43,
+    48.88,
+    45.87,
+    48.64,
+    46.43,
+    45.79
+   ],
+   "ids": [
+    "8IJH7ZNV",
+    "DHEXLHMH",
+    "WRU6XD8S",
+    "DHI8WN5P",
+    "FPMJP2P5",
+    "TBPFWWTX",
+    "5IHG2IDD",
+    "AGBXALFN",
+    "XFRG24EZ",
+    "I9WLM5V2",
+    "JECZAVV4",
+    "YNF7CMLR",
+    "889NMHQC",
+    "AV72FBZZ",
+    "HEC9XJNF",
+    "LD2EVEFV",
+    "SRMNPJUG",
+    "MGK9EA2W",
+    "TRIX5JI6",
+    "RE636TB2"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.013,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "than \u0111\u00e1 v\u00e0 nhi\u1ec7t \u0111i\u1ec7n c\u1ee7a Vi\u1ec7t Nam",
+   "ms": [
+    254.34,
+    253.7,
+    252.94,
+    277.34,
+    253.42,
+    253.33
+   ],
+   "ids": [
+    "Y62QGMKH",
+    "WFB4PUM8",
+    "WH6ET2C3",
+    "IA79MZ48",
+    "FPMJP2P5",
+    "AELVDIMY",
+    "XYQIY9W9",
+    "LYZNY24S",
+    "4YYXJDP7",
+    "DG3BFN6T",
+    "UXPQUV38",
+    "JNKVP38W",
+    "RA6MRB2H",
+    "3KBMD9WC",
+    "KX9K47Y6",
+    "VT78U4AR",
+    "73JY5ZZK",
+    "7JKHWDLM",
+    "2W6LSGHT",
+    "6SIECFIC"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 2,
+    "added_variants": 21,
+    "lookup_ms": 0.036,
+    "detail": [
+     "than->th\u00e1n|th\u00e2n|th\u00e5n|th\u1ea3n|th\u1ea7n|th\u1ea9n|th\u1eadn|th\u1eafn|th\u1eb1n",
+     "nam->n\u00e1m|n\u00e2m|n\u00e3m|n\u00e4m|n\u0103m|n\u1ea1m|n\u1ea5m|n\u1ea7m|n\u1eadm|n\u1eafm|n\u1eb1m|n\u1eb7m"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "ch\u00ednh s\u00e1ch n\u0103ng l\u01b0\u1ee3ng c\u1ee7a ch\u00ednh ph\u1ee7",
+   "ms": [
+    49.68,
+    49.1,
+    49.29,
+    54.87,
+    49.84,
+    49.48
+   ],
+   "ids": [
+    "JDBEQCWC",
+    "P8LLBDQ2",
+    "Z6F7NHQ9",
+    "XFRG24EZ",
+    "EH2KP9BN",
+    "IC45TIJF",
+    "45HDX8NX",
+    "JNKVP38W",
+    "UJL9XM7X",
+    "5BWSAXW2",
+    "889NMHQC",
+    "5IHG2IDD",
+    "V3XL4Y87",
+    "J7FYQHF8",
+    "CPHAF3SG",
+    "6Q3ZJ24R",
+    "RHHJ4VHX",
+    "2MFLD4A4",
+    "XVAJNF8A",
+    "RMWJHUDV"
+   ],
+   "expansion": {
+    "terms": 6,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.012,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "ti\u00eau th\u1ee5 \u0111i\u1ec7n c\u1ee7a c\u00e1c h\u1ed9 gia \u0111\u00ecnh n\u00f4ng th\u00f4n",
+   "ms": [
+    74.95,
+    82.62,
+    75.27,
+    82.75,
+    75.67,
+    74.99
+   ],
+   "ids": [
+    "BPTESJUZ",
+    "2KKJDTTM",
+    "4F7J39M7",
+    "V3XL4Y87",
+    "SZG9W39L",
+    "5IHG2IDD",
+    "HEC9XJNF",
+    "YNF7CMLR",
+    "RQUCTF5A",
+    "9CF2AQRJ",
+    "B38YCA8E",
+    "2DP4XMDM",
+    "PK4VDN2Y",
+    "LS4SJLGK",
+    "8XZ5RJMQ",
+    "FR2CZYAB",
+    "NBECRVUC",
+    "NKRQRQQN",
+    "FZRFIHW6",
+    "WH6ET2C3"
+   ],
+   "expansion": {
+    "terms": 10,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.03,
+    "detail": [
+     "gia->gi\u00e0|gi\u00e1|gi\u00e2|gi\u00e3|gi\u1ea3|g\u00eda"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "t\u00e1c \u0111\u1ed9ng c\u1ee7a th\u1ee7y \u0111i\u1ec7n \u0111\u1ebfn m\u00f4i tr\u01b0\u1eddng",
+   "ms": [
+    57.74,
+    62.82,
+    59.95,
+    63.14,
+    58.31,
+    57.82
+   ],
+   "ids": [
+    "SRMNPJUG",
+    "VT78U4AR",
+    "S4ZP47EJ",
+    "DUGQPB59",
+    "8IJH7ZNV",
+    "Z9JFMHHC",
+    "RE636TB2",
+    "VRJIT4F9",
+    "73JY5ZZK",
+    "LYZNY24S",
+    "4GYTCVAJ",
+    "LNTYJISV",
+    "RCEJBL9G",
+    "WE6NFX7W",
+    "6HI4N5HZ",
+    "8PLSICVM",
+    "4GIGDK75",
+    "XBD52HR6",
+    "J5EL3XXU",
+    "2W6LSGHT"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.015,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "an ninh n\u0103ng l\u01b0\u1ee3ng qu\u1ed1c gia",
+   "ms": [
+    64,
+    69.07,
+    69.99,
+    69.77,
+    63.74,
+    63.92
+   ],
+   "ids": [
+    "V3XL4Y87",
+    "RE636TB2",
+    "VRJIT4F9",
+    "E9DDR476",
+    "CPHAF3SG",
+    "XJZFW9IN",
+    "5XE6WL29",
+    "HA3BLKYA",
+    "HVBBNH25",
+    "53PWRGWP",
+    "XFRG24EZ",
+    "FPMJP2P5",
+    "BX9QNLPF",
+    "NBECRVUC",
+    "2AQ3QK6F",
+    "A7MN2QXW",
+    "LUU4KD2L",
+    "I9WLM5V2",
+    "2GQEPHVC",
+    "QASLKDMG"
+   ],
+   "expansion": {
+    "terms": 5,
+    "expanded_terms": 2,
+    "added_variants": 7,
+    "lookup_ms": 0.023,
+    "detail": [
+     "ninh->\u00f1\u1ecbnh",
+     "gia->gi\u00e0|gi\u00e1|gi\u00e2|gi\u00e3|gi\u1ea3|g\u00eda"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "d\u1ef1 \u00e1n \u0111i\u1ec7n gi\u00f3 ngo\u00e0i kh\u01a1i",
+   "ms": [
+    38.94,
+    42.85,
+    40.24,
+    43,
+    39.3,
+    38.92
+   ],
+   "ids": [
+    "73JY5ZZK",
+    "6HI4N5HZ",
+    "ANJHXQMF",
+    "6T5ACPWS",
+    "32M2BI9U",
+    "LHMKLB2X",
+    "UGF63EJ4",
+    "LYZNY24S",
+    "BHGCGRIU",
+    "BBY3QHZJ",
+    "69B9H5TQ",
+    "HRHU73TG",
+    "XJZFW9IN",
+    "TRIX5JI6",
+    "6Q3ZJ24R",
+    "2TWJBUBF",
+    "JRQ4LPJN",
+    "LPSJ9NKS",
+    "XFRG24EZ",
+    "K6KT3D2T"
+   ],
+   "expansion": {
+    "terms": 6,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.012,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "kinh t\u1ebf h\u1ecdc m\u00f4i tr\u01b0\u1eddng v\u00e0 t\u00e0i nguy\u00ean",
+   "ms": [
+    62.86,
+    68.01,
+    63.35,
+    68.39,
+    62.39,
+    62.28
+   ],
+   "ids": [
+    "AYZ5XL43",
+    "4L4RRXMR",
+    "NM7R5Z89",
+    "Z7AZNDV8",
+    "XBD52HR6",
+    "VT78U4AR",
+    "FETUIPZQ",
+    "RDKSZ8VN",
+    "TD6KNNK8",
+    "Z9JFMHHC",
+    "TYANFIMB",
+    "PPWWLZ6Z",
+    "BHGCGRIU",
+    "HFJQ44DW",
+    "2269W6HI",
+    "M99X6L7F",
+    "DD4PK9I5",
+    "SQSKVQH5",
+    "2MFLD4A4",
+    "BSYQAV9Q"
+   ],
+   "expansion": {
+    "terms": 8,
+    "expanded_terms": 1,
+    "added_variants": 3,
+    "lookup_ms": 0.023,
+    "detail": [
+     "kinh->k\u00ecnh|k\u00ednh|k\u1ecbnh"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "gi\u1ea3m ph\u00e1t th\u1ea3i trong ng\u00e0nh giao th\u00f4ng v\u1eadn t\u1ea3i",
+   "ms": [
+    65.56,
+    71.44,
+    66.45,
+    71.92,
+    67.18,
+    65.36
+   ],
+   "ids": [
+    "I9WLM5V2",
+    "VFVY8TA7",
+    "XJZFW9IN",
+    "R39M5NSY",
+    "RTXT83CY",
+    "F2W5XCKJ",
+    "WRBJ7U47",
+    "HEC9XJNF",
+    "M99X6L7F",
+    "XFRG24EZ",
+    "6UZ6L2F4",
+    "GDPYHNK2",
+    "B38YCA8E",
+    "DYKPJYAR",
+    "LS4SJLGK",
+    "RA6MRB2H",
+    "HWQRY7AW",
+    "3ISF9BT2"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 2,
+    "added_variants": 7,
+    "lookup_ms": 0.03,
+    "detail": [
+     "trong->tr\u00f2ng|tr\u00f4ng|tr\u00f5ng|tr\u1ecdng|tr\u1ed1ng|tr\u1ed3ng",
+     "giao->gi\u00e1o"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "t\u0103ng tr\u01b0\u1edfng kinh t\u1ebf v\u00e0 nhu c\u1ea7u n\u0103ng l\u01b0\u1ee3ng",
+   "ms": [
+    72.66,
+    79.45,
+    78.39,
+    73.07,
+    73.27,
+    73.74
+   ],
+   "ids": [
+    "JDBEQCWC",
+    "V3XL4Y87",
+    "XFRG24EZ",
+    "GGYV72T4",
+    "I9WLM5V2",
+    "Y62QGMKH",
+    "UZ7WV53N",
+    "AA7PRRJG",
+    "7AJDPLR5",
+    "VVKVIUU9",
+    "7D49C7AF",
+    "FPMJP2P5",
+    "SRMNPJUG",
+    "S4ZP47EJ",
+    "AYZ5XL43",
+    "XGCAMG3K",
+    "BYYSM4IL",
+    "XJZFW9IN",
+    "6QPIQSHS",
+    "UHFI558L"
+   ],
+   "expansion": {
+    "terms": 9,
+    "expanded_terms": 2,
+    "added_variants": 10,
+    "lookup_ms": 0.03,
+    "detail": [
+     "kinh->k\u00ecnh|k\u00ednh|k\u1ecbnh",
+     "nhu->nh\u00f9|nh\u00fc|nh\u0169|nh\u01b0|nh\u1ee5|nh\u1eef|nh\u1ef1"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "c\u00f3 v\u00e0 kh\u00f4ng c\u00f3 trong \u0111\u00f3 l\u00e0 c\u1ee7a",
+   "ms": [
+    75.45,
+    81.64,
+    84.47,
+    75.8,
+    75.27,
+    75.58
+   ],
+   "ids": [
+    "P8LLBDQ2",
+    "3KBMD9WC",
+    "FZRFIHW6",
+    "MGK9EA2W",
+    "KNIPRK59",
+    "RA6MRB2H",
+    "VT78U4AR",
+    "66PC2GAN",
+    "XFRG24EZ",
+    "JT2DUFHM",
+    "XHEDFB8L",
+    "R7E54VXQ",
+    "7PKAVQTW",
+    "AFG8ZZTX",
+    "TB6Y29QN",
+    "4GIGDK75",
+    "QIVUK4DQ",
+    "8IJH7ZNV",
+    "MZ4CBL9K",
+    "5X9HH54R"
+   ],
+   "expansion": {
+    "terms": 7,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.021,
+    "detail": [
+     "trong->tr\u00f2ng|tr\u00f4ng|tr\u00f5ng|tr\u1ecdng|tr\u1ed1ng|tr\u1ed3ng"
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "stock": {
+   "index": "./idx-stock.sqlite",
+   "n": 120,
+   "p50_ms": 82.1,
+   "p95_ms": 224.9,
+   "max_ms": 238.3,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
+   "queries": 20
+  },
+  "armA": {
+   "index": "./idx-armA.sqlite",
+   "n": 120,
+   "p50_ms": 63.5,
+   "p95_ms": 214.7,
+   "max_ms": 231.7,
+   "mean_jaccard_to_reference": 0.58,
+   "mean_rbo_to_reference": 0.692,
+   "top1_same_as_reference": 14,
+   "ordered_identical_to_reference": 0,
+   "queries": 20
+  },
+  "armB": {
+   "index": "./idx-armB2.sqlite",
+   "n": 120,
+   "p50_ms": 66.5,
+   "p95_ms": 252.9,
+   "max_ms": 277.3,
+   "mean_jaccard_to_reference": 0.523,
+   "mean_rbo_to_reference": 0.591,
+   "top1_same_as_reference": 10,
+   "ordered_identical_to_reference": 0,
+   "queries": 20,
+   "expansion": {
+    "queries_with_expansion": 14,
+    "total_added_variants": 117,
+    "mean_lookup_ms": 0.031,
+    "max_lookup_ms": 0.154
+   }
+  }
+ },
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent",
+  "note": "armB BEFORE the dominance gate \u2014 the run that motivated it"
+ }
+}

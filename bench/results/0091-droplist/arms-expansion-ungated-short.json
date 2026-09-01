@@ -1,0 +1,2141 @@
+{
+ "pairs": [
+  {
+   "arm": "stock",
+   "dist": "./dists/stock",
+   "index": "./idx-stock.sqlite"
+  },
+  {
+   "arm": "armA",
+   "dist": "./dists/armA",
+   "index": "./idx-armA.sqlite"
+  },
+  {
+   "arm": "armB",
+   "dist": "./dists/armB",
+   "index": "./idx-armB2.sqlite"
+  }
+ ],
+ "queries": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0091-914250/bench/queries-short.txt",
+ "reference": "stock",
+ "repeat": 6,
+ "limit": 20,
+ "channel": "SqliteSearchIndex.query() directly, mode=keyword \u2014 NOT the MCP server. Each arm on ITS OWN index file (the designs differ in what the file holds); latency columns are cross-file, content columns are not.",
+ "per_query": [
+  {
+   "arm": "stock",
+   "query": "the brain",
+   "ms": [
+    3.07,
+    2.78,
+    3.33,
+    2.75,
+    2.97,
+    2.99
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ",
+    "RKA49GPF",
+    "BNZ3RSZ8",
+    "LFZDPPYC",
+    "TE8DRDF5",
+    "HI7A9DM6",
+    "UGTDZDMB",
+    "ZAKEGIFI",
+    "9WB3KL2J",
+    "Z96TJ9GU",
+    "ZH4KC7J7",
+    "WS4N7QK6",
+    "KWWT9QZJ",
+    "SH5953QQ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "of energy",
+   "ms": [
+    176.29,
+    159.61,
+    173.21,
+    168.26,
+    173.57,
+    173.09
+   ],
+   "ids": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68",
+    "2QPF7Y7Q",
+    "V2S855Z3",
+    "NC3KEHJP",
+    "GZK9KAH4",
+    "7EAQZXUE",
+    "U8XJBMP8",
+    "VT44QYTD",
+    "G9JP9BQU",
+    "RMMB2Z9K",
+    "RMWJHUDV",
+    "SUZC6GYM",
+    "EZWNKH8K",
+    "69GS3ZJZ",
+    "W2HRFCUF",
+    "CHXKM4I7"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the carbon tax",
+   "ms": [
+    85.67,
+    78.83,
+    81.82,
+    79.48,
+    85.89,
+    85.86
+   ],
+   "ids": [
+    "Z7A2WC4X",
+    "R4HDCVL9",
+    "X69DJS66",
+    "XFN2ZM2B",
+    "3IPR4M8J",
+    "DWW5EJ9X",
+    "LMZZ6L7N",
+    "2GJCXUZ6"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "in Vietnam",
+   "ms": [
+    50.88,
+    46.23,
+    46.13,
+    46.41,
+    50.62,
+    50.45
+   ],
+   "ids": [
+    "7486A6MY",
+    "R65I2TII",
+    "LP94SNAX",
+    "6UZ6L2F4",
+    "88GZ9ZSY",
+    "DCM7UR8B",
+    "N6IHNIA7",
+    "QF83SUUD",
+    "EQSQHW27",
+    "PLKJWIJ9",
+    "AUGDIZYS",
+    "QQSIGRY8",
+    "HK3SJZDC",
+    "8383GFIU",
+    "9M2TFAIA",
+    "2XNZ3E9Z",
+    "P7UCCAA7",
+    "74P6J8VJ",
+    "4EDGI7NH",
+    "GALVDHUT"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "a discount rate",
+   "ms": [
+    60.78,
+    55.71,
+    56.24,
+    55.76,
+    60.66,
+    60.2
+   ],
+   "ids": [
+    "36HH9NZE",
+    "47Z4MPUY",
+    "33YBCXY3",
+    "5JXD7BXV",
+    "PZESJ4U9",
+    "AM8AA9UR",
+    "5VYJMXL3",
+    "DH8EXSVA",
+    "AQCBB3M9",
+    "C8UIC2VE",
+    "UT4FF28F",
+    "3IPR4M8J",
+    "SGTJ9T9K",
+    "TUK3BDYK",
+    "GWY5WRZE",
+    "IKVN75MV",
+    "UMGD2DMN",
+    "2CEXRV4N",
+    "5ETGKN46",
+    "9IGTE5WM"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the market",
+   "ms": [
+    72.76,
+    66.88,
+    66.7,
+    66.93,
+    72.65,
+    73.52
+   ],
+   "ids": [
+    "QDKHQM78",
+    "3FXE5DMD",
+    "DCJL5DT3",
+    "DH8EXSVA",
+    "7NLWFJZC",
+    "IQPAZCFS",
+    "6Q3ZJ24R",
+    "VSX2S482",
+    "HZZCFT2X",
+    "W84JXKQP",
+    "7C8WLS9T",
+    "5IHG2IDD",
+    "WSN7AMA5",
+    "LHDC6WYL",
+    "DWXZBQHG",
+    "YNF7CMLR",
+    "2QTCB2KS",
+    "WF2RZPFQ",
+    "27E6QC72",
+    "J8V2JMDD"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "on growth",
+   "ms": [
+    58.77,
+    53.68,
+    53.99,
+    53.73,
+    58.45,
+    58.77
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "3VCQG8PD",
+    "MPKDEXFP",
+    "I2973H2U",
+    "6CPYN6FE",
+    "GALVDHUT",
+    "N3HV2RNG",
+    "L9H9K9PA",
+    "KPTPHQPQ",
+    "V2S855Z3",
+    "65F8X6C6",
+    "Z7DZMLYL",
+    "EBZTFCP5",
+    "EVNTVINJ",
+    "XNWW6KSH",
+    "WY2V3MGB",
+    "6HI4N5HZ",
+    "DRBT2DBV",
+    "4842PMV4",
+    "TA7QJE7L"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "the state",
+   "ms": [
+    55.82,
+    50.76,
+    51.3,
+    50.8,
+    55.27,
+    55.46
+   ],
+   "ids": [
+    "NZH3A7CR",
+    "KYB7S7WW",
+    "DH8EXSVA",
+    "6933WYQF",
+    "LSS2VTJB",
+    "Y39ZWHFX",
+    "JDV8DQR7",
+    "Q934NYJB",
+    "I97KV4H5",
+    "M2D4GVPS",
+    "YDUBHPNQ",
+    "8LEFH7ZG",
+    "JP5GT33L",
+    "UVNWXVYX",
+    "LSJBSMBU",
+    "IT2QEJDJ",
+    "6AES6TRK",
+    "5KNWHZTJ",
+    "2Z8NWQSU",
+    "WZFZBP5I"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "these models",
+   "ms": [
+    51.11,
+    46.54,
+    47.06,
+    46.74,
+    51.5,
+    52.03
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "CSCX9V49",
+    "SKWEQXNP",
+    "GGLDRLCN",
+    "27AAYHJZ",
+    "KG7BTI2H",
+    "LF8SY5WE",
+    "DGDD7A7Q",
+    "C4NAWBK6",
+    "MH5LYWYA",
+    "PKEDRC6E",
+    "F8Y3IIJU",
+    "9HDB5ZXF",
+    "Z8R3LLQR",
+    "DWJH2JDU",
+    "HL9JYWPS",
+    "63Q8IEI4",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "XRD7T2QI"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "from theory",
+   "ms": [
+    39.15,
+    35.41,
+    35.75,
+    39.53,
+    38.47,
+    39.05
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "IY7QQTPG",
+    "3IFP396P",
+    "GT4A6KZB",
+    "SA6FDBDT",
+    "U7EHQ9UN",
+    "FGJ8XGEP",
+    "6Y896URW",
+    "JFF2T4UU",
+    "QICETN5X"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le climat",
+   "ms": [
+    52.68,
+    48.29,
+    48.4,
+    53.57,
+    51.53,
+    52.42
+   ],
+   "ids": [
+    "FHBW22XI",
+    "4D4JKT7W",
+    "3P8JJ94E",
+    "CT7MSMSU",
+    "7737XL9P",
+    "FM4RBRMA",
+    "JM8NHHM8",
+    "DEDGZZ6V",
+    "4CQUM969",
+    "NG3RW6AR",
+    "8LJ9IEMH",
+    "9FEJVHQB",
+    "V4QRQRVL",
+    "HCRBLQB3",
+    "BDSZBL9D",
+    "DHGEVFKN",
+    "9C77TRZR",
+    "2CAPZ2ZJ"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "des m\u00e9nages",
+   "ms": [
+    36.56,
+    33.42,
+    33.56,
+    36.28,
+    36.58,
+    36.44
+   ],
+   "ids": [
+    "VLGLDHWT",
+    "UJSMFKCF",
+    "ETUNZV57",
+    "9B3TXADW",
+    "5XNZN52S",
+    "XDGM4GHD",
+    "62APDUYI"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "la croissance",
+   "ms": [
+    71.03,
+    72.54,
+    65.75,
+    71.17,
+    71.02,
+    72.26
+   ],
+   "ids": [
+    "EBTHA66U",
+    "WCKCETLC",
+    "5VA22A3D",
+    "FDIUT62I",
+    "7737XL9P",
+    "6Y9Z8YTJ",
+    "IRIWSNII",
+    "JM8NHHM8",
+    "YFVTLIGW",
+    "GQT22QQQ",
+    "KBBAPCDS",
+    "FHBW22XI",
+    "PZSXW7IX",
+    "QKIZ8A35",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "XA3R2KZP",
+    "C4EJHFK8",
+    "83HNDSJA",
+    "VDSJLMYG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "une taxe carbone",
+   "ms": [
+    27.69,
+    27.68,
+    25.54,
+    27.51,
+    27.66,
+    27.64
+   ],
+   "ids": [
+    "QNZ84WSR",
+    "62APDUYI",
+    "QPHNI4BA",
+    "FDHNTRJA",
+    "6BHG99CW",
+    "VDSJLMYG",
+    "6EX3KBTU",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "3P8JJ94E",
+    "PBNHXN4Q"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "le prix de l'\u00e9lectricit\u00e9",
+   "ms": [
+    86.29,
+    85.71,
+    79.39,
+    85.36,
+    85.7,
+    85.95
+   ],
+   "ids": [
+    "PBNHXN4Q",
+    "4PUIK9EJ",
+    "9FEJVHQB",
+    "I3LX55EG",
+    "NG3RW6AR",
+    "A2SNAFG8",
+    "43BGLBTU",
+    "4DY2YRWA",
+    "7737XL9P",
+    "YX3ZZ5PX",
+    "GL4EW6II",
+    "3IE84KHC",
+    "G5M4MH5Y",
+    "VDSJLMYG",
+    "YP5AIYAP"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "les mod\u00e8les",
+   "ms": [
+    33.11,
+    33.29,
+    30.75,
+    33,
+    34.28,
+    33.11
+   ],
+   "ids": [
+    "HCRBLQB3",
+    "QNZ84WSR",
+    "6RK722CN",
+    "JM8NHHM8",
+    "EMA4NZPC",
+    "TNIEVJQG",
+    "DIVGR3HZ",
+    "QPHNI4BA",
+    "4CQUM969",
+    "CJHUAB3J",
+    "CTQGK676",
+    "43BGLBTU",
+    "L74M9FXA",
+    "NWMRZYIZ",
+    "E75I664Z",
+    "MQSGK3EW",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "V4QRQRVL",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "du march\u00e9",
+   "ms": [
+    65.78,
+    65.95,
+    60.88,
+    65.59,
+    66.61,
+    65.61
+   ],
+   "ids": [
+    "G5M4MH5Y",
+    "P9IZUNMH",
+    "3FU4WF3V",
+    "FDIUT62I",
+    "7737XL9P",
+    "KBBAPCDS",
+    "J7B6FQ86",
+    "43BGLBTU",
+    "3AC8ZQRU",
+    "I3LX55EG",
+    "C4EJHFK8",
+    "6Y9Z8YTJ",
+    "QNZ84WSR",
+    "SI2GSZGN",
+    "A2SNAFG8"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "en \u00e9conomie",
+   "ms": [
+    43.8,
+    45.52,
+    41.8,
+    45.03,
+    45.73,
+    44.66
+   ],
+   "ids": [
+    "CIYZ4WTV",
+    "QPHNI4BA",
+    "2C933JHA",
+    "MR7Z4SPY",
+    "FGBS9CZN",
+    "QNZ84WSR",
+    "FDIUT62I",
+    "I46N5NWW",
+    "5Z7R4UM4",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "J7B6FQ86",
+    "83HNDSJA",
+    "7737XL9P",
+    "KKX8PKDC",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "RSNN3S8T",
+    "YQCZPAX6",
+    "HVH8UHJE"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "sur le long terme",
+   "ms": [
+    116.65,
+    127.45,
+    116.83,
+    126.32,
+    127.07,
+    117.33
+   ],
+   "ids": [
+    "86SEC5EJ",
+    "RNSR2MPW",
+    "7737XL9P",
+    "KN7ZNUN3",
+    "5LLA2B6K",
+    "C4EJHFK8",
+    "JM8NHHM8",
+    "QED2Q2A4",
+    "HDKJ6N28",
+    "DPF2TFTU",
+    "YUPJRNVP",
+    "TD9ZA2IB",
+    "BIS4H29J",
+    "8PEXVGY9",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "EDDFR57G",
+    "QNZ84WSR",
+    "8GCW46SR",
+    "8ZPBZ53M"
+   ]
+  },
+  {
+   "arm": "stock",
+   "query": "dans les pays",
+   "ms": [
+    36.1,
+    39.28,
+    35.99,
+    39.71,
+    39.46,
+    36.31
+   ],
+   "ids": [
+    "NWMRZYIZ",
+    "FDIUT62I",
+    "P9IZUNMH",
+    "5VA22A3D",
+    "BDSZBL9D",
+    "NP4XZXF9",
+    "UI27N9XV",
+    "D98DWSX2",
+    "RSNN3S8T",
+    "BMFA245R",
+    "TWBYNHER",
+    "3P8JJ94E",
+    "I3LX55EG",
+    "9FEJVHQB",
+    "7737XL9P",
+    "B7AZXMR2",
+    "CIYZ4WTV",
+    "L74M9FXA",
+    "FM4RBRMA",
+    "52AQUUGT"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the brain",
+   "ms": [
+    4.68,
+    4.03,
+    4.41,
+    4.3,
+    4.33,
+    4.34
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ",
+    "RKA49GPF",
+    "BNZ3RSZ8",
+    "LFZDPPYC",
+    "TE8DRDF5",
+    "HI7A9DM6",
+    "UGTDZDMB",
+    "ZAKEGIFI",
+    "9WB3KL2J",
+    "Z96TJ9GU",
+    "ZH4KC7J7",
+    "WS4N7QK6",
+    "KWWT9QZJ",
+    "SH5953QQ",
+    "FKAVYXAE"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "of energy",
+   "ms": [
+    173.57,
+    160.63,
+    173.38,
+    169.32,
+    173.09,
+    173.98
+   ],
+   "ids": [
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68",
+    "2QPF7Y7Q",
+    "V2S855Z3",
+    "NC3KEHJP",
+    "GZK9KAH4",
+    "7EAQZXUE",
+    "U8XJBMP8",
+    "VT44QYTD",
+    "G9JP9BQU",
+    "RMMB2Z9K",
+    "RMWJHUDV",
+    "SUZC6GYM",
+    "EZWNKH8K",
+    "W2HRFCUF",
+    "CHXKM4I7",
+    "69GS3ZJZ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the carbon tax",
+   "ms": [
+    86.28,
+    79.26,
+    79.7,
+    79.24,
+    85.87,
+    85.91
+   ],
+   "ids": [
+    "Z7A2WC4X",
+    "R4HDCVL9",
+    "X69DJS66",
+    "XFN2ZM2B",
+    "3IPR4M8J",
+    "DWW5EJ9X",
+    "LMZZ6L7N",
+    "2GJCXUZ6"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "in Vietnam",
+   "ms": [
+    51.16,
+    47.11,
+    46.69,
+    46.84,
+    50.41,
+    50.95
+   ],
+   "ids": [
+    "7486A6MY",
+    "R65I2TII",
+    "LP94SNAX",
+    "6UZ6L2F4",
+    "DCM7UR8B",
+    "N6IHNIA7",
+    "QF83SUUD",
+    "EQSQHW27",
+    "PLKJWIJ9",
+    "AUGDIZYS",
+    "QQSIGRY8",
+    "HK3SJZDC",
+    "88GZ9ZSY",
+    "9M2TFAIA",
+    "8383GFIU",
+    "2XNZ3E9Z",
+    "P7UCCAA7",
+    "74P6J8VJ",
+    "4EDGI7NH",
+    "GALVDHUT"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "a discount rate",
+   "ms": [
+    60.86,
+    56.34,
+    56.15,
+    56.17,
+    61,
+    61.79
+   ],
+   "ids": [
+    "36HH9NZE",
+    "47Z4MPUY",
+    "33YBCXY3",
+    "5JXD7BXV",
+    "PZESJ4U9",
+    "AM8AA9UR",
+    "5VYJMXL3",
+    "DH8EXSVA",
+    "AQCBB3M9",
+    "C8UIC2VE",
+    "UT4FF28F",
+    "3IPR4M8J",
+    "SGTJ9T9K",
+    "TUK3BDYK",
+    "GWY5WRZE",
+    "IKVN75MV",
+    "UMGD2DMN",
+    "2CEXRV4N",
+    "5ETGKN46",
+    "9IGTE5WM"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the market",
+   "ms": [
+    72.45,
+    66.85,
+    67.04,
+    66.96,
+    72.02,
+    73.12
+   ],
+   "ids": [
+    "QDKHQM78",
+    "3FXE5DMD",
+    "DCJL5DT3",
+    "DH8EXSVA",
+    "7NLWFJZC",
+    "IQPAZCFS",
+    "6Q3ZJ24R",
+    "VSX2S482",
+    "HZZCFT2X",
+    "W84JXKQP",
+    "7C8WLS9T",
+    "5IHG2IDD",
+    "WSN7AMA5",
+    "LHDC6WYL",
+    "DWXZBQHG",
+    "YNF7CMLR",
+    "2QTCB2KS",
+    "WF2RZPFQ",
+    "27E6QC72",
+    "J8V2JMDD"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "on growth",
+   "ms": [
+    58.24,
+    54.04,
+    54.06,
+    54.03,
+    58.21,
+    58.64
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "3VCQG8PD",
+    "MPKDEXFP",
+    "I2973H2U",
+    "6CPYN6FE",
+    "GALVDHUT",
+    "N3HV2RNG",
+    "L9H9K9PA",
+    "KPTPHQPQ",
+    "V2S855Z3",
+    "Z7DZMLYL",
+    "65F8X6C6",
+    "EBZTFCP5",
+    "EVNTVINJ",
+    "XNWW6KSH",
+    "WY2V3MGB",
+    "DRBT2DBV",
+    "4842PMV4",
+    "6HI4N5HZ",
+    "TA7QJE7L"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "the state",
+   "ms": [
+    56.02,
+    51.06,
+    51.24,
+    51.39,
+    55.51,
+    56.67
+   ],
+   "ids": [
+    "NZH3A7CR",
+    "KYB7S7WW",
+    "DH8EXSVA",
+    "6933WYQF",
+    "LSS2VTJB",
+    "Y39ZWHFX",
+    "JDV8DQR7",
+    "Q934NYJB",
+    "I97KV4H5",
+    "M2D4GVPS",
+    "8LEFH7ZG",
+    "JP5GT33L",
+    "UVNWXVYX",
+    "YDUBHPNQ",
+    "LSJBSMBU",
+    "6AES6TRK",
+    "WZFZBP5I",
+    "IT2QEJDJ",
+    "5KNWHZTJ",
+    "GXNQTPUD"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "these models",
+   "ms": [
+    52.64,
+    47.15,
+    47.48,
+    47.36,
+    51.49,
+    51.38
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "CSCX9V49",
+    "SKWEQXNP",
+    "GGLDRLCN",
+    "27AAYHJZ",
+    "KG7BTI2H",
+    "LF8SY5WE",
+    "DGDD7A7Q",
+    "C4NAWBK6",
+    "MH5LYWYA",
+    "PKEDRC6E",
+    "F8Y3IIJU",
+    "9HDB5ZXF",
+    "Z8R3LLQR",
+    "DWJH2JDU",
+    "HL9JYWPS",
+    "63Q8IEI4",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "XRD7T2QI"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "from theory",
+   "ms": [
+    39.3,
+    35.45,
+    35.59,
+    38.92,
+    38.54,
+    39.05
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "IY7QQTPG",
+    "3IFP396P",
+    "GT4A6KZB",
+    "SA6FDBDT",
+    "U7EHQ9UN",
+    "FGJ8XGEP",
+    "6Y896URW",
+    "JFF2T4UU",
+    "QICETN5X"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "le climat",
+   "ms": [
+    52.62,
+    48.91,
+    48.66,
+    54.8,
+    50.69,
+    52.56
+   ],
+   "ids": [
+    "FHBW22XI",
+    "4D4JKT7W",
+    "3P8JJ94E",
+    "CT7MSMSU",
+    "FM4RBRMA",
+    "7737XL9P",
+    "JM8NHHM8",
+    "DEDGZZ6V",
+    "9FEJVHQB",
+    "NG3RW6AR",
+    "V4QRQRVL",
+    "4CQUM969",
+    "8LJ9IEMH",
+    "BDSZBL9D",
+    "9C77TRZR",
+    "HCRBLQB3",
+    "DHGEVFKN",
+    "2CAPZ2ZJ"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "des m\u00e9nages",
+   "ms": [
+    36.54,
+    36.82,
+    33.69,
+    36.29,
+    36.52,
+    36.62
+   ],
+   "ids": [
+    "VLGLDHWT",
+    "UJSMFKCF",
+    "ETUNZV57",
+    "9B3TXADW",
+    "5XNZN52S",
+    "XDGM4GHD",
+    "62APDUYI"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "la croissance",
+   "ms": [
+    71.41,
+    73.28,
+    66.18,
+    71.06,
+    71.3,
+    71.48
+   ],
+   "ids": [
+    "EBTHA66U",
+    "5VA22A3D",
+    "WCKCETLC",
+    "FDIUT62I",
+    "7737XL9P",
+    "IRIWSNII",
+    "6Y9Z8YTJ",
+    "GQT22QQQ",
+    "YFVTLIGW",
+    "JM8NHHM8",
+    "KBBAPCDS",
+    "FHBW22XI",
+    "QKIZ8A35",
+    "PZSXW7IX",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "XA3R2KZP",
+    "C4EJHFK8",
+    "83HNDSJA",
+    "VDSJLMYG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "une taxe carbone",
+   "ms": [
+    27.86,
+    28.22,
+    25.8,
+    27.58,
+    27.77,
+    27.97
+   ],
+   "ids": [
+    "QNZ84WSR",
+    "62APDUYI",
+    "QPHNI4BA",
+    "FDHNTRJA",
+    "6BHG99CW",
+    "VDSJLMYG",
+    "6EX3KBTU",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "RHGVQKTR",
+    "3P8JJ94E"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "le prix de l'\u00e9lectricit\u00e9",
+   "ms": [
+    85.42,
+    86.35,
+    79.21,
+    85.13,
+    86.16,
+    85.45
+   ],
+   "ids": [
+    "PBNHXN4Q",
+    "4PUIK9EJ",
+    "9FEJVHQB",
+    "I3LX55EG",
+    "NG3RW6AR",
+    "A2SNAFG8",
+    "43BGLBTU",
+    "4DY2YRWA",
+    "7737XL9P",
+    "YX3ZZ5PX",
+    "GL4EW6II",
+    "3IE84KHC",
+    "G5M4MH5Y",
+    "YP5AIYAP",
+    "SSZIWAV9"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "les mod\u00e8les",
+   "ms": [
+    32.92,
+    33.42,
+    30.55,
+    33.02,
+    33.05,
+    33.32
+   ],
+   "ids": [
+    "HCRBLQB3",
+    "QNZ84WSR",
+    "6RK722CN",
+    "JM8NHHM8",
+    "EMA4NZPC",
+    "TNIEVJQG",
+    "DIVGR3HZ",
+    "QPHNI4BA",
+    "4CQUM969",
+    "CJHUAB3J",
+    "CTQGK676",
+    "43BGLBTU",
+    "NWMRZYIZ",
+    "E75I664Z",
+    "MQSGK3EW",
+    "L74M9FXA",
+    "V4QRQRVL",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "TJ8ACXKG"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "du march\u00e9",
+   "ms": [
+    65.6,
+    66.19,
+    60.5,
+    65.35,
+    65.58,
+    65.6
+   ],
+   "ids": [
+    "G5M4MH5Y",
+    "P9IZUNMH",
+    "3FU4WF3V",
+    "FDIUT62I",
+    "7737XL9P",
+    "J7B6FQ86",
+    "KBBAPCDS",
+    "43BGLBTU",
+    "3AC8ZQRU",
+    "I3LX55EG",
+    "C4EJHFK8",
+    "6Y9Z8YTJ",
+    "SI2GSZGN",
+    "QNZ84WSR",
+    "A2SNAFG8",
+    "M8T2GBWF"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "en \u00e9conomie",
+   "ms": [
+    43.13,
+    45.61,
+    42.3,
+    44.96,
+    45.24,
+    43.61
+   ],
+   "ids": [
+    "CIYZ4WTV",
+    "QPHNI4BA",
+    "2C933JHA",
+    "MR7Z4SPY",
+    "FGBS9CZN",
+    "QNZ84WSR",
+    "I46N5NWW",
+    "FDIUT62I",
+    "J7B6FQ86",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "83HNDSJA",
+    "7737XL9P",
+    "RSNN3S8T",
+    "YQCZPAX6",
+    "JM8NHHM8",
+    "BGUV2TZV",
+    "KBBAPCDS",
+    "3FU4WF3V",
+    "9B3TXADW"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "sur le long terme",
+   "ms": [
+    124.7,
+    127.98,
+    117.3,
+    126.67,
+    127.97,
+    118.24
+   ],
+   "ids": [
+    "RNSR2MPW",
+    "86SEC5EJ",
+    "7737XL9P",
+    "KN7ZNUN3",
+    "5LLA2B6K",
+    "JM8NHHM8",
+    "C4EJHFK8",
+    "QED2Q2A4",
+    "HDKJ6N28",
+    "DPF2TFTU",
+    "YUPJRNVP",
+    "8PEXVGY9",
+    "TD9ZA2IB",
+    "BIS4H29J",
+    "8ZPBZ53M",
+    "EDDFR57G",
+    "QNZ84WSR",
+    "8GCW46SR",
+    "JD6WR8JB",
+    "GYMA8FBF"
+   ]
+  },
+  {
+   "arm": "armA",
+   "query": "dans les pays",
+   "ms": [
+    36.43,
+    39.68,
+    36.29,
+    39.42,
+    39.27,
+    36.33
+   ],
+   "ids": [
+    "NWMRZYIZ",
+    "FDIUT62I",
+    "P9IZUNMH",
+    "5VA22A3D",
+    "BDSZBL9D",
+    "NP4XZXF9",
+    "D98DWSX2",
+    "BMFA245R",
+    "RSNN3S8T",
+    "UI27N9XV",
+    "TWBYNHER",
+    "I3LX55EG",
+    "3P8JJ94E",
+    "7737XL9P",
+    "L74M9FXA",
+    "B7AZXMR2",
+    "CIYZ4WTV",
+    "9FEJVHQB",
+    "52AQUUGT",
+    "FM4RBRMA"
+   ]
+  },
+  {
+   "arm": "armB",
+   "query": "the brain",
+   "ms": [
+    4.79,
+    4.17,
+    4.61,
+    4.18,
+    4.75,
+    4.85
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "B4892N96",
+    "ZIBPXXTW",
+    "EZ422VSK",
+    "Q94N2ZMJ",
+    "RKA49GPF",
+    "BNZ3RSZ8",
+    "LFZDPPYC",
+    "TE8DRDF5",
+    "HI7A9DM6",
+    "UGTDZDMB",
+    "ZAKEGIFI",
+    "9WB3KL2J",
+    "Z96TJ9GU",
+    "ZH4KC7J7",
+    "WS4N7QK6",
+    "KWWT9QZJ",
+    "SH5953QQ"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.103,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "of energy",
+   "ms": [
+    175.04,
+    160.07,
+    174.92,
+    160.92,
+    175.65,
+    174.8
+   ],
+   "ids": [
+    "SCVBFR9S",
+    "LSM2ALHS",
+    "GALVDHUT",
+    "PVT4EW6X",
+    "MH5LYWYA",
+    "FY5FEZ68",
+    "2QPF7Y7Q",
+    "V2S855Z3",
+    "NC3KEHJP",
+    "GZK9KAH4",
+    "7EAQZXUE",
+    "U8XJBMP8",
+    "VT44QYTD",
+    "G9JP9BQU",
+    "RMMB2Z9K",
+    "RMWJHUDV",
+    "SUZC6GYM",
+    "EZWNKH8K",
+    "69GS3ZJZ",
+    "W2HRFCUF"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 1,
+    "added_variants": 1,
+    "lookup_ms": 0.023,
+    "detail": [
+     "energy->en\u00eargy"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the carbon tax",
+   "ms": [
+    86.38,
+    79.1,
+    79.11,
+    79.07,
+    87.1,
+    86.07
+   ],
+   "ids": [
+    "8DHPWQWX",
+    "FM4RBRMA",
+    "YX3ZZ5PX",
+    "Z7A2WC4X",
+    "R4HDCVL9",
+    "X69DJS66",
+    "XFN2ZM2B",
+    "3IPR4M8J",
+    "DWW5EJ9X",
+    "LMZZ6L7N"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 1,
+    "lookup_ms": 0.023,
+    "detail": [
+     "carbon->carb\u00f3n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "in Vietnam",
+   "ms": [
+    53.34,
+    48.75,
+    49.38,
+    49.2,
+    53.14,
+    53.2
+   ],
+   "ids": [
+    "WH6ET2C3",
+    "YXRUL3EA",
+    "VITEIAVW",
+    "QB5E2T43",
+    "6HI4N5HZ",
+    "7486A6MY",
+    "R65I2TII",
+    "LP94SNAX",
+    "6UZ6L2F4",
+    "88GZ9ZSY",
+    "DCM7UR8B",
+    "N6IHNIA7",
+    "QF83SUUD",
+    "EQSQHW27",
+    "PLKJWIJ9",
+    "AUGDIZYS",
+    "QQSIGRY8",
+    "HK3SJZDC",
+    "8383GFIU",
+    "9M2TFAIA"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.011,
+    "detail": [
+     "vietnam->vi\u00eatnam|vi\u1ec7tnam"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "a discount rate",
+   "ms": [
+    62.24,
+    56.72,
+    56.76,
+    56.66,
+    62.03,
+    61.67
+   ],
+   "ids": [
+    "36HH9NZE",
+    "47Z4MPUY",
+    "33YBCXY3",
+    "5JXD7BXV",
+    "PZESJ4U9",
+    "AM8AA9UR",
+    "5VYJMXL3",
+    "DH8EXSVA",
+    "AQCBB3M9",
+    "C8UIC2VE",
+    "UT4FF28F",
+    "3IPR4M8J",
+    "SGTJ9T9K",
+    "TUK3BDYK",
+    "GWY5WRZE",
+    "IKVN75MV",
+    "UMGD2DMN",
+    "2CEXRV4N",
+    "5ETGKN46",
+    "9IGTE5WM"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.018,
+    "detail": [
+     "rate->rat\u00e9|r\u00e4te"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the market",
+   "ms": [
+    71.76,
+    65.67,
+    66.78,
+    66.17,
+    71.81,
+    71.38
+   ],
+   "ids": [
+    "QDKHQM78",
+    "3FXE5DMD",
+    "DCJL5DT3",
+    "DH8EXSVA",
+    "7NLWFJZC",
+    "IQPAZCFS",
+    "6Q3ZJ24R",
+    "VSX2S482",
+    "HZZCFT2X",
+    "W84JXKQP",
+    "7C8WLS9T",
+    "5IHG2IDD",
+    "WSN7AMA5",
+    "LHDC6WYL",
+    "DWXZBQHG",
+    "YNF7CMLR",
+    "2QTCB2KS",
+    "WF2RZPFQ",
+    "27E6QC72",
+    "J8V2JMDD"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.01,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "on growth",
+   "ms": [
+    58.27,
+    53.36,
+    53.35,
+    53.26,
+    58.04,
+    58.75
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "3VCQG8PD",
+    "MPKDEXFP",
+    "I2973H2U",
+    "6CPYN6FE",
+    "GALVDHUT",
+    "N3HV2RNG",
+    "L9H9K9PA",
+    "KPTPHQPQ",
+    "V2S855Z3",
+    "65F8X6C6",
+    "Z7DZMLYL",
+    "EBZTFCP5",
+    "EVNTVINJ",
+    "XNWW6KSH",
+    "WY2V3MGB",
+    "6HI4N5HZ",
+    "DRBT2DBV",
+    "4842PMV4",
+    "TA7QJE7L"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.009,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "the state",
+   "ms": [
+    55.16,
+    50.38,
+    51.15,
+    50.5,
+    55.23,
+    55.9
+   ],
+   "ids": [
+    "NZH3A7CR",
+    "KYB7S7WW",
+    "DH8EXSVA",
+    "6933WYQF",
+    "LSS2VTJB",
+    "Y39ZWHFX",
+    "JDV8DQR7",
+    "Q934NYJB",
+    "I97KV4H5",
+    "M2D4GVPS",
+    "YDUBHPNQ",
+    "8LEFH7ZG",
+    "JP5GT33L",
+    "UVNWXVYX",
+    "LSJBSMBU",
+    "IT2QEJDJ",
+    "6AES6TRK",
+    "5KNWHZTJ",
+    "2Z8NWQSU",
+    "WZFZBP5I"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.011,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "these models",
+   "ms": [
+    51.28,
+    46.71,
+    47.21,
+    48.08,
+    51.5,
+    51.51
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "CSCX9V49",
+    "SKWEQXNP",
+    "GGLDRLCN",
+    "27AAYHJZ",
+    "KG7BTI2H",
+    "LF8SY5WE",
+    "DGDD7A7Q",
+    "C4NAWBK6",
+    "MH5LYWYA",
+    "PKEDRC6E",
+    "F8Y3IIJU",
+    "9HDB5ZXF",
+    "Z8R3LLQR",
+    "DWJH2JDU",
+    "HL9JYWPS",
+    "63Q8IEI4",
+    "QXZAV24W",
+    "C7LYAMZJ",
+    "XRD7T2QI"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.008,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "from theory",
+   "ms": [
+    38.37,
+    35.17,
+    35.24,
+    38.79,
+    38.42,
+    38.58
+   ],
+   "ids": [
+    "DH8EXSVA",
+    "IY7QQTPG",
+    "3IFP396P",
+    "GT4A6KZB",
+    "SA6FDBDT",
+    "U7EHQ9UN",
+    "FGJ8XGEP",
+    "6Y896URW",
+    "JFF2T4UU",
+    "QICETN5X"
+   ],
+   "expansion": {
+    "terms": 1,
+    "expanded_terms": 0,
+    "added_variants": 0,
+    "lookup_ms": 0.007,
+    "detail": []
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "le climat",
+   "ms": [
+    58.54,
+    53.77,
+    54.22,
+    58.06,
+    59.88,
+    58.34
+   ],
+   "ids": [
+    "VT78U4AR",
+    "QE6U4RNI",
+    "PL98PVRG",
+    "AVGQ7Q2S",
+    "TMQNRWIW",
+    "V3XL4Y87",
+    "FI277946",
+    "Y62QGMKH",
+    "INXSBK2D",
+    "LE3RRC7B",
+    "FHBW22XI",
+    "J7FYQHF8",
+    "94UWQ8FD",
+    "KNIPRK59",
+    "7A8ADXM5",
+    "4D4JKT7W",
+    "6UZ6L2F4",
+    "7LXEUACA",
+    "3P8JJ94E",
+    "24JL9W2L"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 9,
+    "lookup_ms": 0.023,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "des m\u00e9nages",
+   "ms": [
+    37.41,
+    38.9,
+    34.65,
+    37.43,
+    37.97,
+    37.4
+   ],
+   "ids": [
+    "5XNZN52S",
+    "62APDUYI",
+    "UJSMFKCF",
+    "VLGLDHWT",
+    "FHBW22XI",
+    "7737XL9P",
+    "QNZ84WSR",
+    "P9IZUNMH",
+    "QPHNI4BA",
+    "EEKCIW48",
+    "WCKCETLC",
+    "ETUNZV57",
+    "VDSJLMYG",
+    "9B3TXADW",
+    "XDGM4GHD"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.015,
+    "detail": [
+     "des->d\u00e8s|d\u00e9s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "la croissance",
+   "ms": [
+    80.1,
+    80.37,
+    74.32,
+    79.87,
+    80.74,
+    80.25
+   ],
+   "ids": [
+    "2KKQ9VFD",
+    "V3XL4Y87",
+    "YFVTLIGW",
+    "6SBUBXEH",
+    "JM8NHHM8",
+    "HWEAXYIL",
+    "XYQIY9W9",
+    "SE7NF5KZ",
+    "3PDXMM4T",
+    "386DHVX2",
+    "P8LLBDQ2",
+    "Z7AZNDV8",
+    "24JL9W2L",
+    "TZ85BMCI",
+    "TSLYZ8N6",
+    "EBTHA66U",
+    "WCKCETLC",
+    "7W9VF56Z",
+    "5VA22A3D",
+    "FDIUT62I"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 11,
+    "lookup_ms": 0.021,
+    "detail": [
+     "la->l\u00e0|l\u00e1|l\u00e2|l\u00e3|l\u00e4|l\u00e5|l\u1ea1|l\u1ea3|l\u1ea7|l\u1ead|l\u1eaf"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "une taxe carbone",
+   "ms": [
+    28.27,
+    28.56,
+    25.93,
+    28.03,
+    28.68,
+    27.89
+   ],
+   "ids": [
+    "QNZ84WSR",
+    "62APDUYI",
+    "QPHNI4BA",
+    "FDHNTRJA",
+    "6BHG99CW",
+    "C4EJHFK8",
+    "VDSJLMYG",
+    "LKS8Q82L",
+    "6EX3KBTU",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "3P8JJ94E"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 2,
+    "added_variants": 2,
+    "lookup_ms": 0.023,
+    "detail": [
+     "taxe->tax\u00e9",
+     "carbone->carbon\u00e9"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "le prix de l'\u00e9lectricit\u00e9",
+   "ms": [
+    102.11,
+    102.2,
+    94.26,
+    102.04,
+    102.74,
+    101.9
+   ],
+   "ids": [
+    "PBNHXN4Q",
+    "4PUIK9EJ",
+    "9FEJVHQB",
+    "I3LX55EG",
+    "NG3RW6AR",
+    "W4925VVD",
+    "A2SNAFG8",
+    "4DY2YRWA",
+    "43BGLBTU",
+    "J7B6FQ86",
+    "7737XL9P",
+    "GL4EW6II",
+    "3IE84KHC",
+    "YX3ZZ5PX",
+    "62APDUYI",
+    "G5M4MH5Y",
+    "QE6U4RNI"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 2,
+    "added_variants": 20,
+    "lookup_ms": 0.033,
+    "detail": [
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "de->d\u00e8|d\u00e9|d\u00ea|d\u00eb|d\u1ebb|d\u1ebd|d\u1ebf|d\u1ec3|d\u1ec5|d\u1ec7|\u010fe"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "les mod\u00e8les",
+   "ms": [
+    33.96,
+    34.57,
+    31.3,
+    33.74,
+    34.47,
+    33.7
+   ],
+   "ids": [
+    "HCRBLQB3",
+    "QNZ84WSR",
+    "W4925VVD",
+    "6RK722CN",
+    "EMA4NZPC",
+    "JM8NHHM8",
+    "TNIEVJQG",
+    "DIVGR3HZ",
+    "QPHNI4BA",
+    "UKVXPC5P",
+    "4CQUM969",
+    "F4QH8JQW",
+    "CJHUAB3J",
+    "CTQGK676",
+    "43BGLBTU",
+    "L74M9FXA",
+    "NWMRZYIZ",
+    "E75I664Z",
+    "MQSGK3EW",
+    "JD6WR8JB"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.012,
+    "detail": [
+     "les->l\u00e8s|l\u00e9s"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "du march\u00e9",
+   "ms": [
+    71.95,
+    72.07,
+    65.93,
+    71.03,
+    73.09,
+    71.2
+   ],
+   "ids": [
+    "DUGQPB59",
+    "73JY5ZZK",
+    "UY9IYAY7",
+    "AZNQ95BY",
+    "EHN9P6NJ",
+    "PBNHXN4Q",
+    "LYZNY24S",
+    "KX9K47Y6",
+    "3KBMD9WC",
+    "RE636TB2",
+    "VRJIT4F9",
+    "SNEMVZMF",
+    "APHXVP74",
+    "YNF7CMLR",
+    "KBBAPCDS",
+    "5IHG2IDD",
+    "I34EUMQX",
+    "DEDGZZ6V",
+    "JM8NHHM8",
+    "7PKAVQTW"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 6,
+    "lookup_ms": 0.014,
+    "detail": [
+     "du->d\u00f9|d\u00fb|d\u01b0|d\u1ee5|d\u1eef|d\u1ef1"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "en \u00e9conomie",
+   "ms": [
+    47.02,
+    51.18,
+    46.57,
+    50.74,
+    50.96,
+    47.72
+   ],
+   "ids": [
+    "7ETK6EHB",
+    "8PBT7WRJ",
+    "58742A88",
+    "QAI2WEGA",
+    "CIYZ4WTV",
+    "NBH9CSBI",
+    "QPHNI4BA",
+    "JD6WR8JB",
+    "GYMA8FBF",
+    "2C933JHA",
+    "GDPYHNK2",
+    "MR7Z4SPY",
+    "FGBS9CZN",
+    "QNZ84WSR",
+    "FDIUT62I",
+    "I46N5NWW",
+    "6Y9Z8YTJ",
+    "EBTHA66U",
+    "J7B6FQ86",
+    "83HNDSJA"
+   ],
+   "expansion": {
+    "terms": 2,
+    "expanded_terms": 1,
+    "added_variants": 12,
+    "lookup_ms": 0.016,
+    "detail": [
+     "en->\u00e8n|\u00e9n|\u00ean|\u00ea\u00f1|\u00ebn|\u0113n|\u1ebdn|\u1ebfn|\u1ec1n|\u1ec3n|\u1ec5n|\u1ec7n"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "sur le long terme",
+   "ms": [
+    132.41,
+    143.7,
+    131.48,
+    142.68,
+    142.93,
+    131.25
+   ],
+   "ids": [
+    "C4EJHFK8",
+    "KBBAPCDS",
+    "WXWKEIKD",
+    "GL4EW6II",
+    "3IE84KHC",
+    "86SEC5EJ",
+    "JM8NHHM8",
+    "5HU2I877",
+    "RNSR2MPW",
+    "HDKJ6N28",
+    "7737XL9P",
+    "PL98PVRG",
+    "KN7ZNUN3",
+    "5LLA2B6K",
+    "EDDFR57G",
+    "SK3NN2MM",
+    "J4E4DKAL",
+    "QED2Q2A4",
+    "WCKCETLC",
+    "DPF2TFTU"
+   ],
+   "expansion": {
+    "terms": 4,
+    "expanded_terms": 3,
+    "added_variants": 16,
+    "lookup_ms": 0.037,
+    "detail": [
+     "sur->s\u00f9r|s\u00fbr",
+     "le->l\u00e8|l\u00e9|l\u00ea|l\u00eb|l\u1ebb|l\u1ebd|l\u1ec1|l\u1ec5|l\u1ec7",
+     "long->l\u00f2ng|l\u00f4ng|l\u1ecfng|l\u1ed3ng|l\u1ed9ng"
+    ]
+   }
+  },
+  {
+   "arm": "armB",
+   "query": "dans les pays",
+   "ms": [
+    36.68,
+    40.16,
+    36.46,
+    39.81,
+    39.84,
+    36.73
+   ],
+   "ids": [
+    "F4QH8JQW",
+    "W4925VVD",
+    "NWMRZYIZ",
+    "UKVXPC5P",
+    "UUU5NQ2D",
+    "FDIUT62I",
+    "P9IZUNMH",
+    "5VA22A3D",
+    "BDSZBL9D",
+    "NP4XZXF9",
+    "UI27N9XV",
+    "D98DWSX2",
+    "RSNN3S8T",
+    "BMFA245R",
+    "TWBYNHER",
+    "3P8JJ94E",
+    "I3LX55EG",
+    "9FEJVHQB",
+    "7737XL9P",
+    "B7AZXMR2"
+   ],
+   "expansion": {
+    "terms": 3,
+    "expanded_terms": 1,
+    "added_variants": 2,
+    "lookup_ms": 0.018,
+    "detail": [
+     "les->l\u00e8s|l\u00e9s"
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "stock": {
+   "index": "./idx-stock.sqlite",
+   "n": 120,
+   "p50_ms": 52.4,
+   "p95_ms": 159.6,
+   "max_ms": 176.3,
+   "mean_jaccard_to_reference": 1,
+   "mean_rbo_to_reference": 1,
+   "top1_same_as_reference": 20,
+   "ordered_identical_to_reference": 20,
+   "queries": 20
+  },
+  "armA": {
+   "index": "./idx-armA.sqlite",
+   "n": 120,
+   "p50_ms": 52.6,
+   "p95_ms": 160.6,
+   "max_ms": 174,
+   "mean_jaccard_to_reference": 0.962,
+   "mean_rbo_to_reference": 0.977,
+   "top1_same_as_reference": 19,
+   "ordered_identical_to_reference": 6,
+   "queries": 20
+  },
+  "armB": {
+   "index": "./idx-armB2.sqlite",
+   "n": 120,
+   "p50_ms": 53.8,
+   "p95_ms": 160.1,
+   "max_ms": 175.7,
+   "mean_jaccard_to_reference": 0.678,
+   "mean_rbo_to_reference": 0.611,
+   "top1_same_as_reference": 10,
+   "ordered_identical_to_reference": 7,
+   "queries": 20,
+   "expansion": {
+    "queries_with_expansion": 14,
+    "total_added_variants": 88,
+    "mean_lookup_ms": 0.022,
+    "max_lookup_ms": 0.103
+   }
+  }
+ },
+ "provenance": {
+  "measured": "2026-09-01",
+  "machine": "padme (author's machine), 125 GiB RAM",
+  "code": {
+   "stock": "base-v1.12.0 b05ed69",
+   "armA": "pr2-diacritics-r3 f80d860 (dual-token)",
+   "armB": "pr2-expansion 6b7c152 (query expansion, dominance-gated; measured at d273c4c, re-verified identical summaries at 6b7c152)"
+  },
+  "substrates": "each arm on its own copy of the same 477 512-passage lineage (x2-rebuild), migrated by the arm's own code; latency columns are cross-file, content columns cache-independent",
+  "note": "armB BEFORE the dominance gate \u2014 the run that motivated it"
+ }
+}
