@@ -2,6 +2,7 @@
 Title: Library-derived droplist plus degeneracy fallback, upstream
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #144
 
 --- log ---
 2026-08-29T10:06Z claude created
@@ -24,6 +25,7 @@ Author: claude
 2026-09-01T12:30Z claude note PR 2's design SETTLED by measurement per the ruling: query expansion wins over dual-token on every structural axis (0 % vs 23,5 % BM25 length penalty, no IDF distortion, migration 43,5 s vs 116,4 s, no 944-codepoint set, per-query cost ≤ 0,18 ms), refined with a corpus-derived dominance gate after naive expansion collapsed top-1 to 15/12/10/10 on rare accented siblings of common words. One premise disproven: the tokenizer declaration changes either way, so expansion does NOT avoid the migration — B3 fixed on the branch instead (non-corruption failure refuses and preserves the file, red-first). PR 3 reviewed (round 4, six findings fixed) then restacked on the settled PR 2 as pr3-droplist-r5, transform order prune-then-expand-survivors verified and asserted on both backends, full stack re-measured on the 477k corpus (arms-stack-*.json: EN pays ~30 % at the median with top-1 20/20; FR/VI at parity or faster). READY: pr2-expansion 6b7c152 (body UPSTREAM-PR-0091-DIACRITICS.md) and pr3-droplist-r5 11385a2 (body UPSTREAM-PR-0091-DROPLIST.md), gates green (958 passed), each awaiting a slot grant. Author's open ruling: whether the soliloquy running on its one under-bar survivor (not, 27,3 %) is acceptable or the fallback gets a ruleB-style refinement first.
 2026-09-01T13:10Z claude note two rulings (ledger, same day): accent expansion becomes OPTIONAL, flag ZOTEUS_ACCENT_EXPANSION default on — pr2-expansion tip moves 6b7c152 → 6a201fa (appended commit, PR 3's stack on 6b7c152 unbroken; 958 tests green, 4 new covering both flag positions on both backends); and the author GRANTS the two remaining slots — PR 2 and PR 3 file upstream, bodies as drafted, after the repo-side record merges. Filing proceeds with the shipped zero-survivor fallback.
 2026-09-01T14:05Z claude note FILED, series complete in flight: repo PR #142 gazed (APPROVED round 2) and merged, then PR 2 filed upstream as #46 (pr2-expansion 6a201fa) and PR 3 as #47 (pr3-droplist-r5 11385a2), bodies verbatim from verification/UPSTREAM-PR-0091-{DIACRITICS,DROPLIST}.md, both pages verified OPEN. All three granted slots spent (#45 #46 #47). #47 stacks pre-flag on 6b7c152 and rebases once #46 merges. Exit criteria met: implemented on the fork, green on upstream gates (958 vitest), p95 re-measured and reported split, slots granted and spent. What remains is upstream's court: review responses ride SYNC.md, not this ticket.
+2026-09-01T11:26Z MinhHaDuong closed — autoclosed — PR #144
 --- body ---
 ## Context
 The measured replacement for the stoplist deletion that failed X2 (ticket
