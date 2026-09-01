@@ -49,15 +49,17 @@ for (const p of pairs) {
   } catch {
     qt = undefined;
   }
-  const index = new SqliteSearchIndex({ embedder: null, logger: silent, path: p.index });
-  await index.open();
+  const idx = new SqliteSearchIndex({ embedder: null, logger: silent, path: p.index });
+  await idx.open();
   // For the expansion arm: its own variants table, opened read-only beside the index.
-  const hasVariants = !!new DatabaseSync(p.index, { readOnly: true })
+  const probe = new DatabaseSync(p.index, { readOnly: true });
+  const hasVariants = !!probe
     .prepare("SELECT name FROM sqlite_master WHERE name='accent_variants'")
     .get();
+  probe.close();
   const vdb = hasVariants ? new DatabaseSync(p.index, { readOnly: true }) : null;
   const vstmt = vdb ? vdb.prepare('SELECT term, df FROM accent_variants WHERE folded = ?') : null;
-  opened.push({ ...p, index, tk, qt, vstmt });
+  opened.push({ ...p, idx, tk, qt, vstmt });
 }
 
 const rows = new Map();
@@ -68,7 +70,7 @@ for (let pass = 0; pass <= repeat; pass++) {
   for (const q of queries) {
     for (const a of opened) {
       const t0 = performance.now();
-      const hits = await a.index.query(q, { limit, mode: 'keyword' });
+      const hits = await a.idx.query(q, { limit, mode: 'keyword' });
       const ms = performance.now() - t0;
       const r = rows.get(`${a.arm} ${q}`);
       if (pass > 0) r.ms.push(+ms.toFixed(2));
@@ -89,13 +91,13 @@ for (const a of opened) {
     const t0 = performance.now();
     const groups = pruned.map((t) => {
       if (a.tk.accentKey(t) !== t) return { term: t, variants: [] };
-      const rows = a.vstmt.all(t);
-      const hasDf = rows.length && rows[0].df !== undefined;
-      const variants = rows.filter((v) => v.term !== t);
+      const variantRows = a.vstmt.all(t);
+      const hasDf = variantRows.length && variantRows[0].df !== undefined;
+      const variants = variantRows.filter((v) => v.term !== t);
       if (hasDf) {
         // Replays the shipped dominance gate: expand only when the accented spellings
         // outweigh the typed one.
-        const self = rows.find((v) => v.term === t)?.df ?? 0;
+        const self = variantRows.find((v) => v.term === t)?.df ?? 0;
         const sum = variants.reduce((s, v) => s + v.df, 0);
         if (sum <= self) return { term: t, variants: [] };
       }
@@ -112,7 +114,7 @@ for (const a of opened) {
     };
   }
 }
-for (const a of opened) await a.index.close();
+for (const a of opened) await a.idx.close();
 
 const rbo = (a, b, p = 0.9) => {
   const depth = Math.max(a.length, b.length);
@@ -164,7 +166,7 @@ for (const a of opened) {
   }
   const exp = rs.filter((r) => r.expansion);
   out.summary[a.arm] = {
-    index: a.index.file ?? a.indexPath ?? pairs.find((p) => p.arm === a.arm).index,
+    index: a.index,
     n: all.length,
     p50_ms: +pct(all, 0.5).toFixed(1),
     p95_ms: +pct(all, 0.95).toFixed(1),
