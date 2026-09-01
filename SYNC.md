@@ -24,13 +24,15 @@ optional expansion, head `6a201fa`) and PR #47 (droplist, head `11385a2`),
 both OPEN**; with #45 that is the whole 0091 series in flight, all three
 granted slots spent, and #47's head stacks on `6b7c152` (pre-flag), so it
 carries #46's substance minus the flag commit until #46 merges and #47
-rebases.
-The reviewed baseline in `UPSTREAM` still names
-v1.10.0 and is now two releases and one search-layer rewrite stale.
-Ticket 0504 read the four rows worth reading at v1.12.0 from a clone
-(`verification/UPSTREAM-1.12.0-REREAD.md`) and deliberately did not
-re-baseline; the bump itself is ticket 0520, held until its trigger is
-ratified in `DECISIONS.md`. The
+rebases; updated 2026-09-01 a third time — ticket 0505 ruled (disclosure,
+not a new requirement), ticket 0506 repaired the smoke script, and ticket
+0520 bumped the baseline: `UPSTREAM` now names v1.12.0, all twenty-four
+rows re-read (`verification/UPSTREAM-1.12.0-REREAD.md`, extended from the
+four ticket 0504 read), and the smoke re-run against a fresh 1-item build
+over the cloud API (`bench/results/smoke-1.12.0/checks.json`) keeps R10
+and R23 at `measured` rather than letting the bump silently demote them.
+The reviewed baseline in `UPSTREAM` now names v1.12.0 and is current with
+`main`. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*
