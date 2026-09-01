@@ -4,11 +4,12 @@ Created: 2026-09-01
 Author: minh
 
 --- log ---
-2026-09-01T16:30Z claude created, roadmap settled in the 2026-09-01 scheduling session
+2026-09-01T11:51Z claude created, roadmap settled in the 2026-09-01 scheduling session
 2026-09-01T13:25Z claude note raid on 0551-0555: 0551 (ledger/tick) and 0552 (election/lease) merged, fork branches tranche-1-ledger-schema and tranche-2-conductor-election. Paused before 0553 on a schema-gap finding: SPEC 5.2.2's content schema (entries/slabs/passages/FTS) has no code owner among the open tickets. Filed 0556 to build it in search-index-v2.sqlite, parallel to v1, per author directive. On closer reading 0553 is NOT blocked by the gap (its actions run against tables 0551 already built); 0554 is, and its Blocked-by now names 0556.
 
 2026-09-01T16:59Z claude note raid on 0565/0566, recon only — neither is executable, and the chain says so: 0565 ← 0028 (seg/1, unbuilt) ← 0502 (spec propagation, PR #157 open); 0566 ← 0554 ← 0553 (parked, PR #156, two confirmed concurrency blockers). What the raid settled instead: 0565's 0554-overlap question (SPEC §5.2.5's write-ordering clause — no chunk stage over stored body text; 0554's Action 1 corrected), 0566's 0555 question (no wait; the acceptance assertions are order-insensitive), and one new gap of the same shape as the one that produced 0556 — the tranche branches were never merged and conflict in `ledger.ts`, filed as 0568.
 
+2026-09-01T18:51Z claude note LOG TIMESTAMPS CORRECTED across this family. Every ticket filed by commit 2a5b04f (0550 and its five children 0551-0555) carried a hand-written creation stamp of 2026-09-01T16:30Z — later than its own subsequent notes (0551's evidence notes are stamped 12:28Z, and PR #150 merged at 12:41Z), so the log read non-monotone and the stamp named a time that had not happened. Found by Copilot's review of PR #150. Corrected to 11:51Z in all six, which is the UTC time of 2a5b04f itself (13:51:24+02:00) — the one time the record actually evidences. Root cause: the stamp was typed by hand; `erg log` reads the real clock and would not have produced it
 --- body ---
 ## Context
 

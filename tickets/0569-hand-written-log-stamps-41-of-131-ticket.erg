@@ -1,0 +1,70 @@
+%erg 0.1
+Title: Hand-written log stamps: 41 of 131 ticket logs are non-monotone
+Created: 2026-09-01
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-01T18:51Z claude created
+
+2026-09-01T18:52Z Claude label needs-human
+--- body ---
+## Context
+
+Copilot's review of PR #150 found one non-monotone log (0551: a `created`
+entry stamped 16:30Z above notes stamped 12:28Z). The finding is real and it
+is not local: a sweep of the corpus found **41 of 131 logs non-monotone**, 37
+of them still, after this branch corrected the six tickets commit 2a5b04f
+filed with an impossible creation stamp.
+
+`erg log` reads the real clock, so an entry it writes cannot name a time that
+has not happened. Hand-written entries can, and do — 2a5b04f's six tickets
+each claimed 16:30Z while the commit itself landed at 11:51Z UTC.
+
+Two causes, and only the first is a defect:
+
+1. **A typed stamp that is wrong.** 0567's `note BUILT` at 18:20Z sits above
+   its own `closed` at 18:15Z, and the commit carrying both is 18:16Z. One of
+   the two is invented.
+2. **Order of arrival, not of stamping.** A note appended on a parallel branch
+   and merged later lands below entries stamped after it. This repo runs
+   parallel sessions by design, so the log is a merge of several append
+   streams and cannot be expected to read monotone. Not a defect — but it
+   means a monotonicity guard would fire on honest files.
+
+Which is why this is filed rather than swept: the sweep is mechanical, the
+rule it should enforce is not, and the rule is the author's.
+
+## Relevant files
+
+- `tickets/AGENTS.md` (the append-only convention)
+- `verification/probes/ticket-log-monotonicity.py` (the sweep; run it for the
+  current list, it is not pinned here)
+
+## Actions
+
+1. Rule first: is a ticket log required to read monotone, given that parallel
+   branches merge into it? Three candidate rules, in the order they are worth
+   considering:
+   (a) no entry may be stamped after the commit that introduces it — catches
+       every invented stamp, is checkable from git, and is indifferent to
+       merge order;
+   (b) monotone within one author-session, not across the file;
+   (c) strictly monotone — the simple rule, which the merge case would keep
+       breaking.
+2. Sweep the corpus against whichever rule is ruled, correcting stamps only
+   where git evidences a different time (as this branch did for 2a5b04f's
+   six) and leaving merge-order entries alone.
+3. Only if (a) or (b): a repo-side guard under `bench/`, in `make check`. Not
+   a rule in `erg` — that binary is upstream of this repo.
+
+## Test
+
+- Red first: the probe run before the sweep is the red state (37 files, listed
+  by first break); the same run after it is the green one.
+
+## Exit criteria
+
+- [ ] The rule is ruled in DECISIONS.md
+- [ ] The corpus satisfies it, with every corrected stamp evidenced by git
+- [ ] A guard exists, or the ruling says why none can
