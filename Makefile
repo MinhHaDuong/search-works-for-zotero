@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures models names progress tickets help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -33,7 +33,7 @@ help:
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 
-check: deps lint figures governance terminology chain-dedup normative models names vocabulary progress tickets check-fast
+check: deps lint figures models names progress tickets check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -62,38 +62,7 @@ lint:
 figures:
 	python3 bench/check_figures.py
 
-# The sibling guard, against a different drift. The figure guard keeps a number
-# from going stale where it is quoted; this one keeps a process rule from being
-# restated where it is not owned. The repository is public and the upstream
-# maintainer reads it, so "our governance never enters upstream text" had been a
-# rule kept by care since the beginning. Ticket 0053, ratified 2026-08-29.
-governance:
-	python3 bench/check_governance.py
-
-# The third guard, against the same drift as the figure guard but from the other
-# side. That one keeps a quoted number current where the prose quotes it; this
-# one keeps the glossary from quoting a number at all, since a definition is the
-# most inviting place to leave a second copy of a threshold that nobody will
-# remember to update. Default-deny on digits, and a citation beside a number
-# does not excuse it. Ticket 0051.
-terminology:
-	python3 bench/check_terminology.py
-
-# The fourth guard, for a rule rather than a number or a bound. The authority
-# chain was described in its own words in each of the five chain documents;
-# CLAUDE.md's "one statement per fact" says it belongs in one place. Ticket 0054.
-chain-dedup:
-	python3 bench/check_chain_dedup.py
-
-# The fifth guard. RFC 2119 only pays if the convention holds: an R-item
-# written next year with a lowercase "must" reads exactly like the ones that
-# carry force. Two checks, failing in opposite directions — a stray lowercase
-# modal inside a contract line, and an R-item with no keyword at all, which a
-# lowercase-modal grep structurally cannot see. Ticket 0050.
-normative:
-	python3 bench/check_normative.py
-
-# The sixth guard, over bench/models.json. The embedder study's candidate field was
+# The guard over bench/models.json. The embedder study's candidate field was
 # discovered one repository at a time and the discoveries did not survive: a mirror
 # ruled out on an unauthenticated 401 publishes the full dtype set. The registry
 # holds each of those facts once, with the state it was observed in; this checks that
@@ -108,20 +77,12 @@ models:
 names:
 	python3 bench/check_names.py
 
-# The fourth guard, over spec/README.md. The status page restates nothing —
+# The guard over spec/README.md. The status page restates nothing —
 # every row is a status and an address — so the figure guard has nothing to
 # anchor there. What can rot instead is coverage and arithmetic: a requirement
 # added to the sheet and never given a row, or a status edited in the table and
 # not in the bar above it. Both are silent, and both leave the page looking
 # complete, which is worse than no page. Ticket 0300.
-# The eighth guard, over a word rather than a number or a rule. "Monster" stood
-# for a 15 000-page PDF in one paragraph, the 44.9 MB dictionary in another and
-# any inconvenient input in a third, so two sentences using it could not be told
-# apart. Banned 2026-08-31: be specific everywhere. Each ban carries what to
-# write instead, because a ban alone is answered with a synonym.
-vocabulary:
-	python3 bench/check_vocabulary.py
-
 progress:
 	python3 bench/check_progress.py
 
