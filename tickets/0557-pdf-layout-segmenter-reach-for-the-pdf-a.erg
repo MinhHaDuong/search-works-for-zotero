@@ -1,0 +1,67 @@
+%erg 0.1
+Title: PDF-layout segmenter: reach for the PDF above the length threshold
+Created: 2026-09-01
+Author: claude
+Blocked-by: 0028
+
+--- log ---
+2026-09-01T13:31Z claude created
+2026-09-01T13:45Z claude note sequencing ruled by the author (session, 2026-09-01): seg/1 (0028) ships first, as a simple flat-text segmenter, specifically to solve integration -- chunk keys, confidence/synthetic-fallback plumbing, X5 -- so the seven children here have something real to build on rather than integrating twice. This tracker and every child are Blocked-by 0028; nothing here starts before 0028's exit criteria are met.
+
+--- body ---
+## Context
+
+DECISIONS.md's 2026-09-01 entry (see also ticket 0028's log, same date) rules
+a second segmentation path for the acceptance test's wider corpus (books,
+proceedings, dictionaries, handbooks, encyclopedias, 40+ page PDFs, explicitly
+multilingual -- EN/FR/VN MUST). Above a length threshold, zoteus reaches for
+the PDF attachment itself instead of Zotero's flat fulltext cache, and hands
+it to a vendored `pdf.js`-based segmenter (Apache-2.0; `PyMuPDF`/`fitz`
+explicitly rejected -- AGPL-3.0-or-commercial against zoteus's MIT license).
+
+Evidence: `verification/SEGMENTER-FIELD-REVIEW-0028.md` (three research
+passes) and the DECISIONS.md ruling and its same-day correction.
+
+**Sequencing, ruled by the author in the same session**: seg/1 (ticket 0028)
+ships first -- a simple segmenter working on the flat text file -- because it
+solves integration (chunk-key identity, the confidence/synthetic-fallback
+pattern, wiring into X5 and the entries table) that every child here would
+otherwise have to solve a second time, or worse, solve once badly and redo.
+Everything in this tracker is improvement on a working baseline, not a
+parallel track.
+
+## Children, in the order they become buildable once 0028 ships
+
+1. `0558` -- attachment file access (stored + linked PDFs via the local API)
+2. `0559` -- length trigger (indexedPages -> page-break count -> char-count
+   estimate)
+3. `0560` -- vendor `pdf.js`, tier 1: embedded TOC extraction
+4. `0561` -- tier 2: layout heading heuristic on `pdf.js` text runs; falls
+   through to seg/1 on low confidence, no third PDF-side fallback
+5. `0562` -- byline/author detection layer
+6. `0563` -- language robustness (NFC normalization, legacy-encoding sanity
+   check, EN/FR/VN fixtures)
+7. `0564` -- segmenter identity + the PDF-path-vs-seg/1 selection rule
+
+`0558` through `0560` have no dependency on each other and can run in
+parallel once unblocked. `0561` benefits from `0560` existing (shares the
+`pdf.js` text-run primitives) but does not strictly require it to be
+finished. `0564` is the integration point and is naturally last -- it needs
+both a working seg/1 (0028) and at least tier 1 (0560) to have something to
+select between.
+
+## Invariants
+
+- No new copyleft (GPL/AGPL) dependency vendored into zoteus (MIT).
+- seg/1 is never removed or degraded by this work; it remains the fallback
+  for sub-threshold documents and PDF-access failures.
+- No third, PDF-side fixed-size fallback tier (ruled out 2026-09-01) --
+  low-confidence tier 2 falls through to seg/1, not to a duplicate mechanism.
+
+## Exit criteria
+
+- [ ] 0028 closed
+- [ ] all seven children closed
+- [ ] integration review: re-read child diffs, run the full suite, verify
+      the selection rule actually prefers the PDF path above the threshold
+      and falls back to seg/1 correctly, before this tracker closes
