@@ -83,13 +83,22 @@ if (opt.device) pipelineOpts.device = opt.device;
 
 const models = [];
 for (const token of opt.models.split(',').map((s) => s.trim())) {
-  const { repo: model, pooling } = resolveModel(token);
+  const { repo: model, pooling, normalize } = resolveModel(token);
   if (!pooling) {
     // Never silently 'mean': that default is wrong for four of the six
     // candidates, and wrong pooling reads as the model being worse.
     throw new Error(
       `[pooling] ${token} declares no pooling. Add it to models.json (read it from ` +
         `the model's own 1_Pooling/config.json) before measuring with it.`,
+    );
+  }
+  if (normalize === null) {
+    // Same stop as pooling, for the same reason. `unknown` in the registry means the
+    // model card could not be read, and guessing `true` there is how a declared axis
+    // becomes a driver's opinion — the defect ticket 0486 was filed for.
+    throw new Error(
+      `[normalize] ${token} declares no normalize. Add it to models.json (read it from ` +
+        `the model's own modules.json) before measuring with it.`,
     );
   }
 
@@ -100,14 +109,14 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
 
   // One warm call before timing and before reading RSS: the first call pays graph
   // initialisation and allocates the arena, both of which a user pays once per session.
-  const warm = await extractor(QUERIES[0], { pooling, normalize: true });
+  const warm = await extractor(QUERIES[0], { pooling, normalize });
   const rssAfter = process.memoryUsage().rss;
 
   const times = [];
   for (let rep = 0; rep < REPS; rep++) {
     for (const query of QUERIES) {
       const t = performance.now();
-      await extractor(query, { pooling, normalize: true });
+      await extractor(query, { pooling, normalize });
       times.push(performance.now() - t);
     }
   }
@@ -120,6 +129,12 @@ for (const token of opt.models.split(',').map((s) => s.trim())) {
     // records only the first cannot be traced back to its record.
     model,
     model_id: token,
+    // The two per-model axes the run APPLIED, recorded rather than inferred. Ticket
+    // 0262 put `normalize` in the registry and ticket 0486 made the drivers read it;
+    // an artifact that cannot say which geometry produced it is not comparable with
+    // one that can, and neither of these two rows could say before.
+    pooling,
+    normalize,
     dim: warm.data.length,
     dtype: opt.dtype ?? '(runtime default)',
     device: opt.device ?? '(runtime default)',

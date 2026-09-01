@@ -28,11 +28,14 @@ function cos(a, b) {
   return d / Math.sqrt(na*nb);
 }
 
-const { repo: MODEL, pooling: POOLING } = resolveModel('all-minilm-l6-v2');
+const { repo: MODEL, pooling: POOLING, normalize: NORMALIZE } = resolveModel('all-minilm-l6-v2');
+if (NORMALIZE === null) {
+  throw new Error('[normalize] the incumbent declares no normalize in models.json.');
+}
 const extractor = await pipeline('feature-extraction', MODEL);
 for (const r of rows) {
   const text = lines[r];
-  const t = await extractor([text], { pooling: POOLING, normalize: true });
+  const t = await extractor([text], { pooling: POOLING, normalize: NORMALIZE });
   const v = Array.from(t.data.slice(0, DIM));
   const s = slabRow(r);
   console.log(`row ${r}: chars=${text.length} cosine=${cos(v, s).toFixed(6)}  head="${text.slice(0,60).replace(/\s+/g,' ')}"`);

@@ -1,0 +1,54 @@
+%erg 0.1
+Title: The normalize column has no consumer: drivers hardcode the flag the registry now carries
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Closed: registry normalize now has consumers, deliberate raw-geometry literals are marked, and the class guard was seen red on 9 sites before going green
+
+--- log ---
+2026-08-30T16:20Z Minh Ha-Duong created
+2026-08-30T16:21Z claude note found by the roar sweep for the day's defect class (a per-model axis a wrapper silently drops — the shape of both the pooling bug and the 0481 device bug). Ticket 0262's exit criterion reads "The driver applies it and records it in every result file"; the column and its guard landed, the application did not.
+
+2026-08-30T19:49Z claude note the class this ticket names has a second consumer now: the author's calibration-header proposal of 2026-08-30 (spec/DECISIONS.md, awaiting ratification) and ticket 0497's portable format. All three of the class's instances -- pooling hardcoded mean against four cls candidates (0421), the device flag dropped by the sweep wrapper (0481), normalize declared and unapplied (this ticket) -- are cases where the DECLARED identity held while the function changed, which is exactly what a behavioural header catches and a declared key cannot. Two consequences for this ticket's action 3: the class guard should extend to 0497's manifest the moment it exists (a chain field written from a literal is the same defect at file scope), and the bit-determinism question is cheap to settle here -- re-embed a fixed probe twice on one machine, same provider and thread count, and record whether the bytes are identical, since the header's local-tripwire half rests on that and nothing has measured it
+2026-09-01T16:59Z claude done all three actions. (1) resolveModel/resolve_model now return `normalize`, with `unknown` travelling as null/None exactly as an absent pooling does -- 'the card could not be read' is a different fact from false, and collapsing them is how a driver measures the wrong geometry in silence. Four drivers that hardcoded true now resolve it and STOP on null (embed_feasibility, query_embed_cost, truncation_regression, issue30_slab_provenance); embed_feasibility and query_embed_cost also now record pooling AND normalize in their rows, which neither did before -- a one-line widening past this ticket's letter, flagged rather than glossed, because an artifact that cannot say which geometry produced it is the same hole one field over. truncation_regression records normalize for a specific reason stated at the site: its cosine is a bare dot product, so it IS the cosine only while the vectors are unit-length. (2) The three raw-geometry drivers keep their literal and carry the marker on the literal's own line plus the argument above it: quant_fidelity (the vector IS the measurement), recall_embed (the consumer chooses), cross_lingual_probe (it scores its own cosine). (3) check_models.py gained check_no_hard_coded_normalize with its own RAW_GEOMETRY_MARKER, deliberately separate from EXEMPT_MARKER because it records a different fact -- 'this call site departs from the registry on purpose' rather than 'this is not a call site'; `grep -rn raw-geometry: bench/` is the whole inventory. RED FIRST, against today's tree: 9 sites across 7 files, no false positives, then green after the fix. The guard also caught two things worth recording -- a comment I had just written in registry.py ('an absent pooling: "the card...') tripped the POOLING literal scan, reworded rather than exempted; and tests/test_check_models.py's own pooling fixture used normalize: true, so the repo's test suite carried the defect it was testing around. INVALIDATION CHECK, mechanical rather than argued: every model id appearing in any bench/results artifact whose declared normalize is not true (six of them) appears ONLY in 0421-pooling/pooling.json and pooling-normalize-0262.json, which are registry-provenance records and not embedder runs. So no measurement ever applied a literal that differed from its model's declaration, and nothing needs re-measuring -- stronger than the ticket's own cosine-invariance argument. NOT DONE, both deferred deliberately: the log's extension of the class guard to 0497's manifest (0497 does not exist yet, so there is no manifest to guard), and the bit-determinism probe the log calls cheap (it needs a model runtime and a real embed, which this session has no corpus for). make check green, 301 tests
+2026-09-01T16:59Z Claude closed — registry normalize now has consumers, deliberate raw-geometry literals are marked, and the class guard was seen red on 9 sites before going green
+--- body ---
+## Context
+
+`bench/models.json` carries `normalize`/`normalize_source` per model (ticket
+0262), guarded by `bench/check_models.py` — and nothing reads it. Every
+driver passes a literal: `normalize: false` in the fidelity and recall
+embedders, `normalize: true` in the cost drivers. This is the third instance
+of one class: pooling was hardcoded `mean` while four candidates want `cls`
+(ticket 0421), the device flag was dropped by the sweep wrapper (ticket
+0481), and now normalize is declared but unapplied.
+
+Why nothing measured so far is invalidated: every campaign treated all
+candidates uniformly, and the retrieval scoring is cosine, which is
+normalization-invariant. The axis starts to bite the first time vectors meet
+a dot-product consumer (the design's stored-norm scan), a cross-normalize
+comparison, or an upstream path that normalizes where ours did not.
+
+## Actions
+
+1. Make the drivers read `normalize` from the registry per model, the way
+   pooling and the input template already travel, and record the applied
+   value in every result file (0262's original exit criterion, delivered).
+2. Where a driver *deliberately* wants raw geometry (fidelity's
+   `normalize: false`), say so in a comment naming this ticket, so the
+   literal reads as a choice and not the class recurring.
+3. Class guard: extend the check that already refuses hardcoded model ids,
+   pooling modes and templates in `bench/` to refuse a bare `normalize:`
+   literal outside declared exceptions — a registry axis with no consumer is
+   this class's larval form.
+
+## Test
+
+- Red first: the class guard must fail against today's tree before the
+  drivers are fixed.
+
+## Exit criteria
+
+- [x] Drivers apply the registry's normalize per model and record it
+- [x] Deliberate raw-geometry literals carry the naming comment
+- [x] The guard goes red on a hardcoded normalize and green after the fix
+      (9 sites across 7 files on the pre-fix tree, no false positives)

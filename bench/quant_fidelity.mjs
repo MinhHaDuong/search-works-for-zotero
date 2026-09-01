@@ -68,7 +68,7 @@ if (opt.device) pipelineOpts.device = opt.device;
 
 // The record keeps the repository, which is what was loaded, and the registry id, which
 // is what the run was asked for. They differ whenever a model is loaded from a mirror.
-const { id: modelId, repo: modelRepo, pooling } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, pooling, normalize } = resolveModel(opt.model);
 if (!pooling) {
   // Never silently 'mean' — see registry.mjs. An undeclared pooling is a stop,
   // not a default, because the wrong value is invisible in the results.
@@ -94,7 +94,10 @@ const reportEvery = Math.max(1, Math.floor(texts.length / BATCH / 10));
 let batchNo = 0;
 for (let i = 0; i < texts.length; i += BATCH) {
   const batch = texts.slice(i, i + BATCH);
-  const tensor = await extractor(batch, { pooling, normalize: false });
+  // raw-geometry: the vector itself is the measurement. Quantisation fidelity is read
+  // off the raw geometry, and normalising first would rescale away the very error
+  // being priced. Ticket 0486.
+  const tensor = await extractor(batch, { pooling, normalize: false }); // raw-geometry: the vector IS the measurement
   const data = tensor.data;
   dim = data.length / batch.length;
   chunks.push(Float32Array.from(data));
@@ -135,6 +138,11 @@ writeFileSync(
       embed_ms: Number(embedMs.toFixed(1)),
       ms_per_passage: Number((embedMs / texts.length).toFixed(2)),
       mean_chars: Math.round(texts.reduce((a, t) => a + t.length, 0) / texts.length),
+      // The registry's declared value, beside the value this run APPLIED. They differ
+      // on purpose here (see the raw-geometry line above), and an artifact that
+      // recorded only one of them could not say whether the difference was a choice
+      // or the class recurring. Ticket 0486.
+      normalize_declared: normalize,
       normalized: false,
       runtime: '@huggingface/transformers in Node (ONNX)',
       machine: { host: hostname(), cpus: cpus().length, node: process.version },

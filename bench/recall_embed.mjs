@@ -64,7 +64,7 @@ const { pipeline } = await import(
 
 const texts = readFileSync(opt.corpus, 'utf8').split('\n').filter(Boolean);
 
-const { id: modelId, repo: modelRepo, pooling, template } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, pooling, normalize, template } = resolveModel(opt.model);
 if (!pooling) {
   throw new Error(`[pooling] ${opt.model} declares no pooling. Add it to models.json before measuring.`);
 }
@@ -85,7 +85,10 @@ const reportEvery = Math.max(1, Math.floor(prefixed.length / BATCH / 20));
 let batchNo = 0;
 for (let i = 0; i < prefixed.length; i += BATCH) {
   const batch = prefixed.slice(i, i + BATCH);
-  const tensor = await extractor(batch, { pooling, normalize: false });
+  // raw-geometry: the vectors are written for downstream scorers that normalise as
+  // they choose. Baking it in here would fix a decision belonging to the consumer.
+  // Ticket 0486.
+  const tensor = await extractor(batch, { pooling, normalize: false }); // raw-geometry: the consumer chooses, not this driver
   const data = tensor.data;
   dim = data.length / batch.length;
   chunks.push(Float32Array.from(data));
@@ -127,6 +130,11 @@ writeFileSync(
       load_ms: Number(loadMs.toFixed(1)),
       embed_ms: Number(embedMs.toFixed(1)),
       ms_per_passage: Number((embedMs / prefixed.length).toFixed(2)),
+      // The registry's declared value, beside the value this run APPLIED. They differ
+      // on purpose here (see the raw-geometry line above), and an artifact that
+      // recorded only one of them could not say whether the difference was a choice
+      // or the class recurring. Ticket 0486.
+      normalize_declared: normalize,
       normalized: false,
       runtime: '@huggingface/transformers in Node (ONNX)',
       machine: { host: hostname(), cpus: cpus().length, node: process.version },
