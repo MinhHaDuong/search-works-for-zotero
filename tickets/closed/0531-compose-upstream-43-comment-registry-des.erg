@@ -2,6 +2,7 @@
 Title: Compose upstream 43 comment: registry design, bench evidence, staging
 Created: 2026-09-01
 Author: claude
+Closed: autoclosed — PR #136
 
 --- log ---
 2026-09-01T07:13Z claude created
@@ -13,6 +14,7 @@ Author: claude
 2026-09-01T10:20Z claude note author asked whether the proposed move opens GPU acceleration -- answer no, and checking it found a real defect: grepped the whole fork source for device/gpu/cuda/webgpu/execution-provider, zero hits outside doc comments and an unrelated `mode: "auto"` on zotero_semantic_search (hybrid keyword+vector search, not embedding execution). Stage 4's caching-key clause named an `auto` execution-provider setting that does not exist in zoteus -- borrowed from this repo's own bench harness terminology. Fixed to name only what actually varies today (transformers.js/onnxruntime version, OS/arch) plus an honest "if one is ever added beyond CPU" hedge. Not yet sent
 2026-09-01T10:35Z Minh Ha-Duong note POSTED 2026-09-01, author authorization "Post and be done": gh issue comment 43 --repo oscardvs/zoteus --body-file verification/ISSUE-DRAFT-0043.md, posted directly from the reviewed file (not retyped). Verified publicly via gh api: https://github.com/oscardvs/zoteus/issues/43#issuecomment-5491041684, author MinhHaDuong, 1927 words, correct issue. Exit criterion met
 
+2026-09-01T08:29Z Minh Ha-Duong closed — autoclosed — PR #136
 --- body ---
 ## Context
 
