@@ -2956,3 +2956,89 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   or pass `cpu` explicitly, measured identical to today but foreclosing any
   future improvement to the runtime's own default. The ruling's *intent* is
   untouched by the measurement and no knob is proposed.
+
+- **The fresh-against-backfill ratio inside the body class (drafted
+  2026-09-01, ticket 0540; awaiting ratification).** SPEC.md §5.2.5 names
+  level 3 of the priority tree and states that it needs a weighted
+  arbitration without fixing the weight. This entry proposes the weight.
+
+  The problem is standard and has no free answer. Serving the freshest item
+  first is freshness-optimal and starves the initial backfill under any
+  sustained arrival; serving in arrival order completes the backfill and lets
+  a change wait behind fifteen thousand queued pages. One queue cannot do
+  both, and the level exists precisely because the classes above it have
+  already run out of the finiteness that made their strict priority safe.
+
+  Proposed: deficit round robin at **k = 3** — three fresh micro-batches
+  served per one backfill micro-batch. Implemented as a stateless
+  deterministic draw on the micro-batch counter (backfill when the counter is
+  0 mod k+1, fresh otherwise), so no deficit counter enters the ledger and a
+  conductor failover resumes without carrying scheduler state; the counter is
+  crash-disposable in the same sense as the current micro-batch.
+
+  What the constant buys is a computable traversal bound: the time to drain
+  the fresh lane is at most its size in micro-batches, times the quantum,
+  times (k+1)/k. That is the sentence R35's minute rests on once discovery has
+  done its part, and it is why the ratio wants ratifying rather than tuning
+  in code. k = 3 gives the fresh lane three quarters of the bottleneck and
+  leaves the backfill a quarter, which is enough that a first build still
+  finishes in bounded time while a library under active editing stays
+  responsive. k = 4 is the same argument one notch harsher on the backfill;
+  k = 1 is fair round robin and doubles the fresh bound. Nothing here is
+  measured — the recommendation is an arbitration, and the author's to make.
+
+- **The micro-batch quantum, and deriving its size per device (drafted
+  2026-09-01, ticket 0540; awaiting ratification).** The micro-batch is the
+  schedulable unit of the whole priority tree: queues, the activity file and
+  the lease are re-checked between micro-batches and nowhere else, so the
+  batch constant sets how fast preemption can be. Fixing it as a *size* fixes
+  the wrong quantity. Size trades throughput against latency, and the trade
+  lands differently on each device: batching amortizes fixed kernel and
+  transfer costs, which dominate on a GPU and barely register on a CPU, so
+  the throughput-optimal size differs by one to two orders of magnitude
+  between them while the tolerable preemption delay does not differ at all.
+
+  Proposed: ratify a **time quantum of about 1 s** and derive the size from
+  it. The worker targets the quantum and adjusts multiplicatively — size
+  scaled by (target / observed duration), EWMA-smoothed to keep one slow
+  batch from swinging it — clamped below by a fixed-cost floor, so a device
+  whose per-call overhead is already near the quantum does not shrink to
+  useless batches, and above by a memory ceiling, which on a GPU is VRAM.
+  That is the per-device rung ruling applied to a second axis, and it is
+  proposed as consistent with it rather than as a new principle.
+
+  The invariant this yields is what matters: the pipeline yields about every
+  second on any hardware, so preemption and the band cap hold without a
+  per-machine constant. The one unit the invariant cannot cover is the
+  extract stage's whole-document GET, which has no boundary inside it
+  (SPEC.md §5.2.4).
+
+- **Whether the extract worker backs off on observed local-API latency
+  (drafted 2026-09-01, ticket 0540; awaiting ratification).** Upstream's #39
+  (SYNC.md) is the case worth reading before deciding. Its full-text pass
+  fetched four attachment bodies at a time, and the desktop local API is one
+  process shared with Zotero's UI, its sync engine and its own PDF indexer;
+  enough concurrency stopped it answering on its port, and every read and
+  write fell to the Web API for the rest of the session. The fix chose
+  concurrency by observed degradation of the serving API and backed off to
+  one.
+
+  Our extract worker is sequential already, so the failure that bit upstream
+  cannot arrive by the same route. The question is whether sequential is
+  sufficient, or whether the worker should also slow its request rate when
+  the local API's response latency rises — reacting to degradation before an
+  error rather than after one. Zotero's indexer can saturate that process
+  without any help from us, and a sequential fetcher holding a steady rate
+  through it still competes with the user's own interface.
+
+  Three shapes, for the author. Do nothing: sequential is the back-off, and
+  the observed cost of adding one is a latency signal to define, store and
+  report. Add the back-off: on a rising latency median, insert a delay
+  between document fetches, decaying back when it recovers, reported through
+  the instrument panel as upstream reports `localApiDegradedAt`. Or defer it
+  behind a measurement — what our own sequential fetcher does to local-API
+  latency on a machine where Zotero is indexing is unmeasured here, and the
+  experiment is cheap. Note what this repo will not adopt from #39: its
+  back-off falls back to the Web API, which sends library reads to a cloud
+  service by a path the user did not choose for that build. Ticket 0505 poses
+  that separately and it is not part of this question.

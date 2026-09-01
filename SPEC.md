@@ -1265,6 +1265,10 @@ Ordering is not the only promise. New and deleted data in any class must be
 discovered in reasonable time, which is the reconcile tick's job and is stated
 in §5.2.4 rather than here.
 
+This section states the classes and the bands. Where they sit relative to
+foreground preemption and to the fresh-against-backfill arbitration — the whole
+priority order, named once — is §5.2.5.
+
 What the order buys: within minutes a user can find any item by its title,
 author or abstract, and body text fills in behind that for hours.
 
@@ -1506,13 +1510,45 @@ sorted by length first because the runtime pads every member of a batch to
 its longest sequence; the batch is the memory dial, the duplicate-compute
 unit and the yield grain, and nothing is bought by making it large
 (`verification/GPU-ANOMALY-0481.md`, `verification/GPU-CORRECTED-0482.md`;
-the CPU sweep at the deployed rung is open). Dispatch order at the
-worker's grain restates §5.2.3's anti-monopoly promise at the pipe: a fetch
-order for a newly changed item goes ahead of queued band-1 embed ranges,
-and an embed backlog yields at batch granularity — one worker serializes
-fetch and embed, so without this rule a band-1 drain would starve every
-fresh item's fetch, reintroducing at the pipe the monopolization the bands
-exist to prevent.
+the CPU sweep at the deployed rung is open).
+
+**The priority tree.** The activity file, the discovery classes and the two
+bands are not three policies but one priority order, and its shape is a tree,
+not a set of flat lanes. Read it top down; the schedulable unit at every level
+is one micro-batch.
+
+1. **Foreground preempts everything.** A fresh activity file idles the worker
+   and the conductor's write loop, so a query in flight beats all indexing.
+2. **Strict priority between the discovery classes**: metadata, then notes and
+   annotations, then body text (§5.2.3). Strict priority needs no arbitration
+   constant here because the upper two classes are finite and drain quickly,
+   so they cannot starve the third — and it delivers cross-class freshness for
+   nothing, since a changed record beats every queued body range without a
+   dedicated lane.
+3. **Inside body text only**, freshly changed items against the initial
+   backfill. This is the one level that needs a weighted arbitration: no
+   single queue order serves both freshness and completeness, and strict
+   fresh-first starves the backfill under sustained arrival. The ratio is
+   drafted and unratified (DECISIONS.md).
+4. **Band 0 before band 1**, per item (§5.2.3), which is what keeps one
+   15 000-page PDF from monopolizing the body tier.
+
+Levels 3 and 4 bind the pipe as well as the queue: one worker serializes fetch
+and embed, so a fetch order for a newly changed item goes ahead of queued
+band-1 embed ranges and an embed backlog yields at batch granularity.
+Without that, a band-1 drain would starve every fresh item's fetch and
+reintroduce at the worker the monopolization the bands exist to prevent.
+
+Order is re-evaluated between micro-batches and nowhere else, which is what
+makes preemption and the band cap effective rather than nominal. The
+micro-batch is therefore a time quantum, its size derived per device rather
+than fixed — also drafted and unratified (DECISIONS.md). The one unit with no
+boundary inside it is the extract stage's whole-document GET (§5.2.4), and it
+is the only standing threat to the yield interval.
+
+The tree promises no completeness and is not asked to. What should exist is
+re-derived every tick and re-queued when missing (§5.2.4): the ordering
+optimizes, the reconcile tick guarantees.
 
 **Orphan repair and flow control.** Two repairs, on two sides, because the
 failure they cover is a parent that is wedged rather than dead. The worker
