@@ -154,6 +154,10 @@ the entry points at the question rather than settling it.
 - **metadata-only** — the terminal state of an attachment that yields no text:
   covered rather than failed, with its reason recorded and counted in the
   denominator. Authoritative: SPEC.md R1 and R17.
+- **micro-batch quantum** — the time budget one micro-batch targets, from
+  which the batch size is derived per device rather than fixed, so the yield
+  interval holds across hardware. Authoritative: SPEC.md §5.2.5 (drafted,
+  awaiting ratification: DECISIONS.md 2026-09-01).
 - **multilingual** — the property that the default path works in each of the
   tested languages on its own terms and with no configuration, which is what
   makes a multilingual default embedder a requirement rather than a preference.
@@ -166,6 +170,11 @@ the entry points at the question rather than settling it.
   text, embeds, and writes nothing. Authoritative: SPEC.md §5.2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: SPEC.md §5.2.2.
+- **priority tree** — the single ordering the conductor schedules by, from
+  foreground preemption down through the discovery classes, the
+  fresh-against-backfill arbitration inside body text, and the two bands. A
+  tree rather than flat lanes, and re-evaluated between micro-batches.
+  Authoritative: SPEC.md §5.2.5.
 - **probe-don't-fix** — the freshness posture of the query path: when the tick
   is stale, one bounded probe reports and nudges rather than blocking the
   answer. Authoritative: SPEC.md §5.2.4, which owns the deadline.
@@ -1513,25 +1522,33 @@ unit and the yield grain, and nothing is bought by making it large
 the CPU sweep at the deployed rung is open).
 
 **The priority tree.** The activity file, the discovery classes and the two
-bands are not three policies but one priority order, and its shape is a tree,
-not a set of flat lanes. Read it top down; the schedulable unit at every level
-is one micro-batch.
+bands compose into one priority order, shaped as a tree. Read it top down; the
+schedulable unit at every level is one micro-batch.
 
 1. **Foreground preempts everything.** A fresh activity file idles the worker
    and the conductor's write loop, so a query in flight beats all indexing.
-2. **Strict priority between the discovery classes**: metadata, then notes and
-   annotations, then body text (§5.2.3). Strict priority needs no arbitration
-   constant here because the upper two classes are finite and drain quickly,
-   so they cannot starve the third — and it delivers cross-class freshness for
+2. **Strict class priority orders discovery**: metadata, then notes and
+   annotations, then body text (§5.2.3). Strict priority carries no
+   arbitration constant here, and the reason is a rate, not a theorem. Upper-
+   class work is cheap per item and its arrival is bounded by how fast a human
+   edits the library, so in ordinary use the upper classes drain and the body
+   tier runs. Under sustained upper-class churn — a long annotation session, a
+   sync storm refilling metadata every tick — body-text progress is deferred
+   for as long as the churn lasts. That is the accepted trade, stated rather
+   than argued away: the same order delivers cross-class freshness for
    nothing, since a changed record beats every queued body range without a
    dedicated lane.
-3. **Inside body text only**, freshly changed items against the initial
-   backfill. This is the one level that needs a weighted arbitration: no
+3. **A weighted interleave splits the body class**, freshly changed items
+   against the initial backfill. This is the one level that needs a weighted arbitration: no
    single queue order serves both freshness and completeness, and strict
    fresh-first starves the backfill under sustained arrival. The ratio is
-   drafted and unratified (DECISIONS.md).
-4. **Band 0 before band 1**, per item (§5.2.3), which is what keeps one
-   15 000-page PDF from monopolizing the body tier.
+   drafted and unratified (DECISIONS.md, drafted 2026-09-01), and so is the
+   drain bound it buys, which is an expected time over a snapshot of the fresh
+   lane rather than a promise to a user.
+4. **Band 0 precedes band 1**, per item (§5.2.3), which is what keeps one
+   15 000-page PDF from monopolizing the body tier. What else has to hold
+   inside the body tier per item is ticket 0080's question, adjacent to
+   level 3 and distinct from it.
 
 Levels 3 and 4 bind the pipe as well as the queue: one worker serializes fetch
 and embed, so a fetch order for a newly changed item goes ahead of queued
@@ -1542,13 +1559,21 @@ reintroduce at the worker the monopolization the bands exist to prevent.
 Order is re-evaluated between micro-batches and nowhere else, which is what
 makes preemption and the band cap effective rather than nominal. The
 micro-batch is therefore a time quantum, its size derived per device rather
-than fixed — also drafted and unratified (DECISIONS.md). The one unit with no
-boundary inside it is the extract stage's whole-document GET (§5.2.4), and it
-is the only standing threat to the yield interval.
+than fixed — also drafted and unratified (DECISIONS.md, drafted 2026-09-01).
+The pipeline yields at about the quantum on any hardware whose fixed-cost
+floor sits below it, and at the floor's cost where it does not.
 
-The tree promises no completeness and is not asked to. What should exist is
-re-derived every tick and re-queued when missing (§5.2.4): the ordering
-optimizes, the reconcile tick guarantees.
+Two units escape that interval, and both are named rather than solved. The
+extract stage's whole-document GET has no boundary inside it (§5.2.4): its
+worst case is the corpus's largest attachment at the local API's measured
+throughput, and it sits outside the slot accounting the level-3 bound is
+counted in. And a memory ceiling that moves under the process — a GPU shared
+with another tenant — can make the autotuner's clamp wrong after it converged;
+what the retry costs then is open, owned by the quantum's ledger entry.
+
+The tree promises no completeness and is not asked to. Completeness comes from
+the reconcile tick, which re-derives what should exist and re-queues whatever
+is missing (§5.2.4).
 
 **Orphan repair and flow control.** Two repairs, on two sides, because the
 failure they cover is a parent that is wedged rather than dead. The worker

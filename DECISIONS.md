@@ -2957,88 +2957,161 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   future improvement to the runtime's own default. The ruling's *intent* is
   untouched by the measurement and no knob is proposed.
 
-- **The fresh-against-backfill ratio inside the body class (drafted
-  2026-09-01, ticket 0540; awaiting ratification).** SPEC.md §5.2.5 names
-  level 3 of the priority tree and states that it needs a weighted
-  arbitration without fixing the weight. This entry proposes the weight.
+- **The fresh-against-backfill ratio inside the body class (session finding,
+  2026-09-01).** SPEC.md §5.2.5 names level 3 of the priority tree and states
+  that it needs a weighted arbitration without fixing the weight. This entry
+  proposes the weight.
+
+  One word first, because it carries two senses in this design. Level 3's
+  *backfill* is the initial pass over a library that has never been indexed,
+  a population of items. Band 1's deferral is one item's own remaining
+  passages. They are different queues at different levels, and this entry is
+  about the first.
 
   The problem is standard and has no free answer. Serving the freshest item
   first is freshness-optimal and starves the initial backfill under any
   sustained arrival; serving in arrival order completes the backfill and lets
-  a change wait behind fifteen thousand queued pages. One queue cannot do
-  both, and the level exists precisely because the classes above it have
-  already run out of the finiteness that made their strict priority safe.
+  a change wait behind 15 000 queued pages. One queue cannot do both, and the
+  level exists precisely because the classes above it have already run out of
+  the cheapness that made their strict priority tolerable.
 
-  Proposed: deficit round robin at **k = 3** — three fresh micro-batches
-  served per one backfill micro-batch. Implemented as a stateless
+  Proposed: **stateless weighted round robin at an interleave ratio r = 3** —
+  three fresh micro-batches served per one backfill micro-batch, selected by a
   deterministic draw on the micro-batch counter (backfill when the counter is
-  0 mod k+1, fresh otherwise), so no deficit counter enters the ledger and a
-  conductor failover resumes without carrying scheduler state; the counter is
+  0 mod (r+1), fresh otherwise). The symbol is deliberately not k, which this
+  design already spends three times over: RRF's rank constant, the evaluation
+  cut-off, and the band-0 passage count K. And it is deliberately not deficit
+  round robin: real DRR carries a per-lane deficit counter, and declining that
+  counter is the point of this shape, so it should not carry DRR's name where
+  an implementer would read it as a specification. Nothing enters the ledger,
+  and a conductor failover resumes without scheduler state, the counter being
   crash-disposable in the same sense as the current micro-batch.
 
-  What the constant buys is a computable traversal bound: the time to drain
-  the fresh lane is at most its size in micro-batches, times the quantum,
-  times (k+1)/k. That is the sentence R35's minute rests on once discovery has
-  done its part, and it is why the ratio wants ratifying rather than tuning
-  in code. k = 3 gives the fresh lane three quarters of the bottleneck and
-  leaves the backfill a quarter, which is enough that a first build still
-  finishes in bounded time while a library under active editing stays
-  responsive. k = 4 is the same argument one notch harsher on the backfill;
-  k = 1 is fair round robin and doubles the fresh bound. Nothing here is
-  measured — the recommendation is an arbitration, and the author's to make.
+  Three semantics the shape needs stated, or an implementer will guess them.
+  The draw is **work-conserving**: a slot whose lane is empty falls through to
+  the other lane. It carries **no credit**: a turn skipped for an empty lane
+  is not repaid later, which is the price of holding no counter. And the
+  counter advances **only on body-class dispatches**, so upper-class
+  preemption does not consume fresh or backfill turns.
 
-- **The micro-batch quantum, and deriving its size per device (drafted
-  2026-09-01, ticket 0540; awaiting ratification).** The micro-batch is the
-  schedulable unit of the whole priority tree: queues, the activity file and
-  the lease are re-checked between micro-batches and nowhere else, so the
-  batch constant sets how fast preemption can be. Fixing it as a *size* fixes
-  the wrong quantity. Size trades throughput against latency, and the trade
-  lands differently on each device: batching amortizes fixed kernel and
-  transfer costs, which dominate on a GPU and barely register on a CPU, so
-  the throughput-optimal size differs by one to two orders of magnitude
-  between them while the tolerable preemption delay does not differ at all.
+  What the ratio buys is a computable drain figure, and its scope wants saying
+  plainly: the expected time to drain a *snapshot* of the fresh lane, under a
+  converged autotuner, counted in body-text scheduling slots. For a snapshot
+  of N micro-batches the worst case is ceil(N/r) × (r+1) × quantum, which
+  reduces to N × (r+1)/r exactly when N is a multiple of r. It counts slots
+  and nothing else, so it excludes foreground preemption pauses and every turn
+  spent on the upper classes, and it does not cover the fetch (SPEC.md §5.2.5
+  says which units sit outside the slot accounting). This is a new promise
+  about indexing latency and stands on its own: R35's minute is discharged by
+  the 60 s reconcile tick (SPEC.md §5.2.4) and does not rest on it. A failover
+  resets the counter's phase, which in the worst case runs 2r−1 consecutive
+  turns on one lane; bounded, and accepted rather than repaired.
+
+  What the author arbitrates is the shape, not only the value. Three shapes,
+  argued.
+
+  *Fixed-ratio weighted round robin*, the proposal. It buys the drain figure
+  above, which neither alternative gives in closed form, and it costs nothing
+  in the ledger. Against it: the split is blind to arrival rate, so a library
+  under heavy editing and one under none give the backfill the same share.
+
+  *Aging*: the backfill's effective priority grows with how long its head has
+  waited. It adapts to the arrival rate with no ratio to choose, and it
+  degrades gracefully — under no fresh arrivals it becomes pure backfill,
+  under heavy arrivals it still guarantees forward progress. Against it: it
+  holds state (a wait clock per lane head, or a timestamp read at each draw),
+  so the failover story stops being free, and the drain figure becomes a
+  simulation rather than a formula.
+
+  *Hard interleave cap*: one unconditional backfill slot every N body slots,
+  fresh otherwise. Stateless like the proposal, and it states its guarantee in
+  the terms an operator asks about — the backfill never stalls for longer than
+  N slots. Against it: it is the same arithmetic as the ratio with a different
+  name once N = r+1, and it gives the fresh lane the weaker end of the trade
+  when N is set for backfill comfort.
+
+  If the shape is the ratio, r = 3 gives the fresh lane three quarters of the
+  body-text slots and leaves the backfill a quarter, enough that a first build
+  still finishes in bounded time while a library under active editing stays
+  responsive. r = 4 is the same argument one notch harsher on the backfill;
+  r = 1 is fair round robin and doubles the fresh drain figure. Nothing here
+  is measured — the recommendation is an arbitration, and the author's to
+  make.
+
+- **The micro-batch quantum, and deriving its size per device (session
+  finding, 2026-09-01).** The micro-batch is the schedulable unit of the whole
+  priority tree: queues, the activity file and the lease are re-checked
+  between micro-batches and nowhere else, so the batch constant sets how fast
+  preemption can be. Fixing it as a *size* fixes the wrong quantity, and the
+  reason is the yield time rather than throughput. One batch of a given size
+  takes a different wall time on every device, so a fixed size cannot hold a
+  fixed yield interval; a fixed interval with a derived size can.
+
+  Throughput does not motivate this, and the repo's own measurement is why.
+  `bench/results/0481-gpu-anomaly` found throughput flat across batch sizes on
+  the GPU, which is the finding SPEC.md §5.2.5 already states as nothing being
+  bought by making the batch large. That result strengthens the proposal: on
+  the measured hardware, the small batches a one-second quantum implies cost
+  no throughput at all, so the quantum is bought for free rather than traded
+  against speed.
 
   Proposed: ratify a **time quantum of about 1 s** and derive the size from
-  it. The worker targets the quantum and adjusts multiplicatively — size
-  scaled by (target / observed duration), EWMA-smoothed to keep one slow
-  batch from swinging it — clamped below by a fixed-cost floor, so a device
-  whose per-call overhead is already near the quantum does not shrink to
-  useless batches, and above by a memory ceiling, which on a GPU is VRAM.
-  That is the per-device rung ruling applied to a second axis, and it is
-  proposed as consistent with it rather than as a new principle.
+  it. The worker targets the quantum and adjusts multiplicatively, scaling the
+  size by (target / observed duration) and smoothing the result with an
+  exponentially weighted moving average (EWMA) so one slow batch cannot swing
+  it. Two clamps bound the size: a fixed-cost floor, below which a device
+  whose per-call overhead already approaches the quantum would shrink to
+  useless batches, and a memory ceiling, which on a GPU is VRAM.
 
-  The invariant this yields is what matters: the pipeline yields about every
-  second on any hardware, so preemption and the band cap hold without a
-  per-machine constant. The one unit the invariant cannot cover is the
-  extract stage's whole-document GET, which has no boundary inside it
-  (SPEC.md §5.2.4).
+  The loop wants one more bound, because it is closed feedback over a duration
+  curve that 0481 shows is not monotonic in batch size. A flat or noisy
+  segment can make the multiplicative correction overshoot and then correct
+  the other way, and a controller that oscillates between two sizes holds the
+  quantum on average while missing it at every step. Clamp the per-step factor
+  — to [0,5, 2] as a starting value — and treat the oscillation as a property
+  to observe on real hardware, not as one the entry can rule out.
+
+  Deriving per device is proposed here on its own argument, not borrowed. The
+  ratified per-device rung text is about fingerprint identity under
+  quantization, a different question, and citing it as precedent for a general
+  derive-per-device principle would overstate what it settled.
+
+  The invariant this yields: the pipeline yields at about the
+  quantum on any hardware whose fixed-cost floor sits below it, and at the
+  floor's cost where it does not, so preemption and the band cap hold without
+  a per-machine constant. Two cases the invariant does not cover. The extract
+  stage's whole-document GET has no boundary inside it (SPEC.md §5.2.4). And
+  the memory ceiling is assumed fixed, which a GPU shared with another tenant
+  is not: a converged size can become an allocation failure when the other
+  tenant grows, and what the retry then costs — how far the size drops, how
+  fast it climbs back — is open and belongs to this entry rather than to the
+  code.
 
 - **Whether the extract worker backs off on observed local-API latency
-  (drafted 2026-09-01, ticket 0540; awaiting ratification).** Upstream's #39
-  (SYNC.md) is the case worth reading before deciding. Its full-text pass
-  fetched four attachment bodies at a time, and the desktop local API is one
-  process shared with Zotero's UI, its sync engine and its own PDF indexer;
-  enough concurrency stopped it answering on its port, and every read and
-  write fell to the Web API for the rest of the session. The fix chose
-  concurrency by observed degradation of the serving API and backed off to
-  one.
+  (session finding, 2026-09-01).** Upstream's #39 (SYNC.md) is the case worth
+  reading before deciding. Its full-text pass fetched four attachment bodies
+  at a time, and the desktop local API is one process shared with Zotero's UI,
+  its sync engine and its own PDF indexer; enough concurrency stopped it
+  answering on its port, and every read and write fell to the Web API for the
+  rest of the session. The fix chose concurrency by observed degradation of
+  the serving API and backed off to one.
 
   Our extract worker is sequential already, so the failure that bit upstream
   cannot arrive by the same route. The question is whether sequential is
-  sufficient, or whether the worker should also slow its request rate when
-  the local API's response latency rises — reacting to degradation before an
-  error rather than after one. Zotero's indexer can saturate that process
-  without any help from us, and a sequential fetcher holding a steady rate
-  through it still competes with the user's own interface.
+  sufficient, or whether the worker should also slow its request rate when the
+  local API's response latency rises — reacting to degradation before an error
+  rather than after one. Zotero's indexer can saturate that process without
+  any help from us, and a sequential fetcher holding a steady rate through it
+  still competes with the user's own interface.
 
   Three shapes, for the author. Do nothing: sequential is the back-off, and
-  the observed cost of adding one is a latency signal to define, store and
-  report. Add the back-off: on a rising latency median, insert a delay
-  between document fetches, decaying back when it recovers, reported through
-  the instrument panel as upstream reports `localApiDegradedAt`. Or defer it
-  behind a measurement — what our own sequential fetcher does to local-API
-  latency on a machine where Zotero is indexing is unmeasured here, and the
-  experiment is cheap. Note what this repo will not adopt from #39: its
-  back-off falls back to the Web API, which sends library reads to a cloud
-  service by a path the user did not choose for that build. Ticket 0505 poses
-  that separately and it is not part of this question.
+  the cost of adding one is a latency signal to define, store and report. Add
+  the back-off: on a rising latency median, insert a delay between document
+  fetches, decaying back when it recovers, reported through the instrument
+  panel as upstream reports `localApiDegradedAt`. Or defer it behind a
+  measurement — what our own sequential fetcher does to local-API latency on a
+  machine where Zotero is indexing is unmeasured here, and the experiment is
+  cheap. Note what this repo will not adopt from #39: its back-off falls back
+  to the Web API, which sends library reads to a cloud service by a path the
+  user did not choose for that build. Ticket 0505 poses that separately and it
+  is not part of this question.

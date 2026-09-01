@@ -13,7 +13,7 @@ The author asked for a theoretical framing of the conductor's scheduling:
 how it guarantees completeness, freshness, and priority between lanes
 (the factory metaphor: 15k pieces, three stages of increasing cost, some
 pieces are batches). The discussion settled the following reading of
-DESIGN.md §2.3–2.5, and found exactly one gap.
+SPEC.md §5.2.3–5.2.5, and found exactly one gap.
 
 What the design already has, restated in scheduling-theory terms:
 
@@ -37,7 +37,7 @@ What the design already has, restated in scheduling-theory terms:
   arbitration where 8 flat lanes would need seven.
 - **The micro-batch is the schedulable unit**; band/lane order is
   re-evaluated between micro-batches, which is what makes preemption and
-  the band cap effective against a 15k-page PDF.
+  the band cap effective against a 15 000-page PDF.
 - **Scheduler state lives in the ledger** (queues as rows, priority as
   ORDER BY, lease, claims, cursors); the only ephemeral state (current
   micro-batch, activity file, 30 s memoized probe) is crash-disposable.
@@ -68,6 +68,10 @@ minute stays discovery-dominated: tick <= 60 s, then fresh-lane
 traversal of a few quanta. The only threat to the bound remains the one
 unit with no internal boundary, the extract stage's whole-document GET.
 
+Adjacent, not the same question: ticket 0080 asks what else has to hold
+per item inside the body tier. The fresh-against-backfill level arbitrates
+between two populations of items; 0080 is about one item's own ranges.
+
 Secondary, from the #39 postmortem (SYNC.md): upstream's fix chose
 extraction concurrency by observed degradation of the serving API.
 Our extract worker is already sequential; adopting a latency-observed
@@ -76,23 +80,27 @@ error) is worth a look while specifying the scheduling section.
 
 ## Actions
 
-1. Put the lane-tree reading above into DESIGN.md's scheduling prose
-   (§2.3/§2.5), so the priority structure is named once rather than
+1. Put the lane-tree reading above into SPEC.md's scheduling prose
+   (§5.2.3/§5.2.5), so the priority structure is named once rather than
    implied by three separate mechanisms.
-2. Draft the fresh/backfill DRR ratio as an awaiting-ratification
-   question in spec/DECISIONS.md, with the recommended default and the
-   traversal bound it buys.
+2. Draft the fresh/backfill arbitration as an awaiting-ratification
+   question in DECISIONS.md, with the recommended default and the
+   drain figure it buys.
 3. Decide (same ruling or a separate one) whether the extract worker
    gains a latency-observed back-off toward the local API.
 
 ## Verification
 
-- [ ] DESIGN.md names the priority tree in one place; check_chain_dedup
-      and check_terminology stay green.
-- [ ] DECISIONS.md carries the DRR question with a recommended constant.
-- [ ] make check passes.
+- [ ] SPEC.md names the priority tree in one place, and §5.2.3 points at
+      it rather than restating it.
+- [ ] DECISIONS.md carries the arbitration question with a recommended
+      constant, marked awaiting ratification.
+- [ ] make check passes — the guard list is the Makefile's `check` target
+      (deps, ruff, figures, models, names, progress, erg check, pytest).
 
 ## Exit criteria
 
-- [ ] The author has ratified (or rejected) the DRR ratio and the
-      back-off question; DESIGN.md matches the rulings.
+- [ ] The lane tree is stated once in SPEC.md and the three constants it
+      needs are drafted in DECISIONS.md's awaiting-ratification section,
+      none of them presented as ruled. Ratification is the author's and is
+      tracked by those entries, not by this ticket.
