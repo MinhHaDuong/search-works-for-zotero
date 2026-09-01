@@ -6,11 +6,15 @@
 
 ## 1. Introduction
 
-zoteus is an MCP server over a local Zotero library; this document specifies
-the redesign of its search.
+This document specifies search that works over a local Zotero library: what
+any implementation must promise its users (§3), what the world imposes on it
+(§4), and a design that answers both (§5). The promises bind the capability,
+not a vehicle. Integration into Zotero itself comes first among possible
+homes; zoteus, an MCP server over the local library, is the vehicle the
+design is currently stated against and measured on.
 
-§2 defines the vocabulary the rest of this document uses. §3 states what the
-system promises to its users, one testable requirement per row (R1 to R35).
+§2 defines the vocabulary the rest of this document uses. §3 states what any
+implementation promises its users, one testable requirement per row (R1 to R35).
 §4 states what the world — Zotero, the upstream project, the user's machine —
 imposes on any design that would keep those promises (C1 to C4). §5 is the
 design that answers both. §6 is where it can leak.
@@ -927,6 +931,10 @@ design realizes this as two OS processes and three ledger-paced loops
 ## 5. Design
 
 ### Intro
+
+The design below is stated in terms of the zoteus codebase, because that is
+where it was measured; its mechanisms are this specification's answer
+wherever the capability lands.
 
 This is the current design. It owns every design number: the gate
 thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets

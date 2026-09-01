@@ -2648,6 +2648,21 @@ agent's, and carries no email. Status stays DRAFT until the author himself
 declares otherwise; the one word carries the state, and the document narrates
 nothing about when or how that might change.
 
+**2026-09-01 — the spec's subject is the capability, not the vehicle.** The
+author's correction to the freshly-rewritten §1, in his own words: "Only
+Zoteus is not the target. The RFC is what I want — I am not in love with any
+solution, and integrated into Zotero comes first." SPEC.md specifies search
+that works over a local Zotero library — the capability — solution-neutral by
+design; the requirements in §3 bind any implementation, not one vehicle.
+Among possible homes for that capability, native integration into Zotero
+itself ranks first. `zoteus`, the MCP server the prototype and every
+measurement in this document ran on, is the vehicle the design is currently
+stated against and measured on — not the target the capability is judged
+against. §1 is rewritten to lead with the capability rather than the vehicle,
+and §5 gains one framing sentence saying so at its own opening; §5's body
+stays exactly as concrete as before; nothing already measured or promised
+changes.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
