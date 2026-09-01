@@ -10,11 +10,12 @@ someone trying to understand the upstream relationship should not have to read
 the architecture to find it.
 
 There is a second reason, particular to this repository. It is public, and the
-upstream maintainer reads it. Keeping strategy in one file is what turns
-"never put our internal governance into upstream text" from a habit into a
-check — [`bench/check_governance.py`](bench/check_governance.py), which fails the
-build when a bound below is stated in a specification document without pointing
-back here.
+upstream maintainer reads it. Keeping strategy in one file is what makes
+"never put our internal governance into upstream text" checkable at all: one
+place to read before anything goes out. The mechanical guard that once
+enforced the separation was retired on its record of zero catches
+(spec/DECISIONS.md, 2026-09-01); the rule binds exactly as before, kept by
+the reader.
 
 ## Where the rulings themselves live
 

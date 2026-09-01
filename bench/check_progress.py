@@ -20,10 +20,11 @@ only the document under guard cannot tell an omission from an absence.
    is not a wrong claim, it is an invisible one, and the page then reports the
    all-clear it would report if the row were absent.
 3. DIGITS. Every digit on the page is an address — a requirement, a ticket, an
-   upstream item, a version, a date. Same rule as `check_terminology.py`, for
-   the same reason: a definition and a status line are the two most inviting
-   places to leave a number that nobody will remember to update. The counts the
-   guard computes are exempt, because the guard owns them.
+   upstream item, a version, a date. Same rule as the glossary's (whose own
+   guard retired 2026-09-01), for the same reason: a definition and a status
+   line are the two most inviting places to leave a number that nobody will
+   remember to update. The counts the guard computes are exempt, because the
+   guard owns them.
 4. BASELINE. The page describes the release `UPSTREAM` declares reviewed, and
    no other. Nothing here recomputes a status — they are read, not run — so
    when the baseline moves the honest act is to invalidate the page rather than

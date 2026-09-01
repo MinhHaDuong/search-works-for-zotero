@@ -2537,6 +2537,23 @@ page's two twenty-four tallies. A count a guard already owns (the headline
 bars, the evidence tally) never takes the mark — marking a guarded number
 would teach readers the mark means nothing.
 
+**2026-09-01 — five guards retire: vocabulary, terminology, normative,
+chain-dedup and governance.** The author's ruling on the census that priced
+every guard by demonstrated catches. The five retired have none that is not
+their own creation ticket, and together they are 837 lines of guard code plus
+their tests. The norms they encoded stay ratified — one statement per fact,
+every R-item's force declared, the glossary owns no numbers, internal
+governance never in upstream text, the banned-word list — and are kept by the
+reader from here, each guard recoverable from git if its defect class
+re-fires. Retiring a guard is not repealing its rule.
+
+This resolves clause (ii) of the awaiting excess-weight question and widens
+it by two: vocabulary and governance were not on that clause's list. What
+stays: models and progress, the two with fresh repeated catches; deps and
+names, small and guarding documented failures; and figures, whose fate the
+same awaiting entry sequences after the document-count question — which the
+author put under review in the same message.
+
 ## Awaiting ratification
 
 - **Which of the prose guards come out, and whether thirteen documents is the
@@ -2546,9 +2563,8 @@ would teach readers the mark means nothing.
   say-so rather than an agent's. (i) `bench/check_figures.py` is 1 141 lines,
   a third of all guard code; its value is real but proportional to how much
   prose is kept, so it is decided *after* the document count, not before.
-  (ii) The chain-dedup, terminology and normative guards exist to manage a
-  problem created by having eleven places a fact could live; if that number
-  falls, they lose their subject. (iii) `spec/FIELD-REVIEW.md` is 1 974 lines,
+  (ii) — resolved 2026-09-01: five guards retired, see the ledger entry.
+  (iii) `spec/FIELD-REVIEW.md` is 1 974 lines,
   the largest document in the repo, a dated snapshot that is authoritative for
   nothing in the design. Merging or retiring documents is a deletion, and this
   repo deletes rather than archives, so each one wants its own ruling.

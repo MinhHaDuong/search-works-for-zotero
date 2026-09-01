@@ -32,9 +32,9 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
   (ours, inherited from Zotero, inherited from SQLite) plus a historical
   section. Authoritative for what a word means and for which document owns it.
   Owns no design number and settles no open question: it points at the owner
-  instead, and `bench/check_terminology.py` fails on any digit that is not an
-  address. Serves the chain without being in it — enter a document in the
-  middle and look the vocabulary up here.
+  instead, and any digit in it that is not an address is drift (the rule
+  outlived its guard, retired 2026-09-01). Serves the chain without being in
+  it — enter a document in the middle and look the vocabulary up here.
 - `spec/DECISIONS.md` — append-only ratification ledger. The author's rulings land
   here FIRST; the other documents are edited to match. Owns the record of
   every ruling, technical and process alike, and the awaiting-ratification
@@ -83,14 +83,13 @@ The specification chain lives in `spec/`. What changes week to week — `STATE.m
 ## Conventions
 
 - `make check` must be green before any commit: ruff, the figure guard
-  (`bench/check_figures.py`), the governance guard
-  (`bench/check_governance.py`), the terminology guard
-  (`bench/check_terminology.py`), the chain-dedup guard
-  (`bench/check_chain_dedup.py`), the normative-language guard
-  (`bench/check_normative.py`), the progress guard
-  (`bench/check_progress.py`), pytest. This list is prose and drifts: the
-  Makefile's `check` target is what actually runs, and it gained two guards
-  before this sentence did. The figure guard is load-bearing —
+  (`bench/check_figures.py`), the model-registry guard
+  (`bench/check_models.py`), the names guard (`bench/check_names.py`), the
+  progress guard (`bench/check_progress.py`), pytest. This list is prose and
+  drifts: the Makefile's `check` target is what actually runs — it gained two
+  guards before this sentence did, and five retired on 2026-09-01 on their
+  record of zero catches (their rules bind as before, kept by the reader).
+  The figure guard is load-bearing —
   every measurement quoted in prose is declared there with an anchor; when
   you quote a number from `bench/results/`, declare it; when you re-measure,
   the guard tells you every prose site to update.
@@ -135,8 +134,8 @@ is `SYNC.md`'s, never restated elsewhere.
 The one line worth repeating here, because it governs every outward action
 rather than a filing decision: never put this repo's internal governance or its
 reading of the maintainer into upstream text. The repo is public and he reads
-it. `bench/check_governance.py` enforces the separation on our side of the line;
-nothing enforces it on the text you send, so read what you send, as sent.
+it. No guard enforces the separation any more (retired 2026-09-01) and nothing
+ever enforced it on the text you send — so read what you send, as sent.
 
 ## Environment notes
 
