@@ -78,6 +78,8 @@ SCANNED = [
     # sentence that must not drift downward into the body. Scanning only below
     # the rule would license writing it above.
     "verification/UPSTREAM-PR-0091-DROPLIST.md",
+    # The series' first PR body, same shape and same reasoning as the droplist one.
+    "verification/UPSTREAM-PR-0091-DEGENERATE.md",
     # The issue drafts, and they were the hole the first version of this left. It
     # covered PR bodies, while GOVERNANCE.md's disclosure rule names "pull request
     # bodies, issue text, review replies" — and this repo's own form rule sends

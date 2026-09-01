@@ -132,6 +132,8 @@ PROSE = {
     # the maintainer will read, which makes it the LAST place a stale number may sit —
     # and the one document in this repo whose readers are outside it.
     "u0091": ["verification/UPSTREAM-PR-0091-DROPLIST.md"],
+    # Same contract, for the series' first PR — the degenerate query.
+    "u0091a": ["verification/UPSTREAM-PR-0091-DEGENERATE.md"],
 }
 
 
@@ -619,6 +621,13 @@ FIGURES = [
     # The p95 anchors embed their row's p50 because a markdown table gives them no other
     # left-hand boundary — a one-way coupling, so a p50 edit fails its neighbour too, which
     # is the safe direction.
+    # ---- u0091a, the outgoing body for the series' first PR. Its two figures are the
+    # library size and the still-free degenerate short queries; the rest of that body is
+    # deliberately figure-light because the contract is "everything else unchanged".
+    ("0091-droplist/degenerate-recut-477k.json", "passages", 0,
+     {"u0091a": "a real {}-passage library"}),
+    ("0091-droplist/degenerate-recut-477k.json", "probes.12.ms", 0,
+     {"u0091a": "still cost {} ms and return nothing"}),
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p50_ms", 0,
      {"u0091": "29-word list | {} ms |"}),
     ("0091-droplist/query-477k.json", "arms.A_stock_v1_12_0.latency.p95_ms", 0,
