@@ -2,11 +2,11 @@
 Title: Tranche 3: extract shim, class order, latency back-off
 Created: 2026-09-01
 Author: minh
-Blocked-by: 0552
 
 --- log ---
 2026-09-01T16:30Z claude created, child of 0550
 
+2026-09-01T13:18Z MinhHaDuong note blocker 0552 closed — Blocked-by removed.
 --- body ---
 ## Context
 
