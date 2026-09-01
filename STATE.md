@@ -1,7 +1,8 @@
 # STATE — Search Works for Zotero
 
 *Reconciled 2026-08-31, and held under forty lines by ruling of the same day.
-Last updated 2026-09-01.*
+Last updated 2026-09-01 (conductor raid: 0551/0552/0556 merged, 0553 parked
+with two real concurrency bugs — see PR #156 — 0565-0567 filed).*
 
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
