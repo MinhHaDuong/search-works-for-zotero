@@ -28,8 +28,7 @@ de vérifier la conformité de son projet avec le droit de ce pays.
 respect de ces dispositions, il est notamment passible d'une amende prévue par la loi du 17 juillet 1978.
 7/ Pour obtenir un document de Gallica en haute définition, contacter reutilisation@bnf.fr.
 
-Source gallica.bnf.fr / Bibliothèque nationale de France
-RECHERCHES
+RECHERCHES
 SUR LES
 
 PRINCIPES MATHÉMATIQUES
@@ -7519,19 +7518,7 @@ ont leurs fanatiques, la science qui succède aux systèmes n'en a jamais. Enfin
 contemporains, elles éclairent au moins l'histoire des
 faits accomplis. On peut jusqu'à un certain point
 
-. _ — 198 —
-comparer l'influence des théories économiques sur
-la société à celle des grammairiens sur le langage.
-Les langues se forment sans le concours des gram-
-mairiens et se corrompent malgré eux; mais leurs -
-travaux jettent du jour sur les lois de la formation
-et de la décadence des langues: leurs règles hâtent
-l’époque où une langue atteint sa perfection, et re-
-tardent un peu l'invasion de la barbarie et du mau-
-
-vais goft qui la corrompen
-
-TABLE
+TABLE
 
 DBS CHAPITRES,
 
@@ -7588,11 +7575,4 @@ FIN.
 ERRATUM.
 Page 99, ligne 7, moindre, lisez plus grande.
 
-Principes mnathémaliques de la Theorie des richesses.
-
-pannes
-
-VZ...
-?e
-
-
+

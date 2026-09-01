@@ -2,267 +2,241 @@
 
 Ticket 0029. This directory holds the *documents* half of the fixture
 corpus: plain text, page-delimited where the source has real pagination
-(form-feed `\f` between pages, matching `pdftotext`'s own convention; a
-DOCX source has none, so it's committed as one page — see "Formats and
-extraction" below), with per-document provenance and licensing recorded in
-`manifest.json`. It does not yet hold the query set, the Zotero-free
-index-build harness, or the golden-gate wiring — see "What remains" below.
+(form-feed `\f` between pages), with per-document provenance and licensing
+recorded in `manifest.json`. It does not yet hold the query set, the
+Zotero-free index-build harness, or the golden-gate wiring — see "What
+remains" below, which also names the next-phase design correction this
+pass identified but didn't implement.
+
+## No OCR by default (2026-09-01 policy)
+
+Every document here has a real, pre-existing text layer, extracted as-is
+with `pdftotext`/`pandoc` — nothing in this pipeline runs OCR unless a
+document's `DOCS` entry sets `"allow_ocr": True` explicitly. There is
+exactly one such document: **vn-decision-11-2017-qdttg-solar-fit**, whose
+e-signed scan carries no text layer at all over its body (only the
+certificate-stamp block is digital-native), so without OCR its committed
+text would be almost entirely empty rather than merely sparse.
+
+This is a direct, explicit author decision, and it reverses two mechanisms
+built earlier in this same session: a whole-document OCR fallback for a
+missing text layer, and a per-page rescue pass that re-OCR'd individual
+failed-extraction pages inside otherwise-dense documents (confirmed real
+on Porte 1770's page 72, sandwiched between flowing content). Both still
+exist in `build_corpus.py` — gated behind `allow_ocr`, not deleted — but
+neither runs by default. **A real corpus is a dirty corpus**: pages that
+extracted sparse or empty stay exactly as `pdftotext` produced them.
+Five documents below (Cournot, Walras, Porte, Minkowski, Neurath) have a
+handful of such pages; that's disclosed here, not hidden or patched over.
 
 ## Selection method
 
-Every document here is genuinely public domain or explicitly
-author-authorized — never merely openly licensed. Three independent bases
-were used, and each document's `manifest.json` entry states which:
+Every document here is genuinely public domain, statutorily excluded from
+copyright, openly licensed by the rightsholder, or directly author-owned —
+never merely "looks old enough." Four independent bases were used, and
+each document's `manifest.json` entry states which:
 
-- **Age.** Published before 1931, which is the current (2026) US 95-year
-  bright-line: anything published in 1930 or earlier is unconditionally
-  public domain in the US regardless of the author's death date. Six
-  documents below clear this comfortably (1622–1919), and each author's
-  death year is also recorded so the entry is clear under a life+70 reading
-  too. One item (Ramsey) needs life+70 specifically rather than the
-  bright-line — see its own entry.
+- **Age.** Published before 1931 (the current, 2026, US 95-year
+  bright-line for unconditional public domain regardless of author's death
+  date) or clear under life+70 from the author's death where publication
+  came later or was posthumous. Nine documents below rest on this basis.
 - **Statutory exclusion.** Vietnam's Law on Intellectual Property (No.
   50/2005/QH11, as amended), Article 15.2, excludes legal normative
-  documents (văn bản quy phạm pháp luật), administrative documents, and
-  their official translations from copyright protection outright, with no
-  age requirement. A government Decision or Circular is such a document
-  regardless of its year, which is why the Vietnamese items below are
-  2010–2017 rather than pre-1931. Unaddressed: whether the issuing portal's
-  own site terms of use could still restrict redistribution of the file as
-  a file, separately from the text's copyright status, and whether a scan's
-  non-text elements (national emblem, e-signature certificate block) fall
-  under a different, non-copyright regime. Neither is a copyright question,
-  so Article 15.2 doesn't settle either — flagged rather than resolved.
-- **Author-owned, direct authorization.** One document (the author's own
-  Habilitation) is not public domain at all — Minh Ha-Duong holds its
-  copyright as author, and he is this corpus's own commissioning author. He
-  authorized its inclusion directly in the session that assembled this
-  corpus (2026-09-01). Recorded as a distinct basis, not folded into the
-  other two: it rests on the rightsholder's permission, not on expired or
-  excluded copyright, and that distinction matters if this corpus is ever
-  redistributed by someone who isn't him.
+  documents, administrative documents, and their official translations
+  from copyright protection outright, with no age requirement. Four
+  Vietnamese government Decisions/Circulars rest on this basis.
+- **Open licence grant.** The UK Highway Code is Crown Copyright,
+  published under the Open Government Licence v3.0 — a genuine licence the
+  rightsholder grants (worldwide, royalty-free, perpetual, non-exclusive,
+  covering commercial and non-commercial reuse, conditioned only on
+  attribution), not an absence of copyright or a statutory carve-out.
+  Confirmed directly against gov.uk's own OGL text, not inferred from the
+  "government document" pattern the Vietnamese items follow, which rests
+  on a different legal mechanism entirely.
+- **Author-owned, direct authorization.** The author's own 2005
+  Habilitation is not public domain at all — Minh Ha-Duong holds its
+  copyright and is this corpus's own commissioning author; he authorized
+  its inclusion directly in the session that assembled it.
 
 The library queried is the author's own (Zotero userID 95318, 7 541
 top-level items, publicly readable without a key) — "preferably from my
-lib" per the ticket's directive. Twelve of the thirteen documents below
-were found there; the thirteenth (the Habilitation) has no Zotero
-attachment and was fetched from the author's own homepage instead, at his
-direction.
+lib" per the ticket's directive. Twelve of the nineteen documents below
+were found there; the other seven (the Habilitation, and six items added
+on the author's direct request for further variety: a dictionary, a
+poetry collection, a chapterless novel, two Nobel-laureate-connected
+papers, and the Highway Code) were sourced externally, each checked for
+provenance the same way as everything from the library.
 
 **A scan's own container can carry a separate, later copyright even when
-the underlying text is old enough to be free of one** — the risk named
-directly by the author mid-assembly ("recent reeditions of classic books,
-e.g. Dover still has rights"). Checked for every document below by reading
-each PDF's embedded metadata and front matter for a reprint publisher,
-modern date, or "reprint" wording, not just trusting the original work's
-publication year. This caught one real case: **Soddy 1926**, originally
-included in this corpus's first pass, was removed after its embedded
-metadata read "George Allen & Unwin Ltd., London. 1983 reprint" — the
-committed file was a scan of a 1983 reissue, not the 1926 original, and no
-verified original-edition scan was found in the time available. See "What
-remains" for the open slot.
-
-## Formats and extraction
-
-Two source formats: PDF (the default) and DOCX (two Vietnamese circulars,
-`attachment_format: "docx"` in `DOCS`). DOCX is extracted with `pandoc -t
-plain` directly, committed as a single page — `soffice --headless
---convert-to pdf` was tried first, to reuse the PDF page-splitting
-pipeline, but failed outright ("source file could not be loaded") on one
-of the two files while pandoc extracted both cleanly; and a docx has no
-fixed print pagination to preserve in the first place, so treating it as
-one page is honest rather than a fallback compromise.
+the underlying text is old enough to be free of one** — the risk the
+author named directly mid-assembly ("recent reeditions of classic books,
+e.g. Dover still has rights"). Checked for every document by reading each
+PDF's embedded metadata and front matter for a reprint publisher, modern
+date, or "reprint" wording, not just trusting the cited work's publication
+year. This caught one real case: **Soddy 1926**, in this corpus's first
+assembly pass, was removed after its embedded metadata read "George Allen
+& Unwin Ltd., London. 1983 reprint" — a scan of a 1983 reissue, not the
+original. Re-checking an independent archive.org upload of the same title
+turned out to be the identical scan laundered through a re-upload, not a
+cleaner source; no replacement was found.
 
 ## What's here
 
 | id | language | tier | year | pages | chars | facet |
 |---|---|---|---|---|---|---|
-| cournot-1838-recherches | fr | MUST | 1838 | 230 | 250 728 | core |
-| walras-1900-elements | fr | MUST | 1900 | 270 | 956 242 | core |
-| porte-1770-science-des-negocians | fr | MUST | 1770 | 788 | 851 111 | core |
+| cournot-1838-recherches | fr | MUST | 1838 | 230 | 250 144 | core |
+| walras-1900-elements | fr | MUST | 1900 | 270 | 955 830 | core |
+| porte-1770-science-des-negocians | fr | MUST | 1770 | 788 | 842 279 | core |
 | depitre-1908-oeuvres-cournot | fr | MUST | 1908 | 10 | 23 077 | core |
 | ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | 2005 | 180 | 466 312 | core |
+| baudelaire-1857-fleurs-du-mal | fr | MUST | 1857 | 262 | 123 441 | core |
+| curie-1904-recherches-substances-radioactives | fr | MUST | 1904 | 176 | 264 239 | core |
 | malynes-1622-lex-mercatoria-extrait | en | MUST | 1622 | 45 | 110 725 | core |
 | ramsey-1926-truth-and-probability | en | MUST | 1926 | 41 | 109 131 | core |
-| neurath-1919-durch-die-kriegswirtschaft | de | SHOULD | 1919 | 251 | 887 797 | core |
-| minkowski-1896-geometrie-der-zahlen | de | SHOULD | 1896 | 274 | 571 244 | core |
+| johnson-1785-dictionary | en | MUST | 1785 | 1 104 | 10 035 965 | core |
+| stein-1925-making-of-americans | en | MUST | 1925 | 940 | 2 745 627 | core |
+| einstein-minkowski-1920-principle-of-relativity | en | MUST | 1920 | 260 | 318 894 | core |
+| uk-highway-code | en | MUST | (2026 fetch) | 30 | 255 697 | core |
+| neurath-1919-durch-die-kriegswirtschaft | de | SHOULD | 1919 | 251 | 887 724 | core |
+| minkowski-1896-geometrie-der-zahlen | de | SHOULD | 1896 | 274 | 571 192 | core |
 | vn-decision-11-2017-qdttg-solar-fit | vi | MUST | 2017 | 10 | 17 720 | core |
-| vn-circular-25-2016-ttbct-transmission | vi | MUST | 2016 | 106 | 236 081 | core |
+| vn-circular-25-2016-ttbct-transmission | vi | MUST | 2016 | 106 | 232 451 | core |
 | vn-circular-41-2010-btnmt-emissions | vi | MUST | 2010 | 1 | 16 897 | core |
 | vn-circular-42-2010-btnmt-emissions | vi | MUST | 2010 | 1 | 43 333 | core |
 
-Total: 2 207 pages, 4 540 398 chars, 4,8 MB as committed plain text.
+Total: 19 documents, 4 979 pages, 18 270 678 chars, 18 MB as committed
+plain text.
 
-## Variety dimensions, and what each addition buys
+## Variety dimensions
 
-Six documents in the first assembly pass were thin for a fixture meant to
-back roughly 40 pinned queries — all treatises on nearly one subject
-(value theory) in EN/FR, one in DE. This pass targeted variety on several
-independent axes rather than just adding more of the same shape:
-
-- **Topic/subject.** Alongside the value-theory pair (Cournot, Walras):
-  a bookkeeping/accounting manual (Porte, 1770), commercial law (Malynes,
-  1622), philosophy of probability (Ramsey, 1926), historiography of
-  Cournot (Depitre, 1908), pure mathematics with no economics content at
-  all (Minkowski — deliberately off-topic, to test that an unrelated
-  subject doesn't falsely dominate an economics query), and the author's
-  own work on imprecise probabilities (the Habilitation).
-- **Vietnamese agency/topic spread.** The first pass had two BCT
-  (Ministry of Industry and Trade) energy circulars. This pass adds two
-  MONRE (Ministry of Natural Resources and Environment) circulars on
-  industrial-emissions technical standards — a different ministry and a
-  different topic (environment, not energy-market regulation), closer to
-  the repo's own climate/environment domain.
-- **Item type / genre.** The first pass was all `book`-type Zotero items
-  (plus the two VI legal instruments). This pass adds `journalArticle`
-  (Depitre) and excerpts of larger works (Malynes, Ramsey), plus two
-  `document`-type DOCX circulars.
-- **Document length.** Porte (788 pages) is now the longest single
-  document in the corpus by a wide margin, alongside genuinely short items
-  (the two MONRE circulars at 1 page each in this pipeline's convention,
-  Depitre at 10). The length spread runs from single digits to nearly 800.
+- **Topic/subject.** Value theory (Cournot, Walras), bookkeeping (Porte),
+  commercial law (Malynes), probability philosophy (Ramsey), pure
+  mathematics with no economics content at all (Minkowski, deliberately
+  off-topic), Cournot historiography (Depitre), war economy (Neurath),
+  imprecise probabilities (the Habilitation), lexicography (Johnson),
+  poetry (Baudelaire), a chapterless novel (Stein), foundational physics
+  (Curie, Einstein/Minkowski), and road-traffic law (the Highway Code).
+- **Genre/register.** Treatise, ledger manual, statute excerpt, philosophy
+  essay, journal article, war pamphlet, dissertation, dictionary, verse,
+  continuous narrative prose, physics papers, government guidance pages —
+  the corpus no longer reads as one genre in five languages.
+- **Vietnamese agency spread.** BCT (energy, the original pair) and MONRE
+  (environment, added this pass) — two ministries, two topics.
+- **Item type.** Book, journal article, book section, legal instrument,
+  and (for the six externally-sourced additions) works with no Zotero item
+  type at all.
+- **Document length.** 1 page (the DOCX-sourced VN circulars, committed
+  whole since DOCX carries no fixed print pagination) to 1,104 pages
+  (Johnson's dictionary) — three orders of magnitude.
+- **Source format.** PDF (most documents), DOCX (two MONRE circulars, via
+  `pandoc`), and live HTML (the Highway Code — 30 gov.uk guidance pages,
+  each becoming one committed page, with the `<main>` element isolated
+  before conversion so cookie banners and navigation chrome don't drown
+  out the actual rules on every page).
+- **Structural extremes, requested directly by the author for segmenter
+  testing**: Baudelaire is verse (short lines, stanza breaks, no paragraph
+  structure); Stein's *The Making of Americans* is 940 pages of continuous
+  narrative with no chapter divisions at all, offering a segmenter no
+  section boundary to key on, unlike every other document here.
 - **Cross-lingual anchor**, still just the one pair (Decision 11/2017's
-  official VN/EN bilingual text) — not expanded this pass; see "What
-  remains".
+  official VN/EN bilingual text) — not expanded this pass.
 
-**Considered and rejected: an IPCC report.** Checked the IPCC's own
-copyright/permissions notice directly (`ipcc.ch/copyright`, via search
-since the page 403s to a plain fetch): it authorizes free, no-permission
-reproduction of "limited numbers of figures **or short excerpts**" for
-personal, non-commercial use with attribution — not full reports or full
-chapters. Even granting that this corpus's use is non-commercial (it is),
-committing a full Summary for Policymakers would exceed what that blanket
-permission actually covers; it would need explicit written permission from
-the IPCC, which this session doesn't have. Noted for the record since it
-was raised directly: if climate-topic PD content is wanted, the clean
-equivalent is a **US government climate report** (a National Climate
-Assessment, a NOAA report) — a work of the US government carries no
+**Considered and rejected: an IPCC report and IPCC presentations.**
+Checked the IPCC's own copyright/permissions notice directly: it
+authorizes free reproduction of "limited numbers of figures or short
+excerpts" for personal, non-commercial use — not full reports, and
+nothing found suggests presentations/outreach material carry different,
+looser terms. Even granting this corpus's use is non-commercial, a full
+report or deck would exceed that permission; committing one would need
+explicit written permission this session doesn't have. The clean
+alternative for climate-topic PD content, if wanted later, is a **US
+government climate report** — a work of the US government carries no
 copyright at all, unlike an IGO's own copyrighted-with-permission report.
-Not sourced this pass; flagged as an option for later.
 
-## OCR and extraction quality, varies and is recorded per document
+## Johnson's Dictionary: a source swap, and why
 
-Cournot (BnF/Gallica), Depitre, and the Vietnamese Circular 25/2016 are
-clean digital-native or well-OCR'd text. Walras (Google Books-era scan),
-Porte and Minkowski (older Internet Archive OCR passes), and Neurath
-(Fraktur title page, Antiqua body) are noisier — real scanner noise, not
-hand-cleaned prose, arguably a feature for a fixture meant to stand in for
-a real library. Malynes (1622 typography — long s, black-letter passages)
-is the noisiest deliberately-kept item.
+The first candidate (Bayerische Staatsbibliothek's 1755 first-edition
+scan, `10495836bsb`, 1.2 GB) turned out to have a scrambled reading order
+in its own text layer — confirmed directly, not assumed: both its main
+PDF and its archive.org-generated `djvu.txt` extract as garbled
+letter-by-letter fragments, not real prose. Re-OCRing it wasn't
+attempted, both because OCR is now out by policy and because a fresh
+full-document OCR pass at 1,187 pages from a 1.2 GB source is a scale
+this pipeline isn't tuned for regardless. Swapped for a University of
+Toronto scan of the 1785 sixth edition, Volume 1 (1,104 pages), whose text
+layer reads correctly on inspection. Same author, same work, a different,
+usable printing — checked, not assumed, exactly like the Soddy case above.
 
-Decision 11/2017's body carried no text layer at all (only the
-e-signature certificate block was digital-native); OCR'd page-by-page with
-tesseract 5 + the `vie` traineddata (fetched to a scratch `tessdata` dir —
-Vietnamese is not part of this machine's default tesseract install, only
-`eng`/`fra`). `ocrmypdf --language vie` itself silently produced an empty
-text layer on this signed PDF even with `--invalidate-digital-signatures`;
-direct per-page `tesseract -l vie` on `pdftoppm`-rendered pages worked and
-is what `extract_text()`'s automatic density-fallback path now does.
+## OCR-affected documents (before this pass's no-OCR policy)
 
-**A whole-document average density check cannot see a handful of failed
-pages inside an otherwise dense document.** Confirmed directly: Porte's
-page 72 (a real 1770 ledger scan) sits between flowing content on pages 71
-and 73 but extracted to 0 characters -- a failed OCR pass on that one
-page, not a genuine blank leaf. `rescue_sparse_pages()` re-OCRs any page
-under a per-page floor individually and keeps the result only if it found
-more than pdftotext already had. Rescued real content on 40 pages across
-six documents in this pass (Porte alone: 22 pages, ~8 800 chars) --
-without it, those pages would have stayed silently empty in the committed
-corpus, invisible to R24 page-locator work later.
+The following carry a small number of sparse or empty pages, extracted
+exactly as `pdftotext` produced them, per the no-OCR-by-default policy:
+Cournot, Walras, Porte, Minkowski, and Neurath. Per-page char-length
+minimums are recorded in `manifest.json` (`page_length_chars_min`) for
+anyone who wants to find them. Decision 11/2017 is the sole exception,
+OCR'd in full via its `allow_ocr: True` opt-in, because without OCR its
+committed text would be almost entirely empty rather than merely sparse —
+described in detail in `build_corpus.py`'s own `DOCS` entry for it.
 
-**One Zotero attachment turned out to be mislabeled entirely**, not just
-noisy: Westergaard 1890 (`AAIDIRUF`, `contentType: application/pdf`) is
-actually a raw JPEG (`ffd8ffe0` magic bytes) — a genuine image with a
-wrong content-type tag, not a corrupt or unusual PDF. `fetch_attachment`'s
-magic-byte check caught it; the item was dropped rather than building
-one-off image-OCR handling for a single marginal page.
+## Reproducibility
 
-**Ramsey's text isn't a facsimile like the rest of this corpus.** The
-committed file's own first page identifies itself as an "Electronic
-Edition... adapted from Chapter VII" of Ramsey's 1931 posthumous
-*Foundations of Mathematics* — a transcription prepared for open teaching
-use, not a scan. Read as a faithful reproduction (no added commentary
-found in it), but flagged as a different kind of source than everything
-else here, which is all a scan of something.
-
-**Reproducibility is contingent on the library not changing underneath
-it.** Every Zotero-sourced document is fetched by item/attachment key from
-the author's live library, not from a pinned snapshot; the Habilitation is
-fetched from a live URL on the author's homepage. `manifest.json` records
-`source_attachment_sha256` per document precisely so a future re-run that
-fetches different bytes (a corrected scan, a replaced attachment) is
-visible as a hash diff rather than a silent content change under the same
-doc id — the hash detects drift, it does not prevent it.
+Every Zotero-sourced document is fetched by item/attachment key from the
+author's live library; six documents are fetched from a direct URL or a
+set of live web pages instead. Both are mutable, live locations —
+`manifest.json` records `source_attachment_sha256` per document so a
+future re-run that fetches different bytes surfaces as a visible hash
+diff rather than a silent content change under the same doc id. The UK
+Highway Code is the most exposed to this: it is *itself* a living,
+government-maintained document, not a fixed historical artifact, so a
+re-run may commit different text under the same doc id if a rule has been
+updated since — exactly what the hash exists to surface.
 
 ## What remains (ticket 0029's other exit criteria — not attempted this pass)
 
-- **The author's PhD thesis was requested alongside the Habilitation but
-  is not yet included.** It has no Zotero attachment (bibliographic record
-  only, like the Habilitation had). It's deposited on HAL
-  (`https://theses.hal.science/tel-00003505`), confirmed via HAL's own API
-  (`api.archives-ouvertes.fr`, which returns the correct record and an
-  author-authorization license), but the HAL web frontend sits behind an
-  Anubis proof-of-work anti-bot challenge that this session's plain HTTP
-  tools (`curl`, `WebFetch`) cannot clear — every fetch of the actual PDF
-  bytes returned the challenge page, not the file. Not attempted further;
-  needs either a copy from the author directly, a mirror this session
-  hasn't found, or a fetch from an environment that can solve the
-  challenge.
+- **The correct next-phase sourcing design, identified but not
+  implemented this pass**: the author pointed out, after this corpus was
+  built, that the proper way to assemble it is to create a real Zotero
+  collection, add each document as a genuine Zotero item with an uploaded
+  attachment, and let Zotero's own server-side fulltext extraction produce
+  the text — not a custom `pdftotext`/`pandoc`/OCR pipeline reinventing
+  what the actual target system already does. This is the right design:
+  it gives the corpus fidelity to what a real Zotero-indexed library
+  actually produces, which a hand-rolled extraction script cannot
+  guarantee. Not implemented this pass — it needs the write-access API
+  key, per-item metadata entry, attachment upload, and waiting on Zotero's
+  own indexing before text is even retrievable, which is a genuinely
+  larger task than this session's remaining time allowed. `build_corpus.py`
+  as it stands should be treated as a stopgap that produced real, usable,
+  provenance-checked text — not the final architecture.
+- **The author's PhD thesis** was requested alongside the Habilitation but
+  is not included. It's deposited on HAL (`tel-00003505`, confirmed via
+  HAL's own API), but the web frontend sits behind an Anubis anti-bot
+  proof-of-work challenge this session's tools couldn't clear.
 - **SHOULD-tier languages set aside, with reasons**, per the ticket's own
-  rule ("a SHOULD language whose corpus cannot be assembled is set aside
-  with a stated reason"):
-  - **Russian.** One old candidate exists in the library — Kantorovich
-    1939, *Математические методы организации и планирования
-    производства* — but Kantorovich died in 1986, so it is not public
-    domain under any reading (life+70 runs to 2056); its 1930s date does
-    not help since the US bright-line is about *publication*, not
-    discovery, and even so 1939 already misses the pre-1931 cutoff. No
-    other library candidate carries an explicit PD or CC0 marker. Set
-    aside.
+  rule:
+  - **Russian.** The one old candidate in the library — Kantorovich 1939 —
+    is not public domain (Kantorovich died 1986; life+70 runs to 2056).
   - **Chinese, Spanish, Hindi.** Zero items in the library are tagged with
-    these languages at all (`zh`/`es`/`hi` prefix match on the `language`
-    field, checked against all 7 541 items). Not "no PD candidate found" —
-    no candidate of any kind. Set aside; would need external sourcing.
+    these languages at all. Set aside; would need external sourcing.
   - **Arabic.** Four items tagged, all modern UNFCCC/CBD documents, none
-    public domain. Set aside.
+    public domain.
 - **Group-library slice.** This Zotero account has zero group
-  memberships (`/users/95318/groups` returns `[]`). The "group" facet
-  cannot be sourced from "my lib" at all under the current account; it
-  needs either a group the author joins or a synthetic fixture. Not
-  attempted.
-- **Notes facet.** Not attempted — a standalone note's public-domain status
-  would rest on the author's own dedication of his own text, which is his
-  call to make, not this session's. (The Habilitation shows the pattern —
-  author-owned, directly authorized — that a notes-facet addition would
-  likely also need.)
-- **A monster document in a non-Latin script**, per the intersections
-  requirement (a 15 000-page-class document, non-Latin script). Porte
-  (788 pages) is now the longest document assembled, but is Latin-script;
-  it does not satisfy the non-Latin-script half of the intersection. No
-  non-Latin-script PD candidate of that scale turned up among the
-  SHOULD-tier searches above.
-- **Passage-length distribution pinning** (SPEC.md §5.2.8/§5.2.9,
-  R32's rate-transfer clause). What's recorded per document here is
-  page-count and per-page char-length quantiles (`manifest.json`), which is
-  a proxy — the real passage-length distribution is a property of the
-  *chunker's* output (ticket 0028's segmenter), not of raw pages, and that
-  chunker doesn't exist yet.
-- **~40 pinned queries with answer sets, re-pin procedure, R33's three
-  probe shapes, R34's absolute reading** — none of this is built; it needs
-  a working index over this corpus first (next bullet).
-- **The Zotero-free index-build harness** (`bench/` driving
-  `putItem`/`putPassage`/`putVector` directly, per `bench/issue30_build_index.mjs`'s
-  existing pattern for a different fixture) — not built. Without it this
-  corpus cannot yet be queried, so R33/R34/the golden gate stay unopened.
-- **The golden gate wiring in `make check`** (ticket 0026) — blocked on the
-  harness and the query set above.
-- **No standing guard checks `manifest.json` against a fresh run of `DOCS`**,
-  unlike `bench/models.json`/`registry.py`'s `check_models.py`. A hand-edit
-  to `manifest.json`, or `DOCS` drifting from it, would go undetected —
-  the repo's own "one statement per fact" convention names this as its most
-  expensive recurring defect class. Worth a `check_corpus.py` once the
-  corpus is queried by something that would actually notice a drift.
+  memberships. Not attempted.
+- **Notes facet.** Not attempted.
+- **A monster document in a non-Latin script.** Johnson's dictionary
+  (1,104 pages) is now the longest document, but is Latin-script; no
+  non-Latin-script PD candidate of that scale turned up.
+- **Passage-length distribution pinning** — a property of the future
+  chunker's output, not of raw pages.
+- **~40 pinned queries, R33's three probe shapes, R34's absolute reading,
+  the Zotero-free index-build harness, and the golden gate wiring** — none
+  of this is built yet; all wait on the harness (and, per the point above,
+  probably on the Zotero-collection sourcing redesign too).
+- **No standing guard checks `manifest.json` against a fresh run of
+  `DOCS`.** A hand-edit or drift would go undetected.
 
-None of the unmet items block what this pass delivers: a real, licensed,
-page-addressable multilingual document set, now with genuine topical and
-structural variety, an index harness can be pointed at once it exists.
+None of the unmet items block what this pass delivers: nineteen real,
+licensed, page-addressable documents spanning five languages, four
+licensing bases, and genuine structural extremes, an index harness can be
+pointed at once it exists — with the correct long-term sourcing design
+now identified in writing for whoever builds that harness next.

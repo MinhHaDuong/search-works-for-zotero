@@ -25,6 +25,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import unicodedata
@@ -305,6 +306,12 @@ DOCS = [
         "facet": "core",
         "zotero_item_key": "BBC3AWPR",
         "zotero_attachment_key": "JXZEX4KX",
+        # The one explicit OCR opt-in in this corpus (2026-09-01 policy: no
+        # OCR by default, everywhere else). Structurally necessary here --
+        # this scan's body has no text layer at all, only the certificate
+        # stamp does, so without OCR the committed text would be almost
+        # entirely empty rather than merely sparse.
+        "allow_ocr": True,
         "source": "Cổng Thông tin điện tử Chính phủ (Vietnam Government Portal), official e-signed PDF",
         "license_basis": (
             "Public domain under Vietnamese law: Luật Sở hữu trí tuệ (Law on "
@@ -352,6 +359,211 @@ DOCS = [
         ),
         "notes": "106 pages -- the longest MUST-tier document in this pass, useful for R24 page-locator coverage.",
     },
+    # --- Round 3: dictionary, poetry, a chapterless long-form work, two
+    # Nobel-laureate-connected papers, and a UK statute-adjacent document,
+    # all requested directly by the author for further variety. Every
+    # non-Vietnamese, non-Zotero item below is sourced from archive.org and
+    # checked the same way as everything above: real institutional scanner/
+    # operator/collection metadata (not an anonymous "opensource" upload,
+    # the exact category that turned out to be Soddy's problem), read
+    # directly rather than inferred from the archive.org search result.
+    {
+        "id": "johnson-1785-dictionary",
+        "title": "A Dictionary of the English Language, Vol. 1 (6th ed.)",
+        "author": "Samuel Johnson",
+        "year": 1785,
+        "language": "en",
+        "facet": "core",
+        "source_url": "https://archive.org/download/dictionaryofengl01johnuoft/dictionaryofengl01johnuoft.pdf",
+        "source": "University of Toronto (Kelly Library) digitization, via archive.org",
+        "license_basis": (
+            "Public domain everywhere: published 1785 (author died 1784, "
+            "the year before -- this sixth edition was posthumous); "
+            "life+70 from his death expired 1854 regardless. Clear under "
+            "the US pre-1931-publication bright-line too."
+        ),
+        "notes": (
+            "1,104 pages -- the largest document in this corpus by a wide "
+            "margin (the author explicitly wanted size, not a trimmed "
+            "excerpt). A dictionary's entry-per-headword structure is "
+            "unlike every other document here (all continuous prose or "
+            "legal-instrument text), which is the point: it tests whatever "
+            "later segmenter work does with a reference work rather than a "
+            "narrative or an argument. Swapped in for this edition after "
+            "the Bavarian State Library's 1755-first-edition scan turned "
+            "out to have a scrambled reading order in its own text layer "
+            "(garbled letter-by-letter, both in its main PDF and its "
+            "archive.org-generated djvu.txt) -- a 1.2 GB source that would "
+            "also have needed a full re-OCR pass at a scale this pipeline "
+            "isn't tuned for. Read on inspection, not assumed clean because "
+            "it came from a named library the way the rest of this corpus's "
+            "provenance checks work."
+        ),
+    },
+    {
+        "id": "baudelaire-1857-fleurs-du-mal",
+        "title": "Les Fleurs du Mal (1re éd.)",
+        "author": "Charles Baudelaire",
+        "year": 1857,
+        "language": "fr",
+        "facet": "core",
+        "source_url": "https://archive.org/download/lesfleursdum00baud/lesfleursdum00baud.pdf",
+        "source": "University of Toronto (Kelly Library) digitization, via archive.org",
+        "license_basis": (
+            "Public domain everywhere: published 1857, author died 1867 "
+            "(life+70 expired 1937); clear under the US pre-1931-publication "
+            "bright-line too. (The 1857 first edition was itself prosecuted "
+            "for obscenity -- six poems banned in France until 1949 -- which "
+            "is orthogonal to its copyright status but a genuine feature of "
+            "this exact edition, confirmed by archive.org's own 'bannedbooks' "
+            "collection tag on this scan.)"
+        ),
+        "notes": (
+            "Verse, not prose -- short lines, stanza breaks, no paragraph "
+            "structure. Requested by the author specifically for segmenter "
+            "testing: a chunker tuned on prose/legal text needs a poetry "
+            "case to know whether it's actually generalizing."
+        ),
+    },
+    {
+        "id": "stein-1925-making-of-americans",
+        "title": "The Making of Americans",
+        "author": "Gertrude Stein",
+        "year": 1925,
+        "language": "en",
+        "facet": "core",
+        "source_url": "https://archive.org/download/makingofamerican0000unse_j2t9/makingofamerican0000unse_j2t9.pdf",
+        "source": "Internet Archive digitization (internetarchivebooks collection)",
+        "license_basis": (
+            "Public domain everywhere: published 1925 (Contact Editions, "
+            "Paris), author died 1946 (life+70 expired 2016); clear under "
+            "the US pre-1931-publication bright-line too."
+        ),
+        "notes": (
+            "940 pages of continuous narrative with no chapter divisions -- "
+            "requested by the author to test how a segmenter handles a long "
+            "document that offers it no section boundaries to key on at "
+            "all, unlike everything else in this corpus (which has "
+            "chapters, articles, dictionary headwords, or legal-instrument "
+            "clauses)."
+        ),
+    },
+    {
+        "id": "curie-1904-recherches-substances-radioactives",
+        "title": "Recherches sur les substances radioactives",
+        "author": "Marie Curie",
+        "year": 1904,
+        "language": "fr",
+        "facet": "core",
+        "source_url": "https://archive.org/download/recherchessurles00curi/recherchessurles00curi.pdf",
+        "source": "University of Toronto (Thomas Fisher Rare Book Library) digitization, via archive.org",
+        "license_basis": (
+            "Public domain everywhere: published 1904 (Gauthier-Villars, "
+            "Paris), author died 1934 (life+70 expired 2004); clear under "
+            "the US pre-1931-publication bright-line too."
+        ),
+        "notes": (
+            "Curie's doctoral thesis, the basis of her 1903 Physics Nobel "
+            "(shared with Pierre Curie and Becquerel) and her 1911 "
+            "Chemistry Nobel -- a seminal-research-article addition, "
+            "requested by the author, and the corpus's second Nobel-linked "
+            "document alongside the Einstein/Minkowski entry below."
+        ),
+    },
+    {
+        "id": "einstein-minkowski-1920-principle-of-relativity",
+        "title": "The Principle of Relativity: Original Papers by A. Einstein and H. Minkowski",
+        "author": "Albert Einstein and Hermann Minkowski, translated by M. N. Saha and S. N. Bose",
+        "year": 1920,
+        "language": "en",
+        "facet": "core",
+        "source_url": "https://archive.org/download/theprincipleofre00einsuoft/theprincipleofre00einsuoft.pdf",
+        "source": "University of Toronto (Robarts Library) digitization, via archive.org",
+        "license_basis": (
+            "Public domain in the US via the pre-1931-publication "
+            "bright-line -- this translation was published in 1920 "
+            "(University of Calcutta), which is what carries it, NOT "
+            "life+70: translator S. N. Bose died in 1974, so life+70 for "
+            "the translation itself would not expire until 2044. Einstein's "
+            "original 1905 German papers and Minkowski's (d. 1909) are "
+            "separately clear either way. Read the two bases apart, the "
+            "same trap the Ramsey entry above flags."
+        ),
+        "notes": (
+            "Requested by the author as a seminal, Nobel-connected paper "
+            "(Einstein, Physics 1921) in English. Translated by Meghnad "
+            "Saha and Satyendra Nath Bose -- the same Bose of Bose-Einstein "
+            "statistics -- with a historical introduction by P. C. "
+            "Mahalanobis; a historically notable translation in its own "
+            "right, not an anonymous one."
+        ),
+    },
+    {
+        "id": "uk-highway-code",
+        "title": "The Highway Code",
+        "author": "Department for Transport (United Kingdom)",
+        "year": 2026,
+        "language": "en",
+        "facet": "core",
+        "page_urls": [
+            "https://www.gov.uk/guidance/the-highway-code/introduction",
+            "https://www.gov.uk/guidance/the-highway-code/rules-for-pedestrians-1-to-35",
+            "https://www.gov.uk/guidance/the-highway-code/rules-for-users-of-powered-wheelchairs-and-mobility-scooters-36-to-46",
+            "https://www.gov.uk/guidance/the-highway-code/rules-about-animals-47-to-58",
+            "https://www.gov.uk/guidance/the-highway-code/rules-for-cyclists-59-to-82",
+            "https://www.gov.uk/guidance/the-highway-code/rules-for-motorcyclists-83-to-88",
+            "https://www.gov.uk/guidance/the-highway-code/rules-for-drivers-and-motorcyclists-89-to-102",
+            "https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158",
+            "https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203",
+            "https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225",
+            "https://www.gov.uk/guidance/the-highway-code/driving-in-adverse-weather-conditions-226-to-237",
+            "https://www.gov.uk/guidance/the-highway-code/waiting-and-parking-238-to-252",
+            "https://www.gov.uk/guidance/the-highway-code/motorways-253-to-273",
+            "https://www.gov.uk/guidance/the-highway-code/breakdowns-and-incidents-274-to-287",
+            "https://www.gov.uk/guidance/the-highway-code/road-works-level-crossings-and-tramways-288-to-307",
+            "https://www.gov.uk/guidance/the-highway-code/light-signals-controlling-traffic",
+            "https://www.gov.uk/guidance/the-highway-code/signals-to-other-road-users",
+            "https://www.gov.uk/guidance/the-highway-code/signals-by-authorised-persons",
+            "https://www.gov.uk/guidance/the-highway-code/traffic-signs",
+            "https://www.gov.uk/guidance/the-highway-code/road-markings",
+            "https://www.gov.uk/guidance/the-highway-code/vehicle-markings",
+            "https://www.gov.uk/guidance/the-highway-code/other-information",
+            "https://www.gov.uk/guidance/the-highway-code/annex-1-you-and-your-bicycle",
+            "https://www.gov.uk/guidance/the-highway-code/annex-2-motorcycle-licence-requirements",
+            "https://www.gov.uk/guidance/the-highway-code/annex-3-motor-vehicle-documentation-and-learner-driver-requirements",
+            "https://www.gov.uk/guidance/the-highway-code/annex-4-the-road-user-and-the-law",
+            "https://www.gov.uk/guidance/the-highway-code/annex-5-penalties",
+            "https://www.gov.uk/guidance/the-highway-code/annex-6-vehicle-maintenance-safety-and-security",
+            "https://www.gov.uk/guidance/the-highway-code/annex-7-first-aid-on-the-road",
+            "https://www.gov.uk/guidance/the-highway-code/annex-8-safety-code-for-new-drivers",
+        ],
+        "source": "gov.uk, live guidance pages (~30 sections, one per committed page)",
+        "license_basis": (
+            "NOT public domain -- Crown Copyright, published under the Open "
+            "Government Licence v3.0. This is a fourth, distinct basis from "
+            "the other three in this corpus: OGL is a genuine open licence "
+            "the rightsholder (the Crown) grants, not an absence of "
+            "copyright (unlike age) or a statutory exclusion (unlike the "
+            "Vietnamese items). OGL grants a worldwide, royalty-free, "
+            "perpetual, non-exclusive licence to copy, adapt, and "
+            "redistribute, commercially or not, conditioned only on "
+            "attribution -- confirmed directly against gov.uk's own OGL "
+            "text, not assumed from the 'government document' pattern of "
+            "the Vietnamese entries, which rests on a different legal "
+            "mechanism (copyright exclusion, not a license grant)."
+        ),
+        "notes": (
+            "Requested by the author (\"UK Code for driving\"). Sourced "
+            "directly from gov.uk (~30 separate guidance pages, one per "
+            "committed page) rather than any of the several third-party "
+            "PDF mirrors search turned up, whose fidelity to the current "
+            "official text isn't independently verifiable. `year` is this "
+            "session's date, not a fixed publication year: the Code is "
+            "live-maintained on gov.uk, so a re-run may commit different "
+            "text under the same doc id if a rule has been updated -- "
+            "exactly what source_attachment_sha256 exists to surface."
+        ),
+    },
 ]
 
 
@@ -381,6 +593,42 @@ def _download_atomic(
             tmp.unlink()
             raise SystemExit(f"{url}: expected {magic!r} at file start, got {head!r} -- download corrupt")
     os.replace(tmp, dest)
+
+
+def fetch_html_page(url: str, cache_dir: Path, timeout: float) -> Path:
+    """Fetch one HTML page, keyed by a hash of its URL (there is no
+    attachment key the way a Zotero source has one). Used for a document
+    that only exists as a set of live web pages (e.g. gov.uk's Highway
+    Code, published as ~30 separate guidance pages, not one PDF)."""
+    dest = cache_dir / f"{hashlib.sha256(url.encode()).hexdigest()[:16]}.html"
+    if dest.exists():
+        return dest
+    log.info("fetching %s", url)
+    _download_atomic(url, dest, timeout, min_size=500)
+    return dest
+
+
+def extract_html_text(html_path: Path) -> str:
+    """A full gov.uk page is mostly chrome (cookie banner, nav menu,
+    footer) identical across every page of a multi-page document -- fed
+    straight to pandoc it would dominate every committed page equally.
+    Isolate the <main> element (gov.uk's own content wrapper, confirmed
+    present and consistent across the pages this pipeline fetches) before
+    conversion; fall back to the whole document if a source ever lacks
+    one, rather than fail outright on a page pandoc could still handle."""
+    html = html_path.read_text(encoding="utf-8", errors="replace")
+    match = re.search(r"<main[^>]*>(.*?)</main>", html, re.DOTALL)
+    content = match.group(1) if match else html
+    result = subprocess.run(
+        ["pandoc", "-f", "html", "-t", "plain"],
+        input=content,
+        capture_output=True,
+        text=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    if result.returncode != 0:
+        raise SystemExit(f"pandoc failed on {html_path} (exit {result.returncode}): {result.stderr.strip()}")
+    return unicodedata.normalize("NFC", result.stdout)
 
 
 def fetch_attachment(doc: dict, cache_dir: Path, timeout: float) -> Path:
@@ -527,7 +775,9 @@ def rescue_sparse_pages(pdf_path: Path, pages: list[str], lang: str, cache_dir: 
     return rescued
 
 
-def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt: str = "pdf") -> str:
+def extract_text(
+    src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt: str = "pdf", allow_ocr: bool = False
+) -> str:
     if fmt == "docx":
         return unicodedata.normalize("NFC", extract_docx_text(src_path))
     pdf_path = src_path
@@ -541,7 +791,16 @@ def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt
     if pages and pages[-1] == "":
         pages = pages[:-1]
     density = len(text) / max(len(pages), 1)
-    if density < MIN_CHARS_PER_PAGE:
+    if not allow_ocr:
+        # No OCR by default -- an explicit author decision (2026-09-01):
+        # a document either has a real text layer or it isn't used here.
+        # The one exception (vn-decision-11-2017, whose body has no text
+        # layer at all) opts in explicitly via DOCS' allow_ocr: True; every
+        # other document, sparse pages included, is committed exactly as
+        # pdftotext extracted it -- "a real dirty corpus" was the direction,
+        # not a cleaned-up one.
+        pass
+    elif density < MIN_CHARS_PER_PAGE:
         log.info(
             "%s: %.0f chars/page over %d pages looks like a missing text layer -- OCR'ing",
             pdf_path.name,
@@ -564,9 +823,20 @@ def extract_text(src_path: Path, lang: str, cache_dir: Path, timeout: float, fmt
 
 
 def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict:
-    src_path = fetch_attachment(doc, cache_dir, timeout)
-    fmt = doc.get("attachment_format", "pdf")
-    text = extract_text(src_path, doc["language"], cache_dir, timeout, fmt=fmt)
+    if "page_urls" in doc:
+        # A document that exists only as a set of live web pages (no single
+        # PDF/DOCX attachment) -- one page_url becomes one committed page,
+        # a natural boundary rather than an arbitrary one.
+        html_paths = [fetch_html_page(u, cache_dir, timeout) for u in doc["page_urls"]]
+        text = "\f".join(extract_html_text(p) for p in html_paths) + "\f"
+        source_hash = hashlib.sha256(b"".join(p.read_bytes() for p in html_paths)).hexdigest()
+    else:
+        src_path = fetch_attachment(doc, cache_dir, timeout)
+        fmt = doc.get("attachment_format", "pdf")
+        text = extract_text(
+            src_path, doc["language"], cache_dir, timeout, fmt=fmt, allow_ocr=doc.get("allow_ocr", False)
+        )
+        source_hash = hashlib.sha256(src_path.read_bytes()).hexdigest()
 
     doc_dir = out_dir / doc["facet"] / doc["language"] / doc["id"]
     doc_dir.mkdir(parents=True, exist_ok=True)
@@ -582,15 +852,16 @@ def build_one(doc: dict, out_dir: Path, cache_dir: Path, timeout: float) -> dict
     meta.update(
         {
             "text_path": str(text_path.relative_to(out_dir.parent)),
-            # The source (a Zotero attachment, or a direct URL) is a live,
-            # mutable location -- someone could replace it with a different
-            # scan or a correction. This hash is recorded so a future re-run
-            # that gets different bytes surfaces as a manifest diff (a
-            # committed-text change with no corresponding DOCS edit) rather
-            # than silently overwriting "reproducible" text with new content.
-            # Hashed on the fetched source file, not the docx->pdf conversion
-            # output, so it tracks what was actually fetched from the source.
-            "source_attachment_sha256": hashlib.sha256(src_path.read_bytes()).hexdigest(),
+            # The source (a Zotero attachment, a direct URL, or a set of
+            # web pages) is a live, mutable location -- someone could
+            # replace it with a different scan, edition, or edit. This hash
+            # is recorded so a future re-run that gets different bytes
+            # surfaces as a manifest diff (a committed-text change with no
+            # corresponding DOCS edit) rather than silently overwriting
+            # "reproducible" text with new content. Hashed on the fetched
+            # source bytes, not a docx->pdf conversion output that no
+            # longer exists in this pipeline.
+            "source_attachment_sha256": source_hash,
             "page_count": len(pages),
             "char_count": len(text),
             "page_length_chars_min": min(page_lengths),
