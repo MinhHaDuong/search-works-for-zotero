@@ -308,6 +308,19 @@ its fixed 64-chunk set are ratified (DECISIONS.md, 2026-08-31) and this section
 still has to carry them, along with §2.1's stage keys and the per-file
 `embed_hash` guard that ruling reshapes.
 
+**Adopting a foreign index** (ratified 2026-09-01). A data directory copied
+whole from another machine — one-shot, never a shared live file — is opened,
+not rebuilt. The copy registers under a new origin row: versions scope by
+`Zotero-Server-ID`, so every change signal it carries is foreign on arrival
+and is marked stale. Its calibration header is verified locally before any
+row serves, and that decides adoptability per file: fp32 rungs travel, an
+8-bit rung whose chain includes the device does not, and fp16 has no CPU
+provider to land on. Keys are content hashes, so the verify sweep converges
+the copy by fetch-and-hash — re-embedding nothing whose content matches — and
+R1 re-earns the delta from there. The intended use is embed on the GPU host,
+retrieve on the laptop; the remote-embedder alternative stays out of the
+design and inside ticket 0491's comparison (§2.5).
+
 **The segmenter, seg/1** is new machinery: the spec lives here, and ticket
 0028 builds to it.
 
@@ -1215,8 +1228,9 @@ Unchanged, and now without the hidden second scan (§2.6).
   verification/FIELD-REVIEW.md) the execution provider stays out of the embedder key —
   device is an execution detail recorded in results, never in vector identity,
   and an index embedded on one machine can serve on another; below the bar,
-  the provider enters the key and the adopt-a-foreign-index question
-  (DECISIONS.md, awaiting ratification) dies on the evidence. Either way fp16
+  the provider enters the key and the adopt-a-foreign-index path
+  (DECISIONS.md, ratified 2026-09-01 in the copy shape) dies on the evidence
+  at that rung. Either way fp16
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is the measured failure ticket 0240 records.
