@@ -46,6 +46,7 @@ test suite stays green on the fork branch.
 
 ## Exit criteria
 
-- [ ] All five children closed
+- [ ] All five children closed (0551-0555; 0556 is not a tranche, see
+      Children)
 - [ ] Integration review: full suite on the fork's assembled branch,
       scheduling properties green, byte-identical vector check green
