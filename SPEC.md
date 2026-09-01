@@ -1351,7 +1351,12 @@ along the write line: its bookkeeping is the conductor's, since all of it is
 writing — the item cursor, the full-text census, extractor-version staleness,
 and per-attachment truncation flags — while its one
 reading duty, the whole-document GET, is the worker's, arriving back as
-windows. The stage keeps its key: `text_hash` (§5.2.1) is computed over the
+windows. The worker paces that GET on observed latency (DECISIONS.md,
+2026-09-01): a rising local-API latency median inserts a delay between
+document fetches, decaying on recovery, reported on the instrument panel —
+reacting to degradation before an error, since the serving process is
+Zotero's own. The Web-API fallback upstream's #39 chose is not adopted
+(ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
 
@@ -1541,10 +1546,11 @@ schedulable unit at every level is one micro-batch.
 3. **A weighted interleave splits the body class**, freshly changed items
    against the initial backfill. This is the one level that needs a weighted arbitration: no
    single queue order serves both freshness and completeness, and strict
-   fresh-first starves the backfill under sustained arrival. The ratio is
-   drafted and unratified (DECISIONS.md, drafted 2026-09-01), and so is the
-   drain bound it buys, which is an expected time over a snapshot of the fresh
-   lane rather than a promise to a user.
+   fresh-first starves the backfill under sustained arrival. The arbitration
+   is stateless weighted round robin at r = 3 — three fresh micro-batches per
+   one backfill (DECISIONS.md, 2026-09-01). The drain bound it buys is an
+   expected time over a snapshot of the fresh lane rather than a promise to a
+   user.
 4. **Band 0 precedes band 1**, per item (§5.2.3), which is what keeps one
    15 000-page PDF from monopolizing the body tier. What else has to hold
    inside the body tier per item is ticket 0080's question, adjacent to
@@ -1558,10 +1564,14 @@ reintroduce at the worker the monopolization the bands exist to prevent.
 
 Order is re-evaluated between micro-batches and nowhere else, which is what
 makes preemption and the band cap effective rather than nominal. The
-micro-batch is therefore a time quantum, its size derived per device rather
-than fixed — also drafted and unratified (DECISIONS.md, drafted 2026-09-01).
+micro-batch is therefore a time quantum, ratified at about 1 s, its size
+derived per device rather than fixed (DECISIONS.md, 2026-09-01).
 The pipeline yields at about the quantum on any hardware whose fixed-cost
-floor sits below it, and at the floor's cost where it does not.
+floor sits below it, and at the floor's cost where it does not. The quantum
+guards slowness, not death: a worker stuck inside a batch is recovered by
+claim expiry, the row claim's TTL being 30 × the quantum — above an honest
+stall, below the reconcile tick — at the cost of at most one duplicated
+micro-batch.
 
 Two units escape that interval, and both are named rather than solved. The
 extract stage's whole-document GET has no boundary inside it (§5.2.4): its
@@ -1624,7 +1634,11 @@ queries is now also the process draining the stream; the fsync is off-thread,
 the serialization of a long run of records is not. If §5.2.8's
 conductor-latency soak clause fails R6's budget, the pre-authorized fallback is a dedicated small writer process, not a
 re-ruling. The conductor's stdio pipes remain the low-latency fast path;
-`nice 19` remains the OS floor. Upstream's BEGIN-at-first-mutation transaction is repaired
+`nice 19` remains the OS floor — minimum CPU priority, portable through the
+runtime's cross-platform call — joined, where the platform exposes one, by a
+background I/O class (idle I/O on Linux, the background policy on macOS,
+background mode on Windows), best effort elsewhere (DECISIONS.md,
+2026-09-01). Upstream's BEGIN-at-first-mutation transaction is repaired
 surgically: the build path commits per page (its 200-item/10 s persist
 cadence already exists; the hold window shrinks below the busy_timeout),
 while the update path keeps its single-transaction rollback. Upstream's
