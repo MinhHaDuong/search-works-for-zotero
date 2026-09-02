@@ -22,9 +22,18 @@ is [`README.md`](README.md)'s.
 
 ## Handoff
 
+**Twelve rulings landed 2026-09-02** and the awaiting list is much shorter;
+`DECISIONS.md` is the record and the only place that says what is still open.
+Two of them moved documents: the goals ladder left `SPEC.md` for `README.md`,
+and the document map moved to `AGENTS.md`, which is now the agent instruction
+filename.
+
 **Next:** 0578 builds the assertion layer, zoteus adapter and R10 fail-control;
-0583–0586 own the other adapters. `erg ready` owns the rest of the queue.
+0583–0586 own the other adapters. X5 still gates 0028 and eleven tickets under
+it. `erg ready` owns the rest of the queue.
+
 **Awaiting the author:** `DECISIONS.md`; ticket 0582 records its README call.
 Tracker 0550 owns the stale two-process topology in `SPEC.md` §4 and §5.1.
-The PR-2 diacritics record is ticket 0091's log; the previously named
-`t0091-pr2-expansion` branch never reached origin.
+`origin/claude/resume-journee-taj5f8` holds an unmerged remote-container
+harness loader, undecided. The PR-2 diacritics record is ticket 0091's log;
+the previously named `t0091-pr2-expansion` branch never reached origin.
