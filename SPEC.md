@@ -78,8 +78,10 @@ the entry points at the question rather than settling it.
 - **embedding service** — the one process on the machine that holds an
   embedder, called by every server for queries and by the pipeline worker for
   passages, so the model is resident once per generation rather than once per
-  process. Authoritative: SPEC.md §5.2.5, which owns its shape and its
-  degradation rule (ruling: DECISIONS.md 2026-09-02).
+  process; under the API execution mode it holds the key and the provider's
+  quota instead of a model. Authoritative: SPEC.md §5.2.5, which owns its
+  shape, its degradation rule and the API mode's constants (rulings:
+  DECISIONS.md 2026-09-02).
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
@@ -933,12 +935,16 @@ obvious implementation, a GROUP BY over the table the build is writing, was
 measured at 374 ms with a cold cache. R6 budgets the query path; C4 budgets
 the observation path.
 
-### Politeness (web transport only, from the official API docs)
+### Politeness (network transports, from each provider's official docs)
 
-At most 4 concurrent requests; honor `Backoff: <seconds>` on ANY response,
-including 2xx; honor 429/`Retry-After` with exponential fallback. The local
-API has no rate limits and is unpaginated by default, so this constraint is
-scoped to the web transport, not to the design.
+Toward the Zotero web API: at most 4 concurrent requests; honor `Backoff:
+<seconds>` on ANY response, including 2xx; honor 429/`Retry-After` with
+exponential fallback. The local API has no rate limits and is unpaginated by
+default, so the clause never binds there. It binds every other network
+transport the design admits, the API embedder of §5.2.5 included: one
+concurrency cap per provider, `Retry-After` honored, exponential fallback,
+and a refusal or a timeout surfaces as a labeled state rather than as a
+build that dies (DECISIONS.md, 2026-09-02).
 
 ### The concurrency hint
 
@@ -1494,6 +1500,29 @@ both under one idle-eviction rule instead of each process holding its own. The a
 the vector fingerprint only when §5.3's X8 rule says its vectors are not
 interchangeable. Endpoint syntax and discovery stay out of the registry —
 open, no owner yet.
+
+**The API execution mode** (`provider: api`, ruled 2026-09-02) is the third
+choice beside `in_process` and `local_endpoint`: the opt-in path R10 counts
+and §5.2.7's consent gate prices, over the network to a commercial provider.
+It changes the constants, not the topology. The request is sized by the
+provider's per-request cap and its per-minute token budget, not by the
+quantum: a round trip is nearly flat in the batch size, so the duration
+controller has no gradient there. The row claim's TTL is derived from the
+retry budget, above the longest backoff §4's politeness clause permits, since
+one honored `Retry-After` crosses the local engine's 30 s and every expiry is
+a re-embed paid twice. The embedding service holds no model in this mode and
+is not bypassed: it holds the key and meters the quota, one process for N
+servers and the worker, queries first, with the round trip as the lane
+boundary. Identity is provider, model name and requested dimension, because
+revision, dtype, pooling and local validation have no referent at a provider,
+and the provider can change the model behind the name without notice; the
+calibration header is the detector, its sentinel re-embedded at session start.
+A refusal or a timeout degrades to labeled keyword-only inside R6's 3 s and
+never falls back to the local embedder, which would be a provider change
+mid-corpus. The providers' asynchronous batch endpoints are out: they save at
+most half of a one-off cost the ledger prices in tens of dollars, and they
+would cost a claim class with day-long TTLs, library text parked at the
+provider for up to a day, and partial-job reconciliation.
 A future `provider: zotero` is the preferred reuse probe: #6012 already runs
 native ONNX inference in Firefox's separate memory-gated process, but its
 `Zotero.ML` and `Zotero.Embeddings` calls are internal at the reviewed head.
@@ -1633,7 +1662,8 @@ floor sits below it, and at the floor's cost where it does not. The quantum
 guards slowness, not death: a worker stuck inside a batch is recovered by
 claim expiry, the row claim's TTL being 30 × the quantum — above an honest
 stall, below the reconcile tick — at the cost of at most one duplicated
-micro-batch.
+micro-batch. Both constants are the local engine's; the API execution mode
+above sizes by the provider's caps and derives its TTL from the retry budget.
 
 Two units escape that interval, and both are named rather than solved. The
 extract stage's whole-document GET has no boundary inside it (§5.2.4): its
@@ -2261,7 +2291,11 @@ Without the hidden second scan (§5.2.6), and with one term the shared model
 adds during a build: up to one quantum of wait behind a passage batch, bounded
 by the query lane's preemption at batch boundary (§5.2.5) — the contention the
 one-copy rule bought with the RAM it saved, named so the soak measures it
-rather than discovers it.
+rather than discovers it. Under the API execution mode the embed term is a
+network round trip, hundreds of milliseconds to seconds, and no provider
+documents a p50 or a tail: the 700 ms band is not expected to hold there, and
+the 3 s bound is kept by the timeout that degrades to labeled keyword-only
+(§5.2.5).
 
 ---
 
@@ -2332,10 +2366,13 @@ rather than discovers it.
   The interface seam and its future `local_endpoint` execution mode are
   committed in §5.2.5; implementing a daemon in zoteus is not. Under
   comparison: the in-process default against Zotero #6012 runtime reuse
-  (probe 0496), a bundled child, a per-user service and an external
-  OS/community facility.
+  (probe 0496), a bundled child, a per-user service, an external
+  OS/community facility, and the two network candidates — the GPU-host
+  remote embedder (DECISIONS.md, 2026-09-01) and the commercial API
+  (DECISIONS.md, 2026-09-02).
   The decision rule includes install time, cross-platform packaging, custody
-  and uninstall behavior, single- and multi-P0 RAM, failure semantics, and
+  and uninstall behavior, single- and multi-P0 RAM, failure semantics, quota
+  and key custody for the network candidates, and
   whether this responsibility belongs in zoteus at all. The experiment is
   parallel to, and never a blocker for, registry entries or validation.
 
@@ -2503,7 +2540,10 @@ exfiltration paths, no silent fallback (`SPEC.md` §5.2.7). One is the
 one-time model-weight download the default local embedder needs, named in
 status, degrading to keyword-only and never to an API embedder. The other is
 passage text sent to a configured API embedder, which quotes a cost and requires
-an explicit go-ahead per index generation. The default path sends nothing.
+an explicit go-ahead per index generation; it crosses under §5.2.5's API
+execution mode, synchronously, and never through a provider's batch endpoint,
+which would hold library text at the provider for up to a day. The default
+path sends nothing.
 
 **Read-transport fallback, a narrower and separate gap.** The two paths above
 are the only ones R10 counts, and both stay accurate. Item-metadata reads —
