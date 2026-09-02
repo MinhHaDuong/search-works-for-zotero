@@ -7,24 +7,18 @@
  * runs exactly as it would inside the conductor. Nothing here is committed to
  * bench/results by this script; it prints, and `--json` prints machine-readable.
  *
- * Needs the fork built: `cd fork && npm run build`.
+ * Needs the fork built: `cd fork && npm run build`. The fork is a separate,
+ * git-ignored checkout; `--fork` points at another one, as in the sibling drivers.
  *
- *   node bench/seg1_run.mjs --key ABCD1234 [--key ...] [--titles 20]
+ *   node bench/seg1_run.mjs --key ABCD1234 [--key ...] [--titles 20] [--fork /path/to/fork/]
  *   node bench/seg1_run.mjs --path /path/to/.zotero-ft-cache
  *   node bench/seg1_run.mjs --keys-file keys.txt --json > out.jsonl
  */
 
 import { readFileSync, createReadStream } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { parseArgs } from 'node:util';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const seg1Path = resolve(here, '..', 'fork', 'dist', 'features', 'search', 'segmenter', 'seg1.js');
-const { createSeg1, SEG1_ID } = await import(seg1Path);
-
-const WINDOW_CHARS = 64 * 1024;
 
 const { values } = parseArgs({
   options: {
@@ -32,18 +26,28 @@ const { values } = parseArgs({
     path: { type: 'string', multiple: true, default: [] },
     'keys-file': { type: 'string' },
     storage: { type: 'string', default: join(homedir(), 'data', 'Zotero', 'storage') },
+    fork: { type: 'string', default: new URL('../fork/', import.meta.url).pathname },
     titles: { type: 'string', default: '12' },
     json: { type: 'boolean', default: false },
   },
 });
 
+const seg1Path = resolve(values.fork, 'dist', 'features', 'search', 'segmenter', 'seg1.js');
+const { createSeg1, SEG1_ID } = await import(seg1Path);
+
+// The extract worker's window: WINDOW_CHARS in the fork's conductor/document-stream.ts
+// (streamFullText). Restated here because that branch is not in the build this imports
+// (ticket 0565's recon); re-read it there if the worker's geometry moves.
+const WINDOW_CHARS = 64 * 1024;
+
+const cachePath = (k) => join(values.storage, k, '.zotero-ft-cache');
 const targets = [];
-for (const k of values.key) targets.push({ key: k, path: join(values.storage, k, '.zotero-ft-cache') });
+for (const k of values.key) targets.push({ key: k, path: cachePath(k) });
 for (const p of values.path) targets.push({ key: null, path: p });
 if (values['keys-file']) {
   for (const line of readFileSync(values['keys-file'], 'utf8').split('\n')) {
     const k = line.trim().split(/\s+/)[0];
-    if (k) targets.push({ key: k, path: join(values.storage, k, '.zotero-ft-cache') });
+    if (k) targets.push({ key: k, path: cachePath(k) });
   }
 }
 if (targets.length === 0) {
@@ -51,7 +55,11 @@ if (targets.length === 0) {
   process.exit(2);
 }
 
-/** Stream a file in windows of WINDOW_CHARS characters, never splitting a surrogate pair. */
+/**
+ * Stream a file in windows of WINDOW_CHARS characters. A window never ends on a high
+ * surrogate, so each pushed string is valid UTF-16 on its own — driver-side hygiene for
+ * what gets logged and diffed; seg/1 itself is tested equal across window sizes.
+ */
 async function segmentFile(path) {
   const seg = createSeg1();
   let offset = 0;
@@ -68,6 +76,7 @@ async function segmentFile(path) {
       pending = pending.slice(cut);
     }
   }
+  // Flush the tail; an empty document still pushes once so the segmenter sees it.
   if (pending.length > 0 || offset === 0) {
     seg.push({ text: pending, offset });
     offset += pending.length;
@@ -77,13 +86,14 @@ async function segmentFile(path) {
 
 const maxTitles = Number(values.titles);
 for (const t of targets) {
+  const label = t.key ?? t.path;
   let result;
   const started = process.hrtime.bigint();
   try {
     result = await segmentFile(t.path);
   } catch (err) {
-    const line = { key: t.key, path: t.path, error: String(err.message ?? err) };
-    console.log(values.json ? JSON.stringify(line) : `${t.key ?? t.path}: ERROR ${line.error}`);
+    const line = { key: t.key, path: t.path, error: String(err?.message ?? err) };
+    console.log(values.json ? JSON.stringify(line) : `${label}: ERROR ${line.error}`);
     continue;
   }
   const ms = Number(process.hrtime.bigint() - started) / 1e6;
@@ -112,12 +122,12 @@ for (const t of targets) {
     continue;
   }
   console.log(
-    `${t.key ?? t.path}: ${summary.documentClass} fallback=${summary.fallback} confidence=${summary.confidence} ` +
+    `${label}: ${summary.documentClass} fallback=${summary.fallback} confidence=${summary.confidence} ` +
       `entries=${summary.entries} chars=${summary.chars} ff=${summary.formFeeds} ${summary.ms} ms`,
   );
   for (const e of summary.titles) {
     const page = e.page === null ? '' : ` p.${e.page}`;
     console.log(`  #${e.ordinal}${page} @${e.charStart} (${e.chars} chars, ${e.sections} sections) ${e.title ?? '<no title>'}`);
   }
-  if (result.entries.length > maxTitles) console.log(`  … ${result.entries.length - maxTitles} more`);
+  if (summary.entries > maxTitles) console.log(`  … ${summary.entries - maxTitles} more`);
 }
