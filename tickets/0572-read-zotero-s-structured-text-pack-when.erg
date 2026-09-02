@@ -3,11 +3,13 @@ Title: Read Zotero's structured-text pack when one exists, fall back to the flat
 Created: 2026-09-02
 Author: claude
 Blocked-by: 0028
+Label: deferred
 
 --- log ---
 2026-09-02T06:55Z claude created
 
 2026-09-02T07:13Z claude note ratified by the author 2026-09-02 as a mechanism under R24, not a new requirement (his words: an under-the-hood mechanism). SPEC.md R24, C1, C2, 5.2.4 and 5.2.2 edited in PR 170; the needs-human label comes off, Blocked-by 0028 stays
+2026-09-02T15:29Z codex note author made the pack reader permanent in design and deferred implementation until Zotero 6012 makes packs library-wide
 --- body ---
 ## Context
 
@@ -19,6 +21,13 @@ the work; the ruling landed the same day (ratified entry, 2026-09-02): a
 mechanism under R24, no new R-item. `Blocked-by: 0028` because
 the 2026-09-01 sequencing ruling ships seg/1 first so every structure path
 integrates once, on a working baseline.
+
+The author settled the remaining timing question on 2026-09-02: the pack path
+is permanent in the design, but implementation waits for Zotero #6012 to make
+packs library-wide. At the measured 2 packs among 13 630 flat caches it is not
+worth maintaining an internal-format reader. This ticket is therefore deferred
+at that external checkpoint, not rejected; the flat path remains the deployed
+design until it fires.
 
 What is already known, so nobody re-establishes it:
 
@@ -56,7 +65,7 @@ What is already known, so nobody re-establishes it:
 1. Done 2026-09-02 with the ruling: `SPEC.md` R24, C1, C2, §5.2.4 and
    §5.2.2 edited to match, date bumped. No R-item, so `README.md` is
    untouched.
-2. Source selection in the extract shim: per attachment, stat the pack path
+2. **After #6012 ships:** source selection in the extract shim: per attachment, stat the pack path
    derived from the file path the local API already yields; read it when
    present and of a known pack version; otherwise the ruled fallback, the
    local API's `/fulltext`. Never a direct read of `.zotero-ft-cache`.
@@ -113,6 +122,8 @@ What is already known, so nobody re-establishes it:
 - [x] The awaiting entry is ratified (2026-09-02: mechanism under R24).
 - [x] SPEC.md matches the ruling and its date is bumped; README.md needs no
       change since no requirement was added.
+- [ ] Zotero #6012 has shipped and made structured-text packs library-wide;
+      before then this ticket remains deferred.
 - [ ] Pack-first source selection lands in the fork with the four tests
       above, the red-first one having failed against the unfixed tree.
 - [ ] Per-source counts appear in R17's report and a block anchor reaches

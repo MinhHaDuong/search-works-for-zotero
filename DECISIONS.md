@@ -3594,6 +3594,21 @@ stored as derived data, and never written back into Zotero. This amendment does
 not reopen the same-day ruling that translation detection, creation and library
 splitting belong outside this workshop.
 
+### 2026-09-02 — Structured-text packs are permanent in design and deferred in implementation (ratified)
+
+The author answered both open ends of ticket 0572. First, yes: reading Zotero's
+structured-text pack is a permanent design path. It is guarded by the pack
+version, refuses unknown or truncated packs, and falls back to the flat text
+served by `/fulltext`; an internal-format change therefore degrades structure
+and locator precision rather than losing an attachment.
+
+Second, implementation waits for Zotero #6012. Two packs among 13 630 flat
+caches — 0,015 % coverage — do not justify maintaining the reader today. The
+source identity, per-source reporting, tier-0 structure signal and fallback
+contract stay specified now so the switch is mechanical when #6012 makes packs
+library-wide. Until that checkpoint, the extract shim remains flat-only and
+ticket 0572 is deferred, not rejected.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -4174,7 +4189,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   one exists for an attachment, and from the flat full-text cache otherwise
   (author, 2026-09-02, stated as an idea; drafted here as a candidate
   requirement, ticket 0572) — resolved 2026-09-02, same day: ratified as a
-  mechanism under R24, not as a requirement; see the ledger entry.** Every fact below is at source or by probe,
+  mechanism under R24, not as a requirement; implementation deferred until
+  #6012 by the later ruling above.** Every fact below is at source or by probe,
   recorded in `bench/results/0007-sdt-probe.txt` (fifth probe) unless said
   otherwise.
 
