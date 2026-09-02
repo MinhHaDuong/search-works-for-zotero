@@ -2,6 +2,7 @@
 Title: An unsupported verb records no reason, so two opposite findings share one cell
 Created: 2026-09-02
 Author: claude
+Closed: an absent verb now records why; merged as PR #227
 
 --- log ---
 2026-09-02T20:42Z claude created
@@ -9,6 +10,7 @@ Author: claude
 2026-09-02T20:42Z claude note the blank-reason refusal is the load-bearing half; without it the change is a wider type and nothing else
 2026-09-02T20:42Z claude note control arm run: five of the seven new tests are red against the unfixed tree at ceadf71, including all three blank-reason cases
 
+2026-09-02T21:03Z Minh Ha-Duong closed — an absent verb now records why; merged as PR #227
 --- body ---
 
 ## Context
