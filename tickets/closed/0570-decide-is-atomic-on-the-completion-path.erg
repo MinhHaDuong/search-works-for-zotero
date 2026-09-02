@@ -2,10 +2,13 @@
 Title: decide() is atomic on the completion path and not on the dispatch path
 Created: 2026-09-01
 Author: MinhHaDuong
+Closed: merged as e629f34 into conductor-integration on the fork (PR MinhHaDuong/zoteus#7); transaction() made re-entrant, putAttachmentChoice wrapped, red-first confirmed
 
 --- log ---
 2026-09-01T19:03Z MinhHaDuong created
 
+2026-09-02T19:06Z Minh Ha-Duong closed — merged as e629f34 into conductor-integration on the fork (PR MinhHaDuong/zoteus#7); transaction() made re-entrant, putAttachmentChoice wrapped, red-first confirmed
+2026-09-02T19:06Z claude PR #7 merged 2026-09-02 as e629f34; the P0 the same review found went out separately as zoteus#8, merged as d4d5604; its siblings are tickets 0594-0596
 --- body ---
 ## Context
 

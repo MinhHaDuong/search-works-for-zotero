@@ -45,8 +45,97 @@ platform has not indexed, where a 15k-page PDF yields tens of MiB of text
    cannot hold with the measured embed rates, which would be a finding about the
    bound rather than about the stages.
 
+## Measurement, 2026-09-02, on the reference machine
+
+Ran by `bench/extract_chunk_throughput.mjs`; artifact
+`bench/results/0500-extract-chunk/extract-chunk-throughput.json`. Host doudou,
+Intel i5-8250U at 1,6 GHz, node v22.23.1 — the machine SPEC.md §5.2.8 names.
+Load average 1,88 during the pass, from this session and one sibling agent; the
+extract term is bound by the platform's SQLite read over loopback rather than by
+CPU, so the figure is reported with the load rather than claimed to be taken on
+an idle machine.
+
+**What the build's extract stage actually is.** `build.ts` gets body text from
+`createFulltextSource`, whose `textFor` is a GET of the platform's own
+`/items/<key>/fulltext`. The population it can serve is exactly what
+`/fulltext?since=0` names, so an attachment the platform has not extracted is
+not in the list, the source cannot serve it, and the build never asks. The mix
+is therefore a property of the architecture, not of the library: **every extract
+a build performs is a cache hit, 8 037 of 8 037**. Measured beside it, on this
+library the parse path has no instance either — of 9 302 attachments, 59 PDFs
+carry no platform text and all 59 are `linked_url`, with no local file to parse.
+
+| stage | ms per passage |
+|---|---|
+| extract, one request in flight | **0,154** |
+| chunk (`chunkText`, 1200/150) | **0,028** |
+| extract + chunk, serial | **0,182** |
+| extract + chunk, at the build's own concurrency of 2 | **0,130** |
+
+74 items read, 4 310 passages, 4,49 MB of text. Passage length: median 1 197
+characters, p95 1 200, mean 1 187,7 — the distribution the rate ran on, since a
+rate does not transfer across distributions. The serial and concurrent arms ran
+on disjoint samples, so the pooled figure is not a warm cache read as a
+concurrency gain. Three runs of the pass put extract between 0,140 and 0,172 and
+chunk between 0,026 and 0,028; the artifact holds the third.
+
+**The parse path, priced out of the critical path.** Forcing re-extraction
+through the control plugin (`Zotero.FullText.indexItems` with `complete: true`,
+which re-parses whether or not a cache exists) over four PDFs spread across the
+library: **10,01 ms per passage median**, from 3,93 on a 198-page document to
+27,17 on a 5-page one — the per-passage cost falls with document size, which is
+what a fixed per-file overhead over a variable yield looks like. This is the
+platform's cost, paid once when a user first opens a PDF, and it is never inside
+the build's own clock.
+
+**The fixed term, which the per-passage rate hides.** Before any passage is read,
+the source lists the full-text sequence (96 ms) and walks the attachment pages to
+map each extracted attachment to its parent: **75,4 s** on this library, 94 pages
+of 100. That is one-time per build, and it is exactly the fixed work §5.2.8 warns
+a rate conceals. Amortised, it is **20,4 ms per passage on the 60-item derisking
+build** (3 699 passages) and **0,16 ms per passage on a full-library build**
+(~465k passages). A sample can therefore pass a rate the small build misses, and
+the direction of the error is the opposite of the usual worry.
+
+**Extract work that yields no passage.** Of 80 sampled items, 6 failed the read
+(404 on an attachment the sequence names) and 1 answered with an empty body — the
+version-0 entries. Counted, not dropped: they are extract-stage work that
+produces nothing, so they raise the effective rate.
+
+**The tokenizer pass, and why it is not in this term.** The census tokenizes; the
+build's chunker does not — `chunkText` splits on characters and word boundaries
+with no tokenizer in the module. Measured anyway, since the census's wall clock
+was never recorded: **0,649 ms per passage**, 288,2 tokens per passage over
+1 242 272 tokens. That cost sits inside embed, not inside this allocation.
+
+**What was not measured.** The record write, which §5.2.8's 30 ms covers together
+with extract and chunk, is not isolated here: it lives inside the index manager's
+`putPassage` and its persistence, and pricing it needs a built index rather than
+a source read. Reported as not-run rather than folded into the two stages that
+were measured. The full-library build launched the same night is the end-to-end
+confirmation this pass cannot give.
+
+## The re-cut
+
+§5.2.8 says the allocation across stages is provisional and the total is not, and
+that the split may be re-cut in any proportion so long as the total holds. The
+two stages that were unpinned are now pinned at **0,182 ms per passage together**
+— 0,6 % of the 30 ms they were allocated. The allocation is re-cut to **5 ms at
+the MUST and 2 ms at the SHOULD** for extract, chunk and the record write
+together, which leaves the unmeasured record write more than an order of
+magnitude of room above the two measured stages, and gives embed **145 ms** and
+**73 ms**. R32's own 150 ms and 75 ms are untouched: they are the author's to
+move, and nothing measured here asks them to.
+
+One derived observation, labelled derived and not acted on. The derisking build
+of 2026-09-02 ran 3 699 passages in 506 s, i.e. 137 ms per passage end to end. If
+extract and chunk cost 0,18 ms of that and the attachment map 20,4 ms, the
+remainder sits near 116 ms — inside the old 120 ms embed allocation, but that is
+a subtraction from somebody else's total, not a measurement of embed, and the
+full-library build is what will say.
+
 ## Exit criteria
-- [ ] extract measured on both paths, with the observed mix, on the reference machine
-- [ ] chunk measured on the same corpus and distribution
-- [ ] both figures committed under `bench/results/` and declared in `bench/check_figures.py`
-- [ ] §2.8's per-stage allocation re-cut from measurement, or the bound revised
+- [x] extract measured on both paths, with the observed mix, on the reference machine
+- [x] chunk measured on the same corpus and distribution
+- [x] both figures committed under `bench/results/` and declared in `bench/check_figures.py`
+- [x] §2.8's per-stage allocation re-cut from measurement, or the bound revised
