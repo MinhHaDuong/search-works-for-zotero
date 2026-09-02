@@ -1609,6 +1609,14 @@ disclosed rather than discovered. The pack's format is internal and unversioned
 in any public sense (C2), which is why the fallback is structural: a format
 move degrades that attachment to the flat path, never to a failure.
 
+This is the permanent source-selection contract, not the current deployment
+state. The reader is deferred until Zotero #6012 makes packs library-wide; the
+measured 2 packs among 13 630 flat caches do not justify maintaining an
+internal-format reader before then. Until that checkpoint the shim uses the
+flat path for every attachment. When the checkpoint is met, enabling pack-first
+selection changes no interface or downstream stage: the source identity,
+reporting, tier-0 structure signal and fallback are already fixed above.
+
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to an
 equality comparison, and on a never-synced library that could be *every* entry.
