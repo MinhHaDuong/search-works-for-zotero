@@ -4294,7 +4294,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
 
 - **Three findings ticket 0180's attribution audit could not settle itself,
   all in territory the audit is not authorized to move (raised 2026-09-02).**
-  The audit corrected twenty-two claims in `SPEC.md` directly; these three it
+  The audit corrected twenty-seven sites in `SPEC.md` directly; these three it
   registers instead, because each decides something rather than describing it.
   Evidence for all three is `verification/ATTRIBUTION-AUDIT-0180.md`.
 

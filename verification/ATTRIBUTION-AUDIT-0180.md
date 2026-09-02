@@ -235,8 +235,8 @@ weight on 2026-08-31, on the ground that finding attribution sentences needs
 prose read for semantic intent, and that a hard fail on an uncited attribution
 "will be fought and then disabled" — the discipline kept instead in the review
 of text that leaves the repository. This sweep is evidence for that ruling
-rather than against it: the fifteen wrong claims share no vocabulary a grep
-could key on, and nine of them were correctly cited and simply expired, which
+rather than against it: the nineteen wrong claims share no vocabulary a grep
+could key on, and six were correctly cited and simply expired, which
 no presence check can see.
 
 What the sweep does add is one line for that review, and it is cheap because it

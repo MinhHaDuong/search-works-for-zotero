@@ -116,7 +116,7 @@ carries a coordinate, which ticket 0181 turns into a standing guard.
 
 ## Exit criteria
 - [x] The enumeration is complete and recorded
-- [x] Every claim is verified, corrected, or marked unverified — 15 claims
-      wrong and 7 evidence grades wrong, 22 sites corrected in SPEC.md, 4
-      registered and left to their owners
+- [x] Every claim is verified, corrected, or marked unverified — 19 claims
+      wrong and 10 evidence grades wrong, 27 sites corrected in SPEC.md, 2
+      marked in place and left to the segmenter work for rewording
 - [x] `make check` passes
