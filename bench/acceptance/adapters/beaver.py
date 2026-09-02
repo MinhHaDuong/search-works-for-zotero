@@ -77,8 +77,9 @@ report. Findings 1 to 4 are new; 5 and 6 corroborate the second adapter's.
 
 3. **A sidecar database is a file family, not a directory.** `residue()` uses
    `Path.relative_to`, so a declared root that is a *file* covers exactly that
-   file: `beaver.sqlite` does not cover `beaver.sqlite-wal`. Measured after one
-   launch: `beaver.sqlite`, `-wal` and `-shm` all exist. The journal siblings
+   file: `beaver.sqlite` does not cover `beaver.sqlite-wal`. Measured: after one
+   launch `beaver.sqlite`, `-wal` and `-shm` all existed, and after a lifecycle
+   that stops the process cleanly the first two survive. The journal siblings
    are the host's SQLite layer's business, not the target's, and their names
    depend on a journal mode the target does not choose — so they are enumerated
    here by hand and the declaration silently under-declares if that mode ever

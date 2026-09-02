@@ -23,6 +23,19 @@ would report the same green. What absorbed those 1143 is three
 `not_derived_state` entries for the host's own directories, and each entry
 states what exempting it costs.
 
+## `acceptance-prefix-control.json` — the false green, measured
+
+The identical run against the identical product, with the one-branch fix to
+`Snapshot.of` removed: `R15-uninstall-removes-declared-state` reports **`pass`**
+with `survivor_count: 0`, while `beaver.sqlite` (32 768 bytes) and
+`beaver.sqlite-wal` (2 295 472 bytes) sit in the directory the check had just
+swept. `os.walk` yields nothing for a regular file, and every declared root of
+the first two targets is a directory, so nothing on the roster could see it
+before a target that keeps its state in files beside its host's.
+
+Note what the summary line does: **2 pass, 1 fail** rather than 1 and 2. A fix
+that turns a green into a red is the only kind whose absence is invisible.
+
 ## `control-arms.json` — the reds
 
 Sixteen planted defects, each run against the committed tree, each required to

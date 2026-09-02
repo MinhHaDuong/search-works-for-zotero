@@ -78,10 +78,19 @@ class Snapshot:
     the only thing it can declare is the file. Without the first branch below,
     `os.walk` is handed a regular file, finds nothing, and the uninstall
     survivor check reports zero survivors — green — while the state sits on
-    disk. Measured on a real target (ticket 0586): three files survived the
-    removal and the check came back `pass`. That is a false green of exactly the
-    class this layer exists to catch, so it is fixed here rather than worked
-    around in one adapter.
+    disk. That is a false green of exactly the class this layer exists to catch,
+    so it is fixed here rather than worked around in one adapter.
+
+    **Measured against a real target rather than argued** (ticket 0586). The
+    same run, driven twice against the same product, once with this branch and
+    once without: with it, `fail`, two survivors named. Without it, `pass`,
+    `survivor_count` zero — and a 32 KB database and a 2.3 MB write-ahead log
+    sitting in the directory the check had just swept. Both artifacts are
+    committed under that ticket's results directory, as `acceptance.json` and
+    `acceptance-prefix-control.json`, because a fix whose defect was only
+    reasoned about is a fix nobody can check. (This paragraph named the target's
+    results path on its first draft and the neutrality guard refused it, which
+    is the guard working: a layer module may cite a ticket, never a product.)
     """
 
     root: Path
