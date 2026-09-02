@@ -7,6 +7,7 @@ Label: deferred
 --- log ---
 2026-09-02T07:32Z claude created
 
+2026-09-02T07:39Z Minh Ha-Duong note added three management questions: uniform language tags, uniform author forms, re-diacritics (recorded by claude from the author's message)
 --- body ---
 ## Context
 
@@ -36,6 +37,31 @@ Not rulings. The author has not ruled on them and this repository will not.
   work filed once, and the 113 "EN, VN" language values say the author means
   it. What retrieval needs from such records (index both attachments) stays in
   tracker 0573 as the prerequisite of its parallel gate.
+
+## Added by the author, 2026-09-02: three more management questions
+
+Curation tasks of the same kind, each a write into the user's records and
+so the spinoff's, none of them rulings:
+
+- **Uniform language tags.** The census found the language field spelled
+  twelve ways for three languages (`en`, `EN`, `en-US`, `English`, `Anglais`,
+  `eng`, `VN`, `vi`, `vi-VN`, "EN, VN" …; `bench/results/0573-lang-census.txt`).
+  A management tool would propose one form (BCP-47 is the natural target,
+  and Zotero's own citation processor expects it) and apply it on
+  confirmation. The retrieval side only normalizes the value it stores.
+- **Uniform author forms.** One person filed several ways: initials against
+  full given names, particle and capitalization variants, order of family
+  and given names (Vietnamese and Hungarian names in particular), with and
+  without diacritics. Detection is a clustering over the creators table;
+  the write is a merge of forms the user confirms, the way Zotero's own
+  duplicate merge works for items and does not for creators.
+- **Re-diacritics.** Vietnamese titles, names and abstracts typed or
+  imported without their diacritics ("Nguyen Van A", "Ha Noi"). Restoring
+  them is a solved problem in the language-technology literature (a
+  sequence-labelling or n-gram model per language) and a write the user
+  must confirm field by field, since the restoration is ambiguous for short
+  strings such as names. Retrieval already folds diacritics on both sides
+  (R19), so this is a curation question, not a search one.
 
 ## If the spinoff opens
 
