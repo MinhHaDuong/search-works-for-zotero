@@ -1,0 +1,50 @@
+%erg 0.1
+Title: Spinoff: can zoteus be a tool to manage a multilingual library?
+Created: 2026-09-02
+Author: claude
+Label: deferred
+
+--- log ---
+2026-09-02T07:32Z claude created
+
+--- body ---
+## Context
+
+Severed from the multilingual brief of 2026-09-02 (DECISIONS.md, ratified
+entry of that date) by the author's ruling: detecting and tagging
+translations, creating translations, and splitting bilingual records are a
+different beast from retrieval. The question under them is the one this
+ticket names, and it is a spinoff from the semantic retrieval workshop this
+repository is. Nothing here is scheduled; the label keeps it off the work
+queue. It exists so the thinking is not lost.
+
+## The three questions, and the brief's answers as a starting position
+
+Not rulings. The author has not ruled on them and this repository will not.
+
+- **Detect and autotag translations; which is the original?** The brief's
+  position: detect as a report (candidate pairs with confidence and evidence),
+  never write into Zotero; the original declared by the user through Extra's
+  CSL variables `original-title` / `original-date` plus a Related link, both
+  of which Zotero already understands, so no new field is needed. Facts: Zotero
+  has no translation relation predicate; the language field is set on 6 663
+  of 13 287 records in twelve spellings (`bench/results/0573-lang-census.txt`).
+- **Create translations?** The brief's position: no; the standing ruling keeps
+  translation models off the default path, and the consuming agent translates
+  on demand. A management tool might see this differently.
+- **Autosplit bilingual records?** The brief's position: no; the record is one
+  work filed once, and the 113 "EN, VN" language values say the author means
+  it. What retrieval needs from such records (index both attachments) stays in
+  tracker 0573 as the prerequisite of its parallel gate.
+
+## If the spinoff opens
+
+It is a different product surface: a writer into the user's library, which
+this repository's design has no channel for (the local API is read-only; C1
+makes everything zoteus holds derived data). Start from a new requirements
+sheet, not from SPEC.md.
+
+## Exit criteria
+
+- [ ] Closed when the spinoff opens elsewhere (with the address), or when the
+      author declares the question dead.

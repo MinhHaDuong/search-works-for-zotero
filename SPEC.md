@@ -643,7 +643,7 @@ gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
 
 ### Out of scope, said out loud
 
-These eight\* things are deliberately not promised, so that silence does not
+These nine\* things are deliberately not promised, so that silence does not
 read as a promise:
 
 - **Work does not travel by itself — but it may arrive by copy.** The index
@@ -671,6 +671,10 @@ read as a promise:
   translation model joins the default path.
 - **No enumeration.** Semantic search returns a bounded page; exhaustiveness
   is the job of R5 narrowing, not of paging.
+- **The library is read, never curated.** Zoteus does not tag, link, split,
+  merge or translate the user's records; it reads what Zotero holds and
+  reports what it finds, candidate relations included. Managing a
+  multilingual library is a separate question from searching one.
 
 ### The goals ladder
 
