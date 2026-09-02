@@ -3133,6 +3133,84 @@ identifier it needs — is retrieval coverage, and it is the prerequisite of
 question 1's gate: a pair cannot be tested while one rendering is never
 indexed. That half stays with questions 1 to 3 in tracker 0573.
 
+**2026-09-02 — the API embedder is an execution mode with its own transport
+constants, and the batch endpoints are out.** The author's ruling on a question
+he raised the same afternoon: the conductor and the pipeline worker were
+designed as if the embedder were local and fast, and it need not be. Upstream
+v1.12.0 ships `ZOTEUS_EMBEDDINGS=openai|gemini`, a synchronous provider, and
+the design already admits it at the consent gate (SPEC.md §5.2.7: a cost
+quoted, a go-ahead per index generation) and counts it as one of R10's two
+opt-in paths — and nowhere else. Every constant in §5.2.5 that carries a
+duration was priced on an engine inside the same machine. Two rulings, each
+concurred in by the author in his own words.
+
+**Admitted: `provider: api` is a third execution mode beside `in_process` and
+`local_endpoint`, and it changes the constants, not the topology.** Six
+consequences, propagated to SPEC.md with this entry.
+
+- **Sizing.** The quantum's controller derives a batch size from an observed
+  duration. Over a network the duration is the round trip, nearly flat in the
+  batch size, so the controller has no gradient and the fixed-cost floor
+  swallows it. Under the API mode the request is sized by the provider's
+  per-request cap and its per-minute token budget; the quantum is not the dial.
+- **Claim TTL.** Thirty quanta was set above the honest stall of a local
+  worker. One 429 honoured with its `Retry-After` and an exponential fallback
+  crosses 30 s in the ordinary case, and every expiry there is a re-embed paid
+  twice. Under the API mode the TTL is derived from the retry budget, above
+  the longest backoff the politeness clause permits.
+- **Politeness generalizes.** §4's clause — a concurrency cap, `Retry-After`,
+  exponential fallback — was scoped to the Zotero web transport. It binds
+  every network transport, the API embedder included. Upstream's provider
+  today throws on any non-2xx and takes the build down with it, which is the
+  defect the clause exists to name.
+- **The service is a broker.** The embedding service ruled this morning exists
+  to hold a model once. Under the API mode there is no model, and the service
+  holds the two things N servers and a worker would otherwise contend for
+  blindly: the key and the provider's quota. One process meters the per-minute
+  budget, queries first, so §5.2.5's lane rule keeps its meaning with a round
+  trip as the boundary.
+- **R6's embed term is disclosed at its API value.** §5.2.9 prices it at
+  20–50 ms. Over an API it is hundreds of milliseconds to seconds, and no
+  provider documents a p50 or a tail (nine checked on 2026-09-02, on their own
+  pages). The 700 ms band is not expected to hold under the API mode; the 3 s
+  bound is kept by a timeout that degrades to labeled keyword-only. Never a
+  silent fallback to the local embedder: that is a provider change mid-corpus,
+  exactly what the calibration header exists to catch.
+- **Identity.** The fingerprint's fields — revision, dtype, pooling, local
+  validation — have no referent at a provider. Identity is provider, model
+  name and requested dimension, and the provider can change the model behind
+  the name without notice. The calibration header (2026-08-31) is the
+  detector: the sentinel re-embedded at session start catches drift the
+  fingerprint cannot see.
+
+**Ruled out: the asynchronous batch endpoints, on the arithmetic.** Verified
+on the providers' own pages the same day. OpenAI, Gemini and Mistral discount
+their batch endpoints by half, with a turnaround of up to 24 h; Voyage's 33 %
+is stated for its current family only; Cohere's async jobs carry no published
+discount; Anthropic has no embedding endpoint. Against the census's 211
+million tokens (SPEC.md §5.2.9 — MiniLM's tokenizer, a provider's within
+about 15 % of it), the whole initial index costs between roughly 4 $ (OpenAI
+text-embedding-3-small at 0,02 $ per million) and 32 $ (Gemini at 0,15 $), so
+the batch discount saves between 2 $ and 16 $, once; steady-state freshness
+traffic is a rounding error. What it would cost the design: a third claim
+class with day-long TTLs, library text parked at the provider for up to a
+day, and partial-job reconciliation. The binding constraint is the quota, not
+the price: OpenAI's entry tier admits one million tokens a minute, so the
+backfill takes about three and a half hours whatever the request size, and
+upstream's default of 32 passages a request lands in the same range serially.
+Not designed for, and the reason is recorded so the question is not reopened
+on the discount alone.
+
+**What this does not decide.** Which provider, if any, a curated entry names:
+the registry admits API entries under the same one-entry-one-fingerprint rule,
+and none is curated here. The commercial API enters ticket 0491's comparison as
+the sixth candidate, beside the GPU-host remote embedder the 2026-09-01 entry
+sent there, priced on the same criteria plus quota custody. And nothing here
+touches the morning's entry C: a missing or cold local service yields
+keyword-only and never an API embedder. The API mode is entered by consent and
+left by consent.
+
+
 ## Awaiting ratification
 
 - **Which index and extraction actions `zotero_index` should carry, and whether
