@@ -1,0 +1,169 @@
+%erg 0.1
+Title: Measure extract and chunk throughput on the reference machine
+Created: 2026-08-31
+Author: Claude
+Closed: autoclosed — PR #217
+
+--- log ---
+2026-08-31T14:26Z Claude created
+
+2026-08-31T20:24Z scope widened by PR #127's red-team review: the CPU sweep records worker RSS with a real batch in flight (not at rest) for at least the two heaviest 8-bit multilingual candidates — the 750 MB pipeline ceiling's sufficiency rests on this, since every existing sweep priced batch size in latency only (DESIGN §2.9 now says so in terms)
+2026-09-02T19:51Z full-library build launched on doudou to confirm the rate end to end: driver PID 1009759, server PID 1009762, log /home/haduong/data/projets/zoteus-bench/overnight-2026-09-02/full-build/build.log, data dir .../full-build/data, sqlite backend, no item cap. Handles and do-not-disturb note in .../overnight-2026-09-02/RUNNING-BUILD.md
+2026-09-02T20:02Z Minh Ha-Duong closed — autoclosed — PR #217
+--- body ---
+## Context
+
+R32's build bound is a rate on the whole pipeline — extract, chunk and embed —
+pinned in `SPEC.md` §5.2.8 at 150 ms per passage as a MUST and 75 ms as a
+SHOULD on the reference machine. Only one of the three terms is measured. Embed
+has `bench/results/0025-x1-recall/embed-feasibility.json` and the CPU cells
+ticket 0481 recovered from `bench/results/0264-gpu-arm/`; extract and chunk have
+nothing in this repository at all, so their share of the budget is an allocation
+written to be re-cut rather than a finding.
+
+The allocation stands at 30 ms for the two of them at the MUST and 10 ms at the
+SHOULD. It was chosen so the total holds with the measured embed rates, not
+because anyone knows what extraction costs. That is exactly the shape the
+pin-from-measurement rule exists to retire.
+
+Two things are known without measuring. Extraction is usually a read of the
+platform's own full-text cache rather than a parse — the census counted 13 630
+caches — so the common path is I/O. The expensive path is the attachment the
+platform has not indexed, where a 15k-page PDF yields tens of MiB of text
+(ticket 0480), and that path is also where the cap in ticket 0483 bites.
+
+## Actions
+
+1. Time the extract stage on the reference machine over the two paths
+   separately: cache hit, and on-the-fly parse. Report ms per passage for each
+   and the mix observed on a real library, since the mix is what decides the
+   effective rate.
+2. Time the chunk stage over the same corpus, including the tokenizer pass the
+   passage census already runs — that pass is the cost proxy and its wall clock
+   was not recorded when the census ran.
+3. Report both against the passage-length distribution they ran on, because a
+   rate does not transfer across distributions (§2.8) and ticket 0029 pins the
+   fixture's.
+4. Re-cut §2.8's allocation from the measurements, or report that the total
+   cannot hold with the measured embed rates, which would be a finding about the
+   bound rather than about the stages.
+
+## Measurement, 2026-09-02, on the reference machine
+
+Ran by `bench/extract_chunk_throughput.mjs`; artifact
+`bench/results/0500-extract-chunk/extract-chunk-throughput.json`. Host doudou,
+Intel i5-8250U at 1,6 GHz, node v22.23.1 — the machine SPEC.md §5.2.8 names.
+The chunker under measurement is imported from the built `dist` the server runs,
+not reimplemented, so the number cannot drift from the code it claims to measure.
+
+**Five repetitions over disjoint slices**, 80 items each, so no repetition reads
+an item an earlier one warmed. One pass is not a rate: four single-pass runs put
+the extract term between 0,14 and 0,26 ms per passage, and the median over
+disjoint slices is what the artifact quotes. Load average was 3,72 throughout —
+the machine was not idle, and the tight spread below is itself the evidence that
+this term is bound by a loopback read of the desktop application rather than by
+CPU.
+
+**What the build's extract stage actually is.** `build.ts` gets body text from
+`createFulltextSource`, whose `textFor` is a GET of the platform's own
+`/items/<key>/fulltext`. The population it can serve is exactly what
+`/fulltext?since=0` names, so an attachment the platform has not extracted is not
+in the list, the source cannot serve it, and the build never asks. The mix is
+therefore a property of the architecture, not of the library: **every extract a
+build performs is a cache hit, 8 037 of 8 037**. Measured beside it, on this
+library the parse path has no instance either — of 9 302 attachments, 59 PDFs
+carry no platform text and **all 59 are `linked_url`**, with no local file to
+parse. That count is a census of content types and link modes, not an empty
+filter: a filter that finds nothing and one that cannot look return the same
+list.
+
+| stage | ms per passage, median of 5 | min–max |
+|---|---|---|
+| extract, one request in flight | **0,142** | 0,137-0,145 |
+| chunk (`chunkText`, 1200/150) | **0,022** | 0,020-0,029 |
+| extract + chunk, serial | **0,164** | 0,157-0,174 |
+| extract + chunk, at the build's own local-API concurrency of 2 | **0,122** | one pass |
+
+377 items read over the five slices, **22 562 passages**. Passage length: median
+**1 197** characters, p95 **1 200**, mean **1 187,5** — the distribution the rate
+ran on, since a rate does not transfer across distributions. The concurrent arm
+ran on a sixth, disjoint slice, so the pooled figure is not a warm cache read as
+a concurrency gain.
+
+**The parse path, priced out of the critical path.** Forcing re-extraction
+through the control plugin (`Zotero.FullText.indexItems` with `complete: true`,
+which re-parses whether or not a cache exists) over four PDFs spread across the
+library: **10,08 ms per passage** median, from 3,45 on a 198-page document to
+27,76 on a 5-page one — the per-passage cost falls with document size, which is
+what a fixed per-file overhead over a variable yield looks like. This is the
+platform's cost, paid once when a user first opens a PDF, and it is never inside
+the build's own clock.
+
+**The fixed term, which the per-passage rate hides.** Before any passage is read,
+the source lists the full-text sequence (105,5 ms) and walks the attachment pages
+to map each extracted attachment to its parent: **80,6 s** on this library, 94
+pages of 100. That is one-time per build, and it is exactly the fixed work
+§5.2.8 warns a rate conceals. Amortised, it is **21,8 ms per passage on the
+60-item derisking build** (3 699 passages) and **0,17 ms per passage on a
+full-library build** (~465k passages). A sample can therefore fail a rate the
+real build meets, which is the opposite of the usual worry about samples.
+
+**Extract work that yields no passage.** Of 80 sampled items in the first slice,
+6 failed the read (404 on an attachment the sequence names) and 1 answered with
+an empty body — the version-0 entries. Across the five slices, 23 of 400.
+Counted, not dropped: they are extract-stage work that produces nothing, so they
+raise the effective rate rather than lower it.
+
+**The tokenizer pass, and why it is not in this term.** The census tokenizes; the
+build's chunker does not — `chunkText` splits on characters and word boundaries,
+with no tokenizer anywhere in the module. Measured anyway, since the census's
+wall clock was never recorded when it ran: **0,641 ms per passage**, **288,2**
+tokens per passage over 1 242 272 tokens. That cost sits inside embed, not
+inside this allocation.
+
+**What was not measured.** The record write, which §5.2.8's 30 ms covers together
+with extract and chunk, is not isolated here: it lives inside the index manager's
+`putPassage` and its persistence, and pricing it needs a built index rather than
+a source read. Reported as not-run rather than folded into the two stages that
+were measured. The full-library build launched the same night is the end-to-end
+confirmation this pass cannot give.
+
+**Provenance of the committed artifact, stated rather than glossed.** After the
+run, the driver was corrected to satisfy ticket 0260's guard: it now issues a
+discarded warm-up pass before the clock, and times each stage in one window per
+repetition instead of summing a clock read per item. The committed artifact was
+produced by the pass *before* that correction, because the full-library build
+took ownership of Zotero's local API minutes later and re-running would have
+loaded it — the exact condition that degrades a build to one-at-a-time fetches
+and never recovers. What the correction can be worth is bounded by the run
+itself: the five disjoint repetitions read 0,145 / 0,139 / 0,143 / 0,142 / 0,137
+ms per passage, the coldest first, so the first-connection cost the warm-up
+removes is at most about 0,008 ms per passage — three orders of magnitude below
+the allocation being re-cut. A confirming re-run belongs after the build.
+
+## The re-cut
+
+§5.2.8 says the allocation across stages is provisional and the total is not, and
+that the split may be re-cut in any proportion so long as the total holds. The
+two stages that were unpinned are now pinned at **0,164 ms per passage together**
+— about half a percent of the 30 ms they were allocated. The allocation is
+re-cut to **5 ms at the MUST and 2 ms at the SHOULD** for extract, chunk and the
+record write together, which leaves the unmeasured record write more than an
+order of magnitude of room above the two measured stages, and gives embed
+**145 ms** and **73 ms**.
+
+R32's own 150 ms and 75 ms are untouched. Nothing measured here asks them to
+move, and moving them would be the author's ruling rather than this ticket's.
+
+One derived observation, labelled derived and not acted on. The derisking build
+of 2026-09-02 ran 3 699 passages in 506 s, i.e. 137 ms per passage end to end. If
+extract and chunk cost 0,16 ms of that and the attachment map 21,8 ms, the
+remainder sits near 115 ms — inside the old 120 ms embed allocation. But that is
+a subtraction from somebody else's total, not a measurement of embed, and the
+full-library build is what will say.
+
+## Exit criteria
+- [x] extract measured on both paths, with the observed mix, on the reference machine
+- [x] chunk measured on the same corpus and distribution
+- [x] both figures committed under `bench/results/` and declared in `bench/check_figures.py`
+- [x] §2.8's per-stage allocation re-cut from measurement, or the bound revised
