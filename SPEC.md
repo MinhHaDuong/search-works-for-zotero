@@ -71,7 +71,8 @@ the entry points at the question rather than settling it.
   equality. Authoritative: SPEC.md §5.2.4.
 - **conductor** — the writer process: a process of its own rather than a role
   a query-serving server takes on, elected through a lease row, that is the
-  sole writer and the segmenter, runs the reconcile tick, and owns the single
+  sole writer of derived state and the segmenter, runs the reconcile tick, and
+  owns the single
   pipeline worker, so the pipeline budget does not multiply with the number of
   servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
   (ruling: DECISIONS.md 2026-09-02).
@@ -170,10 +171,11 @@ the entry points at the question rather than settling it.
   Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
   over Vietnamese content and still have no path from an English one.
   Authoritative: SPEC.md R7.
-- **P0 / pipeline worker** — the query-serving zoteus server may have several
-  instances; exactly one, the elected *conductor*, is the sole writer and the
-  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
-  text, embeds, and writes nothing. Authoritative: SPEC.md §5.2.5.
+- **P0 / pipeline worker** — P0 is the query-serving zoteus server, of which
+  several instances run: each is a reader, and what it writes is control rows
+  only. The *pipeline worker* is the single run-to-drain worker the *conductor*
+  owns, which fetches text, calls the *embedding service*, and writes nothing.
+  Authoritative: SPEC.md §5.2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: SPEC.md §5.2.2.
 - **priority tree** — the single ordering the conductor schedules by, from
@@ -912,8 +914,9 @@ everything: foreground always beats background.
 - server steady-state RSS ≤ ~750 MB (the original figure was against an
   English-embedder picture, and R7 outranks it)
 - pipeline worker peak ≤ ~750 MB regardless of document size (the original
-  figure predates the multilingual requirement, and under the sole-writer
-  topology the worker is the model plus one batch)
+  figure predates the multilingual requirement, and the worker's peak is now one
+  token-budget batch plus the streamed decode, the model residing in the
+  embedding service, so the ceiling awaits re-pin per SPEC.md §5.2.9)
 - pipeline worker killable/restartable at any time with zero index damage
 
 The server ceiling binds per process, the scope its gate can assert; SPEC.md
@@ -1510,7 +1513,8 @@ separation this section now states). Four process roles appear below: P0, a
 query-serving zoteus server; the *conductor*, the writer; one *pipeline
 worker*, which fetches, drives the embedding service, and writes nothing; and
 the *embedding service* above.
-Only the conductor writes, and it is the only role that ever did.
+The conductor is the sole writer of derived state: slabs, entries,
+passages, vectors, the ledger. A server writes control rows and nothing else.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
 default data directory (verified). Every P0 answers queries, as a WAL reader on
@@ -1669,10 +1673,11 @@ of work orders, in both directions — returning records drain into the same
 bounded append-fsync-commit loop that bounds the windows, never into a
 queue ahead of it.
 
-**The handshake crosses the pipe** (R31). The model loads in the worker, so
-the requested and actual fingerprint, dimension, runtime, execution provider
-and local-validation standing arrive with the first record of every dispatch,
-and the conductor rejects a mismatch before writing a vector.
+**The handshake crosses the pipe** (R31). The model is resident in the
+embedding service, which answers every embed call with the requested and actual
+fingerprint, dimension, runtime, execution provider and local-validation
+standing; the worker carries that answer home with the first record of every
+dispatch, and the conductor rejects a mismatch before writing a vector.
 
 Safety never depends on the singleton: during a handover two P0s can each
 believe they are conductor, so every record commit carries the guard **in the
