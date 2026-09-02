@@ -4877,3 +4877,25 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   15 000-page PDF is concerned. Same section, same reason for leaving it: this
   is the segmenter's own territory, and the fix is a design decision about the
   trigger's order, not a wording repair.
+
+- **Does the shipped coverage sentence print `7,541` or `7 541`? (raised
+  2026-09-02, ticket 0060)**
+  `SPEC.md` §5.2.8's coverage example is a blockquote, and a blockquote of
+  product output is a sample of what the product emits. So the four figures
+  inside it — `7,541`, `5,561`, `6,100`, `2,101` — are not a house-style
+  question about this document; changing them decides what the status line
+  prints on a user's screen, which is an i18n design choice and not a
+  typographic one. The prose *around* the blockquote used the same US
+  separators in violation of the house convention and has been corrected to
+  `5 561` / `6 100`; the sample is left exactly as it stands, so the two now
+  differ on the page. That difference is deliberate and is the question.
+
+  Three ways it could go, and the ticket takes none of them: emit the
+  narrow-space form everywhere and accept that the product looks French to an
+  English reader; emit a locale-sensitive form and carry the locale into the
+  status path, which is new surface; or keep the US form in product output and
+  state in §5.2.8 that the blockquote is verbatim product text and therefore
+  outside the house convention, which costs nothing and makes the mismatch
+  legible instead of accidental. The third is the cheapest and is not proposed
+  as a default — the first is what a reader of the rest of the specification
+  would expect, and the author owns the trade.

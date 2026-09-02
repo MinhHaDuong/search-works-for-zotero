@@ -2,12 +2,16 @@
 Title: Repair the two bench drivers pinned to the pre-rename index schema
 Created: 2026-08-29
 Author: claude
+Closed: autoclosed — PR #213
 
 --- log ---
 2026-08-29T10:15Z claude created
 2026-08-29T10:15Z claude note found by the /roar sweep after X2. Filed at 0100 rather than the next free 0092: 0080 landed on main from a parallel session mid-session, which is exactly the frontier contention the renumber rule names
 
 2026-08-30T19:49Z claude note ticket 0497 is this ticket's destination rather than a competitor: the portable corpus format exists so a driver reads a file whose schema is ours rather than the index's, and 0497's action 3 retires one driver's dependence on the index schema by conversion. Fixing the two pinned drivers against today's schema stays worth doing and is not blocked by it -- but the recurrence is what 0497 addresses, and this ticket's cost (the rebuild 0025's substrate correction records) is the evidence 0497 cites
+2026-09-02T19:16Z claude note repaired and both drivers re-run against /home/haduong/data/projets/zoteus-bench/x2-rebuild (477 512 passages, current schema). The break is larger than this ticket recorded: index_concentration.mjs does not reach line 138's fts5vocab call at all, it dies at line 118 on 'no such table: passage_meta' -- upstream folded passage_meta's columns into passages (item -> item_key, body -> text) in the same move that renamed the FTS5 table. bm25_idf_effect.mjs could not run in any form: its hardcoded /home/haduong/.zoteus-bench-0003/ no longer exists. Verdict on 0013's figures: CONFIRMED, not corrected -- the re-run artifact is field-for-field identical to the committed one (dominant DH8EXSVA 42 963 of 477 512, 9,0%; purposive rest retention 0,9722, order kept 5/12; random rest retention 0,9693, order kept 37/60, per-query Jaccard minimum 0,25 with two of the 60 under 0,5, which is what SPEC.md quotes). Only db, db_schema and the redaction note differ
+2026-09-02T19:16Z claude note two findings beyond the ticket's scope, recorded rather than fixed here. (1) Three more drivers open a real index and carry the pre-rename schema: vec_real_measure.mjs, vec_mrl_recall.mjs and issue30_build_index.mjs all read passage_meta. The class 0101 names is five drivers, not two. (2) index_concentration.mjs was still SELECTing min(title) into its artifact, so the hand redaction of 2026-08-31 would have had to be repeated after every run -- exactly the recurrence-by-tooling that check_names.py's docstring says the guard exists to stop. Both drivers now address documents by item key only
+2026-09-02T19:18Z Minh Ha-Duong closed — autoclosed — PR #213
 --- body ---
 ## Context
 X2 lost an hour to a schema break nobody had noticed: upstream renamed the
@@ -64,10 +68,10 @@ repaired driver at a pre-rename index and confirm it names the schema it
 found rather than returning zero.
 
 ## Verification
-- [ ] both drivers run against `x2-rebuild/` and emit their artifacts
-- [ ] both refuse loudly on a pre-rename index, naming the schema
-- [ ] `bm25_idf_effect.mjs` has no hardcoded path
-- [ ] 0013's figures re-measured, and any change explained in the artifact
+- [x] both drivers run against `x2-rebuild/` and emit their artifacts
+- [x] both refuse loudly on a pre-rename index, naming the schema
+- [x] `bm25_idf_effect.mjs` has no hardcoded path
+- [x] 0013's figures re-measured, and any change explained in the artifact
       and propagated to STATE.md through the figure guard
 
 ## Invariants

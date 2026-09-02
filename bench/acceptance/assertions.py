@@ -411,9 +411,23 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
     ratified clause means by a declaration nobody checks for completeness.
 
     So this one exercises the query surface — which is what triggers a download —
-    and sweeps for whatever appeared outside the declaration. A shared cache in
-    the home directory is caught without the layer knowing that such a thing
-    exists. One corollary worth stating because it has already misled a report:
+    and sweeps for whatever appeared outside the declaration.
+
+    **What the sweep can and cannot see, stated because the first draft of this
+    docstring overclaimed it.** It walks the harness-owned arena, so it catches
+    weights that land outside a declared root *within that arena* — the case
+    that decides anything when the adapter has redirected the target's caches
+    into it, which an adapter does by pinning the cache under a root it
+    declares. It does NOT walk the whole filesystem, so a cache
+    landing at some library's own default outside the arena — a shared cache in
+    the home directory, say — is invisible to it. Two honest ways to close that,
+    and the choice belongs to whoever needs it: have the adapter redirect the
+    cache into the arena, which makes this sweep decisive, or widen the sweep
+    and accept that it must then reason about every path the operator already
+    had. Until one is taken, read a green here as "nothing strayed inside the
+    arena", not as "nothing strayed anywhere".
+
+    One corollary worth stating because it has already misled a report:
     a green here from a data directory that was pre-populated says only that a
     directory exists; it is not evidence that a download was constrained. The
     `not-run` path below is what keeps that case from being read as a pass.
