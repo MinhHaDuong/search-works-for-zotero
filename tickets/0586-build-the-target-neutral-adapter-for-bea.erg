@@ -1,0 +1,36 @@
+%erg 0.1
+Title: Build the target-neutral adapter for Beaver
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0578
+
+--- log ---
+2026-09-02T14:37Z codex created
+
+--- body ---
+## Context
+
+The ratified target-neutral harness includes Beaver as a real fifth target.
+Its plugin is AGPL-3.0 and can be pinned and inspected; its hosted backend is an
+external runtime dependency. Beaver is expected to fail R10 where its normal
+configuration attempts disclosed remote processing. The deterministic
+egressing stub in ticket 0578 remains the assertion's fail-control; Beaver is
+not shaped into a fixture.
+
+## Actions
+
+1. Pin the tested Beaver plugin revision and document the normal configuration.
+2. Declare derived state, UI/query access, lifecycle, default configuration and
+   unsupported interface verbs without compensating for target behavior.
+3. Run applicable assertions, including R10 with network-attempt observation.
+4. Record unavailable service or permitted credentials as not-run, never pass,
+   and assess other clauses independently of the expected R10 result.
+
+## Exit criteria
+
+- [ ] pinned AGPL Beaver plugin revision and recorded normal configuration
+- [ ] adapter passes ticket 0578's declaration-only contract checks
+- [ ] R10 reports the observed result without a specially failing configuration
+- [ ] unavailable hosted service or credentials produce not-run
+- [ ] every other applicable requirement is assessed independently
+- [ ] `make check` and `erg check tickets/` pass

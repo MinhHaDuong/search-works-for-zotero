@@ -1,0 +1,34 @@
+%erg 0.1
+Title: Build the target-neutral adapter for Zotero core PR 6012
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0578
+
+--- log ---
+2026-09-02T14:37Z codex created
+
+--- body ---
+## Context
+
+The ratified target-neutral harness names Zotero core PR #6012 as its
+platform-native target. Ticket 0578 builds the assertion layer and first
+adapter; this ticket adds #6012 without teaching the layer Zotero internals.
+Its query surface is in-process or UI-facing rather than Zotero's local HTTP
+API, which is the architectural difference this target exists to exercise.
+
+## Actions
+
+1. Pin the tested #6012 revision and make its build reproducible.
+2. Declare derived state, query access, process lifecycle, default
+   configuration and unsupported interface verbs per SPEC.md §5.2.8.
+3. Implement only the minimal transport needed to exercise offered surfaces.
+4. Run every applicable assertion and record not-offered distinctly for the
+   rest, especially uninstall if Zotero core exposes no genuine equivalent.
+
+## Exit criteria
+
+- [ ] pinned #6012 revision and reproducible target setup
+- [ ] adapter passes the declaration-only contract checks from ticket 0578
+- [ ] every interface verb yields pass, fail, not-offered or not-run
+- [ ] no assertion layer code names #6012 or its internal file layout
+- [ ] `make check` and `erg check tickets/` pass

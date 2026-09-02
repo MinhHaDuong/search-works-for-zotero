@@ -1,0 +1,35 @@
+%erg 0.1
+Title: Build the target-neutral adapter for ZotSeek
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0578
+
+--- log ---
+2026-09-02T14:37Z codex created
+
+--- body ---
+## Context
+
+The ratified target-neutral harness assigns its in-process-plugin architecture
+seat to `introfini/ZotSeek` while that project remains runnable and inspectable.
+Ticket 0578 builds the layer and first adapter. ZotSeek declares MIT only in
+`package.json` and has no LICENSE file, so this work may run and inspect it but
+must not copy its code into this repository.
+
+## Actions
+
+1. Pin a runnable ZotSeek revision and record the eligibility check.
+2. Declare its sidecar-derived state, in-process/UI query access, lifecycle,
+   default configuration and unsupported interface verbs.
+3. Add only the minimal invocation transport and run the shared assertions.
+4. If ZotSeek is no longer runnable or inspectable, report that finding and
+   propose another in-process Zotero plugin; do not silently substitute one.
+
+## Exit criteria
+
+- [ ] pinned ZotSeek revision is runnable and inspectable, or replacement is
+      explicitly proposed for the same architecture seat
+- [ ] adapter passes ticket 0578's declaration-only contract checks
+- [ ] no ZotSeek code is copied into this repository
+- [ ] every interface verb yields pass, fail, not-offered or not-run
+- [ ] `make check` and `erg check tickets/` pass
