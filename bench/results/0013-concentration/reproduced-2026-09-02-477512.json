@@ -1,0 +1,969 @@
+{
+ "probe": "ticket 0013 — index concentration and its effect on ranking, through FTS5 bm25()",
+ "db": "/home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite",
+ "db_schema": "tables: items, meta, passages, passages_fts (virtual); passages columns: pid, id, item_key, title, text, source, vector",
+ "redaction": "Documents are addressed by Zotero item key and never by title or filename (ruling of 2026-08-31, DECISIONS.md; guard: bench/check_names.py). This driver no longer reads a title, so no redaction pass is needed on its output.",
+ "passages_total": 477512,
+ "top_items_by_passages": [
+  {
+   "item": "DH8EXSVA",
+   "passages": 42963
+  },
+  {
+   "item": "CBEBU7EH",
+   "passages": 1450
+  },
+  {
+   "item": "PK4VDN2Y",
+   "passages": 1252
+  },
+  {
+   "item": "MF9QE5BS",
+   "passages": 1114
+  },
+  {
+   "item": "ZF62VKPQ",
+   "passages": 1084
+  },
+  {
+   "item": "5KNWHZTJ",
+   "passages": 1080
+  },
+  {
+   "item": "YDUBHPNQ",
+   "passages": 1067
+  },
+  {
+   "item": "Q934NYJB",
+   "passages": 1058
+  },
+  {
+   "item": "UVNWXVYX",
+   "passages": 1056
+  },
+  {
+   "item": "BMAN5W8Q",
+   "passages": 1027
+  }
+ ],
+ "dominant_item": {
+  "item": "DH8EXSVA",
+  "passages": 42963,
+  "share_of_index": 0.09
+ },
+ "next_largest_passages": 1450,
+ "passages_after_removing_dominant": 434549,
+ "document_frequency": [
+  {
+   "term": "keynes",
+   "df": 1819,
+   "idf": 5.57,
+   "df_without_dominant": 346,
+   "idf_without_dominant": 7.1342,
+   "idf_shift_pct": 28.1
+  },
+  {
+   "term": "walras",
+   "df": 831,
+   "idf": 6.3531,
+   "df_without_dominant": 157,
+   "idf_without_dominant": 7.9226,
+   "idf_shift_pct": 24.7
+  },
+  {
+   "term": "cournot",
+   "df": 583,
+   "idf": 6.7073,
+   "df_without_dominant": 235,
+   "idf_without_dominant": 7.5204,
+   "idf_shift_pct": 12.1
+  },
+  {
+   "term": "ricardo",
+   "df": 1218,
+   "idf": 5.971,
+   "df_without_dominant": 275,
+   "idf_without_dominant": 7.3635,
+   "idf_shift_pct": 23.3
+  },
+  {
+   "term": "marshall",
+   "df": 1554,
+   "idf": 5.7274,
+   "df_without_dominant": 570,
+   "idf_without_dominant": 6.6356,
+   "idf_shift_pct": 15.9
+  },
+  {
+   "term": "equilibrium",
+   "df": 11616,
+   "idf": 3.7162,
+   "df_without_dominant": 4908,
+   "idf_without_dominant": 4.4833,
+   "idf_shift_pct": 20.6
+  },
+  {
+   "term": "utility",
+   "df": 12403,
+   "idf": 3.6506,
+   "df_without_dominant": 8823,
+   "idf_without_dominant": 3.8969,
+   "idf_shift_pct": 6.7
+  },
+  {
+   "term": "carbon",
+   "df": 43397,
+   "idf": 2.3982,
+   "df_without_dominant": 43347,
+   "idf_without_dominant": 2.3051,
+   "idf_shift_pct": -3.9
+  },
+  {
+   "term": "climate",
+   "df": 62026,
+   "idf": 2.041,
+   "df_without_dominant": 61853,
+   "idf_without_dominant": 1.9495,
+   "idf_shift_pct": -4.5
+  },
+  {
+   "term": "emissions",
+   "df": 50332,
+   "idf": 2.2499,
+   "df_without_dominant": 50229,
+   "idf_without_dominant": 2.1577,
+   "idf_shift_pct": -4.1
+  },
+  {
+   "term": "discount",
+   "df": 3728,
+   "idf": 4.8526,
+   "df_without_dominant": 3167,
+   "idf_without_dominant": 4.9214,
+   "idf_shift_pct": 1.4
+  },
+  {
+   "term": "welfare",
+   "df": 6582,
+   "idf": 4.2842,
+   "df_without_dominant": 3950,
+   "idf_without_dominant": 4.7005,
+   "idf_shift_pct": 9.7
+  }
+ ],
+ "note": "Ranking regimes are the real index and a copy with the dominant item deleted; deleting rows is what makes FTS5 recompute its own document frequencies, so bm25() genuinely re-weights. Top-K is over ITEMS, de-duplicated, which is what a user sees.",
+ "purposive": {
+  "label": "purposive (chosen to probe the hypothesis — not evidence that it generalises)",
+  "queries": 12,
+  "queries_where_dominant_appears": 10,
+  "mean_jaccard": 0.8126,
+  "identical_ordered": 1,
+  "mean_rest_retention": 0.9722,
+  "rest_relative_order_preserved": 5,
+  "rows": [
+   {
+    "query": "walras general equilibrium",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "keynes uncertainty expectations",
+    "overlap": 7,
+    "jaccard": 0.5385,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 7,
+    "rest_retention": 0.7778,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "cournot duopoly competition",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "ricardo comparative advantage",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "marshall partial equilibrium",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "utility maximisation consumer",
+    "overlap": 8,
+    "jaccard": 0.6667,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 8,
+    "rest_retention": 0.8889,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "carbon tax revenue recycling",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "climate damage function",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "emissions trading permits",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "discount rate intergenerational",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "welfare economics compensation",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "monetary policy inflation",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   }
+  ]
+ },
+ "random_sample": {
+  "label": "seeded random term pairs from mid-frequency vocabulary (seed 20260822)",
+  "queries": 60,
+  "queries_where_dominant_appears": 28,
+  "mean_jaccard": 0.8753,
+  "identical_ordered": 22,
+  "mean_rest_retention": 0.9693,
+  "rest_relative_order_preserved": 37,
+  "rows": [
+   {
+    "query": "journee particulier",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "definir presented",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "stocker negatively",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "scott smarter",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "placed material",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "unsustainable amann",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "sanctioned partenaires",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 9,
+    "rest_retention": 0.9,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "cognition augmenting",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "daiichi vattenfall",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "framings engineer",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "complexite frederick",
+    "overlap": 8,
+    "jaccard": 0.6667,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 8,
+    "rest_retention": 0.8889,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "incompleteness dieback",
+    "overlap": 6,
+    "jaccard": 0.4286,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 6,
+    "rest_retention": 0.6667,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "thinking carriers",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "santiago constitutes",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "coming fascinating",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "entierement substantially",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 9,
+    "rest_retention": 0.9,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "avere convinced",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "merits traditionnelle",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "circuit metaphor",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "sonnenschein shephard",
+    "overlap": 7,
+    "jaccard": 0.5385,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 7,
+    "rest_retention": 0.7778,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "wasteful defend",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "retirement places",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "sympathy intra",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "buong flagship",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "canziani street",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "melange underpins",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "valorem bosnia",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "kblam roadside",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "110kv grove",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "restricting simplifying",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "montmiral linearized",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "diluted retrieval",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "torrens travelled",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "hydrolysis received",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "cooked unlimited",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "complex diesem",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "2001a energia",
+    "overlap": 8,
+    "jaccard": 0.6667,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 8,
+    "rest_retention": 0.8,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "tumors lucas",
+    "overlap": 8,
+    "jaccard": 0.6667,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 8,
+    "rest_retention": 0.8889,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "solvers 2019a",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "affiliates feeder",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "derivation fertilisers",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "securing numbered",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "carbonaceous gielen",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "continu nouveau",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "nonlinearities career",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "tribes duyan",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "verifier examined",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "tagged corresponding",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "recente pertaining",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "committee faisabilite",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "hyperinflation admit",
+    "overlap": 4,
+    "jaccard": 0.25,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 4,
+    "rest_retention": 0.4444,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "100000 routledge",
+    "overlap": 8,
+    "jaccard": 0.6667,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 8,
+    "rest_retention": 0.8889,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "disorders petition",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": true
+   },
+   {
+    "query": "financieres vaccination",
+    "overlap": 9,
+    "jaccard": 0.8182,
+    "identical_ordered": false,
+    "rest_size": 9,
+    "rest_retained": 9,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": true
+   },
+   {
+    "query": "unused grass",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "depicted cotes",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "reliability johannesburg",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "integers volcanoes",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": false,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": false,
+    "dominant_in_top": false
+   },
+   {
+    "query": "efficaces actuelle",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   },
+   {
+    "query": "silicate continued",
+    "overlap": 10,
+    "jaccard": 1,
+    "identical_ordered": true,
+    "rest_size": 10,
+    "rest_retained": 10,
+    "rest_retention": 1,
+    "rest_relative_order_preserved": true,
+    "dominant_in_top": false
+   }
+  ]
+ }
+}
