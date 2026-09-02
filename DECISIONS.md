@@ -4877,3 +4877,66 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   15 000-page PDF is concerned. Same section, same reason for leaving it: this
   is the segmenter's own territory, and the fix is a design decision about the
   trigger's order, not a wording repair.
+
+- **Does the shipped coverage sentence print `7,541` or `7 541`? (raised
+  2026-09-02, ticket 0060)**
+  `SPEC.md` §5.2.8's coverage example is a blockquote, and a blockquote of
+  product output is a sample of what the product emits. So the four figures
+  inside it — `7,541`, `5,561`, `6,100`, `2,101` — are not a house-style
+  question about this document; changing them decides what the status line
+  prints on a user's screen, which is an i18n design choice and not a
+  typographic one. The prose *around* the blockquote used the same US
+  separators in violation of the house convention and has been corrected to
+  `5 561` / `6 100`; the sample is left exactly as it stands, so the two now
+  differ on the page. That difference is deliberate and is the question.
+
+  Three ways it could go, and the ticket takes none of them: emit the
+  narrow-space form everywhere and accept that the product looks French to an
+  English reader; emit a locale-sensitive form and carry the locale into the
+  status path, which is new surface; or keep the US form in product output and
+  state in §5.2.8 that the blockquote is verbatim product text and therefore
+  outside the house convention, which costs nothing and makes the mismatch
+  legible instead of accidental. The third is the cheapest and is not proposed
+  as a default — the first is what a reader of the rest of the specification
+  would expect, and the author owns the trade.
+
+**2026-09-02 — the embedding service's ceiling, measured, and the question it
+puts. Not ratified: the four cells are the author's to rule on.** SPEC.md §5.2.9
+says the embedding service has no ceiling at all, being a class C3 did not have,
+and names the one term nobody had measured on any machine — the residency of a
+live batch. Ticket 0577 measured both, on the reference machine, five fresh
+processes per cell, peak from the kernel high-water mark
+(`bench/results/0577-service-ceiling/service-ceiling-rss.json`).
+
+One generation resident: **301,1 MB** at rest, **464,7 MB** with a live batch —
+so the live-batch term is **163,6 MB** at the batch size the ratified ~1 s
+quantum derives on this machine (16 passages for the incumbent). Two generations
+resident: **958,4 MB** at rest, **1 002,5 MB** with a batch on the new one, and
+**1 158,6 MB** with a batch in flight on each. The dual-embed window therefore
+costs **537,8 MB** over the single-generation working cell.
+
+The arithmetic, stated plainly: **C3 is ~750 MB and cell 4 is 1 002,5 MB**, 34 %
+above it — and cell 3, two generations merely resident with nothing in flight, is
+already 958,4 MB. A service ceiling at C3's number rules out SPEC.md §5.2.7's
+dual residency by arithmetic, exactly as the standing correction entry warned it
+would. The four remedies the ticket names — shorten the dual-embed window, evict
+the old generation eagerly, forbid dual residency, or move the rung — are a
+choice among costs, not a measurement, and the probe deliberately makes none of
+them.
+
+Two things the same measurement settles that are not the ruling. **F1's
+re-check**: the pipeline ceiling was pinned at ≤ ~750 MB on the argument that the
+worker is "the model plus one batch"; that process measures **910,1 MB** with the
+recommended candidate at q8, so the collision was real and 21 % wide. It
+dissolves for the worker only because the service topology leaves the worker
+holding no model — it does not vanish, it moves to the service, which is what the
+cells above price. **And a methodological correction**: a process that has just
+loaded a model keeps growing its resident set for a second or two, by roughly
+200 MB with both generations loaded. Cause not established. Every cell above is
+read after a uniform two-second settle, with a zero-settle control arm reported
+beside it; a residency figure taken immediately after a load understates the
+settled one, which is the figure a ceiling must carry.
+
+Not run, and recorded as not-run rather than as a negative: the GPU
+second configuration. The disclosed GPU host's two devices were fully held by a
+resident judge driver that must not be stopped, so that arm had no device.

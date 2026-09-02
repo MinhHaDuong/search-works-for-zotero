@@ -12,7 +12,12 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup fold-gate
+
+# Where the acceptance layer's arenas live: outside the repository, because the
+# residue sweep fills them with a target's derived state and bench/ is scanned
+# by the guards above. Override to put them elsewhere.
+ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -23,8 +28,10 @@ help:
 	@echo "make progress    — the status page covers every requirement, and its bars match its rows"
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
+	@echo "make fold-gate   — R19: every token the query side produces is one the index can produce"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
+	@echo "make acceptance-fixtures — the acceptance layer's fail-controls still fail"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
@@ -98,6 +105,41 @@ tickets:
 # defect. Needs real history — the guard says so on a shallow checkout.
 ticket-logs:
 	python3 bench/check_ticket_logs.py
+
+# The acceptance layer's own positive control, and it reads backwards on
+# purpose: the fail-controls MUST fail. A fixture built to break an assertion
+# that comes back green means the assertion has stopped firing, and nothing else
+# in this repository can see that — a layer whose checks have quietly gone inert
+# passes every target it is pointed at. The driver exits nonzero when any
+# assertion was never seen red, which is the state this target exists to catch.
+#
+# Deliberately NOT in `check`: it spawns sandboxed subprocesses and a tracer, so
+# it is an integration gate rather than part of a 9-second loop. `make check`
+# still covers the layer's logic through tests/test_acceptance_*.py.
+#
+# not-offered and not-run never redden this target. They are printed and counted
+# apart from green instead, per ticket 0578's Action 6: a gate that cannot look
+# reports that it could not look.
+acceptance-fixtures:
+	python3 bench/acceptance/run.py --fixtures \
+	  --arena "$(ACCEPTANCE_ARENA)/fixtures" \
+	  --output bench/results/smoke-1.12.0/acceptance-fixtures.json
+# R19's gate, SPEC.md §5.2.8. Deliberately NOT a `check` prerequisite, for two reasons
+# that would each be enough on their own. It reads a BUILT checkout of the tree under test,
+# and `check` has to stay green on a machine that has none — a prerequisite that cannot look
+# would have to be waived, and a waiver is a green that means "we decided not to look".
+# And against stock at the reviewed SHA it is currently RED, for a real finding recorded in
+# bench/results/0578-fold-sweep/codepoints.json: wiring a known-red gate into the default
+# gate either paints `check` permanently red, which retires it, or forces that same waiver.
+# It also rewrites a committed artifact, which a nine-second pre-commit gate should not do.
+# The discipline `check` does carry is in tests/test_fold_sweep.py, which needs no checkout.
+#
+# Exit codes: 0 agreed, 1 misses recorded, 2 usage, 3 could not look (NOT-RUN, never green).
+FOLD_TREE ?= fork
+FOLD_OUTPUT ?= bench/results/0578-fold-sweep/codepoints.json
+
+fold-gate:
+	node bench/fold_sweep.mjs --fork "$(FOLD_TREE)" --output "$(FOLD_OUTPUT)"
 
 upstream-status:
 	@set -eu; \

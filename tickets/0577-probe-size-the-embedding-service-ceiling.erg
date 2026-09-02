@@ -7,6 +7,7 @@ Author: claude
 2026-09-02T10:41Z claude created
 
 2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: second of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. SPEC.md §5.2.9 says the service has no ceiling at all and that live-batch residency is unmeasured -- this probe's cell 4 is both gaps at once
+2026-09-02T19:52Z four cells measured on doudou, the reference machine, five fresh processes per cell; artifact bench/results/0577-service-ceiling/service-ceiling-rss.json. Cell 4 is 1002,5 MB against C3's ~750, so the decision rule's second branch fires and the remedy goes to DECISIONS.md as the author's. GPU second configuration NOT RUN: padme's two GPUs fully held by a resident llama-server that must not be stopped
 --- body ---
 
 ## Context
@@ -78,14 +79,124 @@ cannot be re-read for this.
   is what tells the difference, and "may dissolve" stays a re-check until it
   does.
 
-## Exit criteria
+## Measurement, 2026-09-02, on the reference machine
 
-- [ ] Four cells measured on the reference machine, RSS peak per cell, with the
+Ran by `bench/service_ceiling_rss.mjs`; artifact
+`bench/results/0577-service-ceiling/service-ceiling-rss.json`. Host doudou,
+Intel i5-8250U at 1,6 GHz — the binding arm, since C3's ceilings are asserted
+there. Peak from `/proc/self/status` `VmHWM`, the kernel high-water mark, not a
+sampler. **One fresh process per cell, five of them**, and the median reported
+with its spread: within a single process `VmHWM` is monotone, so cells measured
+in sequence would each inherit the previous one's peak and the 3→4 delta — the
+live-batch term §5.2.9 says nobody has measured — would be unreadable.
+
+Generation A is the incumbent, `Xenova/all-MiniLM-L6-v2`, loaded exactly as the
+shipped provider loads it (`pipeline('feature-extraction', model)` with no dtype
+key, which resolves to the fp32 ONNX file). Generation B is
+`Xenova/multilingual-e5-base` at its 8-bit rung, `q8`, the candidate the C3
+ruling of 2026-08-30 recommends. Weights were pre-downloaded by a separate warm
+pass, so no cell window holds a download.
+
+**Batch size, derived rather than assumed.** DECISIONS.md 2026-09-01 ratifies a
+time quantum of about 1 s with the size derived from it per device, so a fixed
+size taken from anywhere else would measure a constant this project deliberately
+did not ratify. Derived here, in a process of its own so the sweep's own peak
+never lands in a cell: **16 passages** for the incumbent (1 088,5 ms) and
+**4 passages** for the candidate at q8 (896,6 ms).
+
+| cell | resident | in flight | peak RSS | spread |
+|---|---|---|---|---|
+| 1 | incumbent | — | **301,1 MB** | 4,7 |
+| 2 | incumbent | batch of 16 | **464,7 MB** | 0,7 |
+| 3 | incumbent + candidate q8 | — | **958,4 MB** | 10,9 |
+| 4 | incumbent + candidate q8 | batch of 4 on the candidate | **1 002,5 MB** | 68,8 |
+| 4b | incumbent + candidate q8 | a batch on each at once | **1 158,6 MB** | 1,5 |
+| 1b | candidate q8 alone | — | **861,8 MB** | 4,0 |
+| 2b | candidate q8 alone | batch of 4 | **910,1 MB** | 3,8 |
+
+The deltas the cells were built to expose:
+
+- **the live-batch term**, one generation: **+163,6 MB** (incumbent, batch of 16).
+  This is the term §5.2.9 says every sweep on disk priced in latency and never in
+  RSS. It is now priced.
+- **the second generation at rest**: **+657,3 MB**.
+- **the live-batch term with two resident**: **+44,1 MB** — smaller than the
+  first because the candidate's derived batch is 4 where the incumbent's is 16,
+  which is the quantum doing its job, not the model being cheaper.
+- **the dual-embed window's price** (cell 4 against cell 2): **+537,8 MB**.
+- **both batches in flight** (4b against 3): **+200,2 MB**.
+
+**A methodological finding, which the first run got wrong.** The cells were at
+first settled only where they were "at rest", and those read about 160 MB ABOVE
+the batch cells that were not settled — cell 4 came out *below* cell 3 and the
+live-batch delta was negative. The settle is now uniform, two seconds in every
+cell, and a control arm at zero settle is reported beside the cells: 250,5 /
+393,6 / 710,9 / 767,6 MB for cells 1 to 4. So a process that has just loaded a
+model keeps growing its resident set for a second or two afterwards, by roughly
+200 MB with both generations loaded. **The cause is not established** — arena
+warm-up in the ONNX runtime, GC timing and lazy backend initialisation are all
+consistent with it and none is confirmed. The consequence is firm and is what
+the numbers rest on: a residency read taken immediately after a load understates
+the settled figure, and it is the settled figure a ceiling has to carry.
+
+That is also the most likely reconciliation with `bench/results/0263-cpu-arm`,
+which puts multilingual-e5-base at q8 at 572,6 MB median delta. Cell 1b reads
+861,8 MB total here; the no-settle control regime is where the two are
+comparable. Stated as a reconciliation to check, not as a correction to 0263.
+
+**Provenance of the committed artifact.** After the run the driver was changed
+to name both models by registry id and to take pooling and normalize from
+`bench/models.json` rather than as literals, which is what `bench/check_models.py`
+asks for. The change is value-neutral here and deliberately so: both models
+declare `pooling: mean` and `normalize: true`, and the resolved repository
+strings are the ones the artifact already records, so the committed cells are
+exactly what the committed code produces. Said rather than assumed, because a
+driver edited after its artifact is the ordinary way provenance rots.
+
+## Verdict against the decision rule
+
+**Cell 4 does not fit under what C3 carries.** C3 stands at ~750 MB p95
+(DECISIONS.md 2026-08-30). Cell 4 is 1 002,5 MB, 34 % above it; the worst case
+4b is 1 158,6 MB, 54 % above; and cell 3 — two generations merely resident, with
+nothing in flight — is already 958,4 MB, 28 % above. The ticket's second branch
+is therefore the live one: a ceiling sized for one model is what this machine
+affords, and SPEC.md §5.2.7's dual residency is ruled out by arithmetic unless
+something moves.
+
+The choice among the remedies is the author's, and goes to DECISIONS.md as a
+question with the cells attached, not to code as a workaround.
+
+**F1's re-check, which cells 1b and 2b are what tells the difference.** F1 was
+ruled by pinning the pipeline ceiling at ≤ ~750 MB on the argument that "the
+pipeline worker is the smallest process that can embed — the model plus one
+batch". That process is exactly cell 2b, and it measures **910,1 MB**: the
+collision was real, and it was 21 % wide, not marginal. What dissolves it is the
+service topology itself — under it the worker holds no model at all, so the
+750 MB pipeline ceiling no longer has to cover one. The collision does not
+dissolve; it *moves*, from the pipeline worker to the service, where cells 3 and
+4 now price it. §5.2.9's "may dissolve rather than be ruled" is answered: it
+dissolves for the worker and lands on the service.
+
+## What was not run
+
+**The GPU second configuration: not run.** padme's two GPUs are fully held by a
+resident `llama-server` that must not be stopped, so the second-configuration arm
+had no device to run on. Recorded as not-run with its reason, never as a
+negative: nothing here says anything about what the service costs on a GPU host.
+
+The registry was read for the candidate's identity only, and `bench/models.json`
+was pinned by content hash
+`e93913581ac0da70c765941453051225d3a133b1560c26444329fe36ddf04112` at read time,
+since ticket 0490's registry work was in flight in the same window.
+
+## Exit criteria
+- [x] Four cells measured on the reference machine, RSS peak per cell, with the
       batch size and the rung recorded beside each number
-- [ ] The GPU host reported as a second configuration
-- [ ] A committed summary under `bench/results/`, declared in the figure guard
+- [ ] The GPU host reported as a second configuration — **not run**: padme's GPUs
+      are fully held by a resident llama-server that must not be stopped
+- [x] A committed summary under `bench/results/`, declared in the figure guard
       like every other measurement quoted in prose
-- [ ] A proposed service ceiling, or the arithmetic showing there is none, sent
+- [x] A proposed service ceiling, or the arithmetic showing there is none, sent
       to DECISIONS.md as the author's ruling to make
-- [ ] Ticket 0026's RSS gate has a service arm it can assert against, and
+- [x] Ticket 0026's RSS gate has a service arm it can assert against, and
       ticket 0575's boundary has a bound
