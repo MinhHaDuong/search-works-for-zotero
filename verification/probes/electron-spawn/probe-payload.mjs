@@ -219,7 +219,7 @@ async function main() {
     const args = winner.arm === 'execPath-plain-no-sandbox' ? ['--no-sandbox', CHILD] : [CHILD];
     const orphan = spawn(command, args, { env, stdio: ['pipe', 'pipe', 'pipe'] });
     await sleep(1500);
-    report.orphan = { command, args, pid: orphan.pid ?? null, alive: orphan.pid ? alive(orphan.pid) : false };
+    report.orphan = { armed: true, command, args, pid: orphan.pid ?? null, alive: orphan.pid ? alive(orphan.pid) : false };
     if (OUT) writeFileSync(OUT, JSON.stringify(report, null, 2));
     // The supervisor reads this, kills the host, then looks for the EOF marker.
     writeFileSync(ARMED_FILE, JSON.stringify({ hostPid: process.pid, orphanPid: orphan.pid ?? null }));
@@ -227,7 +227,34 @@ async function main() {
     return;
   }
 
-  report.orphan = { command: null, pid: null, alive: false, note: 'no arm produced a live child to orphan' };
+  // Two different reasons land here and they are not interchangeable. Saying "nothing to
+  // orphan" when an arm did win is the "could not look" reported as "nothing there" that
+  // this whole probe is built to avoid — and it would be falsified by report.orphanRecipe
+  // on this same object. So name which case it is, and in the second one name the winner.
+  if (winner) {
+    const missing = [!ARMED_FILE && 'ZOTEUS_PROBE_ARMED_FILE', !EOF_FILE && 'ZOTEUS_PROBE_EOF_FILE'].filter(Boolean);
+    report.orphan = {
+      armed: false,
+      command: null,
+      pid: null,
+      alive: false,
+      winner: winner.arm,
+      missingEnv: missing,
+      note:
+        `arm '${winner.arm}' produced a live child, but the stdin-EOF half was NOT run: ` +
+        `${missing.join(' and ')} unset. This is "not measured", not "no EOF".`,
+    };
+  } else {
+    report.orphan = {
+      armed: false,
+      command: null,
+      pid: null,
+      alive: false,
+      winner: null,
+      missingEnv: [],
+      note: 'no arm produced a live child to orphan',
+    };
+  }
   if (OUT) writeFileSync(OUT, JSON.stringify(report, null, 2));
   if (ARMED_FILE) writeFileSync(ARMED_FILE, JSON.stringify({ hostPid: process.pid, orphanPid: null }));
 }
