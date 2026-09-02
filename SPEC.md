@@ -762,7 +762,11 @@ This constraint is sharpened on three points:
   Versions alone carry the requirement:
   stored state MUST therefore be partitioned by server ID. A local/cloud
   label is not enough, because two local profiles share the label and share
-  nothing else.
+  nothing else. Corroboration, read from source rather than measured: Zotero's
+  own full-text index keys by local `itemID`, stamps itself with
+  `localUserKey`, and rebuilds on mismatch — the same requirement, arrived at
+  independently, for the same reason and with the same remedy (`DECISIONS.md`
+  2026-08-29).
 - This residue is ours alone, and the platform is not a precedent for it.
   Zotero's embeddings layer *does* chase a processor bump with no file
   change: the attachment staleness key is
@@ -2085,14 +2089,25 @@ than read off a model card, and R29 is a
 conformance criterion in the registry's ship gate.
 
 **CJK.** The multilingual embedder is the CJK path, with a typed
-`CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
-2-gram twin tables (shipped Zotero 10's geometry, not the draft PR's —
-`getCJKBigrams()` at `fulltext.js:2144`, build 20260817151751, C2's
-shipped-schema bullet — and decisive on its own terms: the modal Chinese
-word is two characters, unrepresentable as an
+`CJK_KEYWORD_DEGRADED` disclosure meanwhile. The companion's geometry is
+settled and the build is ours: 2-gram twin tables (shipped Zotero 10's
+geometry, not the draft PR's — `getCJKBigrams()` at `fulltext.js:2144`,
+build 20260817151751, C2's shipped-schema bullet — and decisive on its own
+terms: the modal Chinese word is two characters, unrepresentable as an
 exact trigram), backfilled from slabs for CJK-bearing passages only,
 query-routed, fused as a third list. SentencePiece quadratic-encode caution
 inherited: cap encode segments at ~1 000 chars.
+
+*Fusing is ours, and it is where we leave the platform.* Zotero routes CJK
+**exclusively**: `getWordMatchClause()` (`fulltext.js:2361`) sends a pure-CJK
+run of two characters or more to the CJK table alone as one contiguous bigram
+phrase, and returns `null` in the other two states — a single CJK character,
+which has no 2-gram, and any mixed-script term, because the CJK index would
+drop the non-CJK characters. `null` means the index cannot answer, and the
+caller falls back to scanning cached text. Those two dead ends are exactly
+what a third fused list answers, which is the argument for the divergence:
+the geometry is copied, the routing is not. Ratified `DECISIONS.md`
+2026-08-29; evidence `verification/VERIFY-FULLTEXT-SQLITE.md` §2.6.
 
 #### 5.2.7 Custody and lifecycle
 
@@ -2242,10 +2257,10 @@ embedded item in the example below is the dictionary, the rare case:
 > priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 
-The example's arithmetic is deliberately consistent (5,561 extracted + 538
-metadata-only + 1 quarantined = 6,100, the states disjoint), and "covered
+The example's arithmetic is deliberately consistent (5 561 extracted + 538
+metadata-only + 1 quarantined = 6 100, the states disjoint), and "covered
 at extract" is defined once: items with no attachments are vacuously
-covered, the "of 6,100" clause scopes the with-attachments subset, so
+covered, the "of 6 100" clause scopes the with-attachments subset, so
 `covered.embed == items.total` is stateable on a real library. Beyond the
 sentence, status carries per-library rows, the pause line ("paused since
 <date>"), the custody string, the record/body coverage split, and the
@@ -2678,7 +2693,10 @@ on the local transport, a universal fulltext census across transports (it
 would hammer api.zotero.org), passage-scope AND/NOT, the stopword-filtered
 token stream for phrase parity, the always-resident dual model, the 0.5
 golden floor (artifact-refuted), item-granularity smallest-first, trigram CJK
-(the modal Chinese word is two characters), `carray` (not shipped in
+(the modal Chinese word is two characters — corroborated by the platform,
+which tried trigram for content and reverted to `unicode61` three weeks later,
+`0ce289a`, 2026-07-17, forcing a rebuild, and now reserves trigram for notes
+alone), `carray` (not shipped in
 `node:sqlite`), an in-place v2 schema under the old filename, pause gating
 deletions, and the "contained" D3 PR as first proposed.
 
