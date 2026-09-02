@@ -1,0 +1,89 @@
+%erg 0.1
+Title: An unsupported verb records no reason, so two opposite findings share one cell
+Created: 2026-09-02
+Author: claude
+Closed: an absent verb now records why; merged as PR #227
+
+--- log ---
+2026-09-02T20:42Z claude created
+2026-09-02T20:42Z claude note raised independently by two adapter lanes on the same night; neither changed the contract unilaterally
+2026-09-02T20:42Z claude note the blank-reason refusal is the load-bearing half; without it the change is a wider type and nothing else
+2026-09-02T20:42Z claude note control arm run: five of the seven new tests are red against the unfixed tree at ceadf71, including all three blank-reason cases
+
+2026-09-02T21:03Z Minh Ha-Duong closed — an absent verb now records why; merged as PR #227
+--- body ---
+
+## Context
+
+`Declaration.unsupported` was a set of verb names. A verb in it is absent, and
+that is all the artifact could say. Two adapters reached the same objection
+independently on 2026-09-02, each about a different verb, and each declined to
+change the ratified contract on its own:
+
+- the second adapter, on `pause` and `resume`: in its target's default
+  configuration there is no unattended indexing at all, so there is no
+  background work to pause. That is the architectural *opposite* of a target
+  which has background work and exposes no control over it — and `unsupported`
+  put both in the same cell. Its module docstring named the fix: mirror
+  `not_derived_state`'s `(value, why)` shape.
+- the first adapter, on `resume`: nothing maps onto it, because the only action
+  that would continue an interrupted build is also the full rebuild and the
+  repair. Mapping it would smuggle a destructive rebuild into the one verb the
+  ruling says never rebuilds. That is a reason a reader needs, and it was
+  reachable only by opening the adapter's source.
+
+The two absences read identically in `checks.json`. One is a product gap; the
+other is an architecture. Reading the second as the first is how a harness
+invents a defect it then reports.
+
+## Relevant files
+
+- `bench/acceptance/interface.py` — `Declaration.unsupported`, its
+  `__post_init__` validation, `as_json`, and `not_offered`.
+- `bench/acceptance/adapters/zoteus.py` — `UNSUPPORTED`, whose docstring already
+  argues both reasons at length.
+- `bench/acceptance/adapters/zotero_mcp.py` — finding 4 of its module docstring
+  is this ticket, written before the ticket existed.
+- `bench/acceptance/adapters/stubs.py` — `stub-verbless`.
+
+## Actions
+
+1. `unsupported` becomes a mapping from verb to the reason it is absent,
+   normalised to an immutable mapping at construction. `offers()` is unchanged.
+2. A blank or whitespace-only reason is refused at construction. This is the
+   whole of the change: a reason field adapters may leave empty is the same
+   undifferentiated cell with a longer type.
+3. The reason lands in the artifact twice — in the declaration, beside the
+   sorted verb list that readers already parse, and on every `not-offered`
+   verdict as `why_absent`, distinct from the harness's own `why`.
+4. Every adapter fills it, in one line each, pointing at the docstring that
+   argues it.
+
+## Test
+
+Red first, and against the unfixed tree rather than by argument. The three
+blank-reason cases, the artifact-propagation case and the `not-offered`
+verdict case must all fail at the baseline commit; the two that check
+pre-existing behaviour — `offers()` still works, an unknown verb is still
+refused — must pass there, or the test file is measuring something other than
+this change.
+
+## Verification
+
+- [x] the new tests run red against `origin/main` at `ceadf71`: 5 failed,
+      2 passed, the two passing ones being the pre-existing guards
+- [x] `make check` green on the branch
+- [x] no adapter declares an absent verb without a reason
+
+## Invariants
+
+- `offers()`, `VERBS`, `STATES` and the four verdicts are untouched. This
+  widens one field of the declaration and nothing else.
+- `unsupported_verbs` stays in the artifact as a sorted list, so a reader or a
+  tool that already parses it is not broken by the addition beside it.
+
+## Exit criteria
+- [x] an absent verb carries its reason, and a blank one is refused
+- [x] the reason reaches both the declaration and every `not-offered` verdict
+- [x] every adapter's absent verbs carry theirs
+- [x] the refusal was seen red against the unfixed tree before it was seen green

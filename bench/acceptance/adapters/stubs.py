@@ -468,7 +468,7 @@ class _AbandonsForeignStampStub(_Stub):
 
 
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
-                 unsupported: frozenset[str] = frozenset()) -> Declaration:
+                 unsupported: dict[str, str] | None = None) -> Declaration:
     return Declaration(
         name=name,
         revision="fixture",
@@ -476,7 +476,7 @@ def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
         query_transport="in process; this fixture has no transport and no product behind it",
         default_configuration="the fixture's only configuration",
         process="none; the fixture runs inside the harness process",
-        unsupported=unsupported,
+        unsupported=unsupported or {},
         not_derived_state=(),
     )
 
@@ -535,7 +535,13 @@ def build(name: str, arena: Path, **_opts):
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(
             name, arena, roots=(data,),
-            unsupported=frozenset({"uninstall", "query", "resume"}),
+            unsupported={
+                "uninstall": "declared absent on purpose, so the third state has a "
+                             "fixture of its own rather than being inferred from a "
+                             "target that happens to lack a surface today",
+                "query": "declared absent on purpose, as above",
+                "resume": "declared absent on purpose, as above",
+            },
         ))
 
     raise SystemExit(f"{name!r} is not one of {list(NAMES)}")

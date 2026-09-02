@@ -29,6 +29,21 @@ load-bearing field: R15's clause reads over them, and a declaration nobody
 checks for completeness grades itself, which is why `assertions.py` sweeps for
 residue outside them rather than trusting the list.
 
+**An absent verb carries the reason it is absent**, and that is a correction
+rather than an ornament. `unsupported` was a set of verb names, so every reason a
+verb might be missing landed in one cell: a target that hides a control it has,
+and a target that has no such work to control at all, were recorded identically.
+Two adapters reached the same conclusion independently — one flagged it in prose
+about `pause` (there is no background work to pause, which is the architectural
+opposite of a missing switch), the other about `resume` (the only action that
+would serve it also rebuilds, so mapping it would smuggle a destructive verb into
+one the ruling says never rebuilds). Neither changed the contract on its own; both
+said the fix would mirror `not_derived_state`'s `(value, why)` shape. It does.
+
+The reason is required and may not be blank, for the reason `not_derived_state`
+takes a why rather than a bare path: an explanation field that adapters are free
+to leave empty is the same undifferentiated cell with a longer type.
+
 Why `result` is a string and not an enum on the wire: `bench/results/**` is a
 committed artifact tree read by tools and by people, and a JSON verdict that
 round-trips through `str` needs no decoder. `State` names the four values so a
@@ -36,9 +51,11 @@ typo is a `ValueError` here rather than a silent third category downstream.
 """
 
 import json
+from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 from typing import Protocol, runtime_checkable
 
 #: The interface, ratified 2026-09-02 and specified in `SPEC.md` §5.2.8. The
@@ -117,9 +134,12 @@ class Declaration:
     #: setup, per §5.2.8, and deliberately not an interface verb.
     process: str
 
-    #: The verbs this target does not offer. Every assertion needing one of
-    #: these reports `not-offered`.
-    unsupported: frozenset[str] = frozenset()
+    #: The verbs this target does not offer, each with the reason it is absent.
+    #: Every assertion needing one of these reports `not-offered`, and carries
+    #: the reason into the artifact — "this target hides its control" and "this
+    #: target has no such work at all" are opposite findings and must not land in
+    #: one cell. A blank reason is refused at construction.
+    unsupported: Mapping[str, str] = field(default_factory=dict)
 
     #: Locations the sweep must not count as residue, each with the reason it
     #: is not target-created derived state. User-authored library data and
@@ -129,11 +149,21 @@ class Declaration:
     not_derived_state: tuple[tuple[Path, str], ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "unsupported", MappingProxyType(dict(self.unsupported)))
         unknown = sorted(set(self.unsupported) - set(VERBS))
         if unknown:
             raise ValueError(
                 f"{self.name} declares {unknown} unsupported, which are not interface "
                 f"verbs. The interface is {list(VERBS)} (SPEC.md §5.2.8)."
+            )
+        blank = sorted(v for v, why in self.unsupported.items() if not str(why).strip())
+        if blank:
+            raise ValueError(
+                f"{self.name} declares {blank} absent with no reason. An absent verb "
+                "records why it is absent: 'this target hides its control' and 'this "
+                "target has no such work at all' are opposite findings, and a reason "
+                "field adapters may leave empty is the undifferentiated cell this "
+                "field replaced."
             )
         if not self.derived_state_roots and "install" not in self.unsupported:
             raise ValueError(
@@ -157,6 +187,10 @@ class Declaration:
             "default_configuration": self.default_configuration,
             "process": self.process,
             "unsupported_verbs": sorted(self.unsupported),
+            "unsupported": [
+                {"verb": verb, "why": self.unsupported[verb]}
+                for verb in sorted(self.unsupported)
+            ],
             "not_derived_state": [
                 {"path": str(p), "why": why} for p, why in self.not_derived_state
             ],
@@ -251,6 +285,11 @@ def not_offered(check: str, requirement: str, clause: str, falsified_by: str,
                 "assert against on this target. Not a failure: the harness does not "
                 "simulate a verb's effect to manufacture a verdict."
             ),
+            # The target's own reason, which is the finding. The line above says
+            # what the harness did; this says what the absence means, and the two
+            # are not interchangeable: a control the target hides and work the
+            # target does not have both produce the sentence above.
+            "why_absent": target.declaration.unsupported[verb],
             "unsupported_verbs": sorted(target.declaration.unsupported),
         },
     )

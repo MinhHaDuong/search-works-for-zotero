@@ -143,7 +143,7 @@ def test_the_three_absent_verbs_raise_rather_than_return(tmp_path):
     assertion that forgets to consult `offers` cannot read a `None` as a red.
     """
     target = build(tmp_path)
-    assert target.declaration.unsupported == frozenset({"uninstall", "pause", "resume"})
+    assert set(target.declaration.unsupported) == {"uninstall", "pause", "resume"}
     for verb in sorted(target.declaration.unsupported):
         with pytest.raises(interface.UnsupportedVerb):
             getattr(target, verb)()
