@@ -19,6 +19,7 @@
  */
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { makeArmProbe, pct, rbo } from './query_arms_lib.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((a, v, i, arr) => (v.startsWith('--') ? [...a, [v.slice(2), arr[i + 1]]] : a), []),
@@ -52,14 +53,21 @@ for (const p of pairs) {
   const idx = new SqliteSearchIndex({ embedder: null, logger: silent, path: p.index });
   await idx.open();
   // For the expansion arm: its own variants table, opened read-only beside the index.
-  const probe = new DatabaseSync(p.index, { readOnly: true });
-  const hasVariants = !!probe
+  // Each arm's droplist comes from its OWN file here — unlike query_arms.mjs, where every
+  // arm shares one index and therefore one list.
+  const meta = new DatabaseSync(p.index, { readOnly: true });
+  const hasVariants = !!meta
     .prepare("SELECT name FROM sqlite_master WHERE name='accent_variants'")
     .get();
-  probe.close();
+  const droplist = new Set(
+    (meta.prepare("SELECT value FROM meta WHERE key='droplist'").get()?.value ?? '').split(' ').filter(Boolean),
+  );
+  meta.close();
   const vdb = hasVariants ? new DatabaseSync(p.index, { readOnly: true }) : null;
   const vstmt = vdb ? vdb.prepare('SELECT term, df FROM accent_variants WHERE folded = ?') : null;
-  opened.push({ ...p, idx, tk, qt, vdb, vstmt });
+  // Refuses here, before any latency is measured, on an arm whose pruning it cannot read.
+  const probe = makeArmProbe({ name: p.arm, tokenize: tk.tokenize, queryTerms: qt, isStopword: tk.isStopword }, droplist);
+  opened.push({ ...p, idx, tk, qt, vdb, vstmt, probe });
 }
 
 const rows = new Map();
@@ -86,8 +94,11 @@ for (const a of opened) {
   if (!a.vstmt || !a.tk.accentKey) continue;
   for (const q of queries) {
     const r = rows.get(`${a.arm} ${q}`);
-    const raw = [...new Set(a.tk.tokenize(q))];
-    const pruned = a.qt ? a.qt.pruneTerms(raw, a.tk.isStopword) : raw;
+    // Through the shared probe (ticket 0541), not a direct two-argument call: the r5
+    // `pruneTerms` takes (terms, prunable, whenNothingSurvives) and exports no
+    // `isStopword`, so the old call passed `undefined` as the predicate and got the raw
+    // set back — expansion accounting over terms the arm never searched on.
+    const pruned = a.probe.termsFor(q).terms;
     const t0 = performance.now();
     const groups = pruned.map((t) => {
       if (a.tk.accentKey(t) !== t) return { term: t, variants: [] };
@@ -119,27 +130,6 @@ for (const a of opened) {
   a.vdb?.close();
 }
 
-const rbo = (a, b, p = 0.9) => {
-  const depth = Math.max(a.length, b.length);
-  if (!depth) return 1;
-  const A = new Set(), B = new Set();
-  let sum = 0, weight = 0;
-  for (let d = 1; d <= depth; d++) {
-    if (a[d - 1] !== undefined) A.add(a[d - 1]);
-    if (b[d - 1] !== undefined) B.add(b[d - 1]);
-    let shared = 0;
-    for (const x of A) if (B.has(x)) shared++;
-    const w = Math.pow(p, d - 1);
-    sum += w * (shared / d);
-    weight += w;
-  }
-  return sum / weight;
-};
-const pct = (xs, p) => {
-  const s = [...xs].sort((x, y) => x - y);
-  return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null;
-};
-
 const out = {
   pairs,
   queries: args.queries,
@@ -170,6 +160,10 @@ for (const a of opened) {
   const exp = rs.filter((r) => r.expansion);
   out.summary[a.arm] = {
     index: a.index,
+    // How this arm's pruning was read (ticket 0541). Only the expansion accounting uses
+    // it here, but the column that says HOW a number was obtained belongs beside it.
+    probe_shape: a.probe.shape,
+    prune_predicate: a.probe.predicate_source,
     n: all.length,
     p50_ms: +pct(all, 0.5).toFixed(1),
     p95_ms: +pct(all, 0.95).toFixed(1),

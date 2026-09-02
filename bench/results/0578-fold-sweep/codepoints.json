@@ -1,0 +1,2060 @@
+{
+ "probe": "R19 fold gate — JS query side versus what FTS5 unicode61 remove_diacritics 2 actually indexes",
+ "requirement": "R19 (SPEC.md §3); the gate is SPEC.md §5.2.8",
+ "tokenizer": "unicode61 remove_diacritics 2",
+ "tree": "/home/haduong/data/scratch-fold-sweep/reviewed",
+ "tree_version": "1.12.0",
+ "blocks_filter": null,
+ "query_side": "normalizeForSearch+class",
+ "query_side_caveat": null,
+ "verdict": "red",
+ "exit_code": 1,
+ "elapsed_ms": 1958,
+ "codepoints_swept": 30309,
+ "codepoints_agreeing": 30190,
+ "divergences_total": 119,
+ "divergences_by_direction": {
+  "narrows": 95,
+  "misses": 24
+ },
+ "misses_total": 25,
+ "misses_codepoint": 24,
+ "misses_word": 1,
+ "per_block": [
+  {
+   "block": "Latin-1 Supplement + Latin Extended-A/B",
+   "why": "R7's Latin tier: French, German, Spanish, and the Latin-with-diacritics class",
+   "from": "U+00C0",
+   "to": "U+024F",
+   "swept": 400,
+   "divergences": 0
+  },
+  {
+   "block": "Greek and Coptic",
+   "why": "a cased non-Latin script whose diacritics remove_diacritics 2 does NOT strip",
+   "from": "U+0370",
+   "to": "U+03FF",
+   "swept": 144,
+   "divergences": 9
+  },
+  {
+   "block": "Cyrillic",
+   "why": "R7's Cyrillic class, Russian",
+   "from": "U+0400",
+   "to": "U+04FF",
+   "swept": 256,
+   "divergences": 0
+  },
+  {
+   "block": "Latin Extended Additional (Vietnamese)",
+   "why": "R7's MUST tier: Vietnamese tone marks and the dot below",
+   "from": "U+1E00",
+   "to": "U+1EFF",
+   "swept": 256,
+   "divergences": 0
+  },
+  {
+   "block": "Arabic",
+   "why": "R7's right-to-left class: letters that join, and the short vowels a writer may omit",
+   "from": "U+0600",
+   "to": "U+06FF",
+   "swept": 256,
+   "divergences": 3
+  },
+  {
+   "block": "Arabic Supplement",
+   "why": "the extended Arabic letters, same script class",
+   "from": "U+0750",
+   "to": "U+077F",
+   "swept": 48,
+   "divergences": 0
+  },
+  {
+   "block": "Arabic Extended-A",
+   "why": "the rest of the extended letters, and the Quranic marks",
+   "from": "U+08A0",
+   "to": "U+08FF",
+   "swept": 96,
+   "divergences": 27
+  },
+  {
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "why": "the joined ligature forms legacy encodings produce; U+FDD0-U+FDEF is excluded, see the header",
+   "from": "U+FB50",
+   "to": "U+FDCF",
+   "swept": 640,
+   "divergences": 43
+  },
+  {
+   "block": "Arabic Presentation Forms-A (above the noncharacters)",
+   "why": "the ligature forms above the reserved noncharacter block",
+   "from": "U+FDF0",
+   "to": "U+FDFF",
+   "swept": 16,
+   "divergences": 2
+  },
+  {
+   "block": "Arabic Presentation Forms-B",
+   "why": "the positional forms, which a document converted from a legacy encoding carries",
+   "from": "U+FE70",
+   "to": "U+FEFF",
+   "swept": 144,
+   "divergences": 3
+  },
+  {
+   "block": "Devanagari",
+   "why": "R7's abugida class, Hindi: matras, the virama and the nukta",
+   "from": "U+0900",
+   "to": "U+097F",
+   "swept": 128,
+   "divergences": 8
+  },
+  {
+   "block": "Devanagari Extended",
+   "why": "the Vedic marks, same script class",
+   "from": "U+A8E0",
+   "to": "U+A8FF",
+   "swept": 32,
+   "divergences": 2
+  },
+  {
+   "block": "CJK Symbols and Punctuation",
+   "why": "the punctuation a Chinese document separates its terms with",
+   "from": "U+3000",
+   "to": "U+303F",
+   "swept": 64,
+   "divergences": 0
+  },
+  {
+   "block": "CJK Unified Ideographs",
+   "why": "R7's no-word-boundaries class, Chinese: the block a Han run is drawn from",
+   "from": "U+4E00",
+   "to": "U+9FFF",
+   "swept": 20992,
+   "divergences": 0
+  },
+  {
+   "block": "CJK Unified Ideographs Extension A",
+   "why": "the rarer Han, same class",
+   "from": "U+3400",
+   "to": "U+4DBF",
+   "swept": 6592,
+   "divergences": 0
+  },
+  {
+   "block": "Letterlike Symbols",
+   "why": "symbols that print as letters and index as terms",
+   "from": "U+2100",
+   "to": "U+214F",
+   "swept": 80,
+   "divergences": 0
+  },
+  {
+   "block": "Number Forms",
+   "why": "the Roman numerals, which lowercase differently on the two sides",
+   "from": "U+2150",
+   "to": "U+218F",
+   "swept": 64,
+   "divergences": 22
+  },
+  {
+   "block": "Alphabetic Presentation Forms (ligatures)",
+   "why": "the Latin ligatures a PDF extractor emits",
+   "from": "U+FB00",
+   "to": "U+FB06",
+   "swept": 7,
+   "divergences": 0
+  },
+  {
+   "block": "Halfwidth and Fullwidth Forms",
+   "why": "the fullwidth Latin a CJK document mixes into its text",
+   "from": "U+FF01",
+   "to": "U+FF5E",
+   "swept": 94,
+   "divergences": 0
+  }
+ ],
+ "misses": [
+  {
+   "codepoint": "U+0958",
+   "char": "क़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "क़"
+   ],
+   "queried_as": [
+    "क"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0959",
+   "char": "ख़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ख़"
+   ],
+   "queried_as": [
+    "ख"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095A",
+   "char": "ग़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ग़"
+   ],
+   "queried_as": [
+    "ग"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095B",
+   "char": "ज़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ज़"
+   ],
+   "queried_as": [
+    "ज"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095C",
+   "char": "ड़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ड़"
+   ],
+   "queried_as": [
+    "ड"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095D",
+   "char": "ढ़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ढ़"
+   ],
+   "queried_as": [
+    "ढ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095E",
+   "char": "फ़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "फ़"
+   ],
+   "queried_as": [
+    "फ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095F",
+   "char": "य़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "य़"
+   ],
+   "queried_as": [
+    "य"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2160",
+   "char": "Ⅰ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅰ"
+   ],
+   "queried_as": [
+    "Ⅰ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2161",
+   "char": "Ⅱ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅱ"
+   ],
+   "queried_as": [
+    "Ⅱ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2162",
+   "char": "Ⅲ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅲ"
+   ],
+   "queried_as": [
+    "Ⅲ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2163",
+   "char": "Ⅳ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅳ"
+   ],
+   "queried_as": [
+    "Ⅳ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2164",
+   "char": "Ⅴ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅴ"
+   ],
+   "queried_as": [
+    "Ⅴ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2165",
+   "char": "Ⅵ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅵ"
+   ],
+   "queried_as": [
+    "Ⅵ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2166",
+   "char": "Ⅶ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅶ"
+   ],
+   "queried_as": [
+    "Ⅶ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2167",
+   "char": "Ⅷ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅷ"
+   ],
+   "queried_as": [
+    "Ⅷ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2168",
+   "char": "Ⅸ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅸ"
+   ],
+   "queried_as": [
+    "Ⅸ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2169",
+   "char": "Ⅹ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅹ"
+   ],
+   "queried_as": [
+    "Ⅹ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216A",
+   "char": "Ⅺ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅺ"
+   ],
+   "queried_as": [
+    "Ⅺ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216B",
+   "char": "Ⅻ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅻ"
+   ],
+   "queried_as": [
+    "Ⅻ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216C",
+   "char": "Ⅼ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅼ"
+   ],
+   "queried_as": [
+    "Ⅼ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216D",
+   "char": "Ⅽ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅽ"
+   ],
+   "queried_as": [
+    "Ⅽ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216E",
+   "char": "Ⅾ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅾ"
+   ],
+   "queried_as": [
+    "Ⅾ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216F",
+   "char": "Ⅿ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅿ"
+   ],
+   "queried_as": [
+    "Ⅿ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  }
+ ],
+ "divergences": [
+  {
+   "codepoint": "U+0378",
+   "char": "͸",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "͸"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0379",
+   "char": "͹",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "͹"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0380",
+   "char": "΀",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΀"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0381",
+   "char": "΁",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΁"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0382",
+   "char": "΂",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΂"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0383",
+   "char": "΃",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΃"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+038B",
+   "char": "΋",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+038D",
+   "char": "΍",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+03A2",
+   "char": "΢",
+   "block": "Greek and Coptic",
+   "indexed_as": [
+    "΢"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0605",
+   "char": "؅",
+   "block": "Arabic",
+   "indexed_as": [
+    "؅"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+061C",
+   "char": "؜",
+   "block": "Arabic",
+   "indexed_as": [
+    "؜"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+061D",
+   "char": "؝",
+   "block": "Arabic",
+   "indexed_as": [
+    "؝"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+08CA",
+   "char": "࣊",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣊"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08CB",
+   "char": "࣋",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08CC",
+   "char": "࣌",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣌"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08CD",
+   "char": "࣍",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08CE",
+   "char": "࣎",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣎"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08CF",
+   "char": "࣏",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣏"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D0",
+   "char": "࣐",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣐"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D1",
+   "char": "࣑",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣑"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D2",
+   "char": "࣒",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣒"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D3",
+   "char": "࣓",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣓"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D4",
+   "char": "ࣔ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣔ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D5",
+   "char": "ࣕ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣕ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D6",
+   "char": "ࣖ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣖ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D7",
+   "char": "ࣗ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣗ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D8",
+   "char": "ࣘ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣘ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08D9",
+   "char": "ࣙ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣙ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DA",
+   "char": "ࣚ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣚ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DB",
+   "char": "ࣛ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣛ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DC",
+   "char": "ࣜ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣜ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DD",
+   "char": "ࣝ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣝ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DE",
+   "char": "ࣞ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣞ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08DF",
+   "char": "ࣟ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣟ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08E0",
+   "char": "࣠",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣠"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08E1",
+   "char": "࣡",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣡"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08E2",
+   "char": "࣢",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "࣢"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+08E3",
+   "char": "ࣣ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣣ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+08FF",
+   "char": "ࣿ",
+   "block": "Arabic Extended-A",
+   "indexed_as": [
+    "ࣿ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+FBC2",
+   "char": "﯂",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯂"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC3",
+   "char": "﯃",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯃"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC4",
+   "char": "﯄",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯄"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC5",
+   "char": "﯅",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯅"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC6",
+   "char": "﯆",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯆"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC7",
+   "char": "﯇",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯇"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC8",
+   "char": "﯈",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯈"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBC9",
+   "char": "﯉",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯉"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCA",
+   "char": "﯊",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯊"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCB",
+   "char": "﯋",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCC",
+   "char": "﯌",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯌"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCD",
+   "char": "﯍",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCE",
+   "char": "﯎",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯎"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBCF",
+   "char": "﯏",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯏"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBD0",
+   "char": "﯐",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯐"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBD1",
+   "char": "﯑",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯑"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FBD2",
+   "char": "﯒",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﯒"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD40",
+   "char": "﵀",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵀"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD41",
+   "char": "﵁",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵁"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD42",
+   "char": "﵂",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵂"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD43",
+   "char": "﵃",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵃"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD44",
+   "char": "﵄",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵄"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD45",
+   "char": "﵅",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵅"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD46",
+   "char": "﵆",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵆"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD47",
+   "char": "﵇",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵇"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD48",
+   "char": "﵈",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵈"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD49",
+   "char": "﵉",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵉"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4A",
+   "char": "﵊",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵊"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4B",
+   "char": "﵋",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4C",
+   "char": "﵌",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵌"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4D",
+   "char": "﵍",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4E",
+   "char": "﵎",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵎"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD4F",
+   "char": "﵏",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﵏"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD90",
+   "char": "﶐",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﶐"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FD91",
+   "char": "﶑",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﶑"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDC8",
+   "char": "﷈",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷈"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDC9",
+   "char": "﷉",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷉"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCA",
+   "char": "﷊",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷊"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCB",
+   "char": "﷋",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCC",
+   "char": "﷌",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷌"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCD",
+   "char": "﷍",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCE",
+   "char": "﷎",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷎"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDCF",
+   "char": "﷏",
+   "block": "Arabic Presentation Forms-A (below the noncharacters)",
+   "indexed_as": [
+    "﷏"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDFE",
+   "char": "﷾",
+   "block": "Arabic Presentation Forms-A (above the noncharacters)",
+   "indexed_as": [
+    "﷾"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FDFF",
+   "char": "﷿",
+   "block": "Arabic Presentation Forms-A (above the noncharacters)",
+   "indexed_as": [
+    "﷿"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FE75",
+   "char": "﹵",
+   "block": "Arabic Presentation Forms-B",
+   "indexed_as": [
+    "﹵"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FEFD",
+   "char": "﻽",
+   "block": "Arabic Presentation Forms-B",
+   "indexed_as": [
+    "﻽"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+FEFE",
+   "char": "﻾",
+   "block": "Arabic Presentation Forms-B",
+   "indexed_as": [
+    "﻾"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0958",
+   "char": "क़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "क़"
+   ],
+   "queried_as": [
+    "क"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+0959",
+   "char": "ख़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ख़"
+   ],
+   "queried_as": [
+    "ख"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095A",
+   "char": "ग़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ग़"
+   ],
+   "queried_as": [
+    "ग"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095B",
+   "char": "ज़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ज़"
+   ],
+   "queried_as": [
+    "ज"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095C",
+   "char": "ड़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ड़"
+   ],
+   "queried_as": [
+    "ड"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095D",
+   "char": "ढ़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "ढ़"
+   ],
+   "queried_as": [
+    "ढ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095E",
+   "char": "फ़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "फ़"
+   ],
+   "queried_as": [
+    "फ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+095F",
+   "char": "य़",
+   "block": "Devanagari",
+   "indexed_as": [
+    "य़"
+   ],
+   "queried_as": [
+    "य"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+A8FC",
+   "char": "꣼",
+   "block": "Devanagari Extended",
+   "indexed_as": [
+    "꣼"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+A8FF",
+   "char": "ꣿ",
+   "block": "Devanagari Extended",
+   "indexed_as": [
+    "ꣿ"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": true
+  },
+  {
+   "codepoint": "U+2160",
+   "char": "Ⅰ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅰ"
+   ],
+   "queried_as": [
+    "Ⅰ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2161",
+   "char": "Ⅱ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅱ"
+   ],
+   "queried_as": [
+    "Ⅱ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2162",
+   "char": "Ⅲ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅲ"
+   ],
+   "queried_as": [
+    "Ⅲ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2163",
+   "char": "Ⅳ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅳ"
+   ],
+   "queried_as": [
+    "Ⅳ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2164",
+   "char": "Ⅴ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅴ"
+   ],
+   "queried_as": [
+    "Ⅴ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2165",
+   "char": "Ⅵ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅵ"
+   ],
+   "queried_as": [
+    "Ⅵ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2166",
+   "char": "Ⅶ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅶ"
+   ],
+   "queried_as": [
+    "Ⅶ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2167",
+   "char": "Ⅷ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅷ"
+   ],
+   "queried_as": [
+    "Ⅷ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2168",
+   "char": "Ⅸ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅸ"
+   ],
+   "queried_as": [
+    "Ⅸ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+2169",
+   "char": "Ⅹ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅹ"
+   ],
+   "queried_as": [
+    "Ⅹ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216A",
+   "char": "Ⅺ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅺ"
+   ],
+   "queried_as": [
+    "Ⅺ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216B",
+   "char": "Ⅻ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅻ"
+   ],
+   "queried_as": [
+    "Ⅻ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216C",
+   "char": "Ⅼ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅼ"
+   ],
+   "queried_as": [
+    "Ⅼ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216D",
+   "char": "Ⅽ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅽ"
+   ],
+   "queried_as": [
+    "Ⅽ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216E",
+   "char": "Ⅾ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅾ"
+   ],
+   "queried_as": [
+    "Ⅾ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+216F",
+   "char": "Ⅿ",
+   "block": "Number Forms",
+   "indexed_as": [
+    "ⅿ"
+   ],
+   "queried_as": [
+    "Ⅿ"
+   ],
+   "direction": "misses",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218A",
+   "char": "↊",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↊"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218B",
+   "char": "↋",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↋"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218C",
+   "char": "↌",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↌"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218D",
+   "char": "↍",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↍"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218E",
+   "char": "↎",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↎"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  },
+  {
+   "codepoint": "U+218F",
+   "char": "↏",
+   "block": "Number Forms",
+   "indexed_as": [
+    "↏"
+   ],
+   "queried_as": [],
+   "direction": "narrows",
+   "lone_combining_mark": false
+  }
+ ],
+ "word_level_regressions_by_direction": {
+  "agree": 15,
+  "misses": 1
+ },
+ "word_level_regressions": [
+  {
+   "word": "théorie",
+   "why": "the defect that opened the ticket",
+   "indexed_as": [
+    "theorie"
+   ],
+   "queried_as": [
+    "theorie"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "theorie",
+   "why": "its unaccented spelling — both must reach the same term",
+   "indexed_as": [
+    "theorie"
+   ],
+   "queried_as": [
+    "theorie"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "Θεωρία",
+   "why": "Greek tonos, which remove_diacritics 2 does NOT strip",
+   "indexed_as": [
+    "θεωρία"
+   ],
+   "queried_as": [
+    "θεωρία"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "теория",
+   "why": "Cyrillic, untouched by a Latin-only fold",
+   "indexed_as": [
+    "теория"
+   ],
+   "queried_as": [
+    "теория"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "đại",
+   "why": "Vietnamese đ, which the index keeps — the query must keep it too",
+   "indexed_as": [
+    "đai"
+   ],
+   "queried_as": [
+    "đai"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "mathématiques",
+   "why": "the second worst case measured on the real library",
+   "indexed_as": [
+    "mathematiques"
+   ],
+   "queried_as": [
+    "mathematiques"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "probabilità",
+   "why": "Italian, the case only the SQLite backend ever retrieved",
+   "indexed_as": [
+    "probabilita"
+   ],
+   "queried_as": [
+    "probabilita"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "søren",
+   "why": "a Latin letter with a stroke, which unicode61 does not fold",
+   "indexed_as": [
+    "søren"
+   ],
+   "queried_as": [
+    "søren"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "مكتبة",
+   "why": "R7's right-to-left class: unicode61 keeps the unvocalized Arabic word whole, so the query must too",
+   "indexed_as": [
+    "مكتبة"
+   ],
+   "queried_as": [
+    "مكتبة"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "مَكْتَبَة",
+   "why": "the same word with its short vowels written: unicode61 treats every haraka as a separator, so both sides must fragment into the same consonants — a query-side fold that dropped the marks would look for a whole word the index does not hold",
+   "indexed_as": [
+    "ب",
+    "ة",
+    "ت",
+    "ك",
+    "م"
+   ],
+   "queried_as": [
+    "ب",
+    "ة",
+    "ت",
+    "ك",
+    "م"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "هندسة",
+   "why": "a second Arabic word, so the class does not rest on one root",
+   "indexed_as": [
+    "هندسة"
+   ],
+   "queried_as": [
+    "هندسة"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "हिन्दी",
+   "why": "R7's abugida class: matras and the virama separate on both sides, so the word arrives as its consonants and the two sides must agree on which",
+   "indexed_as": [
+    "द",
+    "न",
+    "ह"
+   ],
+   "queried_as": [
+    "द",
+    "न",
+    "ह"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "क़",
+   "why": "Devanagari nukta, precomposed U+0958: a Unicode composition exclusion, so NFD splits it and NFC cannot put it back while unicode61 stores it whole. The abugida case 0026 predicted would break a Latin-shaped fold",
+   "indexed_as": [
+    "क़"
+   ],
+   "queried_as": [
+    "क"
+   ],
+   "direction": "misses",
+   "agree": false
+  },
+  {
+   "word": "क़",
+   "why": "the same sound written the way Unicode recommends, base plus nukta: it agrees, which is what makes the entry above a finding about the precomposed spelling rather than about Devanagari",
+   "indexed_as": [
+    "क"
+   ],
+   "queried_as": [
+    "क"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "数据",
+   "why": "R7's no-word-boundaries class: the shortest Chinese term a two-gram geometry carries. unicode61 keeps a Han run whole, so the query side must keep it whole rather than split it per character",
+   "indexed_as": [
+    "数据"
+   ],
+   "queried_as": [
+    "数据"
+   ],
+   "direction": "agree",
+   "agree": true
+  },
+  {
+   "word": "数据库",
+   "why": "a three-character Chinese term, so the class does not rest on the two-gram case alone",
+   "indexed_as": [
+    "数据库"
+   ],
+   "queried_as": [
+    "数据库"
+   ],
+   "direction": "agree",
+   "agree": true
+  }
+ ]
+}

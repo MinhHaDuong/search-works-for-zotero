@@ -28,9 +28,9 @@ Two of them moved documents: the goals ladder left `SPEC.md` for `README.md`,
 and the document map moved to `AGENTS.md`, which is now the agent instruction
 filename.
 
-**Next:** 0578 builds the assertion layer, zoteus adapter and R10 fail-control;
-0583–0586 own the other adapters. X5 still gates 0028 and eleven tickets under
-it. `erg ready` owns the rest of the queue.
+**Next:** 0578 and 0585 landed 2026-09-02; 0583, 0584 and 0586 own the
+remaining adapters. X5 still gates 0028 and eleven tickets under it. `erg
+ready` owns the rest of the queue, branch and worktree included.
 
 **Awaiting the author:** `DECISIONS.md`; ticket 0582 records its README call.
 Tracker 0550 owns the stale two-process topology in `SPEC.md` §4 and §5.1.
