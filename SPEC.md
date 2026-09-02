@@ -205,7 +205,7 @@ the entry points at the question rather than settling it.
   DECISIONS.md 2026-08-31).
 - **segmenter (seg/1)** — the heuristic that finds entry boundaries in flat
   extracted text, classifying lines, collecting heading candidates from
-  a table of contents, chapter and section numbering, author bylines and case
+  a table of contents, chapter and section numbering, and case
   shape, cutting at accepted headings, and
   falling back to labelled synthetic entries below its confidence threshold.
   Authoritative: SPEC.md §5.2.2 for the spec and the threshold; experiment X5
@@ -1320,6 +1320,17 @@ R1 re-earns the delta from there. The intended use is embed on the GPU host,
 retrieve on the laptop; the remote-embedder alternative stays out of the
 design and inside the execution-mode comparison (§5.2.5).
 
+**The segmenter's interface.** The segmenter takes the document's extracted
+text and a list of structure signals, each a set of candidate boundaries with
+a provenance: pack blocks, the PDF's outline page targets, layout headings,
+markup headings, form feeds, a parsed contents list. It returns entries, each
+carrying a title, a character range in the text, an optional page range, a
+confidence, and the tier that produced the cut. Discovery runs before the
+extractor and the cut runs after it: a tier reads structure from the PDF or
+the pack, the segmenter cuts the extracted text, and Zotero stays the
+extractor. seg/1 is the implementation for the empty signal list and the
+fall-through for every tier that comes up empty or low.
+
 **The segmenter, seg/1** is new machinery; the spec lives here. Its primary
 target class is **books and proceedings**; the dictionary is a rare case
 (ruled 2026-08-31). The clauses below are written for the primary class, and
@@ -1331,9 +1342,9 @@ the dictionary's own machinery is named where it survives as a special case.
 - Validate the cut set against the table of contents rather than only scoring
   against it: a front-matter contents list names the cuts the document itself
   claims, so a candidate set is checked against a declared answer key.
-- Accept on author bylines under a chapter or paper title. There is no
-  dictionary analogue, and it is the strongest single signal in a proceedings,
-  where every paper is independently authored.
+- A byline-shaped line under a heading may serve as an accept hint where it
+  is cheap to recognize. Nothing depends on it: the locator carries no author
+  (the byline paragraph below).
 - Exploit chapter starts on page boundaries — form feeds — where the
   extraction carries them. They are present in the newer extractor generation
   only (ticket 0120), so this signal is exploited where present and never
@@ -1388,8 +1399,8 @@ honest promise is its label.
 **The PDF path.** For an attachment at or above a page threshold, the
 segmenter reaches for the PDF file itself, through the local API's file-view
 redirect, and hands it to a vendored `pdf.js` segmenter returning a title
-and a page range per entry, front and back matter included; no tier here
-carries who wrote an entry. Two tiers, in order: the embedded outline — the
+and a page range per entry, front and back matter included. Two tiers, in
+order: the embedded outline — the
 bookmark tree — which returns page targets directly and needs no fuzzy
 matching; absent that, a layout heuristic on `pdf.js`'s own positioned text,
 font size, weight and position per run,
@@ -1402,8 +1413,16 @@ falls through to seg/1 above, which owns the confidence-gated synthetic
 entries. The length trigger is itself a fallback chain: Zotero's
 `indexedPages` or a literal page-break count first, a character-count
 estimate when neither is available, so the gate degrades to an estimate rather
-than never firing. The byline layer is separate work on top of whichever tier
-locates the boundary.
+than never firing. The local API returns `indexedPages` and `totalPages`
+beside the text on its per-item full-text endpoint, so the first link of the
+chain costs no extra call.
+
+**The byline.** No tier carries who wrote an entry. Under the synthetic
+fallback there is none to find, and under structured segmentation it is
+delicate to find; a hit links to its page, so a reader who needs the author
+of a chapter, a talk or an entry follows the link. An entry's locator is its
+title and its page range. Byline detection is deferred enrichment, not a
+requirement.
 
 The segmenter is the design's biggest unmeasured bet — the layout tier and
 seg/1 alike; experiment X5 measures both (§5.4, risk 1).

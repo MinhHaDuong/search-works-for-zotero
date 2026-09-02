@@ -25,6 +25,7 @@ Author: claude
 2026-09-01T13:57Z claude note formalized the substantive gate: seg/1 must build to spec/DESIGN.md §2.2, which is still the dictionary-only heuristic (headword rhythm/MAD, ~6k-token fallback) superseded by the 2026-08-31 books-and-proceedings ruling; 0502 propagates that ruling into the spec and X5's rule and was open/ready with no dependency link. Added Blocked-by: 0502 so erg ready stops surfacing 0028 as workable before the spec it must be built to is current
 2026-09-01T14:03Z claude note exit criteria repointed by 0502: the primary target class is books and proceedings, the 44,9 MB dictionary is the rare case (and keeps its separate monster-document RSS-fixture role, untouched). A second criterion now names the primary-class signal set explicitly -- table of contents as validator, chapter/section numbering, author bylines, page-boundary form feeds -- with the rhythm/MAD statistic built only as the dictionary special case
 2026-09-02T08:49Z Minh Ha-Duong note blocker 0502 closed — Blocked-by removed.
+2026-09-02T10:21Z claude note two rulings landed 2026-09-02 (DECISIONS.md): the segmenter interface is ratified (text + structure signals in, entries out, seg/1 for the empty list) and the byline is enrichment, not a locator. Exit criteria edited: bylines dropped from the required signal set, a criterion added for the interface. Also: prerequisites checked this session -- 0502 closed, SPEC.md 5.2.2 current, upstream QUIET at one commit past v1.12.0, 13 630 fulltext caches on the author's machine; fork/ checkout absent, make upstream-checkout is the one step left before code
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; that review is now
@@ -46,10 +47,17 @@ panel/cycle2/review-political.md).
       the rare case, not the target this criterion is read against; it keeps its
       separate, untouched role as the monster-document RSS fixture (X3a)
 - [ ] the primary-class signals built, not the dictionary's: table of contents
-      as validator of the cut set, chapter/section numbering, author bylines,
-      and page-boundary form feeds where the extraction carries them. The
+      as validator of the cut set, chapter/section numbering, and
+      page-boundary form feeds where the extraction carries them. A
+      byline-shaped line may serve as an accept hint where cheap; nothing
+      gates on it (DECISIONS.md 2026-09-02, the byline is enrichment). The
       headword rhythm/MAD statistic is built only as the dictionary's special
       case, never applied to the primary class
+- [ ] seg/1 implements the ratified segmenter interface (SPEC.md 5.2.2,
+      DECISIONS.md 2026-09-02): text plus a list of structure signals in,
+      entries out, each with title, character range, optional page range,
+      confidence and producing tier; seg/1 is the empty-signal-list case and
+      the fall-through the PDF tiers land on
 - [ ] deterministic on fixture text; identity string (seg/1) for the chunker key
 - [ ] X5 (0025) can consume it on the author's machine: one arm per class,
       scored against each document's embedded outline with the outline tier

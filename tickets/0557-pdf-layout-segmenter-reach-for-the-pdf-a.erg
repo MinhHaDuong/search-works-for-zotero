@@ -10,6 +10,7 @@ Blocked-by: 0028
 
 2026-09-02T06:58Z claude note the author's 2026-09-02 idea, drafted as an awaiting entry in DECISIONS.md and ticket 0572: Zotero's own structured-text pack (.zotero-sdt-cache), when present, is a structure signal ABOVE this ladder, tier 0 before 0560's outline and 0561's layout heuristic. Nothing here changes until that entry is ratified; if it is, child 0564's selection rule gains a first branch. Availability today is 2 packs on 13 630 caches (reader-only trigger, at source); #6012 would make it library-wide.
 2026-09-02T07:40Z claude note X5 now measures the PDF path's layout tier, not only seg/1 (DECISIONS.md 2026-09-02): the outline tier must be switchable off per document so the outline can serve as ground truth, and the scorer locates a cut's page through pdf.js. SPEC.md 5.2.2 carries a first paragraph on this path; the children here own whatever more the section needs
+2026-09-02T10:21Z claude note the segmenter interface this tracker's children plug into is ratified (DECISIONS.md 2026-09-02, SPEC.md 5.2.2): signals in, entries out with title / char range / optional page range / confidence / tier, seg/1 for the empty list. Child 0562 deferred by the same day's byline ruling. 0559's first criterion settled: indexedPages is on the local API's fulltext GET
 --- body ---
 ## Context
 
@@ -40,7 +41,7 @@ parallel track.
 3. `0560` -- vendor `pdf.js`, tier 1: embedded TOC extraction
 4. `0561` -- tier 2: layout heading heuristic on `pdf.js` text runs; falls
    through to seg/1 on low confidence, no third PDF-side fallback
-5. `0562` -- byline/author detection layer
+5. `0562` -- byline/author detection layer (deferred, DECISIONS.md 2026-09-02)
 6. `0563` -- language robustness (NFC normalization, legacy-encoding sanity
    check, EN/FR/VN fixtures)
 7. `0564` -- segmenter identity + the PDF-path-vs-seg/1 selection rule
