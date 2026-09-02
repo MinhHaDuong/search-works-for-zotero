@@ -2,11 +2,13 @@
 Title: query_arms.mjs mis-reports fallback columns against r5-shaped arms
 Created: 2026-09-01
 Author: MinhHaDuong
+Closed: autoclosed — PR #214
 
 --- log ---
 2026-09-01T11:30Z MinhHaDuong created
 
 2026-09-02T19:26Z claude note repaired. Shown red first: against an r5-shaped fixture arm the committed expression reports fellBack=0 over 3 queries and, on the two degenerate ones, reports the arm searched on ZERO terms -- kept.length < undefined is false, so the fallback branch never fires and the pruned-to-nothing set is reported as the query. The repaired probe (bench/query_arms_lib.mjs, makeArmProbe) calls the arm's own pruneTerms and reads its output, giving fellBack=2 and the four terms the arm really searches on. It refuses, naming the module's exports and pruneTerms' arity, on an arm shape it cannot read. Checked against the eleven real arms under fork-0091/dist-arms: all eleven recognised, pr1-recut resolving to prune-terms-r5 on MIN_PHRASE_TERMS and the rest to prune-terms-min; three of them (floor0, ruleB, pr3-droplist) hit the new emptied column, a state the pre-r5 rule could not reach and the old driver had no column for. The adapted runner the ticket points at, ~/data/projets/zoteus-bench/query_arms_r5.mjs, no longer exists on disk -- the introspection was rebuilt from the arm sources instead
+2026-09-02T19:27Z Minh Ha-Duong closed — autoclosed — PR #214
 --- body ---
 ## Context
 The committed `bench/query_arms.mjs` reads each arm's `MIN_MATCH_TERMS` /
