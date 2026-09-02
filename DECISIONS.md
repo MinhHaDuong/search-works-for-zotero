@@ -3499,6 +3499,51 @@ required signal. X5's arms are unchanged — the handbook arm ruled above stays
 its own row, scored against the outline like every other. SPEC.md §5.2.2
 edited to match.
 
+**2026-09-02 — One target-neutral acceptance layer, thin adapters, questions
+where meaning is the requirement.** The author's ruling after taking the
+resolved brief below one decision at a time.
+
+The harness has one assertion layer for every Zotero AI retrieval tool. A thin
+adapter per target declares its surfaces and contains only the minimal transport
+needed to invoke them: no patch or workaround, non-default option, access the
+target does not give its users, or result scoring.
+
+The interface is `install`, `uninstall`, `configure`, `query`, `status`,
+`pause`, `resume`. Pause and resume are the two transitions of one durable
+background-work control; resume is idempotent and never forces rebuild,
+refresh, repair or sync. Convergence is observed after the harness changes its
+fixture library, never commanded or nudged. Starting and stopping the target
+process are adapter-declared harness setup, not indexing controls.
+
+Meaning may be judged only for R17's human status answer, R18's two kinds of
+empty answer, golden relevance and R24's page attribution; every mechanically
+decidable clause stays mechanical. The harness emits a versioned structured
+question with a blinded fail-control and accepts a schema-checked answer. The
+supervising agent is the default interactive driver; hosted APIs using
+operator-local credentials and padme's Qwen 3.8 are unattended drivers. Every
+run records its judge, model, runtime, rubric hash, question and answer.
+`bench/models.json` remains exclusively the embedder registry.
+
+The five targets are zoteus, Zotero core #6012, ZotSeek, 54yyyu/zotero-mcp and
+Beaver. ZotSeek's seat remains assigned to the in-process-plugin architecture
+class if that project stops being runnable or inspectable. Beaver's AGPL plugin
+revision is pinned and run in its normal configuration; unavailable service or
+permitted credentials reports not-run. A deterministic egressing stub, not
+Beaver, is R10's mandatory fail-control.
+
+R15's uninstall clause reads: **the target MUST declare every location in which
+it creates derived state. After uninstall, none of that state may remain, and
+no target-created derived state may exist outside the declaration.** The
+harness calls the real uninstall surface and checks residue independently; a
+target without one reports not-offered. User-authored library data and
+externally supplied configuration are not derived state. R15's item-deletion
+clause is unchanged.
+
+This PR records the ruling and rescopes ticket 0578. The already-enumerated
+SPEC.md and README.md propagation, plus adapter tickets for #6012, ZotSeek,
+zotero-mcp and Beaver, follow in one separate auditable pass; 0578 owns the
+zoteus adapter and deterministic egress fail-control.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -4292,6 +4337,248 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   collapses two rows on a guess. Ticket 0573 tracks it and files the children
   once ruled.
 
+- **The acceptance harness is one assertion layer over a target interface,
+  with a thin adapter per target — resolved 2026-09-02; see the ratified entry
+  above (author, raised and resolved in conversation).** The standing constraint this ledger did not yet carry:
+  the requirements acceptance harness must be applicable to any Zotero AI
+  retrieval tool. zoteus is the first target, Zotero core's pull request
+  #6012 the second, a third to be proposed. The ruling, in one
+  sentence: the harness is a single assertion layer phrased over an abstract
+  target interface plus a thin adapter per target; an assertion names an
+  interface verb and an adapter-declared surface, never a tool's file
+  layout; a judge is admitted for clauses about meaning and forbidden
+  wherever a mechanical test exists; the roster is zoteus, #6012, ZotSeek,
+  54yyyu/zotero-mcp and Beaver; and
+  R15's uninstall clause is reworded over declared derived state, which is
+  the one requirement the neutral phrasing changes.
+
+  This is the operational form of a ruling already on this page. The
+  two-level ruling of 2026-08-31 closed on the observation that "neither the
+  requirements nor the harness is zoteus-specific, and that Zotero core's own
+  work needs a real-library level too", and ticket 0032's log entry of the
+  same day recorded why the offered spec is not zoteus-shaped. Both stopped
+  at the observation. Nothing was built, and ticket 0578 was then filed
+  extending `bench/smoke_upstream.py` with assertions that read the zoteus
+  server directly, which is the shape this ruling corrects before it sets.
+
+  **The interface.** The author settled the architecture and this interface
+  on 2026-09-02. Seven verbs, and every assertion is phrased over them:
+  `install`; `uninstall`; `configure`; `query` in the three modes R33 names,
+  where the target has them; `status`; `pause`; `resume`. `Pause` and `resume`
+  are the two transitions of the one durable background-work control R22
+  requires: resume clears the durable pause, is a no-op when work is already
+  enabled, and never forces a rebuild, refresh, repair or synchronization.
+  Starting and stopping the target process remain harness setup declared by
+  the adapter, not indexing controls.
+
+  Convergence is an observed outcome, not an interface command. The harness
+  changes the fixture library outside the target and watches `status`; it does
+  not nudge the target, since a nudge cannot prove R1's unattended clause.
+  Likewise uninstall is the real user-facing operation, not a command to
+  delete the expected postcondition: after calling `uninstall`, the harness
+  independently inventories derived state and residue. Per-item `reextract`
+  and `unquarantine`, and a destructive whole-library rebuild, remain
+  separately tested management actions rather than interface aliases.
+
+  The list is short because these are the things a user does, and it stops
+  where it does for the same reason. There is no `embed`, no `chunk`, no
+  `extract`: those are how a target meets a requirement, and an assertion
+  reaching for them has left the sheet and started grading an implementation.
+  A target that does not offer a verb declares it absent, and each assertion
+  needing it reports "not offered" rather than passing quietly, per the
+  honest-state discipline ticket 0578 inherits from tracker 0026.
+
+  **The adapter contract.** The author settled this boundary on 2026-09-02.
+  A thin adapter declares, and does nothing else beyond the minimal transport
+  code needed to invoke the surface it declares.
+  It MUST declare five things: every path the target writes outside the
+  fixture library, which is its derived state and the root R15 is asserted
+  over; how the query surface is reached, whether that is a stdio transport,
+  an HTTP endpoint or an in-process hook; how the target starts and stops;
+  what "default configuration" means for that tool, meaning what a user gets
+  having changed nothing; and which interface verbs it does not offer. It
+  MUST NOT do four: patch, fix or work around a failure in the target; set an
+  option a user would not have set; take access the target does not give its
+  own users; or score a result. An adapter that does not fit on one screen is
+  doing the layer's work, and the layer is where a reviewer can see it.
+
+  **The judge.** A judge model is admitted where a clause is about meaning,
+  and only there. Four clauses qualify: R17's human answer, per stage, with a
+  date; R18's distinction between nothing-matched and not-indexed-yet; the
+  relevance of a hit in the golden set; and R24's page attribution, which
+  asks whether the page a hit points at actually carries the text. Each may
+  be satisfied in wording we did not write, which is what a mechanical test
+  cannot grade: matching our own sentence would pass zoteus and fail three
+  targets for the wrong reason, reintroducing exactly the coupling this
+  ruling removes. The judge is forbidden wherever a mechanical test exists,
+  which is everywhere else: latency, counters, exit codes, egress, deletion
+  residue, codepoint folding, recall over the pinned set.
+
+  The author settled its mechanics on 2026-09-02 as a question protocol, not
+  a model registry. `bench/models.json` remains exclusively the registry of
+  embedders and their vector-affecting configuration. The harness writes an
+  immutable structured question bundle carrying the clause, versioned rubric,
+  target output, evidence and a blinded fail-control. A judge returns the
+  fixed answer schema: verdict, rationale, judge identity, model identity,
+  timestamp and rubric hash. The run records both bundle and answer verbatim,
+  and is valid only when the answer follows the schema and rejects the control.
+
+  Three drivers implement the same protocol. The default interactive path is
+  the LLM supervising the harness session: the scripts emit questions and the
+  agent explicitly consumes and answers them, rather than a script pretending
+  it can silently call its ambient model. An unattended hosted driver may call
+  OpenRouter or another vendor with operator-local credentials that never
+  enter the repository or result artifact. A padme driver may ask the Qwen 3.8
+  deployment there, recording the exact model and runtime that answered.
+  Rubrics and the question/answer schemas are versioned; judge identities are
+  runtime facts recorded per run, not entries in `bench/models.json` and not a
+  privileged roster.
+
+  Each judged clause carries a fail-control the judge MUST reject: a status
+  sentence whose arithmetic does not close, an empty answer that collapses the
+  two cases, a locator two pages off its text, an irrelevant document in the
+  golden slot. A judge that says yes to everything is otherwise
+  indistinguishable from a judge that works, and an all-clear indistinguishable
+  from a could-not-look is this repo's most expensive recurring failure.
+
+  **The roster.** zoteus first: the reference point, the target the whole
+  sheet was measured against, and the adapter half of which already exists in
+  `bench/smoke_upstream.py`. Zotero core's #6012 second: the platform-native
+  class, and the adapter that will hurt, because `verification/FIELD-REVIEW.md`
+  records that nothing in the pull request reaches Zotero's local HTTP API.
+  Its query surface is internal, so its adapter declares an in-process hook or
+  the user interface, and where a verb cannot be reached at all it says so.
+  That is a finding about the interface rather than an obstacle to it.
+
+  Third: **ZotSeek** (`introfini/ZotSeek`; `verification/FIELD-REVIEW.md`).
+  The argument is architecture class. zoteus is a server outside the Zotero
+  process, #6012 is the platform itself, and ZotSeek is the third class: a
+  plugin running inside the Zotero process, keeping a sidecar
+  `zotseek.sqlite` beside `zotero.sqlite` in Zotero's own data directory,
+  running its embedder in a worker thread because Transformers.js cannot run
+  on Zotero's main thread, with an MCP server bolted on for agents. Three
+  targets in three classes test whether the interface is an interface; three
+  targets in two classes test the weaker question of portability within a
+  class. ZotSeek is also alive, releasing roughly every two weeks through
+  2026 with its last observed push on 2026-08-27, so an adapter written
+  against it stays runnable. It carries no LICENSE file, verified three ways
+  by the field review against a `package.json` that self-declares MIT. That
+  is irrelevant to running it as a target and decisive only for copying its
+  code, which nothing here proposes. It remains eligible while it is runnable
+  and inspectable; if not, the seat stays assigned to the in-process-plugin
+  architecture class rather than silently collapsing onto another server.
+
+  Fourth: **54yyyu/zotero-mcp**, adopted with ZotSeek by the author on
+  2026-09-02. It gives the thinnest adapter in the survey and the
+  largest user base in the field, 4 829 stars against ZotSeek's 191, and it
+  is the same class as zoteus: a server outside the process talking to Zotero
+  over the local HTTP API. ZotSeek tests architectural coverage; zotero-mcp
+  tests reach and portability between independent implementations of the
+  external-server class. Those are complementary questions, so the roster
+  carries both rather than making one compete for a single third seat.
+
+  Fifth: **Beaver**, adopted by the author on 2026-09-02 as a real target, not
+  the harness's synthetic control. Its plugin is AGPL-3.0, verified in the
+  field review, so the tested source revision can be pinned and inspected;
+  the hosted backend remains an external runtime fact. Its free tier does
+  local processing while stating that "some processing still occurs
+  remotely", and its paid
+  tier syncs selected libraries to Beaver's servers, which is where
+  full-document search lives. Run its pinned plugin in its normal
+  configuration and expect R10 to fail where that configuration attempts
+  egress; assess every other applicable requirement normally. If the service
+  or permitted credentials are unavailable, the result is "not run", never a
+  pass. A tiny deterministic adapter that attempts egress remains R10's
+  mandatory fail-control: it proves the assertion can fail, while Beaver shows
+  the requirement's consequence in a real product.
+
+  **What the neutral phrasing changes on goal 1.** The author settled this
+  requirement rewording on 2026-09-02. R15 reads today that "deleting the data
+  directory MUST be the whole uninstall", and that data directory is zoteus's
+  own, a directory
+  which exists because zoteus made one. #6012's derived index is
+  `embeddings.sqlite` inside Zotero's data directory, which nobody deletes to
+  uninstall a feature, and ZotSeek's sidecar sits in the same place. Read
+  literally against either, R15 is unsatisfiable; read charitably, it is
+  untestable. The ratified phrasing: **the target MUST declare every location
+  in which it creates derived state. After uninstall, none of that state may
+  remain, and no target-created derived state may exist outside the
+  declaration.** For zoteus the declared derived state is its data
+  directory, so the sentence keeps its present meaning; for a plugin it is
+  the sidecar files the adapter declares. R15's other clause, that deleting
+  an item removes its text everywhere, is untouched. The rewording also
+  strengthens rather than merely generalizes: a location cannot be checked
+  for completeness, a declared list can, and the residue sweep ticket 0578
+  builds is what makes the declaration falsifiable. The harness calls the real
+  `uninstall` surface rather than deleting the expected state itself; a target
+  without one reports "not offered".
+
+  **How this composes with the harness offer.** Ticket 0032 offers the
+  acceptance spec to the zoteus maintainer as the first upstream design
+  conversation, on the one-time transfer bounds `GOVERNANCE.md` fixes. Under
+  this ruling the offer becomes the layer plus the zoteus adapter, and it
+  says so in those words. That is a better offer rather than a diluted one: a
+  spec running against five targets is evidence that it tests the
+  requirement instead of the tool, where a zoteus-shaped test file is a claim
+  he would have to take on trust. It also retires an objection he would be
+  right to raise, that a test written against his file layout is a test he
+  then has to keep working. The bounds do not move: one-time, vendor it or it
+  stays here, no promise to track his tree.
+
+  **The alternatives to the ruling itself, and what each costs.** *Keep the
+  harness zoteus-shaped and port when a second target arrives.* Cheapest
+  today, and it is the plan ticket 0578 was written on. Its cost is that the
+  coupling stays invisible until a second target exists, since an assertion
+  reading a zoteus path looks exactly like an assertion reading a target's
+  derived state right up to the moment something else must satisfy it.
+  Declaring the interface at the second implementation rather than the first
+  is the settled practice, which is why this ruling names the second and
+  third targets now instead of asserting portability in the abstract. *One
+  suite per target, sharing nothing.* Honest, and it drifts: three suites
+  make R15 mean three things, where the sheet's whole function is that a
+  requirement means one thing whoever satisfies it, and the judged clauses
+  triple with no shared rubric. *A plugin architecture, adapters as packages
+  behind a registry and a discovery mechanism.* Over-built for three targets,
+  and it invites the adapter to grow logic. The thin-adapter rule is
+  load-bearing: an adapter that only declares can be read and disbelieved in
+  one screen, while an adapter that computes can hide a fix. *No judge,
+  mechanize everything.* Attractive, and it fails on the four clauses above,
+  where the available mechanization is a match against our own phrasing. The
+  coupling arrives through the back door. *Judge everywhere, retiring the
+  mechanical assertions a judge could also grade.* Replaces decidable tests
+  with sampled opinions, a mistake already priced here: the metric decides
+  the verdict, and a proxy agreeing with the task metric on one case reverses
+  it on the next.
+
+  **What ratifying this changes.** Seven sites across two documents, and no
+  threshold moves. Four in SPEC.md. §3's R15 paragraph, the uninstall clause
+  reworded over declared derived state, and with it the sentence forbidding
+  index state, queues, watermarks and downloaded models to survive outside
+  the data directory, which is the same location claim at greater length.
+  §3's goals-ladder row for rung 1, which restates the clause in the user's
+  own words and would otherwise keep promising a directory. §5.2.7, whose
+  paragraph headed "R15's uninstall clause" fixes the location twice, pinning
+  `env.cacheDir` under the data directory and equating uninstall with
+  deleting it; under the new phrasing that paragraph states zoteus's
+  declaration rather than the requirement. And §5.2.8, which owns the gates:
+  the target interface, the adapter contract, the judge rule and its positive
+  controls, stated once where the gate specification lives.
+
+  Three in README.md, because the landing page owns the standing report and
+  the ladder's rosters, checked against this ledger rather than against
+  itself. Goal 1's opening prose and its roster row for R15 both restate the
+  clause as a location, and no guard reads either, which is the reason to
+  name them here. The standing table's R15 row quotes the sheet's requirement
+  sentence verbatim, and `bench/check_progress.py`'s PROMISE check compares
+  that cell against SPEC.md's own sentence, so rewording the sheet alone
+  turns the gate red until the row is reworded with it.
+
+  Ticket 0578 is rescoped here because the layer and the zoteus adapter are
+  its first implementation. The tickets that follow are deliberately not
+  filed in this PR: the #6012 adapter, the ZotSeek adapter, the zotero-mcp
+  adapter and the Beaver adapter. The deterministic egress fail-control stays
+  in 0578. The separate propagation pass files the four adapters after this
+  ruling lands.
 - **Three findings ticket 0180's attribution audit could not settle itself,
   all in territory the audit is not authorized to move (raised 2026-09-02).**
   The audit corrected twenty-seven sites in `SPEC.md` directly; these three it

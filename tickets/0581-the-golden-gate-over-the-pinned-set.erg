@@ -7,6 +7,7 @@ Blocked-by: 0029
 --- log ---
 2026-09-02T10:52Z claude created
 
+2026-09-02T11:57Z claude note This rung's assertions inherit the target interface once the 2026-09-02 ruling is ratified (DECISIONS.md, awaiting): phrased over the interface verbs and an adapter-declared surface, never a tool's file layout. Nothing here changes before that.
 --- body ---
 
 ## Context
