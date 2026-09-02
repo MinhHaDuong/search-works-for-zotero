@@ -1,0 +1,112 @@
+%erg 0.1
+Title: Upstream tsconfig excludes tests, so typecheck never covers the suite
+Created: 2026-09-01
+Author: claude
+Closed: measured: 204 errors across 37 of 101 test files, form ruled issue; filing held for the author's per-action authorization, body at verification/ISSUE-DRAFT-0530.md
+
+--- log ---
+2026-09-01T05:46Z claude created
+
+2026-09-02T18:21Z claude measured 204 errors across 37 of 101 test files at b05ed69; positive control green both ways; form ruled issue, body drafted at verification/ISSUE-DRAFT-0530.md, filing held for the author's authorization
+2026-09-02T18:21Z Claude closed — measured: 204 errors across 37 of 101 test files, form ruled issue; filing held for the author's per-action authorization, body at verification/ISSUE-DRAFT-0530.md
+--- body ---
+## Context
+
+Found by the 0091 takeover session during the PR A/B merge, reported
+2026-09-01: upstream's `tsconfig.json` excludes `tests`, so `npm run
+typecheck` never typechecks the test suite. A test importing a symbol that no
+longer exists passes typecheck and fails only at runtime — it bit during the
+merge of the two prepared droplist branches, where a rename (`HighDf` →
+`Prunable`) left a test compiling against a ghost.
+
+The defect class is the familiar one: a gate whose all-clear is
+indistinguishable from not looking. Upstream's own contribution bar asks for
+`npm run typecheck && npm run lint && npm test` green; the first of the three
+silently covers only half the tree.
+
+## Relevant files
+- Upstream `tsconfig.json` — the `exclude` entry.
+- Upstream `package.json` — the `typecheck` script.
+
+## Actions
+1. Verify at current upstream HEAD that the exclusion is still present and
+   that a deliberately broken test import passes `npm run typecheck` (the
+   positive control — do not trust the report without it).
+2. Measure the blast radius: run `tsc --noEmit` over the suite once; the
+   exclusion may be hiding accumulated type errors in tests, which changes
+   the fix from one line to a cleanup.
+3. Decide the upstream form per the measured asymmetry: a one-line fix with a
+   clean suite is a contained PR; an exclusion hiding many latent errors is
+   design-sized enough to go as an issue he fixes his own way.
+
+## Test
+- The positive control in action 1 is the red step: a test file importing a
+  nonexistent symbol must fail typecheck after the fix and pass before it.
+
+## Measurement, 2026-09-02
+
+Run at `b05ed69` (v1.12.0) on the fork branch `base-v1.12.0`, TypeScript
+5.9.3, vitest 2.1.9, `npm ci` on the committed lockfile. Draft filing body:
+[`verification/ISSUE-DRAFT-0530.md`](../../verification/ISSUE-DRAFT-0530.md).
+
+Two corrections to the premise, neither of which moves the finding: the
+fork's `main` is `bb414df` (v1.9.0), not v1.12.0 — `b05ed69` lives on
+`base-v1.12.0`, and `tsconfig.json` is byte-identical on both; and the suite
+is 101 `.ts` files / 15,754 lines (100 `*.test.ts` plus
+`tests/fixtures/epub.ts`), not 102 / 15,907.
+
+**Positive control, both directions.** A ghost import planted in
+`tests/config.test.ts` leaves `npm run typecheck` at exit 0 with no output,
+indistinguishable from the clean tree, and leaves `npm test` green
+(`✓ tests/config.test.ts (28 tests)`). Compiled with tests included, the same
+file yields `TS2305: Module '"../src/config.js"' has no exported member
+'aGhostSymbolThatDoesNotExist'` and `TS2322: Type 'string' is not assignable
+to type 'number'`. Worse than the ticket assumed: vitest does not catch it
+either, because under the SSR transform a missing export is `undefined`
+rather than an import-time throw, so a ghost fails only when *called* — a
+renamed type or a read-but-not-invoked symbol can stay broken indefinitely.
+
+**The lock is double, which is why this survived.** `include` (line 18) and
+`exclude` (line 19) each block tests independently: removing `"tests"` from
+`exclude` compiles zero test files, and adding `tests/**/*` to `include`
+compiles zero test files. Both together, with `rootDir: "src"` (line 8) kept,
+gives 100 × TS6059 and no type errors at all — and pollutes the tree under
+`npm run build`. No one-line fix exists.
+
+**Blast radius: 204 errors across 37 of 101 test files, zero in `src/`**,
+while the suite is green at runtime (923 passing, 7 skipped). 115 of the 204
+are `noUncheckedIndexedAccess` applied to test idiom (18 files affected by
+nothing else); 53 are untyped `await res.json()` and untyped `vi.fn()` mocks;
+5 are genuine fixture drift (`Capabilities.localGroupIds`, added in `116b4aa`
+— our own #12 — never propagated to four fixtures explicitly annotated with
+the interface; `ToolContext.reopenSearchIndex` the same); 10 point back at
+`src`, where `toJSON`/`loadFromJSON` exist on the class and on
+`persistence.ts` but not on the `SearchIndex` interface
+(`backend.ts:524`). No `@types` package is missing: zero TS2307/TS2304/TS2582.
+
+**Form ruled: issue, not PR.** Three grounds, each measured: no one-line
+change does anything; the suite does not type-check clean, so a contained PR
+would be a 37-file diff carrying a policy choice in every file; and one
+category asks whether `SearchIndex` should expose persistence, which is his
+interface to decide. This is the asymmetry GOVERNANCE.md § Form follows the
+measured asymmetry names, landing on the design-sized side.
+
+## Verification
+- [x] Positive control demonstrated both sides of the fix — green at exit 0
+      with a ghost import; TS2305 + TS2322 once tests compile
+- [x] Blast radius measured and recorded here — 204 errors, 37 of 101 files,
+      0 in `src/`, four categories with representatives
+
+## Invariants
+- GOVERNANCE.md bounds apply to any filing; nothing goes upstream without
+  the author's authorization.
+
+## Exit criteria
+- [x] Filed upstream (form per action 3) or an explicit deliberately-unfiled
+      line recorded here, per GOVERNANCE.md § The courtesy filing —
+      **not filed, and not deliberately unfiled either: the body is drafted
+      and held at `verification/ISSUE-DRAFT-0530.md` pending the author's
+      per-action authorization.** The measurement half is what this ticket
+      owned and it is complete; the filing is his call and is tracked as the
+      one open item in SYNC.md's row.
+- [x] Outcome recorded in SYNC.md's tracker
