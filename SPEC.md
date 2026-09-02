@@ -2462,8 +2462,11 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   shipped, both paths, and its ground truth is held out of the thing it
   scores. Corpus: the real library, one arm per document class — books and
   proceedings, the primary class; the dictionary, the rare case; and the
-  signed encyclopedia, the numbered technical report and the thesis, the
-  classes the acceptance test names. Each arm samples 50 cut points uniformly
+  signed encyclopedia, the edited handbook, the numbered technical report and
+  the thesis, the classes the acceptance test names. The reference classes —
+  dictionary, encyclopedia, handbook — are measured on their own because
+  retrieval from reference material matters at least as much as retrieval
+  from articles. Each arm samples 50 cut points uniformly
   at random (seeded, recorded) from that arm's accepted entry boundaries.
   Ground truth: where a document carries an embedded outline, the outline's
   page targets. The segmenter runs with its outline tier disabled on such a
@@ -2478,7 +2481,7 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   boundaries. Rule, per arm: ≥ 45/50 correct ships the entry story for that
   class; 40–44 raises the confidence gate and re-runs; < 40 means synthetic
   entries carry that class, labeled. Verdicts are never pooled. The primary
-  class and the dictionary gate scoped issue B; the other three arms are
+  class and the dictionary gate scoped issue B; the other four arms are
   measured and reported, not gating.
 - **Cross-provider fidelity — X8 decides where the device lives.** Same model,
   same rung, the GPU provider's vectors scored against the CPU provider's over

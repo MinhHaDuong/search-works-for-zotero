@@ -68,12 +68,12 @@ provenance, per house rules.
 - X5 the segmenter as shipped, both paths (seg/1 built by 0028, the PDF path
   by 0557), over the real library, one arm per document class: books and
   proceedings (primary), the dictionary (rare case), the signed encyclopedia,
-  the numbered report, the thesis. 50 cut points per arm. Ground truth is the
+  the edited handbook, the numbered report, the thesis. 50 cut points per arm. Ground truth is the
   document's embedded outline with the outline tier held out, scored by page
   through pdf.js independently of the segmenter; human scoring where no
   outline exists. Never the printed table of contents, which seg/1 consumes.
   Bar per arm, never pooled: SPEC.md 5.3's 45/50. The primary class and the
-  dictionary GATE scoped issue B (0034); the other three arms are reported.
+  dictionary GATE scoped issue B (0034); the other four arms are reported.
 - X6 version-0 dynamics: re-extract one attachment on a synced and a
   never-synced profile; watch the census and the item version. Rule: if
   re-extraction re-stamps 0, build the bounded re-verify sweep; if anything

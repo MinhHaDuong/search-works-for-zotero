@@ -3301,6 +3301,24 @@ as the system — the 2026-09-01 ruling had reached the ledger and ticket 0557
 but not the specification, and §5.3 cannot name a tier the spec does not
 describe; ticket 0557's children own whatever more that section needs.
 
+**2026-09-02 — the edited handbook is X5's sixth arm, measured and reported;
+reference material is retrieved at least as carefully as articles.** The
+morning's X5 ruling fixed five arms and called the list "the acceptance
+statement's own list"; the statement names one class more, the edited handbook,
+which the review of ticket 0502's merge request caught and filed as a question.
+The author ruled the second of its two alternatives: the handbook is an arm of
+its own — 50 cut points, the same 45/50 bar, its own row in the verdict — and
+not gating, like the encyclopedia, the report and the thesis. Folding it into
+the primary arm was rejected because a passing primary arm would then rest on
+volumes whose byline layer was never separately scored, and the field review
+calls the handbook the byline-and-TOC class.
+
+The author's reason reaches past the roster and is recorded for the design:
+good retrieval from reference material — dictionaries, encyclopedias, handbooks
+— is as important as retrieval from articles, if not more. SPEC.md §5.3 now
+says why the reference classes are measured on their own. Gating stays as
+ruled in the morning: the primary class and the dictionary.
+
 ## Awaiting ratification
 
 - **Which index and extraction actions `zotero_index` should carry, and whether
@@ -4091,26 +4109,3 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   reads. Nothing here writes to Zotero, nothing translates, and nothing
   collapses two rows on a guess. Ticket 0573 tracks it and files the children
   once ruled.
-
-- **Whether the edited handbook is an arm of its own in X5, or folds into the
-  books-and-proceedings arm (raised 2026-09-02 by the propagation of that day's
-  X5 ruling).** The ruling fixes X5's arms as books and proceedings, the
-  dictionary, the signed encyclopedia, the numbered report and the thesis, and
-  calls that list "the acceptance statement's own list". The acceptance
-  statement names one class more: an edited handbook (ticket 0028's log,
-  2026-09-01T12:27Z; `verification/SEGMENTER-FIELD-REVIEW-0028.md` places it
-  against the review's findings as the byline-and-TOC class, with a concrete
-  acceptance-test document behind it). Its shape is the proceedings shape (a
-  signed contribution per section, a contents list, a byline under each title),
-  so the five ruled arms may already cover it, or it may be a sixth.
-
-  Two alternatives, for the author. (i) The handbook folds into the primary
-  books-and-proceedings arm: one bar, one verdict, and the arm's 50 cut points
-  are drawn across both shapes. That keeps the ruled roster and the gate scoped
-  issue B waits on unchanged, at the cost of letting a passing primary arm rest
-  on volumes whose byline layer was never separately scored. (ii) The handbook
-  is an arm of its own, measured and reported like the encyclopedia, the report
-  and the thesis, and not gating: 50 more cut points and one more row in the
-  verdict, and the class the field review calls the byline-and-TOC document
-  gets its own number. Nothing is decided here, and SPEC.md §5.3 states the
-  five ruled arms as ruled.
