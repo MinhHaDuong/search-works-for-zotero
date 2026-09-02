@@ -60,30 +60,8 @@ The specification is one document, [`SPEC.md`](SPEC.md), in RFC section order
 Considerations). This page is both the repository's public landing page and the
 chain's entry point, the one place that says where each promise stands at the
 reviewed baseline — durable status, not a live session handoff. What changes
-week to week stays outside SPEC.md, at the top level alongside it.
-
-| Document or directory | Role |
-|---|---|
-| [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
-| [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
-| [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
-| [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable — a dated snapshot, not a live tracker |
-| [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
-| [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
-| [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
-| [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
-| [`bench/`](bench/) | Executable probes and acceptance-harness work |
-| [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
-| [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
-| [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
-
-How authority passes between `SPEC.md`, `DECISIONS.md`,
-`verification/FIELD-REVIEW.md`, `GOVERNANCE.md` and this page — and why
-`SPEC.md`'s own sections each keep their own organising principle, chronological
-for none of it and enumerative or architectural depending on what the section
-is for — is stated once, in `SPEC.md` §1. Read it there rather than here, on
-the same one-statement-per-fact rule the rest of this repository holds itself
-to.
+week to week stays outside SPEC.md, at the top level alongside it, and
+[`AGENTS.md`](AGENTS.md) indexes every document and directory with its role.
 
 ---
 

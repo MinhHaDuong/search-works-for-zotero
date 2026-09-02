@@ -7,10 +7,31 @@ and in the author's fork, not here.
 
 ## The document set
 
-[`README.md`](README.md)'s organisation table says what each document and
-directory is for. This section says only what an agent must do differently in
-each. This file owns workflow conventions alone: project state, measurements,
-requirements, and history live in the documents that own them.
+This file owns workflow conventions alone: project state, measurements,
+requirements, and history live in the documents that own them. The table says
+what each is for; the rules under it say what an agent must do differently in
+each.
+
+| Document or directory | Role |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
+| [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
+| [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
+| [`README.md`](README.md) | The public landing page: the proposition, and where each promise stands at the reviewed baseline |
+| [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable — a dated snapshot, not a live tracker |
+| [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
+| [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
+| [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
+| [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
+| [`bench/`](bench/) | Executable probes and acceptance-harness work |
+| [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
+| [`verification/`](verification/) | Reports that settle a factual question, and the probes that produced them |
+| [`UPSTREAM`](UPSTREAM) | Machine-readable zoteus review baseline |
+
+How authority passes between `SPEC.md`, `DECISIONS.md`,
+`verification/FIELD-REVIEW.md`, `GOVERNANCE.md` and `README.md` — and why
+`SPEC.md`'s own sections each keep their own organising principle — is stated
+once, in `SPEC.md` §1. Read it there rather than here.
 
 - **`DECISIONS.md` is append-only.** The author's rulings land there FIRST and
   `SPEC.md` is edited to match. Never edit a ratified entry.
@@ -29,7 +50,7 @@ requirements, and history live in the documents that own them.
 - **`README.md`'s standing is read, never computed.** It owns no threshold and
   no design number, its verdicts come from the upstream source, and
   `bench/check_progress.py` fails the build when the reviewed baseline moves
-  past it.
+  past it. It is durable public status, not a live session handoff.
 - **`STATE.md` stays under forty lines and stays pointer-only.** It owns no
   requirement, measurement, verdict, or history.
 - **`verification/` is evidence, not authority.** A report is cited by path
