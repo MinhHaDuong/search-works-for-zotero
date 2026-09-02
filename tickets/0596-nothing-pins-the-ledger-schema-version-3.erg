@@ -1,0 +1,98 @@
+%erg 0.1
+Title: nothing pins the ledger schema version 3 resolution
+Created: 2026-09-02
+Author: MinhHaDuong
+
+--- log ---
+2026-09-02T18:52Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found by the review of the fork's merge commit `c031478`, alongside 0594 and
+0595. This one is not a defect in shipped behaviour: the merge's resolution
+is *correct*, and the review verified it empirically. What is missing is the
+test that would notice if it stopped being correct.
+
+The merge had to reconcile two branches that had each stamped
+`LEDGER_SCHEMA_VERSION = 2` for different schemas — tranche 3's bookkeeping
+half (`extract_state`, `attachment_choice`) and the content half (`slabs`,
+`entries`, `passages`, `fts`). Its resolution, per ticket 0568 and the
+constant's own docstring, is that **3 is their union**: a file stamped 2 by
+either branch is a file this build cannot tell apart from the other's, so
+both are brought forward by the `CREATE TABLE IF NOT EXISTS` block and
+re-stamped 3.
+
+Verified in review, on a real file: a file stamped 2 in either fork's shape
+does open, does get its missing half created, and is re-stamped 3. The claim
+holds today.
+
+## The gap
+
+Every schema-stamp assertion in the suite is written against the constant
+itself, never against a literal:
+
+```ts
+expect(Number(stamps[0]!.value)).toBe(LEDGER_SCHEMA_VERSION);
+...run('schemaVersion', String(LEDGER_SCHEMA_VERSION));
+...run(String(LEDGER_SCHEMA_VERSION + 1));
+```
+
+So the assertions are tautologies with respect to the number. Set
+`LEDGER_SCHEMA_VERSION` back to 2 and every one of them still passes — while
+the refusal in `open()` (`stored > LEDGER_SCHEMA_VERSION`) silently stops
+refusing the files it exists to refuse, and a build understanding one half
+would read a union file as its own.
+
+The same holds for the bring-forward: nothing writes a *version-2 file in
+one branch's shape* and asserts what opening it produces. The one thing the
+merge actually decided is the one thing no test would catch losing.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — `LEDGER_SCHEMA_VERSION`
+  and its docstring (the statement of the resolution); `open()`'s refusal;
+  `createSchema`'s `CREATE TABLE IF NOT EXISTS` block and its re-stamp;
+  `readStoredVersion`.
+- Fork `tests/features/conductor-content-schema.test.ts` — the existing
+  stamp assertions, all against the constant.
+- Ticket 0568 — where the union was decided.
+
+## Actions
+
+1. Pin the number once, literally: `expect(LEDGER_SCHEMA_VERSION).toBe(3)`,
+   with a comment saying that a bump is a deliberate act that comes with a
+   bring-forward case, not an edit to make a test pass. One literal is
+   enough — the other assertions can keep using the constant, which is what
+   makes them readable.
+2. Pin the resolution itself with two fixture files built by hand, not by
+   `Ledger.open`: a version-2 file carrying only the bookkeeping tables and
+   one carrying only the content tables. Assert that opening each one
+   creates the missing half, re-stamps to 3, and leaves the rows that were
+   already there intact.
+3. Pin the refusal from the other side: a file stamped 4 is refused with
+   `LedgerVersionError`, expressed against the literal so the case survives
+   a future bump changing the constant.
+
+## Test
+
+The bring-forward fixtures are the test. They are also the only place in
+the suite where a stamped file is written by something other than the code
+under test, which is what makes them worth the lines.
+
+## Verification
+
+- [ ] Reverting `LEDGER_SCHEMA_VERSION` to 2 turns the suite red
+- [ ] Deleting either half of `createSchema`'s DDL turns the suite red on a
+      version-2 file of the other half's shape
+- [ ] A stamped-4 file is still refused
+
+## Invariants
+
+- No production change: this ticket adds tests and, at most, a comment.
+- Upstream tests green.
+
+## Exit criteria
+
+- [ ] The 2 -> 3 union resolution is asserted by a test that fails if it
+      regresses, merged on a fork branch, tests green
