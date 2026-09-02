@@ -1,0 +1,106 @@
+%erg 0.1
+Title: The golden gate over the pinned set
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0029
+
+--- log ---
+2026-09-02T10:52Z claude created
+
+--- body ---
+
+## Context
+
+Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
+this is rung 4 of five children, and 0026 is the tracker. Goal 4 is "it finds the
+right thing, in my languages, and I can open it" (README.md, "## The goals
+ladder"), and the golden gate is the instrument that decides R34 — every pinned
+answer comes back within the first ten results.
+
+The gate has two readings of one pinned set, and they are opposite on purpose.
+The stability reading compares a run against the last and tolerates legitimate
+drift, which is what SPEC.md §5.2.8's thresholds are for; the R34 reading
+compares the run against the pinned answers and tolerates none. A corpus that
+can be stable and wrong is exactly why both exist. Order is deliberately
+ungated, and §5.2.8 records why: an order gate flakes, gets turned off, and that
+is how a past defect happened.
+
+This ticket waits on ticket 0029, which delivers the pinned multilingual fixture
+corpus and the Zotero-free index harness. There is nothing to gate until the set
+is pinned, and the set is not this ticket's to invent.
+
+## Relevant files
+
+- `SPEC.md` §5.2.8, "**The golden gate (D11 = set)**" — the thresholds, the
+  faceting rule, the cross-lingual slice, and the two readings. Every number the
+  gate asserts is that section's; cite the address, never the digit.
+- `tickets/0029-the-golden-fixture-corpus-and-a-zotero-f.erg` — the pinned set
+  and the harness this gate runs over.
+- `README.md`, "## Goal 4 — it finds the right thing, in my languages, and I can
+  open it" — the rung's roster; R34 is this ticket's, the other five are ticket
+  0029's.
+- `bench/results/` — where a re-pin's set diff lands as the review artifact.
+
+## Actions
+
+1. The gate itself, over ticket 0029's pinned set at k=10, computing answer sets
+   rather than orders, and asserting SPEC.md §5.2.8's three thresholds by
+   reference.
+2. The R34 reading beside the stability reading, tolerating no drift, so a
+   regression names which of the two it broke.
+3. The cross-lingual slice gated separately from the monolingual queries, so a
+   regression names which of R7 and R29 it broke.
+4. Facet-aware rung evaluation: each pinned query records at pinning which corpus
+   its answer needs, and this rung binds the queries whose facet the corpus
+   already covers. The rest join goal 5's evaluation when their corpus lands, and
+   the gate says which subset it evaluated rather than reporting a bare pass.
+5. Entry granularity when entries exist; until then the gate covers item
+   projections and says so in its own output.
+6. A re-pin is a commit whose set diff is the review artifact. Make that the
+   mechanism, not a convention someone has to remember.
+
+## Test
+
+Red first, and the failure class is already measured: §5.2.8 records the
+observed legitimate per-query Jaccard minimum and the failure class's own
+measured value, which is far below it. Build a fixture that reproduces the
+failure class and see the gate go red on it before any green run — a gate whose
+floor was never crossed has not been shown to have a floor.
+
+The second red arm is the one the two readings exist for: perturb the index
+legitimately, and require the stability reading to pass while the R34 reading
+fails on a moved pinned answer. If both readings agree on every input, one of
+them is not being computed.
+
+## Verification
+
+- [ ] The gate ran red against a fixture reproducing the failure class, before
+      any green run.
+- [ ] Stability and R34 readings disagree on the constructed input that should
+      separate them.
+- [ ] The cross-lingual slice reports separately from the monolingual queries.
+- [ ] The gate names the facet subset it evaluated.
+- [ ] No threshold is written in this repository outside SPEC.md §5.2.8.
+- [ ] `make check` green; `./tickets/erg check` green.
+
+## Invariants
+
+- The unit is the MUST clause, not the requirement: one assertion per clause, so
+  README.md's `delivered` column becomes a count rather than a reader's
+  judgement. Inherited from the tracker, ticket 0026.
+- Honest red and waiver states in the Makefile, never a green that means "could
+  not look". Inherited from the tracker, ticket 0026. A gate that finds no pinned
+  set must say so, not pass.
+- Order stays ungated. Re-introducing an order assertion needs a ruling in
+  `DECISIONS.md`, not a commit here.
+- Thresholds live once, in SPEC.md §5.2.8. A number quoted here is the second
+  copy that drifts.
+
+## Exit criteria
+- [ ] the golden gate runs over ticket 0029's pinned set at k=10, on answer sets
+- [ ] SPEC.md §5.2.8's three thresholds asserted by reference, none copied
+- [ ] the R34 reading asserted beside the stability reading, tolerating no drift
+- [ ] the cross-lingual slice gated separately from the monolingual queries
+- [ ] rung evaluation bound to the covered facet subset, and the subset named
+- [ ] the gate seen red against a fixture reproducing the measured failure class
+- [ ] in the Makefile with honest red/waiver states
