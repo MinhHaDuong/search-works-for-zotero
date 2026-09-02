@@ -1477,14 +1477,48 @@ position. The reading that record coverage is a strict
 newest-first prefix is rejected:
 items enter and leave the library while the build runs, so an invariant over a
 positional prefix is asserted over a set that has already moved. The two bands
-stay, as anti-monopoly machinery rather than as an observable; open: what else
-has to replace them, since the class order stops a 15k-page PDF
-delaying every *record* and does not stop it monopolizing the body tier.
+stay, as anti-monopoly machinery rather than as an observable.
 
-Zotero's own draft PR #6012 (SPEC.md C2) orders attachments
-smallest-first. Ours orders by recency and stops monopoly with the band cap
-instead, and the same standard binds both: neither ordering is asserted as an
-invariant over a moving set.
+**The band cap is the last fairness rule inside body text.** No per-item round
+robin and no recurring passage quantum sits below it, and that is a decision
+rather than an omission. Three facts carry it. The class order gives every item
+its record and its own words before any body passage is dispatched, so a
+monster delays no item's discoverability. The band cap then gives every item
+its first K passages before any item's tail, and K sits at the median
+attachment's own passage count, so band 1 is not ordinary items queued behind a
+monster: it is the tails of the documents longer than the median. And the
+fresh-against-backfill interleave one level up (§5.2.5) already splits the body
+class three micro-batches to one, so a monster in either lane leaves the other
+its share. What stays unbounded is one long document's tail against another's,
+inside one lane, and recency is the order this design commits to there.
+
+Both alternatives cost more than that is worth. A **recurring band**
+generalizes this cap — band n carrying passages [nK, (n+1)K) of every item —
+and holds no new state. It bounds the wait, and pays by finishing no long
+document early: every book completes near the end of the body tier instead of
+one completing first, while the worker returns to each slab once per round
+instead of draining it. A **per-item round robin** is either that same shape
+under another name, served statelessly by fewest-passages-indexed-first, or it
+holds a rotation cursor over the item set. A cursor is a position over a set
+that changes while the build runs, which is the shape vetoed on 2026-08-29 and
+declined again by the interleave above it, whose ruling holds no counter for
+that reason (DECISIONS.md, 2026-09-01).
+
+Doing nothing costs a visible delay rather than a silent one, since R4 and R17
+report partial coverage per item and a tail that waits says so. If a corpus
+ever shows the tail contest biting, the repair is the recurring band, which
+removes a `min()` from an expression the dispatch order already computes.
+
+Zotero's own draft PR #6012 (SPEC.md C2) orders attachments smallest-first, and
+that rejection stands on a different ground than it used to. Smallest-first
+buys its anti-monopoly property by ordering the whole body queue on document
+length, so the newest long book waits behind every short one. The band cap buys
+the same property blind to length: every item's head goes first, and short
+documents still finish early because they are band 0 outright. Recency survives
+here and cannot survive there, which is the comparison the class order makes
+available. The older ground — that neither ordering is asserted as an invariant
+over a moving set — defended the retired prefix observable and settles nothing
+now that nobody asserts one.
 
 **D6, first-with-text per language.** Per item, exactly one attachment in each
 detected language carries body text: the first — ascending `dateAdded`, key
@@ -1848,9 +1882,10 @@ schedulable unit at every level is one micro-batch.
    expected time over a snapshot of the fresh lane rather than a promise to a
    user.
 4. **Band 0 precedes band 1**, per item (§5.2.3), which is what keeps one
-   15 000-page PDF from monopolizing the body tier. What else has to hold
-   inside the body tier per item is ticket 0080's question, adjacent to
-   level 3 and distinct from it.
+   15 000-page PDF from monopolizing the body tier. It is the last level:
+   §5.2.3 says why no per-item round robin and no recurring passage quantum
+   sits below it, and names the repair if a corpus ever shows the tail
+   contest biting.
 
 Levels 3 and 4 bind the pipe as well as the queue: one worker serializes fetch
 and embed, so a fetch order for a newly changed item goes ahead of queued
@@ -2298,9 +2333,17 @@ It asserts four things.
 - Coverage is monotone.
 - The class order §5.2.3 states holds, per item: nothing has body passages
   indexed before its record. A positional prefix is not asserted — the reading
-  that it should be was vetoed on 2026-08-29 — and the counter arithmetic
+  that it should be was vetoed on 2026-08-29, and the counter arithmetic
   written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
-  partial − quarantined + outOfBand`) is open to rework or retire.
+  partial − quarantined + outOfBand`) retires with it. Its left side is defined
+  by the boundary's position, so the identity restates the vetoed claim in
+  arithmetic and would report the library's churn as a coverage fault. What
+  checks the counters instead is stated one paragraph above: idle
+  reconciliation recomputes them with real COUNTs and the harness fails on the
+  drift counter, which holds them to the ledger rather than to a position.
+  `outOfBand` outlives the identity it was introduced to balance, because
+  items covered before the sweep reaches them are a real thing to report
+  under R4 — an edit covers an item the crawl has not arrived at.
 - The terminal state arrives: all stages at total, drift 0, `pipeline: idle`,
   work counters stationary. The observable is ours: #6012's nearest analogue
   is `getStatus().phase`, which reaches `idle` on the branch that shuts the
@@ -2630,8 +2673,10 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   dropped term avoids walking a posting list — never by ranking quality;
   BM25 already down-weights common terms continuously, while a hard cutoff
   can only approximate that signal.
-- **Fairness — committed.** Record phase, then two-band body with derived K
-  (§5.2.3); smallest-first rejected on the record.
+- **Fairness — committed.** The three discovery classes, then two-band body
+  with derived K, and nothing below the band cap inside the body tier
+  (§5.2.3); smallest-first rejected on the record, and re-argued there once
+  the class order changed what separates it from ours.
 - **Fraction-RRF — conditional.** Ships behind the golden gate; calibration
   deferred to its own ticket with the library-derived pair protocol (§5.2.6).
 - **Version-0 freshness residue — X6 decided.** Live re-extraction through
