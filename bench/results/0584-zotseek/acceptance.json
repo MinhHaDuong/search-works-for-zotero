@@ -6,13 +6,13 @@
     "target": "introfini/ZotSeek",
     "revision": "ZotSeek 1.21.2, commit f442f8258d48e3e73458d74f428ded7086c740f5 (origin/main and tag-level head on 2026-09-03; the repository's only tag, v1.0.0, is nine major versions behind the manifest, so the commit is the pin). The artifact under test is zotseek-1.21.2.xpi, 103284735 bytes, sha256 7daaf964b1f11da274f201a1671dc82560add264f4b56f0b602c31b067ce2e69, fetched through update.json's update_link — the documented user install path. The digest is verified at construction, not assumed. Licence: package.json declares \"MIT\" and the tree carries no LICENSE file, which is why this adapter cites source addresses and reproduces no code.",
     "derived_state_roots": [
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite",
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite-wal",
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite-shm",
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite-journal",
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite.v7.bak",
-      "/home/haduong/data/ladder/zotseek/run3/data/zotseek.sqlite.v8.bak",
-      "/home/haduong/data/ladder/zotseek/run3/profile/zotseek-models"
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite",
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite-wal",
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite-shm",
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite-journal",
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite.v7.bak",
+      "/home/haduong/data/ladder/zotseek/run4/data/zotseek.sqlite.v8.bak",
+      "/home/haduong/data/ladder/zotseek/run4/profile/zotseek-models"
     ],
     "query_transport": "none in the default configuration, and that is a measurement rather than an omission. This target's query surfaces are dialogs inside the host application's window (content/searchDialog.xhtml, content/similarDocumentsDialog.xhtml) and a set of REST/MCP endpoints on the host's own HTTP server. The endpoints are registered only when `zotseek.mcpServer.enabled` is true, and the shipped preference file sets it false with the comment \"Opt-in\" (src/server/server-manager.ts:23, 30-40, 71-75). Measured on the running instance at 127.0.0.1:23219: POST to /zotseek/search, /zotseek/stats, /zotseek/mcp and /zotseek/similar all answer 404, in the with-plugin arm and in the host-only arm alike. Turning the preference on is a non-default option, which the ratified contract forbids in as many words, and it would also change R10's subject by opening a listening socket the default configuration does not open.\n\nWhat this field cannot say, and it is the sharper half: there is no wire here at all. This target reaches the library through the host's own in-process data layer — Zotero.Items.getAsync, Zotero.Search, Zotero.Libraries, Zotero.Fulltext.getPages, attachment.attachmentText (src/utils/zotero-api.ts:203-241, 376-421, 474; src/core/hybrid-search.ts:344, 385-386) — and ATTACHes its own sidecar database to the host's live SQLite connection (src/core/vector-store-sqlite.ts:267-293). It never reads the library over the local HTTP API; the only occurrence of that port in its source is prose telling a user how to point an MCP client at it (src/server/mcp-endpoint.ts:10). An external server has a transport to declare; a plugin has the host's data layer in hand, and the field is shaped for the first.",
     "default_configuration": "the release artifact zotseek-1.21.2.xpi sideloaded into the profile's extensions/ directory — the file-level form of the host's own Tools > Add-ons > Install from file — with no preference of the target's own set by the harness, against an empty library. What that resolves to was READ BACK from the profile after a run rather than transcribed from the shipped defaults, and the two differ: the XPI's prefs.js declares maxTokens 800 and indexingMode \"abstract\", while the effective set carries 2000 and \"full\", plus autoCompact, excludeTag, serverModels and webgpu.enabled, which the shipped file does not contain at all. Sixteen keys under the target's prefix are present after a first run and none in the host-only arm. The ones that decide what this target can be asked: autoIndex false, so no unattended indexing runs; mcpServer.enabled false, so no machine-reachable endpoint exists; embeddingModel nomic-embed-text-v1.5, which is the one model bundled inside the XPI (content/models/Xenova/nomic-embed-text-v1.5/onnx/model_quantized.onnx, 137,3 MB, beside 32,7 MB of onnxruntime wasm), so in the default configuration NOTHING IS DOWNLOADED and R15's model-cache clause has no download to be about. Where a model is not bundled the target fetches it from huggingface.co (src/core/model-download.ts:20, 231) into the profile path declared above. The one remote-processing path the target offers is a local inference server, and its URL is gated to 127.0.0.1, localhost and [::1] at request time with no override preference (src/core/loopback-url.ts:9, 17-37) — an observation about the target's own design, not a verdict, since this adapter measures no egress of its own.",
@@ -48,80 +48,80 @@
     ],
     "not_derived_state": [
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/home",
+        "path": "/home/haduong/data/ladder/zotseek/run4/home",
         "why": "the sandbox HOME, and the whole of it is the host application's and the desktop's. Measured against a host-only control arm — the identical launch with no plugin installed — 311 files existed only in that arm and 317 only in the with-plugin arm, and every one of those differences is the host's own churn: it opens its first-run start page in the desktop browser and stages its word-processor integration, both inheriting this HOME, both naming their directories with a fresh random string per run. Nothing the target creates was observed here. The exemption is directory-wide because at path granularity the host's baseline is not subtractable, which is finding 2 in this module's docstring and not a convenience"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/profile",
-        "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says: a green residue verdict means nothing strayed in the data directory, not that nothing strayed in the profile"
+        "path": "/home/haduong/data/ladder/zotseek/run4/profile",
+        "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says, and the statement is narrower than a reader might assume: a green residue verdict on this target means nothing appeared in the data directory OUTSIDE the host's own named entries. It says nothing about the profile, nothing about the sandbox HOME, and nothing about the interiors of the host's own data-directory subdirectories, five of which are exempted with their whole contents (see the entries below). A file strayed into any of those is invisible to this sweep"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/profile/prefs.js",
+        "path": "/home/haduong/data/ladder/zotseek/run4/profile/prefs.js",
         "why": "listed a second time, and separately, because the first exemption would otherwise bury a finding. This file carries state the TARGET creates: sixteen keys under its own preference prefix after a first run, none of them present in the host-only arm. derived_state_roots is a tuple of paths, so the interface cannot express it — the unit here would have to be a key inside a file the host owns and rewrites. Declaring the file a root would claim the host's entire preference store for the target; omitting it would hide state the target creates. This entry is the admission, not the resolution"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/host.log",
+        "path": "/home/haduong/data/ladder/zotseek/run4/host.log",
         "why": "the HARNESS's own instrument, not the target's state, and it is listed here because the first real run of this adapter reported it as residue — the only residue in 931 created files. The arena is documented as harness-owned, but the sweep counts every file in it as the target's, so an adapter cannot instrument inside its own arena without declaring the instrument. It is not avoidable by piping instead: this target's host is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict. Neither other adapter meets this, because neither has a process whose output has to survive the run"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite-wal",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite-wal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite-shm",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite-shm",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite-journal",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite-journal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite.bak",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite.bak",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/zotero.sqlite.tmp-wal",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/zotero.sqlite.tmp-wal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/fulltext.sqlite",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/fulltext.sqlite",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/translators",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/translators",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/styles",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/styles",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/locate",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/locate",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/storage",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/storage",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/cache",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/cache",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/logs",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/logs",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/pipes",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/pipes",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       },
       {
-        "path": "/home/haduong/data/ladder/zotseek/run3/data/tmp",
-        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+        "path": "/home/haduong/data/ladder/zotseek/run4/data/tmp",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
       }
     ]
   },
@@ -419,7 +419,7 @@
               "detector": "dns"
             }
           ],
-          "stdout_tail": "ta/zotseek.sqlite.v8.bak\": null, \"/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R10-no-egress/profile/zotseek-models\": \"directory\"}, \"target_preference_keys\": [\"zotseek.autoCompact\", \"zotseek.autoIndex\", \"zotseek.autoIndexDelay\", \"zotseek.embeddingModel\", \"zotseek.excludeBooks\", \"zotseek.excludeTag\", \"zotseek.indexScope\", \"zotseek.indexStatusColumn.firstShown\", \"zotseek.indexingMode\", \"zotseek.maxChunksPerPaper\", \"zotseek.maxTokens\", \"zotseek.mcpServer.enabled\", \"zotseek.minSimilarityPercent\", \"zotseek.serverModels\", \"zotseek.topK\", \"zotseek.webgpu.enabled\"]}, \"configure\": {\"verb\": \"configure\", \"applied_at\": \"process start\", \"channel\": \"the host application's preference store, via the profile\", \"harness_preferences\": {\"extensions.zotero.httpServer.port\": \"23219\", \"extensions.autoDisableScopes\": \"0\", \"extensions.enabledScopes\": \"15\", \"extensions.zotero.httpServer.enabled\": \"true\", \"app.update.enabled\": \"false\"}, \"target_preferences_set_by_the_harness\": {}, \"target_preferences_observed\": {\"zotseek.autoCompact\": \"true\", \"zotseek.autoIndex\": \"false\", \"zotseek.autoIndexDelay\": \"10\", \"zotseek.embeddingModel\": \"\\\"nomic-embed-text-v1.5\\\"\", \"zotseek.excludeBooks\": \"true\", \"zotseek.excludeTag\": \"\\\"zotseek-exclude\\\"\", \"zotseek.indexScope\": \"\\\"user\\\"\", \"zotseek.indexStatusColumn.firstShown\": \"true\", \"zotseek.indexingMode\": \"\\\"full\\\"\", \"zotseek.maxChunksPerPaper\": \"100\", \"zotseek.maxTokens\": \"2000\", \"zotseek.mcpServer.enabled\": \"false\", \"zotseek.minSimilarityPercent\": \"30\", \"zotseek.serverModels\": \"\\\"[]\\\"\", \"zotseek.topK\": \"20\", \"zotseek.webgpu.enabled\": \"false\"}, \"observed_count\": 16, \"caveat\": \"the host flushes its preference file asynchronously and on shutdown, so a call made early in a first run sees fewer keys than the same call later. The measured full set is recorded in the declaration's default_configuration; this field is what the profile carries at the moment of the call, and the two are allowed to differ.\"}, \"resume\": \"not-offered\", \"query\": \"not-offered\"}\n",
+          "stdout_tail": "ta/zotseek.sqlite.v8.bak\": null, \"/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R10-no-egress/profile/zotseek-models\": \"directory\"}, \"target_preference_keys\": [\"zotseek.autoCompact\", \"zotseek.autoIndex\", \"zotseek.autoIndexDelay\", \"zotseek.embeddingModel\", \"zotseek.excludeBooks\", \"zotseek.excludeTag\", \"zotseek.indexScope\", \"zotseek.indexStatusColumn.firstShown\", \"zotseek.indexingMode\", \"zotseek.maxChunksPerPaper\", \"zotseek.maxTokens\", \"zotseek.mcpServer.enabled\", \"zotseek.minSimilarityPercent\", \"zotseek.serverModels\", \"zotseek.topK\", \"zotseek.webgpu.enabled\"]}, \"configure\": {\"verb\": \"configure\", \"applied_at\": \"process start\", \"channel\": \"the host application's preference store, via the profile\", \"harness_preferences\": {\"extensions.zotero.httpServer.port\": \"23219\", \"extensions.autoDisableScopes\": \"0\", \"extensions.enabledScopes\": \"15\", \"extensions.zotero.httpServer.enabled\": \"true\", \"app.update.enabled\": \"false\"}, \"target_preferences_set_by_the_harness\": {}, \"target_preferences_observed\": {\"zotseek.autoCompact\": \"true\", \"zotseek.autoIndex\": \"false\", \"zotseek.autoIndexDelay\": \"10\", \"zotseek.embeddingModel\": \"\\\"nomic-embed-text-v1.5\\\"\", \"zotseek.excludeBooks\": \"true\", \"zotseek.excludeTag\": \"\\\"zotseek-exclude\\\"\", \"zotseek.indexScope\": \"\\\"user\\\"\", \"zotseek.indexStatusColumn.firstShown\": \"true\", \"zotseek.indexingMode\": \"\\\"full\\\"\", \"zotseek.maxChunksPerPaper\": \"100\", \"zotseek.maxTokens\": \"2000\", \"zotseek.mcpServer.enabled\": \"false\", \"zotseek.minSimilarityPercent\": \"30\", \"zotseek.serverModels\": \"\\\"[]\\\"\", \"zotseek.topK\": \"20\", \"zotseek.webgpu.enabled\": \"false\"}, \"observed_count\": 16, \"caveat\": \"the host flushes its preference file asynchronously and on shutdown, so a call made early in a first run sees fewer keys than the same call later. The measured full set is recorded in the declaration's default_configuration; this field is what the profile carries at the moment of the call, and the two are allowed to differ.\"}, \"resume\": \"not-offered\", \"query\": \"not-offered\"}\n",
           "stderr_tail": ""
         },
         "control": {
@@ -528,17 +528,17 @@
           "artifact_sha256": "7daaf964b1f11da274f201a1671dc82560add264f4b56f0b602c31b067ce2e69",
           "artifact_bytes": 103284735,
           "addon_id": "zotseek@zotero.org",
-          "installed_at": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/profile/extensions/zotseek@zotero.org.xpi",
+          "installed_at": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/profile/extensions/zotseek@zotero.org.xpi",
           "version": "1.21.2",
           "commit": "f442f8258d48e3e73458d74f428ded7086c740f5",
           "materialized": {
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite": 557056,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-wal": null,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-shm": null,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-journal": null,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite.v7.bak": null,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite.v8.bak": null,
-            "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/profile/zotseek-models": "directory"
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite": 557056,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-wal": null,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-shm": null,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-journal": null,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite.v7.bak": null,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite.v8.bak": null,
+            "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/profile/zotseek-models": "directory"
           },
           "target_preference_keys": [
             "zotseek.autoCompact",
@@ -559,93 +559,93 @@
             "zotseek.webgpu.enabled"
           ]
         },
-        "arena": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory",
-        "created_count": 1083,
+        "arena": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory",
+        "created_count": 1073,
         "declared_roots": [
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-wal",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-shm",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite-journal",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite.v7.bak",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotseek.sqlite.v8.bak",
-          "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/profile/zotseek-models"
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-wal",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-shm",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite-journal",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite.v7.bak",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotseek.sqlite.v8.bak",
+          "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/profile/zotseek-models"
         ],
         "not_derived_state": [
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/home",
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/home",
             "why": "the sandbox HOME, and the whole of it is the host application's and the desktop's. Measured against a host-only control arm — the identical launch with no plugin installed — 311 files existed only in that arm and 317 only in the with-plugin arm, and every one of those differences is the host's own churn: it opens its first-run start page in the desktop browser and stages its word-processor integration, both inheriting this HOME, both naming their directories with a fresh random string per run. Nothing the target creates was observed here. The exemption is directory-wide because at path granularity the host's baseline is not subtractable, which is finding 2 in this module's docstring and not a convenience"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/profile",
-            "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says: a green residue verdict means nothing strayed in the data directory, not that nothing strayed in the profile"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/profile",
+            "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says, and the statement is narrower than a reader might assume: a green residue verdict on this target means nothing appeared in the data directory OUTSIDE the host's own named entries. It says nothing about the profile, nothing about the sandbox HOME, and nothing about the interiors of the host's own data-directory subdirectories, five of which are exempted with their whole contents (see the entries below). A file strayed into any of those is invisible to this sweep"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/profile/prefs.js",
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/profile/prefs.js",
             "why": "listed a second time, and separately, because the first exemption would otherwise bury a finding. This file carries state the TARGET creates: sixteen keys under its own preference prefix after a first run, none of them present in the host-only arm. derived_state_roots is a tuple of paths, so the interface cannot express it — the unit here would have to be a key inside a file the host owns and rewrites. Declaring the file a root would claim the host's entire preference store for the target; omitting it would hide state the target creates. This entry is the admission, not the resolution"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/host.log",
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/host.log",
             "why": "the HARNESS's own instrument, not the target's state, and it is listed here because the first real run of this adapter reported it as residue — the only residue in 931 created files. The arena is documented as harness-owned, but the sweep counts every file in it as the target's, so an adapter cannot instrument inside its own arena without declaring the instrument. It is not avoidable by piping instead: this target's host is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict. Neither other adapter meets this, because neither has a process whose output has to survive the run"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite-wal",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite-wal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite-shm",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite-shm",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite-journal",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite-journal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite.bak",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite.bak",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/zotero.sqlite.tmp-wal",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/zotero.sqlite.tmp-wal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/fulltext.sqlite",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/fulltext.sqlite",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/translators",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/translators",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/styles",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/styles",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/locate",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/locate",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/storage",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/storage",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/cache",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/cache",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/logs",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/logs",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/pipes",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/pipes",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           },
           {
-            "path": "/home/haduong/data/ladder/zotseek/run3/2026-09-03/005715-R15-residue-inventory/data/tmp",
-            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted by name rather than by exempting the directory, so that the sweep stays able to see a file the target strays into the one directory it does write to"
+            "path": "/home/haduong/data/ladder/zotseek/run4/2026-09-03/010900-R15-residue-inventory/data/tmp",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
           }
         ],
         "residue": [],

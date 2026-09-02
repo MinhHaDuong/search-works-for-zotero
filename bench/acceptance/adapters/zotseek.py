@@ -482,9 +482,14 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
                 "this is the host's, not the target's. The one thing inside it that IS "
                 "the target's — zotseek-models/ — is declared a derived-state root "
                 "above, so it is accounted for by declaration rather than by exemption. "
-                "Read the exemption for exactly what it says: a green residue verdict "
-                "means nothing strayed in the data directory, not that nothing strayed "
-                "in the profile",
+                "Read the exemption for exactly what it says, and the statement is "
+                "narrower than a reader might assume: a green residue verdict on this "
+                "target means nothing appeared in the data directory OUTSIDE the host's "
+                "own named entries. It says nothing about the profile, nothing about the "
+                "sandbox HOME, and nothing about the interiors of the host's own "
+                "data-directory subdirectories, five of which are exempted with their "
+                "whole contents (see the entries below). A file strayed into any of "
+                "those is invisible to this sweep",
             ),
             (
                 profile / "prefs.js",
@@ -516,9 +521,14 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
                 data / entry,
                 "the host application's own file in its data directory, measured in a "
                 "host-only control arm (identical launch, no plugin installed) on "
-                "padme, 2026-09-03. Exempted by name rather than by exempting the "
-                "directory, so that the sweep stays able to see a file the target "
-                "strays into the one directory it does write to",
+                "padme, 2026-09-03. Exempted entry by entry rather than by exempting "
+                "the data directory, so that the sweep stays able to see a file the "
+                "target strays into the one directory it does write to. Where the entry "
+                "is itself a directory — translators, styles, locate, storage, cache, "
+                "logs, pipes, tmp — the whole of its contents is exempted with it, and "
+                "the sweep is blind inside them. That is a real limit and not a "
+                "formality: storage/ is the attachment store, so derived state written "
+                "there would not be seen",
             )
             for entry in HOST_DATA_ENTRIES
         ),
