@@ -7,8 +7,8 @@ Author: claude
 2026-09-02T10:51Z claude created
 
 2026-09-02T11:02Z claude note R15's LADDER ADDRESS IS LEFT POINTING AT TICKET 0017, deliberately and not by oversight, flagged by the verification round on PR 182. README.md's goal-1 row for R15 addresses ticket 0017 (closed: custody quick wins, model cache under the data directory), while this ticket carries R15's deletion clause. The two do not contradict each other as they stand: 0017 is where the clause's measured half lives, and R15's own standing row already says so -- the model-cache check found the downloaded model does not escape the data directory, and nothing has swept for other survivors. That sweep is Action 2 here. What is open is whether the ladder cell should re-address to this ticket once the sweep exists, which is a call about README's standing report and was fenced out of the decomposition's scope (the directive named nine cells, all of them reading 'ticket 0026', and forbade touching other README text). Whoever picks this ticket up should make the call with the author when the sweep lands, not before. R10's cell needs nothing: it addresses bench/smoke_upstream.py, which is the file this ticket extends.
+2026-09-02T11:57Z claude note RESCOPED for the target-neutral harness. The author restated the standing constraint today: the acceptance harness must be applicable to any Zotero AI retrieval tool -- zoteus first, Zotero core pull request 6012 second, a third to be proposed. The ruling drafted for ratification the same day (DECISIONS.md, awaiting) makes it one assertion layer over a seven-verb target interface plus a thin adapter per target. This ticket now builds the layer and the zoteus adapter as its first adapter; the three assertions and the sweep are unchanged in substance and rephrased over the interface. It stays unblocked, because the layer runs against zoteus whatever the ruling says. One item waits and is named in the exit criteria rather than as a Blocked-by: R15's uninstall clause reworded over declared derived state is a requirement change the author owns, and only the assertion's requirement text depends on it. Two additions the ruling paid for: R10's egress runs with no route out of the machine and takes Beaver, whose paid tier syncs libraries to its own servers, as the egress-by-design red fixture no configuration of ours can accidentally pass; and R15 gains a second red, an adapter that under-declares its roots, because a declaration nobody checks for completeness grades itself.
 --- body ---
-
 ## Context
 
 Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
@@ -18,6 +18,24 @@ need no corpus, no build and no library, so they are decidable the moment the
 system is installed. The ruled method is tests first, bottom-up — a rung is
 declared only when its assertions run, which is why the evidence column on
 README.md is the test column.
+
+Rescoped 2026-09-02. The author restated a standing constraint the ledger did
+not carry: the acceptance harness must be applicable to any Zotero AI retrieval
+tool, with zoteus the first target, Zotero core's pull request #6012 the second
+and a third to be proposed. The ruling drafted for ratification the same day
+(`DECISIONS.md`, awaiting) makes the harness one assertion layer phrased over a
+target interface plus a thin adapter per target. This ticket therefore builds
+that layer and the zoteus adapter as its first adapter, instead of extending
+`bench/smoke_upstream.py` with assertions that read the zoteus server directly.
+
+Building it does not wait on ratification, and the ticket stays unblocked: the
+layer, the adapter and every assertion below run against zoteus whatever the
+author rules. One thing waits, and only one. R15's uninstall clause reworded
+over declared derived state is a requirement change, not a harness detail, so
+this ticket asserts R15 over the adapter's declared derived-state roots and
+carries that assertion's requirement text as provisional until the ruling
+lands. If the author rules otherwise the assertion's requirement text changes
+and its mechanism does not.
 
 Three of goal 1's four terms are this ticket's, plus one clause that belongs to
 a higher rung and is built here anyway. R10 and R15 are goal 1's; R22 stays on
@@ -29,64 +47,108 @@ with this batch because it is the cheapest gate on the sheet (0026's log,
 R19's other half — the two normalizers agreeing at index time — needs a built
 index and stays with ticket 0580.
 
-`bench/smoke_upstream.py` already carries two of these against stock upstream at
-the reviewed SHA in `UPSTREAM`: `check_local_by_default` (R10, the default
+`bench/smoke_upstream.py` already carries two assertions against stock upstream
+at the reviewed SHA in `UPSTREAM`: `check_local_by_default` (R10, the default
 embedder is local, asserted against a running server rather than the source) and
 `check_model_stays_in_data_dir` (R15's model-cache clause, inherited when R28
-merged into R15). What is missing is R10's second half, R15's deletion clause,
-and the sweep.
+merged into R15). Both are zoteus-shaped today, and the split named in Action 2
+is where they go.
 
 ## Relevant files
 
-- `bench/smoke_upstream.py` — the gate this ticket extends; its `check()`
-  helper is the assertion record (id, requirement, clause, falsified_by).
+- `bench/smoke_upstream.py` — what this ticket splits into a layer and an
+  adapter; its `check()` helper is the assertion record (id, requirement,
+  clause, falsified_by).
 - `bench/fold_sweep.mjs` — the R19 sweep. Today it always exits 0, prints a
   WARNING, and crashes on any tree lacking `normalizeForSearch`.
 - `bench/results/smoke-1.12.0/checks.json` — where the run's verdicts land.
 - `UPSTREAM` — the reviewed SHA and the repository URLs; `make upstream-checkout`
   recreates the git-ignored `fork/` at it.
-- `SPEC.md` §5.2.8 — the fold gate's specification. Cite it; do not restate it.
+- `DECISIONS.md`, the awaiting entry of 2026-09-02 — the interface, the adapter
+  contract, the judge rule and the roster. Cite it; do not restate it.
+- `verification/FIELD-REVIEW.md`, the Beaver entry — the source for R10's
+  egress-by-design red fixture.
+- `SPEC.md` §5.2.8 — the gates' specification. Cite it; do not restate it.
 - `README.md`, "## Goal 1 — I can install it and take it off again" — the rung's
   roster and the level each term is decided at.
 
 ## Actions
 
-1. R10's second clause: my library text and my queries stay on this machine
-   without an opt-in. The existing check establishes that the default embedder
-   is local; the clause is about egress, so assert it as egress — no network
-   destination outside the machine is contacted on a default-configured run
-   that indexes and answers.
-2. R15's deletion clause: deleting the data directory is the whole uninstall.
-   Event-then-state, per 0026's log of 2026-08-31T20:08Z — observe the deletion
-   as an event and then assert the state that follows it, rather than asserting a
-   state that a prior run could also have produced. The residue to look for is
-   anything the install wrote outside the data directory.
-3. The R19 codepoint sweep: give `fold_sweep.mjs` the classification fallback
-   (`tokenize`-only when `normalizeForSearch` is absent, so a pre-fold tree is
-   red by a recorded miss count and not by a crash), nonzero exit codes, and a
-   writable built checkout to point at. The scripts it must cover are R7's, read
-   from the sheet rather than restated here; 0026's log of 2026-08-31T13:38Z
-   records why Arabic, Devanagari and Chinese break a Latin-plus-Cyrillic sweep's
-   assumptions.
-4. Wire the batch into the Makefile with honest states. A gate that cannot look
-   reports that it could not look.
+1. The assertion layer. Every assertion is phrased over the interface's seven
+   verbs — install, configure, index a declared fixture library, query in the
+   three modes R33 names, stop background work, delete declared derived state,
+   status — and names the verb it called plus the surface the adapter declared
+   for it. No path, no file layout, no tool name. Each assertion keeps the
+   record shape `check()` already carries and gains two fields: the target it
+   ran against and the verb it called. A verb a target does not offer is
+   declared absent by its adapter, and every assertion needing it reports "not
+   offered": a third state, distinguishable from green and from red.
+2. The zoteus adapter, the first one, declarations only. Per the ruling's
+   contract: the derived-state roots, how the query surface is reached, how the
+   target starts and stops, what "default configuration" means for zoteus, and
+   which verbs it does not offer. The two existing checks split along exactly
+   that line — what they assert becomes a layer assertion, what they hardcode
+   becomes an adapter declaration.
+3. R10's egress clause: my library text and my queries stay on this machine
+   without an opt-in. Drive install, configure, index and query through the
+   adapter inside a network namespace with no route out (or the platform's
+   equivalent), and assert that nothing tried to leave — the run completes and
+   no connection to a destination off this machine is attempted. Observing no
+   egress on a machine that has a route asserts the default, not the clause.
+4. R15's deletion clause over declared derived state. Event-then-state, per
+   0026's log of 2026-08-31T20:08Z: call the delete verb and observe it as an
+   event, then assert the state that follows — nothing the install wrote
+   survives outside the adapter's declared roots. The residue sweep is what
+   makes the declaration falsifiable; a declared list nobody checks for
+   completeness says no more than a location does.
+5. The R19 codepoint sweep, unchanged in scope and target-neutral already: it
+   reads a built checkout's normalizer rather than a running target, so it needs
+   no adapter and takes no interface verb. Give `fold_sweep.mjs` the
+   classification fallback (`tokenize`-only when `normalizeForSearch` is absent,
+   so a pre-fold tree is red by a recorded miss count and not by a crash),
+   nonzero exit codes, and a writable built checkout to point at. The scripts it
+   must cover are R7's, read from the sheet rather than restated here; 0026's log
+   of 2026-08-31T13:38Z records why Arabic, Devanagari and Chinese break a
+   Latin-plus-Cyrillic sweep's assumptions.
+6. Wire the batch into the Makefile with honest states. A gate that cannot look
+   reports that it could not look, and every recorded verdict names its target,
+   so a green is a green for one named target rather than for the harness.
 
 ## Test
 
-Red first, and the red state has to be produced rather than argued. For the
-sweep that is a pre-fold tree: check out upstream below v1.7.2, run the gate,
-and see a nonzero exit with a miss count — the fallback path is exactly the one
-no green run exercises. For R15's deletion clause the red fixture is an install
-that writes a file outside the data directory, planted on purpose. For R10 the
-red fixture is a configuration that opts egress in: the assertion must go red
-there, or it is asserting the default rather than the clause.
+Red first per assertion, and the red state is produced rather than argued.
+
+- **R10's egress.** Two red fixtures, the second stronger than the first. Ours
+  is a configuration that opts egress in: the assertion must go red there or it
+  is asserting the default. The field's is Beaver, whose paid tier syncs
+  selected libraries to its own servers (`verification/FIELD-REVIEW.md`) —
+  egress by design in a shipping product, so the control cannot be accidentally
+  built to pass. Beaver is a control here and never a target; no adapter for it
+  is in this ticket, and what this ticket owes is that the red path is exercised
+  by a fixture of that shape.
+- **R15's deletion.** Two reds, because the clause now reads over a
+  declaration. First, an install that plants a file outside the declared roots.
+  Second, an adapter that under-declares its roots: the sweep must fail it,
+  otherwise the declaration grades itself.
+- **R19's sweep.** A pre-fold tree: check out upstream below v1.7.2, run the
+  gate, see a nonzero exit with a miss count. The fallback path is exactly the
+  one no green run exercises.
+- **The layer itself.** A target whose adapter declares a verb absent must
+  produce "not offered" for each assertion needing it, recorded in
+  `checks.json` as a state distinct from both green and red. Assert it with a
+  stub adapter that declares a verb absent on purpose.
 
 ## Verification
 
+- [ ] Every assertion names an interface verb and an adapter-declared surface;
+      grepping the layer for a zoteus path, a zoteus tool name or a data-directory
+      literal returns nothing.
 - [ ] Each new assertion appears in `bench/results/smoke-1.12.0/checks.json`
-      with its own id, requirement and `falsified_by` string.
+      with its own id, requirement, clause, `falsified_by`, target and verb.
 - [ ] Each was seen red once, against the fixture named in Test, before it was
       seen green.
+- [ ] The absent-verb path produces a third state in `checks.json`,
+      distinguishable from green and from red.
 - [ ] `fold_sweep.mjs` exits nonzero on a pre-fold tree and zero against stock
       at the reviewed SHA, and neither outcome is a crash.
 - [ ] `make check` green; `./tickets/erg check` green.
@@ -98,17 +160,37 @@ there, or it is asserting the default rather than the clause.
   judgement. Inherited from the tracker, ticket 0026.
 - Honest red and waiver states in the Makefile, never a green that means "could
   not look". Inherited from the tracker, ticket 0026.
+- The layer holds no target's name. A tool's identity lives in its adapter, and
+  an assertion that mentions zoteus has left the layer.
+- The adapter declares and does nothing else: no fix or workaround, no
+  configuration a user would not have, no access the target does not give its
+  own users, no scoring of a result.
+- No judge model in this ticket. Goal 1's clauses are mechanical throughout —
+  egress, residue, folding, exit codes — and the judge rule the ruling proposes
+  attaches to R17, R18, R24 and golden relevance, which are other rungs' work.
 - No threshold, budget or design number is restated here. SPEC.md §5.2.8 owns
   the gates and §5.2.9 the budgets; this ticket cites addresses.
 - The gate runs against stock upstream at the reviewed SHA in `UPSTREAM` and
   changes no upstream code.
 
 ## Exit criteria
-- [ ] R10's egress clause asserted, seen red against an opted-in fixture
-- [ ] R15's deletion clause asserted event-then-state, seen red against a
-      planted out-of-directory residue
+- [ ] the assertion layer exists, phrased over the seven interface verbs, and
+      holds no target's name
+- [ ] the zoteus adapter exists as declarations only, and the two assertions
+      `bench/smoke_upstream.py` already carries run through it
+- [ ] R10's egress clause asserted with no route out of the machine, seen red
+      against an opted-in fixture
+- [ ] R15's deletion clause asserted event-then-state over declared derived
+      state, seen red against a planted residue and against an under-declaring
+      adapter
 - [ ] R19's codepoint sweep classifies instead of crashing, exits nonzero on a
       pre-fold tree, and covers the script classes R7 declares
-- [ ] the three run from the Makefile with honest red/waiver states
+- [ ] the batch runs from the Makefile with honest red, waiver and not-offered
+      states
 - [ ] README.md's goal-1 rows carry an evidence verdict that rests on something
       that ran, for the terms this ticket asserts
+- [ ] not blocking, and named so its absence is not read as an omission: R15's
+      requirement text reworded over declared derived state is awaiting the
+      author (`DECISIONS.md`, 2026-09-02). The assertion is built now against
+      the proposed phrasing; a different ruling changes its requirement text and
+      not its mechanism.
