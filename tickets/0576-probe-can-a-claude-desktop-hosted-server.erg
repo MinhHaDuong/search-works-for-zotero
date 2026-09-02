@@ -7,6 +7,7 @@ Author: claude
 2026-09-02T10:41Z claude created
 
 2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: first of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. The author's Linux box has no Claude Desktop install, so the binding arm needs a macOS or Windows host and the Electron harness is a substitute with a stated gap
+2026-09-02T19:00Z claude note portable arm RUN on doudou, Electron 44.1.1 / Chromium 152.0.7977.65 / embedded Node 24.19.0, host process.type === 'utility'; positive control RAN AND PASSED first under standalone Node v22.23.1 (all three arms spawned, child outlived the call, duplex 3/3, orphan observed stdin EOF on host SIGKILL); items 1-4 answered for the Electron runtime, item 5 NOT ANSWERED (Claude Desktop's own lifecycle); binding arm NOT-RUN, no Claude Desktop on macOS or Windows available (~/.config/Claude absent, re-checked 2026-09-02) — this is not a negative finding; verdict: ELECTRON_RUN_AS_NODE=1 is necessary and, on this harness, sufficient — without it spawn(process.execPath, [entry]) yields an Electron MAIN-process runtime (process.type === 'browser'), not Node; the discriminator is process.type, NOT process.versions.electron, which reads 44.1.1 in the run-as-node child too — a test gating on versions.electron would pass while launching the wrong runtime; report at verification/ELECTRON-SPAWN-0576.md
 --- body ---
 
 ## Context
@@ -94,8 +95,8 @@ every arm; an answer with no host attached is not an answer.
 
 - [ ] Each of the five items above answered, per arm, with the host and version
       recorded
-- [ ] The positive control ran and passed under standalone Node before any
+- [x] The positive control ran and passed under standalone Node before any
       negative is reported
-- [ ] A report under `verification/`, cited by path from 0566 and 0575
+- [x] A report under `verification/`, cited by path from 0566 and 0575
 - [ ] The verdict recorded here; if it is the third branch, DECISIONS.md gains
       the question rather than this ticket gaining a workaround
