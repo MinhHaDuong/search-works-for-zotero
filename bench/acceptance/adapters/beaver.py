@@ -352,10 +352,15 @@ def declaration(profile: Path, data: Path, home: Path) -> Declaration:
             "the harness then holds the process for a declared number of seconds "
             "before the verbs run, because this target's startup work is asynchronous "
             "and a session stopped the moment its calls return leaves less state and "
-            "makes fewer attempts than one held a few seconds longer. Stop: terminate, "
-            "then kill on a grace period; the lifecycle stops the process itself, "
-            "which is why this adapter's traced run can exit 0 where a probe that has "
-            "to kill the host cannot. HOME is set but is NOT this target's boundary: "
+            "makes fewer attempts than one held a few seconds longer. Stop: terminate "
+            "then kill, addressed to the host's PROCESS GROUP rather than to what was "
+            "spawned — measured here, the host's launcher is a shell script that runs "
+            "the real application as a child rather than exec'ing it, so signalling "
+            "the process kills the script and orphans the application, and two "
+            "instances survived their lifecycle on the first run. The lifecycle "
+            "stopping the process itself is also why this adapter's traced run can "
+            "exit 0, where a probe that has to kill the host cannot. HOME is set but "
+            "is NOT this target's boundary: "
             "measured, everything that appears under it is the host's and the "
             "desktop's. The adapter refuses the operator's own HOME, profile or data "
             "directory, because the residue sweep reads this declaration and a run "
@@ -673,9 +678,17 @@ class Beaver:
             str(self.zotero), "-profile", str(self.profile),
             "-datadir", str(self.data), "-no-remote",
         ]
+        # `start_new_session` puts the host in a process group of its own, and
+        # stopping it signals that GROUP rather than the process. This is not
+        # tidiness: the host's launcher is a shell script that runs the real
+        # binary as a CHILD rather than exec'ing it, so terminating what was
+        # spawned kills the script and orphans the application. Measured here
+        # on the first run — two orphaned instances survived their lifecycle,
+        # kept their databases open, and would have made the next arm's
+        # "process stopped" a fiction.
         self._process = subprocess.Popen(
             argv, env=self.environment(), stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, text=True,
+            stderr=subprocess.STDOUT, text=True, start_new_session=True,
         )
         try:
             self._startup = {"argv": argv, "harness_prefs": prefs, **self._wait()}
@@ -683,13 +696,38 @@ class Beaver:
             yield
         finally:
             process, self._process = self._process, None
-            if process is not None and process.poll() is None:
-                process.terminate()
-                try:
-                    process.wait(self.stop_grace)
-                except subprocess.TimeoutExpired:  # pragma: no cover - grace path
-                    process.kill()
-                    process.wait(self.stop_grace)
+            if process is not None:
+                self._stop(process)
+
+    def _stop(self, process: subprocess.Popen) -> None:
+        """Signal the host's whole process group, then wait for it to be gone.
+
+        Terminate then kill, each addressed to the group. `os.killpg` is used
+        rather than `Popen.terminate` for the reason the comment above gives,
+        and both calls tolerate the group having already exited: a race between
+        the wait and the signal must not raise out of a `finally`.
+        """
+        import signal
+
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            if process.poll() is not None and not self._group_alive(process.pid):
+                return
+            try:
+                os.killpg(os.getpgid(process.pid), sig)
+            except (ProcessLookupError, PermissionError):
+                pass
+            try:
+                process.wait(self.stop_grace)
+            except subprocess.TimeoutExpired:  # pragma: no cover - grace path
+                pass
+
+    @staticmethod
+    def _group_alive(pid: int) -> bool:
+        try:
+            os.killpg(os.getpgid(pid), 0)
+        except (ProcessLookupError, PermissionError, OSError):
+            return False
+        return True
 
     # ---- the seven verbs -------------------------------------------------
 

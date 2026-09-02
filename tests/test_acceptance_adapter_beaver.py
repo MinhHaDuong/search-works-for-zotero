@@ -36,7 +36,9 @@ Every test here runs offline, starts no process and writes only under tmp_path.
 """
 
 import importlib
+import os
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -470,3 +472,59 @@ def test_uninstall_removes_the_installed_artifact_and_no_derived_state(
     assert answer["host_activated"]["read"] is False, (
         "an unreadable host record must be reported as unread, never as a False"
     )
+
+
+# --- 9. the lifecycle really stops what it started --------------------------
+
+
+@pytest.mark.integration
+def test_stopping_the_lifecycle_leaves_no_orphan_of_the_hosts_own_child(
+        tmp_path, artifact):
+    """The defect this arm exists for was met on the first real run, not imagined.
+
+    The host application's binary is a shell script that launches the real
+    process as a CHILD rather than exec'ing it. `Popen.terminate` therefore
+    killed the script and left the application running: two orphaned instances
+    survived their lifecycle, held their databases open, and would have made
+    every later arm's "the process was stopped" a fiction — a residue sweep
+    reading a directory something is still writing to, and an egress trace
+    whose subject outlived it.
+
+    So the lifecycle signals the process GROUP. The fake host below has the same
+    shape as the real one and nothing else: it writes the two databases the
+    readiness probe waits for, then backgrounds a long-lived child and waits. If
+    the group is not signalled, that child survives and this fails.
+    """
+    host = tmp_path / "fake-host"
+    pidfile = tmp_path / "child.pid"
+    host.write_text(
+        "#!/bin/sh\n"
+        # The host's own database and the plugin's, so readiness completes.
+        'while [ "$1" != "-datadir" ]; do shift; done\n'
+        'mkdir -p "$2"; : > "$2/zotero.sqlite"; : > "$2/beaver.sqlite"\n'
+        # The child that outlives a naive terminate.
+        "sleep 120 &\n"
+        f"echo $! > {pidfile}\n"
+        "wait\n"
+    )
+    host.chmod(0o755)
+
+    target = adapter.Beaver(tmp_path / "arena", zotero=host, xpi=artifact,
+                            dwell=0.0, startup_timeout=30.0, stop_grace=5.0)
+    with target.running():
+        assert pidfile.is_file(), "the fake host never started"
+        child = int(pidfile.read_text().strip())
+        os.kill(child, 0)  # alive inside the lifecycle
+
+    for _ in range(50):
+        try:
+            os.kill(child, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.1)
+    else:  # pragma: no cover - reached only when the defect is present
+        os.kill(child, 9)
+        pytest.fail(
+            f"the host's child {child} survived the lifecycle: stopping signalled the "
+            "process rather than its group, so the application was orphaned"
+        )
