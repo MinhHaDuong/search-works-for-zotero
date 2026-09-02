@@ -9,6 +9,7 @@ Closed: measured: 204 errors across 37 of 101 test files, form ruled issue; fili
 
 2026-09-02T18:21Z claude measured 204 errors across 37 of 101 test files at b05ed69; positive control green both ways; form ruled issue, body drafted at verification/ISSUE-DRAFT-0530.md, filing held for the author's authorization
 2026-09-02T18:21Z Claude closed — measured: 204 errors across 37 of 101 test files, form ruled issue; filing held for the author's per-action authorization, body at verification/ISSUE-DRAFT-0530.md
+2026-09-02T18:37Z claude filed upstream as oscardvs/zoteus#49 under the author's per-action authorization, body sent verbatim from verification/ISSUE-DRAFT-0530.md with the internal preamble stripped; SYNC row moved from held to filed
 --- body ---
 ## Context
 
@@ -104,9 +105,12 @@ measured asymmetry names, landing on the design-sized side.
 ## Exit criteria
 - [x] Filed upstream (form per action 3) or an explicit deliberately-unfiled
       line recorded here, per GOVERNANCE.md § The courtesy filing —
-      **not filed, and not deliberately unfiled either: the body is drafted
-      and held at `verification/ISSUE-DRAFT-0530.md` pending the author's
-      per-action authorization.** The measurement half is what this ticket
-      owned and it is complete; the filing is his call and is tracked as the
-      one open item in SYNC.md's row.
+      **filed 2026-09-02 at 18:35Z as
+      [oscardvs/zoteus#49](https://github.com/oscardvs/zoteus/issues/49)**,
+      on the author's per-action authorization given the same day. The body
+      is `verification/ISSUE-DRAFT-0530.md` verbatim from its `## Body`
+      heading down; the draft's internal preamble (form ruling, held-pending
+      note) was stripped, per GOVERNANCE.md's separation of our governance
+      from upstream text. This ticket owned the measurement and closed on it;
+      what is open now is the maintainer's answer, tracked in SYNC.md's row.
 - [x] Outcome recorded in SYNC.md's tracker
