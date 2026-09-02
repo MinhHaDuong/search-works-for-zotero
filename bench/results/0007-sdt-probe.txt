@@ -79,3 +79,51 @@ FORMAT: not JSON. A custom binary container, magic 89 53 44 54 0d 0a 1a 0a
 are not raw deflate at those offsets and contain no printable text. Reading one
 needs Zotero's own decoder, resource/document-worker/structured-document-text.js
 in the installed build. Not attempted here.
+
+--- fifth probe, 2026-09-02T06:56Z: CENSUS ELEVEN DAYS ON, AND THE TRIGGER READ AT SOURCE ---
+Re-run for ticket 0572 (pack-first extraction), same storage, Zotero still
+10.0 build 20260817151751.
+
+$ find $STORAGE -maxdepth 2 -name '.zotero-sdt-cache' -printf '%TY-%Tm-%Td %TH:%TM %s %p\n'
+2026-08-22 08:53 140215 GMAP993G/.zotero-sdt-cache
+2026-08-22 08:54 345539 BSMCQ6BM/.zotero-sdt-cache
+$ find $STORAGE -maxdepth 2 -name '.zotero-sdt-cache' | wc -l          -> 2
+$ find $STORAGE -maxdepth 2 -name '.zotero-ft-cache'  | wc -l          -> 13630
+$ find $STORAGE -maxdepth 2 -name '.zotero-reader-state' | wc -l       -> 207
+$ find $STORAGE -maxdepth 2 -name '.zotero-reader-state' -newermt '2026-08-21 14:26' | wc -l  -> 2
+
+Reader sessions since the 10.0 install: 2. Packs: 2, the same two items. The
+reader path is 2 for 2; nothing else has written a pack in eleven days.
+
+TRIGGER, AT SOURCE (omni.ja of the installed build, unzipped):
+  chrome/content/zotero/xpcom/sdt.js        466 lines; exports getPack(),
+    ensure(), getReader(). ensure() is documented "for warming up the cache
+    (e.g., at import time), so that later getPack() calls are hits".
+  callers of Zotero.SDT outside sdt.js:      ONE. reader.js:1165-1183,
+    _createGetSDTPack(), hands the reader view a lazy getPack({isPriority}).
+  callers of Zotero.SDT.ensure():             NONE in the shipped build.
+  resource/document-worker/metadata.json:    SDT_PACK_VERSION 1,
+    SDT_SCHEMA_VERSION 1.1.0, SDT_PROCESSOR_VERSIONS pdf 3 / epub 1 / snapshot 1
+So on stock 10.0 the pack is written when a reader feature asks for it, and by
+nothing else. "Available" means "opened in the reader since the upgrade".
+
+WHAT THE PACKS HOLD (verification/probes/sdt_read.py, both packs):
+  GMAP993G  pack v1, schema 1.1.0, processor pdf/3, 343 blocks over 26 pages;
+            types paragraph 271, math 47, heading 12, list 6, image 4,
+            caption 3; flowClass excluded 104, auxiliary 53; text 66 583
+            chars against 72 916 in .zotero-ft-cache (0,91: the excluded
+            running heads and page numbers are the difference).
+  BSMCQ6BM  430 blocks; flowClass excluded 95, auxiliary 45; text 117 597
+            chars against 118 507 (0,99).
+  Metadata carries dateCreated, processor, source (hash). The format the
+  fourth probe called unreadable is read: the probe reader landed with
+  ticket 0120 (PR 33), pack version 1 only, refusing anything else.
+
+UPSTREAM, AT SOURCE (zotero/zotero PR 6012, head 77e2c4b, embeddings.js
+fetched 2026-09-02): _getAttachmentChunks() calls
+Zotero.SDT.getSections(item.id, {allowStale: false}) and, when that yields
+nothing, logs "no structured text ... falling back to plain text" and chunks
+item.attachmentText. Its source key is md5(path|size|lastModified|extractor)
+with extractor = Zotero.SDT.getProcessorVersion(item). That is the pack-first,
+flat-fallback rule ticket 0572 proposes, already written by the platform; when
+6012 ships, its indexer will generate a pack for every attachment it embeds.

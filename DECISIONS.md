@@ -2883,6 +2883,29 @@ the cheap one. Root cause of the whole class, for whoever writes the next
 entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
+**2026-09-02 — Pack first, flat text as fallback: a mechanism under R24, not
+a requirement.** The author's ruling on the awaiting entry of the same date:
+"good place" for R24's rung, and no new R-item, because source selection is
+an under-the-hood mechanism rather than a promise to the user. What the user
+is promised is already R24's: a hit leads to its page, an estimate says so.
+The pack is how that promise stops being an estimate for the attachments
+Zotero has structured.
+
+Integrated into SPEC.md in the same change: R24's paragraph says a
+pack-sourced hit carries the block's own page; C1's first link names the two
+extractor identities; C2's SDT bullet states the pack as read from disk rather
+than as a future local-API surface, with its availability bound; §5.2.4 gains
+the source-selection paragraph (pack of a known version, else the flat text
+over `/fulltext`, never a direct read of the cache file, one source per
+attachment recorded and counted); §5.2.2's segmenter takes the pack's blocks as
+its first structure signal, above the PDF outline and layout tiers and seg/1.
+README.md's rosters are unchanged, since no requirement was added. Ticket 0572
+carries the implementation, sequenced after 0028 per the 2026-09-01 ruling.
+The awaiting entry's two open decisions stand as the ticket's context: the
+disk read of an internal format is accepted on the strength of the structural
+fallback, and the rule lands now, at 2 of 13 630, so the shape exists before
+the platform's own indexer makes packs library-wide.
+
 ## Awaiting ratification
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
@@ -3379,3 +3402,103 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   ratifying; the alternative is to revert §5.2.2 and re-land it behind a
   ruling, which changes no code — `ledger.ts` already implements the corrected
   order and pins all three directions with tests.
+
+- **The extract stage SHOULD index from Zotero's structured-text pack when
+  one exists for an attachment, and from the flat full-text cache otherwise
+  (author, 2026-09-02, stated as an idea; drafted here as a candidate
+  requirement, ticket 0572) — resolved 2026-09-02, same day: ratified as a
+  mechanism under R24, not as a requirement; see the ledger entry.** Every fact below is at source or by probe,
+  recorded in `bench/results/0007-sdt-probe.txt` (fifth probe) unless said
+  otherwise.
+
+  **What is established.** The pack exists and is readable. It is
+  `.zotero-sdt-cache` beside the attachment in `storage/<KEY>/`, written by
+  `Zotero.SDT` in the shipped 10.0 build (pack version 1, schema 1.1.0,
+  processor pdf/3), and `verification/probes/sdt_read.py` parses it. On the two
+  packs in hand it holds typed blocks (paragraph, heading, math, list, image,
+  caption), a `flowClass` that marks running heads and page numbers as
+  excluded, a page anchor per block, and metadata naming the source hash and
+  the processor version. Its text is 0,91 and 0,99 of the flat cache's, the
+  difference being the excluded flows. Availability is the bound, and it is
+  measured, not estimated: 2 packs against 13 630 flat caches on the author's
+  library, eleven days after the first probe found them. The trigger is the
+  reader alone. In the shipped build the only caller of `Zotero.SDT` is
+  `reader.js`, and `Zotero.SDT.ensure()`, documented "for warming up the
+  cache (e.g., at import time)", has no caller. Nothing over the local API
+  creates or serves a pack; the 2026-08-30 checkpoint stands. So "when one
+  exists" means "opened in Zotero's reader since the upgrade", 2 for 2 in the
+  probe.
+
+  **The rule is upstream's own.** zotero/zotero#6012 at head `77e2c4b`,
+  `embeddings.js`: `_getAttachmentChunks` asks `Zotero.SDT.getSections(item.id,
+  {allowStale: false})` and, when that yields nothing, logs "no structured text
+  … falling back to plain text" and chunks `item.attachmentText`. Its source
+  key is the md5 of path, size, mtime and `getProcessorVersion(item)`. When
+  #6012 ships, its indexer generates a pack for every attachment it embeds, so
+  availability goes from reader-opened to library-wide with no action of ours.
+  That is what makes the rule worth ratifying before the coverage justifies
+  it: the shape has to exist when the packs arrive.
+
+  **Reachability needs no new premise.** The 2026-09-01 pdf.js ruling already
+  reaches the PDF file through the local API's `/file/view/url` redirect. The
+  pack is in the same directory under a fixed name.
+
+  **What it changes in the chain.** C1's first link reads "extracted text
+  derives from (attachment file, extractor)". Today the extractor is Zotero's
+  flat extraction, identified only by proxy (the `/fulltext` counter and its
+  version-0 residue). The pack names its own extractor and its own input in
+  its metadata, so for a pack-sourced attachment the key becomes exact, and a
+  processor bump, the third drift constant SYNC.md watches, becomes a visible
+  staleness event instead of a silent re-extraction. Two extractor identities
+  under one key shape is what R1 and D8 already leave room for. Ruling 3 and
+  the segmenter ladder: the pack is a structure signal above the pdf.js
+  tiers, tier 0 before 0560's outline and 0561's layout heuristic, seg/1
+  last as before. The 2026-08-30 entry asks for a segmenter interface that
+  takes structure signals; this is one more kind. The pdf.js ruling asked
+  that the local API's surface be re-checked before that path is treated as
+  permanent; this entry is the re-check, and its answer is "not yet, and here
+  is the rule that makes the switch automatic when it lands". R24: a block's
+  page anchor is a real page, so D10's labeled estimate applies only to
+  flat-sourced hits, and the answer has to say which kind it is.
+
+  **Priced.** (i) The format is undocumented and internal, C2 in its purest
+  form; pack version 1 has moved zero times, and the FTS5 split shows what
+  "internal" means. The mitigation is structural: the reader refuses a pack
+  version it does not know, and the flat cache is always there, so a format
+  move degrades that attachment to today's behaviour and never to a failure.
+  `sdt_read.py` already behaves this way. (ii) License. The
+  `zotero/structured-document-text` repository carries no license file and
+  the in-tree decoder is AGPL. Writing our own reader from the shipped layout
+  is the act the 2026-08-30 awaiting entry on AGPL reimplementation leaves
+  unbounded; this is its second instance after 0031's calibration, and
+  whatever is ruled there binds here. (iii) Coverage skew until #6012 ships:
+  pack-sourced attachments are the ones the user has read, so the index is a
+  mixture, and R17's report has to count the two sources apart or the mixture
+  is unexplained and the improvement invisible. (iv) Regeneration under a
+  read. A processor bump rewrites the pack in the background; #6012 refuses
+  stale packs for this reason. Our read is one pass into the ledger, keyed by
+  source hash and processor version, so a mid-read rewrite should surface as
+  a key mismatch at the next census rather than as corruption. That is to be
+  verified by the ticket, not assumed here.
+
+  **Recommendation.** Ratify as a SHOULD, drafted for §3 as: "Where Zotero
+  holds a structured-text pack for an attachment, the extract stage SHOULD
+  index from the pack; otherwise it indexes the flat full text Zotero serves.
+  Which source an attachment came from MUST be recorded and reported." It sits
+  on R24's rung (ticket 0029), because the page anchor is what it buys the
+  user first. The pack's blocks replace the text for that attachment; do not
+  overlay pack structure on the flat cache text, which would need an alignment
+  step for no gain. The fallback is the shim path as ruled on 2026-08-30, the
+  local API's `/fulltext`, byte-identical to the cache, not a second direct
+  read of `.zotero-ft-cache`. Sequenced after 0028, per the 2026-09-01 ruling
+  that seg/1 ships first to settle integration, as tier 0 of 0557's ladder.
+
+  **Two decisions only the author can take.** (a) Whether reading an
+  undocumented internal file from disk becomes a permanent design element
+  rather than a bridge: the pdf.js ruling accepted reading the PDF, a
+  documented format, and this one Zotero may move. (b) Whether the rule lands
+  now at 2 of 13 630 or waits for #6012. For now: the two extractor
+  identities and the per-source reporting have to exist before the packs
+  arrive, and the two packs in hand are the fixtures. For later: a coverage
+  of 0,015 % buys nothing measurable today and adds a reader to maintain
+  against a format that answers to nobody.
