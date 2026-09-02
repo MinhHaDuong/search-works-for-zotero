@@ -54,8 +54,13 @@ SCANNED_ROOT = "bench"
 #: source this guard already scans, so reading it buys nothing, and it is binary —
 #: which, now that an undecodable file is a failure rather than a silent skip, would
 #: turn every `make check` after a test run red. Generated-and-binary is exempt;
-#: authored-and-undecodable is a finding.
-SKIPPED = ("bench/results/", "bench/__pycache__/")
+#: authored-and-undecodable is a finding. The exemption is by path component and
+#: not by the one prefix `bench/__pycache__/`, because a test that imports a script
+#: from a subdirectory (`bench/fixtures/fetch_recipe.py`, 2026-09-02) writes its
+#: bytecode beside that script, and a prefix-only skip turned the gate red on the
+#: first such import.
+SKIPPED = ("bench/results/",)
+GENERATED_DIR = "__pycache__"
 
 #: Exempt, each for its own reason, and there are only two. The registry is the
 #: owner. This file holds the vocabulary by construction — the owner names below
@@ -246,7 +251,7 @@ def scanned_files(root: Path) -> list[Path]:
         if not path.is_file():
             continue
         rel = path.relative_to(root).as_posix()
-        if rel in EXEMPT or rel.startswith(SKIPPED):
+        if rel in EXEMPT or rel.startswith(SKIPPED) or GENERATED_DIR in path.relative_to(root).parts:
             continue
         files.append(path)
     return files
