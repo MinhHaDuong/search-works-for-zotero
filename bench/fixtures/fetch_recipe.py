@@ -177,6 +177,9 @@ LANGUAGES = frozenset({"en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la
 TIERS = frozenset({"MUST", "SHOULD"})
 FACETS = frozenset({"core", "notes", "group", "deep-body"})
 HEX64 = frozenset("0123456789abcdef")
+#: An id is one path component, because it names the cache file: `../x` or a
+#: slash would write outside the cache directory.
+SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
 def validate(recipe: list[dict]) -> list[str]:
@@ -196,6 +199,10 @@ def validate(recipe: list[dict]) -> list[str]:
         if did in seen:
             found.append(f"{did}: duplicate id")
         seen.add(did)
+        if not SLUG.match(str(did)):
+            found.append(f"{did}: id is not a lowercase slug (one path component)")
+        if doc.get("bytes_format", "pdf") not in MAGIC:
+            found.append(f"{did}: bytes_format {doc.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
         for key in doc:
             if key.startswith("zotero_"):
                 found.append(f"{did}: {key} names a personal library")

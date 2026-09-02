@@ -122,6 +122,15 @@ def test_null_hash_needs_a_reason():
     assert fr.validate([good(sha256=None, sha256_reason="1,2 GB; archive md5 recorded instead")]) == []
 
 
+def test_id_is_one_path_component_and_format_is_known():
+    """`../x` would name a cache file outside the cache; an unknown format skips the magic check."""
+    assert any("not a lowercase slug" in o for o in fr.validate([good(id="../x")]))
+    assert any("not a lowercase slug" in o for o in fr.validate([good(id="a/b")]))
+    assert any("not a lowercase slug" in o for o in fr.validate([good(id="Upper-Case")]))
+    assert any("bytes_format" in o for o in fr.validate([good(bytes_format="exe")]))
+    assert fr.validate([good(bytes_format="djvu")]) == []
+
+
 def test_duplicate_ids_and_missing_fields_are_offences():
     offences = fr.validate([good(), good(), {"id": "bare"}])
     assert any("duplicate id" in o for o in offences)

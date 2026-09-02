@@ -138,8 +138,9 @@ hand; `fetch_recipe.py` reports them as `unfetched` until then.
 ## Licence flags carried inside the recipe
 
 Two entries rest on a basis weaker than the rest and say so in their record:
-the Einstein–Minkowski volume is the 1923 Perrett and Jeffery translation,
-public domain in the United States and not yet under life+70 everywhere; and
+the Einstein–Minkowski volume is the 1920 University of Calcutta translation
+by Saha and Bose, public domain in the United States by its date and under
+life+70 only from 2045, since Bose died in 1974; and
 one HAL book (hal-04214661) is deposited under HAL's own authorisation rather
 than a Creative Commons licence, so its reuse waits on the authors' consent.
 
