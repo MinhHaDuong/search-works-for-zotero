@@ -379,3 +379,30 @@ def test_install_reports_the_pin_and_what_materialised(tmp_path):
     assert all(v is None for v in reported["materialized"].values()), (
         "nothing has run, so nothing may be reported as materialised"
     )
+
+
+def test_the_harnesss_own_log_is_declared_and_not_counted_as_the_targets(tmp_path):
+    """The residue the first real run actually found — the only one in 931 files.
+
+    This adapter writes the host application's output to a file inside the arena,
+    because the host is a desktop application whose stdout is the only diagnostic
+    when it fails to come up. The arena is documented as harness-owned, and the
+    sweep counts every file in it as the target's, so the instrument has to be
+    declared or the adapter reports itself as a target that strays.
+    """
+    target = build(tmp_path)
+    log = target.arena / adapter.HOST_LOG
+    assert assertions.residue(frozenset({log}), target) == []
+    reasons = [why for path, why in target.declaration.not_derived_state if path == log]
+    assert reasons and "HARNESS" in reasons[0]
+
+
+def test_the_log_exemption_is_one_file_and_not_the_arena(tmp_path):
+    """The control: exempting the arena would exempt everything, the sweep included.
+
+    An exemption written one directory too wide is indistinguishable from a
+    correct one in a diff, and it turns the residue check permanently green.
+    """
+    target = build(tmp_path)
+    stray = target.arena / "something-else"
+    assert assertions.residue(frozenset({stray}), target) == [stray]

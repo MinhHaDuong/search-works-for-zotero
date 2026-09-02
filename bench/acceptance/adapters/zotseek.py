@@ -175,6 +175,12 @@ HOST_DATA_ENTRIES = (
     "tmp",
 )
 
+#: Where this adapter captures the host application's own output. It is the
+#: harness's instrument rather than the target's state, and it is declared under
+#: `not_derived_state` for that reason: the arena is harness-owned, but the
+#: residue sweep counts every file in it as the target's.
+HOST_LOG = "host.log"
+
 #: `user_pref("<name>", <value>);` as the host writes it. Used to read the
 #: effective configuration back out of the profile, which is the access an
 #: ordinary user has through the preference editor.
@@ -295,8 +301,11 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
             f"{len(HARNESS_PREFS) + 1} harness preferences and the pinned XPI in its "
             "extensions/ directory. Readiness is the appearance of the target's own "
             "sidecar database, never the host's: the host coming up says nothing about "
-            "whether the plugin loaded. Stop: terminate the launcher, then kill on a "
-            "grace period.\n\n"
+            "whether the plugin loaded. Stop: signal the whole process GROUP, twice on "
+            "SIGTERM and then on SIGKILL — the launcher is a shell script, and the "
+            "application starts the desktop browser and the office suite's registration "
+            "helper, so signalling the direct child alone leaves those reparented and "
+            "alive, and the egress tracer follows descendants and waits for them.\n\n"
             "HOME is the sandbox and it is the only one, as on the other adapters — "
             "but here most of what appears under it is not the target's. Measured, "
             "padme 2026-09-03: a run creates .zotero/, .cache/{zotero,mozilla,"
@@ -426,6 +435,19 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
                 "Declaring the file a root would claim the host's entire preference "
                 "store for the target; omitting it would hide state the target creates. "
                 "This entry is the admission, not the resolution",
+            ),
+            (
+                arena / HOST_LOG,
+                "the HARNESS's own instrument, not the target's state, and it is listed "
+                "here because the first real run of this adapter reported it as residue "
+                "— the only residue in 931 created files. The arena is documented as "
+                "harness-owned, but the sweep counts every file in it as the target's, "
+                "so an adapter cannot instrument inside its own arena without declaring "
+                "the instrument. It is not avoidable by piping instead: this target's "
+                "host is a desktop application whose stdout is the only diagnostic when "
+                "it fails to come up, and an in-memory capture would be gone by the time "
+                "anyone read the verdict. Neither other adapter meets this, because "
+                "neither has a process whose output has to survive the run",
             ),
         ) + tuple(
             (
@@ -558,23 +580,53 @@ class ZotSeek:
         self._place_artifact()
         argv = [str(self.launcher), "-profile", str(self.profile),
                 "-datadir", str(self.data), "-no-remote"]
-        log = self.arena / "host.log"
+        log = self.arena / HOST_LOG
         started = time.monotonic()
         with log.open("wb") as sink:
             self._process = subprocess.Popen(
                 argv, stdout=sink, stderr=subprocess.STDOUT, env=self.environment(),
+                start_new_session=True,
             )
             try:
                 self._await_target(started)
                 yield
             finally:
                 process, self._process = self._process, None
-                process.terminate()
-                try:
-                    process.wait(60)
-                except subprocess.TimeoutExpired:  # pragma: no cover - grace path
-                    process.kill()
-                    process.wait(30)
+                self._stop(process)
+
+    def _stop(self, process: subprocess.Popen) -> None:
+        """Stop the host and everything it started, by process group.
+
+        The launcher is a shell script that execs the real binary, and the
+        application in turn starts the desktop browser and the office suite's
+        registration helper. Signalling the direct child alone leaves those
+        reparented to init and still running, and the egress tracer follows
+        descendants — so it waits for them, and a run that has finished its work
+        hangs until the tracer's own timeout. Measured while building this
+        adapter: a control arm left a reparented host process alive and its
+        traced run never returned. `start_new_session` is what makes the group
+        addressable; without it the kill would reach this harness too.
+        """
+        group = os.getpgid(process.pid)
+        for signal_number, grace in ((15, 60), (15, 20), (9, 30)):
+            if process.poll() is not None and not self._group_alive(group):
+                return
+            try:
+                os.killpg(group, signal_number)
+            except (ProcessLookupError, PermissionError):  # pragma: no cover
+                pass
+            try:
+                process.wait(grace)
+            except subprocess.TimeoutExpired:  # pragma: no cover - grace path
+                continue
+
+    @staticmethod
+    def _group_alive(group: int) -> bool:
+        try:
+            os.killpg(group, 0)
+        except (ProcessLookupError, PermissionError):
+            return False
+        return True
 
     def _await_target(self, started: float) -> None:
         while time.monotonic() - started < self.startup_timeout:
