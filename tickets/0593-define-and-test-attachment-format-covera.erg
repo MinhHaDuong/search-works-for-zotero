@@ -7,90 +7,79 @@ Author: codex
 2026-09-02T16:03Z codex created
 
 2026-09-02T16:04Z codex note author requested the attachment-format policy and fixture matrix be ticketed
+2026-09-02T22:00Z claude note DECOMPOSED, tracker (session of 2026-09-02). Three children: 0599 the machine-free fixture matrix and content classifier, 0600 the Zotero measurement and the author's ruling, 0601 the SPEC/R17/acceptance implementation. Partition boundary is the ruling itself, with a second boundary at the machine: 0599 was the only part runnable the night this was filed, a full-library build holding Zotero's local API. The candidate policy moves verbatim into 0600, the four invariants stay here and are inherited, and the Actions, Verification items and Exit criteria are distributed into the child that owns each rather than restated. Nothing in scope changes.
 --- body ---
 ## Context
 
-The specification has an explicit PDF path and a format-neutral consumer of
-Zotero's `/fulltext`, but no attachment-format policy. Zotero's current search
-documentation says it indexes PDF, EPUB, HTML and plain-text files and does not
-index other document types such as DOCX and ODT. The chain does not say what
-happens to DOC, DOCX, ODT, TXT, Markdown, RTF or HTML attachments, whether
-eligibility follows extension or MIME type, or what R17 reports when body text
-is unsupported.
+This ticket was ruled a monster on 2026-09-02 and is now the TRACKER for the
+attachment-format estate. It bundled at least three sign-off units into six
+Actions: authoring a nine-format fixture matrix, which needs no machine;
+measuring that matrix through a live Zotero, which needs an idle instance and
+the local API to itself; carrying the resulting policy to the author, which is
+his ruling and nobody else's; and implementing that ruling in `SPEC.md`, in
+R17's reporting and in acceptance coverage. Its prose also carried the
+dependency chain in narrative rather than in `Blocked-by`, so nothing machine
+readable said that Action 5 cannot start before Action 4.
 
-This ticket establishes evidence first and carries the resulting policy to a
-ruling. It does not authorize adding LibreOffice, Pandoc, Tika, a cloud
-converter, or any other document-conversion runtime.
+Three children, each sized to one sign-off unit, each blocked by its real
+prerequisite and never by this tracker.
 
-Primary platform reference:
-`https://www.zotero.org/support/preferences/search`.
+The partition boundary is the author's ruling. Everything on one side of it is
+authorship and observation, which an agent can finish alone; everything on the
+other side implements a decision that does not exist yet. The measurement child
+sits on the boundary because putting the evidence to the author is what produces
+the ruling. That is why the estate splits into three and not two: the fixture
+matrix is separable from the measurement by a second boundary, the machine —
+ticket 0599 needs no Zotero at all, and it was the only part of this ticket that
+could run on the night it was filed, while a full-library build held the local
+API.
 
-## Candidate policy to test and rule
+The candidate policy this estate tests is stated once, in ticket 0600, and is
+not repeated here.
 
-- Eligibility follows detected MIME/content capability, never filename
-  extension alone.
-- PDF uses Zotero text plus the ruled pdf.js structure/page path.
-- EPUB and HTML initially use Zotero-extracted flat text; source-aware structure
-  is separate measured work.
-- Plain text enters directly. TXT and Markdown are probed separately because a
-  `.md` attachment need not be exposed as `text/plain`.
-- DOC, DOCX, ODT and RTF remain metadata-searchable when Zotero supplies no body
-  text, with the stored reason `unsupported-format` rather than an unexplained
-  absence or a false indexed state.
-- A future local converter needs a separate ruling over security, resource
-  budgets, fidelity and derivation identity. Remote conversion is never an
-  implicit fallback under R10.
+## Children
 
-## Actions
+- **ticket 0599** — build the fixture matrix and the content-capability
+  classifier that decides a format from bytes rather than from a filename,
+  with the misleading-extension control that makes the MIME-not-extension
+  invariant mechanical. Machine-free. Blocked-by: nothing.
+- **ticket 0600** — import the matrix through a real Zotero, reindex, probe
+  `/fulltext` and the full-text control plugin, record content types and
+  terminal states, and put the candidate policy to the author for a ruling in
+  `DECISIONS.md`. Blocked-by: ticket 0599. Labelled `needs-human`: it needs a
+  live, idle Zotero and it ends in the author's decision, neither of which an
+  agent supplies.
+- **ticket 0601** — carry the ruled policy into `SPEC.md`, add the
+  per-attachment extraction-route/reason field and R17's counts in the ruled
+  vocabulary, and add acceptance coverage matching the ruled matrix.
+  Blocked-by: ticket 0600.
 
-1. Build a minimal fixture matrix: PDF, EPUB, HTML, TXT, Markdown, DOC, DOCX,
-   ODT and RTF, each with a unique body token and ordinary record metadata.
-2. Import each through normal Zotero, record the attachment content type, ask
-   Zotero to reindex it, and probe `/fulltext` plus the full-text control
-   plugin's state.
-3. Record for each fixture: extension, reported MIME type, whether Zotero
-   exposes body text, whether the unique token survives, and the observed
-   terminal state.
-4. Put the candidate policy to the author with every observed exception. Land
-   the ruling in `DECISIONS.md` before changing SPEC.md.
-5. Add an extraction-route/reason field per attachment and R17 counts for at
-   least `zotero-fulltext`, `pdf-source`, `unsupported-format`, `unavailable`
-   and `failed`, using the final ruled vocabulary.
-6. Add acceptance fixtures proving metadata remains searchable for every
-   format and body search behaves exactly as the matrix declares.
-
-## Test
-
-- One unique body token per format distinguishes real extraction from a pass
-  based only on shared metadata.
-- Rename at least one fixture to a misleading extension while preserving its
-  detected content type; extension-only dispatch must fail the control.
-- An unsupported body is metadata-searchable and reports its reason.
-- A supported body is searchable and records the extraction route that
-  produced it.
-- No test invokes a network or document-conversion service.
-
-## Verification
-
-- [ ] The raw Zotero responses and fixture hashes are committed as evidence.
-- [ ] Markdown and RTF are classified by observation, not assumption.
-- [ ] Every named format has a positive metadata-search control.
-- [ ] Every supported format has a body-token control.
-- [ ] Every unsupported format has an explicit-reason control.
-- [ ] `make check` and `./tickets/erg check` pass.
+Wave order is the blocking chain: 0599, then 0600, then 0601. There is no
+parallelism to find here, and pretending otherwise is what made this a monster.
 
 ## Invariants
 
-- Metadata coverage never depends on body-format support.
-- Unsupported is a terminal, reported state; it is not failure and not indexed.
-- No converter joins the default path by implication.
-- The policy is MIME/capability based, not an extension allow-list.
+Stated once, here, and inherited by every child:
+
+- **Metadata coverage never depends on body-format support.** A format whose
+  body cannot be read is still a record that answers on its metadata.
+- **Unsupported is a terminal, reported state**, with a stored reason. It is not
+  a failure, and it is not an indexed body.
+- **The policy is MIME/capability based, not an extension allow-list.**
+- **No converter joins the default path by implication.** This estate does not
+  authorize LibreOffice, Pandoc, Tika or a cloud converter, and no test it
+  produces invokes a network or a document-conversion service. A future local
+  converter needs its own ruling over security, resource budgets, fidelity and
+  derivation identity.
 
 ## Exit criteria
 
-- [ ] The nine-format fixture matrix is measured and committed.
-- [ ] The author ratifies the attachment-format policy in `DECISIONS.md`.
-- [ ] SPEC.md states eligibility, fallbacks and reporting once, in their owning
-      sections.
-- [ ] R17 reports extraction route and explicit unsupported reasons.
-- [ ] Acceptance coverage matches the ruled matrix.
+- [ ] ticket 0599 closed
+- [ ] ticket 0600 closed
+- [ ] ticket 0601 closed
+- [ ] the integration review: with all three closed, re-read the children's
+      diffs together, run the full suite, and verify that the ruled matrix is
+      one policy rather than three — that every format named in `DECISIONS.md`
+      has a row in the acceptance coverage, that no format is eligible on its
+      extension anywhere in the chain, and that the `.doc` gap is recorded as a
+      gap wherever it is relied on
