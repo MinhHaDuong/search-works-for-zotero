@@ -788,9 +788,10 @@ This constraint is sharpened on three points:
   reading a stale pack — `getSections(…, { allowStale: false })`
   (`embeddings.js:2352-2360` and `:2428`, `sdt.js:298-308`, PR head
   `77e2c4b`, read 2026-09-02). A comment fifteen lines above the key still
-  describes the older behaviour, which is what an earlier reading of ours
-  cited; the commit that closed the gap (`57b30b17e`, 2026-08-20, inside the
-  pull request) did not delete it. Cite the key, not the comment.
+  describes the older behaviour; the commit that closed the gap
+  (`57b30b17e`, 2026-08-20, inside the pull request) did not delete it, and
+  the code folds the processor version into the staleness key regardless.
+  Cite the key, not the comment.
 
 ### C2 — the platform and the upstream project are both moving
 
@@ -866,8 +867,8 @@ This constraint is sharpened on five points:
   The chunker also **does not** never cross a section: it merges sections
   below the 120-token minimum forward into their neighbour, asserted by
   #6012's own tests. It never merges two sections each able to stand alone.
-  Our boundary ruling is therefore stricter than the platform's, a
-  deliberate divergence rather than the alignment this bullet used to claim.
+  Our boundary ruling is therefore stricter than the platform's: a
+  deliberate divergence, not an alignment.
 - Once #6012's `bestMatch` saved-search condition merges, it will be the first
   place platform semantic results appear in the local API. The mechanism is
   verified at source (PR head `77e2c4b`, read 2026-08-30): the
@@ -922,15 +923,14 @@ the figure guard (ticket 0180; the anchors are ticket 0060's action 6).
   is an inference from it, untested here. `rebuildIndex()` in `fulltext.js`
   would re-extract and has no caller in the shipped app. Either way both
   generations are live today, so page boundaries cannot be assumed.
-- Whether it is readable while Zotero runs is **not established here**, and
-  this bullet used to say it was. The cited report tested the opposite case
-  on purpose — "Zotero was not running, deliberately" — and lists the live
-  read as an open question; the absence of `locking_mode=EXCLUSIVE` is PR
-  #100's assertion, not a reading of ours, and the 7 ms / 8 ms figures once
-  quoted here rest on no artifact in this repository. What is measured is
-  `journal_mode`: `delete`, not WAL, so a writer takes an exclusive lock and a
-  reader is cheap but not guaranteed available. A read-only open with the
-  application up would settle the rest, and nothing here has run it.
+- Whether it is readable while Zotero runs is **not established here**. The
+  cited report tested the opposite case on purpose — "Zotero was not
+  running, deliberately" — and lists the live read as an open question; the
+  absence of `locking_mode=EXCLUSIVE` is PR #100's assertion. What is
+  measured is `journal_mode`: `delete`, not WAL, so a writer takes an
+  exclusive lock and a reader is cheap but not guaranteed available. A
+  read-only open with the application up would settle the rest, and nothing
+  here has run it.
 - Nothing documents any of this. The 10.0 changelog says only "Much faster
   full-text content searches", naming neither the file, nor FTS5, nor the
   split. This is an internal implementation file that has already moved
@@ -2136,9 +2136,8 @@ survives even if it is built upstream instead.
 `meta.schemaVersion` before any DDL or write (upstream's own rule since
 `fd51659`, v1.9.0: `reconcileSchema()` reads the stamp through a read-only
 probe at `sqlite-index.ts:304`, before the `INSERT OR REPLACE` in
-`createSchema` can re-stamp a file written by a newer build. The ordering
-defect this clause used to report is fixed; the protocol below is what the
-fix leaves open). A
+`createSchema` can re-stamp a file written by a newer build. That ordering
+defect is fixed upstream; the protocol below is what the fix leaves open). A
 newer file → sideline (never delete), fresh build, notice. Only the
 conductor may sideline, because under N processes an unconditional
 per-server sideline would let one stale install repeatedly sideline a fresh
@@ -2794,7 +2793,7 @@ configured. A keyless install fails such a read, but it fails *at the server*:
 there is no pre-flight refusal in the code, so the request is dispatched to
 `api.zotero.org` under user id 0 and rejected there (`library-router.ts:128`,
 `b05ed69`). No library content crosses, which is the substantive point; a
-request does, which the earlier wording denied. Where a key is configured, the
+request does reach `api.zotero.org`. Where a key is configured, the
 fallback is silent — nothing asks again at the moment it fires. It does not reach an index build: a build pins
 its transport once and fails rather than re-routing, so no passage or
 full-text content crosses this way. Ratified as disclosure rather than a
