@@ -1,10 +1,15 @@
 # STATE — Search Works for Zotero
 
 *Reconciled 2026-08-31, and held under forty lines by ruling of the same day.
-Last updated 2026-09-01 (conductor raid: 0551/0552/0556 merged; 0553 closed
-after three review rounds — PR #156 — taking 0567 with it; 0569 and 0570
-filed from round 3, and 0569's question is in `DECISIONS.md`'s awaiting list;
-0565/0566 open, 0554 and 0568 unblocked).*
+Last updated 2026-09-02 (PRs #178–186, #188, and #189 merged: field review, 0028
+segmenter interface, conductor-lane reconciliation — 0554 rescoped, 0575–0577
+filed — seg/1 and the embed-cap guard built on the fork leaving 0028 open
+only for X5, 0026 split into 0578–0582 as a tracker, 0180's attribution audit
+closed (`verification/ATTRIBUTION-AUDIT-0180.md`), 0489 closed on the fork
+branch `t0489-minilm-singleton-entry`, ticket citations repointed to
+`SPEC.md`, the full-text control plugin built; PR #187 — the target-neutral
+acceptance-harness ruling, gate
+APPROVED — held open for the author's ratification).*
 
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
@@ -36,14 +41,17 @@ would show up in a diff sent upstream.
 
 ## Handoff
 
-`main` is clean, `make check` green on the system interpreter, no `.venv`
-needed. Three things a session gets wrong by default. **Work may not be on
-`main`**: fetch and sweep every branch before reading the working tree as the
-whole picture. **The reviewed baseline is deliberately behind upstream** —
-ticket 0520 owns the bump, held until `DECISIONS.md`'s awaiting trigger is
-ratified, so `make upstream-status` STALE is expected. And **the PR 2
-measurement campaign runs on padme, not here** — frozen substrates, both
-repos, and the instruction were staged there 2026-09-01; its record lands on
-branch `t0091-pr2-expansion` (state: ticket 0091's log and
-`verification/0091-SERIES-CHECKPOINT.md`). Harvest that branch before
-re-measuring anything diacritics-related on this machine.
+**PR #187** drafts the target-neutral acceptance-harness ruling under
+`DECISIONS.md`'s awaiting list and rescopes 0578 onto it; gate APPROVED, left
+unmerged pending the author's ratification — at merge, resolve
+`DECISIONS.md`'s tail as a union with `origin/main`. **Ready now**: 0578
+(goal-1 gates — the assertion layer and the zoteus adapter first), 0490 and
+0575 (unblocked by 0489's close), 0565 (unblocked by seg/1), 0554 (rescoped,
+branches from the fork's conductor-integration). **Awaiting the author**: PR
+#187's ruling; `DECISIONS.md`'s awaiting-ratification list, where the
+`zotero_index` action set and 0569's retry policy gate the conductor lane;
+two README calls recorded in ticket logs — 0578's R15 goal-1-cell address,
+0582's absent `Blocked-by`. `SPEC.md` §4 and §5.1 still count the topology at
+two processes; open exit criterion on tracker 0550. **The PR-2 diacritics
+campaign's record is ticket 0091's log** (0091 is closed) — the branch named
+in a prior note, `t0091-pr2-expansion`, is not on origin.
