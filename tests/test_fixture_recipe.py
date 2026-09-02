@@ -64,13 +64,57 @@ def test_live_publisher_page_is_an_offence():
     assert any("personal host" in o for o in fr.validate([good(bytes_url="https://www.gov.uk/guidance/the-highway-code")]))
 
 
+def test_refused_host_is_matched_case_insensitively():
+    """`https://VBPL.VN/x.pdf` is the same host as `vbpl.vn`; a substring test let it through."""
+    assert any("personal host" in o for o in fr.validate([good(bytes_url="https://VBPL.VN/doc.pdf")]))
+    assert any("personal host" in o for o in fr.validate([good(bytes_url="https://WWW.GOV.UK/guidance/x")]))
+
+
+def test_bytes_url_host_must_belong_to_the_declared_archive():
+    """The closed PR's defect in miniature: an arbitrary host under an archive's label."""
+    stray = good(bytes_url="https://www.dropbox.com/s/abc/exampleitem00some.pdf")
+    assert any("does not belong to archive" in o for o in fr.validate([stray]))
+    raw = good(bytes_url="https://raw.githubusercontent.com/x/y/main/a.pdf")
+    assert any("does not belong to archive" in o for o in fr.validate([raw]))
+    sub = good(bytes_url="https://ia800300.us.archive.org/12/items/exampleitem00some/x.pdf")
+    assert fr.validate([sub]) == [], "a subdomain of the archive's host is the archive"
+
+
 def test_unadmitted_archive_is_an_offence():
     assert any("not admitted" in o for o in fr.validate([good(archive="google-books")]))
 
 
 def test_open_archive_without_version_is_an_offence():
-    assert any("no version" in o for o in fr.validate([good(archive="hal", identifier="hal-04214661")]))
-    assert fr.validate([good(archive="hal", identifier="hal-04214661", version="v1")]) == []
+    hal = dict(archive="hal", identifier="hal-04214661", bytes_url="https://hal.science/hal-04214661/file/x.pdf")
+    assert any("no version" in o for o in fr.validate([good(**hal)]))
+    assert any("no version" in o for o in fr.validate([good(**hal, version="final")]))
+    assert fr.validate([good(**hal, version="v1")]) == []
+
+
+def test_faolex_is_admitted_for_one_document_only():
+    fao = dict(archive="faolex", bytes_url="https://faolex.fao.org/docs/pdf/vie000001.pdf")
+    assert any("FAOLEX is admitted for" in o for o in fr.validate([good(**fao, identifier="LEX-FAOC000001")]))
+    ok = good(archive="faolex", identifier="LEX-FAOC179224", bytes_url="https://faolex.fao.org/docs/pdf/vie179224.pdf")
+    assert fr.validate([ok]) == []
+
+
+def test_a_challenge_page_is_blocked_and_a_network_error_is_unfetched():
+    import urllib.error
+
+    http403 = urllib.error.HTTPError("https://x", 403, "Forbidden", {}, None)
+    http500 = urllib.error.HTTPError("https://x", 500, "Server", {}, None)
+    assert fr.classify_failure(http403) == "blocked"
+    assert fr.classify_failure(http500) == "unfetched"
+    assert fr.classify_failure(RuntimeError("u: expected b'%PDF' at file start, got b'<htm'")) == "blocked"
+    assert fr.classify_failure(urllib.error.URLError("timed out")) == "unfetched"
+    assert fr.classify_failure(RuntimeError("u: 12 bytes, expected at least 1000")) == "unfetched"
+
+
+def test_exit_status_fails_on_mismatch_or_outage_and_not_on_expected_states():
+    assert fr.exit_status([{"status": "match"}, {"status": "blocked"}, {"status": "unpinned"}]) == 0
+    assert fr.exit_status([{"status": "match"}, {"status": "unfetched"}]) == 1
+    assert fr.exit_status([{"status": "MISMATCH"}]) == 1
+    assert fr.exit_status([]) == 0
 
 
 def test_null_hash_needs_a_reason():

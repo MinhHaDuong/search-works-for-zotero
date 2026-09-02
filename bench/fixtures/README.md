@@ -17,10 +17,12 @@ fixture corpus".
 zoteus indexes what Zotero's `/fulltext` endpoint serves and never extracts a
 PDF for indexing itself. That endpoint serves the desktop client's own
 extraction, which stops at 100 pages and 500 000 characters by default and
-carries no page breaks. Measured on three documents of the closed PR #151, the
-client's text and `pdftotext`'s text of the same scan shared 39 % to 61 % of
-their vocabulary. A fixture built from `pdftotext` therefore measures an
-extractor the system does not use. The recipe records where the bytes are; the
+carries no page breaks. A one-off probe on three documents of the closed
+PR #151, recorded with its numbers in the ledger entry named above and not in
+`bench/results/`, found the client's text and `pdftotext`'s text of the same
+scan sharing between two fifths and three fifths of their vocabulary. A
+fixture built from `pdftotext` therefore measures an extractor the system does
+not use. The recipe records where the bytes are; the
 export records what Zotero made of them; only the second is what the gate
 reads.
 
@@ -143,20 +145,30 @@ than a Creative Commons licence, so its reuse waits on the authors' consent.
 
 ## Fields of a recipe record
 
-`id` (slug), `title`, `author`, `year`, `language` (BCP-47 primary tag),
-`tier` (`MUST` or `SHOULD`, per R7's language ruling), `facet` (`core`,
-`notes`, `group`, `deep-body`), `archive`, `identifier`, `version` (required
-for HAL, arXiv, Zenodo), `bytes_url`, `bytes_format` (`pdf`, `djvu`,
-`wikitext`, `html`), `sha256` (or `null` with `sha256_reason`),
-`archive_checksums` (the archive's own md5 or sha1 where it publishes one),
-`page_count`, `license_basis`, `provenance_check`, `wayback_capture` (for the
-unversioned database of record), `notes`.
+Required, and checked by the validator: `id` (slug), `title`, `author`,
+`year`, `language` (BCP-47 primary tag), `tier` (`MUST` or `SHOULD`, per R7's
+language ruling), `facet` (`core`, `notes`, `group`, `deep-body`), `archive`
+(one of the admitted names; FAOLEX only for `LEX-FAOC179224`), `identifier`,
+`version` (`vN`, required for HAL, arXiv, Zenodo), `bytes_url` (its host must
+belong to the declared archive and to no refused host), `sha256` (or `null`
+with `sha256_reason`), `license_basis`.
+
+Recommended, by convention: `bytes_format` (`pdf`, `djvu`, `wikitext`,
+`html`; default `pdf`), `min_size` (bytes below which a download is treated as
+an error page; default 1 000), `archive_checksums` (the archive's own md5 or
+sha1 where it publishes one), `page_count`, `provenance_check`,
+`wayback_capture` (for the unversioned database of record), `notes`.
 
 ## Re-pinning
 
-Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports `match`,
-`MISMATCH`, `unpinned`, or `unfetched` with the reason, and the exit status is
-the number of mismatches. A mismatch is inspected, never overwritten: diff the
+Run `python3 bench/fixtures/fetch_recipe.py`. Every document reports one of
+five statuses: `match`, `MISMATCH` (with the pinned hash), `unpinned` (the
+recipe carries no hash yet), `blocked` (the archive answered a scripted client
+with a challenge page or a 401/403/405/429, so the bytes are fetched once in a
+browser and pinned by hand), or `unfetched` (a network error or a server
+failure, worth a retry). The exit status is 1 when any document is `MISMATCH`
+or `unfetched`, 0 otherwise; `blocked` and `unpinned` are expected states, not
+failures of the run. A mismatch is inspected, never overwritten: diff the
 old and new bytes or their text, decide whether the archive corrected or
 replaced the file, and if the new bytes are the ones the corpus should carry,
 commit the new hash. That commit's diff is the review artifact, the same rule

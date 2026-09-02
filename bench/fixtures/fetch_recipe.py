@@ -32,8 +32,11 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
 import sys
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -81,6 +84,27 @@ def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, m
     os.replace(tmp, dest)
 
 
+#: HTTP answers that mean "not for scripts", as opposed to "not now".
+CHALLENGE_CODES = frozenset({401, 403, 405, 429})
+
+
+def classify_failure(exc: Exception) -> str:
+    """`blocked` when the archive refused a scripted client, `unfetched` otherwise.
+
+    The two need different actions and share no remedy: a challenge page (HAL's
+    Anubis, Gallica's ALTCHA, a WAF captcha) is fetched once in a browser and
+    pinned by hand, while a timeout or a 5xx is retried. A challenge shows up
+    either as one of `CHALLENGE_CODES` or as an HTML page served with a 200 where
+    a PDF was expected, which is what the magic-byte check turns into a
+    RuntimeError.
+    """
+    if isinstance(exc, urllib.error.HTTPError) and exc.code in CHALLENGE_CODES:
+        return "blocked"
+    if isinstance(exc, RuntimeError) and "at file start" in str(exc):
+        return "blocked"
+    return "unfetched"
+
+
 def fetch_one(doc: dict, cache_dir: Path, timeout: float) -> dict:
     """Fetch one recipe entry and compare its hash. Returns a report row."""
     fmt = doc.get("bytes_format", "pdf")
@@ -91,7 +115,7 @@ def fetch_one(doc: dict, cache_dir: Path, timeout: float) -> dict:
         try:
             download_atomic(doc["bytes_url"], dest, timeout, MAGIC.get(fmt), doc.get("min_size", 1_000))
         except Exception as exc:  # noqa: BLE001 — one dead archive must not stop the others
-            row["status"] = "unfetched"
+            row["status"] = classify_failure(exc)
             row["reason"] = str(exc)
             return row
     got = sha256_of(dest)
@@ -124,8 +148,29 @@ ADMITTED_ARCHIVES = frozenset(
     }
 )
 VERSIONED_ARCHIVES = frozenset({"hal", "arxiv", "zenodo"})
+#: A version on an open-archive identifier is `vN`, the form HAL and arXiv print
+#: and Zenodo's version DOIs stand in for; "final" or "latest" names a lineage.
+VERSION = re.compile(r"^v\d+$")
+#: The host each archive serves bytes from. A URL under an admitted archive's
+#: label but on some other host is the closed PR's defect in miniature — a
+#: personal or unaudited host wearing an archive's name — so the host must
+#: belong to the archive declared. Matched on the hostname's suffix, lowercased.
+ARCHIVE_HOSTS = {
+    "internet-archive": ("archive.org",),
+    "gallica": ("gallica.bnf.fr",),
+    "wikimedia-commons": ("upload.wikimedia.org", "commons.wikimedia.org"),
+    "wikisource": ("wikisource.org",),
+    "hal": ("hal.science", "archives-ouvertes.fr"),
+    "arxiv": ("arxiv.org",),
+    "zenodo": ("zenodo.org",),
+    "faolex": ("faolex.fao.org",),
+    "uk-government-web-archive": ("webarchive.nationalarchives.gov.uk",),
+}
+#: FAOLEX is admitted for one document by the ruling of 2026-09-02, not as an
+#: archive in general; a second FAOLEX record needs its own ruling.
+FAOLEX_ADMITTED = frozenset({"LEX-FAOC179224"})
 #: Hosts that are publishers or personal sites, never archives. Listed because
-#: each one appeared as a source in the closed PR #151.
+#: each one appeared as a source in the closed PR #151. Compared lowercased.
 REFUSED_HOSTS = ("minh.haduong.com", "zotero.org", "www.gov.uk", "chinhphu.vn", "vbpl.vn", "thuvienphapluat.vn")
 REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "archive", "identifier", "bytes_url", "sha256", "license_basis")
 LANGUAGES = frozenset({"en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la", "pt"})
@@ -156,11 +201,17 @@ def validate(recipe: list[dict]) -> list[str]:
                 found.append(f"{did}: {key} names a personal library")
         if doc.get("archive") not in ADMITTED_ARCHIVES:
             found.append(f"{did}: archive {doc.get('archive')!r} is not admitted")
-        if doc.get("archive") in VERSIONED_ARCHIVES and not doc.get("version"):
-            found.append(f"{did}: {doc['archive']} identifier carries no version")
+        if doc.get("archive") in VERSIONED_ARCHIVES and not VERSION.match(str(doc.get("version") or "")):
+            found.append(f"{did}: {doc['archive']} identifier carries no version of the form vN")
+        if doc.get("archive") == "faolex" and doc.get("identifier") not in FAOLEX_ADMITTED:
+            found.append(f"{did}: FAOLEX is admitted for {sorted(FAOLEX_ADMITTED)} only, not {doc.get('identifier')!r}")
         url = doc.get("bytes_url") or ""
-        if any(host in url for host in REFUSED_HOSTS):
+        host = (urllib.parse.urlparse(url).hostname or "").lower()
+        if any(host == h or host.endswith("." + h) for h in REFUSED_HOSTS):
             found.append(f"{did}: bytes_url {url} is a publisher or personal host, not an archive")
+        allowed = ARCHIVE_HOSTS.get(doc.get("archive"), ())
+        if url and not any(host == h or host.endswith("." + h) for h in allowed):
+            found.append(f"{did}: bytes_url host {host!r} does not belong to archive {doc.get('archive')!r}")
         digest = doc.get("sha256")
         if digest is None:
             if not doc.get("sha256_reason"):
@@ -203,17 +254,27 @@ def run(recipe: list[dict], cache_dir: Path, timeout: float, only: set[str] | No
     return rows
 
 
-def report(rows: list[dict]) -> int:
-    """Print one line per document; exit status is the count of mismatches."""
+#: Statuses that mean the run failed to do its job. `blocked` is expected for
+#: the archives that refuse scripts, and `unpinned` is a recipe entry that has
+#: not been hashed yet; neither is a failure of this run.
+FAILING = frozenset({"MISMATCH", "unfetched"})
+
+
+def exit_status(rows: list[dict]) -> int:
+    """1 when any document mismatched its pin or could not be fetched, else 0."""
+    return 1 if any(r["status"] in FAILING for r in rows) else 0
+
+
+def report(rows: list[dict]) -> None:
+    """One line per document, then a count per status."""
     width = max((len(r["id"]) for r in rows), default=8)
     for r in rows:
         extra = r.get("reason") or (f"pinned {r['pinned'][:12]}" if "pinned" in r else "")
         print(f"{r['id']:<{width}}  {r['status']:<11} {r.get('sha256', '')[:12]:<12} {extra}")
-    counts = {}
+    counts: dict[str, int] = {}
     for r in rows:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     print("summary:", ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
-    return counts.get("MISMATCH", 0)
 
 
 def main() -> None:
@@ -226,7 +287,8 @@ def main() -> None:
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING, format="%(levelname)s %(message)s")
     rows = run(load_recipe(args.recipe), args.cache_dir, args.timeout, set(args.only) if args.only else None)
-    sys.exit(1 if report(rows) else 0)
+    report(rows)
+    sys.exit(exit_status(rows))
 
 
 if __name__ == "__main__":
