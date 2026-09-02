@@ -26,6 +26,7 @@ Author: claude
 2026-09-01T14:03Z claude note exit criteria repointed by 0502: the primary target class is books and proceedings, the 44,9 MB dictionary is the rare case (and keeps its separate monster-document RSS-fixture role, untouched). A second criterion now names the primary-class signal set explicitly -- table of contents as validator, chapter/section numbering, author bylines, page-boundary form feeds -- with the rhythm/MAD statistic built only as the dictionary special case
 2026-09-02T08:49Z Minh Ha-Duong note blocker 0502 closed — Blocked-by removed.
 2026-09-02T10:21Z claude note two rulings landed 2026-09-02 (DECISIONS.md): the segmenter interface is ratified (text + structure signals in, entries out, seg/1 for the empty list) and the byline is enrichment, not a locator. Exit criteria edited: bylines dropped from the required signal set, a criterion added for the interface. Also: prerequisites checked this session -- 0502 closed, SPEC.md 5.2.2 current, upstream QUIET at one commit past v1.12.0, 13 630 fulltext caches on the author's machine; fork/ checkout absent, make upstream-checkout is the one step left before code
+2026-09-02T10:49Z claude note seg/1 BUILT and pushed to the author's fork, branch t0028-seg1 at 87b2adc, cut from conductor-integration (c031478): src/features/search/segmenter/{types.ts,seg1.ts} + tests/features/segmenter-seg1.test.ts (24 tests; fork suite 1 147 passed, tsc and eslint clean). Interface per the 2026-09-02 ruling: text + structure signals in, entries out (title, char range, optional page range, confidence, tier, sections); streaming push()/finish() plus a one-shot segment(); result equal across window sizes down to 7 chars. Signals: contents list parsed as answer key (leaders, marker line, or a run of numbered lines ending in page numbers; region closes on content, at the first chapter the list named reappearing -- a fixed 64 KB span swallowed a 30 KB fixture), forward-only monotonic alignment, chapter words in six languages, top-level numbering and roman numerals, keyword headings, running-header repetition dedupe, glued running header stripped, Title Case gated on an EN-vs-FR function-word tally, form feeds -> page ranges. Collections: a running-header change at a page boundary (recto/verso tolerated) cuts the unit and names it -- the 45 MB dictionary (AXE7G67C) gives 1 982 headword entries in 3,9 s where the book path gave 60. Headword rhythm/MAD kept as the no-form-feed dictionary case, never applied to a book. Synthetic fallback ~12k estimated tokens at paragraph boundaries. REAL FILES (bench/seg1_run.mjs, streams 64 KB windows): FR thesis 92IZ6D5M -> 4 chapitres + Remerciements/Introduction/Conclusion, 24-33 sections each, confidence 0,996; EN book TD45RDD6 -> Foreword/Acknowledgements + the 3 chapters inside the 100-page cache, 0,988; VN statistical yearbook LE5CJ6MH -> unstructured, synthetic with pages. KNOWN LIMIT: report S9FDTV76 keeps its contents-page lines as headings (TOC has no marker and mixed shapes) -- a non-gating arm, X5 measures it. NOT DONE HERE: X5's scoring driver (0025: outline via pdf.js, per-arm sample) and the embed-cap assertion (last criterion), which is embeddings code for the same upstream bundle
 --- body ---
 ## Context
 Missing work the implementation review surfaced (§5.1; that review is now
@@ -41,24 +42,24 @@ panel/cycle2/review-political.md).
 
 ## Exit criteria
 - [x] #6012 checkpoint recorded here 2026-08-30 — read at source; seg/1 not obsoleted
-- [ ] seg/1 runnable over flat /fulltext text of its PRIMARY TARGET CLASS --
+- [x] seg/1 runnable over flat /fulltext text of its PRIMARY TARGET CLASS --
       books and proceedings, per the 2026-08-31 ruling (0502 propagated it into
       SPEC.md 5.2.2) -- emitting entries + confidence. The 44,9 MB dictionary is
       the rare case, not the target this criterion is read against; it keeps its
       separate, untouched role as the monster-document RSS fixture (X3a)
-- [ ] the primary-class signals built, not the dictionary's: table of contents
+- [x] the primary-class signals built, not the dictionary's: table of contents
       as validator of the cut set, chapter/section numbering, and
       page-boundary form feeds where the extraction carries them. A
       byline-shaped line may serve as an accept hint where cheap; nothing
       gates on it (DECISIONS.md 2026-09-02, the byline is enrichment). The
       headword rhythm/MAD statistic is built only as the dictionary's special
       case, never applied to the primary class
-- [ ] seg/1 implements the ratified segmenter interface (SPEC.md 5.2.2,
+- [x] seg/1 implements the ratified segmenter interface (SPEC.md 5.2.2,
       DECISIONS.md 2026-09-02): text plus a list of structure signals in,
       entries out, each with title, character range, optional page range,
       confidence and producing tier; seg/1 is the empty-signal-list case and
       the fall-through the PDF tiers land on
-- [ ] deterministic on fixture text; identity string (seg/1) for the chunker key
+- [x] deterministic on fixture text; identity string (seg/1) for the chunker key
 - [ ] X5 (0025) can consume it on the author's machine: one arm per class,
       scored against each document's embedded outline with the outline tier
       held out, never against the printed contents list (SPEC.md 5.3)
