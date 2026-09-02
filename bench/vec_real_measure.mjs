@@ -12,6 +12,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { statSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { cpus, hostname, loadavg, totalmem } from 'node:os';
+import { assertPreRenameSchema, describeIndexSchema } from './index_schema.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -63,6 +64,13 @@ const rnd = mulberry32(Number(opt.seed));
 /** Float32 vector -> the BLOB the vec0 statements take. One definition; see toBlob's old twin. */
 const toBlob = (v) => Buffer.from(new Float32Array(v).buffer);
 const db = new DatabaseSync(opt.db, { allowExtension: true });
+// Before the extension load, not after (ticket 0101). This driver measures sqlite-vec
+// `passage_vectors` KNN on the PRE-RENAME generation — the one upstream stopped writing —
+// and it says so rather than silently accepting whatever it is handed. Pointed at a
+// current index it used to die on `Cannot find module 'sqlite-vec'` or, where the
+// extension is present, on `no such table: index_meta`: neither message names a schema
+// generation, and both arrive after the load has been paid for.
+const schema = assertPreRenameSchema(db, opt.db);
 // The same loader the server uses, so this measures the shipped extension rather than
 // whatever happens to be on the system.
 const { createRequire } = await import('node:module');
@@ -544,6 +552,8 @@ const out = {
     // any earlier step.
     finished_utc: new Date().toISOString(),
   },
+  // What a number was measured against belongs beside the number (ticket 0100).
+  db_schema: describeIndexSchema(schema),
   corpus: { vectors: n, passages, dim, probes: PROBES, topk: TOPK, seed: opt.seed },
   on_disk: sizes,
   anisotropy: {
