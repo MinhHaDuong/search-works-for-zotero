@@ -14,11 +14,16 @@ filing.
 ## Install
 
 ```bash
-bench/zotero-fulltext-plugin/build.sh          # writes fulltext-control.xpi here
+bench/zotero-fulltext-plugin/build.sh          # writes ~/fulltext-control.xpi (or the path given)
 ```
 
+The package lands outside the repository on purpose: the bench guards read every
+file under `bench/` as text, and a zip is not text.
+
 Zotero → Tools → Plugins → gear → Install Plugin From File → the `.xpi`.
-Installs live, no restart. Remove it from the same pane.
+Installs live, no restart. Remove it from the same pane. Zotero 10 requires
+`update_url` in the manifest; it points at `updates.json` here, which lists no
+updates, so the periodic check is a no-op.
 
 ## Use
 
