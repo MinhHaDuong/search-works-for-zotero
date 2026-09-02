@@ -145,6 +145,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -525,6 +526,7 @@ class Beaver:
         self.declaration = declaration(self.profile, self.data, self.home)
         self._process: subprocess.Popen | None = None
         self._startup: dict = {}
+        self._output: list[str] = []
 
     # ---- refusals, which are the first line of the sandbox ----------------
 
@@ -686,10 +688,24 @@ class Beaver:
         # on the first run — two orphaned instances survived their lifecycle,
         # kept their databases open, and would have made the next arm's
         # "process stopped" a fiction.
+        # The host's own output is DRAINED by a reader thread, and that is a
+        # correctness matter rather than a convenience. A pipe with nobody
+        # reading it fills at 64 KB and the writer then BLOCKS: measured here,
+        # a piped-and-unread host stalled part-way through its startup and the
+        # egress trace of that run counted 60 name lookups where the identical
+        # launch with its output drained counts 430. Nothing failed, no error
+        # was raised, and the artifact would have reported a quiet target that
+        # was in fact a frozen one. `DEVNULL` would also avoid the stall and is
+        # rejected because the output is evidence — it is what says whether the
+        # host loaded the add-on at all.
         self._process = subprocess.Popen(
             argv, env=self.environment(), stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, text=True, start_new_session=True,
+            bufsize=1,
         )
+        self._output = []
+        drain = threading.Thread(target=self._drain, args=(self._process,), daemon=True)
+        drain.start()
         try:
             self._startup = {"argv": argv, "harness_prefs": prefs, **self._wait()}
             time.sleep(self.dwell)
@@ -698,6 +714,22 @@ class Beaver:
             process, self._process = self._process, None
             if process is not None:
                 self._stop(process)
+
+    def _drain(self, process: subprocess.Popen) -> None:
+        """Read the host's output so it can never block on a full pipe.
+
+        Bounded: only the last lines are kept, because the host is chatty and
+        the point is evidence rather than a transcript. Exceptions are swallowed
+        deliberately — this thread exists so the host keeps running, and a
+        reader that dies must not take the run with it.
+        """
+        try:
+            for line in process.stdout:  # type: ignore[union-attr]
+                self._output.append(line.rstrip("\n"))
+                if len(self._output) > 400:
+                    del self._output[:200]
+        except (ValueError, OSError):  # pragma: no cover - closed under teardown
+            pass
 
     def _stop(self, process: subprocess.Popen) -> None:
         """Signal the host's whole process group, then wait for it to be gone.
@@ -757,6 +789,9 @@ class Beaver:
             "version": VERSION,
             "commit": COMMIT,
             "startup": dict(self._startup),
+            # The host's own output, drained by the lifecycle. Evidence, not a
+            # verdict: it is where a refused or unsigned add-on would say so.
+            "host_output_tail": self._output[-25:],
             "host_activated": self._host_addon_record(),
             "declared_roots_present": self._roots_present(),
         }
