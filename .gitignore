@@ -39,3 +39,9 @@ __pycache__/
 .env
 *.log.txt
 node_modules/
+
+# bench/fixtures/fetch_recipe.py's download cache: the fixture corpus's source
+# bytes (scanned PDFs, DjVu, wikitext), regenerable from recipe.json. Kept at
+# the repo root, same convention as fork/ and upstream.git/ above, so binaries
+# never land inside bench/ where check_models.py scans for text.
+corpus-cache/

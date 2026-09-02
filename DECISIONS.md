@@ -3319,6 +3319,136 @@ good retrieval from reference material — dictionaries, encyclopedias, handbook
 says why the reference classes are measured on their own. Gating stays as
 ruled in the morning: the primary class and the dictionary.
 
+
+**2026-09-02 — The golden fixture corpus: where its documents may come from,
+and what the fixture is.** Six rulings from one conversation with the author,
+on ticket 0029 and on PR #151, the corpus's document-assembly slice (19
+documents, 13 of them fetched by attachment key from the author's library).
+
+**1. Zotero #6012's calibration corpus stays out.** The proposition to include
+it was examined at source, inside the 2026-08-31 ruling's carve-out for
+factual verification, and rejected. What the pull request carries is
+`Zotero.Embeddings.Calibration`'s `CORPUS`: 71 one-sentence query/passage
+pairs (47 English, 15 Chinese, 9 other), disjoint subjects by design,
+translations excluded so that a cross-language match never lands in the null
+distribution. It calibrates a score floor. It retrieves nothing, carries no
+French and no Vietnamese, and excludes by construction what R29 needs. The
+2026-08-31 ruling stands unamended; nothing was copied.
+
+**2. A personal library is not a provenance.** "Fetched from the author's
+Zotero library" does not qualify a fixture document; every document names a
+public archive identifier. Applied to PR #151's manifest: 5 of 19 comply
+(archive.org, fetched from it); 5 name an archive but were fetched by key with
+no identifier recorded (Cournot, Walras, Porte, Minkowski, Decision 11/2017);
+9 have only the library, a personal homepage or live gov.uk pages as source and
+are re-sourced or dropped (Malynes, Ramsey, Depitre, Neurath, Circulars
+25/2016, 41/2010 and 42/2010, the Habilitation, the Highway Code). The
+author's collection becomes a processing stage: the recipe records archive
+identifier and hash, injection imports from the archive, and anyone rebuilds
+the corpus with no access to his account, which is what ticket 0032's
+recipients need.
+
+**3. Open archives with versioned persistent identifiers are admitted:**
+arXiv `vN`, Zenodo version DOIs (never the concept DOI), HAL identifiers with
+a version number — beside the digitization archives already in use (Gallica
+`ark:`, Internet Archive identifiers, Wikimedia Commons file pages with
+version history, Wikisource permanent revision ids). The property that unites
+the list: a public, third-party-hosted, persistent identifier naming one fixed
+set of bytes. The version number turns a lineage into a deposit and downgrades
+the byte hash from pin to cross-check. One caveat recorded: arXiv can
+regenerate a version's PDF from its source, so a hash mismatch there prompts a
+text diff, not a failure.
+
+**4. No self-deposit.** The project does not deposit the Vietnamese texts, or
+anything else, on Zenodo to manufacture a compliant identifier. Alternatives
+are found in the admitted archives instead.
+
+**5. The Vietnamese slice is rebuilt from admitted archives.** Verified at
+source the same day. Vietnamese Wikisource holds transcriptions of Truyện Kiều
+(Trương Vĩnh Ký edition, 1911), Việt Nam sử lược, Lục Vân Tiên and Đại Việt sử
+ký toàn thư, all with permanent revision ids, and the 1992 constitution, whose
+official English text sits on English Wikisource. It holds no ministerial
+circular as text: the search hits that first read as circulars of both
+ministries were Official Gazette table-of-contents scans naming them, checked
+three ways on the sourcing run of the same day (a first draft of this entry
+said otherwise and was corrected before ratification). So no sibling replaces
+the three dropped circulars; the Vietnamese administrative register is the
+constitution. HAL holds 183 Vietnamese-language records,
+mostly 2022–2025 books, articles and communications. Gallica's fonds
+indochinois holds about 10 000 quốc ngữ documents from the 1922–1954 legal
+deposit and Abel des Michels' bilingual VN/FR editions of Lục Vân Tiên
+(`ark:/12148/bpt6k54602432`) and Kim Vân Kiều tân truyện
+(`ark:/12148/bpt6k54394659`). Internet Archive holds 214 Vietnamese texts
+published before 1936, Bonet's Dictionnaire annamite-français (1899) among
+them. Wikimedia Commons holds scans of Việt Nam sử lược and of the 1651
+Dictionarium Annamiticum Lusitanum et Latinum. English Wikisource holds the
+Vietnamese constitutions of 1946 to 2001. HAL and Gallica answer scripted
+clients with a challenge page (Anubis, ALTCHA), so their entries are pinned
+by a browser fetch rather than by the script. R29's anchors thus grow from one
+bilingual decision to three shapes: a FR–VN scan, EN–VN official texts, a
+VN–FR dictionary. Cautions recorded: the 1922–1954 deposit is not public
+domain by age, so each author's death date is checked; Internet Archive's
+Vietnamese Marx and Lenin translations carry translators' rights and stay out;
+Gallica states about 84 % OCR accuracy on des Michels, which is the dirty
+corpus the ticket wanted and slows answer pinning.
+
+**6. The fixture is a recipe plus an export, not committed `pdftotext`
+output.** Probe of the same day against the public API, unauthenticated:
+zoteus indexes what Zotero's `/fulltext` endpoint serves and never extracts
+PDFs for indexing (`fulltext-source.ts`; pdfjs serves only the page locator).
+Zotero's client extraction against PR #151's `pdftotext` text: Malynes, 45 of
+45 pages indexed, word-set Jaccard 0,585; Cournot, 100 of 230, 0,606; Walras,
+100 of 270, 0,391; zero form feeds in the served content. The Zotero-sourced
+text is at once more faithful to what the system sees and truncated at the
+client's 100-page default, and page breaks are lost. Three layers, each
+regenerable from the one below it: (a) the source recipe, committed — archive
+identifier, byte hash, item metadata, licence basis, per document; (b) an
+injection script into a collection of a public library, attachments as linked
+files so no storage quota is spent, with the client version and the two
+indexing preferences recorded beside the export; (c) the export snapshot,
+committed — the items JSON and each attachment's `/fulltext` JSON captured from
+the API, replayed by the harness through the mock local API ticket 0026 plans,
+so the real build path runs offline and a recipient needs neither key nor
+client. A re-pin is a re-export whose diff is the review artifact, per D11.
+Consequences accepted: R24's page ranges are decided at library level against
+bytes fetched by identifier and hash, the fixture carrying only
+`indexedPages`/`totalPages`; a group-library slice needs a closed group, since
+public open groups cannot hold files.
+
+Two readings recorded as the agent's, not the author's, so either can be
+struck in a word. Difficulty tiers (easy, medium, hard corpora) were declined
+in favour of the facet, lane and signal labels the spec already rules, with
+difficulty an output per slice rather than a pinned attribute, cost tiers
+(fast-suite subset, full corpus, monster cell) being the only tiering kept.
+And §5.2.6's fusion weights "tuned against the golden set" cannot also be
+judged by it without leakage; a held-out slice or a separate tuning set is
+needed. Neither is ruled.
+
+What this changes. Ticket 0029's exit criteria are amended in the same change
+and carry the per-document re-sourcing table. PR #151's 19 documents are
+re-sourced under ruling 2 and its `text.txt` files are superseded under ruling
+6; whether that PR is amended or closed is the author's call and is asked on
+the ticket log. SPEC.md §5.2.8's fixture description takes the three-layer
+shape in a follow-up edit, the system's terms only. The FAOLEX question
+(awaiting, below) decides whether Decision 11/2017 keeps its seat.
+
+**2026-09-02 — FAOLEX is admitted as the archive for Decision 11/2017; the
+national legal database is not.** The author's ruling on the awaiting entry of
+the same date: "FAOLEX is better." Decision 11/2017/QĐ-TTg and its official
+English translation keep their seat as the slice's bilingual administrative
+anchor, sourced from FAOLEX (`LEX-FAOC179224`) and nowhere else, under the four
+fields the assessment asked for: the `docs/pdf/` address rather than the
+portal page, the byte hash, the LEX identifier, and the Wayback capture date
+(2025-02-03 at the time of ruling). A hash mismatch is read as a diff to
+inspect, since the source is unversioned and a corrected translation may
+replace the file under the same identifier. vbpl.vn is not admitted; the
+Vietnamese originals of any other circular come from Wikisource under ruling 5
+of the fixture entry above. What the ruling weighs, recorded so it is not
+reopened: FAOLEX is unversioned and increasingly closed to scripted clients,
+and it is still the only third-party public host of this document with a
+thirty-year record, a live 1990s address form, and two other organisations
+depending on it.
+
 **2026-09-02 — the segmenter's interface: structure signals in, entries out,
 seg/1 for the empty signal list.** The 2026-08-30 awaiting entry on the book
 segmenter asked for it — "the segmenter's interface should take structure
@@ -3366,6 +3496,38 @@ its own row, scored against the outline like every other. SPEC.md §5.2.2
 edited to match.
 
 ## Awaiting ratification
+
+- **Whether FAOLEX, and the Ministry of Justice's national legal database
+  vbpl.vn, count as archives for fixture documents (raised 2026-09-02) —
+  resolved 2026-09-02, same day: FAOLEX admitted for this document, vbpl.vn
+  not; see the ledger entry above.**
+  Decision 11/2017/QĐ-TTg and its official English translation, the slice's
+  one bilingual administrative anchor, survive outside Vietnamese government
+  hosts only at FAOLEX (`LEX-FAOC179224`, PDF at
+  `faolex.fao.org/docs/pdf/vie179224.pdf`); the Vietnamese originals of any
+  circular sit in vbpl.vn under stable record ids. Neither is versioned, both
+  are third-party public databases of record.
+
+  FAOLEX assessed 2026-09-02 for a five-year horizon. For longevity: online
+  since 1995 as successor to a print series run since 1954, domain captured
+  by the Wayback Machine since February 1999, the 1990s CGI address form still
+  answering 200, the 2012 and 2017 PDFs tested still served at their original
+  addresses, about 180 000 documents, and ECOLEX (IUCN, UNEP, FAO since 2001)
+  linking back to it for every PDF, so two other organisations depend on it.
+  For funding: FAO's Finance Committee paper FC 207/8 (April 2026) reports a
+  Regular Programme cash balance of USD 398 million, arrears of USD 147,6
+  million and EUR 92,4 million at end February 2026, a flat nominal 2026–27
+  budget abolishing 177 vacant posts; the USD 307 million the United States
+  withdrew hit voluntary emergency funding, and FAOLEX is Legal Office
+  normative work on assessed contributions, the protected side. Risks: the
+  new portal at fao.org/faolex answers 403 to scripted clients while the PDF
+  host still serves plain requests; no version numbers, no DOI, no published
+  preservation policy; the Wayback fallback holds the PDF (captured
+  2025-02-03) but was itself offline during the probe. Recommendation, the
+  agent's: admit FAOLEX for this document only, with the `docs/pdf/` URL, the
+  byte hash, the LEX identifier and the Wayback capture date all pinned, a
+  hash mismatch read as a diff to inspect. If neither host counts, the slice
+  stands without the decision and loses nothing R29 needs.
 
 - **Which index and extraction actions `zotero_index` should carry, and whether
   the chain's verb grammar still matches upstream's (raised 2026-09-02, the
