@@ -1292,9 +1292,12 @@ tokens ≈ 8–9 chunks each, so it becomes ~1 850 first-class peers. Under the
 primary class the same ruling gives an item tens of peers rather than
 hundreds, which is the entry ruling working, not a weaker version of it.
 
-The passage count does not move with this ruling and is not recomputed here:
-§5.2.9's 567 829 is measured over the corpus's total text, which segmentation
-does not change. What moves is *entry collapse*: fewer and larger entries mean
+The passage count is not recomputed here: §5.2.9's 567 829 is measured over
+the corpus's total text, which segmentation does not change, and it already
+carries the one correction segmentation makes — entry boundaries add chunk
+closures, so the census errs low by that margin, and by less under chapters
+than under headwords since a chapter closes fewer chunks. What moves is
+*entry collapse*: fewer and larger entries mean
 fewer collapsed hits per item, and a chapter-sized entry answers with a
 coarser locator than a dictionary headword does.
 
@@ -1958,7 +1961,7 @@ with reason; sections only ever the partial qualifier):
 > extracted and keyword-searchable back to 2016-04-11; 538 covered as
 > metadata-only (no extractable text). Semantic: 2,101 items fully embedded
 > back to 2019-09-02, newest first; 1 partially embedded (record + 214 of
-> ~1,850 entries — item DH8EXSVA). Building in background at idle
+> ~1,850 entries — item DH8EXSVA, the dictionary, the rare case). Building in background at idle
 > priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 
