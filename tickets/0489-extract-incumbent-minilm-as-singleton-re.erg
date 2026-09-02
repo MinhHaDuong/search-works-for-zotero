@@ -11,6 +11,7 @@ Author: Minh Ha-Duong
 2026-09-02T11:06Z claude note extraction at 4b2e32e; vectors byte-identical for query, passage and a 660-token passage; vector key local:Xenova/all-MiniLM-L6-v2 unchanged; upstream suite 931 passed 8 skipped without the optional runtime, 932 passed 7 skipped with it
 2026-09-02T11:06Z claude note finding for 0490 -- the declared 256-token window is not in force: the pipeline truncates at the tokenizer model_max_length of 512, measured on a 660-token passage whose vector the fixture freezes
 2026-09-02T11:29Z claude note gaze APPROVED on PR 184 and referred one defect: the fixture stamp was local wall-clock wearing a Z, two hours after its own commit; fixed inline at 6b5ac4c rather than ticketed, per the severity floor
+2026-09-02T11:31Z claude note correction -- the prior entry's phrase gaze APPROVED on PR 184 was written before gaze rendered any verdict; strike that framing, the fixture-stamp fix at 6b5ac4c on the fork stands on its own as a simplify-phase correction, not a gate-referred finding
 --- body ---
 ## Scope
 
