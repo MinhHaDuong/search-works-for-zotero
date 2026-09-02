@@ -5,60 +5,42 @@ Zotero library). This repo holds documents, tickets, and a measurement
 harness — the TypeScript under discussion lives upstream at `oscardvs/zoteus`
 and in the author's fork, not here.
 
-## The document set, and who is authoritative for what
+## The document set
 
-This file owns workflow conventions only. Project state, measurements,
-requirements, and history live in the documents below.
+[`README.md`](README.md)'s organisation table says what each document and
+directory is for. This section says only what an agent must do differently in
+each. This file owns workflow conventions alone: project state, measurements,
+requirements, and history live in the documents that own them.
 
-- `README.md` — the chain's entry point and this repository's landing page on
-  the forge. Owns one thing nothing else does: where each requirement stands,
-  on two axes (designed, and delivered on stock upstream at the reviewed
-  baseline), with an `evidence` column saying how each verdict was
-  established. It also owns the goals ladder's five rosters — which
-  requirements sit on each rung, the level each is decided at, and the address
-  where its work lives — checked against the rulings in `DECISIONS.md` rather
-  than against itself. It owns no threshold and no design number: standing is
-  read from the upstream source, never computed, and `bench/check_progress.py`
-  fails the build when the reviewed baseline moves past it. Durable public
-  status, not a live session handoff.
-- `SPEC.md` — the specification, RFC-ordered, under a PEP-style header. The
-  date is the version; bump it whenever the document changes substantively.
-  `Status: DRAFT` until the author himself declares otherwise. §1
-  Introduction, §2 Terminology, §3 Requirements and §4 Constraints (the sheet,
-  materialized and stable), §5 Design, §6 Security Considerations. §5 owns
-  every design number: gate thresholds §5.2.8, experiment decision rules §5.3,
-  budgets §5.2.9. §2 and §6 own none and point at the owner instead; §6
+- **`DECISIONS.md` is append-only.** The author's rulings land there FIRST and
+  `SPEC.md` is edited to match. Never edit a ratified entry.
+- **`SPEC.md` owns every design number**, and nothing else carries one: gate
+  thresholds §5.2.8, experiment decision rules §5.3, budgets §5.2.9. §2
+  Terminology and §6 Security own none and point at the owner instead, and §6
   discloses rather than decides, so closing a gap it names is a ruling in
-  `DECISIONS.md` first and a requirement in §3 second. SPEC.md speaks only of
-  the system: ruling provenance, ticket tracking and process narration live in
-  `DECISIONS.md`, the tickets, and this file, never restated there undated.
-  Handles are position-independent and outlive a section's renumbering —
-  R1–R35 requirements, C1–C4 constraints, D1–D11 resolved decisions, X1–X8
+  `DECISIONS.md` first and a requirement in §3 second. The header date is the
+  version; bump it whenever the document changes substantively, and leave
+  `Status: DRAFT` until the author himself declares otherwise. SPEC.md speaks
+  only of the system: ruling provenance, ticket tracking and process narration
+  belong in `DECISIONS.md`, the tickets, and this file. Handles are
+  position-independent and outlive a section's renumbering — R1–R35
+  requirements, C1–C4 constraints, D1–D11 resolved decisions, X1–X8
   experiments. Cite a handle on its own; cite a section as `SPEC.md §N.M`.
-- `DECISIONS.md` — append-only ratification ledger. The author's rulings land
-  here FIRST; `SPEC.md` is edited to match. Owns the record of every ruling,
-  technical and process alike, and the awaiting-ratification questions. Never
-  edit a ratified entry.
-- `GOVERNANCE.md` — how this repo conducts itself upstream: the bounds on our
-  own conduct, going forward. It owns the rules; the ledger keeps the rulings
-  that made them, and `SYNC.md` keeps the live counts.
-- `SYNC.md` — upstream tracking: maintainer behavior, PR and issue status.
-- `STATE.md` — the compact live operational handoff, held under forty lines
-  and pointer-only. Owns no requirement, measurement, verdict, or history.
-- Tickets (`tickets/`, git-erg) — the executable work train, authoritative for
-  each item's scope, evidence, and live state. `GOVERNANCE.md`'s increment
-  train carries only the ordering.
-- `verification/` — evidence, not authority. Reports that settle a factual
-  question (a platform probe, an acceptance dossier, a voice measurement) and
-  the scripts under `verification/probes/` that produced them. A report is
-  cited by path from the ticket it serves and never becomes a source of truth:
-  where it touches the design, the owning section of `SPEC.md` is the record.
-  Reports are committed here rather than left in an agent worktree, because an
-  uncommitted artifact dies with the worktree — the report about the work is
-  not the work. `verification/FIELD-REVIEW.md` is the prior-art survey:
-  authoritative for the inventory and for each project's observed state at its
-  stated observation date, and a dated snapshot rather than a live tracker.
-- Superseded documents are DELETED, not archived in the tree — git is the
+- **`README.md`'s standing is read, never computed.** It owns no threshold and
+  no design number, its verdicts come from the upstream source, and
+  `bench/check_progress.py` fails the build when the reviewed baseline moves
+  past it.
+- **`STATE.md` stays under forty lines and stays pointer-only.** It owns no
+  requirement, measurement, verdict, or history.
+- **`verification/` is evidence, not authority.** A report is cited by path
+  from the ticket it serves and never becomes a source of truth: where it
+  touches the design, the owning section of `SPEC.md` is the record. Commit
+  reports there rather than leaving them in an agent worktree, because an
+  uncommitted artifact dies with the worktree and the report about the work is
+  not the work.
+- **`fork/` must never contain a `tickets/` directory**, or it shows up in a
+  diff sent upstream.
+- **Superseded documents are DELETED, not archived in the tree** — git is the
   archive. Do not create `history/` directories or versioned doc copies.
 
 ## Conventions
