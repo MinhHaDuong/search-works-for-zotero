@@ -3570,6 +3570,30 @@ purpose. The conductor remains the sole writer; the completion result crosses
 the worker boundary, but the census write does not. No attempt count, retry
 ceiling or manual-repair prerequisite is introduced by this ruling.
 
+### 2026-09-02 — Multilingual renderings are evaluated, collapsed and shown as one work (ratified)
+
+The author ratified all four recommendations carried by ticket 0573. A
+*rendering* is one language expression of a work. First, the 157 measured
+English–Vietnamese twin records become a body-only parallel evaluation slice,
+run in both directions beside the golden cross-lingual slice and never in its
+place. Shared record fields are masked; the slice reports document- and
+passage-level hit@10 separately for en→vi and vi→en.
+
+Second, declared renderings of one work collapse to one answer row before the
+cut to k. Twin attachments under one record and explicit relations between
+records qualify; a similarity inference does not. Unlinked records remain
+separate. Third, the best-scoring rendering leads the row and the others are
+structured alternates carrying language and key. Ranking remains relevance
+only; query language does not replace the winning rendering.
+
+Fourth, D6 is amended from first-with-text per item to first-with-text per
+language. The deterministic first attachment in each detected language carries
+body text; same-language siblings keep a recorded skip reason. Attachment
+language is derived from extracted text by a small license-clean detector,
+stored as derived data, and never written back into Zotero. This amendment does
+not reopen the same-day ruling that translation detection, creation and library
+splitting belong outside this workshop.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -4250,7 +4274,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   six questions, 2026-09-02; brief drafted the same day, tracker ticket
   0573) — narrowed 2026-09-02, same day: questions 4, 5 and 6 are severed
   as a spinoff outside this workshop (ledger entry above, ticket 0574);
-  questions 1 to 3 stand as drafted and still await the ruling.** The facts are in `bench/results/0573-lang-census.txt`, measured on
+  questions 1 to 3 and the indexing half of question 6 were ratified
+  2026-09-02; see the ledger entry above.** The facts are in `bench/results/0573-lang-census.txt`, measured on
   the author's library by `verification/probes/lang_census.py`: half the
   records carry a language field, spelled twelve ways for three languages,
   113 of them "EN, VN" by hand; Zotero's relation vocabulary has no

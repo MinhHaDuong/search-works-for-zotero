@@ -1,0 +1,37 @@
+%erg 0.1
+Title: Add the EN-VI parallel retrieval gate
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0029
+Blocked-by: 0587
+
+--- log ---
+2026-09-02T15:23Z codex created
+
+--- body ---
+## Context
+
+The 2026-09-02 rendering ruling adopts the 157 measured EN+VI twin records as
+a parallel evaluation slice for R29. It complements the golden cross-lingual
+queries; it cannot replace them because equivalent documents measure alignment,
+not relevance to a user's question.
+
+## Actions
+
+1. Materialize a pinned body-passage slice from the declared twin attachments.
+2. Mask shared record title, abstract and other record fields.
+3. Run both en→vi and vi→en directions.
+4. Report hit@10 separately by direction and at document and passage level.
+
+## Test
+
+- A record-field-only retriever fails the slice rather than receiving credit.
+- Swapping query and answer languages exercises a distinct recorded arm.
+- The golden cross-lingual gate remains independently reported.
+
+## Exit criteria
+
+- [ ] The pinned slice contains only body evidence from declared renderings.
+- [ ] Four results are reported: two directions at two granularities.
+- [ ] The slice is beside, not substituted for, the golden R29 gate.
+- [ ] `make check` and `./tickets/erg check` pass.

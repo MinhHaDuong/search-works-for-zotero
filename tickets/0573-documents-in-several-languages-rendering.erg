@@ -2,12 +2,12 @@
 Title: Documents in several languages: renderings of one work, from evaluation to presentation
 Created: 2026-09-02
 Author: claude
-Label: needs-human
 
 --- log ---
 2026-09-02T07:19Z claude created
 
 2026-09-02T07:33Z claude note narrowed by the author's ruling 2026-09-02: questions 4-6 (autotag, translate, autosplit) are a library-management spinoff, ticket 0574 deferred; this tracker keeps 1-3 and, as the agent's reading, the indexing half of 6 (D6 per language) as the prerequisite of the parallel gate
+2026-09-02T15:25Z codex note author ratified all four recommendations; children 0587-0589 carry language detection, the parallel gate, and rendering collapse
 --- body ---
 ## Context
 
@@ -59,10 +59,24 @@ the query path. Collapse (c) acts on declared relations; which declarations
 zoteus reads (twin attachments; Related links) is specified with (c), and
 writing any of them is the spinoff's.
 
+## Ruling and children
+
+The author ratified all four recommendations on 2026-09-02. The implementation
+train is:
+
+- 0587 — detect attachment language and amend D6 to first-with-text per
+  language;
+- 0588 — add the body-only EN↔VI parallel evaluation slice;
+- 0589 — collapse declared renderings and present one row per work.
+
+Questions 4–6's library-management operations remain deferred to 0574; only
+question 6's indexing consequence entered this workshop.
+
 ## Exit criteria
 
-- [ ] The awaiting entry is ruled on, question by question; rejected
-      recommendations are recorded with the reason.
-- [ ] SPEC.md matches the ruling (term, D6, R24, §5.2.6), date bumped.
-- [ ] Children filed for the accepted recommendations and listed here.
+- [x] The awaiting entry is ruled on, question by question; all four
+      recommendations were accepted.
+- [x] SPEC.md matches the ruling (term, D6, R24, §5.2.6); its date was already
+      2026-09-02.
+- [x] Children filed for the accepted recommendations and listed here.
 - [ ] All children closed, then the integration review before this closes.

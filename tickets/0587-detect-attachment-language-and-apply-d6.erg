@@ -1,0 +1,41 @@
+%erg 0.1
+Title: Detect attachment language and apply D6 per language
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0554
+
+--- log ---
+2026-09-02T15:23Z codex created
+
+--- body ---
+## Context
+
+The 2026-09-02 rendering ruling amends D6 to first-with-text per detected
+language. Twin attachments in different languages are both body-text sources;
+same-language siblings retain D6's deterministic first choice and stored skip
+reason. This ticket owns the derived attachment-language field and the choice
+function. It never writes a language or relation into Zotero.
+
+## Actions
+
+1. Add a small license-clean language detector on extracted attachment text.
+2. Store its normalized language identifier as derived per-attachment state and
+   include detector identity in the derivation key.
+3. Change D6's choice function to select the first attachment per language by
+   ascending `dateAdded`, key tie-break.
+4. Report same-language skips and per-language coverage through the existing
+   ledger/status path.
+
+## Test
+
+- A bilingual item indexes one EN and one VI attachment.
+- Two same-language attachments index only the deterministic first and record
+  the other one's reason.
+- A detector-version or language-result change re-derives the choice.
+
+## Exit criteria
+
+- [ ] Attachment language is derived, keyed and stored without altering Zotero.
+- [ ] D6 selects one body attachment per detected language.
+- [ ] The bilingual and same-language controls pass.
+- [ ] `make check` and `./tickets/erg check` pass.

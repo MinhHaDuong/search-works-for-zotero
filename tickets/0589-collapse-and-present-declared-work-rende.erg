@@ -1,0 +1,39 @@
+%erg 0.1
+Title: Collapse and present declared work renderings
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0028
+Blocked-by: 0587
+
+--- log ---
+2026-09-02T15:23Z codex created
+
+--- body ---
+## Context
+
+The 2026-09-02 rendering ruling makes declared language renderings one answer
+row. Collapse happens before the cut to k and only for twin attachments or an
+explicit relation; similarity never silently merges records. The best-scoring
+rendering leads and the others remain structured alternates.
+
+## Actions
+
+1. Derive a work/rendering group from twin attachments and explicit relations.
+2. Collapse each declared group after entry collapse and before top-k.
+3. Preserve the best-scoring rendering as the ranked hit.
+4. Return other renderings as `{language, key}` alternates and render
+   `also in: <lang> (<key>)` where a textual row is required.
+
+## Test
+
+- Two declared renderings occupy one row and free the displaced top-k slot.
+- Two highly similar but unlinked records remain two rows.
+- A query in one language does not replace a better-scoring rendering in
+  another language.
+
+## Exit criteria
+
+- [ ] Declared renderings collapse before top-k; inferred ones do not.
+- [ ] Ranking follows the best-scoring rendering only.
+- [ ] Structured alternates carry language and key.
+- [ ] `make check` and `./tickets/erg check` pass.
