@@ -4,7 +4,7 @@ Created: 2026-08-31
 Author: claude
 Label: deferred
 Blocked-by: 0019
-Blocked-by: 0026
+Blocked-by: 0580
 
 --- log ---
 2026-08-31T15:19Z claude created
@@ -13,6 +13,7 @@ Blocked-by: 0026
 
 2026-08-31T15:20Z claude note deferred at the author's instruction, 2026-08-31, on the priority the whole train is ordered by: a library that cannot be fully searched is not improved by searching part of it better. Filed rather than dropped because the design below is the expensive half and it was derived once already; the measurement itself is a day's work on top of it
 
+2026-09-02T11:34Z claude note Blocked-by repointed from tracker 0026 (closed to a tracker on 2026-09-02, decomposed into 0578-0582) to 0580: this ticket's own body names the blocker as 'the harness that would show convergence actually reaches every item', which is 0580's scope (goal 3, the convergence harness and the soak), not the golden gate (0581) or the fixture corpus (0029). Never Blocked-by a tracker.
 --- body ---
 ## Context
 
@@ -53,8 +54,8 @@ of working a priority order, and a text-less attachment not recorded as
 done-with-a-reason (ticket 0019). Better chunking of a partial library is a
 refinement of the wrong thing.
 
-`Blocked-by` names 0019 and 0026 as the machine-readable proxy: 0019 is R1's
-unmet no-text clause, 0026 is the harness that would show convergence actually
+`Blocked-by` names 0019 and 0580 as the machine-readable proxy: 0019 is R1's
+unmet no-text clause, 0580 is the harness that would show convergence actually
 reaches every item. The true condition is R1 standing at delivered in
 `README.md`; reopen on that, not merely on those two closing.
 
