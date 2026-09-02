@@ -389,11 +389,23 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
     Migrated from `bench/smoke_upstream.py`'s `check_model_stays_in_data_dir`.
     Two things changed in the move and both are corrections.
 
-    It is no longer phrased over a path. The old check looked for a `models`
-    directory under a data directory it had been handed; this one exercises the
-    query surface — which is what triggers a download — and sweeps for whatever
-    appeared outside the declaration. A shared cache in the home directory is
-    caught without the layer knowing that such a thing exists.
+    It is no longer phrased over a path, and the old phrasing was not merely
+    narrow — it could not observe its own falsifier. That check named "a model
+    cache created outside the data directory (a shared cache, or the home
+    directory)" as what would falsify it, and then looked only for a `models`
+    directory *inside* the data directory. A run that wrote weights both inside
+    and outside passed cleanly, because the presence of state within the
+    declaration and the absence of state outside it are different claims and it
+    only ever tested the first. This is the shipped instance of what R15's
+    ratified clause means by a declaration nobody checks for completeness.
+
+    So this one exercises the query surface — which is what triggers a download —
+    and sweeps for whatever appeared outside the declaration. A shared cache in
+    the home directory is caught without the layer knowing that such a thing
+    exists. One corollary worth stating because it has already misled a report:
+    a green here from a data directory that was pre-populated says only that a
+    directory exists; it is not evidence that a download was constrained. The
+    `not-run` path below is what keeps that case from being read as a pass.
 
     Its undecided state is no longer `observed`. When a run creates nothing at
     all, the old check said `observed` and a reader had to work out that it

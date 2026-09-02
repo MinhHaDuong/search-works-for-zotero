@@ -161,6 +161,72 @@ def adapter_options(pairs: list[str]) -> dict[str, str]:
     return options
 
 
+def run_fixtures(arena: Path, output: Path) -> int:
+    """Drive every fail-control and record which state each assertion reached.
+
+    This is the gate's own positive control, and it inverts the usual reading:
+    a fixture built to fail an assertion must FAIL it, so this target is red
+    when the fail-controls come back green. A layer whose assertions have all
+    quietly stopped firing passes every target it is pointed at, and nothing
+    else in the harness can see that.
+
+    The committed artifact records verdicts, never paths: an arena lives under a
+    scratch directory whose name is one machine's business, and
+    `bench/results/**` is a public tree.
+    """
+    rows: list[dict] = []
+    for name in adapters.fixtures():
+        where = arena / name
+        where.mkdir(parents=True, exist_ok=True)
+
+        def make(at: Path, _name=name):
+            at.mkdir(parents=True, exist_ok=True)
+            return adapters.load(_name, at)
+
+        run = assess(make, base_arena=where, log_dir=where / "trace",
+                     drive_argv_for=lambda at, _name=name: [
+                         sys.executable or "python3", str(Path(__file__).resolve()),
+                         "--adapter", _name, "--arena", str(at), "--drive",
+                     ])
+        for check in run.checks:
+            row = {"fixture": check.target, "check": check.check,
+                   "requirement": check.requirement, "verb": check.verb,
+                   "result": check.result, "clause": check.clause,
+                   "falsified_by": check.falsified_by}
+            if check.check == "R10-no-egress" and isinstance(check.detail, dict):
+                subject = check.detail.get("subject") or {}
+                row["attempt_counts"] = subject.get("attempt_counts")
+            rows.append(row)
+        log.info("%-22s %s", name, run.summary())
+
+    reached = sorted({r["result"] for r in rows})
+    per_check: dict[str, set] = {}
+    for row in rows:
+        per_check.setdefault(row["check"], set()).add(row["result"])
+    never_red = sorted(c for c, states in per_check.items() if FAIL not in states)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps({
+        "probe": ("the acceptance layer's own fail-controls: every assertion driven to "
+                  "each state it can reach (SPEC.md §5.2.8; ticket 0578's Test section)"),
+        "not_a_test_suite": (
+            "these are fixtures, not targets. A red here is the instrument working: a "
+            "fixture built to fail an assertion must fail it, and this artifact is red "
+            "when the fail-controls come back green."),
+        "date": time.strftime("%Y-%m-%d"),
+        "states_reached": reached,
+        "assertions_never_seen_red": never_red,
+        "rows": rows,
+    }, ensure_ascii=False, indent=2))
+
+    log.info("wrote %s", output)
+    if never_red:
+        log.info("assertions never seen red against any fixture: %s", never_red)
+        return 1
+    log.info("every assertion was seen red against at least one fail-control")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--adapter", help="which target to run against; --list-adapters names them")
@@ -171,6 +237,8 @@ def main() -> int:
     ap.add_argument("--drive", action="store_true",
                     help="inner mode: call the offered verbs and print what happened")
     ap.add_argument("--list-adapters", action="store_true")
+    ap.add_argument("--fixtures", action="store_true",
+                    help="run every fail-control and record which state each assertion reached")
     ap.add_argument("--adapter-option", action="append", default=[], metavar="KEY=VALUE",
                     help="an input this adapter needs; repeatable, passed through uninterpreted")
     a = ap.parse_args()
@@ -180,6 +248,10 @@ def main() -> int:
         for name in adapters.available():
             print(name)
         return 0
+    if a.fixtures:
+        if not a.arena or not a.output:
+            ap.error("--fixtures needs --arena and --output")
+        return run_fixtures(Path(a.arena).resolve(), Path(a.output))
     if not a.adapter or not a.arena:
         ap.error("--adapter and --arena are required unless --list-adapters is given")
 

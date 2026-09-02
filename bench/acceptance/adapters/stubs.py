@@ -40,6 +40,13 @@ from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
 
+#: These are fixtures, not targets: they exist to drive the layer into each of
+#: its states, and a gate runs them to prove the assertions still fire. Declared
+#: here rather than recognised by a name prefix, so the driver can ask the
+#: adapters package which targets are fixtures without holding any of their
+#: names itself.
+IS_FIXTURE = True
+
 NAMES = (
     "stub-quiet",
     "stub-egress-ip",
@@ -47,6 +54,8 @@ NAMES = (
     "stub-strays",
     "stub-under-declares",
     "stub-verbless",
+    "stub-remote-embedder",
+    "stub-uninstall-leaves-residue",
 )
 
 #: A literal address off this machine, and a name that cannot resolve. The
@@ -159,6 +168,34 @@ class _StraysStub(_Stub):
         return {**outcome, "also_wrote": str(stray)}
 
 
+class _RemoteEmbedderStub(_Stub):
+    """R10's other fail-control: a default configuration whose embedder is hosted.
+
+    It makes no network call — the point is the *reported* configuration, which
+    is what the local-by-default clause reads. A target can be perfectly quiet
+    on the wire during a smoke run and still default to a hosted provider.
+    """
+
+    def status(self) -> dict:
+        return {"embedding": {"locality": "remote", "active": True,
+                              "model": "a-hosted-model"}}
+
+
+class _UninstallLeavesResidueStub(_Stub):
+    """R15's uninstall fail-control: the surface runs and its own state survives.
+
+    Distinct from the two residue fixtures, which are about the declaration's
+    completeness. Here the declaration is honest and complete, the uninstall verb
+    is genuinely offered, and it simply does not finish the job — which is the
+    literal reading of "after uninstall, none of that state may remain".
+    """
+
+    def uninstall(self) -> dict:
+        outcome = super().uninstall()
+        kept = self._write(self._data_dir() / "survivor.db", "still here\n")
+        return {**outcome, "kept": str(kept)}
+
+
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
                  unsupported: frozenset[str] = frozenset()) -> Declaration:
     return Declaration(
@@ -195,6 +232,12 @@ def build(name: str, arena: Path, **_opts):
         # naming a root the target never uses. Nothing here misbehaves — the
         # list is short, and only a sweep that looks at disk can tell.
         return _Stub(name, arena, _declaration(name, arena, roots=(arena / "declared-but-unused",)))
+
+    if name == "stub-remote-embedder":
+        return _RemoteEmbedderStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-uninstall-leaves-residue":
+        return _UninstallLeavesResidueStub(name, arena, _declaration(name, arena, roots=(data,)))
 
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(

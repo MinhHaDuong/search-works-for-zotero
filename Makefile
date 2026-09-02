@@ -12,7 +12,12 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup
+
+# Where the acceptance layer's arenas live: outside the repository, because the
+# residue sweep fills them with a target's derived state and bench/ is scanned
+# by the guards above. Override to put them elsewhere.
+ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -25,6 +30,7 @@ help:
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
+	@echo "make acceptance-fixtures — the acceptance layer's fail-controls still fail"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
@@ -98,6 +104,25 @@ tickets:
 # defect. Needs real history — the guard says so on a shallow checkout.
 ticket-logs:
 	python3 bench/check_ticket_logs.py
+
+# The acceptance layer's own positive control, and it reads backwards on
+# purpose: the fail-controls MUST fail. A fixture built to break an assertion
+# that comes back green means the assertion has stopped firing, and nothing else
+# in this repository can see that — a layer whose checks have quietly gone inert
+# passes every target it is pointed at. The driver exits nonzero when any
+# assertion was never seen red, which is the state this target exists to catch.
+#
+# Deliberately NOT in `check`: it spawns sandboxed subprocesses and a tracer, so
+# it is an integration gate rather than part of a 9-second loop. `make check`
+# still covers the layer's logic through tests/test_acceptance_*.py.
+#
+# not-offered and not-run never redden this target. They are printed and counted
+# apart from green instead, per ticket 0578's Action 6: a gate that cannot look
+# reports that it could not look.
+acceptance-fixtures:
+	python3 bench/acceptance/run.py --fixtures \
+	  --arena "$(ACCEPTANCE_ARENA)/fixtures" \
+	  --output bench/results/smoke-1.12.0/acceptance-fixtures.json
 
 upstream-status:
 	@set -eu; \

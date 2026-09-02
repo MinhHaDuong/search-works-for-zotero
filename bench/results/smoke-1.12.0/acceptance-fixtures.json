@@ -1,0 +1,405 @@
+{
+  "probe": "the acceptance layer's own fail-controls: every assertion driven to each state it can reach (SPEC.md §5.2.8; ticket 0578's Test section)",
+  "not_a_test_suite": "these are fixtures, not targets. A red here is the instrument working: a fixture built to fail an assertion must fail it, and this artifact is red when the fail-controls come back green.",
+  "date": "2026-09-02",
+  "states_reached": [
+    "fail",
+    "not-offered",
+    "pass"
+  ],
+  "assertions_never_seen_red": [],
+  "rows": [
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "fail",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 2,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "fail",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 8
+      }
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "fail",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "fail",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "fail",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "fail",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "fail",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "fail",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "not-offered",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "not-offered",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    }
+  ]
+}

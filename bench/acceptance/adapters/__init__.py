@@ -40,6 +40,22 @@ def available() -> list[str]:
     return sorted(_modules())
 
 
+def fixtures() -> list[str]:
+    """The adapters that are fail-controls rather than targets.
+
+    A module declares `IS_FIXTURE = True` to say its targets exist to drive the
+    layer into each of its states. The driver asks this rather than matching a
+    name prefix, which is what lets it run the fail-controls without holding any
+    fixture's name — the same rule the layer itself is held to.
+    """
+    found: list[str] = []
+    for name, module_name in _modules().items():
+        module = importlib.import_module(f"{__name__}.{module_name}")
+        if getattr(module, "IS_FIXTURE", False):
+            found.append(name)
+    return sorted(found)
+
+
 def load(name: str, arena: Path, **opts) -> Target:
     """Build the named target's adapter, or say what the choices were."""
     where = _modules()
