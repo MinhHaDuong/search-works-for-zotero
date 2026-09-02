@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Full-text control for search-works-for-zotero",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Two local endpoints on Zotero's server: reindex named attachments in full, and report their indexing state. A measurement aid for the segmenter experiment; installs live, no restart.",
   "homepage_url": "https://github.com/MinhHaDuong/search-works-for-zotero",
   "browser_specific_settings": {
