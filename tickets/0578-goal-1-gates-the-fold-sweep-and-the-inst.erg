@@ -9,6 +9,7 @@ Author: claude
 2026-09-02T11:02Z claude note R15's LADDER ADDRESS IS LEFT POINTING AT TICKET 0017, deliberately and not by oversight, flagged by the verification round on PR 182. README.md's goal-1 row for R15 addresses ticket 0017 (closed: custody quick wins, model cache under the data directory), while this ticket carries R15's deletion clause. The two do not contradict each other as they stand: 0017 is where the clause's measured half lives, and R15's own standing row already says so -- the model-cache check found the downloaded model does not escape the data directory, and nothing has swept for other survivors. That sweep is Action 2 here. What is open is whether the ladder cell should re-address to this ticket once the sweep exists, which is a call about README's standing report and was fenced out of the decomposition's scope (the directive named nine cells, all of them reading 'ticket 0026', and forbade touching other README text). Whoever picks this ticket up should make the call with the author when the sweep lands, not before. R10's cell needs nothing: it addresses bench/smoke_upstream.py, which is the file this ticket extends.
 2026-09-02T11:57Z claude note RESCOPED for the target-neutral harness. The author restated the standing constraint today: the acceptance harness must be applicable to any Zotero AI retrieval tool -- zoteus first, Zotero core pull request 6012 second, a third to be proposed. The ruling drafted for ratification the same day (DECISIONS.md, awaiting) makes it one assertion layer over a seven-verb target interface plus a thin adapter per target. This ticket now builds the layer and the zoteus adapter as its first adapter; the three assertions and the sweep are unchanged in substance and rephrased over the interface. It stays unblocked, because the layer runs against zoteus whatever the ruling says. One item waits and is named in the exit criteria rather than as a Blocked-by: R15's uninstall clause reworded over declared derived state is a requirement change the author owns, and only the assertion's requirement text depends on it. Two additions the ruling paid for: R10's egress runs with no route out of the machine and takes Beaver, whose paid tier syncs libraries to its own servers, as the egress-by-design red fixture no configuration of ours can accidentally pass; and R15 gains a second red, an adapter that under-declares its roots, because a declaration nobody checks for completeness grades itself.
 2026-09-02T12:18Z claude note ACTION NUMBERS MOVED IN THE RESCOPE, and the 11:02Z entry above cites one of them. Its closing sentence, "That sweep is Action 2 here", named the R15 residue sweep; the rescope inserted the assertion layer and the zoteus adapter ahead of the assertions, so that sweep is now Action 4 and Action 2 is the zoteus adapter. Nothing about the sweep's substance changed. The question that entry raises is unchanged and still the author's: whether README.md's goal-1 row for R15, addressing ticket 0017 today, should re-address to this ticket once the sweep exists.
+2026-09-02T14:11Z codex note AUTHOR SETTLED THE INTERFACE after mapping it against shipped zotero_index and the proposed UI: install, uninstall, configure, query, status, pause, resume. Pause/resume are the two transitions of one durable background-work control; resume is idempotent and never forces rebuild, refresh, repair or sync. Convergence is observed after the harness changes its fixture library, never commanded or nudged, because a nudge cannot prove R1's unattended clause. Uninstall is invoked through the real target surface and its residue checked independently. Per-item reextract/unquarantine and destructive whole-library rebuild remain separately tested management actions. DECISIONS.md's awaiting brief carries the analysis; its judge, roster and R15 decisions still await their turns.
 --- body ---
 ## Context
 
@@ -76,10 +77,11 @@ is where they go.
 ## Actions
 
 1. The assertion layer. Every assertion is phrased over the interface's seven
-   verbs — install, configure, index a declared fixture library, query in the
-   three modes R33 names, stop background work, delete declared derived state,
-   status — and names the verb it called plus the surface the adapter declared
-   for it. No path, no file layout, no tool name. Each assertion keeps the
+   verbs — install, uninstall, configure, query in the three modes R33 names,
+   status, and durably pause or resume background work — and names the verb it
+   called plus the surface the adapter declared for it. Convergence is an
+   outcome the layer observes after changing the fixture library, never a
+   verb it calls. No path, no file layout, no tool name. Each assertion keeps the
    record shape `check()` already carries and gains two fields: the target it
    ran against and the verb it called. A verb a target does not offer is
    declared absent by its adapter, and every assertion needing it reports "not
@@ -91,13 +93,13 @@ is where they go.
    that line — what they assert becomes a layer assertion, what they hardcode
    becomes an adapter declaration.
 3. R10's egress clause: my library text and my queries stay on this machine
-   without an opt-in. Drive install, configure, index and query through the
+   without an opt-in. Drive install, configure, resume and query through the
    adapter inside a network namespace with no route out (or the platform's
    equivalent), and assert that nothing tried to leave — the run completes and
    no connection to a destination off this machine is attempted. Observing no
    egress on a machine that has a route asserts the default, not the clause.
 4. R15's deletion clause over declared derived state. Event-then-state, per
-   0026's log of 2026-08-31T20:08Z: call the delete verb and observe it as an
+   0026's log of 2026-08-31T20:08Z: call `uninstall` and observe it as an
    event, then assert the state that follows — nothing the install wrote
    survives outside the adapter's declared roots. The residue sweep is what
    makes the declaration falsifiable; a declared list nobody checks for

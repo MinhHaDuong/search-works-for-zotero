@@ -4316,17 +4316,32 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   extending `bench/smoke_upstream.py` with assertions that read the zoteus
   server directly, which is the shape this ruling corrects before it sets.
 
-  **The interface.** Seven verbs, and every assertion is phrased over them:
-  `install`; `configure`; `index` a declared fixture library; `query` in the
-  three modes R33 names, where the target has them; `stop` background work;
-  `delete` the target's declared derived state; `status`. The list is short
-  because these are the things a user does, and it stops where it does for
-  the same reason. There is no `embed`, no `chunk`, no `extract`: those are
-  how a target meets a requirement, and an assertion reaching for them has
-  left the sheet and started grading an implementation. A target that does
-  not offer a verb declares it absent, and each assertion needing it reports
-  "not offered" rather than passing quietly, per the honest-state discipline
-  ticket 0578 inherits from tracker 0026.
+  **The interface.** The author settled the architecture and this interface
+  on 2026-09-02. Seven verbs, and every assertion is phrased over them:
+  `install`; `uninstall`; `configure`; `query` in the three modes R33 names,
+  where the target has them; `status`; `pause`; `resume`. `Pause` and `resume`
+  are the two transitions of the one durable background-work control R22
+  requires: resume clears the durable pause, is a no-op when work is already
+  enabled, and never forces a rebuild, refresh, repair or synchronization.
+  Starting and stopping the target process remain harness setup declared by
+  the adapter, not indexing controls.
+
+  Convergence is an observed outcome, not an interface command. The harness
+  changes the fixture library outside the target and watches `status`; it does
+  not nudge the target, since a nudge cannot prove R1's unattended clause.
+  Likewise uninstall is the real user-facing operation, not a command to
+  delete the expected postcondition: after calling `uninstall`, the harness
+  independently inventories derived state and residue. Per-item `reextract`
+  and `unquarantine`, and a destructive whole-library rebuild, remain
+  separately tested management actions rather than interface aliases.
+
+  The list is short because these are the things a user does, and it stops
+  where it does for the same reason. There is no `embed`, no `chunk`, no
+  `extract`: those are how a target meets a requirement, and an assertion
+  reaching for them has left the sheet and started grading an implementation.
+  A target that does not offer a verb declares it absent, and each assertion
+  needing it reports "not offered" rather than passing quietly, per the
+  honest-state discipline ticket 0578 inherits from tracker 0026.
 
   **The adapter contract.** A thin adapter declares, and does nothing else.
   It MUST declare five things: every path the target writes outside the
