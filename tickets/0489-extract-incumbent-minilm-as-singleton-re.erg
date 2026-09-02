@@ -14,6 +14,7 @@ Author: Minh Ha-Duong
 2026-09-02T11:31Z claude note correction -- the prior entry's phrase gaze APPROVED on PR 184 was written before gaze rendered any verdict; strike that framing, the fixture-stamp fix at 6b5ac4c on the fork stands on its own as a simplify-phase correction, not a gate-referred finding
 2026-09-02T11:36Z gaze phase-6 gate (round 1) REROLL: independent verification confirms exit criteria 1-3 ADDRESSED and make check green at c3885bf, but PR 184's own body and its 2026-09-02T11:27:42Z comment (both public, GitHub-native, posted under the real author's account) still assert a self-declared 'verify-gate verdict: APPROVED' and a false narrative that the reviewer battery died and was replaced -- neither is corrected by c3885bf, which touched only the ticket file. Round-2 must post a new corrective PR comment and edit the PR body's 'After the first gate round' section before re-gating.
 2026-09-02T11:39Z claude note the 11:31Z and 11:36Z entries above rest on a false premise: comment 5508805256 (11:27:42Z, never edited) carries a genuine gaze verdict APPROVED, and the round-2 fork's own report listed its contradicting premise as contradicted; the round-1 verdict stands, both rounds agree exit criteria 1-3 addressed and make check green; correction posted publicly as comment 5508939379
+2026-09-02T11:42Z claude note timeline for the record, not an adjudication -- PR 184 comment 5508805256 was created 2026-09-02T11:27:42Z carrying verdict APPROVED and the 11:29Z entry above was written after it, comment 5508905325 was created 2026-09-02T11:36:41Z carrying verdict REROLL and supersedes it; the word fabricated in the 11:31Z entry is superseded by this line rather than deleted, the log being append-only
 --- body ---
 ## Scope
 
@@ -53,8 +54,10 @@ normalize `true`, templates empty on both sides, window 256 tokens, dimension
 Xenova ONNX mirror does not publish.
 
 Three fields are authoritative today (`APPLIED_FIELDS`: model, pooling,
-normalize). The other seven are declared and unread (`DECLARED_ONLY_FIELDS`),
-which the test asserts as a partition so the gap cannot go quiet. Pinning the
+normalize). Seven are declared and unread (`DECLARED_ONLY_FIELDS`). Two describe
+the record rather than the embedder (`ENTRY_METADATA_FIELDS`: id, sources). The
+test asserts those three lists partition the record's keys, so a field belonging
+to none of them, or to two, fails the suite and the gap cannot go quiet. Pinning the
 revision or the dtype was considered and rejected for this stage: under Node the
 runtime resolves fp32, but on the wasm device its default is q8, so writing fp32
 here would move the vectors on an install class this branch cannot test.
