@@ -3379,3 +3379,40 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   ratifying; the alternative is to revert §5.2.2 and re-land it behind a
   ruling, which changes no code — `ledger.ts` already implements the corrected
   order and pins all three directions with tests.
+
+**2026-09-02 — the synthetic fallback is one constant, ~12k tokens, for every
+class.** Ruled on the first of the two blocking items the raid review left on
+ticket 0502's merge request (#157). The propagation of the 2026-08-31 ruling
+had replaced seg/1's ~6k-token fallback size with a policy — "the largest
+synthetic entries the downstream geometry accepts" — and deferred the number
+to X5. Both halves were void. Nothing downstream bounds an entry's size: chunks
+stop at entry boundaries, the embed work order packs to its own token budget,
+entry collapse yields one hit per entry whatever its length, and the locator's
+offsets and page estimate belong to the chunk. And X5 cannot supply the number,
+because it samples *accepted* boundaries and the fallback fires exactly where
+there are none; no experiment in the roster measures fallback size, and none
+could, since it is a choice about hit granularity rather than a fact about the
+corpus.
+
+The author ruled one constant, ~12k tokens — about twenty chunks, a short
+chapter — for every class, the dictionary included, labeled as an input
+assumption the way the dictionary arithmetic already is. Two alternatives were
+argued and rejected. A per-class constant selected by Zotero item type keeps
+the dictionary's 6k, but the fallback fires on the documents whose class the
+segmenter could not read, so a class-conditional size conditions on what was
+just shown to be missing — and the corpus's own dictionary is filed as a book,
+so the selector is weak on the one class it exists for. A count-targeted rule
+(total tokens over a target of tens, clamped) is the entry ruling's own
+arithmetic, but it puts three numbers where one would do and a fictional count
+on a path whose point is that no structure was found. The segmenter field
+review offers no precedent for fallback sizing and recommends against
+cohesion-based segmentation for this scope, so no fourth option stood.
+
+What the ruling changes: the dictionary's separate ~6k calibration is retired,
+and the "until X5 runs" clause is deleted rather than reworded. The stakes are
+higher than the old text implied, and are stated in SPEC.md §5.2.2: since the
+2026-09-01 ruling seg/1 is the PDF path's fallback as well, and X5's own
+failure branch has synthetic entries carrying the whole corpus, so this
+constant is the answer unit for every document without readable structure.
+Propagated in the same change, on ticket 0502's branch. The second blocking
+item, X5's table-of-contents circularity, is ruled separately.

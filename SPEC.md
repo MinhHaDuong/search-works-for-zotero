@@ -2,7 +2,7 @@
 
 - **Status:** DRAFT
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-01
+- **Date:** 2026-09-02
 
 ## 1. Introduction
 
@@ -1279,8 +1279,8 @@ the dictionary's own machinery is named where it survives as a special case.
 - Cut entries at accepted headings.
 - Confidence = the fraction of text inside confirmed entries.
 - Below confidence 0.5, fall back to synthetic entries cut at paragraph
-  boundaries, labeled as synthetic. The size is stated against the primary
-  class, not the rare one — see the fallback paragraph below.
+  boundaries, ~12k tokens each for every class, labeled as synthetic — see
+  the fallback paragraph below.
 
 Entry arithmetic. A book's entry is a **chapter**: tens per item, not
 hundreds. A proceedings' entry is a paper, on the same order. That is the
@@ -1298,16 +1298,26 @@ does not change. What moves is *entry collapse*: fewer and larger entries mean
 fewer collapsed hits per item, and a chapter-sized entry answers with a
 coarser locator than a dictionary headword does.
 
-The synthetic fallback, re-sized. ~6k tokens approximates a dictionary entry
+The synthetic fallback, re-sized. ~6k tokens approximated a dictionary entry
 and is a fraction of a book chapter, so carrying that number into the primary
-class shreds a below-gate book into fragments that are neither entries nor
-chapters. The fallback is therefore stated as a *policy* rather than as one
-constant: cut at paragraph boundaries into the largest synthetic entries the
-downstream geometry accepts, and label them synthetic. The ~6k-token figure
-stays as the rare case's calibration, where a synthetic entry and a real one
-are the same size. What the primary class's number should be is not settled
-by arithmetic here — X5 is what measures it, and until X5 runs the fallback's
-honest promise is its label, not its size.
+class would shred a below-gate book into fragments that are neither entries
+nor chapters. The fallback is one constant for every class, the dictionary
+included: cut at paragraph boundaries into synthetic entries of ~12k tokens —
+about twenty chunks, a short chapter — and label them synthetic. One constant
+rather than a per-class rule, because the fallback fires on exactly the
+documents whose class the segmenter could not read, so a class-conditional
+size would condition on what was just shown to be missing; and one constant
+rather than a count-targeted rule, because a target count is a fiction on a
+path whose point is that no structure was found. The figure is an input
+assumption, labeled and unmeasured. No experiment measures it and none could:
+X5 samples accepted boundaries, and the fallback fires where there are none.
+The size is a choice about hit granularity, and a synthetic entry's honest
+promise is its label. Nothing downstream bounds the size — chunks stop at
+entry boundaries, the embed work order packs its own token budget, and entry
+collapse yields one hit per entry whatever its length — so the constant is
+what sets a structureless document's share of the candidate pool: a 100k-token
+book contributes at most eight entries. The dictionary's ~6k calibration is
+retired with it.
 
 The segmenter is the design's biggest unmeasured bet; experiment X5 gates it
 (§5.4, risk 1).
