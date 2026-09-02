@@ -82,7 +82,22 @@ a file the *plugin itself* writes — `zotseek.sqlite` — because the host comi
 up proves nothing about the target. A timeout waiting on the host's own
 `zotero.sqlite` would be a false red against the target.
 
-**7. Three distinct kinds of absence now sit under `not-offered`, and only the
+**7. `query_transport` presumes a wire, and this target has none.** The field
+asks how the query surface is reached, and the other two adapters answer with a
+protocol. This target reads the library through the host's own in-process data
+layer — `Zotero.Items.getAsync`, `Zotero.Search`, `Zotero.Libraries`,
+`Zotero.Fulltext.getPages`, `attachment.attachmentText`
+(src/utils/zotero-api.ts:203-241, 376-421, 474; src/core/hybrid-search.ts:344,
+385-386) — and it ATTACHes its own sidecar to the host's LIVE SQLite connection
+(src/core/vector-store-sqlite.ts:267-293). It never reads the library over the
+local HTTP API; the only occurrence of that port in the source is prose telling a
+user how to point an MCP client at it (src/server/mcp-endpoint.ts:10). So the
+assumption that a target reaches Zotero over a wire — which is what an adapter's
+`query_transport` is shaped to describe — is false for this architecture class,
+and the field can say so only in prose. Verified at the lane lead's request,
+2026-09-03.
+
+**8. Three distinct kinds of absence now sit under `not-offered`, and only the
 reason field separates them.** That field landed in ticket 0597 and this target
 is where it earns its place: zoteus reports "there is no such surface", zotero-mcp
 reports "there is no such work to control", and ZotSeek reports a third thing —
@@ -263,7 +278,20 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
             "with-plugin arm and in the host-only arm alike. Turning the preference on "
             "is a non-default option, which the ratified contract forbids in as many "
             "words, and it would also change R10's subject by opening a listening "
-            "socket the default configuration does not open."
+            "socket the default configuration does not open.\n\n"
+            "What this field cannot say, and it is the sharper half: there is no wire "
+            "here at all. This target reaches the library through the host's own "
+            "in-process data layer — Zotero.Items.getAsync, Zotero.Search, "
+            "Zotero.Libraries, Zotero.Fulltext.getPages, attachment.attachmentText "
+            "(src/utils/zotero-api.ts:203-241, 376-421, 474; "
+            "src/core/hybrid-search.ts:344, 385-386) — and ATTACHes its own sidecar "
+            "database to the host's live SQLite connection "
+            "(src/core/vector-store-sqlite.ts:267-293). It never reads the library over "
+            "the local HTTP API; the only occurrence of that port in its source is "
+            "prose telling a user how to point an MCP client at it "
+            "(src/server/mcp-endpoint.ts:10). An external server has a transport to "
+            "declare; a plugin has the host's data layer in hand, and the field is "
+            "shaped for the first."
         ),
         default_configuration=(
             f"the release artifact {ARTIFACT} sideloaded into the profile's "
