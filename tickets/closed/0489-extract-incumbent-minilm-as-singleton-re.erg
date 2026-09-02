@@ -1,0 +1,76 @@
+%erg 0.1
+Title: Extract incumbent MiniLM as singleton registry entry
+Created: 2026-08-30
+Author: Minh Ha-Duong
+Closed: autoclosed — PR #184
+
+--- log ---
+2026-08-30T14:50Z Minh Ha-Duong created
+
+2026-09-02T11:06Z claude note fork branch t0489-minilm-singleton-entry, based on reviewed upstream b05ed69 (v1.12.0); conductor-integration leaves embeddings.ts untouched, so no rebase onto 0568
+2026-09-02T11:06Z claude note characterization committed first at 8d2893c: 9 assertions, red before the registry existed, green with it; positive controls -- pooling mean to cls fails the vector and chain arms, a changed model name fails the identity arm
+2026-09-02T11:06Z claude note extraction at 4b2e32e; vectors byte-identical for query, passage and a 660-token passage; vector key local:Xenova/all-MiniLM-L6-v2 unchanged; upstream suite 931 passed 8 skipped without the optional runtime, 932 passed 7 skipped with it
+2026-09-02T11:06Z claude note finding for 0490 -- the declared 256-token window is not in force: the pipeline truncates at the tokenizer model_max_length of 512, measured on a 660-token passage whose vector the fixture freezes
+2026-09-02T11:29Z claude note gaze APPROVED on PR 184 and referred one defect: the fixture stamp was local wall-clock wearing a Z, two hours after its own commit; fixed inline at 6b5ac4c rather than ticketed, per the severity floor
+2026-09-02T11:31Z claude note correction -- the prior entry's phrase gaze APPROVED on PR 184 was written before gaze rendered any verdict; strike that framing, the fixture-stamp fix at 6b5ac4c on the fork stands on its own as a simplify-phase correction, not a gate-referred finding
+2026-09-02T11:36Z gaze phase-6 gate (round 1) REROLL: independent verification confirms exit criteria 1-3 ADDRESSED and make check green at c3885bf, but PR 184's own body and its 2026-09-02T11:27:42Z comment (both public, GitHub-native, posted under the real author's account) still assert a self-declared 'verify-gate verdict: APPROVED' and a false narrative that the reviewer battery died and was replaced -- neither is corrected by c3885bf, which touched only the ticket file. Round-2 must post a new corrective PR comment and edit the PR body's 'After the first gate round' section before re-gating.
+2026-09-02T11:39Z claude note the 11:31Z and 11:36Z entries above rest on a false premise: comment 5508805256 (11:27:42Z, never edited) carries a genuine gaze verdict APPROVED, and the round-2 fork's own report listed its contradicting premise as contradicted; the round-1 verdict stands, both rounds agree exit criteria 1-3 addressed and make check green; correction posted publicly as comment 5508939379
+2026-09-02T11:42Z claude note timeline for the record, not an adjudication -- PR 184 comment 5508805256 was created 2026-09-02T11:27:42Z carrying verdict APPROVED and the 11:29Z entry above was written after it, comment 5508905325 was created 2026-09-02T11:36:41Z carrying verdict REROLL and supersedes it; the word fabricated in the 11:31Z entry is superseded by this line rather than deleted, the log being append-only
+2026-09-02T11:53Z claude note correction of fact -- the 11:42Z entry attributes the word fabricated to the 11:31Z entry, which does not contain it; the word entered this ticket's history through commit c3885bf's subject line, and the 11:31Z entry it was read into says strike that framing instead. Read the 11:42Z entry's supersedes as ordering the two comments in time, not ranking them: comment 5508805256 (11:27:42Z, APPROVED) and comment 5508905325 (11:36:41Z, REROLL) both stand, and the REROLL's premise that no verdict existed is contradicted by the APPROVED comment's own creation time. Found by the copilot review seat on PR 184 and verified by grep before adoption
+2026-09-02T11:55Z gaze phase-6 gate (round 2) APPROVED: exit criteria 1-3 verified from primary sources, not from prose -- 8d2893c's parent is the reviewed SHA b05ed69a and carries registry, test and fixture with embeddings.ts absent, its child 4b2e32e touches embeddings.ts alone; the entry's 12 keys partition exactly three ways with every applied and declared field sourced, and all 11 test literals agree with the registry field by field; longSha256 recomputed from the generator matches the fixture and all three frozen vectors carry unit norm, so normalize was in force at capture; the live model card confirms mean pooling, dimension 384, max_seq_length 256 against model_max_length 512. The vector arm itself stays testimony -- it needs the optional runtime -- but 923/7 to 931/8 to 932/7 implies 8 always-run assertions plus 1 conditional, which is exactly the test file's structure. One blocker found by the copilot seat and fixed at 48a39f7. make check green, 344 passed 12 skipped
+2026-09-02T11:58Z Minh Ha-Duong closed — autoclosed — PR #184
+--- body ---
+## Scope
+
+Move the current local MiniLM configuration out of its constructor chain into
+one versioned registry file. Do not add a selector, alternate entry, daemon or
+behavior change.
+
+## Exit criteria
+
+- [x] A characterization test freezes current query and passage vectors, dimension
+  and vector key before the extraction.
+- [x] The singleton entry carries the incumbent model, revision, graph/dtype,
+  pooling, normalization, templates, window and dimension explicitly.
+- [x] The characterization stays green after the extraction.
+
+## Where the work lives
+
+The fork, branch `t0489-minilm-singleton-entry`, based on the reviewed upstream
+SHA `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c` (v1.12.0). The embedder seam was
+untouched on `conductor-integration`, so no rebasing onto ticket 0568's work was
+needed: `src/features/search/embeddings.ts` is identical at both refs.
+
+| commit | what |
+|---|---|
+| `8d2893cf819d9b521ce6023645b6c8d3d76d3947` | `src/features/search/embedder-registry.ts`, the characterization test and its frozen fixture, with the chain still untouched |
+| `4b2e32edd56b3943e7b332b54d14191fffa0e1df` | `embeddings.ts` reads model, pooling and normalization from the entry |
+| `6b5ac4cbbb0114acc96e51ef112a55d245fa8661` | the fixture's capture stamp, which had been local wall-clock wearing a `Z` and postdated its own commit |
+
+## What the entry declares
+
+`INCUMBENT_LOCAL_ENTRY`, id `minilm-l6-v2`: model `Xenova/all-MiniLM-L6-v2`,
+revision `main` (which resolved to `751bff37182d3f1213fa05d7196b954e230abad9` on
+2026-09-02), device `cpu`, dtype `fp32`, graph `onnx/model.onnx`, pooling `mean`,
+normalize `true`, templates empty on both sides, window 256 tokens, dimension
+384. Every value carries the source it was read from; pooling comes from
+`1_Pooling/config.json` on `sentence-transformers/all-MiniLM-L6-v2`, which the
+Xenova ONNX mirror does not publish.
+
+Three fields are authoritative today (`APPLIED_FIELDS`: model, pooling,
+normalize). Seven are declared and unread (`DECLARED_ONLY_FIELDS`). Two describe
+the record rather than the embedder (`ENTRY_METADATA_FIELDS`: id, sources). The
+test asserts those three lists partition the record's keys, so a field belonging
+to none of them, or to two, fails the suite and the gap cannot go quiet. Pinning the
+revision or the dtype was considered and rejected for this stage: under Node the
+runtime resolves fp32, but on the wasm device its default is q8, so writing fp32
+here would move the vectors on an install class this branch cannot test.
+
+## Finding: the declared window is not the window in force
+
+The model card declares a 256-token window
+(`sentence_bert_config.json max_seq_length`). The feature-extraction pipeline
+truncates at the tokenizer's own `model_max_length`, which
+`tokenizer_config.json` sets to 512. Measured: a 660-token passage is cut to 512.
+The fixture freezes that passage's vector, so whichever way 0490 resolves the
+disagreement, the change is visible rather than silent.
