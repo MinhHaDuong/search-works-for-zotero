@@ -7,6 +7,7 @@ Author: Minh Ha-Duong
 2026-08-30T16:09Z Minh Ha-Duong created
 
 2026-08-31T05:38Z claude note FIRST EXIT CRITERION ANSWERED at source 2026-08-30 (clone of zotero/zotero, PR head 77e2c4b), and the answer is stronger than 'not exposed yet'. No supported external call exists, and none can exist while the runtime is Gecko's. Two findings. (1) Against the true merge-base 3af8cea, the PR touches NO server, API or connector file -- git diff --name-only over the PR range returns nothing under xpcom/server/ -- so the boundary this ticket asks to confirm rather than infer is confirmed, and confirmed at source rather than from internal JavaScript names. (2) The reason is structural: Zotero.ML is a 236-line wrapper (chrome/content/zotero/xpcom/ml.js, absent from main, added by this PR) over Firefox's own runtime -- ChromeUtils.importESModule('resource://gre/actors/MLEngineParent.sys.mjs') at :69, createEngine at :124, ModelHub at :208, EngineProcess at :231, gated on Services.prefs browser.ml.enable / checkForMemory / minimumPhysicalMemory at :92-98; embeddings.js calls Zotero.ML.createEngine with backend 'onnx-native' at :670 and :3785, and takes its tokenizer from chrome://global/content/ml/transformers.js at :1570. resource://gre and chrome://global resolve only inside a Gecko process, and ChromeUtils/Services are XPCOM globals, so a Node process cannot reach any of it. Consuming an existing API is therefore OFF the outcome list for 0491; what remains is the bridge specification or deferral. TWO THINGS FOR THE REMAINING CRITERIA. The comparison criterion has to carry R30 (ratified 2026-08-30): the advantage zoteus holds is that a native process reaches CUDA where that runtime has no GPU path, so a bridge that moves inference into Zotero forfeits the requirement rather than merely trading RAM. And the portable half of this runtime -- transformers.js over onnxruntime -- is what bench/ already runs, and upstream asks for the same native ONNX backend, so the reusable part is already had; what the bridge would buy is model download, cache custody and engine lifecycle, not inference itself
+2026-09-02T19:11Z claude note SECOND PASS 2026-09-02, at source, no clone. HEAD CURRENCY: gh api pulls/6012 called 2026-09-02T19:04Z returns state open, merged false, head 77e2c4b, base ff93139, changed_files 56, updated_at 2026-08-28T21:32:13Z -- the head has NOT moved since the 2026-08-30 read, so the prior reading IS the current reading and that is what answers 'verify against the current head'. Findings re-derived at 77e2c4b anyway, from a different surface (the API, not a clone), and all prior line numbers reproduce except the tokenizer import URL, which is embeddings.js:1571 not :1570 (:1570 is the importESModule call). FOUR THINGS. (1) The 56-file set contains no path under xpcom/server/ and no connector; the 16999-line unified diff contains zero occurrences of Zotero.Server.Endpoints / Zotero.Server / endpoints[ -- and that null is a finding only because the same pattern fires 20+ times against server_localAPI.js @77e2c4b, e.g. the registration at :811. server_localAPI.js and server_connector.js @77e2c4b mention neither Zotero.ML nor Zotero.Embeddings. No route returns a vector. (2) NEW, and it refines rather than contradicts the prior note: one indirect route does reach inference. The PR's root-level bestMatch condition executes inside Zotero.Search.search() at data/search.js:837-845 via Zotero.BestMatch.scoreItemIDs, and upstream's own comment at data/search.js:832-835 names 'the API' as a consumer; the route /api/users/:userID/searches/:searchKey/items exists at server_localAPI.js:1218 and saved searches are writable (POST at :1556-1567). So an external caller CAN make Zotero embed a query -- and gets back ranked item keys, no vector, no batching, no passage route, at the cost of writing a synced saved search per query. Read from source, not executed. (3) DECISIVE, and it inverts the direction: embeddings.js:1028-1053 already routes PASSAGES to an external endpoint via the pref embeddings.endpoint, with the TEI wire shape POST {inputs:[...],truncate:true} at :953-971, 3 attempts, 2000 ms backoff. Zotero #6012 can already be pointed at an embedding server WE own. Caveats, all at source: the pref is undeclared (defaults/preferences/zotero.js declares model/indexingPaused/indexFulltext/reranker, not endpoint) and appears in no UI, locale or test; queries always embed locally (embedQuery never consults it); the request carries no model, revision or dimension, so vector identity crosses unchecked; and after 3 failures the batch silently embeds locally under the same model version. (4) No execution-provider selection exists: ml.js:115-129 passes taskName/modelId/backend and nothing else, and the only performance knob is numThreads (embeddings.js:679, :3794) from getOptimalConcurrency, documented at ml.js:131-133 as the count 'the runtime recommends for CPU inference'. Constraint (ii) verified against our own tree: bench/recall_embed.mjs:62 imports @huggingface/transformers and :156 records runtime '@huggingface/transformers in Node (ONNX)'; registry.mjs:37-41 defaults to kind onnx. Exit criteria 3 and 4 are NOT RUN, not negative -- both need a running #6012 build, which exists nowhere reachable from this lane; the one experiment each needs is in verification/BRIDGE-0496.md section 5. OUTCOME for 0491: REJECT reuse with the blocking fact. Report: verification/BRIDGE-0496.md
 --- body ---
 ## Context
 
@@ -27,16 +28,22 @@ mandatory Zotero plugin is evidence about feasibility, not an adoption path.
 
 ## Exit criteria
 
-- Verify against the current #6012 head whether any supported external call can
-  request query and batched passage embeddings.
-- If absent, specify the smallest upstream bridge: model/version identity,
+- [x] Verify against the current #6012 head whether any supported external call
+  can request query and batched passage embeddings.
+  (verification/BRIDGE-0496.md §1, §2.1, §2.4 — head unmoved at 77e2c4b, API
+  called 2026-09-02T19:04Z; no route returns a vector, positive control fired)
+- [x] If absent, specify the smallest upstream bridge: model/version identity,
   query versus passage role, batching, dimension, runtime/provider identity,
   cancellation, errors and availability. It accepts text transiently and
   exposes neither Zotero's embedding database nor arbitrary profile access.
-- Test whether vectors returned by Zotero's native ONNX backend satisfy X8
+  (verification/BRIDGE-0496.md §3.1 inbound, §3.2 outbound)
+- [ ] Test whether vectors returned by Zotero's native ONNX backend satisfy X8
   against the same registry entry used in-process; a failure keeps provider in
   vector identity.
-- Compare cold-start, steady RAM, model-cache custody, version skew and failure
-  behavior with in-process zoteus and a generic local endpoint.
-- Record one outcome for ticket 0491: consume an existing API, propose the
+  (NOT RUN — needs a running #6012 build; the one experiment is in §5)
+- [ ] Compare cold-start, steady RAM, model-cache custody, version skew and
+  failure behavior with in-process zoteus and a generic local endpoint.
+  (NOT RUN — same blocker; the one experiment is in §5)
+- [x] Record one outcome for ticket 0491: consume an existing API, propose the
   bridge upstream, defer pending #6012, or reject reuse with the blocking fact.
+  (REJECT reuse with the blocking fact — verification/BRIDGE-0496.md §6)
