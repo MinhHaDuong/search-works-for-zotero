@@ -3093,8 +3093,40 @@ entry forbids, already shipped under another name, and a model will call it.
   dispatches `zotero_index` by action — `action:"status"` and `action:"build"`
   are attested (`verification/SMOKE-1.10.0.md`, `UPSTREAM-1.12.0-REREAD.md`,
   `SYNC.md` #39) — while SPEC.md §5.2.7 and §5.1 speak of verbs (`build`,
-  `pause`, `sync`, `purge`). Whether those are the same surface at v1.12.0 is
-  unverified here, and the shipped action list has not been enumerated.
+  `pause`, `sync`, `purge`).
+
+  Enumerated 2026-09-02 from `src/tools/index-tool.ts:22` at the reviewed SHA
+  (`b05ed69`, v1.12.0), one dispatch table: `status | update | build | refresh
+  | stop`, with `library_type`/`library_id`, `limit` (can only lower the cap),
+  `own_words`, `fulltext`, `fulltext_max_chars`; the whole tool annotated
+  `readOnlyHint: false`, status included. `update` is the cheap one — the
+  `?since=` delta, a keys-only census for deletions, and a read of Zotero's
+  separate full-text sequence — and falls back to a full rebuild by itself
+  when a delta would be wrong. `build` is the whole-library rebuild, resuming
+  from a checkpoint where one exists, and it is also the only repair: an
+  unreadable index is `unlink`ed and recreated (`repair.ts:54`), as consent
+  (#21). `refresh` is `build` with `fresh: true`, always from scratch. `stop`
+  is `requestStop()` in memory: it cancels the running job after the current
+  page or batch, and `auto_build` on `zotero_semantic_search` restarts a build
+  on the next query against an empty index. Six gaps against the chain follow
+  from the list. (1) The review entry above named `build` as the verb that
+  must mean "nudge the tick"; the name was written before the list was read
+  and is wrong — `update` is the nudge, §5.2.4's `sync`, and `build` and
+  `refresh` are the two bulk verbs, shipped, which the tool's own description
+  spends a paragraph steering the model away from. The intent stands, the
+  name is corrected here. (2) `pause` does not exist: `stop` is not durable,
+  which is the §5.1 finding that made pause a row, so R22 has no upstream verb
+  and three of the chain's four verbs are design rather than surface. (3)
+  `build` deletes rather than sidelines on an unreadable index, where the
+  open-time schema mismatch sidelines (`SMOKE-1.10.0.md`) — two policies for
+  two faults, the second erasing evidence, to be read against R23. (4)
+  `refresh` on a model change is the start-over D3 serve-stale kills; under
+  the chain it is a key-bump that drains newest-first and drops nothing. (5)
+  Nothing is per item: every action is library-scoped, and `reextract` and
+  `unquarantine` have no shipped ancestor. (6) `fulltext` is a parameter of
+  the call, not a property of the index, so two calls with different flags
+  build different indexes; under R1 coverage belongs to the tick, not to the
+  caller.
 
   What the topology rulings settle in advance: a P0 cannot enqueue work, so a
   management action received by a server writes an *intent* row that the writer
@@ -3112,10 +3144,10 @@ entry forbids, already shipped under another name, and a model will call it.
   would reopen exactly the mass-replay hole the quarantine auto-clear amendment
   closed (§5.1).
 
-  One constraint is already ruled (the review entry above): upstream's
-  `action:"build"` means "nudge the tick", idempotent and cheap, and never
-  "re-derive everything" — read the other way it is the bulk verb this entry
-  forbids, already shipped under another name.
+  One constraint is already ruled (the review entry above), and renamed by
+  the enumeration: the nudge — idempotent, cheap, never a re-derivation — is
+  `update`, not `build`; `build` and `refresh` are the bulk verbs this entry
+  forbids calling casually, and they are already shipped.
 
   Two of the actions are not new features but existing holes: §5.2.8 already
   declares work counters for triggers no verb produces (`re-extract`, `retry`),
