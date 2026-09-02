@@ -17,6 +17,7 @@ Author: claude
 2026-09-02T07:52Z claude note PROBE 2026-09-02, public Zotero API, unauthenticated: zoteus indexes the /fulltext content the client extracted, never its own PDF extraction. Against PR #151's pdftotext text: Malynes 45/45 pages, word-set Jaccard 0,585; Cournot 100 of 230 pages indexed, 0,606; Walras 100 of 270, 0,391; zero form feeds. The committed text.txt files measure a different extractor than the one the system sees
 2026-09-02T07:52Z claude question PR #151 (branch t29-corpus-assembly) now conflicts with rulings 2 and 6: its documents are re-sourced and its text.txt files superseded. Amend it to the recipe-plus-export shape, or close it and start from the manifest alone? The author's call
 2026-09-02T07:52Z claude note OPEN QUESTION carried in DECISIONS.md awaiting: whether FAOLEX (and vbpl.vn) count as archives. Decides whether Decision 11/2017 and its official English translation keep their seat as the bilingual administrative anchor; the slice stands without it
+2026-09-02T08:00Z claude note RULED 2026-09-02 (DECISIONS.md): FAOLEX admitted for Decision 11/2017 and its official English translation, vbpl.vn not. Pin the docs/pdf address, the byte hash, LEX-FAOC179224 and the Wayback capture date; a hash mismatch is a diff to inspect. The open question of the previous entry is closed
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -46,7 +47,7 @@ corpus stays out.
 | status | documents | action |
 |---|---|---|
 | compliant | Johnson, Baudelaire, Stein, Curie, Einstein-Minkowski (archive.org) | keep; record identifier + hash |
-| archive named, fetched by key | Cournot (Gallica), Walras, Porte, Minkowski (Internet Archive), Decision 11/2017 (see FAOLEX question) | record identifier, re-fetch from the archive, compare hash |
+| archive named, fetched by key | Cournot (Gallica), Walras, Porte, Minkowski (Internet Archive), Decision 11/2017 (FAOLEX `LEX-FAOC179224`, admitted 2026-09-02: docs/pdf URL, hash, LEX id, Wayback date) | record identifier, re-fetch from the archive, compare hash |
 | library-only or non-archive host | Malynes, Ramsey, Depitre, Neurath (find archive scans); Circulars 25/2016, 41/2010, 42/2010 (replace by sibling circulars on vi.wikisource); Habilitation (HAL, versioned); Highway Code (UK Government Web Archive snapshot, or drop) | re-source or drop |
 
 ## Vietnamese slice, rebuilt (ruling 5)
@@ -56,8 +57,8 @@ corpus stays out.
 - Cross-lingual anchors for R29: des Michels' Lục Vân Tiên and Kim Vân Kiều
   (Gallica, FR–VN in one scan); a constitution in vi.wikisource and its
   English text in en.wikisource (EN–VN); Bonet 1899 (Internet Archive, VN–FR
-  dictionary, pairs with Johnson). Decision 11/2017 stays only if FAOLEX is
-  admitted (DECISIONS.md, awaiting).
+  dictionary, pairs with Johnson); Decision 11/2017 with its official English
+  translation, from FAOLEX (admitted 2026-09-02, vbpl.vn not).
 - Same work in two shapes: Việt Nam sử lược as a Commons scan and as a
   Wikisource transcription.
 - Chinese-script bonus for the SHOULD tier: Đại Việt sử ký toàn thư's original.

@@ -3317,6 +3317,23 @@ the ticket log. SPEC.md §5.2.8's fixture description takes the three-layer
 shape in a follow-up edit, the system's terms only. The FAOLEX question
 (awaiting, below) decides whether Decision 11/2017 keeps its seat.
 
+**2026-09-02 — FAOLEX is admitted as the archive for Decision 11/2017; the
+national legal database is not.** The author's ruling on the awaiting entry of
+the same date: "FAOLEX is better." Decision 11/2017/QĐ-TTg and its official
+English translation keep their seat as the slice's bilingual administrative
+anchor, sourced from FAOLEX (`LEX-FAOC179224`) and nowhere else, under the four
+fields the assessment asked for: the `docs/pdf/` address rather than the
+portal page, the byte hash, the LEX identifier, and the Wayback capture date
+(2025-02-03 at the time of ruling). A hash mismatch is read as a diff to
+inspect, since the source is unversioned and a corrected translation may
+replace the file under the same identifier. vbpl.vn is not admitted; the
+Vietnamese originals of any other circular come from Wikisource under ruling 5
+of the fixture entry above. What the ruling weighs, recorded so it is not
+reopened: FAOLEX is unversioned and increasingly closed to scripted clients,
+and it is still the only third-party public host of this document with a
+thirty-year record, a live 1990s address form, and two other organisations
+depending on it.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
