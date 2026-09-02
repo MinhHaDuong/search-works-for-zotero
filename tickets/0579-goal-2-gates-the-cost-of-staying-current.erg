@@ -1,0 +1,109 @@
+%erg 0.1
+Title: Goal-2 gates: the cost of staying current, and the schema flip served
+Created: 2026-09-02
+Author: claude
+
+--- log ---
+2026-09-02T10:51Z claude created
+
+--- body ---
+
+## Context
+
+Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
+this is rung 2 of five children, and 0026 is the tracker. Goal 2 is "it does not
+lose or corrupt what it built" (README.md, "## The goals ladder"): three terms
+that need a built index but not a good one, because a build that cannot survive
+its own second day never reaches the rungs above.
+
+Two of the three are this ticket's. R3 — what staying current costs is what
+changed, never the size of the library — is the counter-churn clause, measured
+by R17's own counters: edit one title and exactly the work that title implies
+recomputes; resync identical bytes and nothing downstream of verification runs.
+SPEC.md §5.2.8 calls this the test that would have caught the shipped 92,7 %
+defect. R23 — an index under another schema version ends up serving, either
+direction, no file deleted by hand — already has its damage-prevention half
+running: `bench/smoke_upstream.py` restamps a copy of a built index in both
+directions and asserts the foreign stamp is read before the file is opened
+writable, with the results in `bench/results/smoke-1.12.0/checks.json`. What is
+missing is the serving half, which is the design's promise and upstream issue
+\#34's, and which no restamp can establish. The third term, R13, is ticket 0035's.
+
+The substrate exists. Tranche 1 (ticket 0551, closed) built the ledger schema,
+the reconcile tick and the fixtures on the fork branch `conductor-integration`
+(the integration base ruled in ticket 0568, closed), so the counters R3's
+assertion reads are there to read. Nothing open blocks this ticket.
+
+## Relevant files
+
+- Fork branch `conductor-integration` — the substrate: tranches 1-3 and the v2
+  content schema in one tree. `make upstream-checkout` recreates the git-ignored
+  `fork/`; do not overwrite an existing checkout.
+- `bench/smoke_upstream.py` — `_restamp_and_open`,
+  `check_foreign_schema_is_sidelined`, `check_migration_absent`: R23's
+  damage-prevention half, already asserted.
+- `bench/results/smoke-1.12.0/checks.json` — the verdict record.
+- `SPEC.md` §5.2.8, "**Counters (C4)**" — the two-axis work counters
+  (`work.<stage>.<trigger>.<outcome>`) R3's assertion is written against, and the
+  `noop`/`done` distinction that makes the resync clause stateable.
+- `SPEC.md` §5.2.4 — freshness: how the index finds out what changed.
+- `README.md`, "## Goal 2 — it does not lose or corrupt what it built".
+
+## Actions
+
+1. Build R3's assertion against a built index on the fork branch: edit exactly
+   one title, then assert `work.record.edit.done == 1`,
+   `work.embed.edit.done == sections(record)`, and every other `*.done` delta
+   zero. §5.2.8 states the arithmetic; cite it rather than copying it.
+2. The resync half: a simulated identical-bytes resync recomputes nothing. Every
+   `*.done` delta is 0 and the touched items appear only under
+   `work.*.resync.noop`. Verification itself runs and the gate MUST permit
+   exactly that and nothing downstream of it.
+3. R23's serving half. The restamp test says this build declines a foreign file;
+   the promise is that the index ends up served. Assert the outcome — that a
+   file stamped either way is being answered from, with no file deleted by hand
+   — and where stock upstream does not yet do it, record the red honestly and
+   name upstream issue \#34 as where it is filed. A waiver is a state, not a pass.
+4. Both assertions run from the Makefile at goal 2's place in the gate estate.
+
+## Test
+
+Red first. For R3, the red fixture is the churn defect itself: a resync path
+that recomputes on unchanged bytes must drive the assertion red, or the
+assertion is watching the wrong counter. Build that arm before the green one —
+a check written after the code it validates tends to be written against what the
+code does. For R23's serving half the red state is the current one, and it has
+to be seen as red rather than skipped: a gate that skips when the capability is
+absent reports the same thing whether the capability is absent or the gate is
+broken.
+
+## Verification
+
+- [ ] R3's edit assertion and its resync assertion each carry their own id and
+      `falsified_by` string in the checks record.
+- [ ] The churn arm was seen red before the clean arm was seen green.
+- [ ] R23's serving assertion reports a state, not a skip, and names issue \#34.
+- [ ] The counters read are the ones §5.2.8 declares; no counter name is
+      invented here.
+- [ ] `make check` green; `./tickets/erg check` green.
+
+## Invariants
+
+- The unit is the MUST clause, not the requirement: one assertion per clause, so
+  README.md's `delivered` column becomes a count rather than a reader's
+  judgement. Inherited from the tracker, ticket 0026.
+- Honest red and waiver states in the Makefile, never a green that means "could
+  not look". Inherited from the tracker, ticket 0026.
+- R23's damage-prevention half already passes and must keep passing: this ticket
+  adds the serving half and touches neither existing check.
+- No threshold or design number is restated here; SPEC.md §5.2.8 owns them.
+
+## Exit criteria
+- [ ] R3's edit clause asserted against the built index, with a churn arm seen red
+- [ ] R3's identical-bytes resync clause asserted, verification permitted and
+      nothing downstream of it
+- [ ] R23's serving clause asserted in both directions, its current state
+      recorded honestly rather than skipped
+- [ ] both run from the Makefile with honest red/waiver states
+- [ ] README.md's goal-2 rows for R3 and R23 carry an evidence verdict that
+      rests on something that ran

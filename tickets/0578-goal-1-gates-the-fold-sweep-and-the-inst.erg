@@ -1,0 +1,113 @@
+%erg 0.1
+Title: Goal-1 gates: the fold sweep and the install-and-remove assertions
+Created: 2026-09-02
+Author: claude
+
+--- log ---
+2026-09-02T10:51Z claude created
+
+--- body ---
+
+## Context
+
+Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
+this is rung 1 of five children, and 0026 is the tracker. Goal 1 is the
+cheapest rung on the ladder (README.md, "## The goals ladder"): its assertions
+need no corpus, no build and no library, so they are decidable the moment the
+system is installed. The ruled method is tests first, bottom-up — a rung is
+declared only when its assertions run, which is why the evidence column on
+README.md is the test column.
+
+Three of goal 1's four terms are this ticket's, plus one clause that belongs to
+a higher rung and is built here anyway. R10 and R15 are goal 1's; R22 stays on
+goal 1's roster but is owned by ticket 0033, and R31 by ticket 0488 — neither is
+this ticket's work, and the ladder's roster is not a claim about who builds it.
+The fourth item is R19's normalizer sweep, which sits on goal 3 and is built
+with this batch because it is the cheapest gate on the sheet (0026's log,
+2026-08-31T20:08Z) and needs nothing a goal-1 assertion does not already need.
+R19's other half — the two normalizers agreeing at index time — needs a built
+index and stays with ticket 0580.
+
+`bench/smoke_upstream.py` already carries two of these against stock upstream at
+the reviewed SHA in `UPSTREAM`: `check_local_by_default` (R10, the default
+embedder is local, asserted against a running server rather than the source) and
+`check_model_stays_in_data_dir` (R15's model-cache clause, inherited when R28
+merged into R15). What is missing is R10's second half, R15's deletion clause,
+and the sweep.
+
+## Relevant files
+
+- `bench/smoke_upstream.py` — the gate this ticket extends; its `check()`
+  helper is the assertion record (id, requirement, clause, falsified_by).
+- `bench/fold_sweep.mjs` — the R19 sweep. Today it always exits 0, prints a
+  WARNING, and crashes on any tree lacking `normalizeForSearch`.
+- `bench/results/smoke-1.12.0/checks.json` — where the run's verdicts land.
+- `UPSTREAM` — the reviewed SHA and the repository URLs; `make upstream-checkout`
+  recreates the git-ignored `fork/` at it.
+- `SPEC.md` §5.2.8 — the fold gate's specification. Cite it; do not restate it.
+- `README.md`, "## Goal 1 — I can install it and take it off again" — the rung's
+  roster and the level each term is decided at.
+
+## Actions
+
+1. R10's second clause: my library text and my queries stay on this machine
+   without an opt-in. The existing check establishes that the default embedder
+   is local; the clause is about egress, so assert it as egress — no network
+   destination outside the machine is contacted on a default-configured run
+   that indexes and answers.
+2. R15's deletion clause: deleting the data directory is the whole uninstall.
+   Event-then-state, per 0026's log of 2026-08-31T20:08Z — observe the deletion
+   as an event and then assert the state that follows it, rather than asserting a
+   state that a prior run could also have produced. The residue to look for is
+   anything the install wrote outside the data directory.
+3. The R19 codepoint sweep: give `fold_sweep.mjs` the classification fallback
+   (`tokenize`-only when `normalizeForSearch` is absent, so a pre-fold tree is
+   red by a recorded miss count and not by a crash), nonzero exit codes, and a
+   writable built checkout to point at. The scripts it must cover are R7's, read
+   from the sheet rather than restated here; 0026's log of 2026-08-31T13:38Z
+   records why Arabic, Devanagari and Chinese break a Latin-plus-Cyrillic sweep's
+   assumptions.
+4. Wire the batch into the Makefile with honest states. A gate that cannot look
+   reports that it could not look.
+
+## Test
+
+Red first, and the red state has to be produced rather than argued. For the
+sweep that is a pre-fold tree: check out upstream below v1.7.2, run the gate,
+and see a nonzero exit with a miss count — the fallback path is exactly the one
+no green run exercises. For R15's deletion clause the red fixture is an install
+that writes a file outside the data directory, planted on purpose. For R10 the
+red fixture is a configuration that opts egress in: the assertion must go red
+there, or it is asserting the default rather than the clause.
+
+## Verification
+
+- [ ] Each new assertion appears in `bench/results/smoke-1.12.0/checks.json`
+      with its own id, requirement and `falsified_by` string.
+- [ ] Each was seen red once, against the fixture named in Test, before it was
+      seen green.
+- [ ] `fold_sweep.mjs` exits nonzero on a pre-fold tree and zero against stock
+      at the reviewed SHA, and neither outcome is a crash.
+- [ ] `make check` green; `./tickets/erg check` green.
+
+## Invariants
+
+- The unit is the MUST clause, not the requirement: one assertion per clause, so
+  README.md's `delivered` column becomes a count rather than a reader's
+  judgement. Inherited from the tracker, ticket 0026.
+- Honest red and waiver states in the Makefile, never a green that means "could
+  not look". Inherited from the tracker, ticket 0026.
+- No threshold, budget or design number is restated here. SPEC.md §5.2.8 owns
+  the gates and §5.2.9 the budgets; this ticket cites addresses.
+- The gate runs against stock upstream at the reviewed SHA in `UPSTREAM` and
+  changes no upstream code.
+
+## Exit criteria
+- [ ] R10's egress clause asserted, seen red against an opted-in fixture
+- [ ] R15's deletion clause asserted event-then-state, seen red against a
+      planted out-of-directory residue
+- [ ] R19's codepoint sweep classifies instead of crashing, exits nonzero on a
+      pre-fold tree, and covers the script classes R7 declares
+- [ ] the three run from the Makefile with honest red/waiver states
+- [ ] README.md's goal-1 rows carry an evidence verdict that rests on something
+      that ran, for the terms this ticket asserts
