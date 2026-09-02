@@ -234,9 +234,9 @@ above.
 
 | | the clause goal 2 binds | decided at | where its test would live |
 |---|---|---|---|
-| R3 | what staying current costs is what changed, never the size of the library | both | ticket 0026 |
+| R3 | what staying current costs is what changed, never the size of the library | both | ticket 0579 |
 | R13 | two server processes on one data directory, no corruption and no duplicated work | both | ticket 0035 |
-| R23 | an index under another schema version ends up serving, either direction, no file deleted by hand | both | ticket 0026 |
+| R23 | an index under another schema version ends up serving, either direction, no file deleted by hand | both | ticket 0579 |
 
 ## Goal 3 — it answers, and it is honest about what it has
 
@@ -249,13 +249,13 @@ which emptiness an empty one is.
 
 | | the clause goal 3 binds | decided at | where its test would live |
 |---|---|---|---|
-| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, coverage returning the same way after a schema-version flip, and superseded work draining to the latest chain unattended | both | ticket 0026 |
-| R4 | the index answers while it is still filling, its first build included | both | ticket 0026 |
-| R6 | the query path waits for no freshness work | both | ticket 0026 |
-| R17 | how much is searchable, per stage, in one sentence, naming the device serving | both | ticket 0026 |
-| R18 | an empty answer says which it is: nothing matched, or this scope is not indexed yet | both | ticket 0026 |
-| R19 | every token the query normalizer makes, the index normalizer can make too | both | ticket 0026 |
-| R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0026 |
+| R1 | the whole library is covered unattended and newest-first, a text-less attachment ending covered with its reason, coverage returning the same way after a schema-version flip, and superseded work draining to the latest chain unattended | both | ticket 0580 |
+| R4 | the index answers while it is still filling, its first build included | both | ticket 0580 |
+| R6 | the query path waits for no freshness work | both | ticket 0580 |
+| R17 | how much is searchable, per stage, in one sentence, naming the device serving | both | ticket 0580 |
+| R18 | an empty answer says which it is: nothing matched, or this scope is not indexed yet | both | ticket 0580 |
+| R19 | every token the query normalizer makes, the index normalizer can make too | both | ticket 0578, ticket 0580 |
+| R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0580 |
 
 ## Goal 4 — it finds the right thing, in my languages, and I can open it
 
