@@ -776,7 +776,10 @@ This constraint is sharpened on three points:
 - Even Zotero accepts a staleness residue here: their embeddings layer
   deliberately does not chase a processor bump without a file change
   ("vectors stay derived from the older extraction until the file changes
-  or the index is rebuilt").
+  or the index is rebuilt"). Verbatim, and read at source: the attachment
+  staleness key is `md5(path|size|lastModified|processorVersion)`, and the
+  comment above it names the residue in those words
+  (`embeddings.js:2337-2345`, PR head `77e2c4b`, read 2026-09-02).
 
 ### C2 — the platform and the upstream project are both moving
 
