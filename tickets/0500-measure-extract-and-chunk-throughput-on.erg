@@ -50,63 +50,73 @@ platform has not indexed, where a 15k-page PDF yields tens of MiB of text
 Ran by `bench/extract_chunk_throughput.mjs`; artifact
 `bench/results/0500-extract-chunk/extract-chunk-throughput.json`. Host doudou,
 Intel i5-8250U at 1,6 GHz, node v22.23.1 — the machine SPEC.md §5.2.8 names.
-Load average 1,88 during the pass, from this session and one sibling agent; the
-extract term is bound by the platform's SQLite read over loopback rather than by
-CPU, so the figure is reported with the load rather than claimed to be taken on
-an idle machine.
+The chunker under measurement is imported from the built `dist` the server runs,
+not reimplemented, so the number cannot drift from the code it claims to measure.
+
+**Five repetitions over disjoint slices**, 80 items each, so no repetition reads
+an item an earlier one warmed. One pass is not a rate: four single-pass runs put
+the extract term between 0,14 and 0,26 ms per passage, and the median over
+disjoint slices is what the artifact quotes. Load average was 3,72 throughout —
+the machine was not idle, and the tight spread below is itself the evidence that
+this term is bound by a loopback read of the desktop application rather than by
+CPU.
 
 **What the build's extract stage actually is.** `build.ts` gets body text from
 `createFulltextSource`, whose `textFor` is a GET of the platform's own
 `/items/<key>/fulltext`. The population it can serve is exactly what
-`/fulltext?since=0` names, so an attachment the platform has not extracted is
-not in the list, the source cannot serve it, and the build never asks. The mix
-is therefore a property of the architecture, not of the library: **every extract
-a build performs is a cache hit, 8 037 of 8 037**. Measured beside it, on this
+`/fulltext?since=0` names, so an attachment the platform has not extracted is not
+in the list, the source cannot serve it, and the build never asks. The mix is
+therefore a property of the architecture, not of the library: **every extract a
+build performs is a cache hit, 8 037 of 8 037**. Measured beside it, on this
 library the parse path has no instance either — of 9 302 attachments, 59 PDFs
-carry no platform text and all 59 are `linked_url`, with no local file to parse.
+carry no platform text and **all 59 are `linked_url`**, with no local file to
+parse. That count is a census of content types and link modes, not an empty
+filter: a filter that finds nothing and one that cannot look return the same
+list.
 
-| stage | ms per passage |
-|---|---|
-| extract, one request in flight | **0,154** |
-| chunk (`chunkText`, 1200/150) | **0,028** |
-| extract + chunk, serial | **0,182** |
-| extract + chunk, at the build's own concurrency of 2 | **0,130** |
+| stage | ms per passage, median of 5 | min–max |
+|---|---|---|
+| extract, one request in flight | **0,142** | 0,137-0,145 |
+| chunk (`chunkText`, 1200/150) | **0,022** | 0,020-0,029 |
+| extract + chunk, serial | **0,164** | 0,157-0,174 |
+| extract + chunk, at the build's own local-API concurrency of 2 | **0,122** | one pass |
 
-74 items read, 4 310 passages, 4,49 MB of text. Passage length: median 1 197
-characters, p95 1 200, mean 1 187,7 — the distribution the rate ran on, since a
-rate does not transfer across distributions. The serial and concurrent arms ran
-on disjoint samples, so the pooled figure is not a warm cache read as a
-concurrency gain. Three runs of the pass put extract between 0,140 and 0,172 and
-chunk between 0,026 and 0,028; the artifact holds the third.
+377 items read over the five slices, **22 562 passages**. Passage length: median
+**1 197** characters, p95 **1 200**, mean **1 187,5** — the distribution the rate
+ran on, since a rate does not transfer across distributions. The concurrent arm
+ran on a sixth, disjoint slice, so the pooled figure is not a warm cache read as
+a concurrency gain.
 
 **The parse path, priced out of the critical path.** Forcing re-extraction
 through the control plugin (`Zotero.FullText.indexItems` with `complete: true`,
 which re-parses whether or not a cache exists) over four PDFs spread across the
-library: **10,01 ms per passage median**, from 3,93 on a 198-page document to
-27,17 on a 5-page one — the per-passage cost falls with document size, which is
+library: **10,08 ms per passage** median, from 3,45 on a 198-page document to
+27,76 on a 5-page one — the per-passage cost falls with document size, which is
 what a fixed per-file overhead over a variable yield looks like. This is the
 platform's cost, paid once when a user first opens a PDF, and it is never inside
 the build's own clock.
 
 **The fixed term, which the per-passage rate hides.** Before any passage is read,
-the source lists the full-text sequence (96 ms) and walks the attachment pages to
-map each extracted attachment to its parent: **75,4 s** on this library, 94 pages
-of 100. That is one-time per build, and it is exactly the fixed work §5.2.8 warns
-a rate conceals. Amortised, it is **20,4 ms per passage on the 60-item derisking
-build** (3 699 passages) and **0,16 ms per passage on a full-library build**
-(~465k passages). A sample can therefore pass a rate the small build misses, and
-the direction of the error is the opposite of the usual worry.
+the source lists the full-text sequence (105,5 ms) and walks the attachment pages
+to map each extracted attachment to its parent: **80,6 s** on this library, 94
+pages of 100. That is one-time per build, and it is exactly the fixed work
+§5.2.8 warns a rate conceals. Amortised, it is **21,8 ms per passage on the
+60-item derisking build** (3 699 passages) and **0,17 ms per passage on a
+full-library build** (~465k passages). A sample can therefore fail a rate the
+real build meets, which is the opposite of the usual worry about samples.
 
-**Extract work that yields no passage.** Of 80 sampled items, 6 failed the read
-(404 on an attachment the sequence names) and 1 answered with an empty body — the
-version-0 entries. Counted, not dropped: they are extract-stage work that
-produces nothing, so they raise the effective rate.
+**Extract work that yields no passage.** Of 80 sampled items in the first slice,
+6 failed the read (404 on an attachment the sequence names) and 1 answered with
+an empty body — the version-0 entries. Across the five slices, 23 of 400.
+Counted, not dropped: they are extract-stage work that produces nothing, so they
+raise the effective rate rather than lower it.
 
 **The tokenizer pass, and why it is not in this term.** The census tokenizes; the
-build's chunker does not — `chunkText` splits on characters and word boundaries
-with no tokenizer in the module. Measured anyway, since the census's wall clock
-was never recorded: **0,649 ms per passage**, 288,2 tokens per passage over
-1 242 272 tokens. That cost sits inside embed, not inside this allocation.
+build's chunker does not — `chunkText` splits on characters and word boundaries,
+with no tokenizer anywhere in the module. Measured anyway, since the census's
+wall clock was never recorded when it ran: **0,641 ms per passage**, **288,2**
+tokens per passage over 1 242 272 tokens. That cost sits inside embed, not
+inside this allocation.
 
 **What was not measured.** The record write, which §5.2.8's 30 ms covers together
 with extract and chunk, is not isolated here: it lives inside the index manager's
@@ -119,18 +129,20 @@ confirmation this pass cannot give.
 
 §5.2.8 says the allocation across stages is provisional and the total is not, and
 that the split may be re-cut in any proportion so long as the total holds. The
-two stages that were unpinned are now pinned at **0,182 ms per passage together**
-— 0,6 % of the 30 ms they were allocated. The allocation is re-cut to **5 ms at
-the MUST and 2 ms at the SHOULD** for extract, chunk and the record write
-together, which leaves the unmeasured record write more than an order of
-magnitude of room above the two measured stages, and gives embed **145 ms** and
-**73 ms**. R32's own 150 ms and 75 ms are untouched: they are the author's to
-move, and nothing measured here asks them to.
+two stages that were unpinned are now pinned at **0,164 ms per passage together**
+— about half a percent of the 30 ms they were allocated. The allocation is
+re-cut to **5 ms at the MUST and 2 ms at the SHOULD** for extract, chunk and the
+record write together, which leaves the unmeasured record write more than an
+order of magnitude of room above the two measured stages, and gives embed
+**145 ms** and **73 ms**.
+
+R32's own 150 ms and 75 ms are untouched. Nothing measured here asks them to
+move, and moving them would be the author's ruling rather than this ticket's.
 
 One derived observation, labelled derived and not acted on. The derisking build
 of 2026-09-02 ran 3 699 passages in 506 s, i.e. 137 ms per passage end to end. If
-extract and chunk cost 0,18 ms of that and the attachment map 20,4 ms, the
-remainder sits near 116 ms — inside the old 120 ms embed allocation, but that is
+extract and chunk cost 0,16 ms of that and the attachment map 21,8 ms, the
+remainder sits near 115 ms — inside the old 120 ms embed allocation. But that is
 a subtraction from somebody else's total, not a measurement of embed, and the
 full-library build is what will say.
 

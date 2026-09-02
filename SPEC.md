@@ -2463,16 +2463,36 @@ is the pattern, and it binds every surrogate here, not only that one.
   surfaces in a minute instead of at the end of a build.
 
   *The allocation across stages is provisional, and the total is not.* Embed is
-  the dominant term and the only one measured: **≤ 120 ms** at the MUST and
-  **≤ 65 ms** at the SHOULD, leaving **30 ms** and **10 ms** for extract, chunk
-  and the record write together. Those two are **unpinned** — no artifact in
-  this repository measures either — and the allocation may be re-cut in any
-  proportion so long as the total holds, because the total is what the user
-  feels and the split is an engineering convenience. What is known without
-  measurement: extraction is usually a read of the platform's own full-text
-  cache rather than a parse, and the expensive path is the file the platform has
-  not indexed, where a 15k-page PDF yields tens of MiB. Both stages remain to
-  be measured on the reference machine, which will pin their share.
+  the dominant term: **≤ 145 ms** at the MUST and **≤ 73 ms** at the SHOULD,
+  leaving **5 ms** and **2 ms** for extract, chunk and the record write
+  together. The allocation may be re-cut in any proportion so long as the total
+  holds, because the total is what the user feels and the split is an
+  engineering convenience; R32's own 150 ms and 75 ms are untouched by any such
+  re-cut.
+
+  Extract and chunk are no longer unpinned. Ticket 0500 measured them on the
+  reference machine over 4 310 passages of the real library: extract **0,154 ms**
+  per passage, chunk **0,028 ms**, **0,182 ms** together serially and **0,130 ms**
+  at the build's own local-API concurrency of 2
+  (`bench/results/0500-extract-chunk/extract-chunk-throughput.json`). That is 0,6 %
+  of the 30 ms the two carried before, which is why the re-cut moves nearly all of
+  it to embed and still leaves the record write — the third term, not isolated by
+  that ticket — more than an order of magnitude of room.
+
+  What the measurement also settled is the mix. Extraction is not *usually* a
+  cache read: in the shipped build it is *always* one. The full-text source can
+  serve only what `/fulltext?since=0` names, so an attachment the platform has not
+  extracted is invisible to the build and is never parsed by it. The expensive
+  path is real — forced re-extraction cost **10,01 ms per passage** median on the
+  same machine — but the platform pays it when a file is first opened, outside
+  this bound.
+
+  The fixed term is the one to watch instead. Before a passage is read, the source
+  walks the attachment pages to map extracted attachments to their parents:
+  **75,4 s** on a 9 302-attachment library, one-time per build. That is 20,4 ms per
+  passage on a 60-item sample and 0,16 ms on a full-library build, so here a
+  *sample* is the pessimistic measurement and a rate taken on one can fail a bound
+  the real build meets.
 
   *The wall clock is the promise*, and it is this rate against the measured
   census of §5.2.9 — the census is the bridge, and the arithmetic is shown rather
