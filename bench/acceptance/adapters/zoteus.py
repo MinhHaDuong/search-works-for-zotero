@@ -81,8 +81,24 @@ NAMES = ("zoteus",)
 #: this target uses for them. The layer never sees the right-hand side.
 MODES = {"exact": "keyword", "meaning": "semantic", "combined": "auto"}
 
-#: The verbs this target does not offer. The docstring argues each one.
-UNSUPPORTED = frozenset({"uninstall", "resume"})
+#: The verbs this target does not offer, each with the reason it is absent. The
+#: docstring argues both at length; these are the one-line forms that reach the
+#: artifact, and they are different reasons — one surface does not exist, the
+#: other exists and would over-claim if it were mapped.
+UNSUPPORTED = {
+    "uninstall": (
+        "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words "
+        "that its maintenance purge is not a stand-in the harness may call to "
+        "manufacture a clean result, so nothing is substituted for it"
+    ),
+    "resume": (
+        "nothing maps onto it. The only action that continues an interrupted build is "
+        "also the full rebuild and the repair — on a damaged index it deletes the "
+        "unreadable file first — so mapping resume onto it would smuggle a destructive "
+        "rebuild into the one verb the ruling says never rebuilds, invisibly, because "
+        "on a healthy checkpointed index it really does just resume"
+    ),
+}
 
 
 def _payload(response: dict) -> dict:

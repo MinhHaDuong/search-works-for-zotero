@@ -79,14 +79,14 @@ report:
    and a dependency's model cache is neither. zoteus does not have this problem
    because it vendors its embedder under its own data directory; this is where
    the interface most visibly assumes zoteus's architecture.
-4. An unsupported verb records no REASON. `pause` and `resume` are absent here,
-   and the reason is a finding rather than a gap: in the default configuration
-   this target does no unattended indexing at all, so there is no background
-   work to pause. That is architecturally the opposite of a target which has
-   background work and exposes no control over it, and `unsupported` puts both
-   in the same cell. The cheapest fix would mirror `not_derived_state`'s
-   `(value, why)` shape. It is not made here — the contract is not this
-   adapter's to change.
+4. An unsupported verb records no REASON — **fixed, ticket 0597.** `pause` and
+   `resume` are absent here, and the reason is a finding rather than a gap: in
+   the default configuration this target does no unattended indexing at all, so
+   there is no background work to pause. That is architecturally the opposite of
+   a target which has background work and exposes no control over it, and
+   `unsupported` used to put both in the same cell. It now carries the reason,
+   mirroring `not_derived_state`'s `(value, why)` shape as this note proposed,
+   and the reason reaches the artifact on every `not-offered` verdict.
 
 **Two states measured here that a short run does not show.** `status`, not
 `install`, is what first creates derived state on a virgin HOME: `db-status`
@@ -313,7 +313,21 @@ def declaration(home: Path) -> Declaration:
             "call leaves less residue than the same session held a few seconds "
             "longer — measured 2026-09-02, and a residue sweep has to allow for it."
         ),
-        unsupported=frozenset({"uninstall", "pause", "resume"}),
+        unsupported={
+            "uninstall": (
+                "no uninstall surface: the documented removal is uninstalling the "
+                "package, which is not a verb this target offers and which the harness "
+                "will not stand in for"
+            ),
+            "pause": (
+                "there is no background work to pause. In the default configuration "
+                "this target does no unattended indexing at all — all three background "
+                "paths are gated on configuration that is off by default, and indexing "
+                "is a foreground command a user runs. That is the architectural "
+                "opposite of a target with background work and no control over it"
+            ),
+            "resume": "absent for pause's reason: there is nothing to resume",
+        },
     )
 
 
