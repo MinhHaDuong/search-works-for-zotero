@@ -7,6 +7,7 @@ Author: Minh Ha-Duong
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-08-31T06:00Z claude note the 2026-08-31 ruling on the swap's motivation (spec/DECISIONS.md) lands on child 0495 only: R7 conformance is the first filter in the ship gate, not one score among several. Stages 0489-0494 are unaffected -- the invariant-first order and the parity proofs do not depend on why the swap happens
+2026-09-02T11:07Z claude note first child 0489 done on fork branch t0489-minilm-singleton-entry (8d2893c, 4b2e32e): the incumbent chain is one registry entry, vectors and vector key byte-identical; three fields authoritative, seven declared for 0490
 --- body ---
 ## This is a tracking ticket
 

@@ -6,6 +6,10 @@ Author: Minh Ha-Duong
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-09-02T11:06Z claude note fork branch t0489-minilm-singleton-entry, based on reviewed upstream b05ed69 (v1.12.0); conductor-integration leaves embeddings.ts untouched, so no rebase onto 0568
+2026-09-02T11:06Z claude note characterization committed first at 8d2893c: 9 assertions, red before the registry existed, green with it; positive controls -- pooling mean to cls fails the vector and chain arms, a changed model name fails the identity arm
+2026-09-02T11:06Z claude note extraction at 4b2e32e; vectors byte-identical for query, passage and a 660-token passage; vector key local:Xenova/all-MiniLM-L6-v2 unchanged; upstream suite 931 passed 8 skipped without the optional runtime, 932 passed 7 skipped with it
+2026-09-02T11:06Z claude note finding for 0490 -- the declared 256-token window is not in force: the pipeline truncates at the tokenizer model_max_length of 512, measured on a 660-token passage whose vector the fixture freezes
 --- body ---
 ## Scope
 
@@ -15,8 +19,46 @@ behavior change.
 
 ## Exit criteria
 
-- A characterization test freezes current query and passage vectors, dimension
+- [x] A characterization test freezes current query and passage vectors, dimension
   and vector key before the extraction.
-- The singleton entry carries the incumbent model, revision, graph/dtype,
+- [x] The singleton entry carries the incumbent model, revision, graph/dtype,
   pooling, normalization, templates, window and dimension explicitly.
-- The characterization stays green after the extraction.
+- [x] The characterization stays green after the extraction.
+
+## Where the work lives
+
+The fork, branch `t0489-minilm-singleton-entry`, based on the reviewed upstream
+SHA `b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c` (v1.12.0). The embedder seam was
+untouched on `conductor-integration`, so no rebasing onto ticket 0568's work was
+needed: `src/features/search/embeddings.ts` is identical at both refs.
+
+| commit | what |
+|---|---|
+| `8d2893cf819d9b521ce6023645b6c8d3d76d3947` | `src/features/search/embedder-registry.ts`, the characterization test and its frozen fixture, with the chain still untouched |
+| `4b2e32edd56b3943e7b332b54d14191fffa0e1df` | `embeddings.ts` reads model, pooling and normalization from the entry |
+
+## What the entry declares
+
+`INCUMBENT_LOCAL_ENTRY`, id `minilm-l6-v2`: model `Xenova/all-MiniLM-L6-v2`,
+revision `main` (which resolved to `751bff37182d3f1213fa05d7196b954e230abad9` on
+2026-09-02), device `cpu`, dtype `fp32`, graph `onnx/model.onnx`, pooling `mean`,
+normalize `true`, templates empty on both sides, window 256 tokens, dimension
+384. Every value carries the source it was read from; pooling comes from
+`1_Pooling/config.json` on `sentence-transformers/all-MiniLM-L6-v2`, which the
+Xenova ONNX mirror does not publish.
+
+Three fields are authoritative today (`APPLIED_FIELDS`: model, pooling,
+normalize). The other seven are declared and unread (`DECLARED_ONLY_FIELDS`),
+which the test asserts as a partition so the gap cannot go quiet. Pinning the
+revision or the dtype was considered and rejected for this stage: under Node the
+runtime resolves fp32, but on the wasm device its default is q8, so writing fp32
+here would move the vectors on an install class this branch cannot test.
+
+## Finding: the declared window is not the window in force
+
+The model card declares a 256-token window
+(`sentence_bert_config.json max_seq_length`). The feature-extraction pipeline
+truncates at the tokenizer's own `model_max_length`, which
+`tokenizer_config.json` sets to 512. Measured: a 660-token passage is cut to 512.
+The fixture freezes that passage's vector, so whichever way 0490 resolves the
+disagreement, the change is visible rather than silent.
