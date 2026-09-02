@@ -10,8 +10,9 @@ this test: "grepping the layer for a zoteus path, a zoteus tool name or a
 data-directory literal returns nothing".
 
 **Both sides are derived, which is what keeps this honest as the harness grows.**
-The modules scanned are every `.py` directly in `bench/acceptance/`, so a file
-arriving there later falls under the guard without anyone remembering to add it.
+The modules scanned are every `.py` under `bench/acceptance/` at any depth, so a
+file arriving there later — including in a subpackage carved out of a module
+that grew too big — falls under the guard without anyone remembering to add it.
 The names forbidden are read out of the adapters' own `NAMES` declarations, so a
 target gains its protection the moment its adapter exists. A hand-kept list on
 either side would go stale in exactly the direction that matters — a *new* thing
@@ -35,16 +36,30 @@ ADAPTERS = LAYER / "adapters"
 
 
 def layer_modules() -> list[Path]:
-    """Every module of the layer proper: `bench/acceptance/*.py`, adapters excluded.
+    """Every module of the layer proper, at any depth, with `adapters/` excluded.
 
     Derived from the directory rather than listed, so a module added to the
     package is scanned without a second edit.
+
+    **Recursive, and that is a correction rather than a flourish.** The first
+    version globbed `*.py` at one level only, so any subdirectory other than
+    `adapters/` was invisible to the guard — a file at
+    `bench/acceptance/helpers/leak.py` naming a target passed all four tests,
+    demonstrated by planting one. That is not an obfuscation nobody would write
+    by accident: `sandbox.py` is already large enough that splitting it into a
+    package is a reasonable next move, and the split would have silently taken
+    its contents out of scope. A guard whose reach is narrower than the claim it
+    makes is the defect this whole ticket is about, so it would have been a poor
+    place to keep one.
     """
-    return sorted(p for p in LAYER.glob("*.py") if p.name != "__init__.py")
+    return sorted(
+        p for p in LAYER.rglob("*.py")
+        if p.name != "__init__.py" and ADAPTERS not in p.parents
+    )
 
 
 def adapter_modules() -> list[Path]:
-    return sorted(p for p in ADAPTERS.glob("*.py") if p.name != "__init__.py")
+    return sorted(p for p in ADAPTERS.rglob("*.py") if p.name != "__init__.py")
 
 
 def declared_target_names() -> set[str]:
@@ -138,6 +153,39 @@ def test_scan_catches_a_planted_name(tmp_path):
         for text in example.values():
             if shape.search(text):
                 assert offences_in(text, names), f"the scan missed {text!r}"
+
+
+def test_the_scan_reaches_a_module_one_directory_down():
+    """The other half of the positive control: discovery, not just the scanner.
+
+    `test_scan_catches_a_planted_name` proves the text scanner fires. It cannot
+    prove the guard LOOKS at a given file, and those are different failures with
+    the same symptom — silence. A review found the difference for real: with a
+    one-level glob, a module at `bench/acceptance/helpers/leak.py` naming a
+    target passed every test in this file, because the scanner was never handed
+    it. So this plants a real module one directory down and requires
+    `layer_modules()` to return it.
+
+    Planted in the real package rather than a fixture directory, because
+    `layer_modules()` reads the real path and a test against a copy would be
+    testing a copy.
+    """
+    nested = LAYER / "_probe_pkg"
+    planted = nested / "planted.py"
+    try:
+        nested.mkdir()
+        planted.write_text("# a module the guard must reach\n")
+        found = layer_modules()
+        assert planted in found, (
+            "layer_modules() did not reach a module one directory below "
+            f"{LAYER}. The guard's scope is narrower than the claim it makes: a "
+            "file it never reads cannot be found to name a target. Found: "
+            f"{[str(p) for p in found]}"
+        )
+    finally:
+        planted.unlink(missing_ok=True)
+        if nested.exists():
+            nested.rmdir()
 
 
 def test_layer_names_no_target():
