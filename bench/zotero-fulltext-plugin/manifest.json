@@ -8,14 +8,16 @@
     "zotero": {
       "id": "fulltext-control@search-works-for-zotero.invalid",
       "strict_min_version": "7.0",
-      "strict_max_version": "10.*"
+      "strict_max_version": "10.*",
+      "update_url": "https://raw.githubusercontent.com/MinhHaDuong/search-works-for-zotero/main/bench/zotero-fulltext-plugin/updates.json"
     }
   },
   "applications": {
     "zotero": {
       "id": "fulltext-control@search-works-for-zotero.invalid",
       "strict_min_version": "7.0",
-      "strict_max_version": "10.*"
+      "strict_max_version": "10.*",
+      "update_url": "https://raw.githubusercontent.com/MinhHaDuong/search-works-for-zotero/main/bench/zotero-fulltext-plugin/updates.json"
     }
   }
 }
