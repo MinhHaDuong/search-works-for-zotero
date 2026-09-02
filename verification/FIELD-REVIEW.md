@@ -37,11 +37,11 @@ the entry says "could not look" and names what blocked it. A search that
 returned nothing is not evidence that nothing is there.
 
 The survey found **47 projects**, against the roughly 20 the author recalled.
-Twenty-eight get a full entry: every project that builds a retrieval index of
+Thirty get a full entry: every project that builds a retrieval index of
 its own, plus four that build none but are cited often enough that recording
-the absence is the useful result. Two of the twenty-eight are adjacent rather
+the absence is the useful result. Two of the thirty are adjacent rather
 than competing — the platform itself, and the ecosystem's largest plugin — and
-say so. The remaining nineteen relay Zotero's own search, apply a model without
+say so. The remaining seventeen relay Zotero's own search, apply a model without
 retrieval, or keep their retrieval on a server nobody can read; one table at
 the end lists each with the evidence that put it there.
 
@@ -1880,7 +1880,7 @@ rows date from the 2026-09-02 pass.
 
 ## What the field teaches
 
-Twenty-eight projects, one platform pull request, and about eighteen months of
+Twenty-nine projects, one platform pull request, and about eighteen months of
 public history produce eight findings. Each is stated with the evidence that
 carries it. Where a finding bears on one of our own decisions, the owning
 document is named and its content is not repeated here.
