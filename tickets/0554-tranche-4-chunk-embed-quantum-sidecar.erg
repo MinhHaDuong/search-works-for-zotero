@@ -13,20 +13,50 @@ Author: minh
 2026-09-01T19:32Z claude note TWO THINGS FROM 0568's MERGE, both this ticket's to act on. (i) BASE: branch from `conductor-integration` (c031478), not from tranche 2 — it holds tranches 1-3 and the v2 content schema in one tree, 1 123 tests green, and it is the convention from here (0550's Context, amended). (ii) THE MINILM INVARIANT HAS NO TEST. 0550 states it — "the incumbent MiniLM entry reproduces its old vectors and keys byte for byte" — and 0568 went looking for it to tick its own box: there is no byte-identical vector check anywhere in the suite. Tranches 1-3 never needed one, since none of them touches a vector; this tranche is the first that does, and its own Verification line ("Incumbent MiniLM vectors byte-identical to stock upstream's") is where the check gets built rather than assumed. Build it before the embed worker, not after: a check written after the code it validates tends to be written against what the code does.
 
 2026-09-01T19:31Z claude note blocker 0568 closed — Blocked-by removed.
+2026-09-02T10:44Z claude note BODY RESCOPED to the 2026-09-02 topology, which until now this ticket carried only in 0550's log. The embed worker holds NO model: each micro-batch is a call to the embedding service (ticket 0575, SPEC.md §5.2.5), the worker never spawns it (nice 19 would be inherited by every query it then embedded), and its peak is one token-budget batch plus the streamed decode. New Action 3 carries the process bounds the ruling makes load-bearing -- nice 19, heap limit at minimum, cgroup where the platform has one -- since the worker's separate process isolates memory only if something bounds it; the RSS assertion that the worker is KILLED at the bound belongs to 0026's gate, and this ticket gives it a bound to assert. Autotune, claim TTL, sidecar ordering and generation stamping are unchanged: none of them was ever about model residency
+2026-09-02T10:44Z claude note THE TWO 2026-09-01 LOG DECISIONS ARE NOW IN THE BODY, not only in the log. (i) The branch is cut from conductor-integration, and that is an Exit criterion rather than a remark. (ii) The MiniLM byte-identity check STAYS HERE, per the 19:32Z entry's own reasoning -- this is the first tranche that touches a vector, and the check is built before the embed worker rather than after it. One amendment the topology forces: it runs THROUGH the embedding interface rather than around it, so it survives 0491 swapping what sits behind the socket. It is in Test and in Verification and in Exit criteria now
+2026-09-02T10:44Z claude note NOT Blocked-by 0575. The interface is transport-neutral by ruling, this ticket owns the CLIENT side of it, and every property it is scoped around -- batch shaping, autotune convergence, claim TTL, sidecar ordering -- is exercised against a stub at the transport. Blocking here would stall the lane's frontier behind a boundary this ticket does not build. What this ticket must not do is load a model or spawn the service, and both are Verification lines with positive controls
+2026-09-02T11:06Z CLARIFICATION on the log entry of 2026-09-02T10:44Z: this ticket is a CALLER of the transport-neutral embedding interface, not its owner. The client itself is 0575's Action 1; here the transport is stubbed, which is why this stays not-Blocked-by 0575
 --- body ---
+
 ## Context
 
 Fourth tranche (tracker 0550): the compute stages. The micro-batch
 becomes the schedulable unit everywhere, sized by the ratified quantum.
 
+**The embed worker holds no model** (DECISIONS.md 2026-09-02, entry C of "the
+writer leaves the query process…", and the same day's standing correction).
+One copy of the model is resident on the machine, per embedder generation,
+behind the embedding service ticket 0575 builds; SPEC.md §5.2.5 carries the
+shape. This tranche was scoped around a worker that loaded the passage model,
+and that premise is gone: embedding is a call over the transport-neutral
+interface, the worker's peak is one token-budget batch plus the streamed decode
+rather than a model plus a batch, and the worker never spawns the service —
+a service spawned by the `nice 19` worker would embed every query at idle
+priority. What the tranche keeps is everything that was never about model
+residency: the quantum autotune, the claim TTL, the sidecar write ordering and
+generation stamping.
+
+The worker's separate process is ruled kept on a new justification (entry B of
+the same ruling): the streaming decode of a very large attachment lives in the
+fetch path, and fetch failure is what a crash boundary is for. That boundary
+isolates memory only if something bounds the process, which is why the heap
+limit below is an Action here rather than a remark.
+
 ## Relevant files
 
 - SPEC.md §5.2.5 (quantum ~1 s ratified, EWMA autotune with per-step
-  clamp [0,5, 2], fixed-cost floor, memory ceiling; claim TTL 30 × the
-  quantum; sidecar ordering: append, fsync, then commit the row),
-  DECISIONS.md 2026-09-01 (quantum ruling, slow/stuck split),
-  bench/results/0481-gpu-anomaly (flat-throughput finding the autotune
-  wording rests on).
+  clamp, fixed-cost floor, memory ceiling; claim TTL as a multiple of the
+  quantum; sidecar ordering: append, fsync, then commit the row; the
+  transport-neutral embedding interface and its handshake; the worker at
+  `nice 19` under a heap limit at minimum and a cgroup where the platform
+  has one), SPEC.md §5.2.9 (the worker's peak by process class after the
+  re-cut), DECISIONS.md 2026-09-01 (quantum ruling, slow/stuck split) and
+  2026-09-02 (the topology), bench/results/0481-gpu-anomaly (flat-throughput
+  finding the autotune wording rests on).
+- Ticket 0575 — the embedding service this worker calls. Not a Blocked-by:
+  see the log entry of this date. Ticket 0565 — passage geometry, which is
+  not this tranche's.
 
 ## Actions
 
@@ -35,30 +65,64 @@ becomes the schedulable unit everywhere, sized by the ratified quantum.
    order carries an entry-sized RANGE over stored text, which the worker
    reads back read-only and slices. There is no chunk stage here — see
    the 2026-09-01 log entry and 0565.
-2. Embed worker: batch packed to a token budget, length-sorted; size
-   autotuned to the quantum (EWMA, step clamp, floor, ceiling); yields
-   between micro-batches (activity file, holder check, queue re-read).
-3. Claim TTL = 30 × quantum; expired claims reclaimable; duplicate
-   compute bounded to one micro-batch — test it, don't assert it.
-4. Sidecar writes per SPEC's ordering; generation stamping.
+2. Embed worker, holding no model: each micro-batch is a call to the
+   embedding service over the transport-neutral interface (SPEC.md §5.2.5),
+   never an in-process load, and the worker has no code path that spawns the
+   service. Batch packed to a token budget, length-sorted; size autotuned to
+   the quantum (EWMA, step clamp, floor, ceiling); yields between
+   micro-batches (activity file, holder check, queue re-read).
+3. Worker process bounds, since the process boundary isolates memory only if
+   something bounds the process: `nice 19`, a heap limit at minimum, a cgroup
+   where the platform has one. The peak this ticket must hold to is one
+   token-budget batch plus the streamed decode. The RSS assertion the ruling
+   demands is that the worker is KILLED at the bound, not that its peak sat
+   under it; the gate that asserts it is ticket 0026's, and this ticket makes
+   the bound real for it to assert against.
+4. Claim TTL at the ratified multiple of the quantum; expired claims
+   reclaimable; duplicate compute bounded to one micro-batch — test it,
+   don't assert it.
+5. Sidecar writes per SPEC's ordering; generation stamping. Generations are
+   the embedder generations SPEC.md §5.2.7 admits two of; the stamp must
+   survive the service serving both.
 
 ## Test
 
+- **Built first, before the embed worker**: the byte-identical MiniLM check.
+  Tracker 0550 states the invariant — the incumbent MiniLM entry reproduces
+  its old vectors and keys byte for byte — and ticket 0568 went looking for
+  it and found no such check anywhere in the suite. Tranches 1 to 3 never
+  needed one; this is the first tranche that touches a vector. Written before
+  the code it validates, because a check written after tends to be written
+  against what the code does. It runs THROUGH the embedding interface, not
+  around it, so it keeps holding when 0491 swaps what sits behind the socket.
 - Red first: on the injected clock with a stubbed engine of programmable
-  per-item cost, the autotuned size converges to the quantum for two
-  synthetic devices (fast/slow) and oscillation stays inside the step
-  clamp when the cost curve is made non-monotonic.
+  per-item cost — the stub standing in for the service at the transport, since
+  the worker has no engine of its own — the autotuned size converges to the
+  quantum for two synthetic devices (fast/slow) and oscillation stays inside
+  the step clamp when the cost curve is made non-monotonic.
 
 ## Verification
 
-- [ ] A worker killed mid-batch: claim expires at 30 × quantum, another
+- [ ] The byte-identical MiniLM check exists as a test, was demonstrated red
+      once, and runs through the embedding interface
+- [ ] A worker killed mid-batch: claim expires at the ratified TTL, another
       finishes it, exactly one commit (CAS guard)
-- [ ] Incumbent MiniLM vectors byte-identical to stock upstream's
+- [ ] The worker loads no model on any code path, and has no path that spawns
+      the embedding service — asserted, with a positive control that wires an
+      in-process load and fails
+- [ ] The worker is killed at its heap bound rather than growing past it, and
+      its peak under a large streamed decode is a batch plus the decode
 
 ## Invariants
 
-- Vector fingerprint handshake per SPEC §5.2.5; upstream tests green.
+- Vector fingerprint handshake per SPEC §5.2.5, which now crosses a process
+  boundary; the client rejects a mismatch before reading or writing a vector.
+- Upstream tests green.
 
 ## Exit criteria
 
+- [ ] The fork branch is cut from `conductor-integration`, not from tranche 2
+      (ticket 0568; 0550's Context, amended)
 - [ ] Both stages merged on a fork branch, convergence + TTL tests green
+- [ ] The byte-identical MiniLM check merged with them, and the invariant
+      tracker 0550 asserts is no longer untested
