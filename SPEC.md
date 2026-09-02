@@ -779,13 +779,17 @@ This constraint is sharpened on three points:
   stored state MUST therefore be partitioned by server ID. A local/cloud
   label is not enough, because two local profiles share the label and share
   nothing else.
-- Even Zotero accepts a staleness residue here: their embeddings layer
-  deliberately does not chase a processor bump without a file change
-  ("vectors stay derived from the older extraction until the file changes
-  or the index is rebuilt"). Verbatim, and read at source: the attachment
-  staleness key is `md5(path|size|lastModified|processorVersion)`, and the
-  comment above it names the residue in those words
-  (`embeddings.js:2337-2345`, PR head `77e2c4b`, read 2026-09-02).
+- This residue is ours alone, and the platform is not a precedent for it.
+  Zotero's embeddings layer *does* chase a processor bump with no file
+  change: the attachment staleness key is
+  `md5(path|size|lastModified|processorVersion)` where the version is the
+  current processor's, and the consumer waits for regeneration rather than
+  reading a stale pack — `getSections(…, { allowStale: false })`
+  (`embeddings.js:2352-2360` and `:2428`, `sdt.js:298-308`, PR head
+  `77e2c4b`, read 2026-09-02). A comment fifteen lines above the key still
+  describes the older behaviour, which is what an earlier reading of ours
+  cited; the commit that closed the gap (`57b30b17e`, 2026-08-20, inside the
+  pull request) did not delete it. Cite the key, not the comment.
 
 ### C2 — the platform and the upstream project are both moving
 
