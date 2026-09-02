@@ -4302,9 +4302,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   target interface plus a thin adapter per target; an assertion names an
   interface verb and an adapter-declared surface, never a tool's file
   layout; a judge model is admitted for clauses about meaning and forbidden
-  wherever a mechanical test exists; the roster is zoteus, #6012, ZotSeek
-  and 54yyyu/zotero-mcp, with Beaver entering as a control rather than as a
-  target; and
+  wherever a mechanical test exists; the roster is zoteus, #6012, ZotSeek,
+  54yyyu/zotero-mcp and Beaver; and
   R15's uninstall clause is reworded over declared derived state, which is
   the one requirement the neutral phrasing changes.
 
@@ -4433,18 +4432,20 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   external-server class. Those are complementary questions, so the roster
   carries both rather than making one compete for a single third seat.
 
-  **Beaver** is not a target. It fails R10 by construction: its free tier does
-  local processing
-  while stating that "some processing still occurs remotely", and its paid
+  Fifth: **Beaver**, adopted by the author on 2026-09-02 as a real target, not
+  the harness's synthetic control. Its plugin is AGPL-3.0, verified in the
+  field review, so the tested source revision can be pinned and inspected;
+  the hosted backend remains an external runtime fact. Its free tier does
+  local processing while stating that "some processing still occurs
+  remotely", and its paid
   tier syncs selected libraries to Beaver's servers, which is where
-  full-document search lives. As a target it cannot pass goal 1, so an
-  adapter would grade a tool against a requirement it has publicly declined.
-  Its value runs the other way and is not small. Beaver is the red fixture
-  R10's egress assertion must fail on: ticket 0578 asks today for an opted-in
-  configuration as that control, and a shipping product whose architecture is
-  egress-by-design is the stronger one, because we cannot accidentally build
-  it to fail the way we can build our own. It joins the roster as a control,
-  never as a target.
+  full-document search lives. Run its pinned plugin in its normal
+  configuration and expect R10 to fail where that configuration attempts
+  egress; assess every other applicable requirement normally. If the service
+  or permitted credentials are unavailable, the result is "not run", never a
+  pass. A tiny deterministic adapter that attempts egress remains R10's
+  mandatory fail-control: it proves the assertion can fail, while Beaver shows
+  the requirement's consequence in a real product.
 
   **What the neutral phrasing changes on goal 1.** One clause, and it is a
   requirement rewording rather than a harness detail, so it is the author's
@@ -4528,6 +4529,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   zoteus adapter can be built while this waits; its body names the one part
   that waits, R15's rewording, and nothing else. The tickets that follow
   ratification are deliberately not filed: the #6012 adapter, the ZotSeek
-  adapter, the zotero-mcp adapter, and the Beaver egress control. Filing them
+  adapter, the zotero-mcp adapter, the Beaver adapter, and the deterministic
+  egress fail-control. Filing them
   before the whole ruling is ratified is how a draft becomes a decision by
   accident.

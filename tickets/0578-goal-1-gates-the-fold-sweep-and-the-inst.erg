@@ -13,6 +13,7 @@ Author: claude
 2026-09-02T14:17Z codex note AUTHOR SETTLED THE ADAPTER BOUNDARY: declarations plus only the minimal transport code needed to invoke them; no patch or workaround, non-default option, access unavailable to the target's users, or result scoring. "One screen" remains a review heuristic rather than a size gate.
 2026-09-02T14:22Z codex note AUTHOR ADOPTED THE JUDGE QUESTION PROTOCOL: versioned question/answer schemas and rubrics, blinded fail-control, supervising agent as the default interactive driver, hosted APIs with operator-local credentials or padme's Qwen 3.8 as unattended drivers, and actual judge/model/runtime identity recorded per run. Embedders alone remain in bench/models.json. This ticket uses no judge; the decision is recorded here only because this ticket carries the interface ruling's first implementation.
 2026-09-02T14:24Z codex note AUTHOR ADOPTED BOTH PROPOSED COMPLEMENTS, making four targets: zoteus, Zotero #6012, ZotSeek and 54yyyu/zotero-mcp. ZotSeek supplies the distinct in-process-plugin architecture class; zotero-mcp supplies reach and portability between independent external-server implementations. ZotSeek remains eligible while runnable and inspectable, with its seat otherwise staying assigned to that architecture class; no code is copied under its package-only licence declaration.
+2026-09-02T14:28Z codex note AUTHOR ADOPTED BEAVER AS THE FIFTH TARGET after pointing out its verified AGPL-3.0 licence. Pin and inspect the plugin revision, run its normal configuration, expect R10 to fail where it attempts disclosed remote processing, and assess every other applicable requirement; unavailable service or permitted credentials means not-run, never pass. A deterministic egressing stub replaces Beaver as this ticket's mandatory fail-control, separating proof that the assertion can fail from the real-product finding.
 --- body ---
 ## Context
 
@@ -71,8 +72,8 @@ is where they go.
   recreates the git-ignored `fork/` at it.
 - `DECISIONS.md`, the awaiting entry of 2026-09-02 — the interface, the adapter
   contract, the judge rule and the roster. Cite it; do not restate it.
-- `verification/FIELD-REVIEW.md`, the Beaver entry — the source for R10's
-  egress-by-design red fixture.
+- `verification/FIELD-REVIEW.md`, the Beaver entry — the source for the fifth
+  target's licence, architecture and expected R10 finding.
 - `SPEC.md` §5.2.8 — the gates' specification. Cite it; do not restate it.
 - `README.md`, "## Goal 1 — I can install it and take it off again" — the rung's
   roster and the level each term is decided at.
@@ -124,14 +125,10 @@ is where they go.
 
 Red first per assertion, and the red state is produced rather than argued.
 
-- **R10's egress.** Two red fixtures, the second stronger than the first. Ours
-  is a configuration that opts egress in: the assertion must go red there or it
-  is asserting the default. The field's is Beaver, whose paid tier syncs
-  selected libraries to its own servers (`verification/FIELD-REVIEW.md`) —
-  egress by design in a shipping product, so the control cannot be accidentally
-  built to pass. Beaver is a control here and never a target; no adapter for it
-  is in this ticket, and what this ticket owes is that the red path is exercised
-  by a fixture of that shape.
+- **R10's egress.** A deterministic stub adapter attempts one known off-machine
+  connection. The assertion must go red or it has not shown that it can detect
+  egress. Beaver is a separately pinned real target, not this control; its
+  adapter follows after the whole ruling is ratified.
 - **R15's deletion.** Two reds, because the clause now reads over a
   declaration. First, an install that plants a file outside the declared roots.
   Second, an adapter that under-declares its roots: the sweep must fail it,
@@ -185,7 +182,7 @@ Red first per assertion, and the red state is produced rather than argued.
 - [ ] the zoteus adapter exists as declarations only, and the two assertions
       `bench/smoke_upstream.py` already carries run through it
 - [ ] R10's egress clause asserted with no route out of the machine, seen red
-      against an opted-in fixture
+      against a deterministic egressing stub
 - [ ] R15's deletion clause asserted event-then-state over declared derived
       state, seen red against a planted residue and against an under-declaring
       adapter
