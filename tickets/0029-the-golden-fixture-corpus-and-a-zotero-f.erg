@@ -13,31 +13,94 @@ Author: claude
 2026-08-31T14:13Z claude note THE FIXTURE MUST PIN ITS PASSAGE-LENGTH DISTRIBUTION, not only its documents and queries (spec/DESIGN.md 2.8, ruled 2026-08-31). R32's build bound is now a rate in milliseconds per passage, and a rate measured on one length distribution does not transfer to another: a corpus of short notes and a corpus of dense pages give different milliseconds for the same machine and the same model. So the corpus records its own distribution — passage count and length quantiles — beside the pinned answer sets, and a re-pin that changes the distribution invalidates the rate measured against it, the same way a re-pin that changes the answer set invalidates the golden run
 2026-08-31T18:54Z claude note THE FIXTURE CORPUS GAINS TWO GOAL 1 TERMS (spec/DECISIONS.md 2026-08-31, MVP frame). R24's PAGE CLAUSE -- a hit leads to the page it came from, an estimated page saying it is one -- and R29 -- a query in English or French finds Vietnamese content with nothing translated -- are now terms, addressed here. R24 binds by clause: the page locator needs no segmenter and is already partly delivered, while the entry heading and the dedup clause stay out with experiment X5, so what this corpus owes is documents with pinned, known page ranges and not entries. R29 owes the cross-lingual answer sets ticket 0266 measured candidates against: EN and FR queries over Vietnamese content, with the negative control, gated separately from R7's monolingual lanes so a regression names which promise it broke. Both decide at BOTH levels under the same ruling's inversion, so the corpus is the surrogate and the author's own library re-earns its fidelity
 2026-08-31T20:08Z claude note each pinned query records a corpus facet at pinning (core, notes, group, deep-body); goal 4 binds the covered subset, rule in DESIGN.md 2.8 (DECISIONS.md 2026-08-31)
+2026-09-02T07:52Z claude note SIX RULINGS OF 2026-09-02 (DECISIONS.md, 'The golden fixture corpus') reshape this ticket: #6012's calibration corpus stays out; a personal library is not a provenance (5 of PR #151's 19 documents comply today, 5 need their archive identifier recorded, 9 are re-sourced or dropped); versioned open archives admitted (arXiv vN, Zenodo version DOI, HAL id with version); no self-deposit; the Vietnamese slice is rebuilt from vi.wikisource, HAL, Gallica, Internet Archive and Commons; the fixture is a source recipe plus an injection script plus a committed API export replayed through 0026's mock local API, superseding committed pdftotext text. Body rewritten accordingly; the re-sourcing table is the work list
+2026-09-02T07:52Z claude note PROBE 2026-09-02, public Zotero API, unauthenticated: zoteus indexes the /fulltext content the client extracted, never its own PDF extraction. Against PR #151's pdftotext text: Malynes 45/45 pages, word-set Jaccard 0,585; Cournot 100 of 230 pages indexed, 0,606; Walras 100 of 270, 0,391; zero form feeds. The committed text.txt files measure a different extractor than the one the system sees
+2026-09-02T07:52Z claude question PR #151 (branch t29-corpus-assembly) now conflicts with rulings 2 and 6: its documents are re-sourced and its text.txt files superseded. Amend it to the recipe-plus-export shape, or close it and start from the manifest alone? The author's call
+2026-09-02T07:52Z claude note OPEN QUESTION carried in DECISIONS.md awaiting: whether FAOLEX (and vbpl.vn) count as archives. Decides whether Decision 11/2017 and its official English translation keep their seat as the bilingual administrative anchor; the slice stands without it
+2026-09-02T08:00Z claude note RULED 2026-09-02 (DECISIONS.md): FAOLEX admitted for Decision 11/2017 and its official English translation, vbpl.vn not. Pin the docs/pdf address, the byte hash, LEX-FAOC179224 and the Wayback capture date; a hash mismatch is a diff to inspect. The open question of the previous entry is closed
+2026-09-02T09:24Z claude note CORRECTION after the sourcing run of 2026-09-02: Vietnamese Wikisource holds no ministerial circular as text (allpages and allcategories checked; the earlier hits were Official Gazette table-of-contents scans naming them), so no sibling circular replaces the three dropped ones; the 1992 constitution (vi + en Wikisource) is the Vietnamese administrative register. Neurath 1919 is in no admitted archive and is dropped. HAL, Gallica and the UK Government Web Archive serve challenge pages to scripts; their entries are pinned by a browser fetch. Ruling 5's text in DECISIONS.md corrected before ratification; the recipe itself is PR #177 (27 records, 17 hashed)
+2026-09-02T10:09Z claude note RESOLVED: the author closed PR #151 (2026-09-02); its content is salvaged as the recipe layer in PR #177 (27 documents). Answers the question of 07:52Z
+2026-09-02T10:09Z bump verify-reroll — round 1: ruling 5 said four dropped documents for three circulars; the ruled FAOLEX question sat unmarked under Awaiting ratification. Fixed in the round-1 fix commit
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
 a panel document now lost; DECISIONS.md, 2026-08-31): no pinned fixture corpus
 exists — bench/queries.txt is 16 queries, and every
 answer-set artifact was measured against the author's private library, which
-cannot be committed. Needed: a committable multilingual document set (FR/DE/
-VI/EL/RU per R7), ~40 queries, pinned answer sets at k=10, and a harness that
-builds an index over it WITHOUT Zotero — drive the backend classes directly
-and call putPassage, per the review's note. 2-3 days. The thresholds the
-gate then enforces live once in DESIGN.md §2.8.
+cannot be committed. Needed: a committable multilingual document set, ~40
+queries, pinned answer sets at k=10, and a harness that builds an index over
+it WITHOUT Zotero. The thresholds the gate then enforces live once in
+SPEC.md §5.2.8.
+
+Rulings of 2026-09-02 (DECISIONS.md, "The golden fixture corpus") reshape the
+work. What the corpus is: a source recipe (archive identifier, byte hash, item
+metadata, licence basis per document), an injection script into a collection
+of a public Zotero library, and a committed export of the items JSON and each
+attachment's `/fulltext` JSON, replayed by the harness through 0026's mock
+local API. The committed `text.txt` files of PR #151 are superseded by that
+export: zoteus indexes Zotero's client extraction, and the probe measured
+word-set Jaccard 0,39–0,61 between it and `pdftotext`, with a 100-page cap and
+no page breaks. Where a document may come from: a public archive identifier,
+never a personal library; versioned open archives (arXiv vN, Zenodo version
+DOI, HAL id with version) beside Gallica, Internet Archive, Wikimedia Commons
+and Wikisource revision ids; no self-deposit. Zotero #6012's calibration
+corpus stays out.
+
+## Re-sourcing PR #151's 19 documents (ruling 2)
+| status | documents | action |
+|---|---|---|
+| compliant | Johnson, Baudelaire, Stein, Curie, Einstein-Minkowski (archive.org) | keep; record identifier + hash |
+| archive named, fetched by key | Cournot (Gallica), Walras, Porte, Minkowski (Internet Archive), Decision 11/2017 (FAOLEX `LEX-FAOC179224`, admitted 2026-09-02: docs/pdf URL, hash, LEX id, Wayback date) | record identifier, re-fetch from the archive, compare hash |
+| library-only or non-archive host | Malynes, Ramsey (full first editions on archive.org), Depitre (Gallica), Neurath (dropped: no admitted archive holds it); Circulars 25/2016, 41/2010, 42/2010 (dropped: Wikisource holds no circular as text; the 1992 constitution, vi + en, is the administrative register); Habilitation (HAL, versioned); Highway Code (UK Government Web Archive snapshot, or drop) | re-source or drop |
+
+## Vietnamese slice, rebuilt (ruling 5)
+- Administrative register: the 1992 constitution on vi.wikisource, pinned by
+  `oldid`; Wikisource holds no ministerial circular as text (checked 2026-09-02).
+- Scientific register: three HAL records in Vietnamese (OUV, ART, COMM), versioned;
+  HAL serves a challenge page to scripts, so their bytes are pinned by hand.
+- Cross-lingual anchors for R29: des Michels' Lục Vân Tiên and Kim Vân Kiều
+  (Gallica, FR–VN in one scan); a constitution in vi.wikisource and its
+  English text in en.wikisource (EN–VN); Bonet 1899 (Internet Archive, VN–FR
+  dictionary, pairs with Johnson); Decision 11/2017 with its official English
+  translation, from FAOLEX (admitted 2026-09-02, vbpl.vn not).
+- Same work in two shapes: Việt Nam sử lược as a Commons scan and as a
+  Wikisource transcription.
+- Chinese-script bonus for the SHOULD tier: Đại Việt sử ký toàn thư's original.
+- Out: Internet Archive's Vietnamese Marx/Lenin translations (translators'
+  rights); anything from Gallica's 1922–1954 deposit whose author is not
+  life+70 clear.
 
 ## Exit criteria
-- [ ] fixture corpus committed, multilingual per R7's tested list
+- [ ] every fixture document carries a public archive identifier, a byte hash,
+      and a licence basis in the source recipe; none is sourced from a personal
+      library (ruling 2); versioned identifiers where the archive offers them
+      (ruling 3)
+- [ ] the re-sourcing table above executed: 5 recorded, 5 re-fetched, 9
+      re-sourced or dropped, each outcome logged (recipe landed in PR #177;
+      10 entries still await a browser fetch and hash)
+- [ ] the Vietnamese MUST tier rebuilt from admitted archives per the slice
+      above, with no self-deposit (rulings 4, 5)
+- [ ] injection script: collection in a public library, linked-file
+      attachments, client version and the two indexing preferences recorded
+- [ ] export snapshot committed (items JSON + `/fulltext` JSON per attachment),
+      with the re-pin procedure documented as re-export, diff as review artifact
+- [ ] Zotero-free index-build harness in bench/ replaying the export through
+      0026's mock local API
 - [ ] a cross-lingual slice: EN and FR queries whose pinned answer sets are
       Vietnamese entries, gated separately from the monolingual queries so a
       regression names which of R7 and R29 it broke (R29 ratified 2026-08-31;
-      DESIGN.md §2.8 owns the thresholds, this ticket pins them)
-- [ ] Zotero-free index-build harness in bench/
-- [ ] ~40 queries with pinned answer sets, re-pin procedure documented
+      SPEC.md §5.2.8 owns the thresholds, this ticket pins them)
+- [ ] ~40 queries with pinned answer sets, each labelled by facet, language
+      lane and carrying signal (exact string / paraphrase / agreement); no
+      difficulty tiers
 - [ ] 0026's golden gate consumes it in make check
 - [ ] R33's three probe shapes present: a rare exact string, a paraphrase sharing
       no content word with its answer, and an agreement case
 - [ ] R34's reading supported: every pinned answer inside the first ten, absolute,
-      beside R21's tolerant reading of the same sets
+      beside the stability reading of the same sets
 - [ ] the intersections carried, not one axis at a time: a monster in a non-Latin
       script, and a scale run at the multilingual default
-- [ ] a group-library slice, per the perimeter ruling; no trash and no feed slice
+- [ ] a group-library slice in a closed group, per the perimeter ruling; no trash
+      and no feed slice
+- [ ] passage-length distribution pinned beside the export (SPEC.md §5.2.8)
+- [ ] SPEC.md §5.2.8's fixture description updated to the three-layer shape
