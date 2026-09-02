@@ -26,6 +26,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, writeFileSync, copyFileSync, existsSync, unlinkSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'node:child_process';
+import { assertIndexSchema, describeIndexSchema } from './index_schema.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -43,6 +44,15 @@ if (!opt.db || !opt.years || !opt.output) {
 }
 const PROBES = Number(opt.probes);
 const TOPK = Number(opt.topk);
+
+// The schema BEFORE the copy, on the source opened read-only (ticket 0101). Order is the
+// whole point: the copy is a gigabyte on the author's index, and refusing after paying for
+// it would be a guard that costs more than the error it prevents. Against a pre-rename
+// index this used to die at `ALTER TABLE items ADD COLUMN year` — `no such table: items`,
+// a message that names neither generation and arrives after the copy.
+const source = new DatabaseSync(opt.db, { readOnly: true });
+const schema = assertIndexSchema(source, opt.db);
+source.close();
 
 // A working COPY: this adds a column, and the measurement substrate is not ours to mutate.
 for (const f of [opt.work, `${opt.work}-wal`, `${opt.work}-shm`]) if (existsSync(f)) unlinkSync(f);
@@ -176,6 +186,8 @@ for (const [label, lo, hi] of SCOPES) {
 
 const out = {
   probe: 'ticket 0025 — is a YEAR-scoped query affordable, where X4 found a rowid-set scope was not?',
+  // What a number was measured against belongs beside the number (ticket 0100).
+  db_schema: describeIndexSchema(schema),
   why: (
     'X4 measured rowid-set scoping via json_each and found it dominated by not scoping at all. That is the ' +
     'mechanism a collection or tag needs. A year is a stored attribute, so it can be an indexed predicate ' +

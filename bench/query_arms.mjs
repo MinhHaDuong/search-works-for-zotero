@@ -30,6 +30,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { makeArmProbe, pct, rbo } from './query_arms_lib.mjs';
+import { assertIndexSchema } from './index_schema.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((a, v, i, arr) => (v.startsWith('--') ? [...a, [v.slice(2), arr[i + 1]]] : a), []),
@@ -48,6 +49,10 @@ const queries = readFileSync(args.queries, 'utf8')
 
 /** The stored droplist, read once — every arm that prunes by the corpus reads the same one. */
 const meta = new DatabaseSync(indexPath, { readOnly: true });
+// Before the droplist read and before any arm's dist is imported (ticket 0101). Against a
+// pre-rename index this used to die on `no such table: meta` — the droplist lived in
+// `index_meta` then — with nothing in the message to say which generation it had found.
+assertIndexSchema(meta, indexPath);
 const droplist = new Set(
   (meta.prepare("SELECT value FROM meta WHERE key='droplist'").get()?.value ?? '').split(' ').filter(Boolean),
 );
