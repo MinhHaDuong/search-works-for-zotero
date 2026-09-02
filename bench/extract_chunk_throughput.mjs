@@ -26,6 +26,13 @@
 //                 what a build actually runs, and what the ms/passage budget is
 //                 spent at.
 //
+// warm-up: one discarded pass, over a slice no measured repetition reads, before the
+// clock starts. Ticket 0260's rule, and it bites here even with no model in the
+// window — the first GET pays the local API's connection setup and the first
+// chunkText call pays V8's warm-up for that function, and both would land inside the
+// first repetition's rate. The discarded slice is reported (`warm_up` below) so a
+// reader can see it was paid rather than take the word for it.
+//
 //   node bench/extract_chunk_throughput.mjs --output <file.json> [--sample 40]
 //
 // Nothing leaves the machine: every request is to Zotero on loopback.
@@ -34,6 +41,10 @@ import { createHash } from 'node:crypto';
 import { cpus, loadavg, totalmem } from 'node:os';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+// The model is named by REGISTRY ID and resolved here, never written as a literal
+// repository string: models.json is the only file that knows what an id points at,
+// and a literal at the call site is how a run ends up undeclared.
+import { resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -59,7 +70,7 @@ const { values: opt } = parseArgs({
     // char-based, see chunker.js). Empty skips the arm.
     'transformers-path': { type: 'string', default: '' },
     'model-cache': { type: 'string', default: '' },
-    model: { type: 'string', default: 'Xenova/all-MiniLM-L6-v2' },
+    model: { type: 'string', default: 'all-minilm-l6-v2' },
   },
 });
 
@@ -275,13 +286,22 @@ const load_before = loadavg();
 /** One serial pass over one slice: per-attachment latency, one request in flight. */
 async function serialPass(keys) {
   const rows = [];
+  const texts = [];
+  const tExtract = performance.now();
   for (const key of keys) {
     const r = await extractItem(key);
     if (r.error) {
       rows.push({ item: key, error: r.error });
       continue;
     }
-    const { chunkMs, chunks } = chunkOne(r.text);
+    texts.push({ key, r });
+  }
+  const extractElapsed = performance.now() - tExtract;
+  const tChunk = performance.now();
+  const chunked = texts.map(({ r }) => chunkText(r.text, FULLTEXT_CHUNK_SIZE, FULLTEXT_CHUNK_OVERLAP));
+  const chunkElapsed = performance.now() - tChunk;
+  texts.forEach(({ key, r }, i) => {
+    const chunks = chunked[i];
     rows.push({
       item: key,
       attachments: r.reads,
@@ -289,19 +309,30 @@ async function serialPass(keys) {
       chars: r.text.length,
       passages: chunks.length,
       extract_ms: Number(r.extractMs.toFixed(3)),
-      chunk_ms: Number(chunkMs.toFixed(3)),
       passage_chars: chunks.map((c) => c.text.length),
     });
-  }
-  return rows;
+  });
+  return { rows, extractElapsed, chunkElapsed };
 }
 
-const repRows = [];
+// The discarded pass. Its slice sits after the concurrent arm's, so nothing measured
+// later reads an item it warmed.
+const warmKeys = sliceFor(REPS + 1).slice(0, Math.min(8, SAMPLE));
+const warmed = warmKeys.length ? await serialPass(warmKeys) : null;
+const warm_up = {
+  items: warmKeys.length,
+  discarded: true,
+  why: 'first-connection and first-call costs are paid here rather than inside repetition 0',
+};
+
+const repPasses = [];
 for (let r = 0; r < REPS; r++) {
   const keys = sliceFor(r);
   if (keys.length === 0) break;
-  repRows.push(await serialPass(keys));
+  repPasses.push(await serialPass(keys));
 }
+void warmed;
+const repRows = repPasses.map((p) => p.rows);
 const serialRows = repRows[0];
 
 // Concurrent arm: the build's own local-API concurrency, over items the serial arm
@@ -441,7 +472,8 @@ if (opt['transformers-path']) {
       env.localModelPath = opt['model-cache'];
       env.allowRemoteModels = false;
     }
-    const tk = await AutoTokenizer.from_pretrained(opt.model);
+    const { repo } = resolveModel(opt.model);
+    const tk = await AutoTokenizer.from_pretrained(repo);
     // Re-chunk the sampled corpus to get the passage TEXTS (the rows keep lengths only).
     const passageTexts = [];
     for (const key of sampled) {
@@ -455,17 +487,21 @@ if (opt['transformers-path']) {
       const ids = enc.input_ids;
       return ids?.dims?.at?.(-1) ?? ids?.data?.length ?? (Array.isArray(ids) ? ids.length : 0);
     };
-    const m0 = now();
+    // warm-up: the first tokenize call builds the tokenizer's internal tables, and
+    // that cost divided by the passage count would be reported as a per-passage rate.
+    // Issued for its side effect and discarded.
+    if (passageTexts.length) await tk(passageTexts[0], { truncation: false });
+    const tTokens = performance.now();
     let tokens = 0;
     for (const txt of passageTexts) tokens += lenOf(await tk(txt, { truncation: false }));
-    const tokMs = ms(m0, now());
+    const tokElapsed = performance.now() - tTokens;
     tokenizer = {
       run: true,
-      model: opt.model,
+      model: resolveModel(opt.model).repo,
       passages: passageTexts.length,
       tokens,
-      wall_ms: Number(tokMs.toFixed(1)),
-      ms_per_passage: passageTexts.length ? Number((tokMs / passageTexts.length).toFixed(3)) : null,
+      wall_ms: Number(tokElapsed.toFixed(1)),
+      ms_per_passage: passageTexts.length ? Number((tokElapsed / passageTexts.length).toFixed(3)) : null,
       tokens_per_passage: passageTexts.length ? Number((tokens / passageTexts.length).toFixed(1)) : null,
       not_in_the_build:
         'the build chunker is char-based (chunkText); this cost sits inside embed, not ' +
@@ -482,8 +518,8 @@ if (opt['transformers-path']) {
 const ok = serialRows.filter((r) => !r.error);
 const sum = (xs) => xs.reduce((a, b) => a + b, 0);
 const passages = sum(ok.map((r) => r.passages));
-const extractMsTotal = sum(ok.map((r) => r.extract_ms));
-const chunkMsTotal = sum(ok.map((r) => r.chunk_ms));
+const extractMsTotal = repPasses[0].extractElapsed;
+const chunkMsTotal = repPasses[0].chunkElapsed;
 // Distribution over EVERY rep, not just the first: it describes the corpus the rate
 // ran on, and the rate is a median over all of them.
 const allPassageChars = repRows.flat().filter((r) => !r.error).flatMap((r) => r.passage_chars);
@@ -494,19 +530,17 @@ const median = (xs) => {
   const v = [...xs].sort((a, b) => a - b);
   return v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
 };
-const repStats = repRows.map((rows, i) => {
+const repStats = repPasses.map(({ rows, extractElapsed, chunkElapsed }, i) => {
   const o = rows.filter((r) => !r.error);
   const p = sum(o.map((r) => r.passages));
-  const e = sum(o.map((r) => r.extract_ms));
-  const c = sum(o.map((r) => r.chunk_ms));
   return {
     rep: i,
     items: o.length,
     read_failures: rows.length - o.length,
     passages: p,
-    extract_ms_per_passage: p ? Number((e / p).toFixed(3)) : null,
-    chunk_ms_per_passage: p ? Number((c / p).toFixed(3)) : null,
-    extract_plus_chunk_ms_per_passage: p ? Number(((e + c) / p).toFixed(3)) : null,
+    extract_ms_per_passage: p ? Number((extractElapsed / p).toFixed(3)) : null,
+    chunk_ms_per_passage: p ? Number((chunkElapsed / p).toFixed(3)) : null,
+    extract_plus_chunk_ms_per_passage: p ? Number(((extractElapsed + chunkElapsed) / p).toFixed(3)) : null,
   };
 });
 const repE = repStats.map((r) => r.extract_ms_per_passage).filter((x) => x != null);
@@ -559,6 +593,7 @@ const result = {
   setup,
   arm_a_cache_hit: {
     what: 'the only path a build takes: read the platform full-text cache over the local API',
+    warm_up,
     reps: {
       n: repStats.length,
       items_per_rep: SAMPLE,

@@ -125,6 +125,19 @@ a source read. Reported as not-run rather than folded into the two stages that
 were measured. The full-library build launched the same night is the end-to-end
 confirmation this pass cannot give.
 
+**Provenance of the committed artifact, stated rather than glossed.** After the
+run, the driver was corrected to satisfy ticket 0260's guard: it now issues a
+discarded warm-up pass before the clock, and times each stage in one window per
+repetition instead of summing a clock read per item. The committed artifact was
+produced by the pass *before* that correction, because the full-library build
+took ownership of Zotero's local API minutes later and re-running would have
+loaded it — the exact condition that degrades a build to one-at-a-time fetches
+and never recovers. What the correction can be worth is bounded by the run
+itself: the five disjoint repetitions read 0,145 / 0,139 / 0,143 / 0,142 / 0,137
+ms per passage, the coldest first, so the first-connection cost the warm-up
+removes is at most about 0,008 ms per passage — three orders of magnitude below
+the allocation being re-cut. A confirming re-run belongs after the build.
+
 ## The re-cut
 
 §5.2.8 says the allocation across stages is provisional and the total is not, and

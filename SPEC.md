@@ -2471,28 +2471,30 @@ is the pattern, and it binds every surrogate here, not only that one.
   re-cut.
 
   Extract and chunk are no longer unpinned. Ticket 0500 measured them on the
-  reference machine over 4 310 passages of the real library: extract **0,154 ms**
-  per passage, chunk **0,028 ms**, **0,182 ms** together serially and **0,130 ms**
-  at the build's own local-API concurrency of 2
-  (`bench/results/0500-extract-chunk/extract-chunk-throughput.json`). That is 0,6 %
-  of the 30 ms the two carried before, which is why the re-cut moves nearly all of
-  it to embed and still leaves the record write — the third term, not isolated by
-  that ticket — more than an order of magnitude of room.
+  reference machine over **22 562 passages** of the real library, five
+  repetitions on disjoint slices: extract **0,142 ms** per passage, chunk
+  **0,022 ms**, **0,164 ms** together serially and **0,122 ms** at the build's own
+  local-API concurrency of 2
+  (`bench/results/0500-extract-chunk/extract-chunk-throughput.json`). That is
+  about half a percent of the 30 ms the two carried before, which is why the
+  re-cut moves nearly all of it to embed and still leaves the record write — the
+  third term, not isolated by that ticket — more than an order of magnitude of
+  room.
 
   What the measurement also settled is the mix. Extraction is not *usually* a
   cache read: in the shipped build it is *always* one. The full-text source can
   serve only what `/fulltext?since=0` names, so an attachment the platform has not
   extracted is invisible to the build and is never parsed by it. The expensive
-  path is real — forced re-extraction cost **10,01 ms per passage** median on the
+  path is real — forced re-extraction cost **10,08 ms per passage** median on the
   same machine — but the platform pays it when a file is first opened, outside
   this bound.
 
   The fixed term is the one to watch instead. Before a passage is read, the source
   walks the attachment pages to map extracted attachments to their parents:
-  **75,4 s** on a 9 302-attachment library, one-time per build. That is 20,4 ms per
-  passage on a 60-item sample and 0,16 ms on a full-library build, so here a
-  *sample* is the pessimistic measurement and a rate taken on one can fail a bound
-  the real build meets.
+  **80,6 s** on a **9 302**-attachment library, one-time per build. That is
+  21,8 ms per passage on a 60-item sample and 0,17 ms on a full-library build, so
+  here a *sample* is the pessimistic measurement and a rate taken on one can fail
+  a bound the real build meets.
 
   *The wall clock is the promise*, and it is this rate against the measured
   census of §5.2.9 — the census is the bridge, and the arithmetic is shown rather
