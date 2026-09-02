@@ -833,7 +833,8 @@ This constraint is sharpened on five points:
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. SPEC.md §5.2.6 owns the conditional fallback and the
   threshold experiment X4 measures; it is never the default path.
-- The SDT pack (zotero/structured-document-text) is the structured
+- The SDT pack (the pack format `structured-document-text`, produced by
+  `zotero/document-worker`) is the structured
   extraction the extract stage reads when one exists (§5.2.4). The local API
   neither serves nor creates it; it is read from disk beside the attachment,
   a random-access container with a reader contract
@@ -850,7 +851,8 @@ This constraint is sharpened on five points:
   The geometry is 120 minimum, 48 overlap, and a maximum of 768 that is
   **a ceiling, not a chunk size**. The source says so in as many words:
   "A ceiling rather than a target: chunks come out paragraph-sized, so this
-  decides only how long a text has to be before it's split at all." The
+  decides only how long a text has to be before it's split at all, and how
+far a single oversized paragraph is split." The
   effective budget is a minimum against the live model, not the constant —
   `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
   count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
@@ -865,7 +867,7 @@ This constraint is sharpened on five points:
   #6012's own tests. It never merges two sections each able to stand alone.
   Our boundary ruling is therefore stricter than the platform's, a
   deliberate divergence rather than the alignment this bullet used to claim.
-- Once #6012's saved-search serialization merges, it will be the first
+- Once #6012's `bestMatch` saved-search condition merges, it will be the first
   place platform semantic results appear in the local API. The mechanism is
   verified at source (PR head `77e2c4b`, read 2026-08-30): the
   pull request adds a `bestMatch` search *condition* in `searchConditions.js`,
@@ -1976,7 +1978,7 @@ entry fingerprint plus engine version, runtime, operating system, architecture
 and execution provider. A remote result can inform the UI but never substitutes
 for this local gate.
 
-Second, #6012-style library calibration (mean centering, noise floor = p99 of
+Second, #6012-style library calibration (mean centering, noise floor = p99,9 of
 unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
 remains deferred. One item's title and abstract form a matched
 pair, cross-item pairs are unrelated, and the private library is the corpus.
@@ -2193,8 +2195,12 @@ It asserts four things.
   that it should be was vetoed on 2026-08-29 — and the counter arithmetic
   written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
   partial − quarantined + outOfBand`) is open to rework or retire.
-- The terminal state arrives: all stages at total, drift 0, `pipeline: idle`
-  (the #6012 engine-shutdown observable), work counters stationary.
+- The terminal state arrives: all stages at total, drift 0, `pipeline: idle`,
+  work counters stationary. The observable is ours: #6012's nearest analogue
+  is `getStatus().phase`, which reaches `idle` on the branch that shuts the
+  engine down *and* on the branch that leaves it up for more work
+  (`embeddings.js:2782`, `:2998`), so it reports a loop at rest and not an
+  engine down. Ours must assert both, which is why the counters ride beside it.
 
 Phase 2: edit
 one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
@@ -2605,7 +2611,7 @@ is already drafted to carry the answer upstream.
 completes.** Sharpened since v1: he built #10's answer himself in days, the
 risk materialized a second time on 2026-08-27, when he filed and fixed
 his own follow-up to PR #20 (#21, with #22/#23) inside one day, and
-#6012's saved-search serialization is the first crack through which platform
+#6012's `bestMatch` saved-search condition is the first crack through which platform
 semantic results will leak into the local API. *Falsifier:* the harness
 offer and the scoped issues themselves, after the PR train; those threads
 settle fork-versus-upstream for the cost of writing them. The hedge is
