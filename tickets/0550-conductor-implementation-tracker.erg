@@ -12,6 +12,7 @@ Author: minh
 2026-09-01T18:51Z claude note LOG TIMESTAMPS CORRECTED across this family. Every ticket filed by commit 2a5b04f (0550 and its five children 0551-0555) carried a hand-written creation stamp of 2026-09-01T16:30Z — later than its own subsequent notes (0551's evidence notes are stamped 12:28Z, and PR #150 merged at 12:41Z), so the log read non-monotone and the stamp named a time that had not happened. Found by Copilot's review of PR #150. Corrected to 11:51Z in all six, which is the UTC time of 2a5b04f itself (13:51:24+02:00) — the one time the record actually evidences. Root cause: the stamp was typed by hand; `erg log` reads the real clock and would not have produced it
 2026-09-02T05:08Z claude note THE TOPOLOGY IS RE-CUT (DECISIONS.md 2026-09-02): the writer leaves the query process, the pipeline worker stays separate on a new justification, and the model is resident once on the machine behind an embedding service. This tracker's frontier is no longer 'conductor inside a P0'. The ticket this bites hardest is 0566, which assembles tick+conductor+extract+chunk/embed into ONE runnable process: that assembly is now the writer process, not a role a query-serving server takes on, and the boundary must not be settled by default in code. 0554's embed worker loses the model it was scoped around -- embedding is a call to the service, and the worker's peak is a batch plus the streamed decode.
 2026-09-02T07:08Z claude note bump verify-reroll — round 1: E1/E2 MISSING — SPEC.md not fully edited to match the 2026-09-02 rulings: :1513 sole-writer sentence contradicted the control-row exception three lines below; the P0 glossary entry, the R31 handshake paragraph and §4 C3 still asserted the pre-ruling topology (conductor elected from P0, model in the worker). Reconciled in the fix round.
+2026-09-02T10:48Z claude note THE LANE IS RECONCILED WITH THE 2026-09-02 TOPOLOGY, which until now lived in this tracker's log and in the children's logs while their bodies still described the old shape. Three tickets filed: 0575 owns the embedding service boundary (ruled shape, open provenance -- not Blocked-by 0491, and its body argues why from the ruling's own words and 0491's first exit criterion), 0576 and 0577 are the two probes the ruling demands before 0566 commits the boundary. Bodies rescoped: 0554 (the embed worker holds no model, calls the service, runs under nice 19 and a heap limit, and never spawns the service) and 0566 (the assembly is the writer, the conductor is not run-to-drain, the bootstrap and the pause rule are Actions). Children and exit criteria updated here
 --- body ---
 ## Context
 
@@ -57,6 +58,14 @@ tests, red first.
   divergent siblings that conflict in `ledger.ts`, and 0554, 0565 and
   0566 all assume one tree. Filed by the raid on 0565/0566; not a
   tranche, the same way 0556 was not
+- 0575 — the embedding service boundary the 2026-09-02 topology ruled and
+  nobody owned: 0491 owns which candidate provides the runtime, the
+  registry tickets own the entry it serves, 0554 owns the caller. Not a
+  tranche; not Blocked-by 0491, and its body says why
+- 0576 — probe: can a Claude-Desktop-hosted server spawn a child at all,
+  and under what environment. Gates 0566
+- 0577 — probe: the embedding service ceiling sized for two resident
+  generations. Gates 0566
 
 Children chain by Blocked-by on their real prerequisite, never on this
 tracker. Invariant across every tranche: the incumbent MiniLM entry
@@ -67,5 +76,14 @@ test suite stays green on the fork branch.
 
 - [ ] All five children closed (0551-0555; 0556 is not a tranche, see
       Children)
+- [ ] The 2026-09-02 topology is carried in the children's BODIES and not
+      only in their logs: the writer as its own process (0566), a worker
+      that holds no model and runs under a bound (0554), and an owner for
+      the embedding service boundary (0575)
+- [ ] The two probes the ruling demands before 0566 commits the boundary
+      (0576, 0577) are answered and recorded, and a negative on either
+      goes to DECISIONS.md as a question rather than into code as a
+      workaround
 - [ ] Integration review: full suite on the fork's assembled branch,
-      scheduling properties green, byte-identical vector check green
+      scheduling properties green, byte-identical vector check green —
+      the last of which had no test at all until 0554 built one (0568)
