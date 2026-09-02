@@ -1,0 +1,121 @@
+%erg 0.1
+Title: Read Zotero's structured-text pack when one exists, fall back to the flat full-text cache
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0028
+Label: needs-human
+
+--- log ---
+2026-09-02T06:55Z claude created
+
+--- body ---
+## Context
+
+The author's idea, 2026-09-02: the indexer SHOULD use Zotero's structured
+text pack when one exists, and fall back on the flat full-text cache
+otherwise. `DECISIONS.md` carries it as an awaiting-ratification entry of the
+same date, with the facts, the price and a recommendation. This ticket is
+the work once the entry is ratified; it is labeled `needs-human` because its
+first exit criterion is the author's ruling, and `Blocked-by: 0028` because
+the 2026-09-01 sequencing ruling ships seg/1 first so every structure path
+integrates once, on a working baseline.
+
+What is already known, so nobody re-establishes it:
+
+- The pack is `storage/<KEY>/.zotero-sdt-cache`, pack version 1, schema
+  1.1.0, processor pdf/3. `verification/probes/sdt_read.py` reads it and
+  refuses any other pack version. Two packs exist on the author's library
+  against 13 630 flat caches, and only the reader writes one
+  (`bench/results/0007-sdt-probe.txt`, fifth probe, trigger read at source).
+- Upstream #6012 already implements pack-first, flat-fallback
+  (`embeddings.js` at `77e2c4b`, `_getAttachmentChunks`) and keys the source
+  on the processor version. When it ships, packs exist for every embedded
+  attachment.
+- The pdf.js segmenter program (tracker 0557) reaches the PDF through the
+  local API's `/file/view/url` redirect; the pack is in the same directory.
+
+## Relevant files
+
+- `SPEC.md` §3 Corpus or Query block, the new R-item once ratified; §4 C1
+  (the first derivation link gains a second extractor identity); §5.2.4 (the
+  extract shim, where the pack read is decided per attachment); §5.2.2 (the
+  segmenter's structure-signal interface, tier 0).
+- `README.md` standing table and R24's rung roster: the new requirement must
+  sit on exactly one rung or `bench/check_progress.py` fails.
+- `verification/probes/sdt_read.py`: the reader to port to the fork's
+  TypeScript, or the reference the port is checked against.
+- `bench/results/0007-sdt-probe.txt`: the census and the trigger evidence.
+- `SYNC.md` "Zotero extraction" row: the three version constants the reader
+  must gate on.
+- Tickets 0557, 0560, 0561 (the ladder this becomes tier 0 of), 0480
+  (extractor staleness), 0483 (per-attachment truncation state), 0120 (the
+  SDT branch it answers).
+
+## Actions
+
+1. Ratification: the author rules on the awaiting entry. Then edit `SPEC.md`
+   to match (R-item, C1 link, §5.2.4 source selection, §5.2.2 tier 0) and
+   `README.md` (row and roster). Bump the SPEC.md date.
+2. Source selection in the extract shim: per attachment, stat the pack path
+   derived from the file path the local API already yields; read it when
+   present and of a known pack version; otherwise the ruled fallback, the
+   local API's `/fulltext`. Never a direct read of `.zotero-ft-cache`.
+3. Extractor identity: the C1 key for a pack-sourced attachment is
+   (source hash, processor version) from the pack's own metadata; for a
+   flat-sourced one it stays what §5.2.4 has today. Record which, per
+   attachment, in the ledger.
+4. Text: the pack's blocks, excluded flows dropped, joined so a passage's
+   extent maps back to its blocks (what #6012's `chunkSections` contract
+   does). Structure: block types and page anchors handed to the segmenter as
+   a tier-0 signal above 0560's outline. Do not overlay pack structure onto
+   the flat text.
+5. Reporting: R17's sentence counts pack-sourced and flat-sourced
+   attachments apart; R24's locator says "page" for a block anchor and keeps
+   D10's "estimated" label for flat-sourced hits.
+6. Regeneration under a read: write the test before the code (below), then
+   make the behaviour match it.
+
+## Test
+
+- Red first: an attachment with a pack and a flat cache whose texts differ
+  in a known way (the running head present only in the flat cache). Assert
+  the indexed text is the pack's. Run it against the tree before the
+  change: it must fail there.
+- A pack whose version byte is bumped: assert the attachment falls back to
+  the flat path and the ledger records why, and that nothing else changes.
+- A processor-version change in the pack metadata with the same source hash:
+  assert the next census marks the attachment stale (0480's class), and that
+  a truncated or half-written pack (cut the file mid-chunk) falls back
+  rather than yielding partial blocks.
+- The two real packs (GMAP993G, BSMCQ6BM) as fixtures: block counts and
+  heading lists match `sdt_read.py`'s output byte for byte.
+
+## Verification
+
+- [ ] `make check` green; the new R-item sits on exactly one rung.
+- [ ] R17's report on the author's library says 2 pack-sourced, the rest
+      flat, before #6012 ships; a hand count of `.zotero-sdt-cache` files
+      agrees.
+- [ ] A hit inside GMAP993G returns the block's page, not an estimate.
+
+## Invariants
+
+- seg/1 and the pdf.js tiers are never degraded: the pack is a signal above
+  them, and absence of a pack changes nothing about today's path.
+- No copyleft code vendored into zoteus (MIT). The reader is written from
+  the format, under whatever the AGPL-reimplementation ruling decides.
+- C3: reading a pack streams block groups; the pack is never held whole
+  beside the query embedder.
+- Nothing is filed upstream; #6012 is read, not touched.
+
+## Exit criteria
+
+- [ ] The awaiting entry is ratified or rejected; if rejected, this ticket
+      closes with the reason and nothing else changes.
+- [ ] SPEC.md and README.md match the ruling; the SPEC.md date is bumped.
+- [ ] Pack-first source selection lands in the fork with the four tests
+      above, the red-first one having failed against the unfixed tree.
+- [ ] Per-source counts appear in R17's report and a block anchor reaches
+      R24's locator.
+- [ ] 0557's tracker names the pack as tier 0 and 0560/0561 as the tiers
+      below it.
