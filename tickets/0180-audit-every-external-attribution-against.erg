@@ -17,6 +17,7 @@ Author: claude
 2026-09-02T10:55Z claude note PLATFORM-SIDE CORRECTIONS, seven sites, and two of them were the audit's worst evidence grades. Wrong mechanism: C1's '/fulltext?since= counter, which Zotero bumps when it re-extracts synced content' -- the counter carries a SYNC version, the server stamps it, and local extraction writes 0 outright (REPLACE INTO fulltextItems (itemID, version, synced) VALUES (?, 0, ?), fulltext.js at 9e28eb0). Wrong scope: 'different versions, different keys' -- item keys are sync keys, UNIQUE (libraryID, key), identical across two installs of one account, so they distinguish nothing; the glossary gloss carried the same error. '/file/view/url redirect' -- that route answers with the URL as a plain-text body, the 302 is /file and /file/view. 'The local API has no rate limits' -- true of every data endpoint, false of /api/local/authorize at 5 per 60 s. Upstream #39 'chose a Web-API fallback' -- it chose a per-API concurrency default, 2 desktop against 4 cloud, with back-off. Section 6's 'a keyless install fails such a read rather than sending it anywhere' -- it fails AT THE SERVER; the request is dispatched to api.zotero.org under user id 0. No library content crosses, which is the substantive point, but a request does and the sentence denied it -- in the security section, which is where that matters most. Wrong grade: 'the documented deletion route' is documented nowhere, the inference is ours. make check green
 2026-09-02T10:56Z claude note SELF-CORRECTION, and it is the audit's sharpest lesson. Two hours ago this ticket logged that C1's residue bullet was VERIFIED verbatim, on the strength of the comment at embeddings.js:2337-2345, and the coordinate was committed. That verdict is WRONG and is now reversed. The comment is stale: commit 57b30b17e (2026-08-20, inside #6012, not on main) folded the CURRENT processor version into the attachment staleness key -- md5(path|size|lastModified|processorVersion), where getProcessorVersion reads SDT_PROCESSOR_VERSIONS from the module metadata rather than the pack's own stamp (sdt.js:298-308) -- and _getAttachmentChunks calls getSections(item.id, {allowStale: false}) at embeddings.js:2428, which per sdt.js:60-72 WAITS for regeneration instead of returning the stale pack. So at the reviewed head Zotero chases a processor bump with no file change, and the precedent runs the OPPOSITE way to what C1 claimed. The 2026-08-31 ratified withdrawal reaches the right verdict; its stated reason -- that embeddings.js addresses the case nowhere -- is also wrong, because the file addresses it squarely and resolves it. So there is nothing to put to the author after all: C1's bullet is corrected here, which APPLIES the ratified withdrawal to the site it never reached, and the awaiting entry drafted for a reversal is not filed. The class this ticket names has a third face: not a constant adopted without its guard, and not a rationale graded as a measurement, but A COMMENT CITED AS BEHAVIOUR while the code beneath it says otherwise. My own first read fell into it, which is the strongest evidence the class is real
 2026-09-02T10:58Z claude note SIX MORE #6012 CORRECTIONS, read at PR head 77e2c4b. Wrong claims: the SDT pack's producer is zotero/document-worker, not a repository called zotero/structured-document-text -- that string is the pack FORMAT's name, and C2 had promoted a module name to a repository (.gitmodules:33-34). The calibration noise floor is p99,9 and not p99: NULL_PERCENTILE = 0.999 at embeddings.js:3068, with its own comment 'At 0.999 only the top 0.1 of unrelated pairs reach it' -- the other three elements of that attribution, mean centering, ceiling = median of matched pairs, and outright rejection of a model that cannot rank, are exact. Wrong evidence grade: C2's blockquote of the ceiling comment was cut mid-sentence and closed with a period, dropping 'and how far a single oversized paragraph is split' -- a silent truncation inside quotation marks, which is the one defect a verbatim citation cannot survive; restored in full. 5.2.8's 'pipeline: idle (the #6012 engine-shutdown observable)' -- the field is phase, not pipeline, and it reaches idle on the branch that shuts the engine down AND on the branch that keeps it up for more work, so it is not a shutdown observable at all; the sentence now says the observable is ours and why the counters ride beside it. Naming nits fixed at both sites: what #6012 adds is a bestMatch saved-search CONDITION, the serialization machinery being pre-existing. Everything else in the batch verified at source, including the whole chunker geometry, the forward-merge behaviour with its two named tests, smallest-first, MAX-over-chunks, the ONNX process gate, the bestMatch crack, and SDT page anchors
+2026-09-02T11:01Z claude note REGISTER LANDED at verification/ATTRIBUTION-AUDIT-0180.md, and the ticket's own coordinates are moved to SPEC.md. Two tallies: 15 claims wrong, 7 evidence grades wrong, counted separately per the author's 2026-08-31 ruling that folding a grade defect into the mechanism tally blunts a finding about mechanism. 22 sites corrected in SPEC.md; 4 registered and not edited, three of them on DECISIONS.md's awaiting list. The sample's table keeps its 2026-08-29 coordinates as history and gains a column saying where each row lives now -- rewriting those line numbers would have falsified the record the table exists to be. Two structural findings the ticket did not anticipate. FIRST, staleness is the larger axis: nine of the fifteen wrong claims were EXACT when written and expired since, which the instrument 'read the source at a SHA' is blind to by construction -- it catches a misreading and cannot catch a reading that has run out. Three of them were fixed by the maintainer closing OUR OWN filings #19, #18 and #25, so the document was quoting his pre-fix code back at him as a live diagnosis, in a repository he reads. SECOND, for ticket 0181: a coordinate must name a REF, not just file and line. The citations that survived contact carried 77e2c4b; the bare file:line ones had drifted up to 180 lines, and a guard checking only that a citation is present would have passed every stale claim in this register
 --- body ---
 ## Context
 The specification chain makes claims about what Zotero and #6012 do. Two of
@@ -25,15 +26,19 @@ error rate is not incidental.
 
 Sampled, with verdicts:
 
-| site | claim | verdict |
-|---|---|---|
-| DESIGN.md:216 | "Zotero's geometry, adopted verbatim" | refuted (0140) |
-| DESIGN.md:468 | "#6012's shipped geometry" (CJK 2-gram) | refuted (0060) |
-| CONSTRAINTS.md C2 | geometry, and "never crosses a section" | refuted, fixed |
-| DESIGN.md:417 | entry score is MAX over chunks, "#6012's rule" | holds |
-| DESIGN.md:206 | prefix charged to the budget, "Zotero's own prior art" | holds in part |
-| CONSTRAINTS.md:87 | rowid-constrained MATCH cost, "#6012's measurement" | mechanism holds, citation overstated — corrected |
-| DESIGN.md:389 | "Zotero's own embeddings layer documents the same residue" | not supported at `77e2c4b` — removed |
+The 2026-08-29 sample, at the coordinates of the day. The five specification
+documents merged into one `SPEC.md` on 2026-09-01, so the file names below are
+historical; the third column names where each row now lives.
+
+| site, as sampled | claim | verdict | now |
+|---|---|---|---|
+| DESIGN.md:216 | "Zotero's geometry, adopted verbatim" | refuted (0140) | SPEC.md §5.2.2 |
+| DESIGN.md:468 | "#6012's shipped geometry" (CJK 2-gram) | refuted (0060) | SPEC.md §5.2.6 — corrected 2026-09-02 |
+| CONSTRAINTS.md C2 | geometry, and "never crosses a section" | refuted, fixed | SPEC.md §4 C2 |
+| DESIGN.md:417 | entry score is MAX over chunks, "#6012's rule" | holds | SPEC.md §5.2.6 |
+| DESIGN.md:206 | prefix charged to the budget, "Zotero's own prior art" | holds in part | SPEC.md §5.2.2 |
+| CONSTRAINTS.md:87 | rowid-constrained MATCH cost, "#6012's measurement" | mechanism holds, citation overstated — corrected | SPEC.md §4 C2 |
+| DESIGN.md:389 | "Zotero's own embeddings layer documents the same residue" | not supported at `77e2c4b` — removed | SPEC.md §4 C1 kept a second copy; refuted at source and corrected 2026-09-02 |
 
 The last two were settled at source on 2026-08-30 (see the log) and both are
 now corrected in the text; the second row's coordinate had drifted from :321
@@ -67,8 +72,9 @@ forward. It is also public text the upstream maintainer reads, and
 misattributing his work is a cost this repo cannot pay twice.
 
 ## Actions
-1. Enumerate every claim in REQUIREMENTS.md, CONSTRAINTS.md and DESIGN.md
-   that asserts something about Zotero, #6012, or zoteus. The grep that
+1. Enumerate every claim in `SPEC.md` — all sections, §6 included — that
+   asserts something about Zotero, #6012, or zoteus. (Written against the
+   five documents; they are one file since 2026-09-01.) The grep that
    found the sample above is a start, not the method: it keys on
    "verbatim / adopted / own / prior art / aligns with / #6012's" and will
    miss a claim phrased without those words.
@@ -87,9 +93,18 @@ This is an audit, not code. Its check is that every surviving attribution
 carries a coordinate, which ticket 0181 turns into a standing guard.
 
 ## Verification
-- [ ] Every external attribution has a verdict and a coordinate
-- [ ] Unverified claims say so in the text
-- [ ] Corrections that touch ratified readings went through DECISIONS.md
+- [x] Every external attribution has a verdict and a coordinate
+      (`verification/ATTRIBUTION-AUDIT-0180.md`, 2026-09-02: ~80 rows over the
+      whole of SPEC.md, each with file, line and the SHA read)
+- [x] Unverified claims say so in the text (C2's live-read bullet now states
+      what was measured, what is PR #100's assertion, and what nothing here
+      has run; C2's fulltext preamble names which figures its cited report
+      does not carry)
+- [x] Corrections that touch ratified readings went through DECISIONS.md
+      (three findings on the awaiting list: X6's possible source answer, and
+      the two §5.2.2 items left to the segmenter work. The one candidate for
+      a reversal, C1's residue bullet, turned out to apply the ratified
+      2026-08-31 withdrawal rather than reverse it, so it was corrected)
 
 ## Invariants
 - Read source, not a summary. A WebFetch of a PR page is weaker evidence
@@ -99,6 +114,8 @@ carries a coordinate, which ticket 0181 turns into a standing guard.
 - Nothing here is filed upstream; the PR budget is untouched.
 
 ## Exit criteria
-- [ ] The enumeration is complete and recorded
-- [ ] Every claim is verified, corrected, or marked unverified
-- [ ] `make check` passes
+- [x] The enumeration is complete and recorded
+- [x] Every claim is verified, corrected, or marked unverified — 15 claims
+      wrong and 7 evidence grades wrong, 22 sites corrected in SPEC.md, 4
+      registered and left to their owners
+- [x] `make check` passes

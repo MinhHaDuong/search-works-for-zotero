@@ -291,8 +291,9 @@ document relies on it.
   they are tuned, are SPEC.md §5.2.2.
 - **FTS5** — SQLite's full-text search extension, the keyword half of this
   design's retrieval. SQLite's; the table layout, the tokenizer and the
-  contentless mode are SPEC.md §5.2.2, and the measured cost of constraining a
-  match to a row set is SPEC.md C2.
+  contentless mode are SPEC.md §5.2.2. The cost of constraining a match to a
+  row set is C2's constraint, on upstream's stated rationale; the figure under
+  it is X4's to measure and is not measured yet (SPEC.md §5.3).
 - **`unicode61`** — the tokenizer the full-text index uses, configurable for
   diacritic folding; the query and index normalizers must agree on it or a term
   can never match. SQLite's; the configuration is SPEC.md §5.2.2 and the
@@ -2512,7 +2513,8 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   inside the 300–700 ms typical budget); if even 1k exceeds it, no
   constrained step ships and the ladder ends at the honest R18 give-up.
 - **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
-  baselines stock upstream on the uncapped 44,9 MB document (the 2 084,9 MiB
+  baselines stock upstream, uncapped via
+  `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0`, on the 44,9 MB document (the 2 084,9 MiB
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against C3's pipeline rule, travels with the entries machinery (scoped issue
   B).
