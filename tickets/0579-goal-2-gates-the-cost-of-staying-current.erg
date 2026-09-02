@@ -5,6 +5,10 @@ Author: claude
 
 --- log ---
 2026-09-02T10:51Z claude created
+2026-09-02T20:37Z claude note R13 folded in from ticket 0035, which keeps the soak gate; goal 2's three clauses are asserted together or the ladder rung is not one
+2026-09-02T20:37Z claude note five assertions land in bench/acceptance/durability.py, each seen red from a fail-control before any green; six new fixtures, one cause each
+2026-09-02T20:37Z claude note measured on padme against a seeded 5-item index: R13's answering clause PASS, R23's serving clause FAIL both directions, R3 both clauses not-run because the reviewed baseline reports no work counters at all
+2026-09-02T20:37Z claude note two interface findings raised, not settled: the perturbation seam has no home in the ratified contract, and R10-no-egress went red on padme where it was green on doudou
 
 --- body ---
 
@@ -98,12 +102,67 @@ broken.
   adds the serving half and touches neither existing check.
 - No threshold or design number is restated here; SPEC.md §5.2.8 owns them.
 
+## What was done, and where it stops
+
+Five assertions, one per MUST clause, in `bench/acceptance/durability.py`,
+phrased over the seven verbs exactly as goal 1's are. Every one was seen red
+from a fail-control before it was seen green, and each fail-control is red on
+its own clause and no other — one cause per fixture, so a red names a defect
+rather than a region.
+
+R13 is folded in here rather than left to ticket 0035. Goal 2 is a bundle: its
+three clauses are asserted together or the rung is not one. Ticket 0035 keeps
+what is actually its own — the soak gate of `SPEC.md` §5.2.8, three processes
+draining 10k at a query a second, which is a different instrument from an
+acceptance clause and needs a machine this one does not.
+
+**Measured against a real target** (padme, a 5-item library, a built index
+seeded into the data directory; `bench/results/smoke-1.12.0/acceptance-zoteus.json`):
+
+- R13's answering clause **passes**. Two processes with nested lifecycles both
+  answered while the other was live, and a third process opened the same index
+  afterwards and returned the identical hits. The third process is the detector
+  — a pair can answer perfectly and leave the file unreadable behind it — and it
+  has a fixture that does exactly that.
+- R23's serving clause **fails**, in both directions. The stamp was changed in
+  place, 1 → 0 and 1 → 9999; the build moved the file aside under
+  `.incompatible-*`, deleted nothing, opened a fresh empty index, and answered
+  the query that had returned hits before with no hit list at all. Filed as
+  upstream issue #34. A red, not a skip.
+- R3's two clauses and R13's duplicate-work clause are **not-run**, for one
+  reason: the reviewed baseline reports no `work.<stage>.<trigger>.<outcome>`
+  counter of any kind. Every top-level key of its index status was read on a
+  live server; there is no `work` or `counters` object anywhere. The clauses are
+  undecidable against this target and say so, rather than passing.
+
+## Raised here, not settled
+
+**The interface has no perturbation seam.** Every goal-2 clause is *do something
+to the system, then observe it through the verbs*. The observing side is
+`status` and `query`. The doing side — edit one item, resync unchanged bytes,
+restamp the index — is not a verb and cannot become one: `Check.verb` and
+`Declaration.unsupported` both refuse a name outside `VERBS`, which is the
+ratified contract working as intended. It is implemented here the way the
+process lifecycle already is, as adapter-declared setup rather than an eighth
+verb, and an adapter that cannot drive one reports `not-run`. Whether that seam
+should instead be ratified alongside the seven verbs is a question about the
+interface, filed to `DECISIONS.md` and not decided here.
+
+**R10's egress clause went red on padme where it was green on doudou.** Zero
+off-machine connects, eight name lookups, and the run's own model-cache
+assertion shows weights being downloaded into an arena that had none. The
+correlation is strong and the cause is not established: the green baseline was
+taken with a pre-warmed cache. Reported to the goal-1 lane; the one experiment
+that settles it is the same isolated arm run twice, cache cold and cache warm.
+
 ## Exit criteria
-- [ ] R3's edit clause asserted against the built index, with a churn arm seen red
-- [ ] R3's identical-bytes resync clause asserted, verification permitted and
-      nothing downstream of it
-- [ ] R23's serving clause asserted in both directions, its current state
+- [x] R3's edit clause asserted against the built index, with a churn arm seen red
+- [x] R3's identical-bytes resync clause asserted, verification permitted and
+      nothing downstream of it — and a second detector, because a target that
+      verified nothing reports the same zero recompute a correct one does
+- [x] R23's serving clause asserted in both directions, its current state
       recorded honestly rather than skipped
-- [ ] both run from the Makefile with honest red/waiver states
-- [ ] README.md's goal-2 rows for R3 and R23 carry an evidence verdict that
+- [x] both run from the Makefile with honest red/waiver states — `make
+      acceptance-fixtures` fails when any assertion has never been seen red
+- [x] README.md's goal-2 rows for R3 and R23 carry an evidence verdict that
       rests on something that ran

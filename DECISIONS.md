@@ -4940,3 +4940,43 @@ settled one, which is the figure a ceiling must carry.
 Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
+
+**2026-09-02 — the acceptance interface has no perturbation seam, and goal 2
+needed one. Not ratified: whether it becomes an eighth thing is the author's.**
+The interface ratified earlier the same day fixes seven verbs, four states, and
+the declaration, and says three things live in it and nothing else. Goal 2's
+three requirements are all of one shape that the seven do not cover: *do
+something to the system, then observe it through the verbs*. Observing is
+`status` and `query`. Doing — edit one item's title, resync bytes that did not
+change, restamp the index under a foreign schema version — is not a verb, and
+the contract refuses to let it become one: `Check.verb` and
+`Declaration.unsupported` both reject a name outside `VERBS`, which is the
+contract working exactly as intended.
+
+Ticket 0579 implements it as the contract already implements the process
+lifecycle — adapter-declared harness setup, a method rather than a verb, with an
+adapter that cannot drive a perturbation reporting `not-run` and naming which
+one. Nothing was added to `Declaration`, to `VERBS`, or to `STATES`. The choice
+is defensible and it is not obviously right: a seam that lives beside the
+contract rather than inside it is a seam nobody's guard checks for completeness,
+which is the argument `assertions.py` already makes against a declaration nobody
+sweeps. Three ways it could go — ratify the seam alongside the seven verbs and
+give it a declaration field; leave it where it is and write a guard that holds
+an adapter's perturbations to a declared list; or rule that a target which
+cannot be perturbed simply has no goal-2 verdict, which is what happens today
+without anyone having decided it.
+
+Two measurements from the same ticket that are not the question. **The reviewed
+baseline reports no work counters at all** — every top-level key of its index
+status was read on a live server, and there is no `work` or `counters` object
+anywhere — so R3's two clauses and R13's duplicate-work clause are undecidable
+against it and report `not-run`. That is a fact about the target's
+observability, not about the requirement.
+
+**And R10's egress clause went red on a machine where it had been green.** Zero
+connections off the machine, eight name lookups, on a run whose own model-cache
+assertion recorded weights arriving in an arena that had none. The green was
+taken with a pre-warmed cache and the red without one. The correlation is
+strong; the cause is not established here, and the experiment that would settle
+it is the isolated arm run twice, cache cold and cache warm. Recorded as an
+observation for the goal-1 lane rather than as a verdict on R10.

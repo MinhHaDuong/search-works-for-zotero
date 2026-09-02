@@ -53,6 +53,28 @@ about the ratified interface rather than about this target, and it is the more
 interesting for surfacing on the target the interface was drawn from. It is
 flagged rather than decided.
 
+**Goal 2 needs an index, and an empty data directory cannot express its clauses.**
+R3, R13 and R23 are all about a library already in service — what staying current
+costs, what a second process does to a settled index, what happens when a stamp
+changes under one. Against a data directory this run has just created, R13 is
+two processes agreeing that nothing matches and R23 has no baseline to lose. So
+this adapter accepts a prebuilt index to start from (`seed_index`), copied in
+before the process starts and recorded in the declaration so the artifact says
+which index it measured. It is not a non-default option in the sense the
+contract forbids: no flag is passed to the target, no behaviour is changed, and
+the state it produces — a data directory that already holds an index — is the
+ordinary one for every user after their first day.
+
+**Two of the four perturbations are declined, and the reasons differ.** The
+restamps are done here, in sqlite, exactly as `bench/smoke_upstream.py`'s
+`_restamp_and_open` does them, because the stamp is this target's own storage
+and only this adapter may know where it lives. Editing one item and resyncing
+identical bytes are declined: both are writes to the user's Zotero library,
+which this target is configured read-only against and which R15 excludes from
+derived state — and the clauses they serve read work counters this target does
+not report, so driving them would produce an undecidable run rather than a
+verdict.
+
 **The model runtime path is a declared, overridable input, and it is the sharpest
 environmental trap here.** The built checkout does not vendor the on-device model
 runtime. Without being pointed at one the target falls back to keyword-only,
@@ -66,10 +88,18 @@ they are looking at.
 """
 
 import os
+import shutil
+import sqlite3
 import sys
 from contextlib import contextmanager
 from pathlib import Path
 
+from ..durability import (
+    EDIT_ONE_ITEM,
+    RESTAMP_NEWER,
+    RESTAMP_OLDER,
+    RESYNC_IDENTICAL_BYTES,
+)
 from ..interface import Declaration, UnsupportedVerb
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -83,6 +113,18 @@ MODES = {"exact": "keyword", "meaning": "semantic", "combined": "auto"}
 
 #: The verbs this target does not offer. The docstring argues each one.
 UNSUPPORTED = frozenset({"uninstall", "resume"})
+
+#: The two foreign schema stamps, and they are this target's numbers rather than
+#: this harness's: `bench/smoke_upstream.py`'s `_restamp_and_open` has been
+#: writing exactly these since the damage-prevention half was first asserted, and
+#: a second pair would test a different thing while claiming to test the same one.
+#: Older is the one that matters — it is what every user holds the day the build's
+#: schema version is incremented.
+FOREIGN_STAMPS = {RESTAMP_OLDER: "0", RESTAMP_NEWER: "9999"}
+
+#: The key this target keeps its index schema version under, in the index's own
+#: `meta` table. Target knowledge, which is why it is here and not in the layer.
+STAMP_KEY = "schemaVersion"
 
 
 def _payload(response: dict) -> dict:
@@ -103,12 +145,13 @@ def _payload(response: dict) -> dict:
 
 class Zoteus:
     def __init__(self, arena: Path, *, entrypoint: Path, transformers_path: str = "",
-                 zotero_data_dir: str = "", timeout: float = 900):
+                 zotero_data_dir: str = "", seed_index: str = "", timeout: float = 900):
         self.arena = Path(arena)
         self.entrypoint = Path(entrypoint)
         self.data_dir = self.arena / "data"
         self.transformers_path = transformers_path
         self.zotero_data_dir = zotero_data_dir
+        self.seed_index = Path(seed_index) if seed_index else None
         self.timeout = timeout
         self.server: Server | None = None
         self.declaration = Declaration(
@@ -129,6 +172,11 @@ class Zoteus:
             process=(
                 "node runs the built entrypoint as a child process, spoken to over stdio; "
                 "it is started before the verbs and terminated after them"
+                + (f"; the data directory is seeded from {self.seed_index} before the "
+                   "first start, so goal 2's clauses have an index in service to be "
+                   "about" if self.seed_index else
+                   "; the data directory starts empty, so any clause about an index "
+                   "already in service has nothing to read")
             ),
             unsupported=UNSUPPORTED,
             not_derived_state=(
@@ -155,9 +203,43 @@ class Zoteus:
             env["ZOTERO_DATA_DIR"] = self.zotero_data_dir
         return env
 
+    def _seed(self) -> None:
+        """Put a prebuilt index in place before the first start, if one was supplied.
+
+        Copied only when the data directory holds no index yet, so a restart —
+        which is what R23's clause turns on — reopens the index the previous run
+        left, foreign stamp and all, rather than silently getting a fresh one.
+        """
+        if self.seed_index is None or self._index() is not None:
+            return
+        shutil.copyfile(self.seed_index, self.data_dir / self.seed_index.name)
+
+    def _index(self) -> Path | None:
+        """This target's index file in the data directory, or None if there is none.
+
+        Found by opening each candidate and asking whether it carries the stamp,
+        rather than by matching a filename: the name has changed across versions
+        of this target and will change again, and a probe that silently finds
+        nothing would report "no index" for a build whose file was merely renamed.
+        """
+        for candidate in sorted(self.data_dir.glob("*.sqlite")):
+            try:
+                con = sqlite3.connect(f"file:{candidate}?mode=ro", uri=True)
+                try:
+                    row = con.execute(
+                        "SELECT value FROM meta WHERE key=?", (STAMP_KEY,)).fetchone()
+                finally:
+                    con.close()
+            except sqlite3.Error:
+                continue
+            if row is not None:
+                return candidate
+        return None
+
     @contextmanager
     def running(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._seed()
         self.server = Server(["node", str(self.entrypoint)], self._env(), timeout=self.timeout)
         self.server.handshake()
         try:
@@ -222,6 +304,13 @@ class Zoteus:
                 "active": index.get("embedderActive") is True,
                 "model": index.get("embedderModel"),
             },
+            # Explicitly None rather than absent. This target's status carries
+            # coverage and phase but no `work.<stage>.<trigger>.<outcome>` counter
+            # of any kind — measured on 2026-09-03, all 29 top-level keys read,
+            # no `work` or `counters` object anywhere. Saying so here is the
+            # difference between an adapter that answered and one that forgot,
+            # and it is what makes R3's `not-run` a finding rather than a gap.
+            "work": None,
             "reported": {"whoami_embeddings": embeddings, "index_embedder": index.get("embedder")},
         }
 
@@ -238,6 +327,57 @@ class Zoteus:
     def resume(self) -> dict:
         raise UnsupportedVerb(self.declaration.name, "resume")
 
+    # -- perturbation: adapter-declared harness setup, not an eighth verb -----
+
+    def perturb(self, what: str) -> dict:
+        """Make something happen to this target that no verb can express.
+
+        Called with the process stopped: the restamp writes to the index file,
+        and writing to a database another process holds open is a different
+        experiment from the one R23 asks for.
+        """
+        if what in FOREIGN_STAMPS:
+            return self._restamp(what)
+        if what in (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES):
+            raise NotImplementedError(
+                "this would write to the user's own Zotero library, which this target is "
+                "configured read-only against and which R15 excludes from derived state; "
+                "and the clause it serves reads work counters this target does not "
+                "report, so driving it would produce an undecidable run rather than a "
+                "verdict"
+            )
+        raise NotImplementedError(f"this adapter has no way to do {what!r}")
+
+    def _restamp(self, direction: str) -> dict:
+        """Write a foreign schema version into the index, the way a version change would.
+
+        The same operation `bench/smoke_upstream.py` performs for the
+        damage-prevention half, done here on the index in place rather than on a
+        copy: what R23's serving clause asks is what this build does with the file
+        it finds, and a copy set aside is not the file it finds.
+        """
+        index = self._index()
+        if index is None:
+            raise NotImplementedError(
+                "no index carrying a schema stamp exists in this data directory, so there "
+                "is nothing to restamp; seed the arena with a built index first"
+            )
+        con = sqlite3.connect(index)
+        try:
+            was = con.execute("SELECT value FROM meta WHERE key=?", (STAMP_KEY,)).fetchone()
+            con.execute("UPDATE meta SET value=? WHERE key=?",
+                        (FOREIGN_STAMPS[direction], STAMP_KEY))
+            con.commit()
+        finally:
+            con.close()
+        return {
+            "perturbation": direction,
+            "index": index.name,
+            "was": was[0] if was else None,
+            "restamped_to": FOREIGN_STAMPS[direction],
+            "file_deleted_by_hand": False,
+        }
+
 
 def _revision(entrypoint: Path) -> str:
     """The built revision under test, so an artifact says what it measured."""
@@ -253,7 +393,7 @@ def _revision(entrypoint: Path) -> str:
 
 
 def build(name: str, arena: Path, *, entrypoint: str = "", transformers_path: str = "",
-          zotero_data_dir: str = "", **_opts) -> Zoteus:
+          zotero_data_dir: str = "", seed_index: str = "", **_opts) -> Zoteus:
     if not entrypoint:
         raise SystemExit(
             "this adapter needs the path to the target's built entrypoint (--entrypoint). "
@@ -264,4 +404,5 @@ def build(name: str, arena: Path, *, entrypoint: str = "", transformers_path: st
         entrypoint=Path(entrypoint),
         transformers_path=transformers_path or os.environ.get("ZOTEUS_TRANSFORMERS_PATH", ""),
         zotero_data_dir=zotero_data_dir,
+        seed_index=seed_index,
     )

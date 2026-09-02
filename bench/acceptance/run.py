@@ -49,6 +49,13 @@ from acceptance.assertions import (  # noqa: E402
     check_residue_inventory,
     check_uninstall_removes_declared_state,
 )
+from acceptance.durability import (  # noqa: E402
+    check_edit_recomputes_only_what_changed,
+    check_foreign_stamp_ends_up_serving,
+    check_identical_resync_recomputes_nothing,
+    check_two_processes_both_answer,
+    check_two_processes_do_not_duplicate_work,
+)
 from acceptance.interface import FAIL, NOT_OFFERED, NOT_RUN, PASS, Run  # noqa: E402
 from acceptance.interface import UnsupportedVerb  # noqa: E402
 
@@ -140,6 +147,28 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
 
     where = arena_for("R15-uninstall-removes-declared-state")
     run.checks.append(check_uninstall_removes_declared_state(make_target(where), arena=where))
+
+    # Goal 2. The two R13 clauses take a SECOND target built over the same arena:
+    # two adapter instances resolving one declared derived-state root is what
+    # "two server processes on one data directory" means without the layer
+    # knowing any path. Everything else here is one target in an arena of its own,
+    # for the reason the docstring above gives.
+    where = arena_for("R3-edit-recomputes-only-what-changed")
+    run.checks.append(check_edit_recomputes_only_what_changed(make_target(where)))
+
+    where = arena_for("R3-identical-resync-recomputes-nothing")
+    run.checks.append(check_identical_resync_recomputes_nothing(make_target(where)))
+
+    where = arena_for("R13-two-processes-both-answer")
+    run.checks.append(check_two_processes_both_answer(
+        make_target(where), second=make_target(where)))
+
+    where = arena_for("R13-two-processes-do-not-duplicate-work")
+    run.checks.append(check_two_processes_do_not_duplicate_work(
+        make_target(where), second=make_target(where)))
+
+    where = arena_for("R23-foreign-stamp-ends-up-serving")
+    run.checks.append(check_foreign_stamp_ends_up_serving(make_target(where)))
     return run
 
 

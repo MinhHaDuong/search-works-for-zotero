@@ -87,14 +87,14 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○` &nbsp; 3 shipped · 15 partial · 6 not yet
+`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○` &nbsp; 3 shipped · 16 partial · 5 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 9 read in the source · 5 inferred
+12 measured · 8 read in the source · 4 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
@@ -147,7 +147,7 @@ upstream, and on what terms, is [`SYNC.md`](SYNC.md) and
 | Multilingual | `●●` | `◐○` |
 | Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●` | `●◐◐○` |
-| Multi-library and multi-process | `●●` | `●○` |
+| Multi-library and multi-process | `●●` | `●◐` |
 | Normalization | `●` | `◐` |
 
 ---
@@ -209,12 +209,12 @@ ends up served. Second because these need a built index but not a good one, and
 because a build that cannot survive its own second day never reaches the rungs
 above.
 
-`◐◐○` &nbsp; 3 in the bundle · 1 rest on something that ran
+`◐◐◐` &nbsp; 3 in the bundle · 3 rest on something that ran
 
 | | the clause goal 2 binds | decided at | where its test would live |
 |---|---|---|---|
 | R3 | what staying current costs is what changed, never the size of the library | both | ticket 0579 |
-| R13 | two server processes on one data directory, no corruption and no duplicated work | both | ticket 0035 |
+| R13 | two server processes on one data directory, no corruption and no duplicated work | both | ticket 0579 |
 | R23 | an index under another schema version ends up serving, either direction, no file deleted by hand | both | ticket 0579 |
 
 ## Goal 3 — it answers, and it is honest about what it has
@@ -328,7 +328,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R3 | The cost of staying current MUST be proportional to what changed, never to the size of the library | ratified | partial | code | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. The counter-churn clause merged in on 2026-08-31 is the better-off half: the full-text sequence is read as its own cursor, which removes the known cause, and nothing yet proves the absence because the counters that would prove it are R17's. |
+| R3 | The cost of staying current MUST be proportional to what changed, never to the size of the library | ratified | partial | measured | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. The counter-churn clause merged in on 2026-08-31 is the better-off half: the full-text sequence is read as its own cursor, which removes the known cause, and nothing yet proves the absence because the counters that would prove it are R17's — and that last sentence is now measured rather than reasoned. The reviewed baseline reports no `work.<stage>.<trigger>.<outcome>` counter of any kind: every top-level key of its index status was read on a live server and there is no `work` or `counters` object anywhere, so both assertions that would decide this clause report `not-run` against it instead of a verdict (`bench/acceptance/durability.py`, `bench/results/smoke-1.12.0/acceptance-zoteus.json`). The instruments themselves exist and have been driven red — including against a fixture that recomputes nothing because it verified nothing, which is the arm a check reading only the `done` outcome reports as green (`bench/results/smoke-1.12.0/acceptance-fixtures.json`). Ticket 0579. |
 | R35 | The system MUST notice a new, changed or deleted item within one minute, without anyone asking | ratified | partial | inferred | The machinery to notice a change exists upstream: incremental updates ride a library version cursor (SYNC.md records the commit that added them), and deletion reconciles against the key set. What does not exist is the minute. Nothing here has established how often the update path runs, and no latency has been measured or read at source, which is why this row is `inferred` where R3's neighbouring row is `code`. Ticket 0503 settles it. On our side the reconcile tick's cadence is what delivers the minute, and deletion subtraction moved from every tenth tick to every tick to meet it (SPEC.md §5.2.4). |
 
 ### Corpus
@@ -369,14 +369,14 @@ demonstrated. They are not the same kind of statement.
 | R10 | Without an explicit opt-in, my library text and my queries MUST NOT leave this machine | ratified | shipped | measured | The default embedder is local, the model cache sits under the data directory, and the one API key that used to travel in a URL now travels in a header. Asserted against a running server rather than read: `bench/smoke_upstream.py` checks that effective embeddings resolve local and the embedder is active (`bench/results/smoke-1.12.0/checks.json`). A build pins its own transport once and fails rather than re-routing, so this stays about the embedder — see the neighbouring read-transport-fallback paragraph in `SPEC.md` §6 for the narrower, separate gap on the live-routed metadata surface. Closed as ticket 0017. |
 | R15 | Deleting an item MUST remove its text everywhere. The target MUST declare every location in which it creates derived state. After uninstall, none of that state may remain, and no target-created derived state may exist outside the declaration | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The prior model-cache check found one zoteus path stayed inside its data directory — and named as its own falsifier a cache created *outside* that directory, which it never looked for, so what it established was the presence of state inside the declaration rather than the absence of state outside it. The instrument for the second half now exists: the target-neutral residue inventory (`bench/acceptance/assertions.py`) sweeps a harness-owned arena and fails anything the declaration does not account for, and it has been driven red against a planted residue and against an adapter that under-declares its roots (`bench/results/smoke-1.12.0/acceptance-fixtures.json`). The verdict stays `inferred` because those are fail-controls, not targets: no target has yet been exercised through the uninstall contract or the residue inventory, and a fixture proving the assertion can fail says nothing about any target's derived state. Ticket 0578. |
 | R22 | There MUST be one obvious way to stop all background work, and it MUST hold across restarts | ratified | none | code | Verified absent: there is no pause. Scoped issue A, ticket 0033. |
-| R23 | An index written under a different schema version MUST end up serving, in either direction, without anyone deleting files by hand | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served (`bench/results/smoke-1.12.0/checks.json`). Serving in both directions is still design — no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS` is empty. Issue #34 softened the cost of that rather than closing it: a rebuild against a sidelined older-stamp file salvages vectors for any passage whose text is unchanged, observed directly on this run, so "abandoned" describes what is served — nothing, until a rebuild — not what a rebuild then costs. |
+| R23 | An index written under a different schema version MUST end up serving, in either direction, without anyone deleting files by hand | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served (`bench/results/smoke-1.12.0/checks.json`). Serving in both directions is still design — no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS` is empty. Issue #34 softened the cost of that rather than closing it: a rebuild against a sidelined older-stamp file salvages vectors for any passage whose text is unchanged, observed directly on this run, so "abandoned" describes what is served — nothing, until a rebuild — not what a rebuild then costs. The serving half is now asserted rather than described, and it is red in both directions: with a built index seeded into the data directory and its stamp changed in place, the build moved the file aside under `.incompatible-*`, deleted nothing, opened a fresh empty index, and answered the query that had returned hits before with no hit list at all (`bench/results/smoke-1.12.0/acceptance-zoteus.json`). Recorded as a red rather than a skip on purpose: a gate that skips when the capability is absent reports the same thing whether the capability is absent or the gate is broken. Ticket 0579. |
 
 ### Multi-library and multi-process
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R12 | Group libraries MUST be searchable exactly like my own, and indexing one library MUST NOT erase another | ratified | shipped | measured | Pull request #32 merged: the store now stamps the canonical identity of the library it holds and refuses a build or update for a different one, both at the tool boundary and again inside the engine, above the branch that used to clear or silently append. Ten tests assert it, all red before the fix. One narrow seam the guard does not reach: `vector-salvage.ts` matches a reused vector on passage id and text alone, never library identity, so a remote conjunction (a schema-triggered sideline, a different library's build against the fresh replacement, the same embedder, a colliding item key, byte-identical text) is unguarded — reported as an observation, not a row erasure of the kind #32 fixed. Ticket 0016. |
-| R13 | Two server processes on one data directory MUST both answer queries without corrupting the index or doing the same work twice | ratified | none | inferred | Two processes on one data directory are undesigned in the code and unsoaked here. Scoped issue C, ticket 0035. |
+| R13 | Two server processes on one data directory MUST both answer queries without corrupting the index or doing the same work twice | ratified | partial | measured | The first clause holds under test. Two processes were started on one data directory with their lifecycles nested — a second process that only ever ran after the first exited is not company — and both answered while the other was live; a third process opened the same index afterwards and returned the identical hits (`bench/results/smoke-1.12.0/acceptance-zoteus.json`). That third process is the detector, because a pair can answer perfectly and leave the file unreadable behind it, and it has been driven red against a fixture that does exactly that. The second clause is `not-run`: duplicate work is invisible in a reply and readable only from work counters the reviewed baseline does not report. Two processes remain undesigned in the code and unsoaked. Scoped issue C, ticket 0035 and ticket 0579. |
 
 ### Normalization
 
