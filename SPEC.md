@@ -1023,13 +1023,7 @@ handle and the read-only probe (`sqlite-index.ts:124`, `80f8aa0`, v1.7.1).
 alone: a second pass indexes child notes and annotations, on by default
 (`own-words-source.ts:157`, `d8266f7`, v1.11.0). What the design owes each of
 the four is unchanged; what has changed is that none of them is a live defect,
-so none may be cited as one. Two measurements bear on it: the golden-answer stability sample (60 queries with
-pinned known-correct results, from
-`bench/results/0013-concentration/uncapped-477512.json`) has a per-query
-Jaccard minimum of 0.25 under legitimate perturbation (two of the 60 fall
-below 0.5), and
-`bench/results/0012-fulltext-sequence/sequences.json` carries 584 of 8 037
-fulltext entries at version 0.
+so none may be cited as one.
 
 ---
 
