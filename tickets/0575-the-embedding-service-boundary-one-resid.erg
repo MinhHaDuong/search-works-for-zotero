@@ -8,6 +8,7 @@ Author: claude
 
 2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: this ticket owns the embedding service boundary DECISIONS.md 2026-09-02 ruled and SPEC.md §5.2.5 carries. NOT Blocked-by 0491 -- the ruling separates shape from provenance in terms, and 0491's own first exit criterion is a statement about this boundary standing before any candidate wins. Blocked-by 0489 instead: the service serves a registry entry
 2026-09-02T12:05Z claude note blocker 0489 closed — Blocked-by removed.
+2026-09-02T19:00Z claude note 0576's portable-arm result is in: verification/ELECTRON-SPAWN-0576.md — the Electron spawn works under ELECTRON_RUN_AS_NODE=1 on this harness, but the binding arm (real Claude Desktop) is still NOT-RUN, so the out-of-process boundary this ticket owns is not yet committable on this evidence alone
 --- body ---
 
 ## Context

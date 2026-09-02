@@ -20,6 +20,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { makeArmProbe, pct, rbo } from './query_arms_lib.mjs';
+import { assertIndexSchema } from './index_schema.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((a, v, i, arr) => (v.startsWith('--') ? [...a, [v.slice(2), arr[i + 1]]] : a), []),
@@ -38,6 +39,20 @@ const queries = readFileSync(args.queries, 'utf8')
   .split('\n')
   .map((l) => l.trim())
   .filter((l) => l && !l.startsWith('#'));
+
+// Every index file, gated in one pass BEFORE any arm's dist is imported (ticket 0101).
+// A pre-pass rather than a check inside the loop: this driver compares arms across FILES,
+// so arm 3's index being a generation old must stop the run before arm 1 is loaded, not
+// after — otherwise the refusal arrives minutes in, and after the first arm has already
+// been measured against a substrate the others cannot match.
+for (const p of pairs) {
+  const probe = new DatabaseSync(p.index, { readOnly: true });
+  try {
+    assertIndexSchema(probe, p.index);
+  } finally {
+    probe.close();
+  }
+}
 
 const opened = [];
 for (const p of pairs) {
