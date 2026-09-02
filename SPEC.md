@@ -988,16 +988,28 @@ thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets
 (§5.2.9). The predecessor design ("The Settled Ledger", called v1 below) is
 superseded.
 
-Seven facts about upstream (`oscardvs/zoteus` at v1.7.0; SYNC.md carries
-where it has moved since) are relied on below. The
-query tokenizer is broken for non-English text (`tokenize.ts`:
-`/[a-z0-9]+/g` plus 29 English stopwords). There is no `busy_timeout` and
-no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
-(`sqlite-index.ts:26,153`) and never read. `DEFAULT_FULLTEXT_MAX_CHARS =
-40_000` truncates the 44,9 MB living example roughly 1 100-fold. Changing
-embedder drops every vector at open (`dropStaleVectors` →
-`clearVectors()`). Builds crawl `top:true` only, and `clearStore()` sits in
-the build path. Two measurements bear on it: the golden-answer stability sample (60 queries with
+Seven facts about upstream shaped the design below. They were read at v1.7.0
+(`c5d25aa`), where all seven were exact; four have since been repaired, three
+of those by the maintainer acting on this repository's own filings. They are
+therefore stated against the reviewed baseline `b05ed69` (v1.12.0), because a
+reader takes a premise as current unless told otherwise.
+
+Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
+(`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
+1 100-fold. Changing embedder drops every vector at open (`dropStaleVectors`
+→ `clearVectors()`, `index-manager.ts:544`). `clearStore()` sits in the build
+path (`index-manager.ts:668`).
+
+Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
+`/[\p{L}\p{N}]+/gu` (`tokenize.ts:67`, `4f61b2a`, v1.7.2), the 29 English
+stopwords still in place. `busy_timeout` is set to 10 s on both the writable
+handle and the read-only probe (`sqlite-index.ts:124`, `80f8aa0`, v1.7.1).
+`SCHEMA_VERSION` is read before any DDL, through `reconcileSchema()`
+(`sqlite-index.ts:304`, `fd51659`, v1.9.0). Builds no longer crawl `top:true`
+alone: a second pass indexes child notes and annotations, on by default
+(`own-words-source.ts:157`, `d8266f7`, v1.11.0). What the design owes each of
+the four is unchanged; what has changed is that none of them is a live defect,
+so none may be cited as one. Two measurements bear on it: the golden-answer stability sample (60 queries with
 pinned known-correct results, from
 `bench/results/0013-concentration/uncapped-477512.json`) has a per-query
 Jaccard minimum of 0.25 under legitimate perturbation (two of the 60 fall
@@ -1395,9 +1407,12 @@ author or abstract, and body text fills in behind that for hours.
   (labeled) 25 passages/s that is ≈ 8–10 minutes to D1's first 100 %.
 
 - **Phase A′ — own words** (R16; D7 = both). Child notes and annotations
-  follow, in a second pass filtered by item type. Upstream does not do this
-  today, verified: its builds crawl `top:true` only, so standalone notes are
-  indexed and child notes and annotations are not.
+  follow, in a second pass filtered by item type. Upstream did not do this
+  when the phase was designed; it does now, and on by default — a second
+  crawl on `itemType: 'note || annotation'` with no `top` filter
+  (`own-words-source.ts:157`, `d8266f7`, v1.11.0, read at `b05ed69`). What
+  remains ours is the ordering: the pass is a *phase* here, after records and
+  before body text, which is a discovery-order claim and not a coverage one.
 
 - **Phase B — body text.** Entry-segmented. Each item's first K passages ride
   the main frontier (band 0) and the rest queue behind it (band 1), so one
@@ -2061,9 +2076,12 @@ rebuild switches both. Dual-embed itself is not built here; the contract
 survives even if it is built upstream instead.
 
 **R23 — upgrade and downgrade.** The open protocol: read
-`meta.schemaVersion` before any DDL or write (verified defect:
-`createSchema` re-stamps via `INSERT OR REPLACE` before `loadMeta`, so today
-a downgrade destroys the evidence of skew at the moment it matters). A
+`meta.schemaVersion` before any DDL or write (upstream's own rule since
+`fd51659`, v1.9.0: `reconcileSchema()` reads the stamp through a read-only
+probe at `sqlite-index.ts:304`, before the `INSERT OR REPLACE` in
+`createSchema` can re-stamp a file written by a newer build. The ordering
+defect this clause used to report is fixed; the protocol below is what the
+fix leaves open). A
 newer file → sideline (never delete), fresh build, notice. Only the
 conductor may sideline, because under N processes an unconditional
 per-server sideline would let one stale install repeatedly sideline a fresh
