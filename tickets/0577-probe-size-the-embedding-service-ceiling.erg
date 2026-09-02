@@ -1,0 +1,91 @@
+%erg 0.1
+Title: Probe: size the embedding service ceiling for two resident generations
+Created: 2026-09-02
+Author: claude
+
+--- log ---
+2026-09-02T10:41Z claude created
+
+2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: second of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. SPEC.md §5.2.9 says the service has no ceiling at all and that live-batch residency is unmeasured -- this probe's cell 4 is both gaps at once
+--- body ---
+
+## Context
+
+DECISIONS.md 2026-09-02, the standing correction entry, demotes two things from
+ruling to probe, "both before 0566 commits the boundary". This is the second:
+"the service's ceiling must be sized for two resident generations, since the
+dual-embed window is days long; a ceiling pinned at one model rules D3 out by
+arithmetic."
+
+The gap is stated in SPEC.md §5.2.9 in the same words: of the three ceilings
+the re-cut topology leaves needing a re-pin, "the embedding service has no
+ceiling at all, being a class C3 did not have". The section also names the one
+term nobody has measured on any machine — "the residency of a live batch —
+every sweep on disk priced batch size in latency, not RSS" — which is exactly
+the term a service ceiling is made of.
+
+Two generations are not a corner case. SPEC.md §5.2.7 admits two coexisting
+embedder generations across a model switch, and the service holds both under
+one eviction rule; the ruling's own argument for the service is that this makes
+dual-embed CHEAPER than the in-process arrangement, where every P0 would pay
+for both. That argument is arithmetic, and the arithmetic has no measured
+input.
+
+## What it measures
+
+Peak RSS of ONE service process, in four cells:
+
+1. One generation resident, at rest.
+2. One generation resident, with a live batch in flight at the ratified
+   quantum's batch size.
+3. Two generations resident, at rest — the incumbent MiniLM entry plus one
+   multilingual candidate at its 8-bit rung.
+4. Two generations resident, with a live batch in flight.
+
+Cell 4 is the number the ceiling has to carry, and cells 1 to 3 are what make
+it readable: the delta from 3 to 4 is the live-batch term §5.2.9 says nobody
+has measured, and the delta from 2 to 4 is the price of the dual-embed window.
+Record RSS with a real batch in flight rather than at rest, which is the
+methodological point the section makes and the reason an existing latency sweep
+cannot be re-read for this.
+
+## On which machine
+
+- **Binding arm**: the reference machine — laptop-class x86-64, four cores, no
+  GPU, in the runtime the implementation ships (SPEC.md §5.2.8). C3's ceilings
+  are asserted there, so a service ceiling measured anywhere else is not the
+  ceiling.
+- **Second configuration**: the disclosed GPU host, reported beside it and
+  never as a substitute, per the same section's standing rule.
+- The candidate models are already on disk from the registry sweeps; this probe
+  adds no new download and no new candidate.
+
+## Decision rule
+
+- **Cell 4 fits under what C3 can carry on the reference machine** — the
+  measured peak, with its headroom, is proposed to DECISIONS.md as the service
+  ceiling, and the two other ceilings §5.2.9 lists as needing a re-pin gain a
+  measured basis instead of a derivation.
+- **Cell 4 does not fit** — then a ceiling sized for one model is what the
+  machine actually affords, and that rules out SPEC.md §5.2.7's dual-residency
+  by arithmetic exactly as the ruling warns. The choice among the remedies —
+  shorten the dual-embed window, evict the old generation eagerly, forbid dual
+  residency, or move the rung — is the author's, and goes to DECISIONS.md as a
+  question with the four cells attached, not to code as a workaround.
+- Either way, finding F1 gets its re-check: SPEC.md §5.2.9 says F1's collision
+  between the pipeline ceiling and the multilingual candidates "may dissolve
+  rather than be ruled" now that the worker holds no model. This probe's cell 2
+  is what tells the difference, and "may dissolve" stays a re-check until it
+  does.
+
+## Exit criteria
+
+- [ ] Four cells measured on the reference machine, RSS peak per cell, with the
+      batch size and the rung recorded beside each number
+- [ ] The GPU host reported as a second configuration
+- [ ] A committed summary under `bench/results/`, declared in the figure guard
+      like every other measurement quoted in prose
+- [ ] A proposed service ceiling, or the arithmetic showing there is none, sent
+      to DECISIONS.md as the author's ruling to make
+- [ ] Ticket 0026's RSS gate has a service arm it can assert against, and
+      ticket 0575's boundary has a bound
