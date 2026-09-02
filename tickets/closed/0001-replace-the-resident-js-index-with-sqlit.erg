@@ -6,13 +6,13 @@ Closed: autoclosed — PR #5
 
 --- log ---
 2026-08-21T13:48Z minh created
-2026-08-21T19:40Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
-2026-08-21T21:15Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
-2026-08-21T21:40Z claude note 0009 filed: Zotero's accent-normalized shadow columns show a third option 0002 missed; measured fix removes the backend divergence
-2026-08-21T21:55Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
-2026-08-21T22:20Z claude note full-library build measured: 477 511 passages, 949,5 MiB, stock Node, 135 MiB serving; peak build RSS ~2 GB misses 0003's line, filed as 0011
-2026-08-21T22:50Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
-2026-08-21T23:05Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
+2026-08-21T16:57Z claude note child 0007 filed: chunk geometry is three unreachable constants; Zotero 10 exposes page counts but no in-text structure
+2026-08-21T17:43Z claude note children 0002-0006 all implemented and gate-verified; 0008 filed on a measured 13x vector speedup
+2026-08-21T19:16Z claude note 0009 filed: Zotero's accent-normalized shadow columns show a third option 0002 missed; measured fix removes the backend divergence
+2026-08-21T19:19Z claude note 0010 filed; local API docs read and recorded -- 0006's backend label is documented, and the comparison in 0001 must run both sides through one backend
+2026-08-21T19:26Z claude note full-library build measured: 477 511 passages, 949,5 MiB, stock Node, 135 MiB serving; peak build RSS ~2 GB misses 0003's line, filed as 0011
+2026-08-21T19:29Z claude note zotero/zotero#6012 read: no local API surface, so the prototype stands; but Zotero ships SDT structure extraction, which corrects 0007's premise, and 0012 filed on the staleness question it raises
+2026-08-21T19:31Z claude note migration measured on real indexes; 0009 raised from enhancement to correctness defect -- accented queries return 20 wrong hits, jaccard 0,00
 
 2026-08-22T06:30Z Minh Ha-Duong closed — autoclosed — PR #5
 --- body ---

@@ -37,6 +37,15 @@ def resolve_model(token: str, registry: dict | None = None, kind: str = "onnx") 
                 "repo": repo,
                 "template": record["input_template"],
                 "pooling": record.get("pooling"),
+                # `unknown` travels as None, the way an absent pooling mode does.
+                # The registry uses that string for a card it could not read, which
+                # is a different fact from `false`; collapsing the two would have a
+                # driver measure the wrong geometry in silence. Ticket 0486.
+                "normalize": (
+                    record.get("normalize")
+                    if isinstance(record.get("normalize"), bool)
+                    else None
+                ),
                 "record": record,
             }
     if "/" in token:
@@ -54,6 +63,7 @@ def resolve_model(token: str, registry: dict | None = None, kind: str = "onnx") 
             "repo": token,
             "template": {"query": "", "passage": ""},
             "pooling": None,
+            "normalize": None,
             "record": None,
         }
     known = ", ".join(record["id"] for record in registry["models"])

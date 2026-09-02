@@ -6,7 +6,7 @@ Author: claude
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
-2026-08-29T12:00Z minh note both draft entries ratified (DECISIONS.md 2026-08-29); the 211/666 reading stays open
+2026-08-29T09:16Z minh note both draft entries ratified (DECISIONS.md 2026-08-29); the 211/666 reading stays open
 
 2026-08-29T11:14Z claude note C2's chunker sentence corrected in the same pass that fixed the geometry claim (both are one sentence); the never-crosses-a-section refutation is landed, so that exit criterion is ticked here
 --- body ---

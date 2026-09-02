@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -24,11 +24,12 @@ help:
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make tickets     — erg check over the ticket store"
+	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
 
-check: deps lint figures models names progress tickets check-fast
+check: deps lint figures models names progress tickets ticket-logs check-fast
 
 check-fast:
 	python3 -m pytest tests/ -q
@@ -87,6 +88,16 @@ progress:
 # the declaration true.
 tickets:
 	./tickets/erg check tickets/
+
+# The other half of the ticket store: erg checks that a log entry is well
+# formed, not that its time is real. Six tickets filed by one commit each
+# claimed a stamp four hours ahead of it — `erg log` reads the clock, a typed
+# stamp does not. Rule ruled 2026-09-01 (DECISIONS.md), ticket 0571. It is
+# deliberately weaker than monotonicity: parallel sessions merge into one log,
+# so out-of-order arrival is honest and only a time that has not happened is a
+# defect. Needs real history — the guard says so on a shallow checkout.
+ticket-logs:
+	python3 bench/check_ticket_logs.py
 
 upstream-status:
 	@set -eu; \

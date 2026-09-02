@@ -2846,7 +2846,78 @@ this ruling ships is very likely to become redundant with what Zotero
 itself already computed — re-check the local API's surface before treating
 this path as permanent, the same discipline the earlier checkpoint used.
 
+**2026-09-01 — A ticket log entry may not be stamped after the commit that
+wrote it. Monotonicity is not required.** Ruled on ticket 0571's three ranked
+candidates, which Copilot's review of PR #150 raised: it found ticket 0551's
+`created` entry stamped 16:30Z above its own evidence notes at 12:28Z. The
+sweep behind the ticket found the defect was not local — 41 of 131 logs read
+non-monotone, and 169 individual entries named a time later than the commit
+that carried them, among them all six tickets one commit filed at 11:51Z UTC
+while stamping each 16:30Z.
+
+The rule ruled is the weakest of the three, and the only one that is both
+checkable and true. `tickets/AGENTS.md` calls the log append-only, but this
+repository runs parallel sessions by design, so a ticket's log is a merge of
+several append streams: a note written on one branch and merged later lands
+below entries stamped after it, and that is honest. Strict monotonicity — the
+simple rule — would fire on those files, and a guard that fires on honest work
+gets suppressed. Per-session monotonicity was rejected as unenforceable: the
+file does not record which session wrote a line. What no honest stream can do
+is name a time that has not happened, and `git` evidences that independently of
+merge order.
+
+Two consequences, both landed with this entry. The corpus was **swept**: 169
+stamps corrected, in 68 tickets, each to the author time of the commit that
+introduced the line — found by walking the file's own history per line, not by
+`git blame`, which names the last touch and would push a stamp later than the
+line was written. No entry's text changed; 14 logs still read out of order and
+stay that way, because under this rule they are not defects. And a guard,
+`bench/check_ticket_logs.py`, is in `make check`.
+
+The guard's blind spot is stated in its own docstring rather than left to be
+discovered: it reads `git blame`, so a line touched by a later commit — a
+corrected stamp among them — is checked against a laxer bound than the truth.
+The direction is safe (it can miss a violation, it cannot invent one), and it
+is why the sweep used the stricter per-line walk while the standing guard uses
+the cheap one. Root cause of the whole class, for whoever writes the next
+entry: `erg log` reads the real clock and cannot produce a future stamp. These
+were typed by hand.
+
 ## Awaiting ratification
+
+- **Whether a failed work order is ever retried, and on what policy (ticket
+  0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The
+  reconcile tick writes the full-text census in the same loop iteration as
+  the `enqueue` — before the work is done — so a row that ends `failed` is
+  never re-derived: on the next tick the attachment's versions match what the
+  census already records and it is skipped. Nothing else moves a `failed`
+  row: the expiry sweep touches only `claimed`, dispatch selects only
+  `pending`. One dropped connection, one Zotero closed mid-fetch, one
+  truncated response, and that attachment's body text is out of the index
+  until its version changes in Zotero — which for a stable PDF is never.
+
+  This is a gap between two things the chain already says. SPEC.md §5.2.4
+  makes the tick the source of completeness — it "re-derives what should
+  exist and re-queues whatever is missing" — and the extract stage's own
+  prose draws the line the other way round, treating an empty extraction as
+  a settled state (D1) and a failure as "a thing to retry forever". Neither
+  is true of the code: a failure is currently terminal and silent.
+
+  Options, unranked and for the author. (i) Stamp the census on completion
+  rather than on enqueue, so the census means "extracted" and the tick's
+  promise holds unchanged — the most honest, and it moves a write across the
+  conductor/worker line. (ii) Sweep failed rows back to `pending` on a
+  policy, with an attempt count and a floor so a permanently broken
+  attachment is not re-fetched every tick forever — local to the ledger and
+  the conductor's poll, beside `releaseExpiredClaims`. (iii) Leave it
+  terminal, surface the failure on the instrument panel, and repair by hand
+  — cheapest, and it makes §5.2.4's completeness claim conditional in a way
+  the text currently is not, so it would have to be written there.
+
+  Ticket 0569 holds the reproduction and the test shape; it is deliberately
+  blocked on this ruling rather than picking a shape by default, because the
+  choice is what a failure *means*, not how it is implemented.
+
 
 - **Which of the prose guards come out, and whether thirteen documents is the
   right number — resolved 2026-09-01: eight, see the ledger entry above
@@ -3277,3 +3348,34 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   to the Web API, which sends library reads to a cloud service by a path the
   user did not choose for that build. Ticket 0505 poses that separately and it
   is not part of this question.
+
+- **§5.2.2's pragma order was corrected by an agent, on a measurement, with no
+  ruling first — ticket 0556, 2026-09-01.** The section said `PRAGMA
+  auto_vacuum=INCREMENTAL` is a no-op "set any later" than the first table, and
+  listed WAL first among the connection settings. Following that order loses
+  incremental vacuum: `PRAGMA journal_mode=WAL` writes the database header too,
+  so auto_vacuum set after it is discarded with no table in the file yet.
+  Measured three times, on three SQLite versions and two clients (3.51.3 via
+  node:sqlite, 3.45.1 via python sqlite3, and again at review), each with a
+  discriminating control arm — auto_vacuum alone, no WAL, which gives
+  INCREMENTAL and so distinguishes "we set it correctly" from "it defaults that
+  way here". §5.2.2 now states the order and why it is the order.
+
+  **The question is procedural, not factual.** CLAUDE.md says rulings land in
+  this ledger first and the other documents are edited to match; SPEC.md is
+  authoritative and an agent rewrote a normative sentence in it. The precedent
+  cited against it is X1's quantizer above, which is disanalogous in the one
+  respect that matters — that was a design *substitution* (1-bit shipped where
+  the rule said int8), a choice the author owns, whereas this is a claim about
+  SQLite that is true or false independently of any ruling, and it was false.
+  Nothing ratified was overwritten: this ledger held no entry on §5.2.2.
+
+  **Default, absent a ruling: the correction stands.** It is the side the
+  measurement protects — leaving the old wording in place costs the tranche-4
+  implementer incremental vacuum silently, and 0554 is written against SPEC.md.
+  What is open is whether a measured fact correction to an authoritative
+  document may be made by an agent at all, or whether it owes a ledger entry
+  first like any ruling. If the latter, this entry is that record and wants
+  ratifying; the alternative is to revert §5.2.2 and re-land it behind a
+  ruling, which changes no code — `ledger.ts` already implements the corrected
+  order and pins all three directions with tests.

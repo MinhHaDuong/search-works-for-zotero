@@ -5,8 +5,8 @@ Author: claude
 Closed: figure-pair coverage ratcheted at 349 with red removal and green addition controls; terminology guard deliberately keeps its derived zero-floor; make check green (260 passed, 12 skipped)
 
 --- log ---
-2026-08-29T15:35Z claude created
-2026-08-29T15:35Z claude note POSITIVE CONTROL RUN, not reasoned. One declaration deleted from FIGURES: coverage fell 183 -> 181 pairs and check_figures.py exited 0. Restored, 183 again. The guard cannot tell "nothing is stale" from "I am no longer looking at this figure"
+2026-08-29T15:22Z claude created
+2026-08-29T15:22Z claude note POSITIVE CONTROL RUN, not reasoned. One declaration deleted from FIGURES: coverage fell 183 -> 181 pairs and check_figures.py exited 0. Restored, 183 again. The guard cannot tell "nothing is stale" from "I am no longer looking at this figure"
 
 2026-08-30T16:07Z Codex note ruling: check_terminology.py keeps its zero-floor. Unlike FIGURES, its digit rule scans every line and an unparsable entry still exposes its digits, so a second hand-maintained count would add drift without closing the figure-map failure class.
 2026-08-30T16:07Z Codex closed — figure-pair coverage ratcheted at 349 with red removal and green addition controls; terminology guard deliberately keeps its derived zero-floor; make check green (260 passed, 12 skipped)

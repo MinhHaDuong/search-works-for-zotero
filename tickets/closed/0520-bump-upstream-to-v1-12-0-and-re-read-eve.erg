@@ -6,7 +6,7 @@ Closed: autoclosed — PR #153
 
 --- log ---
 2026-08-31T19:44Z claude created
-2026-08-31T19:50Z claude note allocated at 0520 rather than the next free 0508: the frontier is the most contended seat in the repo and a parallel session was filing while this was written (tickets/AGENTS.md). Successor to 0504, which read four rows and recorded the trigger without bumping
+2026-08-31T19:47Z claude note allocated at 0520 rather than the next free 0508: the frontier is the most contended seat in the repo and a parallel session was filing while this was written (tickets/AGENTS.md). Successor to 0504, which read four rows and recorded the trigger without bumping
 
 2026-08-31T20:21Z claude note labelled needs-human: Blocked-by 0506 is the only machine gate, so once 0506 closes erg ready would surface this despite the trigger in spec/DECISIONS.md still awaiting ratification. The label is what actually holds it -- red-team finding on the 0504 review
 2026-09-01T05:38Z needs-human label lifted: the bump trigger is ratified with (b) sharpened (DECISIONS.md 2026-09-01); trigger (c) has fired, so this ticket is authorized and waits only on its Blocked-by gates (0505, 0506)

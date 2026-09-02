@@ -590,8 +590,8 @@ def test_resolving_pooling_from_the_registry_passes(tmp_path):
         tmp_path,
         {
             "bench/driver.mjs": (
-                "const { pooling } = resolveModel(token);\n"
-                "const t = await extractor(b, { pooling, normalize: true });\n"
+                "const { pooling, normalize } = resolveModel(token);\n"
+                "const t = await extractor(b, { pooling, normalize });\n"
             )
         },
     )
@@ -665,4 +665,107 @@ def test_a_quoted_pooling_key_is_caught(tmp_path):
     "pooling" key — so a hardcoded value written that way would have passed.
     """
     repo = build(tmp_path, {"bench/driver.mjs": 'const o = { "pooling": "mean" };\n'})
+    assert cm.run(repo) == 1
+
+
+# --- normalize: the third instance of the class, guarded under ticket 0486 -------
+#
+# Pooling was hardcoded 'mean' against four cls candidates (0421); the device flag was
+# dropped by the sweep wrapper (0481); normalize was declared by 0262 and read by
+# nobody. All three are one defect: a per-model axis the registry carries and a
+# wrapper silently supplies itself.
+
+
+def test_a_hardcoded_normalize_literal_is_caught(tmp_path):
+    """The positive control, and it was red against the real tree before the fix.
+
+    Nine call sites across seven drivers passed a literal on 2026-09-01, which is what
+    the guard reported the first time it ran. A guard never seen failing is
+    indistinguishable from one that cannot look.
+    """
+    repo = build(tmp_path, {"bench/driver.mjs": "const t = await e(b, { normalize: true });\n"})
+    assert cm.run(repo) == 1
+
+
+def test_the_false_form_is_caught_too(tmp_path):
+    """`false` is not the safe half. A driver that hardcodes it has the same defect.
+
+    It also happens to be the value three drivers legitimately want, which is exactly
+    why it needs the marker rather than a blanket pass.
+    """
+    repo = build(tmp_path, {"bench/driver.mjs": "const t = await e(b, { normalize: false });\n"})
+    assert cm.run(repo) == 1
+
+
+def test_the_python_normalize_form_is_caught(tmp_path):
+    repo = build(tmp_path, {"bench/driver.py": "out = enc(b, normalize=True)\n"})
+    assert cm.run(repo) == 1
+
+
+def test_resolving_normalize_from_the_registry_passes(tmp_path):
+    """The shape the drivers use after 0486 must not be flagged."""
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "const { pooling, normalize } = resolveModel(token);\n"
+                "const t = await extractor(b, { pooling, normalize });\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 0
+
+
+def test_the_result_file_key_and_the_provenance_field_are_not_flagged(tmp_path):
+    """`normalized:` and `normalize_source` must survive the scan.
+
+    Both exist in the tree — three drivers write `normalized` into their artifacts and
+    every registry record carries `normalize_source`. The pattern is written against
+    the key's exact end so neither can begin the `[:=]` that follows; this asserts it
+    rather than trusting the reading. A guard that is red on arrival gets exempted.
+    """
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "const artifact = { normalized: false, normalize_source: 'modules.json' };\n"
+                "const s = text.normalizeForSearch ? 1 : 0;\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 0
+
+
+def test_a_deliberate_raw_geometry_literal_is_exempted_by_its_own_marker(tmp_path):
+    """A separate marker from the id scan's, because it records a different fact.
+
+    `model-id-literal:` says "this text is not a call site". `raw-geometry:` says
+    "this call site departs from the registry on purpose" — a choice, not an
+    exemption from the class. `grep -rn raw-geometry: bench/` is the whole inventory.
+    """
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "const t = await e(b, { pooling, normalize: false });"
+                " // raw-geometry: the vector IS the measurement\n"
+            )
+        },
+    )
+    assert cm.run(repo) == 0
+
+
+def test_the_marker_does_not_exempt_a_neighbouring_line(tmp_path):
+    """Per line, like every other exemption here — a file-level pass would hide the
+    next driver that grows a comment."""
+    repo = build(
+        tmp_path,
+        {
+            "bench/driver.mjs": (
+                "const a = await e(b, { normalize: false });"
+                " // raw-geometry: measured raw on purpose\n"
+                "const c = await e(d, { normalize: true });\n"
+            )
+        },
+    )
     assert cm.run(repo) == 1

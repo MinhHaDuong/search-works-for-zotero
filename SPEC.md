@@ -1089,11 +1089,15 @@ Fetch-and-hash is the price of verification, stated rather than hidden.
 
 #### 5.2.2 Storage: one file, one schema, every row library-keyed
 
-The store is `search-index-v2.sqlite`: WAL mode, `synchronous=NORMAL`,
-`busy_timeout=5000` on every connection, and `PRAGMA
-auto_vacuum=INCREMENTAL` set before the first table. Set any later it is a
-no-op, and the idle `incremental_vacuum` promised in §5.2.7 would never
-reclaim a page.
+The store is `search-index-v2.sqlite`: `busy_timeout=5000` on every
+connection, then `PRAGMA auto_vacuum=INCREMENTAL`, and only then WAL mode
+and `synchronous=NORMAL`. That order is the specification, not a
+preference. auto_vacuum is a no-op once anything has written the database
+header, and `PRAGMA journal_mode=WAL` writes it — so setting auto_vacuum
+after WAL loses it with no table in the file yet, which is a stricter rule
+than "before the first table" and the one an implementer has to follow.
+The failure is silent either way: the idle `incremental_vacuum` promised
+in §5.2.7 would never reclaim a page, and nothing would say so.
 
 **Identity.** `origins(oid, server_id)` is the `Zotero-Server-ID` partition
 C1 mandates, and `libraries(lib, oid, kind, remote_id, item_watermark, …)`

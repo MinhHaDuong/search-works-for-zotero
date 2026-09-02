@@ -1,0 +1,120 @@
+%erg 0.1
+Title: Ledger's markDone/markFailed lack an ownership check — any caller can complete a claim it doesn't hold
+Created: 2026-09-01
+Author: MinhHaDuong
+Closed: built twice in parallel — shipped inside tranche 3 (fork tranche-3-extract-shim, 1a38c71); the sibling branch t0567-ledger-ownership-guard a85c918 is superseded, see the log
+
+--- log ---
+2026-09-01T15:28Z MinhHaDuong created
+2026-09-01T15:28Z claude note found by the roar sweep after parking ticket 0553: 0553's review found a claim-race where a released-but-still-working worker's completion silently clobbers a second worker's. That was diagnosed against `putExtractState` (tranche-3, unmerged), but the same defect is already in the MERGED shared primitive -- `Ledger.markDone`/`markFailed` (tranche 1, `fork/src/features/search/conductor/ledger.ts:925-943`) write `UPDATE stage_queue ... WHERE wid = ?` with no `claimed_by`/`status` guard. `claim()` is properly CAS-guarded; completion is not. No merged caller exercises this yet (tranche 3 is the only one and it is parked), so this is latent, not live -- but it will fire the moment ANY future stage calls these without its own extra check, and fixing it once here removes 0553's blocker #1 for free when that ticket resumes.
+
+2026-09-01T17:01Z claude note delivered inside ticket 0553's round-2 commit (fork da3be32), per this ticket's own Action 2: 0553 was resumed before this landed, so the primitive and its one caller were done together rather than leaving a guarded ledger with an unguarded stage. markDone/markFailed take a ClaimTicket — the row, the holder, the input, and the expiry that acquisition was granted — and guard the UPDATE on all four, returning whether the write applied. The expiry is the field this ticket's Action 1 did not name and the case that needs it: one conductor spawns one worker under one holder string, so the re-claim after a sweep usually carries the same holder AND the same input, and a claimed_by check (with or without claimed_input) accepts the stale completion. claim() is unchanged and returns a boolean; claimTicket() is the same statement handing back the ticket, so tranche 1's acquisition tests are untouched.
+2026-09-01T17:01Z claude note verification, each box earned: swept-and-retaken rejected; same-holder re-claim rejected; a live holder accepted, including one whose claim has aged past its TTL while the sweep has not run — expiry is a timestamp, not an event, and rejecting the holder's own completion there would throw away work for nothing; claim()'s CAS tests green throughout; positive control run — stripping the guard turns six tests red across conductor-ledger.test.ts and conductor-extract.test.ts while every control arm stays green.
+2026-09-01T17:01Z Claude closed — delivered with ticket 0553's round-2 fix on fork branch tranche-3-extract-shim at da3be32
+2026-09-01T18:16Z claude note BUILT, fork branch `t0567-ledger-ownership-guard`, cut from `tranche-2-conductor-election` — the tip of the undisputed chain and the common ancestor of both siblings, so 0568's merge picks the fix up on either side rather than needing it twice. Commit a85c918. THE DEFECT, REPRODUCED END TO END against the unguarded build before anything was changed (manual clock, no process timing): A claims wid at TTL 30 s; the clock advances 30 001 ms; `releaseExpiredClaims()` returns the row; B claims it and `markDone` succeeds, row `done`; A's late `markFailed(wid, 'connection reset')` ALSO returns success and leaves the row `failed` with A's note. B's result is gone, silently. Re-run against the guarded build, same script: A's late completion returns false and the row stays `done`, note null. THE SHAPE BUILT. `markDone(wid, holder, claimedInput): boolean` and `markFailed(wid, holder, claimedInput, note?): boolean`, both guarded `WHERE wid = :wid AND status = 'claimed' AND claimed_by = :holder AND claimed_input = :input`, both returning whether the write applied, the way `claim()` already does. Signature required rather than optional: an optional holder would let a caller keep the unguarded behaviour by omission, which is the defect. There are no merged callers to break (0553 is the only one and it is parked), so the breakage is deliberate and loud — tranche 3's `ExtractStage` will fail to compile on 0568's merge until it passes its holder, which is exactly the signal that ticket needs. THREE DESIGN CALLS, each recorded in the source comment rather than only here. (i) Input as well as holder, per this ticket's Action 1: the same worker can re-claim a row it lost against an input the tick has since re-derived, and a holder-only check would let the abandoned attempt complete the current one — its own test. (ii) EXPIRY IS DELIBERATELY NOT IN THE GUARD: a claim that ran out while nobody else took the row is still that holder's to finish, and rejecting it there would throw away a completed document for being late. The only thing the guard has to prevent is writing over somebody else. Tested both ways. (iii) A row nobody has claimed cannot be completed at all — `nextWorkOrder` is a read, not a claim, so a stage must take a row before finishing it. Two existing test drain loops assumed otherwise and now claim first; that is a behaviour change to the primitive, disclosed here rather than buried. ONE WIDENING BEYOND THIS TICKET, deliberate and small: `note` joins `WorkOrderRow`. Since tranche 1 `markFailed` has written a column nothing could read, and a test that shows a clobber has to see whose note survived. Purely additive. EVIDENCE. Positive control run before the guard was trusted: with the ownership terms dropped from both statements and the parameters left bound (a mutation that keeps the statement valid — dropping the whole WHERE instead only produces `Unknown named parameter`, which proves nothing), 3 of the 5 new tests go red and the two legitimate-completion tests stay green, which is the discrimination the control is for. Fork suite 1 020 → 1 025 passed, 7 skipped, the +5 being this ticket's; `tsc --noEmit` clean; `eslint` clean. Exit criterion 2 is ticked as far as this ticket can reach it: 0553's own log now carries the note, and adopting the new signature is 0553's work when it resumes, per this ticket's Action 2.
+2026-09-01T18:15Z claude closed — ownership guard built and pushed: fork branch t0567-ledger-ownership-guard, a85c918
+2026-09-01T19:08Z claude note THIS TICKET WAS BUILT TWICE, in parallel, by two sessions that could not see each other: here inside ticket 0553's tranche-3 branch with its caller wired, and on `t0567-ledger-ownership-guard` (a85c918) cut from tranche 2. Both reproduce the same defect and both fix it; the diagnosis and the shape agree to the letter. What ships is the tranche-3 version, on one difference of substance: its guard is (holder, acquisition expiry, the row's LIVE signal) where the sibling's is (holder, claimed_input). `claimed_input` is written by nothing but a claim, so it cannot see two cases the round-3 review of 0553 then found — a re-claim by the SAME holder against an unchanged input, and newer work coalesced into a row while its claim is live (`enqueue` dedupes against claimed rows and overwrites `signal`, and the tick stamps the census in the same breath, so retiring a coalesced row loses the newer version for good). The two agree exactly where the sibling argues at length: an expired-but-unswept claim is still its holder's to finish, which the expiry clause allows because the row's expiry has not moved. TAKEN FROM THE SIBLING: `note` on `WorkOrderRow` — tranche 1 wrote that column and nothing could read it. NOT TAKEN: the required `markDone(wid, holder, claimedInput)` positional signature, since the shipped one passes a `ClaimTicket` value that also crosses the extract shim's pipe. Its three questions for 0553 (adopt the signature, decide what a rejected completion does at the stage level, and cover `putExtractState`) are all answered in tranche 3: a rejected completion writes nothing at all, `putExtractState` included, because the guard runs first inside the same transaction, and the discard is counted on the drain report. WHAT 0568 OWES: the two fork branches both touch `ledger.ts`'s completion methods and will conflict on merge; take tranche 3's side whole rather than merging the two guards.
+--- body ---
+## Context
+
+The ledger's `claim(wid, holder, claimedInput, ttlMs)` acquires a row with a
+proper compare-and-swap: `WHERE wid = :wid AND (status = 'pending' OR
+(status = 'claimed' AND claim_expires_at <= :now))`. Its two completion
+counterparts do not carry the matching half of that contract:
+
+```ts
+markDone(wid: number): void {
+  this.db.prepare(`UPDATE stage_queue SET status = 'done', ... WHERE wid = ?`).run(wid);
+}
+markFailed(wid: number, note?: string): void {
+  this.db.prepare(`UPDATE stage_queue SET status = 'failed', ... WHERE wid = ?`).run(wid);
+}
+```
+
+Neither checks who currently holds the row, or even that it is still
+`claimed`. So: worker A claims wid, the clock passes the claim TTL,
+`releaseExpiredClaims()` (conductor-side sweep, already wired in `poll()`)
+releases it, worker B claims the same wid and completes it, and A's own
+late completion — genuinely still working, not dead — writes right over
+B's, silently. This is exactly the failure ticket 0553's round-2 review
+reproduced end-to-end (see its PR #156 comments), diagnosed there against
+`ExtractStage`'s own `putExtractState`. The root cause is one level down,
+in the shared primitive every future stage (chunk, embed, and 0553 itself
+once resumed) will call.
+
+Not yet live: `grep -rn "markDone\|markFailed"` across the fork's
+`conductor/` finds only the two definitions, no callers — tranche 3, the
+only ticket that would call them, is parked (0553), not merged. This is
+prerequisite hardening, not a hotfix for something currently broken in
+main.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — `claim()` (the CAS
+  pattern to mirror), `markDone`/`markFailed` (what needs the same guard),
+  `releaseExpiredClaims()` (the sweep that creates the race window).
+- Ticket 0553's PR #156 comments (this repo) — the original reproduction,
+  against `ExtractStage`/`putExtractState`, for the concrete failure
+  sequence and the test shape to reuse (`Ledger`/`ExtractStage` driven by
+  `ManualClock`, no real process timing needed).
+
+## Actions
+
+1. Give `markDone`/`markFailed` the same shape `claim()` already has: take
+   the `holder` (and ideally `claimed_input`, so a completion can also be
+   checked against what was actually claimed, catching a stale worker
+   completing against superseded input even within the same holder) and
+   guard the UPDATE on `wid = ? AND claimed_by = ?` (`AND claimed_input = ?`
+   if that's included). Return whether the write actually applied, the way
+   `claim()` returns a boolean today — a caller that gets back "no, someone
+   else owns this row now" needs to know, not silently succeed at nothing.
+2. Update `ExtractStage` (or wherever ticket 0553 lands its own call sites
+   when resumed) to pass its holder id and handle a rejected completion —
+   this ticket only needs to exist for 0553 to consume it; wiring the
+   caller is 0553's own job, not this ticket's, unless 0553 is resumed
+   before this lands, in which case do both together.
+3. Purely additive to the ledger's own method signatures where possible;
+   if the signature change is breaking, there are no merged callers yet to
+   break.
+
+## Test
+
+- Red first: mirror ticket 0553's own reproduction — worker A claims,
+  clock advances past TTL, `releaseExpiredClaims()` releases the row,
+  worker B claims and completes, then A's own (late) completion call is
+  asserted to return false/no-op rather than silently overwriting B's
+  result. Use `ManualClock`, no real process timing.
+- A second case: A still holds a live (unexpired) claim and completes
+  normally — asserts the guard doesn't reject a legitimate completion.
+
+## Verification
+
+- [x] `markDone`/`markFailed` reject a completion from a holder that no
+      longer owns the row (claim expired and reclaimed by another holder),
+      and reject it when the re-claim carries the same holder and input —
+      the case the ticket's own Action 1 would have let through
+- [x] A legitimate holder's completion still succeeds, including past an
+      unswept TTL
+- [x] `claim()`'s existing CAS tests stay green — this ticket touches
+      completion, not acquisition. `claim()` keeps its boolean signature
+      and delegates to `claimTicket()`, the same statement returning the
+      ticket
+- [x] Positive control: the guard demonstrably rejects before it is
+      trusted — stubbed out, six tests go red and every control arm stays
+      green. The sibling branch ran its own, independently: 3 of its 5
+      red, its two legitimate-completion arms green.
+- [x] The two parallel implementations are reconciled rather than both
+      kept — see the log; 0568 is told which side to take
+
+## Invariants
+
+- `claim()` unchanged; only the completion methods gain a check.
+- Upstream tests green throughout.
+
+## Exit criteria
+
+- [x] `markDone`/`markFailed` ownership-guarded, on fork branch
+      `tranche-3-extract-shim` at `1a38c71`, 1 089 tests green
+- [x] Ticket 0553's blocker #1 (claim-race duplicate completion) resolved:
+      0553 resumed in the same session and its stage adopted the guard in
+      the same commit — see its log

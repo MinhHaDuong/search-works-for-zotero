@@ -68,7 +68,7 @@ if (opt.device) pipelineOpts.device = opt.device;
 
 // The record keeps the repository, which is what was loaded, and the registry id, which
 // is what the run was asked for. They differ whenever a model is loaded from a mirror.
-const { id: modelId, repo: modelRepo, pooling } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, pooling, normalize } = resolveModel(opt.model);
 if (!pooling) {
   // Never silently 'mean' — see registry.mjs. An undeclared pooling is a stop,
   // not a default, because the wrong value is invisible in the results.
@@ -87,6 +87,18 @@ const loadMs = performance.now() - t0;
 // minutes, and a driver that prints nothing until it finishes cannot be told apart from one
 // that has hung. The ETA is a linear extrapolation of the batches done so far, which is
 // honest for a uniform sample and would mislead on a skewed one.
+
+// One warm batch before the clock, matching embed_feasibility.mjs. Without it the first
+// batch pays graph initialisation — and, on a model the cache has never seen, the
+// download — inside the window that becomes ms_per_passage. Ticket 0260: that protocol
+// error put 45 to 49 MB of error into a set of RSS figures, in BOTH directions, four
+// times larger than the 11,7 MB difference they were being used to argue about, and the
+// mechanism built on them reached the ratification ledger before a re-measurement
+// retracted it. The cost is one batch; the alternative is a number nobody can audit.
+const tWarm = performance.now();
+await extractor(texts.slice(0, BATCH), { pooling, normalize: false }); // raw-geometry: the vector IS the measurement
+const warmMs = performance.now() - tWarm;
+
 const t1 = performance.now();
 let dim = 0;
 const chunks = [];
@@ -94,7 +106,10 @@ const reportEvery = Math.max(1, Math.floor(texts.length / BATCH / 10));
 let batchNo = 0;
 for (let i = 0; i < texts.length; i += BATCH) {
   const batch = texts.slice(i, i + BATCH);
-  const tensor = await extractor(batch, { pooling, normalize: false });
+  // raw-geometry: the vector itself is the measurement. Quantisation fidelity is read
+  // off the raw geometry, and normalising first would rescale away the very error
+  // being priced. Ticket 0486.
+  const tensor = await extractor(batch, { pooling, normalize: false }); // raw-geometry: the vector IS the measurement
   const data = tensor.data;
   dim = data.length / batch.length;
   chunks.push(Float32Array.from(data));
@@ -131,10 +146,22 @@ writeFileSync(
       row_index: rowIndex,
       corpus: opt.corpus,
       batch: BATCH,
+      // The one-time costs, reported APART from the per-unit rate rather than folded
+      // into it: `load_ms` is the pipeline construction (which includes the download on
+      // a cold cache) and `warm_ms` is the first call's graph initialisation. A reader
+      // who wants the cold cost can add them; a reader who wants the steady-state rate
+      // gets it undiluted. Ticket 0260.
+      warm: true,
       load_ms: Number(loadMs.toFixed(1)),
+      warm_ms: Number(warmMs.toFixed(1)),
       embed_ms: Number(embedMs.toFixed(1)),
       ms_per_passage: Number((embedMs / texts.length).toFixed(2)),
       mean_chars: Math.round(texts.reduce((a, t) => a + t.length, 0) / texts.length),
+      // The registry's declared value, beside the value this run APPLIED. They differ
+      // on purpose here (see the raw-geometry line above), and an artifact that
+      // recorded only one of them could not say whether the difference was a choice
+      // or the class recurring. Ticket 0486.
+      normalize_declared: normalize,
       normalized: false,
       runtime: '@huggingface/transformers in Node (ONNX)',
       machine: { host: hostname(), cpus: cpus().length, node: process.version },

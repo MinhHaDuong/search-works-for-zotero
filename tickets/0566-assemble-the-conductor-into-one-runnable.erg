@@ -1,0 +1,121 @@
+%erg 0.1
+Title: Assemble the conductor into one runnable P0 process against the local API
+Created: 2026-09-01
+Author: MinhHaDuong
+Blocked-by: 0565
+Blocked-by: 0554
+
+--- log ---
+2026-09-01T14:11Z MinhHaDuong created
+2026-09-01T16:55Z claude note RAID RECON, and the 0555 question SETTLED: THIS TICKET DOES NOT WAIT ON 0555. The acceptance bar is a run-to-drain over a STATIC fixture library, and 0555 arbitrates fresh against backfill — a distinction a static library does not produce after its initial sweep, so the interleave has nothing to arbitrate and 0555's Action 2 (band 0 before band 1) reorders work without changing what the run terminates with. SPEC §5.2.5 makes the same point structurally: "the tree promises no completeness and is not asked to. Completeness comes from the reconcile tick" — and completeness is precisely what this ticket's assertions are about (entries, slabs, passages, vectors present and queryable). Every assertion here is order-insensitive; none of them can distinguish a scheduler with the interleave from one without. The tracker (0550) gates its own "integration review" on all five children closing, which stays the stronger and separate bar. Exit criterion 3 ticked by this entry. Recorded the other way too, for the record: what an early run WOULD leave unproven is the freshness behaviour under concurrent arrival, which is 0555's own property suite and was never this ticket's.
+2026-09-01T16:55Z claude note THE ASSEMBLY HAS NO TREE TO ASSEMBLE IN, and this ticket's "Relevant files" assumed otherwise ("everything tranches 1-3, 0556, and 0565 built" reads as one checkout). `tranche-3-extract-shim` and `tranche-schema-v2-content` are divergent siblings off `tranche-2-conductor-election` and conflict in `ledger.ts` — trial merge run, see 0568, which now owns forming one tree and is a Blocked-by here. Two further shape findings from reading the branches, neither acted on: (i) Action 2's multi-process election gap is real and unchanged — tranche 2's soak used separate SQLite connections in one process, confirmed in its own PR review; (ii) `tranche-schema-v2-content` already opens `search-index-v2.sqlite` from server startup behind an opt-in config flag (`store.ts`, `server.ts`, `config.ts` on that branch), so Action 1's "real process entry point that opens the v2 file" is PARTLY BUILT — read it before writing a second one.
+2026-09-01T14:12Z claude note filed alongside 0565, same origin: none of tickets 0551-0556 (nor 0565) wire tick + conductor + extract + chunk/embed into one actually running process against a real or replayed local API. Each tranche is built and tested as an isolated module against fixtures -- this ticket is the assembly, and the acceptance bar the author asked for directly: "can I point to a fixture library and index?" Blocked-by 0554 (chunk/embed) and 0565 (segmentation integration) as the last modules a real run needs data flowing through. Open question, not decided here: whether this can run meaningfully before 0555 (interleave/bands) lands -- SPEC's own text says FIFO-per-class is "correct, just less fresh" without the interleave, so a minimal assembly may not need to wait; the tracker (0550) treats "integration review" as gated on all five children closing, which is a stronger bar than this ticket strictly needs. Left un-Blocked-by 0555 deliberately; resolve at execution time whether an early run without freshness arbitration is worth doing, or whether to wait.
+
+2026-09-01T19:31Z claude note blocker 0568 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Tickets 0551-0556 (and 0565, filed alongside this one) each build and test
+one module of the conductor in isolation, against fixtures and virtual
+time: the ledger/tick, election/lease, extract shim, the v2 schema, and
+(once 0565 lands) the segmentation write path. None of them assembles a
+real, running process. SPEC.md §5.2.5 describes the actual topology: N×P0
+processes, one elected conductor, one run-to-drain pipeline worker
+communicating over a full-duplex stdio pipe, the conductor opening
+`search-index-v2.sqlite` for real and running the tick on a real cadence.
+
+This ticket is the assembly point, and the author's stated acceptance bar
+for it: point the assembled process at a fixture library (tranche 1's
+synthetic ~50-item library, served through its record/replay fake of the
+local API) and get a real, queryable `search-index-v2.sqlite` out the
+other end — entries, slabs, passages, and vectors populated by an actual
+run of the pipeline, not by unit tests calling internal methods directly.
+
+This is explicitly short of "the real thing" (the author's actual Zotero
+library, replacing or sitting beside v1 in production). Two further gaps
+stay out of this ticket's scope, flagged for separate decisions: wiring
+`search-index-v2.sqlite` into the actual MCP query path (0556 marked this
+out of its own scope too), and any migration/coexistence story for a user
+who already has a v1 index. Both need the author's call on shape before
+they're ticket-sized.
+
+## Relevant files
+
+- `SPEC.md` §5.2.5 — full process topology: the lease-elected conductor,
+  the run-to-drain worker, the full-duplex pipe ("the conductor drains
+  arriving windows and records before blocking on any write of work
+  orders, in both directions"), orphan repair (stdin EOF on the worker
+  side, lease-loss kill on the conductor side).
+- Fork `src/index.ts` — v1's current entry point, for the pattern this
+  ticket's new path should follow structurally; this ticket ADDS a
+  conductor-aware path, it does not replace or modify v1's, per the
+  parallel-schema directive that shaped 0556.
+- Everything tranches 1-3, 0556, and 0565 built: `ledger.ts`, `lease.ts`,
+  `election.ts`, `conductor.ts`, `orphan.ts`, the extract-stage modules,
+  0556's schema additions, 0565's segmentation loop. Read what actually
+  landed — this ticket is the integration point, so its accuracy depends
+  on reading the real merged code, not this description.
+- Tranche 1's fixtures (`tests/fixtures/local-api-replay.ts`,
+  `synthetic-library.ts`) — the fixture library and the fake local API
+  this ticket's acceptance test points the assembled process at.
+
+## Actions
+
+1. A real process entry point that opens `search-index-v2.sqlite` (the
+   file 0556 wires) alongside — never instead of — v1's
+   `search-index.sqlite`.
+2. Wire election (tranche 2) so genuinely separate P0 instances (real OS
+   processes, not simulated connections in one test process — tranche 2's
+   own soak test used separate SQLite connections, not separate
+   processes; this ticket is where that gap closes) correctly elect one
+   conductor.
+3. Spawn the pipeline worker as a real child process on ledger-queue
+   non-empty, run-to-drain, exit at empty — per SPEC's topology, not a
+   thread or an in-process simulation.
+4. Wire the full-duplex stdio pipe between conductor and worker exactly
+   as SPEC describes it (windows and records flowing one way, work orders
+   the other, neither side blocking the other's drain).
+5. Make the local-API source swappable: a real Zotero local API for
+   production use, tranche 1's record/replay fixture for a dry run
+   against the fixture library — same conductor code, different source.
+6. Connect tranche 2's orphan-repair primitives (`orphan.ts`) to the real
+   process lifecycles established here — they exist and are tested in
+   isolation; this is where they're actually called.
+
+## Test
+
+- The acceptance test: point the assembled process at tranche 1's
+  fixture library through the replay fake, run it to completion (or to a
+  stable idle state under virtual/accelerated time), and assert
+  `search-index-v2.sqlite` ends up populated — entries, slabs, passages,
+  vectors — and directly queryable (raw SQL against the file is enough
+  here; wiring the MCP query path is a separate, later ticket).
+- A multi-process election test: launch genuinely separate OS processes
+  (not simulated connections) against one data directory, kill -9 the
+  conductor, confirm another takes over within TTL + cadence — the same
+  property tranche 2 tested, now over real processes.
+
+## Verification
+
+- [ ] Election works across genuinely separate OS processes
+- [ ] The pipe survives a worker crash and a conductor handover without
+      corrupting in-flight work
+- [ ] A full run against the fixture library completes and the resulting
+      `search-index-v2.sqlite` is queryable by direct inspection
+- [ ] Orphan repair fires in both directions under a real process kill,
+      not only in the unit-level simulation tranche 2 shipped
+
+## Invariants
+
+- v1's `search-index.sqlite` and its query path are untouched — this is
+  an additional capability, not a replacement.
+- Upstream tests green throughout.
+
+## Exit criteria
+
+- [ ] A runnable process assembly merged on a fork branch
+- [ ] An end-to-end index build against the fixture library succeeds and
+      is verified queryable
+- [x] The open question in this ticket's log (whether this needed to wait
+      on 0555) is resolved and recorded, whichever way it went — settled
+      2026-09-01: no wait, the acceptance assertions are order-insensitive

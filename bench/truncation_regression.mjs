@@ -60,9 +60,14 @@ const tjsVersion = JSON.parse(readFileSync(
   'utf8',
 )).version;
 
-const { id: modelId, repo: modelRepo, pooling, template } = resolveModel(opt.model);
+const { id: modelId, repo: modelRepo, pooling, normalize, template } = resolveModel(opt.model);
 if (!pooling) {
   throw new Error(`[pooling] ${opt.model} declares no pooling. Add it to models.json.`);
+}
+if (normalize === null) {
+  // Same stop as pooling. `unknown` means the card could not be read, and guessing
+  // is how a declared axis becomes a driver's opinion — ticket 0486.
+  throw new Error(`[normalize] ${opt.model} declares no normalize. Add it to models.json.`);
 }
 const passagePrefix = template?.passage ?? '';
 
@@ -91,7 +96,7 @@ const head = headSentences.join('');
 const tail = tailSentences.join('');
 
 async function embed(s) {
-  const r = await extractor([passagePrefix + s], { pooling, normalize: true });
+  const r = await extractor([passagePrefix + s], { pooling, normalize });
   return Array.from(r.data);
 }
 const cos = (a, b) => a.reduce((d, v, i) => d + v * b[i], 0);
@@ -127,7 +132,10 @@ const artifact = {
   ticket: 'tickets/0140-cap-the-chunker-below-the-embedder-limit.erg',
   probe: 'bench/truncation_regression.mjs',
   run_utc: new Date().toISOString(),
-  model: { id: modelId, repo: modelRepo, pooling, passage_prefix: passagePrefix,
+  // `normalize` is recorded because the cosine below is computed as a bare dot
+  // product: it is the cosine only while the vectors are unit-length, so the flag
+  // the run applied is part of what the number means. Ticket 0486.
+  model: { id: modelId, repo: modelRepo, pooling, normalize, passage_prefix: passagePrefix,
            transformers_js: tjsVersion },
   budget: BUDGET,
   old_cap: OLD_CAP,

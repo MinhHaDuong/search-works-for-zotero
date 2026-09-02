@@ -6,8 +6,8 @@ Closed: autoclosed — PR #3
 
 --- log ---
 2026-08-21T19:28Z minh created
-2026-08-22T04:05Z claude note answered, and it is a defect: the delta consults the right channel but compares it against the wrong sequence -- library version 410 against full-text versions up to 25 036
-2026-08-22T00:40Z claude note closed: second watermark implemented and tested; the reported figures re-measured through a committed driver and all reproduce, 92,7% at the real library version
+2026-08-21T20:37Z claude note answered, and it is a defect: the delta consults the right channel but compares it against the wrong sequence -- library version 410 against full-text versions up to 25 036
+2026-08-21T22:09Z claude note closed: second watermark implemented and tested; the reported figures re-measured through a committed driver and all reproduce, 92,7% at the real library version
 
 2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---

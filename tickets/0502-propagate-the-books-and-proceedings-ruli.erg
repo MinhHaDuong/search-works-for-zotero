@@ -4,11 +4,12 @@ Created: 2026-08-31
 Author: claude
 
 --- log ---
-2026-08-31T15:41Z claude created
+2026-08-31T15:38Z claude created
 
-2026-08-31T15:41Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
+2026-08-31T15:38Z claude note filed by the ruling of 2026-08-31 (spec/DECISIONS.md), which lands in the ledger first per the chain. The propagation is ticketed rather than improvised in the same change because it rewrites the design's biggest unmeasured bet and moves an experiment that gates scoped issue B -- the precedent is the process-model ruling of 2026-08-30, propagated by ticket rather than in the ledger entry
 
 2026-09-01T14:03Z claude note propagated: SPEC.md 5.2.2 (heuristics, entry arithmetic, fallback), the glossary entry for seg/1, SPEC.md 5.3's X5 rule and 5.4 risk 1, ticket 0025's X5 line and substrate map, ticket 0028's exit criteria. ONE QUESTION LEFT TO THE AUTHOR, not decided here: whether >= 45/50 is still the right bar for X5 now that ground truth is a book's own table of contents rather than a human with a printed dictionary. The number is carried over unchanged with an inline note saying so. RSS-fixture sites verified untouched by diff inspection -- no removed line names the 2 084,9 MiB class, the 15 000-page PDF, the RSS gate or X3a
+2026-09-01T14:22Z claude bump circuit-breaker — execute agent (adc3d0972dc23c4c8) stalled in a bash sleep loop after its own 5-dimension review batch completed; killed after confirming clean worktree (nothing to salvage, PR #157 branch t0502-books-proceedings-ruling already had everything it pushed). Review findings posted to PR #157 as a comment instead of being lost with the agent
 --- body ---
 ## Context
 

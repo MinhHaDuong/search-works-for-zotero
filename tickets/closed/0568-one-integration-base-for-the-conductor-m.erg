@@ -1,0 +1,120 @@
+%erg 0.1
+Title: One integration base for the conductor: merge the divergent tranche branches into a single tree
+Created: 2026-09-01
+Author: claude
+Closed: integration base built: fork branch conductor-integration, c031478
+
+--- log ---
+2026-09-01T16:53Z claude created
+
+2026-09-01T16:55Z claude note filed by the raid on 0565/0566, which went to read the code those two tickets join and found it on two branches that have never met. `tranche-1-ledger-schema` → `tranche-2-conductor-election` is a chain, but `tranche-3-extract-shim` (0553) and `tranche-schema-v2-content` (0556) are SIBLINGS, both cut from `tranche-2` at a00091b, and both rewrite `ledger.ts` — +323 lines on tranche 3, +649 on the schema branch. Trial merge run 2026-09-01 on a scratch branch: `src/config.ts`, `src/registry/registry.ts`, `src/server.ts`, `store.ts` and the two test files all auto-merge; `src/features/search/conductor/ledger.ts` CONFLICTS. Nothing owned forming one tree, and both 0565 and 0566 assume one exists — 0566's "Relevant files" says "everything tranches 1-3, 0556, and 0565 built" as though it were one checkout, and 0565's loop literally joins tranche 3's `onWindow` callback to the schema branch's `putSlab`/`putEntry`/`putPassage`. Same shape as the gap that produced 0556: a step every dependent assumes and no ticket owns.
+
+2026-09-01T18:11Z claude note blocker 0553 closed — Blocked-by removed. Tranche 3 landed on fork tranche-3-extract-shim at da3be32 with round 2's two concurrency blockers fixed; this ticket's integration base can take the extract stage as it stands.
+2026-09-01T19:08Z the ledger.ts conflict is no longer only adjacency: 0567 was built twice in parallel, on tranche-3-extract-shim (with its caller) and on t0567-ledger-ownership-guard (a85c918). Take tranche 3's side whole — its guard is (holder, acquisition expiry, live signal) against the sibling's (holder, claimed_input), which cannot see a same-holder re-claim against an unchanged input or newer work coalesced into a live-claimed row. Recorded in the body and in 0567's own log.
+2026-09-01T19:32Z claude note BUILT: fork branch `conductor-integration`, commit c031478, cut from `tranche-2-conductor-election` and merging `tranche-3-extract-shim` (1a38c71) then `tranche-schema-v2-content` (384fc49). EVERYTHING AUTO-MERGED EXCEPT `ledger.ts`, and the trial merge's guess about that file was half right: most of it IS adjacency, and one line is a real disagreement. SCHEMA VERSION 2 WAS ALLOCATED TWICE — each branch bumped 1 → 2 for its own additive step, `extract_state`/`attachment_choice` on one side and `slabs`/`entries`/`passages`/`fts` on the other. Neither is wrong and neither left its fork branch, but a stamp that means two different shapes is the one thing a stamp exists to prevent. RESOLVED AS 3, their union: both steps are additive, so a file at 1 or at 2 is brought forward by the `CREATE TABLE IF NOT EXISTS` block and re-stamped whichever half it lacked, and `open`'s refusal now works in the useful direction — a build that understands only one half declines a file stamped 3 rather than reading it as its own. Recorded in the constant's own docstring, not only here. The 0567 double-build this ticket's 19:08Z note warned about did not arise: tranche 3 carries the surviving guard and `t0567-ledger-ownership-guard` was never merged, per that note. TEST COUNT RECONCILED rather than assumed, since a test lost in a conflict resolution is the failure this merge could produce silently — measured on each branch rather than read off its PR: tranche 2 (common parent) 1 020, tranche 3 1 089 (+69), schema branch 1 054 (+34), 1 020 + 69 + 34 = 1 123, merged tree 1 123 passed / 7 skipped. `tsc --noEmit` clean, `eslint` clean. THE MINILM BOX IS NOT TICKED, and the reason is worth stating: there is no byte-identical vector check anywhere in the suite — the invariant is the tracker's prose, not a test. The merged diff touches no embedding, vector or query code (the only non-conductor changes are `ZOTEUS_CONDUCTOR`, off by default, and the store's open/close wiring), so the invariant is untouched by construction — which is an argument, not a measurement. 0554's own Verification already owns building the check, and is where it first bites. ACTION 3, THE CONVENTION, DECIDED: `conductor-integration` is the base for the conductor work from here — 0554, 0565 and 0566 branch from it, not from tranche 2. 0550's branch-per-ticket habit stands; what changes is what they are cut from, because the parallel-sibling experiment cost exactly one merge and would cost another every time two tickets ran at once. Noted on 0550.
+
+2026-09-01T19:31Z claude closed — integration base built: fork branch conductor-integration, c031478
+--- body ---
+
+## Context
+
+The conductor's work has landed one fork branch per tranche, by the
+tracker's own design (0550: "one fork branch per tranche; each lands
+alone, none commits the next"). That worked while the tranches were
+sequential. It stopped being true at tranche 3: 0553 and 0556 were built
+in parallel off `tranche-2-conductor-election`, and neither is an
+ancestor of the other.
+
+Every remaining ticket in the family needs them together:
+
+- **0565** calls `streamFullText`'s `onWindow` callback (tranche 3) and
+  writes through `Ledger.putSlab` / `putEntry` / `putPassage` /
+  `indexText` (schema branch). It cannot be written against either
+  branch alone.
+- **0554**'s embed worker needs both the extract stage's work orders and
+  the passages the schema branch defines.
+- **0566** is the assembly, and reads as though one checkout already
+  held all of it.
+
+This ticket is that tree, and nothing more: no new behaviour, no new
+tests beyond what the merge requires to stay green.
+
+## Blocked by, and why
+
+**Both blockers are gone, and the reason they were filed is worth
+keeping.** This ticket was `Blocked-by: 0553` because tranche 3 was
+parked with two confirmed concurrency blockers (PR #156's parking
+comment, 2026-09-01), and merging it forward would have carried both
+into the base every later tranche builds on. 0553 was resumed and closed
+the same day: `tranche-3-extract-shim` at `da3be32` has the ownership
+guard on completion and the envelope-closed check, mutation-verified.
+0567 — the ledger half of blocker 1 — landed in that same commit rather
+than separately, which is what it asked for if 0553 resumed first, so
+the "landing it first is cheaper, the conflict region is the same file"
+note is settled: `ledger.ts` carries both changes already.
+
+What survives for whoever merges, and it is now more than adjacency:
+**0567 was built twice, in parallel, on two fork branches** — inside
+tranche 3 (`tranche-3-extract-shim`, with its caller wired) and on
+`t0567-ledger-ownership-guard` (`a85c918`, cut from tranche 2). Both guard
+completion; they differ on what the guard compares, and tranche 3's is the
+stronger of the two (see 0567's log for the reconciliation and the two
+cases `claimed_input` cannot see). **Take tranche 3's side whole rather
+than merging the two guards** — a merge that keeps both would carry two
+signatures for the same method and a guard that reads as belt-and-braces
+while actually being the weaker one's semantics.
+
+The rest of the trial merge's claim — textual adjacency rather than
+semantic disagreement in `ledger.ts` — is still to be verified on the real
+merge rather than taken on trust.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — the one conflicting
+  file. Both sides append methods and schema DDL to the same class; the
+  conflict is textual adjacency, not a semantic disagreement, as far as
+  the trial merge showed. Verify that claim on the real merge rather
+  than inheriting it from this sentence.
+- Fork branches `tranche-3-extract-shim`, `tranche-schema-v2-content`,
+  and their common parent `tranche-2-conductor-election`.
+
+## Actions
+
+1. Land 0553's two blockers first (its own ticket), so the merge carries
+   no known defect forward.
+2. Create the integration branch off `tranche-2-conductor-election`,
+   merge both siblings into it, resolve `ledger.ts`.
+3. Decide and record the going-forward convention: whether later
+   tranches (0554, 0565, 0566) branch from this integration branch
+   rather than from tranche 2, and whether the per-tranche branch rule
+   in 0550 is amended to say so.
+
+## Test
+
+- The union of both branches' suites passes on the merged tree — not
+  each branch's suite on its own branch. `vitest`, `tsc --noEmit`,
+  `eslint` clean, as every tranche has reported.
+- The schema branch's own migration test still passes against a v1 file
+  brought forward, since the merge touches the DDL region.
+
+## Verification
+
+- [x] Every test from both branches present in the merged tree and green
+      — 1 020 + 69 + 34 = 1 123, measured on each branch and on the merge
+- [ ] The incumbent MiniLM byte-identical vector check green, per the
+      tracker's standing invariant — NOT TICKED: no such check exists in
+      the suite, and this merge touches no vector code. 0554 owns it
+
+## Invariants
+
+- v1's `search-index.sqlite` and its query path untouched.
+- No behaviour change: this ticket resolves a merge, it does not fix or
+  extend either side.
+
+## Exit criteria
+
+- [x] One fork branch holds tranches 1-3 and the v2 content schema —
+      `conductor-integration`, c031478
+- [x] Both suites green on it, with the test count reconciled
+- [x] The branch convention for 0554/0565/0566 recorded (Action 3) —
+      they branch from `conductor-integration`

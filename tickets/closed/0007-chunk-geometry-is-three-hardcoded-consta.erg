@@ -7,11 +7,11 @@ Closed: autoclosed — PR #3
 --- log ---
 2026-08-21T16:56Z minh created
 2026-08-21T18:46Z Minh Ha-Duong note blocker 0006 closed — Blocked-by removed.
-2026-08-21T22:45Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
-2026-08-21T23:30Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
-2026-08-21T23:50Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
-2026-08-22T02:15Z minh note opened Stadler2021 in Zotero (Indexed: yes); .zotero-ft-cache written post-install, still zero .zotero-sdt-cache library-wide
-2026-08-22T00:30Z claude note closed: geometry is configuration and stamped; SDT probed a third time, still zero, reader path needs a human
+2026-08-21T19:29Z claude note premise corrected: Zotero DOES ship a structure cache (.zotero-sdt-cache via sdt.js, present in 10.0 build 20260817151751); the earlier finding read only .zotero-ft-cache
+2026-08-21T19:33Z claude note sharpened: two PDFs opened post-upgrade wrote .zotero-ft-cache and no SDT pack, so the reader path does not invoke SDT in the shipped build
+2026-08-21T19:35Z claude note RETRACTED the line above -- BuildID is the compile date, install was 2026-08-21 14:26, both reader sessions predate it; the reader path is untested, not disproven
+2026-08-21T20:16Z minh note opened Stadler2021 in Zotero (Indexed: yes); .zotero-ft-cache written post-install, still zero .zotero-sdt-cache library-wide
+2026-08-21T22:09Z claude note closed: geometry is configuration and stamped; SDT probed a third time, still zero, reader path needs a human
 
 2026-08-21T22:49Z Minh Ha-Duong closed — autoclosed — PR #3
 --- body ---

@@ -4,8 +4,8 @@ Created: 2026-08-29
 Author: claude
 
 --- log ---
-2026-08-29T10:40Z claude created
-2026-08-29T10:42Z claude note found by the /roar sweep after X2. Filed at 0100 rather than the next free 0092: 0080 landed on main from a parallel session mid-session, which is exactly the frontier contention the renumber rule names
+2026-08-29T10:15Z claude created
+2026-08-29T10:15Z claude note found by the /roar sweep after X2. Filed at 0100 rather than the next free 0092: 0080 landed on main from a parallel session mid-session, which is exactly the frontier contention the renumber rule names
 
 2026-08-30T19:49Z claude note ticket 0497 is this ticket's destination rather than a competitor: the portable corpus format exists so a driver reads a file whose schema is ours rather than the index's, and 0497's action 3 retires one driver's dependence on the index schema by conversion. Fixing the two pinned drivers against today's schema stays worth doing and is not blocked by it -- but the recurrence is what 0497 addresses, and this ticket's cost (the rebuild 0025's substrate correction records) is the evidence 0497 cites
 --- body ---
