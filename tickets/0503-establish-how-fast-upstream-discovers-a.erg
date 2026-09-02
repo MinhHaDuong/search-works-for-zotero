@@ -23,7 +23,7 @@ is a cadence, a hook on a Zotero event, or something that only happens when a
 build or a query asks. Until that is read at source the row cannot leave
 `inferred`, and R35's standing is a guess in either direction.
 
-What the bound is. DESIGN.md §2.4 states a reconcile cadence and a disclosed
+What the bound is. SPEC.md §5.2.4 states a reconcile cadence and a disclosed
 deletion latency, and R35 delegates its value there on R6's pattern. Whether
 those two numbers are the right promise to a user is not settled: they were
 chosen as design, before any requirement pointed at them.
@@ -38,6 +38,6 @@ chosen as design, before any requirement pointed at them.
       measurement, with the ruling in DECISIONS.md if they move
 
 ## Relevant files
-- `spec/REQUIREMENTS.md` — R35, and R3 beside it
-- `spec/DESIGN.md` §2.4 — the reconcile cadence and the deletion latency
-- `spec/README.md` — R35's standing row
+- `SPEC.md` §3 — R35, and R3 beside it
+- `SPEC.md` §5.2.4 — the reconcile cadence and the deletion latency
+- `README.md` — R35's standing row

@@ -11,7 +11,7 @@ Author: Claude
 ## Context
 
 R32's build bound is a rate on the whole pipeline — extract, chunk and embed —
-pinned in `spec/DESIGN.md` §2.8 at 150 ms per passage as a MUST and 75 ms as a
+pinned in `SPEC.md` §5.2.8 at 150 ms per passage as a MUST and 75 ms as a
 SHOULD on the reference machine. Only one of the three terms is measured. Embed
 has `bench/results/0025-x1-recall/embed-feasibility.json` and the CPU cells
 ticket 0481 recovered from `bench/results/0264-gpu-arm/`; extract and chunk have

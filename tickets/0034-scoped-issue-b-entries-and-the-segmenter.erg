@@ -16,7 +16,7 @@ Blocked-by: 0032
 2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
 --- body ---
 ## Context
-DESIGN.md §4 item 6-B, per the ratified re-form (DECISIONS.md 2026-08-26).
+GOVERNANCE.md's increment train, item 6 (scoped issue B), per the ratified re-form (DECISIONS.md 2026-08-26).
 One #10-shaped issue for the entry unit: the entries schema + slab references
 (DESIGN §2.2), the segmenter (measured by X5, built by 0028), the
 per-attachment data model + first-with-text + stored skip reasons (absorbed

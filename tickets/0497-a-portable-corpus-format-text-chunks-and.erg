@@ -11,13 +11,13 @@ Blocked-by: 0485
 --- body ---
 ## Context
 
-The author's proposal of 2026-08-30 (`spec/DECISIONS.md`, awaiting
+The author's proposal of 2026-08-30 (`DECISIONS.md`, awaiting
 ratification) makes every vector file certify its own embedding chain through
 a calibration header, on the invariant that no file mixes chains. That
 invariant implies a format, and this ticket is that format.
 
-The data model already exists and is not in question: `spec/CONSTRAINTS.md`
-C1's three links, and `spec/DESIGN.md` §2.1's four stage keys. What is missing
+The data model already exists and is not in question: `SPEC.md` §4
+C1's three links, and `SPEC.md` §5.2.1's four stage keys. What is missing
 is that the model lives as a schema INSIDE zoteus's index rather than as a
 portable artifact, and the cost of that coupling is measured rather than
 speculative. Ticket 0025's substrate correction records every index on the
@@ -28,7 +28,7 @@ drivers pinned to the same pre-rename schema. A corpus that outlives the index
 schema is what stops that recurring.
 
 Three further consumers want it. Adopt-a-foreign-index (the awaiting entry in
-`spec/DECISIONS.md`) needs a file a stranger can verify. `GOVERNANCE.md`
+`DECISIONS.md`) needs a file a stranger can verify. `GOVERNANCE.md`
 commits the fork to archival once the train resolves, so the corpus must be
 readable without it. And the second machine cannot reuse the first machine's
 work today: R30's designated GPU host and the author's CPU host each rebuild
@@ -40,7 +40,7 @@ Three layers, separable, each independently reusable, each keyed by the layer
 below it.
 
 1. **text** — content-addressed by `text_hash`, already defined in
-   `spec/DESIGN.md` §2.1.
+   `SPEC.md` §5.2.1.
 2. **chunks** — byte offsets into that text, never copies of it. Zotero core
    reaches the same answer (chunk location as start/end offsets, content
    re-derived from the source pack); it is described in `verification/FIELD-REVIEW.md`
@@ -70,14 +70,14 @@ Blocked by 0485, and the dependency is real rather than procedural: 0485
 prices cosine against task recall, which decides what the calibration header
 must be compared ON, and therefore what the manifest has to store. Designing
 the layers ahead of that verdict is fine; freezing the header's contract is
-not. The awaiting entry in `spec/DECISIONS.md` must also be ratified before
-the never-mix invariant is built to — it changes `spec/DESIGN.md` §2.1 and
-§2.2.
+not. The awaiting entry in `DECISIONS.md` must also be ratified before
+the never-mix invariant is built to — it changes `SPEC.md` §5.2.1 and
+§5.2.2.
 
 ## Actions
 
 1. Specify the manifest, the slab layout, and the three keys, in
-   `spec/DESIGN.md` §2.2 rather than here — this ticket carries the work, the
+   `SPEC.md` §5.2.2 rather than here — this ticket carries the work, the
    owning document carries the schema.
 2. Write a reader and a writer in each of the two languages, sharing no code,
    so the format is proven portable rather than asserted portable.
@@ -106,7 +106,7 @@ the never-mix invariant is built to — it changes `spec/DESIGN.md` §2.1 and
 
 ## Exit criteria
 
-- [ ] The format specified in `spec/DESIGN.md` §2.2, this ticket holding only
+- [ ] The format specified in `SPEC.md` §5.2.2, this ticket holding only
       the work
 - [ ] One driver reads the portable file instead of the index schema
 - [ ] The manifest's chain fields come from the registry, with no literal

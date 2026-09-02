@@ -4579,3 +4579,52 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   adapter and the Beaver adapter. The deterministic egress fail-control stays
   in 0578. The separate propagation pass files the four adapters after this
   ruling lands.
+- **Three findings ticket 0180's attribution audit could not settle itself,
+  all in territory the audit is not authorized to move (raised 2026-09-02).**
+  The audit corrected twenty-seven sites in `SPEC.md` directly; these three it
+  registers instead, because each decides something rather than describing it.
+  Evidence for all three is `verification/ATTRIBUTION-AUDIT-0180.md`.
+
+  **1. X6 may already be answered at source, without running it.** C1 asks
+  whether a purely local re-extraction re-stamps `/fulltext` version 0, and
+  §5.3 makes X6 the decider: if it re-stamps 0, the bounded re-verify sweep
+  gets built; if anything observable moves, the md5-widened signal already
+  covers it and the sweep is never built. Read at `9e28eb0` (2026-09-01),
+  Zotero's local extraction path calls `indexString(text, itemID, stats)` with
+  no version, and `setFulltextItem` writes `version ? parseInt(version) : 0`;
+  the not-yet-indexed path is literally `REPLACE INTO fulltextItems (itemID,
+  version, synced) VALUES (?, 0, ?)`. A non-zero value arrives only later,
+  from `setItemSynced(itemID, version)`. That is X6's first branch, from the
+  platform's own source rather than from a probe. What is *not* settled is
+  whether reading it there is enough: X6 was specified as a measurement on a
+  live library, and a source read cannot see a code path the running build
+  takes for some other reason. Two ways to rule. Accept the source read, close
+  X6's first branch, and the sweep becomes committed work. Or keep X6 open and
+  demote the source read to a prediction it must confirm, which costs an
+  afternoon and buys a positive control. The audit recommends the second, on
+  this repository's own rule that a null needs a control before it becomes a
+  verdict — but the recommendation is weak and the first is defensible, since
+  the source here is not a null but a positive statement.
+
+  **2. §5.2.2's `min()` attribution reads as a mechanism Zotero does not
+  have.** The sentence says Zotero "uses 768 as a ceiling rather than a chunk
+  size, and pairs it with this same minimum against the model's window". The
+  ceiling half is exact and verbatim. The pairing half is not: at
+  `embeddings.js:1642` the `Math.min` applies to the *ceiling*
+  (`Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens())`), while `CHUNK_MIN_TOKENS
+  = 120` is a flat constant compared against nothing. Our own construction is
+  the same shape, so nothing downstream is wrong — but a reader building from
+  this sentence would look for a window-relative minimum upstream and not find
+  one. §5.2.2 is under active edit by the segmenter work, so the audit leaves
+  the wording alone rather than collide with it.
+
+  **3. `indexedPages` saturates, and §5.2.2's length trigger rides on it.**
+  The PDF-path trigger reads Zotero's `indexedPages` first. That column counts
+  pages *actually extracted*, capped by the `maxPages` preference
+  (`fulltext.js:680`, `9e28eb0`), so on a long PDF it reports the cap and not
+  the document's length — which is precisely the case the trigger exists to
+  catch. The claim as written ("Zotero's `indexedPages`") is true; what is
+  missing is that the fallback chain's *first* rung is blind exactly where a
+  15 000-page PDF is concerned. Same section, same reason for leaving it: this
+  is the segmenter's own territory, and the fix is a design decision about the
+  trigger's order, not a wording repair.

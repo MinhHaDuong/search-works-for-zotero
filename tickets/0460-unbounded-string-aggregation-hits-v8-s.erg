@@ -182,7 +182,7 @@ takes is constrained by what the measurements show:
       investigation needed) or corrected, by a maintainer or a later session
       re-reading the cited lines at a current SHA.
 - [x] A decision is recorded on whether this repo files an upstream issue for
-      finding #1: NOT filed — ruling 2026-08-30 (spec/DECISIONS.md); the
+      finding #1: NOT filed — ruling 2026-08-30 (DECISIONS.md); the
       existing sqlite path is the sufficient upstream response.
 - [x] Not filed upstream, so there is no issue to link — moot per the same
       ruling (was: link the issue here per `GOVERNANCE.md` if filed).

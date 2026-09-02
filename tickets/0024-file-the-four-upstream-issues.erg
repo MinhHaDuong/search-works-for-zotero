@@ -27,14 +27,14 @@ Author: claude
 2026-08-31T20:21Z claude note REDIRECT the line above: I-1's re-verification against v1.12.0 belongs with ticket 0520, not 0504. Ticket 0504 was re-scoped to four rows and does not re-baseline; 0520 carries the bump and the remaining twenty rows, held until the trigger in spec/DECISIONS.md is ratified. The reading itself is unchanged -- build.ts and index-manager.ts both moved substantially between v1.10.0 and v1.12.0, and verification/UPSTREAM-1.12.0-REREAD.md did not read the since/libraryVersion seam, so it is still unread
 --- body ---
 ## Context
-DESIGN.md §4 item 4. Form per SYNC.md's measured asymmetry: design-sized
+GOVERNANCE.md's increment train, item 4. Form per SYNC.md's measured asymmetry: design-sized
 problems go as issues he builds himself (#10, two for two).
 - I-1: the fulltext-delta / mixed-sequence question — drafted FINAL in the
   cycle-1 session, upgraded to a FINDING in cycle 2: startIndexUpdate keys on
   libraryVersion alone, so post-build extraction is invisible to
   action:"update". X6 (0025) is its empirical annex.
 - I-2: the measurement corrections for docs/semantic-search.md — WITHDRAWN
-  2026-08-30 by ruling (spec/DECISIONS.md), see the log.
+  2026-08-30 by ruling (DECISIONS.md), see the log.
 - I-3: the 40k truncation cap vs R9 — DEFAULT_FULLTEXT_MAX_CHARS = 40_000
   truncates the 44.9 MB living example ~1,100-fold; design-sized (streaming),
   his to build.
@@ -43,6 +43,6 @@ problems go as issues he builds himself (#10, two for two).
 
 ## Exit criteria
 - [x] I-1 filed 2026-08-28 as upstream #26 (finding wording, 0012 artifact linked, #23/#24 cited)
-- [x] I-2 withdrawn, not filed — ruling 2026-08-30 (spec/DECISIONS.md); trunk artifacts stay as repo-side evidence
+- [x] I-2 withdrawn, not filed — ruling 2026-08-30 (DECISIONS.md); trunk artifacts stay as repo-side evidence
 - [ ] I-3 filed citing the measured truncation (after the #6012 checkpoint)
 - [ ] responses recorded here as they land

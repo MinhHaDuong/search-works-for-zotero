@@ -59,7 +59,7 @@ outside its letter. Title is already stored and already searchable as text, so
 "filter by title" may mean something different from the other three — a field
 restriction rather than a scope — and that should be settled before it is built.
 Extending R5 to name creator, or filing a sibling requirement, is a ruling for
-`spec/DECISIONS.md` and is NOT decided here.
+`DECISIONS.md` and is NOT decided here.
 
 R5's constraint on *how* is already satisfied by the measured shape: the filter
 is applied while ranking, so truncation happens after it, which is what R5's
@@ -70,9 +70,9 @@ claims completeness; it does not require constraining MATCH, and says so.
 - `bench/year_scope.mjs` — the measurement, both mechanisms, with the control.
 - `bench/harvest_years.py` — pulls `meta.parsedDate` from the local API.
 - `bench/results/0025-year-scope/year-vs-json-each.json` — the artifact.
-- `spec/DECISIONS.md` — carries both awaiting-ratification entries: X4's ladder
+- `DECISIONS.md` — carries both awaiting-ratification entries: X4's ladder
   consequence, and the stored-attribute entry this ticket implements.
-- `spec/REQUIREMENTS.md` R5 — the promise; R18 — what an empty scope must say.
+- `SPEC.md` §3 R5 — the promise; R18 — what an empty scope must say.
 - Upstream `src/features/search/sqlite-index.ts` (schema), `build.ts` (where item
   metadata is written), `src/tools/semantic-search.ts` (the input schema).
 
@@ -119,7 +119,7 @@ strongest possible reason, which is that no filter argument exists to write.
 - Nothing here is filed upstream without the author's authorization.
 
 ## Exit criteria
-- [ ] The author/title reading is ruled on in `spec/DECISIONS.md`
+- [ ] The author/title reading is ruled on in `DECISIONS.md`
 - [ ] Year and item-type scoping work end to end against the real library
 - [ ] R18's scope block answers an exhausted scope
-- [ ] The stored-attribute ledger entry is ratified and DESIGN.md edited to match
+- [ ] The stored-attribute ledger entry is ratified and SPEC.md §5.2.2 edited to match
