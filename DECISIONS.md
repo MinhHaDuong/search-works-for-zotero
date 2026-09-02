@@ -3544,6 +3544,16 @@ SPEC.md and README.md propagation, plus adapter tickets for #6012, ZotSeek,
 zotero-mcp and Beaver, follow in one separate auditable pass; 0578 owns the
 zoteus adapter and deterministic egress fail-control.
 
+### 2026-09-02 — Root-document roles and agent instruction filename (ratified)
+
+The author retired `CLAUDE.md` in favour of `AGENTS.md`. `AGENTS.md` is the
+sole root instruction file for agents and owns workflow conventions only.
+`STATE.md` is the compact live operational handoff and pointer page; it owns no
+requirements, measurements, verdicts, or history. `README.md` is the public
+landing page and durable reviewed-baseline status, including ladder rosters;
+it is not live session state. Historical references retain the filename that
+was true when their evidence or ruling was recorded.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database

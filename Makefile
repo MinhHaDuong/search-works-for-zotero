@@ -82,7 +82,7 @@ names:
 progress:
 	python3 bench/check_progress.py
 
-# CLAUDE.md declares "erg check must pass" beside the guards, yet the gate ran
+# AGENTS.md declares "erg check must pass" beside the guards, yet the gate ran
 # fully green on a tree where it was red (a closed ticket outside closed/,
 # t0507, 2026-08-31). The declared-mandatory check joins the target that makes
 # the declaration true.

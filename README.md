@@ -59,18 +59,20 @@ The specification is one document, [`SPEC.md`](SPEC.md), in RFC section order
 (Introduction, Terminology, Requirements, Constraints, Design, Security
 Considerations) — merged 2026-09-01 (`DECISIONS.md`) from the five documents
 this table used to list separately. This page folded in at the same time: it
-is now both the repository's landing page and the chain's entry point, the
-one place that says where each promise actually stands. What changes week to
-week stays outside SPEC.md entirely, at the top level alongside it.
+is now both the repository's public landing page and the chain's entry point,
+the one place that says where each promise stands at the reviewed baseline. It
+is durable status, not a live session handoff. What changes week to week stays
+outside SPEC.md entirely, at the top level alongside it.
 
 | Document or directory | Role |
 |---|---|
+| [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
 | [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
 | [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
-| [`STATE.md`](STATE.md) | Operational handoff and measurement record |
+| [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
 | [`tickets/`](tickets/) | Work train, tracked with [git-erg](https://github.com/MinhHaDuong/git-erg) |
 | [`bench/`](bench/) | Executable probes and acceptance-harness work |
 | [`bench/results/`](bench/results/) | Committed raw evidence behind reported figures |
@@ -486,8 +488,8 @@ same crawl's `search-index.json`, migrated in place, rather than two crawls that
 ought to agree: **5 759,6 MiB against 128,0 MiB** resident, and **90,87 s
 against 3,86 s** to first answer.
 
-Read `STATE.md` (the prototype phase's measurement record) before quoting any
-of that. The memory figure excludes the kernel page cache holding the database
+Read the cited bench artifacts and their owning tickets before quoting any of
+that. The memory figure excludes the kernel page cache holding the database
 file, where the JS heap figure has no such remainder; charge SQLite the whole
 file and the win is 6,8x rather than 45x. Both numbers are measured and both
 belong in any external claim. The figures are measurements of the fork's

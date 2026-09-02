@@ -2159,9 +2159,9 @@ filename (§5.1) is what actually protects against them.
 derived state and pins `env.cacheDir` under it before constructing the pipeline
 (the transformers default lands outside it, per its documentation:
 documentation-cited, not disk-verified, and the fix is correct regardless).
-Its real uninstall surface removes that declaration; `purge` is maintenance,
-not a substitute the harness may call to manufacture a clean result. D2
-hosted-out deletes, explicitly: per-tenant
+Until zoteus offers a real uninstall surface, the adapter reports
+`not-offered`; `purge` is maintenance, not a substitute the harness may call to
+manufacture a clean result. D2 hosted-out deletes, explicitly: per-tenant
 contract keying, multi-tenant consent bookkeeping, encryption-at-rest,
 quota arithmetic; the four returned privacy lines stay dead.
 

@@ -276,7 +276,7 @@ def _subprocess_diagnostic(result: subprocess.CompletedProcess) -> str:
 @dataclass
 class RealExecutor:
     """Wires the five existing drivers up as subprocesses. Never invoked by
-    the test suite (per CLAUDE.md and the ticket: no download, no ONNX load
+    the test suite (per AGENTS.md and the ticket: no download, no ONNX load
     in tests) — exercised for real only by the CPU/GPU campaign tickets
     (0263, 0264), which is why its correctness there is a demonstration, not
     a unit-tested contract.
@@ -299,7 +299,7 @@ class RealExecutor:
     hf_token: str | None = None
     #: The "same-item" recall task's item/ord files (ticket 0037, `vec_task_recall.mjs`'s
     #: own header). Not shipped in this repo — the real corpus lives on the author's
-    #: machine (CLAUDE.md's Environment notes) — so a recall cell without these two set
+    #: machine (AGENTS.md's Environment notes) — so a recall cell without these two set
     #: resolves as unloadable rather than crashing on a missing argument.
     recall_items_path: Path | None = None
     recall_ords_path: Path | None = None

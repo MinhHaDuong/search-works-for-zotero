@@ -17,6 +17,7 @@ Author: claude
 2026-09-02T14:30Z codex note AUTHOR RATIFIED R15'S TARGET-NEUTRAL UNINSTALL WORDING: every target declares every derived-state location; after its real uninstall none may remain, and no target-created derived state may exist outside the declaration. User-authored library data and externally supplied configuration are not derived state. A target with no uninstall surface reports not-offered; the harness never simulates success by deleting files itself. The item-deletion clause is unchanged.
 2026-09-02T14:32Z codex note AUTHOR CHOSE SEQUENCING A AND RATIFIED THE WHOLE RULING. PR 187 records the decision and this rescope only. One separate propagation PR updates the seven enumerated SPEC.md/README.md sites and files adapters for #6012, ZotSeek, 54yyyu/zotero-mcp and Beaver; this ticket owns the zoteus adapter and deterministic egress fail-control.
 2026-09-02T14:38Z codex note RATIFIED INTERFACE PROPAGATED: SPEC.md and README.md now carry the target-neutral contract; adapter tickets 0583-0586 cover #6012, ZotSeek, 54yyyu/zotero-mcp and Beaver. This ticket retains the assertion layer, zoteus adapter and deterministic R10 fail-control.
+2026-09-02T14:52Z codex note POST-MERGE HARNESS AUDIT: replaced stale awaiting/provisional body text with the ratified SPEC.md contract; zoteus reports uninstall not-offered until it has a real surface, Beaver's adapter is ticket 0586, and the one-pass propagation is complete.
 --- body ---
 ## Context
 
@@ -28,20 +29,18 @@ system is installed. The ruled method is tests first, bottom-up — a rung is
 declared only when its assertions run, which is why the evidence column on
 README.md is the test column.
 
-Rescoped 2026-09-02. The author restated a standing constraint the ledger did
-not carry: the acceptance harness must be applicable to any Zotero AI retrieval
-tool, with zoteus the first target, Zotero core's pull request #6012 the second
-and a third to be proposed. The ruling drafted for ratification the same day
-(`DECISIONS.md`, awaiting) makes the harness one assertion layer phrased over a
-target interface plus a thin adapter per target. This ticket therefore builds
+Rescoped and ratified 2026-09-02. The acceptance harness applies to any Zotero
+AI retrieval tool, with five targets named in SPEC.md §5.2.8. The ratified
+ruling (`DECISIONS.md`, 2026-09-02) makes the harness one assertion layer
+phrased over a target interface plus a thin adapter per target. This ticket builds
 that layer and the zoteus adapter as its first adapter, instead of extending
 `bench/smoke_upstream.py` with assertions that read the zoteus server directly.
 
-Building it does not wait on the remainder of the ruling, and the ticket stays
-unblocked: the layer, the adapter and every assertion below run against zoteus.
-The author settled R15's target-neutral uninstall text on 2026-09-02, so its
-assertion is no longer provisional: call the real uninstall surface, then test
-the adapter's declared derived-state roots and the broader residue inventory.
+The ticket stays unblocked: the layer, the adapter and every assertion below
+run against zoteus. R15's target-neutral uninstall text is authoritative in
+SPEC.md §3: call the real uninstall surface, then test the adapter's declared
+derived-state roots and the broader residue inventory. Until zoteus offers
+that surface, the result is `not-offered`.
 
 Three of goal 1's four terms are this ticket's, plus one clause that belongs to
 a higher rung and is built here anyway. R10 and R15 are goal 1's; R22 stays on
@@ -70,7 +69,7 @@ is where they go.
 - `bench/results/smoke-1.12.0/checks.json` — where the run's verdicts land.
 - `UPSTREAM` — the reviewed SHA and the repository URLs; `make upstream-checkout`
   recreates the git-ignored `fork/` at it.
-- `DECISIONS.md`, the awaiting entry of 2026-09-02 — the interface, the adapter
+- `DECISIONS.md`, the ratified entry of 2026-09-02 — the interface, the adapter
   contract, the judge rule and the roster. Cite it; do not restate it.
 - `verification/FIELD-REVIEW.md`, the Beaver entry — the source for the fifth
   target's licence, architecture and expected R10 finding.
@@ -127,8 +126,8 @@ Red first per assertion, and the red state is produced rather than argued.
 
 - **R10's egress.** A deterministic stub adapter attempts one known off-machine
   connection. The assertion must go red or it has not shown that it can detect
-  egress. Beaver is a separately pinned real target, not this control; its
-  adapter follows after the whole ruling is ratified.
+  egress. Beaver is a separately pinned real target, not this control; ticket
+  0586 owns its adapter.
 - **R15's deletion.** Two reds, because the clause now reads over a
   declaration. First, an install that plants a file outside the declared roots.
   Second, an adapter that under-declares its roots: the sweep must fail it,
@@ -169,7 +168,7 @@ Red first per assertion, and the red state is produced rather than argued.
   configuration a user would not have, no access the target does not give its
   own users, no scoring of a result.
 - No judge model in this ticket. Goal 1's clauses are mechanical throughout —
-  egress, residue, folding, exit codes — and the judge rule the ruling proposes
+  egress, residue, folding, exit codes — and the ratified judge protocol
   attaches to R17, R18, R24 and golden relevance, which are other rungs' work.
 - No threshold, budget or design number is restated here. SPEC.md §5.2.8 owns
   the gates and §5.2.9 the budgets; this ticket cites addresses.
@@ -192,6 +191,4 @@ Red first per assertion, and the red state is produced rather than argued.
       states
 - [ ] README.md's goal-1 rows carry an evidence verdict that rests on something
       that ran, for the terms this ticket asserts
-- [ ] R15's assertion uses the author-settled target-neutral uninstall text in
-      `DECISIONS.md` (2026-09-02), pending its one-pass SPEC.md/README.md
-      propagation when the whole ruling lands
+- [ ] R15's assertion uses the target-neutral uninstall text in SPEC.md §3
