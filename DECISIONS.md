@@ -3502,3 +3502,119 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   arrive, and the two packs in hand are the fixtures. For later: a coverage
   of 0,015 % buys nothing measurable today and adds a reader to maintain
   against a format that answers to nobody.
+
+- **Documents in several languages: one work, several renderings (author's
+  six questions, 2026-09-02; brief drafted the same day, tracker ticket
+  0573).** The facts are in `bench/results/0573-lang-census.txt`, measured on
+  the author's library by `verification/probes/lang_census.py`: half the
+  records carry a language field, spelled twelve ways for three languages,
+  113 of them "EN, VN" by hand; Zotero's relation vocabulary has no
+  translation predicate (Related, `dc:replaces`, `owl:sameAs` merges are all
+  there is); 888 records hold two or more PDFs and about 200 of those hold
+  two languages, 157 English plus Vietnamese, one rendering of each indexed
+  today under D6 and the other skipped. Separate records that translate one
+  another are not counted, because nothing links them and a census cannot see
+  them without the detector proposed below.
+
+  **The concept the six questions share.** A *work* may exist in several
+  *renderings*, one per language, filed either as twin attachments under one
+  record or as separate records. The chain has no word for this; §2 would
+  gain "rendering", and every answer below is a rule about renderings.
+
+  **1. Can translated pairs judge the retriever?** Yes, and it is the standard
+  instrument for the property R29 promises. Cross-lingual retrieval is
+  evaluated in the field on parallel documents (bitext mining and CLIR
+  benchmarks): the pair is a free relevance judgment, one rendering as the
+  query, the other as the answer, both directions. Ticket 0266 gated R29 on
+  24 hand-written topics, 8 per lane; the 157 English-Vietnamese twins are a
+  parallel slice twenty times that size, already in the library, chunk-level
+  once both renderings are indexed. Two limits, stated so the number is read
+  right. It measures alignment of the embedding space on equivalent text, not
+  topical relevance to a question a user would ask, so it is a gate beside
+  0029's golden cross-lingual slice and never in its place. And it leaks
+  unless the record's fields are masked: both renderings share one title and
+  abstract, so a record-level hit proves nothing; the slice runs on body-text
+  passages only. Recommendation: add the parallel slice to 0029's cross-lingual
+  gate, reported per direction (en→vi, vi→en), hit@10 at document level and
+  at passage level.
+
+  **2. Dedup from top-k and pad?** Yes, before the cut and only on declared
+  relations. R24 already rules deduplication per section and forbids one
+  document crowding the pool before dedup, so the pool is wider than k and
+  padding is how R24 works today; renderings join that rule as one more
+  collapse: the renderings of one work are one answer row, the best-scoring
+  rendering is the hit, the others are alternates on the row. The condition
+  is that the relation is *known*: twin attachments under one record, or a
+  declared relation between records (question 4). Collapsing on a similarity
+  guess at query time is the silent plausible error the design guards against
+  everywhere else; two records nobody linked stay two rows.
+
+  **3. How to present?** One row per work, the matched rendering first, the
+  other renderings listed with their language and key, e.g. `also in: vi
+  (ITEMKEY)`. The rendering shown is the one that scored, not the one in the
+  query's language, because ranking stays relevance-only (§3, out of scope,
+  "recency orders coverage, not answers"): a French query may well match the
+  English rendering best, and hiding that behind the French one would present
+  a worse hit as a better one. The consumer is an agent, so the row carries
+  the renderings as structured fields; the agent decides what to show a human.
+
+  **4. Detect and autotag translations? And which is the original?** Detect
+  yes, as a report; write into Zotero never; the original by the user's
+  declaration, in a convention Zotero already understands. Detection is cheap
+  and reliable enough to propose candidates: same authors and year, titles
+  whose multilingual embeddings sit above a threshold, bodies whose passage
+  alignment (question 1's instrument) is high. It is not reliable enough to
+  write a relation into the user's library, and the design has no channel
+  for it: the local API is read-only, C1 makes everything zoteus holds
+  derived data, and Zotero is the system of record. So the tool is
+  `find_translation_candidates`, listing pairs with a confidence and the
+  evidence, and the user confirms in Zotero. The confirmation has a home
+  without any new field: Zotero's Extra field carries CSL variables, and CSL
+  defines `original-title`, `original-date` and `original-publisher`; a
+  translated record declares `original-title: …` (and the date) in Extra and
+  a Related link to the original. zoteus reads both signals; the record with
+  the `original-*` lines is the translation, the linked one is the original,
+  and a Related link with no `original-*` on either side is a pair of
+  renderings with no original declared, which is still enough for questions 2
+  and 3. Inferred but unconfirmed pairs may be stored as derived data with
+  their confidence and surface as "possibly a translation of" on the row;
+  they never collapse rows. Autotagging would also normalize the language
+  field, whose twelve spellings are the user's own; the index normalizes the
+  value it stores (BCP-47) and leaves the field alone.
+
+  **5. Create translations?** No. The chain already rules it: query
+  translation is out, "no translation service and no local translation model
+  joins the default path" (§3 out of scope; R10 locality; ruling 2026-08-31
+  on R29). Document translation is the same thing at a larger scale, plus a
+  writer into the library, plus a job that is not search. The agent consuming
+  zoteus already translates what it reads, on demand and in the user's
+  language; zoteus returns the text and says which language it is in. The
+  ecosystem has plugins for translating documents (`verification/FIELD-REVIEW.md`
+  names one); that is where the capability belongs.
+
+  **6. Two attachments in two languages under one record: autosplit?** No;
+  index both. The 157 records are one work filed once, and the 113 "EN, VN"
+  language values say the author means it. Splitting would write into the
+  library (the objection of question 4) and destroy a relation the user
+  expressed by filing. What is wrong today is D6: *first-with-text* indexes
+  one body per record, so 200 second-language bodies are outside the index,
+  and a Vietnamese query cannot find the Vietnamese text of a bilingual
+  record, against R7's plain reading. Recommendation: amend D6 to
+  *first-with-text per language*: every attachment whose language differs
+  from the ones already indexed for that record is indexed as a rendering;
+  same-language twins keep D6's skip and its recorded reason. This needs a
+  language identifier per attachment on the extracted text (a small,
+  license-clean detector; the item's language field cannot say which
+  attachment is which), stored as derived data under C1. The same field gives
+  R17 a per-language coverage count, which R7's lanes have no instrument for
+  today, and would give R5 a language scope for free; neither is asked for
+  here, both fall out.
+
+  **What ratifying this changes.** §2 gains "rendering"; D6 is amended;
+  R24's dedup clause names renderings; §5.2.6 states the collapse and the row
+  shape; 0029's gate gains the parallel slice; two tools are specified
+  (`find_translation_candidates`, and the `also in` fields on a hit); and the
+  Extra `original-*` plus Related convention is documented as what zoteus
+  reads. Nothing here writes to Zotero, nothing translates, and nothing
+  collapses two rows on a guess. Ticket 0573 tracks it and files the children
+  once ruled.
