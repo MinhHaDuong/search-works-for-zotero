@@ -124,10 +124,11 @@ the entry points at the question rather than settling it.
   merges the keyword and semantic ranked lists into one. Authoritative:
   SPEC.md §5.2.6, which owns the constant, the seam invariant and the ship
   gate.
-- **first-with-text** — the rule that per item exactly one attachment is
-  indexed for body text, the deterministic first appearing in the full-text
-  census, with a stored reason for each attachment skipped. Authoritative:
-  SPEC.md D6; the choice function is SPEC.md §5.2.3.
+- **first-with-text** — the rule that per item and detected language exactly
+  one attachment is indexed for body text, the deterministic first appearing
+  in the full-text census, with a stored reason for each same-language
+  attachment skipped. Authoritative: SPEC.md D6; the choice function is
+  SPEC.md §5.2.3.
 - **goals ladder / rung** — the order the sheet's promises are made true in:
   five goals, numbered from the cheapest to assert to the most expensive to
   earn, each a bundle of requirements named in the user's own words. A rung is
@@ -136,6 +137,10 @@ the entry points at the question rather than settling it.
   for is tests first, bottom-up. Authoritative: SPEC.md, last section,
   for the order; README.md in this directory for each rung's roster; the
   membership and the ordering were ruled in DECISIONS.md (2026-08-31).
+- **rendering** — one language expression of a work. Declared renderings may
+  be twin attachments under one item or explicitly related items; similarity
+  alone never declares the relation. Authoritative: SPEC.md R24 and
+  SPEC.md §5.2.6.
 - **key** — the recorded identity of the inputs that produced a piece of
   derived data, so that work is stale exactly when the stored key differs from
   the current one (contrast *signal*). Authoritative: SPEC.md C1; the
@@ -507,7 +512,8 @@ the block's own anchor and is not an estimate; the answer says which kind it
 is. As that ruling amends it — D9 dissolved — deduplication is per section,
 and a single document MUST NOT crowd other items out of the candidate pool
 before deduplication happens. When many returned hits come from one document, the
-result says so.
+result says so. Declared renderings of one work MUST collapse to one answer row
+before the cut to k; an inferred similarity MUST NOT collapse rows.
 
 **R33. Modes.** Exact-word search, meaning-based search, and the two combined
 MUST each work.
@@ -646,7 +652,7 @@ gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
 | D3 embedder change | **Serve-stale.** The old model's vectors keep answering, labeled, until re-embedding overtakes them newest-first; semantic coverage never drops to zero at the moment the new embedder is adopted. |
 | D4 group shape | One **merged** index; the library is a filter facet. |
 | D5 query semantics | A quoted **phrase** matches as a phrase, and AND/NOT are honored, on both backends (keyword and semantic); bare terms stay recall-friendly. |
-| D6 twin attachments | **First-with-text.** Per item, one attachment is indexed for body text; skipped ones get a recorded reason. |
+| D6 twin attachments | **First-with-text per language.** Per item, the deterministic first attachment in each detected language is indexed for body text; same-language siblings get a recorded skip reason. |
 | D7 own-words scope | **Both** notes and annotations. |
 | D8 image-only PDFs | **Leave room** (OCR is out today). |
 | D9 long-document weight | **Dissolved** by the entry ruling. |
@@ -1500,13 +1506,16 @@ smallest-first. Ours orders by recency and stops monopoly with the band cap
 instead, and the same standard binds both: neither ordering is asserted as an
 invariant over a moving set.
 
-**D6, first-with-text.** Per item, exactly one attachment carries the body
-text: the first — ascending `dateAdded`, key tie-break — that appears in the
-fulltext census. A skipped attachment gets a stored reason, "identical text,
+**D6, first-with-text per language.** Per item, exactly one attachment in each
+detected language carries body text: the first — ascending `dateAdded`, key
+tie-break — that appears in the fulltext census. Language is detected from the
+extracted attachment text by a small license-clean detector and stored only as
+derived data; the item's language field cannot identify which attachment is
+which. A same-language sibling gets a stored reason, "identical text,
 suppressed" or "different text, not indexed under first-with-text", which is
 honesty without reopening the decision. If a later extraction gives an earlier
-attachment text, the choice function's output changes and the chain re-derives
-from there.
+attachment text or changes its detected language, the choice function's output
+changes and the chain re-derives from there.
 
 #### 5.2.4 Freshness: how the index finds out what changed
 
@@ -1998,6 +2007,15 @@ re-collapses. D9 dissolves as the ruling says, and R24 absorbed the dedup clause
 many slots only with many genuinely distinct entries, and concentration is
 still disclosed in status.
 
+**Rendering collapse.** After entry collapse and before the cut to k, entries
+whose attachments are declared renderings of one work collapse to one answer
+row. Twin attachments under one item and explicit relations between items are
+declarations; similarity is not. The best-scoring rendering supplies the hit
+and its relevance rank. Other renderings are structured alternates carrying
+language and key, rendered as `also in: <lang> (<key>)` where text is needed.
+An unlinked record remains its own row, and the query language never replaces
+the best-scoring rendering.
+
 **Fusion.** The fusion rule is fraction-weighted RRF at k=60. The seam invariant, that every
 ranked list crossing the fusion seam is higher-is-better and strictly
 positive, is a unit-tested contract at the four verified lines (SQLite
@@ -2359,6 +2377,11 @@ is the pattern, and it binds every surrogate here, not only that one.
   the rest join goal 5's evaluation when their corpus lands. The corpus carries a cross-lingual slice — EN and
   FR queries whose answer sets are Vietnamese entries — gated separately from
   the monolingual queries, so a regression names which of R7 and R29 it broke.
+  Beside it, never replacing it, a body-only parallel slice uses the 157
+  English–Vietnamese twin records in both directions. Shared record fields are
+  masked; it reports document- and passage-level hit@10 separately for en→vi
+  and vi→en. It measures embedding-space alignment on equivalent text, not
+  relevance to a user's question.
   The same pinned set decides R34, and the two readings of it are opposite on
   purpose: the stability reading compares one run against the last and
   tolerates legitimate drift, which is what the thresholds above are for, while
