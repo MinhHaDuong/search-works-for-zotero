@@ -1557,6 +1557,14 @@ Three things per library.
    50 ms at 30k entries, the cadence backs off to every 5th tick — a decision
    rule, not a hope.
 
+   The stored census is a completion record, not an enqueue record. The tick
+   leaves an attachment's stored versions unchanged when it creates a work
+   order; the conductor writes them only after extraction completes, including
+   D1's settled empty-text outcome. A failed extraction therefore remains a
+   diff and is offered again by the next tick without waiting for Zotero's
+   version to change. The worker returns the completion result across the
+   boundary, but the conductor remains the sole census writer.
+
 3. **Deletions.** Subtract the item census every tick, because R35 gives
    deleting a one-minute bound and the tick is what delivers it — an earlier
    every-10th-tick cadence disclosed ≤ ~10 min and no longer meets the

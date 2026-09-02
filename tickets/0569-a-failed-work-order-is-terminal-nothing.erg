@@ -7,6 +7,7 @@ Author: MinhHaDuong
 2026-09-01T19:02Z MinhHaDuong created
 
 2026-09-01T19:20Z the question is now in DECISIONS.md's awaiting-ratification list, where this repo keeps questions that need a ruling before code. This ticket stays blocked on that ruling by intent, not by oversight: the three candidate shapes differ in what a failure MEANS, not in how it is implemented.
+2026-09-02T15:14Z codex note author chose option 1: census stamps successful completion, failed work remains a diff for the next reconcile tick
 --- body ---
 ## Context
 
@@ -56,28 +57,25 @@ dispatch-time defensive failures. The first is the live one.
   adjacent vocabulary question. This ticket is about a row that failed to
   be *read*, not about an attachment that has nothing to read.
 
-## The question this ticket has to answer first
+## Ruling
 
-Whether a failure is retried at all, and on what policy, is a design
-question and not an implementation detail — it is the difference between
-"a failure is a thing to retry forever" and D1's settled empty state, a
-distinction `extract-stage.ts` already draws in prose. Candidate shapes,
-for the author:
+The author chose option 1 on 2026-09-02: stamp the census on successful
+completion rather than on enqueue. The census means "extracted"; a failed
+order leaves it unchanged, so the next reconcile tick re-derives and re-offers
+the work without a Zotero version change. D1's settled empty-text result counts
+as completion. The conductor remains the sole writer: the worker returns the
+completion result across the boundary and the conductor performs the census
+write. `DECISIONS.md` records the ruling and `SPEC.md` §5.2.4 owns the design.
 
-1. **Stamp the census on completion rather than on enqueue.** The most
-   honest: the census then means "extracted", and the tick re-derives
-   anything that is not. Costs a write on the completion path and needs
-   the stamp to move across the conductor/worker line.
-2. **Sweep failed rows back to pending on a policy** (an attempt count
-   and a floor, so a permanently broken attachment is not re-fetched
-   every tick forever). Local to the ledger and the conductor's poll,
-   next to `releaseExpiredClaims`.
-3. **Leave it terminal and say so**, with the failure surfaced on the
-   panel and a manual repair. Cheapest, and it makes the tick's
-   completeness claim conditional in a way §5.2.4 currently is not.
+## Actions
 
-Do not pick one here. This ticket exists so the choice is made
-deliberately rather than by default.
+1. Move the census stamp off the enqueue path and onto the successful
+   completion path, including D1's settled empty-text outcome.
+2. Carry the completed attachment identity and versions back across the worker
+   boundary without giving the worker a write path.
+3. Leave the census unchanged on `failed`, so the next reconcile tick offers
+   the attachment again.
+4. Preserve deduplication while an order is `pending` or `claimed`.
 
 ## Test
 
@@ -94,7 +92,8 @@ deliberately rather than by default.
 - [ ] The chosen shape is recorded as a ruling in `DECISIONS.md` before
       the code changes
 - [ ] A failed extraction is recovered without a version change in Zotero
-- [ ] A permanently failing attachment does not re-fetch on every tick
+- [ ] A persistently failing attachment is re-offered by reconciliation rather
+      than spun immediately inside the failed worker path
 - [ ] The tick's own tests stay green; the census stamp's meaning, if it
       moves, is stated in `SPEC.md` rather than only in code
 
@@ -105,5 +104,5 @@ deliberately rather than by default.
 
 ## Exit criteria
 
-- [ ] A failure is either recoverable or documented as terminal, by
-      ruling, and the code matches the ruling
+- [ ] A failed extraction is re-offered on the next reconcile tick without a
+      Zotero version change, and the code matches the ruling
