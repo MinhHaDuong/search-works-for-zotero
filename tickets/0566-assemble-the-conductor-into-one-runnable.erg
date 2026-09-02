@@ -4,6 +4,9 @@ Created: 2026-09-01
 Author: MinhHaDuong
 Blocked-by: 0565
 Blocked-by: 0554
+Blocked-by: 0575
+Blocked-by: 0576
+Blocked-by: 0577
 
 --- log ---
 2026-09-01T14:11Z MinhHaDuong created
@@ -14,17 +17,44 @@ Blocked-by: 0554
 2026-09-01T19:31Z claude note blocker 0568 closed — Blocked-by removed.
 2026-09-02T05:08Z claude note SCOPE MOVES with the 2026-09-02 topology ruling. The 'one runnable process' this ticket assembles is the WRITER, spawned on demand, singleton on the lease row, run-to-drain, exiting on pause and dying with the last P0 -- not an elected query-serving server. Two consequences to carry into the assembly: a P0 must not link the write role at all (SPEC.md 5.2.5 now states write-freedom as a property of the binary, not a discipline), and embedding is an out-of-process call to the single embedding service rather than an in-process model load. Fault isolation is the point: a build crash must degrade to a pipeline outage, never a search outage (upstream #37).
 2026-09-02T05:41Z claude note THREE PROBES BEFORE THIS TICKET COMMITS THE BOUNDARY (DECISIONS.md 2026-09-02, the review entry). (a) Spawn under Claude Desktop: can an Electron-hosted server spawn a child at all, and process.execPath under Electron is Electron -- a spawn without ELECTRON_RUN_AS_NODE launches a GUI; the isolation benefit of the writer split exists only if this works. (b) Bootstrap on a fresh install: the lease lives in a file that does not exist yet and no server creates the schema -- empty schema to a temp file, rename, THEN lease, THEN work; two racing conductors must lose nothing. (c) Worker memory bound: the process boundary isolates nothing without a limit on the process -- heap limit at minimum, cgroup where available -- and the RSS gate asserts the kill, not the peak. Also carried from the same entry: the conductor is NOT run-to-drain (it lives while any P0 liveness row is live, the worker alone drains and exits), and a P0 writes control rows only.
+2026-09-02T10:47Z claude note BODY RECONCILED with the 2026-09-02 topology, which this ticket carried only in its log until now. The assembly is the WRITER process: four roles in Context, a P0 that links no write path, a conductor that is NOT run-to-drain and exits on P0 liveness rather than on an empty queue, and embedding as an out-of-process call. New Action 7 is the fresh-install bootstrap (empty schema to a temp file, rename, THEN lease, THEN work) and new Action 9 is pause meaning zero workers with the tick's removal branch still running -- both rulings from the standing-correction entry, landing here because 0552 is closed. The Title's 'P0 process' is now wrong and is left alone, by the same convention that left 0554's 'chunk': IDs and filenames are not renamed
+2026-09-02T10:47Z claude note BLOCKED-BY 0576 AND 0577, the two things DECISIONS.md 2026-09-02 demotes from ruling to probe 'both before 0566 commits the boundary'. This ticket's own 05:41Z entry listed THREE and they are not the ruling's two: (a) the Electron spawn probe is one of them, now 0576; the ceiling sized for two resident generations is the other and was MISSING from that list, now 0577; (b) the fresh-install bootstrap and (c) the worker heap limit are RULINGS in the same entry, not probes -- (b) is Action 7 here and (c) belongs to 0554, which owns the worker. Also Blocked-by 0575: this assembly's acceptance run must produce vectors, the worker holds no model and never spawns the service, so the boundary has to exist for the run to end with a populated sidecar
 --- body ---
+
 ## Context
 
 Tickets 0551-0556 (and 0565, filed alongside this one) each build and test
 one module of the conductor in isolation, against fixtures and virtual
 time: the ledger/tick, election/lease, extract shim, the v2 schema, and
 (once 0565 lands) the segmentation write path. None of them assembles a
-real, running process. SPEC.md §5.2.5 describes the actual topology: N×P0
-processes, one elected conductor, one run-to-drain pipeline worker
-communicating over a full-duplex stdio pipe, the conductor opening
-`search-index-v2.sqlite` for real and running the tick on a real cadence.
+real, running process.
+
+**Since 2026-09-02 the process this assembles is the writer, not a server
+wearing a second hat** (DECISIONS.md 2026-09-02, both entries; SPEC.md §5.2.5).
+Four process roles, not two: P0, a query-serving server; the conductor, the
+sole writer of derived state, a process of its own, spawned by whichever server
+finds the lease unheld; one pipeline worker, which fetches, drives the
+embedding service and writes nothing; and the embedding service (ticket 0575),
+which holds the machine's one copy of each embedder generation. Three
+consequences this assembly must carry rather than settle by default in code:
+
+- A P0 must not link the write role at all. What a server writes is control
+  state and nothing else — the pause row, intent rows, its own liveness row —
+  in a table of its own. "Write-free" names the query path and the derived
+  stores, not the binary; the stronger phrasing was withdrawn the day it was
+  written.
+- The conductor is NOT run-to-drain and does not exit on pause. It lives while
+  any P0 lives, because it owns the reconcile tick, and it exits when no P0
+  liveness row is live. The worker alone drains and exits; pause means zero
+  workers and the tick keeps running its removal branch. A conductor that
+  exited on an empty queue would be re-spawned by the next election check, N
+  times over, forever.
+- Embedding is an out-of-process call. Neither the conductor nor the worker
+  loads a model, and the worker never spawns the service.
+
+Fault isolation is the point of the split: a build crash must degrade to a
+pipeline outage and never to a search outage — upstream's #37, the only live
+item on `SYNC.md`'s tracker.
 
 This ticket is the assembly point, and the author's stated acceptance bar
 for it: point the assembled process at a fixture library (tranche 1's
@@ -41,13 +71,35 @@ out of its own scope too), and any migration/coexistence story for a user
 who already has a v1 index. Both need the author's call on shape before
 they're ticket-sized.
 
+## The two probes that gate the boundary
+
+DECISIONS.md 2026-09-02 demotes two things from ruling to probe, "both before
+0566 commits the boundary", and both are now Blocked-by:
+
+- 0576 — whether a Claude-Desktop-hosted server can spawn a child at all, and
+  under what environment. The isolation benefit the split was ruled on exists
+  only if the spawn works, and nothing has verified it.
+- 0577 — the service ceiling sized for two resident generations. A ceiling
+  pinned at one model rules SPEC.md §5.2.7's dual residency out by arithmetic.
+
+Two further items from the same entry are rulings rather than probes, and land
+here rather than in tickets of their own: the fresh-install bootstrap (Action 7)
+and the conductor's lifetime mechanism (Action 3). The worker's heap limit,
+the third item this ticket's 05:41Z log entry called a probe, is likewise a
+ruling and belongs to ticket 0554, which owns the worker.
+
 ## Relevant files
 
-- `SPEC.md` §5.2.5 — full process topology: the lease-elected conductor,
-  the run-to-drain worker, the full-duplex pipe ("the conductor drains
-  arriving windows and records before blocking on any write of work
+- `SPEC.md` §5.2.5 — the four-role topology: the lease-held conductor as its
+  own process, its liveness-row lifetime, the fresh-install bootstrap
+  (temporary file, rename, then lease, then work), the run-to-drain worker
+  under `nice 19` and a heap limit, the full-duplex pipe ("the conductor
+  drains arriving windows and records before blocking on any write of work
   orders, in both directions"), orphan repair (stdin EOF on the worker
-  side, lease-loss kill on the conductor side).
+  side, lease-loss kill on the conductor side), and the embedding service.
+- `SPEC.md` §5.2.9 — what each process class costs after the re-cut, and the
+  three ceilings left needing a re-pin.
+- Ticket 0575 — the embedding service boundary this assembly calls into.
 - Fork `src/index.ts` — v1's current entry point, for the pattern this
   ticket's new path should follow structurally; this ticket ADDS a
   conductor-aware path, it does not replace or modify v1's, per the
@@ -63,26 +115,38 @@ they're ticket-sized.
 
 ## Actions
 
-1. A real process entry point that opens `search-index-v2.sqlite` (the
-   file 0556 wires) alongside — never instead of — v1's
-   `search-index.sqlite`.
-2. Wire election (tranche 2) so genuinely separate P0 instances (real OS
+1. A real process entry point for the CONDUCTOR — its own process, not a
+   role a P0 takes on — which opens `search-index-v2.sqlite` (the file 0556
+   wires) alongside, never instead of, v1's `search-index.sqlite`.
+2. Wire election (tranche 2) so that genuinely separate P0 instances (real OS
    processes, not simulated connections in one test process — tranche 2's
-   own soak test used separate SQLite connections, not separate
-   processes; this ticket is where that gap closes) correctly elect one
-   conductor.
-3. Spawn the pipeline worker as a real child process on ledger-queue
+   own soak test used separate SQLite connections, not separate processes;
+   this ticket is where that gap closes) spawn exactly one conductor: the
+   election is among writer candidates, and the server that finds the lease
+   unheld spawns it. Verify against 0576's recipe on the host that needs one.
+3. The conductor's lifetime: it exits when no P0 liveness row is live, and
+   never on an empty queue. Each P0 keeps a liveness row in the same `leases`
+   table on the same TTL.
+4. Spawn the pipeline worker as a real child process on ledger-queue
    non-empty, run-to-drain, exit at empty — per SPEC's topology, not a
-   thread or an in-process simulation.
-4. Wire the full-duplex stdio pipe between conductor and worker exactly
+   thread or an in-process simulation. Run-to-drain is the worker's property
+   and only the worker's.
+5. Wire the full-duplex stdio pipe between conductor and worker exactly
    as SPEC describes it (windows and records flowing one way, work orders
    the other, neither side blocking the other's drain).
-5. Make the local-API source swappable: a real Zotero local API for
+6. Make the local-API source swappable: a real Zotero local API for
    production use, tranche 1's record/replay fixture for a dry run
    against the fixture library — same conductor code, different source.
-6. Connect tranche 2's orphan-repair primitives (`orphan.ts`) to the real
+7. Fresh-install bootstrap: the lease lives in a file that does not exist yet
+   and no server creates the schema. The first conductor writes an empty
+   schema to a temporary file, renames it into place, and only then takes the
+   lease and only then works, so two conductors racing on a fresh install
+   lose nothing — neither has written a row before the rename decides.
+8. Connect tranche 2's orphan-repair primitives (`orphan.ts`) to the real
    process lifecycles established here — they exist and are tested in
    isolation; this is where they're actually called.
+9. Pause: pause means zero workers, and the tick keeps running its removal
+   branch. Neither the conductor nor the tick exits on pause.
 
 ## Test
 
@@ -93,17 +157,28 @@ they're ticket-sized.
   vectors — and directly queryable (raw SQL against the file is enough
   here; wiring the MCP query path is a separate, later ticket).
 - A multi-process election test: launch genuinely separate OS processes
-  (not simulated connections) against one data directory, kill -9 the
-  conductor, confirm another takes over within TTL + cadence — the same
-  property tranche 2 tested, now over real processes.
+  (not simulated connections) against one data directory, kill the
+  conductor uncatchably, confirm another takes over within TTL + cadence —
+  the same property tranche 2 tested, now over real processes.
+- A bootstrap race: two conductors started at once against an empty data
+  directory. Neither loses a row, and the rename decides.
 
 ## Verification
 
 - [ ] Election works across genuinely separate OS processes
+- [ ] The conductor survives an empty queue and exits when the last P0
+      liveness row expires — the spawn-loop failure mode has a test, not a
+      comment
+- [ ] A P0 links no write path to derived state; the only rows it writes are
+      control rows (positive control: a P0 asked to write a derived row fails)
+- [ ] Neither the conductor nor the worker loads a model; embedding crosses
+      the process boundary
 - [ ] The pipe survives a worker crash and a conductor handover without
       corrupting in-flight work
 - [ ] A full run against the fixture library completes and the resulting
       `search-index-v2.sqlite` is queryable by direct inspection
+- [ ] A build crash takes the pipeline down and leaves queries answering —
+      the fault isolation the split was ruled for (upstream #37)
 - [ ] Orphan repair fires in both directions under a real process kill,
       not only in the unit-level simulation tranche 2 shipped
 
@@ -115,6 +190,9 @@ they're ticket-sized.
 
 ## Exit criteria
 
+- [ ] Both probes (0576, 0577) answered and recorded BEFORE the boundary is
+      committed in code; a negative on 0576 goes to DECISIONS.md as a
+      re-ruling question rather than to this ticket as a workaround
 - [ ] A runnable process assembly merged on a fork branch
 - [ ] An end-to-end index build against the fixture library succeeds and
       is verified queryable

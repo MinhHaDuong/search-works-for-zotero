@@ -1,0 +1,101 @@
+%erg 0.1
+Title: Probe: can a Claude Desktop hosted server spawn a child process, and as what
+Created: 2026-09-02
+Author: claude
+
+--- log ---
+2026-09-02T10:41Z claude created
+
+2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: first of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. The author's Linux box has no Claude Desktop install, so the binding arm needs a macOS or Windows host and the Electron harness is a substitute with a stated gap
+--- body ---
+
+## Context
+
+DECISIONS.md 2026-09-02, the standing correction entry, demotes two things from
+ruling to probe, "both before 0566 commits the boundary". This is the first:
+whether Claude Desktop lets a server spawn a child at all, and under what
+environment. The entry states the hazard in one line — "`process.execPath`
+under Electron is Electron, and a spawn without `ELECTRON_RUN_AS_NODE` launches
+a GUI" — and the stake in another: "the isolation benefit of A exists only if
+the spawn works, and nothing has verified it."
+
+Two of the day's rulings rest on a spawn that has never been observed on the
+host population. The conductor is spawned by whichever server finds the lease
+unheld (SPEC.md §5.2.5). The embedding service is spawned by a server and only
+by a server (same section, ticket 0575). Both are spawns from inside the MCP
+server process, and on the population SPEC.md §6 names — Claude Desktop on
+macOS and Windows — that process is not a plain Node process.
+
+Upstream's own evidence sharpens the question rather than answering it.
+Issue #37, the only live item on `SYNC.md`'s tracker, is a full-text build
+taking the server process down under Claude Desktop, cause unknown by the
+maintainer's own account; the shipped mitigation detects the host by testing
+for Electron's `UtilityProcess` (`src/features/search/electron.ts`, read in
+`verification/UPSTREAM-1.12.0-REREAD.md`). So the server runs inside a
+UtilityProcess, not the Electron main process, and what a UtilityProcess may
+spawn is exactly what this probe measures. #37 is also the hook that sells the
+writer split upstream, which makes a negative result expensive in two places at
+once.
+
+## What it measures
+
+On a server process hosted the way Claude Desktop hosts one:
+
+1. Does `child_process.spawn` succeed at all, and does the child outlive the
+   call.
+2. What `process.execPath` resolves to, and whether a child launched from it
+   without `ELECTRON_RUN_AS_NODE` starts a GUI rather than a Node process.
+3. Whether `ELECTRON_RUN_AS_NODE=1` is necessary, sufficient, or neither, and
+   what the working recipe is verbatim if one exists.
+4. Whether the full-duplex stdio pipe SPEC.md §5.2.5 requires works in both
+   directions through that spawn, and whether stdin EOF reaches the child when
+   the host dies — the orphan-repair signal the topology depends on.
+5. Whether the child survives the host's own lifecycle events, and what the
+   host does to it on quit.
+
+## On which machine
+
+The author's Linux workstation has no Claude Desktop install (checked
+2026-09-02: no `~/.config/Claude`), and it is not the host population anyway.
+So:
+
+- **Binding arm**: a real Claude Desktop install on macOS or Windows — the two
+  platforms SPEC.md §6 names — running zoteus as it is actually configured.
+  This arm needs the author or a machine he has; it cannot be synthesized.
+- **Portable substitute**: a minimal Electron harness that hosts the same entry
+  point inside a `UtilityProcess`, run on the reference machine. It answers
+  items 2, 3 and 4 for the Electron runtime and does NOT answer item 5, which
+  is Claude Desktop's own behaviour. State that gap with the result rather than
+  letting the harness stand in for the host.
+- **Positive control**: the same probe under standalone Node, where the spawn
+  MUST succeed. A probe that cannot spawn anywhere is measuring its own
+  harness, and its negative would be indistinguishable from "I could not look".
+
+Record the platform, the Claude Desktop version and the Electron version with
+every arm; an answer with no host attached is not an answer.
+
+## Decision rule
+
+- **Spawn works, with a recipe** — the writer split and the service spawn stand
+  as ruled; the recipe is written into 0566 and 0575 verbatim, not paraphrased,
+  and 0566 may commit the boundary.
+- **Spawn works only under `ELECTRON_RUN_AS_NODE`** — same, and the environment
+  becomes a stated part of both spawn paths, with a test that fails when it is
+  absent.
+- **Spawn does not work under Claude Desktop** — then the isolation benefit
+  DECISIONS.md 2026-09-02 entry A was ruled on does not exist on the very host
+  population that motivated it (#37 is a Claude Desktop crash). That is a
+  re-ruling question for the author, not an implementation choice: 0566 stops
+  at the boundary, files the finding, and the fallback shapes (a server that
+  hosts the write role after all, or a spawn brokered elsewhere) go to
+  DECISIONS.md rather than being chosen in code.
+
+## Exit criteria
+
+- [ ] Each of the five items above answered, per arm, with the host and version
+      recorded
+- [ ] The positive control ran and passed under standalone Node before any
+      negative is reported
+- [ ] A report under `verification/`, cited by path from 0566 and 0575
+- [ ] The verdict recorded here; if it is the third branch, DECISIONS.md gains
+      the question rather than this ticket gaining a workaround

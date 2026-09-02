@@ -1,0 +1,167 @@
+%erg 0.1
+Title: Goal-3 acceptance spec: the convergence harness and the soak
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0566
+
+--- log ---
+2026-09-02T10:52Z claude created
+
+--- body ---
+
+## Context
+
+Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
+this is rung 3 of five children, and 0026 is the tracker. Goal 3 is "it answers,
+and it is honest about what it has" (README.md, "## The goals ladder"), and it
+is the widest rung: seven terms, all seven this ticket's. R1 coverage
+converging unattended, R4 the index answering while it is still filling, R6 the
+query path waiting for no freshness work, R17 the coverage sentence, R18 which
+emptiness an empty answer is, R19 at index time, and R32 the build-time bounds.
+The instruments are the convergence harness and the soak, specified in SPEC.md
+§5.2.8; every threshold and every bound is that section's, cited here and never
+copied.
+
+This is also the acceptance spec served to the harness offer, ticket 0032 — the
+one artifact that survives reimplementation by design, offered upstream as tests
+he can run against whatever he builds. So it is written as an executable spec
+whose runnable-when condition is stated, not as a script that quietly does
+nothing until the machinery exists.
+
+0026's body said the harness "needs a mock Zotero local API (everything in
+bench/ talks to live Zotero), which lands with them". It does not: tranche 1
+(ticket 0551, closed) already built the record/replay fake and the synthetic
+library, on the fork branch `conductor-integration`. That is a correction to the
+tracker's premise and it removes a dependency this ticket would otherwise carry.
+What it does wait on is ticket 0566, the assembled conductor: the harness drives
+a real process from an empty data directory and polls status, and there is no
+process to drive until 0566 lands.
+
+## Relevant files
+
+- `SPEC.md` §5.2.8, "**The convergence harness**" — the four assertions, and
+  phases 2, 3 and 4. Phase 4 is the schema flip, which is R1's clause and not
+  R23's: it asserts that coverage comes back, never that it was never lost.
+- `SPEC.md` §5.2.8, "**R13, the soak gate**" — the soak's constants, the
+  conductor-latency clause (a confirmation since 2026-09-02, not an acceptance
+  gate) and the service clause beside it.
+- `SPEC.md` §5.2.8, "**R32, the build-time gate**" — the reference machine, the
+  rate, and why the bound is on the pipeline rather than on one stage.
+- `SPEC.md` §5.2.8, "**Counters (C4)**" and "**The coverage sentence**" — what
+  R17's assertions read.
+- `SPEC.md` §5.2.9 — the census the wall-clock figures are derived through.
+- Fork `tests/fixtures/local-api-replay.ts` and `synthetic-library.ts` — tranche
+  1's record/replay fake of the Zotero local API and its ~50-item synthetic
+  library. The fixture this harness points at; it exists.
+- Fork branch `conductor-integration` — the integration base (ticket 0568,
+  closed). `make upstream-checkout` recreates the git-ignored `fork/`.
+- `tickets/0566-assemble-the-conductor-into-one-runnable.erg` — the assembled
+  process this harness drives.
+- `tickets/0032-the-harness-offer-acceptance-spec-as-the.erg` — the offer this
+  spec is served to.
+
+## Actions
+
+1. The convergence harness: a fixture library, an empty data directory, status
+   polls at 1 Hz touching nothing else, since R1 needs no asking. Assert the four
+   things §5.2.8 states — status latency, coverage monotone, the class order per
+   item, and the terminal state (all stages at total, drift 0, `pipeline: idle`,
+   work counters stationary).
+2. Phase 3, the hostile fixture: one quarantine, one 15k-page PDF, `dateAdded`
+   ties. The harness MUST fail on the corpus that exercises its subtraction
+   terms, not only pass on the gentle one.
+3. Phase 4, the schema flip: restamp the built index to a foreign schema version
+   in either direction, restart, and assert the terminal state returns
+   unattended — nothing asked for, no file deleted by hand — inside R32's bounds.
+   The distinguishing observable is the embed counters, flat where the index was
+   migrated and not flat where it was abandoned.
+4. R1's convergence-to-latest-chain SHOULD (0026's log, 2026-09-01T06:06Z):
+   superseded work drains unattended after an extractor, segmenter or embedder
+   upgrade, old results serving labeled until overtaken.
+5. R4: queries run against the harness throughout the build and are answered.
+   The state that makes this discriminating is a build in progress, which only
+   this harness supplies.
+6. R18: an empty answer says which emptiness it is. The discriminating state is
+   the same partially built index — a scope that is genuinely not indexed yet.
+7. R17 as four assertions, because its single MUST carries four clauses behind
+   it: N of M, per stage, the most-recent-covered date, and metadata-only counted
+   with its reason. The clause count is a floor and this one is written as four.
+   The device clause — status names the execution device actually serving — is
+   the disclosure gate's and gates on every machine.
+8. R19 at index time: every token the query normalizer makes, the index
+   normalizer can make too, asserted against a built index. The codepoint sweep
+   that decides the same property without a build is ticket 0578's; this is the
+   half that needs one.
+9. R32, the build-time gate: assert the pipeline rate on every run and the wall
+   clock whenever a full build is available, reporting each stage separately so a
+   regression names its stage, and reporting the machine it ran on. Extract and
+   chunk are reported and not asserted until ticket 0500 pins them; the gate
+   fails only on the total.
+10. The soak: assert what §5.2.8 lists, and record the conductor-latency clause
+    as a confirmation rather than a gate. A failure there is more serious than it
+    was, not less, since it is no longer explicable by the topology.
+11. Every threshold and gate in the offered spec names the sqlite backend
+    explicitly, per ticket 0032's own exit criteria.
+
+## Test
+
+The harness is itself a test, so what needs writing first is its own red state.
+Two of them are structural and cheap. Phase 3's hostile fixture is one: build it
+before phase 1's gentle corpus, because a harness that passes on the gentle
+corpus and was never run on the hostile one has demonstrated nothing about its
+subtraction terms. Phase 4's is the other: an index that was abandoned rather
+than migrated must be distinguishable from one that was, and the embed counters
+are the observable that separates them — run the abandoning arm and see the
+counters move.
+
+For R18, the red fixture is an empty answer that cannot say which emptiness it
+is; assert against a scope that is not indexed yet and against one that is and
+matched nothing, and require the two to differ.
+
+## Verification
+
+- [ ] The harness runs against ticket 0566's assembled process over tranche 1's
+      fixtures and reaches the terminal state.
+- [ ] Phase 3 ran and its hostile-corpus arm was seen to fail a harness missing
+      its subtraction terms.
+- [ ] Phase 4's two arms — migrated and abandoned — are told apart by the embed
+      counters and not by elapsed time.
+- [ ] R17 carries four assertions, each with its own id, not one.
+- [ ] R32 reports per stage, asserts on the total, and names the machine.
+- [ ] The soak's conductor-latency clause is recorded as a confirmation.
+- [ ] Every threshold in the spec names the sqlite backend.
+- [ ] `make check` green; `./tickets/erg check` green.
+
+## Invariants
+
+- The unit is the MUST clause, not the requirement: one assertion per clause, so
+  README.md's `delivered` column becomes a count rather than a reader's
+  judgement. Inherited from the tracker, ticket 0026. R17 is the worked example:
+  one MUST, four assertions.
+- Honest red and waiver states in the Makefile, never a green that means "could
+  not look". Inherited from the tracker, ticket 0026. A harness that skips
+  because the machinery is absent reports the same thing as one that is broken.
+- No threshold, bound or budget is restated here. SPEC.md §5.2.8 owns the gates,
+  §5.2.9 the budgets and the census.
+- Phase 4 asserts R1's clause. Serving the foreign stamp without a rebuild is
+  R23's own promise and ticket 0579's.
+- The spec travels to ticket 0032 as a one-time transfer; this repository does
+  not promise to track upstream's tree with it.
+
+## Exit criteria
+- [ ] R1 asserted: coverage converges unattended, newest-first, text-less
+      attachment covered with its reason, the schema flip returning the terminal
+      state, superseded work draining to the latest chain
+- [ ] R4 asserted: queries answered throughout a build, its first included
+- [ ] R6 asserted: the query path waits for no freshness work
+- [ ] R17 asserted as four: N of M, per stage, most-recent-covered date,
+      metadata-only counted with reason
+- [ ] R18 asserted: the two emptinesses distinguishable, each against its own
+      discriminating state
+- [ ] R19 at index time asserted against a built index
+- [ ] R32 asserted: the pipeline rate on every run, the wall clock on a full
+      build, per-stage reporting, the machine named
+- [ ] the soak's assertions written, the conductor-latency clause recorded as a
+      confirmation and the service clause beside it
+- [ ] the whole is runnable against ticket 0566's assembled process and is the
+      spec ticket 0032 offers
