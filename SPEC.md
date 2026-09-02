@@ -205,7 +205,8 @@ the entry points at the question rather than settling it.
   DECISIONS.md 2026-08-31).
 - **segmenter (seg/1)** — the heuristic that finds entry boundaries in flat
   extracted text, classifying lines, collecting heading candidates from
-  numbering, case shape and headword rhythm, cutting at accepted headings, and
+  a table of contents, chapter and section numbering, author bylines and case
+  shape, cutting at accepted headings, and
   falling back to labelled synthetic entries below its confidence threshold.
   Authoritative: SPEC.md §5.2.2 for the spec and the threshold; experiment X5
   gates what depends on it.
@@ -1277,21 +1278,93 @@ R1 re-earns the delta from there. The intended use is embed on the GPU host,
 retrieve on the laptop; the remote-embedder alternative stays out of the
 design and inside the execution-mode comparison (§5.2.5).
 
-**The segmenter, seg/1** is new machinery; the spec lives here.
+**The segmenter, seg/1** is new machinery; the spec lives here. Its primary
+target class is **books and proceedings**; the dictionary is a rare case
+(ruled 2026-08-31). The clauses below are written for the primary class, and
+the dictionary's own machinery is named where it survives as a special case.
 
-- Classify lines, and collect heading candidates from numbering patterns,
-  case shape, and the dictionary's headword *rhythm*, the median gap and
-  median absolute deviation (MAD) over candidate spacing.
+- Classify lines, and collect heading candidates from a table of contents
+  where the document carries one, chapter and section numbering, and case
+  shape.
+- Validate the cut set against the table of contents rather than only scoring
+  against it: a front-matter contents list names the cuts the document itself
+  claims, so a candidate set is checked against a declared answer key.
+- Accept on author bylines under a chapter or paper title. There is no
+  dictionary analogue, and it is the strongest single signal in a proceedings,
+  where every paper is independently authored.
+- Exploit chapter starts on page boundaries — form feeds — where the
+  extraction carries them. They are present in the newer extractor generation
+  only (ticket 0120), so this signal is exploited where present and never
+  required.
+- *Rare case, the dictionary only:* the headword *rhythm*, the median gap and
+  median absolute deviation (MAD) over candidate spacing. It is a uniformity
+  statistic and it accepts headings only because a dictionary's entries are
+  near-uniform in length; a book's chapters and a proceedings' papers are
+  unequal by nature, so it measures a property the primary class does not
+  have. Kept for the class it fits, never applied to the primary one.
 - Cut entries at accepted headings.
 - Confidence = the fraction of text inside confirmed entries.
-- Below confidence 0.5, fall back to synthetic entries of ~6k tokens cut
-  at paragraph boundaries, labeled as synthetic.
+- Below confidence 0.5, fall back to synthetic entries cut at paragraph
+  boundaries, ~12k tokens each for every class, labeled as synthetic — see
+  the fallback paragraph below.
 
-Dictionary arithmetic (input assumption labeled, unmeasured): 44,9 MB across
-~1 850 entries ≈ 24 KB ≈ 6k tokens ≈ 8–9 chunks each, so the dictionary
-becomes ~1 850 first-class peers, which is the entry ruling's whole point.
-The segmenter is the design's biggest unmeasured bet; experiment X5 gates it
-(§5.4, risk 1).
+Entry arithmetic. A book's entry is a **chapter**: tens per item, not
+hundreds. A proceedings' entry is a paper, on the same order. That is the
+scale the design's entry-collapse, locator and dedup machinery serves.
+
+The dictionary is the illustration of the rare case, not the point (input
+assumption labeled, unmeasured): 44,9 MB across ~1 850 entries ≈ 24 KB ≈ 6k
+tokens ≈ 8–9 chunks each, so it becomes ~1 850 first-class peers. Under the
+primary class the same ruling gives an item tens of peers rather than
+hundreds, which is the entry ruling working, not a weaker version of it.
+
+The passage count is not recomputed here: §5.2.9's 567 829 is measured over
+the corpus's total text, which segmentation does not change, and it already
+carries the one correction segmentation makes — entry boundaries add chunk
+closures, so the census errs low by that margin, and by less under chapters
+than under headwords since a chapter closes fewer chunks. What moves is
+*entry collapse*: fewer and larger entries mean
+fewer collapsed hits per item, and a chapter-sized entry answers with a
+coarser locator than a dictionary headword does.
+
+The synthetic fallback (ruling 2026-09-02). Below the confidence gate the
+fallback cuts at paragraph boundaries into synthetic entries of ~12k tokens,
+about twenty chunks or a short chapter, for every class, the dictionary
+included, each labeled synthetic. One constant rather than a per-class size,
+because the fallback fires on exactly the documents whose class the segmenter
+could not read. The dictionary's separate ~6k calibration is retired with it.
+
+The figure is an input assumption, labeled and unmeasured. No experiment
+measures it and none could: X5 samples accepted boundaries, and the fallback
+fires where there are none. Nothing downstream bounds an entry's size: chunks
+stop at entry boundaries, the embed work order packs its own token budget, and
+entry collapse yields one hit per entry whatever its length. So the constant
+is what sets a structureless document's share of the candidate pool, a
+100k-token book contributing at most eight entries, and a synthetic entry's
+honest promise is its label.
+
+**The PDF path.** For an attachment at or above a page threshold, the
+segmenter reaches for the PDF file itself, through the local API's file-view
+redirect, and hands it to a vendored `pdf.js` segmenter returning a title
+and a page range per entry, front and back matter included; no tier here
+carries who wrote an entry. Two tiers, in order: the embedded outline — the
+bookmark tree — which returns page targets directly and needs no fuzzy
+matching; absent that, a layout heuristic on `pdf.js`'s own positioned text,
+font size, weight and position per run,
+which does not depend on a language's capitalization convention and so is
+expected to generalize past English where seg/1's case-shape signal does not.
+There is no third, PDF-side fixed-size fallback: when both tiers come up
+empty, and whenever the PDF cannot be reached — a linked attachment whose
+target moved, a permission error, a file the local API cannot serve — control
+falls through to seg/1 above, which owns the confidence-gated synthetic
+entries. The length trigger is itself a fallback chain: Zotero's
+`indexedPages` or a literal page-break count first, a character-count
+estimate when neither is available, so the gate degrades to an estimate rather
+than never firing. The byline layer is separate work on top of whichever tier
+locates the boundary.
+
+The segmenter is the design's biggest unmeasured bet — the layout tier and
+seg/1 alike; experiment X5 measures both (§5.4, risk 1).
 
 #### 5.2.3 Discovery order: three priority classes, newest first inside each
 
@@ -2012,7 +2085,8 @@ quota arithmetic; the four returned privacy lines stay dead.
 #### 5.2.8 The instrument panel
 
 **The coverage sentence** (D1 denominator = items; metadata-only covered
-with reason; sections only ever the partial qualifier):
+with reason; sections only ever the partial qualifier). The partially
+embedded item in the example below is the dictionary, the rare case:
 
 > "All 7,541 items are record-searchable (titles, abstracts, keywords —
 > 100%, newest first). Body text: 5,561 of 6,100 items with attachments
@@ -2384,12 +2458,31 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against C3's pipeline rule, travels with the entries machinery (scoped issue
   B).
-- **Segmenter — X5 gates scoped issue B.** Run seg/1 over the real 44,9 MB
-  extraction; sample 50 cut points uniformly at random (seeded, recorded)
-  from accepted entry boundaries; hand-score them against the printed
-  dictionary. Rule: ≥ 45/50 correct ships the entry story; 40–44 raises the
-  confidence gate and re-runs; < 40 means synthetic entries carry the
-  corpus, labeled.
+- **Segmenter — X5 gates scoped issue B.** X5 measures the segmenter as
+  shipped, both paths, and its ground truth is held out of the thing it
+  scores. Corpus: the real library, one arm per document class — books and
+  proceedings, the primary class; the dictionary, the rare case; and the
+  signed encyclopedia, the edited handbook, the numbered technical report and
+  the thesis, the classes the acceptance test names. The reference classes —
+  dictionary, encyclopedia, handbook — are measured on their own because
+  retrieval from reference material matters at least as much as retrieval
+  from articles. Each arm samples 50 cut points uniformly
+  at random (seeded, recorded) from that arm's accepted entry boundaries.
+  Ground truth: where a document carries an embedded outline, the outline's
+  page targets. The segmenter runs with its outline tier disabled on such a
+  document, so the layout tier and seg/1 are what get scored; seg/1 keeps its
+  contents-list signal, because parsing the list is necessary but not
+  sufficient — the cut must land on the outline's page, and the scorer locates
+  a cut's page through `pdf.js` independently of the segmenter's own page
+  estimate. Where a document carries no outline — the scanned books, the
+  dictionary — a human scores the cut against the book. What is *not* ground
+  truth: the document's own printed table of contents, which seg/1 consumes, so
+  a score against it would certify parsing the list rather than finding the
+  boundaries. Rule, per arm: ≥ 45/50 correct ships the entry story for that
+  class; 40–44 raises the confidence gate and re-runs; < 40 means synthetic
+  entries carry that class, labeled. Verdicts are never pooled. The primary
+  class and the dictionary gate scoped issue B; the other four arms are
+  measured and reported, not gating.
 - **Cross-provider fidelity — X8 decides where the device lives.** Same model,
   same rung, the GPU provider's vectors scored against the CPU provider's over
   the fidelity probe corpus; the cells ride the 0264 GPU arm, at every rung
@@ -2437,13 +2530,16 @@ deletions, and the "contained" D3 PR as first proposed.
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
 it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
-arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
-seg/1 has never touched the real 44,9 MB extraction. Its failure mode is
+arithmetic all stand on the segmenter's error rate — the PDF path's layout
+tier and seg/1's flat-text heuristic alike — and neither has touched a real
+extraction of its primary class, books and proceedings. Its failure mode is
 *silent plausible-looking entries*: wrong citeable locators and wrong dedup
-units, worse than honest synthetic ones. *Falsifier:* X5, half a day,
-before scoped issue B claims numbers. Below acceptable precision the design
-degrades gracefully to labeled synthetic entries: the contract survives;
-the "1 850 peers" story does not.
+units, worse than honest synthetic ones. *Falsifier:* X5, scoring cuts against
+each document's embedded outline with the outline tier held out — mechanical
+where an outline exists, human where it does not — one arm per class, before
+scoped issue B claims numbers. Below acceptable
+precision the design degrades gracefully to labeled synthetic entries: the
+contract survives; the chapter-as-peer story does not.
 
 **Risk 2 — the version-0 freshness residue could be the whole story, not
 the residue.** On a never-synced library the census may be structurally
