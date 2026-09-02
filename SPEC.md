@@ -72,15 +72,9 @@ the entry points at the question rather than settling it.
 - **conductor** — the writer process: a process of its own rather than a role
   a query-serving server takes on, elected through a lease row, that is the
   sole writer of derived state and the segmenter, runs the reconcile tick, and
-  owns the single
-  pipeline worker, so the pipeline budget does not multiply with the number of
-  servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
+  owns the single pipeline worker, so the pipeline budget does not multiply
+  with the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
   (ruling: DECISIONS.md 2026-09-02).
-- **embedding service** — the one process on the machine that holds an
-  embedder, called by every server for queries and by the pipeline worker for
-  passages, so the model is resident once per generation rather than once per
-  process. Authoritative: SPEC.md §5.2.5, which owns its shape and its
-  degradation rule (ruling: DECISIONS.md 2026-09-02).
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
@@ -112,10 +106,12 @@ the entry points at the question rather than settling it.
 - **embedder entry** — one indivisible curated configuration whose complete
   vector-affecting fields produce its fingerprint. Authoritative:
   SPEC.md R31 and SPEC.md §5.2.5.
-- **embedding service** — the shareable local endpoint toward which the
-  transport-neutral query/passage interface can evolve; whether zoteus should
-  provide, bundle or merely consume one remains open. Authoritative: SPEC.md
-  §5.3.
+- **embedding service** — the one process on the machine that holds an
+  embedder, called by every server for queries and by the pipeline worker for
+  passages, so the model is resident once per generation rather than once per
+  process. Authoritative: SPEC.md §5.2.5, which owns its shape and its
+  degradation rule (ruling: DECISIONS.md 2026-09-02); which process hosts it
+  is open, and SPEC.md §5.3 owns that question.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
