@@ -1980,8 +1980,10 @@ conformance criterion in the registry's ship gate.
 
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
-2-gram twin tables (#6012's shipped geometry, and decisive on its own
-terms: the modal Chinese word is two characters, unrepresentable as an
+2-gram twin tables (shipped Zotero 10's geometry, not the draft PR's —
+`getCJKBigrams()` at `fulltext.js:2144`, build 20260817151751, C2's
+shipped-schema bullet — and decisive on its own terms: the modal Chinese
+word is two characters, unrepresentable as an
 exact trigram), backfilled from slabs for CJK-bearing passages only,
 query-routed, fused as a third list. SentencePiece quadratic-encode caution
 inherited: cap encode segments at ~1 000 chars.
