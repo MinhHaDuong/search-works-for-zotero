@@ -853,7 +853,7 @@ This constraint is sharpened on five points:
   **a ceiling, not a chunk size**. The source says so in as many words:
   "A ceiling rather than a target: chunks come out paragraph-sized, so this
   decides only how long a text has to be before it's split at all, and how
-far a single oversized paragraph is split." The
+  far a single oversized paragraph is split." The
   effective budget is a minimum against the live model, not the constant —
   `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
   count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
