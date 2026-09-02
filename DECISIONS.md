@@ -2883,7 +2883,135 @@ the cheap one. Root cause of the whole class, for whoever writes the next
 entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
+**2026-09-02 — the writer leaves the query process, the fetcher stays its own,
+and the model is loaded once on the machine.** Three boundaries ruled in one
+sitting, from a conversation that started at the MCP surface and ended at the
+topology. They are recorded as three entries because they are separable and
+their justifications share no premise.
+
+**A — the conductor is its own process.** The write role — the reconcile tick,
+seg/1, every durable write, worker supervision — leaves the query-serving
+server. A P0 becomes a reader that cannot write, so the write-free query path
+stops being a discipline and becomes a property of the binary. The writer keeps
+the shape the role already had: spawned on demand, singleton held by the lease
+row, run-to-drain, exiting on pause, dying with the last P0. It is not a
+daemon, and the OS-facility question stays closed.
+
+`verification/SOLE-WRITER-0507.md`'s F2 named this move and SPEC.md §5.2.5 and
+§5.2.8 pre-authorized it — "the pre-authorized fallback is a dedicated writer
+process, not a re-ruling" — conditioned on the conductor-latency soak clause
+failing R6. It is ruled here on two motives that clause does not cover, so the
+pre-authorization is not what carries it.
+
+- **Fault isolation.** Upstream's #37 is the only live item on `SYNC.md`'s
+  tracker: a full-text build takes the server process down partway through
+  under Claude Desktop, cause unknown by the maintainer's own account,
+  mitigated by a hard refusal of the full-text pass under Electron. Splitting
+  cures no cause nobody has; it demotes a build crash from a search outage to a
+  pipeline outage — queries keep answering, status reports the pipeline down.
+  That benefit needs no diagnosis, which is why it can be ruled while the cause
+  is open.
+- **Structural write-freedom**, the conversion this repo has already valued
+  once in F5's terms: an instruction becomes a verified property.
+
+The soak's conductor-latency clause is demoted from trigger to confirmation.
+That is also the only order the work admits: the clause needs a built
+conductor, and ticket 0566 — which assembles tick, election, extract and
+chunk/embed into one runnable process — is where the boundary gets written in
+code. Ruling after the soak would mean building the fused form in order to take
+it apart.
+
+One clause deletes rather than moves: §5.2.5's fairness rule *inside* the
+conductor — the write loop stating the activity file and idling while it is
+fresh — existed only because one process both served and wrote. It collapses
+back onto the cross-process case, which already existed. One cost returns: the
+third process F2 priced. The lease survives in a simpler form, electing among
+writer candidates rather than among servers.
+
+**B — the pipeline worker stays a separate process, and its justification
+moves.** The boundary was defensible while the worker held the passage
+embedder; under C it no longer is, and it is ruled kept on what remains. F5's
+incremental decode of the 44,9 MB attachment is the design's other memory risk
+and it lives in the fetch path; fetch failure — the dropped connection, the
+truncated response, ticket 0569's family — is what a crash boundary is for. The
+2026-08-26 budget line, the embed worker killable and restartable at any time
+with zero index damage, survives in substance and is restated on the fetcher.
+
+**C — one copy of the model on the machine, per embedder generation.** This
+reverses the 2026-08-31 ruling recorded in `verification/SOLE-WRITER-0507.md`
+("it does not re-open the query embedder's location: in-process, per the
+author"). The reversal, not a gap, is what this entry records.
+
+The count today is not two but N+1: every P0 loads the query embedder
+in-process on first semantic use and the pipeline worker loads the same model
+for passages, so two MCP clients and a running build hold three resident
+copies. The seam moves out of process — `provider: local_endpoint`, which
+§5.2.5 already admits — as one shared singleton, spawned on demand and
+idle-exiting, the shape ruled for the writer in A and chosen for the same
+reason. No OS service, no supervisor, nothing outside the data directory, and
+no change to the fast-install path: those are R15's uninstall clause and ticket
+0491's first exit criterion, and both are kept rather than traded.
+
+"One copy" means one per embedder generation, not one object ever. §5.2.7
+admits two coexisting generations across a model switch and the service holds
+them under the same idle-eviction rule — which makes dual-embed cheaper than
+the in-process arrangement, where every P0 would pay for both.
+
+X8 is not in the way: its rule arbitrates the *device* in the embedder key, and
+a local endpoint on the same runtime and rung is neutral for vector identity.
+What is in the way is packaging and custody, which is 0491's subject.
+
+**The degradation rule, ruled with C because C is incomplete without it.** The
+query path now depends on a process it does not own. An embedding service that
+is unavailable or still loading degrades to labeled keyword-only — never
+silently, and never to an API embedder. Both halves already exist: R10's rule
+that a missing local runtime yields keyword-only and never an API embedder, and
+§5.2.6's labeled keyword-anchored fusion under memory pressure. R31's handshake
+is unchanged and was already specified to cross a process boundary.
+
+**What these rulings do not decide.** Which of ticket 0491's five candidates
+owns the service: the spawned child ruled here is its shape, not its
+provenance, and ticket 0496's probe of Zotero #6012's inference runtime remains
+the route that adds no process at all. Whether F1 survives: the pipeline
+ceiling's collision with the multilingual candidates came from the worker
+holding the model, so it may dissolve rather than be ruled, and that is a
+re-check rather than a claim. And the budget arithmetic itself — §5.2.9's
+figures are re-derived under the new process classes, not adjusted here.
+
+
 ## Awaiting ratification
+
+- **Which index and extraction actions `zotero_index` should carry, and whether
+  the chain's verb grammar still matches upstream's (raised 2026-09-02, the
+  conversation that produced that day's topology rulings).** Upstream already
+  dispatches `zotero_index` by action — `action:"status"` and `action:"build"`
+  are attested (`verification/SMOKE-1.10.0.md`, `UPSTREAM-1.12.0-REREAD.md`,
+  `SYNC.md` #39) — while SPEC.md §5.2.7 and §5.1 speak of verbs (`build`,
+  `pause`, `sync`, `purge`). Whether those are the same surface at v1.12.0 is
+  unverified here, and the shipped action list has not been enumerated.
+
+  What the topology rulings settle in advance: a P0 cannot enqueue work, so a
+  management action received by a server writes an *intent* row that the writer
+  drains, and the sole-writer rule needs no exception. What they do not settle
+  is the action set. The candidates are `status | start | stop | reextract |
+  unquarantine`, and three constraints bear on them. Surface economy: the
+  server already advertises 31 tools, and `zotero-mcp`'s own release notes make
+  a 62 → 37 tool reduction a headline (`verification/FIELD-REVIEW.md`), so an
+  action costs nothing where a top-level tool costs every client every turn.
+  R22: two switches lose the machine the user was trying to quiet, so `pause`
+  and any `stop` action must be one state, whatever the façades. And the
+  operator is a model rather than a person typing — `reextract` is the
+  expensive verb (a whole-document GET, the 44,9 MB case), which argues for
+  reads free, mutations per item, and never in bulk; `unquarantine` in bulk
+  would reopen exactly the mass-replay hole the quarantine auto-clear amendment
+  closed (§5.1).
+
+  Two of the actions are not new features but existing holes: §5.2.8 already
+  declares work counters for triggers no verb produces (`re-extract`, `retry`),
+  and manual repair is option (iii) of the failed-work-order question below
+  (ticket 0569) — which has no verb today. So this entry and 0569 should be
+  ruled together, since option (i) there, stamping the census on completion,
+  would make `reextract` a convenience rather than a repair.
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
   0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The

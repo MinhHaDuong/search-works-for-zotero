@@ -2,7 +2,7 @@
 
 - **Status:** DRAFT
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-01
+- **Date:** 2026-09-02
 
 ## 1. Introduction
 
@@ -69,11 +69,17 @@ the entry points at the question rather than settling it.
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: SPEC.md §5.2.4.
-- **conductor** — the one query-serving server, elected through a lease row,
-  that is the sole writer and the segmenter, runs the reconcile tick, and owns
-  the single background worker, so the pipeline budget does not multiply with
-  the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the
-  lease timing.
+- **conductor** — the writer process: a process of its own rather than a role
+  a query-serving server takes on, elected through a lease row, that is the
+  sole writer and the segmenter, runs the reconcile tick, and owns the single
+  pipeline worker, so the pipeline budget does not multiply with the number of
+  servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
+  (ruling: DECISIONS.md 2026-09-02).
+- **embedding service** — the one process on the machine that holds an
+  embedder, called by every server for queries and by the pipeline worker for
+  passages, so the model is resident once per generation rather than once per
+  process. Authoritative: SPEC.md §5.2.5, which owns its shape and its
+  degradation rule (ruling: DECISIONS.md 2026-09-02).
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
@@ -1448,12 +1454,21 @@ keys byte for byte.
 `embed_query(text, entry)` and `embed_passages(batch, entry)` return vectors
 with a handshake naming the requested and actual fingerprints, dimension,
 runtime, execution provider and local-validation result. The client rejects a
-mismatch before reading or writing a vector. The first implementation and the
-installation default remain in-process. The interface admits a later local IPC
-adapter without making a daemon, supervisor or OS facility part of the registry
-contract or a prerequisite for curated entries. Conceptually the execution
-choice is `provider: in_process` now or `provider: local_endpoint` later; it
-does not alter the selected entry. The actual execution provider contributes to
+mismatch before reading or writing a vector. The model is resident once on the
+machine, per generation: a single **embedding service** answers every server's
+queries and the pipeline worker's passages, so `provider: local_endpoint` is
+the installation default rather than a later option. The count it replaces was
+never two — a P0 loaded the query embedder on first semantic use and the worker
+loaded the same model for passages, so two clients and a running build held
+three copies. The service takes the writer's own shape below — spawned on
+demand, singleton, idle-exiting, inside the data directory — so no daemon,
+supervisor or OS facility enters the registry contract, becomes a prerequisite
+for curated entries, or changes the fast-install path. The execution choice
+does not alter the selected entry. **Degradation is labeled, never silent**: a
+service unavailable or still loading yields keyword-only search, exactly as a
+missing local runtime does under R10, and never an API embedder. Two
+generations may be resident across a model switch (§5.2.7); the service holds
+both under one idle-eviction rule instead of each process holding its own. The actual execution provider contributes to
 the vector fingerprint only when §5.3's X8 rule says its vectors are not
 interchangeable. Endpoint syntax and discovery stay out of the registry —
 open, no owner yet.
@@ -1465,14 +1480,19 @@ passage embedding with the same fingerprint handshake is open. Sharing Zotero's 
 embedding database or depending on private in-process symbols is not that bridge.
 
 **Process topology** (sole-writer form; the proposal and
-its review are `verification/SOLE-WRITER-0507.md`). Three process roles appear
-below: P0, a query-serving zoteus server; the *conductor*, the one P0 elected
-to write; and one *pipeline worker*, which fetches and embeds and writes
-nothing.
+its review are `verification/SOLE-WRITER-0507.md`, whose F2 named the
+separation this section now states). Four process roles appear below: P0, a
+query-serving zoteus server; the *conductor*, the writer; one *pipeline
+worker*, which fetches, drives the embedding service, and writes nothing; and
+the *embedding service* above.
+Only the conductor writes, and it is the only role that ever did.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
-default data directory (verified). Every P0 answers queries, as a WAL reader
-on a write-free query path. Exactly one P0 is the *conductor*, elected through
+default data directory (verified). Every P0 answers queries, as a WAL reader on
+a query path that is write-free **because the process cannot write** — the
+write role is not compiled into it — rather than by discipline. The conductor
+is a process of its own, not a P0 wearing a second hat, and it is spawned on
+demand by whichever server finds the lease unheld, holds it through
 a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
@@ -1505,8 +1525,10 @@ slab, entry and passage rows as entries close. Peak memory is one window plus
 the segmenter's own state, which is the streaming property C3 already
 asserts. **The conductor never materializes a whole document**: the local API
 answers with the text inside one JSON object, and the convenient read puts a
-44,9 MB attachment inside the process that holds the query embedder and
-answers queries — §5.2.9's arithmetic says that does not fit. The fetch is
+44,9 MB attachment whole inside the one process that may write — §5.2.9's
+arithmetic says that does not fit, and it does not fit any better now that the
+writer no longer also answers queries, because the ceiling is per process and
+the document is the term that grows. The fetch is
 therefore the worker's, §5.2.4 states the same clause as the tick's
 prohibition, and §5.2.8's transport clause on the RSS gate is its instrument.
 
@@ -1596,8 +1618,8 @@ parent-uuid` on its own timer between micro-batches, exiting on mismatch —
 the worker-side check of the three-worker design kept, not moved, since a
 SIGSTOP'd or thrashing conductor closes no pipe and runs no cleanup, and
 only a check scheduled in the worker's own process fires then. The
-conductor-side half is the complement: a P0 that observes it no longer holds
-the lease kills its worker before anything else, because an orphaned worker,
+conductor-side half is the complement: a writer that observes it no longer
+holds the lease kills its worker before anything else, because an orphaned worker,
 though harmless to a store it never opens, pins the WAL as a long-lived
 reader while the new conductor spawns its own. Both together enforce the
 one-worker bound; either alone has a hole. Lease renewal stays on a timer
@@ -1629,15 +1651,16 @@ conductor computes too. The strict letter has no implementation on a
 single-file SQLite substrate, and the design says so rather than implying
 otherwise.
 
-Foreground beats background across processes, and now inside the conductor
-too: each P0 touches `<dataDir>/activity` on query arrival (a filesystem
-operation, so the query path stays write-free even in the database sense).
-The worker stats that file between micro-batches and idles 2 s while it is
-fresh — and so does the conductor's own write loop, since the process serving
-queries is now also the process draining the stream; the fsync is off-thread,
-the serialization of a long run of records is not. If §5.2.8's
-conductor-latency soak clause fails R6's budget, the pre-authorized fallback is a dedicated small writer process, not a
-re-ruling. The conductor's stdio pipes remain the low-latency fast path;
+Foreground beats background across processes, which is the only place it now
+has to hold: each P0 touches `<dataDir>/activity` on query arrival (a
+filesystem operation, so the query path stays write-free even in the database
+sense), and both the worker and the conductor's write loop stat that file
+between micro-batches and idle 2 s while it is fresh. The clause that had to
+run *inside* the conductor is gone with the process that carried it — it
+existed because one process both served and drained, and no process does both
+now. §5.2.8's conductor-latency soak clause survives it, as a confirmation on a
+writer that no longer answers queries rather than as the trigger for splitting
+one that did. The conductor's stdio pipes remain the low-latency fast path;
 `nice 19` remains the OS floor — minimum CPU priority, portable through the
 runtime's cross-platform call — joined, where the platform exposes one, by a
 background I/O class (idle I/O on Linux, the background policy on macOS,
@@ -1838,9 +1861,12 @@ model is lazy-loaded only while old-generation rows are in the pool, and
 evicted after ~60 s idle. Under memory pressure, queries fall back to
 labeled keyword-anchored fusion. Two resident models (~240 MB + 70 +
 32–64) would bust the ratified ceiling for a days-long window, so
-lazy-loading keeps the budget honest at the price of a disclosed cold-load
-spike. At most two generations coexist; worst-case storage is 2× the
-sidecar, disclosed.
+lazy-loading keeps the budget honest — and it is now paid once for the
+machine rather than once per process, since both generations are resident in
+the one embedding service (§5.2.5). The cold-load spike this rule discloses
+is correspondingly a spike the machine takes once, not one every server takes
+on its own first semantic query. At most two generations coexist; worst-case
+storage is 2× the sidecar, disclosed.
 The *small PR* version of D3 is narrower: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is
 keep-vectors plus pinning the query-side embedder to the stored id until a
@@ -1978,11 +2004,17 @@ the two outcomes apart.
   **The transport clause**, same gate: resident memory across a fetch of the
   library's largest attachment, measured on both processes of the fetch path
   — the worker across the streamed fetch and its incremental decode, and the
-  conductor, the process that has already loaded the query embedder, across
+  conductor, the one process that may write, across
   the same ingest — because the clause it instruments is that no process on
   the path ever holds the document whole (§5.2.5's no-materialize clause,
   otherwise an instruction rather than a verified property; finding F5,
-  `verification/SOLE-WRITER-0507.md`).
+  `verification/SOLE-WRITER-0507.md`). The two thresholds above name process
+  roles that the 2026-09-02 topology re-cut, and the model they were priced
+  against is now resident in neither of them: what each role's ceiling becomes
+  is §5.2.9's to re-derive, and this gate asserts whatever that section says
+  for all four roles rather than carrying its own copy. The embedding service
+  is the class the gate did not have, and it is the only one that holds a
+  model.
 Every gate below is decided at one of two levels, and the relation between them
 is calibration rather than coverage. The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
@@ -2030,9 +2062,17 @@ is the pattern, and it binds every surrogate here, not only that one.
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 embed batch plus one in-flight document's
   re-fetch and re-segmentation per failover. **The conductor-latency
-  clause**, the sole-writer form's acceptance gate: query p95 measured on the conductor itself while it drains,
-  against §5.2.9's warm-query band — on a failure the pre-authorized fallback
-  is a dedicated writer process, not a re-ruling.
+  clause** is now a confirmation rather than an acceptance gate: query p95
+  measured on a P0 while the conductor drains beside it, against §5.2.9's
+  warm-query band. What it used to gate — whether the writer needed a process
+  of its own — was ruled on other evidence (DECISIONS.md 2026-09-02), and the
+  clause could not have gated it in any case, since it needs a built conductor
+  and the boundary is written before one exists. It keeps its subject: the
+  writer and the queries are on separate processes and this measures that the
+  separation delivers, against a machine whose cores they still share.
+  **The service clause**, added with that topology: the same p95 while the
+  embedding service is cold, so the degradation §5.2.5 states — labeled
+  keyword-only, never a silent wait — is measured rather than asserted.
 - **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32, so this gate no longer
@@ -2108,8 +2148,11 @@ is the pattern, and it binds every surrogate here, not only that one.
   failure of the promise; it is outside the disclosure, and the gate reports
   the machine it ran on so a reader can tell which case they are looking at.
 
-**R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
-instead of silently duplicating work.
+**R13 observability**: a server reports the pipeline's state as it reads it
+from the file rather than as something it is doing, since 2026-09-02 no
+server ever runs the pipeline. `pipeline: "held-by-other"` keeps its meaning
+for the one process that can hold it and does not: a writer that has lost the
+lease says so instead of silently duplicating work.
 
 #### 5.2.9 Budgets, recomputed and honestly scoped
 
@@ -2133,23 +2176,34 @@ v1's 2.3 GB, because passage text is no longer stored twice (passages are
 references into slabs) and the chunks are fewer. The float32 fallback adds
 ~0.87 GB.
 
-**RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
-≈ 570–660 MB of multilingual query model at its 8-bit rung on first
-semantic use ≈ ~670–760 MB (the measured range across candidates;
-the ceiling is C3's). At drain-complete steady state only P0s remain,
-so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
-incorrectly kept a pipeline worker resident. The one pipeline worker adds
-transient residency only: run-to-drain, at most one, its peak the model plus
-one token-budget batch (§5.2.5's dial), under C3's re-pinned pipeline ceiling —
-priced by the same measured candidate range quoted above, without the
-server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
-range's top, inside the ceiling. One term of that
-arithmetic is honestly unmeasured: the residency of a live batch — every
-sweep on disk priced batch size in latency, not RSS — so the ceiling's
-sufficiency for the heaviest candidates is a claim §5.2.8's RSS gate and
-a further sweep verify, not one this subtraction establishes; that sweep
-records RSS with a real batch in flight, not at rest. Segmentation adds one text
-window plus segmenter state to the conductor, inside the server ceiling. The
+**RAM**, by process class rather than by server, since 2026-09-02 the model
+is resident once for the machine (§5.2.5). A P0 idles at ≈ 70 MB (Node) +
+32 MB (cache) ≈ ~100 MB **and holds no model**: the ≈ 570–660 MB of
+multilingual query model at its 8-bit rung (the measured range across
+candidates) is the embedding service's, paid once per generation on first
+semantic use wherever it comes from. The conductor adds a Node process plus one
+text window and the segmenter's own state; the pipeline worker adds transient
+residency only — run-to-drain, at most one, its peak now one token-budget batch
+and the streamed decode rather than a model plus a batch (§5.2.5's dial).
+
+The aggregate this replaces was ≈ 2×700 ≈ ~1,4 GB at two clients, which
+assumed each server carried its own copy. Two clients now cost ≈ 2×100 plus one
+service ≈ ~770–860 MB across the range, and the model term stops scaling with
+the number of clients altogether — the single largest change this topology
+makes to C3's exposure.
+
+Three ceilings are left needing a re-pin rather than re-pinned here, because a
+ceiling is a ratified number and the arithmetic above is only a derivation. The
+server ceiling was priced on a process that loaded the query model and no longer
+does. The pipeline ceiling was priced on a worker that loaded the passage model
+and no longer does — which is also why finding F1's collision between that
+ceiling and the multilingual candidates may dissolve rather than be ruled, a
+re-check and not yet a claim. And the embedding service has no ceiling at all,
+being a class C3 did not have. One term stays honestly unmeasured through all
+of it: the residency of a live batch — every sweep on disk priced batch size in
+latency, not RSS — so what the heaviest candidates actually cost is a claim
+§5.2.8's RSS gate and a further sweep verify, that sweep recording RSS with a
+real batch in flight rather than at rest. The
 sole-writer topology confines the long-document RSS risk to the worker's
 streaming fetch; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
@@ -2374,6 +2428,18 @@ with, or whether another account on a shared machine can read it. C3
 (`SPEC.md`) treats the machine as the user's; it does not say the
 file is unreadable by anyone else with an account on it.
 
+**The processes on the machine, and what passes between them.** Four classes
+since 2026-09-02 (§5.2.5): N query-serving servers, one writer, one pipeline
+worker, one embedding service. Three of them are new as a surface, because a
+role that used to live inside a server now answers another process. Query text
+reaches the embedding service on every semantic query and passage text reaches
+it on every batch; work orders and intent pass between the servers and the
+writer through the database file. What none of this states yet: the transport
+each hop uses, whether it is reachable by anything but the processes the design
+names, and what authenticates a caller. The stdio pipe between the conductor
+and its worker is the one hop the design does name. This is silence about a
+surface that did not exist before the topology changed, reported as silence.
+
 **Query and status tools.** These are MCP tools. The only transport the design
 names is a stdio pipe between the conductor and its worker, with one zoteus per
 MCP client (`SPEC.md` §5.2.5). No line here says zoteus opens a
@@ -2447,8 +2513,9 @@ sets are the author's own research questions.
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
+| Inter-process transport and authorization | Not stated beyond the conductor/worker stdio pipe; new with the 2026-09-02 topology (§5.2.5) |
 
-Four of the eight rows read "none yet". That is the honest state of the design,
+Four of the nine rows state an absence rather than an answer. That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
 defect to fix here.
 
