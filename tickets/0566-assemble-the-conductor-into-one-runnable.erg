@@ -4,7 +4,6 @@ Created: 2026-09-01
 Author: MinhHaDuong
 Blocked-by: 0565
 Blocked-by: 0554
-Blocked-by: 0568
 
 --- log ---
 2026-09-01T14:11Z MinhHaDuong created
@@ -12,6 +11,7 @@ Blocked-by: 0568
 2026-09-01T16:55Z claude note THE ASSEMBLY HAS NO TREE TO ASSEMBLE IN, and this ticket's "Relevant files" assumed otherwise ("everything tranches 1-3, 0556, and 0565 built" reads as one checkout). `tranche-3-extract-shim` and `tranche-schema-v2-content` are divergent siblings off `tranche-2-conductor-election` and conflict in `ledger.ts` — trial merge run, see 0568, which now owns forming one tree and is a Blocked-by here. Two further shape findings from reading the branches, neither acted on: (i) Action 2's multi-process election gap is real and unchanged — tranche 2's soak used separate SQLite connections in one process, confirmed in its own PR review; (ii) `tranche-schema-v2-content` already opens `search-index-v2.sqlite` from server startup behind an opt-in config flag (`store.ts`, `server.ts`, `config.ts` on that branch), so Action 1's "real process entry point that opens the v2 file" is PARTLY BUILT — read it before writing a second one.
 2026-09-01T14:12Z claude note filed alongside 0565, same origin: none of tickets 0551-0556 (nor 0565) wire tick + conductor + extract + chunk/embed into one actually running process against a real or replayed local API. Each tranche is built and tested as an isolated module against fixtures -- this ticket is the assembly, and the acceptance bar the author asked for directly: "can I point to a fixture library and index?" Blocked-by 0554 (chunk/embed) and 0565 (segmentation integration) as the last modules a real run needs data flowing through. Open question, not decided here: whether this can run meaningfully before 0555 (interleave/bands) lands -- SPEC's own text says FIFO-per-class is "correct, just less fresh" without the interleave, so a minimal assembly may not need to wait; the tracker (0550) treats "integration review" as gated on all five children closing, which is a stronger bar than this ticket strictly needs. Left un-Blocked-by 0555 deliberately; resolve at execution time whether an early run without freshness arbitration is worth doing, or whether to wait.
 
+2026-09-01T19:31Z claude note blocker 0568 closed — Blocked-by removed.
 --- body ---
 ## Context
 
