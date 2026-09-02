@@ -7,6 +7,7 @@ Author: claude
 2026-09-02T10:41Z claude created
 
 2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: second of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. SPEC.md §5.2.9 says the service has no ceiling at all and that live-batch residency is unmeasured -- this probe's cell 4 is both gaps at once
+2026-09-02T19:52Z four cells measured on doudou, the reference machine, five fresh processes per cell; artifact bench/results/0577-service-ceiling/service-ceiling-rss.json. Cell 4 is 1002,5 MB against C3's ~750, so the decision rule's second branch fires and the remedy goes to DECISIONS.md as the author's. GPU second configuration NOT RUN: padme's two GPUs fully held by a resident llama-server that must not be stopped
 --- body ---
 
 ## Context
