@@ -1,0 +1,138 @@
+{
+ "probe": "ticket 0013 — hand-rolled BM25 arm, second opinion on the FTS5 bm25() result",
+ "db": "/home/haduong/data/projets/zoteus-bench/x2-rebuild/search-index.sqlite",
+ "db_schema": "tables: items, meta, passages, passages_fts (virtual); passages columns: pid, id, item_key, title, text, source, vector",
+ "excluded_item": "DH8EXSVA",
+ "excluded_is_dominant": true,
+ "dominant_item": {
+  "item": "DH8EXSVA",
+  "passages": 42963
+ },
+ "redaction": "Documents are addressed by Zotero item key and never by title or filename (ruling of 2026-08-31, DECISIONS.md; guard: bench/check_names.py).",
+ "passages_total": 477512,
+ "passages_without_excluded": 434549,
+ "topk": 10,
+ "note": "BM25 is re-implemented here (k1=1.5, b=0.75) over passage text; `index_concentration.mjs` asks the same question through FTS5's own bm25(). Where the two disagree, FTS5 is the authority — it is the ranker the shipped code calls.",
+ "rows": [
+  {
+   "query": "walras general equilibrium",
+   "with_dominant": [
+    "DH8EXSVA",
+    "IYKSXMNP",
+    "6ZMCCBGX",
+    "KPTPHQPQ",
+    "MZJAJB5J",
+    "NKSK3SIQ",
+    "5UIJPSWI",
+    "GS6DK2JI",
+    "9KSMUGKB",
+    "W76SZBBE"
+   ],
+   "without_dominant": [
+    "IYKSXMNP",
+    "KPTPHQPQ",
+    "MZJAJB5J",
+    "6ZMCCBGX",
+    "GS6DK2JI",
+    "9KSMUGKB",
+    "NKSK3SIQ",
+    "5UIJPSWI",
+    "W76SZBBE",
+    "MH5LYWYA"
+   ],
+   "overlap": 9,
+   "same_position": 0,
+   "top1_changed": true
+  },
+  {
+   "query": "keynes uncertainty expectations",
+   "with_dominant": [
+    "DH8EXSVA",
+    "N2WEKU9J",
+    "MGBRBJAG",
+    "X2T4QRRG",
+    "4C8VG4FG",
+    "A3JFQEZR",
+    "2YVA7H64",
+    "IYKSXMNP",
+    "H62JUFP8",
+    "XB3EA7TI"
+   ],
+   "without_dominant": [
+    "N2WEKU9J",
+    "MGBRBJAG",
+    "X2T4QRRG",
+    "4C8VG4FG",
+    "IYKSXMNP",
+    "2YVA7H64",
+    "XB3EA7TI",
+    "H62JUFP8",
+    "PZEDXWDI",
+    "A3JFQEZR"
+   ],
+   "overlap": 9,
+   "same_position": 0,
+   "top1_changed": true
+  },
+  {
+   "query": "carbon tax revenue recycling",
+   "with_dominant": [
+    "YRHZ3P7L",
+    "LG368KPB",
+    "CJVEWKK3",
+    "DS9KVEAS",
+    "X69DJS66",
+    "Y78332XM",
+    "KED4GGTJ",
+    "2HAHT8FF",
+    "CVNWEYLU",
+    "CPZCLJBE"
+   ],
+   "without_dominant": [
+    "YRHZ3P7L",
+    "LG368KPB",
+    "CJVEWKK3",
+    "DS9KVEAS",
+    "X69DJS66",
+    "Y78332XM",
+    "KED4GGTJ",
+    "2HAHT8FF",
+    "CVNWEYLU",
+    "CPZCLJBE"
+   ],
+   "overlap": 10,
+   "same_position": 10,
+   "top1_changed": false
+  },
+  {
+   "query": "cournot duopoly competition",
+   "with_dominant": [
+    "DH8EXSVA",
+    "GTIGCIFF",
+    "CSK9WJEW",
+    "KPTPHQPQ",
+    "AZ7E6VA2",
+    "3XAI3VFE",
+    "4S4LT3MI",
+    "3M4874C9",
+    "P36FM7EJ",
+    "4DQGPIBI"
+   ],
+   "without_dominant": [
+    "GTIGCIFF",
+    "CSK9WJEW",
+    "KPTPHQPQ",
+    "AZ7E6VA2",
+    "3XAI3VFE",
+    "4S4LT3MI",
+    "3M4874C9",
+    "P36FM7EJ",
+    "4DQGPIBI",
+    "M8T2GBWF"
+   ],
+   "overlap": 9,
+   "same_position": 0,
+   "top1_changed": true
+  }
+ ]
+}

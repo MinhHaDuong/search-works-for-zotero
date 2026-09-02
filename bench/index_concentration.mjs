@@ -15,9 +15,16 @@
 //      hypothesis is general.
 //
 // Read-only with respect to the real index: the deletion happens in a copy.
+//
+// Repaired for ticket 0100 (2026-09-02). Every query below used to name `passages` as the
+// FTS5 table and read its metadata from `passage_meta`; upstream now stores the metadata
+// in `passages` itself and keeps the FTS5 index in `passages_fts` beside it. The driver
+// asserts that shape before its first query rather than discovering it at the third —
+// see `bench/index_schema.mjs` for why the assertion reports what it found.
 import { DatabaseSync } from 'node:sqlite';
-import { copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs';
+import { constants as fsConstants, copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { assertIndexSchema, describeIndexSchema } from './index_schema.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -61,9 +68,9 @@ function rank(db, query, topK) {
   const match = terms.map((t) => `"${t}"`).join(' OR ');
   const rows = db
     .prepare(
-      `SELECT m.item AS item, bm25(passages) AS score
-         FROM passages JOIN passage_meta m ON m.rowid = passages.rowid
-        WHERE passages MATCH ? ORDER BY score ASC LIMIT ?`,
+      `SELECT p.item_key AS item, bm25(passages_fts) AS score
+         FROM passages_fts JOIN passages p ON p.pid = passages_fts.rowid
+        WHERE passages_fts MATCH ? ORDER BY score ASC LIMIT ?`,
     )
     .all(match, topK * 40);
   const seen = [];
@@ -113,11 +120,19 @@ function compare(a, b, dominantKey) {
 }
 
 const db = new DatabaseSync(opt.db, { readOnly: true });
+// Before anything is counted. `SELECT count(*) FROM passages` answers in both schema
+// generations and means something different in each, so an unasserted run against a
+// pre-rename index would not error — it would report.
+const schema = assertIndexSchema(db, opt.db);
 
 // ---- concentration ---------------------------------------------------------------
-const total = db.prepare('SELECT count(*) AS n FROM passage_meta').get().n;
+const total = db.prepare('SELECT count(*) AS n FROM passages').get().n;
+// Key, never title. The committed artifact of this very driver had to be redacted by hand
+// on 2026-08-31 when the naming ruling landed (`bench/check_names.py` is the guard); a
+// driver that keeps emitting names re-creates the offence on the next run, and the guard
+// only reads what is already committed. So the name never enters the artifact at all.
 const top = db
-  .prepare('SELECT item, min(title) AS title, count(*) AS passages FROM passage_meta GROUP BY item ORDER BY passages DESC LIMIT ?')
+  .prepare('SELECT item_key AS item, count(*) AS passages FROM passages GROUP BY item_key ORDER BY passages DESC LIMIT ?')
   .all(TOP);
 const dominant = top[0];
 const share = +(dominant.passages / total).toFixed(4);
@@ -125,7 +140,10 @@ const share = +(dominant.passages / total).toFixed(4);
 // ---- a copy, where every write below happens; the real index is only ever read ------
 const copyPath = `${opt.output}.without-dominant.sqlite`;
 for (const f of [copyPath, `${copyPath}-wal`, `${copyPath}-shm`]) if (existsSync(f)) rmSync(f);
-copyFileSync(opt.db, copyPath);
+// FICLONE where the filesystem offers it (the index is ~1 GB and `/home/haduong/data` is
+// btrfs), silently falling back to a byte copy elsewhere. This is a footprint choice, not
+// a semantic one: the copy is independent either way, since a reflink is copy-on-write.
+copyFileSync(opt.db, copyPath, fsConstants.COPYFILE_FICLONE);
 const db2 = new DatabaseSync(copyPath);
 db2.exec('PRAGMA journal_mode = DELETE');
 
@@ -135,7 +153,11 @@ db2.exec('PRAGMA journal_mode = DELETE');
 // and `fts5vocab` is a table that has to be created somewhere; the copy is byte-identical
 // at this point, so the "before" figures are the real index's.
 const vocabTable = 'bench_vocab';
-db2.exec(`CREATE VIRTUAL TABLE IF NOT EXISTS ${vocabTable} USING fts5vocab(passages, row)`);
+// Two arguments, not three: the three-argument form (`main, passages_fts, 'row'`) is what
+// upstream writes because it creates its vocab table in `temp`, and the schema name is
+// only accepted when the vocab table lives outside the schema it reads. Created here in
+// `main`, the same call is a "wrong number of vtable arguments" error.
+db2.exec(`CREATE VIRTUAL TABLE IF NOT EXISTS ${vocabTable} USING fts5vocab(passages_fts, 'row')`);
 const dfOf = db2.prepare(`SELECT doc FROM ${vocabTable} WHERE term = ?`);
 const idf = (df) => Math.log(1 + (total - df + 0.5) / (df + 0.5));
 
@@ -157,16 +179,25 @@ const pool = db2
   .map((r) => r.term);
 
 // ---- now remove the dominant item from the copy ------------------------------------
-const rowids = db2.prepare('SELECT rowid FROM passage_meta WHERE item = ?').all(dominant.item).map((r) => r.rowid);
+// `passages_fts` is an external-content FTS5 table over `passages`, so removing a row is
+// two statements in a fixed order, and the order is load-bearing. The FTS5 'delete'
+// command needs the row's OLD text to unwind the posting lists; deleting the content row
+// first would leave the index holding postings that point at nothing, and the df figures
+// below — the whole point of the regime — would not move. This mirrors `deleteFts` in
+// upstream's `sqlite-index.ts` rather than inventing a second way to do it.
+const doomed = db2.prepare('SELECT pid, text FROM passages WHERE item_key = ?').all(dominant.item);
 db2.exec('BEGIN');
-const delBody = db2.prepare('DELETE FROM passages WHERE rowid = ?');
-const delMeta = db2.prepare('DELETE FROM passage_meta WHERE rowid = ?');
-for (const rid of rowids) {
-  delBody.run(rid);
-  delMeta.run(rid);
+const delFts = db2.prepare("INSERT INTO passages_fts(passages_fts, rowid, text) VALUES('delete', ?, ?)");
+const delRow = db2.prepare('DELETE FROM passages WHERE pid = ?');
+for (const row of doomed) {
+  delFts.run(row.pid, row.text);
+  delRow.run(row.pid);
 }
 db2.exec('COMMIT');
-const total2 = db2.prepare('SELECT count(*) AS n FROM passage_meta').get().n;
+const total2 = db2.prepare('SELECT count(*) AS n FROM passages').get().n;
+if (total2 !== total - doomed.length) {
+  throw new Error(`deletion did not land: ${total} - ${doomed.length} != ${total2}`);
+}
 
 // df AFTER removal, to show the ranker really did re-weight rather than the copy being inert.
 const dfOf2 = db2.prepare(`SELECT doc FROM ${vocabTable} WHERE term = ?`);
@@ -222,6 +253,14 @@ function run(queries, label) {
 const out = {
   probe: 'ticket 0013 — index concentration and its effect on ranking, through FTS5 bm25()',
   db: opt.db,
+  // What the numbers were measured against. A figure whose substrate is not recorded
+  // cannot be compared with the next one: that is exactly how the pre-rename artifact
+  // became unrefutable rather than merely old (ticket 0100).
+  db_schema: describeIndexSchema(schema),
+  redaction:
+    'Documents are addressed by Zotero item key and never by title or filename ' +
+    '(ruling of 2026-08-31, DECISIONS.md; guard: bench/check_names.py). This driver no ' +
+    'longer reads a title, so no redaction pass is needed on its output.',
   passages_total: total,
   top_items_by_passages: top,
   dominant_item: { ...dominant, share_of_index: share },
