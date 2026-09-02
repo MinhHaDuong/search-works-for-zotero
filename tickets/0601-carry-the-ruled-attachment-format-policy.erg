@@ -60,14 +60,12 @@ implements whatever it returns.
 
 ## Invariants
 
-Inherited from tracker 0593 and not restated there:
+See tracker 0593 §Invariants — inherited unchanged.
 
-- Metadata coverage never depends on body-format support.
-- Unsupported is a terminal, reported state: not a failure, and not an indexed
-  one.
-- No converter joins the default path by implication.
-- The policy is MIME/capability based, not an extension allow-list, so nothing
-  implemented here may dispatch on a filename.
+Child-specific consequence, which is this ticket's own and not a restatement:
+nothing implemented here may dispatch on a filename, in `SPEC.md`'s prose or in
+the acceptance fixtures. This is the child that writes the policy down, so it is
+the one that can betray the capability rule by wording alone.
 
 ## Exit criteria
 

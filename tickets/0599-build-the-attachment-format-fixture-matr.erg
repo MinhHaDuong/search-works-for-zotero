@@ -105,12 +105,12 @@ observes the only answer available: whether Zotero exposes a `.md` attachment as
 
 ## Invariants
 
-Inherited from tracker 0593 and not restated there:
+See tracker 0593 §Invariants — inherited unchanged.
 
-- No test invokes a network or a document-conversion service.
-- Nothing here decides policy. What a format's classification MEANS for
-  eligibility is ticket 0600's ruling, and this ticket must not anticipate it in
-  code or in prose.
+Child-specific consequence, which is this ticket's own and not a restatement:
+nothing here decides policy. What a format's classification MEANS for
+eligibility is ticket 0600's ruling, and this ticket must not anticipate it in
+code or in prose.
 
 ## Exit criteria
 

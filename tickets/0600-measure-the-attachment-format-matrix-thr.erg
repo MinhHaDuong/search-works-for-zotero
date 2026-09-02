@@ -71,6 +71,9 @@ Primary platform reference:
    under `bench/results/`.
 4. Put the candidate policy to the author with every observed exception, and
    land the ruling in `DECISIONS.md`. Nothing is written to `SPEC.md` here.
+   The `.doc` settlement below is one of the things put to him, not a choice
+   this estate makes on his behalf: ticket 0599 declared the gap, it did not
+   decide what the policy says about the format.
 
 ## The open item inherited from ticket 0599
 
@@ -99,11 +102,13 @@ observation.
 
 ## Invariants
 
-Inherited from tracker 0593 and not restated there:
+See tracker 0593 §Invariants — inherited unchanged.
 
-- No converter joins the default path by implication, and no measurement here
-  installs LibreOffice, Pandoc, Tika or a cloud converter.
-- No network document-conversion service is contacted.
+Child-specific consequence, which is this ticket's own and not a restatement:
+this is the only child that touches a machine, so the converter invariant binds
+an INSTALLATION here and not merely a code path. Nothing is installed on the
+measuring machine, and nothing is reached over the network, to make a row come
+out supported.
 
 ## Exit criteria
 
