@@ -49,9 +49,17 @@ for its fixture artifact.
         --root /a/scratch/directory \\
         --output bench/results/r10-host-baseline/hostbase.json
 
-The application is named on the command line and never in this file, for the
-reason the acceptance layer gives: a usage example naming one would put a
-product's name in a module that is supposed to hold none.
+The application, the arena, the display, the port and the started-marker are
+all arguments, for the reason `run.py` gives about its adapter: a usage example
+naming a product would put that name in the file.
+
+**What the file does hold, said plainly rather than claimed away.** The
+preference keys below and the started-marker's default value are the host's
+own vocabulary, and no amount of argument-passing removes them — a driver that
+writes a profile has to know what a profile is. That is precisely why this
+module sits outside `bench/acceptance/`: the layer forbids exactly this, the
+guard enforces it over that package, and a baseline driver cannot meet the bar.
+Moving it in to look neutral would be the wrong repair.
 """
 
 import argparse
@@ -89,16 +97,22 @@ PREFS = (
 )
 
 
-def prepare(root: Path, name: str, port: int, *, reuse: bool) -> Path:
-    """A cell's profile and data directory, virgin or reused.
+def prepare(root: Path, name: str, port: int) -> Path:
+    """A VIRGIN cell: a profile and data directory nothing has run against.
 
-    `reuse=True` is the warmed arm and is the whole point of the pair: it runs
-    against the profile the previous call left behind rather than against a new
-    one. Nothing is deleted to make a virgin cell — an old one is moved aside,
-    so a rerun cannot silently inherit it.
+    This makes virgin cells only. The warmed arm is not a second kind of cell
+    and does not come from here — it is the same cell launched twice, which is
+    the whole point of the pair, and `main()` does that by reusing the path this
+    returns rather than by asking for a variant. An earlier draft carried a
+    `reuse` flag for it that no caller ever set: dead code with a docstring
+    describing a call that never happened.
+
+    Nothing is deleted to make a cell virgin — an old one is moved aside, so a
+    rerun cannot silently inherit the previous run's profile. That is the same
+    hazard `assertions.dirty()` refuses an arena for.
     """
     cell = root / name
-    if cell.exists() and not reuse:
+    if cell.exists():
         shutil.move(str(cell), f"{cell}.superseded.{int(time.time())}")
     for sub in ("home", "profile/extensions", "data"):
         (cell / sub).mkdir(parents=True, exist_ok=True)
@@ -179,18 +193,19 @@ def main() -> int:
     traces = root / "trace"
 
     cells: dict[str, dict] = {}
-    virgin = prepare(root, "virgin", a.port, reuse=False)
+    virgin = prepare(root, "virgin", a.port)
     cells["virgin-isolated"] = launch(
         application, virgin, mechanism=mechanism, shared=False,
         tag="virgin-isolated", display=a.display, dwell=a.dwell, log_dir=traces,
         marker=a.started_marker)
-    # The same profile, deliberately not refreshed: whatever the first run
-    # recorded on disk is now there, which is the difference being measured.
+    # The SAME cell, launched a second time and deliberately not refreshed:
+    # whatever the first run recorded on disk is now there, and that is the
+    # only difference between this cell and the one above.
     cells["warmed-isolated"] = launch(
         application, virgin, mechanism=mechanism, shared=False,
         tag="warmed-isolated", display=a.display, dwell=a.dwell, log_dir=traces,
         marker=a.started_marker)
-    control = prepare(root, "control", a.port + 10, reuse=False)
+    control = prepare(root, "control", a.port + 10)
     cells["virgin-shared"] = launch(
         application, control, mechanism=mechanism, shared=True,
         tag="virgin-shared", display=a.display, dwell=a.dwell, log_dir=traces,
