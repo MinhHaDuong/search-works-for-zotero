@@ -4941,17 +4941,18 @@ Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
 
-**2026-09-03 — R19's fold gate is red against current upstream, and SPEC.md
+**2026-09-02 — R19's fold gate is red against current upstream, and SPEC.md
 §5.2.8 says it cannot be. Not ratified: which of the sentence and the gate is
 wrong is the author's to rule.** §5.2.8 records that the waiver keyed to
 upstream pull request #19 retired with its merge, so "against current upstream
 the gate runs green by right". Ticket 0578 ran the gate against stock at the
-reviewed SHA and it came back red on 25 real misses — 16 Roman numerals
-U+2160–U+216F, category Nl, which a per-character uppercase pass does not
-reach; 8 precomposed Devanagari nukta forms U+0958–U+095F, whose base-plus-nukta
-spelling agrees, so the finding is about the precomposed spelling and not about
-the script; and one word-level miss
-(`bench/results/0578-fold-sweep/codepoints.json`).
+reviewed SHA and it came back red on 25 misses, 24 of them at codepoint level
+and one at word level (`bench/results/0578-fold-sweep/codepoints.json`).
+Sixteen are the Roman numerals U+2160–U+216F, category Nl, which a
+per-character uppercase pass does not reach. The other nine — eight codepoints
+U+0958–U+095F and the word `क़` — are precomposed Devanagari nukta forms, whose
+base-plus-nukta spelling agrees, so that finding is about the precomposed
+spelling and not about the script.
 
 The sentence was left standing deliberately when that measurement merged, and
 README.md's standing row for R19 was not: it claimed the property held and the
@@ -4959,16 +4960,35 @@ sweep passed, and it has been corrected to what ran. So the two documents now
 disagree, on purpose, until this is ruled.
 
 What makes it a ruling rather than a correction is that the falsifying evidence
-does not say which end is wrong. The earlier artifact
-(`bench/results/0009-fold-sweep/codepoints.json`) records no misses at all, and
-the unmodified script that wrote it prints `WARNING: 16 codepoint(s) send a
-query where the index is not` and exits 0 — so a green and a run that could not
-fail were the same output for as long as that gate existed. **What turned that
-artifact's clean sheet into today's 16 is not established.** Three readings are
-open and the evidence separates none of them: the misses were always there and
-only the exit code changed; upstream's normalizer moved between the two runs;
-or the sweep's own classification widened. Settling it needs the upstream diff
-between the two run dates, which nobody has read.
+does not say which end is wrong — and it leaves that open for only sixteen of
+the 25. The nine Devanagari misses are accounted for. The earlier artifact
+(`bench/results/0009-fold-sweep/codepoints.json`) swept 1 301 codepoints over
+eight blocks, none of them Devanagari, where the run behind the red swept
+30 309 over nineteen. That class was structurally invisible to the old sweep,
+so its appearance is the widened net rather than a regression.
+
+The sixteen Roman numerals are the part nothing accounts for, and more sharply
+than a raw count suggests. Both runs cover the block Number Forms, 64
+codepoints swept in each; both report the same six tail codepoints
+U+218A–U+218F as `narrows`; and the sixteen numerals do not appear in the old
+divergence list at all, having agreed. Today FTS5 indexes `Ⅰ` as `ⅰ` while the
+query side produces `Ⅰ`. The widened net is ruled out for them, and what is
+left is a real change between the two runs that this evidence does not
+identify: upstream's `normalizeForSearch` moving, or the fork tree differing
+between the runs, both stay open. The sweep's own reclassification does not
+explain them, since the old classifier called a divergence `narrows` only where
+the query side produced no tokens, and would have called `['Ⅰ']` against
+`['ⅰ']` a miss exactly as the new one does. Settling the sixteen needs the
+upstream diff between the two run dates, which nobody has read.
+
+**The old artifact's clean sheet has a mechanical explanation, and it is not
+the exit code.** Its miss list is empty because that same old classifier put
+all fifteen of its divergences in `narrows` — nine in Greek and Coptic, six in
+Number Forms, none in the branch a gate would read. The script did also write
+the artifact before it computed its warning, and returned zero whatever the
+count, so no gate reading its exit status could have failed on it either. That
+is a true observation about the gate and a separate one; neither of the two
+says the old sweep was sound.
 
 Three ways it could go, and no default is proposed. Strike "green by right" and
 let §5.2.8 carry the gate as red-against-stock, which is honest and leaves R19
@@ -4980,7 +5000,7 @@ statement rather than a false one and the gate stays red until it lands. The
 first two are ours to write; the third is bounded by GOVERNANCE.md's volume
 budget and is a filing decision, not a wording one.
 
-**2026-09-03 — the default path makes an external call SPEC.md says it does
+**2026-09-02 — the default path makes an external call SPEC.md says it does
 not. Not ratified: whether the clause moves or the code does is the author's.**
 `SPEC.md` §5.2.7 states "the sole permitted external call on the default path is
 the one-time model-weight download"; §3's R10 body states "the default build and
