@@ -1,0 +1,150 @@
+%erg 0.1
+Title: a forced ftsStorage overrides the layout recorded in the file
+Created: 2026-09-02
+Author: MinhHaDuong
+
+--- log ---
+2026-09-02T18:52Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found by the review of the fork's merge commit `c031478` ("Merge tranche 3
+and the v2 content schema into one tree"), alongside the P0 of the deposed
+conductor (fixed separately) and 0595, 0596. Pre-existing: the merge did not
+introduce it, it inherited it from the content-schema half.
+
+`resolveFtsStorage` is meant to enforce one rule, and its own docstring
+states it in as many words:
+
+> The recorded value wins over the probe, always. A runtime that gained
+> `contentless_delete` since the file was written must still speak the
+> delete protocol the existing rows are in; re-probing on every open would
+> switch protocols under live data.
+
+The function does not do that. `LedgerOpenOptions.ftsStorage` is consulted
+*first*, ahead of the recorded value:
+
+```ts
+function resolveFtsStorage(db: Database, forced?: FtsStorage): FtsStorage {
+  if (forced) return forced;                       // ← before the record
+  const recorded = readRecordedFtsStorage(db);
+  if (recorded) return recorded;
+  ...
+}
+```
+
+and `createSchema` then re-stamps `ledger_meta.ftsStorage` with
+`INSERT OR REPLACE`, so the override is not scoped to the open that asked
+for it: it rewrites the file's recorded layout permanently.
+
+The consequence is exactly the one the docstring exists to prevent — the
+delete protocol switched under live rows — and it is silent in both
+directions. `unindexText` on an `external` ledger reads the shadow row from
+`fts_content`, finds nothing (a contentless file has no shadow rows), and
+returns:
+
+```ts
+const row = ... .get(pid);
+if (!row) return;     // a retirement that retires nothing
+```
+
+so a retired passage keeps matching. The reverse pairing (an `external`
+file forced to `contentless`) deletes the `fts` row without handing back
+the text FTS5 indexed, which is the corruption the same docstring names.
+
+Nothing in the shipped server passes the option today — `openConductorLedger`
+does not — so this is a trap rather than a live defect: it is the option's
+only purpose to be passed, and the tests that pass it are what a future
+caller will copy.
+
+## Reproduction
+
+Measured on `conductor-integration` at `c031478`, node 22.22, vitest 2.1.9,
+a real file on disk (not `:memory:`):
+
+```ts
+const created = Ledger.open(path);              // → contentless on this runtime
+created.indexText(1, { title: 'sphinx of black quartz' });
+created.searchFts('sphinx');                    // → [ 1 ]
+created.close();
+
+const forced = Ledger.open(path, undefined, { ftsStorage: 'external' });
+forced.ftsStorage;                              // → 'external'
+forced.unindexText(1);                           // silent no-op
+forced.searchFts('sphinx');                     // → [ 1 ]   ← still indexed
+forced.close();
+
+const later = Ledger.open(path);                 // no option at all
+later.ftsStorage;                                // → 'external'  ← re-stamped
+later.searchFts('sphinx');                       // → [ 1 ]
+```
+
+Printed output of the run:
+
+```
+created as: contentless
+search after index: [ 1 ]
+reopened as: external
+search after unindex: [ 1 ]
+reopened with NO option: external
+search from the plain reopen: [ 1 ]
+```
+
+The third block is the part that makes this worth a ticket rather than a
+comment: one open with the option poisons every later open without it.
+
+## Relevant files
+
+- Fork `src/features/search/conductor/ledger.ts` — `resolveFtsStorage`, the
+  ordering; `Ledger.open`, which calls it; `createSchema`, the
+  `INSERT OR REPLACE` that re-stamps `ledger_meta.ftsStorage`; `indexText` /
+  `unindexText`, the two protocols.
+- Fork `src/features/search/conductor/store.ts` — `openConductorLedger`, the
+  one production caller, which passes no option.
+
+## Actions
+
+1. Decide what `LedgerOpenOptions.ftsStorage` is *for*, since the answer
+   settles the fix. Two candidates:
+   - **A test seam for a file being created.** Then the recorded value must
+     win and the option only steers the probe: move the `forced` check below
+     `readRecordedFtsStorage`, and the trap closes with one moved line.
+   - **A deliberate override.** Then it is a migration, not an open option,
+     and it owes a rebuild of the `fts` table into the requested layout
+     rather than a re-stamp over rows in the other one.
+   A is what the docstring already promises and what every current caller
+   wants; B is a feature nobody has asked for.
+2. Whichever is chosen, make the disagreement loud rather than silent: an
+   open that is handed a layout the file contradicts should refuse
+   (`LedgerVersionError` is the existing precedent for "this file is not
+   what you think it is") instead of proceeding under the wrong protocol.
+
+## Test
+
+- Red first: create a `contentless` file, index a passage, reopen it with
+  `{ ftsStorage: 'external' }`, and assert the reopened ledger reports
+  `contentless` — the recorded value winning. Against the code as it stands
+  it reports `external`.
+- The retirement is the observable half, and cheaper to trust than a
+  property of a string: after `unindexText`, `searchFts` must not return the
+  passage. Today it does.
+- The stamp: a plain reopen after the forced one still reports the layout
+  the file was created in.
+
+## Verification
+
+- [ ] The recorded layout wins over the option, or the mismatch refuses
+- [ ] `unindexText` retires a passage on every path a caller can reach
+- [ ] One open with the option cannot change what a later open without it sees
+
+## Invariants
+
+- No change to which layout a *new* file is created in: the probe, and the
+  runtime's actual `contentless_delete` support, still decide that.
+- Upstream tests green.
+
+## Exit criteria
+
+- [ ] The layout a file was written in is the layout it is read in, merged
+      on a fork branch, tests green

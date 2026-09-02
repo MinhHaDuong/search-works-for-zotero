@@ -1,0 +1,122 @@
+%erg 0.1
+Title: an evicted tenant context leaks its conductor ledger handle
+Created: 2026-09-02
+Author: MinhHaDuong
+
+--- log ---
+2026-09-02T18:52Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Found by the review of the fork's merge commit `c031478`, alongside 0594 and
+0596. Low severity, and the honest framing is that the merge *widened* a
+pre-existing omission rather than creating one.
+
+`ContextCache` keeps one `ToolContext` per authenticated Zotero user and caps
+the map at `maxEntries` (50). Eviction is the whole of this:
+
+```ts
+private evictIfNeeded(): void {
+  while (this.entries.size > this.maxEntries) {
+    ...
+    this.entries.delete(oldestKey);     // and nothing else
+  }
+}
+```
+
+The two SQLite handles that context owns — `c.search` (v1, pre-existing) and
+now `c.conductorLedger` (v2, added by this merge) — are never closed. Closing
+is what checkpoints the write-ahead log and releases the file handle, and the
+only place that does it is `flushIndexes`, which runs from the shutdown
+handler and walks `this.entries.values()` — the *live* entries. An evicted
+tenant is no longer in that map, so its handles are closed by nothing, ever:
+they survive until the process exits, holding an open fd and an
+uncheckpointed WAL each.
+
+So a server that has served more than 50 distinct Zotero users accumulates
+two stranded handles per tenant beyond the cap, and the uncheckpointed WAL is
+the more annoying half — the next startup has to replay it.
+
+## Why this is not a one-line fix
+
+The class docstring states the reason eviction does not close:
+
+> Eviction only drops the cache entry; live sessions keep the ctx they
+> already closed over.
+
+That is real. `resolve()` hands the `ToolContext` out, and an in-flight
+session holds it directly rather than looking it up again — so closing the
+ledger at eviction would pull the file out from under a request that is
+still running, turning a slow leak into a live error. The fix is therefore
+about *lifetime*, not about adding a `close()` call:
+
+- refcount the context (a session checks out and returns it) and close on
+  the last release; or
+- close on eviction only when nothing holds it, and otherwise hand it to a
+  reaper that closes it when the last holder is gone; or
+- decide the cap is the wrong mechanism for a resource with a lifetime, and
+  evict on idleness with a grace period longer than any request.
+
+Any of the three is a design decision, which is why this is a ticket rather
+than a patch appended to a bug-fix PR.
+
+## Reproduction
+
+By inspection rather than by measurement, and the inspection is short:
+
+1. `src/server.ts`, `ContextCache.evictIfNeeded` — `this.entries.delete(...)`
+   with no `close()` on either handle.
+2. `src/server.ts`, `ContextCache.flushIndexes` — iterates
+   `[this.operatorCtx, ...this.entries.values()]`, so it can only reach what
+   is still cached.
+3. `src/server.ts` around the context build — each per-user context opens its
+   own `conductorLedger` through `openConductorLedger`, so the handle is per
+   tenant, not shared.
+
+A measured reproduction would need 51 authenticated tenants against one
+server and an fd count, which is worth building only once the lifetime
+question above is answered — the count is the test for whichever answer
+wins.
+
+## Relevant files
+
+- Fork `src/server.ts` — `ContextCache`: `resolve`, `evictIfNeeded`,
+  `flushIndexes`, and the class docstring quoted above.
+- Fork `src/features/search/conductor/store.ts` — `openConductorLedger`, the
+  per-tenant open.
+
+## Actions
+
+1. Pick a lifetime rule for a cached `ToolContext` from the three above (or a
+   fourth), and write it into the class docstring, which currently documents
+   the symptom as if it were the design.
+2. Implement it for both handles at once — `search` and `conductorLedger`
+   have the same lifetime and fixing only the newer one would leave the
+   older leak with a test that looks like coverage.
+
+## Test
+
+- An eviction under the chosen rule closes both handles: assert on the
+  handles themselves (a closed `DatabaseSync` throws on use) rather than on
+  an fd count, which is portable and exact.
+- A context still held by an in-flight caller is *not* closed by an eviction
+  that happens during that call — the property the current code protects and
+  the fix must not lose.
+
+## Verification
+
+- [ ] Both handles of an evicted context are closed, on whatever schedule
+      the chosen rule sets
+- [ ] An in-flight session's context survives its own eviction
+- [ ] The shutdown path still closes every live context, as it does today
+
+## Invariants
+
+- No change to what `resolve()` returns for a given user, cached or not.
+- Upstream tests green.
+
+## Exit criteria
+
+- [ ] A cached tenant context has one stated lifetime and both its SQLite
+      handles follow it, merged on a fork branch, tests green
