@@ -3,10 +3,12 @@ Title: Byline and author detection layer
 Created: 2026-09-01
 Author: claude
 Blocked-by: 0557
+Label: deferred
 
 --- log ---
 2026-09-01T13:31Z claude created
 
+2026-09-02T10:21Z claude note DEFERRED by ruling (DECISIONS.md 2026-09-02, the byline is enrichment): no tier is required to find who wrote an entry, the locator is title + page range, a reader who needs the author follows the hit to the page. Label deferred added; 0028's exit criteria no longer name bylines as required. Reopen on a measured need
 --- body ---
 ## Context
 

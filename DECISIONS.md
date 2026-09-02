@@ -3319,6 +3319,52 @@ good retrieval from reference material — dictionaries, encyclopedias, handbook
 says why the reference classes are measured on their own. Gating stays as
 ruled in the morning: the primary class and the dictionary.
 
+**2026-09-02 — the segmenter's interface: structure signals in, entries out,
+seg/1 for the empty signal list.** The 2026-08-30 awaiting entry on the book
+segmenter asked for it — "the segmenter's interface should take structure
+signals (PDF outline + form feeds | HTML headings | headword rhythm) and cut
+text, with today's heuristic seg/1 as the no-signal fallback" — and the rulings
+of 2026-09-01 and 2026-09-02 have assumed it since: the pack as tier 0, the
+embedded outline as tier 1, the layout heuristic as tier 2, seg/1 last, and
+seg/1 shipping first "to settle integration". The integration it settles is
+this interface, and tickets 0557, 0565, 0572 and 0034 all plug into it, so a
+session preparing 0028 asked that it be ruled before code fixes the shape by
+accident. The author ratified it (2026-09-02, "3 ratified"), and the awaiting
+bullet is consumed here.
+
+The interface. The segmenter takes the document's extracted text and a list of
+structure signals; each signal is a set of candidate boundaries with a
+provenance — pack blocks, the PDF's outline page targets, layout headings,
+markup headings, form feeds, a parsed contents list. It returns entries, each
+carrying a title, a character range in the text, an optional page range, a
+confidence, and the tier that produced the cut. seg/1 is the implementation for
+the empty signal list and the fall-through for every tier that comes up empty
+or low. What the consumed entry settled about position survives unchanged:
+discovery runs before the extractor and the cut runs after it — the PDF side
+reads the chapter map, the segmenter cuts the extracted text, and Zotero stays
+the extractor. Its two observations survive as design rationale too: an
+outline names chapters past the extraction cap that flat text never carried,
+which gives coverage an honest denominator; and when a better extractor
+arrives, the same map drives per-chapter extraction with no redesign. Online
+encyclopedias have no pages, so their signal is markup headings, text-side.
+SPEC.md §5.2.2 now states the interface.
+
+**2026-09-02 — the byline is enrichment, not a locator: the author signal is
+deferred.** Asked what a byline is — the chapter, talk or entry author inside a
+collection — the author ruled its standing: "There are none if the fallback
+fixed-length segmenting was used. They are delicate to find if structured
+segmenting was used, nice but not really necessary if hits link to PDF pages,
+user can go back." So an entry's locator is its title and its page range; who
+wrote the entry is not part of the locator, and no tier is required to find
+it. This closes the "author signal" open end the 2026-09-01 PDF-path ruling
+left, and it defers ticket 0562, the byline and author detection layer, as
+enrichment to be taken up if a measured need appears. seg/1 may still read a
+byline-shaped line under a heading as an accept hint where that is cheap, but
+nothing gates on it: ticket 0028's exit criteria no longer name bylines as a
+required signal. X5's arms are unchanged — the handbook arm ruled above stays
+its own row, scored against the outline like every other. SPEC.md §5.2.2
+edited to match.
+
 ## Awaiting ratification
 
 - **Which index and extraction actions `zotero_index` should carry, and whether
@@ -3481,36 +3527,6 @@ ruled in the morning: the primary class and the dictionary.
   stated pair-generation protocol and never read theirs, accepting a weaker
   result. Ratifying any of them settles ticket 0031's method; ratifying none
   leaves the instruction standing without one.
-
-- **The book segmenter works at page boundaries on the PDF side — and the
-  open question is where the split runs relative to the extractor (author,
-  2026-08-30; a first recording of this entry misread the position as
-  "segment = page" and is corrected here — awaiting entries are drafts, the
-  append-only rule protects ratified ones).** For books, proceedings, and
-  encyclopedias, chapters and articles begin on pages, and the PDF side
-  holds that map: measured, 15 of 24 sampled 100-plus-page PDFs (63 %)
-  carry a machine-readable outline (`mutool show … outline`), page-anchored.
-  The question — split before or after the extractor — resolves under the
-  shim ruling into **discover before, cut after**: true before-the-extractor
-  splitting means extracting text per chapter ourselves, which contradicts
-  the shim (Zotero stays the extractor, and its API has no per-range call);
-  but *discovery* before it is only reading structure, not extracting text.
-  So the segmenter reads the chapter map from the PDF (outline first, TOC
-  parse as fallback), and cuts the *extracted text* at the mapped page
-  boundaries, located by form feeds — present in 55 % of caches today,
-  raisable by a re-extraction sweep (0480's class). Two consequences favor
-  this shape. The outline names chapters past the 100-page cap that
-  extraction never delivered, giving honest coverage its denominator —
-  "present in the book, absent from the index" — which flat text cannot
-  express (ticket 0483's state gains chapter names). And when the
-  someday-better extractor arrives, the same map drives true per-chapter
-  extraction with no redesign. Online encyclopedias have no pages: there the
-  structure signal is markup headings, necessarily text-side; the
-  segmenter's interface should take structure signals (PDF outline + form
-  feeds | HTML headings | headword rhythm) and cut text, with today's
-  heuristic seg/1 as the no-signal fallback. Reference works keep entry
-  segmentation under the entry-as-unit-of-answer ruling. Ratifying this
-  reshapes ticket 0028's spec and X5's question.
 
 - **Scoping by a stored attribute is affordable, and the author wants years.**
   The entry below reports X4 and concludes the ladder loses its middle rung.

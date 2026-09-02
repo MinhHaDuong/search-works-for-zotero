@@ -7,6 +7,7 @@ Blocked-by: 0557
 --- log ---
 2026-09-01T13:31Z claude created
 
+2026-09-02T10:21Z claude note indexedPages reachability SETTLED: reachable. At source, zotero/zotero main server_localAPI.js (ItemFullText GET) selects indexedPages, totalPages, indexedChars, totalChars from fulltextItems and returns them beside content, each dropped (?? undefined) when NULL. At runtime on the author's build, 2026-09-02, four of the first forty attachments probed returned {content, indexedPages, totalPages} with indexedChars/totalChars absent for PDFs; one item read indexedPages 100 / totalPages 204, the extraction cap in the wild. So tier 1 of the chain rides the same GET the extract stage already makes, no extra call. SPEC.md 5.2.2 now says so
 --- body ---
 ## Context
 
@@ -44,6 +45,7 @@ about 45% of cached PDFs (`4 708 of 8 590`, SPEC.md's extract-layer entry).
 
 ## Exit criteria
 
-- [ ] `indexedPages` local-API reachability settled, one way or the other
+- [x] `indexedPages` local-API reachability settled, one way or the other --
+      reachable; evidence in the 2026-09-02 log entry
 - [ ] all three tiers implemented and tested
 - [ ] threshold configurable in one place, not hardcoded per call site
