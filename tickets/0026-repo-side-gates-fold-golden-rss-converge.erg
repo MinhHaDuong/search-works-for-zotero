@@ -22,49 +22,75 @@ Author: claude
 2026-08-31T20:08Z claude note R15's item-deletion clause is asserted here, with goal 2's built-index tests, event-then-state (DECISIONS.md 2026-08-31); build the R19 sweep with the goal-1 batch, cheapest gate on the sheet
 2026-09-01T06:06Z claude note R1 gained the convergence-to-latest-chain SHOULD (DECISIONS.md 2026-09-01): the goal-3 R1 assertions now include superseded work draining unattended after an extractor, segmenter or embedder upgrade, old results serving labeled until overtaken
 2026-09-02T05:08Z claude note GATE PREMISES MOVE with the 2026-09-02 topology. The RSS gate's two thresholds named process roles that have been re-cut and were priced against a model now resident in neither: SPEC.md 5.2.9 says which ceilings need a re-pin and does not invent them. The transport clause loses its 'process that has already loaded the query embedder' framing -- the conductor is the one process that may write, and it holds no model. The conductor-latency clause is demoted from acceptance gate to confirmation, and a service clause joins it: the same p95 while the embedding service is cold, so the labeled keyword-only degradation is measured rather than asserted. Finding F1 may dissolve rather than be ruled, since its collision came from the worker holding the model.
+2026-09-02T10:56Z claude note DECOMPOSED BY LADDER RUNG (author's ruling, interactive session 2026-09-02). This ticket becomes the tracker and stays open; five children carry the work, each sized to one sign-off unit and each blocked by its real prerequisite, never by this tracker. Goal 1 to ticket 0578, goal 2 to ticket 0579, goal 3 to ticket 0580, the golden gate to ticket 0581, the RSS gate to ticket 0582. The two invariants every child inherits are stated once in the body above -- the MUST clause as the unit, and honest red/waiver states -- and are not restated in any child except as inherited. TWO PREMISES OF THIS BODY WERE STALE and are corrected in the children rather than argued here. The convergence harness does not need a mock Zotero local API to land with it: tranche 1 (ticket 0551, closed) built the record/replay fake and the synthetic library on the fork branch conductor-integration, which removes a dependency ticket 0580 would otherwise carry. And the two readings of R20's letter flagged here as awaiting ratification were BOTH ratified on 2026-08-29 -- the cadence into check-slow with a cheap mechanism fixture in the fast tier, and the synthetic surrogate conditional on X3a revalidation at each release -- with the awaiting entry deleted on 2026-09-01, having been answered twice. What actually gates the RSS gate now is SPEC.md 5.2.9's re-pin of three ceilings after the 2026-09-02 topology, plus the embedding service class that had none; ticket 0582 names that ruling as its own first exit criterion and carries the needs-human label until it lands. Stale coordinates in the body fixed in the same pass (DESIGN 2.8 to SPEC.md 5.2.8, spec/README.md to README.md); the log above is preserved verbatim and keeps the addresses it was written with.
 --- body ---
 ## Context
-Build the gate estate of DESIGN.md §2.8, which owns every threshold and
-assertion (golden-set Jaccard, RSS budgets, soak constants, convergence
-arithmetic) — this ticket carries the work and its ordering, not a second
-copy of the numbers. Repo-side work in this repo's Makefile and bench/, not
-upstream PRs.
 
-The five gates sort into two piles:
-- BUILDABLE NOW: the fold gate (fold_sweep.mjs today always exits 0, prints a
-  WARNING, and crashes on any tree lacking normalizeForSearch — it needs the
-  classification fallback, nonzero exit codes, and a writable built checkout,
-  since none exists in-repo; stock >=v1.7.2 ships the fold, so against current
-  upstream the gate runs green by right — the waiver keyed to PR #19's URL was
-  deleted on its merge, 2026-08-27, ticket 0014); the golden gate once
-  0029 delivers its fixture corpus; the RSS gate in its pre-machinery form —
-  server-only against stock upstream, red-with-waiver (0011 measured
-  2 084,9 MiB), the worker assertion joining once the scoped-issue machinery
-  exists. Fixture informed by X3a (0025).
-- THE ACCEPTANCE SPEC (served to the harness offer, 0032): the convergence
-  harness and the soak assert counters, prefix arithmetic, drift,
-  pipeline:idle, lease migration, and double-commits — observables of a
-  ledger and conductor that exist only once the scoped issues' machinery is
-  BUILT. They are written as executable specs now and run later; they also
-  need a mock Zotero local API (everything in bench/ talks to live Zotero),
-  which lands with them.
+This ticket was ruled a monster on 2026-09-02 and is now the TRACKER for the
+gate estate of SPEC.md §5.2.8. It carried five instruments — fold, golden, RSS,
+convergence, soak — across every rung of the ladder at once, with a build-gated
+exit and more than one sign-off unit bundled into it. The 2026-08-31 ruling that
+partitioned the sheet across five sequential goals had already reordered its
+work from instrument order into rung order; the decomposition finishes that
+move. Five children, each sized to one sign-off unit, each blocked by its real
+prerequisite and never by this tracker.
 
-Flagged (Copilot rounds 2-3): the rss-gate deviates from R20's letter twice —
-slow-suite placement vs "asserted on every check", and the synthetic
-surrogate vs "against the 44.9 MB dictionary" (copyrighted library content a
-public repo cannot carry; the real-document run is X3a on the author's
-machine). Both readings are on DECISIONS.md's awaiting-ratification list —
-build the gate either way, wire it per the ruling.
+The ladder is README.md's "## The goals ladder": the number is the build order,
+each requirement sits on exactly one rung, and the ruled method is tests first,
+bottom-up — a rung is declared only when its assertions run. SPEC.md §5.2.8 owns
+every gate and threshold, §5.2.9 every budget; the children cite addresses and
+copy no number. Two of the tracker's premises have since gone stale and are
+corrected in the children rather than here: the mock Zotero local API does not
+"land with" the convergence harness — tranche 1 (ticket 0551, closed) already
+built it on the fork branch `conductor-integration` — and the two readings of
+R20's letter this body once flagged as awaiting ratification were both ratified
+on 2026-08-29, leaving the RSS gate gated instead on §5.2.9's re-pin of three
+ceilings after the 2026-09-02 topology.
+
+## Children
+
+- **ticket 0578** — goal 1: the fold sweep, R10's egress clause and R15's
+  deletion clause, extending `bench/smoke_upstream.py` against stock upstream at
+  the reviewed SHA. Blocked-by: nothing. R22 and R31 stay on goal 1's roster but
+  are owned by ticket 0033 and ticket 0488.
+- **ticket 0579** — goal 2: R3's counter-churn clause and R23's serving half,
+  against a built index on the fork branch `conductor-integration`. Blocked-by:
+  nothing open. R13 is ticket 0035's.
+- **ticket 0580** — goal 3: the convergence harness and the soak, as the
+  executable acceptance spec for R1, R4, R6, R17, R18, R19 at index time and
+  R32, over tranche 1's record/replay fixtures. Also the spec served to the
+  harness offer, ticket 0032. Blocked-by: ticket 0566.
+- **ticket 0581** — the golden gate: SPEC.md §5.2.8's thresholds over the pinned
+  set, deciding R34. Blocked-by: ticket 0029.
+- **ticket 0582** — the RSS gate: SPEC.md §5.2.9's budgets against the synthetic
+  monster, pre-machinery form, server-only and red-with-waiver against the
+  document class whose uncapped build measured 2 084,9 MiB. Labelled
+  `needs-human`: it needs the ceiling re-pin ratified before it can assert a
+  number. Blocked-by: nothing, and blocked all the same.
+
+## Invariants
+
+Stated once, here, and inherited by every child:
+
+- **The unit is the MUST clause, not the requirement.** One assertion per
+  clause, so `delivered` on README.md becomes a count rather than a reader's
+  judgement (absorbed from tracker 0400, dissolved 2026-08-31). R17 is the
+  worked example: one MUST, four assertions behind it — N of M, per stage, the
+  most-recent-covered date, metadata-only counted with its reason — so the
+  clause count is a floor.
+- **Honest red and waiver states in the Makefile, never a green that means
+  "could not look".** A gate that skips because its machinery is absent reports
+  the same thing as one that is broken, and a waiver is a state rather than a
+  pass.
 
 ## Exit criteria
-- [ ] fold gate in `make check` — green against stock >=v1.7.2, red-by-classification against pre-fold trees
-- [ ] golden gate enforcing DESIGN §2.8's thresholds over 0029's pinned set
-- [ ] rss gate asserting DESIGN §2.8's budgets against the synthetic monster (per the R20 ruling)
-- [ ] convergence harness + soak written as the acceptance spec (0032); runnable once the machinery and the mock local API exist
-- [ ] fold/golden/RSS(pre-machinery form) in the Makefile with honest red/waiver states
-- [ ] the unit is the MUST clause, not the requirement: one assertion per clause,
-      so `delivered` on spec/README.md becomes a count rather than a reader's
-      judgement (absorbed from tracker 0400, dissolved 2026-08-31)
-- [ ] R17's single MUST carries four assertions behind it — N of M, per stage, the
-      most-recent-covered date, metadata-only counted with its reason — so the
-      clause count is a floor and this one is written as four
+- [ ] ticket 0578 closed
+- [ ] ticket 0579 closed
+- [ ] ticket 0580 closed
+- [ ] ticket 0581 closed
+- [ ] ticket 0582 closed
+- [ ] the integration review: with all five closed, re-read the children's
+      diffs together, run the full suite, and verify that the gate estate of
+      SPEC.md §5.2.8 is one estate rather than five — that `delivered` on
+      README.md is a count of assertions that ran, and that no gate reports
+      green for a clause nobody asserted
