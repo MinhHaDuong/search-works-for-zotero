@@ -25,6 +25,7 @@ Author: claude
 2026-09-02T10:48Z claude note the service clauses added here on 2026-09-02 now have a subject: 0575 builds the embedding service boundary, so the cold-service p95 arm and the loading/absent/failed status states have something to assert against. Two still lack a NUMBER rather than a subject -- the RSS gate's service arm has no ceiling at all (probe 0577) and the worker's kill-at-the-bound assertion needs the bound 0554 makes real
 2026-09-02T10:56Z claude note DECOMPOSED BY LADDER RUNG (author's ruling, interactive session 2026-09-02). This ticket becomes the tracker and stays open; five children carry the work, each sized to one sign-off unit and each blocked by its real prerequisite, never by this tracker. Goal 1 to ticket 0578, goal 2 to ticket 0579, goal 3 to ticket 0580, the golden gate to ticket 0581, the RSS gate to ticket 0582. The two invariants every child inherits are stated once in the body above -- the MUST clause as the unit, and honest red/waiver states -- and are not restated in any child except as inherited. TWO PREMISES OF THIS BODY WERE STALE and are corrected in the children rather than argued here. The convergence harness does not need a mock Zotero local API to land with it: tranche 1 (ticket 0551, closed) built the record/replay fake and the synthetic library on the fork branch conductor-integration, which removes a dependency ticket 0580 would otherwise carry. And the two readings of R20's letter flagged here as awaiting ratification were BOTH ratified on 2026-08-29 -- the cadence into check-slow with a cheap mechanism fixture in the fast tier, and the synthetic surrogate conditional on X3a revalidation at each release -- with the awaiting entry deleted on 2026-08-31, having been answered twice. What actually gates the RSS gate now is SPEC.md 5.2.9's re-pin of three ceilings after the 2026-09-02 topology, plus the embedding service class that had none; ticket 0582 names that ruling as its own first exit criterion and carries the needs-human label until it lands. Stale coordinates in the body fixed in the same pass (DESIGN 2.8 to SPEC.md 5.2.8, spec/README.md to README.md); the log above is preserved verbatim and keeps the addresses it was written with.
 2026-09-02T11:16Z claude note VERIFY-GATE REROLL ROUND 1 answered on PR 182, and the bump lands here rather than in the round that earned it because that line would have fallen inside the conflict hunk the reroll was about. Three findings, all acted on. (i) PR 180 merged to main 38 seconds before the gate published, turning a merge-order note into a present conflict on this file; resolved as a union, its 10:48Z entry kept verbatim above, and its Context paragraph re-homed into ticket 0582 where the substance belongs rather than merely preserved here -- the conflicted half was the safe half, and the paragraph would have vanished silently under a clean auto-merge. Verified by grepping the merged tree for the 10:48Z stamp and for tickets 0575, 0577 and 0554, not by the merge's exit code. (ii) the R20 awaiting-entry deletion was dated 2026-09-01 in the 10:56Z entry above and in ticket 0582; DECISIONS.md heads that ruling 2026-08-31 and the ledger dates its own entries, so ticket 0582 is corrected and this note carries the correction for the log, which is not rewritten. (iii) the PR body called the sibling branch not yet pushed when it was already PR 180; the allocation conclusion was independently re-verified and holds -- 0578 through 0582 collide with nothing -- but the stated basis was false and is corrected in the body. Not changed, and recorded as a decision rather than an oversight: README's goal-1 cell for R15 still addresses ticket 0017, and the four standing-row and prose citations of this ticket still name the tracker, which is the honest address for the estate while the tracker is open.
+2026-09-02T20:55Z claude note AUDIT FINDINGS FILED FOR THE INTEGRATION REVIEW, four of them, from merged main at ceadf71, and they sit in the body under "## Findings for the integration review" rather than in new tickets because this tracker's last exit criterion is where they are decided and identifier allocation was collision-prone that night. F1: the provenance witness is asserted in driver source rather than observed by the run (warm: true is a literal at bench/extract_chunk_throughput.mjs:563 and at bench/service_ceiling_rss.mjs:401, where warming is a separate optional flag the run cannot observe), the committed 0500 artifact carries no warm_up key while the committed driver emits one, and tests/test_warm_before_timing.py cannot see either instance -- service_ceiling_rss.mjs is not in its inventory at all, and in the other file it matches only the tokenizer proxy at :504 because its RATE_KEY word boundary excludes extract_ms_per_passage_median, while its warm marker is satisfied by a comment. F2: MINIMUM_PAIRS is 462 against 496 pairs checked, so 34 declarations can be deleted from the ratchet in silence. F3: SPEC.md 5.2.8's 0,17 ms for the attachment-page walk implies a divisor near 474 000; 80,6 s over the design point's 567 829 passages is 0,142 ms and over 5.2.9's legacy 650k count 0,124 ms, and whoever fixes it must spell the divisor out inline because 0,142 already stands in that section as the extract median. F4: exit-criteria boxes carry no signal, ticket 0578 closing at 0 of 14 ticked and ticket 0585 at 0 of 5 against ticket 0500 at 4 of 4. TWO OF THE FOUR CORRECT THE AUDIT THAT PRODUCED THEM rather than repeating it: F1's driver/artifact mismatch IS recorded, in ticket 0500's body and in pull request #217, with the correction bounded at about 0,008 ms per passage, so what stands is that no consumer reads that record and not that it was concealed; and ticket 0585 closed with 0 of 5 boxes ticked rather than with none unticked, which makes 0578 the majority behaviour and not an outlier. No fix is enacted. F1's direction is to require the witness artifact-side, in check_figures.py's warm_verdict, rather than to add a third guard.
 --- body ---
 ## Context
 
@@ -74,6 +75,89 @@ ceilings after the 2026-09-02 topology.
   boundary, and two of them still lack a number — the service arm's ceiling is
   ticket 0577's probe, and the worker's kill-at-the-bound assertion needs the
   bound ticket 0554 makes real.
+
+## Findings for the integration review
+
+Filed 2026-09-03 by the corrections lane, from an audit of merged `main` at
+`ceadf71`. They are filed here rather than as their own tickets because the
+integration review below is where they are decided, and because identifier
+allocation was collision-prone that night. Each was re-verified against the tree
+before filing; where the audit that produced them was wrong, the correction is
+stated rather than the finding repeated.
+
+**F1. The provenance witness is asserted in the driver's source, not observed by
+the run — and the guard that would catch it cannot see either instance.**
+`bench/extract_chunk_throughput.mjs:563` writes `warm: true` as a literal.
+`bench/service_ceiling_rss.mjs:401` does the same, and there it is worse:
+warming is a separate optional flag (`:70`, default false; `:260`) applied by a
+different invocation, so a `--drive` run emits `warm: true` whether or not any
+warming pass ever ran, and the run has no way to observe that it did.
+
+The mechanical tell is artifact-side.
+`bench/results/0500-extract-chunk/extract-chunk-throughput.json` carries no
+`warm_up` key, while the committed driver emits one inside `arm_a_cache_hit`
+(`:596`) — so the committed artifact is not the committed driver's output. The
+cause is established and is not concealment: commit 9b0a72f landed driver and
+artifact together, commit 18369c6 then corrected the driver (a discarded
+warm-up pass, and one timing window per stage instead of a sum of per-item clock
+reads), and the measurement was not re-run because the full-library build had
+taken ownership of Zotero's local API minutes later. Ticket 0500's body and
+pull request #217 both say so, and bound the correction at about 0,008 ms per
+passage from the five repetitions themselves. **The audit's framing that this
+was unrecorded is wrong and is withdrawn.**
+
+What stands is that the record lives where no consumer reads it.
+`bench/check_figures.py` reads the artifact — thirty-three of its declared pairs
+draw from this one — and `warm_verdict` accepts `blob["warm"] is True` as
+sufficient. A reader of the JSON sees `warm: true` and no caveat.
+
+`tests/test_warm_before_timing.py` is source inspection by design and says so,
+but its blindness here is wider than that. `service_ceiling_rss.mjs` is not in
+its inventory at all: no key in that file matches its `RATE_KEY`. In
+`extract_chunk_throughput.mjs` the only key that matches is `ms_per_passage:` at
+`:504` — the tokenizer cost proxy the artifact itself marks `not_in_the_build` —
+because `RATE_KEY`'s leading word boundary excludes the headline keys
+`extract_ms_per_passage_median` and its siblings, which are the rates §5.2.8
+quotes. And the warm marker it looks for is satisfied by the literal `warm-up:`
+occurring in a comment (`:29`, `:490`).
+
+The direction to take at the review, and deliberately not a third guard: require
+the witness **artifact-side**, by having `warm_verdict` refuse a `warm: true`
+that carries no record the run itself wrote. A literal in a source file is a
+claim; the discarded pass's own block is a witness. This replaces a
+source-inspection check rather than adding to it — the guard budget is
+net-negative.
+
+**F2. The figure ratchet is thirty-four declarations slack.**
+`bench/check_figures.py` sets `MINIMUM_PAIRS = 462`; the run reports **496 pairs
+checked**. The ratchet exists so that deleting a declaration is loud, and at
+this slack thirty-four could be deleted in silence. Either re-record the floor
+deliberately — which the constant's own comment requires an explanation for — or
+say why a margin is wanted and how wide.
+
+**F3. §5.2.8's fixed-term rate does not divide.** The section states the
+attachment-page walk at **80,6 s** on a 9 302-attachment library and reads it as
+21,8 ms per passage on a 60-item sample and **0,17 ms** on a full-library build.
+Over the design point's 567 829 passages — the count §5.2.9 measures, quoted
+three lines further down the same section — 80,6 s is **0,142 ms** per passage.
+Over the 650k count §5.2.9 records for the old 1 200-char stride it is **0,124
+ms**. The written 0,17 implies a divisor near 474 000, which appears nowhere in
+the document.
+
+**Trap for whoever corrects it:** `0,142` already appears in the same section as
+the *extract* median, a different quantity. A bare replacement makes the fixed
+term read as the extract rate. Spell the divisor out inline, and say which of
+the two counts it is.
+
+**F4. Exit-criteria boxes carry no signal, because two of three tickets closed
+that night closed with every box unticked.** Ticket 0578 closed with 0 of 14
+ticked; ticket 0585 closed with 0 of 5; ticket 0500 with 4 of 4. **The audit
+named 0585 as a counter-example with none unticked; that is wrong and is
+withdrawn** — 0578 is not an outlier, it is the majority. The merge helper
+closes on the pull request's `**Ticket:**` line whatever the boxes say, so the
+boxes record only what a lane chose to record. Either they are ticked at close
+or they should stop being written as checkboxes; a box nobody ticks is a
+verification claim nobody made, in the shape of one that was.
 
 ## Invariants
 
