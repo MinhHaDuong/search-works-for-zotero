@@ -130,13 +130,11 @@ the entry points at the question rather than settling it.
   attachment skipped. Authoritative: SPEC.md D6; the choice function is
   SPEC.md §5.2.3.
 - **goals ladder / rung** — the order the sheet's promises are made true in:
-  five goals, numbered from the cheapest to assert to the most expensive to
-  earn, each a bundle of requirements named in the user's own words. A rung is
-  one of them. The number is the build order and nothing else, and the ladder is
-  a partition — every requirement sits on exactly one rung. The method it exists
-  for is tests first, bottom-up. Authoritative: SPEC.md, last section,
-  for the order; README.md in this directory for each rung's roster; the
-  membership and the ordering were ruled in DECISIONS.md (2026-08-31).
+  five goals, each a bundle of requirements named in the user's own words. A
+  rung is one of them. An implementation strategy rather than a promise about
+  the system, so nothing about it is specified here. Authoritative: README.md
+  for the order, the rules it runs under, and each rung's roster; the membership
+  and the ordering were ruled in DECISIONS.md (2026-08-31).
 - **rendering** — one language expression of a work. Declared renderings may
   be twin attachments under one item or explicitly related items; similarity
   alone never declares the relation. Authoritative: SPEC.md R24 and
@@ -696,38 +694,15 @@ read as a promise:
 
 ### The goals ladder
 
-The sheet is one flat list of promises. The ladder is the order they are made
-true in: **five goals, numbered from the cheapest to assert to the most
-expensive to earn**, each a bundle of these requirements named in the user's own
-words. Every requirement here sits on exactly one rung.
+The sheet is one flat list of promises. The order they are made true in is an
+implementation strategy rather than a statement about the system: two efforts
+could hold these same requirements and climb them in a different order without
+either being wrong here. So it is not specified in this document.
 
-| | the goal, in the user's words | why it sits there |
-|---|---|---|
-| 1 | **I can install it and take it off again.** Nothing leaves this machine unasked, one switch stops the work, uninstall removes every declared piece of derived state and leaves no undeclared residue, and a configuration proves it runs here before it is used | its assertions need no corpus, no build and no library — they are decidable the moment the system is installed |
-| 2 | **It does not lose or corrupt what it built.** Staying current costs what changed, two processes on one data directory neither corrupt nor duplicate, and an index under another schema version ends up served | needs a built index but not a good one, and a build that cannot survive its own second day never reaches the rungs above |
-| 3 | **It answers, and it is honest about what it has.** Coverage converges unattended and finishes inside its bounds, the index answers while still filling, and it says how much is behind an answer and which emptiness an empty one is | the first rung a user can actually use, and the last one that can be judged without asking whether the answers are any good |
-| 4 | **It finds the right thing, in my languages, and I can open it.** Three modes, the pinned answer inside the first ten, three languages with the lanes connected, and a hit that opens at its page | where it stops being an index and becomes search; every promise here is about the answer rather than the corpus |
-| 5 | **All of my library.** A 15k library and a 15k-page PDF as ordinary input, group libraries in and never erasing one another, one's own notes and annotations, and a new item noticed unasked | the word *all* in the promise, and the expensive rung |
-
-**The number is the build order and nothing else.** It says which bundle to make
-true first, never which matters most and never how much of one is true. Each
-rung is a conjunction: kept when every one of its members holds and at no state
-before that, so a lower goal kept does not make a higher one partly kept.
-
-**The method is tests first, bottom-up.** Write the assertions for the lowest
-rung, make them pass, then climb. Until a rung's assertions exist its rows can
-only be read from the source or inferred — a claim about nobody rather than
-about the system — which is why a rung cannot be declared before its tests run.
-
-**Which requirements sit on which rung is not repeated here.** The rosters are
-on [README.md](README.md); a second copy in this document would drift from
-that one.
-
-**Above the top**, unnamed and unruled, sits the bundle this repository exists
-to reach eventually: *works for someone who is not me* — R7's SHOULD tier, R24's
-entry-heading and dedup clauses behind the segmenter, a pinned set that is not
-the author's own questions, and the harness offered upstream. It is named here
-so its absence does not read as an oversight.
+[README.md](README.md)'s "The goals ladder" owns it — the five goals in the
+user's words, each rung's roster, the build order, and what the ladder does
+not say. The rosters themselves are ruled in [DECISIONS.md](DECISIONS.md) and
+checked against it.
 
 ---
 
@@ -1710,6 +1685,15 @@ the vector fingerprint only when §5.3's X8 rule says its vectors are not
 interchangeable. Endpoint syntax and discovery stay out of the registry —
 open, no owner yet.
 
+**Device selection is evidence-driven, never blind `auto`.** The service uses
+a GPU only after a positive usability probe and passes that specific provider.
+If initialization still fails it falls back cleanly to passing no device. With
+no positively usable GPU it passes no device from the start, preserving the
+runtime's functioning Node default; it does not force `cpu`, and device is not
+a user knob. Status records the provider actually serving. This avoids the
+measured CPU-only Linux failure in which `auto` registers CUDA from platform
+shape alone and dies on absent libraries.
+
 **The API execution mode** (`provider: api`, ruled 2026-09-02) is the third
 execution mode, beside `in_process` (the embedder inside the server's own
 process) and `local_endpoint` (the embedding service above): the opt-in path
@@ -2004,6 +1988,14 @@ measured by X4, not trusted; then stop and answer honestly through R18's
 `scope{}` block. No path ever post-filters a top-k and *claims
 completeness*; the give-up is disclosed, which is what R5 and R18 jointly
 demand.
+
+Year/date and item type take a distinct stored-attribute path: both are columns
+on the item row with ordinary indexes, populated from metadata the crawl already
+has, and their predicates apply during ranking before truncation. They do not
+use `json_each` and do not wait for the arbitrary-scope frequency experiment.
+An exhausted filtered stream is still disclosed through R18. Collections and
+tags remain arbitrary-set facets under the ladder below; creator and title are
+not admitted by this rule.
 
 **Entry collapse.** Each engine collapses passages to entries *before ranks
 are assigned*: the entry score is the MAX over its chunks (#6012's rule,

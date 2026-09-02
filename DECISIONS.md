@@ -3609,6 +3609,103 @@ contract stay specified now so the switch is mechanical when #6012 makes packs
 library-wide. Until that checkpoint, the extract shim remains flat-only and
 ticket 0572 is deferred, not rejected.
 
+### 2026-09-02 — Proven factual corrections do not wait for ratification (ratified)
+
+An agent may correct a false factual statement in an authoritative document
+without waiting for the author's prior ruling when the correction is supported
+by a reproducible measurement or an authoritative source. Before treating the
+change as a wording repair, the agent must stop and trace its consequences
+through the design, requirements, tickets, evidence and implementation. Forced
+factual consequences propagate in the same change; a consequence that admits
+more than one legitimate response is a decision, is registered here, and does
+not move until the author rules. The correction, evidence and consequence
+analysis are recorded in this ledger, so the exception changes ordering, not
+provenance: fact first when leaving the false instruction in force would
+mislead current work, ledger entry in the same change.
+
+The exception is narrow. A requirement, threshold, design choice,
+interpretation, substitution between mechanisms, or choice among consequences
+remains a decision and must land here first as the author's ruling. Under this
+rule the measured correction to SPEC.md §5.2.2's pragma order stands; no
+revert-and-reland ceremony is required because its consequence analysis found
+one forced ordering and the code already tests it.
+
+### 2026-09-02 — Device selection requires positive usability evidence (ratified)
+
+The embedding runtime uses a GPU only after positively detecting that the
+provider is usable. It passes the specific usable provider, never blind
+`device: "auto"`. If initialization nevertheless fails, it falls back cleanly
+to passing no device. On a machine with no positively usable GPU it passes no
+device from the start, preserving transformers.js's functioning Node default;
+it does not force `cpu` and thereby freeze a runtime policy as configuration.
+
+This keeps GPU acceleration where it is actually available without reproducing
+the measured CPU-only Linux failure, where `auto` registers CUDA from platform
+shape alone and dies on absent libraries. Device remains no user knob. Status
+records the provider actually serving, and the existing vector-identity rule
+continues to decide whether provider differences enter the fingerprint.
+
+### 2026-09-02 — The goals ladder is README's, and leaves the specification (ratified)
+
+The author chose option C of the three put to him. `SPEC.md` §3's closing
+subsection, which stated the ladder — the five goals in the user's words, the
+build-order rule, the conjunction rule, the tests-first method, and the bundle
+above the top — is deleted. A short pointer subsection keeps the section's
+route and names `README.md` as the owner. §2's glossary entry repoints for the
+order; it already repointed for the rosters.
+
+**Why the specification is the copy that goes, rather than the page.** The
+author's own reason, and it decides the case on its own: *the ladder is an
+implementation strategy, not a specification.* A specification states what the
+system must do; the ladder states the order in which we choose to make those
+statements true. Two teams could hold the same requirements and climb them in
+different orders without either being wrong about the system, which is the test
+of whether a statement belongs in `SPEC.md` at all.
+
+Four circumstantial facts point the same way. The specification's copy is
+inert: `bench/check_progress.py`
+reads each roster from this ledger and each standing from the page, and nothing
+machine-reads §3's ladder, so no check weakens. The page's copy is the guarded
+one — `check_ladder` validates its rosters against the rulings here and
+recomputes every bar. Every ticket that cites a rung already cites the page and
+not the specification (0026, 0578, 0579, 0580). And the ruling of 2026-09-01
+that `SPEC.md` speaks only of the system leaves process narration to this
+ledger, the tickets and `AGENTS.md`: a build order is a statement about the
+work programme, not about what the system does.
+
+**What was measured before choosing.** The two ladders were not a verbatim
+copy. The five goal statements shared 19 of 240 words, and the three governing
+rules appeared in both in near-identical phrasing. Paraphrase is the worse
+case, not the milder one: the `PROMISE` check in `check_coverage` can hold the
+twenty-four promise sentences to the sheet because they are exact quotations,
+and nothing can hold two rewordings of one rule to each other. The duplication
+this removes was the kind a guard cannot reach, which is why removal rather
+than instrumentation was the recommendation.
+
+**What this supersedes.** The merge ruling of 2026-09-01 specified RFC section
+order "with the goals ladder closing the Requirements section". That clause is
+overtaken here; the rest of that entry stands. The ledger is append-only, so
+that entry is not edited — this one records the change.
+
+**What is not lost.** The bundle above the top already appears on the page in
+near-identical words, so its deletion here removes a second copy rather than
+the statement. The footnote marking the hand-maintained counts serves R35 and
+the out-of-scope list, both outside the deleted block, and stays.
+
+### 2026-09-02 — Stored attributes get their own filter path now (ratified)
+
+Year/date and item type enter the index as stored, indexed item attributes and
+are enforced during ranking before the cut to k. They do not wait for the
+narrow-scope give-up-frequency experiment: the real-index measurement shows
+the indexed predicate costs no more than the unconstrained path within the run
+and avoids the arbitrary-rowid mechanism X4 rejected. If a filtered stream
+still cannot fill k, R18 reports that honestly.
+
+This ruling does not extend to collections or tags, whose membership remains an
+arbitrary set and stays under X4's verdict. Nor does it silently add creator or
+title to R5: ticket 0441 keeps those as a separate scope question because R5
+does not name them and title may be a field restriction rather than a facet.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -3805,7 +3902,8 @@ ticket 0572 is deferred, not rejected.
   result. Ratifying any of them settles ticket 0031's method; ratifying none
   leaves the instruction standing without one.
 
-- **Scoping by a stored attribute is affordable, and the author wants years.**
+- **Scoping by a stored attribute is affordable, and the author wants years —
+  resolved 2026-09-02 for year/date and item type; see the ledger entry above.**
   The entry below reports X4 and concludes the ladder loses its middle rung.
   That conclusion is about the mechanism X4 measured — an arbitrary rowid set
   shipped through `json_each` — and it should not be read as "scoping is dead",
@@ -3959,7 +4057,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   single-server picture; the normal deployment is one zoteus per MCP client,
   ~690 MB whole-machine steady at two clients. Per process or per machine is
   the author's call; both figures stated in SPEC.md §5.2.9.
-- **The device ruling of 2026-08-29 rests on a premise that measurement voids.**
+- **The device ruling of 2026-08-29 rests on a premise that measurement voids
+  — resolved 2026-09-02: positive GPU detection, otherwise no device; see the
+  ledger entry above.**
   The ruling — the device is always `auto`, never a knob — was made on the
   reading that `auto` hands ONNX Runtime the whole provider list and that ORT's
   own fallback walks past a provider it cannot use, so no escape hatch is
@@ -4155,7 +4255,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   is not part of this question.
 
 - **§5.2.2's pragma order was corrected by an agent, on a measurement, with no
-  ruling first — ticket 0556, 2026-09-01.** The section said `PRAGMA
+  ruling first — ticket 0556, 2026-09-01 — resolved 2026-09-02: a proven
+  factual correction may land with its ledger record; see above.** The section said `PRAGMA
   auto_vacuum=INCREMENTAL` is a no-op "set any later" than the first table, and
   listed WAL first among the connection settings. Following that order loses
   incremental vacuum: `PRAGMA journal_mode=WAL` writes the database header too,
