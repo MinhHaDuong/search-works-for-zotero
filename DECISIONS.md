@@ -4946,8 +4946,9 @@ governance half of the merge-authority rule is the author's.** `AGENTS.md` now
 carries what is not in dispute: no merge before a review verdict is recorded on
 the pull request itself, a verdict quoted as received, an unreported reviewer
 leaving the branch BLOCKED rather than inferred, no finding attributed to a
-reviewer who did not make it, and no lane merging a pull request another lane is
-gating. What it deliberately does not say is who presses the button once a
+reviewer who did not make it, the reviewer posting its own verdict to the page
+with a waiting lead polling it, and no lane merging a pull request another lane
+is gating. What it deliberately does not say is who presses the button once a
 verdict exists.
 
 The occasion is measurable rather than argued. Of the five pull requests merged

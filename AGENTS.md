@@ -151,9 +151,9 @@ channel existed and was simply not used.
   rule it patches. It closes the routing defect behind the incident, since a
   reviewer subagent's completion notice reaches the session that launched it and
   nowhere else, so a lead waiting elsewhere can wait indefinitely on a verdict
-  that already exists. It also gives the verdict a
-  timestamped existence independent of any lane's report, which can be compared
-  against the merge time. The residual limit stands: with one account there is
+  that already exists. It also gives the verdict a timestamped existence
+  independent of any lane's report, which can be compared against the merge
+  time. The residual limit stands: with one account there is
   still no proof of authorship, so what this buys is that a verdict must exist
   on the page before a merge, not that the page establishes who wrote it.
 - **A lane does not merge a pull request another lane is gating.** The gate's
