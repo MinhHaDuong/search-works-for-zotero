@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs help upstream-status upstream-checkout upstream-catchup
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs fold-gate help upstream-status upstream-checkout upstream-catchup
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
@@ -23,6 +23,7 @@ help:
 	@echo "make progress    — the status page covers every requirement, and its bars match its rows"
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
+	@echo "make fold-gate   — R19: every token the query side produces is one the index can produce"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
@@ -98,6 +99,23 @@ tickets:
 # defect. Needs real history — the guard says so on a shallow checkout.
 ticket-logs:
 	python3 bench/check_ticket_logs.py
+
+# R19's gate, SPEC.md §5.2.8. Deliberately NOT a `check` prerequisite, for two reasons
+# that would each be enough on their own. It reads a BUILT checkout of the tree under test,
+# and `check` has to stay green on a machine that has none — a prerequisite that cannot look
+# would have to be waived, and a waiver is a green that means "we decided not to look".
+# And against stock at the reviewed SHA it is currently RED, for a real finding recorded in
+# bench/results/0578-fold-sweep/codepoints.json: wiring a known-red gate into the default
+# gate either paints `check` permanently red, which retires it, or forces that same waiver.
+# It also rewrites a committed artifact, which a nine-second pre-commit gate should not do.
+# The discipline `check` does carry is in tests/test_fold_sweep.py, which needs no checkout.
+#
+# Exit codes: 0 agreed, 1 misses recorded, 2 usage, 3 could not look (NOT-RUN, never green).
+FOLD_TREE ?= fork
+FOLD_OUTPUT ?= bench/results/0578-fold-sweep/codepoints.json
+
+fold-gate:
+	node bench/fold_sweep.mjs --fork "$(FOLD_TREE)" --output "$(FOLD_OUTPUT)"
 
 upstream-status:
 	@set -eu; \
