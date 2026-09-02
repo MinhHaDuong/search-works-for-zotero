@@ -9,6 +9,7 @@ Blocked-by: 0496
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-09-01T05:57Z claude note ruling 2026-09-01: the remote network embedder (embed on the GPU host, connect from the laptop) enters this ticket's execution-mode comparison as one more candidate — priced on library text crossing the network, GPU-host-off fallback semantics, and ownership; the adopt-by-copy path was ratified instead, DECISIONS.md 2026-09-01
+2026-09-02T05:08Z claude note RECAST by the 2026-09-02 ruling: the author ruled ONE copy of the model on the machine, per embedder generation, reversing the 2026-08-31 in-process ruling. This ticket stops being 'should there be a service' and becomes 'which of the five candidates owns it' -- the shape is already ruled (spawned child, singleton, idle-exiting, inside the data directory), the provenance is not. The first exit criterion is preserved rather than traded: no daemon, no supervisor, no OS facility, no change to the fast-install path. 0496's probe of Zotero 6012's inference runtime is now the only candidate that adds no process at all, which raises its value. X8 is not a blocker: its rule arbitrates the device in the embedder key, and a local endpoint on the same runtime and rung is neutral for vector identity.
 --- body ---
 ## Scope
 

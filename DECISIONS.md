@@ -2883,6 +2883,207 @@ the cheap one. Root cause of the whole class, for whoever writes the next
 entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
+**2026-09-02 — the writer leaves the query process, the fetcher stays its own,
+and the model is loaded once on the machine.** Three boundaries ruled in one
+sitting, from a conversation that started at the MCP surface and ended at the
+topology. They are recorded as three entries because they are separable and
+their justifications share no premise.
+
+**A — the conductor is its own process.** The write role — the reconcile tick,
+seg/1, every durable write, worker supervision — leaves the query-serving
+server. A P0 becomes a reader that cannot write, so the write-free query path
+stops being a discipline and becomes a property of the binary. The writer keeps
+the shape the role already had: spawned on demand, singleton held by the lease
+row, run-to-drain, exiting on pause, dying with the last P0. It is not a
+daemon, and the OS-facility question stays closed.
+
+`verification/SOLE-WRITER-0507.md`'s F2 named this move and SPEC.md §5.2.5 and
+§5.2.8 pre-authorized it — "the pre-authorized fallback is a dedicated writer
+process, not a re-ruling" — conditioned on the conductor-latency soak clause
+failing R6. It is ruled here on two motives that clause does not cover, so the
+pre-authorization is not what carries it.
+
+- **Fault isolation.** Upstream's #37 is the only live item on `SYNC.md`'s
+  tracker: a full-text build takes the server process down partway through
+  under Claude Desktop, cause unknown by the maintainer's own account,
+  mitigated by a hard refusal of the full-text pass under Electron. Splitting
+  cures no cause nobody has; it demotes a build crash from a search outage to a
+  pipeline outage — queries keep answering, status reports the pipeline down.
+  That benefit needs no diagnosis, which is why it can be ruled while the cause
+  is open.
+- **Structural write-freedom**, the conversion this repo has already valued
+  once in F5's terms: an instruction becomes a verified property.
+
+The soak's conductor-latency clause is demoted from trigger to confirmation.
+That is also the only order the work admits: the clause needs a built
+conductor, and ticket 0566 — which assembles tick, election, extract and
+chunk/embed into one runnable process — is where the boundary gets written in
+code. Ruling after the soak would mean building the fused form in order to take
+it apart.
+
+One clause deletes rather than moves: §5.2.5's fairness rule *inside* the
+conductor — the write loop stating the activity file and idling while it is
+fresh — existed only because one process both served and wrote. It collapses
+back onto the cross-process case, which already existed. One cost returns: the
+third process F2 priced. The lease survives in a simpler form, electing among
+writer candidates rather than among servers.
+
+**B — the pipeline worker stays a separate process, and its justification
+moves.** The boundary was defensible while the worker held the passage
+embedder; under C it no longer is, and it is ruled kept on what remains. F5's
+incremental decode of the 44,9 MB attachment is the design's other memory risk
+and it lives in the fetch path; fetch failure — the dropped connection, the
+truncated response, ticket 0569's family — is what a crash boundary is for. The
+2026-08-26 budget line, the embed worker killable and restartable at any time
+with zero index damage, survives in substance and is restated on the fetcher.
+
+**C — one copy of the model on the machine, per embedder generation.** This
+reverses the 2026-08-31 ruling recorded in `verification/SOLE-WRITER-0507.md`
+("it does not re-open the query embedder's location: in-process, per the
+author"). The reversal, not a gap, is what this entry records.
+
+The count today is not two but N+1: every P0 loads the query embedder
+in-process on first semantic use and the pipeline worker loads the same model
+for passages, so two MCP clients and a running build hold three resident
+copies. The seam moves out of process — `provider: local_endpoint`, which
+§5.2.5 already admits — as one shared singleton, spawned on demand and
+idle-exiting, the shape ruled for the writer in A and chosen for the same
+reason. No OS service, no supervisor, nothing outside the data directory, and
+no change to the fast-install path: those are R15's uninstall clause and ticket
+0491's first exit criterion, and both are kept rather than traded.
+
+"One copy" means one per embedder generation, not one object ever. §5.2.7
+admits two coexisting generations across a model switch and the service holds
+them under the same idle-eviction rule — which makes dual-embed cheaper than
+the in-process arrangement, where every P0 would pay for both.
+
+X8 is not in the way: its rule arbitrates the *device* in the embedder key, and
+a local endpoint on the same runtime and rung is neutral for vector identity.
+What is in the way is packaging and custody, which is 0491's subject.
+
+**The degradation rule, ruled with C because C is incomplete without it.** The
+query path now depends on a process it does not own. An embedding service that
+is unavailable or still loading degrades to labeled keyword-only — never
+silently, and never to an API embedder. Both halves already exist: R10's rule
+that a missing local runtime yields keyword-only and never an API embedder, and
+§5.2.6's labeled keyword-anchored fusion under memory pressure. R31's handshake
+is unchanged and was already specified to cross a process boundary.
+
+**What these rulings do not decide.** Which of ticket 0491's five candidates
+owns the service: the spawned child ruled here is its shape, not its
+provenance, and ticket 0496's probe of Zotero #6012's inference runtime remains
+the route that adds no process at all. Whether F1 survives: the pipeline
+ceiling's collision with the multilingual candidates came from the worker
+holding the model, so it may dissolve rather than be ruled, and that is a
+re-check rather than a claim. And the budget arithmetic itself — §5.2.9's
+figures are re-derived under the new process classes, not adjusted here.
+
+
+**2026-09-02 — the topology reviewed on the day it was ruled: two errors in the
+morning's entry corrected, and the mechanisms it left unstated ruled.** The
+entry above is ratified and stays as written; this one is the standing
+correction, in the ledger's own pattern. The author reviewed the four-role
+topology for what breaks, hangs, wastes, or misleads, and ruled the fixes.
+
+**Two things the morning's entry A got wrong.** The conductor is *not*
+run-to-drain and does *not* exit on pause. Both properties were the worker's,
+copied to the writer by mistake, and read literally they produce a spawn
+loop — a conductor that exits on an empty queue is re-spawned by the next
+server's election check ten seconds later, N times over, forever — and orphan
+the tick's removal branch, which §5.2.7 says pause never gates. The rule: the
+conductor lives while any P0 lives, because it owns the reconcile tick; the
+worker alone is run-to-drain; pause means zero workers, and the tick keeps
+running its removal branch. And a P0 *does* write: the pause row and the
+intent rows are control state, written by servers, in a table of their own,
+outside the commit guard and never derived. "Write-free" names the query path
+and the derived stores, not the binary; the stronger phrasing is withdrawn.
+
+**Lifetime has a mechanism, one per singleton.** "Dies with the last P0" was a
+promise without machinery, and the default outcomes on both sides are wrong: a
+child bound to its parent takes the service away from every other client
+mid-query, and a detached one is the daemon by accident. The conductor reads
+P0 liveness rows in the `leases` table — one per server, same idiom, same TTL —
+and exits when none is live. The embedding service counts its connections and
+exits when it has held none for a stated interval; it does not open the
+database at all. D3's ~60 s eviction applies to the *old generation* inside
+the service and never to the service itself: a service that idle-exited on
+that clock would reload the model for any user who queries every two minutes,
+and the "cold-load spike the machine takes once" is once per P0 lifetime, not
+once ever.
+
+**Singleton before model.** The service acquires its singleton *before* it
+loads a model, never after. Otherwise N servers starting together each spawn
+a service and the losers learn they lost after starting a 600 MB load — the
+one-copy rule violated in exactly the transient that costs.
+
+**The service can fail, and the failure must be visible and bounded.** A
+service that dies on load — the install-failure class of upstream's #38 —
+would otherwise be re-spawned by every semantic query, reading the model file
+from disk per query, with every answer labeled keyword-only and nothing to
+tell that label from "still loading". Ruled: spawn back-off and a quarantine
+for the service, the same shape as the extraction quarantine, and a status
+that distinguishes `loading`, `absent` and `failed` with a count. Labeled
+keyword-only may not become a permanent state that reads like a transient one.
+
+**Queries preempt passages inside the service.** One model serves both, so a
+query arriving mid-batch would wait up to one quantum (~1 s) during a build —
+R6's 700 ms preference violated for as long as any build runs, a contention
+the morning's ruling bought with the RAM it saved and did not name. Ruled: two
+lanes, queries preempt at batch boundary, the quantum bounds the wait, and
+§5.2.9's warm-query band carries a during-build term. §5.2.8's soak clause
+measures it.
+
+**Spawn priority does not inherit.** Only servers spawn the service, at normal
+priority; a service spawned by the `nice 19` worker would embed every query at
+idle priority.
+
+**No read transaction across an embedding call.** A server that opens its
+read and then waits on a cold service pins the WAL for the whole load, during
+a build, silently. Embed first; open the read after.
+
+**Bootstrap.** The lease lives in a file that does not exist on a fresh
+install, and the server no longer creates the schema. The first conductor
+creates an empty schema in a temporary file, renames it into place, and only
+then takes the lease and only then does any work; two conductors racing on a
+fresh install lose nothing, because neither has written a row before the
+rename decides.
+
+**The process boundary isolates memory only if something bounds the
+process.** B's justification — F5's incremental decode — is an instruction
+until the worker runs under a limit: a runaway decode otherwise eats the
+machine from a different pid. Ruled: the worker runs under a heap limit at
+minimum and a cgroup where the platform has one, and the RSS gate asserts that
+the worker is *killed* at the bound, not merely that its peak sat under it.
+
+**Transport.** Transport-neutral does not mean a localhost port: any local
+process could then impersonate the service to a server, echoing the expected
+fingerprint. The service listens on a Unix domain socket inside the data
+directory, with the file's permissions — the same gap §6 already names for the
+database file, now on a live socket — and the macOS socket-path length limit
+is a known hazard under the default data directory. Windows is named as the
+open platform question: `nice`, `SIGSTOP`, stdin-EOF and Unix sockets are
+POSIX assumptions, and the host population is Claude Desktop on macOS and
+Windows.
+
+**Two things demoted from ruling to probe, both before 0566 commits the
+boundary.** Whether Claude Desktop lets a server spawn a child at all, and
+under what environment (`process.execPath` under Electron is Electron, and a
+spawn without `ELECTRON_RUN_AS_NODE` launches a GUI): the isolation benefit of
+A exists only if the spawn works, and nothing has verified it. And the
+service's ceiling must be sized for two resident generations, since the
+dual-embed window is days long; a ceiling pinned at one model rules D3 out by
+arithmetic.
+
+**One reading corrected.** "Confirmation" for the conductor-latency clause
+does not mean optional. It still asserts R6's band during a build, and a
+failure there is no longer explicable by the topology — which makes it more
+serious, not less.
+
+**And one constraint on the surface question below.** Upstream's
+`action:"build"` must mean "nudge the tick" — idempotent and cheap — and never
+"re-derive everything": read the other way it is the bulk verb the awaiting
+entry forbids, already shipped under another name, and a model will call it.
+
 **2026-09-02 — Pack first, flat text as fallback: a mechanism under R24, not
 a requirement.** The author's ruling on the awaiting entry of the same date:
 "good place" for R24's rung, and no new R-item, because source selection is
@@ -2933,6 +3134,82 @@ question 1's gate: a pair cannot be tested while one rendering is never
 indexed. That half stays with questions 1 to 3 in tracker 0573.
 
 ## Awaiting ratification
+
+- **Which index and extraction actions `zotero_index` should carry, and whether
+  the chain's verb grammar still matches upstream's (raised 2026-09-02, the
+  conversation that produced that day's topology rulings).** Upstream already
+  dispatches `zotero_index` by action — `action:"status"` and `action:"build"`
+  are attested (`verification/SMOKE-1.10.0.md`, `UPSTREAM-1.12.0-REREAD.md`,
+  `SYNC.md` #39) — while SPEC.md §5.2.7 and §5.1 speak of verbs (`build`,
+  `pause`, `sync`, `purge`).
+
+  Enumerated 2026-09-02 from `src/tools/index-tool.ts:22` at the reviewed SHA
+  (`b05ed69`, v1.12.0), one dispatch table: `status | update | build | refresh
+  | stop`, with `library_type`/`library_id`, `limit` (can only lower the cap),
+  `own_words`, `fulltext`, `fulltext_max_chars`; the whole tool annotated
+  `readOnlyHint: false`, status included. `update` is the cheap one — the
+  `?since=` delta, a keys-only census for deletions, and a read of Zotero's
+  separate full-text sequence — and falls back to a full rebuild by itself
+  when a delta would be wrong. `build` is the whole-library rebuild, resuming
+  from a checkpoint where one exists, and it is also the only repair: an
+  unreadable index is `unlink`ed and recreated (`repair.ts:54`), as consent
+  (#21). `refresh` is `build` with `fresh: true`, always from scratch. `stop`
+  is `requestStop()` in memory: it cancels the running job after the current
+  page or batch, and `auto_build` on `zotero_semantic_search` restarts a build
+  on the next query against an empty index. Six gaps against the chain follow
+  from the list. (1) The review entry above named `build` as the verb that
+  must mean "nudge the tick"; the name was written before the list was read
+  and is wrong — `update` is the nudge, §5.2.4's `sync`, and `build` and
+  `refresh` are the two bulk verbs, shipped, which the tool's own description
+  spends a paragraph steering the model away from. The intent stands, the
+  name is corrected here. (2) `pause` does not exist: `stop` is not durable,
+  which is the §5.1 finding that made pause a row, so R22 has no upstream verb
+  and three of the chain's four verbs are design rather than surface. (3)
+  `build` deletes rather than sidelines on an unreadable index, where the
+  open-time schema mismatch sidelines (`SMOKE-1.10.0.md`) — two policies for
+  two faults, the second erasing evidence, to be read against R23. (4)
+  `refresh` on a model change is the start-over D3 serve-stale kills; under
+  the chain it is a key-bump that drains newest-first and drops nothing. (5)
+  Nothing is per item: every action is library-scoped, and `reextract` and
+  `unquarantine` have no shipped ancestor. (6) `fulltext` is a parameter of
+  the call, not a property of the index, so two calls with different flags
+  build different indexes; under R1 coverage belongs to the tick, not to the
+  caller.
+
+  What the topology rulings settle in advance: a P0 cannot enqueue work, so a
+  management action received by a server writes an *intent* row that the writer
+  drains, and the sole-writer rule needs no exception. What they do not settle
+  is the action set. The candidates are `status | start | stop | reextract |
+  unquarantine`, and three constraints bear on them. Surface economy: the
+  server already advertises 31 tools, and `zotero-mcp`'s own release notes make
+  a 62 → 37 tool reduction a headline (`verification/FIELD-REVIEW.md`), so an
+  action costs nothing where a top-level tool costs every client every turn.
+  R22: two switches lose the machine the user was trying to quiet, so `pause`
+  and any `stop` action must be one state, whatever the façades. And the
+  operator is a model rather than a person typing — `reextract` is the
+  expensive verb (a whole-document GET, the 44,9 MB case), which argues for
+  reads free, mutations per item, and never in bulk; `unquarantine` in bulk
+  would reopen exactly the mass-replay hole the quarantine auto-clear amendment
+  closed (§5.1).
+
+  One constraint is already ruled (the review entry above), and renamed by
+  the enumeration: the nudge — idempotent, cheap, never a re-derivation — is
+  `update`, not `build`; `build` and `refresh` are the bulk verbs this entry
+  forbids calling casually, and they are already shipped.
+
+  And the surface is negotiated, not ruled (author, 2026-09-02): what this
+  repo settles is the contract — durable pause, per-item repair, honest
+  status, no whole-library re-derivation without consent — and the verb names
+  are the maintainer's. Design-sized, so it travels as an issue he builds
+  himself (`GOVERNANCE.md`), inside scoped issue A (ticket 0033) rather than
+  as a filing of its own.
+
+  Two of the actions are not new features but existing holes: §5.2.8 already
+  declares work counters for triggers no verb produces (`re-extract`, `retry`),
+  and manual repair is option (iii) of the failed-work-order question below
+  (ticket 0569) — which has no verb today. So this entry and 0569 should be
+  ruled together, since option (i) there, stamping the census on completion,
+  would make `reextract` a convenience rather than a repair.
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
   0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The
