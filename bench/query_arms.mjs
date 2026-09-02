@@ -18,9 +18,18 @@
  * list, the terms the arm actually searched on, and whether the degeneracy floor fired.
  * The last two are recomputed from the arm's own exported `tokenize`/`pruneTerms` and the
  * droplist in `meta`, so they describe that arm and not an idealisation of it.
+ *
+ * Ticket 0541: that last sentence was not true. The fallback columns were computed by
+ * re-deriving the arm's rule from `MIN_MATCH_TERMS` and `isStopword`, two exports the r5
+ * arms dropped — so against an r5 arm the comparison read `kept.length < undefined` and
+ * every query reported "did not fall back". The probe now calls the arm's own `pruneTerms`
+ * and reads its OUTPUT, and refuses outright on an arm whose shape it cannot recognise;
+ * `bench/query_arms_lib.mjs` holds it, together with the `rbo`/`pct` helpers this driver
+ * used to keep its own copy of.
  */
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { makeArmProbe, pct, rbo } from './query_arms_lib.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((a, v, i, arr) => (v.startsWith('--') ? [...a, [v.slice(2), arr[i + 1]]] : a), []),
@@ -59,23 +68,16 @@ for (const arm of arms) {
   }
   const index = new SqliteSearchIndex({ embedder: null, logger: silent, path: indexPath });
   await index.open();
-  opened.push({ arm, index, tokenize: tk.tokenize, qt, isStopword: tk.isStopword });
-}
-
-/** What terms this arm will actually search on, and whether the floor fired. */
-function termsFor(a, q) {
-  const raw = [...new Set(a.tokenize(q))];
-  if (!a.qt) return { terms: raw, fellBack: false, pruned: [] }; // stock: tokenize already pruned
-  const predicate = a.isStopword ?? ((t) => droplist.has(t)); // PR A prunes by the list, PR B by the corpus
-  const kept = raw.filter((t) => !predicate(t));
-  const fellBack = kept.length < a.qt.MIN_MATCH_TERMS;
-  return { terms: fellBack ? raw : kept, fellBack, pruned: raw.filter((t) => predicate(t)) };
+  // Built here rather than at first use: an arm this driver cannot introspect must stop
+  // the run before any latency is measured, not produce a report with one hollow column.
+  const probe = makeArmProbe({ name: arm, tokenize: tk.tokenize, queryTerms: qt, isStopword: tk.isStopword }, droplist);
+  opened.push({ arm, index, probe });
 }
 
 const rows = new Map(); // `${arm} ${query}` -> record
 for (const a of opened) {
   for (const q of queries) {
-    rows.set(`${a.arm} ${q}`, { arm: a.arm, query: q, ms: [], ...termsFor(a, q) });
+    rows.set(`${a.arm} ${q}`, { arm: a.arm, query: q, ms: [], ...a.probe.termsFor(q) });
   }
 }
 
@@ -95,44 +97,6 @@ for (let pass = 0; pass <= repeat; pass++) {
   process.stderr.write(`pass ${pass}/${repeat}` + String.fromCharCode(10));
 }
 for (const a of opened) await a.index.close();
-
-/**
- * Rank-biased overlap: how much two ranked lists agree, weighted toward the top.
- *
- * Set overlap and strict ordered-equality were the two columns this reported before, and
- * between them they missed the thing a reader wants: neither says how much the ORDER moved.
- * Jaccard cannot see order at all, and ordered-equality is all-or-nothing, so a list with
- * two adjacent items swapped scores the same as one that is unrecognisable. The two also
- * track each other closely enough on real data to look like one column reported twice.
- *
- * RBO fixes both. It compares prefixes of increasing depth and discounts by p^(d-1), so a
- * disagreement at rank 1 costs far more than one at rank 20, and it is defined for lists
- * that do not hold the same items. p = 0.9 puts roughly 86% of the weight in the first ten
- * ranks, which is the part of a search result anyone reads.
- */
-const rbo = (a, b, p = 0.9) => {
-  const depth = Math.max(a.length, b.length);
-  if (!depth) return 1;
-  const A = new Set();
-  const B = new Set();
-  let sum = 0;
-  let weight = 0;
-  for (let d = 1; d <= depth; d++) {
-    if (a[d - 1] !== undefined) A.add(a[d - 1]);
-    if (b[d - 1] !== undefined) B.add(b[d - 1]);
-    let shared = 0;
-    for (const x of A) if (B.has(x)) shared++;
-    const w = Math.pow(p, d - 1);
-    sum += w * (shared / d);
-    weight += w;
-  }
-  return sum / weight;
-};
-
-const pct = (xs, p) => {
-  const s = [...xs].sort((x, y) => x - y);
-  return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null;
-};
 
 const out = {
   index: indexPath,
@@ -177,7 +141,16 @@ for (const arm of arms) {
     p50_ms: +pct(all, 0.5).toFixed(1),
     p95_ms: +pct(all, 0.95).toFixed(1),
     max_ms: +Math.max(...all).toFixed(1),
+    // How the fallback columns were obtained for THIS arm. A count means nothing without
+    // it: `tokenize-only` reports a structural zero, the `prune-terms-*` shapes report a
+    // measured one, and an arm whose shape could not be read never reaches this line —
+    // the run stops at open (ticket 0541).
+    probe_shape: opened.find((a) => a.arm === arm).probe.shape,
+    prune_predicate: opened.find((a) => a.arm === arm).probe.predicate_source,
     fellBack: rs.filter((r) => r.fellBack).length,
+    // r5 can answer with no terms at all. The pre-r5 rule could not reach that state, so
+    // there was no column for it and the queries that reach it looked like ordinary ones.
+    emptied: rs.filter((r) => r.emptied).length,
     // Which items came back, ignoring order.
     mean_jaccard_to_reference: ref.length ? +(jac / rs.length).toFixed(3) : null,
     // How much the ORDER agrees, weighted toward the top. The column Jaccard cannot give.
