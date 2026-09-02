@@ -219,10 +219,24 @@ paragraph silently.
 
 ## What would make this cheap to repeat
 
-Ticket 0181 proposes a standing guard that every external attribution carries a
-coordinate. This sweep supports it and adds one requirement the ticket did not
-have: **a coordinate must name a ref, not only a file and line.** Of the
-coordinates already in `SPEC.md`, the ones that survived contact were the ones
-carrying `77e2c4b`; the bare `file:line` citations had drifted by up to 180
-lines, and a guard checking only for the presence of a citation would have
-passed every stale claim in this register.
+Ticket 0181 would have made this a standing guard. It was closed as excess
+weight on 2026-08-31, on the ground that finding attribution sentences needs
+prose read for semantic intent, and that a hard fail on an uncited attribution
+"will be fought and then disabled" — the discipline kept instead in the review
+of text that leaves the repository. This sweep is evidence for that ruling
+rather than against it: the fifteen wrong claims share no vocabulary a grep
+could key on, and nine of them were correctly cited and simply expired, which
+no presence check can see.
+
+What the sweep does add is one line for that review, and it is cheap because it
+binds the citation rather than the sentence: **a coordinate must name a ref,
+not only a file and a line.** Every citation here that survived contact carried
+`77e2c4b`; the bare `file:line` ones had drifted by up to 180 lines. A reviewer
+who asks "at which commit?" catches both failure modes at once — the misreading
+and the expiry — where a reviewer who asks "is there a citation?" catches
+neither.
+
+The second line is for whoever next writes a paragraph of upstream facts. Pin
+per fact, not per paragraph, and split by standing. §5's opening list was
+pinned once at the top and honest about it, and it still stranded four facts
+silently, because a flat list cannot show a reader which member has moved.
