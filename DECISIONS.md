@@ -2979,6 +2979,112 @@ re-check rather than a claim. And the budget arithmetic itself — §5.2.9's
 figures are re-derived under the new process classes, not adjusted here.
 
 
+**2026-09-02 — the topology reviewed on the day it was ruled: two errors in the
+morning's entry corrected, and the mechanisms it left unstated ruled.** The
+entry above is ratified and stays as written; this one is the standing
+correction, in the ledger's own pattern. The author reviewed the four-role
+topology for what breaks, hangs, wastes, or misleads, and ruled the fixes.
+
+**Two things the morning's entry A got wrong.** The conductor is *not*
+run-to-drain and does *not* exit on pause. Both properties were the worker's,
+copied to the writer by mistake, and read literally they produce a spawn
+loop — a conductor that exits on an empty queue is re-spawned by the next
+server's election check ten seconds later, N times over, forever — and orphan
+the tick's removal branch, which §5.2.7 says pause never gates. The rule: the
+conductor lives while any P0 lives, because it owns the reconcile tick; the
+worker alone is run-to-drain; pause means zero workers, and the tick keeps
+running its removal branch. And a P0 *does* write: the pause row and the
+intent rows are control state, written by servers, in a table of their own,
+outside the commit guard and never derived. "Write-free" names the query path
+and the derived stores, not the binary; the stronger phrasing is withdrawn.
+
+**Lifetime has a mechanism, one per singleton.** "Dies with the last P0" was a
+promise without machinery, and the default outcomes on both sides are wrong: a
+child bound to its parent takes the service away from every other client
+mid-query, and a detached one is the daemon by accident. The conductor reads
+P0 liveness rows in the `leases` table — one per server, same idiom, same TTL —
+and exits when none is live. The embedding service counts its connections and
+exits when it has held none for a stated interval; it does not open the
+database at all. D3's ~60 s eviction applies to the *old generation* inside
+the service and never to the service itself: a service that idle-exited on
+that clock would reload the model for any user who queries every two minutes,
+and the "cold-load spike the machine takes once" is once per P0 lifetime, not
+once ever.
+
+**Singleton before model.** The service acquires its singleton *before* it
+loads a model, never after. Otherwise N servers starting together each spawn
+a service and the losers learn they lost after starting a 600 MB load — the
+one-copy rule violated in exactly the transient that costs.
+
+**The service can fail, and the failure must be visible and bounded.** A
+service that dies on load — the install-failure class of upstream's #38 —
+would otherwise be re-spawned by every semantic query, reading the model file
+from disk per query, with every answer labeled keyword-only and nothing to
+tell that label from "still loading". Ruled: spawn back-off and a quarantine
+for the service, the same shape as the extraction quarantine, and a status
+that distinguishes `loading`, `absent` and `failed` with a count. Labeled
+keyword-only may not become a permanent state that reads like a transient one.
+
+**Queries preempt passages inside the service.** One model serves both, so a
+query arriving mid-batch would wait up to one quantum (~1 s) during a build —
+R6's 700 ms preference violated for as long as any build runs, a contention
+the morning's ruling bought with the RAM it saved and did not name. Ruled: two
+lanes, queries preempt at batch boundary, the quantum bounds the wait, and
+§5.2.9's warm-query band carries a during-build term. §5.2.8's soak clause
+measures it.
+
+**Spawn priority does not inherit.** Only servers spawn the service, at normal
+priority; a service spawned by the `nice 19` worker would embed every query at
+idle priority.
+
+**No read transaction across an embedding call.** A server that opens its
+read and then waits on a cold service pins the WAL for the whole load, during
+a build, silently. Embed first; open the read after.
+
+**Bootstrap.** The lease lives in a file that does not exist on a fresh
+install, and the server no longer creates the schema. The first conductor
+creates an empty schema in a temporary file, renames it into place, and only
+then takes the lease and only then does any work; two conductors racing on a
+fresh install lose nothing, because neither has written a row before the
+rename decides.
+
+**The process boundary isolates memory only if something bounds the
+process.** B's justification — F5's incremental decode — is an instruction
+until the worker runs under a limit: a runaway decode otherwise eats the
+machine from a different pid. Ruled: the worker runs under a heap limit at
+minimum and a cgroup where the platform has one, and the RSS gate asserts that
+the worker is *killed* at the bound, not merely that its peak sat under it.
+
+**Transport.** Transport-neutral does not mean a localhost port: any local
+process could then impersonate the service to a server, echoing the expected
+fingerprint. The service listens on a Unix domain socket inside the data
+directory, with the file's permissions — the same gap §6 already names for the
+database file, now on a live socket — and the macOS socket-path length limit
+is a known hazard under the default data directory. Windows is named as the
+open platform question: `nice`, `SIGSTOP`, stdin-EOF and Unix sockets are
+POSIX assumptions, and the host population is Claude Desktop on macOS and
+Windows.
+
+**Two things demoted from ruling to probe, both before 0566 commits the
+boundary.** Whether Claude Desktop lets a server spawn a child at all, and
+under what environment (`process.execPath` under Electron is Electron, and a
+spawn without `ELECTRON_RUN_AS_NODE` launches a GUI): the isolation benefit of
+A exists only if the spawn works, and nothing has verified it. And the
+service's ceiling must be sized for two resident generations, since the
+dual-embed window is days long; a ceiling pinned at one model rules D3 out by
+arithmetic.
+
+**One reading corrected.** "Confirmation" for the conductor-latency clause
+does not mean optional. It still asserts R6's band during a build, and a
+failure there is no longer explicable by the topology — which makes it more
+serious, not less.
+
+**And one constraint on the surface question below.** Upstream's
+`action:"build"` must mean "nudge the tick" — idempotent and cheap — and never
+"re-derive everything": read the other way it is the bulk verb the awaiting
+entry forbids, already shipped under another name, and a model will call it.
+
+
 ## Awaiting ratification
 
 - **Which index and extraction actions `zotero_index` should carry, and whether
@@ -3005,6 +3111,11 @@ figures are re-derived under the new process classes, not adjusted here.
   reads free, mutations per item, and never in bulk; `unquarantine` in bulk
   would reopen exactly the mass-replay hole the quarantine auto-clear amendment
   closed (§5.1).
+
+  One constraint is already ruled (the review entry above): upstream's
+  `action:"build"` means "nudge the tick", idempotent and cheap, and never
+  "re-derive everything" — read the other way it is the bulk verb this entry
+  forbids, already shipped under another name.
 
   Two of the actions are not new features but existing holes: §5.2.8 already
   declares work counters for triggers no verb produces (`re-extract`, `retry`),

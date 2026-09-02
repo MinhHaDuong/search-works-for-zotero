@@ -1460,13 +1460,38 @@ queries and the pipeline worker's passages, so `provider: local_endpoint` is
 the installation default rather than a later option. The count it replaces was
 never two — a P0 loaded the query embedder on first semantic use and the worker
 loaded the same model for passages, so two clients and a running build held
-three copies. The service takes the writer's own shape below — spawned on
-demand, singleton, idle-exiting, inside the data directory — so no daemon,
+three copies. The service is spawned on demand, by a server and only by a
+server — a service the `nice 19` worker spawned would embed every query at
+idle priority — at normal priority, inside the data directory, so no daemon,
 supervisor or OS facility enters the registry contract, becomes a prerequisite
-for curated entries, or changes the fast-install path. The execution choice
-does not alter the selected entry. **Degradation is labeled, never silent**: a
+for curated entries, or changes the fast-install path. **It acquires its
+singleton before it loads a model, never after**: N servers starting together
+must not each start a load and then learn they lost. It never opens the
+database; it counts its connections and exits after holding none for a stated
+interval, which makes its lifetime the servers' lifetime rather than an idle
+clock — §5.2.7's ~60 s eviction is for the old generation inside it, and a
+service that exited on that clock would reload the model for anyone who
+queries every two minutes. It listens on a Unix domain socket inside the data
+directory carrying the file's permissions, not a localhost port, because any
+local process could otherwise impersonate it to a server while echoing the
+expected fingerprint (§6). The execution choice does not alter the selected
+entry.
+
+**Two lanes, queries first.** One model serves queries and passage batches,
+so a query arriving mid-batch would otherwise wait up to one quantum during a
+build. Queries preempt passages at batch boundary; the quantum bounds the
+wait, and §5.2.9's warm-query band carries that term. A server embeds *before*
+it opens its read transaction, never across the call — a read held through a
+cold load pins the WAL for the whole of it, during a build, silently.
+
+**Degradation is labeled, never silent, and never permanent in disguise**: a
 service unavailable or still loading yields keyword-only search, exactly as a
-missing local runtime does under R10, and never an API embedder. Two
+missing local runtime does under R10, and never an API embedder. A service
+that dies on load — the install-failure class of upstream's #38 — is not
+re-spawned by every semantic query: spawn backs off and then quarantines, the
+shape the extraction quarantine already has, and status distinguishes
+`loading`, `absent` and `failed` with a count, so the keyword-only label
+cannot read as a transient forever. Two
 generations may be resident across a model switch (§5.2.7); the service holds
 both under one idle-eviction rule instead of each process holding its own. The actual execution provider contributes to
 the vector fingerprint only when §5.3's X8 rule says its vectors are not
@@ -1489,11 +1514,16 @@ Only the conductor writes, and it is the only role that ever did.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
 default data directory (verified). Every P0 answers queries, as a WAL reader on
-a query path that is write-free **because the process cannot write** — the
-write role is not compiled into it — rather than by discipline. The conductor
-is a process of its own, not a P0 wearing a second hat, and it is spawned on
-demand by whichever server finds the lease unheld, holds it through
-a lease row:
+a write-free query path, and the write role is not compiled into it: what a
+server writes is **control state and nothing else** — the pause row, intent
+rows, its own liveness row — in a table of its own, outside the commit guard,
+never derived. The conductor is a process of its own, not a P0 wearing a
+second hat. It is spawned by whichever server finds the lease unheld, and it
+lives while any server lives, because it owns the tick: each P0 keeps a
+liveness row in the same `leases` table on the same TTL, and the conductor
+exits when none is live — not when its queue empties, which would have the
+next election check re-spawn it ten seconds later, N times over, forever. It
+holds its role through a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
     WHERE name='conductor' AND (holder=:uuid OR expires_at < :now)
@@ -1502,10 +1532,19 @@ The holder is a UUID, not a recyclable pid. A lockfile was rejected because
 lockfiles go stale exactly when their holder dies. Lease timing: TTL = 2×
 heartbeat (20 s), an election-check cadence of 10 s in every server, and a
 migration gate < TTL + cadence = 30 s. The constants satisfy their own
-gate. The conductor runs the reconcile tick and owns at most one pipeline
-worker (`nice 19`), so the pipeline does not multiply with N. The worker is
-run-to-drain: spawned when the ledger queues hold work, it drains them and
-exits, so steady state contains no pipeline worker. The queues are ledger
+gate. On a fresh install the lease
+lives in a file that does not yet exist and no server creates the schema: the
+first conductor writes an empty schema to a temporary file, renames it into
+place, and only then takes the lease and only then works, so two conductors
+racing on a fresh install lose nothing — neither has written a row before the
+rename decides. The conductor runs the reconcile tick and owns at most one
+pipeline worker (`nice 19`), so the pipeline does not multiply with N. The
+worker is the one run-to-drain role: spawned when the ledger queues hold
+work, it drains them and exits, so steady state contains no pipeline worker
+and does contain the conductor. The worker runs under a heap limit at minimum
+and a cgroup where the platform has one, because a process boundary isolates
+memory only if something bounds the process — otherwise a runaway decode eats
+the machine from a different pid, and F5's clause stays an instruction. The queues are ledger
 queues still — keyed, idempotent derivations — but the boundary between chunk
 and embed survives as a **write ordering** rather than a process boundary:
 the conductor segments, and an item's slabs, entries and passages are durable
@@ -1845,8 +1884,9 @@ for the author to veto.
 
 **R22 — pause stays paused.** One meta row, written by `pause`, read before
 any scheduling decision. It gates worker spawn (a paused pipeline is zero
-processes: drain, then shut down, a #6012 pattern), the tick's build side,
-and `auto_build`
+workers — drain, then shut down, a #6012 pattern — while the conductor stays
+for the tick's removal branch, which pause never gates), the tick's build
+side, and `auto_build`
 (verified: today any query against an empty index starts a build). It does
 not gate queries, the probe, deletions, or explicit verbs (`build` while
 paused asks). It survives restart by construction, and survives *sideline*
@@ -1864,8 +1904,9 @@ labeled keyword-anchored fusion. Two resident models (~240 MB + 70 +
 lazy-loading keeps the budget honest — and it is now paid once for the
 machine rather than once per process, since both generations are resident in
 the one embedding service (§5.2.5). The cold-load spike this rule discloses
-is correspondingly a spike the machine takes once, not one every server takes
-on its own first semantic query. At most two generations coexist; worst-case
+is correspondingly a spike the machine takes once per service lifetime — the
+servers' lifetime, §5.2.5 — not one every server takes on its own first
+semantic query, and not one per idle minute. At most two generations coexist; worst-case
 storage is 2× the sidecar, disclosed.
 The *small PR* version of D3 is narrower: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is
@@ -2014,7 +2055,10 @@ the two outcomes apart.
   is §5.2.9's to re-derive, and this gate asserts whatever that section says
   for all four roles rather than carrying its own copy. The embedding service
   is the class the gate did not have, and it is the only one that holds a
-  model.
+  model; its ceiling is sized for two resident generations, since the
+  dual-embed window is days long and a ceiling at one model rules D3 out by
+  arithmetic. And for the worker the gate asserts the **kill**, not the peak:
+  a decode driven past the bound must end the worker, not the machine.
 Every gate below is decided at one of two levels, and the relation between them
 is calibration rather than coverage. The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
@@ -2069,7 +2113,9 @@ is the pattern, and it binds every surrogate here, not only that one.
   clause could not have gated it in any case, since it needs a built conductor
   and the boundary is written before one exists. It keeps its subject: the
   writer and the queries are on separate processes and this measures that the
-  separation delivers, against a machine whose cores they still share.
+  separation delivers, against a machine whose cores they still share. A
+  confirmation is not optional: a failure here is no longer explicable by the
+  topology, which makes it more serious than it was, not less.
   **The service clause**, added with that topology: the same p95 while the
   embedding service is cold, so the degradation §5.2.5 states — labeled
   keyword-only, never a silent wait — is measured rather than asserted.
@@ -2214,7 +2260,11 @@ the budget (the lazy-load rule, §5.2.7).
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion, which is where R6's two numbers go —
 ≈ 300–700 ms in the ordinary case, against the 3 s it promises never to exceed.
-Unchanged, and now without the hidden second scan (§5.2.6).
+Without the hidden second scan (§5.2.6), and with one term the shared model
+adds during a build: up to one quantum of wait behind a passage batch, bounded
+by the query lane's preemption at batch boundary (§5.2.5) — the contention the
+one-copy rule bought with the RAM it saved, named so the soak measures it
+rather than discovers it.
 
 ---
 
@@ -2434,11 +2484,16 @@ worker, one embedding service. Three of them are new as a surface, because a
 role that used to live inside a server now answers another process. Query text
 reaches the embedding service on every semantic query and passage text reaches
 it on every batch; work orders and intent pass between the servers and the
-writer through the database file. What none of this states yet: the transport
-each hop uses, whether it is reachable by anything but the processes the design
-names, and what authenticates a caller. The stdio pipe between the conductor
-and its worker is the one hop the design does name. This is silence about a
-surface that did not exist before the topology changed, reported as silence.
+writer through the database file. Two hops are named: the stdio pipe between
+the conductor and its worker, and the embedding service's Unix domain socket
+inside the data directory, chosen over a localhost port because a port lets
+any local process impersonate the service to a server while echoing the
+expected fingerprint (§5.2.5). What that socket inherits is the file's
+permissions, which is the same "none yet" as the database file's, now on a
+live endpoint. What is not stated: any authentication beyond that, and the
+whole of the Windows answer, since `nice`, `SIGSTOP`, stdin-EOF and Unix
+sockets are POSIX assumptions and the host population is Claude Desktop on
+macOS and Windows.
 
 **Query and status tools.** These are MCP tools. The only transport the design
 names is a stdio pipe between the conductor and its worker, with one zoteus per
@@ -2513,7 +2568,7 @@ sets are the author's own research questions.
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
-| Inter-process transport and authorization | Not stated beyond the conductor/worker stdio pipe; new with the 2026-09-02 topology (§5.2.5) |
+| Inter-process transport and authorization | Conductor/worker stdio pipe; embedding service on a Unix socket in the data directory with the file's permissions, no further authentication; Windows unanswered (§5.2.5) |
 
 Four of the nine rows state an absence rather than an answer. That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
