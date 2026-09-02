@@ -7,9 +7,9 @@ filed — seg/1 and the embed-cap guard built on the fork leaving 0028 open
 only for X5, 0026 split into 0578–0582 as a tracker, 0180's attribution audit
 closed (`verification/ATTRIBUTION-AUDIT-0180.md`), 0489 closed on the fork
 branch `t0489-minilm-singleton-entry`, ticket citations repointed to
-`SPEC.md`, the full-text control plugin built; PR #187 — the target-neutral
-acceptance-harness ruling, gate
-APPROVED — held open for the author's ratification).*
+`SPEC.md`, the full-text control plugin built, and PR #187 merged — the
+target-neutral acceptance harness ratified in `DECISIONS.md`, 0578 rescoped
+onto it).*
 
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
@@ -41,14 +41,13 @@ would show up in a diff sent upstream.
 
 ## Handoff
 
-**PR #187** drafts the target-neutral acceptance-harness ruling under
-`DECISIONS.md`'s awaiting list and rescopes 0578 onto it; gate APPROVED, left
-unmerged pending the author's ratification — at merge, resolve
-`DECISIONS.md`'s tail as a union with `origin/main`. **Ready now**: 0578
+**PR #187 merged 2026-09-02**: the target-neutral acceptance harness is
+ratified (`DECISIONS.md`, 2026-09-02 entry) and 0578 is rescoped onto it —
+no open PR remains. **Ready now**: 0578
 (goal-1 gates — the assertion layer and the zoteus adapter first), 0490 and
 0575 (unblocked by 0489's close), 0565 (unblocked by seg/1), 0554 (rescoped,
-branches from the fork's conductor-integration). **Awaiting the author**: PR
-#187's ruling; `DECISIONS.md`'s awaiting-ratification list, where the
+branches from the fork's conductor-integration). **Awaiting the author**:
+`DECISIONS.md`'s awaiting-ratification list, where the
 `zotero_index` action set and 0569's retry policy gate the conductor lane;
 two README calls recorded in ticket logs — 0578's R15 goal-1-cell address,
 0582's absent `Blocked-by`. `SPEC.md` §4 and §5.1 still count the topology at
