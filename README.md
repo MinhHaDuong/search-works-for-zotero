@@ -94,13 +94,13 @@ always means *holds on stock upstream*, never *we wrote it*.
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-10 measured · 9 read in the source · 5 inferred
+10 measured · 10 read in the source · 4 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-four\*, ten\* rest on an experiment or a test that ran, nine\* on
-opening the upstream source at the reviewed baseline, and five\* on nothing
+the twenty-four\*, ten\* rest on an experiment or a test that ran, ten\* on
+opening the upstream source at the reviewed baseline, and four\* on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
 was checked from one that was argued.
@@ -329,7 +329,7 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R3 | The cost of staying current MUST be proportional to what changed, never to the size of the library | ratified | partial | code | Updates ride a version watermark, so a resync no longer rebuilds the library. Invalidation is still per item, not per item and stage. The counter-churn clause merged in on 2026-08-31 is the better-off half: the full-text sequence is read as its own cursor, which removes the known cause, and nothing yet proves the absence because the counters that would prove it are R17's. |
-| R35 | The system MUST notice a new, changed or deleted item within one minute, without anyone asking | ratified | partial | inferred | The machinery to notice a change exists upstream: incremental updates ride a library version cursor (SYNC.md records the commit that added them), and deletion reconciles against the key set. What does not exist is the minute. Nothing here has established how often the update path runs, and no latency has been measured or read at source, which is why this row is `inferred` where R3's neighbouring row is `code`. Ticket 0503 settles it. On our side the reconcile tick's cadence is what delivers the minute, and deletion subtraction moved from every tenth tick to every tick to meet it (SPEC.md §5.2.4). |
+| R35 | The system MUST notice a new, changed or deleted item within one minute, without anyone asking | ratified | partial | code | The machinery to notice a change exists upstream: incremental updates ride a library version cursor (SYNC.md records the commit that added them), and deletion reconciles against the key set. What does not exist is the clock, and that is now read rather than guessed. Upstream's whole update path has a single entry point and a single call site, reached only when an MCP caller passes `action:"update"`; no timer, Zotero event, watcher, stream, startup hook or deployment schedule starts it, and a query starts a first build on an empty index but never an update on a populated one. Every file and line is in `verification/UPSTREAM-DISCOVERY-0503.md`, where each nil is earned against a control that fired. So the clause "without anyone asking" is met by nobody upstream: the mechanism is there and the cadence is ours. The minute rests entirely on our reconcile tick, where deletion subtraction moved from every tenth tick to every tick to meet it (SPEC.md §5.2.4). The row stays `code` and not `measured` because neither latency has been measured on the reference machine yet; ticket 0503 stays open for that half. |
 
 ### Corpus
 
