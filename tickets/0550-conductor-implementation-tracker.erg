@@ -13,6 +13,8 @@ Author: minh
 2026-09-02T05:08Z claude note THE TOPOLOGY IS RE-CUT (DECISIONS.md 2026-09-02): the writer leaves the query process, the pipeline worker stays separate on a new justification, and the model is resident once on the machine behind an embedding service. This tracker's frontier is no longer 'conductor inside a P0'. The ticket this bites hardest is 0566, which assembles tick+conductor+extract+chunk/embed into ONE runnable process: that assembly is now the writer process, not a role a query-serving server takes on, and the boundary must not be settled by default in code. 0554's embed worker loses the model it was scoped around -- embedding is a call to the service, and the worker's peak is a batch plus the streamed decode.
 2026-09-02T07:08Z claude note bump verify-reroll — round 1: E1/E2 MISSING — SPEC.md not fully edited to match the 2026-09-02 rulings: :1513 sole-writer sentence contradicted the control-row exception three lines below; the P0 glossary entry, the R31 handshake paragraph and §4 C3 still asserted the pre-ruling topology (conductor elected from P0, model in the worker). Reconciled in the fix round.
 2026-09-02T10:48Z claude note THE LANE IS RECONCILED WITH THE 2026-09-02 TOPOLOGY, which until now lived in this tracker's log and in the children's logs while their bodies still described the old shape. Three tickets filed: 0575 owns the embedding service boundary (ruled shape, open provenance -- not Blocked-by 0491, and its body argues why from the ruling's own words and 0491's first exit criterion), 0576 and 0577 are the two probes the ruling demands before 0566 commits the boundary. Bodies rescoped: 0554 (the embed worker holds no model, calls the service, runs under nice 19 and a heap limit, and never spawns the service) and 0566 (the assembly is the writer, the conductor is not run-to-drain, the bootstrap and the pause rule are Actions). Children and exit criteria updated here
+2026-09-02T11:03Z bump verify-reroll — round 1: SPEC.md's two residual "two OS processes" sentences (lines 972, 1013) are untracked -- no ticket, no DECISIONS.md entry owns fixing them post-merge
+2026-09-02T11:06Z The two residual "two OS processes" sentences in SPEC.md (§4's concurrency hint and §5.1's carried-over list) are now tracked here as an exit criterion: one SPEC.md pass re-cuts both to the ruled four-role topology
 --- body ---
 ## Context
 
@@ -76,7 +78,7 @@ test suite stays green on the fork branch.
 
 - [ ] All five children closed (0551-0555; 0556 is not a tranche, see
       Children)
-- [ ] The 2026-09-02 topology is carried in the children's BODIES and not
+- [x] The 2026-09-02 topology is carried in the children's BODIES and not
       only in their logs: the writer as its own process (0566), a worker
       that holds no model and runs under a bound (0554), and an owner for
       the embedding service boundary (0575)
@@ -86,4 +88,8 @@ test suite stays green on the fork branch.
       workaround
 - [ ] Integration review: full suite on the fork's assembled branch,
       scheduling properties green, byte-identical vector check green —
-      the last of which had no test at all until 0554 built one (0568)
+      the last of which had no test at all until 0554 builds one (0568)
+- [ ] SPEC.md's two residual "two OS processes" sentences are re-cut to
+      the ruled four-role topology: §4's concurrency hint and §5.1's
+      carried-over list. Both in ONE SPEC.md pass, owned by this tracker
+      (sections, not line numbers — those drift)
