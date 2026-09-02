@@ -11,6 +11,7 @@ Author: claude
 2026-09-01T14:03Z claude note propagated: SPEC.md 5.2.2 (heuristics, entry arithmetic, fallback), the glossary entry for seg/1, SPEC.md 5.3's X5 rule and 5.4 risk 1, ticket 0025's X5 line and substrate map, ticket 0028's exit criteria. ONE QUESTION LEFT TO THE AUTHOR, not decided here: whether >= 45/50 is still the right bar for X5 now that ground truth is a book's own table of contents rather than a human with a printed dictionary. The number is carried over unchanged with an inline note saying so. RSS-fixture sites verified untouched by diff inspection -- no removed line names the 2 084,9 MiB class, the 15 000-page PDF, the RSS gate or X3a
 2026-09-01T14:22Z claude bump circuit-breaker — execute agent (adc3d0972dc23c4c8) stalled in a bash sleep loop after its own 5-dimension review batch completed; killed after confirming clean worktree (nothing to salvage, PR #157 branch t0502-books-proceedings-ruling already had everything it pushed). Review findings posted to PR #157 as a comment instead of being lost with the agent
 2026-09-02T07:28Z claude note first blocking item ruled by the author 2026-09-02 (DECISIONS.md): the synthetic fallback is one constant, ~12k tokens, for every class; ~6k retired, the deferral to X5 deleted. Propagated to SPEC.md 5.2.2 and exit criterion 3 here. The second item, X5's TOC circularity, is next
+2026-09-02T07:39Z claude note second blocking item ruled by the author 2026-09-02 (DECISIONS.md): X5 scores against the embedded outline with the outline tier held out, both paths measured, 50 cuts per class at 45/50, verdicts never pooled, the primary class and the dictionary gating. Propagated to SPEC.md 5.2.2 (PDF-path paragraph), 5.3, 5.4 risk 1, tickets 0025 and 0028, and exit criterion 4 here. Both blocking items closed; the bar number is settled with the second
 --- body ---
 ## Context
 
@@ -79,8 +80,10 @@ hit takes the fixture with it.
       samples accepted boundaries and cannot measure a fallback)
 - [x] X5's corpus and ground truth restated in §3 and ticket 0025, with the
       bar's number put to the author rather than carried over
-      (SPEC.md 5.3 and 5.4 risk 1; >= 45/50 flagged in place as carried over
-      pending the author -- NOT re-set by inference)
+      (ruled 2026-09-02, DECISIONS.md: ground truth is the embedded outline
+      with the outline tier held out, both paths measured, 50 cuts per class
+      at 45/50, verdicts never pooled, primary and dictionary arms gating;
+      SPEC.md 5.2.2 gained the PDF path's paragraph so 5.3 can name its tier)
 - [x] 0028's exit criteria repointed
 - [x] the RSS-fixture sites verified untouched, by name: §1, §2.8, X3a, R-scale
       (no removed line in the diff names the 2 084,9 MiB class, the 15 000-page

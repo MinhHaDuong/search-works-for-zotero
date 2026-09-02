@@ -65,14 +65,15 @@ provenance, per house rules.
   machinery (0034) and X3b travels with it, not with a pre-RFC ticket.
 - X4 json_each constrained-MATCH cost at 1k/5k/20k/100k rowids on the 477k
   corpus, for the query-semantics work riding scoped issue A (0033).
-- X5 segmenter seg/1 over books and proceedings from the real library -- the
-  primary target class per the 2026-08-31 ruling (built by 0028). Ground truth
-  is each document's own table of contents, mechanical rather than a human with
-  a printed book; the dictionary stays in the sample as the rare case, scored
-  the old way, and the verdict is read per class. The bar itself is SPEC.md
-  5.3's and is not restated here: its form survives the ruling, its number was
-  set against harder ground truth and is carried over unchanged pending the
-  author. GATES scoped issue B (0034).
+- X5 the segmenter as shipped, both paths (seg/1 built by 0028, the PDF path
+  by 0557), over the real library, one arm per document class: books and
+  proceedings (primary), the dictionary (rare case), the signed encyclopedia,
+  the numbered report, the thesis. 50 cut points per arm. Ground truth is the
+  document's embedded outline with the outline tier held out, scored by page
+  through pdf.js independently of the segmenter; human scoring where no
+  outline exists. Never the printed table of contents, which seg/1 consumes.
+  Bar per arm, never pooled: SPEC.md 5.3's 45/50. The primary class and the
+  dictionary GATE scoped issue B (0034); the other three arms are reported.
 - X6 version-0 dynamics: re-extract one attachment on a synced and a
   never-synced profile; watch the census and the item version. Rule: if
   re-extraction re-stamps 0, build the bounded re-verify sweep; if anything

@@ -1319,8 +1319,27 @@ what sets a structureless document's share of the candidate pool: a 100k-token
 book contributes at most eight entries. The dictionary's ~6k calibration is
 retired with it.
 
-The segmenter is the design's biggest unmeasured bet; experiment X5 gates it
-(§5.4, risk 1).
+**The PDF path.** For an attachment at or above a page threshold, the
+segmenter reaches for the PDF file itself, through the local API's file-view
+redirect, and hands it to a vendored `pdf.js` segmenter returning title,
+author and page range per entry, front and back matter included. Two tiers,
+in order: the embedded outline — the bookmark tree — which returns page
+targets directly and needs no fuzzy matching; absent that, a layout heuristic
+on `pdf.js`'s own positioned text, font size, weight and position per run,
+which does not depend on a language's capitalization convention and so is
+expected to generalize past English where seg/1's case-shape signal does not.
+There is no third, PDF-side fixed-size fallback: when both tiers come up
+empty, and whenever the PDF cannot be reached — a linked attachment whose
+target moved, a permission error, a file the local API cannot serve — control
+falls through to seg/1 above, which owns the confidence-gated synthetic
+entries. The length trigger is itself a fallback chain: Zotero's
+`indexedPages` or a literal page-break count first, a character-count
+estimate when neither is available, so the gate degrades to an estimate rather
+than never firing. The byline layer is separate work on top of whichever tier
+locates the boundary.
+
+The segmenter is the design's biggest unmeasured bet — the layout tier and
+seg/1 alike; experiment X5 measures both (§5.4, risk 1).
 
 #### 5.2.3 Discovery order: three priority classes, newest first inside each
 
@@ -2261,22 +2280,28 @@ Unchanged, and now without the hidden second scan (§5.2.6).
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against C3's pipeline rule, travels with the entries machinery (scoped issue
   B).
-- **Segmenter — X5 gates scoped issue B.** Corpus and ground truth both follow
-  the 2026-08-31 ruling. Run seg/1 over **books and proceedings** from the real
-  library — the primary target class — and sample 50 cut points uniformly at
-  random (seeded, recorded) from accepted entry boundaries. Score them against
-  each document's **own table of contents**, which is mechanical ground truth
-  for the cut set seg/1 should have produced. That is where the ruling makes
-  the work cheaper: hand-scoring against a printed dictionary needed a human
-  with the physical book. The dictionary keeps a place in the sample as the
-  rare case, scored the old way, and its verdict is read per class rather than
-  pooled. Rule: ≥ 45/50 correct ships the entry story; 40–44 raises the
-  confidence gate and re-runs; < 40 means synthetic entries carry the corpus,
-  labeled. **The bar's number is carried over unchanged, pending the author.**
-  Its form survives the ruling — a fraction out of a sample of 50 — but the
-  number was set against ground truth that needed a human, and mechanical
-  ground truth is easier to score against. Whether ≥ 45/50 is still the right
-  number is the author's to settle; it is not raised here by inference.
+- **Segmenter — X5 gates scoped issue B.** X5 measures the segmenter as
+  shipped, both paths, and its ground truth is held out of the thing it
+  scores. Corpus: the real library, one arm per document class — books and
+  proceedings, the primary class; the dictionary, the rare case; and the
+  signed encyclopedia, the numbered technical report and the thesis, the
+  classes the acceptance test names. Each arm samples 50 cut points uniformly
+  at random (seeded, recorded) from that arm's accepted entry boundaries.
+  Ground truth: where a document carries an embedded outline, the outline's
+  page targets. The segmenter runs with its outline tier disabled on such a
+  document, so the layout tier and seg/1 are what get scored; seg/1 keeps its
+  contents-list signal, because parsing the list is necessary but not
+  sufficient — the cut must land on the outline's page, and the scorer locates
+  a cut's page through `pdf.js` independently of the segmenter's own page
+  estimate. Where a document carries no outline — the scanned books, the
+  dictionary — a human scores the cut against the book. What is *not* ground
+  truth: the document's own printed table of contents, which seg/1 consumes, so
+  a score against it would certify parsing the list rather than finding the
+  boundaries. Rule, per arm: ≥ 45/50 correct ships the entry story for that
+  class; 40–44 raises the confidence gate and re-runs; < 40 means synthetic
+  entries carry that class, labeled. Verdicts are never pooled. The primary
+  class and the dictionary gate scoped issue B; the other three arms are
+  measured and reported, not gating.
 - **Cross-provider fidelity — X8 decides where the device lives.** Same model,
   same rung, the GPU provider's vectors scored against the CPU provider's over
   the fidelity probe corpus; the cells ride the 0264 GPU arm, at every rung
@@ -2320,14 +2345,14 @@ deletions, and the "contained" D3 PR as first proposed.
 
 **Risk 1 — the segmenter is unmeasured, and everything downstream inherits
 it.** Entry collapse, locators, dedup, the golden re-pin, and the long-document
-arithmetic all stand on seg/1's error rate over flat `/fulltext` text, and
-seg/1 has never touched a real extraction of its primary class — books and
-proceedings, per the 2026-08-31 ruling. Its failure mode is
+arithmetic all stand on the segmenter's error rate — the PDF path's layout
+tier and seg/1's flat-text heuristic alike — and neither has touched a real
+extraction of its primary class, books and proceedings. Its failure mode is
 *silent plausible-looking entries*: wrong citeable locators and wrong dedup
 units, worse than honest synthetic ones. *Falsifier:* X5, scoring cuts against
-each document's own table of contents, before scoped issue B claims numbers;
-the ruling made that scoring mechanical, so the falsifier is cheaper than the
-half-day it was priced at against a printed dictionary. Below acceptable
+each document's embedded outline with the outline tier held out — mechanical
+where an outline exists, human where it does not — one arm per class, before
+scoped issue B claims numbers. Below acceptable
 precision the design degrades gracefully to labeled synthetic entries: the
 contract survives; the chapter-as-peer story does not.
 

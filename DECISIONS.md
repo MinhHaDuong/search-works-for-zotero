@@ -3416,3 +3416,57 @@ failure branch has synthetic entries carrying the whole corpus, so this
 constant is the answer unit for every document without readable structure.
 Propagated in the same change, on ticket 0502's branch. The second blocking
 item, X5's table-of-contents circularity, is ruled separately.
+
+**2026-09-02 — X5 scores against the embedded outline with the outline tier
+held out; 50 cuts per class at 45/50, never pooled.** Ruled on the second of
+the two blocking items on ticket 0502's merge request (#157), the red-team's
+circularity finding. The propagation had made the printed table of contents
+both seg/1's answer key (§5.2.2 collects candidates from it and validates the
+cut set against it) and X5's ground truth (§5.3 scored the sampled cuts
+against it). For a document with a parseable contents list, a passing score
+then certified that seg/1 found and parsed the list, not that the signals
+replacing the rhythm statistic locate boundaries; documents without a list had
+no ground truth and dropped out of the sample. Two facts sharpened it. The
+"mechanical ground truth" the 2026-08-31 entry claimed was not mechanical: a
+contents list gives titles and printed page numbers, scoring a cut needs the
+body location of each title, and computing that is the alignment seg/1 itself
+performs — the alternative, comparing pages, needs the cut's exact page, which
+page breaks give on only about 55 % of the caches. And the ground had moved:
+since the 2026-09-01 ruling seg/1 is the fallback, the PDF path's layout tier
+is the design's biggest unmeasured bet, and X5 as written measured the
+fallback on the class the fallback mostly does not see.
+
+The author ruled the third of four alternatives argued. X5 measures the
+segmenter as shipped, both paths. Ground truth is the PDF's embedded outline —
+exact page targets, independent of the printed contents list and of the
+layout heuristic — with the segmenter's outline tier disabled on
+outline-bearing documents, so the layout tier and seg/1 are what get scored.
+seg/1 keeps its contents-list signal: parsing the list is necessary but not
+sufficient, the cut must land on the outline's page, and the scorer locates a
+cut's page through pdf.js independently of the segmenter's own estimate.
+Documents without an outline, the scanned books and the dictionary, keep human
+scoring. Sample: 50 cut points per class, one arm each for books and
+proceedings, the dictionary, the signed encyclopedia, the numbered report and
+the thesis — the acceptance statement's own list — with the same bar in every
+arm, 45/50 read as 90 % per class, which settles the bar-number question the
+propagation had left open; verdicts are never pooled. The primary class and
+the dictionary gate scoped issue B; the other three arms are measured and
+reported, not gating.
+
+Rejected: keeping X5 and restating it as a contents-alignment measurement (no
+new work, a field-defined task with real error, but the harder half stays
+unmeasured and the scoring stays circular or human); holding out the contents
+list instead (kills the circularity but measures a configuration that does not
+ship, and the field review's strongest finding, the list as an active search
+constraint, is then measured nowhere); folding X5 into the acceptance test
+(measures what ships on the corpus that matters, but human scoring across five
+classes, and it widens the gate scoped issue B waits on). The coverage of the
+ruled option depends on born-digital PDFs carrying outlines, and the scorer
+needs pdf.js to locate a cut's page — new tooling for the experiment, owned by
+ticket 0025.
+
+Propagated on ticket 0502's branch: SPEC.md §5.3's X5 rule, §5.4 risk 1, and
+tickets 0025, 0028 and 0502. §5.2.2 gained a paragraph describing the PDF path
+as the system — the 2026-09-01 ruling had reached the ledger and ticket 0557
+but not the specification, and §5.3 cannot name a tier the spec does not
+describe; ticket 0557's children own whatever more that section needs.

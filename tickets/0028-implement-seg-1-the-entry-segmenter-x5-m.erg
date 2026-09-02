@@ -51,8 +51,9 @@ panel/cycle2/review-political.md).
       headword rhythm/MAD statistic is built only as the dictionary's special
       case, never applied to the primary class
 - [ ] deterministic on fixture text; identity string (seg/1) for the chunker key
-- [ ] X5 (0025) can consume it on the author's machine, over books and
-      proceedings scored against their own tables of contents
+- [ ] X5 (0025) can consume it on the author's machine: one arm per class,
+      scored against each document's embedded outline with the outline tier
+      held out, never against the printed contents list (SPEC.md 5.3)
 - [ ] the embed path asserts the cap and declares truncation explicitly on the
       call — 0140's action 4, ruled into this bundle (DECISIONS.md
       2026-08-30): the guard ships inside the upstream PR this ticket
