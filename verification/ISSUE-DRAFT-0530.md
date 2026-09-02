@@ -4,7 +4,10 @@ Measured 2026-09-02 at `oscardvs/zoteus` v1.12.0 (`b05ed69`), reproduced on the
 fork branch `base-v1.12.0`, TypeScript 5.9.3, vitest 2.1.9, dependencies from
 `npm ci` on the committed lockfile.
 
-**Not filed.** Held for the author's per-action authorization. Form ruled by
+**Filed 2026-09-02 at 18:35Z as
+[oscardvs/zoteus#49](https://github.com/oscardvs/zoteus/issues/49)**, on the
+author's per-action authorization. Everything from `## Body` down went out
+verbatim; this preamble did not. Form ruled by
 the measurement (`SPEC.md` §4, GOVERNANCE.md "Form follows the measured
 asymmetry"): **issue, not pull request** — 204 errors across 37 of 101 test
 files, no one-line fix exists, and one category asks a question about
