@@ -4369,18 +4369,32 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   which is everywhere else: latency, counters, exit codes, egress, deletion
   residue, codepoint folding, recall over the pinned set.
 
-  Its mechanics follow rules already in force here. The judge is a record in
-  `bench/models.json` like every other model, so it is named in one place and
-  a driver resolves it there. The rubric carries a version. Every verdict is
-  recorded with the model id, the rubric version and the verbatim text
-  judged, so a verdict can be re-read when either moves. And each judged
-  clause carries a mechanical positive control, a fixture the judge MUST
-  fail: a status sentence whose arithmetic does not close, an empty answer
-  that collapses the two cases, a locator two pages off its text, an
-  irrelevant document in the golden slot. A judge that says yes to everything
-  is otherwise indistinguishable from a judge that works, and an all-clear
-  indistinguishable from a could-not-look is this repo's most expensive
-  recurring failure.
+  The author settled its mechanics on 2026-09-02 as a question protocol, not
+  a model registry. `bench/models.json` remains exclusively the registry of
+  embedders and their vector-affecting configuration. The harness writes an
+  immutable structured question bundle carrying the clause, versioned rubric,
+  target output, evidence and a blinded fail-control. A judge returns the
+  fixed answer schema: verdict, rationale, judge identity, model identity,
+  timestamp and rubric hash. The run records both bundle and answer verbatim,
+  and is valid only when the answer follows the schema and rejects the control.
+
+  Three drivers implement the same protocol. The default interactive path is
+  the LLM supervising the harness session: the scripts emit questions and the
+  agent explicitly consumes and answers them, rather than a script pretending
+  it can silently call its ambient model. An unattended hosted driver may call
+  OpenRouter or another vendor with operator-local credentials that never
+  enter the repository or result artifact. A padme driver may ask the Qwen 3.8
+  deployment there, recording the exact model and runtime that answered.
+  Rubrics and the question/answer schemas are versioned; judge identities are
+  runtime facts recorded per run, not entries in `bench/models.json` and not a
+  privileged roster.
+
+  Each judged clause carries a fail-control the judge MUST reject: a status
+  sentence whose arithmetic does not close, an empty answer that collapses the
+  two cases, a locator two pages off its text, an irrelevant document in the
+  golden slot. A judge that says yes to everything is otherwise
+  indistinguishable from a judge that works, and an all-clear indistinguishable
+  from a could-not-look is this repo's most expensive recurring failure.
 
   **The roster.** zoteus first: the reference point, the target the whole
   sheet was measured against, and the adapter half of which already exists in
