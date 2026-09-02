@@ -1327,34 +1327,30 @@ than under headwords since a chapter closes fewer chunks. What moves is
 fewer collapsed hits per item, and a chapter-sized entry answers with a
 coarser locator than a dictionary headword does.
 
-The synthetic fallback, re-sized. ~6k tokens approximated a dictionary entry
-and is a fraction of a book chapter, so carrying that number into the primary
-class would shred a below-gate book into fragments that are neither entries
-nor chapters. The fallback is one constant for every class, the dictionary
-included: cut at paragraph boundaries into synthetic entries of ~12k tokens —
-about twenty chunks, a short chapter — and label them synthetic. One constant
-rather than a per-class rule, because the fallback fires on exactly the
-documents whose class the segmenter could not read, so a class-conditional
-size would condition on what was just shown to be missing; and one constant
-rather than a count-targeted rule, because a target count is a fiction on a
-path whose point is that no structure was found. The figure is an input
-assumption, labeled and unmeasured. No experiment measures it and none could:
-X5 samples accepted boundaries, and the fallback fires where there are none.
-The size is a choice about hit granularity, and a synthetic entry's honest
-promise is its label. Nothing downstream bounds the size — chunks stop at
-entry boundaries, the embed work order packs its own token budget, and entry
-collapse yields one hit per entry whatever its length — so the constant is
-what sets a structureless document's share of the candidate pool: a 100k-token
-book contributes at most eight entries. The dictionary's ~6k calibration is
-retired with it.
+The synthetic fallback (ruling 2026-09-02). Below the confidence gate the
+fallback cuts at paragraph boundaries into synthetic entries of ~12k tokens,
+about twenty chunks or a short chapter, for every class, the dictionary
+included, each labeled synthetic. One constant rather than a per-class size,
+because the fallback fires on exactly the documents whose class the segmenter
+could not read. The dictionary's separate ~6k calibration is retired with it.
+
+The figure is an input assumption, labeled and unmeasured. No experiment
+measures it and none could: X5 samples accepted boundaries, and the fallback
+fires where there are none. Nothing downstream bounds an entry's size: chunks
+stop at entry boundaries, the embed work order packs its own token budget, and
+entry collapse yields one hit per entry whatever its length. So the constant
+is what sets a structureless document's share of the candidate pool, a
+100k-token book contributing at most eight entries, and a synthetic entry's
+honest promise is its label.
 
 **The PDF path.** For an attachment at or above a page threshold, the
 segmenter reaches for the PDF file itself, through the local API's file-view
-redirect, and hands it to a vendored `pdf.js` segmenter returning title,
-author and page range per entry, front and back matter included. Two tiers,
-in order: the embedded outline — the bookmark tree — which returns page
-targets directly and needs no fuzzy matching; absent that, a layout heuristic
-on `pdf.js`'s own positioned text, font size, weight and position per run,
+redirect, and hands it to a vendored `pdf.js` segmenter returning a title
+and a page range per entry, front and back matter included; no tier here
+carries who wrote an entry. Two tiers, in order: the embedded outline — the
+bookmark tree — which returns page targets directly and needs no fuzzy
+matching; absent that, a layout heuristic on `pdf.js`'s own positioned text,
+font size, weight and position per run,
 which does not depend on a language's capitalization convention and so is
 expected to generalize past English where seg/1's case-shape signal does not.
 There is no third, PDF-side fixed-size fallback: when both tiers come up
@@ -2089,14 +2085,15 @@ quota arithmetic; the four returned privacy lines stay dead.
 #### 5.2.8 The instrument panel
 
 **The coverage sentence** (D1 denominator = items; metadata-only covered
-with reason; sections only ever the partial qualifier):
+with reason; sections only ever the partial qualifier). The partially
+embedded item in the example below is the dictionary, the rare case:
 
 > "All 7,541 items are record-searchable (titles, abstracts, keywords —
 > 100%, newest first). Body text: 5,561 of 6,100 items with attachments
 > extracted and keyword-searchable back to 2016-04-11; 538 covered as
 > metadata-only (no extractable text). Semantic: 2,101 items fully embedded
 > back to 2019-09-02, newest first; 1 partially embedded (record + 214 of
-> ~1,850 entries — item DH8EXSVA, the dictionary, the rare case). Building in background at idle
+> ~1,850 entries — item DH8EXSVA). Building in background at idle
 > priority; not paused. 1 quarantined: BHT7Q2 — extraction failed 3×;
 > retries when its content changes."
 

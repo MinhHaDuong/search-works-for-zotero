@@ -100,10 +100,10 @@ is reachable only through the author's live Zotero. Per experiment:
   X1's layout/scan-timing half (vec_scaling.mjs is synthetic, needs sqlite-vec).
 - author's machine required: X2 (650k FTS index), X3a (real 44.9 MB doc;
   X3b's streamed-slab chunker is owned by scoped issue B's machinery, 0034),
-  X5 (real extractions of the book/proceedings class + their tables of
-  contents + seg/1 itself, built by 0028; the table-of-contents ground truth
-  is mechanical, so the human is needed only for the dictionary rare-case
-  arm), X6 (two live Zotero profiles), and X1's int8-recall half
+  X5 (real extractions + the source PDFs of every arm's documents,
+  with seg/1 built by 0028 and the PDF path as shipped; ground truth is the
+  embedded outline, mechanical where one exists, human scoring wherever it
+  does not), X6 (two live Zotero profiles), and X1's int8-recall half
   (the anisotropy a symmetric synthetic fixture cannot exhibit —
   real-93022.json says why).
 Preconditions: 0030 (bench drivers still set the pre-v1.7 env var — until it

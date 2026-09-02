@@ -12,6 +12,7 @@ Author: claude
 2026-09-01T14:22Z claude bump circuit-breaker — execute agent (adc3d0972dc23c4c8) stalled in a bash sleep loop after its own 5-dimension review batch completed; killed after confirming clean worktree (nothing to salvage, PR #157 branch t0502-books-proceedings-ruling already had everything it pushed). Review findings posted to PR #157 as a comment instead of being lost with the agent
 2026-09-02T07:28Z claude note first blocking item ruled by the author 2026-09-02 (DECISIONS.md): the synthetic fallback is one constant, ~12k tokens, for every class; ~6k retired, the deferral to X5 deleted. Propagated to SPEC.md 5.2.2 and exit criterion 3 here. The second item, X5's TOC circularity, is next
 2026-09-02T07:39Z claude note second blocking item ruled by the author 2026-09-02 (DECISIONS.md): X5 scores against the embedded outline with the outline tier held out, both paths measured, 50 cuts per class at 45/50, verdicts never pooled, the primary class and the dictionary gating. Propagated to SPEC.md 5.2.2 (PDF-path paragraph), 5.3, 5.4 risk 1, tickets 0025 and 0028, and exit criterion 4 here. Both blocking items closed; the bar number is settled with the second
+2026-09-02T08:17Z bump verify-reroll — round 1: 0025:103-106 stale TOC-mechanical claim; X5's ratified arm list missing the handbook class; SPEC.md PDF-path author/byline self-contradiction; SPEC.md:1964 qualifier inside the quoted example; SPEC.md's re-argued fallback alternatives (simplify must-fix); merge of origin/main landed as cd83fd6
 --- body ---
 ## Context
 
