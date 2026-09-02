@@ -1,4 +1,4 @@
-# CLAUDE.md — how to work in this repo
+# AGENTS.md — how to work in this repo
 
 Work tracking for the search redesign of zoteus (an MCP server over a local
 Zotero library). This repo holds documents, tickets, and a measurement
@@ -6,6 +6,10 @@ harness — the TypeScript under discussion lives upstream at `oscardvs/zoteus`
 and in the author's fork, not here.
 
 ## The document set, and who is authoritative for what
+
+This file contains working instructions for agents. It owns workflow
+conventions only: project state, measurements, requirements, and history live
+in their owning documents below.
 
 The specification is one document, `SPEC.md`, at the top level, in RFC
 section order — merged 2026-09-01 (`DECISIONS.md`) from the five documents
@@ -30,7 +34,7 @@ level too, as do `README.md` and this file.
   fails on a requirement sitting on no rung, on two, or on a gap in the
   numbering; the order itself is `SPEC.md` §3's last section. The work that
   earns those verdicts is tickets 0026, 0029 and 0032; the tally is the
-  tracker.
+  tracker. It is durable public status, not a live session handoff.
 - `SPEC.md` — the specification, RFC-ordered, carrying a PEP-style header
   (`Status: DRAFT`, `Author: Minh Ha-Duong (CNRS)`, `Date: 2026-09-01`)
   directly under its title. The date is the version — there is no separate
@@ -75,7 +79,8 @@ level too, as do `README.md` and this file.
   `verification/` as evidence rather than in the chain as spec (ruled
   2026-08-31).
 - `SYNC.md` — upstream tracking (maintainer behavior, PR/issue status).
-  `STATE.md` — the prototype phase's measurement record; mostly frozen.
+  `STATE.md` — the compact live operational handoff, held under forty lines.
+  It is pointer-only and owns no requirement, measurement, verdict, or history.
   `RUNBOOK.md` self-sunset 2026-08-30 once its measurements executed; its
   durable state lives in ticket 0014, ticket 0016, ticket 0024, ticket 0025
   and `SYNC.md`.

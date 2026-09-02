@@ -31,7 +31,7 @@ logger = logging.getLogger("measure_throughput_reps")
 
 BENCH = Path(__file__).resolve().parent
 
-CORPUS_ROWS = 93022  # ticket 0263/0264's real-passage corpus; see CLAUDE.md Environment notes
+CORPUS_ROWS = 93022  # ticket 0263/0264's real-passage corpus; see AGENTS.md Environment notes
 
 
 def run_once(pkg_root: Path, corpus: Path, out_prefix: Path, model: str, dtype: str, device: str, rows: int, batch: int) -> dict:

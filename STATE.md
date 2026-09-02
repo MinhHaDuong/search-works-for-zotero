@@ -4,8 +4,9 @@
 Last updated 2026-09-02: PR #187 ratified the target-neutral acceptance harness;
 PR #192 propagated it and filed adapter tickets 0583–0586.*
 
-One page of live state, and it owns nothing: every line is a pointer to the
-document that does own the fact, and anything longer than a pointer has drifted.
+One page of live operational handoff, and it owns nothing: every line is a
+pointer to the document that does own the fact, and anything longer than a
+pointer has drifted.
 
 ## Where the live state lives
 
@@ -18,7 +19,7 @@ document that does own the fact, and anything longer than a pointer has drifted.
 | Rulings, and what awaits one | [`DECISIONS.md`](DECISIONS.md) |
 | Where each requirement stands | [`README.md`](README.md) |
 | What we will and will not send upstream | [`GOVERNANCE.md`](GOVERNANCE.md) |
-| How to work here | [`CLAUDE.md`](CLAUDE.md) |
+| How agents work here | [`AGENTS.md`](AGENTS.md) |
 
 ## What this repo is
 

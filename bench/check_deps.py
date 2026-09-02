@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The gate's dependencies are declared, present, and used.
 
-`CLAUDE.md` opens its conventions with "`make check` must be green before any
+`AGENTS.md` opens its conventions with "`make check` must be green before any
 commit". Twice in two days a fresh container could not run it: the gate reached
 its last step and died on `No module named pytest`, and installing pytest then
 exposed `No module named numpy` at collection time. Nothing in the tree said

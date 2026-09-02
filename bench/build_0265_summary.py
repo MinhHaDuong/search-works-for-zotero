@@ -9,7 +9,7 @@ recall figure fused_recall.mjs computed independently must equal vec_task_recall
 and writes one committed JSON per cell plus a SUMMARY.
 
 Fidelity is NOT duplicated here. `bench/results/0263-cpu-arm/SUMMARY.json` is the fidelity
-figure's one home (CLAUDE.md's one-statement-per-fact convention); each cell below carries a
+figure's one home (AGENTS.md's one-statement-per-fact convention); each cell below carries a
 POINTER to its row there, never a copied cos_mean. The campaign's own prose (the ticket 0265
 log entry) quotes both columns side by side and cites each artifact separately.
 
