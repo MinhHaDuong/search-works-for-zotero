@@ -24,6 +24,16 @@ run happily and assert nothing, so the mismatch is refused rather than measured.
 **An assertion that is not run at all.** `assertions.ALL` is the registry the
 layer's readers and the driver both go by; a check that exists in `durability.py`
 and not in `ALL` is dead code that looks like coverage.
+
+**An arm that measured the previous arm's wreckage.** R23 has two directions and
+they are two experiments. Run back to back against one data directory, the second
+acts on whatever the first arm's restart left — an index already serving nothing —
+and reports a red that is true of the arm and silent about the direction. It is
+the same could-not-look as the three above, one level down: the check fails, the
+artifact says both directions, and only the per-arm counts show that one of them
+never happened. `test_both_arms_start_from_an_index_that_serves` and
+`test_an_arm_that_cannot_be_armed_is_not_run` are that pair, and the second is
+red against the version of this check that had no arming step.
 """
 
 import sys
@@ -192,6 +202,42 @@ def test_a_stamp_flip_that_abandons_the_index_is_red(tmp_path):
         "the baseline must have served something, or an empty answer afterwards proves "
         "nothing")
     assert not check.detail["arms"][durability.RESTAMP_OLDER]["serving"]
+
+
+def test_both_arms_start_from_an_index_that_serves(tmp_path):
+    """The red must be about both directions, not about one arm's leftovers.
+
+    This is the assertion the first version of the check could not make. Against
+    a target that stops serving once a foreign stamp is seen, the second arm
+    inherited an index already serving nothing, so its count here would be 0.
+    Both arms must show a positive one, and they must show it on the fixture that
+    comes back red: a green fixture cannot exercise this.
+    """
+    check = durability.check_foreign_stamp_ends_up_serving(
+        a_stub("stub-abandons-foreign-stamp", tmp_path))
+    served = check.detail["each_arm_served_before_its_stamp_changed"]
+    assert set(served) == {durability.RESTAMP_OLDER, durability.RESTAMP_NEWER}
+    assert all(count > 0 for count in served.values()), (
+        "an arm whose index served nothing before its stamp changed measured its "
+        f"predecessor's wreckage rather than its own direction: {served}")
+
+
+def test_an_arm_that_cannot_be_armed_is_not_run(tmp_path):
+    """A direction that could not be set up is undecided, never a red.
+
+    The fixture is the removal of the arming itself, which is exactly what this
+    check used to be: a reset that restores nothing. The first arm still runs,
+    since nothing has touched the index yet; the second finds what the first
+    arm's restart left. That must reach the artifact as `not-run` naming the arm,
+    because a broken harness must not be able to manufacture a failure.
+    """
+    target = a_stub("stub-abandons-foreign-stamp", tmp_path)
+    target._reset_to_seeded_index = lambda: {
+        "perturbation": durability.RESET_TO_SEEDED_INDEX, "index_restored": False}
+    check = durability.check_foreign_stamp_ends_up_serving(target)
+    assert check.result == NOT_RUN
+    assert durability.RESTAMP_NEWER in check.detail["why"]
+    assert "could not be armed" in check.detail["why"]
 
 
 # --------------------------------------------------------------------------

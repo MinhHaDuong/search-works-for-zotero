@@ -96,6 +96,7 @@ from pathlib import Path
 
 from ..durability import (
     EDIT_ONE_ITEM,
+    RESET_TO_SEEDED_INDEX,
     RESTAMP_NEWER,
     RESTAMP_OLDER,
     RESYNC_IDENTICAL_BYTES,
@@ -354,6 +355,8 @@ class Zoteus:
         """
         if what in FOREIGN_STAMPS:
             return self._restamp(what)
+        if what == RESET_TO_SEEDED_INDEX:
+            return self._reset_to_seeded_index()
         if what in (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES):
             raise NotImplementedError(
                 "this would write to the user's own Zotero library, which this target is "
@@ -363,6 +366,44 @@ class Zoteus:
                 "verdict"
             )
         raise NotImplementedError(f"this adapter has no way to do {what!r}")
+
+    def _stamp(self, index: Path) -> str | None:
+        """The schema version this index file currently carries, or None."""
+        con = sqlite3.connect(f"file:{index}?mode=ro", uri=True)
+        try:
+            row = con.execute("SELECT value FROM meta WHERE key=?", (STAMP_KEY,)).fetchone()
+        finally:
+            con.close()
+        return row[0] if row else None
+
+    def _reset_to_seeded_index(self) -> dict:
+        """Put the prebuilt index back, so each of R23's two arms starts where the other did.
+
+        `_seed` deliberately copies only into a data directory that holds no index,
+        because a restart must reopen the file the previous run left. That is the
+        right rule between the halves of one arm and the wrong one between arms:
+        the second direction would then be applied to whatever the first arm's
+        restart produced. This is the explicit request for the starting state, and
+        it is the only thing in this adapter that overwrites derived state.
+        """
+        if self.seed_index is None:
+            raise NotImplementedError(
+                "this target was given no prebuilt index to start from, so the harness "
+                "cannot put its data directory back into the state R23's clause is about; "
+                "pass one with --seed-index"
+            )
+        existing = self._index()
+        was = self._stamp(existing) if existing is not None else None
+        destination = self.data_dir / self.seed_index.name
+        shutil.copyfile(self.seed_index, destination)
+        return {
+            "perturbation": RESET_TO_SEEDED_INDEX,
+            "index": destination.name,
+            "index_found_before_reset": existing.name if existing is not None else None,
+            "stamp_before_reset": was,
+            "stamp_after_reset": self._stamp(destination),
+            "file_deleted_by_hand": False,
+        }
 
     def _restamp(self, direction: str) -> dict:
         """Write a foreign schema version into the index, the way a version change would.
@@ -378,9 +419,9 @@ class Zoteus:
                 "no index carrying a schema stamp exists in this data directory, so there "
                 "is nothing to restamp; seed the arena with a built index first"
             )
+        was = self._stamp(index)
         con = sqlite3.connect(index)
         try:
-            was = con.execute("SELECT value FROM meta WHERE key=?", (STAMP_KEY,)).fetchone()
             con.execute("UPDATE meta SET value=? WHERE key=?",
                         (FOREIGN_STAMPS[direction], STAMP_KEY))
             con.commit()
@@ -389,7 +430,7 @@ class Zoteus:
         return {
             "perturbation": direction,
             "index": index.name,
-            "was": was[0] if was else None,
+            "was": was,
             "restamped_to": FOREIGN_STAMPS[direction],
             "file_deleted_by_hand": False,
         }

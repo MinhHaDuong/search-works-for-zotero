@@ -9,6 +9,8 @@ Author: claude
 2026-09-02T20:37Z claude note five assertions land in bench/acceptance/durability.py, each seen red from a fail-control before any green; six new fixtures, one cause each
 2026-09-02T20:37Z claude note measured on padme against a seeded 5-item index: R13's answering clause PASS, R23's serving clause FAIL both directions, R3 both clauses not-run because the reviewed baseline reports no work counters at all
 2026-09-02T20:37Z claude note two interface findings raised, not settled: the perturbation seam has no home in the ratified contract, and R10-no-egress went red on padme where it was green on doudou
+2026-09-02T21:30Z claude note bounced REROLL: R23's second arm had measured the empty index the first arm's restart left, so the 1 to 9999 direction never ran while three documents claimed both. Each arm now resets to the seeded index and queries it first, and reports not-run when that query serves nothing
+2026-09-02T21:30Z claude note re-measured on padme, run3: both arms armed at 2 hits each, both restamped from stamp 1, both red the same way — the second direction agrees with the first rather than differing from it
 
 --- body ---
 
@@ -129,6 +131,19 @@ seeded into the data directory; `bench/results/smoke-1.12.0/acceptance-zoteus.js
   `.incompatible-*`, deleted nothing, opened a fresh empty index, and answered
   the query that had returned hits before with no hit list at all. Filed as
   upstream issue #34. A red, not a skip.
+- **The first version of that arm pair measured one direction twice.** The two
+  arms ran back to back against one data directory, so the second restamped what
+  the first arm's restart had left: a fresh index the build had just opened,
+  empty, serving nothing. Its red was a fact about the arm. The tell was in the
+  artifact — the second arm's `was` read `1` where acting on the file the first
+  arm restamped would have read `0` — and the leftover arena on padme carries the
+  physical evidence, two `.incompatible-*` files of which the second is the
+  57 344-byte empty replacement rather than the 69 632-byte seeded index. An arm
+  now begins by putting the seeded index back and querying it, `hits_before_restamp`
+  records what that query returned, and an arm that cannot be armed reports
+  `not-run` rather than a red. Re-measured: both arms armed at 2 hits, both
+  restamped from stamp `1`, and the 1 → 9999 direction behaves exactly as
+  1 → 0 does. The verdict is unchanged and it is now earned twice.
 - R3's two clauses and R13's duplicate-work clause are **not-run**, for one
   reason: the reviewed baseline reports no `work.<stage>.<trigger>.<outcome>`
   counter of any kind. Every top-level key of its index status was read on a
@@ -161,7 +176,9 @@ that settles it is the same isolated arm run twice, cache cold and cache warm.
       nothing downstream of it — and a second detector, because a target that
       verified nothing reports the same zero recompute a correct one does
 - [x] R23's serving clause asserted in both directions, its current state
-      recorded honestly rather than skipped
+      recorded honestly rather than skipped — and each direction shown to have
+      acted on an index that was serving, rather than on the previous arm's
+      leftovers
 - [x] both run from the Makefile with honest red/waiver states — `make
       acceptance-fixtures` fails when any assertion has never been seen red
 - [x] README.md's goal-2 rows for R3 and R23 carry an evidence verdict that

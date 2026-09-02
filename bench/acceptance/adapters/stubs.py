@@ -65,6 +65,7 @@ from pathlib import Path
 
 from ..durability import (
     EDIT_ONE_ITEM,
+    RESET_TO_SEEDED_INDEX,
     RESTAMP_NEWER,
     RESTAMP_OLDER,
     RESYNC_IDENTICAL_BYTES,
@@ -180,7 +181,25 @@ class _Stub:
             return self._resync_identical_bytes()
         if what in (RESTAMP_OLDER, RESTAMP_NEWER):
             return self._restamp(what)
+        if what == RESET_TO_SEEDED_INDEX:
+            return self._reset_to_seeded_index()
         raise NotImplementedError(f"this fixture cannot do {what!r}")
+
+    def _reset_to_seeded_index(self) -> dict:
+        """Put the index back to a settled one under the stamp this fixture writes.
+
+        R23's two directions are two experiments and each needs this state to
+        start from. Implemented on the base so every fixture inherits it: a
+        fixture earns its place by modelling one defect, and none of them models
+        an inability to be reset.
+        """
+        stamped = self._data_dir() / "stamp"
+        was = stamped.read_text() if stamped.is_file() else None
+        if stamped.is_file():
+            stamped.unlink()
+        restored = self._write(self._data_dir() / "index.db", "derived state\n")
+        return {"perturbation": RESET_TO_SEEDED_INDEX, "stamp_before_reset": was,
+                "index": restored.name, "file_deleted_by_hand": False}
 
     def _edit_one_item(self) -> dict:
         """One title changes: its record recomputes, and its sections re-embed."""

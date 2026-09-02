@@ -74,7 +74,15 @@ RESYNC_IDENTICAL_BYTES = "resync-identical-bytes"
 RESTAMP_OLDER = "restamp-older"
 RESTAMP_NEWER = "restamp-newer"
 
-PERTURBATIONS = (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES, RESTAMP_OLDER, RESTAMP_NEWER)
+#: Arming, not repair. R23's two directions are two experiments, and each of them
+#: needs the same starting state: an index in service under the stamp the build
+#: currently writes. Without a way to ask for that state back, the second arm
+#: inherits whatever the first arm's restart produced, which is the defect this
+#: constant exists to close.
+RESET_TO_SEEDED_INDEX = "reset-to-seeded-index"
+
+PERTURBATIONS = (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES, RESTAMP_OLDER, RESTAMP_NEWER,
+                 RESET_TO_SEEDED_INDEX)
 
 #: How long the harness waits for work counters to stop moving, and how often it
 #: looks. This is the harness's patience, not a bound any requirement states: no
@@ -561,6 +569,27 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
     build's schema version is incremented, and a newer one is what a rollback
     produces; a forward-only probe misses the common case.
 
+    **Each arm is armed, and the harness records the arming rather than assuming
+    it.** The two directions are two experiments and both need the same starting
+    state: an index in service, under the stamp the build currently writes. The
+    first version of this check ran them back to back against one data directory,
+    so the second direction acted on whatever the first arm's restart had left —
+    against the one target it has been run on, an index that was already serving
+    nothing. Its red was then true of the arm and said nothing about the
+    direction, while three documents claimed both directions had been measured.
+    An arm now begins by asking the adapter to put the index back
+    (`RESET_TO_SEEDED_INDEX`) and then *querying it*: `hits_before_restamp` is
+    that query's count, it is in the artifact for every arm, and an arm that
+    cannot be armed is reported `not-run` rather than counted as a red. That
+    number is what distinguishes a direction that was measured from one that was
+    only iterated over.
+
+    The reset is arming and not repair, and the two are told apart by when they
+    happen. It runs before the stamp is touched, to establish the state the clause
+    is about; the window the clause grades runs from the restamp to the query, and
+    nothing is restored or removed inside it. `files_gone` is inventoried across
+    exactly that window.
+
     **What is recorded, and what deliberately is not.** Counts, not replies: a
     committed artifact names a library document by its item key and never by its
     title (`DECISIONS.md`, ratified 2026-08-31), and a search reply carries both.
@@ -609,6 +638,20 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
 
     arms: dict[str, dict] = {}
     for direction in (RESTAMP_OLDER, RESTAMP_NEWER):
+        armed, why = perturb(target, RESET_TO_SEEDED_INDEX)
+        if why:
+            return not_run(cid, req, clause, falsified, target, "query", why)
+        with target.running():
+            _, ready_hits, ready_why = _answer_or_why(target, q, limit)
+        if not ready_hits:
+            return not_run(
+                cid, req, clause, falsified, target, "query",
+                f"the {direction} arm could not be armed: with the index put back to the "
+                "state this clause is about, it served nothing"
+                + (f" ({ready_why})" if ready_why else "")
+                + ". An empty answer after the stamp changed would then be a fact about "
+                "the arm and not about the direction, so this is reported as not decided "
+                "rather than as a red.")
         event, why = perturb(target, direction)
         if why:
             return not_run(cid, req, clause, falsified, target, "query", why)
@@ -616,6 +659,12 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
         with target.running():
             _, hits, why_not = _answer_or_why(target, q, limit)
         arms[direction] = {
+            "armed_by": armed,
+            # The proof that this arm acted on a serving index rather than on
+            # whatever the previous arm left. Read it before reading the verdict:
+            # a zero here would mean the arm measured nothing, and the check
+            # returns not-run before it can reach this dictionary.
+            "hits_before_restamp": len(ready_hits),
             "event": event,
             # Three distinguishable states, because a red that cannot say which
             # one it saw is a red a reader has to go and reproduce. `hits: 0` is
@@ -642,6 +691,15 @@ def check_foreign_stamp_ends_up_serving(target: Target) -> Check:
             "arms": arms,
             "both_directions_serve": serving,
             "a_file_disappeared": by_hand,
+            "each_arm_served_before_its_stamp_changed": {
+                direction: arm["hits_before_restamp"] for direction, arm in arms.items()
+            },
+            "how_an_arm_is_armed": (
+                "the index is put back to the state this clause is about, then queried; "
+                "the count that query returned is this arm's hits_before_restamp. An arm "
+                "whose count would be zero is reported not-run, so a direction present "
+                "here was measured rather than iterated over"
+            ),
             "the_other_half": (
                 "damage prevention — a foreign file detected before anything writes to "
                 "it, its bytes surviving — is a different clause, asserted elsewhere, "

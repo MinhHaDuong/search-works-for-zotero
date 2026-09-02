@@ -6,7 +6,7 @@
     "target": "zoteus",
     "revision": "1.12.0",
     "derived_state_roots": [
-      "/home/haduong/data/t0579/run2/data"
+      "/home/haduong/data/t0579/run3/data"
     ],
     "query_transport": "an MCP server over stdio JSON-RPC; the semantic-search tool is called with the mode the harness asked for, mapped onto this target's mode names",
     "default_configuration": "the local on-device embedder, the SQLite index backend, no automatic refresh, full text on, read-only against the library. The one input that is not a default is the path to the on-device model runtime, which the built checkout does not vendor: it is passed in, and recorded here, as /home/haduong/.zoteus-deps/node_modules/@huggingface/transformers",
@@ -14,6 +14,16 @@
     "unsupported_verbs": [
       "resume",
       "uninstall"
+    ],
+    "unsupported": [
+      {
+        "verb": "resume",
+        "why": "nothing maps onto it. The only action that continues an interrupted build is also the full rebuild and the repair — on a damaged index it deletes the unreadable file first — so mapping resume onto it would smuggle a destructive rebuild into the one verb the ruling says never rebuilds, invisibly, because on a healthy checkpointed index it really does just resume"
+      },
+      {
+        "verb": "uninstall",
+        "why": "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words that its maintenance purge is not a stand-in the harness may call to manufacture a clean result, so nothing is substituted for it"
+      }
     ],
     "not_derived_state": [
       {
@@ -131,8 +141,8 @@
               "detector": "dns"
             }
           ],
-          "stdout_tail": "{\"install\": {\"entrypoint\": \"/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js\", \"data_dir\": \"/home/haduong/data/t0579/run2/2026-09-02/223406-R10-no-egress/data\", \"materialized\": [\"search-index.sqlite\"]}, \"configure\": {\"applied_at\": \"process start\", \"environment_keys\": [\"ZOTERO_DATA_DIR\", \"ZOTEUS_DATA_DIR\", \"ZOTEUS_EMBEDDINGS\", \"ZOTEUS_INDEX_AUTO_REFRESH\", \"ZOTEUS_INDEX_BACKEND\", \"ZOTEUS_INDEX_FULLTEXT\", \"ZOTEUS_READ_ONLY\", \"ZOTEUS_TRANSFORMERS_PATH\"]}, \"resume\": \"not-offered\", \"query\": {\"hits\": [], \"embedder\": \"none (local requested; fetch failed)\", \"embedderConfigured\": \"local\", \"embedderActive\": false, \"embedderReason\": \"fetch failed\", \"fulltextEnabled\": false, \"ownWordsEnabled\": false}}\n",
-          "stderr_tail": "[server] [zoteus] INFO Zoteus MCP server started on stdio.\n[server] [zoteus] INFO Read-only mode: exposing 18/30 tools.\n[server] [zoteus] INFO Capabilities: cloud=none, localApi=false, localGroups=0\n[server] (node:1838879) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n[server] (Use `node --trace-warnings ...` to show where the warning was created)\n[server] [zoteus] WARN Embedding failed; falling back to keyword-only. fetch failed\n"
+          "stdout_tail": "{\"install\": {\"entrypoint\": \"/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js\", \"data_dir\": \"/home/haduong/data/t0579/run3/2026-09-02/233309-R10-no-egress/data\", \"materialized\": [\"search-index.sqlite\"]}, \"configure\": {\"applied_at\": \"process start\", \"environment_keys\": [\"ZOTERO_DATA_DIR\", \"ZOTEUS_DATA_DIR\", \"ZOTEUS_EMBEDDINGS\", \"ZOTEUS_INDEX_AUTO_REFRESH\", \"ZOTEUS_INDEX_BACKEND\", \"ZOTEUS_INDEX_FULLTEXT\", \"ZOTEUS_READ_ONLY\", \"ZOTEUS_TRANSFORMERS_PATH\"]}, \"resume\": \"not-offered\", \"query\": {\"hits\": [], \"embedder\": \"none (local requested; fetch failed)\", \"embedderConfigured\": \"local\", \"embedderActive\": false, \"embedderReason\": \"fetch failed\", \"fulltextEnabled\": false, \"ownWordsEnabled\": false}}\n",
+          "stderr_tail": "[server] [zoteus] INFO Zoteus MCP server started on stdio.\n[server] [zoteus] INFO Read-only mode: exposing 18/30 tools.\n[server] [zoteus] INFO Capabilities: cloud=none, localApi=false, localGroups=0\n[server] (node:1844211) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n[server] (Use `node --trace-warnings ...` to show where the warning was created)\n[server] [zoteus] WARN Embedding failed; falling back to keyword-only. fetch failed\n"
         },
         "control": {
           "net_shared": {
@@ -235,15 +245,15 @@
       "detail": {
         "install_event": {
           "entrypoint": "/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js",
-          "data_dir": "/home/haduong/data/t0579/run2/2026-09-02/223406-R15-residue-inventory/data",
+          "data_dir": "/home/haduong/data/t0579/run3/2026-09-02/233309-R15-residue-inventory/data",
           "materialized": [
             "search-index.sqlite"
           ]
         },
-        "arena": "/home/haduong/data/t0579/run2/2026-09-02/223406-R15-residue-inventory",
+        "arena": "/home/haduong/data/t0579/run3/2026-09-02/233309-R15-residue-inventory",
         "created_count": 1,
         "declared_roots": [
-          "/home/haduong/data/t0579/run2/2026-09-02/223406-R15-residue-inventory/data"
+          "/home/haduong/data/t0579/run3/2026-09-02/233309-R15-residue-inventory/data"
         ],
         "not_derived_state": [
           {
@@ -270,10 +280,10 @@
         "residue": [],
         "residue_count": 0,
         "declared_roots": [
-          "/home/haduong/data/t0579/run2/2026-09-02/223406-R15-model-cache-under-declared-roots/data"
+          "/home/haduong/data/t0579/run3/2026-09-02/233309-R15-model-cache-under-declared-roots/data"
         ],
         "query_answered": true,
-        "arena": "/home/haduong/data/t0579/run2/2026-09-02/223406-R15-model-cache-under-declared-roots"
+        "arena": "/home/haduong/data/t0579/run3/2026-09-02/233309-R15-model-cache-under-declared-roots"
       }
     },
     {
@@ -287,6 +297,7 @@
       "detail": {
         "verb": "uninstall",
         "why": "the adapter declares 'uninstall' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words that its maintenance purge is not a stand-in the harness may call to manufacture a clean result, so nothing is substituted for it",
         "unsupported_verbs": [
           "resume",
           "uninstall"
@@ -327,7 +338,7 @@
       "verb": "query",
       "detail": {
         "shared_derived_state_roots": [
-          "/home/haduong/data/t0579/run2/2026-09-02/223406-R13-two-processes-both-answer/data"
+          "/home/haduong/data/t0579/run3/2026-09-02/233309-R13-two-processes-both-answer/data"
         ],
         "hits_first_while_second_live": 3,
         "hits_second_while_first_live": 3,
@@ -362,6 +373,15 @@
         "baseline_hits": 2,
         "arms": {
           "restamp-older": {
+            "armed_by": {
+              "perturbation": "reset-to-seeded-index",
+              "index": "search-index.sqlite",
+              "index_found_before_reset": "search-index.sqlite",
+              "stamp_before_reset": "1",
+              "stamp_after_reset": "1",
+              "file_deleted_by_hand": false
+            },
+            "hits_before_restamp": 2,
             "event": {
               "perturbation": "restamp-older",
               "index": "search-index.sqlite",
@@ -376,6 +396,15 @@
             "files_gone": []
           },
           "restamp-newer": {
+            "armed_by": {
+              "perturbation": "reset-to-seeded-index",
+              "index": "search-index.sqlite",
+              "index_found_before_reset": "search-index.sqlite",
+              "stamp_before_reset": "1",
+              "stamp_after_reset": "1",
+              "file_deleted_by_hand": false
+            },
+            "hits_before_restamp": 2,
             "event": {
               "perturbation": "restamp-newer",
               "index": "search-index.sqlite",
@@ -392,6 +421,11 @@
         },
         "both_directions_serve": false,
         "a_file_disappeared": false,
+        "each_arm_served_before_its_stamp_changed": {
+          "restamp-older": 2,
+          "restamp-newer": 2
+        },
+        "how_an_arm_is_armed": "the index is put back to the state this clause is about, then queried; the count that query returned is this arm's hits_before_restamp. An arm whose count would be zero is reported not-run, so a direction present here was measured rather than iterated over",
         "the_other_half": "damage prevention — a foreign file detected before anything writes to it, its bytes surviving — is a different clause, asserted elsewhere, passing, and untouched by this one",
         "where_the_gap_is_filed": "upstream issue #34. A red here is the honest state of the serving half, not a defect introduced by this harness"
       }
