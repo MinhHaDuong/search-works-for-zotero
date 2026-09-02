@@ -3554,6 +3554,22 @@ landing page and durable reviewed-baseline status, including ladder rosters;
 it is not live session state. Historical references retain the filename that
 was true when their evidence or ruling was recorded.
 
+### 2026-09-02 — A full-text census stamp means completed extraction (ratified)
+
+The author chose option 1 of ticket 0569. The reconcile tick does not stamp an
+attachment's full-text census version when it enqueues the work order. The
+conductor stamps it only after extraction completes successfully. A failed
+order therefore leaves the census unchanged; the next reconcile tick observes
+the same missing completion and offers the attachment again without requiring
+a Zotero version change or a manual repair action.
+
+This fixes the meaning of the census rather than adding a retry policy to the
+ledger: it records completed extraction, not attempted enqueue. D1's settled
+empty-text state remains distinct from failure and is completion for this
+purpose. The conductor remains the sole writer; the completion result crosses
+the worker boundary, but the census write does not. No attempt count, retry
+ceiling or manual-repair prerequisite is introduced by this ruling.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -3665,7 +3681,8 @@ was true when their evidence or ruling was recorded.
   would make `reextract` a convenience rather than a repair.
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
-  0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The
+  0569, raised 2026-09-01 by the round-3 review of ticket 0553) — resolved
+  2026-09-02: option (i), see the ledger entry above.** The
   reconcile tick writes the full-text census in the same loop iteration as
   the `enqueue` — before the work is done — so a row that ends `failed` is
   never re-derived: on the next tick the attachment's versions match what the
