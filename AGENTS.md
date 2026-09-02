@@ -134,6 +134,16 @@ you send — so read what you send, as sent.
   `make upstream-checkout` recreates the git-ignored `fork/` at the reviewed
   SHA with both `origin` and `upstream` remotes. Do not overwrite an existing
   checkout.
+- Zotero's local API cannot request extraction, and Zotero 10 has no bulk
+  reindex button, so the author's Zotero carries a small plugin of ours,
+  `bench/zotero-fulltext-plugin/`: two endpoints on Zotero's own server that
+  reindex named attachments in full and report their state; the client is
+  `bench/zotero_fulltext.py`. Group-library items answer only under the group
+  path of the local API (`/api/groups/<id>/…`), and the plugin resolves keys
+  across libraries so callers need not know which. The page cap was lifted
+  and the X5 arm documents re-extracted in full on 2026-09-02 (ticket 0025's
+  log); every other cache still holds at most 100 pages, so census numbers
+  measured before that date stand.
 - The measurement corpora are NOT in this repo: real vectors, the 477k index,
   and the 44,9 MB extraction live on the author's machine, and `bench/results/`
   holds committed JSON summaries. Ticket 0025's substrate map says which
