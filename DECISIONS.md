@@ -3149,6 +3149,13 @@ entry forbids, already shipped under another name, and a model will call it.
   `update`, not `build`; `build` and `refresh` are the bulk verbs this entry
   forbids calling casually, and they are already shipped.
 
+  And the surface is negotiated, not ruled (author, 2026-09-02): what this
+  repo settles is the contract — durable pause, per-item repair, honest
+  status, no whole-library re-derivation without consent — and the verb names
+  are the maintainer's. Design-sized, so it travels as an issue he builds
+  himself (`GOVERNANCE.md`), inside scoped issue A (ticket 0033) rather than
+  as a filing of its own.
+
   Two of the actions are not new features but existing holes: §5.2.8 already
   declares work counters for triggers no verb produces (`re-extract`, `retry`),
   and manual repair is option (iii) of the failed-work-order question below
