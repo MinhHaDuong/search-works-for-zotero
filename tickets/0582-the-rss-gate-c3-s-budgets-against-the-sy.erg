@@ -25,7 +25,7 @@ the synthetic surrogate. **Both were ratified on 2026-08-29** (`DECISIONS.md`):
 the budget assertion stays in `check-slow` with a cheap fixture asserting the
 mechanism in the fast tier, and the deterministic synthetic monster at the
 measured size satisfies R20's intent, conditional on revalidation against X3a at
-each release. The awaiting entry that carried them was deleted on 2026-09-01,
+each release. The awaiting entry that carried them was deleted on 2026-08-31,
 having been answered twice. So that half no longer gates anything, and the
 tracker's flag is stale.
 
@@ -46,6 +46,24 @@ of the three ceilings §5.2.9 names, together with the ceiling for the embedding
 service class. Until then the gate can be built against the roles and the
 assertions written, but it cannot assert a number, and a gate asserting an
 unratified number is worse than one that reports it cannot look.
+
+**Subjects and numbers are not the same lack**, recorded on ticket 0026 on
+2026-09-02 by ticket 0550's reconciliation of the conductor lane and inherited
+here, because that paragraph's home moved into this ticket when the tracker was
+rewritten. The service clauses now have a SUBJECT: ticket 0575 builds the
+embedding service boundary, so the cold-service p95 arm and the `loading` /
+`absent` / `failed` status states the soak asserts have something to assert
+against. Two of them still lack a NUMBER rather than a subject — the service
+arm's ceiling, which does not exist at all and is ticket 0577's probe to size,
+and the assertion on the pipeline worker, which is that the worker is KILLED at
+its bound rather than that its peak sat under one, the bound itself being ticket
+0554's to make real. Neither lack is a reason to defer writing the assertion;
+both are reasons it cannot go green yet, which is exactly what the honest-red
+rule above is for. That is also why this ticket carries no `Blocked-by` on
+either of them: most of the gate — the surrogate, the transport clause, the
+placement, the worker role — is buildable today, and a `Blocked-by` would make
+the whole ticket unschedulable to protect two assertions that the honest-red
+rule already protects.
 
 ## Relevant files
 
@@ -133,7 +151,10 @@ uncapped path is not standing in for anything.
       plus the embedding service's — the ruling that unblocks the rest
 - [ ] the deterministic synthetic monster generated to §5.2.8's specification
 - [ ] the gate asserts §5.2.9's budgets for all four process roles, by reference
-- [ ] the worker's kill asserted and observed, not its peak
+- [ ] the worker's kill asserted and observed, not its peak, against the bound
+      ticket 0554 makes real
+- [ ] the service arm's ceiling asserted once ticket 0577's probe has sized it,
+      reporting "no ratified ceiling" until then rather than a default
 - [ ] the transport clause measured on both processes of the fetch path
 - [ ] budget assertion in `check-slow`, mechanism fixture in the fast tier
 - [ ] X3a's release-time revalidation wired as a condition of the gate's green

@@ -14,6 +14,7 @@ Blocked-by: 0032
 2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
 2026-09-02T06:33Z claude note THE FOUR-ROLE TOPOLOGY LANDS HERE when it goes upstream (DECISIONS.md 2026-09-02, two entries): the writer as its own process, the fetcher separate, one embedding service per machine. Design-sized, so an issue he builds himself (GOVERNANCE.md), and negotiated -- the author said so 2026-09-02. The one hook that sells it on his terms is his own #37: a writer out of the server process turns the Electron build crash from a search outage into a pipeline outage without knowing the cause. Never put this repo's reading of him into the text; state R6, R13, R22 and the RSS arithmetic and stop.
 2026-09-02T08:01Z upstream #48 (2026-09-02, OpenAI 429 kills the embedding pass, resume re-embeds all) is field evidence for the worker/ledger split, and the topology still does NOT ride that thread: the draft comment at verification/ISSUE-48-COMMENT-DRAFT.md states only the invariant (a passage without a vector is pending work; a provider failure is a property of one request, so the embedding pass is killable and resumable wherever it runs) and stops. When this issue is drafted, #48 joins #37 as his own hooks: #37 argues the writer out of the server process, #48 argues the embed pass out of the build's lifetime
+2026-09-02T10:48Z claude note the four-role topology's SHAPE is now owned by SPEC.md §5.2.5 and, for the embedding service half, by ticket 0575 -- this ticket owns the upstream filing and reads the shape from there rather than re-deriving it in the issue text. Body updated; the bound on never putting this repo's reading of him into upstream text is unchanged
 --- body ---
 ## Context
 DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).
@@ -27,6 +28,13 @@ single-transaction rollback explicitly respected; the conductor/lease sketch
 (DESIGN §2.5) with the crash-only stdio reality stated in its favor (no
 shutdown handlers on the stdio path, src/index.ts:73-76). Absorbs the
 commit-cadence half of ticket 0016's original scope.
+
+The four-role topology this issue will narrate is DESIGNED elsewhere and read
+from there, never re-derived in the issue text: SPEC.md §5.2.5 owns the shape,
+and ticket 0575 owns building the embedding service half of it. This ticket
+owns the upstream FILING — the repro, the measurement, the cadence question,
+and which of his own hooks carry it (#37 for the writer out of the server
+process, #48 for the embed pass out of the build's lifetime).
 
 ## Exit criteria
 - [ ] issue drafted: repro + measurement + the cadence question, no code to accept

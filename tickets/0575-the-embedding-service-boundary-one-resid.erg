@@ -1,0 +1,149 @@
+%erg 0.1
+Title: The embedding service boundary: one resident model per generation
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0489
+
+--- log ---
+2026-09-02T10:41Z claude created
+
+2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: this ticket owns the embedding service boundary DECISIONS.md 2026-09-02 ruled and SPEC.md §5.2.5 carries. NOT Blocked-by 0491 -- the ruling separates shape from provenance in terms, and 0491's own first exit criterion is a statement about this boundary standing before any candidate wins. Blocked-by 0489 instead: the service serves a registry entry
+--- body ---
+
+## Context
+
+DECISIONS.md 2026-09-02 (entry C of "the writer leaves the query process, the
+fetcher stays its own, and the model is loaded once on the machine", and the
+same day's standing correction "the topology reviewed on the day it was ruled")
+rules one copy of the model on the machine, per embedder generation, reversing
+the 2026-08-31 in-process ruling. SPEC.md §5.2.5 carries the ruled shape:
+spawned on demand by a server and only by a server, singleton acquired before
+the model load, a Unix domain socket inside the data directory, two lanes with
+queries preempting passages at batch boundary, spawn back-off then quarantine
+with a status that separates loading from absent from failed, two generations
+resident across a switch, connection-count lifetime, and labeled keyword-only
+degradation that is never silent and never permanent in disguise.
+
+No ticket owns building it. Ticket 0491 compares who PROVIDES the runtime;
+0488/0489/0490/0492 own the registry the service serves; 0554 owns the worker
+that CALLS it. This ticket owns the boundary itself — the client interface, the
+service process, and every property SPEC.md §5.2.5 states about it.
+
+## Why this is not Blocked-by 0491
+
+The ruling separates the two explicitly: "the spawned child ruled here is its
+shape, not its provenance", and names the provenance question as 0491's. 0491's
+own scope says it is "not an implementation prerequisite and not a blocker",
+and its FIRST exit criterion — the in-process implementation proves the
+interface does not itself require a daemon or change the fast-install path — is
+a statement about this boundary, standing and testable before any candidate
+wins. So the boundary is built against the incumbent MiniLM registry entry as
+its first provider, behind the transport-neutral interface SPEC.md §5.2.5
+states, and 0491's verdict swaps what sits behind the socket without moving the
+socket. Blocked-by 0489 instead, which is the real prerequisite: the service
+serves a registry entry, and until the incumbent is one there is nothing to
+serve.
+
+The relation runs the other way too, and is this ticket's second deliverable:
+0491's comparison prices cold start, multi-P0 RAM, custody and failure per
+candidate, and it can only price them against a boundary that exists.
+
+## Relevant files
+
+- `SPEC.md` §5.2.5 — the ruled shape, in full; the transport-neutral interface
+  and its handshake; the API execution mode, which changes the constants and
+  not the topology, and in which the service holds the key and meters the
+  quota rather than being bypassed.
+- `SPEC.md` §5.2.6 — the labeled keyword-anchored fusion this degrades to.
+- `SPEC.md` §5.2.7 — two coexisting generations across a model switch, and the
+  eviction clock that applies to the old generation inside the service and
+  never to the service itself.
+- `SPEC.md` §5.2.8 — the instrument panel that owns the status fields.
+- `SPEC.md` §5.2.9 — the RAM arithmetic by process class, and the three
+  ceilings left needing a re-pin; the service's own ceiling is ticket 0577.
+- `SPEC.md` §6 — the socket as a surface, the file's permissions as its only
+  authorization, the macOS socket-path length hazard under the default data
+  directory, and Windows as the open platform question.
+- R10 (missing local runtime yields keyword-only, never an API embedder), R15's
+  uninstall clause, R31's handshake, R6's latency band.
+
+## Actions
+
+1. The client side of the transport-neutral interface: `embed_query` and
+   `embed_passages` returning the handshake SPEC.md §5.2.5 specifies, with the
+   client rejecting a mismatch before it reads or writes a vector.
+2. The service process: it acquires its singleton BEFORE it loads a model,
+   never after.
+3. Transport: a Unix domain socket inside the data directory, carrying the
+   file's permissions; never a localhost port. Check the macOS socket-path
+   length limit against the default data directory and record the result;
+   record Windows as unanswered rather than assuming a POSIX shape works there.
+4. Lifetime: the service counts its connections and exits after holding none
+   for a stated interval. It never opens the database.
+5. Two lanes: queries preempt passages at batch boundary. On the caller's side,
+   a server embeds BEFORE it opens its read transaction, never across the call.
+6. Spawn: by a server, at normal priority, and by nothing else — the `nice 19`
+   worker must not have a code path that spawns it.
+7. Failure: spawn back-off then quarantine, the shape the extraction quarantine
+   already has, with a status distinguishing `loading`, `absent` and `failed`
+   with a count.
+8. Degradation: unavailable or still loading yields labeled keyword-only, per
+   R10 and §5.2.6, never silently and never to an API embedder.
+9. Residency: two embedder generations held at once across a switch, under one
+   idle-eviction rule inside the service.
+
+## Test
+
+- Red first, the singleton-before-load property: N clients start together
+  against one data directory; assert exactly one service exists and that no
+  loser began a model load. Positive control — an implementation that acquires
+  the singleton after the load must FAIL this test before the test is trusted,
+  since that is the transient the rule exists for.
+- Red first, the failure ladder: a service rigged to die on load must produce
+  back-off, then quarantine, then a `failed` status with a count — and must
+  never be re-spawned once per semantic query. The discriminating assertion is
+  that `failed` is distinguishable from `loading` at the status surface; a test
+  that only checks "keyword-only" cannot tell the two apart, which is the
+  defect the ruling names.
+
+## Verification
+
+- [ ] A query arriving mid-passage-batch is served within the quantum's bound,
+      with a build running (the band term is §5.2.9's; this asserts the lane,
+      not the number)
+- [ ] No read transaction is open across an embed call — asserted on the code
+      path, with a positive control that opens one and fails
+- [ ] Killing the service mid-session yields labeled keyword-only and a status
+      of `absent`, not a silent empty result and not an API embedder
+- [ ] The socket carries the data directory file's permissions, and no
+      localhost listener is bound (assert the negative with a control that
+      binds one and fails)
+- [ ] Nothing lands outside the data directory (R15's uninstall clause) and the
+      fast-install path is unchanged (0491's first exit criterion)
+- [ ] No P0 and no pipeline worker loads a model on any code path
+
+## Invariants
+
+- The incumbent MiniLM entry reproduces its old vectors and keys byte for byte
+  THROUGH this boundary — the check itself is built in 0554, which is the first
+  tranche to touch a vector; this ticket must not make it unrunnable.
+- v1's query path untouched.
+- Upstream tests green.
+
+## Clauses this ticket now owns
+
+- Ticket 0035 (the upstream multi-process issue) narrates the four-role
+  topology when that issue is drafted; the service's SHAPE is read from
+  SPEC.md §5.2.5 and from here, never re-derived in the issue text.
+- Ticket 0026's gates gained a service clause on 2026-09-02: the same p95 while
+  the embedding service is cold, and the status states the soak asserts. Their
+  subject is this ticket's boundary. The RSS gate's service arm needs a ceiling
+  that does not exist yet — ticket 0577.
+
+## Exit criteria
+
+- [ ] The boundary merged on a fork branch cut from `conductor-integration`
+- [ ] Both properties that cost the most if wrong have red-first tests:
+      singleton before load, and `failed` distinguishable from `loading`
+- [ ] 0491's comparison can swap the provider behind the socket without
+      touching the client
