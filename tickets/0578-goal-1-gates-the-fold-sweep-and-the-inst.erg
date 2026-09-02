@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-02T10:51Z claude created
 
+2026-09-02T11:02Z claude note R15's LADDER ADDRESS IS LEFT POINTING AT TICKET 0017, deliberately and not by oversight, flagged by the verification round on PR 182. README.md's goal-1 row for R15 addresses ticket 0017 (closed: custody quick wins, model cache under the data directory), while this ticket carries R15's deletion clause. The two do not contradict each other as they stand: 0017 is where the clause's measured half lives, and R15's own standing row already says so -- the model-cache check found the downloaded model does not escape the data directory, and nothing has swept for other survivors. That sweep is Action 2 here. What is open is whether the ladder cell should re-address to this ticket once the sweep exists, which is a call about README's standing report and was fenced out of the decomposition's scope (the directive named nine cells, all of them reading 'ticket 0026', and forbade touching other README text). Whoever picks this ticket up should make the call with the author when the sweep lands, not before. R10's cell needs nothing: it addresses bench/smoke_upstream.py, which is the file this ticket extends.
 --- body ---
 
 ## Context
