@@ -111,10 +111,6 @@ the entry points at the question rather than settling it.
 - **embedder entry** — one indivisible curated configuration whose complete
   vector-affecting fields produce its fingerprint. Authoritative:
   SPEC.md R31 and SPEC.md §5.2.5.
-- **embedding service** — the shareable local endpoint toward which the
-  transport-neutral query/passage interface can evolve; whether zoteus should
-  provide, bundle or merely consume one remains open. Authoritative: SPEC.md
-  §5.3.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
@@ -162,8 +158,9 @@ the entry points at the question rather than settling it.
   denominator. Authoritative: SPEC.md R1 and R17.
 - **micro-batch quantum** — the time budget one micro-batch targets, from
   which the batch size is derived per device rather than fixed, so the yield
-  interval holds across hardware. Authoritative: SPEC.md §5.2.5 (drafted,
-  awaiting ratification: DECISIONS.md 2026-09-01).
+  interval holds across hardware; the local engine's constant, which the API
+  execution mode replaces. Authoritative: SPEC.md §5.2.5 (ruling: DECISIONS.md
+  2026-09-01).
 - **multilingual** — the property that the default path works in each of the
   tested languages on its own terms and with no configuration, which is what
   makes a multilingual default embedder a requirement rather than a preference.
