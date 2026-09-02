@@ -3475,8 +3475,12 @@ reads the chapter map, the segmenter cuts the extracted text, and Zotero stays
 the extractor. Its two observations survive as design rationale too: an
 outline names chapters past the extraction cap that flat text never carried,
 which gives coverage an honest denominator; and when a better extractor
-arrives, the same map drives per-chapter extraction with no redesign. Online
-encyclopedias have no pages, so their signal is markup headings, text-side.
+arrives, the same map drives per-chapter extraction with no redesign. The
+measurement it rested on survives here too: 15 of 24 sampled 100-plus-page
+PDFs (63 %) carried a machine-readable, page-anchored outline (`mutool show
+… outline`, measured 2026-08-30; the probe is
+`verification/probes/outline-coverage-probe.py`). Online encyclopedias have
+no pages, so their signal is markup headings, text-side.
 SPEC.md §5.2.2 now states the interface.
 
 **2026-09-02 — the byline is enrichment, not a locator: the author signal is

@@ -48,4 +48,5 @@ published one.
 
 - [ ] byline detector implemented and tested against a multi-author
       fixture (edited collection) and a single-author fixture (thesis)
-- [ ] the accept-signal-vs-enrichment-only question resolved and recorded
+- [x] the accept-signal-vs-enrichment-only question resolved and recorded --
+      settled by the 2026-09-02 ruling, see log
