@@ -2040,8 +2040,9 @@ the two outcomes apart.
   green by right.
 - **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
-  the band cap are exercised. Assert: pipeline-worker peak ≤ 750 MB (the one
-  run-to-drain worker), server p95 ≤ 750 MB, the
+  the band cap are exercised. Assert: the kill of the one run-to-drain pipeline
+  worker at its memory bound rather than a pipeline-worker peak ≤ 750 MB, the
+  peak figure awaiting the re-pin §5.2.9 owns, server p95 ≤ 750 MB, the
   budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from the budgets' letter ("against the 44,9 MB dictionary", content
@@ -2202,8 +2203,9 @@ is the pattern, and it binds every surrogate here, not only that one.
 **R13 observability**: a server reports the pipeline's state as it reads it
 from the file rather than as something it is doing, since 2026-09-02 no
 server ever runs the pipeline. `pipeline: "held-by-other"` keeps its meaning
-for the one process that can hold it and does not: a writer that has lost the
-lease says so instead of silently duplicating work.
+with the conductor as the process that holds it: a server reads the conductor's
+lease and liveness rows and reports the pipeline as held elsewhere, rather than
+reading its own idleness as an idle pipeline.
 
 #### 5.2.9 Budgets, recomputed and honestly scoped
 
@@ -2334,12 +2336,13 @@ rather than discovers it.
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is a measured failure.
-- **Budget scoping under N processes** — open: per process, or per machine.
-  Both figures are stated in §5.2.9.
+- **Budget scoping under N processes** — the scope is settled in §5.2.9: each
+  ceiling binds per process, which is the scope its gate can assert, and the
+  model's residency is machine-scoped now that one service holds it. What stays
+  open there is the re-pin of the three ceilings the topology re-cut.
 - **Autonomous embedding service — architectural direction, open ownership.**
-  The interface seam and its future `local_endpoint` execution mode are
-  committed in §5.2.5; implementing a daemon in zoteus is not. Under
-  comparison: the in-process default against Zotero #6012 runtime reuse
+  The out-of-process service and its `local_endpoint` mode are ruled in §5.2.5;
+  which process hosts it is not. Under comparison: Zotero #6012 runtime reuse
   (probe 0496), a bundled child, a per-user service and an external
   OS/community facility.
   The decision rule includes install time, cross-platform packaging, custody
@@ -2408,6 +2411,16 @@ constant with better signage: designed around, not away, and named so the
 author can choose to tighten it. *Falsifier:* none needed, because the risk
 is organizational. The mitigation is that every gate threshold cites the
 artifact that justifies it, so re-pins and waivers leave evidence.
+
+**Risk 6 — the writer split rests on a child spawn nobody has verified.** A
+server hosted under Electron, which is the shape of the host population, sees
+`process.execPath` as Electron, and a spawn without `ELECTRON_RUN_AS_NODE` or
+its equivalent launches a GUI instead of a Node process. The isolation the
+separate conductor and worker buy exists only if that spawn works, and nothing
+has verified it on the hosts that matter. *Falsifier:* a spawn probe on the
+host application, an hour, before the process boundary is committed in code;
+the probe is also the mitigation, since its answer is either an environment
+flag that works or a topology that needs no child.
 
 ---
 
@@ -2495,7 +2508,10 @@ inside the data directory, chosen over a localhost port because a port lets
 any local process impersonate the service to a server while echoing the
 expected fingerprint (§5.2.5). What that socket inherits is the file's
 permissions, which is the same "none yet" as the database file's, now on a
-live endpoint. What is not stated: any authentication beyond that, and the
+live endpoint. A second property of that choice is disclosed and not decided:
+macOS caps the length of a Unix domain socket path, and the default data
+directory is long enough that the cap is a known hazard for where the socket
+can be placed. What is not stated: any authentication beyond that, and the
 whole of the Windows answer, since `nice`, `SIGSTOP`, stdin-EOF and Unix
 sockets are POSIX assumptions and the host population is Claude Desktop on
 macOS and Windows.
@@ -2575,7 +2591,11 @@ sets are the author's own research questions.
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
 | Inter-process transport and authorization | Conductor/worker stdio pipe; embedding service on a Unix socket in the data directory with the file's permissions, no further authentication; Windows unanswered (§5.2.5) |
 
-Four of the nine rows state an absence rather than an answer. That is the honest state of the design,
+Three of the nine rows answer "None yet" outright, and three more state an
+answer carrying a named gap inside it: the unverified absence of a network
+listener, the still-open question of passage text and query sets in this
+repository, and the missing authentication and Windows answers for the
+inter-process hops. That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
 defect to fix here.
 
