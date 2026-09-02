@@ -1,22 +1,11 @@
 # STATE — Search Works for Zotero
 
-*Reconciled 2026-08-31, and held under forty lines by ruling of the same day.
-Last updated 2026-09-02 (PRs #178–186, #188, and #189 merged: field review, 0028
-segmenter interface, conductor-lane reconciliation — 0554 rescoped, 0575–0577
-filed — seg/1 and the embed-cap guard built on the fork leaving 0028 open
-only for X5, 0026 split into 0578–0582 as a tracker, 0180's attribution audit
-closed (`verification/ATTRIBUTION-AUDIT-0180.md`), 0489 closed on the fork
-branch `t0489-minilm-singleton-entry`, ticket citations repointed to
-`SPEC.md`, the full-text control plugin built, and PR #187 merged — the
-target-neutral acceptance harness ratified in `DECISIONS.md`, 0578 rescoped
-onto it).*
+*Reconciled 2026-08-31 and held under forty lines by ruling of the same day.
+Last updated 2026-09-02: PR #187 ratified the target-neutral acceptance harness;
+PR #192 propagated it and filed adapter tickets 0583–0586.*
 
 One page of live state, and it owns nothing: every line is a pointer to the
 document that does own the fact, and anything longer than a pointer has drifted.
-
-**The measurement record that used to fill this file is gone**; git log is the
-archive. A measurement's durable home is its artifact under `bench/results/`
-and the ticket that produced it — prose quoting one is never the record.
 
 ## Where the live state lives
 
@@ -41,16 +30,9 @@ would show up in a diff sent upstream.
 
 ## Handoff
 
-**PR #187 merged 2026-09-02**: the target-neutral acceptance harness is
-ratified (`DECISIONS.md`, 2026-09-02 entry) and 0578 is rescoped onto it —
-no open PR remains. **Ready now**: 0578
-(goal-1 gates — the assertion layer and the zoteus adapter first), 0490 and
-0575 (unblocked by 0489's close), 0565 (unblocked by seg/1), 0554 (rescoped,
-branches from the fork's conductor-integration). **Awaiting the author**:
-`DECISIONS.md`'s awaiting-ratification list, where the
-`zotero_index` action set and 0569's retry policy gate the conductor lane;
-two README calls recorded in ticket logs — 0578's R15 goal-1-cell address,
-0582's absent `Blocked-by`. `SPEC.md` §4 and §5.1 still count the topology at
-two processes; open exit criterion on tracker 0550. **The PR-2 diacritics
-campaign's record is ticket 0091's log** (0091 is closed) — the branch named
-in a prior note, `t0091-pr2-expansion`, is not on origin.
+**Next:** 0578 builds the assertion layer, zoteus adapter and R10 fail-control;
+0583–0586 own the other adapters. `erg ready` owns the rest of the queue.
+**Awaiting the author:** `DECISIONS.md`; ticket 0582 records its README call.
+Tracker 0550 owns the stale two-process topology in `SPEC.md` §4 and §5.1.
+The PR-2 diacritics record is ticket 0091's log; the previously named
+`t0091-pr2-expansion` branch never reached origin.
