@@ -259,8 +259,9 @@ document relies on it.
 - **`dateAdded`** — an item's creation timestamp, which is what "newest" means
   throughout this design's ordering. Zotero's; the total-order key built on it
   is SPEC.md §5.2.8.
-- **`/fulltext` census endpoint** — the local API route listing every
-  attachment's full-text version in one unpaginated response. Zotero's; how the
+- **`/fulltext` census endpoint** — the local API route listing, for one
+  library and in one unpaginated response, the full-text version of every
+  attachment that already carries one. Zotero's; how the
   design diffs it is SPEC.md §5.2.4, and why it must never be cursored on the
   local transport is SPEC.md C1.
 - **item** — the platform's unit of bibliography, one record with zero or more
@@ -280,7 +281,7 @@ document relies on it.
   changed after a given version. Zotero's; it is a legitimate cursor on the
   item sequence and not on the local full-text sequence, per SPEC.md C1.
 - **`Zotero-Server-ID`** — the response header identifying which database
-  answered, within which alone versions and keys are comparable. Zotero's; the
+  answered, within which alone versions are comparable. Zotero's; the
   partition it forces on stored state is SPEC.md C1 and SPEC.md §5.2.2.
 
 ### Inherited, SQLite
@@ -290,8 +291,9 @@ document relies on it.
   they are tuned, are SPEC.md §5.2.2.
 - **FTS5** — SQLite's full-text search extension, the keyword half of this
   design's retrieval. SQLite's; the table layout, the tokenizer and the
-  contentless mode are SPEC.md §5.2.2, and the measured cost of constraining a
-  match to a row set is SPEC.md C2.
+  contentless mode are SPEC.md §5.2.2. The cost of constraining a match to a
+  row set is C2's constraint, on upstream's stated rationale; the figure under
+  it is X4's to measure and is not measured yet (SPEC.md §5.3).
 - **`unicode61`** — the tokenizer the full-text index uses, configurable for
   diacritic folding; the query and index normalizers must agree on it or a term
   can never match. SQLite's; the configuration is SPEC.md §5.2.2 and the
@@ -752,10 +754,12 @@ derived data. Work is stale exactly when a stored key no longer equals the
 current key, and invalidation propagates downstream only.
 
 The extractor's identity is visible only in-process. Over HTTP, the
-observable proxy is the `/fulltext?since=` counter, which Zotero bumps when
-it re-extracts synced content. Does a purely local re-extraction re-stamp
-version 0, which would make it invisible to this counter? We do not know
-yet — open, pending experiment X6 — and SPEC.md §5.2.4 is
+observable proxy is the `/fulltext?since=` counter. It carries a *sync*
+version: the server stamps it, and re-extraction is not what moves it.
+Does a purely local re-extraction re-stamp version 0, which would make it
+invisible to this counter? Experiment X6 owns the answer, and a source read
+now bears on it (`fulltext.js` at `9e28eb0`, ticket 0180, with the author on
+`DECISIONS.md`'s awaiting list); SPEC.md §5.2.4 is
 designed to work under either answer. Items and full-text extractions are
 numbered on two unrelated sequences (measured: 410 versus 0..25 036).
 
@@ -769,14 +773,25 @@ This constraint is sharpened on three points:
   silently miss locally-extracted text. (Measured: 584 of 8 037 fulltext
   entries at version 0 on the reference library.)
 - Version validity is scoped by the `Zotero-Server-ID` header. A different
-  server ID means a different database, different versions, different keys;
+  server ID means a different database and different versions; item keys are
+  *not* a distinguisher, being sync keys unique per library and identical
+  across two installs of the same account (`userdata.sql:169`, `9e28eb0`).
+  Versions alone carry the requirement:
   stored state MUST therefore be partitioned by server ID. A local/cloud
   label is not enough, because two local profiles share the label and share
   nothing else.
-- Even Zotero accepts a staleness residue here: their embeddings layer
-  deliberately does not chase a processor bump without a file change
-  ("vectors stay derived from the older extraction until the file changes
-  or the index is rebuilt").
+- This residue is ours alone, and the platform is not a precedent for it.
+  Zotero's embeddings layer *does* chase a processor bump with no file
+  change: the attachment staleness key is
+  `md5(path|size|lastModified|processorVersion)` where the version is the
+  current processor's, and the consumer waits for regeneration rather than
+  reading a stale pack — `getSections(…, { allowStale: false })`
+  (`embeddings.js:2352-2360` and `:2428`, `sdt.js:298-308`, PR head
+  `77e2c4b`, read 2026-09-02). A comment fifteen lines above the key still
+  describes the older behaviour; the commit that closed the gap
+  (`57b30b17e`, 2026-08-20, inside the pull request) did not delete it, and
+  the code folds the processor version into the staleness key regardless.
+  Cite the key, not the comment.
 
 ### C2 — the platform and the upstream project are both moving
 
@@ -805,8 +820,10 @@ This constraint is sharpened on five points:
 - The local API documentation states that "only one API version will ever
   be supported at a time", so a client reads the `Zotero-API-Version` and
   `Zotero-Schema-Version` headers rather than assuming a version.
-- The local API has no `/deleted` endpoint; the documented deletion route
-  is a key-set diff (`format=versions`, unpaginated).
+- The local API has no `/deleted` endpoint; the deletion route left to a
+  client is a key-set diff (`format=versions`, unpaginated). Documented as
+  such nowhere — the route works and the inference is ours, which is a
+  weaker footing than "documented" and is stated as the weaker one.
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
   per row, which costs seconds at library scale. That is #6012's stated
   rationale rather than a measurement of theirs, and the distinction is the
@@ -818,7 +835,8 @@ This constraint is sharpened on five points:
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. SPEC.md §5.2.6 owns the conditional fallback and the
   threshold experiment X4 measures; it is never the default path.
-- The SDT pack (zotero/structured-document-text) is the structured
+- The SDT pack (the pack format `structured-document-text`, produced by
+  `zotero/document-worker`) is the structured
   extraction the extract stage reads when one exists (§5.2.4). The local API
   neither serves nor creates it; it is read from disk beside the attachment,
   a random-access container with a reader contract
@@ -835,7 +853,8 @@ This constraint is sharpened on five points:
   The geometry is 120 minimum, 48 overlap, and a maximum of 768 that is
   **a ceiling, not a chunk size**. The source says so in as many words:
   "A ceiling rather than a target: chunks come out paragraph-sized, so this
-  decides only how long a text has to be before it's split at all." The
+  decides only how long a text has to be before it's split at all, and how
+  far a single oversized paragraph is split." The
   effective budget is a minimum against the live model, not the constant —
   `Math.min(CHUNK_MAX_TOKENS, getModelMaxTokens()) - specialTokens -
   count(prefix)` (`embeddings.js:1642`). Six of the eight registered models
@@ -848,9 +867,9 @@ This constraint is sharpened on five points:
   The chunker also **does not** never cross a section: it merges sections
   below the 120-token minimum forward into their neighbour, asserted by
   #6012's own tests. It never merges two sections each able to stand alone.
-  Our boundary ruling is therefore stricter than the platform's, a
-  deliberate divergence rather than the alignment this bullet used to claim.
-- Once #6012's saved-search serialization merges, it will be the first
+  Our boundary ruling is therefore stricter than the platform's: a
+  deliberate divergence, not an alignment.
+- Once #6012's `bestMatch` saved-search condition merges, it will be the first
   place platform semantic results appear in the local API. The mechanism is
   verified at source (PR head `77e2c4b`, read 2026-08-30): the
   pull request adds a `bestMatch` search *condition* in `searchConditions.js`,
@@ -860,8 +879,12 @@ This constraint is sharpened on five points:
 
 Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
 author's own installation (10.0, build 20260817151751) and the shipped
-`fulltext.js` of that build; the evidence, including the vocabulary and cache
-measurements, is in `verification/VERIFY-FULLTEXT-SQLITE.md`.
+`fulltext.js` of that build; the evidence is in
+`verification/VERIFY-FULLTEXT-SQLITE.md`. Read that report for what it covers
+before citing it for more: the schema, the CJK vocabulary and `journal_mode`
+are in it, while the main-index vocabulary counts and the `.zotero-ft-cache`
+census below are quoted here from no committed artifact and are undeclared to
+the figure guard (ticket 0180; the anchors are ticket 0060's action 6).
 
 - The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
   and `fulltextItemWords` and moved the keyword index into a separate
@@ -900,11 +923,14 @@ measurements, is in `verification/VERIFY-FULLTEXT-SQLITE.md`.
   is an inference from it, untested here. `rebuildIndex()` in `fulltext.js`
   would re-extract and has no caller in the shipped app. Either way both
   generations are live today, so page boundaries cannot be assumed.
-- It is readable while Zotero runs, and fast. A read-only open of the live
-  file returned a count in 7 ms and a `MATCH` in 8 ms with the application
-  up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
-  WAL, so a writer takes an exclusive lock and a reader is cheap but not
-  guaranteed available.
+- Whether it is readable while Zotero runs is **not established here**. The
+  cited report tested the opposite case on purpose — "Zotero was not
+  running, deliberately" — and lists the live read as an open question; the
+  absence of `locking_mode=EXCLUSIVE` is PR #100's assertion. What is
+  measured is `journal_mode`: `delete`, not WAL, so a writer takes an
+  exclusive lock and a reader is cheap but not guaranteed available. A
+  read-only open with the application up would settle the rest, and nothing
+  here has run it.
 - Nothing documents any of this. The 10.0 changelog says only "Much faster
   full-text content searches", naming neither the file, nor FTS5, nor the
   split. This is an internal implementation file that has already moved
@@ -960,8 +986,12 @@ cap per provider, a 429's `Retry-After` honored with exponential fallback,
 and a refusal or a timeout surfacing as a labeled state rather than as a
 build that dies (DECISIONS.md 2026-09-02). Toward the Zotero web API the cap
 is 4 concurrent requests, and `Backoff: <seconds>` is honored on ANY
-response, including 2xx. The local API has no rate limits and is unpaginated
-by default, so the clause never binds there. The API embedder of §5.2.5 is
+response, including 2xx. Both come from the web API's own documentation,
+where the concurrency figure is a recommendation to clients rather than an
+enforced ceiling. The local API's data endpoints have no rate limits and are
+unpaginated by default, so the clause never binds on the transport this
+design uses; `/api/local/authorize` is the one exception, capped at 5 per
+60 s, and the pipeline never calls it. The API embedder of §5.2.5 is
 bound at its provider's own cap.
 
 ### The concurrency hint
@@ -985,16 +1015,28 @@ thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets
 (§5.2.9). The predecessor design ("The Settled Ledger", called v1 below) is
 superseded.
 
-Seven facts about upstream (`oscardvs/zoteus` at v1.7.0; SYNC.md carries
-where it has moved since) are relied on below. The
-query tokenizer is broken for non-English text (`tokenize.ts`:
-`/[a-z0-9]+/g` plus 29 English stopwords). There is no `busy_timeout` and
-no `SQLITE_BUSY` handling anywhere in `src/`. `SCHEMA_VERSION` is written
-(`sqlite-index.ts:26,153`) and never read. `DEFAULT_FULLTEXT_MAX_CHARS =
-40_000` truncates the 44,9 MB living example roughly 1 100-fold. Changing
-embedder drops every vector at open (`dropStaleVectors` →
-`clearVectors()`). Builds crawl `top:true` only, and `clearStore()` sits in
-the build path. Two measurements bear on it: the golden-answer stability sample (60 queries with
+Seven facts about upstream shaped the design below. They were read at v1.7.0
+(`c5d25aa`), where all seven were exact; four have since been repaired, three
+of those by the maintainer acting on this repository's own filings. They are
+therefore stated against the reviewed baseline `b05ed69` (v1.12.0), because a
+reader takes a premise as current unless told otherwise.
+
+Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
+(`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
+1 100-fold. Changing embedder drops every vector at open (`dropStaleVectors`
+→ `clearVectors()`, `index-manager.ts:544`). `clearStore()` sits in the build
+path (`index-manager.ts:668`).
+
+Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
+`/[\p{L}\p{N}]+/gu` (`tokenize.ts:67`, `4f61b2a`, v1.7.2), the 29 English
+stopwords still in place. `busy_timeout` is set to 10 s on both the writable
+handle and the read-only probe (`sqlite-index.ts:124`, `80f8aa0`, v1.7.1).
+`SCHEMA_VERSION` is read before any DDL, through `reconcileSchema()`
+(`sqlite-index.ts:304`, `fd51659`, v1.9.0). Builds no longer crawl `top:true`
+alone: a second pass indexes child notes and annotations, on by default
+(`own-words-source.ts:157`, `d8266f7`, v1.11.0). What the design owes each of
+the four is unchanged; what has changed is that none of them is a live defect,
+so none may be cited as one. Two measurements bear on it: the golden-answer stability sample (60 queries with
 pinned known-correct results, from
 `bench/results/0013-concentration/uncapped-477512.json`) has a per-query
 Jaccard minimum of 0.25 under legitimate perturbation (two of the 60 fall
@@ -1184,8 +1226,11 @@ is not a constant but a budget, resolved once per model:
 and the resolved budget is recorded in the chunker key, so a model change that
 moves it invalidates chunks explicitly rather than silently. The construction
 is the platform's; the ceiling is ours, and the difference is deliberate.
-Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with this
-same minimum against the model's window. Cycle 2 copied the ceiling, used it as
+Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with a
+minimum of the same value, 120. (Its `min()` applies to the ceiling alone;
+`CHUNK_MIN_TOKENS` is a flat constant compared against nothing, so the
+window-relative reading this sentence used to carry is not upstream's —
+registered by ticket 0180, wording left to the segmenter work.) Cycle 2 copied the ceiling, used it as
 a target, and dropped the minimum — which is what left a 768-token chunk
 unreadable by a 512-token embedder with nothing raised.
 
@@ -1371,7 +1416,10 @@ falls through to seg/1 above, which owns the confidence-gated synthetic
 entries. The length trigger is itself a fallback chain: Zotero's
 `indexedPages` or a literal page-break count first, a character-count
 estimate when neither is available, so the gate degrades to an estimate rather
-than never firing. The local API returns `indexedPages` and `totalPages`
+than never firing. (That first rung saturates: `indexedPages` counts pages
+actually extracted, capped by the `maxPages` preference, so on a very long PDF
+it reports the cap — registered by ticket 0180, the trigger's order left to the
+segmenter work.) The local API returns `indexedPages` and `totalPages`
 beside the text on its per-item full-text endpoint, so the first link of the
 chain costs no extra call.
 
@@ -1411,9 +1459,12 @@ author or abstract, and body text fills in behind that for hours.
   (labeled) 25 passages/s that is ≈ 8–10 minutes to D1's first 100 %.
 
 - **Phase A′ — own words** (R16; D7 = both). Child notes and annotations
-  follow, in a second pass filtered by item type. Upstream does not do this
-  today, verified: its builds crawl `top:true` only, so standalone notes are
-  indexed and child notes and annotations are not.
+  follow, in a second pass filtered by item type. Upstream did not do this
+  when the phase was designed; it does now, and on by default — a second
+  crawl on `itemType: 'note || annotation'` with no `top` filter
+  (`own-words-source.ts:157`, `d8266f7`, v1.11.0, read at `b05ed69`). What
+  remains ours is the ordering: the pass is a *phase* here, after records and
+  before body text, which is a discovery-order claim and not a coverage one.
 
 - **Phase B — body text.** Entry-segmented. Each item's first K passages ride
   the main frontier (band 0) and the rest queue behind it (band 1), so one
@@ -1477,7 +1528,10 @@ windows. The worker paces that GET on observed latency (DECISIONS.md,
 2026-09-01): a rising local-API latency median inserts a delay between
 document fetches, decaying on recovery, reported on the instrument panel —
 reacting to degradation before an error, since the serving process is
-Zotero's own. The Web-API fallback upstream's #39 chose is not adopted
+Zotero's own. Upstream's #39 answered the same pressure differently, and not
+with a fallback: it sets the crawl's concurrency from whichever API serves it,
+2 for the desktop app against 4 for the cloud, and backs off to one on
+degradation (`c859407`, `library-router.ts:75-78`). That is not adopted
 (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
@@ -1519,8 +1573,10 @@ shim without moving the ledger boundary or touching the stages downstream.
 
 **Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
 first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
-file, reached through the same `/file/view/url` redirect the segmenter uses
-for the PDF. A pack of a known pack version is the source: its blocks are the
+file, located through the same `/file/view/url` route the segmenter uses to
+reach the PDF — which answers with the local file URL as a plain-text body,
+where `/file` and `/file/view` answer with a 302 to it
+(`server_localAPI.js:1264-1276`, `9e28eb0`). A pack of a known pack version is the source: its blocks are the
 text, excluded flows (running heads, page numbers) dropped, joined so a
 passage's extent maps back to its blocks; its block types and page anchors go
 to the segmenter as the first structure signal; its metadata's source hash and
@@ -1948,7 +2004,7 @@ entry fingerprint plus engine version, runtime, operating system, architecture
 and execution provider. A remote result can inform the UI but never substitutes
 for this local gate.
 
-Second, #6012-style library calibration (mean centering, noise floor = p99 of
+Second, #6012-style library calibration (mean centering, noise floor = p99,9 of
 unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
 remains deferred. One item's title and abstract form a matched
 pair, cross-item pairs are unrelated, and the private library is the corpus.
@@ -1999,8 +2055,10 @@ conformance criterion in the registry's ship gate.
 
 **CJK.** The multilingual embedder is the CJK path, with a typed
 `CJK_KEYWORD_DEGRADED` disclosure meanwhile. The scheduled companion is
-2-gram twin tables (#6012's shipped geometry, and decisive on its own
-terms: the modal Chinese word is two characters, unrepresentable as an
+2-gram twin tables (shipped Zotero 10's geometry, not the draft PR's —
+`getCJKBigrams()` at `fulltext.js:2144`, build 20260817151751, C2's
+shipped-schema bullet — and decisive on its own terms: the modal Chinese
+word is two characters, unrepresentable as an
 exact trigram), backfilled from slabs for CJK-bearing passages only,
 query-routed, fused as a third list. SentencePiece quadratic-encode caution
 inherited: cap encode segments at ~1 000 chars.
@@ -2075,9 +2133,11 @@ rebuild switches both. Dual-embed itself is not built here; the contract
 survives even if it is built upstream instead.
 
 **R23 — upgrade and downgrade.** The open protocol: read
-`meta.schemaVersion` before any DDL or write (verified defect:
-`createSchema` re-stamps via `INSERT OR REPLACE` before `loadMeta`, so today
-a downgrade destroys the evidence of skew at the moment it matters). A
+`meta.schemaVersion` before any DDL or write (upstream's own rule since
+`fd51659`, v1.9.0: `reconcileSchema()` reads the stamp through a read-only
+probe at `sqlite-index.ts:304`, before the `INSERT OR REPLACE` in
+`createSchema` can re-stamp a file written by a newer build. That ordering
+defect is fixed upstream; the protocol below is what the fix leaves open). A
 newer file → sideline (never delete), fresh build, notice. Only the
 conductor may sideline, because under N processes an unconditional
 per-server sideline would let one stale install repeatedly sideline a fresh
@@ -2160,8 +2220,12 @@ It asserts four things.
   that it should be was vetoed on 2026-08-29 — and the counter arithmetic
   written to check one (`covered == |{(dateAdded, lib, itemKey) ≥ boundary}| −
   partial − quarantined + outOfBand`) is open to rework or retire.
-- The terminal state arrives: all stages at total, drift 0, `pipeline: idle`
-  (the #6012 engine-shutdown observable), work counters stationary.
+- The terminal state arrives: all stages at total, drift 0, `pipeline: idle`,
+  work counters stationary. The observable is ours: #6012's nearest analogue
+  is `getStatus().phase`, which reaches `idle` on the branch that shuts the
+  engine down *and* on the branch that leaves it up for more work
+  (`embeddings.js:2782`, `:2998`), so it reports a loop at rest and not an
+  engine down. Ours must assert both, which is why the counters ride beside it.
 
 Phase 2: edit
 one title → exactly `work.record.edit.done == 1`, `work.embed.edit.done ==
@@ -2463,7 +2527,9 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   re-stamps 0, build the bounded re-verify sweep (M entries per tick,
   horizon reported); if it bumps anything observable, the md5-widened signal
   already catches it and the sweep is never built. Until X6 runs, the
-  residue is disclosed, platform-aligned.
+  residue is disclosed — and disclosed as ours alone: C1's reading that the
+  platform accepts the same residue was refuted at source (ticket 0180), so
+  nothing here is platform-aligned and the disclosure stands on its own.
 - **Census cadence — X7 decides.** Local census every tick, unless the parse
   exceeds 50 ms at 30k entries; then every 5th tick.
 - **Constrained-MATCH threshold — X4 decides** (via `json_each`, the
@@ -2473,7 +2539,8 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   inside the 300–700 ms typical budget); if even 1k exceeds it, no
   constrained step ships and the ladder ends at the honest R18 give-up.
 - **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
-  baselines stock upstream on the uncapped 44,9 MB document (the 2 084,9 MiB
+  baselines stock upstream, uncapped via
+  `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0`, on the 44,9 MB document (the 2 084,9 MiB
   class) and feeds the rss-gate fixture. X3b, the streamed-slab measurement
   against C3's pipeline rule, travels with the entries machinery (scoped issue
   B).
@@ -2572,7 +2639,7 @@ is already drafted to carry the answer upstream.
 completes.** Sharpened since v1: he built #10's answer himself in days, the
 risk materialized a second time on 2026-08-27, when he filed and fixed
 his own follow-up to PR #20 (#21, with #22/#23) inside one day, and
-#6012's saved-search serialization is the first crack through which platform
+#6012's `bestMatch` saved-search condition is the first crack through which platform
 semantic results will leak into the local API. *Falsifier:* the harness
 offer and the scoped issues themselves, after the PR train; those threads
 settle fork-versus-upstream for the cost of writing them. The hedge is
@@ -2722,9 +2789,12 @@ are the only ones R10 counts, and both stay accurate. Item-metadata reads —
 router prefers the local Zotero API and falls back to the cloud Web API when
 the local one is unreachable, a rule that predates this design's review and is
 not gated on a per-call opt-in. It cannot fire without a cloud API key already
-configured, and a keyless install fails such a read rather than sending it
-anywhere; where a key is configured, the fallback is silent — nothing asks
-again at the moment it fires. It does not reach an index build: a build pins
+configured. A keyless install fails such a read, but it fails *at the server*:
+there is no pre-flight refusal in the code, so the request is dispatched to
+`api.zotero.org` under user id 0 and rejected there (`library-router.ts:128`,
+`b05ed69`). No library content crosses, which is the substantive point; a
+request does reach `api.zotero.org`. Where a key is configured, the
+fallback is silent — nothing asks again at the moment it fires. It does not reach an index build: a build pins
 its transport once and fails rather than re-routing, so no passage or
 full-text content crosses this way. Ratified as disclosure rather than a
 requirement (`DECISIONS.md`, 2026-09-01, ticket 0505): the gap is real,
