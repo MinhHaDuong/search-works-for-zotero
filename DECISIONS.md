@@ -4464,14 +4464,33 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   the verdict, and a proxy agreeing with the task metric on one case reverses
   it on the next.
 
-  **What ratifying this changes.** SPEC.md §3, R15's uninstall clause,
-  reworded over declared derived state. SPEC.md §5.2.8, which owns the gates:
+  **What ratifying this changes.** Seven sites across two documents, and no
+  threshold moves. Four in SPEC.md. §3's R15 paragraph, the uninstall clause
+  reworded over declared derived state, and with it the sentence forbidding
+  index state, queues, watermarks and downloaded models to survive outside
+  the data directory, which is the same location claim at greater length.
+  §3's goals-ladder row for rung 1, which restates the clause in the user's
+  own words and would otherwise keep promising a directory. §5.2.7, whose
+  paragraph headed "R15's uninstall clause" fixes the location twice, pinning
+  `env.cacheDir` under the data directory and equating uninstall with
+  deleting it; under the new phrasing that paragraph states zoteus's
+  declaration rather than the requirement. And §5.2.8, which owns the gates:
   the target interface, the adapter contract, the judge rule and its positive
-  controls, stated once where the gate specification lives. No other section,
-  and no threshold moves. Ticket 0578 is rescoped now rather than after,
-  because the layer and the zoteus adapter can be built while this waits; its
-  body names the one part that waits, R15's rewording, and nothing else. The
-  tickets that follow ratification are deliberately not filed: the #6012
-  adapter, the ZotSeek adapter, and the Beaver egress control. A target
-  roster is the author's call, and filing three tickets against an unratified
-  roster is how a draft becomes a decision by accident.
+  controls, stated once where the gate specification lives.
+
+  Three in README.md, because the landing page owns the standing report and
+  the ladder's rosters, checked against this ledger rather than against
+  itself. Goal 1's opening prose and its roster row for R15 both restate the
+  clause as a location, and no guard reads either, which is the reason to
+  name them here. The standing table's R15 row quotes the sheet's requirement
+  sentence verbatim, and `bench/check_progress.py`'s PROMISE check compares
+  that cell against SPEC.md's own sentence, so rewording the sheet alone
+  turns the gate red until the row is reworded with it.
+
+  Ticket 0578 is rescoped now rather than after, because the layer and the
+  zoteus adapter can be built while this waits; its body names the one part
+  that waits, R15's rewording, and nothing else. The tickets that follow
+  ratification are deliberately not filed: the #6012 adapter, the ZotSeek
+  adapter, and the Beaver egress control. A target roster is the author's
+  call, and filing three tickets against an unratified roster is how a draft
+  becomes a decision by accident.
