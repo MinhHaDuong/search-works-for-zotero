@@ -259,8 +259,9 @@ document relies on it.
 - **`dateAdded`** — an item's creation timestamp, which is what "newest" means
   throughout this design's ordering. Zotero's; the total-order key built on it
   is SPEC.md §5.2.8.
-- **`/fulltext` census endpoint** — the local API route listing every
-  attachment's full-text version in one unpaginated response. Zotero's; how the
+- **`/fulltext` census endpoint** — the local API route listing, for one
+  library and in one unpaginated response, the full-text version of every
+  attachment that already carries one. Zotero's; how the
   design diffs it is SPEC.md §5.2.4, and why it must never be cursored on the
   local transport is SPEC.md C1.
 - **item** — the platform's unit of bibliography, one record with zero or more
@@ -280,7 +281,7 @@ document relies on it.
   changed after a given version. Zotero's; it is a legitimate cursor on the
   item sequence and not on the local full-text sequence, per SPEC.md C1.
 - **`Zotero-Server-ID`** — the response header identifying which database
-  answered, within which alone versions and keys are comparable. Zotero's; the
+  answered, within which alone versions are comparable. Zotero's; the
   partition it forces on stored state is SPEC.md C1 and SPEC.md §5.2.2.
 
 ### Inherited, SQLite
@@ -752,10 +753,12 @@ derived data. Work is stale exactly when a stored key no longer equals the
 current key, and invalidation propagates downstream only.
 
 The extractor's identity is visible only in-process. Over HTTP, the
-observable proxy is the `/fulltext?since=` counter, which Zotero bumps when
-it re-extracts synced content. Does a purely local re-extraction re-stamp
-version 0, which would make it invisible to this counter? We do not know
-yet — open, pending experiment X6 — and SPEC.md §5.2.4 is
+observable proxy is the `/fulltext?since=` counter. It carries a *sync*
+version: the server stamps it, and re-extraction is not what moves it.
+Does a purely local re-extraction re-stamp version 0, which would make it
+invisible to this counter? Experiment X6 owns the answer, and a source read
+now bears on it (`fulltext.js` at `9e28eb0`, ticket 0180, with the author on
+`DECISIONS.md`'s awaiting list); SPEC.md §5.2.4 is
 designed to work under either answer. Items and full-text extractions are
 numbered on two unrelated sequences (measured: 410 versus 0..25 036).
 
@@ -769,7 +772,10 @@ This constraint is sharpened on three points:
   silently miss locally-extracted text. (Measured: 584 of 8 037 fulltext
   entries at version 0 on the reference library.)
 - Version validity is scoped by the `Zotero-Server-ID` header. A different
-  server ID means a different database, different versions, different keys;
+  server ID means a different database and different versions; item keys are
+  *not* a distinguisher, being sync keys unique per library and identical
+  across two installs of the same account (`userdata.sql:169`, `9e28eb0`).
+  Versions alone carry the requirement:
   stored state MUST therefore be partitioned by server ID. A local/cloud
   label is not enough, because two local profiles share the label and share
   nothing else.
@@ -808,8 +814,10 @@ This constraint is sharpened on five points:
 - The local API documentation states that "only one API version will ever
   be supported at a time", so a client reads the `Zotero-API-Version` and
   `Zotero-Schema-Version` headers rather than assuming a version.
-- The local API has no `/deleted` endpoint; the documented deletion route
-  is a key-set diff (`format=versions`, unpaginated).
+- The local API has no `/deleted` endpoint; the deletion route left to a
+  client is a key-set diff (`format=versions`, unpaginated). Documented as
+  such nowhere — the route works and the inference is ours, which is a
+  weaker footing than "documented" and is stated as the weaker one.
 - Constraining FTS5 MATCH to a rowid set makes FTS5 evaluate the expression
   per row, which costs seconds at library scale. That is #6012's stated
   rationale rather than a measurement of theirs, and the distinction is the
@@ -863,8 +871,12 @@ This constraint is sharpened on five points:
 
 Zotero 10 moved its keyword index. Verified on 2026-08-29 against the
 author's own installation (10.0, build 20260817151751) and the shipped
-`fulltext.js` of that build; the evidence, including the vocabulary and cache
-measurements, is in `verification/VERIFY-FULLTEXT-SQLITE.md`.
+`fulltext.js` of that build; the evidence is in
+`verification/VERIFY-FULLTEXT-SQLITE.md`. Read that report for what it covers
+before citing it for more: the schema, the CJK vocabulary and `journal_mode`
+are in it, while the main-index vocabulary counts and the `.zotero-ft-cache`
+census below are quoted here from no committed artifact and are undeclared to
+the figure guard (ticket 0180; the anchors are ticket 0060's action 6).
 
 - The index left `zotero.sqlite`. Userdata step 127 dropped `fulltextWords`
   and `fulltextItemWords` and moved the keyword index into a separate
@@ -903,11 +915,15 @@ measurements, is in `verification/VERIFY-FULLTEXT-SQLITE.md`.
   is an inference from it, untested here. `rebuildIndex()` in `fulltext.js`
   would re-extract and has no caller in the shipped app. Either way both
   generations are live today, so page boundaries cannot be assumed.
-- It is readable while Zotero runs, and fast. A read-only open of the live
-  file returned a count in 7 ms and a `MATCH` in 8 ms with the application
-  up. No `locking_mode=EXCLUSIVE` is held. `journal_mode` is `delete`, not
-  WAL, so a writer takes an exclusive lock and a reader is cheap but not
-  guaranteed available.
+- Whether it is readable while Zotero runs is **not established here**, and
+  this bullet used to say it was. The cited report tested the opposite case
+  on purpose — "Zotero was not running, deliberately" — and lists the live
+  read as an open question; the absence of `locking_mode=EXCLUSIVE` is PR
+  #100's assertion, not a reading of ours, and the 7 ms / 8 ms figures once
+  quoted here rest on no artifact in this repository. What is measured is
+  `journal_mode`: `delete`, not WAL, so a writer takes an exclusive lock and a
+  reader is cheap but not guaranteed available. A read-only open with the
+  application up would settle the rest, and nothing here has run it.
 - Nothing documents any of this. The 10.0 changelog says only "Much faster
   full-text content searches", naming neither the file, nor FTS5, nor the
   split. This is an internal implementation file that has already moved
@@ -963,8 +979,12 @@ cap per provider, a 429's `Retry-After` honored with exponential fallback,
 and a refusal or a timeout surfacing as a labeled state rather than as a
 build that dies (DECISIONS.md 2026-09-02). Toward the Zotero web API the cap
 is 4 concurrent requests, and `Backoff: <seconds>` is honored on ANY
-response, including 2xx. The local API has no rate limits and is unpaginated
-by default, so the clause never binds there. The API embedder of §5.2.5 is
+response, including 2xx. Both come from the web API's own documentation,
+where the concurrency figure is a recommendation to clients rather than an
+enforced ceiling. The local API's data endpoints have no rate limits and are
+unpaginated by default, so the clause never binds on the transport this
+design uses; `/api/local/authorize` is the one exception, capped at 5 per
+60 s, and the pipeline never calls it. The API embedder of §5.2.5 is
 bound at its provider's own cap.
 
 ### The concurrency hint
@@ -1476,7 +1496,10 @@ windows. The worker paces that GET on observed latency (DECISIONS.md,
 2026-09-01): a rising local-API latency median inserts a delay between
 document fetches, decaying on recovery, reported on the instrument panel —
 reacting to degradation before an error, since the serving process is
-Zotero's own. The Web-API fallback upstream's #39 chose is not adopted
+Zotero's own. Upstream's #39 answered the same pressure differently, and not
+with a fallback: it sets the crawl's concurrency from whichever API serves it,
+2 for the desktop app against 4 for the cloud, and backs off to one on
+degradation (`c859407`, `library-router.ts:75-78`). That is not adopted
 (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
@@ -1518,8 +1541,10 @@ shim without moving the ledger boundary or touching the stages downstream.
 
 **Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
 first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
-file, reached through the same `/file/view/url` redirect the segmenter uses
-for the PDF. A pack of a known pack version is the source: its blocks are the
+file, located through the same `/file/view/url` route the segmenter uses to
+reach the PDF — which answers with the local file URL as a plain-text body,
+where `/file` and `/file/view` answer with a 302 to it
+(`server_localAPI.js:1264-1276`, `9e28eb0`). A pack of a known pack version is the source: its blocks are the
 text, excluded flows (running heads, page numbers) dropped, joined so a
 passage's extent maps back to its blocks; its block types and page anchors go
 to the segmenter as the first structure signal; its metadata's source hash and
@@ -2726,9 +2751,12 @@ are the only ones R10 counts, and both stay accurate. Item-metadata reads —
 router prefers the local Zotero API and falls back to the cloud Web API when
 the local one is unreachable, a rule that predates this design's review and is
 not gated on a per-call opt-in. It cannot fire without a cloud API key already
-configured, and a keyless install fails such a read rather than sending it
-anywhere; where a key is configured, the fallback is silent — nothing asks
-again at the moment it fires. It does not reach an index build: a build pins
+configured. A keyless install fails such a read, but it fails *at the server*:
+there is no pre-flight refusal in the code, so the request is dispatched to
+`api.zotero.org` under user id 0 and rejected there (`library-router.ts:128`,
+`b05ed69`). No library content crosses, which is the substantive point; a
+request does, which the earlier wording denied. Where a key is configured, the
+fallback is silent — nothing asks again at the moment it fires. It does not reach an index build: a build pins
 its transport once and fails rather than re-routing, so no passage or
 full-text content crosses this way. Ratified as disclosure rather than a
 requirement (`DECISIONS.md`, 2026-09-01, ticket 0505): the gap is real,
