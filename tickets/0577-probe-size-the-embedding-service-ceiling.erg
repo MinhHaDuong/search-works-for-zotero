@@ -143,6 +143,15 @@ which puts multilingual-e5-base at q8 at 572,6 MB median delta. Cell 1b reads
 861,8 MB total here; the no-settle control regime is where the two are
 comparable. Stated as a reconciliation to check, not as a correction to 0263.
 
+**Provenance of the committed artifact.** After the run the driver was changed
+to name both models by registry id and to take pooling and normalize from
+`bench/models.json` rather than as literals, which is what `bench/check_models.py`
+asks for. The change is value-neutral here and deliberately so: both models
+declare `pooling: mean` and `normalize: true`, and the resolved repository
+strings are the ones the artifact already records, so the committed cells are
+exactly what the committed code produces. Said rather than assumed, because a
+driver edited after its artifact is the ordinary way provenance rots.
+
 ## Verdict against the decision rule
 
 **Cell 4 does not fit under what C3 carries.** C3 stands at ~750 MB p95

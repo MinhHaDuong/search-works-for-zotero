@@ -26,6 +26,11 @@ import { cpus, loadavg, totalmem } from 'node:os';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+// Models are named by REGISTRY ID and resolved here — repository, pooling and
+// normalize together. Pooling and normalize are properties of the model, not of this
+// driver, and a literal at the call site is how a run silently measures the wrong
+// geometry (tickets 0421 and 0486).
+import { resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -40,10 +45,10 @@ const { values: opt } = parseArgs({
     'cache-dir': { type: 'string', default: '' },
     // Generation A: the incumbent, exactly as the shipped provider loads it —
     // pipeline('feature-extraction', model) with no dtype, i.e. the package default.
-    'model-a': { type: 'string', default: 'Xenova/all-MiniLM-L6-v2' },
+    'model-a': { type: 'string', default: 'all-minilm-l6-v2' },
     'dtype-a': { type: 'string', default: '' },
     // Generation B: the multilingual candidate at its 8-bit rung.
-    'model-b': { type: 'string', default: 'Xenova/multilingual-e5-base' },
+    'model-b': { type: 'string', default: 'multilingual-e5-base' },
     'dtype-b': { type: 'string', default: 'q8' },
     // Batch size for the live-batch cells. Empty derives it from the ratified
     // ~1 s time quantum (DECISIONS.md 2026-09-01) on this machine.
@@ -85,7 +90,11 @@ function vmrssKb() {
 }
 const mb = (kb) => Number((kb / 1024).toFixed(1));
 
-async function loadModel(repo, dtype, cacheDir) {
+async function loadModel(id, dtype, cacheDir) {
+  const { repo, pooling, normalize } = resolveModel(id);
+  if (pooling === null || normalize === null) {
+    throw new Error(`[registry] ${id} declares no pooling or no normalize; a run on it would guess the geometry`);
+  }
   const transformers = await import(TP);
   const { pipeline, env } = transformers;
   if (cacheDir) env.cacheDir = cacheDir;
@@ -96,13 +105,13 @@ async function loadModel(repo, dtype, cacheDir) {
   const optsPipe = dtype ? { dtype, device: 'cpu' } : {};
   const extractor = await pipeline('feature-extraction', repo, optsPipe);
   const load_ms = Number(process.hrtime.bigint() - t0) / 1e6;
-  return { extractor, load_ms };
+  return { extractor, load_ms, repo, pooling, normalize };
 }
 
-/** One embed call, the shape the shipped provider makes. */
-async function embedBatch(extractor, texts) {
+/** One embed call, the shape the shipped provider makes, at the model's own geometry. */
+async function embedBatch(model, texts) {
   const t0 = process.hrtime.bigint();
-  const tensor = await extractor(texts, { pooling: 'mean', normalize: true });
+  const tensor = await model.extractor(texts, { pooling: model.pooling, normalize: model.normalize });
   const wall = Number(process.hrtime.bigint() - t0) / 1e6;
   return { wall_ms: wall, dim: tensor.dims?.at(-1) ?? null };
 }
@@ -117,13 +126,13 @@ async function embedBatch(extractor, texts) {
  * closest to it — the same multiplicative move the ruling describes, run open-loop
  * because one measurement is all a ceiling probe needs.
  */
-async function deriveBatchSize(extractor, corpus, quantumMs) {
+async function deriveBatchSize(model, corpus, quantumMs) {
   const trail = [];
   let size = 1;
   let best = { size: 1, wall_ms: Infinity };
   for (let i = 0; i < 12; i++) {
     const texts = Array.from({ length: size }, (_, k) => corpus[k % corpus.length]);
-    const { wall_ms } = await embedBatch(extractor, texts);
+    const { wall_ms } = await embedBatch(model, texts);
     trail.push({ size, wall_ms: Number(wall_ms.toFixed(1)) });
     if (Math.abs(wall_ms - quantumMs) < Math.abs(best.wall_ms - quantumMs)) best = { size, wall_ms };
     if (wall_ms >= quantumMs) break;
@@ -141,15 +150,15 @@ if (opt.cell) {
   const out = { cell, rss_baseline_mb: mb(vmrssKb()) };
 
   const a = await loadModel(opt['model-a'], opt['dtype-a'], cacheDir);
-  out.model_a = { repo: opt['model-a'], dtype: opt['dtype-a'] || '(package default)', load_ms: Number(a.load_ms.toFixed(1)) };
+  out.model_a = { repo: a.repo, dtype: opt['dtype-a'] || '(package default)', load_ms: Number(a.load_ms.toFixed(1)) };
 
   if (cell === 'derive') {
     // Derivation runs in a process of its own. It sweeps batch sizes upward, so its
     // own high-water mark is higher than the chosen size's — leaving it inside a
     // measured cell would publish the sweep's peak as the cell's.
-    const da = await deriveBatchSize(a.extractor, corpus, Number(opt['quantum-ms']));
+    const da = await deriveBatchSize(a, corpus, Number(opt['quantum-ms']));
     const bb = await loadModel(opt['model-b'], opt['dtype-b'], cacheDir);
-    const db = await deriveBatchSize(bb.extractor, corpus, Number(opt['quantum-ms']));
+    const db = await deriveBatchSize(bb, corpus, Number(opt['quantum-ms']));
     out.derived = { quantum_ms: Number(opt['quantum-ms']), a: da, b: db };
     process.stdout.write('CELLJSON ' + JSON.stringify(out) + '\n');
     process.exit(0);
@@ -158,7 +167,7 @@ if (opt.cell) {
   let b = null;
   if (cell === '3' || cell === '4' || cell === '4b') {
     b = await loadModel(opt['model-b'], opt['dtype-b'], cacheDir);
-    out.model_b = { repo: opt['model-b'], dtype: opt['dtype-b'], load_ms: Number(b.load_ms.toFixed(1)) };
+    out.model_b = { repo: b.repo, dtype: opt['dtype-b'], load_ms: Number(b.load_ms.toFixed(1)) };
   }
 
   const SETTLE = Number(opt['settle-ms']);
@@ -180,18 +189,18 @@ if (opt.cell) {
     let runs;
     if (cell === '2') {
       const texts = Array.from({ length: sizeA }, (_, k) => corpus[k % corpus.length]);
-      runs = [{ on: 'a', size: sizeA, ...(await embedBatch(a.extractor, texts)) }];
+      runs = [{ on: 'a', size: sizeA, ...(await embedBatch(a, texts)) }];
     } else if (cell === '4') {
       // Realistic dual-embed window: the NEW generation carries the batch while the
       // old one stays resident to answer queries against the standing index.
       const texts = Array.from({ length: sizeB }, (_, k) => corpus[k % corpus.length]);
-      runs = [{ on: 'b', size: sizeB, ...(await embedBatch(b.extractor, texts)) }];
+      runs = [{ on: 'b', size: sizeB, ...(await embedBatch(b, texts)) }];
     } else {
       // 4b: a batch in flight on EACH at once — the worse case, reported beside 4
       // rather than instead of it.
       const ta = Array.from({ length: sizeA }, (_, k) => corpus[k % corpus.length]);
       const tb = Array.from({ length: sizeB }, (_, k) => corpus[k % corpus.length]);
-      const [ra, rb] = await Promise.all([embedBatch(a.extractor, ta), embedBatch(b.extractor, tb)]);
+      const [ra, rb] = await Promise.all([embedBatch(a, ta), embedBatch(b, tb)]);
       runs = [{ on: 'a', size: sizeA, ...ra }, { on: 'b', size: sizeB, ...rb }];
     }
     out.batch = { size_a: sizeA, size_b: sizeB, runs };
@@ -422,8 +431,8 @@ const summary = {
     };
   })(),
   generations: {
-    a: { repo: opt['model-a'], dtype: opt['dtype-a'] || '(package default, as the shipped provider loads it)' },
-    b: { repo: opt['model-b'], dtype: opt['dtype-b'] },
+    a: { repo: resolveModel(opt['model-a']).repo, dtype: opt['dtype-a'] || '(package default, as the shipped provider loads it)' },
+    b: { repo: resolveModel(opt['model-b']).repo, dtype: opt['dtype-b'] },
   },
   batch_size_derivation: derived.derived,
   cells: results,

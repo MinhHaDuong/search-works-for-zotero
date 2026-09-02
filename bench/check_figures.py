@@ -91,6 +91,10 @@ PROSE = {
         "tickets/0026-repo-side-gates-fold-golden-rss-converge.erg",
         "tickets/closed/0026-repo-side-gates-fold-golden-rss-converge.erg",
     ],
+    "t0577": [
+        "tickets/0577-probe-size-the-embedding-service-ceiling.erg",
+        "tickets/closed/0577-probe-size-the-embedding-service-ceiling.erg",
+    ],
     "t0014": [
         "tickets/0014-shepherd-prs-19-and-20-to-merge-stopword.erg",
         "tickets/closed/0014-shepherd-prs-19-and-20-to-merge-stopword.erg",
@@ -421,6 +425,76 @@ FIGURES = [
      {"t0008": "(0,8840 against {} at 4x"}),
     ("0008-real-vectors/real-93022.json", "latency_ms.binary_first_pass_k240.median_ms", 1,
      {"t0008": "At 8x it is {} ms of the"}),
+    # ---- 0577, the embedding service's ceiling in four cells plus two F1 controls.
+    # Declared in both prose homes where both quote the figure: the ledger entry is
+    # append-only, which is the worst place in this repo for a number to go stale.
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.1.peak_rss_mb", 1,
+     {"t0577": "| incumbent | \u2014 | **{} MB**",
+      "decisions": "One generation resident: **{} MB** at rest"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.2.peak_rss_mb", 1,
+     {"t0577": "| incumbent | batch of 16 | **{} MB**",
+      "decisions": "at rest, **{} MB** with a live batch"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.3.peak_rss_mb", 1,
+     {"t0577": "| incumbent + candidate q8 | \u2014 | **{} MB**",
+      "decisions": "resident: **{} MB** at rest,"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.4.peak_rss_mb", 1,
+     {"t0577": "batch of 4 on the candidate | **{} MB**",
+      "decisions": "and cell 4 is {} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.4b.peak_rss_mb", 1,
+     {"t0577": "a batch on each at once | **{} MB**",
+      "decisions": "**{} MB** with a batch in flight on each"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.1b.peak_rss_mb", 1,
+     {"t0577": "| candidate q8 alone | \u2014 | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.2b.peak_rss_mb", 1,
+     {"t0577": "it measures **{} MB**: the collision",
+      "decisions": "that process measures **{} MB** with the"}),
+    # The spreads. Presence-only: each sits in a table cell beside the median it
+    # qualifies, so an anchor for one would carry the other's value inside it.
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.1.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.2.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.3.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.4.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.4b.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "cells.2b.peak_rss_mb_spread", 1,
+     {"t0577": None}),
+    # The deltas the cells were built to expose. The first is the term SPEC.md §5.2.9
+    # says no sweep on disk has ever priced.
+    ("0577-service-ceiling/service-ceiling-rss.json", "deltas_mb.live_batch_one_generation", 1,
+     {"t0577": "**+{} MB** (incumbent, batch of 16)",
+      "decisions": "live-batch term is **{} MB** at the batch size"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "deltas_mb.second_generation_at_rest", 1,
+     {"t0577": "at rest**: **+{} MB**."}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "deltas_mb.live_batch_two_generations", 1,
+     {"t0577": "two resident**: **+{} MB** \u2014 smaller"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "deltas_mb.dual_embed_window_price", 1,
+     {"t0577": "cell 2): **+{} MB**.",
+      "decisions": "costs **{} MB** over the single-generation"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "deltas_mb.both_batches_in_flight", 1,
+     {"t0577": "against 3): **+{} MB**."}),
+    # The batch size, derived from the ratified quantum rather than assumed.
+    ("0577-service-ceiling/service-ceiling-rss.json", "batch_size_derivation.a.size", 0,
+     {"t0577": "**{} passages** for the incumbent"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "batch_size_derivation.b.size", 0,
+     {"t0577": "**{} passages** for the candidate at q8"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "batch_size_derivation.a.wall_ms", 1,
+     {"t0577": "for the incumbent ({} ms)"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "batch_size_derivation.b.wall_ms", 1,
+     {"t0577": "at q8 ({} ms)"}),
+    # The zero-settle control arm, which is what makes the settle legible instead of
+    # invisible. Without it the cells are a number with no account of how it was read.
+    ("0577-service-ceiling/service-ceiling-rss.json", "controls_no_settle.1.peak_rss_mb", 1,
+     {"t0577": "beside the cells: {} /"}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "controls_no_settle.2.peak_rss_mb", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "controls_no_settle.3.peak_rss_mb", 1,
+     {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss.json", "controls_no_settle.4.peak_rss_mb", 1,
+     {"t0577": "{} MB for cells 1 to 4"}),
     # ---- 0001, the like-for-like comparison ----
     # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
     # (DECISIONS.md): the §5 prose that quoted these figures is gone.
