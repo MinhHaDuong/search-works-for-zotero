@@ -128,6 +128,10 @@ PROSE = {
         "tickets/0499-sign-bits-as-the-chain-identifier-a-hash.erg",
         "tickets/closed/0499-sign-bits-as-the-chain-identifier-a-hash.erg",
     ],
+    "t0500": [
+        "tickets/0500-measure-extract-and-chunk-throughput-on.erg",
+        "tickets/closed/0500-measure-extract-and-chunk-throughput-on.erg",
+    ],
     "t0266": [
         "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
         "tickets/closed/0266-cross-lingual-probe-on-the-multilingual.erg",
@@ -368,7 +372,14 @@ def display(value, places: int, pct: bool = False) -> str:
 #: measure: it records item keys and scores and never the snippet text, so that claim had
 #: rested on a unit fixture. Its four figures are each declared in both prose homes, worded
 #: apart so neither copy can mask the other.
-MINIMUM_PAIRS = 392
+#: RAISED to 462 on 2026-09-02 by ticket 0500, which pins extract and chunk from
+#: measurement and re-cuts SPEC.md §5.2.8's per-stage allocation from them. Thirty-three
+#: declarations: the three stage medians and the concurrent rate in both prose homes,
+#: the six min-max ends of their spreads presence-only, the mix (it is the claim a
+#: reader checks first), the fixed per-build term the per-passage rate hides, the parse
+#: path's median and both ends of its per-passage range, the passage-length distribution
+#: the rate ran on, and the census tokenizer's wall clock. No coverage was removed.
+MINIMUM_PAIRS = 462
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -1465,6 +1476,79 @@ FIGURES = [
      {"t0499": '({} measured against'}),
     ("0008-real-vectors/real-93022.json", "anisotropy.median_dimension_mean_abs", 5,
      {"t0499": 'median dimension of {})'}),
+
+    # ---- 0500, extract and chunk pinned on the reference machine. The medians are
+    # anchored; the min-max ends of each spread are presence-only, because anchoring
+    # both ends of a range puts each one's value inside the other's anchor and fixing
+    # either breaks the other — the coupling render_value's range form exists to avoid,
+    # and these are three separate key paths rather than one range value.
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_ms_per_passage_median", 3,
+     {"t0500": "one request in flight | **{}** |", "design": "extract **{} ms** per passage"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.chunk_ms_per_passage_median", 3,
+     {"t0500": "1200/150) | **{}** |", "design": "chunk\n  **{} ms**"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_plus_chunk_ms_per_passage_median", 3,
+     {"t0500": "extract + chunk, serial | **{}** |", "design": "**{} ms** together serially"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.concurrent.wall_ms_per_passage", 3,
+     {"t0500": "local-API concurrency of 2 | **{}** |", "design": "and **{} ms** at the build's own"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_ms_per_passage_min", 3, {"t0500": None}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_ms_per_passage_max", 3, {"t0500": None}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.chunk_ms_per_passage_min", 3, {"t0500": None}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.chunk_ms_per_passage_max", 3, {"t0500": None}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_plus_chunk_ms_per_passage_min", 3, {"t0500": None}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_a_cache_hit.reps.extract_plus_chunk_ms_per_passage_max", 3, {"t0500": None}),
+    # The mix, which is the claim a reader is most likely to want to check.
+    ("0500-extract-chunk/extract-chunk-throughput.json", "setup.attachments_with_text", 0,
+     {"t0500": "a cache hit, {} of 8 037**"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json", "setup.attachments_seen", 0,
+     {"t0500": "of {} attachments, 59 PDFs", "design": "on a **{}**-attachment library"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "setup.pdfs_without_text_by_link_mode.linked_url", 0,
+     {"t0500": "**all {} are `linked_url`**"}),
+    # The fixed per-build term the per-passage rate hides.
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "setup.attachment_map_s_as_the_build_pays_it", 1,
+     {"t0500": "to its parent: **{} s** on this library", "design": "parents:\n  **{} s** on a"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json", "setup.fulltext_since_ms", 1,
+     {"t0500": "full-text sequence ({} ms)"}),
+    # The parse path, priced outside the build's clock.
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_b_on_the_fly_parse.parse_ms_per_passage_median", 2,
+     {"t0500": "**{} ms per passage** median", "design": "cost **{} ms per passage** median"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_b_on_the_fly_parse.rows.3.parse_ms_per_passage", 2,
+     {"t0500": "from {} on a 198-page document"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "arm_b_on_the_fly_parse.rows.2.parse_ms_per_passage", 2,
+     {"t0500": "to {} on a 5-page one"}),
+    # The distribution the rate ran on. A rate does not transfer across one.
+    ("0500-extract-chunk/extract-chunk-throughput.json", "passage_length_chars.n", 0,
+     {"t0500": "**{} passages**", "design": "over **{} passages** of the real library"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json", "passage_length_chars.median", 0,
+     {"t0500": "median\n**{}** characters"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json", "passage_length_chars.p95", 0,
+     {"t0500": "p95 **{}**"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json", "passage_length_chars.mean", 1,
+     {"t0500": "mean **{}**"}),
+    # Extract work that yields no passage — it raises the rate rather than lowering it.
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "read_outcomes.items_whose_read_failed", 0,
+     {"t0500": "{} failed the read"}),
+    # The census tokenizer pass, whose wall clock nobody had recorded.
+    ("0500-extract-chunk/extract-chunk-throughput.json", "tokenizer_cost_proxy.ms_per_passage", 3,
+     {"t0500": "when it ran: **{} ms per passage**"}),
+    ("0500-extract-chunk/extract-chunk-throughput.json",
+     "tokenizer_cost_proxy.tokens_per_passage", 1,
+     {"t0500": "**{}**\ntokens per passage"}),
 
 ]
 
