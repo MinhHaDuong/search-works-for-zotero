@@ -161,6 +161,16 @@ def test_every_offered_verb_exists_and_no_offered_verb_declares_itself_absent(tm
         assert target.declaration.offers(verb) is (verb not in {"uninstall", "pause", "resume"})
 
 
+def test_the_adapter_satisfies_the_contracts_own_protocol(tmp_path):
+    """`Target` is runtime-checkable, so the structural gate costs one call.
+
+    It catches the rename nothing else here would: `running` is the lifecycle
+    the contract makes a context manager rather than an eighth verb, and no
+    verb test touches it.
+    """
+    assert isinstance(build(tmp_path), interface.Target)
+
+
 def test_configure_writes_the_file_the_readme_documents_editing(tmp_path):
     """The wizard is a stdin dialogue; the file is the access an ordinary user has.
 
