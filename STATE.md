@@ -1,13 +1,14 @@
 # STATE — Search Works for Zotero
 
 *Reconciled 2026-08-31, and held under forty lines by ruling of the same day.
-Last updated 2026-09-02 (PRs #178–186 and #188 merged: field review, 0028
+Last updated 2026-09-02 (PRs #178–186, #188, and #189 merged: field review, 0028
 segmenter interface, conductor-lane reconciliation — 0554 rescoped, 0575–0577
 filed — seg/1 and the embed-cap guard built on the fork leaving 0028 open
 only for X5, 0026 split into 0578–0582 as a tracker, 0180's attribution audit
 closed (`verification/ATTRIBUTION-AUDIT-0180.md`), 0489 closed on the fork
 branch `t0489-minilm-singleton-entry`, ticket citations repointed to
-`SPEC.md`; PR #187 — the target-neutral acceptance-harness ruling, gate
+`SPEC.md`, the full-text control plugin built; PR #187 — the target-neutral
+acceptance-harness ruling, gate
 APPROVED — held open for the author's ratification).*
 
 One page of live state, and it owns nothing: every line is a pointer to the
