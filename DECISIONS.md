@@ -3372,7 +3372,7 @@ circular as text: the search hits that first read as circulars of both
 ministries were Official Gazette table-of-contents scans naming them, checked
 three ways on the sourcing run of the same day (a first draft of this entry
 said otherwise and was corrected before ratification). So no sibling replaces
-the four dropped documents; the Vietnamese administrative register is the
+the three dropped circulars; the Vietnamese administrative register is the
 constitution. HAL holds 183 Vietnamese-language records,
 mostly 2022–2025 books, articles and communications. Gallica's fonds
 indochinois holds about 10 000 quốc ngữ documents from the 1922–1954 legal
@@ -3453,7 +3453,9 @@ depending on it.
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
-  vbpl.vn, count as archives for fixture documents (raised 2026-09-02).**
+  vbpl.vn, count as archives for fixture documents (raised 2026-09-02) —
+  resolved 2026-09-02, same day: FAOLEX admitted for this document, vbpl.vn
+  not; see the ledger entry above.**
   Decision 11/2017/QĐ-TTg and its official English translation, the slice's
   one bilingual administrative anchor, survive outside Vietnamese government
   hosts only at FAOLEX (`LEX-FAOC179224`, PDF at
