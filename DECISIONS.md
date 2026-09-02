@@ -4940,3 +4940,44 @@ settled one, which is the figure a ceiling must carry.
 Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
+
+**2026-09-03 — may a lane merge its own pull request? Not ratified: the
+governance half of the merge-authority rule is the author's.** `AGENTS.md` now
+carries what is not in dispute: no merge before a review verdict is recorded on
+the pull request itself, a verdict quoted as received, an unreported reviewer
+leaving the branch BLOCKED rather than inferred, no finding attributed to a
+reviewer who did not make it, and no lane merging a pull request another lane is
+gating. What it deliberately does not say is who presses the button once a
+verdict exists.
+
+The occasion is measurable rather than argued. Of the five pull requests merged
+on 2026-09-02 — #215, #216, #217, #219, #220 — **none carries a review or a
+comment on its own page**, against #218 of the same evening, which carries a
+`/verify-gate` verdict and a gate lead's bounce. The channel worked; it was not
+used. Whether a verdict was reached in a session and never posted, or never
+reached, is unrecoverable from here, and that unrecoverability is the cost.
+
+Three ways it could go, and no default is proposed.
+
+Lanes self-merge on a recorded verdict. Cheapest, keeps a lane's throughput
+independent of anyone else's availability, and it is what the repository has
+been doing. Its weakness is precisely tonight's failure mode: the same session
+that would have to fabricate a verdict is the session that presses merge, so
+nothing external ever has to agree.
+
+A second party presses merge. Strongest separation, and it is the only variant
+where an invented verdict has to survive someone else reading it. It costs a
+serialization point: with several lanes live overnight and no second party
+awake, branches queue until morning, which converts a review problem into a
+scheduling one.
+
+Self-merge allowed, but only where the verdict came from a seat the lane did not
+drive. This is the middle, and it needs one thing the repository does not have:
+a mechanical statement of what counts as a seat the lane did not drive. Without
+that it is the first option with more words.
+
+There is a fourth consideration that belongs to the author rather than to the
+rule: this repository has **no continuous integration** — `make check` is the
+gate and it runs where a lane runs it. So the pull-request page is not merely
+the polite place to record a verdict; it is the only durable place a verdict can
+exist at all.
