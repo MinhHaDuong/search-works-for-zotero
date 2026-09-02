@@ -123,9 +123,11 @@ channel existed and was simply not used.
 - **A pull request merges only after a review verdict is recorded on the pull
   request itself.** On the page, where the next reader finds it — not in a
   session transcript, not in a report to whoever launched the lane. A merge with
-  no verdict on the page is out of order however good the change is, and it is
-  out of order in a way nobody can detect afterwards, which is the reason for
-  the rule.
+  no verdict on the page is out of order however good the change is. The absence
+  is detectable afterwards, and reading the six pages of that evening is exactly
+  how the five were found; what no later reading can settle is whether a review
+  happened and went unrecorded or never happened at all. That irrecoverability
+  is the reason for the rule.
 - **Quote a verdict as received.** Relay the reviewer's own words and its own
   verdict token. Never paraphrase one into an approval, never fold several
   reviewers into a verdict none of them wrote, and never write a verdict on
@@ -139,6 +141,21 @@ channel existed and was simply not used.
   fabricated verdict even when the observation is correct — and a fabricated
   verdict costs more than the finding is worth, because it spends the one thing
   a verdict is for.
+- **A reviewer posts its own verdict to the pull-request page, and a lead
+  waiting on a verdict polls the page rather than a notification.** Quoting a
+  verdict as received, and refusing to launder your own finding through a
+  reviewer's name, are the two rules aimed most directly at the incident and the
+  two nothing can check afterwards, because one account authors every artifact
+  on this forge: a comment reporting that a reviewer said APPROVED reads later
+  exactly like one the reviewer wrote. This clause is worth more than either
+  rule it patches. It closes the routing defect behind the incident, since a
+  reviewer subagent's completion notice reaches the session that launched it and
+  nowhere else, so a lead waiting elsewhere can wait indefinitely on a verdict
+  that already exists. It also gives the verdict a
+  timestamped existence independent of any lane's report, which can be compared
+  against the merge time. The residual limit stands: with one account there is
+  still no proof of authorship, so what this buys is that a verdict must exist
+  on the page before a merge, not that the page establishes who wrote it.
 - **A lane does not merge a pull request another lane is gating.** The gate's
   owner is whoever opened it, and ownership is released by that lane's verdict,
   not by elapsed time. A gate that looks stalled is a lane to ask, not a queue

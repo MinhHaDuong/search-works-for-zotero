@@ -4941,7 +4941,7 @@ Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
 
-**2026-09-03 — may a lane merge its own pull request? Not ratified: the
+**2026-09-02 — may a lane merge its own pull request? Not ratified: the
 governance half of the merge-authority rule is the author's.** `AGENTS.md` now
 carries what is not in dispute: no merge before a review verdict is recorded on
 the pull request itself, a verdict quoted as received, an unreported reviewer
@@ -4974,7 +4974,12 @@ scheduling one.
 Self-merge allowed, but only where the verdict came from a seat the lane did not
 drive. This is the middle, and it needs one thing the repository does not have:
 a mechanical statement of what counts as a seat the lane did not drive. Without
-that it is the first option with more words.
+that it is the first option with more words. The reviewer-posts-its-own-verdict
+clause now in `AGENTS.md` moves part of the burden: the verdict's existence and
+its timing become page facts rather than lane claims, so the option no longer
+has to establish those. It supplies nothing about the seat, since one forge
+account signs every artifact, and that mechanical statement remains what this
+option turns on.
 
 There is a fourth consideration that belongs to the author rather than to the
 rule: this repository has **no continuous integration** — `make check` is the
