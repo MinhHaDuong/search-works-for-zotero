@@ -22,26 +22,33 @@ project asserts is marked `(claimed)`. A number someone else measured is marked
 `bench/results/`, and a README claim is not a measurement.
 
 **Dates are attached because the field moves.** Everything below was observed
-between 2026-08-27 and 2026-08-29. Nine of these projects pushed code in the
-week of the survey. An entry six months old is a lead, not a fact; re-read the
-repository before acting on it.
+between 2026-08-27 and 2026-08-29, except the entries and rows dated 2026-09-02,
+which a second pass added from two leads the author sent: a r/zotero thread of
+2026-08-29 asking BibGenie or llm-for-zotero
+(`reddit.com/r/zotero/comments/1w1gsdc/`), and Citation Styler's plugin
+overview (`citationstyler.com/en/knowledge/ai-plugins-for-zotero/`, updated
+2026-08-12). Nine of the first-pass projects pushed code in the week of the
+survey. An entry six months old is a lead, not a fact; re-read the repository
+before acting on it.
 
 **A null is reported as a null.** Where a source could not be read — a
 rate-limited API, a page drawn by client-side script, a closed-source binary —
 the entry says "could not look" and names what blocked it. A search that
 returned nothing is not evidence that nothing is there.
 
-The survey found **39 projects**, against the roughly 20 the author recalled.
-Twenty-six get a full entry: every project that builds a retrieval index of its
-own, plus four that build none but are cited often enough that recording the
-absence is the useful result. Two of the twenty-six are adjacent rather than
-competing — the platform itself, and the ecosystem's largest plugin — and say
-so. The remaining eleven relay Zotero's own search or apply a model without
-retrieval; one table at the end lists each with the evidence that put it there.
+The survey found **47 projects**, against the roughly 20 the author recalled.
+Thirty get a full entry: every project that builds a retrieval index of
+its own, plus four that build none but are cited often enough that recording
+the absence is the useful result. Two of the thirty are adjacent rather
+than competing — the platform itself, and the ecosystem's largest plugin — and
+say so. The remaining seventeen relay Zotero's own search, apply a model without
+retrieval, or keep their retrieval on a server nobody can read; one table at
+the end lists each with the evidence that put it there.
 
-Licence is read from the LICENSE file, never from a badge. Seven projects,
-including three of the most interesting, have no LICENSE file at all. That is a
-finding, and it governs the closing section.
+Licence is read from the LICENSE file, never from a badge. Eight projects,
+including three of the most interesting, have no LICENSE file at all, and one
+of the eight publishes no source to license. That is a finding, and it governs
+the closing section.
 
 ---
 
@@ -59,6 +66,8 @@ finding, and it governs the closing section.
 | zotero-agent | Zotero plugin + MCP | `psiQAQ/zotero-agent` | MIT | 2026-08-05 |
 | zotero-mcp (cookjohn) | Zotero plugin + MCP | `cookjohn/zotero-mcp` | MIT | 2026-06-11 |
 | zotero-rag (cboulanger) | Zotero plugin + Python backend | `cboulanger/zotero-rag` | none (README claims MPL-2.0) | 2026-08-06 |
+| BibGenie | Zotero plugin + MCP, closed source | `BaiRuic/BibGenie` (releases only) | none (no source published) | 2026-08-30 (release) |
+| Zotero AI (text70) | Zotero plugin | `text70/zotero_ai` | AGPL-3.0 | 2026-08-10 |
 | zoteus | MCP server | `oscardvs/zoteus` | MIT | 2026-08-28 |
 | zotero-mcp (54yyyu) | MCP server + CLI | `54yyyu/zotero-mcp` | MIT | 2026-08-25 |
 | zotero-mcp-postgres-ollama-fulltext | MCP server | `tspspi/…` | MIT | 2025-11-28 |
@@ -78,7 +87,7 @@ finding, and it governs the closing section.
 | **Adjacent** — Zotero core "Best Match" | Platform, draft PR | `zotero/zotero` #6012 | AGPL-3.0 (SDT repo: none) | 2026-08-26 |
 | **Adjacent** — Better Notes | Zotero plugin | `windingwind/zotero-better-notes` | AGPL-3.0 | 2026-08-24 |
 
-Eleven further projects were surveyed and set aside; see "Surveyed and set
+Seventeen further projects were surveyed and set aside; see "Surveyed and set
 aside" below for each one and the evidence that put it there.
 
 ---
@@ -736,6 +745,151 @@ unable to distinguish "reprocessed under a new chunker" from "unchanged". Their
 preset system makes the gap concrete, since changing a preset stales the whole
 index with no warning and no versioning. No code is borrowable: there is no
 licence.
+
+### BibGenie
+
+**Position.** A closed-source Zotero plugin, formerly "Zotero Copilot" and
+renamed under Zotero's trademark guidelines, putting a chat and agent panel in
+the sidebar with a freemium model: a free tier with monthly credits on the
+vendor's own model proxy, paid Pro, Max and Lifetime tiers, bring-your-own-key
+providers, and Ollama or LM Studio for local inference. It also runs a local
+MCP server for Cursor, Claude Code and similar clients. The r/zotero thread of
+2026-08-29 asked for it by name against llm-for-zotero; nobody in the thread
+had used it. Observed 2026-09-02.
+
+**Features.** Context insertion of items, PDFs, snapshots, notes, selected text
+and images; read-and-explain over the open paper; library search described by
+the README as "semantic search over the local index of Zotero item titles and
+abstracts"; save results back as Zotero notes; on paid plans, web search, web
+extraction and an OpenAlex search tool. The documentation states in its own
+words that library search "is not PDF full-text search".
+
+**Licence.** None, and nothing to license: the repository `BaiRuic/BibGenie`
+holds two READMEs, a `docs/` folder, a `public/` folder and the release
+assets, and its README says "The BibGenie application source code is not
+published in this repository." No LICENSE file (raw 404; the GitHub API reports
+null). The predecessor repository `BaiRuic/ZoteroCopilot` has none either and
+last moved 2025-11-09.
+
+**Architecture.** Read from the shipped bundle, since no source is published:
+release v0.8.4's `bibgenie-0.8.4.xpi` (10,5 MB compressed, 40,9 MB unpacked,
+49 files), whose `content/scripts/bibgenie.js` is a 28,2 MB esbuild bundle
+that keeps its module paths, so the structure is legible without the source.
+Nothing below was run.
+
+- *Index.* `src/semanticIndex/`: one row per regular item, holding one
+  embedding of the abstract, in a sidecar SQLite opened through Zotero's own
+  `DBConnection` class under the name `bibgenie_sidecar`, which Zotero resolves
+  to a separate `.sqlite` file in the data directory. Nothing is written into
+  `zotero.sqlite`. The row carries `item_id`, `library_id`, `zotero_key`,
+  `zotero_version`, `client_date_modified`, a `content_hash`, the float32
+  `embedding` blob with its precomputed `embedding_norm`, and the model triple
+  `(embedding_model_unique_id, embedding_model_id, embedding_dimensions)`, with
+  a search-scope index on library plus that triple. A second table keeps
+  per-library index state (the model triple, `last_scan_timestamp`,
+  `max_client_date_modified`, `item_count`, `embedding_count`); a third keeps
+  failures with a `failure_count` and a next-retry time.
+- *Refresh.* Constants in `src/semanticIndex/constants.ts`: abstracts under 40
+  characters are skipped; embedding calls go in batches of 64; edits are
+  debounced 1,5 s; a failed item retries with exponential backoff from a 1 h
+  base and is abandoned after 5 failures; a full diff of the library against
+  the sidecar runs whenever the state row is missing, the model triple changed,
+  the counts disagree with the library, a newer `clientDateModified` is seen,
+  or two days have passed since the last scan.
+- *Query.* The query is embedded through the same provider, every compatible
+  row for the library is loaded (`SELECT * … ORDER BY item_id`), each blob is
+  decoded and scored by cosine against the stored norm in JavaScript, and
+  scores under 0,4 (`ITEM_ABSTRACT_MIN_SIMILARITY`) are dropped. A linear scan
+  over one vector per item.
+- *Embedder.* Remote only: the bundle wires the Vercel AI SDK's
+  OpenAI-compatible and gateway embedding models and carries no ONNX runtime
+  and no transformers library. The vendor's roster is fetched at run time from
+  `llm.bibgenie.com/api/v1/models`, a proxy the bundle names as an OpenRouter
+  front. Could not look: no default embedding model id appears in the bundle.
+- *Keyword side.* Zotero's own quick search through `Zotero.Search`, with
+  `quicksearch-fields` as the default mode and `quicksearch-everything` as an
+  option. The platform's search, not theirs.
+- *Full text.* PDFs are extracted in-process by a bundled MuPDF WebAssembly
+  build (10 MB) in a worker hosted by Zotero's main window, sentences split by
+  a bundled `sentencex` WebAssembly module, and the result cached in a second
+  sidecar database, `bibgenie_document_cache`, keyed on file path, mtime and
+  size. No table holds passage vectors: full text reaches the model as context
+  and is never indexed.
+
+**Limits.** The index covers the abstract and nothing else, by design and by
+its own documentation ("Papers without abstracts may be harder to match"). An
+item whose abstract is under 40 characters is not in the index at all. The
+0,4 cosine floor is one constant applied to whichever embedding model the user
+selects, although cosine scales differ by model, so the floor filters
+differently for each. 2 open issues, 15 stars, 2 forks, 9 commits in the
+public repository, which tracks releases rather than code.
+
+**Performance.** No numbers, claimed or measured. The v0.8.4 asset shows 467
+downloads at observation.
+
+**Trends.** Repository created 2025-11-08; releases v0.8.2 and v0.8.3 on
+2026-08-22, v0.8.4 on 2026-08-30; not archived. Manifest range Zotero 7 to 10.
+The vendor site and a Discord server carry the community; the tracker is
+nearly empty.
+
+**What we learn.** Two things, pulling in opposite directions. The refresh
+machinery is the field's second real ledger after lit-lake's: a content hash,
+a per-model scope on every row so a model switch invalidates nothing it should
+keep, a failures table with bounded exponential retry, and a periodic full
+diff triggered by any disagreement between the state row and the library. The
+count-mismatch trigger is a cheap reconciliation idea worth having, and the
+sidecar-through-`DBConnection` route is the platform-sanctioned way to keep an
+index beside `zotero.sqlite` without touching it. And then the ledger guards
+an index of abstracts: the cap moved from "pages" to "the abstract", the most
+severe in the survey, and the same choice Beaver's free tier and
+`text70/zotero_ai` make. The user who started the Reddit thread wanted
+semantic search over the full text of books; nothing in this bundle indexes a
+page. Closed source means none of it is borrowable, and this description is
+the whole of what can travel.
+
+### Zotero AI (text70)
+
+**Position.** A one-person Zotero 9 plugin, four days old at its last push,
+offering a command interface (`#summarize`, `#ask`, `#translate`, `#search`,
+`#web`) over any OpenAI-compatible endpoint. Listed by Citation Styler's
+overview as early-stage. Observed 2026-09-02.
+
+**Features.** Chat over the selected item's metadata and Zotero's full-text
+index for that item; `#search`, described as "RAG over your library — embed
+titles + abstracts locally, then run a vector search for the most relevant
+passages (top-5), no heavy vector DB required"; `#web` through function
+calling.
+
+**Licence.** AGPL-3.0, read at
+`raw.githubusercontent.com/text70/zotero_ai/main/LICENSE`.
+
+**Architecture.** `src/modules/search.ts` is the retrieval layer, 82 lines.
+`buildIndex` walks every top-level item, concatenates title and abstract,
+truncates, and sends the texts to the configured `/embeddings` endpoint
+(default model `text-embedding-3-small`; OpenRouter has no embeddings endpoint,
+so the README points users at a local one). `search` embeds the query, scores
+every vector by a hand-written cosine, sorts, and slices the top k. The index
+lives in a module variable: nothing is persisted, so each session rebuilds it
+and pays the embedding cost of the whole library again. Dependencies are
+`katex`, `marked` and `node-html-parser`. The API key is stored in a
+preference in plain text, which the README says itself.
+
+**Limits.** Rebuild-per-session, so cost grows with the library on every use.
+The README's roadmap leaves "Batch-embedded large libraries" unchecked.
+`#search` throws when the build is stale. 3 stars, no open issues.
+
+**Performance.** None claimed.
+
+**Trends.** Created 2026-08-06, last push 2026-08-10, no releases beyond the
+`.xpi` the README points at. Too young to read a trend.
+
+**What we learn.** This is the floor of the field: a semantic search over a
+Zotero library is 82 lines, an embeddings endpoint, and no storage, and it
+ships within a week. Three independent projects now make the abstract-only
+choice (this one, BibGenie, Beaver's free tier), which says the choice is the
+path of least resistance rather than a considered cap. Nothing here is prior
+art for storage, staleness, or scale, and the AGPL rules out the lines in any
+case.
 
 ---
 
@@ -1697,9 +1851,10 @@ reminder to test our own note ingestion against a note of comparable size.
 
 ## Surveyed and set aside
 
-These eleven build no index of their own. Each row states what was read and what
-it turned out to be. Nothing here is prior art for retrieval, and none of it was
-investigated further.
+These seventeen build no index of their own, or build one where nobody can read
+it. Each row states what was read and what it turned out to be. Nothing here is
+prior art for retrieval, and none of it was investigated further. The last six
+rows date from the 2026-09-02 pass.
 
 | Project | What it is | Evidence it builds no index |
 |---|---|---|
@@ -1714,12 +1869,18 @@ investigated further.
 | `steven-jianhao-li/zotero-AI-Butler` | Auto-reads PDFs and writes Zotero notes, AGPL-3.0, 1 700 stars, last push 2026-08-25 | Content goes whole to the model as base64 or extracted text behind a producer-consumer queue; "document structure extraction" describes the note it writes, not the input it reads |
 | `kazgu/zotero-chatgpt` | ChatGPT API wrapper in Zotero, AGPL-3.0, 301 stars | Direct pass-through with PDF text or metadata as context; no index. `main` shows commits dated 2025-11-20, roughly nine months quiet; `master` shows no history |
 | `syt2/Zotero-TLDR` | Fetches Semantic Scholar TLDR summaries, AGPL-3.0, 62 stars | Pure API consumer, no model call of its own. **Archived** — banner seen: "This repository was archived by the owner on Dec 25, 2025. It is now read-only." |
+| `Visterainer/aidea-zotero` (AIdea) | Sidebar chat with OAuth login, OpenAI-compatible and local models, AGPL-3.0 read from file, 113 stars, last push 2026-08-30 | Dependencies are `katex` and `zotero-plugin-toolkit` only; the README (1 600 words) contains no search, index, embedding, or retrieval language. Chat over the open item |
+| AskYourPDF Zotero plugin | Hosted document chat at `askyourpdf.com`, closed, freemium | The plugin uploads the document to the vendor ("When you upload a document to our platform"); retrieval, if any, is theirs and unreadable. No library index |
+| `scitedotai/scite-zotero-plugin` | Citation-statement counts (supporting, contrasting, mentioning) from scite's hosted service, 864 stars, last push 2026-02-02 | No model call and no index: a column of counts fetched per item. No LICENSE file (API reports null). Already noted as an integration under `54yyyu/zotero-mcp` |
+| Zotero AI Bar (`zotero.fukeke.com`) | Sidebar summarise, translate, Q&A, per Citation Styler | Could not look: the site is drawn by client-side script and the fetch fails on its certificate chain; no repository link, no licence, no search language found on the page |
+| `Addy-ad/wordbot` | Word add-in with a Flask backend that formats Markdown, chats, and cites from Zotero, CC BY-NC 4.0 read from file, 7 stars, last push 2026-08-19 | Named in the Reddit thread. Its library retrieval is delegated to ZotSeek, already surveyed; `requirements.txt` lists `beautifulsoup4`, `Flask`, `openai`, `requests`, `waitress`, no embedding or vector library |
+| Agent Bayes (`agentbayes.com`) | Hosted research workspace over a mindmap with a Zotero sync plugin, closed | Named in the Reddit thread. Papers are "indexed and semantically searchable" on the vendor's servers; no public repository found by forge search. Same class as "MCP for Zotero (hosted)" above |
 
 ---
 
 ## What the field teaches
 
-Twenty-six projects, one platform pull request, and about eighteen months of
+Twenty-nine projects, one platform pull request, and about eighteen months of
 public history produce eight findings. Each is stated with the evidence that
 carries it. Where a finding bears on one of our own decisions, the owning
 document is named and its content is not repeated here.
@@ -1879,6 +2040,16 @@ from the job's own retry counter is a normalisation worth adopting — it is
 exactly the raw material the work counters of DESIGN.md §2.8 consume, and it
 keeps that history out of the live row.
 
+The 2026-09-02 pass found a second one, in BibGenie's shipped bundle: a
+content hash per row, the model triple on every row and on the per-library
+state row, a failures table with exponential retry capped at five attempts,
+and a full library diff whenever the state row's counts disagree with the
+library or two days have passed. It is the only mechanism in the survey that
+reconciles on a count mismatch rather than trusting its own watermark, which
+is the cheapest possible check against the "abstract-only forever" failure
+above. It guards an index of abstracts, and it is closed source, so the idea
+travels and the code does not.
+
 ### What the field answers, and what it leaves open
 
 Answered, and we should stop treating these as unknowns:
@@ -1938,16 +2109,17 @@ per-model chunk keying — except that the last one is not on this list.
 
 **Copyleft, and out of reach for this project's purposes.** AGPL-3.0: Beaver,
 Nodus, PapersGPT, `zotero-gpt`, Aria, llm-for-zotero, `zotero-arxiv-daily`,
-Better Notes, Zotero core, and `zotero-cli-cc` (whose commercial option is a
-separate negotiation rather than a licence we hold). GPL-3.0:
+Better Notes, Zotero core, `text70/zotero_ai`, and `zotero-cli-cc` (whose
+commercial option is a separate negotiation rather than a licence we hold). GPL-3.0:
 `zotero-semantic-search`, and the GUI crate of `zotero-rag`. The network clause
 in AGPL reaches a server that answers queries, which is what zoteus is. Read
 these for ideas; do not copy lines.
 
 **No licence at all, therefore all rights reserved.** ZotSeek, ZotSeek-Online,
-`cboulanger/zotero-rag`, lit-lake, zotmcp, `zotero-rag-assistant`, and
-`aaron-freedman/zotero-rag`. Two of these carry a licence claim in prose that no
-file backs: ZotSeek declares MIT in `package.json`, and
+`cboulanger/zotero-rag`, lit-lake, zotmcp, `zotero-rag-assistant`,
+`aaron-freedman/zotero-rag`, and BibGenie, which publishes no source at all and
+whose design above was read from its shipped bundle. Two of these carry a
+licence claim in prose that no file backs: ZotSeek declares MIT in `package.json`, and
 `aaron-freedman/zotero-rag`'s README says "MIT" under a License heading with no
 LICENSE file beneath it. A claim in a README is not a grant.
 
