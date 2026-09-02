@@ -54,19 +54,36 @@ for the target; omitting it hides state the target creates. It is listed under
 `not_derived_state` with exactly that argument, which is an admission and not a
 resolution.
 
-**4. R10's subject is the HOST's process, not the target's, and the interface
-gives an adapter no way to say so.** The host-only control arm — Zotero 10.0.1
-alone, no plugin, same isolation, same tracer — attempts zero off-machine
-connections and 426 name lookups on a virgin profile (60 on a warmed one). That
-baseline is the lane lead's measurement, driver `bench/r10_host_baseline.py`,
-artifact `bench/results/r10-host-baseline/hostbase.json`. So R10's egress clause,
-as phrased over a traced process tree, is falsified by the host before the target
-does anything, and this adapter cannot qualify the verdict: `unsupported` maps
-only to `not-offered`, and the four verbs the clause drives are not absent. The
-red this target's artifact carries on that check is a fact about Zotero. It is
-recorded here, in `process`, so that it reaches the artifact through the
-declaration; nothing is subtracted in code, because that would be the layer
-scoring a result.
+**4. R10's subject is the HOST's process — literally the same process — and the
+interface gives an adapter no way to say so.** Two things were measured here and
+the second is the sharper.
+
+The host alone falsifies the clause. A host-only control arm — Zotero 10.0.1, no
+plugin, same isolation, same tracer — attempts zero off-machine connections and
+426 name lookups on a virgin profile, 60 on a warmed one (the lane lead's
+measurement, `bench/results/r10-host-baseline/hostbase.json`). A matched pair run
+for this adapter, differing in NOTHING but the presence of the XPI — same
+launcher, same profile shape, same five harness preferences, same mechanism, same
+tracer, a fixed 120 s dwell in both so that the arms are the same length — reads
+0 off-machine / 56 name lookups without the plugin and 0 / 60 with it, each
+reproduced to the digit across two independent replicates, against 47 / 5 with
+the route intact. So the target adds four name lookups and no connection attempt
+at all, and the clause reds on the host's fifty-six.
+
+And the trace cannot attribute even those four. Every lookup in both arms issues
+from a **single pid**, which is the host's main process — the process in which
+this target's JavaScript runs, by construction. An in-process plugin has no
+process of its own for a process tracer to separate, so on this architecture
+class the instrument's resolution is the host, full stop. What makes those four
+lookups is therefore not established here, and naming a cause would be a verdict
+dressed as a finding; the experiment that would settle it needs an attribution
+channel finer than a process, which this harness does not have.
+
+The adapter cannot qualify the verdict either: `unsupported` maps only to
+`not-offered`, and the four verbs the clause drives are not absent. The red this
+target's artifact carries is a fact about Zotero. It is recorded in `process`, so
+that it reaches the artifact through the declaration; nothing is subtracted in
+code, because that would be the layer scoring a result.
 
 **5. `check_no_egress` requires the subject's return code to be zero**, so a
 target whose process does not exit on its own can never reach `pass` there. The
@@ -343,17 +360,34 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
             "integration, both of which inherit this HOME and both of which name their "
             "directories with a fresh random string every run. That is why the "
             "exemptions below are directory-wide for home/ and profile/.\n\n"
-            "R10's subject on this architecture is the host's process tree. The "
-            "host-only control arm — the identical launch, same profile shape, same "
-            "isolation mechanism, no plugin installed — attempts ZERO off-machine "
-            "connections and 426 name lookups on a virgin profile, 60 on the same "
-            "profile's second run, against 456 and 80 with the route intact. Measured "
-            "by the lane lead on padme, 2026-09-03; driver bench/r10_host_baseline.py, "
-            "artifact bench/results/r10-host-baseline/hostbase.json. The arena state "
-            "moves that number sevenfold, so it is stated here that this adapter runs "
-            "against a VIRGIN profile, created fresh in the arena on every "
-            "construction and never seeded or cleared afterwards. A reader compares "
-            "the two; nothing is subtracted in code."
+            "R10's subject on this architecture is the host's process tree, and on an "
+            "in-process plugin it is literally the host's process. Two control "
+            "measurements are recorded here so a reader can price the verdict, and "
+            "neither is subtracted in code.\n\n"
+            "(a) The host alone, no plugin, same isolation, same tracer: ZERO "
+            "off-machine connection attempts and 426 name lookups on a virgin profile, "
+            "60 on that profile's second run, against 456 and 80 with the route intact "
+            "— the lane lead's measurement on padme, 2026-09-03, driver "
+            "bench/r10_host_baseline.py, artifact "
+            "bench/results/r10-host-baseline/hostbase.json.\n\n"
+            "(b) A matched pair run for this adapter, differing in NOTHING but whether "
+            "the XPI is in the profile — same launcher, same profile shape, the same "
+            "five harness preferences, the same mechanism and tracer, and a FIXED 120 s "
+            "dwell in both arms, because a readiness-driven dwell is not the same "
+            "length in the two and a control that differs in duration is not a control. "
+            "Without the plugin: 0 off-machine, 56 lookups. With it: 0 off-machine, 60 "
+            "lookups. Each reproduced to the digit across two independent replicates, "
+            "against 47 off-machine and 5 lookups with the route intact, which is what "
+            "says the instrument works here. Measured on padme, 2026-09-03.\n\n"
+            "The arena state moves the host's own figure sevenfold, so it is stated "
+            "plainly: this adapter runs against a VIRGIN profile and data directory, "
+            "created fresh inside the arena on every construction, never seeded and "
+            "never cleared afterwards. And the trace cannot attribute the four-lookup "
+            "difference: every lookup in both arms issues from a single pid, the host's "
+            "main process, which is where this target's JavaScript runs. A process "
+            "tracer has no finer resolution than a process, and an in-process plugin "
+            "has no process of its own — so what makes those four is not established, "
+            "and this declaration does not guess."
         ),
         unsupported={
             "uninstall": (
