@@ -79,28 +79,59 @@ or period knob of any kind.
 
 A grep that returns nothing because the construct is absent and a grep that
 returns nothing because it was mis-typed are the same output. Each probe below
-was therefore run twice: once as written, and once with one alternative added
-that is known to exist in the tree. The control firing is what makes the nil
+therefore carries a control: the same expression with one alternative added that
+is known to exist in the tree. The control firing is what makes the nil
 readable.
 
-| Probe | Result | Control that fired |
-|---|---|---|
-| `setInterval` across `src/` | one hit only, and it is not a trigger: a shutdown-flush keepalive that is cleared four lines later (`src/transports/stdio.ts:93` @ `b05ed69`) | self-controlled — the pattern fired where the construct exists; `setTimeout` also hits 12 times, including `src/features/search/embeddings.ts:40` |
-| `cron\|node-schedule\|scheduler\|\.schedule\(` across `src/` | nil | same regex plus `setInterval` → `src/transports/stdio.ts:93` |
-| `fs.watch\|watchFile\|chokidar\|inotify\|FSWatcher` across `src/` | nil | same regex plus `readFileSync` → `src/api/local-writes.ts:2` |
-| `WebSocket\|EventSource\|text/event-stream\|.subscribe(\|EventEmitter\|.on('change\|update\|item` across `src/` | nil | same regex plus `AbortController` → `src/lib/update-check.ts:88`, `src/lib/cimd.ts:136`, `src/lib/health.ts:56`, `src/api/http.ts:54` |
-| `Notifier\|addObserver\|registerObserver\|notify(` across `src/` — a Zotero event subscription | nil | same regex plus `localApiDegraded` → `src/features/search/index-manager.ts:236` |
-| `startIndexUpdate` call sites in `src/` | one, `src/tools/index-tool.ts:125` | the identical grep for `startIndexBuild` returns two call sites, `src/tools/semantic-search.ts:51` and `src/tools/index-tool.ts:136` — so the enumeration can find more than one when more than one exists |
-| `cron\|systemd\|OnCalendar\|schedule` across `deploy/ scripts/ .github/ docker-compose.yml fly.toml Dockerfile mcpb/` | nil | same regex plus `zoteus` → `deploy/zoteus.service:2` |
-| `INTERVAL\|CADENCE\|POLL\|PERIOD\|EVERY` in `.env.example`; `interval\|cadence\|poll\|periodic` in `src/config.ts` | nil in both | same regexes plus `ZOTEUS_INDEX_MAX_ITEMS` → `.env.example:72`, and plus `indexMaxItems` → `src/config.ts:43` |
+Every command runs with GNU grep from the root of a clone checked out at
+`b05ed69`, and every one of them was re-run on 2026-09-03; the results below are
+what they printed. **An earlier version of this table did not reproduce.** Three
+rows were wrong and all three are corrected here, each noted in place: one
+expression was a syntax error whose nil meant "could not look", one matched
+1 340 lines while the row claimed nil, and one positive control undercounted its
+own hits. A table that does not reproduce is exactly the defect this report is
+about, so the corrections are recorded rather than quietly absorbed.
+
+| # | Probe | Result | Control | Control result |
+|---|---|---|---|---|
+| 1 | `grep -rnE 'setInterval' src/` | one hit, and it is not a trigger: `src/transports/stdio.ts:93`, a shutdown-flush keepalive cleared four lines later | `grep -rnE 'setInterval\|setTimeout' src/ \| wc -l` | `13` — the hit above plus 12 `setTimeout`, so the expression fires where the construct exists |
+| 2 | `grep -rnE 'cron\|node-schedule\|node-cron\|scheduler\|\.schedule\(' src/` | no output, exit 1 | same expression with `\|setInterval` appended | `src/transports/stdio.ts:93`, exit 0 |
+| 3 | `grep -rnE 'fs\.watch\|watchFile\|chokidar\|inotify\|FSWatcher' src/` | no output, exit 1 | same with `\|readFileSync` | `src/api/local-writes.ts:2` and `:198`, exit 0 |
+| 4 | `grep -rnE "WebSocket\|EventSource\|text/event-stream\|EventEmitter\|\.subscribe\(\|\.on\('change'\|\.addEventListener\(" src/` | no output, exit 1 | same with `\|AbortController` | `src/lib/update-check.ts:88`, `src/lib/health.ts:56`, `src/lib/cimd.ts:136`, `src/api/http.ts:54`, exit 0 |
+| 5 | `grep -rnE 'Notifier\|addObserver\|registerObserver\|\bnotify\(' src/` — a Zotero event subscription | no output, exit 1 | same with `\|localApiDegraded` | 8 hits in `src/features/search/index-manager.ts` (`:236`, `:530`, `:531`, `:536`, `:597`, `:598`, `:805`, `:1248`), exit 0 |
+| 6 | `grep -rnE '\bstartIndexUpdate\s*\(' src/ \| grep -v 'export function'` | one call site, `src/tools/index-tool.ts:125` | the identical enumeration for `startIndexBuild` | **three** call sites — `src/tools/semantic-search.ts:51`, `src/tools/index-tool.ts:136`, `src/features/search/build.ts:382` — so the enumeration finds three when three exist |
+| 7 | `grep -rnE 'cron\|systemd\|OnCalendar\|schedule' deploy/ scripts/ .github/ docker-compose.yml fly.toml Dockerfile mcpb/` | no output, exit 1 | same with `\|zoteus` | `deploy/zoteus.service`, `deploy/Caddyfile`, `docker-compose.yml`, `fly.toml`, `mcpb/manifest.json` and five files under `scripts/`, exit 0 |
+| 8 | `grep -nE 'INTERVAL\|CADENCE\|POLL\|PERIOD\|EVERY\|CRON\|SCHEDULE' .env.example` | no output, exit 1 | same with `\|ZOTEUS_INDEX_MAX_ITEMS` | `.env.example:72`, exit 0 |
+| 9 | `grep -nE 'interval\|cadence\|poll\|periodic\|schedule' src/config.ts` | no output, exit 1 | same with `\|indexMaxItems` | `src/config.ts:43` and `:338`, exit 0 |
+
+**Row 2 was a syntax error.** It was written as a basic regular expression
+ending `\.schedule\(`, where `\(` opens a group that is never closed; GNU grep
+exits 2 with `Unmatched ( or \(` and prints nothing. Its nil said "could not
+look", not "nothing there". Rewritten as an extended regular expression, where
+`\(` is a literal parenthesis, it runs and is genuinely empty.
+
+**Row 4 matched 1 340 lines.** It carried `update` and `item` as bare top-level
+alternatives, which match most of `src/`; the row nevertheless reported nil, so
+the row and the expression beside it were not the same probe. Both alternatives
+are removed. They could not have discriminated a subscription from any of the
+hundreds of ordinary uses of those two words, and the constructs that *would*
+show a push channel — `WebSocket`, `EventSource`, SSE, `EventEmitter`,
+`.subscribe(`, a `'change'` listener, `addEventListener` — are what the row now
+tests.
+
+**Row 6's control undercounted.** It reported two `startIndexBuild` call sites
+and there are three. The missed one is `src/features/search/build.ts:382`, and
+it is inside `startIndexUpdate` itself; the consequence is set out below and it
+is not bookkeeping.
 
 Also read directly rather than grepped: `src/index.ts` in full (119 lines),
 `src/lib/lifecycle.ts` (54 lines), the `zotero_index` handler
 (`src/tools/index-tool.ts:100-140`), the `zotero_semantic_search` handler
-(`src/tools/semantic-search.ts:25-80`), and `startIndexUpdate` itself
-(`src/features/search/build.ts:360-400`). Upstream's runtime dependency list
-carries no scheduler: `@modelcontextprotocol/sdk`, `citeproc`, `cors`,
-`express`, `express-rate-limit`, `zod` (`package.json`).
+(`src/tools/semantic-search.ts:25-80`), `startIndexUpdate` itself
+(`src/features/search/build.ts:360-400`) and `updateBlocker`
+(`src/features/search/index-manager.ts:1185-1218`). Upstream's runtime
+dependency list carries no scheduler: `@modelcontextprotocol/sdk`, `citeproc`,
+`cors`, `express`, `express-rate-limit`, `zod` (`package.json`).
 
 ### The negative, stated at the width the evidence supports
 
@@ -112,6 +143,46 @@ notices a change: an MCP host that calls `zotero_index action:"update"` on a
 clock of its own gets exactly the cadence it dials, and Zotero's own extraction
 happens whether anyone asks or not. Upstream supplies the *mechanism* of
 noticing and no *clock* for it.
+
+## One call site, two costs: `action:"update"` is bimodal
+
+Enumerating `startIndexBuild`'s call sites correctly turns up a third, and it
+sits inside the update path:
+
+    src/features/search/build.ts:382    return startIndexBuild(ctx, lib, maxItems, { ...opts, note: ... });
+
+It is reached when `ctx.search.updateBlocker(backend)` returns a reason
+(`src/features/search/build.ts:380` @ `b05ed69`). So a caller who asks for an
+update does not always get a delta. On any of six conditions the same call runs
+a **full rebuild** instead, with the reason attached to the status rather than
+silently (`updateBlocker`, `src/features/search/index-manager.ts:1190-1218` @
+`b05ed69`):
+
+1. the store could not be read at all — and an unreadable index overrides the
+   method to refuse unconditionally (`src/features/search/corruption.ts:70` @
+   `b05ed69`);
+2. the backing store cannot remove rows, so a deleted item could never leave
+   the index;
+3. the index is empty;
+4. no library version stamp exists to diff against — either the build that
+   would have written one was interrupted, in which case the rebuild resumes
+   from its checkpoint, or the index predates incremental updates;
+5. the stamp came from a different Zotero API than the one this update would be
+   served by, whose version sequences are unrelated;
+6. the stored vectors were produced by a different embedder than the one now
+   configured.
+
+None of this touches the verdict: the trigger is still a caller and there is
+still no cadence. What it changes is the **deferred half**. `SPEC.md` §5.2.4's
+reconcile tick calls this path on a clock, so the cost of a tick is not one
+number but two — a cheap delta, and a whole library — with a documented rule
+selecting between them. Measuring only the delta would report the mode and call
+it the cost. The handler upstream already declines to assume which mode ran,
+reading the outcome back off the status instead
+(`s.operation === 'update' ? 'Index update' : ... 'Full index rebuild'`,
+`src/tools/index-tool.ts:127-131` @ `b05ed69`); the measurement needs the same
+discipline — record the mode each tick took and report the two distributions
+apart.
 
 ## Consequence for R35
 
@@ -149,13 +220,19 @@ makes doudou's Zotero staying strictly idle a condition of tonight's run. A
 latency probe is a second lane against that same API, so it does not run
 tonight.
 
-What the deferred half needs, unchanged by this read:
+What the deferred half needs:
 
 - a quiet reference machine — doudou, per `SPEC.md` §5.2.8, with no build in
   flight and Zotero idle;
 - the two latencies: **deletion** (from the delete in Zotero to the text no
   longer being served) and **new item** (from the add to the item being
   queued), each measured rather than reasoned;
+- **the mode of every tick recorded, not just its duration.** This one is new
+  with this read. `action:"update"` is bimodal — the six conditions above send
+  it to a full rebuild — so a run that reports a single mean over an unrecorded
+  mix reports nothing. Read `operation` off the status the way
+  `src/tools/index-tool.ts:127-131` does, keep the delta and the rebuild
+  distributions apart, and state how many ticks fell each way;
 - an artifact committed under `bench/results/`, per the README's rule that no
   row reaches `measured` without one.
 
