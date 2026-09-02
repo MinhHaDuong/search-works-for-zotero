@@ -4343,7 +4343,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   needing it reports "not offered" rather than passing quietly, per the
   honest-state discipline ticket 0578 inherits from tracker 0026.
 
-  **The adapter contract.** A thin adapter declares, and does nothing else.
+  **The adapter contract.** The author settled this boundary on 2026-09-02.
+  A thin adapter declares, and does nothing else beyond the minimal transport
+  code needed to invoke the surface it declares.
   It MUST declare five things: every path the target writes outside the
   fixture library, which is its derived state and the root R15 is asserted
   over; how the query surface is reached, whether that is a stdio transport,
