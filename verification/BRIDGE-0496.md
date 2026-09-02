@@ -1,68 +1,106 @@
-<!-- last-reviewed: 2026-09-02 -->
+<!-- last-reviewed: 2026-09-03 -->
 # The Zotero #6012 inference boundary, and which way the bridge runs
 
 Evidence for ticket 0496, and the record of the one outcome it owes ticket 0491.
 Everything below is read from `zotero/zotero` at PR #6012's head
-`77e2c4b05111077108fe31e879f95b9687643e9a` through the forge API, with no local
-clone. Every claim carries `path:line @ 77e2c4b`. Nothing here was executed
+`19e79625b1c6fbbdd75367aa85b62d5a7080d7f6` through the forge API, with no local
+clone. Every claim carries `path:line @ 19e7962`. Nothing here was executed
 against a running build, and the two exit criteria that need one are reported as
 NOT RUN rather than as negatives.
 
-## 1. Currency of the head, and what that settles
+**Re-anchored 2026-09-03.** A first version of this report was written against
+`77e2c4b` and asserted that the head had not moved. It had: #6012 force-pushed
+while that pass was open. §1 records what moved, and every `path:line` below has
+been re-read at the new head rather than carried across.
 
-`GET repos/zotero/zotero/pulls/6012`, called 2026-09-02T19:04Z, returns
-`state: open`, `merged: false`, `head: 77e2c4b05111077108fe31e879f95b9687643e9a`,
-`base: ff93139cce23209747a4519a32f992a1f45cd764`, `changed_files: 56`,
-`updated_at: 2026-08-28T21:32:13Z`.
+## 1. Currency of the head, and what moved
 
-The head has not moved since the 2026-08-30 reading recorded in ticket 0496's
-log. So "verify against the current #6012 head" is answered by the currency check
-itself: the prior reading is the current reading, and the head SHA and the date
-of the call above are what make that a check rather than an assumption. The
-findings below were nonetheless re-derived from source at this ref, because the
-prior note was taken from a clone and this pass had to read a different surface
-to answer the same question.
+`GET repos/zotero/zotero/pulls/6012`, called 2026-09-03, returns `state: open`,
+`merged: false`, `head: 19e79625b1c6fbbdd75367aa85b62d5a7080d7f6`,
+`base: 08ed64f17f58fbd2a1d766af515dd2278f8cfb61`, `changed_files: 56`,
+`commits: 69`, `updated_at: 2026-09-02T19:23:11Z`.
 
-Line numbers agree with the prior note in every case but one: the tokenizer
-import URL is at `embeddings.js:1571`, not `:1570` — `:1570` is the
-`ChromeUtils.importESModule(` call whose argument it is. The file lengths agree:
-`ml.js` is 236 lines, `embeddings.js` is 3810.
+**The first version of this report was wrong about currency.** It read the head
+at 2026-09-02T19:04Z, found `77e2c4b` with `updated_at: 2026-08-28T21:32:13Z`,
+and concluded that "the head has not moved … the prior reading is the current
+reading". Nineteen minutes later, at 19:23:11Z — eleven minutes after the pull
+request carrying that sentence opened — #6012 force-pushed to `19e7962`. A
+currency check is a reading of one instant, not a property of the branch, and
+writing it as the latter is what made the claim false rather than merely stale.
+It is restated here as what it is: read at 2026-09-03, and true of that call.
+
+**What moved, measured rather than described.**
+
+| | `77e2c4b` | `19e7962` |
+|---|---|---|
+| base | `ff93139` | `08ed64f` |
+| changed files | 56 | 56, but not the same 56 |
+| `ml.js` | 236 lines, sha256 `cbacb81f…` | 236 lines, sha256 `cbacb81f…` — **byte-identical** |
+| `embeddings.js` | 3 810 lines | 3 637 lines |
+| `Zotero.Embeddings.Reranking` | present, 290 lines, its own `createEngine` | **removed entirely** |
+| `Zotero.ML.createEngine` call sites | 2 | **1** |
+| `embeddings.*` prefs declared | 4 (`model`, `indexingPaused`, `indexFulltext`, `reranker`) | 3 — `reranker` gone with the module |
+| chunking | in `embeddings.js`, tokenizing through `chrome://global/content/ml/transformers.js` | delegated to `Zotero.Utilities.Internal.Chunking`; that import survives only in `test/tests/embeddingsTest.js` |
+| `numThreads` | `Zotero.ML.getOptimalConcurrency()` | `Math.max(1, Math.floor(Zotero.ML.getOptimalConcurrency() / 2))` |
+
+`ml.js` being byte-identical is worth stating as a hash rather than a
+description, because it is what carries §2.2 and §2.3 across the force-push
+unchanged: `sha256 cbacb81f3fc61fab690d2d7de15c1bde1f22239512ad0f432e3940f34342f951`
+at both heads.
+
+**Nothing that decides the outcome moved.** The removals subtract capability
+(one fewer engine, one fewer model, no cross-encoder); none of them adds a
+route, a device selector, or a vector out. Every probe of §2.1 was re-run
+against the new diff and the new file set, and every one of them returns what it
+returned before, with its positive control still firing (§2.1).
 
 ## 2. Verified at source tonight
 
 ### 2.1 No changed file exposes an external route (confirmed, with a positive control)
 
-`GET repos/zotero/zotero/pulls/6012/files --paginate` returns 56 filenames. None
-lies under `chrome/content/zotero/xpcom/server/`, and none is a connector or
-protocol handler; the set is UI (`chrome/content/zotero/**`), five xpcom modules
-(`bestMatch.js`, `embeddings.js`, `lexical.js`, `ml.js`, `sdt.js` plus
-`data/item.js`, `data/search.js`, `data/searchConditions.js`, `fulltext.js`,
-`notifier.js`, `utilities_internal.js`, `zotero.mjs`), styles, locale, prefs
-defaults, and ten test files.
+`GET repos/zotero/zotero/pulls/6012/files --paginate` returns 56 filenames at
+`19e7962`. None lies under `chrome/content/zotero/xpcom/server/`
+(`grep -c 'xpcom/server/'` over the list: 0), and none is a connector or
+protocol handler; the set is UI (`chrome/content/zotero/**`), xpcom modules
+(`bestMatch.js`, `collectionTreeRow.js`, `embeddings.js`, `fulltext.js`,
+`lexical.js`, `ml.js`, `notifier.js`, `sdt.js`, `utilities_internal.js`,
+`zotero.mjs`, plus `data/item.js`, `data/search.js`,
+`data/searchConditions.js`), styles, locale, prefs defaults, and nine test
+files.
 
-The unified diff (`Accept: application/vnd.github.v3.diff`, 16 999 lines) contains
-no occurrence of `Zotero.Server.Endpoints`, `Zotero.Server`, or `endpoints[`.
+The unified diff (`Accept: application/vnd.github.v3.diff`, 16 582 lines at
+`19e7962`) contains no occurrence of `Zotero.Server.Endpoints`, `Zotero.Server`,
+or `endpoints[` — `grep -nE 'Zotero\.Server\.Endpoints|Zotero\.Server|endpoints\['`
+over the diff exits 1 with no output.
 
 That null is a finding only because the same pattern was run against a case known
-to be positive: `chrome/content/zotero/xpcom/server/server_localAPI.js @77e2c4b`
-matches it 20+ times, including the registration
+to be positive: the same expression over
+`chrome/content/zotero/xpcom/server/server_localAPI.js @19e7962` (2 717 lines)
+matches **89** times, including the registration
 `Zotero.Server.Endpoints["/api/"] = Zotero.Server.LocalAPI.Root;` at
 `server_localAPI.js:811`. The probe can see endpoint registrations; the PR
 contains none.
 
-The six files under `xpcom/server/` are unchanged by the PR
+The files under `xpcom/server/` are untouched by the PR
 (`saveSession.js`, `server.js`, `server_connector.js`,
 `server_connectorIntegration.js`, `server_integration.js`, `server_localAPI.js`),
-and neither `server_localAPI.js` nor `server_connector.js @77e2c4b` mentions
-`Zotero.ML`, `Zotero.Embeddings`, or embeddings at all. (`server_localAPI.js:2070`
-matches `semantic` only inside the word "semantics", in a comment about PATCH.)
+and `server_localAPI.js @19e7962` mentions neither `Zotero.ML` nor
+`Zotero.Embeddings` nor embeddings at all — `grep -n 'Zotero.ML\|Zotero.Embeddings\|embedding'`
+exits 1. (`server_localAPI.js:2070` matches `semantic` only inside the word
+"semantics", in a comment about PATCH.)
+
+One further probe, added on the re-anchor because the force-push changed the
+file set: the string `endpoint`, case-folded, occurs **17 times in the whole
+diff and all 17 are in `embeddings.js`** — no preferences XHTML, no locale file,
+no test. That is §2.5's "undeclared and hidden" measured rather than asserted.
 
 **No route returns a vector.** That is the sharp form of the first exit criterion,
 and it holds.
 
 ### 2.2 The runtime is Gecko's, and nothing outside a Gecko process can reach it
 
-`chrome/content/zotero/xpcom/ml.js @77e2c4b` (236 lines, added by this PR):
+`chrome/content/zotero/xpcom/ml.js @19e7962` (236 lines, added by this PR,
+byte-identical to `77e2c4b`):
 
 - `:69-70` — `ChromeUtils.importESModule("resource://gre/actors/MLEngineParent.sys.mjs")`
 - `:92` — `Services.prefs.getBoolPref('browser.ml.enable', false)`
@@ -73,24 +111,56 @@ and it holds.
 - `:208-209` — `ChromeUtils.importESModule("chrome://global/content/ml/ModelHub.sys.mjs")`
 - `:231-232` — `ChromeUtils.importESModule("chrome://global/content/ml/EngineProcess.sys.mjs")`, then `EngineProcess.destroyMLEngine()` at `:234`
 
-`chrome/content/zotero/xpcom/embeddings.js @77e2c4b`:
+`chrome/content/zotero/xpcom/embeddings.js @19e7962`:
 
-- `:670-679` and `:3785-3794` — `Zotero.ML.createEngine({ …, backend: 'onnx-native', … })`
-- `:1570-1571` — `ChromeUtils.importESModule('chrome://global/content/ml/transformers.js')` for the tokenizer
+- `:666-679` — the single `Zotero.ML.createEngine({ …, backend: 'onnx-native', … })`
+  call, with `numThreads` at `:678`. At `77e2c4b` there were two such calls
+  (`:670-679` and `:3785-3794`); the second belonged to the reranker, which this
+  head removes.
+- The tokenizer import is **gone from production code**. At `77e2c4b`,
+  `embeddings.js:1570-1571` imported
+  `chrome://global/content/ml/transformers.js` to count tokens for chunking; at
+  `19e7962` chunking delegates to `Zotero.Utilities.Internal.Chunking`
+  (`embeddings.js:1517`, `:1546`, `:1567`, `:1599`) and estimates tokens from
+  characters. The string `chrome://global/content/ml/transformers.js` survives in
+  the diff exactly once, in `test/tests/embeddingsTest.js`.
 
+The argument does not rest on that import and is unchanged without it:
 `resource://gre` and `chrome://global` resolve only inside a Gecko process, and
-`ChromeUtils` / `Services` are XPCOM globals. A Node process cannot reach any of
-it. Confirmed at this ref.
+`ChromeUtils` / `Services` are XPCOM globals, so a Node process cannot reach
+`ml.js` at all — and `ml.js` is the whole engine path. Confirmed at this ref.
 
-### 2.3 There is no execution-provider selection: the engine is CPU-threaded
+### 2.3 Nothing in Zotero selects an execution provider; the only knob it sets is a CPU thread count
 
-`ml.js:115-129` accepts `taskName`, `modelId` and `backend` and passes them
-through; the only performance knob the caller sets is `numThreads`
-(`embeddings.js:679`, `:3794`), sourced from `Zotero.ML.getOptimalConcurrency()`,
-whose own doc-comment at `ml.js:131-133` reads "Thread count the runtime
-recommends for **CPU inference** on this machine." No `device`, no
-`executionProviders`, no `dml`/`cuda`/`webgpu` string appears anywhere in the
-engine-creation path at this ref.
+Stated precisely, because an earlier draft of this section overstated it.
+
+`Zotero.ML.createEngine` (`ml.js:115-129 @19e7962`) does not enumerate the
+options it accepts. It takes an `options` object and forwards it **opaquely** to
+Firefox's own `createEngine` — `return createEngine(options, onProgress);` at
+`ml.js:129`, on the module imported from
+`chrome://global/content/ml/EngineProcess.sys.mjs` at `:124-125`. So what that
+runtime would do with a device or execution-provider key is not readable here,
+and this report does not claim it.
+
+What **is** established, by reading every caller: Zotero never sets one. The
+single engine-creation site (`embeddings.js:666-679`) passes `engineId`,
+`taskName`, `backend: 'onnx-native'`, `modelId`, `modelRevision`,
+`modelHubRootUrl`, `modelHubUrlTemplate`, `dtype` and `numThreads` — and nothing
+else. No `device`, no `executionProviders`, no `dml`/`cuda`/`webgpu` string
+appears anywhere in `ml.js` or in `embeddings.js` at this ref. The one
+performance argument Zotero supplies is `numThreads` (`embeddings.js:678`),
+sourced from `Zotero.ML.getOptimalConcurrency()`, whose own doc-comment at
+`ml.js:133` reads "Thread count the runtime recommends for **CPU inference** on
+this machine" — and which this head now halves, with the comment "trade wall
+time for heat and leave the rest of the machine to the user"
+(`embeddings.js:675-678`).
+
+So the claim carried into §6 is the narrow one: an embedder hosted inside
+Zotero #6012 as it stands gets whatever Firefox's ML runtime does by default,
+with a CPU thread count as its only tuning, and no way for a consumer to ask
+for a device — because no code path exists that would carry the request. Whether
+Firefox's runtime could serve a GPU if something set a key is outside what was
+read.
 
 This is the fact that decides the outcome; see §6.
 
@@ -101,8 +171,9 @@ that could not be seen from the changed-file set alone.
 
 The PR adds a root-level `bestMatch` search condition
 (`data/searchConditions.js`, diff hunk: `name: 'bestMatch'`, `operators: { contains: true }`,
-plus an accept rule letting the *operator* carry a positive-integer top-K).
-`data/search.js:837-845 @77e2c4b` then executes it inside `Zotero.Search.search()`:
+plus an accept rule letting the *operator* carry a positive-integer top-K,
+`data/searchConditions.js:274` and `:923-925 @19e7962`).
+`data/search.js:837-845 @19e7962` then executes it inside `Zotero.Search.search()`:
 
 ```
 let bestMatch = this.getBestMatchQuery();
@@ -110,18 +181,20 @@ if (ids && ids.length && bestMatch && bestMatch.topK) {
     let { scores } = await Zotero.BestMatch.scoreItemIDs(bestMatch.query, ids);
 ```
 
-with `getBestMatchQuery()` at `data/search.js:864-880`. Upstream's own comment at
-`data/search.js:832-835` names the consumer set explicitly: a top-K cutoff "makes
+with `getBestMatchQuery()` at `data/search.js:864-882`. Upstream's own comment at
+`data/search.js:832-836` names the consumer set explicitly: a top-K cutoff "makes
 membership relevance-based … so the saved search returns the same set when used as
 a source (scopes, counts, **the API**)."
 
 And the API path exists and is unchanged by the PR:
 `Zotero.Server.Endpoints["/api/users/:userID/searches/:searchKey/items"]` at
 `server_localAPI.js:1218` (group twin at `:1219`), executing
-`search.setScope(savedSearch, true)` (`:1114`) then `search.search()` (`:1152`).
-Saved searches are writable over the same local API — `Searches` supports
-`POST` at `server_localAPI.js:1556-1567`, `Search` supports `PUT`/`PATCH` at
-`:1581-1590` — behind the write-authorization handshake of §3.1.
+`search.setScope(savedSearch, true)` (`:1114`) then `await search.search()`
+(`:1154`). Saved searches are writable over the same local API — `Searches`
+supports `POST` at `server_localAPI.js:1556-1567`, `Search` supports
+`PUT`/`PATCH` at `:1581-1590` — behind the write-authorization handshake of
+§3.1. All five re-read at `19e7962`; the file is untouched by the PR, but the
+base moved with the force-push, so they were re-read rather than carried over.
 
 So a supported external call **can already cause Zotero to embed a query string**:
 POST a saved search carrying a root-level `bestMatch` condition whose operator is
@@ -143,7 +216,7 @@ running #6012 build (§5).
 
 ### 2.5 The bridge upstream already built runs the other way
 
-`embeddings.js:1028-1053 @77e2c4b`, inside `embedPassages()`:
+`embeddings.js:1027-1053 @19e7962`, inside `embedPassages()`:
 
 ```
 // Passages can route to an external endpoint serving the same model;
@@ -153,7 +226,7 @@ running #6012 build (§5).
 let endpoint = Zotero.Prefs.get('embeddings.endpoint');
 ```
 
-and the transport at `embeddings.js:953-971`:
+and the transport at `embeddings.js:952-970`:
 
 ```
 // POST { inputs: [...] } to the endpoint, which returns one vector per
@@ -169,33 +242,39 @@ async function _embedViaEndpoint(endpoint, texts) {
     let vectors = xmlhttp.response?.embeddings ?? xmlhttp.response;
 ```
 
-with `ENDPOINT_ATTEMPTS = 3` at `:945`, `ENDPOINT_RETRY_DELAY = 2000` ms at `:947`,
-and `_normalize` applied to each returned `Float32Array` at `:970`.
+with `ENDPOINT_ATTEMPTS = 3` at `:944`, `ENDPOINT_RETRY_DELAY = 2000` ms at `:946`,
+and `_normalize` applied to each returned `Float32Array` at `:969`.
 
 That is the HuggingFace text-embeddings-inference (TEI) request shape. **Zotero
 #6012 can already be pointed at an external embedding server for passages.**
 
 Four properties of that hook, all read at this ref, and all load-bearing for §4:
 
-- **It is undeclared and hidden.** `defaults/preferences/zotero.js` in this diff
-  declares `embeddings.model`, `embeddings.indexingPaused`,
-  `embeddings.indexFulltext` and `embeddings.reranker` — and **not**
-  `embeddings.endpoint`. The string `endpoint` occurs nowhere in the diff outside
-  `embeddings.js`: no preferences XHTML, no `.ftl` locale entry, no test.
-  It is a developer escape hatch, not a shipped feature.
+- **It is undeclared and hidden.** `defaults/preferences/zotero.js @19e7962`
+  declares three embedding prefs — `embeddings.model` (`:121`),
+  `embeddings.indexingPaused` (`:123`), `embeddings.indexFulltext` (`:125`) — and
+  **not** `embeddings.endpoint`. (`embeddings.reranker` was the fourth at
+  `77e2c4b` and went with the reranker module.) The string `endpoint`, case-folded,
+  occurs 17 times in the whole 16 582-line diff and all 17 are inside
+  `embeddings.js`: no preferences XHTML, no `.ftl` locale entry, no test. It is a
+  developer escape hatch, not a shipped feature.
 - **Queries never leave.** Only `embedPassages()` consults it; `embedQuery()`
-  (`:996-1019`) always goes to the local engine. Zotero therefore still loads its
+  (`:995-1019`) always goes to the local engine. Zotero therefore still loads its
   own model even when every passage is embedded elsewhere.
 - **There is no handshake.** The request carries `inputs` and `truncate` and
   nothing else — no model name, no revision, no dimension, no pooling. Zotero's
   own vector identity is `getModelVersion()` = `name + '/' + revision`
-  (`embeddings.js:208-210`), and none of it is sent or checked. The prefixes are
-  applied locally before the request (`:1029-1031`), so the server receives
-  already-prefixed text and must not add its own.
+  (`embeddings.js:208-210`), and none of it is sent or checked. The passage
+  prefix is applied locally before the request (`:1028-1029`), so the server
+  receives already-prefixed text and must not add its own.
 - **Degradation is silent.** After three failed attempts the batch embeds locally
-  (`:1050-1052`) and is stored under the same model version as the endpoint's
+  — `return this.embedMany(texts);` at **`:1053`**, the statement the retry loop
+  falls out of — and is stored under the same model version as the endpoint's
   vectors. A dimension or model mismatch is not detected at all; a transport
-  failure is not surfaced to the user.
+  failure is not surfaced to the user. (This citation was wrong even at the old
+  head: the first version of this report gave `:1050-1052` twice, which is the
+  retry-exhausted `Zotero.debug` line, not the fallback. The fallback was
+  `:1054 @77e2c4b`.)
 
 ### 2.6 The portable half is already what `bench/` runs (constraint (ii), verified here)
 
@@ -203,6 +282,9 @@ Checked against this repo rather than repeated from the prior note:
 `bench/recall_embed.mjs:62` resolves and imports `@huggingface/transformers`, and
 `:156` records the run's `runtime` as `'@huggingface/transformers in Node (ONNX)'`.
 `bench/registry.mjs:37-41` defaults every model resolution to `kind: 'onnx'`.
+Both files are being edited by another lane, so the reading is pinned by content:
+`sha256(bench/recall_embed.mjs) = 308bc55e429866b748087b948a9a427595dcfeaaf762b3596ee8a74f909e5e16`,
+`sha256(bench/registry.mjs) = 9a68f67fd764b6da039644569c6ee22be695caa2304918d0fa52567e3bc1f59f`.
 
 So transformers.js over onnxruntime — the portable half of what #6012 uses — is
 already ours. A bridge into Zotero would buy model download, cache custody and
@@ -240,16 +322,16 @@ data route.
 ```
 
 - `model` is `Zotero.Embeddings.getModelVersion()`'s exact string
-  (`embeddings.js:208-210`). It is a **precondition, not a hint**: a mismatch with
+  (`embeddings.js:208-210 @19e7962`). It is a **precondition, not a hint**: a mismatch with
   the active model is `409`, never a silent re-embed under a different function.
   This is the field whose absence is §2.5's defect.
 - `role` selects the prefix Zotero itself applies —
-  `getQueryPrefix()` / `getPassagePrefix()` (`embeddings.js:247-265`). The server
+  `getQueryPrefix()` (`embeddings.js:247`) / `getPassagePrefix()` (`:256`). The server
   applies it; the client sends bare text. Role is mandatory with no default:
   the query/passage asymmetry is exactly the thing a caller gets silently wrong.
 - `inputs` is a batch for `role: "passage"` and MUST be length 1 for
-  `role: "query"`, mirroring `embedQuery()`'s single-string contract and its
-  in-flight cache (`embeddings.js:1005-1018`).
+  `role: "query"`, mirroring `embedQuery()`'s single-string contract (`:995-1019`)
+  and its in-flight cache (`:1003-1018`).
 - `truncate` mirrors the local pipeline's own behaviour; `false` makes an
   over-window input a `422` instead.
 
@@ -267,17 +349,18 @@ data route.
 
 - `model` echoed so a client can pin it without a second call.
 - `dimension` explicit — the client must not infer it from array length.
-- `normalized: true` states what `_normalize()` at `embeddings.js:942` already
-  does, so a client does not normalize twice.
+- `normalized: true` states what `_normalize()` (defined at `embeddings.js:787`,
+  applied at `:941` and `:969`) already does, so a client does not normalize twice.
 - `provider` is what R30's disclosure clause needs from any facility that is not
-  ours: backend, the device actually serving, thread count. At `77e2c4b` this is
-  always `"cpu"` (§2.3), and saying so in the response is precisely how a
-  consumer discovers that.
+  ours: backend, the device actually serving, thread count. Zotero sets no device
+  at `19e7962` (§2.3), so the endpoint would have to report what the runtime
+  actually used rather than echo a request — which is precisely how a consumer
+  discovers it, and precisely what no code path exposes today.
 
 **Availability.** `GET /api/local/embeddings` returns the same envelope without
 `embeddings`, plus `"enabled": bool` and `"downloaded": bool` — the facts behind
-`Zotero.Embeddings.isEnabled()` (`:179-181`), `isDownloaded()` (`:534`), and
-`Zotero.ML.isAvailable()` (`ml.js:92-98`, i.e. `browser.ml.enable` and the
+`Zotero.Embeddings.isEnabled()` (`:179-181 @19e7962`), `isDownloaded()` (`:534`),
+and `Zotero.ML.isAvailable()` (`ml.js:92-98`, i.e. `browser.ml.enable` and the
 physical-memory gate). A caller must be able to ask "can you serve?" without
 paying for an engine start.
 
@@ -300,8 +383,8 @@ already has.
 
 **Cancellation.** Client-side disconnect aborts the run, and the request accepts
 an optional `deadlineMs` capped by the server. `Zotero.Embeddings` already carries
-a `ScoringCancelledError` (`embeddings.js:635`) and `scoreItemIDs` takes a
-`shouldCancel` callback (`:1210`), so the plumbing exists.
+a `ScoringCancelledError` (`embeddings.js:631 @19e7962`) and `scoreItemIDs` takes
+a `shouldCancel` callback (`:1209`), so the plumbing exists.
 
 **What it must not do.** No route to the embedding database (`initDB`, `getChunks`,
 `getMatchingChunks`, `scoreItemIDs`), no item text, no file paths, no model-file
@@ -321,11 +404,11 @@ Smaller, already 90% written, and the direction that survives R30.
    applied in the other direction.
 3. **Verify the shape.** Reject a returned vector whose length is not the active
    model's dimension. Today only the *count* of vectors is checked
-   (`embeddings.js:962-969`); a server answering with the right count of
+   (`embeddings.js:961-968 @19e7962`); a server answering with the right count of
    wrong-dimension vectors is accepted and stored.
 4. **Kill the silent fallback, or record it.** Either surface the endpoint failure
    and pause indexing, or tag the affected chunks with their producer so a later
-   audit can find the mixed batch. Today the fallback at `:1050-1052` writes
+   audit can find the mixed batch. Today the fallback at `:1053` writes
    locally-produced vectors into a run the user believes was served remotely,
    under one undifferentiated model version.
 5. **Say it is passages only.** The comment says it; nothing else does. A user
@@ -356,14 +439,14 @@ any machine reachable from this lane, and this lane was read-only by directive
 (no `padme`, no index build).
 
 **Exit criterion 3 — X8 against Zotero's native ONNX backend.**
-NOT RUN. The one experiment: build #6012 at `77e2c4b`, select the registry entry
+NOT RUN. The one experiment: build #6012 at `19e7962`, select the registry entry
 whose `modelId`/`dtype`/`pooling` match a `bench/models.json` record we already
 embed, embed the X8 fidelity-probe corpus through `Zotero.Embeddings.embedPassages()`
 with `embeddings.endpoint` unset, export the vectors, and score mean cosine against
 the same corpus embedded in-process at the same rung — the X8 rule in SPEC.md §5.3,
 ≥ 0,999 keeps provider out of the embedder key. Note the trap this arm must avoid:
-Zotero applies its own passage prefix (`embeddings.js:1029-1031`) and normalizes
-(`:942`), so an arm that also applies our `input_template` would be measuring a
+Zotero applies its own passage prefix (`embeddings.js:1028-1029`) and normalizes
+(`:941`), so an arm that also applies our `input_template` would be measuring a
 double prefix and not a provider difference.
 
 Cheaper variant worth trying first, because it needs no vector export: with a
@@ -385,7 +468,7 @@ partially run.
 
 Two facts about arm (a) are however already readable at source and do not need the
 build: the runtime is memory-gated at `browser.ml.minimumPhysicalMemory`, default
-3 GiB (`ml.js:98`), and the model cache is the runtime's own `ModelHub`
+3 GiB (`ml.js:98 @19e7962`), and the model cache is the runtime's own `ModelHub`
 (`ml.js:207-213`), i.e. Firefox's, not Zotero's and not ours — custody sits with a
 third party in arm (a), which is a design fact rather than a measurement.
 
@@ -393,24 +476,36 @@ third party in arm (a), which is a design fact rather than a measurement.
 
 **REJECT reuse, with the blocking fact.**
 
-The blocking fact: at `77e2c4b`, embedding inference is created through Firefox's
-own ML engine process with a recommended CPU thread count and **no
-execution-provider selection of any kind** — `ml.js:115-129` passes `taskName`,
-`modelId` and `backend` through and nothing else; the only performance argument
-the caller supplies is `numThreads` (`embeddings.js:679`, `:3794`), whose source
-is documented as the count "the runtime recommends for CPU inference"
-(`ml.js:131-133`). An embedder hosted there therefore cannot satisfy R30's first
-MUST clause, use a usable GPU (DECISIONS.md, 2026-08-30). Moving zoteus's
-inference into Zotero's process forfeits a ratified requirement; it does not trade
-RAM for speed, it trades a promise for RAM.
+The blocking fact, stated at the width §2.3 supports: at `19e7962`, embedding
+inference is created through Firefox's own ML engine process, and **nothing in
+Zotero asks it for a device**. The single engine-creation site
+(`embeddings.js:666-679`) passes `engineId`, `taskName`, `backend:
+'onnx-native'`, `modelId`, `modelRevision`, two model-hub URLs, `dtype` and
+`numThreads` — no `device`, no `executionProviders`, no `dml`/`cuda`/`webgpu`
+anywhere in `ml.js` or `embeddings.js`. The one performance argument is
+`numThreads` (`embeddings.js:678`), whose source is documented as the count "the
+runtime recommends for CPU inference" (`ml.js:133`) and which this head halves.
+`ml.js:129` forwards its `options` object opaquely, so what Firefox's runtime
+would do with a device key is not readable here and is not claimed; what is
+claimed is that no path exists through which a consumer could set one.
+
+An embedder hosted there therefore cannot satisfy R30's first MUST clause, use a
+usable GPU (DECISIONS.md, 2026-08-30) — not because the runtime is provably
+CPU-only, but because reaching a GPU through it would require Zotero to grow an
+option it does not have and to expose it over a route that does not exist.
+Moving zoteus's inference into Zotero's process forfeits a ratified requirement;
+it does not trade RAM for speed, it trades a promise for RAM.
 
 Compounding it, and sufficient on its own: no supported external call returns a
 vector (§2.1), and the one indirect route that does reach inference returns ranked
 item keys at the cost of writing a synced saved search per query (§2.4).
 
 Why reject rather than defer. Deferral is right when the blocking fact is expected
-to move with the thing deferred to. This one is not: #6012 merging adds no GPU
-path and no inbound vector route — the GPU path would have to arrive in Firefox's
+to move with the thing deferred to. This one is not, and the force-push between
+this report's two passes is a small piece of evidence for it: 173 lines left
+`embeddings.js`, an entire cross-encoder module went, the thread count was
+halved, and none of it moved the blocking fact by a line. #6012 merging adds no
+GPU path and no inbound vector route — the GPU path would have to arrive in Firefox's
 ML runtime, on Mozilla's schedule, and R30's own ruling already anticipates that
 as the sunset of our advantage rather than as a reason to wait for it. Deferring
 pending #6012 would buy a re-read that changes nothing and would leave 0491's
