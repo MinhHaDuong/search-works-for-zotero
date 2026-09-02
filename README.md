@@ -57,19 +57,17 @@ memory budgets. These are testable requirements, not branding claims.
 
 The specification is one document, [`SPEC.md`](SPEC.md), in RFC section order
 (Introduction, Terminology, Requirements, Constraints, Design, Security
-Considerations) — merged 2026-09-01 (`DECISIONS.md`) from the five documents
-this table used to list separately. This page folded in at the same time: it
-is now both the repository's public landing page and the chain's entry point,
-the one place that says where each promise stands at the reviewed baseline. It
-is durable status, not a live session handoff. What changes week to week stays
-outside SPEC.md entirely, at the top level alongside it.
+Considerations). This page is both the repository's public landing page and the
+chain's entry point, the one place that says where each promise stands at the
+reviewed baseline — durable status, not a live session handoff. What changes
+week to week stays outside SPEC.md, at the top level alongside it.
 
 | Document or directory | Role |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
 | [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
-| [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable |
+| [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable — a dated snapshot, not a live tracker |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
 | [`STATE.md`](STATE.md) | Compact live operational handoff and pointers; owns no requirements, measurements, or history |
@@ -462,12 +460,11 @@ complete. Its code is archived as evidence; the live work is the broader
 retrieval design, its acceptance harness, scoped upstream contributions, and
 the checkpoint against Zotero PR #6012.
 
-Tickets `0014`–`0037` contain the current work train as re-formed by the panel
-reviews; completed work is under `tickets/closed/`. `make upstream-status`
-compares the reviewed zoteus SHA in `UPSTREAM` with current upstream `main` and
-reports the local checkout SHA when the git-ignored `fork/` exists. It exits
-nonzero when upstream has moved, making staleness visible without automating a
-review decision. `make upstream-checkout` recreates that checkout.
+[`tickets/`](tickets/) contains the current work train; completed work is under
+`tickets/closed/`. [`UPSTREAM`](UPSTREAM) pins the reviewed zoteus SHA, and the
+`upstream-status`, `upstream-catchup` and `upstream-checkout` targets report
+movement against it and recreate the git-ignored `fork/`; `AGENTS.md` says when
+to run which.
 
 This is an independent project and is not affiliated with or endorsed by the
 Zotero project.
@@ -498,11 +495,8 @@ prototype, not of upstream's backend.
 ## Bench
 
 Two dependency sets, declared apart because they are needed apart. The gate is
-`python3 -m pip install -r requirements-check.txt` — three packages, none of them
-a model runtime — and `make check` runs from there. The drivers below want
-`requirements-drivers.txt` on top of it, which is where the heavy two live. A
-missing package is reported by name before any guard runs, never at the tail of
-an otherwise green output.
+`python3 -m pip install -r requirements-check.txt`, and `make check` runs from
+there; the drivers below want `requirements-drivers.txt` on top of it.
 
 Drivers take `--server` / `--data-dir` and record `VmHWM` (the kernel
 high-water mark, which cannot miss a peak between samples) rather than sampled

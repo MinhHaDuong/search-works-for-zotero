@@ -1,12 +1,11 @@
 # STATE — Search Works for Zotero
 
-*Reconciled 2026-08-31 and held under forty lines by ruling of the same day.
-Last updated 2026-09-02: PR #187 ratified the target-neutral acceptance harness;
-PR #192 propagated it and filed adapter tickets 0583–0586.*
+*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-02.*
 
 One page of live operational handoff, and it owns nothing: every line is a
 pointer to the document that does own the fact, and anything longer than a
-pointer has drifted.
+pointer has drifted. What this repository is, and what each document is for,
+is [`README.md`](README.md)'s.
 
 ## Where the live state lives
 
@@ -20,14 +19,6 @@ pointer has drifted.
 | Where each requirement stands | [`README.md`](README.md) |
 | What we will and will not send upstream | [`GOVERNANCE.md`](GOVERNANCE.md) |
 | How agents work here | [`AGENTS.md`](AGENTS.md) |
-
-## What this repo is
-
-Public design record, ticket store, and measurement harness for an
-implementation-neutral work programme. The reference code lives in a fork of
-someone else's project: `fork/` is git-ignored here and recreated by
-`make upstream-checkout`. A `tickets/` directory must never appear in it, or it
-would show up in a diff sent upstream.
 
 ## Handoff
 
