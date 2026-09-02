@@ -7,15 +7,17 @@ Label: needs-human
 --- log ---
 2026-09-02T07:19Z claude created
 
+2026-09-02T07:33Z claude note narrowed by the author's ruling 2026-09-02: questions 4-6 (autotag, translate, autosplit) are a library-management spinoff, ticket 0574 deferred; this tracker keeps 1-3 and, as the agent's reading, the indexing half of 6 (D6 per language) as the prerequisite of the parallel gate
 --- body ---
 ## Context
 
 The author's questions, 2026-09-02: a work exists in several languages. Can
 translated pairs judge the retriever? Should the answer dedup renderings from
 the top-k and pad? How should it present, with a note that the work also
-exists in VN, EN? When relations are not tagged, should zoteus detect and
-autotag translations, and which is the original? Create translations? Records
-with two attachments in two languages: autosplit?
+exists in VN, EN? Three further questions (detect and autotag translations,
+create translations, autosplit bilingual records) were severed the same day
+as a library-management spinoff outside this workshop: ticket 0574, ruling in
+DECISIONS.md.
 
 `DECISIONS.md` carries the brief as an awaiting entry of the same date, one
 answer and one recommendation per question, on facts measured on the author's
@@ -32,13 +34,11 @@ Short form of the recommendations, the entry is the record:
    declared relations only, never a similarity guess.
 3. One row per work, matched rendering first, `also in: <lang> (<key>)`
    fields for the others; relevance order, not query-language order.
-4. `find_translation_candidates` as a report; no writes to Zotero. Original
-   declared by the user through Extra `original-title:` / `original-date:`
-   (CSL variables Zotero maps) plus a Related link; zoteus reads both.
-5. No translation creation; out by the standing ruling on the default path.
-6. No autosplit. Amend D6 to first-with-text *per language*, which needs a
-   per-attachment language identifier on the extracted text, stored as
-   derived data.
+4. Prerequisite of 1, kept here as the agent's reading (the author may
+   strike it): amend D6 to first-with-text *per language* so both renderings
+   of a bilingual record are indexed, which needs a per-attachment language
+   identifier on the extracted text, stored as derived data. Splitting such
+   records is the spinoff's, not this ticket's.
 
 ## Relevant files
 
@@ -55,8 +55,9 @@ Short form of the recommendations, the entry is the record:
 One per accepted recommendation, each `Blocked-by` its real prerequisite and
 never this tracker: (a) per-attachment language id and the D6 amendment;
 (b) the parallel slice in 0029's gate; (c) rendering collapse and row shape in
-the query path; (d) the candidate-translation report tool; (e) the Extra and
-Related convention, documented in SPEC.md and read by the indexer.
+the query path. Collapse (c) acts on declared relations; which declarations
+zoteus reads (twin attachments; Related links) is specified with (c), and
+writing any of them is the spinoff's.
 
 ## Exit criteria
 

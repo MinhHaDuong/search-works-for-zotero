@@ -3107,6 +3107,32 @@ disk read of an internal format is accepted on the strength of the structural
 fallback, and the rule lands now, at 2 of 13 630, so the shape exists before
 the platform's own indexer makes packs library-wide.
 
+**2026-09-02 — Managing a multilingual library is a spinoff, not this
+workshop's question.** The author's ruling on the six-question brief of the
+same date (awaiting entry below): questions 4, 5 and 6 — detecting and tagging
+translations, creating translations, splitting bilingual records — "are a
+different beast". The real question under them is "can zoteus be a tool to
+manage a multilingual library?", and that is a spinoff from a semantic
+retrieval workshop, agreed as such. This repository's subject is the search
+redesign; curating the library is not search, and nothing in the chain
+promises it.
+
+What follows. The three questions are severed from the brief and from tracker
+0573, and parked in ticket 0574, labeled `deferred`, with the brief's answers
+kept there as the starting position should the spinoff ever open — not as
+rulings. SPEC.md §3's out-of-scope list gains a ninth line saying so in the
+system's terms. Questions 1 to 3 (parallel renderings as a gate, collapsing
+renderings before the cut, one row per work) are retrieval questions and stay
+in the awaiting entry, unchanged, for the author's ruling.
+
+One reading recorded as the agent's, not the author's, so it can be struck in
+a word: question 6 had two halves. Splitting a bilingual record is library
+management and goes with the spinoff. Indexing both attachments of one — the
+D6 amendment to first-with-text per language, and the per-attachment language
+identifier it needs — is retrieval coverage, and it is the prerequisite of
+question 1's gate: a pair cannot be tested while one rendering is never
+indexed. That half stays with questions 1 to 3 in tracker 0573.
+
 **2026-09-02 — the API embedder is an execution mode with its own transport
 constants, and the batch endpoints are out.** The author's ruling on a question
 he raised the same afternoon: the conductor and the pipeline worker were
@@ -3860,7 +3886,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
 
 - **Documents in several languages: one work, several renderings (author's
   six questions, 2026-09-02; brief drafted the same day, tracker ticket
-  0573).** The facts are in `bench/results/0573-lang-census.txt`, measured on
+  0573) — narrowed 2026-09-02, same day: questions 4, 5 and 6 are severed
+  as a spinoff outside this workshop (ledger entry above, ticket 0574);
+  questions 1 to 3 stand as drafted and still await the ruling.** The facts are in `bench/results/0573-lang-census.txt`, measured on
   the author's library by `verification/probes/lang_census.py`: half the
   records carry a language field, spelled twelve ways for three languages,
   113 of them "EN, VN" by hand; Zotero's relation vocabulary has no
