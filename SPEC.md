@@ -493,9 +493,10 @@ give one hit.
 A full-text hit leads to its page; an estimated page number MUST say it is an
 estimate, per D10; and the primary locator MUST be the entry heading, per ruling
 1. Where the text came from Zotero's structured-text pack (§5.2.4), the page is
-the block's own anchor and is not an estimate; the answer says which kind it is. As that ruling amends it — D9 dissolved — deduplication is per section, and a
-single document MUST NOT crowd other items out of the candidate pool before
-deduplication happens. When many returned hits come from one document, the
+the block's own anchor and is not an estimate; the answer says which kind it
+is. As that ruling amends it — D9 dissolved — deduplication is per section,
+and a single document MUST NOT crowd other items out of the candidate pool
+before deduplication happens. When many returned hits come from one document, the
 result says so.
 
 **R33. Modes.** Exact-word search, meaning-based search, and the two combined

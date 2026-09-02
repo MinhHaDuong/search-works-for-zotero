@@ -1,0 +1,67 @@
+%erg 0.1
+Title: Documents in several languages: renderings of one work, from evaluation to presentation
+Created: 2026-09-02
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-02T07:19Z claude created
+
+--- body ---
+## Context
+
+The author's questions, 2026-09-02: a work exists in several languages. Can
+translated pairs judge the retriever? Should the answer dedup renderings from
+the top-k and pad? How should it present, with a note that the work also
+exists in VN, EN? When relations are not tagged, should zoteus detect and
+autotag translations, and which is the original? Create translations? Records
+with two attachments in two languages: autosplit?
+
+`DECISIONS.md` carries the brief as an awaiting entry of the same date, one
+answer and one recommendation per question, on facts measured on the author's
+library (`bench/results/0573-lang-census.txt`, instrument
+`verification/probes/lang_census.py`). This is the tracker: it holds the
+direction until ruled, then files one child per accepted recommendation and
+stays open until they close (tracking-ticket convention).
+
+Short form of the recommendations, the entry is the record:
+
+1. Parallel slice for R29's gate, from the 157 EN+VI twin records, body
+   passages only, both directions. Beside the golden slice, never in its place.
+2. Collapse renderings of one work into one answer row before the cut to k;
+   declared relations only, never a similarity guess.
+3. One row per work, matched rendering first, `also in: <lang> (<key>)`
+   fields for the others; relevance order, not query-language order.
+4. `find_translation_candidates` as a report; no writes to Zotero. Original
+   declared by the user through Extra `original-title:` / `original-date:`
+   (CSL variables Zotero maps) plus a Related link; zoteus reads both.
+5. No translation creation; out by the standing ruling on the default path.
+6. No autosplit. Amend D6 to first-with-text *per language*, which needs a
+   per-attachment language identifier on the extracted text, stored as
+   derived data.
+
+## Relevant files
+
+- `SPEC.md` §2 (new term "rendering"), §3 R24 (dedup clause), R7 and R29,
+  "The resolved decisions" D6, §5.2.6 (collapse and row shape), §5.2.8
+  (per-language coverage, if adopted).
+- `bench/results/0573-lang-census.txt`, `verification/probes/lang_census.py`.
+- Tickets 0029 (golden corpus and gates), 0266 (closed, the cross-lingual
+  probe this extends), 0037 (closed, R29), 0563 (language robustness in the
+  segmenter), 0483 (per-attachment state, where a skip reason lives).
+
+## Children to file once ruled
+
+One per accepted recommendation, each `Blocked-by` its real prerequisite and
+never this tracker: (a) per-attachment language id and the D6 amendment;
+(b) the parallel slice in 0029's gate; (c) rendering collapse and row shape in
+the query path; (d) the candidate-translation report tool; (e) the Extra and
+Related convention, documented in SPEC.md and read by the indexer.
+
+## Exit criteria
+
+- [ ] The awaiting entry is ruled on, question by question; rejected
+      recommendations are recorded with the reason.
+- [ ] SPEC.md matches the ruling (term, D6, R24, §5.2.6), date bumped.
+- [ ] Children filed for the accepted recommendations and listed here.
+- [ ] All children closed, then the integration review before this closes.
