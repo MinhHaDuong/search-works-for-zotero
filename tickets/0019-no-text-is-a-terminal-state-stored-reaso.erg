@@ -13,7 +13,7 @@ Label: deferred
 2026-08-31T14:54Z claude note the population under this ticket moved twice upstream on 2026-08-31, before its evidence was re-derived. v1.12.0 #37 refuses a full-text index build under Electron outright (Claude Desktop takes the server process down partway through the attachment pass; cause stated as not known, so the refusal is a mitigation), and #39 chose full-text read concurrency by the serving API with back-off to one on observed local-API degradation. Both change which items reach the terminal no-text state and by what path, on top of #29's local extraction. The warn-once was last verified live at fulltext-source.ts:180 against v1.10.0; re-derive against v1.12.0 before arguing this as the remaining reserve item
 --- body ---
 ## Context
-DESIGN.md §4 PR-7, honoring R14 and D1. Upstream logs a no-text attachment
+GOVERNANCE.md's increment train, item 3, honoring R14 and D1. Upstream logs a no-text attachment
 once and re-encounters it forever (fulltext-source.ts) — no terminal state, so
 coverage can never honestly reach 100% on a library with scanned PDFs. The PR:
 the warn-once becomes a stored reason; the item counts covered as

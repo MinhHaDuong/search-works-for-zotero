@@ -17,7 +17,7 @@ Blocked-by: 0029
 
 After technical validation works, decide which curated entries are exposed and
 which one is the default. R7 and R29 conformance is the first filter and it is
-not traded against anything (the author's rulings, `spec/DECISIONS.md`
+not traded against anything (the author's rulings, `DECISIONS.md`
 2026-08-31 -- the swap is a conformance repair, not a move on a
 cost-versus-quality frontier). An entry whose declared language set is not
 multilingual is not a candidate for the default, whatever it scores; nor is one

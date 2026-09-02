@@ -33,8 +33,8 @@ zoteus consumes the API while our census read cache files directly.
 
 ## Relevant files
 - `bench/results/0140-passage-census/census.json` — the measured cache-side state
-- `spec/CONSTRAINTS.md` — where the platform cap belongs once settled (beside C2)
-- `spec/DESIGN.md` §2.3-2.4 — coverage states (cache-lost machinery) the
+- `SPEC.md` §4 — where the platform cap belongs once settled (beside C2)
+- `SPEC.md` §5.2.3-5.2.4 — coverage states (cache-lost machinery) the
   truncated-body flag would join
 - `tickets/0480-old-extractor-fulltext-quality-staleness.erg` — sibling
   extractor-quality class
@@ -43,8 +43,8 @@ zoteus consumes the API while our census read cache files directly.
 1. The one experiment: pick one known 500+-page PDF; compare the API's
    `indexedPages`/`totalPages` and content length against the cache file's
    length. That settles which cap binds which artifact.
-2. Record the settled constraint in CONSTRAINTS.md (a ruling in
-   spec/DECISIONS.md first, per the chain's rule).
+2. Record the settled constraint in SPEC.md §4 (a ruling in
+   DECISIONS.md first, per the chain's rule).
 3. Design the honest state: the API reports `indexedPages`/`totalPages`, so
    an extractor-truncated body can be a marked ledger state (like
    cache-lost) instead of silence — one field, and R4/R17 stay true for
@@ -68,6 +68,6 @@ zoteus consumes the API while our census read cache files directly.
 
 ## Exit criteria
 - [ ] The cap mechanism is settled by measurement and recorded in the chain
-- [ ] The truncated-body coverage state is in DESIGN.md
+- [ ] The truncated-body coverage state is in SPEC.md §5.2.4
 - [ ] This ticket's findings are reflected in the extract-stage discussion
       whenever the own-extractor question reopens

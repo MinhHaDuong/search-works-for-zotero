@@ -22,10 +22,10 @@ Blocked-by: 0032
 2026-09-02T10:14Z #48 comment posted 2026-09-02 after the author's read: https://github.com/oscardvs/zoteus/issues/48#issuecomment-5507982796 — verified on the page, no trailer. Carries the embed-phase resume contract as one query on the existing nullable passages.vector column, the transient/persistent retry split behind RateLimitedFetcher, token-budget sizing, and a five-step test on FakeEmbeddingProvider. Response pending; sunset from today
 --- body ---
 ## Context
-DESIGN.md §4 item 6-A, per the ratified re-form (DECISIONS.md 2026-08-26).
+GOVERNANCE.md's increment train, item 6 (scoped issue A), per the ratified re-form (DECISIONS.md 2026-08-26).
 One #10-shaped issue: documented behaviors, reproductions, measurements, no
-code to accept. Carries: the ledger/freshness/counters complex (DESIGN §2.1,
-§2.4, §2.8); the PAUSE defect as motivation (verified: stop cancels one job,
+code to accept. Carries: the ledger/freshness/counters complex (SPEC.md §5.2.1,
+§5.2.4, §5.2.8); the PAUSE defect as motivation (verified: stop cancels one job,
 auto_build default-on restarts on the next query — index-tool.ts:56-65,
 semantic-search.ts:48-65; the R22 violation); the SERVE-STALE defect as
 motivation (verified: dropStaleVectors -> clearVectors() at open,
@@ -36,7 +36,7 @@ as an oversight); the legacy-JSON custody paragraph (R15: a stale
 search-index.json retains deleted items' text forever — the folded I-4); and
 the D5 query-semantics work riding along or waiting for demand (the verified
 repro: "general equilibrium" retrieves either-word today; interim item scope
-per DESIGN.md §2.6). Absorbs the content of closed
+per SPEC.md §5.2.6). Absorbs the content of closed
 tickets 0020, 0021, 0023.
 
 Upstream [#24](https://github.com/oscardvs/zoteus/issues/24), filed by

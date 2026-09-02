@@ -26,7 +26,7 @@ at any instant without a snapshot of the library, which is what the prefix
 observable was reaching for and could not have.
 
 This is not a rewording. R26 changes what it promises, the convergence
-harness changes what it asserts, and DESIGN.md §2.3 loses the justification
+harness changes what it asserts, and SPEC.md §5.2.3 loses the justification
 for the machinery it describes.
 
 ## The open question this ticket must answer
@@ -46,20 +46,20 @@ failure mode under real-time item churn — which is the constraint that
 killed the band approach and must not kill its replacement the same way.
 
 ## Relevant files
-- `spec/REQUIREMENTS.md` — R26; check R2 and R4 for consequential wording
-- `spec/DESIGN.md` §2.3 — the two-band frontier, band 0/band 1, the derived cap K,
+- `SPEC.md` §3 — R26; check R2 and R4 for consequential wording
+- `SPEC.md` §5.2.3 — the two-band frontier, band 0/band 1, the derived cap K,
   and the "R26 observable is then asserted per phase" paragraph
-- `spec/DESIGN.md` §2.8 — the convergence gate asserts prefix-ness today
-- `spec/CONSTRAINTS.md` — C2's smallest-first comparison rests on the same
+- `SPEC.md` §5.2.8 — the convergence gate asserts prefix-ness today
+- `SPEC.md` §4 — C2's smallest-first comparison rests on the same
   standard and must stay coherent
-- `spec/DECISIONS.md` — the ruling; do not edit the entry
+- `DECISIONS.md` — the ruling; do not edit the entry
 
 ## Actions
 1. Rewrite R26: state recency as an orientation, state the tier priority as
    the checkable promise, drop the prefix observable.
 2. Decide the intra-body-tier monopoly question above, with the reasoning
    recorded. If it needs a new rule, that rule goes to DECISIONS.md first.
-3. Rework DESIGN.md §2.3 to match. The derived cap K exists to serve band 0;
+3. Rework SPEC.md §5.2.3 to match. The derived cap K exists to serve band 0;
    if bands go, say what if anything K becomes.
 4. Change the convergence harness to assert the tier ordering instead of
    prefix-ness.
@@ -93,6 +93,6 @@ has never failed has not been shown to be able to.
 - [ ] R26 rewritten and consistent with R2 and R4
 - [ ] The intra-body-tier monopoly question answered, ratified if it needs a
       rule
-- [ ] DESIGN.md §2.3 reworked with no orphan machinery
+- [ ] SPEC.md §5.2.3 reworked with no orphan machinery
 - [ ] The convergence gate asserts the tier ordering
 - [ ] `make check` passes

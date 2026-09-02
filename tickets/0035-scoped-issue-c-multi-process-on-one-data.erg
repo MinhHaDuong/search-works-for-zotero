@@ -17,7 +17,7 @@ Blocked-by: 0032
 2026-09-02T10:48Z claude note the four-role topology's SHAPE is now owned by SPEC.md §5.2.5 and, for the embedding service half, by ticket 0575 -- this ticket owns the upstream filing and reads the shape from there rather than re-deriving it in the issue text. Body updated; the bound on never putting this repo's reading of him into upstream text is unchanged
 --- body ---
 ## Context
-DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).
+GOVERNANCE.md's increment train, item 6 (scoped issue C), per the ratified re-form (DECISIONS.md 2026-08-26).
 One #10-shaped issue for N zoteus on one data dir (R13): the empirical
 SQLITE_BUSY reproduction (two handles, default timeout 0, immediate throw —
 measured this cycle) beyond what PR-2's busy_timeout alone fixes; the

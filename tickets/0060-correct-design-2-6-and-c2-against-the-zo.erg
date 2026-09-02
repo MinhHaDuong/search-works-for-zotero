@@ -31,20 +31,20 @@ them. It does not re-open any ruling.
 
 ## What is wrong
 
-**1. DESIGN.md §2.6 credits the wrong source.** It attributes the CJK 2-gram
+**1. SPEC.md §5.2.6 credits the wrong source.** It attributes the CJK 2-gram
 geometry to "#6012's shipped geometry". At PR head `77e2c4b`,
 `getCJKBigrams` appears in the #6012 diff only as a call site: the geometry
 predates the PR and ships on `main`. Credit shipped Zotero 10, which is both
 correct and the stronger citation — a released platform beats a draft PR.
 
-**2. DESIGN.md §2.6's "fused as a third list" describes us, not Zotero.**
+**2. SPEC.md §5.2.6's "fused as a third list" describes us, not Zotero.**
 The platform routes CJK *exclusively* and returns null for a single CJK
 character and for a mixed-script term. Fusing is our improvement, and those
 two dead ends are what it fixes. As written the sentence reads as though we
 match the platform. #6012 does add a query-side single-character fallback
 the shipped path lacks, which is worth adopting.
 
-**3. CONSTRAINTS.md C2's "never crosses a section" is refuted.** The chunker
+**3. SPEC.md §4 C2's "never crosses a section" is refuted.** The chunker
 merges sections below the 120-token minimum forward into their neighbour,
 asserted by #6012's own tests (one chunk containing `Title page`,
 `Copyright notice` and `alpha0`). It never merges two sections each able to
@@ -55,10 +55,11 @@ building to C2 as written would build the wrong thing.
 ## The internal inconsistency this exposed
 120 / 768 / 48 are real constants, but **768 never binds**: every shipped
 embedding model declares `maxTokens: 512`, so the effective ceiling is ~510
-minus the heading prefix. Under that reading `DESIGN.md:211` ("adopted
-verbatim") and `DESIGN.md:666` (the ≈ 250–300k passage estimate) are
-inconsistent with each other. Which one moves is the author's call, not a
-mechanical fix — the passage estimate feeds budgets.
+minus the heading prefix. Under that reading `SPEC.md`'s "adopted...verbatim"
+passage (formerly `DESIGN.md:211`) and its ≈ 250–300k passage estimate in
+§5.2.9 (formerly `DESIGN.md:666`) are inconsistent with each other. Which one
+moves is the author's call, not a mechanical fix — the passage estimate feeds
+budgets.
 
 ## Two corroborations to record while here
 - Zotero keys its index by local `itemID`, stamps it with `localUserKey`,
@@ -71,14 +72,15 @@ mechanical fix — the passage estimate feeds budgets.
 ## Ratification comes first
 Two draft DECISIONS.md entries are written in
 `verification/VERIFY-FULLTEXT-SQLITE.md` §4, in the ledger's style. The
-author ratifies or vetoes them; only then are DESIGN.md and CONSTRAINTS.md
+author ratifies or vetoes them; only then are SPEC.md §5 and §4
 edited to match. That order is the chain's rule, and this ticket does not
 get to skip it — which is why it carries `needs-human`.
 
 ## Relevant files
-- `spec/DESIGN.md` §2.6, and lines 211 and 666
-- `spec/CONSTRAINTS.md` C1, C2
-- `spec/DECISIONS.md` — the two entries land here first
+- `SPEC.md` §5.2.6, and its "adopted...verbatim" passage and the
+  ≈ 250–300k estimate in §5.2.9 (formerly `DESIGN.md` lines 211 and 666)
+- `SPEC.md` §4 C1, C2
+- `DECISIONS.md` — the two entries land here first
 - `verification/VERIFY-FULLTEXT-SQLITE.md` — the evidence
 
 ## Actions
@@ -93,13 +95,13 @@ get to skip it — which is why it carries `needs-human`.
 Three findings from the same verification, folded here because they share its
 evidence and touch the same two documents:
 
-6. **CONSTRAINTS.md carries no figure-guard anchors.** It is absent from the
+6. **SPEC.md §4 carries no figure-guard anchors.** It is absent from the
    PROSE map in `bench/check_figures.py`, so its measured figures — 584/8 037,
    374 ms, 120/768/48, both RAM budgets — are unchecked, and the guard's
    "0 stale" all-clear covers a file it never opens. Add it. Do this AFTER the
    0080 rework, not before: 0080 rewrites C2 and §2.3, and anchors placed on
    sentences that are about to change would only have to move again.
-7. **DESIGN.md L560–572 uses US thousands separators** (`7,541`, `5,561`,
+7. **SPEC.md §5.2.8 uses US thousands separators** (`7,541`, `5,561`,
    `6,100`, `2,101`, bare `100%`). Two different problems in one block. The
    prose outside the blockquote violates the house convention and is a plain
    fix. The numbers INSIDE the blockquote are a sample of what the product
@@ -121,7 +123,7 @@ is a released Zotero version or a read commit, never a draft PR summary.
 
 ## Verification
 - [ ] Every edit traces to a ratified DECISIONS.md entry
-- [ ] The figure guard opens CONSTRAINTS.md; a seeded stale figure makes it red
+- [ ] The figure guard opens SPEC.md §4; a seeded stale figure makes it red
 - [ ] No claim cites a PR summary where a shipped build is available
 - [ ] `make check` green
 
@@ -138,8 +140,8 @@ is a released Zotero version or a read commit, never a draft PR summary.
 - [ ] §2.6 states our divergence from exclusive routing
 - [x] C2's boundary sentence is corrected
 - [ ] The 211 / 666 inconsistency is resolved
-- [ ] CONSTRAINTS.md is in the figure-guard PROSE map (after 0080)
-- [ ] DESIGN.md's prose separators fixed; the blockquote i18n question put to
+- [ ] SPEC.md §4 is in the figure-guard PROSE map (after 0080)
+- [ ] SPEC.md's §5.2.8 prose separators fixed; the blockquote i18n question put to
       the author, not decided here
 - [ ] SYNC.md watches fulltext.js and userdata.sql on main
 - [ ] `make check` passes

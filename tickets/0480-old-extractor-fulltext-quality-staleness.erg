@@ -54,11 +54,11 @@ Two established facts frame the design space:
 - **Budget.** Extraction is the expensive phase (the monster document's
   extracted text is tens of MiB); re-extracting half a library is a bounded
   background campaign, not a tick — the same walk-and-budget discipline as
-  DESIGN.md §2.4's sweeps.
+  SPEC.md §5.2.4's sweeps.
 
 ## Coordination with current work
 
-- `spec/DECISIONS.md` 2026-08-30 (presence probe) — sibling ruling; the
+- `DECISIONS.md` 2026-08-30 (presence probe) — sibling ruling; the
   cache-lost machinery (probe, stored states, surfaced counts) is the
   natural carrier for a poor-cache flag too.
 - Ticket 0033 (scoped issue A) — the ledger/freshness design this would
