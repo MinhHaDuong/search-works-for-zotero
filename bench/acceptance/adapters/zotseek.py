@@ -67,7 +67,10 @@ launcher, same profile shape, same five harness preferences, same mechanism, sam
 tracer, a fixed 120 s dwell in both so that the arms are the same length — reads
 0 off-machine / 56 name lookups without the plugin and 0 / 60 with it, each
 reproduced to the digit across two independent replicates, against 47 / 5 with
-the route intact. So the target adds four name lookups and no connection attempt
+the route intact (driver `bench/r10_plugin_pair.py`, artifact
+`bench/results/0584-zotseek/r10-plugin-pair.json`; committed rather than left in
+prose, because a number that lives only in a merge request is a number nobody can
+re-derive once the branch is gone). So the target adds four name lookups and no connection attempt
 at all, and the clause reds on the host's fifty-six.
 
 And the trace cannot attribute even those four. Every lookup in both arms issues
@@ -107,12 +110,17 @@ layer — `Zotero.Items.getAsync`, `Zotero.Search`, `Zotero.Libraries`,
 (src/utils/zotero-api.ts:203-241, 376-421, 474; src/core/hybrid-search.ts:344,
 385-386) — and it ATTACHes its own sidecar to the host's LIVE SQLite connection
 (src/core/vector-store-sqlite.ts:267-293). It never reads the library over the
-local HTTP API; the only occurrence of that port in the source is prose telling a
-user how to point an MCP client at it (src/server/mcp-endpoint.ts:10). So the
-assumption that a target reaches Zotero over a wire — which is what an adapter's
-`query_transport` is shaped to describe — is false for this architecture class,
-and the field can say so only in prose. Verified at the lane lead's request,
-2026-09-03.
+local HTTP API. The port occurs three times in the source and none of them is an
+outbound call: a comment showing a user how to point an MCP client at it
+(src/server/mcp-endpoint.ts:10), a fallback default when the plugin builds a URL
+to its OWN endpoint (src/server/http-tools.ts:164), and a comparison plus a
+display string in the preference pane's setup instructions
+(src/ui/preferences.ts:1133, 1136). So the assumption that a target reaches
+Zotero over a wire — which is what an adapter's `query_transport` is shaped to
+describe — is false for this architecture class, and the field can say so only in
+prose. Verified at the lane lead's request, 2026-09-03; the enumeration above is
+a review correction, the first wording having claimed the port occurred only in
+prose.
 
 **8. Three distinct kinds of absence now sit under `not-offered`, and only the
 reason field separates them.** That field landed in ticket 0597 and this target
@@ -304,11 +312,14 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
             "src/core/hybrid-search.ts:344, 385-386) — and ATTACHes its own sidecar "
             "database to the host's live SQLite connection "
             "(src/core/vector-store-sqlite.ts:267-293). It never reads the library over "
-            "the local HTTP API; the only occurrence of that port in its source is "
-            "prose telling a user how to point an MCP client at it "
-            "(src/server/mcp-endpoint.ts:10). An external server has a transport to "
-            "declare; a plugin has the host's data layer in hand, and the field is "
-            "shaped for the first."
+            "the local HTTP API. That port occurs three times in its source and none "
+            "of them is an outbound call: a comment showing a user how to point an MCP "
+            "client at it (src/server/mcp-endpoint.ts:10), a fallback default when the "
+            "plugin builds a URL to its OWN endpoint (src/server/http-tools.ts:164), "
+            "and a comparison plus a display string in the preference pane's setup "
+            "instructions (src/ui/preferences.ts:1133, 1136). An external server has a "
+            "transport to declare; a plugin has the host's data layer in hand, and the "
+            "field is shaped for the first."
         ),
         default_configuration=(
             f"the release artifact {ARTIFACT} sideloaded into the profile's "
@@ -378,7 +389,12 @@ def declaration(arena: Path, *, port: int = 23219) -> Declaration:
             "Without the plugin: 0 off-machine, 56 lookups. With it: 0 off-machine, 60 "
             "lookups. Each reproduced to the digit across two independent replicates, "
             "against 47 off-machine and 5 lookups with the route intact, which is what "
-            "says the instrument works here. Measured on padme, 2026-09-03.\n\n"
+            "says the instrument works here. Measured on padme, 2026-09-03; driver "
+            "bench/r10_plugin_pair.py, artifact "
+            "bench/results/0584-zotseek/r10-plugin-pair.json, which also records for "
+            "each arm whether the plugin's own sidecar appeared — so a reader can tell "
+            "the with-plugin arms really loaded the plugin rather than merely carrying "
+            "the file.\n\n"
             "The arena state moves the host's own figure sevenfold, so it is stated "
             "plainly: this adapter runs against a VIRGIN profile and data directory, "
             "created fresh inside the arena on every construction, never seeded and "
