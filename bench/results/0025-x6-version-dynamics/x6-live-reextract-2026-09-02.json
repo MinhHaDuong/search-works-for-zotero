@@ -1,0 +1,32 @@
+{
+ "probe": "X6 live positive control through the installed Zotero full-text control plugin",
+ "observed_at": "2026-09-02",
+ "zotero_version": "10.0.1",
+ "command": "python3 bench/zotero_fulltext.py reindex 8YHZTSKL DMTFBDWK --wait --poll 2 --max-wait 300",
+ "controls": [
+  {
+   "key": "8YHZTSKL",
+   "library_type": "user",
+   "pages": "1/1",
+   "fulltext_version_before": 13780,
+   "fulltext_version_after": 0,
+   "item_version_after": 0,
+   "result": "completed re-extraction changed a nonzero full-text census value to 0"
+  },
+  {
+   "key": "DMTFBDWK",
+   "library_type": "group",
+   "pages": "199/199",
+   "fulltext_version_before": 0,
+   "fulltext_version_after": 0,
+   "result": "completed re-extraction left the full-text census value at 0"
+  }
+ ],
+ "queue_result": {
+  "both_queued": true,
+  "both_complete_after_seconds": 2,
+  "busy_after": false,
+  "last_error": null
+ },
+ "verdict": "X6 first branch fires: local re-extraction can stamp 0, and a later re-extraction in the version-0 class can be invisible to both the full-text census value and the attachment item version. Build the bounded idle re-verify sweep."
+}

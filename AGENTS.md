@@ -34,7 +34,15 @@ How authority passes between `SPEC.md`, `DECISIONS.md`,
 once, in `SPEC.md` §1. Read it there rather than here.
 
 - **`DECISIONS.md` is append-only.** The author's rulings land there FIRST and
-  `SPEC.md` is edited to match. Never edit a ratified entry.
+  `SPEC.md` is edited to match. Never edit a ratified entry. A narrow exception
+  applies to a false factual statement proved by a reproducible measurement or
+  authoritative source: stop first and trace the consequences through the
+  design, requirements, tickets, evidence, and implementation. Correct the
+  fact, propagate only forced factual consequences, and record the evidence
+  and consequence analysis in `DECISIONS.md` in the same change, without
+  waiting for ratification. Requirements, thresholds, design choices,
+  interpretations, mechanism substitutions, and choices among consequences
+  are decisions, not factual corrections, and still require the ruling first.
 - **`SPEC.md` owns every design number**, and nothing else carries one: gate
   thresholds §5.2.8, experiment decision rules §5.3, budgets §5.2.9. §2
   Terminology and §6 Security own none and point at the owner instead, and §6

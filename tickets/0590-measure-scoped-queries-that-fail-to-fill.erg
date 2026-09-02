@@ -1,0 +1,48 @@
+%erg 0.1
+Title: Measure scoped queries that fail to fill k
+Created: 2026-09-02
+Author: codex
+
+--- log ---
+2026-09-02T15:45Z codex created
+
+--- body ---
+## Context
+
+X4 proved that the constrained-MATCH `json_each` rung is slower than searching
+the whole corpus. The 2026-09-02 ruling removes it immediately and leaves a
+two-action path: bounded deeper refetch, then honest R18 disclosure. This ticket
+measures how often realistic collection and tag scopes reach that disclosure.
+It does not block removal and does not presume that a replacement is needed.
+
+## Actions
+
+1. Pin a disclosed sample of realistic collection and tag scopes from the
+   author's library, including narrow, medium and broad memberships.
+2. Run representative pinned queries through the bounded deeper-refetch path.
+3. Record how often the filtered stream fills k and how often it ends in R18
+   partial disclosure, by scope kind and size.
+4. If partial answers are common, price the two candidates already named in the
+   ruling: an indexed temporary table, and filtering a ranked stream before
+   truncation. Do not build either in this ticket.
+
+## Decision rule
+
+The measurement reports the distribution rather than inventing a threshold.
+The author decides from that evidence whether partial answers are benign or a
+replacement mechanism earns work; no automatic design change follows.
+
+## Test
+
+- Include a scope known to fill k and one deliberately too small to fill k, so
+  the harness proves it can observe both outcomes.
+- Verify every non-filled arm emits R18 disclosure rather than a complete-looking
+  short list.
+
+## Exit criteria
+
+- [ ] Scope sample and query set are pinned and disclosed.
+- [ ] Fill-k and partial frequencies are reported by scope kind and size.
+- [ ] Positive controls observe both filled and disclosed outcomes.
+- [ ] No replacement mechanism is implemented without a later ruling.
+- [ ] `make check` and `./tickets/erg check` pass.

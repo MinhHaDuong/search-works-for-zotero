@@ -1,0 +1,45 @@
+%erg 0.1
+Title: Build the bounded version-0 reverify sweep
+Created: 2026-09-02
+Author: codex
+
+--- log ---
+2026-09-02T15:59Z codex created
+
+--- body ---
+## Context
+
+X6 fired on 2026-09-02 through Zotero's installed full-text control plugin. A
+real local re-extraction changed a previously nonzero full-text census value to
+0 while the attachment item version remained 0; a group-library attachment
+remained 0. The md5-widened signal therefore cannot observe later local
+re-extractions inside the version-0 class. The ruling commits a bounded idle
+re-verify sweep and requires its horizon to be reported.
+
+Evidence: `bench/results/0025-x6-version-dynamics/x6-live-reextract-2026-09-02.json`.
+
+## Actions
+
+1. Walk version-0 attachments in a persistent, fair order during idle time.
+2. Re-read and hash a bounded amount per tick; unchanged content stops there,
+   changed content re-enters the derivation chain.
+3. Persist the cursor so restarts do not repeatedly verify the prefix.
+4. Report population, last completed visit, current cursor and worst-case
+   horizon through status.
+5. Compose with the content-presence probe: one walk performs both checks rather
+   than maintaining two independent scans.
+
+## Test
+
+- ManualClock proves the per-tick bound and a full fair cycle.
+- Restart mid-cycle and prove the cursor resumes.
+- A same-version changed body is re-derived; an unchanged body is not.
+- A missing cache becomes the ruled cache-lost state rather than deletion.
+
+## Exit criteria
+
+- [ ] Work per tick is bounded and the horizon is derived and reported.
+- [ ] Every version-0 attachment is revisited fairly across restarts.
+- [ ] Same-version content change reaches re-derivation.
+- [ ] The content-presence probe shares the walk.
+- [ ] `make check` and `./tickets/erg check` pass.

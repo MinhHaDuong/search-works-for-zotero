@@ -8,6 +8,7 @@ Blocked-by: 0557
 2026-09-01T13:31Z claude created
 
 2026-09-02T10:21Z claude note indexedPages reachability SETTLED: reachable. At source, zotero/zotero main server_localAPI.js (ItemFullText GET) selects indexedPages, totalPages, indexedChars, totalChars from fulltextItems and returns them beside content, each dropped (?? undefined) when NULL. At runtime on the author's build, 2026-09-02, four of the first forty attachments probed returned {content, indexedPages, totalPages} with indexedChars/totalChars absent for PDFs; one item read indexedPages 100 / totalPages 204, the extraction cap in the wild. So tier 1 of the chain rides the same GET the extract stage already makes, no extra call. SPEC.md 5.2.2 now says so
+2026-09-02T16:04Z codex note author ruled totalPages then pdf.js numPages; capped-cache counts are lower bounds only and unresolved length takes the long-safe path
 --- body ---
 ## Context
 
@@ -22,26 +23,28 @@ about 45% of cached PDFs (`4 708 of 8 590`, SPEC.md's extract-layer entry).
    (unconfirmed as of the ruling -- this is the first thing to settle, and
    may kill the "first choice" tier if it turns out not to be reachable
    from zoteus's vantage point).
-2. If reachable, use it as the primary length signal.
-3. Else, count literal page-break markers (form-feeds) in the flat
-   `/fulltext` cache, where present.
-4. Else, estimate page count from character count (an assumed
-   chars-per-page ratio) -- last resort, never a hard failure to decide.
-5. Threshold: ~40 pages, from the author's acceptance-test statement
+2. Use `totalPages` from the same response when present.
+3. Otherwise load the accessible source PDF through pdf.js and use
+   `PDFDocumentProxy.numPages`, without extracting page text.
+4. Only when the PDF cannot be opened, treat `indexedPages`, literal page-break
+   count, and the labelled character-count estimate as lower bounds, in that
+   order. A lower bound may prove long and may never prove short.
+5. If no source total exists and no lower bound reaches the threshold, report
+   unknown and take the long-document-safe path.
+6. Threshold: ~40 pages, from the author's acceptance-test statement
    (ticket 0028 log, 2026-09-01). Not separately re-argued for the
    estimated case per the ruling.
 
 ## Test
 
-- Three fixtures, one per tier: a document where `indexedPages` is
-  available, one where only form-feeds are, one where neither is (forces
-  the char-count estimate) -- assert each produces a length decision and
-  the correct tier was actually used (not silently a different one).
+- Fixtures cover `totalPages`, pdf.js `numPages`, each cache lower bound, and an
+  inaccessible source whose low lower bounds must yield unknown/long-safe rather
+  than short. Assert the tier and certainty, not only the route.
 
 ## Invariants
 
-- The gate always produces a decision; it degrades to an estimate, it does
-  not fail to fire.
+- The gate always produces a safe route. Unknown takes the long-document path;
+  it is never laundered into a short estimate.
 
 ## Exit criteria
 

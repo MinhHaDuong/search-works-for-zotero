@@ -3706,6 +3706,80 @@ arbitrary set and stays under X4's verdict. Nor does it silently add creator or
 title to R5: ticket 0441 keeps those as a separate scope question because R5
 does not name them and title may be a field restriction rather than a facet.
 
+### 2026-09-02 — X4's failed middle rung is removed; scope failure frequency is measured (ratified)
+
+The author chose option 2. The constrained-MATCH rung through `json_each` is
+deleted now: X4 measured it as dominated by searching the whole corpus, so
+keeping it in the design while looking for a successor would preserve a known
+bad instruction. The keyword filter ladder has two actions: bounded deeper
+refetch, then honest R18 disclosure when the filtered stream cannot fill k.
+
+Ticket 0590 measures how often that disclosure occurs for realistic collection
+and tag scopes. The experiment does not block removal and does not assume a
+replacement. Only evidence that partial answers are common commissions a new
+mechanism; an indexed temporary table and filtering the ranked stream before
+truncation remain candidates, not design.
+
+### 2026-09-02 — X1 waits for its 650k substrate (ratified)
+
+The author chose option 3. The 1-bit result is the leading candidate and its
+pool multiple is part of the evidence — Qwen clears at 8× and nomic requires
+16×, both inside the ruled 32× ceiling — but X1 does not pass until
+scan-plus-rerank is measured on the specified 650k substrate. The existing
+int8 ship rule and float32 fallback remain unchanged meanwhile.
+
+This is not a rejection of the narrower quantizer and not permission to treat
+the 255 703-row timing as the missing scale arm. The eventual decision must
+carry recall, the candidate-specific pool needed to obtain it, and latency on
+the rule's own substrate together.
+
+### 2026-09-02 — The figure guard and field review both remain (ratified)
+
+The author keeps both remaining candidates from the document-weight review.
+`bench/check_figures.py` remains while prose quotes measurements, because it is
+the executable link between those claims and their artifacts.
+`verification/FIELD-REVIEW.md` remains as the dated evidence inventory behind
+live licensing, architecture and prior-art claims; it is neither merged into an
+authoritative design document nor deleted while those references live.
+
+Either may be reconsidered when its live references disappear or a smaller
+mechanism proves equivalent. Size alone is not that proof.
+
+### 2026-09-02 — Zotero's chunk minimum is flat; only its ceiling is window-bounded (factual correction)
+
+Ticket 0180's second attribution finding is corrected under today's factual
+correction rule. At Zotero's `embeddings.js:1642`, `Math.min` compares the 768
+ceiling with the model maximum; `CHUNK_MIN_TOKENS = 120` is a flat constant and
+is compared with no model-window value. SPEC.md §5.2.2 now says exactly that.
+
+Consequence analysis: our construction already uses a flat 120 minimum and a
+model-bounded ceiling, so no requirement, threshold, chunk key, experiment,
+ticket scope, or implementation changes. The only consequence is removing a
+false claim of stronger upstream alignment. There is no alternative mechanism
+to rule on.
+
+### 2026-09-02 — X6 fires the version-0 sweep; PDF length comes from the source (ratified)
+
+The author required X6 to run through the installed Zotero full-text control
+plugin rather than accepting the source read alone. The positive control fired:
+a user-library attachment whose full-text census value was nonzero completed a
+real local re-extraction and came back at 0, while its item version remained 0;
+a group-library attachment completed the same operation and remained at 0.
+Evidence: `bench/results/0025-x6-version-dynamics/x6-live-reextract-2026-09-02.json`.
+X6 therefore takes its first branch and ticket 0592 builds the bounded idle
+re-verify sweep. A local re-extraction that starts from 0 can change the text
+while leaving both the census value and item version unchanged.
+
+The author also corrected the long-document trigger for an unknown historical
+Zotero extraction cap. Zotero's `totalPages` decides when present. Otherwise,
+for an accessible PDF, the vendored pdf.js path loads the document and reads
+`PDFDocumentProxy.numPages`, which is the source PDF's total and requires no
+page-text extraction. Only when the PDF cannot be opened do cache-derived
+signals apply, and each is a lower bound: `indexedPages`, literal page breaks,
+then the labelled character-count estimate. A lower bound above the threshold
+proves long; values below it never prove short. An unresolved length takes the
+long-document-safe path and reports the signal and certainty that selected it.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -3854,7 +3928,8 @@ does not name them and title may be a field restriction rather than a facet.
 - **Which of the prose guards come out, and whether thirteen documents is the
   right number — resolved 2026-09-01: eight, see the ledger entry above
   (raised 2026-08-31 by the excess-weight ruling, which settled
-  the principle and left the instances open).** Three questions the ruling
+  the principle and left the instances open; the two remaining artifacts were
+  retained 2026-09-02, see the ledger entry above).** Three questions the ruling
   implies but does not decide, because each destroys something on the author's
   say-so rather than an agent's. (i) `bench/check_figures.py` is 1 141 lines,
   a third of all guard code; its value is real but proportional to how much
@@ -3949,7 +4024,8 @@ does not name them and title may be a field restriction rather than a facet.
   upstream half — that `zotero_semantic_search` accepts no filters at all and the
   index carries no date to filter on — is an upstream ask and is not filed.
 
-- **X4 fired, and the ladder loses its middle rung.** SPEC.md §5.3 states the
+- **X4 fired, and the ladder loses its middle rung — resolved 2026-09-02:
+  delete it now and measure give-up frequency; see the ledger entry above.** SPEC.md §5.3 states the
   rule as *"the ladder step sits at the largest measured scope whose
   constrained-MATCH p95 <= 150 ms; if even 1k exceeds it, no constrained step
   ships and the ladder ends at the honest R18 give-up."* The real-corpus arm ran
@@ -4007,7 +4083,8 @@ does not name them and title may be a field restriction rather than a facet.
   indexed-temp-table experiment first, as a candidate third rung, and hold §5.2's
   edit until it reports.
 
-- **X1's quantizer: 1-bit measured where the rule says int8.** SPEC.md §5.3
+- **X1's quantizer: 1-bit measured where the rule says int8 — resolved
+  2026-09-02: hold until the 650k arm; see the ledger entry above.** SPEC.md §5.3
   states the rule as *"int8 ships if recall@30 >= 0.98, pool <= 32xtopK, and
   scan+rerank <= 400 ms at 650k; the float32 slab is the permanent fallback."*
   The X1 recall half was measured with **1-bit** codes rather than int8, and the
@@ -4754,7 +4831,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   registers instead, because each decides something rather than describing it.
   Evidence for all three is `verification/ATTRIBUTION-AUDIT-0180.md`.
 
-  **1. X6 may already be answered at source, without running it.** C1 asks
+  **1. X6 may already be answered at source, without running it — resolved
+  2026-09-02: the live positive control ran and fired; see above.** C1 asks
   whether a purely local re-extraction re-stamps `/fulltext` version 0, and
   §5.3 makes X6 the decider: if it re-stamps 0, the bounded re-verify sweep
   gets built; if anything observable moves, the md5-widened signal already
@@ -4776,7 +4854,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   the source here is not a null but a positive statement.
 
   **2. §5.2.2's `min()` attribution reads as a mechanism Zotero does not
-  have.** The sentence says Zotero "uses 768 as a ceiling rather than a chunk
+  have — resolved 2026-09-02 as a forced factual correction; see above.** The sentence says Zotero "uses 768 as a ceiling rather than a chunk
   size, and pairs it with this same minimum against the model's window". The
   ceiling half is exact and verbatim. The pairing half is not: at
   `embeddings.js:1642` the `Math.min` applies to the *ceiling*
@@ -4787,7 +4865,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   one. §5.2.2 is under active edit by the segmenter work, so the audit leaves
   the wording alone rather than collide with it.
 
-  **3. `indexedPages` saturates, and §5.2.2's length trigger rides on it.**
+  **3. `indexedPages` saturates, and §5.2.2's length trigger rides on it —
+  resolved 2026-09-02: `totalPages`, then pdf.js `numPages`, then lower bounds;
+  see above.**
   The PDF-path trigger reads Zotero's `indexedPages` first. That column counts
   pages *actually extracted*, capped by the `maxPages` preference
   (`fulltext.js:680`, `9e28eb0`), so on a long PDF it reports the cap and not
