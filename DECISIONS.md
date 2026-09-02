@@ -4302,8 +4302,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   target interface plus a thin adapter per target; an assertion names an
   interface verb and an adapter-declared surface, never a tool's file
   layout; a judge model is admitted for clauses about meaning and forbidden
-  wherever a mechanical test exists; the roster is zoteus, #6012 and
-  ZotSeek, with Beaver entering as a control rather than as a target; and
+  wherever a mechanical test exists; the roster is zoteus, #6012, ZotSeek
+  and 54yyyu/zotero-mcp, with Beaver entering as a control rather than as a
+  target; and
   R15's uninstall clause is reworded over declared derived state, which is
   the one requirement the neutral phrasing changes.
 
@@ -4405,7 +4406,7 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   the user interface, and where a verb cannot be reached at all it says so.
   That is a finding about the interface rather than an obstacle to it.
 
-  Third, proposed: **ZotSeek** (`introfini/ZotSeek`; `verification/FIELD-REVIEW.md`).
+  Third: **ZotSeek** (`introfini/ZotSeek`; `verification/FIELD-REVIEW.md`).
   The argument is architecture class. zoteus is a server outside the Zotero
   process, #6012 is the platform itself, and ZotSeek is the third class: a
   plugin running inside the Zotero process, keeping a sidecar
@@ -4419,16 +4420,21 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   against it stays runnable. It carries no LICENSE file, verified three ways
   by the field review against a `package.json` that self-declares MIT. That
   is irrelevant to running it as a target and decisive only for copying its
-  code, which nothing here proposes.
+  code, which nothing here proposes. It remains eligible while it is runnable
+  and inspectable; if not, the seat stays assigned to the in-process-plugin
+  architecture class rather than silently collapsing onto another server.
 
-  Two alternatives, argued and rejected for the third seat.
-  **54yyyu/zotero-mcp** would give the thinnest adapter in the survey and the
+  Fourth: **54yyyu/zotero-mcp**, adopted with ZotSeek by the author on
+  2026-09-02. It gives the thinnest adapter in the survey and the
   largest user base in the field, 4 829 stars against ZotSeek's 191, and it
   is the same class as zoteus: a server outside the process talking to Zotero
-  over the local HTTP API. It buys reach and no coverage, confirming the
-  interface precisely where it is already known to fit, and a whole adapter
-  is what that costs. It is the right fourth target and the wrong third.
-  **Beaver** fails R10 by construction: its free tier does local processing
+  over the local HTTP API. ZotSeek tests architectural coverage; zotero-mcp
+  tests reach and portability between independent implementations of the
+  external-server class. Those are complementary questions, so the roster
+  carries both rather than making one compete for a single third seat.
+
+  **Beaver** is not a target. It fails R10 by construction: its free tier does
+  local processing
   while stating that "some processing still occurs remotely", and its paid
   tier syncs selected libraries to Beaver's servers, which is where
   full-document search lives. As a target it cannot pass goal 1, so an
@@ -4522,6 +4528,6 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   zoteus adapter can be built while this waits; its body names the one part
   that waits, R15's rewording, and nothing else. The tickets that follow
   ratification are deliberately not filed: the #6012 adapter, the ZotSeek
-  adapter, and the Beaver egress control. A target roster is the author's
-  call, and filing three tickets against an unratified roster is how a draft
-  becomes a decision by accident.
+  adapter, the zotero-mcp adapter, and the Beaver egress control. Filing them
+  before the whole ruling is ratified is how a draft becomes a decision by
+  accident.
