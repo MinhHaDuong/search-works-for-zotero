@@ -41,7 +41,7 @@ parallel track.
 3. `0560` -- vendor `pdf.js`, tier 1: embedded TOC extraction
 4. `0561` -- tier 2: layout heading heuristic on `pdf.js` text runs; falls
    through to seg/1 on low confidence, no third PDF-side fallback
-5. `0562` -- byline/author detection layer
+5. `0562` -- byline/author detection layer (deferred, DECISIONS.md 2026-09-02)
 6. `0563` -- language robustness (NFC normalization, legacy-encoding sanity
    check, EN/FR/VN fixtures)
 7. `0564` -- segmenter identity + the PDF-path-vs-seg/1 selection rule

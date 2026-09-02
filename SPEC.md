@@ -205,7 +205,7 @@ the entry points at the question rather than settling it.
   DECISIONS.md 2026-08-31).
 - **segmenter (seg/1)** — the heuristic that finds entry boundaries in flat
   extracted text, classifying lines, collecting heading candidates from
-  a table of contents, chapter and section numbering and case
+  a table of contents, chapter and section numbering, and case
   shape, cutting at accepted headings, and
   falling back to labelled synthetic entries below its confidence threshold.
   Authoritative: SPEC.md §5.2.2 for the spec and the threshold; experiment X5
@@ -1357,8 +1357,8 @@ honest promise is its label.
 **The PDF path.** For an attachment at or above a page threshold, the
 segmenter reaches for the PDF file itself, through the local API's file-view
 redirect, and hands it to a vendored `pdf.js` segmenter returning a title
-and a page range per entry, front and back matter included; no tier here
-carries who wrote an entry. Two tiers, in order: the embedded outline — the
+and a page range per entry, front and back matter included. Two tiers, in
+order: the embedded outline — the
 bookmark tree — which returns page targets directly and needs no fuzzy
 matching; absent that, a layout heuristic on `pdf.js`'s own positioned text,
 font size, weight and position per run,
