@@ -3,11 +3,11 @@ Title: Read Zotero's structured-text pack when one exists, fall back to the flat
 Created: 2026-09-02
 Author: claude
 Blocked-by: 0028
-Label: needs-human
 
 --- log ---
 2026-09-02T06:55Z claude created
 
+2026-09-02T07:13Z claude note ratified by the author 2026-09-02 as a mechanism under R24, not a new requirement (his words: an under-the-hood mechanism). SPEC.md R24, C1, C2, 5.2.4 and 5.2.2 edited in PR 170; the needs-human label comes off, Blocked-by 0028 stays
 --- body ---
 ## Context
 
@@ -15,8 +15,8 @@ The author's idea, 2026-09-02: the indexer SHOULD use Zotero's structured
 text pack when one exists, and fall back on the flat full-text cache
 otherwise. `DECISIONS.md` carries it as an awaiting-ratification entry of the
 same date, with the facts, the price and a recommendation. This ticket is
-the work once the entry is ratified; it is labeled `needs-human` because its
-first exit criterion is the author's ruling, and `Blocked-by: 0028` because
+the work; the ruling landed the same day (ratified entry, 2026-09-02): a
+mechanism under R24, no new R-item. `Blocked-by: 0028` because
 the 2026-09-01 sequencing ruling ships seg/1 first so every structure path
 integrates once, on a working baseline.
 
@@ -53,9 +53,9 @@ What is already known, so nobody re-establishes it:
 
 ## Actions
 
-1. Ratification: the author rules on the awaiting entry. Then edit `SPEC.md`
-   to match (R-item, C1 link, §5.2.4 source selection, §5.2.2 tier 0) and
-   `README.md` (row and roster). Bump the SPEC.md date.
+1. Done 2026-09-02 with the ruling: `SPEC.md` R24, C1, C2, §5.2.4 and
+   §5.2.2 edited to match, date bumped. No R-item, so `README.md` is
+   untouched.
 2. Source selection in the extract shim: per attachment, stat the pack path
    derived from the file path the local API already yields; read it when
    present and of a known pack version; otherwise the ruled fallback, the
@@ -92,7 +92,7 @@ What is already known, so nobody re-establishes it:
 
 ## Verification
 
-- [ ] `make check` green; the new R-item sits on exactly one rung.
+- [ ] `make check` green.
 - [ ] R17's report on the author's library says 2 pack-sourced, the rest
       flat, before #6012 ships; a hand count of `.zotero-sdt-cache` files
       agrees.
@@ -110,9 +110,9 @@ What is already known, so nobody re-establishes it:
 
 ## Exit criteria
 
-- [ ] The awaiting entry is ratified or rejected; if rejected, this ticket
-      closes with the reason and nothing else changes.
-- [ ] SPEC.md and README.md match the ruling; the SPEC.md date is bumped.
+- [x] The awaiting entry is ratified (2026-09-02: mechanism under R24).
+- [x] SPEC.md matches the ruling and its date is bumped; README.md needs no
+      change since no requirement was added.
 - [ ] Pack-first source selection lands in the fork with the four tests
       above, the red-first one having failed against the unfixed tree.
 - [ ] Per-source counts appear in R17's report and a block anchor reaches

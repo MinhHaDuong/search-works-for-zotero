@@ -2883,6 +2883,29 @@ the cheap one. Root cause of the whole class, for whoever writes the next
 entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
+**2026-09-02 — Pack first, flat text as fallback: a mechanism under R24, not
+a requirement.** The author's ruling on the awaiting entry of the same date:
+"good place" for R24's rung, and no new R-item, because source selection is
+an under-the-hood mechanism rather than a promise to the user. What the user
+is promised is already R24's: a hit leads to its page, an estimate says so.
+The pack is how that promise stops being an estimate for the attachments
+Zotero has structured.
+
+Integrated into SPEC.md in the same change: R24's paragraph says a
+pack-sourced hit carries the block's own page; C1's first link names the two
+extractor identities; C2's SDT bullet states the pack as read from disk rather
+than as a future local-API surface, with its availability bound; §5.2.4 gains
+the source-selection paragraph (pack of a known version, else the flat text
+over `/fulltext`, never a direct read of the cache file, one source per
+attachment recorded and counted); §5.2.2's segmenter takes the pack's blocks as
+its first structure signal, above the PDF outline and layout tiers and seg/1.
+README.md's rosters are unchanged, since no requirement was added. Ticket 0572
+carries the implementation, sequenced after 0028 per the 2026-09-01 ruling.
+The awaiting entry's two open decisions stand as the ticket's context: the
+disk read of an internal format is accepted on the strength of the structural
+fallback, and the rule lands now, at 2 of 13 630, so the shape exists before
+the platform's own indexer makes packs library-wide.
+
 ## Awaiting ratification
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
@@ -3383,7 +3406,8 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
 - **The extract stage SHOULD index from Zotero's structured-text pack when
   one exists for an attachment, and from the flat full-text cache otherwise
   (author, 2026-09-02, stated as an idea; drafted here as a candidate
-  requirement, ticket 0572).** Every fact below is at source or by probe,
+  requirement, ticket 0572) — resolved 2026-09-02, same day: ratified as a
+  mechanism under R24, not as a requirement; see the ledger entry.** Every fact below is at source or by probe,
   recorded in `bench/results/0007-sdt-probe.txt` (fifth probe) unless said
   otherwise.
 
