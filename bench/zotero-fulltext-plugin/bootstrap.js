@@ -28,9 +28,14 @@ function log(msg) {
   Zotero.debug(`fulltext-control: ${msg}`);
 }
 
-function findAttachment(key) {
+/**
+ * Asynchronous on purpose: after a restart a group library is not loaded until
+ * something touches it, and the synchronous getter throws on an unloaded
+ * library, which surfaced as a 500 on every call naming a group item.
+ */
+async function findAttachment(key) {
   for (const library of Zotero.Libraries.getAll()) {
-    const item = Zotero.Items.getByLibraryAndKey(library.libraryID, key);
+    const item = await Zotero.Items.getByLibraryAndKeyAsync(library.libraryID, key);
     if (item) return { item, library };
   }
   return null;
@@ -52,7 +57,7 @@ Reindex.prototype = {
     const notAttachments = [];
     const ids = [];
     for (const key of keys) {
-      const found = findAttachment(key);
+      const found = await findAttachment(key);
       if (!found) {
         missing.push(key);
         continue;
@@ -87,7 +92,7 @@ Status.prototype = {
     const keys = raw.split(',').map((k) => k.trim()).filter(Boolean);
     const items = [];
     for (const key of keys) {
-      const found = findAttachment(key);
+      const found = await findAttachment(key);
       if (!found) {
         items.push({ key, error: 'not found' });
         continue;
