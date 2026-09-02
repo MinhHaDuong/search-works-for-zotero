@@ -1,4 +1,4 @@
-"""The roster of index-opening drivers is closed: a driver that ARRIVES cannot stay ungated.
+"""The `bench/` roster of index-opening drivers is closed: an arriving driver cannot stay ungated.
 
 Ticket 0101 landed `tests/test_index_schema_fixtures.py`, which drives every bench driver
 that opens a zoteus-built index against a fixture of each schema generation. Its roster,
@@ -54,6 +54,37 @@ against. So:
     like "read from passages" in a comment out of the inventory; it does not keep it out of
     a Python docstring, which is a literal. That too costs one line of reason.
 
+WHERE THE SCAN LOOKS, AND WHAT THAT LEAVES OUT
+----------------------------------------------
+The search root is `bench/` and only `bench/` — `SEARCH_ROOT` below, asserted rather than
+left as an implementation detail, because a module named for closure invites a reader to
+take the closure as repo-wide.
+
+It is not. `verification/probes/` holds sixteen files in exactly this class: they open a
+real index and run raw SQL against `meta`, `passages` and `passages_fts`. Measured, not
+guessed — the same predicates over that root name `corpus-language-mix.mjs`,
+`degenerate-real-index.mjs`, `diacritic-collision-cost.mjs`,
+`droplist-adapts-to-corpus.mjs`, `expansion-penalties-probe.mjs`,
+`expansion-reach-probe.mjs`, `folding-cost-and-benefit.mjs`,
+`keeping-diacritics-cost.mjs`, `keeping-diacritics-real-cost.mjs`, `lang_census.py`,
+`migrate-real-index.mjs`, `scan-shape-v190-vs-fused.mjs`, `snippet-droplist-probe.mjs`,
+`stoplist-cross-language.mjs`, `vocab-scan-cost.mjs` and `x4_probe_vocabulary.py`. The
+count is a finding rather than a nil because the identical run over `bench/` returns the
+known-positive inventory below, the three newly-classified files included.
+
+They are out of scope deliberately, not overlooked. Several are one-off instruments pinned
+to the pre-rename generation the way `vec_real_measure.mjs` is, so classifying them is the
+same judgement 0101 made per driver, sixteen times over — an exercise of its own, and
+sixteen reasons written in a hurry to keep a suite green would be sixteen bare names with a
+longer type, which is the defect `EXCUSED` exists against. Ticket 0598's body records the
+population and the deferral.
+
+So `SEARCH_ROOT` is a constant with a test on it, and a control asserts that a file of this
+exact class placed outside the root is NOT named. Widening the scan is then a deliberate
+edit that reds a named test, rather than a silent change of what the module claims. That is
+the same defect class this module closes: a scope claim true when written and retroactively
+wrong once something moves.
+
 Cost tier: FAST — pure Python over source text, no `node`, no subprocess, no database. It
 deliberately does NOT live in `tests/test_index_schema_fixtures.py`, whose module-level
 `pytestmark` carries `integration` plus a skipif on `node`. A closure check that skips on a
@@ -72,6 +103,16 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 BENCH = REPO / "bench"
 ROSTER_SUITE = REPO / "tests" / "test_index_schema_fixtures.py"
+
+#: The one directory the scan walks, repository-relative. Named here rather than inlined,
+#: and asserted by `test_the_search_root_is_the_one_the_module_documents`, because the
+#: module's title says "closed" and a reader is entitled to know closed over WHAT. See
+#: "WHERE THE SCAN LOOKS" above for the sixteen files this leaves out and why.
+SEARCH_ROOT = "bench"
+
+#: The root this scan deliberately does not walk, named so the exclusion is greppable and
+#: so widening the scan means editing a constant a test reads.
+UNSEARCHED_ROOT = "verification/probes"
 
 #: Source files a bench driver can be written in.
 SOURCE_SUFFIXES = {".py", ".mjs", ".js", ".cjs", ".ts"}
@@ -144,9 +185,13 @@ def index_tables_named(text: str, vocabulary: set[str]) -> set[str]:
 
 
 def drivers_that_open_an_index(repo: Path, vocabulary: set[str]) -> dict[str, list[str]]:
-    """The inventory, derived from the tree: path -> the index tables it names."""
+    """The inventory, derived from the tree: path -> the index tables it names.
+
+    Walks `SEARCH_ROOT` alone. That bound is the module's scope claim, and it is asserted
+    by two tests below rather than left for a reader to infer from this line.
+    """
     found: dict[str, list[str]] = {}
-    for path in sorted((repo / "bench").rglob("*")):
+    for path in sorted((repo / SEARCH_ROOT).rglob("*")):
         if path.suffix not in SOURCE_SUFFIXES or not path.is_file():
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -321,6 +366,37 @@ def test_the_scan_finds_the_rostered_drivers():
     assert not missing, f"rostered drivers the scan does not name: {sorted(missing)}"
 
 
+# --- the scope claim is the one the module makes -------------------------------------
+
+
+def test_the_search_root_is_the_one_the_module_documents():
+    """A scope claim nothing checks is a scope claim that goes stale silently.
+
+    The module's own title says the roster is *closed*; this is what says closed over what.
+    Widening `SEARCH_ROOT` without rewriting the docstring's "WHERE THE SCAN LOOKS"
+    section fails here, so the widening cannot happen by accident.
+    """
+    assert SEARCH_ROOT == "bench"
+    assert (REPO / SEARCH_ROOT).is_dir()
+    assert (REPO / UNSEARCHED_ROOT).is_dir(), (
+        "the excluded root no longer exists — re-derive the exclusion rather than leaving "
+        "a claim about a directory that is gone"
+    )
+    doc = __doc__ or ""
+    assert f"`{SEARCH_ROOT}/`" in doc, "the docstring must name the root the scan walks"
+    assert f"`{UNSEARCHED_ROOT}/`" in doc, "the docstring must name what the root leaves out"
+
+
+def test_the_inventory_stays_inside_the_search_root():
+    vocabulary = index_vocabulary(BENCH)
+    outside = sorted(
+        path
+        for path in drivers_that_open_an_index(REPO, vocabulary)
+        if not path.startswith(f"{SEARCH_ROOT}/")
+    )
+    assert not outside, f"the scan reached outside {SEARCH_ROOT}/: {outside}"
+
+
 # --- the closure itself -------------------------------------------------------------
 
 
@@ -434,6 +510,34 @@ def test_a_driver_that_builds_its_own_corpus_is_not_named(tmp_path):
     assert "bench/scratch_bench.mjs" not in drivers_that_open_an_index(
         tree, index_vocabulary(tree / "bench")
     )
+
+
+def test_a_matching_file_outside_the_search_root_is_not_named(tmp_path):
+    """The bound made testable.
+
+    The same driver, byte for byte, in `bench/` and in `verification/probes/`: one is named
+    and one is not, and the only difference is the root. That is the module's scope claim
+    stated as an experiment rather than as a sentence — and it is what makes a future
+    widening a deliberate edit, since widening the scan reds this test by name.
+
+    `verification/probes/` really does hold sixteen files of this class today; the
+    docstring names them and ticket 0598 records the deferral.
+    """
+    tree = _fixture_tree(tmp_path)
+    driver = (
+        "import sqlite3\n"
+        "con = sqlite3.connect('search-index.sqlite')\n"
+        "con.execute(\"SELECT value FROM meta WHERE key='schemaVersion'\")\n"
+        "con.execute('SELECT COUNT(*) FROM passages')\n"
+    )
+    (tree / SEARCH_ROOT / "inside.py").write_text(driver)
+    (tree / UNSEARCHED_ROOT).mkdir(parents=True)
+    (tree / UNSEARCHED_ROOT / "outside.py").write_text(driver)
+
+    named = drivers_that_open_an_index(tree, index_vocabulary(tree / "bench"))
+    assert f"{SEARCH_ROOT}/inside.py" in named
+    assert f"{UNSEARCHED_ROOT}/outside.py" not in named
+    assert not any(p.startswith(UNSEARCHED_ROOT) for p in named)
 
 
 def test_a_file_that_only_mentions_a_table_in_prose_is_not_named(tmp_path):

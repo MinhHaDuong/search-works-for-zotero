@@ -6,6 +6,7 @@ Author: Claude Opus 5
 --- log ---
 2026-09-02T22:05Z Claude Opus 5 created
 
+2026-09-02T22:23Z Claude-Opus-5 note Recorded the verification/probes/ gap (16 files in the class, out of scope); search root is now a named constant with three tests on it
 --- body ---
 ## Context
 
@@ -101,6 +102,54 @@ scan, not the expectation.
       red; mutant M4b (the refusal widened instead of implemented) turns
       `test_a_blank_excuse_reason_is_refused` red for all three blank forms.
 - [x] `make check` green.
+- [x] Reviewer re-executed mutants M2 and M4a byte-for-byte and reproduced both, ran a
+      vocabulary-vacuity mutant of its own, and independently confirmed 428 -> 444.
+- [x] Mutant M5 (search root widened to the repository) reds
+      `test_the_search_root_is_the_one_the_module_documents`,
+      `test_the_inventory_stays_inside_the_search_root` and
+      `test_a_matching_file_outside_the_search_root_is_not_named` by name.
+- [ ] The sixteen `verification/probes/` files are classified. NOT delivered here — see
+      "Out of scope" above; the scan does not reach them and does not claim to.
+
+## Out of scope, named and counted: `verification/probes/`
+
+The scan's search root is `bench/` alone. `verification/probes/` holds **sixteen** files
+in exactly this class — they open a real index and run raw SQL against `meta`,
+`passages`, `passages_fts`:
+
+    corpus-language-mix.mjs          keeping-diacritics-real-cost.mjs
+    degenerate-real-index.mjs        lang_census.py
+    diacritic-collision-cost.mjs     migrate-real-index.mjs
+    droplist-adapts-to-corpus.mjs    scan-shape-v190-vs-fused.mjs
+    expansion-penalties-probe.mjs    snippet-droplist-probe.mjs
+    expansion-reach-probe.mjs        stoplist-cross-language.mjs
+    folding-cost-and-benefit.mjs     vocab-scan-cost.mjs
+    keeping-diacritics-cost.mjs      x4_probe_vocabulary.py
+
+Counted, not estimated: the same predicates run over that root, with the identical run
+over `bench/` as the positive control (it returns the 21-file inventory the merge request
+records, the three newly-classified files included). A review of PR #232 reported fifteen;
+the run above returns sixteen, and the list is what the number is.
+
+Deferred rather than done, deliberately. Several of these are one-off instruments pinned
+to the pre-rename generation the way `bench/vec_real_measure.mjs` is, so classifying them
+is 0101's per-driver judgement made sixteen more times — its own exercise. Sixteen reasons
+written in a hurry to keep a suite green would be sixteen bare names with a longer type,
+which is precisely what `EXCUSED` exists against. `verification/probes/` is in the repo's
+lint gate for the reason the Makefile states — a probe that produced a committed figure is
+code we depend on — so extending the root is the right eventual move, taken as a decision
+rather than as a rider.
+
+No new ticket: ID allocation was collision-prone this session (`erg new` offered 0602 with
+0599-0601 already on an open merge request), and this sits below the severity floor as
+filed. Recording it here keeps it findable without minting an ID.
+
+The scope claim is machine-checked meanwhile. `SEARCH_ROOT` and `UNSEARCHED_ROOT` are
+module constants; `test_the_search_root_is_the_one_the_module_documents` fails if either
+moves without the docstring, `test_the_inventory_stays_inside_the_search_root` fails if the
+walk escapes, and `test_a_matching_file_outside_the_search_root_is_not_named` puts the same
+driver byte-for-byte inside and outside the root and asserts only one is named. A widening
+therefore reds three tests by name instead of silently changing what the module claims.
 
 ## Invariants
 
@@ -111,6 +160,8 @@ scan, not the expectation.
   skip.
 - The derivation is not allowed to go vacuous: an empty vocabulary or an unparsed roster
   fails loudly rather than passing on nothing.
+- The search root cannot widen silently: it is a constant with tests on it, so reaching
+  `verification/probes/` is a deliberate edit that reds three named tests.
 
 ## Exit criteria
 
@@ -122,3 +173,5 @@ scan, not the expectation.
       not paraphrased.
 - [x] `make check` green and `./tickets/erg check tickets/` passes against
       `origin/main`'s ticket set.
+- [x] The search root is a named constant, documented, and asserted — so the module
+      cannot be read wider than it is.
