@@ -74,13 +74,33 @@ class _Stub:
         self.arena = arena
         self.declaration = declaration
         self._log: list[str] = []
+        self._live = False
 
     @contextmanager
     def running(self):
         self._log.append("running")
-        yield
+        self._live = True
+        try:
+            yield
+        finally:
+            self._live = False
 
     def _require(self, verb: str) -> None:
+        # The lifecycle guard, and it is here because its absence was a real
+        # defect rather than a hypothetical one. A stub needs no process, so a
+        # layer that called verbs outside `running()` passed every fixture and
+        # then crashed against the first target with a real lifecycle — and the
+        # two residue assertions did worse than crash: they called `install()`
+        # on a target whose state only materializes once the process starts, so
+        # they graded a state they had prevented from existing. Enforcing the
+        # lifecycle in the fail-controls is what makes `make acceptance-fixtures`
+        # able to see that class at all.
+        if not self._live:
+            raise RuntimeError(
+                f"{self.declaration.name}: {verb!r} was called outside running(). "
+                "Every verb reaches a target through its process; an assertion that "
+                "reaches around the lifecycle measures a target that was never started."
+            )
         if not self.declaration.offers(verb):
             raise UnsupportedVerb(self.declaration.name, verb)
 

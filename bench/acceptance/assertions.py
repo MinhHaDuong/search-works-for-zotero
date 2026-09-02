@@ -217,7 +217,16 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
         detail={
             "verbs_driven": driven,
             "verbs_not_offered": skipped,
-            "isolation_mechanism": {"name": mechanism.name, "how": mechanism.note},
+            "isolation_mechanism": {
+                "name": mechanism.name,
+                "how": mechanism.note,
+                # Whether the declared roots were the only writable paths. False
+                # on a mechanism that leaves the host filesystem mounted, where
+                # the writable set is a hint rather than a boundary — so two
+                # artifacts from two machines are comparable on egress and not
+                # on this. Recorded rather than assumed either way.
+                "writable_enforced": mechanism.writable_enforced,
+            },
             "subject": subject.as_json(),
             "control": control,
             "detectors": {
@@ -253,8 +262,9 @@ def check_local_by_default(target: Target) -> Check:
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
 
-    configured = target.configure()
-    reported = target.status().get("embedding") or {}
+    with target.running():
+        configured = target.configure()
+        reported = target.status().get("embedding") or {}
     locality, active = reported.get("locality"), reported.get("active")
     if locality is None:
         return not_run(cid, req, clause, falsified, target, "status",
@@ -296,10 +306,10 @@ def check_uninstall_removes_declared_state(target: Target, *, arena: Path) -> Ch
 
     if not target.declaration.offers("uninstall"):
         return not_offered(cid, req, clause, falsified, target, "uninstall")
-    if target.declaration.offers("install"):
-        target.install()
-
-    event = target.uninstall()
+    with target.running():
+        if target.declaration.offers("install"):
+            target.install()
+        event = target.uninstall()
     survivors = sorted(
         p for root in target.declaration.derived_state_roots
         for p in Snapshot.of(root).files
@@ -359,7 +369,8 @@ def check_residue_inventory(target: Target, *, arena: Path) -> Check:
         return not_run(cid, req, clause, falsified, target, "install", why)
 
     before = Snapshot.of(arena)
-    event = target.install()
+    with target.running():
+        event = target.install()
     created = Snapshot.of(arena).since(before)
     stray = residue(created, target)
     return Check(
@@ -426,9 +437,14 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
         return not_run(cid, req, clause, falsified, target, "query", why)
 
     before = Snapshot.of(arena)
-    target.install()
-    target.configure()
-    answered = target.query("a query that exercises the retrieval surface", MEANING, 5)
+    with target.running():
+        target.install()
+        target.configure()
+        answered = target.query("a query that exercises the retrieval surface", MEANING, 5)
+        # Read inside the lifecycle: `status` is a verb, and a verb reaches the
+        # target through its process. Read after the block and a target with a
+        # real lifecycle raises instead of answering.
+        model = (target.status().get("embedding") or {}).get("model")
     created = Snapshot.of(arena).since(before)
     stray = residue(created, target)
 
@@ -439,7 +455,6 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
     # about, and the honest verdict is that it was not decided. That is also
     # what a missing model runtime looks like, which is the failure this
     # deliberately reports as `not-run` rather than as a green.
-    model = (target.status().get("embedding") or {}).get("model")
     if model is None:
         return not_run(
             cid, req, clause, falsified, target, "query",

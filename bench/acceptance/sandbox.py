@@ -72,6 +72,15 @@ a cross-check on the declaration: if the target needs a path its adapter did not
 declare, the run fails inside the sandbox, and what that failure reports is an
 incomplete declaration.
 
+**That cross-check is not universal, and the difference is recorded rather than
+glossed.** It exists only where a mechanism confines writes at all. A mechanism
+that leaves the host filesystem mounted — the platform equivalent below does,
+which is the whole reason it needs no image — cannot enforce `writable`, so on
+that arm the set is a hint and the declaration is checked by the residue sweep
+alone. Each mechanism carries `writable_enforced` and the egress assertion
+records it beside the mechanism's name, because a guarantee that silently
+applies on one machine and not another is worse than one that never applied.
+
 This module never learns which target it is running, and it never learns about
 an adapter. It takes an argv and a list of paths.
 """
@@ -116,10 +125,19 @@ class Mechanism:
     `isolated` and `shared` must differ in exactly one thing: the network
     namespace. Anything else that differs between them turns the control arm
     from a discriminator into decoration.
+
+    `writable_enforced` says whether this mechanism actually confines writes to
+    the paths it is handed. It is not a detail. Where it is false, the
+    declaration cross-check the module docstring describes does not happen, and
+    two artifacts from two machines are not comparable on that axis. A mechanism
+    that quietly ignored `writable` while the prose promised otherwise would be
+    a guarantee nobody could see was missing, so the flag rides in the artifact
+    beside the mechanism's name.
     """
 
     name: str
     note: str
+    writable_enforced: bool = True
 
     def isolated(self, argv: list[str], writable: tuple[Path, ...]) -> list[str]:
         raise NotImplementedError
@@ -160,18 +178,28 @@ class Bubblewrap(Mechanism):
 class PodmanUnshare(Mechanism):
     """The platform equivalent for a host where rootless bubblewrap is refused.
 
-    UNVERIFIED ON THE MACHINE THIS WAS WRITTEN ON. It is implemented from a
-    measurement taken on the second machine, where `bwrap` is present but not
-    usable rootless (not setuid, unprivileged user namespaces restricted by
-    policy) and this recipe was confirmed to isolate and to remain visible to
-    the tracer. It has not been exercised here, and the availability probe is
-    what decides whether it is used at all.
+    VERIFIED END TO END on that second machine (2026-09-02), after being written
+    blind here from a measurement taken there. `choose()` selects it over
+    `bwrap`, which is present but refused rootless (not setuid, unprivileged
+    user namespaces restricted by policy); both arms behave as specified — the
+    isolated arm takes a different network-namespace inode with zero routes, the
+    control keeps the host's — the tracer sees through it, and both detectors
+    were driven red separately by the deterministic stubs while the quiet stub
+    still came back green.
 
     `podman unshare` enters the rootless user namespace, where the caller holds
     the capability that the bare `unshare -n` on the host lacks; the isolated arm
     then takes a fresh, empty network namespace inside it. The host filesystem
     stays mounted, which is why no image and no bind list are needed — the
     target's build and its data directory are simply there.
+
+    The price of that convenience is exact and is declared rather than hidden:
+    because nothing is bound read-only, `writable` cannot be enforced here, so
+    `writable_enforced` is False. Reachability is unaffected — the isolation
+    this class exists for is of the network and not of the filesystem — but the
+    module docstring's declaration cross-check holds only on the bubblewrap arm.
+    Measured on the second machine: with `writable=()` a write outside every
+    declared root still succeeded inside the isolated arm.
 
     The control arm is `podman unshare` *without* the inner `unshare -n`: same
     user namespace, same filesystem, network namespace untouched. That is the
@@ -189,8 +217,10 @@ class PodmanUnshare(Mechanism):
     name: str = "podman-unshare"
     note: str = (
         "podman unshare: the rootless user namespace, with a fresh empty network "
-        "namespace inside it for the isolated arm. UNVERIFIED on the authoring machine"
+        "namespace inside it for the isolated arm. The host filesystem stays mounted, "
+        "so the writable set is not enforced on this arm"
     )
+    writable_enforced: bool = False
 
     def isolated(self, argv: list[str], writable: tuple[Path, ...]) -> list[str]:
         return ["podman", "unshare", "unshare", "-n", *argv]
