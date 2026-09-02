@@ -10,6 +10,7 @@ Author: Minh Ha-Duong
 2026-09-02T11:06Z claude note characterization committed first at 8d2893c: 9 assertions, red before the registry existed, green with it; positive controls -- pooling mean to cls fails the vector and chain arms, a changed model name fails the identity arm
 2026-09-02T11:06Z claude note extraction at 4b2e32e; vectors byte-identical for query, passage and a 660-token passage; vector key local:Xenova/all-MiniLM-L6-v2 unchanged; upstream suite 931 passed 8 skipped without the optional runtime, 932 passed 7 skipped with it
 2026-09-02T11:06Z claude note finding for 0490 -- the declared 256-token window is not in force: the pipeline truncates at the tokenizer model_max_length of 512, measured on a 660-token passage whose vector the fixture freezes
+2026-09-02T11:29Z claude note gaze APPROVED on PR 184 and referred one defect: the fixture stamp was local wall-clock wearing a Z, two hours after its own commit; fixed inline at 6b5ac4c rather than ticketed, per the severity floor
 --- body ---
 ## Scope
 
@@ -36,6 +37,7 @@ needed: `src/features/search/embeddings.ts` is identical at both refs.
 |---|---|
 | `8d2893cf819d9b521ce6023645b6c8d3d76d3947` | `src/features/search/embedder-registry.ts`, the characterization test and its frozen fixture, with the chain still untouched |
 | `4b2e32edd56b3943e7b332b54d14191fffa0e1df` | `embeddings.ts` reads model, pooling and normalization from the entry |
+| `6b5ac4cbbb0114acc96e51ef112a55d245fa8661` | the fixture's capture stamp, which had been local wall-clock wearing a `Z` and postdated its own commit |
 
 ## What the entry declares
 
