@@ -6,31 +6,61 @@
  * external-content protocol and the meta keys are exactly what a real build would write.
  * TypeScript's `protected` is compile-time only, so those methods are callable from JS.
  *
- * Sources, all real:
- *  - passages, item keys, titles, source: the 93 022-passage index at vec-real/, exported
- *    from the author's own Zotero library.
- *  - vectors: mrl/minilm384.f32, 93 022 x 384 float32, produced by all-MiniLM-L6-v2 --
- *    the same model zoteus's LocalEmbeddingProvider runs (verified: cosine 1.000000 on
- *    five sampled rows against Xenova/all-MiniLM-L6-v2 through transformers.js). model-id-literal: prose
+ * Sources, all real, and both named on the command line rather than hardcoded:
+ *  - --db: passages, item keys, titles, source, from a PRE-RENAME index (the 93 022-passage
+ *    one exported from the author's own Zotero library). Its generation is asserted before
+ *    the dist is loaded; see `bench/index_schema.mjs`.
+ *  - --slab: the vectors, raw float32, N x --dim, in the source index's own row order --
+ *    produced by all-MiniLM-L6-v2, the same model zoteus's LocalEmbeddingProvider runs
+ *    verified through transformers.js at cosine 1.000000 on five sampled rows against
+ *    Xenova/all-MiniLM-L6-v2. model-id-literal: prose
  */
 import { createRequire } from 'node:module';
+import { parseArgs } from 'node:util';
 import { resolveModel } from './registry.mjs';
 import { openSync, readSync, closeSync } from 'node:fs';
+import { assertPreRenameSchema } from './index_schema.mjs';
 
 const require = createRequire(import.meta.url);
 const { DatabaseSync } = require('node:sqlite');
 
-const [, , outPath, distDir] = process.argv;
-if (!outPath || !distDir) {
-  console.error('usage: build_index.mjs <out.sqlite> <path-to-v190-dist>');
+// Flags rather than the two positionals and two hardcoded absolute paths this used to
+// carry (ticket 0101, following 0100's repair of `bm25_idf_effect.mjs`): a build whose
+// substrate is baked into its source cannot be reproduced anywhere else, and the house
+// rule forbids the hardcoded path in any case.
+const { values: opt } = parseArgs({
+  options: {
+    db: { type: 'string' },
+    slab: { type: 'string' },
+    output: { type: 'string' },
+    dist: { type: 'string' },
+    dim: { type: 'string', default: '384' },
+  },
+});
+if (!opt.db || !opt.output || !opt.dist || !opt.slab) {
+  console.error(
+    'usage: node bench/issue30_build_index.mjs --db <pre-rename source.sqlite> ' +
+      '--output <out.sqlite> --dist <path-to-v190-dist> --slab <raw.f32> [--dim 384]',
+  );
   process.exit(2);
 }
+const outPath = opt.output;
+const distDir = opt.dist;
+const SRC = opt.db;
+const SLAB = opt.slab;
+const DIM = Number(opt.dim);
+
+// The source's generation, asserted before the dist is imported (ticket 0101). This driver
+// reads a PRE-RENAME index on purpose — `passage_meta` joined to the `passages` FTS5 table
+// — and it is not a stale driver awaiting migration: the current schema folded that
+// metadata into `passages`, so a current index would need a different query and would be a
+// different substrate. Pointed at one, this used to die twenty lines in on `no such table:
+// passage_meta`, after minutes of loading a v1.9.0 dist.
+const src = new DatabaseSync(`file:${SRC}?mode=ro`, { readOnly: true });
+assertPreRenameSchema(src, SRC);
 
 const { SqliteSearchIndex } = await import(`${distDir}/features/search/sqlite-index.js`);
 
-const SRC = '/home/haduong/data/projets/zoteus-bench/vec-real/search-index.sqlite';
-const SLAB = '/home/haduong/data/projets/zoteus-bench/mrl/minilm384.f32';
-const DIM = 384;
 const { repo: MODEL } = resolveModel('all-minilm-l6-v2');
 
 // A provider that never embeds: the vectors already exist. Its identity is what the index
@@ -41,7 +71,6 @@ const embedder = { name: 'local', model: MODEL, embed: async () => [] };
 const idx = new SqliteSearchIndex({ path: outPath, embedder });
 await idx.open();
 
-const src = new DatabaseSync(`file:${SRC}?mode=ro`, { readOnly: true });
 const fd = openSync(SLAB, 'r');
 const rowBytes = DIM * 4;
 const buf = Buffer.alloc(rowBytes);

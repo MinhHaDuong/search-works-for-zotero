@@ -1,3 +1,21 @@
+# bench/fixtures/
+
+Two unrelated fixtures share this directory, and they answer different questions.
+`make_index_fixture.mjs` writes a tiny SEARCH INDEX of a named schema generation, so the
+guard in `bench/index_schema.mjs` can be seen to fire in both directions (ticket 0101):
+
+```bash
+node bench/fixtures/make_index_fixture.mjs --both /tmp/fx     # both generations, ~0,2 s
+```
+
+600 synthetic passages, deterministic, about 250 KB each, written to a path you name —
+`bench/*.sqlite` is git-ignored, and the standing test writes them to a pytest tmpdir. The
+`current` fixture is upstream's `createSchema()` DDL verbatim; `prerename` is transcribed
+from an index the pre-split fork generation actually built. `tests/test_index_schema_fixtures.py`
+drives every real-index bench driver against both.
+
+The rest of this file is about something else entirely.
+
 # The golden fixture corpus — source recipe
 
 Ticket 0029. This directory holds the first of the fixture's three layers, the
