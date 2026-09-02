@@ -544,6 +544,30 @@ FIGURES = [
     ("0012-fulltext-sequence/sequences.json",
      "fraction_of_library_reported_new_at_library_version", 1,
      {"design": None, "requirements": None}, "pct"),
+    # ---- 0013, the index-concentration stability probe. §5.2.8 derives the golden gate's
+    # thresholds from it, and the artifact was undeclared here until 2026-09-02 — the
+    # numbers that set a gate were the numbers nothing watched.
+    #
+    # Two of the three quoted figures are declarable and one is not, and the split is the
+    # artifact's shape rather than a choice. `identical_ordered` and `queries` are scalars
+    # at key paths. The per-query Jaccard MINIMUM is an aggregate over
+    # `random_sample.rows`, and `dig()` resolves dict keys and list indices only, so it has
+    # no key path to name. Declaring `rows.N.jaccard` for whichever row happens to hold the
+    # minimum today would guard the wrong claim: it passes while a re-run drops some OTHER
+    # row below 0.25, which is exactly the drift the prose would be stale about. Quoting
+    # `mean_jaccard` instead — a scalar that does exist — was the other way out and is
+    # worse still: for a stability claim the tail is the load-bearing end, and bending a
+    # measurement's shape to suit the checker is the direction this file's own docstring
+    # argues against. So the minimum stays unguarded and stays named as such; the two
+    # scalars around it are anchored.
+    #
+    # Each anchor carries the other's value, as the q8/fp32 cells below do, because the
+    # prose writes the pair as one ratio and neither half has a delimiter of its own. A
+    # drift in either therefore reports twice. Over-reporting, not under-reporting.
+    ("0013-concentration/uncapped-477512.json", "random_sample.identical_ordered", 0,
+     {"design": "`identical_ordered` was {}/60 under legitimate perturbation"}),
+    ("0013-concentration/uncapped-477512.json", "random_sample.queries", 0,
+     {"design": "`identical_ordered` was 22/{} under legitimate perturbation"}),
     # ---- 0011, the uncapped-build RSS — quoted by the redesign's gate and experiments ----
     ("0011-rss/capped-vs-uncapped.json", "baseline_uncapped_chars.peak_MiB", 1,
      {"design": None, "t0025": None, "t0026": None}),
