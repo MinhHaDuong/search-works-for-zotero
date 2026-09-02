@@ -23,15 +23,21 @@ API file.
 
 ## The two tallies
 
-**Claims wrong: 15.** Counted the way the ticket's own table counts — a claim
-is wrong when the mechanism, value, scope or actor it names is not what the
-source does. Nine are about upstream zoteus, four about the Zotero platform,
-two about #6012.
+Both are counts of the register's own rows below, and reproduce from them: 83
+rows, 54 verified, 29 not.
 
-**Evidence grades wrong: 7.** A claim whose substance is true, cited at a
+**Claims wrong: 19.** Counted the way the ticket's own table counts — a claim
+is wrong when the mechanism, value, scope or actor it names is not what the
+source does. Nine concern Zotero core and #6012, seven upstream zoteus, three
+the platform outside #6012.
+
+**Evidence grades wrong: 10.** A claim whose substance is true, cited at a
 strength the source does not support: a rationale read as a measurement, a
 comment read as behaviour, a third party's assertion read as our own reading,
 a report cited for figures it does not contain, a quotation silently cut.
+Five concern the platform, three #6012, two upstream.
+
+By verdict the 29 are 15 refuted, 13 holds-in-part, 1 overstated.
 
 The two are counted separately and deliberately, per the author's ruling of
 2026-08-31: folding a grade defect into the mechanism tally blunts a finding
@@ -39,7 +45,8 @@ whose force comes from being about mechanism. Both are defects; only one
 misleads an implementer.
 
 Beside them, **1 verdict of this audit's own was wrong and is reversed in the
-same branch** — see A2 below. It is not in either tally, because it never
+same branch** — the §4 C1 residue row, and the section "Three faces of one
+class" below tells it. It is not in either tally, because it never
 reached the document; it is recorded because the reversal is the most
 instructive row here.
 
@@ -149,14 +156,17 @@ refuted · **N** could not look. Kind: **claim** = wrong mechanism/value/scope �
 
 ## What was corrected, and what was not
 
-**Corrected in `SPEC.md` on this branch: 22 sites.** Every wrong claim and
-every wrong grade above, except the four marked *registered, not edited*.
+**Corrected in `SPEC.md` on this branch: 27 sites.** Every wrong claim and
+every wrong grade above except two, and those two are marked in place in the
+prose rather than left silent.
 
-**Registered, not edited: 4.** Two sit in §5.2.2, under concurrent edit by the
-segmenter work, and both are design decisions rather than wording repairs (the
-`min()` pairing, and `indexedPages` saturation). Both are in
-`DECISIONS.md`'s awaiting list with the third finding, X6. The `.zotero-ft-cache`
-census figures are flagged in place rather than removed, because unlike the
+**Registered and marked, not reworded: 2.** Both sit in §5.2.2, under
+concurrent edit by the segmenter work, and both are design decisions rather
+than wording repairs: the `min()` pairing, and `indexedPages` saturation. Each
+now carries a parenthesis in the design prose saying what is wrong and who owns
+the repair, so no reader meets the claim unwarned; both are on `DECISIONS.md`'s
+awaiting list with the third finding, X6. The `.zotero-ft-cache` census figures
+are likewise flagged in place rather than removed, because unlike the
 vocabulary counts they are corroborated by a second site in `DECISIONS.md`.
 
 **Nothing here reverses a ratified reading.** The one candidate — §4 C1's
@@ -197,8 +207,9 @@ any toolchain fails when the code moves out from under it.
 
 ## The staleness axis, which the ticket did not anticipate
 
-Nine of the fifteen wrong claims are about upstream zoteus, and every one of
-them was **exact when written**. They rot on a clock the audit's original
+Six of the nine upstream rows are staleness, not misreading: the four facts in
+§5's opening list, its restatement in §5.2.3, and the R23 grade. Every one was
+**exact when written**. They rot on a clock the audit's original
 method could not see: the ticket's instrument is "read the source at a SHA",
 which catches a misreading and is blind to a reading that has expired.
 

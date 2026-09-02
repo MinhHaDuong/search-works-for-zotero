@@ -1226,8 +1226,11 @@ is not a constant but a budget, resolved once per model:
 and the resolved budget is recorded in the chunker key, so a model change that
 moves it invalidates chunks explicitly rather than silently. The construction
 is the platform's; the ceiling is ours, and the difference is deliberate.
-Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with this
-same minimum against the model's window. Cycle 2 copied the ceiling, used it as
+Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with a
+minimum of the same value, 120. (Its `min()` applies to the ceiling alone;
+`CHUNK_MIN_TOKENS` is a flat constant compared against nothing, so the
+window-relative reading this sentence used to carry is not upstream's —
+registered by ticket 0180, wording left to the segmenter work.) Cycle 2 copied the ceiling, used it as
 a target, and dropped the minimum — which is what left a 768-token chunk
 unreadable by a 512-token embedder with nothing raised.
 
@@ -1413,7 +1416,10 @@ falls through to seg/1 above, which owns the confidence-gated synthetic
 entries. The length trigger is itself a fallback chain: Zotero's
 `indexedPages` or a literal page-break count first, a character-count
 estimate when neither is available, so the gate degrades to an estimate rather
-than never firing. The local API returns `indexedPages` and `totalPages`
+than never firing. (That first rung saturates: `indexedPages` counts pages
+actually extracted, capped by the `maxPages` preference, so on a very long PDF
+it reports the cap — registered by ticket 0180, the trigger's order left to the
+segmenter work.) The local API returns `indexedPages` and `totalPages`
 beside the text on its per-item full-text endpoint, so the first link of the
 chain costs no extra call.
 
@@ -2522,7 +2528,9 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   re-stamps 0, build the bounded re-verify sweep (M entries per tick,
   horizon reported); if it bumps anything observable, the md5-widened signal
   already catches it and the sweep is never built. Until X6 runs, the
-  residue is disclosed, platform-aligned.
+  residue is disclosed — and disclosed as ours alone: C1's reading that the
+  platform accepts the same residue was refuted at source (ticket 0180), so
+  nothing here is platform-aligned and the disclosure stands on its own.
 - **Census cadence — X7 decides.** Local census every tick, unless the parse
   exceeds 50 ms at 30k entries; then every 5th tick.
 - **Constrained-MATCH threshold — X4 decides** (via `json_each`, the
