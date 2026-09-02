@@ -32,11 +32,10 @@ registry entries.
 
 - The in-process implementation proves the interface does not itself require a
   daemon or change the fast-install path.
-- A bounded prototype or measured model compares in-process execution, Zotero
-  runtime reuse, a bundled child, a user-session service and an external
-  facility on
-  cold install/start, single- and multi-P0 RAM, cross-platform packaging,
-  custody/uninstall, failure, upgrade and supervision.
+- A bounded prototype or measured model compares every candidate named in
+  Scope on cold install/start, single- and multi-P0 RAM, cross-platform
+  packaging, custody/uninstall, quota and key custody, failure, upgrade and
+  supervision.
 - The review states who should own the facility: zoteus, an optional companion,
   the OS, or another community project.
 - Any out-of-process candidate specifies fingerprint/dimension/runtime/provider
