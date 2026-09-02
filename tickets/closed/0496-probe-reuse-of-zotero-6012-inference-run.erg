@@ -35,8 +35,10 @@ mandatory Zotero plugin is evidence about feasibility, not an adoption path.
 
 - [x] Verify against the current #6012 head whether any supported external call
   can request query and batched passage embeddings.
-  (verification/BRIDGE-0496.md §1, §2.1, §2.4 — head unmoved at 77e2c4b, API
-  called 2026-09-02T19:04Z; no route returns a vector, positive control fired)
+  (verification/BRIDGE-0496.md §1, §2.1, §2.4 — re-anchored at head 19e7962,
+  API called 2026-09-03; the 77e2c4b reading of 2026-09-02T19:04Z was
+  superseded by a force-push nineteen minutes later. No route returns a
+  vector, positive control fired)
 - [x] If absent, specify the smallest upstream bridge: model/version identity,
   query versus passage role, batching, dimension, runtime/provider identity,
   cancellation, errors and availability. It accepts text transiently and
