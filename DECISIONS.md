@@ -3499,6 +3499,51 @@ required signal. X5's arms are unchanged — the handbook arm ruled above stays
 its own row, scored against the outline like every other. SPEC.md §5.2.2
 edited to match.
 
+**2026-09-02 — One target-neutral acceptance layer, thin adapters, questions
+where meaning is the requirement.** The author's ruling after taking the
+resolved brief below one decision at a time.
+
+The harness has one assertion layer for every Zotero AI retrieval tool. A thin
+adapter per target declares its surfaces and contains only the minimal transport
+needed to invoke them: no patch or workaround, non-default option, access the
+target does not give its users, or result scoring.
+
+The interface is `install`, `uninstall`, `configure`, `query`, `status`,
+`pause`, `resume`. Pause and resume are the two transitions of one durable
+background-work control; resume is idempotent and never forces rebuild,
+refresh, repair or sync. Convergence is observed after the harness changes its
+fixture library, never commanded or nudged. Starting and stopping the target
+process are adapter-declared harness setup, not indexing controls.
+
+Meaning may be judged only for R17's human status answer, R18's two kinds of
+empty answer, golden relevance and R24's page attribution; every mechanically
+decidable clause stays mechanical. The harness emits a versioned structured
+question with a blinded fail-control and accepts a schema-checked answer. The
+supervising agent is the default interactive driver; hosted APIs using
+operator-local credentials and padme's Qwen 3.8 are unattended drivers. Every
+run records its judge, model, runtime, rubric hash, question and answer.
+`bench/models.json` remains exclusively the embedder registry.
+
+The five targets are zoteus, Zotero core #6012, ZotSeek, 54yyyu/zotero-mcp and
+Beaver. ZotSeek's seat remains assigned to the in-process-plugin architecture
+class if that project stops being runnable or inspectable. Beaver's AGPL plugin
+revision is pinned and run in its normal configuration; unavailable service or
+permitted credentials reports not-run. A deterministic egressing stub, not
+Beaver, is R10's mandatory fail-control.
+
+R15's uninstall clause reads: **the target MUST declare every location in which
+it creates derived state. After uninstall, none of that state may remain, and
+no target-created derived state may exist outside the declaration.** The
+harness calls the real uninstall surface and checks residue independently; a
+target without one reports not-offered. User-authored library data and
+externally supplied configuration are not derived state. R15's item-deletion
+clause is unchanged.
+
+This PR records the ruling and rescopes ticket 0578. The already-enumerated
+SPEC.md and README.md propagation, plus adapter tickets for #6012, ZotSeek,
+zotero-mcp and Beaver, follow in one separate auditable pass; 0578 owns the
+zoteus adapter and deterministic egress fail-control.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -4293,15 +4338,15 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   once ruled.
 
 - **The acceptance harness is one assertion layer over a target interface,
-  with a thin adapter per target (author, raised 2026-09-02, in
-  conversation).** The standing constraint this ledger does not yet carry:
+  with a thin adapter per target — resolved 2026-09-02; see the ratified entry
+  above (author, raised and resolved in conversation).** The standing constraint this ledger did not yet carry:
   the requirements acceptance harness must be applicable to any Zotero AI
   retrieval tool. zoteus is the first target, Zotero core's pull request
-  #6012 the second, a third to be proposed. Proposed ruling, in one
+  #6012 the second, a third to be proposed. The ruling, in one
   sentence: the harness is a single assertion layer phrased over an abstract
   target interface plus a thin adapter per target; an assertion names an
   interface verb and an adapter-declared surface, never a tool's file
-  layout; a judge model is admitted for clauses about meaning and forbidden
+  layout; a judge is admitted for clauses about meaning and forbidden
   wherever a mechanical test exists; the roster is zoteus, #6012, ZotSeek,
   54yyyu/zotero-mcp and Beaver; and
   R15's uninstall clause is reworded over declared derived state, which is
@@ -4528,11 +4573,9 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   that cell against SPEC.md's own sentence, so rewording the sheet alone
   turns the gate red until the row is reworded with it.
 
-  Ticket 0578 is rescoped now rather than after, because the layer and the
-  zoteus adapter can be built while this waits; its body names the one part
-  that waits, R15's rewording, and nothing else. The tickets that follow
-  ratification are deliberately not filed: the #6012 adapter, the ZotSeek
-  adapter, the zotero-mcp adapter, the Beaver adapter, and the deterministic
-  egress fail-control. Filing them
-  before the whole ruling is ratified is how a draft becomes a decision by
-  accident.
+  Ticket 0578 is rescoped here because the layer and the zoteus adapter are
+  its first implementation. The tickets that follow are deliberately not
+  filed in this PR: the #6012 adapter, the ZotSeek adapter, the zotero-mcp
+  adapter and the Beaver adapter. The deterministic egress fail-control stays
+  in 0578. The separate propagation pass files the four adapters after this
+  ruling lands.
