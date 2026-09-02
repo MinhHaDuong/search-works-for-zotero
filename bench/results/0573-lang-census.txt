@@ -1,0 +1,37 @@
+--- language census, 2026-09-02T07:21Z, author's library, Zotero 10.0 build 20260817151751 ---
+Instrument: verification/probes/lang_census.py (read-only, database opened
+through a mode=ro URI while Zotero ran). The EN/FR/VI call per attachment is a
+stopword-and-diacritic heuristic over the first 60 000 characters of
+.zotero-ft-cache; "other" is anything it cannot place; "undecidable" is a
+record where fewer than two attachments had 500 characters of text to judge.
+
+$ python3 verification/probes/lang_census.py
+top-level items 13287 | with a language field 6663
+language spellings, top 12: [('en', 2734), ('EN', 842), ('VN', 621), ('vi', 565),
+  ('en-US', 295), ('English', 208), ('Anglais', 176), ('fr', 152), ('vi-VN', 138),
+  ('EN, VN', 113), ('en-GB', 101), ('eng', 100)]
+item relations by predicate: [('dc:relation', 32), ('dc:replaces', 436), ('owl:sameAs', 1889)]
+items with two or more PDF attachments: 888
+of those: same language 562 | different languages 200 | undecidable 126
+language pairs among the mixed: {'en+fr': 21, 'en+other': 19, 'en+vi': 157, 'other+vi': 3}
+
+READINGS, each one a fact the 2026-09-02 brief on multilingual documents rests on:
+- Half the records carry a language (6 663 of 13 287), spelled twelve ways for
+  three languages: ISO codes in two cases, BCP-47 tags, English and French
+  names, a bibliographic code (eng), and a two-language value "EN, VN" on 113
+  records, which is the author marking a bilingual record by hand.
+- Zotero's relation vocabulary has no translation predicate. dc:relation
+  (Related Items, 32 here), dc:replaces (436) and owl:sameAs (1 889, the trail
+  of duplicate merges) are all that exist.
+- 888 records hold two or more PDFs; roughly 200 of them hold renderings in
+  two languages, 157 of them English and Vietnamese. Under D6 (first-with-text)
+  one rendering per record is indexed today and the other is skipped with a
+  recorded reason, so on this library some 200 second-language bodies are
+  outside the index by design.
+- 562 same-language twins are the case D6 was written for (preprint and
+  published version, scan and OCR copy) and stay as they are.
+
+NOT MEASURED: pairs of separate records that are translations of one another
+(same work filed twice, once per language). Nothing in the schema links them,
+so a census needs the detector the brief proposes; this census cannot see them
+and reports no number rather than a zero.

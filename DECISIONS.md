@@ -3084,6 +3084,29 @@ serious, not less.
 "re-derive everything": read the other way it is the bulk verb the awaiting
 entry forbids, already shipped under another name, and a model will call it.
 
+**2026-09-02 — Pack first, flat text as fallback: a mechanism under R24, not
+a requirement.** The author's ruling on the awaiting entry of the same date:
+"good place" for R24's rung, and no new R-item, because source selection is
+an under-the-hood mechanism rather than a promise to the user. What the user
+is promised is already R24's: a hit leads to its page, an estimate says so.
+The pack is how that promise stops being an estimate for the attachments
+Zotero has structured.
+
+Integrated into SPEC.md in the same change: R24's paragraph says a
+pack-sourced hit carries the block's own page; C1's first link names the two
+extractor identities; C2's SDT bullet states the pack as read from disk rather
+than as a future local-API surface, with its availability bound; §5.2.4 gains
+the source-selection paragraph (pack of a known version, else the flat text
+over `/fulltext`, never a direct read of the cache file, one source per
+attachment recorded and counted); §5.2.2's segmenter takes the pack's blocks as
+its first structure signal, above the PDF outline and layout tiers and seg/1.
+README.md's rosters are unchanged, since no requirement was added. Ticket 0572
+carries the implementation, sequenced after 0028 per the 2026-09-01 ruling.
+The awaiting entry's two open decisions stand as the ticket's context: the
+disk read of an internal format is accepted on the strength of the structural
+fallback, and the rule lands now, at 2 of 13 630, so the shape exists before
+the platform's own indexer makes packs library-wide.
+
 **2026-09-02 — the API embedder is an execution mode with its own transport
 constants, and the batch endpoints are out.** The author's ruling on a question
 he raised the same afternoon: the conductor and the pipeline worker were
@@ -3734,3 +3757,219 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   ratifying; the alternative is to revert §5.2.2 and re-land it behind a
   ruling, which changes no code — `ledger.ts` already implements the corrected
   order and pins all three directions with tests.
+
+- **The extract stage SHOULD index from Zotero's structured-text pack when
+  one exists for an attachment, and from the flat full-text cache otherwise
+  (author, 2026-09-02, stated as an idea; drafted here as a candidate
+  requirement, ticket 0572) — resolved 2026-09-02, same day: ratified as a
+  mechanism under R24, not as a requirement; see the ledger entry.** Every fact below is at source or by probe,
+  recorded in `bench/results/0007-sdt-probe.txt` (fifth probe) unless said
+  otherwise.
+
+  **What is established.** The pack exists and is readable. It is
+  `.zotero-sdt-cache` beside the attachment in `storage/<KEY>/`, written by
+  `Zotero.SDT` in the shipped 10.0 build (pack version 1, schema 1.1.0,
+  processor pdf/3), and `verification/probes/sdt_read.py` parses it. On the two
+  packs in hand it holds typed blocks (paragraph, heading, math, list, image,
+  caption), a `flowClass` that marks running heads and page numbers as
+  excluded, a page anchor per block, and metadata naming the source hash and
+  the processor version. Its text is 0,91 and 0,99 of the flat cache's, the
+  difference being the excluded flows. Availability is the bound, and it is
+  measured, not estimated: 2 packs against 13 630 flat caches on the author's
+  library, eleven days after the first probe found them. The trigger is the
+  reader alone. In the shipped build the only caller of `Zotero.SDT` is
+  `reader.js`, and `Zotero.SDT.ensure()`, documented "for warming up the
+  cache (e.g., at import time)", has no caller. Nothing over the local API
+  creates or serves a pack; the 2026-08-30 checkpoint stands. So "when one
+  exists" means "opened in Zotero's reader since the upgrade", 2 for 2 in the
+  probe.
+
+  **The rule is upstream's own.** zotero/zotero#6012 at head `77e2c4b`,
+  `embeddings.js`: `_getAttachmentChunks` asks `Zotero.SDT.getSections(item.id,
+  {allowStale: false})` and, when that yields nothing, logs "no structured text
+  … falling back to plain text" and chunks `item.attachmentText`. Its source
+  key is the md5 of path, size, mtime and `getProcessorVersion(item)`. When
+  #6012 ships, its indexer generates a pack for every attachment it embeds, so
+  availability goes from reader-opened to library-wide with no action of ours.
+  That is what makes the rule worth ratifying before the coverage justifies
+  it: the shape has to exist when the packs arrive.
+
+  **Reachability needs no new premise.** The 2026-09-01 pdf.js ruling already
+  reaches the PDF file through the local API's `/file/view/url` redirect. The
+  pack is in the same directory under a fixed name.
+
+  **What it changes in the chain.** C1's first link reads "extracted text
+  derives from (attachment file, extractor)". Today the extractor is Zotero's
+  flat extraction, identified only by proxy (the `/fulltext` counter and its
+  version-0 residue). The pack names its own extractor and its own input in
+  its metadata, so for a pack-sourced attachment the key becomes exact, and a
+  processor bump, the third drift constant SYNC.md watches, becomes a visible
+  staleness event instead of a silent re-extraction. Two extractor identities
+  under one key shape is what R1 and D8 already leave room for. Ruling 3 and
+  the segmenter ladder: the pack is a structure signal above the pdf.js
+  tiers, tier 0 before 0560's outline and 0561's layout heuristic, seg/1
+  last as before. The 2026-08-30 entry asks for a segmenter interface that
+  takes structure signals; this is one more kind. The pdf.js ruling asked
+  that the local API's surface be re-checked before that path is treated as
+  permanent; this entry is the re-check, and its answer is "not yet, and here
+  is the rule that makes the switch automatic when it lands". R24: a block's
+  page anchor is a real page, so D10's labeled estimate applies only to
+  flat-sourced hits, and the answer has to say which kind it is.
+
+  **Priced.** (i) The format is undocumented and internal, C2 in its purest
+  form; pack version 1 has moved zero times, and the FTS5 split shows what
+  "internal" means. The mitigation is structural: the reader refuses a pack
+  version it does not know, and the flat cache is always there, so a format
+  move degrades that attachment to today's behaviour and never to a failure.
+  `sdt_read.py` already behaves this way. (ii) License. The
+  `zotero/structured-document-text` repository carries no license file and
+  the in-tree decoder is AGPL. Writing our own reader from the shipped layout
+  is the act the 2026-08-30 awaiting entry on AGPL reimplementation leaves
+  unbounded; this is its second instance after 0031's calibration, and
+  whatever is ruled there binds here. (iii) Coverage skew until #6012 ships:
+  pack-sourced attachments are the ones the user has read, so the index is a
+  mixture, and R17's report has to count the two sources apart or the mixture
+  is unexplained and the improvement invisible. (iv) Regeneration under a
+  read. A processor bump rewrites the pack in the background; #6012 refuses
+  stale packs for this reason. Our read is one pass into the ledger, keyed by
+  source hash and processor version, so a mid-read rewrite should surface as
+  a key mismatch at the next census rather than as corruption. That is to be
+  verified by the ticket, not assumed here.
+
+  **Recommendation.** Ratify as a SHOULD, drafted for §3 as: "Where Zotero
+  holds a structured-text pack for an attachment, the extract stage SHOULD
+  index from the pack; otherwise it indexes the flat full text Zotero serves.
+  Which source an attachment came from MUST be recorded and reported." It sits
+  on R24's rung (ticket 0029), because the page anchor is what it buys the
+  user first. The pack's blocks replace the text for that attachment; do not
+  overlay pack structure on the flat cache text, which would need an alignment
+  step for no gain. The fallback is the shim path as ruled on 2026-08-30, the
+  local API's `/fulltext`, byte-identical to the cache, not a second direct
+  read of `.zotero-ft-cache`. Sequenced after 0028, per the 2026-09-01 ruling
+  that seg/1 ships first to settle integration, as tier 0 of 0557's ladder.
+
+  **Two decisions only the author can take.** (a) Whether reading an
+  undocumented internal file from disk becomes a permanent design element
+  rather than a bridge: the pdf.js ruling accepted reading the PDF, a
+  documented format, and this one Zotero may move. (b) Whether the rule lands
+  now at 2 of 13 630 or waits for #6012. For now: the two extractor
+  identities and the per-source reporting have to exist before the packs
+  arrive, and the two packs in hand are the fixtures. For later: a coverage
+  of 0,015 % buys nothing measurable today and adds a reader to maintain
+  against a format that answers to nobody.
+
+- **Documents in several languages: one work, several renderings (author's
+  six questions, 2026-09-02; brief drafted the same day, tracker ticket
+  0573).** The facts are in `bench/results/0573-lang-census.txt`, measured on
+  the author's library by `verification/probes/lang_census.py`: half the
+  records carry a language field, spelled twelve ways for three languages,
+  113 of them "EN, VN" by hand; Zotero's relation vocabulary has no
+  translation predicate (Related, `dc:replaces`, `owl:sameAs` merges are all
+  there is); 888 records hold two or more PDFs and about 200 of those hold
+  two languages, 157 English plus Vietnamese, one rendering of each indexed
+  today under D6 and the other skipped. Separate records that translate one
+  another are not counted, because nothing links them and a census cannot see
+  them without the detector proposed below.
+
+  **The concept the six questions share.** A *work* may exist in several
+  *renderings*, one per language, filed either as twin attachments under one
+  record or as separate records. The chain has no word for this; §2 would
+  gain "rendering", and every answer below is a rule about renderings.
+
+  **1. Can translated pairs judge the retriever?** Yes, and it is the standard
+  instrument for the property R29 promises. Cross-lingual retrieval is
+  evaluated in the field on parallel documents (bitext mining and CLIR
+  benchmarks): the pair is a free relevance judgment, one rendering as the
+  query, the other as the answer, both directions. Ticket 0266 gated R29 on
+  24 hand-written topics, 8 per lane; the 157 English-Vietnamese twins are a
+  parallel slice twenty times that size, already in the library, chunk-level
+  once both renderings are indexed. Two limits, stated so the number is read
+  right. It measures alignment of the embedding space on equivalent text, not
+  topical relevance to a question a user would ask, so it is a gate beside
+  0029's golden cross-lingual slice and never in its place. And it leaks
+  unless the record's fields are masked: both renderings share one title and
+  abstract, so a record-level hit proves nothing; the slice runs on body-text
+  passages only. Recommendation: add the parallel slice to 0029's cross-lingual
+  gate, reported per direction (en→vi, vi→en), hit@10 at document level and
+  at passage level.
+
+  **2. Dedup from top-k and pad?** Yes, before the cut and only on declared
+  relations. R24 already rules deduplication per section and forbids one
+  document crowding the pool before dedup, so the pool is wider than k and
+  padding is how R24 works today; renderings join that rule as one more
+  collapse: the renderings of one work are one answer row, the best-scoring
+  rendering is the hit, the others are alternates on the row. The condition
+  is that the relation is *known*: twin attachments under one record, or a
+  declared relation between records (question 4). Collapsing on a similarity
+  guess at query time is the silent plausible error the design guards against
+  everywhere else; two records nobody linked stay two rows.
+
+  **3. How to present?** One row per work, the matched rendering first, the
+  other renderings listed with their language and key, e.g. `also in: vi
+  (ITEMKEY)`. The rendering shown is the one that scored, not the one in the
+  query's language, because ranking stays relevance-only (§3, out of scope,
+  "recency orders coverage, not answers"): a French query may well match the
+  English rendering best, and hiding that behind the French one would present
+  a worse hit as a better one. The consumer is an agent, so the row carries
+  the renderings as structured fields; the agent decides what to show a human.
+
+  **4. Detect and autotag translations? And which is the original?** Detect
+  yes, as a report; write into Zotero never; the original by the user's
+  declaration, in a convention Zotero already understands. Detection is cheap
+  and reliable enough to propose candidates: same authors and year, titles
+  whose multilingual embeddings sit above a threshold, bodies whose passage
+  alignment (question 1's instrument) is high. It is not reliable enough to
+  write a relation into the user's library, and the design has no channel
+  for it: the local API is read-only, C1 makes everything zoteus holds
+  derived data, and Zotero is the system of record. So the tool is
+  `find_translation_candidates`, listing pairs with a confidence and the
+  evidence, and the user confirms in Zotero. The confirmation has a home
+  without any new field: Zotero's Extra field carries CSL variables, and CSL
+  defines `original-title`, `original-date` and `original-publisher`; a
+  translated record declares `original-title: …` (and the date) in Extra and
+  a Related link to the original. zoteus reads both signals; the record with
+  the `original-*` lines is the translation, the linked one is the original,
+  and a Related link with no `original-*` on either side is a pair of
+  renderings with no original declared, which is still enough for questions 2
+  and 3. Inferred but unconfirmed pairs may be stored as derived data with
+  their confidence and surface as "possibly a translation of" on the row;
+  they never collapse rows. Autotagging would also normalize the language
+  field, whose twelve spellings are the user's own; the index normalizes the
+  value it stores (BCP-47) and leaves the field alone.
+
+  **5. Create translations?** No. The chain already rules it: query
+  translation is out, "no translation service and no local translation model
+  joins the default path" (§3 out of scope; R10 locality; ruling 2026-08-31
+  on R29). Document translation is the same thing at a larger scale, plus a
+  writer into the library, plus a job that is not search. The agent consuming
+  zoteus already translates what it reads, on demand and in the user's
+  language; zoteus returns the text and says which language it is in. The
+  ecosystem has plugins for translating documents (`verification/FIELD-REVIEW.md`
+  names one); that is where the capability belongs.
+
+  **6. Two attachments in two languages under one record: autosplit?** No;
+  index both. The 157 records are one work filed once, and the 113 "EN, VN"
+  language values say the author means it. Splitting would write into the
+  library (the objection of question 4) and destroy a relation the user
+  expressed by filing. What is wrong today is D6: *first-with-text* indexes
+  one body per record, so 200 second-language bodies are outside the index,
+  and a Vietnamese query cannot find the Vietnamese text of a bilingual
+  record, against R7's plain reading. Recommendation: amend D6 to
+  *first-with-text per language*: every attachment whose language differs
+  from the ones already indexed for that record is indexed as a rendering;
+  same-language twins keep D6's skip and its recorded reason. This needs a
+  language identifier per attachment on the extracted text (a small,
+  license-clean detector; the item's language field cannot say which
+  attachment is which), stored as derived data under C1. The same field gives
+  R17 a per-language coverage count, which R7's lanes have no instrument for
+  today, and would give R5 a language scope for free; neither is asked for
+  here, both fall out.
+
+  **What ratifying this changes.** §2 gains "rendering"; D6 is amended;
+  R24's dedup clause names renderings; §5.2.6 states the collapse and the row
+  shape; 0029's gate gains the parallel slice; two tools are specified
+  (`find_translation_candidates`, and the `also in` fields on a hit); and the
+  Extra `original-*` plus Related convention is documented as what zoteus
+  reads. Nothing here writes to Zotero, nothing translates, and nothing
+  collapses two rows on a guess. Ticket 0573 tracks it and files the children
+  once ruled.

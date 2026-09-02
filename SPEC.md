@@ -499,9 +499,11 @@ give one hit.
 
 A full-text hit leads to its page; an estimated page number MUST say it is an
 estimate, per D10; and the primary locator MUST be the entry heading, per ruling
-1. As that ruling amends it — D9 dissolved — deduplication is per section, and a
-single document MUST NOT crowd other items out of the candidate pool before
-deduplication happens. When many returned hits come from one document, the
+1. Where the text came from Zotero's structured-text pack (§5.2.4), the page is
+the block's own anchor and is not an estimate; the answer says which kind it
+is. As that ruling amends it — D9 dissolved — deduplication is per section,
+and a single document MUST NOT crowd other items out of the candidate pool
+before deduplication happens. When many returned hits come from one document, the
 result says so.
 
 **R33. Modes.** Exact-word search, meaning-based search, and the two combined
@@ -727,7 +729,10 @@ upstream project, and the user's machine that the design must operate under.
 
 The index stores derived data only, in a chain of three links:
 
-1. extracted text derives from (attachment file, extractor);
+1. extracted text derives from (attachment file, extractor), where the
+   extractor is one of two identities: Zotero's flat extraction, or its
+   structured-text pack, which names its own processor version and source
+   hash in its metadata (§5.2.4);
 2. chunks derive from (extracted text *or* item metadata, chunker identity
    and geometry), where the heuristic segmenter's identity folds into the
    chunker key, per the boundary ruling (§3's third foundational rule);
@@ -808,11 +813,16 @@ This constraint is sharpened on five points:
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. SPEC.md §5.2.6 owns the conditional fallback and the
   threshold experiment X4 measures; it is never the default path.
-- If the local API ever serves structured extraction, the SDT pack
-  (zotero/structured-document-text) is the concrete thing to adapt to: a
-  random-access container with a reader contract
+- The SDT pack (zotero/structured-document-text) is the structured
+  extraction the extract stage reads when one exists (§5.2.4). The local API
+  neither serves nor creates it; it is read from disk beside the attachment,
+  a random-access container with a reader contract
   `{byteLength, read(offset,length)}`, describing itself with exactly the
-  key shape of C1. Zotero's own chunker splits on structural boundaries,
+  key shape of C1. In the shipped 10.0 build only the reader writes one, so
+  a pack exists for what the user has opened, 2 of 13 630 attachments on the
+  reference library (`bench/results/0007-sdt-probe.txt`); the platform's own
+  embedding branch generates one per embedded attachment, which is when
+  coverage becomes library-wide. Zotero's own chunker splits on structural boundaries,
   measured in tokens, and embeds the heading path with the text. Two details
   of it are easy to state wrongly, and both were, so they are stated here in
   the platform's terms (read at PR head `77e2c4b`, 2026-08-29).
@@ -1411,6 +1421,23 @@ is lost in today's chunker rather than in transport, and the extract stage
 carries those signals through from day one. A later extractor can replace the
 shim without moving the ledger boundary or touching the stages downstream.
 
+**Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
+first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
+file, reached through the same `/file/view/url` redirect the segmenter uses
+for the PDF. A pack of a known pack version is the source: its blocks are the
+text, excluded flows (running heads, page numbers) dropped, joined so a
+passage's extent maps back to its blocks; its block types and page anchors go
+to the segmenter as the first structure signal; its metadata's source hash and
+processor version are the C1 key, so a processor bump is a visible staleness
+event. No pack, or a pack version the reader does not know, or a pack cut
+short, and the source is the flat text over `/fulltext` exactly as above,
+never a direct read of `.zotero-ft-cache`. The pack never overlays the flat
+text; one attachment has one source, recorded in the ledger and counted in
+R17's report, so the mixture the reader-only trigger produces today is
+disclosed rather than discovered. The pack's format is internal and unversioned
+in any public sense (C2), which is why the fallback is structural: a format
+move degrades that attachment to the flat path, never to a failure.
+
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to an
 equality comparison, and on a never-synced library that could be *every* entry.
@@ -1590,7 +1617,10 @@ artifact — ledger rows, slabs, entries, passages, FTS, the vector sidecar —
 is written by the conductor and by nothing else. It runs seg/1 (§5.2.2) as a
 streaming state machine over the text windows the worker forwards: it closes
 entries at structural boundaries — a book into chapters, the dictionary into
-entries, proceedings into presentations — cuts the passages inside each entry
+entries, proceedings into presentations — taking its structure signals in
+order: the pack's block types and page anchors when the source is a pack
+(§5.2.4), the PDF's own outline and layout otherwise, seg/1's heuristic last —
+cuts the passages inside each entry
 as deterministic token windows over text it is already holding, and commits
 slab, entry and passage rows as entries close. Peak memory is one window plus
 the segmenter's own state, which is the streaming property C3 already
