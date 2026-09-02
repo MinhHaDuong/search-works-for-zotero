@@ -3256,11 +3256,14 @@ are found in the admitted archives instead.
 **5. The Vietnamese slice is rebuilt from admitted archives.** Verified at
 source the same day. Vietnamese Wikisource holds transcriptions of Truyện Kiều
 (Trương Vĩnh Ký edition, 1911), Việt Nam sử lược, Lục Vân Tiên and Đại Việt sử
-ký toàn thư, all with permanent revision ids, and 3 944 legal-text hits
-including Official Gazette issues and circulars of both ministries the slice
-used (TT-BTNMT 08/2009, 48/2011, 39/2015, 12/2024; TT-BCT 23/2015, 43/2020,
-17/2021, 13/2024, 12/2025) — none of the four dropped documents, but siblings
-under the same statutory exclusion. HAL holds 183 Vietnamese-language records,
+ký toàn thư, all with permanent revision ids, and the 1992 constitution, whose
+official English text sits on English Wikisource. It holds no ministerial
+circular as text: the search hits that first read as circulars of both
+ministries were Official Gazette table-of-contents scans naming them, checked
+three ways on the sourcing run of the same day (a first draft of this entry
+said otherwise and was corrected before ratification). So no sibling replaces
+the four dropped documents; the Vietnamese administrative register is the
+constitution. HAL holds 183 Vietnamese-language records,
 mostly 2022–2025 books, articles and communications. Gallica's fonds
 indochinois holds about 10 000 quốc ngữ documents from the 1922–1954 legal
 deposit and Abel des Michels' bilingual VN/FR editions of Lục Vân Tiên
@@ -3269,7 +3272,9 @@ deposit and Abel des Michels' bilingual VN/FR editions of Lục Vân Tiên
 published before 1936, Bonet's Dictionnaire annamite-français (1899) among
 them. Wikimedia Commons holds scans of Việt Nam sử lược and of the 1651
 Dictionarium Annamiticum Lusitanum et Latinum. English Wikisource holds the
-Vietnamese constitutions of 1946 to 2001. R29's anchors thus grow from one
+Vietnamese constitutions of 1946 to 2001. HAL and Gallica answer scripted
+clients with a challenge page (Anubis, ALTCHA), so their entries are pinned
+by a browser fetch rather than by the script. R29's anchors thus grow from one
 bilingual decision to three shapes: a FR–VN scan, EN–VN official texts, a
 VN–FR dictionary. Cautions recorded: the 1922–1954 deposit is not public
 domain by age, so each author's death date is checked; Internet Archive's
