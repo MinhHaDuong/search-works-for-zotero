@@ -208,9 +208,10 @@ accept.
 
 ## Goal 1 — I can install it and take it off again
 
-Nothing leaves this machine unasked, one obvious switch stops the work, deleting
-the data directory is the whole uninstall, and a configuration proves it runs
-here before it is used. Lowest rung because its assertions need no corpus, no
+Nothing leaves this machine unasked, one obvious switch stops the work,
+uninstall removes every declared piece of derived state and leaves no
+undeclared residue, and a configuration proves it runs here before it is used.
+Lowest rung because its assertions need no corpus, no
 build and no library: they are decidable the moment the system is installed.
 
 `●◐○○` &nbsp; 4 in the bundle · 1 rest on something that ran
@@ -218,7 +219,7 @@ build and no library: they are decidable the moment the system is installed.
 | | the clause goal 1 binds | decided at | where its test would live |
 |---|---|---|---|
 | R10 | my library text and my queries stay on this machine without an opt-in | both | [`bench/smoke_upstream.py`](bench/smoke_upstream.py) |
-| R15 | deleting the data directory is the whole uninstall | both | ticket 0017 |
+| R15 | uninstall removes every declared piece of derived state and leaves no undeclared residue | both | ticket 0578 |
 | R22 | one obvious way to stop all background work, holding across restarts | both | ticket 0033 |
 | R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | ticket 0488 |
 
@@ -388,7 +389,7 @@ demonstrated. They are not the same kind of statement.
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
 | R10 | Without an explicit opt-in, my library text and my queries MUST NOT leave this machine | ratified | shipped | measured | The default embedder is local, the model cache sits under the data directory, and the one API key that used to travel in a URL now travels in a header. Asserted against a running server rather than read: `bench/smoke_upstream.py` checks that effective embeddings resolve local and the embedder is active (`bench/results/smoke-1.12.0/checks.json`). A build pins its own transport once and fails rather than re-routing, so this stays about the embedder — see the neighbouring read-transport-fallback paragraph in `SPEC.md` §6 for the narrower, separate gap on the live-routed metadata surface. Closed as ticket 0017. |
-| R15 | Deleting an item MUST remove its text everywhere, and deleting the data directory MUST be the whole uninstall | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The uninstall clause merged in on 2026-08-31 is measured and partial: `bench/smoke_upstream.py`'s `R15-model-in-data-dir` check (filed against the since-retired R28, relabelled 2026-09-01) found the downloaded model does not escape the data directory, observed on a build that actually downloaded one, and nothing has swept for other survivors. Ticket 0017. |
+| R15 | Deleting an item MUST remove its text everywhere. The target MUST declare every location in which it creates derived state. After uninstall, none of that state may remain, and no target-created derived state may exist outside the declaration | ratified | partial | inferred | Deletion reconciles against the key set, so a deleted item loses its rows; that every queue and every stage lose it too is design, not yet code. The prior model-cache check found one zoteus path stayed inside its data directory, but no target has been exercised through the target-neutral uninstall contract or the broader residue inventory. Ticket 0578. |
 | R22 | There MUST be one obvious way to stop all background work, and it MUST hold across restarts | ratified | none | code | Verified absent: there is no pause. Scoped issue A, ticket 0033. |
 | R23 | An index written under a different schema version MUST end up serving, in either direction, without anyone deleting files by hand | ratified | partial | measured | The schema stamp is read before the file is opened writable, which is the half that prevents damage, and that half now holds under test: `bench/smoke_upstream.py` restamps a copy of a real index in both directions and finds the original preserved byte-for-byte and never served (`bench/results/smoke-1.12.0/checks.json`). Serving in both directions is still design — no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS` is empty. Issue #34 softened the cost of that rather than closing it: a rebuild against a sidelined older-stamp file salvages vectors for any passage whose text is unchanged, observed directly on this run, so "abandoned" describes what is served — nothing, until a rebuild — not what a rebuild then costs. |
 

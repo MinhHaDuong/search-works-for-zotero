@@ -8,6 +8,7 @@ Blocked-by: 0029
 2026-09-02T10:52Z claude created
 
 2026-09-02T11:57Z claude note This rung's assertions inherit the target interface once the 2026-09-02 ruling is ratified (DECISIONS.md, awaiting): phrased over the interface verbs and an adapter-declared surface, never a tool's file layout. Nothing here changes before that.
+2026-09-02T14:38Z codex note The ratified target interface and judge question protocol now govern this rung: shared query assertions use adapter-declared surfaces, with semantic verdicts schema-recorded against versioned rubrics and blinded fail-controls.
 --- body ---
 
 ## Context

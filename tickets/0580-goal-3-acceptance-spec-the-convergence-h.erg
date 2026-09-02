@@ -8,6 +8,7 @@ Blocked-by: 0566
 2026-09-02T10:52Z claude created
 
 2026-09-02T11:57Z claude note This rung's assertions inherit the target interface once the 2026-09-02 ruling is ratified (DECISIONS.md, awaiting): phrased over the interface verbs and an adapter-declared surface, never a tool's file layout. Nothing here changes before that.
+2026-09-02T14:38Z codex note The ratified target interface now governs this rung: shared assertions use adapter-declared surfaces, and convergence is observed after fixture changes rather than commanded or nudged.
 --- body ---
 
 ## Context

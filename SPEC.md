@@ -579,17 +579,19 @@ model-weight download is the sole exception, and it is named rather than
 discovered: an exception a user has to find out about is not an exception, it is
 a surprise.
 
-**R15. Deletion.** Deleting an item MUST remove its text everywhere, and
-deleting the data directory MUST be the whole uninstall.
+**R15. Deletion.** Deleting an item MUST remove its text everywhere. The target MUST declare every location in which it creates derived state. After uninstall, none of that state may remain, and no target-created derived state may exist outside the declaration.
 
 Deleting an item removes its text from every stage's store and from the queues
 between them, not merely from search results — text that survives in a queue
 comes back. Deleting means what the platform shows: an item moved to the trash
 has left the search perimeter, per ruling 4, so removal fires at trashing, and
 emptying the trash later changes nothing the index can see; R35's minute starts
-at the same event. At the other scale, index state, queues, watermarks and downloaded
-models MUST NOT survive anywhere outside the data directory, so removing that
-directory removes the system.
+at the same event. At the other scale, index state, queues, watermarks,
+downloaded models and generated caches are target-created derived state. Every
+location in which they can exist is declared, the target's real uninstall
+surface removes them, and a residue inventory checks that the declaration is
+complete. User-authored library data and externally supplied configuration are
+not derived state.
 
 **R22. Pause.** There MUST be one obvious way to stop all background work, and
 it MUST hold across restarts.
@@ -695,7 +697,7 @@ words. Every requirement here sits on exactly one rung.
 
 | | the goal, in the user's words | why it sits there |
 |---|---|---|
-| 1 | **I can install it and take it off again.** Nothing leaves this machine unasked, one switch stops the work, deleting the data directory is the whole uninstall, and a configuration proves it runs here before it is used | its assertions need no corpus, no build and no library — they are decidable the moment the system is installed |
+| 1 | **I can install it and take it off again.** Nothing leaves this machine unasked, one switch stops the work, uninstall removes every declared piece of derived state and leaves no undeclared residue, and a configuration proves it runs here before it is used | its assertions need no corpus, no build and no library — they are decidable the moment the system is installed |
 | 2 | **It does not lose or corrupt what it built.** Staying current costs what changed, two processes on one data directory neither corrupt nor duplicate, and an index under another schema version ends up served | needs a built index but not a good one, and a build that cannot survive its own second day never reaches the rungs above |
 | 3 | **It answers, and it is honest about what it has.** Coverage converges unattended and finishes inside its bounds, the index answers while still filling, and it says how much is behind an answer and which emptiness an empty one is | the first rung a user can actually use, and the last one that can be judged without asking whether the answers are any good |
 | 4 | **It finds the right thing, in my languages, and I can open it.** Three modes, the pinned answer inside the first ten, three languages with the lanes connected, and a hit that opens at its page | where it stops being an index and becomes search; every promise here is about the answer rather than the corpus |
@@ -2153,15 +2155,50 @@ ships the read-before-write + sideline slice via PR #25, but not the
 conductor rule or `min_reader_version`) are unreachable by it; the new
 filename (§5.1) is what actually protects against them.
 
-**R15's uninstall clause.** Pin `env.cacheDir` under the data directory before
-constructing the pipeline (the transformers default lands outside it, per
-its documentation: documentation-cited, not disk-verified, and the fix is
-correct regardless). Uninstall = delete the data directory; `purge` +
-uninstall = byte-clean. D2 hosted-out deletes, explicitly: per-tenant
+**R15's uninstall clause.** The zoteus adapter declares its data directory as
+derived state and pins `env.cacheDir` under it before constructing the pipeline
+(the transformers default lands outside it, per its documentation:
+documentation-cited, not disk-verified, and the fix is correct regardless).
+Its real uninstall surface removes that declaration; `purge` is maintenance,
+not a substitute the harness may call to manufacture a clean result. D2
+hosted-out deletes, explicitly: per-tenant
 contract keying, multi-tenant consent bookkeeping, encryption-at-rest,
 quota arithmetic; the four returned privacy lines stay dead.
 
 #### 5.2.8 The instrument panel
+
+**The target-neutral acceptance harness.** One assertion layer runs against
+thin adapters for zoteus, Zotero core #6012, ZotSeek, 54yyyu/zotero-mcp and
+Beaver. The interface is `install`, `uninstall`, `configure`, `query`,
+`status`, `pause`, `resume`. Pause and resume are the two transitions of one
+durable background-work control; resume is idempotent and never forces a
+rebuild, refresh, repair or sync. Starting and stopping a target process are
+adapter-declared harness setup, not indexing controls. The harness changes its
+fixture library and observes convergence through status; it never commands or
+nudges convergence, since that cannot prove R1's unattended clause.
+
+An adapter declares every derived-state location, the query transport, process
+startup and shutdown, the target's default configuration and unsupported
+interface verbs. It contains only the minimal transport needed to invoke those
+surfaces: no patch or workaround, non-default option, access unavailable to the
+target's users, or result scoring. An unsupported verb reports `not-offered`,
+distinct from pass, fail and not-run. ZotSeek's seat stays assigned to the
+in-process-plugin architecture class if that project becomes uninspectable or
+unrunnable. Beaver runs at a pinned AGPL plugin revision in its normal
+configuration; an unavailable service or permitted account reports not-run.
+A deterministic egressing stub is R10's fail-control.
+
+Meaning is judged only for R17's human status answer, R18's two kinds of empty
+answer, golden relevance and R24's page attribution; every mechanically
+decidable clause stays mechanical. For each judged clause the harness emits an
+immutable question carrying the clause, a versioned rubric, target output,
+evidence and a blinded fail-control. The schema-checked answer records verdict,
+rationale, judge and model identities, runtime, timestamp and rubric hash, and
+is valid only if the judge rejects the control. The supervising agent is the
+default interactive driver; hosted APIs with operator-local credentials and
+padme's Qwen 3.8 are unattended drivers. Credentials never enter the repository
+or result artifact. `bench/models.json` remains exclusively the embedder
+registry.
 
 **The coverage sentence** (D1 denominator = items; metadata-only covered
 with reason; sections only ever the partial qualifier). The partially

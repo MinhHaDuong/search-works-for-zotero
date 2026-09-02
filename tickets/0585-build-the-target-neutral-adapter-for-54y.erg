@@ -1,0 +1,34 @@
+%erg 0.1
+Title: Build the target-neutral adapter for 54yyyu zotero-mcp
+Created: 2026-09-02
+Author: codex
+Blocked-by: 0578
+
+--- log ---
+2026-09-02T14:37Z codex created
+
+--- body ---
+## Context
+
+The ratified target-neutral harness includes `54yyyu/zotero-mcp` alongside
+zoteus. Both are external servers using Zotero's local API, so this target asks
+whether the interface transports between independent implementations of the
+same architecture class rather than only across classes.
+
+## Actions
+
+1. Pin the tested zotero-mcp revision and reproducible default setup.
+2. Declare derived state, query transport, process lifecycle, default
+   configuration and unsupported interface verbs.
+3. Add only minimal transport code, with no option or access unavailable to an
+   ordinary user, and run the shared assertions unchanged.
+4. Compare adapter declarations rather than target behavior with zoteus to
+   identify accidental coupling in the interface.
+
+## Exit criteria
+
+- [ ] pinned zotero-mcp revision and reproducible target setup
+- [ ] adapter passes ticket 0578's declaration-only contract checks
+- [ ] shared assertions contain no zotero-mcp-specific branch
+- [ ] every interface verb yields pass, fail, not-offered or not-run
+- [ ] `make check` and `erg check tickets/` pass
