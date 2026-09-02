@@ -71,9 +71,9 @@ the entry points at the question rather than settling it.
   equality. Authoritative: SPEC.md §5.2.4.
 - **conductor** — the writer process: a process of its own rather than a role
   a query-serving server takes on, elected through a lease row, that is the
-  sole writer and the segmenter, runs the reconcile tick, and owns the single
-  pipeline worker, so the pipeline budget does not multiply with the number of
-  servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
+  sole writer of derived state and the segmenter, runs the reconcile tick, and
+  owns the single pipeline worker, so the pipeline budget does not multiply
+  with the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
   (ruling: DECISIONS.md 2026-09-02).
 - **embedding service** — the one process on the machine that holds an
   embedder, called by every server for queries and by the pipeline worker for
@@ -81,7 +81,8 @@ the entry points at the question rather than settling it.
   process; under the API execution mode it holds the key and the provider's
   quota instead of a model. Authoritative: SPEC.md §5.2.5, which owns its
   shape, its degradation rule and the API mode's constants (rulings:
-  DECISIONS.md 2026-09-02).
+  DECISIONS.md 2026-09-02); which process hosts it is open, and SPEC.md §5.3
+  owns that question.
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
@@ -169,10 +170,11 @@ the entry points at the question rather than settling it.
   Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
   over Vietnamese content and still have no path from an English one.
   Authoritative: SPEC.md R7.
-- **P0 / pipeline worker** — the query-serving zoteus server may have several
-  instances; exactly one, the elected *conductor*, is the sole writer and the
-  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
-  text, embeds, and writes nothing. Authoritative: SPEC.md §5.2.5.
+- **P0 / pipeline worker** — P0 is the query-serving zoteus server, of which
+  several instances run: each is a reader, and what it writes is control rows
+  only. The *pipeline worker* is the single run-to-drain worker the *conductor*
+  owns, which fetches text, calls the *embedding service*, and writes nothing.
+  Authoritative: SPEC.md §5.2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: SPEC.md §5.2.2.
 - **priority tree** — the single ordering the conductor schedules by, from
@@ -911,8 +913,9 @@ everything: foreground always beats background.
 - server steady-state RSS ≤ ~750 MB (the original figure was against an
   English-embedder picture, and R7 outranks it)
 - pipeline worker peak ≤ ~750 MB regardless of document size (the original
-  figure predates the multilingual requirement, and under the sole-writer
-  topology the worker is the model plus one batch)
+  figure predates the multilingual requirement, and the worker's peak is now one
+  token-budget batch plus the streamed decode, the model residing in the
+  embedding service, so the ceiling awaits re-pin per SPEC.md §5.2.9)
 - pipeline worker killable/restartable at any time with zero index damage
 
 The server ceiling binds per process, the scope its gate can assert; SPEC.md
@@ -1538,7 +1541,8 @@ separation this section now states). Four process roles appear below: P0, a
 query-serving zoteus server; the *conductor*, the writer; one *pipeline
 worker*, which fetches, drives the embedding service, and writes nothing; and
 the *embedding service* above.
-Only the conductor writes, and it is the only role that ever did.
+The conductor is the sole writer of derived state: slabs, entries,
+passages, vectors, the ledger. A server writes control rows and nothing else.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
 default data directory (verified). Every P0 answers queries, as a WAL reader on
@@ -1698,10 +1702,11 @@ of work orders, in both directions — returning records drain into the same
 bounded append-fsync-commit loop that bounds the windows, never into a
 queue ahead of it.
 
-**The handshake crosses the pipe** (R31). The model loads in the worker, so
-the requested and actual fingerprint, dimension, runtime, execution provider
-and local-validation standing arrive with the first record of every dispatch,
-and the conductor rejects a mismatch before writing a vector.
+**The handshake crosses the pipe** (R31). The model is resident in the
+embedding service, which answers every embed call with the requested and actual
+fingerprint, dimension, runtime, execution provider and local-validation
+standing; the worker carries that answer home with the first record of every
+dispatch, and the conductor rejects a mismatch before writing a vector.
 
 Safety never depends on the singleton: during a handover two P0s can each
 believe they are conductor, so every record commit carries the guard **in the
@@ -2064,8 +2069,9 @@ the two outcomes apart.
   green by right.
 - **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
-  the band cap are exercised. Assert: pipeline-worker peak ≤ 750 MB (the one
-  run-to-drain worker), server p95 ≤ 750 MB, the
+  the band cap are exercised. Assert: the kill of the one run-to-drain pipeline
+  worker at its memory bound rather than a pipeline-worker peak ≤ 750 MB, the
+  peak figure awaiting the re-pin §5.2.9 owns, server p95 ≤ 750 MB, the
   budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from the budgets' letter ("against the 44,9 MB dictionary", content
@@ -2226,8 +2232,9 @@ is the pattern, and it binds every surrogate here, not only that one.
 **R13 observability**: a server reports the pipeline's state as it reads it
 from the file rather than as something it is doing, since 2026-09-02 no
 server ever runs the pipeline. `pipeline: "held-by-other"` keeps its meaning
-for the one process that can hold it and does not: a writer that has lost the
-lease says so instead of silently duplicating work.
+with the conductor as the process that holds it: a server reads the conductor's
+lease and liveness rows and reports the pipeline as held elsewhere, rather than
+reading its own idleness as an idle pipeline.
 
 #### 5.2.9 Budgets, recomputed and honestly scoped
 
@@ -2362,12 +2369,13 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is a measured failure.
-- **Budget scoping under N processes** — open: per process, or per machine.
-  Both figures are stated in §5.2.9.
+- **Budget scoping under N processes** — the scope is settled in §5.2.9: each
+  ceiling binds per process, which is the scope its gate can assert, and the
+  model's residency is machine-scoped now that one service holds it. What stays
+  open there is the re-pin of the three ceilings the topology re-cut.
 - **Autonomous embedding service — architectural direction, open ownership.**
-  The interface seam and its future `local_endpoint` execution mode are
-  committed in §5.2.5; implementing a daemon in zoteus is not. Under
-  comparison: the in-process default against Zotero #6012 runtime reuse
+  The out-of-process service and its `local_endpoint` mode are ruled in §5.2.5;
+  which process hosts it is not. Under comparison: Zotero #6012 runtime reuse
   (probe 0496), a bundled child, a per-user service, an external
   OS/community facility, and the two network candidates — the GPU-host
   remote embedder (DECISIONS.md 2026-09-01) and the commercial API
@@ -2439,6 +2447,16 @@ constant with better signage: designed around, not away, and named so the
 author can choose to tighten it. *Falsifier:* none needed, because the risk
 is organizational. The mitigation is that every gate threshold cites the
 artifact that justifies it, so re-pins and waivers leave evidence.
+
+**Risk 6 — the writer split rests on a child spawn nobody has verified.** A
+server hosted under Electron, which is the shape of the host population, sees
+`process.execPath` as Electron, and a spawn without `ELECTRON_RUN_AS_NODE` or
+its equivalent launches a GUI instead of a Node process. The isolation the
+separate conductor and worker buy exists only if that spawn works, and nothing
+has verified it on the hosts that matter. *Falsifier:* a spawn probe on the
+host application, an hour, before the process boundary is committed in code;
+the probe is also the mitigation, since its answer is either an environment
+flag that works or a topology that needs no child.
 
 ---
 
@@ -2526,7 +2544,10 @@ inside the data directory, chosen over a localhost port because a port lets
 any local process impersonate the service to a server while echoing the
 expected fingerprint (§5.2.5). What that socket inherits is the file's
 permissions, which is the same "none yet" as the database file's, now on a
-live endpoint. What is not stated: any authentication beyond that, and the
+live endpoint. A second property of that choice is disclosed and not decided:
+macOS caps the length of a Unix domain socket path, and the default data
+directory is long enough that the cap is a known hazard for where the socket
+can be placed. What is not stated: any authentication beyond that, and the
 whole of the Windows answer, since `nice`, `SIGSTOP`, stdin-EOF and Unix
 sockets are POSIX assumptions and the host population is Claude Desktop on
 macOS and Windows.
@@ -2608,7 +2629,11 @@ sets are the author's own research questions.
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
 | Inter-process transport and authorization | Conductor/worker stdio pipe; embedding service on a Unix socket in the data directory with the file's permissions, no further authentication; Windows unanswered (§5.2.5) |
 
-Four of the nine rows state an absence rather than an answer. That is the honest state of the design,
+Three of the nine rows answer "None yet" outright, and three more state an
+answer carrying a named gap inside it: the unverified absence of a network
+listener, the still-open question of passage text and query sets in this
+repository, and the missing authentication and Windows answers for the
+inter-process hops. That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
 defect to fix here.
 

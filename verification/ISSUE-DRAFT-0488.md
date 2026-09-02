@@ -29,8 +29,8 @@ default.
    are exposed and whether the default should ever change.
 
 The query/passage interface should remain transport-neutral: the install
-default is `in_process`, while the same registry entry can later be served by a
-`local_endpoint`. This issue does not require a daemon. Whether that shareable
+default is `local_endpoint`, one embedding service per machine serving the same
+registry entry to every client. This issue does not require a daemon. Whether that shareable
 service belongs in zoteus, in an optional companion, or in the OS is a separate
 design discussion that must not block this registry. Zotero #6012 already owns
 a separate native inference process internally; if Zotero later exposes an
