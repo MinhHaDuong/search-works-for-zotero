@@ -8,6 +8,7 @@ Blocked-by: 0028
 2026-09-01T13:31Z claude created
 2026-09-01T13:41Z claude note sequencing ruled by the author (session, 2026-09-01): seg/1 (0028) ships first, as a simple flat-text segmenter, specifically to solve integration -- chunk keys, confidence/synthetic-fallback plumbing, X5 -- so the seven children here have something real to build on rather than integrating twice. This tracker and every child are Blocked-by 0028; nothing here starts before 0028's exit criteria are met.
 
+2026-09-02T06:58Z claude note the author's 2026-09-02 idea, drafted as an awaiting entry in DECISIONS.md and ticket 0572: Zotero's own structured-text pack (.zotero-sdt-cache), when present, is a structure signal ABOVE this ladder, tier 0 before 0560's outline and 0561's layout heuristic. Nothing here changes until that entry is ratified; if it is, child 0564's selection rule gains a first branch. Availability today is 2 packs on 13 630 caches (reader-only trigger, at source); #6012 would make it library-wide.
 2026-09-02T07:40Z claude note X5 now measures the PDF path's layout tier, not only seg/1 (DECISIONS.md 2026-09-02): the outline tier must be switchable off per document so the outline can serve as ground truth, and the scorer locates a cut's page through pdf.js. SPEC.md 5.2.2 carries a first paragraph on this path; the children here own whatever more the section needs
 --- body ---
 ## Context

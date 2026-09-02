@@ -2883,7 +2883,411 @@ the cheap one. Root cause of the whole class, for whoever writes the next
 entry: `erg log` reads the real clock and cannot produce a future stamp. These
 were typed by hand.
 
+**2026-09-02 — the writer leaves the query process, the fetcher stays its own,
+and the model is loaded once on the machine.** Three boundaries ruled in one
+sitting, from a conversation that started at the MCP surface and ended at the
+topology. They are recorded as three entries because they are separable and
+their justifications share no premise.
+
+**A — the conductor is its own process.** The write role — the reconcile tick,
+seg/1, every durable write, worker supervision — leaves the query-serving
+server. A P0 becomes a reader that cannot write, so the write-free query path
+stops being a discipline and becomes a property of the binary. The writer keeps
+the shape the role already had: spawned on demand, singleton held by the lease
+row, run-to-drain, exiting on pause, dying with the last P0. It is not a
+daemon, and the OS-facility question stays closed.
+
+`verification/SOLE-WRITER-0507.md`'s F2 named this move and SPEC.md §5.2.5 and
+§5.2.8 pre-authorized it — "the pre-authorized fallback is a dedicated writer
+process, not a re-ruling" — conditioned on the conductor-latency soak clause
+failing R6. It is ruled here on two motives that clause does not cover, so the
+pre-authorization is not what carries it.
+
+- **Fault isolation.** Upstream's #37 is the only live item on `SYNC.md`'s
+  tracker: a full-text build takes the server process down partway through
+  under Claude Desktop, cause unknown by the maintainer's own account,
+  mitigated by a hard refusal of the full-text pass under Electron. Splitting
+  cures no cause nobody has; it demotes a build crash from a search outage to a
+  pipeline outage — queries keep answering, status reports the pipeline down.
+  That benefit needs no diagnosis, which is why it can be ruled while the cause
+  is open.
+- **Structural write-freedom**, the conversion this repo has already valued
+  once in F5's terms: an instruction becomes a verified property.
+
+The soak's conductor-latency clause is demoted from trigger to confirmation.
+That is also the only order the work admits: the clause needs a built
+conductor, and ticket 0566 — which assembles tick, election, extract and
+chunk/embed into one runnable process — is where the boundary gets written in
+code. Ruling after the soak would mean building the fused form in order to take
+it apart.
+
+One clause deletes rather than moves: §5.2.5's fairness rule *inside* the
+conductor — the write loop stating the activity file and idling while it is
+fresh — existed only because one process both served and wrote. It collapses
+back onto the cross-process case, which already existed. One cost returns: the
+third process F2 priced. The lease survives in a simpler form, electing among
+writer candidates rather than among servers.
+
+**B — the pipeline worker stays a separate process, and its justification
+moves.** The boundary was defensible while the worker held the passage
+embedder; under C it no longer is, and it is ruled kept on what remains. F5's
+incremental decode of the 44,9 MB attachment is the design's other memory risk
+and it lives in the fetch path; fetch failure — the dropped connection, the
+truncated response, ticket 0569's family — is what a crash boundary is for. The
+2026-08-26 budget line, the embed worker killable and restartable at any time
+with zero index damage, survives in substance and is restated on the fetcher.
+
+**C — one copy of the model on the machine, per embedder generation.** This
+reverses the 2026-08-31 ruling recorded in `verification/SOLE-WRITER-0507.md`
+("it does not re-open the query embedder's location: in-process, per the
+author"). The reversal, not a gap, is what this entry records.
+
+The count today is not two but N+1: every P0 loads the query embedder
+in-process on first semantic use and the pipeline worker loads the same model
+for passages, so two MCP clients and a running build hold three resident
+copies. The seam moves out of process — `provider: local_endpoint`, which
+§5.2.5 already admits — as one shared singleton, spawned on demand and
+idle-exiting, the shape ruled for the writer in A and chosen for the same
+reason. No OS service, no supervisor, nothing outside the data directory, and
+no change to the fast-install path: those are R15's uninstall clause and ticket
+0491's first exit criterion, and both are kept rather than traded.
+
+"One copy" means one per embedder generation, not one object ever. §5.2.7
+admits two coexisting generations across a model switch and the service holds
+them under the same idle-eviction rule — which makes dual-embed cheaper than
+the in-process arrangement, where every P0 would pay for both.
+
+X8 is not in the way: its rule arbitrates the *device* in the embedder key, and
+a local endpoint on the same runtime and rung is neutral for vector identity.
+What is in the way is packaging and custody, which is 0491's subject.
+
+**The degradation rule, ruled with C because C is incomplete without it.** The
+query path now depends on a process it does not own. An embedding service that
+is unavailable or still loading degrades to labeled keyword-only — never
+silently, and never to an API embedder. Both halves already exist: R10's rule
+that a missing local runtime yields keyword-only and never an API embedder, and
+§5.2.6's labeled keyword-anchored fusion under memory pressure. R31's handshake
+is unchanged and was already specified to cross a process boundary.
+
+**What these rulings do not decide.** Which of ticket 0491's five candidates
+owns the service: the spawned child ruled here is its shape, not its
+provenance, and ticket 0496's probe of Zotero #6012's inference runtime remains
+the route that adds no process at all. Whether F1 survives: the pipeline
+ceiling's collision with the multilingual candidates came from the worker
+holding the model, so it may dissolve rather than be ruled, and that is a
+re-check rather than a claim. And the budget arithmetic itself — §5.2.9's
+figures are re-derived under the new process classes, not adjusted here.
+
+
+**2026-09-02 — the topology reviewed on the day it was ruled: two errors in the
+morning's entry corrected, and the mechanisms it left unstated ruled.** The
+entry above is ratified and stays as written; this one is the standing
+correction, in the ledger's own pattern. The author reviewed the four-role
+topology for what breaks, hangs, wastes, or misleads, and ruled the fixes.
+
+**Two things the morning's entry A got wrong.** The conductor is *not*
+run-to-drain and does *not* exit on pause. Both properties were the worker's,
+copied to the writer by mistake, and read literally they produce a spawn
+loop — a conductor that exits on an empty queue is re-spawned by the next
+server's election check ten seconds later, N times over, forever — and orphan
+the tick's removal branch, which §5.2.7 says pause never gates. The rule: the
+conductor lives while any P0 lives, because it owns the reconcile tick; the
+worker alone is run-to-drain; pause means zero workers, and the tick keeps
+running its removal branch. And a P0 *does* write: the pause row and the
+intent rows are control state, written by servers, in a table of their own,
+outside the commit guard and never derived. "Write-free" names the query path
+and the derived stores, not the binary; the stronger phrasing is withdrawn.
+
+**Lifetime has a mechanism, one per singleton.** "Dies with the last P0" was a
+promise without machinery, and the default outcomes on both sides are wrong: a
+child bound to its parent takes the service away from every other client
+mid-query, and a detached one is the daemon by accident. The conductor reads
+P0 liveness rows in the `leases` table — one per server, same idiom, same TTL —
+and exits when none is live. The embedding service counts its connections and
+exits when it has held none for a stated interval; it does not open the
+database at all. D3's ~60 s eviction applies to the *old generation* inside
+the service and never to the service itself: a service that idle-exited on
+that clock would reload the model for any user who queries every two minutes,
+and the "cold-load spike the machine takes once" is once per P0 lifetime, not
+once ever.
+
+**Singleton before model.** The service acquires its singleton *before* it
+loads a model, never after. Otherwise N servers starting together each spawn
+a service and the losers learn they lost after starting a 600 MB load — the
+one-copy rule violated in exactly the transient that costs.
+
+**The service can fail, and the failure must be visible and bounded.** A
+service that dies on load — the install-failure class of upstream's #38 —
+would otherwise be re-spawned by every semantic query, reading the model file
+from disk per query, with every answer labeled keyword-only and nothing to
+tell that label from "still loading". Ruled: spawn back-off and a quarantine
+for the service, the same shape as the extraction quarantine, and a status
+that distinguishes `loading`, `absent` and `failed` with a count. Labeled
+keyword-only may not become a permanent state that reads like a transient one.
+
+**Queries preempt passages inside the service.** One model serves both, so a
+query arriving mid-batch would wait up to one quantum (~1 s) during a build —
+R6's 700 ms preference violated for as long as any build runs, a contention
+the morning's ruling bought with the RAM it saved and did not name. Ruled: two
+lanes, queries preempt at batch boundary, the quantum bounds the wait, and
+§5.2.9's warm-query band carries a during-build term. §5.2.8's soak clause
+measures it.
+
+**Spawn priority does not inherit.** Only servers spawn the service, at normal
+priority; a service spawned by the `nice 19` worker would embed every query at
+idle priority.
+
+**No read transaction across an embedding call.** A server that opens its
+read and then waits on a cold service pins the WAL for the whole load, during
+a build, silently. Embed first; open the read after.
+
+**Bootstrap.** The lease lives in a file that does not exist on a fresh
+install, and the server no longer creates the schema. The first conductor
+creates an empty schema in a temporary file, renames it into place, and only
+then takes the lease and only then does any work; two conductors racing on a
+fresh install lose nothing, because neither has written a row before the
+rename decides.
+
+**The process boundary isolates memory only if something bounds the
+process.** B's justification — F5's incremental decode — is an instruction
+until the worker runs under a limit: a runaway decode otherwise eats the
+machine from a different pid. Ruled: the worker runs under a heap limit at
+minimum and a cgroup where the platform has one, and the RSS gate asserts that
+the worker is *killed* at the bound, not merely that its peak sat under it.
+
+**Transport.** Transport-neutral does not mean a localhost port: any local
+process could then impersonate the service to a server, echoing the expected
+fingerprint. The service listens on a Unix domain socket inside the data
+directory, with the file's permissions — the same gap §6 already names for the
+database file, now on a live socket — and the macOS socket-path length limit
+is a known hazard under the default data directory. Windows is named as the
+open platform question: `nice`, `SIGSTOP`, stdin-EOF and Unix sockets are
+POSIX assumptions, and the host population is Claude Desktop on macOS and
+Windows.
+
+**Two things demoted from ruling to probe, both before 0566 commits the
+boundary.** Whether Claude Desktop lets a server spawn a child at all, and
+under what environment (`process.execPath` under Electron is Electron, and a
+spawn without `ELECTRON_RUN_AS_NODE` launches a GUI): the isolation benefit of
+A exists only if the spawn works, and nothing has verified it. And the
+service's ceiling must be sized for two resident generations, since the
+dual-embed window is days long; a ceiling pinned at one model rules D3 out by
+arithmetic.
+
+**One reading corrected.** "Confirmation" for the conductor-latency clause
+does not mean optional. It still asserts R6's band during a build, and a
+failure there is no longer explicable by the topology — which makes it more
+serious, not less.
+
+**And one constraint on the surface question below.** Upstream's
+`action:"build"` must mean "nudge the tick" — idempotent and cheap — and never
+"re-derive everything": read the other way it is the bulk verb the awaiting
+entry forbids, already shipped under another name, and a model will call it.
+
+**2026-09-02 — Pack first, flat text as fallback: a mechanism under R24, not
+a requirement.** The author's ruling on the awaiting entry of the same date:
+"good place" for R24's rung, and no new R-item, because source selection is
+an under-the-hood mechanism rather than a promise to the user. What the user
+is promised is already R24's: a hit leads to its page, an estimate says so.
+The pack is how that promise stops being an estimate for the attachments
+Zotero has structured.
+
+Integrated into SPEC.md in the same change: R24's paragraph says a
+pack-sourced hit carries the block's own page; C1's first link names the two
+extractor identities; C2's SDT bullet states the pack as read from disk rather
+than as a future local-API surface, with its availability bound; §5.2.4 gains
+the source-selection paragraph (pack of a known version, else the flat text
+over `/fulltext`, never a direct read of the cache file, one source per
+attachment recorded and counted); §5.2.2's segmenter takes the pack's blocks as
+its first structure signal, above the PDF outline and layout tiers and seg/1.
+README.md's rosters are unchanged, since no requirement was added. Ticket 0572
+carries the implementation, sequenced after 0028 per the 2026-09-01 ruling.
+The awaiting entry's two open decisions stand as the ticket's context: the
+disk read of an internal format is accepted on the strength of the structural
+fallback, and the rule lands now, at 2 of 13 630, so the shape exists before
+the platform's own indexer makes packs library-wide.
+
+**2026-09-02 — Managing a multilingual library is a spinoff, not this
+workshop's question.** The author's ruling on the six-question brief of the
+same date (awaiting entry below): questions 4, 5 and 6 — detecting and tagging
+translations, creating translations, splitting bilingual records — "are a
+different beast". The real question under them is "can zoteus be a tool to
+manage a multilingual library?", and that is a spinoff from a semantic
+retrieval workshop, agreed as such. This repository's subject is the search
+redesign; curating the library is not search, and nothing in the chain
+promises it.
+
+What follows. The three questions are severed from the brief and from tracker
+0573, and parked in ticket 0574, labeled `deferred`, with the brief's answers
+kept there as the starting position should the spinoff ever open — not as
+rulings. SPEC.md §3's out-of-scope list gains a ninth line saying so in the
+system's terms. Questions 1 to 3 (parallel renderings as a gate, collapsing
+renderings before the cut, one row per work) are retrieval questions and stay
+in the awaiting entry, unchanged, for the author's ruling.
+
+One reading recorded as the agent's, not the author's, so it can be struck in
+a word: question 6 had two halves. Splitting a bilingual record is library
+management and goes with the spinoff. Indexing both attachments of one — the
+D6 amendment to first-with-text per language, and the per-attachment language
+identifier it needs — is retrieval coverage, and it is the prerequisite of
+question 1's gate: a pair cannot be tested while one rendering is never
+indexed. That half stays with questions 1 to 3 in tracker 0573.
+
+**2026-09-02 — the API embedder is an execution mode with its own transport
+constants, and the batch endpoints are out.** The author's ruling on a question
+he raised the same afternoon: the conductor and the pipeline worker were
+designed as if the embedder were local and fast, and it need not be. Upstream
+v1.12.0 ships `ZOTEUS_EMBEDDINGS=openai|gemini`, a synchronous provider, and
+the design already admits it at the consent gate (SPEC.md §5.2.7: a cost
+quoted, a go-ahead per index generation) and counts it as one of R10's two
+opt-in paths — and nowhere else. Every constant in §5.2.5 that carries a
+duration was priced on an engine inside the same machine. Two rulings, each
+concurred in by the author in his own words.
+
+**Admitted: `provider: api` is a third execution mode beside `in_process` and
+`local_endpoint`, and it changes the constants, not the topology.** Six
+consequences, propagated to SPEC.md with this entry.
+
+- **Sizing.** The quantum's controller derives a batch size from an observed
+  duration. Over a network the duration is the round trip, nearly flat in the
+  batch size, so the controller has no gradient and the fixed-cost floor
+  swallows it. Under the API mode the request is sized by the provider's
+  per-request cap and its per-minute token budget; the quantum is not the dial.
+- **Claim TTL.** Thirty quanta was set above the honest stall of a local
+  worker. One 429 honoured with its `Retry-After` and an exponential fallback
+  crosses 30 s in the ordinary case, and every expiry there is a re-embed paid
+  twice. Under the API mode the TTL is derived from the retry budget, above
+  the longest backoff the politeness clause permits.
+- **Politeness generalizes.** §4's clause — a concurrency cap, `Retry-After`,
+  exponential fallback — was scoped to the Zotero web transport. It binds
+  every network transport, the API embedder included. Upstream's provider
+  today throws on any non-2xx and takes the build down with it, which is the
+  defect the clause exists to name.
+- **The service is a broker.** The embedding service ruled this morning exists
+  to hold a model once. Under the API mode there is no model, and the service
+  holds the two things N servers and a worker would otherwise contend for
+  blindly: the key and the provider's quota. One process meters the per-minute
+  budget, queries first, so §5.2.5's lane rule keeps its meaning with a round
+  trip as the boundary.
+- **R6's embed term is disclosed at its API value.** §5.2.9 prices it at
+  20–50 ms. Over an API it is hundreds of milliseconds to seconds, and no
+  provider documents a p50 or a tail (nine checked on 2026-09-02, on their own
+  pages). The 700 ms band is not expected to hold under the API mode; the 3 s
+  bound is kept by a timeout that degrades to labeled keyword-only. Never a
+  silent fallback to the local embedder: that is a provider change mid-corpus,
+  exactly what the calibration header exists to catch.
+- **Identity.** The fingerprint's fields — revision, dtype, pooling, local
+  validation — have no referent at a provider. Identity is provider, model
+  name and requested dimension, and the provider can change the model behind
+  the name without notice. The calibration header (2026-08-31) is the
+  detector: the sentinel re-embedded at session start catches drift the
+  fingerprint cannot see.
+
+**Ruled out: the asynchronous batch endpoints, on the arithmetic.** Verified
+on the providers' own pages the same day. OpenAI, Gemini and Mistral discount
+their batch endpoints by half, with a turnaround of up to 24 h; Voyage's 33 %
+is stated for its current family only; Cohere's async jobs carry no published
+discount; Anthropic has no embedding endpoint. Against the census's 211
+million tokens (SPEC.md §5.2.9 — MiniLM's tokenizer, a provider's within
+about 15 % of it), the whole initial index costs between roughly 4 $ (OpenAI
+text-embedding-3-small at 0,02 $ per million) and 32 $ (Gemini at 0,15 $), so
+the batch discount saves between 2 $ and 16 $, once; steady-state freshness
+traffic is a rounding error. What it would cost the design: a third claim
+class with day-long TTLs, library text parked at the provider for up to a
+day, and partial-job reconciliation. The binding constraint is the quota, not
+the price: OpenAI's entry tier admits one million tokens a minute, so the
+backfill takes about three and a half hours whatever the request size, and
+upstream's default of 32 passages a request lands in the same range serially.
+Not designed for, and the reason is recorded so the question is not reopened
+on the discount alone.
+
+**What this does not decide.** Which provider, if any, a curated entry names:
+the registry admits API entries under the same one-entry-one-fingerprint rule,
+and none is curated here. The commercial API enters ticket 0491's comparison as
+the sixth candidate, beside the GPU-host remote embedder the 2026-09-01 entry
+sent there, priced on the same criteria plus quota custody. And nothing here
+touches the morning's entry C: a missing or cold local service yields
+keyword-only and never an API embedder. The API mode is entered by consent and
+left by consent.
+
+
 ## Awaiting ratification
+
+- **Which index and extraction actions `zotero_index` should carry, and whether
+  the chain's verb grammar still matches upstream's (raised 2026-09-02, the
+  conversation that produced that day's topology rulings).** Upstream already
+  dispatches `zotero_index` by action — `action:"status"` and `action:"build"`
+  are attested (`verification/SMOKE-1.10.0.md`, `UPSTREAM-1.12.0-REREAD.md`,
+  `SYNC.md` #39) — while SPEC.md §5.2.7 and §5.1 speak of verbs (`build`,
+  `pause`, `sync`, `purge`).
+
+  Enumerated 2026-09-02 from `src/tools/index-tool.ts:22` at the reviewed SHA
+  (`b05ed69`, v1.12.0), one dispatch table: `status | update | build | refresh
+  | stop`, with `library_type`/`library_id`, `limit` (can only lower the cap),
+  `own_words`, `fulltext`, `fulltext_max_chars`; the whole tool annotated
+  `readOnlyHint: false`, status included. `update` is the cheap one — the
+  `?since=` delta, a keys-only census for deletions, and a read of Zotero's
+  separate full-text sequence — and falls back to a full rebuild by itself
+  when a delta would be wrong. `build` is the whole-library rebuild, resuming
+  from a checkpoint where one exists, and it is also the only repair: an
+  unreadable index is `unlink`ed and recreated (`repair.ts:54`), as consent
+  (#21). `refresh` is `build` with `fresh: true`, always from scratch. `stop`
+  is `requestStop()` in memory: it cancels the running job after the current
+  page or batch, and `auto_build` on `zotero_semantic_search` restarts a build
+  on the next query against an empty index. Six gaps against the chain follow
+  from the list. (1) The review entry above named `build` as the verb that
+  must mean "nudge the tick"; the name was written before the list was read
+  and is wrong — `update` is the nudge, §5.2.4's `sync`, and `build` and
+  `refresh` are the two bulk verbs, shipped, which the tool's own description
+  spends a paragraph steering the model away from. The intent stands, the
+  name is corrected here. (2) `pause` does not exist: `stop` is not durable,
+  which is the §5.1 finding that made pause a row, so R22 has no upstream verb
+  and three of the chain's four verbs are design rather than surface. (3)
+  `build` deletes rather than sidelines on an unreadable index, where the
+  open-time schema mismatch sidelines (`SMOKE-1.10.0.md`) — two policies for
+  two faults, the second erasing evidence, to be read against R23. (4)
+  `refresh` on a model change is the start-over D3 serve-stale kills; under
+  the chain it is a key-bump that drains newest-first and drops nothing. (5)
+  Nothing is per item: every action is library-scoped, and `reextract` and
+  `unquarantine` have no shipped ancestor. (6) `fulltext` is a parameter of
+  the call, not a property of the index, so two calls with different flags
+  build different indexes; under R1 coverage belongs to the tick, not to the
+  caller.
+
+  What the topology rulings settle in advance: a P0 cannot enqueue work, so a
+  management action received by a server writes an *intent* row that the writer
+  drains, and the sole-writer rule needs no exception. What they do not settle
+  is the action set. The candidates are `status | start | stop | reextract |
+  unquarantine`, and three constraints bear on them. Surface economy: the
+  server already advertises 31 tools, and `zotero-mcp`'s own release notes make
+  a 62 → 37 tool reduction a headline (`verification/FIELD-REVIEW.md`), so an
+  action costs nothing where a top-level tool costs every client every turn.
+  R22: two switches lose the machine the user was trying to quiet, so `pause`
+  and any `stop` action must be one state, whatever the façades. And the
+  operator is a model rather than a person typing — `reextract` is the
+  expensive verb (a whole-document GET, the 44,9 MB case), which argues for
+  reads free, mutations per item, and never in bulk; `unquarantine` in bulk
+  would reopen exactly the mass-replay hole the quarantine auto-clear amendment
+  closed (§5.1).
+
+  One constraint is already ruled (the review entry above), and renamed by
+  the enumeration: the nudge — idempotent, cheap, never a re-derivation — is
+  `update`, not `build`; `build` and `refresh` are the bulk verbs this entry
+  forbids calling casually, and they are already shipped.
+
+  And the surface is negotiated, not ruled (author, 2026-09-02): what this
+  repo settles is the contract — durable pause, per-item repair, honest
+  status, no whole-library re-derivation without consent — and the verb names
+  are the maintainer's. Design-sized, so it travels as an issue he builds
+  himself (`GOVERNANCE.md`), inside scoped issue A (ticket 0033) rather than
+  as a filing of its own.
+
+  Two of the actions are not new features but existing holes: §5.2.8 already
+  declares work counters for triggers no verb produces (`re-extract`, `retry`),
+  and manual repair is option (iii) of the failed-work-order question below
+  (ticket 0569) — which has no verb today. So this entry and 0569 should be
+  ruled together, since option (i) there, stamping the census on completion,
+  would make `reextract` a convenience rather than a repair.
 
 - **Whether a failed work order is ever retried, and on what policy (ticket
   0569, raised 2026-09-01 by the round-3 review of ticket 0553).** The
@@ -3380,6 +3784,223 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   ruling, which changes no code — `ledger.ts` already implements the corrected
   order and pins all three directions with tests.
 
+- **The extract stage SHOULD index from Zotero's structured-text pack when
+  one exists for an attachment, and from the flat full-text cache otherwise
+  (author, 2026-09-02, stated as an idea; drafted here as a candidate
+  requirement, ticket 0572) — resolved 2026-09-02, same day: ratified as a
+  mechanism under R24, not as a requirement; see the ledger entry.** Every fact below is at source or by probe,
+  recorded in `bench/results/0007-sdt-probe.txt` (fifth probe) unless said
+  otherwise.
+
+  **What is established.** The pack exists and is readable. It is
+  `.zotero-sdt-cache` beside the attachment in `storage/<KEY>/`, written by
+  `Zotero.SDT` in the shipped 10.0 build (pack version 1, schema 1.1.0,
+  processor pdf/3), and `verification/probes/sdt_read.py` parses it. On the two
+  packs in hand it holds typed blocks (paragraph, heading, math, list, image,
+  caption), a `flowClass` that marks running heads and page numbers as
+  excluded, a page anchor per block, and metadata naming the source hash and
+  the processor version. Its text is 0,91 and 0,99 of the flat cache's, the
+  difference being the excluded flows. Availability is the bound, and it is
+  measured, not estimated: 2 packs against 13 630 flat caches on the author's
+  library, eleven days after the first probe found them. The trigger is the
+  reader alone. In the shipped build the only caller of `Zotero.SDT` is
+  `reader.js`, and `Zotero.SDT.ensure()`, documented "for warming up the
+  cache (e.g., at import time)", has no caller. Nothing over the local API
+  creates or serves a pack; the 2026-08-30 checkpoint stands. So "when one
+  exists" means "opened in Zotero's reader since the upgrade", 2 for 2 in the
+  probe.
+
+  **The rule is upstream's own.** zotero/zotero#6012 at head `77e2c4b`,
+  `embeddings.js`: `_getAttachmentChunks` asks `Zotero.SDT.getSections(item.id,
+  {allowStale: false})` and, when that yields nothing, logs "no structured text
+  … falling back to plain text" and chunks `item.attachmentText`. Its source
+  key is the md5 of path, size, mtime and `getProcessorVersion(item)`. When
+  #6012 ships, its indexer generates a pack for every attachment it embeds, so
+  availability goes from reader-opened to library-wide with no action of ours.
+  That is what makes the rule worth ratifying before the coverage justifies
+  it: the shape has to exist when the packs arrive.
+
+  **Reachability needs no new premise.** The 2026-09-01 pdf.js ruling already
+  reaches the PDF file through the local API's `/file/view/url` redirect. The
+  pack is in the same directory under a fixed name.
+
+  **What it changes in the chain.** C1's first link reads "extracted text
+  derives from (attachment file, extractor)". Today the extractor is Zotero's
+  flat extraction, identified only by proxy (the `/fulltext` counter and its
+  version-0 residue). The pack names its own extractor and its own input in
+  its metadata, so for a pack-sourced attachment the key becomes exact, and a
+  processor bump, the third drift constant SYNC.md watches, becomes a visible
+  staleness event instead of a silent re-extraction. Two extractor identities
+  under one key shape is what R1 and D8 already leave room for. Ruling 3 and
+  the segmenter ladder: the pack is a structure signal above the pdf.js
+  tiers, tier 0 before 0560's outline and 0561's layout heuristic, seg/1
+  last as before. The 2026-08-30 entry asks for a segmenter interface that
+  takes structure signals; this is one more kind. The pdf.js ruling asked
+  that the local API's surface be re-checked before that path is treated as
+  permanent; this entry is the re-check, and its answer is "not yet, and here
+  is the rule that makes the switch automatic when it lands". R24: a block's
+  page anchor is a real page, so D10's labeled estimate applies only to
+  flat-sourced hits, and the answer has to say which kind it is.
+
+  **Priced.** (i) The format is undocumented and internal, C2 in its purest
+  form; pack version 1 has moved zero times, and the FTS5 split shows what
+  "internal" means. The mitigation is structural: the reader refuses a pack
+  version it does not know, and the flat cache is always there, so a format
+  move degrades that attachment to today's behaviour and never to a failure.
+  `sdt_read.py` already behaves this way. (ii) License. The
+  `zotero/structured-document-text` repository carries no license file and
+  the in-tree decoder is AGPL. Writing our own reader from the shipped layout
+  is the act the 2026-08-30 awaiting entry on AGPL reimplementation leaves
+  unbounded; this is its second instance after 0031's calibration, and
+  whatever is ruled there binds here. (iii) Coverage skew until #6012 ships:
+  pack-sourced attachments are the ones the user has read, so the index is a
+  mixture, and R17's report has to count the two sources apart or the mixture
+  is unexplained and the improvement invisible. (iv) Regeneration under a
+  read. A processor bump rewrites the pack in the background; #6012 refuses
+  stale packs for this reason. Our read is one pass into the ledger, keyed by
+  source hash and processor version, so a mid-read rewrite should surface as
+  a key mismatch at the next census rather than as corruption. That is to be
+  verified by the ticket, not assumed here.
+
+  **Recommendation.** Ratify as a SHOULD, drafted for §3 as: "Where Zotero
+  holds a structured-text pack for an attachment, the extract stage SHOULD
+  index from the pack; otherwise it indexes the flat full text Zotero serves.
+  Which source an attachment came from MUST be recorded and reported." It sits
+  on R24's rung (ticket 0029), because the page anchor is what it buys the
+  user first. The pack's blocks replace the text for that attachment; do not
+  overlay pack structure on the flat cache text, which would need an alignment
+  step for no gain. The fallback is the shim path as ruled on 2026-08-30, the
+  local API's `/fulltext`, byte-identical to the cache, not a second direct
+  read of `.zotero-ft-cache`. Sequenced after 0028, per the 2026-09-01 ruling
+  that seg/1 ships first to settle integration, as tier 0 of 0557's ladder.
+
+  **Two decisions only the author can take.** (a) Whether reading an
+  undocumented internal file from disk becomes a permanent design element
+  rather than a bridge: the pdf.js ruling accepted reading the PDF, a
+  documented format, and this one Zotero may move. (b) Whether the rule lands
+  now at 2 of 13 630 or waits for #6012. For now: the two extractor
+  identities and the per-source reporting have to exist before the packs
+  arrive, and the two packs in hand are the fixtures. For later: a coverage
+  of 0,015 % buys nothing measurable today and adds a reader to maintain
+  against a format that answers to nobody.
+
+- **Documents in several languages: one work, several renderings (author's
+  six questions, 2026-09-02; brief drafted the same day, tracker ticket
+  0573) — narrowed 2026-09-02, same day: questions 4, 5 and 6 are severed
+  as a spinoff outside this workshop (ledger entry above, ticket 0574);
+  questions 1 to 3 stand as drafted and still await the ruling.** The facts are in `bench/results/0573-lang-census.txt`, measured on
+  the author's library by `verification/probes/lang_census.py`: half the
+  records carry a language field, spelled twelve ways for three languages,
+  113 of them "EN, VN" by hand; Zotero's relation vocabulary has no
+  translation predicate (Related, `dc:replaces`, `owl:sameAs` merges are all
+  there is); 888 records hold two or more PDFs and about 200 of those hold
+  two languages, 157 English plus Vietnamese, one rendering of each indexed
+  today under D6 and the other skipped. Separate records that translate one
+  another are not counted, because nothing links them and a census cannot see
+  them without the detector proposed below.
+
+  **The concept the six questions share.** A *work* may exist in several
+  *renderings*, one per language, filed either as twin attachments under one
+  record or as separate records. The chain has no word for this; §2 would
+  gain "rendering", and every answer below is a rule about renderings.
+
+  **1. Can translated pairs judge the retriever?** Yes, and it is the standard
+  instrument for the property R29 promises. Cross-lingual retrieval is
+  evaluated in the field on parallel documents (bitext mining and CLIR
+  benchmarks): the pair is a free relevance judgment, one rendering as the
+  query, the other as the answer, both directions. Ticket 0266 gated R29 on
+  24 hand-written topics, 8 per lane; the 157 English-Vietnamese twins are a
+  parallel slice twenty times that size, already in the library, chunk-level
+  once both renderings are indexed. Two limits, stated so the number is read
+  right. It measures alignment of the embedding space on equivalent text, not
+  topical relevance to a question a user would ask, so it is a gate beside
+  0029's golden cross-lingual slice and never in its place. And it leaks
+  unless the record's fields are masked: both renderings share one title and
+  abstract, so a record-level hit proves nothing; the slice runs on body-text
+  passages only. Recommendation: add the parallel slice to 0029's cross-lingual
+  gate, reported per direction (en→vi, vi→en), hit@10 at document level and
+  at passage level.
+
+  **2. Dedup from top-k and pad?** Yes, before the cut and only on declared
+  relations. R24 already rules deduplication per section and forbids one
+  document crowding the pool before dedup, so the pool is wider than k and
+  padding is how R24 works today; renderings join that rule as one more
+  collapse: the renderings of one work are one answer row, the best-scoring
+  rendering is the hit, the others are alternates on the row. The condition
+  is that the relation is *known*: twin attachments under one record, or a
+  declared relation between records (question 4). Collapsing on a similarity
+  guess at query time is the silent plausible error the design guards against
+  everywhere else; two records nobody linked stay two rows.
+
+  **3. How to present?** One row per work, the matched rendering first, the
+  other renderings listed with their language and key, e.g. `also in: vi
+  (ITEMKEY)`. The rendering shown is the one that scored, not the one in the
+  query's language, because ranking stays relevance-only (§3, out of scope,
+  "recency orders coverage, not answers"): a French query may well match the
+  English rendering best, and hiding that behind the French one would present
+  a worse hit as a better one. The consumer is an agent, so the row carries
+  the renderings as structured fields; the agent decides what to show a human.
+
+  **4. Detect and autotag translations? And which is the original?** Detect
+  yes, as a report; write into Zotero never; the original by the user's
+  declaration, in a convention Zotero already understands. Detection is cheap
+  and reliable enough to propose candidates: same authors and year, titles
+  whose multilingual embeddings sit above a threshold, bodies whose passage
+  alignment (question 1's instrument) is high. It is not reliable enough to
+  write a relation into the user's library, and the design has no channel
+  for it: the local API is read-only, C1 makes everything zoteus holds
+  derived data, and Zotero is the system of record. So the tool is
+  `find_translation_candidates`, listing pairs with a confidence and the
+  evidence, and the user confirms in Zotero. The confirmation has a home
+  without any new field: Zotero's Extra field carries CSL variables, and CSL
+  defines `original-title`, `original-date` and `original-publisher`; a
+  translated record declares `original-title: …` (and the date) in Extra and
+  a Related link to the original. zoteus reads both signals; the record with
+  the `original-*` lines is the translation, the linked one is the original,
+  and a Related link with no `original-*` on either side is a pair of
+  renderings with no original declared, which is still enough for questions 2
+  and 3. Inferred but unconfirmed pairs may be stored as derived data with
+  their confidence and surface as "possibly a translation of" on the row;
+  they never collapse rows. Autotagging would also normalize the language
+  field, whose twelve spellings are the user's own; the index normalizes the
+  value it stores (BCP-47) and leaves the field alone.
+
+  **5. Create translations?** No. The chain already rules it: query
+  translation is out, "no translation service and no local translation model
+  joins the default path" (§3 out of scope; R10 locality; ruling 2026-08-31
+  on R29). Document translation is the same thing at a larger scale, plus a
+  writer into the library, plus a job that is not search. The agent consuming
+  zoteus already translates what it reads, on demand and in the user's
+  language; zoteus returns the text and says which language it is in. The
+  ecosystem has plugins for translating documents (`verification/FIELD-REVIEW.md`
+  names one); that is where the capability belongs.
+
+  **6. Two attachments in two languages under one record: autosplit?** No;
+  index both. The 157 records are one work filed once, and the 113 "EN, VN"
+  language values say the author means it. Splitting would write into the
+  library (the objection of question 4) and destroy a relation the user
+  expressed by filing. What is wrong today is D6: *first-with-text* indexes
+  one body per record, so 200 second-language bodies are outside the index,
+  and a Vietnamese query cannot find the Vietnamese text of a bilingual
+  record, against R7's plain reading. Recommendation: amend D6 to
+  *first-with-text per language*: every attachment whose language differs
+  from the ones already indexed for that record is indexed as a rendering;
+  same-language twins keep D6's skip and its recorded reason. This needs a
+  language identifier per attachment on the extracted text (a small,
+  license-clean detector; the item's language field cannot say which
+  attachment is which), stored as derived data under C1. The same field gives
+  R17 a per-language coverage count, which R7's lanes have no instrument for
+  today, and would give R5 a language scope for free; neither is asked for
+  here, both fall out.
+
+  **What ratifying this changes.** §2 gains "rendering"; D6 is amended;
+  R24's dedup clause names renderings; §5.2.6 states the collapse and the row
+  shape; 0029's gate gains the parallel slice; two tools are specified
+  (`find_translation_candidates`, and the `also in` fields on a hit); and the
+  Extra `original-*` plus Related convention is documented as what zoteus
+  reads. Nothing here writes to Zotero, nothing translates, and nothing
+  collapses two rows on a guess. Ticket 0573 tracks it and files the children
+  once ruled.
 **2026-09-02 — the synthetic fallback is one constant, ~12k tokens, for every
 class.** Ruled on the first of the two blocking items the raid review left on
 ticket 0502's merge request (#157). The propagation of the 2026-08-31 ruling

@@ -9,6 +9,8 @@ Blocked-by: 0496
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-09-01T05:57Z claude note ruling 2026-09-01: the remote network embedder (embed on the GPU host, connect from the laptop) enters this ticket's execution-mode comparison as one more candidate — priced on library text crossing the network, GPU-host-off fallback semantics, and ownership; the adopt-by-copy path was ratified instead, DECISIONS.md 2026-09-01
+2026-09-02T05:08Z claude note RECAST by the 2026-09-02 ruling: the author ruled ONE copy of the model on the machine, per embedder generation, reversing the 2026-08-31 in-process ruling. This ticket stops being 'should there be a service' and becomes 'which of the five candidates owns it' -- the shape is already ruled (spawned child, singleton, idle-exiting, inside the data directory), the provenance is not. The first exit criterion is preserved rather than traded: no daemon, no supervisor, no OS facility, no change to the fast-install path. 0496's probe of Zotero 6012's inference runtime is now the only candidate that adds no process at all, which raises its value. X8 is not a blocker: its rule arbitrates the device in the embedder key, and a local endpoint on the same runtime and rung is neutral for vector identity.
+2026-09-02T07:02Z claude note ruling 2026-09-02: the commercial API embedder is admitted as a third execution mode (provider: api) with its own transport constants -- request sized by provider caps and quota, claim TTL from the retry budget, politeness clause generalized to every network transport, the embedding service as key and quota broker, R6 embed term disclosed, identity = provider+model+dimension with the calibration sentinel as drift check; batch endpoints ruled out on the arithmetic (2-16 USD saved once). Enters this comparison as the sixth candidate beside the GPU-host remote embedder. DECISIONS.md 2026-09-02
 --- body ---
 ## Scope
 
@@ -17,7 +19,11 @@ Keep the embedding interface transport-neutral and preserve a
 bundled child, install a user-session service, or consume an embedding facility
 supplied elsewhere. Zotero #6012's existing Firefox inference process, reached
 through an official bridge if one exists or can be added, is the first reuse
-candidate and is measured in ticket 0496. The shareable local service is the
+candidate and is measured in ticket 0496. Two network candidates join the
+comparison by ruling: the GPU-host remote embedder (DECISIONS.md 2026-09-01)
+and the commercial API embedder (DECISIONS.md 2026-09-02, which admitted the
+mode and fixed its constants — the comparison prices quota and key custody for
+both). The shareable local service is the
 architectural direction; its ownership is open. This is a policy and feasibility
 experiment, not an implementation prerequisite and not a blocker for adding
 registry entries.
@@ -26,11 +32,10 @@ registry entries.
 
 - The in-process implementation proves the interface does not itself require a
   daemon or change the fast-install path.
-- A bounded prototype or measured model compares in-process execution, Zotero
-  runtime reuse, a bundled child, a user-session service and an external
-  facility on
-  cold install/start, single- and multi-P0 RAM, cross-platform packaging,
-  custody/uninstall, failure, upgrade and supervision.
+- A bounded prototype or measured model compares every candidate named in
+  Scope on cold install/start, single- and multi-P0 RAM, cross-platform
+  packaging, custody/uninstall, quota and key custody, failure, upgrade and
+  supervision.
 - The review states who should own the facility: zoteus, an optional companion,
   the OS, or another community project.
 - Any out-of-process candidate specifies fingerprint/dimension/runtime/provider

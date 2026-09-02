@@ -12,6 +12,7 @@ Blocked-by: 0032
 2026-08-29T09:58Z Minh Ha-Duong note blocker 0014 closed — Blocked-by removed.
 2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
 2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
+2026-09-02T06:33Z claude note THE FOUR-ROLE TOPOLOGY LANDS HERE when it goes upstream (DECISIONS.md 2026-09-02, two entries): the writer as its own process, the fetcher separate, one embedding service per machine. Design-sized, so an issue he builds himself (GOVERNANCE.md), and negotiated -- the author said so 2026-09-02. The one hook that sells it on his terms is his own #37: a writer out of the server process turns the Electron build crash from a search outage into a pipeline outage without knowing the cause. Never put this repo's reading of him into the text; state R6, R13, R22 and the RSS arithmetic and stop.
 --- body ---
 ## Context
 DESIGN.md §4 item 6-C, per the ratified re-form (DECISIONS.md 2026-08-26).

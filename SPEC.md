@@ -69,11 +69,20 @@ the entry points at the question rather than settling it.
 - **census** — a full listing fetched whole rather than paged, every item or
   every full-text version in one response, compared against stored state by
   equality. Authoritative: SPEC.md §5.2.4.
-- **conductor** — the one query-serving server, elected through a lease row,
-  that is the sole writer and the segmenter, runs the reconcile tick, and owns
-  the single background worker, so the pipeline budget does not multiply with
-  the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the
-  lease timing.
+- **conductor** — the writer process: a process of its own rather than a role
+  a query-serving server takes on, elected through a lease row, that is the
+  sole writer of derived state and the segmenter, runs the reconcile tick, and
+  owns the single pipeline worker, so the pipeline budget does not multiply
+  with the number of servers running. Authoritative: SPEC.md §5.2.5, which owns the lease timing
+  (ruling: DECISIONS.md 2026-09-02).
+- **embedding service** — the one process on the machine that holds an
+  embedder, called by every server for queries and by the pipeline worker for
+  passages, so the model is resident once per generation rather than once per
+  process; under the API execution mode it holds the key and the provider's
+  quota instead of a model. Authoritative: SPEC.md §5.2.5, which owns its
+  shape, its degradation rule and the API mode's constants (rulings:
+  DECISIONS.md 2026-09-02); which process hosts it is open, and SPEC.md §5.3
+  owns that question.
 - **coverage** — how much of the library is searchable, counted in items per
   stage, with metadata-only items in the denominator and their reason
   recorded. Authoritative: SPEC.md R1 and R17; the coverage sentence
@@ -105,10 +114,6 @@ the entry points at the question rather than settling it.
 - **embedder entry** — one indivisible curated configuration whose complete
   vector-affecting fields produce its fingerprint. Authoritative:
   SPEC.md R31 and SPEC.md §5.2.5.
-- **embedding service** — the shareable local endpoint toward which the
-  transport-neutral query/passage interface can evolve; whether zoteus should
-  provide, bundle or merely consume one remains open. Authoritative: SPEC.md
-  §5.3.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
@@ -156,18 +161,20 @@ the entry points at the question rather than settling it.
   denominator. Authoritative: SPEC.md R1 and R17.
 - **micro-batch quantum** — the time budget one micro-batch targets, from
   which the batch size is derived per device rather than fixed, so the yield
-  interval holds across hardware. Authoritative: SPEC.md §5.2.5 (drafted,
-  awaiting ratification: DECISIONS.md 2026-09-01).
+  interval holds across hardware; the local engine's constant, which the API
+  execution mode replaces. Authoritative: SPEC.md §5.2.5 (ruling: DECISIONS.md
+  2026-09-01).
 - **multilingual** — the property that the default path works in each of the
   tested languages on its own terms and with no configuration, which is what
   makes a multilingual default embedder a requirement rather than a preference.
   Not the same claim as *cross-lingual*: a system can answer a Vietnamese query
   over Vietnamese content and still have no path from an English one.
   Authoritative: SPEC.md R7.
-- **P0 / pipeline worker** — the query-serving zoteus server may have several
-  instances; exactly one, the elected *conductor*, is the sole writer and the
-  segmenter, and owns at most one run-to-drain pipeline worker, which fetches
-  text, embeds, and writes nothing. Authoritative: SPEC.md §5.2.5.
+- **P0 / pipeline worker** — P0 is the query-serving zoteus server, of which
+  several instances run: each is a reader, and what it writes is control rows
+  only. The *pipeline worker* is the single run-to-drain worker the *conductor*
+  owns, which fetches text, calls the *embedding service*, and writes nothing.
+  Authoritative: SPEC.md §5.2.5.
 - **passage** — a stored reference into a slab rather than a copy of text, and
   the chunk-sized unit both engines index. Authoritative: SPEC.md §5.2.2.
 - **priority tree** — the single ordering the conductor schedules by, from
@@ -493,9 +500,11 @@ give one hit.
 
 A full-text hit leads to its page; an estimated page number MUST say it is an
 estimate, per D10; and the primary locator MUST be the entry heading, per ruling
-1. As that ruling amends it — D9 dissolved — deduplication is per section, and a
-single document MUST NOT crowd other items out of the candidate pool before
-deduplication happens. When many returned hits come from one document, the
+1. Where the text came from Zotero's structured-text pack (§5.2.4), the page is
+the block's own anchor and is not an estimate; the answer says which kind it
+is. As that ruling amends it — D9 dissolved — deduplication is per section,
+and a single document MUST NOT crowd other items out of the candidate pool
+before deduplication happens. When many returned hits come from one document, the
 result says so.
 
 **R33. Modes.** Exact-word search, meaning-based search, and the two combined
@@ -642,7 +651,7 @@ gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
 
 ### Out of scope, said out loud
 
-These eight\* things are deliberately not promised, so that silence does not
+These nine\* things are deliberately not promised, so that silence does not
 read as a promise:
 
 - **Work does not travel by itself — but it may arrive by copy.** The index
@@ -670,6 +679,10 @@ read as a promise:
   translation model joins the default path.
 - **No enumeration.** Semantic search returns a bounded page; exhaustiveness
   is the job of R5 narrowing, not of paging.
+- **The library is read, never curated.** Zoteus does not tag, link, split,
+  merge or translate the user's records; it reads what Zotero holds and
+  reports what it finds, candidate relations included. Managing a
+  multilingual library is a separate question from searching one.
 
 ### The goals ladder
 
@@ -721,7 +734,10 @@ upstream project, and the user's machine that the design must operate under.
 
 The index stores derived data only, in a chain of three links:
 
-1. extracted text derives from (attachment file, extractor);
+1. extracted text derives from (attachment file, extractor), where the
+   extractor is one of two identities: Zotero's flat extraction, or its
+   structured-text pack, which names its own processor version and source
+   hash in its metadata (§5.2.4);
 2. chunks derive from (extracted text *or* item metadata, chunker identity
    and geometry), where the heuristic segmenter's identity folds into the
    chunker key, per the boundary ruling (§3's third foundational rule);
@@ -802,11 +818,16 @@ This constraint is sharpened on five points:
   MATCH therefore runs unconstrained on the general path, with scoping
   enforced elsewhere. SPEC.md §5.2.6 owns the conditional fallback and the
   threshold experiment X4 measures; it is never the default path.
-- If the local API ever serves structured extraction, the SDT pack
-  (zotero/structured-document-text) is the concrete thing to adapt to: a
-  random-access container with a reader contract
+- The SDT pack (zotero/structured-document-text) is the structured
+  extraction the extract stage reads when one exists (§5.2.4). The local API
+  neither serves nor creates it; it is read from disk beside the attachment,
+  a random-access container with a reader contract
   `{byteLength, read(offset,length)}`, describing itself with exactly the
-  key shape of C1. Zotero's own chunker splits on structural boundaries,
+  key shape of C1. In the shipped 10.0 build only the reader writes one, so
+  a pack exists for what the user has opened, 2 of 13 630 attachments on the
+  reference library (`bench/results/0007-sdt-probe.txt`); the platform's own
+  embedding branch generates one per embedded attachment, which is when
+  coverage becomes library-wide. Zotero's own chunker splits on structural boundaries,
   measured in tokens, and embeds the heading path with the text. Two details
   of it are easy to state wrongly, and both were, so they are stated here in
   the platform's terms (read at PR head `77e2c4b`, 2026-08-29).
@@ -907,8 +928,9 @@ everything: foreground always beats background.
 - server steady-state RSS ≤ ~750 MB (the original figure was against an
   English-embedder picture, and R7 outranks it)
 - pipeline worker peak ≤ ~750 MB regardless of document size (the original
-  figure predates the multilingual requirement, and under the sole-writer
-  topology the worker is the model plus one batch)
+  figure predates the multilingual requirement, and the worker's peak is now one
+  token-budget batch plus the streamed decode, the model residing in the
+  embedding service, so the ceiling awaits re-pin per SPEC.md §5.2.9)
 - pipeline worker killable/restartable at any time with zero index damage
 
 The server ceiling binds per process, the scope its gate can assert; SPEC.md
@@ -931,12 +953,16 @@ obvious implementation, a GROUP BY over the table the build is writing, was
 measured at 374 ms with a cold cache. R6 budgets the query path; C4 budgets
 the observation path.
 
-### Politeness (web transport only, from the official API docs)
+### Politeness (network transports, from each provider's official docs)
 
-At most 4 concurrent requests; honor `Backoff: <seconds>` on ANY response,
-including 2xx; honor 429/`Retry-After` with exponential fallback. The local
-API has no rate limits and is unpaginated by default, so this constraint is
-scoped to the web transport, not to the design.
+One clause binds every network transport the design admits: a concurrency
+cap per provider, a 429's `Retry-After` honored with exponential fallback,
+and a refusal or a timeout surfacing as a labeled state rather than as a
+build that dies (DECISIONS.md 2026-09-02). Toward the Zotero web API the cap
+is 4 concurrent requests, and `Backoff: <seconds>` is honored on ANY
+response, including 2xx. The local API has no rate limits and is unpaginated
+by default, so the clause never binds there. The API embedder of §5.2.5 is
+bound at its provider's own cap.
 
 ### The concurrency hint
 
@@ -1476,6 +1502,23 @@ is lost in today's chunker rather than in transport, and the extract stage
 carries those signals through from day one. A later extractor can replace the
 shim without moving the ledger boundary or touching the stages downstream.
 
+**Two sources, pack first (ruling 2026-09-02).** Per attachment the shim
+first looks for Zotero's structured-text pack, `.zotero-sdt-cache` beside the
+file, reached through the same `/file/view/url` redirect the segmenter uses
+for the PDF. A pack of a known pack version is the source: its blocks are the
+text, excluded flows (running heads, page numbers) dropped, joined so a
+passage's extent maps back to its blocks; its block types and page anchors go
+to the segmenter as the first structure signal; its metadata's source hash and
+processor version are the C1 key, so a processor bump is a visible staleness
+event. No pack, or a pack version the reader does not know, or a pack cut
+short, and the source is the flat text over `/fulltext` exactly as above,
+never a direct read of `.zotero-ft-cache`. The pack never overlays the flat
+text; one attachment has one source, recorded in the ledger and counted in
+R17's report, so the mixture the reader-only trigger produces today is
+disclosed rather than discovered. The pack's format is internal and unversioned
+in any public sense (C2), which is why the fallback is structural: a format
+move degrades that attachment to the flat path, never to a failure.
+
 **The version-0 residue.** 584 of 8 037 measured fulltext entries sit at
 version 0. A local re-extraction that stamps 0 again is invisible to an
 equality comparison, and on a never-synced library that could be *every* entry.
@@ -1525,15 +1568,74 @@ keys byte for byte.
 `embed_query(text, entry)` and `embed_passages(batch, entry)` return vectors
 with a handshake naming the requested and actual fingerprints, dimension,
 runtime, execution provider and local-validation result. The client rejects a
-mismatch before reading or writing a vector. The first implementation and the
-installation default remain in-process. The interface admits a later local IPC
-adapter without making a daemon, supervisor or OS facility part of the registry
-contract or a prerequisite for curated entries. Conceptually the execution
-choice is `provider: in_process` now or `provider: local_endpoint` later; it
-does not alter the selected entry. The actual execution provider contributes to
+mismatch before reading or writing a vector. The model is resident once on the
+machine, per generation: a single **embedding service** answers every server's
+queries and the pipeline worker's passages, so `provider: local_endpoint` is
+the installation default rather than a later option. The count it replaces was
+never two — a P0 loaded the query embedder on first semantic use and the worker
+loaded the same model for passages, so two clients and a running build held
+three copies. The service is spawned on demand, by a server and only by a
+server — a service the `nice 19` worker spawned would embed every query at
+idle priority — at normal priority, inside the data directory, so no daemon,
+supervisor or OS facility enters the registry contract, becomes a prerequisite
+for curated entries, or changes the fast-install path. **It acquires its
+singleton before it loads a model, never after**: N servers starting together
+must not each start a load and then learn they lost. It never opens the
+database; it counts its connections and exits after holding none for a stated
+interval, which makes its lifetime the servers' lifetime rather than an idle
+clock — §5.2.7's ~60 s eviction is for the old generation inside it, and a
+service that exited on that clock would reload the model for anyone who
+queries every two minutes. It listens on a Unix domain socket inside the data
+directory carrying the file's permissions, not a localhost port, because any
+local process could otherwise impersonate it to a server while echoing the
+expected fingerprint (§6). The execution choice does not alter the selected
+entry.
+
+**Two lanes, queries first.** One model serves queries and passage batches,
+so a query arriving mid-batch would otherwise wait up to one quantum during a
+build. Queries preempt passages at batch boundary; the quantum bounds the
+wait, and §5.2.9's warm-query band carries that term. A server embeds *before*
+it opens its read transaction, never across the call — a read held through a
+cold load pins the WAL for the whole of it, during a build, silently.
+
+**Degradation is labeled, never silent, and never permanent in disguise**: a
+service unavailable or still loading yields keyword-only search, exactly as a
+missing local runtime does under R10, and never an API embedder. A service
+that dies on load — the install-failure class of upstream's #38 — is not
+re-spawned by every semantic query: spawn backs off and then quarantines, the
+shape the extraction quarantine already has, and status distinguishes
+`loading`, `absent` and `failed` with a count, so the keyword-only label
+cannot read as a transient forever. Two
+generations may be resident across a model switch (§5.2.7); the service holds
+both under one idle-eviction rule instead of each process holding its own. The actual execution provider contributes to
 the vector fingerprint only when §5.3's X8 rule says its vectors are not
 interchangeable. Endpoint syntax and discovery stay out of the registry —
 open, no owner yet.
+
+**The API execution mode** (`provider: api`, ruled 2026-09-02) is the third
+execution mode, beside `in_process` (the embedder inside the server's own
+process) and `local_endpoint` (the embedding service above): the opt-in path
+R10 counts and §5.2.7's consent gate prices, over the network to a commercial
+provider. It changes the constants, not the topology. The request is sized by
+the provider's per-request cap and its per-minute token budget, not by the
+quantum: a round trip is nearly flat in the batch size, so the duration
+controller has no gradient there. The row claim's TTL is derived from the
+retry budget, above the longest backoff §4's politeness clause permits, since
+one honored `Retry-After` crosses the local engine's 30 s and every expiry is
+a re-embed paid twice. The embedding service holds no model in this mode and
+is not bypassed: it holds the key and meters the quota, one process for N
+servers and the worker, queries first, with the round trip as the lane
+boundary. Identity is provider, model name and requested dimension, because
+revision, dtype, pooling and local validation have no referent at a provider,
+and the provider can change the model behind the name without notice; the
+calibration header is the detector, its sentinel re-embedded at session start.
+A refusal or a timeout degrades to labeled keyword-only inside R6's 3 s and
+never falls back to the local embedder, which would be a provider change
+mid-corpus. The providers' asynchronous batch endpoints are out: they save at
+most half of a one-off cost the ledger prices in tens of dollars, and they
+would cost a claim class with day-long TTLs, library text parked at the
+provider for up to a day, and partial-job reconciliation.
+
 A future `provider: zotero` is the preferred reuse probe: #6012 already runs
 native ONNX inference in Firefox's separate memory-gated process, but its
 `Zotero.ML` and `Zotero.Embeddings` calls are internal at the reviewed head.
@@ -1542,15 +1644,26 @@ passage embedding with the same fingerprint handshake is open. Sharing Zotero's 
 embedding database or depending on private in-process symbols is not that bridge.
 
 **Process topology** (sole-writer form; the proposal and
-its review are `verification/SOLE-WRITER-0507.md`). Three process roles appear
-below: P0, a query-serving zoteus server; the *conductor*, the one P0 elected
-to write; and one *pipeline worker*, which fetches and embeds and writes
-nothing.
+its review are `verification/SOLE-WRITER-0507.md`, whose F2 named the
+separation this section now states). Four process roles appear below: P0, a
+query-serving zoteus server; the *conductor*, the writer; one *pipeline
+worker*, which fetches, drives the embedding service, and writes nothing; and
+the *embedding service* above.
+The conductor is the sole writer of derived state: slabs, entries,
+passages, vectors, the ledger. A server writes control rows and nothing else.
 
 The normal deployment is N × P0: one zoteus per MCP client, all on one fixed
-default data directory (verified). Every P0 answers queries, as a WAL reader
-on a write-free query path. Exactly one P0 is the *conductor*, elected through
-a lease row:
+default data directory (verified). Every P0 answers queries, as a WAL reader on
+a write-free query path, and the write role is not compiled into it: what a
+server writes is **control state and nothing else** — the pause row, intent
+rows, its own liveness row — in a table of its own, outside the commit guard,
+never derived. The conductor is a process of its own, not a P0 wearing a
+second hat. It is spawned by whichever server finds the lease unheld, and it
+lives while any server lives, because it owns the tick: each P0 keeps a
+liveness row in the same `leases` table on the same TTL, and the conductor
+exits when none is live — not when its queue empties, which would have the
+next election check re-spawn it ten seconds later, N times over, forever. It
+holds its role through a lease row:
 
     UPDATE leases SET holder=:uuid, expires_at=…
     WHERE name='conductor' AND (holder=:uuid OR expires_at < :now)
@@ -1559,10 +1672,19 @@ The holder is a UUID, not a recyclable pid. A lockfile was rejected because
 lockfiles go stale exactly when their holder dies. Lease timing: TTL = 2×
 heartbeat (20 s), an election-check cadence of 10 s in every server, and a
 migration gate < TTL + cadence = 30 s. The constants satisfy their own
-gate. The conductor runs the reconcile tick and owns at most one pipeline
-worker (`nice 19`), so the pipeline does not multiply with N. The worker is
-run-to-drain: spawned when the ledger queues hold work, it drains them and
-exits, so steady state contains no pipeline worker. The queues are ledger
+gate. On a fresh install the lease
+lives in a file that does not yet exist and no server creates the schema: the
+first conductor writes an empty schema to a temporary file, renames it into
+place, and only then takes the lease and only then works, so two conductors
+racing on a fresh install lose nothing — neither has written a row before the
+rename decides. The conductor runs the reconcile tick and owns at most one
+pipeline worker (`nice 19`), so the pipeline does not multiply with N. The
+worker is the one run-to-drain role: spawned when the ledger queues hold
+work, it drains them and exits, so steady state contains no pipeline worker
+and does contain the conductor. The worker runs under a heap limit at minimum
+and a cgroup where the platform has one, because a process boundary isolates
+memory only if something bounds the process — otherwise a runaway decode eats
+the machine from a different pid, and F5's clause stays an instruction. The queues are ledger
 queues still — keyed, idempotent derivations — but the boundary between chunk
 and embed survives as a **write ordering** rather than a process boundary:
 the conductor segments, and an item's slabs, entries and passages are durable
@@ -1576,14 +1698,19 @@ artifact — ledger rows, slabs, entries, passages, FTS, the vector sidecar —
 is written by the conductor and by nothing else. It runs seg/1 (§5.2.2) as a
 streaming state machine over the text windows the worker forwards: it closes
 entries at structural boundaries — a book into chapters, the dictionary into
-entries, proceedings into presentations — cuts the passages inside each entry
+entries, proceedings into presentations — taking its structure signals in
+order: the pack's block types and page anchors when the source is a pack
+(§5.2.4), the PDF's own outline and layout otherwise, seg/1's heuristic last —
+cuts the passages inside each entry
 as deterministic token windows over text it is already holding, and commits
 slab, entry and passage rows as entries close. Peak memory is one window plus
 the segmenter's own state, which is the streaming property C3 already
 asserts. **The conductor never materializes a whole document**: the local API
 answers with the text inside one JSON object, and the convenient read puts a
-44,9 MB attachment inside the process that holds the query embedder and
-answers queries — §5.2.9's arithmetic says that does not fit. The fetch is
+44,9 MB attachment whole inside the one process that may write — §5.2.9's
+arithmetic says that does not fit, and it does not fit any better now that the
+writer no longer also answers queries, because the ceiling is per process and
+the document is the term that grows. The fetch is
 therefore the worker's, §5.2.4 states the same clause as the tick's
 prohibition, and §5.2.8's transport clause on the RSS gate is its instrument.
 
@@ -1652,7 +1779,8 @@ floor sits below it, and at the floor's cost where it does not. The quantum
 guards slowness, not death: a worker stuck inside a batch is recovered by
 claim expiry, the row claim's TTL being 30 × the quantum — above an honest
 stall, below the reconcile tick — at the cost of at most one duplicated
-micro-batch.
+micro-batch. Both constants are the local engine's; the API execution mode
+above replaces them.
 
 Two units escape that interval, and both are named rather than solved. The
 extract stage's whole-document GET has no boundary inside it (§5.2.4): its
@@ -1673,8 +1801,8 @@ parent-uuid` on its own timer between micro-batches, exiting on mismatch —
 the worker-side check of the three-worker design kept, not moved, since a
 SIGSTOP'd or thrashing conductor closes no pipe and runs no cleanup, and
 only a check scheduled in the worker's own process fires then. The
-conductor-side half is the complement: a P0 that observes it no longer holds
-the lease kills its worker before anything else, because an orphaned worker,
+conductor-side half is the complement: a writer that observes it no longer
+holds the lease kills its worker before anything else, because an orphaned worker,
 though harmless to a store it never opens, pins the WAL as a long-lived
 reader while the new conductor spawns its own. Both together enforce the
 one-worker bound; either alone has a hole. Lease renewal stays on a timer
@@ -1685,10 +1813,11 @@ of work orders, in both directions — returning records drain into the same
 bounded append-fsync-commit loop that bounds the windows, never into a
 queue ahead of it.
 
-**The handshake crosses the pipe** (R31). The model loads in the worker, so
-the requested and actual fingerprint, dimension, runtime, execution provider
-and local-validation standing arrive with the first record of every dispatch,
-and the conductor rejects a mismatch before writing a vector.
+**The handshake crosses the pipe** (R31). The model is resident in the
+embedding service, which answers every embed call with the requested and actual
+fingerprint, dimension, runtime, execution provider and local-validation
+standing; the worker carries that answer home with the first record of every
+dispatch, and the conductor rejects a mismatch before writing a vector.
 
 Safety never depends on the singleton: during a handover two P0s can each
 believe they are conductor, so every record commit carries the guard **in the
@@ -1706,15 +1835,16 @@ conductor computes too. The strict letter has no implementation on a
 single-file SQLite substrate, and the design says so rather than implying
 otherwise.
 
-Foreground beats background across processes, and now inside the conductor
-too: each P0 touches `<dataDir>/activity` on query arrival (a filesystem
-operation, so the query path stays write-free even in the database sense).
-The worker stats that file between micro-batches and idles 2 s while it is
-fresh — and so does the conductor's own write loop, since the process serving
-queries is now also the process draining the stream; the fsync is off-thread,
-the serialization of a long run of records is not. If §5.2.8's
-conductor-latency soak clause fails R6's budget, the pre-authorized fallback is a dedicated small writer process, not a
-re-ruling. The conductor's stdio pipes remain the low-latency fast path;
+Foreground beats background across processes, which is the only place it now
+has to hold: each P0 touches `<dataDir>/activity` on query arrival (a
+filesystem operation, so the query path stays write-free even in the database
+sense), and both the worker and the conductor's write loop stat that file
+between micro-batches and idle 2 s while it is fresh. The clause that had to
+run *inside* the conductor is gone with the process that carried it — it
+existed because one process both served and drained, and no process does both
+now. §5.2.8's conductor-latency soak clause survives it, as a confirmation on a
+writer that no longer answers queries rather than as the trigger for splitting
+one that did. The conductor's stdio pipes remain the low-latency fast path;
 `nice 19` remains the OS floor — minimum CPU priority, portable through the
 runtime's cross-platform call — joined, where the platform exposes one, by a
 background I/O class (idle I/O on Linux, the background policy on macOS,
@@ -1899,8 +2029,9 @@ for the author to veto.
 
 **R22 — pause stays paused.** One meta row, written by `pause`, read before
 any scheduling decision. It gates worker spawn (a paused pipeline is zero
-processes: drain, then shut down, a #6012 pattern), the tick's build side,
-and `auto_build`
+workers — drain, then shut down, a #6012 pattern — while the conductor stays
+for the tick's removal branch, which pause never gates), the tick's build
+side, and `auto_build`
 (verified: today any query against an empty index starts a build). It does
 not gate queries, the probe, deletions, or explicit verbs (`build` while
 paused asks). It survives restart by construction, and survives *sideline*
@@ -1915,9 +2046,13 @@ model is lazy-loaded only while old-generation rows are in the pool, and
 evicted after ~60 s idle. Under memory pressure, queries fall back to
 labeled keyword-anchored fusion. Two resident models (~240 MB + 70 +
 32–64) would bust the ratified ceiling for a days-long window, so
-lazy-loading keeps the budget honest at the price of a disclosed cold-load
-spike. At most two generations coexist; worst-case storage is 2× the
-sidecar, disclosed.
+lazy-loading keeps the budget honest — and it is now paid once for the
+machine rather than once per process, since both generations are resident in
+the one embedding service (§5.2.5). The cold-load spike this rule discloses
+is correspondingly a spike the machine takes once per service lifetime — the
+servers' lifetime, §5.2.5 — not one every server takes on its own first
+semantic query, and not one per idle minute. At most two generations coexist; worst-case
+storage is 2× the sidecar, disclosed.
 The *small PR* version of D3 is narrower: upstream's one global
 `embedderId` cannot support mixed spaces, so the contained fix is
 keep-vectors plus pinning the query-side embedder to the stored id until a
@@ -2045,8 +2180,9 @@ the two outcomes apart.
   green by right.
 - **The RSS gate**, over constraint C3. A deterministic synthetic document at the measured
   44 906 152 chars, entry-structured (~43k headings) so the segmenter and
-  the band cap are exercised. Assert: pipeline-worker peak ≤ 750 MB (the one
-  run-to-drain worker), server p95 ≤ 750 MB, the
+  the band cap are exercised. Assert: the kill of the one run-to-drain pipeline
+  worker at its memory bound rather than a pipeline-worker peak ≤ 750 MB, the
+  peak figure awaiting the re-pin §5.2.9 owns, server p95 ≤ 750 MB, the
   budgets verbatim, against the document class whose
   uncapped build once measured 2 084,9 MiB. The surrogate is a flagged
   deviation from the budgets' letter ("against the 44,9 MB dictionary", content
@@ -2055,11 +2191,20 @@ the two outcomes apart.
   **The transport clause**, same gate: resident memory across a fetch of the
   library's largest attachment, measured on both processes of the fetch path
   — the worker across the streamed fetch and its incremental decode, and the
-  conductor, the process that has already loaded the query embedder, across
+  conductor, the one process that may write, across
   the same ingest — because the clause it instruments is that no process on
   the path ever holds the document whole (§5.2.5's no-materialize clause,
   otherwise an instruction rather than a verified property; finding F5,
-  `verification/SOLE-WRITER-0507.md`).
+  `verification/SOLE-WRITER-0507.md`). The two thresholds above name process
+  roles that the 2026-09-02 topology re-cut, and the model they were priced
+  against is now resident in neither of them: what each role's ceiling becomes
+  is §5.2.9's to re-derive, and this gate asserts whatever that section says
+  for all four roles rather than carrying its own copy. The embedding service
+  is the class the gate did not have, and it is the only one that holds a
+  model; its ceiling is sized for two resident generations, since the
+  dual-embed window is days long and a ceiling at one model rules D3 out by
+  arithmetic. And for the worker the gate asserts the **kill**, not the peak:
+  a decode driven past the bound must end the worker, not the machine.
 Every gate below is decided at one of two levels, and the relation between them
 is calibration rather than coverage. The **fixture
 level** runs wherever the gate runs, on the committable corpus. The **library
@@ -2107,9 +2252,19 @@ is the pattern, and it binds every surrogate here, not only that one.
   surfacing, WAL ≤ 256 MB, lease migration < 30 s, zero double-commits,
   and duplicate compute ≤ 1 embed batch plus one in-flight document's
   re-fetch and re-segmentation per failover. **The conductor-latency
-  clause**, the sole-writer form's acceptance gate: query p95 measured on the conductor itself while it drains,
-  against §5.2.9's warm-query band — on a failure the pre-authorized fallback
-  is a dedicated writer process, not a re-ruling.
+  clause** is now a confirmation rather than an acceptance gate: query p95
+  measured on a P0 while the conductor drains beside it, against §5.2.9's
+  warm-query band. What it used to gate — whether the writer needed a process
+  of its own — was ruled on other evidence (DECISIONS.md 2026-09-02), and the
+  clause could not have gated it in any case, since it needs a built conductor
+  and the boundary is written before one exists. It keeps its subject: the
+  writer and the queries are on separate processes and this measures that the
+  separation delivers, against a machine whose cores they still share. A
+  confirmation is not optional: a failure here is no longer explicable by the
+  topology, which makes it more serious than it was, not less.
+  **The service clause**, added with that topology: the same p95 while the
+  embedding service is cold, so the degradation §5.2.5 states — labeled
+  keyword-only, never a silent wait — is measured rather than asserted.
 - **The disclosure gate**, over R17's device clause. Status names the execution device actually
   serving, and that clause gates everywhere, on every machine. The throughput
   half moved to R32, so this gate no longer
@@ -2185,8 +2340,12 @@ is the pattern, and it binds every surrogate here, not only that one.
   failure of the promise; it is outside the disclosure, and the gate reports
   the machine it ran on so a reader can tell which case they are looking at.
 
-**R13 observability**: a non-conductor reports `pipeline: "held-by-other"`
-instead of silently duplicating work.
+**R13 observability**: a server reports the pipeline's state as it reads it
+from the file rather than as something it is doing, since 2026-09-02 no
+server ever runs the pipeline. `pipeline: "held-by-other"` keeps its meaning
+with the conductor as the process that holds it: a server reads the conductor's
+lease and liveness rows and reports the pipeline as held elsewhere, rather than
+reading its own idleness as an idle pipeline.
 
 #### 5.2.9 Budgets, recomputed and honestly scoped
 
@@ -2210,23 +2369,34 @@ v1's 2.3 GB, because passage text is no longer stored twice (passages are
 references into slabs) and the chunks are fewer. The float32 fallback adds
 ~0.87 GB.
 
-**RAM**: a P0 idles at ≈ 70 MB (Node) + 32 MB (cache) ≈ ~100 MB; plus
-≈ 570–660 MB of multilingual query model at its 8-bit rung on first
-semantic use ≈ ~670–760 MB (the measured range across candidates;
-the ceiling is C3's). At drain-complete steady state only P0s remain,
-so two clients cost ≈ 2×700 ≈ ~1,4 GB; the former steady-state arithmetic
-incorrectly kept a pipeline worker resident. The one pipeline worker adds
-transient residency only: run-to-drain, at most one, its peak the model plus
-one token-budget batch (§5.2.5's dial), under C3's re-pinned pipeline ceiling —
-priced by the same measured candidate range quoted above, without the
-server's cache share, and the arithmetic is shown: 760 − 32 = 728 MB at the
-range's top, inside the ceiling. One term of that
-arithmetic is honestly unmeasured: the residency of a live batch — every
-sweep on disk priced batch size in latency, not RSS — so the ceiling's
-sufficiency for the heaviest candidates is a claim §5.2.8's RSS gate and
-a further sweep verify, not one this subtraction establishes; that sweep
-records RSS with a real batch in flight, not at rest. Segmentation adds one text
-window plus segmenter state to the conductor, inside the server ceiling. The
+**RAM**, by process class rather than by server, since 2026-09-02 the model
+is resident once for the machine (§5.2.5). A P0 idles at ≈ 70 MB (Node) +
+32 MB (cache) ≈ ~100 MB **and holds no model**: the ≈ 570–660 MB of
+multilingual query model at its 8-bit rung (the measured range across
+candidates) is the embedding service's, paid once per generation on first
+semantic use wherever it comes from. The conductor adds a Node process plus one
+text window and the segmenter's own state; the pipeline worker adds transient
+residency only — run-to-drain, at most one, its peak now one token-budget batch
+and the streamed decode rather than a model plus a batch (§5.2.5's dial).
+
+The aggregate this replaces was ≈ 2×700 ≈ ~1,4 GB at two clients, which
+assumed each server carried its own copy. Two clients now cost ≈ 2×100 plus one
+service ≈ ~770–860 MB across the range, and the model term stops scaling with
+the number of clients altogether — the single largest change this topology
+makes to C3's exposure.
+
+Three ceilings are left needing a re-pin rather than re-pinned here, because a
+ceiling is a ratified number and the arithmetic above is only a derivation. The
+server ceiling was priced on a process that loaded the query model and no longer
+does. The pipeline ceiling was priced on a worker that loaded the passage model
+and no longer does — which is also why finding F1's collision between that
+ceiling and the multilingual candidates may dissolve rather than be ruled, a
+re-check and not yet a claim. And the embedding service has no ceiling at all,
+being a class C3 did not have. One term stays honestly unmeasured through all
+of it: the residency of a live batch — every sweep on disk priced batch size in
+latency, not RSS — so what the heaviest candidates actually cost is a claim
+§5.2.8's RSS gate and a further sweep verify, that sweep recording RSS with a
+real batch in flight rather than at rest. The
 sole-writer topology confines the long-document RSS risk to the worker's
 streaming fetch; it does not buy wall-clock. Whether
 the server ceiling scopes per process is settled: it does, because that is the
@@ -2237,7 +2407,15 @@ the budget (the lazy-load rule, §5.2.7).
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion, which is where R6's two numbers go —
 ≈ 300–700 ms in the ordinary case, against the 3 s it promises never to exceed.
-Unchanged, and now without the hidden second scan (§5.2.6).
+Without the hidden second scan (§5.2.6), and with one term the shared model
+adds during a build: up to one quantum of wait behind a passage batch, bounded
+by the query lane's preemption at batch boundary (§5.2.5) — the contention the
+one-copy rule bought with the RAM it saved, named so the soak measures it
+rather than discovers it. Under the API execution mode the embed term is a
+network round trip, hundreds of milliseconds to seconds, and no provider
+documents a p50 or a tail: the 700 ms band is not expected to hold there, and
+the 3 s bound is kept by the timeout that degrades to labeled keyword-only
+(§5.2.5).
 
 ---
 
@@ -2318,18 +2496,22 @@ Unchanged, and now without the hidden second scan (§5.2.6).
   is a single-machine rung: the CPU provider cannot load it, so no CPU
   query-side embedder can match an fp16-embedded corpus, and cross-rung mixing
   is a measured failure.
-- **Budget scoping under N processes** — open: per process, or per machine.
-  Both figures are stated in §5.2.9.
+- **Budget scoping under N processes** — the scope is settled in §5.2.9: each
+  ceiling binds per process, which is the scope its gate can assert, and the
+  model's residency is machine-scoped now that one service holds it. What stays
+  open there is the re-pin of the three ceilings the topology re-cut.
 - **Autonomous embedding service — architectural direction, open ownership.**
-  The interface seam and its future `local_endpoint` execution mode are
-  committed in §5.2.5; implementing a daemon in zoteus is not. Under
-  comparison: the in-process default against Zotero #6012 runtime reuse
-  (probe 0496), a bundled child, a per-user service and an external
-  OS/community facility.
+  The out-of-process service and its `local_endpoint` mode are ruled in §5.2.5;
+  which process hosts it is not. Under comparison: Zotero #6012 runtime reuse
+  (probe 0496), a bundled child, a per-user service, an external
+  OS/community facility, and the two network candidates — the GPU-host
+  remote embedder (DECISIONS.md 2026-09-01) and the commercial API
+  (DECISIONS.md 2026-09-02).
   The decision rule includes install time, cross-platform packaging, custody
-  and uninstall behavior, single- and multi-P0 RAM, failure semantics, and
-  whether this responsibility belongs in zoteus at all. The experiment is
-  parallel to, and never a blocker for, registry entries or validation.
+  and uninstall behavior, single- and multi-P0 RAM, failure semantics, quota
+  and key custody, and whether this responsibility belongs in zoteus at all.
+  The experiment is parallel to, and never a blocker for, registry entries or
+  validation.
 
 #### Rejected alternatives
 
@@ -2395,6 +2577,16 @@ constant with better signage: designed around, not away, and named so the
 author can choose to tighten it. *Falsifier:* none needed, because the risk
 is organizational. The mitigation is that every gate threshold cites the
 artifact that justifies it, so re-pins and waivers leave evidence.
+
+**Risk 6 — the writer split rests on a child spawn nobody has verified.** A
+server hosted under Electron, which is the shape of the host population, sees
+`process.execPath` as Electron, and a spawn without `ELECTRON_RUN_AS_NODE` or
+its equivalent launches a GUI instead of a Node process. The isolation the
+separate conductor and worker buy exists only if that spawn works, and nothing
+has verified it on the hosts that matter. *Falsifier:* a spawn probe on the
+host application, an hour, before the process boundary is committed in code;
+the probe is also the mitigation, since its answer is either an environment
+flag that works or a topology that needs no child.
 
 ---
 
@@ -2470,6 +2662,26 @@ with, or whether another account on a shared machine can read it. C3
 (`SPEC.md`) treats the machine as the user's; it does not say the
 file is unreadable by anyone else with an account on it.
 
+**The processes on the machine, and what passes between them.** Four classes
+since 2026-09-02 (§5.2.5): N query-serving servers, one writer, one pipeline
+worker, one embedding service. Three of them are new as a surface, because a
+role that used to live inside a server now answers another process. Query text
+reaches the embedding service on every semantic query and passage text reaches
+it on every batch; work orders and intent pass between the servers and the
+writer through the database file. Two hops are named: the stdio pipe between
+the conductor and its worker, and the embedding service's Unix domain socket
+inside the data directory, chosen over a localhost port because a port lets
+any local process impersonate the service to a server while echoing the
+expected fingerprint (§5.2.5). What that socket inherits is the file's
+permissions, which is the same "none yet" as the database file's, now on a
+live endpoint. A second property of that choice is disclosed and not decided:
+macOS caps the length of a Unix domain socket path, and the default data
+directory is long enough that the cap is a known hazard for where the socket
+can be placed. What is not stated: any authentication beyond that, and the
+whole of the Windows answer, since `nice`, `SIGSTOP`, stdin-EOF and Unix
+sockets are POSIX assumptions and the host population is Claude Desktop on
+macOS and Windows.
+
 **Query and status tools.** These are MCP tools. The only transport the design
 names is a stdio pipe between the conductor and its worker, with one zoteus per
 MCP client (`SPEC.md` §5.2.5). No line here says zoteus opens a
@@ -2481,7 +2693,9 @@ exfiltration paths, no silent fallback (`SPEC.md` §5.2.7). One is the
 one-time model-weight download the default local embedder needs, named in
 status, degrading to keyword-only and never to an API embedder. The other is
 passage text sent to a configured API embedder, which quotes a cost and requires
-an explicit go-ahead per index generation. The default path sends nothing.
+an explicit go-ahead per index generation; it crosses under §5.2.5's API
+execution mode, synchronously, and never through a provider's batch endpoint,
+which that section rules out. The default path sends nothing.
 
 **Read-transport fallback, a narrower and separate gap.** The two paths above
 are the only ones R10 counts, and both stay accurate. Item-metadata reads —
@@ -2543,8 +2757,13 @@ sets are the author's own research questions.
 | Logs (queries, passage text, errors) | None yet |
 | Local Zotero API traffic | Crosses a process boundary, stays on the machine; Zotero's own surface |
 | This repository's committed artifacts | Item keys only; passage text and query sets still open |
+| Inter-process transport and authorization | Conductor/worker stdio pipe; embedding service on a Unix socket in the data directory with the file's permissions, no further authentication; Windows unanswered (§5.2.5) |
 
-Four of the eight rows read "none yet". That is the honest state of the design,
+Three of the nine rows answer "None yet" outright, and three more state an
+answer carrying a named gap inside it: the unverified absence of a network
+listener, the still-open question of passage text and query sets in this
+repository, and the missing authentication and Windows answers for the
+inter-process hops. That is the honest state of the design,
 and stating it is this section's purpose. Each is a candidate ruling, not a
 defect to fix here.
 
