@@ -2,12 +2,14 @@
 Title: Measure extract and chunk throughput on the reference machine
 Created: 2026-08-31
 Author: Claude
+Closed: autoclosed — PR #217
 
 --- log ---
 2026-08-31T14:26Z Claude created
 
 2026-08-31T20:24Z scope widened by PR #127's red-team review: the CPU sweep records worker RSS with a real batch in flight (not at rest) for at least the two heaviest 8-bit multilingual candidates — the 750 MB pipeline ceiling's sufficiency rests on this, since every existing sweep priced batch size in latency only (DESIGN §2.9 now says so in terms)
 2026-09-02T19:51Z full-library build launched on doudou to confirm the rate end to end: driver PID 1009759, server PID 1009762, log /home/haduong/data/projets/zoteus-bench/overnight-2026-09-02/full-build/build.log, data dir .../full-build/data, sqlite backend, no item cap. Handles and do-not-disturb note in .../overnight-2026-09-02/RUNNING-BUILD.md
+2026-09-02T20:02Z Minh Ha-Duong closed — autoclosed — PR #217
 --- body ---
 ## Context
 
