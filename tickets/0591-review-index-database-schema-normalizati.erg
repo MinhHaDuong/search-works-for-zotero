@@ -1,0 +1,46 @@
+%erg 0.1
+Title: Review index database schema normalization and fitness
+Created: 2026-09-02
+Author: codex
+Label: deferred
+
+--- log ---
+2026-09-02T15:47Z codex created
+
+--- body ---
+## Context
+
+The author wants a future discussion of the index database schema, specifically
+its normalization and fitness for purpose, but explicitly not in the current
+session. This ticket preserves that agenda without implying a defect, a target
+normal form, or authorization to redesign the schema.
+
+## Questions for that discussion
+
+1. What are the database's actual read, write, migration, concurrency and
+   recovery workloads?
+2. Which redundancies are deliberate materializations for those workloads, and
+   which create avoidable update or integrity hazards?
+3. Do table boundaries, keys and constraints represent the design's durable
+   identities and derivation graph?
+4. Does the schema support the required query, freshness, deletion, migration,
+   observability and multi-process behavior without hidden full scans or
+   cross-store invariants?
+5. Where would stronger normalization improve correctness, and where would it
+   harm the measured access paths enough to justify denormalization?
+
+## Before discussion
+
+- Inventory the current schema and every writer and reader against the reviewed
+  implementation baseline.
+- Bring representative query plans and measured write paths; do not reason from
+  normal forms alone.
+- Separate logical-schema questions from SQLite storage tuning and from API
+  shape.
+
+## Exit criteria
+
+- [ ] The author reopens the deferred discussion.
+- [ ] Workloads and invariants are written before alternatives are judged.
+- [ ] Any resulting design choice is ratified in `DECISIONS.md` before SPEC.md
+      or implementation changes.

@@ -1,0 +1,96 @@
+%erg 0.1
+Title: Define and test attachment format coverage
+Created: 2026-09-02
+Author: codex
+
+--- log ---
+2026-09-02T16:03Z codex created
+
+2026-09-02T16:04Z codex note author requested the attachment-format policy and fixture matrix be ticketed
+--- body ---
+## Context
+
+The specification has an explicit PDF path and a format-neutral consumer of
+Zotero's `/fulltext`, but no attachment-format policy. Zotero's current search
+documentation says it indexes PDF, EPUB, HTML and plain-text files and does not
+index other document types such as DOCX and ODT. The chain does not say what
+happens to DOC, DOCX, ODT, TXT, Markdown, RTF or HTML attachments, whether
+eligibility follows extension or MIME type, or what R17 reports when body text
+is unsupported.
+
+This ticket establishes evidence first and carries the resulting policy to a
+ruling. It does not authorize adding LibreOffice, Pandoc, Tika, a cloud
+converter, or any other document-conversion runtime.
+
+Primary platform reference:
+`https://www.zotero.org/support/preferences/search`.
+
+## Candidate policy to test and rule
+
+- Eligibility follows detected MIME/content capability, never filename
+  extension alone.
+- PDF uses Zotero text plus the ruled pdf.js structure/page path.
+- EPUB and HTML initially use Zotero-extracted flat text; source-aware structure
+  is separate measured work.
+- Plain text enters directly. TXT and Markdown are probed separately because a
+  `.md` attachment need not be exposed as `text/plain`.
+- DOC, DOCX, ODT and RTF remain metadata-searchable when Zotero supplies no body
+  text, with the stored reason `unsupported-format` rather than an unexplained
+  absence or a false indexed state.
+- A future local converter needs a separate ruling over security, resource
+  budgets, fidelity and derivation identity. Remote conversion is never an
+  implicit fallback under R10.
+
+## Actions
+
+1. Build a minimal fixture matrix: PDF, EPUB, HTML, TXT, Markdown, DOC, DOCX,
+   ODT and RTF, each with a unique body token and ordinary record metadata.
+2. Import each through normal Zotero, record the attachment content type, ask
+   Zotero to reindex it, and probe `/fulltext` plus the full-text control
+   plugin's state.
+3. Record for each fixture: extension, reported MIME type, whether Zotero
+   exposes body text, whether the unique token survives, and the observed
+   terminal state.
+4. Put the candidate policy to the author with every observed exception. Land
+   the ruling in `DECISIONS.md` before changing SPEC.md.
+5. Add an extraction-route/reason field per attachment and R17 counts for at
+   least `zotero-fulltext`, `pdf-source`, `unsupported-format`, `unavailable`
+   and `failed`, using the final ruled vocabulary.
+6. Add acceptance fixtures proving metadata remains searchable for every
+   format and body search behaves exactly as the matrix declares.
+
+## Test
+
+- One unique body token per format distinguishes real extraction from a pass
+  based only on shared metadata.
+- Rename at least one fixture to a misleading extension while preserving its
+  detected content type; extension-only dispatch must fail the control.
+- An unsupported body is metadata-searchable and reports its reason.
+- A supported body is searchable and records the extraction route that
+  produced it.
+- No test invokes a network or document-conversion service.
+
+## Verification
+
+- [ ] The raw Zotero responses and fixture hashes are committed as evidence.
+- [ ] Markdown and RTF are classified by observation, not assumption.
+- [ ] Every named format has a positive metadata-search control.
+- [ ] Every supported format has a body-token control.
+- [ ] Every unsupported format has an explicit-reason control.
+- [ ] `make check` and `./tickets/erg check` pass.
+
+## Invariants
+
+- Metadata coverage never depends on body-format support.
+- Unsupported is a terminal, reported state; it is not failure and not indexed.
+- No converter joins the default path by implication.
+- The policy is MIME/capability based, not an extension allow-list.
+
+## Exit criteria
+
+- [ ] The nine-format fixture matrix is measured and committed.
+- [ ] The author ratifies the attachment-format policy in `DECISIONS.md`.
+- [ ] SPEC.md states eligibility, fallbacks and reporting once, in their owning
+      sections.
+- [ ] R17 reports extraction route and explicit unsupported reasons.
+- [ ] Acceptance coverage matches the ruled matrix.

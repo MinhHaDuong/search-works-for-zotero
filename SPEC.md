@@ -1209,13 +1209,11 @@ is not a constant but a budget, resolved once per model:
 and the resolved budget is recorded in the chunker key, so a model change that
 moves it invalidates chunks explicitly rather than silently. The construction
 is the platform's; the ceiling is ours, and the difference is deliberate.
-Zotero uses 768 as a ceiling rather than a chunk size, and pairs it with a
-minimum of the same value, 120. (Its `min()` applies to the ceiling alone;
-`CHUNK_MIN_TOKENS` is a flat constant compared against nothing, so the
-window-relative reading this sentence used to carry is not upstream's —
-registered by ticket 0180, wording left to the segmenter work.) Cycle 2 copied the ceiling, used it as
-a target, and dropped the minimum — which is what left a 768-token chunk
-unreadable by a 512-token embedder with nothing raised.
+Zotero uses 768 as a ceiling rather than a chunk size and bounds that ceiling
+against the model window. Its 120 minimum is a flat constant, compared with no
+window value. Cycle 2 copied the ceiling, used it as a target, and dropped the
+minimum — which is what left a 768-token chunk unreadable by a 512-token
+embedder with nothing raised.
 
 The ceiling is 500 because it sits below every window in play. Across the nine
 candidate embedders plus the one zoteus loads today, the tightest declared
@@ -1397,14 +1395,17 @@ empty, and whenever the PDF cannot be reached — a linked attachment whose
 target moved, a permission error, a file the local API cannot serve — control
 falls through to seg/1 above, which owns the confidence-gated synthetic
 entries. The length trigger is itself a fallback chain: Zotero's
-`indexedPages` or a literal page-break count first, a character-count
-estimate when neither is available, so the gate degrades to an estimate rather
-than never firing. (That first rung saturates: `indexedPages` counts pages
-actually extracted, capped by the `maxPages` preference, so on a very long PDF
-it reports the cap — registered by ticket 0180, the trigger's order left to the
-segmenter work.) The local API returns `indexedPages` and `totalPages`
-beside the text on its per-item full-text endpoint, so the first link of the
-chain costs no extra call.
+`totalPages` first, from the per-item full-text response. When that value is
+absent and the PDF is reachable, loading it through the vendored pdf.js path
+gives `PDFDocumentProxy.numPages`, the source PDF's total, without extracting
+page text. Only when the PDF cannot be opened do cache-derived signals apply:
+`indexedPages`, literal page-break count, then a labelled character-count
+estimate. Each is a lower bound because the historical extraction cap is
+unknown. A value at or above the threshold proves long; a value below it never
+proves short. If no source total is available and no lower bound proves long,
+the length is unknown and takes the long-document-safe path, with the signal
+and certainty reported. This errs toward extra structure work, never toward
+feeding an undetected monster to the ordinary path.
 
 **The byline.** No tier carries who wrote an entry. Under the synthetic
 fallback there is none to find, and under structured segmentation it is
@@ -1605,10 +1606,11 @@ the tick already sweeps, so file-driven re-extraction is caught for free.
 contract as accepted staleness: "version-0 text refreshes on file change or
 rebuild".
 
-(iii) A bounded idle re-verify sweep is built only if X6 shows that local
-re-extraction really does re-stamp 0. The experiment runs before the machinery
-is written: re-extract one attachment on a synced profile and on a never-synced
-one, and watch the census and the attachment item's version.
+(iii) A bounded idle re-verify sweep is built. X6 used Zotero's real
+re-extraction queue and observed a nonzero full-text census value become 0 while
+the attachment item version remained 0; a second 0-valued arm remained 0. The
+sweep is ticket 0592's and reports its horizon rather than pretending the blind
+class is current between visits.
 
 (iv) A **content-presence probe** at verify time, on X6's
 decoupling finding (`bench/results/0025-x6-version-dynamics/`). A derived cache
@@ -1981,11 +1983,12 @@ the vector scan the bitmap applies before the dot product: genuine
 pushdown, since that loop is ours. On the keyword side, MATCH runs unconstrained
 (C2's measured economics, and upstream already does this) with pool
 `max(8×limit, 256)`, and the bitmap filters the candidate stream. A ladder
-guarantees the result fills up: first refetch deeper (4 096); then, for
-scopes of roughly ≤ 20k passages, run a constrained MATCH via `json_each`
-(`carray` does not exist in `node:sqlite`), where the actual threshold is
-measured by X4, not trusted; then stop and answer honestly through R18's
-`scope{}` block. No path ever post-filters a top-k and *claims
+first refetches deeper (4 096), then stops and answers honestly through R18's
+`scope{}` block when the filtered stream still cannot fill k. X4 removed the
+former constrained-MATCH middle rung: `json_each` was dominated by searching
+the whole corpus even at its smallest measured scope. Ticket 0590 measures how
+often realistic collection and tag scopes reach the disclosure; it commissions
+no replacement unless partial answers prove common. No path ever post-filters a top-k and *claims
 completeness*; the give-up is disclosed, which is what R5 and R18 jointly
 demand.
 
@@ -2572,7 +2575,10 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
 - **Semantic path at scale — X1.** int8 ships if recall@30 ≥ 0.98, pool ≤
   32×topK, and scan+rerank ≤ 400 ms at 650k; the float32 slab is the
   permanent fallback. The single-pass entry heap makes the pool guarantees
-  free.
+  free. The measured 1-bit arm is the leading narrower candidate, with its
+  candidate-specific pool recorded, but remains provisional until its
+  scan-plus-rerank cost is measured on this 650k substrate; it does not amend
+  the int8 rule before then.
 - **CJK — committed.** 2-gram twin tables, CJK-bearing passages only,
   backfilled from slabs; typed degradation meanwhile.
 - **Stopwords — committed.** PR #19 merged (`4f61b2a`); the deletion itself
@@ -2591,21 +2597,19 @@ the 3 s bound is kept by the timeout that degrades to labeled keyword-only
   (§5.2.3); smallest-first rejected on the record.
 - **Fraction-RRF — conditional.** Ships behind the golden gate; calibration
   deferred to its own ticket with the library-derived pair protocol (§5.2.6).
-- **Version-0 freshness residue — X6 decides.** If local re-extraction
-  re-stamps 0, build the bounded re-verify sweep (M entries per tick,
-  horizon reported); if it bumps anything observable, the md5-widened signal
-  already catches it and the sweep is never built. Until X6 runs, the
-  residue is disclosed — and disclosed as ours alone: C1's reading that the
-  platform accepts the same residue was refuted at source (ticket 0180), so
-  nothing here is platform-aligned and the disclosure stands on its own.
+- **Version-0 freshness residue — X6 decided.** Live re-extraction through
+  Zotero's own queue changed a nonzero full-text census value to 0 without
+  moving the attachment item version, and a 0-valued arm remained 0. Build the
+  bounded re-verify sweep (ticket 0592), with its horizon reported. The residue
+  remains disclosed as ours alone: C1's reading that the platform accepts the
+  same residue was refuted at source, so nothing here is platform-aligned.
 - **Census cadence — X7 decides.** Local census every tick, unless the parse
   exceeds 50 ms at 30k entries; then every 5th tick.
-- **Constrained-MATCH threshold — X4 decides** (via `json_each`, the
-  mechanism that actually exists). Measure the cost curve at 1k/5k/20k/100k
-  rowids on the 477k corpus. Rule: the ladder step sits at the largest
-  measured scope whose constrained-MATCH p95 ≤ 150 ms (the filter allowance
-  inside the 300–700 ms typical budget); if even 1k exceeds it, no
-  constrained step ships and the ladder ends at the honest R18 give-up.
+- **Constrained-MATCH threshold — X4 decided.** The smallest real-corpus arm
+  exceeded the rule, so no `json_each` constrained step ships: the ladder
+  refetches deeper and then ends at the honest R18 give-up. Ticket 0590
+  measures how often realistic collection and tag scopes reach that outcome;
+  it commissions no replacement unless partial answers prove common.
 - **The 15 000-page PDF's RSS — X3, split in two.** X3a, runnable before any new code,
   baselines stock upstream, uncapped via
   `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS=0`, on the 44,9 MB document (the 2 084,9 MiB
