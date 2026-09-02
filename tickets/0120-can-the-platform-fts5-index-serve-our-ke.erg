@@ -16,7 +16,7 @@ Author: claude
 --- body ---
 ## Context
 Zotero 10 ships a finished keyword index that zoteus does not use. The
-platform facts are verified and recorded in CONSTRAINTS.md C2; this ticket
+platform facts are verified and recorded in SPEC.md §4 C2; this ticket
 decides what, if anything, we do about them.
 
 What is on disk today, measured on the author's machine 2026-08-29:
@@ -43,7 +43,7 @@ bound this ticket first drew from it, that the index can serve "which items,
 never which passage": the postings survive, `fts5vocab(…, 'instance')`
 constrained by term returns `(itemID, token offset)` in under a millisecond,
 and a query term therefore does locate itself inside an item (log,
-2026-08-29; CONSTRAINTS.md C2 corrected to match). The bound that survives is
+2026-08-29; SPEC.md §4 C2 corrected to match). The bound that survives is
 narrower and still binding. Our unit of answer is the entry (ratified
 2026-08-26), an entry is a span where an offset is a point, and turning a
 token offset into a character position requires reproducing Zotero's own
@@ -64,7 +64,7 @@ available, and we do not control when Zotero writes.
    (wall time, peak RSS, disk) against zero for the platform path, on the
    same library. A saving nobody measured is not a saving.
 2. Determine what the platform index cannot answer that R-items require.
-   Work from REQUIREMENTS.md, not from intuition: entry-level location (the
+   Work from SPEC.md §3, not from intuition: entry-level location (the
    ratified unit), coverage honesty (R4, R17), the filters, accent and CJK
    behaviour. Anything on that list the index cannot serve is a hard bound
    on how much of the keyword path it can take.
@@ -117,7 +117,7 @@ guard. Every figure quoted in prose from this work gets an anchor.
 
 ## Exit criteria
 - [ ] The measured comparison exists in bench/results/
-- [ ] The bound (what it cannot answer) is stated against REQUIREMENTS.md
+- [ ] The bound (what it cannot answer) is stated against SPEC.md §3
 - [ ] Availability under write load is measured, with a positive control
 - [ ] The SDT branch is answered, not skipped: what the pack can serve that
       the index cannot, and what its availability bound costs

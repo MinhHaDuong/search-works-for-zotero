@@ -15,7 +15,7 @@ Blocked-by: 0485
 --- body ---
 ## Context
 
-The calibration-header ruling (`spec/DECISIONS.md`, 2026-08-31) rules a hash over
+The calibration-header ruling (`DECISIONS.md`, 2026-08-31) rules a hash over
 the header out cross-machine, on the measured fact that X8's fp32 rows are
 cross-provider compatible without being bit-identical, and admits one only as a
 same-machine tripwire resting on ticket 0486's bit-determinism check.
@@ -122,7 +122,7 @@ vectors, never instead of them, as the cheap first read that fails fast. It clai
 nothing at 8-bit, and no projection can: preserving a ratio faithfully is no help
 where the ratio is already below one.
 
-The proposal, and the threshold it needs, are stated in `spec/DECISIONS.md` under
+The proposal, and the threshold it needs, are stated in `DECISIONS.md` under
 awaiting ratification. Nothing here changes the ratified header.
 
 ## Sequencing
@@ -145,7 +145,7 @@ number does.
    identical where the bytes may not be. That is the tripwire's actual claim.
 3. Size the threshold from those two distributions rather than from the identity,
    and report the overlap if there is any.
-4. Only then propose the header field, in `spec/DESIGN.md` §2.2 where the format
+4. Only then propose the header field, in `SPEC.md` §5.2.2 where the format
    lives, and put the number to the author.
 
 ## Test
@@ -161,6 +161,6 @@ number does.
 - [ ] Sign-flip distributions measured cross-provider and same-machine, on real
       vectors, and committed
 - [ ] A threshold sized from those distributions, with its overlap stated
-- [x] The ledger entry ratified or vetoed, and `spec/DESIGN.md` §2.2 edited to
+- [x] The ledger entry ratified or vetoed, and `SPEC.md` §5.2.2 edited to
       match if it carries — ratified 2026-08-31 in SHAPE only; §2.2 carries the
       projected vector and its seed, TERMINOLOGY.md carries both terms

@@ -11,7 +11,7 @@ Author: Minh Ha-Duong
 --- body ---
 ## Context
 
-Experiment X8 (DESIGN.md §3) showed every candidate clearing the 0,999
+Experiment X8 (SPEC.md §5.3) showed every candidate clearing the 0,999
 cross-provider bar at full precision and most failing it at the 8-bit rungs
 (0,970-0,998 mean cosine; `bench/results/0482-gpu-corrected/
 x8-cross-provider-fidelity.json`). As the rule is written, that supports the
@@ -24,9 +24,9 @@ The author held the adopt-by-copy ratification on exactly this (2026-08-30).
 
 ## Relevant files
 
-- `spec/DESIGN.md` §3 — the X8 rule this may amend (an amendment is a ruling,
+- `SPEC.md` §5.3 — the X8 rule this may amend (an amendment is a ruling,
   not a report)
-- `spec/DECISIONS.md` — the awaiting adopt-a-foreign-index entry
+- `DECISIONS.md` — the awaiting adopt-a-foreign-index entry
 - `bench/results/0482-gpu-corrected/` — the GPU vectors and X8 scores
 - `bench/results/0263-cpu-arm/` and `/home/haduong/data/projets/
   zoteus-bench/0263-vectors/` — the CPU vectors

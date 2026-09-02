@@ -47,8 +47,8 @@ Author: claude
 2026-09-01T14:03Z claude note X5's corpus and ground truth restated by 0502's propagation of the 2026-08-31 books-and-proceedings ruling: books and proceedings scored against their own tables of contents, the dictionary kept as the rare-case arm, verdict read per class. The >= 45/50 bar is carried over unchanged and flagged for the author
 --- body ---
 ## Context
-DESIGN.md §4 item 7 and §3. Each experiment runs BEFORE its dependent and
-carries a decision rule, not a hope — the rules live once, in DESIGN.md §3;
+GOVERNANCE.md's increment train, item 7, and SPEC.md §5.3. Each experiment runs BEFORE its dependent and
+carries a decision rule, not a hope — the rules live once, in SPEC.md §5.3;
 this ticket carries the work, the substrate, and the ordering. Drivers extend
 bench/ and the 0008 harness; artifacts land in bench/results/ with
 provenance, per house rules.

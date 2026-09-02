@@ -15,7 +15,7 @@ Label: deferred
 2026-08-31T07:30Z claude note UNBLOCKED by ruling, spec/DECISIONS.md 2026-08-31: build calibration from spec/FIELD-REVIEW.md's description and this ticket's own pair-generation protocol, do not read Zotero.Embeddings.Calibration, and derive our own thresholds. FIELD-REVIEW's read-at-source instruction is withdrawn at both of its sites in the same change. The reason the thresholds must be ours and not theirs is the substance rather than the licence: a threshold calibrated on their corpus and their task is wrong for ours by construction, the way X2 showed a stoplist is wrong for a corpus whose majority language differs. No contamination question remains to price
 --- body ---
 ## Context
-DESIGN.md §2.6 defers #6012-style calibration (mean centering, noise floor =
+SPEC.md §5.2.6 defers #6012-style calibration (mean centering, noise floor =
 p99 of unrelated pairs, display ceiling = median of matched pairs, reject a
 model whose matched-median <= null-p99) "to its own ticket with a stated
 pair-generation protocol" — this is that ticket. Protocol: matched pairs =

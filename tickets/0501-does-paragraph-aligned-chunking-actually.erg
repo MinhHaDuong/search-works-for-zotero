@@ -20,7 +20,7 @@ Upstream flattens every newline before it cuts
 (`chunker.ts:8`, `text.replace(/\s+/g, ' ')`, unchanged from the reviewed
 `b132f2d` through v1.12.0), so the paragraph breaks the cache carries are gone
 before the first boundary decision. That much is settled, and
-`spec/DECISIONS.md` (2026-08-30) already ruled the chunk is the paragraph.
+`DECISIONS.md` (2026-08-30) already ruled the chunk is the paragraph.
 
 What is NOT settled is whether fixing it retrieves better, and the survey done
 2026-08-31 says the field does not know either:
@@ -48,7 +48,7 @@ so every user re-embeds.
 
 R1 is the drawer's lock. "Every item in the search perimeter MUST become
 searchable without anyone asking for it" is not met on the reviewed baseline:
-`spec/README.md` has R1 at *partial*, with the crawl paging the library instead
+`README.md` has R1 at *partial*, with the crawl paging the library instead
 of working a priority order, and a text-less attachment not recorded as
 done-with-a-reason (ticket 0019). Better chunking of a partial library is a
 refinement of the wrong thing.
@@ -56,7 +56,7 @@ refinement of the wrong thing.
 `Blocked-by` names 0019 and 0026 as the machine-readable proxy: 0019 is R1's
 unmet no-text clause, 0026 is the harness that would show convergence actually
 reaches every item. The true condition is R1 standing at delivered in
-`spec/README.md`; reopen on that, not merely on those two closing.
+`README.md`; reopen on that, not merely on those two closing.
 
 ## The method, so it is not re-derived
 
@@ -93,7 +93,7 @@ gets wrong.
    move.
 4. **Power and paired statistics.** 0029's ~40 pinned queries is a regression
    gate, not a comparator. Paired bootstrap CI over queries — the interval, never
-   a point estimate — and the decision rule pre-registered in `spec/DESIGN.md` §3's
+   a point estimate — and the decision rule pre-registered in `SPEC.md` §5.3's
    form before the run. Everything else held fixed: embedder, pooling, normalize
    and input template resolved through `bench/registry`, same fusion, same k,
    same extraction; both arms re-embed, since vectors cannot cross geometries.
@@ -121,6 +121,6 @@ Measure the cheap arm before pricing the expensive one.
 - [ ] a citation-pair query extractor, labels at the item level
 - [ ] `bench/chunker_ab.mjs`: three arms, item-level nDCG@10 / MRR / recall@10,
       paired bootstrap CIs, passages-per-item reported per arm
-- [ ] the decision rule pre-registered in `spec/DESIGN.md` §3 BEFORE the run
+- [ ] the decision rule pre-registered in `SPEC.md` §5.3 BEFORE the run
 - [ ] arm C reported beside B, and the verdict stated against C rather than A
 - [ ] the negative control run and reported

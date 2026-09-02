@@ -13,7 +13,7 @@ Blocked-by: 0029
 2026-08-31T12:05Z claude note THE OFFERED SPEC IS THE FIXTURE-LEVEL HALF, per the two-level ruling (spec/DECISIONS.md 2026-08-31). What can travel is the level that runs anywhere the gate runs: the committable corpus, the probe shapes, the pinned answers, the thresholds. The library level never travels — it is the author's real library and a disclosed host — so the offer must say for each assertion whether it is decided at the fixture level or only calibrated there, or a recipient will read a green fixture as a claim about his own library. This also answers why the offer is not zoteus-shaped: a fixture-level spec asserts properties of results given a corpus, which is what makes it runnable against any implementation, Zotero core's own included
 --- body ---
 ## Context
-DESIGN.md §4 item 5, per the ratified re-form (DECISIONS.md 2026-08-26; the
+GOVERNANCE.md's increment train, item 5, per the ratified re-form (DECISIONS.md 2026-08-26; the
 political review's finding 2). The first upstream design conversation is not a
 specification but an executable acceptance spec: the convergence harness, the
 fold sweep, and the golden set, offered as tests he can run against whatever
