@@ -4,8 +4,8 @@ Created: 2026-08-30
 Author: Minh Ha-Duong
 
 --- log ---
-2026-08-30T09:30Z Minh Ha-Duong created
-2026-08-30T09:30Z claude note filed at the author's request, same session as the presence-probe ruling (spec/DECISIONS.md 2026-08-30) — this is that ruling's sibling: cache-lost is availability staleness, this ticket is quality staleness. The author's estimate for his library: roughly half the full-text cache was produced by the old extractor and could be improved
+2026-08-30T09:20Z Minh Ha-Duong created
+2026-08-30T09:20Z claude note filed at the author's request, same session as the presence-probe ruling (spec/DECISIONS.md 2026-08-30) — this is that ruling's sibling: cache-lost is availability staleness, this ticket is quality staleness. The author's estimate for his library: roughly half the full-text cache was produced by the old extractor and could be improved
 
 2026-08-31T14:54Z claude note upstream v1.12.0 (2026-08-31) bears on the staleness class here: #39 makes a full-text crawl throttle itself and back off when the desktop local API degrades, and #37 refuses the pass entirely under Electron. A build that refuses or throttles leaves older extractor output in place for longer, which is this ticket's class rather than cache loss. Re-derive against v1.12.0
 --- body ---

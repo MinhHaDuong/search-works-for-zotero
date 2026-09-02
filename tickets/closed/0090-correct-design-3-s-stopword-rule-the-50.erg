@@ -6,7 +6,7 @@ Closed: DESIGN section 3 now uses the measured 30% working point, a fewer-than-t
 
 --- log ---
 2026-08-29T09:49Z claude created
-2026-08-29T10:05Z claude note filed at 0090 rather than the next free id (0081): the frontier is the most contended seat under parallel sessions, and open PRs already hold 0014, 0025, 0054 and 0060
+2026-08-29T09:51Z claude note filed at 0090 rather than the next free id (0081): the frontier is the most contended seat under parallel sessions, and open PRs already hold 0014, 0025, 0054 and 0060
 
 2026-08-30T16:28Z Codex closed — DESIGN section 3 now uses the measured 30% working point, a fewer-than-two-terms fallback, and an explicit cost-only justification; all quoted measurements are anchored and make check passes.
 --- body ---

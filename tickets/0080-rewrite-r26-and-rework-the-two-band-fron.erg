@@ -4,8 +4,8 @@ Created: 2026-08-29
 Author: claude
 
 --- log ---
-2026-08-29T13:00Z claude created
-2026-08-29T13:00Z minh note R26 rejected as written; tier priority replaces the prefix observable (DECISIONS.md 2026-08-29)
+2026-08-29T09:33Z claude created
+2026-08-29T09:33Z minh note R26 rejected as written; tier priority replaces the prefix observable (DECISIONS.md 2026-08-29)
 
 2026-08-31T12:00Z claude note carries one caveat from tracker 0400 on its dissolution, 2026-08-31: R26 is the one R-item with NO RFC 2119 keyword at all — the normative pass left it declarative because rewriting rejected text as contract would have been worse — so the rewrite this ticket owns must give it a force, not only a new promise. bench/check_normative.py counts it as the single unforced item and will keep saying so until then
 2026-08-31T12:24Z claude note R26 IS RETIRED, NOT REWRITTEN (spec/DECISIONS.md 2026-08-31). This ticket owned the rewrite of a requirement that has now left the sheet: R26 described this repository's convergence harness, and apparatus is not a promise. The requirement half of the job is therefore closed by deletion, and check_normative's exemption table is empty for the first time. What remains here is the real half and it is unchanged: tier priority replaces the two-band frontier in DESIGN 2.3, the convergence harness asserts records-before-body rather than a positional prefix, and R1's newest-first clause — which absorbed R2 in the same pass — is the text that now carries the ordering promise

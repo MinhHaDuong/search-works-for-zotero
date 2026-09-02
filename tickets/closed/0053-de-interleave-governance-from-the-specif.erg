@@ -7,9 +7,9 @@ Closed: autoclosed — PR #41
 --- log ---
 2026-08-29T00:00Z claude created
 2026-08-29T00:00Z claude label needs-human
-2026-08-29T12:00Z minh note split ratified: GOVERNANCE.md owns forward, ratified entries stay (DECISIONS.md 2026-08-29)
-2026-08-29T18:00Z claude note GOVERNANCE.md written; guard bench/check_governance.py red on 10 sites (CLAUDE.md, DESIGN §4) then green; DECISIONS.md untouched
-2026-08-29T18:00Z claude note drift found while inventorying: CLAUDE.md froze "six ratified, five live" while SYNC.md's remainder is two, and "two PRs in flight, ever" predated the once-granted third slot. Counts now point at SYNC.md instead of being restated
+2026-08-29T09:16Z minh note split ratified: GOVERNANCE.md owns forward, ratified entries stay (DECISIONS.md 2026-08-29)
+2026-08-29T13:09Z claude note GOVERNANCE.md written; guard bench/check_governance.py red on 10 sites (CLAUDE.md, DESIGN §4) then green; DECISIONS.md untouched
+2026-08-29T13:09Z claude note drift found while inventorying: CLAUDE.md froze "six ratified, five live" while SYNC.md's remainder is two, and "two PRs in flight, ever" predated the once-granted third slot. Counts now point at SYNC.md instead of being restated
 
 2026-08-29T13:11Z Minh Ha-Duong closed — autoclosed — PR #41
 --- body ---

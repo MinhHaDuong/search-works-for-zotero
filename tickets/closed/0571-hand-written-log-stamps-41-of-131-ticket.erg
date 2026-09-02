@@ -1,0 +1,89 @@
+%erg 0.1
+Title: Hand-written log stamps: 41 of 131 ticket logs are non-monotone
+Created: 2026-09-01
+Author: claude
+Label: needs-human
+Closed: rule ruled, corpus swept, guard in make check
+
+--- log ---
+2026-09-01T18:51Z claude created
+
+2026-09-01T18:52Z Claude label needs-human
+2026-09-01T19:25Z claude note SWEPT AND GUARDED under rule (a), ruled the same day. 169 stamps corrected in 68 tickets; the guard reads 723 log entries across 132 tickets and is green. Two things the work turned up that the filing did not know. (1) The corrected count is 169, not the 37 non-monotone logs this ticket was filed on: monotonicity and this rule select different sets — a log can read forwards and still carry a stamp from the future, and 14 logs read backwards while carrying none. (2) `git log --follow --name-only` does not list merge commits, so a line introduced by a conflict resolution is invisible to a history walk; 0320:14 was found only because the standing guard reads `git blame`, which sees it. The sweep script was a one-off and is not committed — the guard plus this note is the durable half
+2026-09-01T19:25Z Claude closed — rule ruled, corpus swept, guard in make check
+2026-09-01T19:28Z claude note RENUMBERED 0569 → 0571 on merge: main had filed its own 0569 (a failed work order is terminal) from ticket 0553's round-3 review while this branch was open. Mine is the one that moves, per tickets/AGENTS.md — it was closed and archived, and main's is open and the author's. Every reference followed: DECISIONS.md's ruling, CLAUDE.md, the Makefile's ticket-logs comment, the guard's docstring, the probe's. The commit message of 7db2be8 still says 0569 and cannot be rewritten; this note is the pointer
+--- body ---
+## Context
+
+Copilot's review of PR #150 found one non-monotone log (0551: a `created`
+entry stamped 16:30Z above notes stamped 12:28Z). The finding is real and it
+is not local: a sweep of the corpus found **41 of 131 logs non-monotone**, 37
+of them still, after this branch corrected the six tickets commit 2a5b04f
+filed with an impossible creation stamp.
+
+`erg log` reads the real clock, so an entry it writes cannot name a time that
+has not happened. Hand-written entries can, and do — 2a5b04f's six tickets
+each claimed 16:30Z while the commit itself landed at 11:51Z UTC.
+
+Two causes, and only the first is a defect:
+
+1. **A typed stamp that is wrong.** 0567's `note BUILT` at 18:20Z sits above
+   its own `closed` at 18:15Z, and the commit carrying both is 18:16Z. One of
+   the two is invented.
+2. **Order of arrival, not of stamping.** A note appended on a parallel branch
+   and merged later lands below entries stamped after it. This repo runs
+   parallel sessions by design, so the log is a merge of several append
+   streams and cannot be expected to read monotone. Not a defect — but it
+   means a monotonicity guard would fire on honest files.
+
+Which is why this is filed rather than swept: the sweep is mechanical, the
+rule it should enforce is not, and the rule is the author's.
+
+## Relevant files
+
+- `tickets/AGENTS.md` (the append-only convention)
+- `verification/probes/ticket-log-monotonicity.py` (the sweep; run it for the
+  current list, it is not pinned here)
+
+## Actions
+
+1. Rule first: is a ticket log required to read monotone, given that parallel
+   branches merge into it? Three candidate rules, in the order they are worth
+   considering:
+   (a) no entry may be stamped after the commit that introduces it — catches
+       every invented stamp, is checkable from git, and is indifferent to
+       merge order;
+   (b) monotone within one author-session, not across the file;
+   (c) strictly monotone — the simple rule, which the merge case would keep
+       breaking.
+2. Sweep the corpus against whichever rule is ruled, correcting stamps only
+   where git evidences a different time (as this branch did for 2a5b04f's
+   six) and leaving merge-order entries alone.
+3. Only if (a) or (b): a repo-side guard under `bench/`, in `make check`. Not
+   a rule in `erg` — that binary is upstream of this repo.
+
+## Test
+
+- Red first: the probe run before the sweep is the red state (37 files, listed
+  by first break); the same run after it is the green one.
+
+## Exit criteria
+
+- [x] The rule is ruled in DECISIONS.md
+      — 2026-09-01, candidate (a): no entry may be stamped after the commit
+      that wrote it, and monotonicity is explicitly NOT required. (b) was
+      rejected as unenforceable (the file does not record which session wrote
+      a line), (c) because it fires on the honest merge case.
+- [x] The corpus satisfies it, with every corrected stamp evidenced by git
+      — 169 stamps in 68 tickets, each set to the author time of the commit
+      that introduced the line, found by walking the file's own history per
+      line. One straggler (0320:14) came in through a MERGE commit, which
+      `git log --follow --name-only` does not list, and was corrected against
+      `git blame`. No entry's text changed. 14 logs still read out of order
+      and stay that way: under this rule they are not defects.
+- [x] A guard exists, or the ruling says why none can
+      — `bench/check_ticket_logs.py`, in `make check` as `ticket-logs`, with
+      `tests/test_check_ticket_logs.py` exercising it on real git checkouts:
+      a future stamp is caught, an out-of-order log is not, an uncommitted
+      future stamp is caught against the clock, and the live corpus is clean.
+      Not a rule in `erg` — that binary is upstream of this repo.

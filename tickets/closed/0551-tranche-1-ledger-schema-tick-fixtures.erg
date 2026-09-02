@@ -5,7 +5,7 @@ Author: minh
 Closed: autoclosed — PR #150
 
 --- log ---
-2026-09-01T16:30Z claude created, child of 0550
+2026-09-01T11:51Z claude created, child of 0550
 
 2026-09-01T12:28Z claude note BUILT on the fork, branch `tranche-1-ledger-schema`, tip e563570844bb2a8711911296af491d15fdfb2444, three commits, based on `base-v1.12.0` rather than the reviewed v1.10.0 SHA (the fork's own live development baseline; three open fork PRs already stack there). Purely additive: 10 new files, 2 420 insertions, 0 deletions, no existing file touched — so the query-path invariant holds structurally rather than by inspection. `src/features/search/conductor/{clock,ledger,reconcile-tick}.ts`; `tests/fixtures/{clock,local-api-replay,synthetic-library}.ts`; `tests/features/conductor-{ledger,fixtures,reconcile-tick,no-wall-clock}.test.ts`. Upstream suite 923 → 979 passing, 7 skipped throughout, `npm run build` and `npm run typecheck` clean, eslint clean. NOT filed as a fork PR: the branch accumulates and tranche 2 (0552) branches from this tip
 
