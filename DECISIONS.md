@@ -4447,30 +4447,33 @@ was answered on 2026-08-29, and the prefix-granularity reading was vetoed on
   mandatory fail-control: it proves the assertion can fail, while Beaver shows
   the requirement's consequence in a real product.
 
-  **What the neutral phrasing changes on goal 1.** One clause, and it is a
-  requirement rewording rather than a harness detail, so it is the author's
-  to ratify. R15 reads today that "deleting the data directory MUST be the
-  whole uninstall", and that data directory is zoteus's own, a directory
+  **What the neutral phrasing changes on goal 1.** The author settled this
+  requirement rewording on 2026-09-02. R15 reads today that "deleting the data
+  directory MUST be the whole uninstall", and that data directory is zoteus's
+  own, a directory
   which exists because zoteus made one. #6012's derived index is
   `embeddings.sqlite` inside Zotero's data directory, which nobody deletes to
   uninstall a feature, and ZotSeek's sidecar sits in the same place. Read
   literally against either, R15 is unsatisfiable; read charitably, it is
-  untestable. The proposed phrasing: deleting the target's declared derived
-  state MUST be the whole uninstall, and nothing the install wrote MUST
-  survive outside it. For zoteus the declared derived state is its data
+  untestable. The ratified phrasing: **the target MUST declare every location
+  in which it creates derived state. After uninstall, none of that state may
+  remain, and no target-created derived state may exist outside the
+  declaration.** For zoteus the declared derived state is its data
   directory, so the sentence keeps its present meaning; for a plugin it is
   the sidecar files the adapter declares. R15's other clause, that deleting
   an item removes its text everywhere, is untouched. The rewording also
   strengthens rather than merely generalizes: a location cannot be checked
   for completeness, a declared list can, and the residue sweep ticket 0578
-  builds is what makes the declaration falsifiable.
+  builds is what makes the declaration falsifiable. The harness calls the real
+  `uninstall` surface rather than deleting the expected state itself; a target
+  without one reports "not offered".
 
   **How this composes with the harness offer.** Ticket 0032 offers the
   acceptance spec to the zoteus maintainer as the first upstream design
   conversation, on the one-time transfer bounds `GOVERNANCE.md` fixes. Under
   this ruling the offer becomes the layer plus the zoteus adapter, and it
   says so in those words. That is a better offer rather than a diluted one: a
-  spec running against three targets is evidence that it tests the
+  spec running against five targets is evidence that it tests the
   requirement instead of the tool, where a zoteus-shaped test file is a claim
   he would have to take on trust. It also retires an objection he would be
   right to raise, that a test written against his file layout is a test he

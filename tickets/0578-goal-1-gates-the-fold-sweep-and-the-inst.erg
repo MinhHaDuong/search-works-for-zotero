@@ -14,6 +14,7 @@ Author: claude
 2026-09-02T14:22Z codex note AUTHOR ADOPTED THE JUDGE QUESTION PROTOCOL: versioned question/answer schemas and rubrics, blinded fail-control, supervising agent as the default interactive driver, hosted APIs with operator-local credentials or padme's Qwen 3.8 as unattended drivers, and actual judge/model/runtime identity recorded per run. Embedders alone remain in bench/models.json. This ticket uses no judge; the decision is recorded here only because this ticket carries the interface ruling's first implementation.
 2026-09-02T14:24Z codex note AUTHOR ADOPTED BOTH PROPOSED COMPLEMENTS, making four targets: zoteus, Zotero #6012, ZotSeek and 54yyyu/zotero-mcp. ZotSeek supplies the distinct in-process-plugin architecture class; zotero-mcp supplies reach and portability between independent external-server implementations. ZotSeek remains eligible while runnable and inspectable, with its seat otherwise staying assigned to that architecture class; no code is copied under its package-only licence declaration.
 2026-09-02T14:28Z codex note AUTHOR ADOPTED BEAVER AS THE FIFTH TARGET after pointing out its verified AGPL-3.0 licence. Pin and inspect the plugin revision, run its normal configuration, expect R10 to fail where it attempts disclosed remote processing, and assess every other applicable requirement; unavailable service or permitted credentials means not-run, never pass. A deterministic egressing stub replaces Beaver as this ticket's mandatory fail-control, separating proof that the assertion can fail from the real-product finding.
+2026-09-02T14:30Z codex note AUTHOR RATIFIED R15'S TARGET-NEUTRAL UNINSTALL WORDING: every target declares every derived-state location; after its real uninstall none may remain, and no target-created derived state may exist outside the declaration. User-authored library data and externally supplied configuration are not derived state. A target with no uninstall surface reports not-offered; the harness never simulates success by deleting files itself. The item-deletion clause is unchanged.
 --- body ---
 ## Context
 
@@ -34,14 +35,11 @@ target interface plus a thin adapter per target. This ticket therefore builds
 that layer and the zoteus adapter as its first adapter, instead of extending
 `bench/smoke_upstream.py` with assertions that read the zoteus server directly.
 
-Building it does not wait on ratification, and the ticket stays unblocked: the
-layer, the adapter and every assertion below run against zoteus whatever the
-author rules. One thing waits, and only one. R15's uninstall clause reworded
-over declared derived state is a requirement change, not a harness detail, so
-this ticket asserts R15 over the adapter's declared derived-state roots and
-carries that assertion's requirement text as provisional until the ruling
-lands. If the author rules otherwise the assertion's requirement text changes
-and its mechanism does not.
+Building it does not wait on the remainder of the ruling, and the ticket stays
+unblocked: the layer, the adapter and every assertion below run against zoteus.
+The author settled R15's target-neutral uninstall text on 2026-09-02, so its
+assertion is no longer provisional: call the real uninstall surface, then test
+the adapter's declared derived-state roots and the broader residue inventory.
 
 Three of goal 1's four terms are this ticket's, plus one clause that belongs to
 a higher rung and is built here anyway. R10 and R15 are goal 1's; R22 stays on
@@ -192,8 +190,6 @@ Red first per assertion, and the red state is produced rather than argued.
       states
 - [ ] README.md's goal-1 rows carry an evidence verdict that rests on something
       that ran, for the terms this ticket asserts
-- [ ] not blocking, and named so its absence is not read as an omission: R15's
-      requirement text reworded over declared derived state is awaiting the
-      author (`DECISIONS.md`, 2026-09-02). The assertion is built now against
-      the proposed phrasing; a different ruling changes its requirement text and
-      not its mechanism.
+- [ ] R15's assertion uses the author-settled target-neutral uninstall text in
+      `DECISIONS.md` (2026-09-02), pending its one-pass SPEC.md/README.md
+      propagation when the whole ruling lands
