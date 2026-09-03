@@ -20,6 +20,7 @@ import json
 import os
 import shutil
 import tempfile
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -27,6 +28,8 @@ from pathlib import Path
 
 SOURCE_TAG_PREFIX = "zoteus-golden-source:"
 ATTACHMENT_TAG_PREFIX = "zoteus-golden-attachment:"
+EXPORT_SENTINEL = ".zoteus-golden-export.json"
+EXPORT_SENTINEL_SCHEMA = "zoteus-golden-export/v1"
 API_HEADERS = {
     "Zotero-API-Version": "3",
     "x-zotero-connector-api-version": "3",
@@ -66,13 +69,22 @@ def _sha256(path: Path) -> str:
 
 
 def _source_path(doc: dict, cache_dir: Path) -> Path:
-    return (cache_dir / f"{doc['id']}.{doc.get('bytes_format', 'pdf')}").resolve()
+    root = cache_dir.resolve(strict=True)
+    path = root / f"{doc['id']}.{doc.get('bytes_format', 'pdf')}"
+    if path.is_symlink():
+        raise GoldenFixtureError(f"{doc['id']}: source file must not be a symlink")
+    resolved = path.resolve()
+    if resolved.parent != root:
+        raise GoldenFixtureError(f"{doc['id']}: source file escapes the cache directory")
+    return resolved
 
 
 def verify_source_bytes(recipe: list[dict], cache_dir: Path) -> dict[str, Path]:
     """Resolve and verify every input before the first Zotero write."""
     found = {}
     for doc in recipe:
+        if doc.get("id") in found:
+            raise GoldenFixtureError(f"duplicate recipe id {doc.get('id')}")
         pinned = doc.get("sha256")
         if not isinstance(pinned, str) or len(pinned) != 64:
             raise GoldenFixtureError(f"{doc.get('id', '<no id>')}: source bytes are not pinned")
@@ -95,12 +107,25 @@ def verify_recipe_pins(recipe: list[dict]) -> None:
             raise GoldenFixtureError(f"{doc.get('id', '<no id>')}: source bytes are not pinned")
 
 
-def _tags(data: dict) -> set[str]:
-    return {
+def _tag_values(data: dict) -> list[str]:
+    return [
         entry.get("tag")
         for entry in data.get("tags", [])
         if isinstance(entry, dict) and isinstance(entry.get("tag"), str)
-    }
+    ]
+
+
+def _managed_markers(data: dict) -> list[str]:
+    return [
+        tag for tag in _tag_values(data)
+        if tag.startswith(SOURCE_TAG_PREFIX) or tag.startswith(ATTACHMENT_TAG_PREFIX)
+    ]
+
+
+def _require_only_managed_marker(data: dict, expected: str, label: str) -> None:
+    """Compare the raw marker multiset; sets would hide duplicate identical tags."""
+    if _managed_markers(data) != [expected]:
+        raise GoldenFixtureError(f"{label}: expected only managed marker {expected}")
 
 
 def _data(item: dict) -> dict:
@@ -134,7 +159,13 @@ def _desired_parent(doc: dict, collection_key: str) -> dict:
     }
 
 
-def _desired_attachment(doc: dict, parent_key: str, path: Path) -> dict:
+def _attachment_attestation(doc: dict, state: str) -> str:
+    return f"ticket-0029 source sha256: {doc['sha256']}; fulltext: {state}"
+
+
+def _desired_attachment(
+    doc: dict, parent_key: str, path: Path, *, extraction_state: str = "reindexed"
+) -> dict:
     fmt = doc.get("bytes_format", "pdf")
     return {
         "itemType": "attachment",
@@ -143,6 +174,7 @@ def _desired_attachment(doc: dict, parent_key: str, path: Path) -> dict:
         "title": doc["title"],
         "contentType": CONTENT_TYPES.get(fmt, "application/octet-stream"),
         "path": str(path),
+        "extra": _attachment_attestation(doc, extraction_state),
         "tags": [{"tag": attachment_tag(doc["id"])}],
     }
 
@@ -162,7 +194,7 @@ def _update_payload(item: dict, desired: dict) -> dict:
 
 
 def _one_marked(items: list[dict], marker: str, kind: str) -> dict | None:
-    matches = [item for item in items if marker in _tags(_data(item))]
+    matches = [item for item in items if marker in _managed_markers(_data(item))]
     if len(matches) > 1:
         raise GoldenFixtureError(f"duplicate {kind} for managed marker {marker}")
     return matches[0] if matches else None
@@ -175,16 +207,20 @@ def inject(
     sources = verify_source_bytes(recipe, cache_dir)
     parents = client.list_top_items()
     wanted_ids = {doc["id"] for doc in recipe}
+    if len(wanted_ids) != len(recipe):
+        raise GoldenFixtureError("source recipe contains duplicate ids")
     parent_by_id = {}
     attachment_by_id = {}
     for item in parents:
-        managed = [tag[len(SOURCE_TAG_PREFIX):] for tag in _tags(_data(item))
-                   if tag.startswith(SOURCE_TAG_PREFIX)]
-        if len(managed) > 1:
-            raise GoldenFixtureError(f"parent {_key(item)} carries multiple source markers")
-        if not managed:
-            continue
-        recipe_id = managed[0]
+        markers = _managed_markers(_data(item))
+        if not markers:
+            raise GoldenFixtureError(
+                f"fixture collection is not dedicated: top-level item {_key(item)} is unmarked"
+            )
+        if len(markers) != 1 or not markers[0].startswith(SOURCE_TAG_PREFIX):
+            raise GoldenFixtureError(f"parent {_key(item)} carries invalid managed markers")
+        recipe_id = markers[0][len(SOURCE_TAG_PREFIX):]
+        _require_only_managed_marker(_data(item), source_tag(recipe_id), f"parent {_key(item)}")
         if recipe_id not in wanted_ids:
             raise GoldenFixtureError(f"stale managed parent {recipe_id} is not in the source recipe")
         if recipe_id in parent_by_id:
@@ -193,10 +229,13 @@ def inject(
             )
         parent_by_id[recipe_id] = item
         children = client.get_children(_key(item))
-        attachment = _one_marked(
-            children, attachment_tag(recipe_id), "linked attachment"
-        )
-        if attachment is not None:
+        if len(children) > 1:
+            raise GoldenFixtureError(f"{recipe_id}: managed parent has extra children")
+        if children:
+            attachment = children[0]
+            _require_only_managed_marker(
+                _data(attachment), attachment_tag(recipe_id), f"attachment {_key(attachment)}"
+            )
             attachment_by_id[recipe_id] = attachment
     counts = {
         "created_parents": 0,
@@ -204,6 +243,7 @@ def inject(
         "created_attachments": 0,
         "updated_attachments": 0,
     }
+    pending_reindex = []
     for doc in recipe:
         parent_want = _desired_parent(doc, collection_key)
         parent = parent_by_id.get(doc["id"])
@@ -215,13 +255,24 @@ def inject(
             counts["updated_parents"] += 1
 
         attach_want = _desired_attachment(doc, _key(parent), sources[doc["id"]])
+        attach_pending = _desired_attachment(
+            doc, _key(parent), sources[doc["id"]], extraction_state="pending"
+        )
         attachment = attachment_by_id.get(doc["id"])
         if attachment is None:
-            client.write_items([attach_want])
+            attachment = client.write_items([attach_pending])[0]
             counts["created_attachments"] += 1
+            pending_reindex.append((attachment, attach_want))
         elif not _managed_equal(attachment, attach_want):
-            client.write_items([_update_payload(attachment, attach_want)])
+            attachment = client.write_items([_update_payload(attachment, attach_pending)])[0]
             counts["updated_attachments"] += 1
+            pending_reindex.append((attachment, attach_want))
+    if pending_reindex:
+        client.reindex_fulltext([_key(attachment) for attachment, _ in pending_reindex])
+        client.write_items([
+            _update_payload(attachment, final)
+            for attachment, final in pending_reindex
+        ])
     return counts
 
 
@@ -249,6 +300,7 @@ def _snapshot_rows(
     starting_item_version = opening_versions[0]
     items = []
     attachments = []
+    version_zero_bodies = {}
     census = client.fulltext_since(0)
     seen_recipe_ids = set()
     seen_item_keys = set()
@@ -259,6 +311,7 @@ def _snapshot_rows(
         parent = _one_marked(parents, source_tag(doc["id"]), "parent")
         if parent is None:
             raise GoldenFixtureError(f"{doc['id']}: no injected parent in Zotero")
+        _require_only_managed_marker(_data(parent), source_tag(doc["id"]), doc["id"])
         if not _managed_equal(parent, _desired_parent(doc, collection_key)):
             raise GoldenFixtureError(f"{doc['id']}: parent metadata drifted from the source recipe")
         children = client.get_children(_key(parent))
@@ -271,6 +324,7 @@ def _snapshot_rows(
         )
         if child is None:
             raise GoldenFixtureError(f"{doc['id']}: no linked attachment in Zotero")
+        _require_only_managed_marker(_data(child), attachment_tag(doc["id"]), doc["id"])
         if len(children) != 1:
             raise GoldenFixtureError(f"{doc['id']}: injected parent has an extra child")
         child_data = _data(child)
@@ -316,10 +370,7 @@ def _snapshot_rows(
         if indexed_pages < 0 or total_pages < 0 or indexed_pages > total_pages:
             raise GoldenFixtureError(f"{doc['id']}: invalid indexedPages/totalPages relation")
         if census[attachment_key] == 0:
-            repeated = client.get_fulltext(attachment_key)
-            repeated_version = getattr(client, "last_fulltext_version", repeated.get("version", None))
-            if repeated_version != 0 or canonical_json(repeated) != canonical_json(fulltext):
-                raise GoldenFixtureError(f"{doc['id']}: version-zero fulltext changed during capture")
+            version_zero_bodies[attachment_key] = (doc["id"], fulltext)
         items.extend([parent, child])
         attachments.append(
             {
@@ -331,6 +382,14 @@ def _snapshot_rows(
                 "body": fulltext,
             }
         )
+    # Version zero carries no change signal.  Re-read every such body only after all
+    # first-pass bodies have been captured, so a later response cannot mutate an earlier
+    # zero-version body without detection.
+    for attachment_key, (recipe_id, original) in version_zero_bodies.items():
+        repeated = client.get_fulltext(attachment_key)
+        repeated_version = getattr(client, "last_fulltext_version", repeated.get("version", None))
+        if repeated_version != 0 or canonical_json(repeated) != canonical_json(original):
+            raise GoldenFixtureError(f"{recipe_id}: version-zero fulltext changed during capture")
     exported_parent_keys = {_key(item) for item in items if not _data(item).get("parentItem")}
     all_parent_keys = {_key(item) for item in parents}
     if exported_parent_keys != all_parent_keys:
@@ -357,22 +416,29 @@ def canonical_json(value) -> str:
 
 
 def _portable_item(item: dict) -> dict:
-    """Keep Zotero item JSON while removing one machine's linked-file location.
-
-    The attachment remains a linked file and keeps its filename.  Its absolute cache
-    directory is neither corpus provenance nor an input the index build reads, and must
-    not enter a public committed artifact.
-    """
-    portable = copy.deepcopy(item)
-    data = _data(portable)
-    if data.get("linkMode") == "linked_file" and isinstance(data.get("path"), str):
-        data["path"] = f"attachments:{Path(data['path']).name}"
-    links = portable.get("links")
-    if isinstance(links, dict):
-        enclosure = links.get("enclosure")
-        if isinstance(enclosure, dict) and str(enclosure.get("href", "")).startswith("file:"):
-            links.pop("enclosure")
+    """Emit only fields reviewed as inputs to the replay/index build."""
+    data = _data(item)
+    common = {"key", "version", "itemType", "title", "tags"}
+    if data.get("itemType") == "attachment":
+        allowed = common | {"parentItem", "linkMode", "contentType", "path", "extra"}
+    else:
+        allowed = common | {
+            "creators", "date", "language", "url", "archive", "archiveLocation",
+            "extra", "collections",
+        }
+    public_data = {key: copy.deepcopy(data[key]) for key in allowed if key in data}
+    if public_data.get("linkMode") == "linked_file" and isinstance(public_data.get("path"), str):
+        public_data["path"] = f"attachments:{Path(public_data['path']).name}"
+    portable = {"key": _key(item), "data": public_data}
+    version = item.get("version", data.get("version"))
+    if isinstance(version, int):
+        portable["version"] = version
     return portable
+
+
+def _portable_fulltext(body: dict) -> dict:
+    allowed = {"content", "indexedPages", "totalPages", "indexedChars", "totalChars"}
+    return {key: copy.deepcopy(body[key]) for key in allowed if key in body}
 
 
 def _write_json(path: Path, value) -> None:
@@ -380,6 +446,36 @@ def _write_json(path: Path, value) -> None:
         json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def _safe_export_destination(destination: Path) -> tuple[Path, bool]:
+    lexical = Path(os.path.abspath(destination))
+    parent = lexical.parent.resolve()
+    candidate = parent / lexical.name
+    if candidate != lexical:
+        raise GoldenFixtureError(f"fixture export destination must not traverse a symlink: {lexical}")
+    broad = {
+        Path(candidate.anchor), Path.home().resolve(), Path(tempfile.gettempdir()).resolve(),
+        Path(__file__).resolve().parents[2],
+    }
+    if candidate in broad:
+        raise GoldenFixtureError(f"refusing broad fixture export destination {candidate}")
+    if candidate.is_symlink():
+        raise GoldenFixtureError(f"fixture export destination must not be a symlink: {candidate}")
+    if not candidate.exists():
+        return candidate, False
+    if not candidate.is_dir():
+        raise GoldenFixtureError(f"fixture export destination is not a directory: {candidate}")
+    sentinel = candidate / EXPORT_SENTINEL
+    if sentinel.is_symlink() or not sentinel.is_file():
+        raise GoldenFixtureError(f"refusing unowned fixture export destination {candidate}")
+    try:
+        owner = json.loads(sentinel.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise GoldenFixtureError(f"invalid fixture export ownership marker in {candidate}") from error
+    if owner != {"schema": EXPORT_SENTINEL_SCHEMA}:
+        raise GoldenFixtureError(f"refusing unowned fixture export destination {candidate}")
+    return candidate, True
 
 
 def export_snapshot(
@@ -416,7 +512,7 @@ def export_snapshot(
     # This is deliberately after the API capture and immediately before staging the
     # snapshot: extraction must still be attributable to the exact pinned source bytes.
     verify_source_bytes(recipe, cache_dir)
-    destination = Path(destination)
+    destination, destination_owned = _safe_export_destination(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     backup = Path(tempfile.mkdtemp(prefix=f".{destination.name}-previous-", dir=destination.parent))
@@ -426,12 +522,15 @@ def export_snapshot(
         public_rows = []
         for row in attachment_rows:
             body = row.pop("body")
-            _write_json(temp / row["fulltext_file"], body)
+            _write_json(temp / row["fulltext_file"], _portable_fulltext(body))
             public_rows.append(row)
         manifest = {
             "schema_version": 1,
             "recipe_sha256": recipe_digest(recipe),
-            "library": {**library, "collection_key": collection_key},
+            "library": {
+                "type": library["type"], "id": library["id"],
+                "collection_key": collection_key,
+            },
             "zotero": {
                 "client_version": zotero_client_version,
                 "fulltext.pdfMaxPages": pdf_max_pages,
@@ -448,7 +547,8 @@ def export_snapshot(
         }
         _write_json(temp / "items.json", [_portable_item(item) for item in items])
         _write_json(temp / "manifest.json", manifest)
-        if destination.exists():
+        _write_json(temp / EXPORT_SENTINEL, {"schema": EXPORT_SENTINEL_SCHEMA})
+        if destination_owned:
             destination.rename(backup)
         temp.rename(destination)
         if backup.exists():
@@ -487,6 +587,7 @@ class ZoteroLocalClient:
         self.item_library_version = 0
         self.last_item_page_versions = []
         self.last_fulltext_version = None
+        self.plugin_base = f"http://127.0.0.1:{port}/search-works/fulltext/"
 
     def _request(self, path: str, *, method: str = "GET", body=None):
         headers = dict(API_HEADERS)
@@ -584,6 +685,69 @@ class ZoteroLocalClient:
             raise GoldenFixtureError("Zotero fulltext response omitted Last-Modified-Version")
         self.last_fulltext_version = int(version)
         return result
+
+    def _plugin_request(self, path: str, body=None):
+        request = urllib.request.Request(
+            self.plugin_base + path,
+            data=None if body is None else json.dumps(body).encode("utf-8"),
+            headers={} if body is None else {"Content-Type": "application/json"},
+            method="GET" if body is None else "POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                return json.load(response)
+        except Exception as error:
+            raise GoldenFixtureError(
+                "the full-text control plugin is required to reindex fixture attachments: "
+                f"{error}"
+            ) from error
+
+    @staticmethod
+    def _fulltext_complete(item: dict) -> bool:
+        if isinstance(item.get("indexedPages"), int) and isinstance(item.get("totalPages"), int):
+            return item["indexedPages"] >= item["totalPages"]
+        if isinstance(item.get("indexedChars"), int) and isinstance(item.get("totalChars"), int):
+            return item["indexedChars"] >= item["totalChars"]
+        return False
+
+    def reindex_fulltext(self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600) -> None:
+        """Force complete extraction and attest success before injection becomes current."""
+        wanted = set(keys)
+        queued = self._plugin_request("reindex", {"keys": keys})
+        if not isinstance(queued, dict):
+            raise GoldenFixtureError("the full-text plugin returned a malformed reindex response")
+        queued_keys = {
+            row.get("key") for row in queued.get("queued", []) if isinstance(row, dict)
+        }
+        if queued_keys != wanted or queued.get("missing") or queued.get("notAttachments"):
+            raise GoldenFixtureError("the full-text plugin did not queue every fixture attachment")
+        started = time.monotonic()
+        query = "status?keys=" + urllib.parse.quote(",".join(keys), safe=",")
+        while time.monotonic() - started < max_wait:
+            status = self._plugin_request(query)
+            if not isinstance(status, dict):
+                raise GoldenFixtureError("fixture attachment reindex returned malformed status")
+            rows = status.get("items", [])
+            by_key = {
+                row.get("key"): row for row in rows
+                if isinstance(row, dict) and isinstance(row.get("key"), str)
+            }
+            if status.get("lastError") or any(row.get("error") for row in by_key.values()):
+                raise GoldenFixtureError("fixture attachment reindex reported an error")
+            if (
+                set(by_key) == wanted
+                and not status.get("busy")
+                and all(
+                    by_key[key].get("state") == "indexed"
+                    and isinstance(by_key[key].get("version"), int)
+                    and by_key[key]["version"] >= 0
+                    and self._fulltext_complete(by_key[key])
+                    for key in wanted
+                )
+            ):
+                return
+            time.sleep(poll)
+        raise GoldenFixtureError("fixture attachment reindex timed out")
 
 
 def _load_recipe(path: Path) -> list[dict]:

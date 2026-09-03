@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import copy
+import tempfile
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -64,6 +65,7 @@ class MemoryZotero:
         self.writes = []
         self.next_key = 1
         self.library_version = 0
+        self.reindexes = []
 
     def list_top_items(self):
         return [item for item in self.items.values() if not item["data"].get("parentItem")]
@@ -93,6 +95,9 @@ class MemoryZotero:
     def get_fulltext(self, key):
         return self.fulltexts[key]
 
+    def reindex_fulltext(self, keys):
+        self.reindexes.append(list(keys))
+
 
 def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     payload = b"%PDF-1.4\ninvented control\n"
@@ -118,6 +123,12 @@ def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     assert parent["collections"] == ["COLLECT1"]
     assert attachment["linkMode"] == "linked_file"
     assert Path(attachment["path"]) == (cache / "invented-1900-control.pdf").resolve()
+    assert recipe[0]["sha256"] in attachment["extra"]
+    assert attachment["extra"].endswith("fulltext: reindexed")
+    assert zotero.reindexes == [[next(
+        key for key, item in zotero.items.items()
+        if item["data"]["itemType"] == "attachment"
+    )]]
 
 
 def test_injection_refuses_unpinned_or_changed_source_bytes_before_writing(tmp_path):
@@ -151,6 +162,126 @@ def test_duplicate_managed_marker_is_refused_instead_of_multiplying_items(tmp_pa
 
     with pytest.raises(gf.GoldenFixtureError, match="duplicate parent"):
         gf.inject(recipe_for(payload), cache, zotero, collection_key="COLLECT1")
+
+
+@pytest.mark.parametrize("markers", [
+    ["zoteus-golden-source:invented-1900-control"] * 2,
+    ["zoteus-golden-source:invented-1900-control", "zoteus-golden-attachment:invented-1900-control"],
+])
+def test_injection_compares_raw_cross_role_marker_multiset(tmp_path, markers):
+    payload = b"%PDF-1.4\ncontrol\n"
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    zotero.items["PARENT01"] = {"key": "PARENT01", "version": 1, "data": {
+        "key": "PARENT01", "version": 1, "itemType": "document",
+        "tags": [{"tag": marker} for marker in markers],
+    }}
+    with pytest.raises(gf.GoldenFixtureError, match="managed marker|managed markers"):
+        gf.inject(recipe_for(payload), cache, zotero, collection_key="COLLECT1")
+    assert zotero.writes == []
+
+
+def test_injection_refuses_an_unmarked_item_in_the_target_collection(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    zotero.items["PERSONAL1"] = {"key": "PERSONAL1", "version": 1, "data": {
+        "key": "PERSONAL1", "version": 1, "itemType": "document", "tags": [],
+    }}
+    with pytest.raises(gf.GoldenFixtureError, match="not dedicated"):
+        gf.inject(recipe_for(payload), cache, zotero, collection_key="COLLECT1")
+    assert zotero.writes == []
+
+
+def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path):
+    original = b"%PDF-1.4\nfirst\n"
+    changed = b"%PDF-1.4\nsecond\n"
+    recipe = recipe_for(original)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    source = cache / "invented-1900-control.pdf"
+    source.write_bytes(original)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    attachment = next(key for key, item in zotero.items.items()
+                      if item["data"]["itemType"] == "attachment")
+    zotero.fulltexts[attachment] = {
+        "content": "old extraction", "indexedPages": 1, "totalPages": 1, "version": 1,
+    }
+    source.write_bytes(changed)
+    recipe[0]["sha256"] = hashlib.sha256(changed).hexdigest()
+
+    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
+        export_again(recipe, zotero, cache, tmp_path / "stale")
+
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    assert zotero.reindexes[-1] == [attachment]
+    assert recipe[0]["sha256"] in zotero.items[attachment]["data"]["extra"]
+    export_again(recipe, zotero, cache, tmp_path / "current")
+
+
+def test_failed_reindex_leaves_attachment_pending_and_unexportable(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+
+    def fail_reindex(_keys):
+        raise gf.GoldenFixtureError("reindex control failure")
+
+    zotero.reindex_fulltext = fail_reindex
+    with pytest.raises(gf.GoldenFixtureError, match="reindex control failure"):
+        gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    attachment = next(item["data"] for item in zotero.items.values()
+                      if item["data"]["itemType"] == "attachment")
+    assert attachment["extra"].endswith("fulltext: pending")
+    attachment_key = attachment["key"]
+    zotero.fulltexts[attachment_key] = {
+        "content": "possibly stale", "indexedPages": 1, "totalPages": 1, "version": 1,
+    }
+    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
+        export_again(recipe, zotero, cache, tmp_path / "must-not-export")
+
+
+def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+        {"busy": False, "lastError": None, "items": [{
+            "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
+            "totalPages": 2, "version": 9,
+        }]},
+    ]
+    monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
+    client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+
+    responses.extend([
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+        {"busy": False, "lastError": None, "items": [{
+            "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+            "totalPages": 0, "version": 9,
+        }]},
+    ])
+
+    def incomplete(*_args, **_kwargs):
+        return responses.pop(0) if responses else {
+            "busy": False, "lastError": None, "items": [{
+                "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+                "totalPages": 0, "version": 9,
+            }],
+        }
+
+    monkeypatch.setattr(client, "_plugin_request", incomplete)
+    with pytest.raises(gf.GoldenFixtureError, match="timed out"):
+        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.001)
 
 
 def exported_snapshot(tmp_path):
@@ -213,6 +344,9 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
     linked = next(item["data"] for item in items if item["data"]["itemType"] == "attachment")
     assert linked["path"] == "attachments:invented-1900-control.pdf"
     assert manifest["normalizations"]["linked_file_path"].startswith("absolute API path")
+    assert json.loads((dest / gf.EXPORT_SENTINEL).read_text()) == {
+        "schema": gf.EXPORT_SENTINEL_SCHEMA,
+    }
 
     old = (dest / "manifest.json").read_bytes()
     with pytest.raises(gf.GoldenFixtureError, match="no /fulltext"):
@@ -225,6 +359,54 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
             cache_dir=cache,
         )
     assert (dest / "manifest.json").read_bytes() == old
+
+
+def test_export_refuses_broad_symlink_and_unowned_destinations_without_touching_them(tmp_path):
+    recipe, _, _, zotero, cache, _ = exported_snapshot(tmp_path)
+    unowned = tmp_path / "unowned"
+    unowned.mkdir()
+    keepsake = unowned / "keep.txt"
+    keepsake.write_text("mine", encoding="utf-8")
+    target = tmp_path / "target"
+    target.mkdir()
+    alias = tmp_path / "alias"
+    alias.symlink_to(target, target_is_directory=True)
+
+    for destination, message in [
+        (unowned, "unowned"),
+        (alias, "symlink"),
+        (Path(tempfile.gettempdir()), "broad"),
+    ]:
+        with pytest.raises(gf.GoldenFixtureError, match=message):
+            export_again(recipe, zotero, cache, destination)
+    assert keepsake.read_text(encoding="utf-8") == "mine"
+    assert list(target.iterdir()) == []
+
+
+def test_export_public_allowlists_drop_nested_zotero_private_fields(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    for item in zotero.items.values():
+        item["private"] = {"token": "TOP-SECRET"}
+        item["data"]["relations"] = {"private-path": "/home/person/library"}
+        item["links"] = {"enclosure": {"href": "file:///home/person/document.pdf"}}
+    attachment = next(key for key, item in zotero.items.items()
+                      if item["data"]["itemType"] == "attachment")
+    zotero.fulltexts[attachment] = {
+        "content": "public extraction", "indexedPages": 1, "totalPages": 1,
+        "version": 3, "private": {"api_key": "FULLTEXT-SECRET"},
+    }
+    destination = tmp_path / "allowlisted"
+    export_again(recipe, zotero, cache, destination)
+    serialized = "".join(path.read_text(encoding="utf-8") for path in destination.rglob("*.json"))
+    assert "TOP-SECRET" not in serialized
+    assert "FULLTEXT-SECRET" not in serialized
+    assert "/home/person" not in serialized
 
 
 def test_offline_route_replay_has_build_routes_and_fails_closed(tmp_path):
@@ -276,6 +458,21 @@ def test_replay_rejects_tampered_or_incomplete_snapshot(tmp_path):
     )
     assert done.returncode == 7
     assert "missing fulltext" in done.stderr
+
+
+@pytest.mark.parametrize("relative", ["manifest.json", "items.json", "fulltext-body"])
+def test_replay_rejects_symlinked_manifest_items_and_fulltext(tmp_path, relative):
+    _, snapshot, attachment, _, _, recipe_path = exported_snapshot(tmp_path)
+    path = (snapshot / "fulltext" / f"{attachment}.json"
+            if relative == "fulltext-body" else snapshot / relative)
+    outside = tmp_path / f"outside-{relative.replace('/', '-')}.json"
+    outside.write_bytes(path.read_bytes())
+    path.unlink()
+    path.symlink_to(outside)
+
+    done = run_loader(snapshot, recipe_path)
+    assert done.returncode == 7
+    assert "real file" in done.stderr
 
 
 def test_replay_rejects_a_snapshot_from_another_recipe(tmp_path):
@@ -394,6 +591,41 @@ def test_export_rereads_version_zero_fulltext_and_refuses_a_changed_body(tmp_pat
         export_again(recipe, zotero, cache, snapshot)
 
 
+def test_export_rereads_all_zero_version_bodies_after_the_complete_first_pass(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    recipe = recipe_for(payload)
+    second = copy.deepcopy(recipe[0])
+    second.update({"id": "invented-1901-control", "title": "Second control", "year": 1901})
+    recipe.append(second)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    for doc in recipe:
+        (cache / f"{doc['id']}.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    attachments = [
+        key for key, item in zotero.items.items()
+        if item["data"]["itemType"] == "attachment"
+    ]
+    for index, key in enumerate(attachments):
+        zotero.fulltexts[key] = {
+            "content": f"body {index}", "indexedPages": 1, "totalPages": 1, "version": 0,
+        }
+    original = zotero.get_fulltext
+    first_reads = set()
+
+    def mutate_earlier_body_on_later_first_read(key):
+        if key not in first_reads:
+            first_reads.add(key)
+            if key == attachments[1]:
+                zotero.fulltexts[attachments[0]]["content"] = "mutated after its first read"
+        return copy.deepcopy(original(key))
+
+    zotero.get_fulltext = mutate_earlier_body_on_later_first_read
+    with pytest.raises(gf.GoldenFixtureError, match="version-zero fulltext changed"):
+        export_again(recipe, zotero, cache, tmp_path / "snapshot-two")
+
+
 def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
     recipe, snapshot, attachment, zotero, cache, _ = exported_snapshot(tmp_path)
     parent = next(key for key, item in zotero.items.items() if item["data"]["itemType"] == "document")
@@ -418,6 +650,10 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
     ("recipe_id", "not present in the source recipe"),
     ("parent_marker", "expected only managed marker"),
     ("attachment_marker", "expected only managed marker"),
+    ("duplicate_parent_marker", "expected only managed marker"),
+    ("parent_cross_role_marker", "expected only managed marker"),
+    ("attachment_cross_role_marker", "expected only managed marker"),
+    ("source_attestation", "extra does not match"),
     ("metadata", "title does not match"),
     ("orphan_item", "not consumed"),
     ("empty_content", "malformed fulltext"),
@@ -438,6 +674,14 @@ def test_loader_rejects_binding_and_fulltext_mutants(tmp_path, mutation, message
         parent["data"]["tags"].append({"tag": "zoteus-golden-source:wrong"})
     elif mutation == "attachment_marker":
         child["data"]["tags"].append({"tag": "zoteus-golden-attachment:wrong"})
+    elif mutation == "duplicate_parent_marker":
+        parent["data"]["tags"].append(copy.deepcopy(parent["data"]["tags"][0]))
+    elif mutation == "parent_cross_role_marker":
+        parent["data"]["tags"].append({"tag": "zoteus-golden-attachment:invented-1900-control"})
+    elif mutation == "attachment_cross_role_marker":
+        child["data"]["tags"].append({"tag": "zoteus-golden-source:invented-1900-control"})
+    elif mutation == "source_attestation":
+        child["data"]["extra"] = "ticket-0029 source sha256: stale; fulltext: reindexed"
     elif mutation == "metadata":
         parent["data"]["title"] = "tampered"
     elif mutation == "orphan_item":
@@ -491,14 +735,14 @@ def test_loader_requires_unique_parent_and_attachment_keys(tmp_path, duplicate):
     assert f"duplicate or empty {duplicate} key" in done.stderr
 
 
-def test_offline_environment_scrubs_credentials_but_preserves_runtime_settings():
+def test_offline_environment_is_a_reviewed_allowlist_and_scrubs_unknown_secrets():
     probe = """
       import { offlineBuildEnvironment } from './bench/fixtures/make_index_fixture.mjs';
       console.log(JSON.stringify(offlineBuildEnvironment({
         PATH: '/bin', CUDA_VISIBLE_DEVICES: '2', ZOTERO_API_KEY: 'library-secret',
         ZOTEUS_OAUTH_PASSCODE: 'oauth-secret', OPENAI_API_KEY: 'provider-secret',
         GEMINI_API_KEY: 'provider-secret-2', HF_TOKEN: 'model-host-secret',
-        CUSTOM_LOADER_PATH: '/models'
+        CUSTOM_LOADER_PATH: '/models', PRIVATE_CORPUS_TOKEN: 'unknown-secret'
       })));
     """
     done = subprocess.run(
@@ -508,25 +752,23 @@ def test_offline_environment_scrubs_credentials_but_preserves_runtime_settings()
     env = json.loads(done.stdout)
     assert env["PATH"] == "/bin"
     assert env["CUDA_VISIBLE_DEVICES"] == "2"
-    assert env["CUSTOM_LOADER_PATH"] == "/models"
     assert env["ZOTEUS_UPDATE_CHECK"] == "false"
     assert env["ZOTEUS_OAUTH_ENABLED"] == "false"
     assert not ({
         "ZOTERO_API_KEY", "ZOTEUS_OAUTH_PASSCODE", "OPENAI_API_KEY", "GEMINI_API_KEY", "HF_TOKEN",
+        "CUSTOM_LOADER_PATH", "PRIVATE_CORPUS_TOKEN",
     } & env.keys())
 
 
-def test_replay_cli_rejects_network_embedding_providers_before_starting():
-    done = subprocess.run(
-        [
-            "node", "bench/fixtures/make_index_fixture.mjs", "--replay-export", "unused",
-            "--recipe", "unused", "--server", "unused", "--data-dir", "unused",
-            "--embeddings", "openai",
-        ],
-        cwd=REPO, text=True, capture_output=True, timeout=30,
-    )
+@pytest.mark.parametrize("provider", ["local", "openai", "gemini"])
+def test_replay_cli_rejects_every_nonoffline_embedding_provider_before_starting(provider):
+    done = subprocess.run([
+        "node", "bench/fixtures/make_index_fixture.mjs", "--replay-export", "unused",
+        "--recipe", "unused", "--server", "unused", "--data-dir", "unused",
+        "--embeddings", provider,
+    ], cwd=REPO, text=True, capture_output=True, timeout=30)
     assert done.returncode == 2
-    assert "off or local" in done.stderr
+    assert "must be off" in done.stderr
 
 
 def test_fresh_build_directory_rejects_nonempty_broad_and_symlink_paths(tmp_path):
@@ -600,6 +842,8 @@ def test_build_result_requires_done_counts_index_and_complete_successful_routes(
       const cases = [
         [good, routes],
         [{ ...good, status: { ...good.status, state: 'error' } }, routes],
+        [{ ...good, status: { ...good.status, state: 'done', status: 'error' } }, routes],
+        [{ ...good, status: { ...good.status, state: 'error', status: 'done' } }, routes],
         [{ ...good, status: { ...good.status, passages: 0 } }, routes],
         [good, routes.slice(0, -1)],
         [good, routes.map((row, i) => i === 3 ? { ...row, status: 404 } : row)],
@@ -617,6 +861,73 @@ def test_build_result_requires_done_counts_index_and_complete_successful_routes(
     lines = done.stdout.splitlines()
     assert lines[0] == "OK"
     assert all(line.startswith("NO:") for line in lines[1:])
+
+
+def test_run_golden_build_wires_offline_env_and_refuses_local_before_replay_or_spawn(tmp_path):
+    _, snapshot, attachment, _, _, recipe_path = exported_snapshot(tmp_path)
+    data_dir = tmp_path / "wired-build"
+    data_dir.mkdir()
+    probe = r"""
+      import { EventEmitter } from 'node:events';
+      import { mkdirSync, writeFileSync } from 'node:fs';
+      import { join } from 'node:path';
+      import { loadGoldenExport, runGoldenBuild } from './bench/fixtures/make_index_fixture.mjs';
+      const fx = loadGoldenExport(process.argv[1], { recipePath: process.argv[2] });
+      const dataDir = process.argv[3]; const attachment = process.argv[4];
+      const prefix = '/api/groups/4321';
+      const requests = [
+        '/api/users/0/items?limit=1', '/api/users/0/groups?limit=100', `${prefix}/items/top?limit=100`,
+        `${prefix}/fulltext?since=0`, `${prefix}/items/${attachment}/fulltext`,
+      ].map((url) => ({ method: 'GET', url, status: 200 }));
+      let observed;
+      const spawnImpl = (python, args, options) => {
+        observed = { python, args, env: options.env };
+        const resultPath = args[args.indexOf('--result-json') + 1];
+        const target = args[args.indexOf('--data-dir') + 1];
+        writeFileSync(join(target, 'search-index.sqlite'), 'sqlite-control');
+        writeFileSync(resultPath, JSON.stringify({
+          status: { state: 'done', itemsFetched: 1, passages: 2, fulltextPassages: 1 },
+          files: { 'search-index.sqlite': 14 },
+        }));
+        const child = new EventEmitter();
+        queueMicrotask(() => child.emit('exit', 0, null));
+        return child;
+      };
+      process.env.PRIVATE_CORPUS_TOKEN = 'do-not-forward';
+      const result = await runGoldenBuild(fx, {
+        server: '/real/dist/index.js', dataDir, embeddings: 'off', python: '/python-control',
+        spawnImpl, startReplay: async () => ({ port: 23199, requests, close: async () => {} }),
+      });
+      let started = false; let spawned = false;
+      try {
+        await runGoldenBuild(fx, {
+          server: 'unused', dataDir: process.argv[5], embeddings: 'local',
+          startReplay: async () => { started = true; throw new Error('must not start'); },
+          spawnImpl: () => { spawned = true; throw new Error('must not spawn'); },
+        });
+      } catch (error) {
+        console.log(JSON.stringify({ observed, result, rejection: error.message, started, spawned }));
+      }
+    """
+    blocked_dir = tmp_path / "blocked-build"
+    blocked_dir.mkdir()
+    done = subprocess.run([
+        "node", "--input-type=module", "--eval", probe, str(snapshot), str(recipe_path),
+        str(data_dir), attachment, str(blocked_dir),
+    ], cwd=REPO, text=True, capture_output=True, timeout=30,
+       env={**os.environ, "PRIVATE_CORPUS_TOKEN": "parent-secret"})
+    assert done.returncode == 0, done.stderr
+    result = json.loads(done.stdout)
+    assert result["observed"]["python"] == "/python-control"
+    assert result["observed"]["env"]["ZOTERO_LOCAL_PORT"] == "23199"
+    assert result["observed"]["env"]["ZOTEUS_LOCAL"] == "on"
+    assert "PRIVATE_CORPUS_TOKEN" not in result["observed"]["env"]
+    args = result["observed"]["args"]
+    assert args[args.index("--embeddings") + 1] == "off"
+    assert result["result"]["exit_code"] == 0
+    assert "must be off" in result["rejection"]
+    assert not result["started"]
+    assert not result["spawned"]
 
 
 @pytest.mark.skipif(
@@ -647,6 +958,7 @@ def test_real_zoteus_build_runs_only_through_the_captured_api(tmp_path):
     ({"state": "error"}, 1, RuntimeError),
     ({"state": "running"}, 0, TimeoutError),
     ({"state": "error", "status": "done"}, 1, RuntimeError),
+    ({"state": "done", "status": "error"}, 1, RuntimeError),
 ])
 def test_run_build_fails_closed_and_reaps_server(tmp_path, monkeypatch, final, max_wait, error):
     rb = load_run_build()
@@ -725,3 +1037,50 @@ def test_run_build_kills_an_uncooperative_child_even_when_handshake_fails(tmp_pa
         rb.drive_server(args, {})
     assert process.killed
     assert process.waits == 2
+
+
+@pytest.mark.parametrize("build, status", [
+    (True, {"state": "done", "itemsFetched": 1}),
+    (False, {"state": "error", "message": "status-only control"}),
+])
+def test_run_build_positive_done_and_nonbuild_controls(tmp_path, monkeypatch, build, status):
+    rb = load_run_build()
+
+    class Process:
+        pid = os.getpid()
+        terminated = False
+        waited = False
+
+        def terminate(self):
+            self.terminated = True
+
+        def wait(self, timeout):
+            self.waited = True
+            return 0
+
+        def kill(self):
+            raise AssertionError("positive control child should terminate cooperatively")
+
+    process = Process()
+
+    class FakeServer:
+        def __init__(self, *_):
+            self.p = process
+
+        def handshake(self):
+            return {}
+
+        def call(self, _method, params):
+            if params["arguments"]["action"] == "build":
+                return {"state": "running"}
+            return status
+
+    monkeypatch.setattr(rb, "Server", FakeServer)
+    monkeypatch.setattr(rb, "vmhwm_kb", lambda _pid: 7)
+    monkeypatch.setattr(rb.time, "sleep", lambda _seconds: None)
+    result_path = tmp_path / "result.json"
+    args = SimpleNamespace(server="fake.mjs", max_wait=1, build=build, poll=0,
+                           data_dir=str(tmp_path), result_json=str(result_path))
+    rb.drive_server(args, {})
+    assert json.loads(result_path.read_text())["peak_rss_kb"] == 7
+    assert process.terminated and process.waited

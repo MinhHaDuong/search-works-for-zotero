@@ -66,7 +66,7 @@ def build_state(status: dict) -> str:
     """Return the server's normalized build state without guessing from counters."""
     state = str(status.get("state") or "").strip().lower()
     generic = str(status.get("status") or "").strip().lower()
-    if state and generic and generic in SUCCESS_BUILD_STATES | ACTIVE_BUILD_STATES and generic != state:
+    if state and generic and generic != state:
         raise RuntimeError(f"index build reported conflicting state={state} and status={generic}")
     return state or generic
 

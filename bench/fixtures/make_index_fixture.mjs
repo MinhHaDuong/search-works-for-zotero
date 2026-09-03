@@ -35,18 +35,18 @@
  *   node bench/fixtures/make_index_fixture.mjs --generation prerename --output f.sqlite
  *   node bench/fixtures/make_index_fixture.mjs --both <dir>     # writes both, named
  *   node bench/fixtures/make_index_fixture.mjs --replay-export <snapshot> --recipe <json>
- *        --server <dist/index.js> --data-dir <dir> --embeddings local
+ *        --server <dist/index.js> --data-dir <dir> --embeddings off
  */
 import { DatabaseSync } from 'node:sqlite';
 import {
-  existsSync, unlinkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
+  existsSync, unlinkSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
   realpathSync, rmSync, statSync, writeFileSync,
 } from 'node:fs';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { homedir, tmpdir } from 'node:os';
-import { join, parse, resolve } from 'node:path';
+import { join, parse, resolve, sep } from 'node:path';
 import { parseArgs } from 'node:util';
 
 import { SCHEMA_VERSION } from '../index_schema.mjs';
@@ -54,16 +54,19 @@ import { SCHEMA_VERSION } from '../index_schema.mjs';
 export const GENERATIONS = ['current', 'prerename'];
 const SOURCE_TAG_PREFIX = 'zoteus-golden-source:';
 const ATTACHMENT_TAG_PREFIX = 'zoteus-golden-attachment:';
+const EXPORT_SENTINEL = '.zoteus-golden-export.json';
+const EXPORT_SENTINEL_SCHEMA = 'zoteus-golden-export/v1';
 const CONTENT_TYPES = {
   pdf: 'application/pdf', djvu: 'image/vnd.djvu', html: 'text/html', wikitext: 'text/plain',
 };
 
-function tags(data) {
-  return new Set((data.tags ?? []).filter((tag) => tag && typeof tag.tag === 'string').map((tag) => tag.tag));
+function tagValues(data) {
+  return (data.tags ?? []).filter((tag) => tag && typeof tag.tag === 'string').map((tag) => tag.tag);
 }
 
-function requireOnlyManagedMarker(data, prefix, expected, label) {
-  const managed = [...tags(data)].filter((tag) => tag.startsWith(prefix));
+function requireOnlyManagedMarker(data, expected, label) {
+  const managed = tagValues(data).filter((tag) =>
+    tag.startsWith(SOURCE_TAG_PREFIX) || tag.startsWith(ATTACHMENT_TAG_PREFIX));
   if (managed.length !== 1 || managed[0] !== expected) {
     throw new Error(`${label}: expected only managed marker ${expected}`);
   }
@@ -103,16 +106,32 @@ function requireFields(data, expected, label) {
 export function loadGoldenExport(directory, options = {}) {
   if (!options.recipePath) throw new Error('golden export validation requires recipePath');
   const root = resolve(directory);
+  if (!existsSync(root) || lstatSync(root).isSymbolicLink() || !lstatSync(root).isDirectory()) {
+    throw new Error(`golden export root must be a real directory: ${root}`);
+  }
+  const realRoot = realpathSync(root);
+  if (realRoot !== root) throw new Error(`golden export root must not traverse a symlink: ${root}`);
   const readJson = (relative, label) => {
     const path = resolve(root, relative);
-    if (!path.startsWith(`${root}/`)) throw new Error(`${label} escapes the export directory`);
+    if (path !== root && !path.startsWith(`${root}${sep}`)) throw new Error(`${label} escapes the export directory`);
     if (!existsSync(path)) throw new Error(`missing ${label}: ${relative}`);
+    const info = lstatSync(path);
+    if (info.isSymbolicLink() || !info.isFile() || realpathSync(path) !== path) {
+      throw new Error(`${label} must be a real file inside the export directory`);
+    }
+    if (!realpathSync(path).startsWith(`${realRoot}${sep}`)) {
+      throw new Error(`${label} escapes the export directory through a symlink`);
+    }
     try {
       return JSON.parse(readFileSync(path, 'utf8'));
     } catch (error) {
       throw new Error(`malformed ${label} ${relative}: ${error.message}`);
     }
   };
+  const ownership = readJson(EXPORT_SENTINEL, 'export ownership marker');
+  if (JSON.stringify(ownership) !== JSON.stringify({ schema: EXPORT_SENTINEL_SCHEMA })) {
+    throw new Error('golden export has an invalid ownership marker');
+  }
   const manifest = readJson('manifest.json', 'manifest');
   if (manifest.schema_version !== 1) throw new Error(`unsupported golden export schema ${manifest.schema_version}`);
   if (!/^[0-9a-f]{64}$/.test(manifest.recipe_sha256 ?? '')) throw new Error('manifest has no recipe sha256');
@@ -151,7 +170,12 @@ export function loadGoldenExport(directory, options = {}) {
   }
   let recipe;
   try {
-    recipe = JSON.parse(readFileSync(options.recipePath, 'utf8'));
+    const recipePath = resolve(options.recipePath);
+    if (!existsSync(recipePath) || lstatSync(recipePath).isSymbolicLink() ||
+        !lstatSync(recipePath).isFile() || realpathSync(recipePath) !== recipePath) {
+      throw new Error('source recipe must be a real file');
+    }
+    recipe = JSON.parse(readFileSync(recipePath, 'utf8'));
   } catch (error) {
     throw new Error(`malformed source recipe ${options.recipePath}: ${error.message}`);
   }
@@ -201,7 +225,7 @@ export function loadGoldenExport(directory, options = {}) {
     if (!parentItem) throw new Error(`${recipeId}: missing parent item ${parent}`);
     const parentData = itemData(parentItem);
     if (parentData.parentItem) throw new Error(`${recipeId}: declared parent ${parent} is itself a child`);
-    requireOnlyManagedMarker(parentData, SOURCE_TAG_PREFIX, `${SOURCE_TAG_PREFIX}${recipeId}`, recipeId);
+    requireOnlyManagedMarker(parentData, `${SOURCE_TAG_PREFIX}${recipeId}`, recipeId);
     requireFields(parentData, expectedParent(recipeById.get(recipeId), manifest.library.collection_key), recipeId);
     const attachment = itemByKey.get(key);
     if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
@@ -214,10 +238,11 @@ export function loadGoldenExport(directory, options = {}) {
     if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
       throw new Error(`${recipeId}: linked-file path is not portable`);
     }
-    requireOnlyManagedMarker(data, ATTACHMENT_TAG_PREFIX, `${ATTACHMENT_TAG_PREFIX}${recipeId}`, recipeId);
+    requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${recipeId}`, recipeId);
     requireFields(data, {
       itemType: 'attachment', title: doc.title,
       contentType: CONTENT_TYPES[doc.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
+      extra: `ticket-0029 source sha256: ${doc.sha256}; fulltext: reindexed`,
     }, recipeId);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
@@ -382,16 +407,17 @@ export async function startGoldenReplay(fixture, options = {}) {
   };
 }
 
-/** Keep runtime/loader/CUDA configuration, but never forward library or provider secrets. */
+/** A reviewed runtime allowlist: unknown parent variables may themselves be secrets. */
 export function offlineBuildEnvironment(source = process.env) {
-  const clean = { ...source };
-  const providerSecrets = new Set([
-    'OPENAI_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY',
-    'GOOGLE_APPLICATION_CREDENTIALS', 'ANTHROPIC_API_KEY', 'AZURE_OPENAI_API_KEY',
-    'HF_TOKEN', 'HUGGING_FACE_HUB_TOKEN',
+  const allowed = new Set([
+    'PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ',
+    'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT',
+    'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH', 'NODE_PATH', 'PYTHONPATH', 'VIRTUAL_ENV',
+    'CUDA_VISIBLE_DEVICES', 'ROCR_VISIBLE_DEVICES', 'HIP_VISIBLE_DEVICES',
   ]);
-  for (const key of Object.keys(clean)) {
-    if (key.startsWith('ZOTERO_') || key.startsWith('ZOTEUS_') || providerSecrets.has(key)) delete clean[key];
+  const clean = {};
+  for (const [key, value] of Object.entries(source)) {
+    if (allowed.has(key) && typeof value === 'string') clean[key] = value;
   }
   clean.ZOTEUS_UPDATE_CHECK = 'false';
   clean.ZOTEUS_OAUTH_ENABLED = 'false';
@@ -436,7 +462,12 @@ function successfulRequest(requests, predicate) {
 /** Prove the real driver built this fixture and exercised every required API surface. */
 export function validateGoldenBuildResult(fixture, result, requests, dataDirectory) {
   const status = result?.status;
-  const state = String(status?.state ?? status?.status ?? '').toLowerCase();
+  const explicitState = String(status?.state ?? '').trim().toLowerCase();
+  const genericStatus = String(status?.status ?? '').trim().toLowerCase();
+  if (explicitState && genericStatus && explicitState !== genericStatus) {
+    throw new Error(`golden replay build reported conflicting state=${explicitState} and status=${genericStatus}`);
+  }
+  const state = explicitState || genericStatus;
   if (state !== 'done') {
     throw new Error(`golden replay build did not finish successfully (${state || 'missing state'})`);
   }
@@ -480,14 +511,14 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
 
 /** Run the real MCP build driver against the replay, never a hand-written indexer. */
 export async function runGoldenBuild(fixture, options) {
-  if (!['off', 'local'].includes(options.embeddings)) {
-    throw new Error('golden replay embeddings must be off or local');
+  if (options.embeddings !== 'off') {
+    throw new Error('golden replay embeddings must be off for true offline replay');
   }
   const dataDirectory = claimFreshBuildDirectory(options.dataDir, fixture);
   const resultDirectory = mkdtempSync(join(tmpdir(), 'zoteus-golden-result-'));
   let replay;
   try {
-    replay = await startGoldenReplay(fixture);
+    replay = await (options.startReplay ?? startGoldenReplay)(fixture);
   } catch (error) {
     rmSync(resultDirectory, { recursive: true, force: true });
     throw error;
@@ -507,7 +538,6 @@ export async function runGoldenBuild(fixture, options) {
     '--result-json', resultPath,
     '--build',
   ];
-  if (options.transformersPath) args.push('--transformers-path', options.transformersPath);
   const env = {
     ...offlineBuildEnvironment(),
     ZOTERO_LOCAL_PORT: String(replay.port),
@@ -517,7 +547,7 @@ export async function runGoldenBuild(fixture, options) {
   };
   try {
     const exitCode = await new Promise((resolveExit, reject) => {
-      const child = spawn(options.python ?? process.env.PYTHON ?? 'python3', args, {
+      const child = (options.spawnImpl ?? spawn)(options.python ?? process.env.PYTHON ?? 'python3', args, {
         cwd: resolve(import.meta.dirname, '..', '..'), env, stdio: 'inherit',
       });
       child.once('error', reject);
@@ -762,7 +792,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       server: { type: 'string' },
       'data-dir': { type: 'string' },
       embeddings: { type: 'string' },
-      'transformers-path': { type: 'string' },
       report: { type: 'string' },
       'max-wait': { type: 'string' },
     },
@@ -773,8 +802,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.error(`golden replay requires ${missing.map((key) => `--${key}`).join(', ')}`);
       process.exit(2);
     }
-    if (!['off', 'local'].includes(opt.embeddings)) {
-      console.error('--embeddings must be off or local for offline replay');
+    if (opt.embeddings !== 'off') {
+      console.error('--embeddings must be off for true offline replay');
       process.exit(2);
     }
     const fixture = loadGoldenExport(opt['replay-export'], { recipePath: opt.recipe });
@@ -782,7 +811,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       server: opt.server,
       dataDir: opt['data-dir'],
       embeddings: opt.embeddings,
-      transformersPath: opt['transformers-path'],
       report: opt.report,
       maxWait: opt['max-wait'] ? Number(opt['max-wait']) : undefined,
     });
@@ -803,7 +831,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         '--output <f.sqlite>\n' +
         '   or: node bench/fixtures/make_index_fixture.mjs --both <dir>\n' +
         '   or: node bench/fixtures/make_index_fixture.mjs --replay-export <snapshot> ' +
-        '--recipe <recipe.json> --server <dist/index.js> --data-dir <dir> --embeddings local|off',
+        '--recipe <recipe.json> --server <dist/index.js> --data-dir <dir> --embeddings off',
     );
     process.exit(2);
   }
