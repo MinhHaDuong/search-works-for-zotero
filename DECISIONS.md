@@ -5343,3 +5343,57 @@ the reference machine's figure is the fleet's floor rather than its bound; the
 worst case measured anywhere is **1 860,8 MB**. Artifacts:
 `bench/results/0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json` and
 `…-gpu-host-cpu.json`.
+
+
+**2026-09-03 — Bringing the old-generation full texts up to date: copy first,
+re-extract over the copy, and never inside the R1 tick (awaiting
+ratification).** Raised by the author 2026-09-03 in the session that re-read
+ticket 0120; the facts it rests on are that ticket's log and 0483's. Filed here
+because 0120's exit criterion requires a design change to reach `DECISIONS.md`
+before the ticket records a recommendation.
+
+**What it would decide.** (1) The extract stage MAY bring an attachment's text
+up to date — a pre-form-feed extractor generation (3 882 of 8 590 PDF caches),
+or a body truncated at `fulltext.pdfMaxPages` / `fulltext.textMaxLength` — but
+never as part of the unattended tick. R1 is the duty to become searchable
+without anyone asking; a stale or capped extraction is a declared quality
+state, not a coverage hole, so the refresh is an explicitly invoked maintenance
+verb. (2) The mechanism is copy-then-re-extract: our store takes a copy of the
+platform text and serves it immediately, and an uncapped re-extraction later
+replaces our copy, per attachment. Zotero's own `.zotero-ft-cache` is never the
+thing we overwrite in the ordinary course. (3) Truncation is reported before it
+is repaired: 0483's ledger state, fed by the API's `indexedPages`/`totalPages`,
+and R17's sentence counts attachments served from an old-generation or
+truncated extraction apart.
+
+**Why the overwrite is the part that matters.** Re-indexing through
+`bench/zotero-fulltext-plugin` (PR #189) replaces Zotero's cache and bumps the
+full-text version, so the previous extraction cannot be recovered or compared
+against, and X6 observed group-library attachments coming back at full-text
+version 0 (ticket 0025 log, 2026-09-02). The caps themselves are Zotero
+preferences: X5's uncapped arm was obtained by the author lifting the pref by
+hand, a global, out-of-band change to the user's configuration, which is not
+something an unattended tick may make.
+
+**The price, stated rather than minimised.** A duplicate in time and space:
+819,4 MiB of flat cache today and more once uncapped, plus the extraction time
+(measured at 63–80 pages/s end to end on this machine, so time is not the
+binding cost). The second cost is a second source of truth, which is a
+freshness problem (ticket 0480) and must be answered by the same device 0572
+already specifies for packs: an extractor identity per attachment, recorded in
+the ledger, so which copy is current is derived and not guessed.
+
+**Unaffected.** The flat/structured dual channel stays as ratified 2026-09-02 —
+pack-first, flat fallback, a mechanism under R24 (ticket 0572). Nothing here
+chooses between the platform FTS5 index, the SDT pack, both or neither; ticket
+0120's action 7 is untouched and still needs its action 1 figure, which needs
+the reference machine.
+
+**The two questions this cannot answer alone, and why they are the author's.**
+(a) May a verb of ours WRITE into Zotero at all? The plugin's reindex crosses
+the read-only posture C2 describes, and doing it under any automatic trigger
+would make an irreversible platform-side change on our schedule. (b) Is the
+uncapped copy a third channel, or a variant of the flat channel carrying its
+own extractor identity? The recommendation here is the second — one flat path
+whose identity says which extractor produced it — so the number of source paths
+does not grow.
