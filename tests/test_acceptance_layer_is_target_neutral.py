@@ -83,10 +83,13 @@ def declared_target_names() -> set[str]:
     return names
 
 
-#: The five targets the ruling names (`SPEC.md` §5.2.8). Four have no adapter
-#: yet, so the derived set above cannot cover them; this is the floor that keeps
-#: them forbidden in the meantime, and it shrinks in relevance as adapters land
-#: rather than needing maintenance.
+#: The five targets the ruling names (`SPEC.md` §5.2.8). All five now have an
+#: adapter, so the derived set above does cover every one of these names — but
+#: the floor is not therefore redundant, and the reason is worth keeping: an
+#: adapter declares `zotero-core-6012`, and the match below is word-bounded, so
+#: the derived set never yields the bare `6012` a leaking module would write.
+#: The floor holds the names as the ruling states them, independently of how an
+#: adapter happens to spell one.
 RATIFIED_TARGETS = frozenset({"zoteus", "zotseek", "beaver", "zotero-mcp", "6012"})
 
 #: Shapes that are a target's vocabulary even when no target is named: a tool
