@@ -35,7 +35,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { cpus, hostname } from 'node:os';
-import { resolveModel } from './registry.mjs';
+import { loadRegistry, resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -46,6 +46,12 @@ const { values: opt } = parseArgs({
     dtype: { type: 'string' },
     device: { type: 'string' },
     batch: { type: 'string', default: '8' },
+    // MEASURES A DEFECT; NEVER USE FOR A RECALL CELL THAT STANDS FOR A MODEL. Runs the
+    // wrong pooling on purpose, so the cost of upstream's one hardcoded mode can be read on
+    // the task metric rather than on a cross-lingual probe -- which matters because the two
+    // do not agree in sign for every model. The cell records `pooling_forced` and the
+    // declared value, so no downstream reader can mistake it for a measurement of the model.
+    'force-pooling': { type: 'string' },
   },
 });
 if (!opt['pkg-root'] || !opt.corpus || !opt['out-prefix'] || !opt.model || !opt.dtype) {
@@ -64,9 +70,27 @@ const { pipeline } = await import(
 
 const texts = readFileSync(opt.corpus, 'utf8').split('\n').filter(Boolean);
 
-const { id: modelId, repo: modelRepo, pooling, normalize, template } = resolveModel(opt.model);
-if (!pooling) {
+const { id: modelId, repo: modelRepo, pooling: declaredPooling, normalize, template } =
+  resolveModel(opt.model);
+if (!declaredPooling) {
   throw new Error(`[pooling] ${opt.model} declares no pooling. Add it to models.json before measuring.`);
+}
+// The declared value stays required even when it is overridden: an ablation is readable
+// only against a model whose correct pooling is known, and the cell records both.
+const POOLING_MODES = [
+  ...new Set(loadRegistry().models.map((entry) => entry.pooling).filter(Boolean)),
+].sort();
+if (opt['force-pooling'] && !POOLING_MODES.includes(opt['force-pooling'])) {
+  throw new Error(
+    `[pooling] --force-pooling ${opt['force-pooling']} is not one of ${POOLING_MODES.join(', ')}`,
+  );
+}
+const pooling = opt['force-pooling'] ?? declaredPooling;
+if (opt['force-pooling']) {
+  console.error(
+    `[ablation] ${modelId} declares pooling=${declaredPooling}; running ${pooling} on purpose. ` +
+      'This cell measures a defect, not the model.',
+  );
 }
 const prefix = template?.passage ?? '';
 const prefixed = prefix ? texts.map((t) => prefix + t) : texts;
@@ -138,6 +162,8 @@ writeFileSync(
       input_template_role: 'passage',
       input_template_prefix: prefix,
       pooling,
+      declared_pooling: declaredPooling,
+      pooling_forced: Boolean(opt['force-pooling']),
       batch: BATCH,
       // One-time costs apart from the per-unit rate — see quant_fidelity.mjs and
       // ticket 0260. This driver carried the same defect and the ticket named only
