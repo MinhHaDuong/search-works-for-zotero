@@ -85,7 +85,7 @@ PROSE = {
     # the draft that goes upstream. The outward one is the reason these are declared -- a
     # number leaving the repo is the case this guard was argued for.
     "v0612": ["verification/POOLING-DEFECT-0612.md"],
-    "u0612": ["verification/UPSTREAM-ISSUE-POOLING-0612.md"],
+    "u0612": ["verification/UPSTREAM-PR-POOLING-0612.md"],
     "v0267": ["verification/EMBEDDER-RECOMMENDATION-0267.md"],
     "vsmoke": ["verification/SMOKE-1.10.0.md"],
     "t0025": [

@@ -46,8 +46,17 @@ for both (`verification/POOLING-DEFECT-0612.md`). In the same
 thread, after the close, **Michael-Logies asked for a quantized entry** for
 ChromeOS-class machines and named dtype-in-identity as its precondition,
 which is the registry entry by another route. The `pr43-minilm-e5-registry`
-branch offered on #43 is now 14 ahead and 30 behind and touches the file he
-rewrote: it needs rebuilding onto his seam, not rebasing onto it. The
+branch offered on #43 is now 14 ahead and 33 behind and touches the file he
+rewrote: it needs rebuilding onto his seam, not rebasing onto it. **He then
+shipped the dtype work the same afternoon** (`230183d` at 13:18, merged
+`b0e0bc8`): `ZOTEUS_EMBEDDING_DTYPE` selects the weight precision and enters the
+identity as `local:<model>@<dtype>`, which is Michael-Logies' quantized entry
+delivered within hours of the ask and the precondition the maintainer had named
+for it. It is also the knob ticket 0220 proposed and this repo withdrew on
+2026-08-29 — shipped by him, soundly, with the identity fix that withdrawal said
+a knob could not travel without. Pooling is now the one vector-affecting property
+still written at the call site, one occurrence in the whole `src` tree, and the
+rebuild is staged with that first. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*
