@@ -3805,6 +3805,23 @@ was wrong under this ruling. Nothing here reverts them: whether those two merges
 stand is the author's, and this entry is written from the correction rather than
 from the merge.
 
+**2026-09-03 — the two merges of that morning stand, and the coordinator is
+normally the orchestrator rather than the author.** Two things the entry above
+left open, closed by the author the same day. *Garde les deux merges, ne reverte
+pas*: #232 and #235 stay as merged (`0bb5304`, `9dd6fcd`). The breach is recorded
+above and is not undone, because the changes were gated, `main` was green at the
+time and is green now, and reverting a correct change to punctuate a procedural
+point costs the record more than it buys.
+
+And, asked to confirm who the coordinator is: *le superviseur est l'agent MOE,
+normalement.* So the second party that presses merge is the **orchestrating agent
+that launched the lane**, not the author — `AGENTS.md` already said "the
+coordinator that launched it", and this fixes that reading rather than changing
+it. The author sits above the arrangement and ratifies it; he is the coordinator
+only in the case where no orchestrator is live, which is what happened twice on
+2026-09-03 and is the exception the word *normalement* leaves room for.
+
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
