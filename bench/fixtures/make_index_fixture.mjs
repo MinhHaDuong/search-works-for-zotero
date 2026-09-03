@@ -313,10 +313,8 @@ export function loadGoldenExport(directory, options = {}) {
     if (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages) {
       throw new Error(`${recipeId}: invalid indexedPages/totalPages relation`);
     }
-    for (const field of ['indexed_pages', 'total_pages']) {
-      if (row[field] !== body[field === 'indexed_pages' ? 'indexedPages' : 'totalPages']) {
-        throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
-      }
+    for (const [field, bodyField] of [['indexed_pages', 'indexedPages'], ['total_pages', 'totalPages']]) {
+      if (row[field] !== body[bodyField]) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
     }
     for (const [field, bodyField] of [['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
       if (row[field] !== (body[bodyField] ?? null)) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);

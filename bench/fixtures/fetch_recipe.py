@@ -312,8 +312,9 @@ def validate(recipe: list[dict]) -> list[str]:
                     if feature["extraction_expectation"] not in STRUCTURAL_EXPECTATIONS:
                         found.append(f"{did}: structural extraction expectation unknown")
         sources = [doc] if legacy else doc.get("attachments", [])
+        sources = sources if isinstance(sources, list) else []
         attachment_ids: set[str] = set()
-        for source in sources if isinstance(sources, list) else []:
+        for source in sources:
             if not isinstance(source, dict):
                 found.append(f"{did}: attachment must be an object")
                 continue
@@ -345,9 +346,13 @@ def validate(recipe: list[dict]) -> list[str]:
                 else:
                     if caps["pages"] not in CAP_RESULTS or caps["chars"] not in CAP_RESULTS or caps["combined"] not in COMBINED_CAP_RESULTS:
                         found.append(f"{label}: cap crossing expectation unknown")
-                    expected_combined = {(False, False): "neither", (True, False): "page-only",
-                                         (False, True): "char-only", (True, True): "both"}.get(
-                        (caps["pages"] == "crosses", caps["chars"] == "crosses"))
+                    crosses_page = caps["pages"] == "crosses"
+                    crosses_chars = caps["chars"] == "crosses"
+                    expected_combined = (
+                        "both" if crosses_page and crosses_chars else
+                        "page-only" if crosses_page else
+                        "char-only" if crosses_chars else "neither"
+                    )
                     if caps["combined"] != expected_combined:
                         found.append(f"{label}: combined cap expectation contradicts page/char expectations")
                     locators = caps["locators"]
@@ -363,7 +368,7 @@ def validate(recipe: list[dict]) -> list[str]:
             if source.get("language", doc.get("language")) not in LANGUAGES:
                 found.append(f"{label}: language {source.get('language')!r} unknown")
             _validate_source(source, label, found)
-        if not legacy and isinstance(sources, list):
+        if not legacy:
             by_language: dict[str, list[dict]] = {}
             for source in sources:
                 if isinstance(source, dict):
@@ -422,7 +427,7 @@ def run(recipe: list[dict], cache_dir: Path, timeout: float, only: set[str] | No
     for doc in recipe:
         sources = doc.get("attachments", [doc])
         for source in sources:
-            if only and source["id"] not in only and doc["id"] not in only:
+            if only and only.isdisjoint((source["id"], doc["id"])):
                 continue
             if source.get("bytes_url") is None:
                 rows.append({"id": source["id"], "archive": source["archive"], "status": "no-bytes-url"})

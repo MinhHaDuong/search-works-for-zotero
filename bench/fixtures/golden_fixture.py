@@ -217,7 +217,7 @@ def inject(
     recipe: list[dict], cache_dir: Path, client, *, collection_key: str
 ) -> dict[str, int]:
     """Reconcile recipe parents and linked attachments; return mutation counts."""
-    sources = verify_source_bytes(recipe, cache_dir)
+    source_paths = verify_source_bytes(recipe, cache_dir)
     parents = client.list_top_items()
     wanted_ids = {doc["id"] for doc in recipe}
     if len(wanted_ids) != len(recipe):
@@ -272,9 +272,9 @@ def inject(
             counts["updated_parents"] += 1
 
         for source in _sources(doc):
-            attach_want = _desired_attachment(doc, source, _key(parent), sources[source["id"]])
+            attach_want = _desired_attachment(doc, source, _key(parent), source_paths[source["id"]])
             attach_pending = _desired_attachment(
-                doc, source, _key(parent), sources[source["id"]], extraction_state="pending"
+                doc, source, _key(parent), source_paths[source["id"]], extraction_state="pending"
             )
             attachment = attachment_by_id.get(source["id"])
             if attachment is None:
@@ -357,10 +357,9 @@ def _snapshot_rows(
             if not _managed_equal(child, _desired_attachment(doc, source, parent_key, source_paths[source["id"]])):
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
             attachment_key = _key(child)
-            for item_key in (attachment_key,):
-                if item_key in seen_item_keys:
-                    raise GoldenFixtureError(f"duplicate exported Zotero item key {item_key}")
-                seen_item_keys.add(item_key)
+            if attachment_key in seen_item_keys:
+                raise GoldenFixtureError(f"duplicate exported Zotero item key {attachment_key}")
+            seen_item_keys.add(attachment_key)
             if attachment_key not in census:
                 raise GoldenFixtureError(f"{source['id']}: attachment has no /fulltext census entry")
             try:
