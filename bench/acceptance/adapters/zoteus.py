@@ -71,9 +71,11 @@ restamps are done here, in sqlite, exactly as `bench/smoke_upstream.py`'s
 and only this adapter may know where it lives. Editing one item and resyncing
 identical bytes are declined: both are writes to the user's Zotero library,
 which this target is configured read-only against and which R15 excludes from
-derived state — and the clauses they serve read work counters this target does
-not report, so driving them would produce an undecidable run rather than a
-verdict.
+derived state. That is the whole reason, and it is a fact about the library
+rather than about the counters: every build measured so far also reports no work
+counters for those clauses to read, but the adapter now derives that on each run
+(`_work_counters`) instead of asserting it, so the refusal below says only what
+stays true whatever the status reply carries.
 
 **The model runtime path is a declared, overridable input, and it is the sharpest
 environmental trap here.** The built checkout does not vendor the on-device model
@@ -157,27 +159,66 @@ WORK_OBJECT_KEYS = ("work", "counters")
 WORK_PREFIX = "work"
 
 
-def _flatten_counters(reported: dict, prefix: str = WORK_PREFIX) -> dict[str, int]:
+def _is_counter_name(name: str) -> bool:
+    """Whether a flattened name is one the layer can read as a counter.
+
+    Mirrors `durability._field`, which returns '' for anything that is not four
+    dotted fields beginning with `work` — and every goal-2 clause filters its
+    deltas by `outcome_of`, so a name that fails here contributes to no verdict
+    while still being enough, by its mere presence, to make `work_counters`
+    non-None and let a clause decide. That is the ticket's own defect class
+    coming back through the other door: a target reporting a `work` field that
+    is not counters at all would earn a green from a check that had honestly
+    said `not-run`. Hence the shape gate.
+    """
+    parts = name.split(".")
+    return len(parts) == 4 and parts[0] == WORK_PREFIX and all(parts)
+
+
+def _count(value: object) -> int | None:
+    """`value` as a count, or None if it is not one.
+
+    Dropped rather than coerced: a phase string beside the counters is not a
+    counter, and `int()` on it would raise on a payload this is only reading.
+    Booleans go too — `True` is an `int` in Python and a flag is not a count.
+    An integral float is accepted, because JSON has one number type and a
+    serializer that emits `3.0` has still reported three.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return None
+
+
+def _flatten_counters(reported: dict, prefix: str = WORK_PREFIX,
+                      *, top: bool = True) -> dict[str, int]:
     """Flatten a counter object into the layer's dotted `work.<...>` names.
 
     Nested (`{"record": {"edit": {"done": 1}}}`) and already-flat
-    (`{"work.record.edit.done": 1}`) are both accepted, because a counter object
-    is not shipped yet and neither shape can be presumed. Non-integer leaves are
-    dropped rather than coerced: a phase string sitting beside the counters is
-    not a counter, and coercing it would raise on a payload this is only reading.
-    Booleans are dropped too — `True` is an `int` in Python and a flag is not a
-    count.
+    (`{"work.record.edit.done": 1}`) are both accepted, because no build ships a
+    counter object yet and neither shape can be presumed. The already-flat branch
+    fires only at the top level: a dotted key found *inside* a nested object
+    would otherwise discard its own ancestors and report a name from the wrong
+    address.
+
+    Only names the layer can parse survive (`_is_counter_name`), so a `work`
+    object that is not counters yields nothing and the caller reads it as no
+    counters — which is what it is.
     """
     flat: dict[str, int] = {}
     for key, value in reported.items():
         name = str(key)
-        full = name if name.startswith(f"{WORK_PREFIX}.") else f"{prefix}.{name}"
+        already_flat = top and name.startswith(f"{WORK_PREFIX}.")
+        full = name if already_flat else f"{prefix}.{name}"
         if isinstance(value, dict):
-            flat.update(_flatten_counters(value, full))
-        elif isinstance(value, bool):
+            flat.update(_flatten_counters(value, full, top=False))
             continue
-        elif isinstance(value, int):
-            flat[full] = value
+        count = _count(value)
+        if count is not None and _is_counter_name(full):
+            flat[full] = count
     return flat
 
 
@@ -434,10 +475,8 @@ class Zoteus:
         if what in (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES):
             raise NotImplementedError(
                 "this would write to the user's own Zotero library, which this target is "
-                "configured read-only against and which R15 excludes from derived state; "
-                "and the clause it serves reads work counters this target does not "
-                "report, so driving it would produce an undecidable run rather than a "
-                "verdict"
+                "configured read-only against and which R15 excludes from derived state, "
+                "so the harness declines to drive it and the clause is not decided here"
             )
         raise NotImplementedError(f"this adapter has no way to do {what!r}")
 

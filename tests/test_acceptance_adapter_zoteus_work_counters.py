@@ -144,6 +144,42 @@ def test_an_empty_counter_object_reads_as_no_counters(tmp_path):
     assert build(tmp_path, dict(NO_COUNTERS, work={})).status()["work"] is None
 
 
+def test_a_work_field_that_is_not_counters_does_not_become_counters(tmp_path):
+    """The defect class coming back through the other door (review of PR #302).
+
+    Every goal-2 clause filters its deltas by `outcome_of`, which returns '' for
+    a name that is not four dotted fields — so a name of the wrong shape reaches
+    no verdict, while its mere presence is enough to pass the `is None` gate the
+    clauses check first. A target reporting a `work` scalar that is not a counter
+    would then earn a green from a check that had honestly said `not-run`, which
+    is the shape this ticket exists to remove.
+    """
+    for shape in ({"total": 5}, {"queue": {"depth": 2}}, {"a.b.c.d.e": 1}):
+        assert build(tmp_path, dict(NO_COUNTERS, work=shape)).status()["work"] is None
+
+
+def test_a_dotted_name_nested_inside_the_object_keeps_its_ancestors(tmp_path):
+    """The already-flat branch is a top-level shape, not a per-level one.
+
+    Fired at every level it would let a dotted key discard the ancestors that
+    address it, reporting a counter from the wrong place in the tree.
+    """
+    reply = dict(NO_COUNTERS, work={"embed": {"work.a.b": 1, "edit": {"done": 2}}})
+    reported = build(tmp_path, reply).status()["work"]
+    assert reported == {"work.embed.edit.done": 2}
+    assert "work.a.b" not in reported
+
+
+def test_an_integral_float_is_a_count(tmp_path):
+    """JSON has one number type, and a serializer emitting 3.0 has reported three.
+
+    Dropping it would answer "no counters" for a target that has them — the
+    failure this ticket forbids, in the direction that is hardest to notice.
+    """
+    reply = dict(NO_COUNTERS, work={"embed": {"edit": {"done": 3.0}}})
+    assert build(tmp_path, reply).status()["work"] == {"work.embed.edit.done": 3}
+
+
 # --- 3. the clauses that rest on it -----------------------------------------
 
 
