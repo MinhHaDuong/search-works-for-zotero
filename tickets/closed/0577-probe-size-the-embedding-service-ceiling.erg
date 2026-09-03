@@ -2,6 +2,7 @@
 Title: Probe: size the embedding service ceiling for two resident generations
 Created: 2026-09-02
 Author: claude
+Closed: GPU host measured as a disclosed second configuration on padme with the same machine's CPU run beside it as the host control; the reference-machine cells stand unchanged and the service ceiling remains the author's ruling to make
 
 --- log ---
 2026-09-02T10:41Z claude created
@@ -12,6 +13,7 @@ Author: claude
 
 2026-09-03T04:53Z claude note re-ran both arms under the author's warm directive: the driver's warm: true was a literal beside an optional flag the run could not observe, so the drive now warms itself in a process of its own and emits warm_witness -- the loads it performed, the batches it discarded, and the model-cache byte total before warming, after warming and after every cell, all three equal at 386 831 709 so nothing downloaded inside a cell. A run whose warm child fails writes no artifact, verified against a missing runtime. Fixed and marginal terms are now separate keys rather than folded into a cell, and the cells are reconciled against the completed full-library build: 2 410 MB peak for ONE generation in a process also holding a 1,7 GB index, so it prices no dual-embed window and does not contradict cell 4
 
+2026-09-03T05:30Z Minh Ha-Duong closed — GPU host measured as a disclosed second configuration on padme with the same machine's CPU run beside it as the host control; the reference-machine cells stand unchanged and the service ceiling remains the author's ruling to make
 --- body ---
 
 ## Context
