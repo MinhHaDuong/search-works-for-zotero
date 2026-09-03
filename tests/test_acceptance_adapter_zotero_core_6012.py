@@ -555,8 +555,14 @@ def test_running_refuses_before_spawning_when_the_posture_is_unavailable(tmp_pat
 
     The build has to be real -- `running()` refuses a missing launcher before
     it ever looks at the posture -- so `a_build` supplies one whose stamp
-    matches the pin. The launcher itself exits immediately if it is ever run,
-    which it must not be: reaching the `Popen` at all is the defect.
+    matches the pin. That is exactly why the trailing `_process` assertion is
+    load-bearing here and not decoration: because this launcher *does* exist
+    and *does* execute, `pytest.raises` alone stays green under the defect the
+    ticket describes -- a `wrap()` moved BELOW the `Popen` still raises, one
+    line late, with a real process already started under the operator's own
+    identity. `_process` is `None` at construction and assigned only at the
+    spawn, so it is the one witness that distinguishes a refusal from a
+    too-late refusal. Verified by running that mutation (review of PR #301).
     """
     refused = posture.Posture(
         posture.ACCOUNT_POSTURE, account=None,
@@ -567,3 +573,4 @@ def test_running_refuses_before_spawning_when_the_posture_is_unavailable(tmp_pat
     with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
         with target.running():
             pytest.fail("the lifecycle yielded despite a refused posture")
+    assert target._process is None, "a process was started despite the refusal"

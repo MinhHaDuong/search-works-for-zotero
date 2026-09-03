@@ -409,7 +409,7 @@ def test_the_log_exemption_is_one_file_and_not_the_arena(tmp_path):
     assert assertions.residue(frozenset({stray}), target) == [stray]
 
 
-# --- 8. the identity boundary (tickets 0625, 0626) --------------------------
+# --- 6. the identity boundary (tickets 0625, 0626) --------------------------
 
 
 def test_running_refuses_before_spawning_when_the_posture_is_unavailable(
@@ -447,3 +447,10 @@ def test_running_refuses_before_spawning_when_the_posture_is_unavailable(
     with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
         with target.running():
             pytest.fail("the lifecycle yielded despite a refused posture")
+    # Not redundant with the raise: a `wrap()` moved BELOW the `Popen` would
+    # still raise, one line late and with a process already started. Here the
+    # nonexistent launcher happens to red that mutation on its own, but the
+    # sibling adapter's launcher does exist -- so the witness that actually
+    # discriminates is asserted in both, rather than left to a coincidence of
+    # the fixture (review of PR #301).
+    assert target._process is None, "a process was started despite the refusal"
