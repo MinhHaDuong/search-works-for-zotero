@@ -93,7 +93,7 @@ base-sized models between a tenth and an eighth. So the cost is not a constant
 that could be absorbed as a known tax, and a user cannot predict which of their
 candidate models is the one that falls off the cliff.
 
-## Why a `pooling` setting is the wrong remedy
+## Why a `pooling` setting cannot be the whole remedy
 
 The correct value cannot be read from the repository the code loads.
 `1_Pooling/config.json` is a sentence-transformers artifact, and the ONNX mirrors
@@ -111,15 +111,18 @@ that the docs point users at do not republish it. Probed against the Hub API on
 
 Four of six absent, and the four are exactly the mirrors a transformers.js user
 loads. So the auto-detection route that upstream took for the `e5` prefixes —
-infer from the id — has nothing to read here, and the alternatives are a curated
-value per model or a user-facing setting. A setting is worse than the defect it
-fixes: choosing wrong produces no error, only worse retrieval, and the user has
-no more access to the right value than the code does.
+infer from the id — has nothing to read here. So a setting on its own would not
+repair the case it exists for: choosing wrong produces no error, only worse
+retrieval, and the user has no more access to the right value than the code does.
+Someone who picks `gte-multilingual-base` because the docs invited them to would
+keep the whole measured loss.
 
-That is this repository's 2026-08-29 ruling reached from the other end. The
-ruling withdrew a precision knob because precision cannot travel alone; the
-measurement here shows the axis beside it cannot travel alone either, and for the
-same reason. Both are properties of a curated record.
+That is this repository's 2026-08-29 ruling reached from the other end, and it
+also bounds what the ruling meant. The ruling withdrew a precision knob because
+precision could not travel alone; it did not say a knob is wrong once the thing
+it travels with exists. The table is what pooling has to travel with, and with the
+table under it a `ZOTEUS_EMBEDDING_POOLING` override is the same object
+`ZOTEUS_EMBEDDING_PREFIXES` already is.
 
 ## The remedy, now that dtype has landed
 
@@ -132,12 +135,26 @@ wrong choice is at least the user's own, while pooling is something nobody
 chooses, and the wrong value arrives silently with a model the docs invited them
 to try.
 
-Pooling also needs less than dtype needed. Because the correct mode is a property
-of the model rather than of the user's configuration, the model id determines it,
-and the identity already carries the id — so no identity change is required and
-no new knob. A curated map from model id to pooling mode, with an unlisted id
-keeping today's behaviour exactly, is the whole repair, and it is small enough to
-review in one sitting.
+The shape to send is the one upstream already uses for prefixes: a layer that is
+right by default, plus an override for the checkpoint that layer cannot speak for.
+`ZOTEUS_EMBEDDING_PREFIXES` is the escape hatch on an id inference; the pooling
+equivalent is the escape hatch on a curated table, because for pooling an
+inference is impossible — the mirror probe above is why. Same architecture,
+different oracle, and it is the maintainer's own idiom rather than an argument
+against it.
+
+A knob alone would not do. Someone who picks `gte-multilingual-base` because the
+docs invited them to has no way to learn it wants `cls`, so a bare
+`ZOTEUS_EMBEDDING_POOLING` would leave the measured loss exactly where it is for
+the user it is meant to serve. The table is what repairs the default; the variable
+is what covers the mirrored or renamed checkpoint.
+
+Pooling also needs less than dtype needed on one point. Precision is chosen by the
+user and so had to enter the identity; the correct pooling mode is a property of
+the model, the id determines it, and the identity already carries the id — so the
+table changes no identities, and the override sits where
+`ZOTEUS_EMBEDDING_PREFIXES` sits. An unlisted id keeps today's behaviour exactly.
+The whole repair is small enough to review in one sitting.
 
 The fuller entry stays worth having, and the branch `pr43-minilm-e5-registry` on
 the author's fork has its shape: `EmbedderEntry` pins model, a 40-character

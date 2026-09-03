@@ -45,7 +45,7 @@ Before reading any of those deltas I re-ran one untouched cell through the
 patched harness and confirmed it reproduced the previously committed result field
 for field, so the harness change is not the source of the difference.
 
-## Why this is a table and not a setting
+## Why this is a table under a setting, not a setting alone
 
 The value cannot be looked up from the repository the code loads.
 `1_Pooling/config.json` is a sentence-transformers artifact, and the ONNX mirrors
@@ -61,15 +61,22 @@ do not republish it:
 | `Snowflake/snowflake-arctic-embed-m-v2.0` | present |
 
 So the id-inference that works for the E5 prefixes has nothing to read here: the
-mirrors people actually load publish no pooling config. That leaves a curated
-value per model or a user-facing setting, and a setting would put the user in the
-same position as the code — no error when wrong, only worse results, and no way
-to know which value their model wants.
+mirrors people actually load publish no pooling config. A setting on its own
+would therefore not repair anything for the user it is meant to help — someone
+who picks `gte-multilingual-base` because the docs invite them to has no way to
+learn it wants `cls`, and would keep the loss above.
 
-Pooling also needs less than dtype needed. Precision is something a user chooses,
-so it had to enter the identity; pooling is a property of the model, so the id
-determines it and the identity already carries the id. No identity change, no new
-environment variable.
+This follows the shape `ZOTEUS_EMBEDDING_PREFIXES` already has: a layer that gets
+it right by default, and an override for the checkpoint that layer cannot speak
+for. The only difference is the oracle. For prefixes the default layer is an
+inference from the id; for pooling an inference is impossible, so it is a curated
+table instead.
+
+Pooling also needs less than dtype needed on one point. Precision is chosen by
+the user and so had to enter the identity; pooling is a property of the model, the
+id determines it, and the identity already carries the id — so the table changes
+no identities, and the override sits exactly where `ZOTEUS_EMBEDDING_PREFIXES`
+sits.
 
 ## What this changes
 
@@ -79,10 +86,17 @@ moves and nobody is blocked from an unlisted model. Each entry carries the
 repository its value was read from, so the table can be checked rather than
 trusted.
 
+`ZOTEUS_EMBEDDING_POOLING` overrides it, for a mirrored or renamed checkpoint the
+table cannot speak for. Unset, the table decides. Set, the user decides — and the
+docs say plainly that a wrong value degrades retrieval silently, the same warning
+the dtype hint gives about a repository that does not publish the file it names.
+
 ## What this does not change
 
-The default model, the identity format, the prefix logic, the dtype logic. No new
-setting. `ZOTEUS_EMBEDDING_MODEL` keeps its spelling and its meaning.
+The default model, the identity format, the prefix logic, the dtype logic.
+`ZOTEUS_EMBEDDING_MODEL` keeps its spelling and its meaning, and the new override
+carries no weight in the embedder identity, in the same position
+`ZOTEUS_EMBEDDING_PREFIXES` occupies.
 
 ---
 
