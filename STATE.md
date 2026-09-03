@@ -23,17 +23,17 @@ is [`README.md`](README.md)'s.
 
 ## Handoff
 
-**Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028; 0581 waits on
-0029, which codex holds. No lane work reaches either.
+**Upstream shipped v1.13.0 today; the reviewed baseline is still v1.12.0.** #48 is in it,
+verified in source: a resumed build reads `passages WHERE vector IS NULL` and re-fetches
+nothing. **Re-baselining precedes everything** — 0033's remaining scope is what 1.13.0
+moved, and 0504 is the pattern.
 
-**Open:** #255, its base long stale and needing a re-merge;
-`claude/resume-journee-taj5f8` undecided.
+**0613, 0614, 0615 ask whether zoteus passes goal 1, 2, 3.** Goal 1 is 3 of 7 clauses
+green: the update-check egress default (ours, a pull request), no uninstall surface,
+R22's pair unreadable for want of counters. Goal 2 waits on 0033; goal 3 has no
+assertions, which is 0580's. The matrix is `bench/results/0604-ladder-matrix/`.
 
-**Next.** **0120 action 1**, the measured saving — the one thing that ticket formally
-requires and still without a figure. The 2026-09-03 caps and route probes are answered
-and merged: `verification/SDT-CAPS-0483.md` and `EXTRACTION-ROUTES.md` own what they
-found, 0610 the population they left undrained.
-
-**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list. Still open here:
-**is 0491 inside the codex fence**, and the ladder re-cut's two questions — whether to
-split 0606, and which ticket owns the dispatcher 0564 and 0606 action 4 both describe.
+**Open:** #278 decides the four host-bound cells; its caveat is that the egress sandbox's
+read-only `/tmp` kills both desktop hosts ~7 s in, so `R10-no-egress` there measures
+startup only. #276 is another lane's. **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list; still open here is
+**whether 0491 is inside the codex fence**, and the ladder re-cut's two questions.
