@@ -74,6 +74,52 @@ corpus stays out.
   life+70 clear.
 
 ## Exit criteria
+- [ ] the representative mix records each injected Zotero item type and whether
+      it is bibliographically correct; intentional errors name the canonical
+      type and rationale
+- [ ] redundant books are traded for one article in each SHOULD language
+      (Arabic, Russian, Chinese, German, Hindi and Spanish), under the same
+      archive, licence and byte-pin rules
+- [ ] authentic source formats cover PDF, DjVu, EPUB, DOCX, ODT, RTF, HTML,
+      plain text and Markdown where an admitted archive supplies them; no
+      conversion is performed to manufacture coverage (ticket 0593 owns the
+      exhaustive capability matrix and legacy `.doc` gap)
+- [ ] stable work identities and typed relations mark one separate-record
+      translation pair, one near-duplicate publication pair, one book/chapter
+      pair and one metadata-conflicting duplicate
+- [ ] the recipe separates parent-item metadata from attachment provenance and
+      carries three two-attachment parents: same text in authentic different
+      formats, the same text in different languages, and an article with its
+      presentation; attachment roles are explicit and passage evidence retains
+      the supplying attachment; D6 selection remains deterministic and the
+      fixture pins attachment order, detected language, selected keys and
+      same-language sibling skip reasons
+- [ ] declared failure controls cover a bad PDF, a missing linked file, a valid
+      file with no usable text, lying extension or MIME metadata, stale
+      extraction, and inconsistent parent/child structure, beside a
+      metadata-only or note-only boundary item; each pins its expected
+      degradation and answer-set participation
+- [ ] fixture composition is bounded by the pinned passage distribution and
+      evidence needs rather than the former parent-record tally; language
+      articles still replace redundant books while failure and relationship
+      shapes may add the records or attachments they require
+- [ ] structural marks pin an answer-bearing table, figure caption, annex or
+      appendix, footnote or endnote, multi-column article and equation-heavy
+      prose to an attachment and page or section, with the extraction
+      expectation and text-versus-visual claim stated
+- [ ] annotation fixtures distinguish embedded-PDF, Zotero-database and
+      note-copied provenance; cover highlight, underline, text-note, image and
+      ink shapes; pin page and annotation-key locators, note paragraphs/lists/
+      line breaks, page-only versus annotation-specific links, unavailable
+      image export, and an independently edited note surviving source deletion
+- [ ] one Project Gutenberg ebook supplies official UTF-8 text, HTML and EPUB
+      attachments under one work identity; every file is independently pinned,
+      the non-paginated text crosses the stock character cap, and no local
+      conversion stands in for an archive-issued format
+- [ ] fixture attachments cross both stock Zotero extraction caps named in
+      SPEC.md §5.2.8 independently and together; export evidence records total
+      and indexed pages and characters, with pinned answers on both sides of
+      each boundary
 - [ ] every fixture document carries a public archive identifier, a byte hash,
       and a licence basis in the source recipe; none is sourced from a personal
       library (ruling 2); versioned identifiers where the archive offers them
