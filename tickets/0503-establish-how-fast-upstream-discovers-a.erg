@@ -14,6 +14,9 @@ Author: Claude
 2026-09-02T19:09Z claude note Exit criteria after this PR: 1 ticked (read at source, file and line in the log above and in the report); 3 ticked (R35's row moved inferred -> code in README.md, on the page's own definition of that class -- the source was opened at the reviewed baseline -- with the row itself saying why it stops short of measured). 2 and 4 left unticked: both belong to the measurement half, and 4 cannot be judged before 2 runs. Ticket stays open
 2026-09-02T21:04Z claude note CONTROLS TABLE REBUILT after a merge gate found it did not reproduce. Three of its rows were wrong; all nine probes are now re-run and recorded with their exact commands and outputs. Row 2 was a basic regex ending \.schedule\( -- an unclosed group -- so GNU grep exited 2 with Unmatched ( or \( and printed nothing: its nil said "could not look", not "nothing there". Row 4 carried bare update and item as top-level alternatives and actually matched 1340 lines while the row beside it claimed nil. Row 6 claimed startIndexBuild has two call sites; it has three. The VERDICT is untouched and the gate reproduced it independently: startIndexUpdate still has exactly one call site in src/, src/tools/index-tool.ts:125 @ b05ed69
 2026-09-02T21:04Z claude note THE MISSED CALL SITE IS SUBSTANTIVE, not bookkeeping. The third startIndexBuild call site is src/features/search/build.ts:382, inside startIndexUpdate itself: when ctx.search.updateBlocker(backend) returns a reason (build.ts:380) the update runs a FULL REBUILD with the reason attached to the status. Six such conditions, at index-manager.ts:1190-1218 plus the unconditional override at corruption.ts:70 -- unreadable store, a store that cannot delete rows, an empty index, no library version stamp, a stamp from a different Zotero API, or vectors from a different embedder. Consequence for THIS ticket: the deferred measurement half is measuring a bimodal cost. SPEC.md 5.2.4 reconcile tick calls this path on a clock, so a tick costs either a cheap delta or a whole library, and a mean over an unrecorded mix reports nothing. The exit criterion now requires the mode of each tick recorded off status.operation the way src/tools/index-tool.ts:127-131 already reads it, with the two distributions reported apart
+2026-09-03T18:00Z claude note DRIFT GUARD: UPSTREAM_REVIEWED_SHA moved since the 21:04Z entry above -- b05ed69 (v1.12.0) to b0e0bc8 (v1.13.0, ticket 0618, UPSTREAM file). Diffed both SHAs on the four cited files. VERDICT UNCHANGED: startIndexUpdate still has exactly one call site in src/, still gated on action:"update", still bimodal on the same six updateBlocker conditions -- nothing here was invalidated by the #43 dtype work the bump carried. Two citations held exactly: index-tool.ts:125 (the call site) and corruption.ts:70 (the unconditional override) are unchanged at b0e0bc8. Two drifted and are RE-DERIVED here for Phase 5: build.ts's updateBlocker check and full-rebuild fallback moved 380/382 -> 471/473-479 (startIndexUpdate itself now starts at build.ts:460, was 369); index-manager.ts's six-condition updateBlocker body moved 1190-1218 -> 1409-1437. index-tool.ts:127-131's operation-reading block is unchanged in substance and still the right place to read status.operation from. Phase 5 must build fork/ at the CURRENT UPSTREAM_REVIEWED_SHA (re-read from UPSTREAM, not copied from this entry -- it moves) and re-confirm line numbers again if it has moved further by then, rather than trusting either this entry's or the 21:04Z entry's numbers by date alone
+2026-09-03T18:00Z claude note PADME SET UP AS A SECOND QUIET REFERENCE MACHINE for the deferred half: live Zotero desktop synced (17 518 items, local API idle, datadir /home/haduong/data/Zotero-fresh), no build in flight -- the condition doudou could not offer this session (17h full-library build in progress there). ITEM-COUNT SCOPE FLAG: 17 518 is ~2.3x the 7 541 SPEC.md's own worked example and the prior live-smoke recipe (memory project-live-smoke-recipe, ticket 0520) used for "the real library". R12 puts group libraries in scope and each subscribed library gets its own per-library tick (SPEC.md 5.2.4), so the likely explanation is padme's account has group libraries synced that the 7 541 measurement scoped out -- not established, only plausible. Phase 5 must state which scope (personal-only vs personal+groups) it actually measured rather than assume the two figures describe the same population; a per-tick item-census cost measured on the aggregate is not comparable to SPEC.md's personal-library worked example without saying so
+2026-09-03T18:00Z claude note REFINED Actions/Test/Verification below with the concrete recipe: build fork/ at the current SHA, drive it over stdio with bench/mcp_drive.py (reused, not hand-rolled -- the same harness the ticket 0520 live-smoke recipe used), establish the delta-path precondition (one completed same-backend same-embedder SQLite build) before measuring, force and correctly classify one full rebuild as a positive control before trusting the classifier on real reps, then run N>=5 add/delete reps recording status.operation on every poll and reporting delta vs rebuild distributions apart per the 21:04Z finding
 --- body ---
 ## Context
 R35 entered the sheet on 2026-08-31 with an `inferred` standing row, which is
@@ -46,7 +49,115 @@ chosen as design, before any requirement pointed at them.
 - [ ] the §2.4 values are confirmed as the bound or re-pinned from the
       measurement, with the ruling in DECISIONS.md if they move
 
+## Actions
+1. Build `fork/` at the CURRENT `UPSTREAM_REVIEWED_SHA` (`make upstream-checkout`;
+   re-read `UPSTREAM`, do not copy a SHA from this ticket's log — it moves, and
+   already moved once during this ticket's life, see the 2026-09-03T18:00Z
+   drift-guard entry). Before trusting any file:line citation below, re-derive
+   it at the SHA actually built if `UPSTREAM` has moved again.
+2. Target padme: live Zotero desktop already synced, local API at
+   `http://127.0.0.1:23119/api/users/0/`, datadir
+   `/home/haduong/data/Zotero-fresh`. Confirm idle first — no build in
+   flight, `localApiDegradedAt` unset — the same precondition doudou could
+   not offer this session.
+3. One-time manual step: Zotero 10+ gates local-API writes behind an in-app
+   grant dialog (`POST /api/local/authorize`, `src/api/local-writes.ts`).
+   Someone must click "Always Allow" once in padme's desktop app before any
+   scripted add/delete can run. Not automatable — flag it, don't script
+   around it.
+4. Reuse `bench/mcp_drive.py`'s `Server` class to drive the built fork over
+   stdio — the same harness the ticket 0520 live-smoke recipe used (memory
+   `project-live-smoke-recipe`). Do not hand-roll a new MCP client or timer.
+5. Establish the delta-path precondition before measuring anything: run
+   `zotero_index action:"build"` once against the SQLite backend
+   (`supportsDelete=true`), poll `action:"status"` to `state:"done"`, and
+   confirm the resulting status carries a `libraryVersion` stamp and an
+   embedder identity matching the running config. A completed same-backend,
+   same-embedder SQLite build satisfies four of `updateBlocker`'s six
+   conditions by construction (readable store, delete-capable store,
+   non-empty index, stamped); the remaining two (backend mismatch, embedder
+   mismatch) are avoided by never switching either between build and update.
+6. Deletion latency: create one throwaway test item via the local API
+   (never delete a real library item), then delete it. Record delete time
+   `t0`. Call `action:"update"`; poll `action:"status"` and read
+   `s.operation` off every poll (per `index-tool.ts`'s own
+   `s.operation === 'update' ? 'Index update' : … 'Full index rebuild'`
+   pattern) to label the tick delta or rebuild. Poll `/fulltext` (or query)
+   until the deleted item's text is no longer served; record `t1`. Latency
+   = `t1 - t0`.
+7. New-item latency: add one throwaway test item via the local API. Record
+   add time `t0`. Call `action:"update"`, poll status/operation as above.
+   Poll the search tool until the new item is discoverable. Record `t2`.
+   Latency = `t2 - t0`.
+8. Repeat both (add, delete) for N ≥ 5 reps. Log `operation` per tick.
+   Partition into delta-tick vs full-rebuild-tick distributions — never
+   average across the two. A rep that unexpectedly triggers a full rebuild
+   stays in its own bucket rather than being discarded, per the
+   2026-09-02T21:04Z finding this ticket exists to honor.
+9. Record the item-census cost (SPEC.md §5.2.4 item 1/3 — the
+   `?since=item_watermark` fetch plus deletion-by-subtraction) separately
+   from the full-text census cost SPEC.md already reports (~8,037 entries).
+   This is the number SPEC.md §5.2.4 itself calls "unmeasured, unlike the
+   full-text one above".
+10. Commit the artifact under `bench/results/0503-discovery-latency/` (raw
+    timings + operation labels + a short README stating machine, item
+    count, and library scope — personal-only or personal+groups, see the
+    item-count-scope flag in the log).
+11. Confirm or re-pin SPEC.md §5.2.4's 60 s bound: if measured update-run
+    cost plus item-census-per-tick cost does not fit inside 60 s with
+    margin, that is a finding about the *cadence*, not grounds to
+    relitigate R35's one-minute number (already ruled, 2026-08-31). Record
+    a DECISIONS.md ruling only if the §5.2.4 cadence number itself moves.
+
+## Test
+Red step first: before trusting the classifier on real reps, force a known
+full rebuild (`action:"update"` immediately after `action:"refresh"` —
+condition 3, empty index — is guaranteed to hit the fallback) and confirm the
+harness's operation-reading correctly labels it "Full index rebuild", not
+"update". This is the positive control for the delta/rebuild split; without
+it a harness that always reports "delta" would pass silently on every rep.
+
+## Verification
+- [ ] fork built at the CURRENT `UPSTREAM_REVIEWED_SHA`, re-read from
+      `UPSTREAM` at run time, not copied from this ticket's log
+- [ ] padme's local API confirmed idle before the run (no build in flight)
+- [ ] local-API write grant obtained (one-time interactive step, recorded
+      in the artifact's README)
+- [ ] positive control (forced full rebuild) correctly classified before
+      the real reps are trusted
+- [ ] every rep's `operation` field recorded; delta and full-rebuild reps
+      reported as separate distributions, never averaged into one mean
+- [ ] item-count scope (personal-only vs personal+groups) stated in the
+      artifact
+- [ ] artifact committed under `bench/results/`
+- [ ] SPEC.md §5.2.4's bound confirmed or re-pinned, with a DECISIONS.md
+      ruling only if it moves
+
+## Invariants
+- Never delete or modify a real item in padme's synced library — every
+  add/delete in the test uses throwaway items created for the purpose.
+- Never drive padme's local API while another lane is mid-build on it —
+  the same contention that deferred this half on doudou.
+- The delta and full-rebuild distributions are reported apart; a script
+  that only ever reports a combined mean has not met this ticket's exit
+  criterion regardless of how many reps it ran.
+
 ## Relevant files
 - `SPEC.md` §3 — R35, and R3 beside it
 - `SPEC.md` §5.2.4 — the reconcile cadence and the deletion latency
 - `README.md` — R35's standing row
+- `UPSTREAM` — the reviewed SHA to build fork/ at; re-read at run time
+- `bench/mcp_drive.py` — the MCP driver to reuse, not reimplement
+- `verification/UPSTREAM-DISCOVERY-0503.md` — the read-at-source report,
+  citations pinned to `b05ed69`; re-derived at `b0e0bc8` in this ticket's
+  2026-09-03T18:00Z log entry
+- upstream `src/features/search/build.ts` — `startIndexUpdate` (460),
+  `updateBlocker` call + full-rebuild fallback (471, 473-479) at `b0e0bc8`
+- upstream `src/features/search/index-manager.ts` — `updateBlocker`'s six
+  conditions (1409-1437 at `b0e0bc8`)
+- upstream `src/tools/index-tool.ts` — the one call site (125, unchanged)
+  and the operation-reading block (127-131, unchanged in substance)
+- upstream `src/features/search/corruption.ts` — the unconditional
+  override (70, unchanged)
+- upstream `src/api/local-writes.ts` — the local-API write/delete client
+  and the one-time grant dialog this ticket's Actions rely on
