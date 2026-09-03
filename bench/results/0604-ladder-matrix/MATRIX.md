@@ -65,7 +65,7 @@ Per-column totals, and they close against each artifact's own `summary` block:
 
 | Target | pass | fail | not-offered | not-run | not-staged | not-measured | artifact |
 |---|---|---|---|---|---|---|---|
-| zoteus 1.12.0 | 3 | 1 | 1 | 7 | 0 | 0 | `acceptance-zoteus.json` |
+| zoteus 1.13.0 | 3 | 1 | 1 | 7 | 0 | 0 | `acceptance-zoteus-v1130.json` |
 | Zotero core #6012 @19e7962 | 0 | 2 | 10 | 0 | 0 | 0 | `acceptance-zotero-core-6012-hosted.json` |
 | ZotSeek 1.21.2 @f442f82 | 1 | 1 | 10 | 0 | 0 | 0 | `acceptance-zotseek-hosted.json` |
 | zotero-mcp 0.11.0 @3cb3e2e | 2 | 0 | 3 | 7 | 0 | 0 | `acceptance-zotero-mcp.json` |
@@ -380,7 +380,7 @@ service has nothing to read. Nothing was measured against a target that had
 converged on a library.
 
 **The provenance is inconsistent, and two artifacts name no machine at all.**
-Neither `acceptance-zoteus.json` nor `acceptance-zotero-mcp.json` records a
+Neither `acceptance-zoteus-v1130.json` nor `acceptance-zotero-mcp.json` records a
 machine; the paths place them in this operator's home and this session runs on
 `doudou`, but that is inference, not a recorded fact. The #6012 artifact records
 `machine: doudou` while its own `declaration.revision` says the build was made

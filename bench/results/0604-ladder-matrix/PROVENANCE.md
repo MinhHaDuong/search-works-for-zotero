@@ -9,7 +9,8 @@ a JSON file which build produced it.
 
 | artifact | target | how it was driven |
 |---|---|---|
-| `acceptance-zoteus.json` | zoteus | run by hand, `bench/acceptance/run.py --adapter zoteus`, 2026-09-03 |
+| `acceptance-zoteus.json` | zoteus | run by hand, `bench/acceptance/run.py --adapter zoteus`, 2026-09-03, against a working checkout — superseded, see below |
+| `acceptance-zoteus-v1130.json` | zoteus | run by hand against `fork/dist/index.js` built at the reviewed SHA `b0e0bc8` (v1.13.0), 2026-09-03, after the re-baseline landed — the current reading |
 | `acceptance-zotero-core-6012.json` | Zotero core PR 6012 | staged by a workflow agent; ten clauses decided by calling the assertion functions directly, two left `not-staged` |
 | `acceptance-zotero-core-6012-hosted.json` | Zotero core PR 6012 | `run.py --adapter zotero-core-6012` against that staging, later the same day, once the host prohibition lifted — all twelve clauses, Xvfb `:77`, port 23519 |
 | `acceptance-zotseek.json` | ZotSeek | staged by a workflow agent; ten clauses decided by calling the assertion functions directly, two left `not-staged` |
@@ -23,15 +24,25 @@ artifacts.
 
 ## Two caveats that are this file's reason to exist
 
-**The zoteus column was measured against a working checkout, not the reviewed
-SHA.** The declaration records `revision: 1.12.0`, read from `package.json`,
-which is accurate as a version string and misleading as provenance: the `fork/`
-tree it ran against sat at `879b75b` on branch `droplist-df-pruning`, while
-`UPSTREAM` names `b05ed69` as the reviewed baseline. Nothing in the artifact
-says so, which is why it says so here. This column is therefore NOT a
-substitute for `bench/results/smoke-1.12.0/acceptance-zoteus.json`, and it is
-not committed as one. A run that could carry the reviewed version needs `fork/`
-checked out and built at `b05ed69`.
+**RESOLVED 2026-09-03, same day.** The zoteus column was first measured
+against a working checkout, not the reviewed SHA: the declaration read
+`revision: 1.12.0` from `package.json`, accurate as a version string and
+misleading as provenance, since the `fork/` tree it ran against sat at
+`879b75b` on branch `droplist-df-pruning` while `UPSTREAM` named `b05ed69`.
+That column (`acceptance-zoteus.json`) is superseded and kept only as the
+historical record of what was first measured.
+
+Upstream released v1.13.0 the same afternoon and the reviewed baseline moved to
+its tip, `b0e0bc8` (`DECISIONS.md`, ratified: pin `main`, not the latest shipped
+tag). `acceptance-zoteus-v1130.json` re-runs the layer against `fork/dist/index.js`
+built at that exact SHA — `revision` now correctly reads `1.13.0` — and is the
+current reading for this column. The verdicts are unchanged in shape: 3 pass, 1
+fail, 1 not-offered, 7 not-run, and the egress fail still shows 4 DNS lookups on
+the subject arm against 1 off-machine plus 3 DNS on the net-shared control —
+consistent with the update-check hypothesis and not yet isolated from it (see
+0613's log). What changed is provenance, not verdict: a reader can now cite this
+column as a claim about the reviewed tree rather than about a branch that no
+longer exists in that form.
 
 **Four cells read `not-staged` for a scheduling reason, not a technical one —
 and they were filled later the same day.** Zotero core 6012 and ZotSeek are
