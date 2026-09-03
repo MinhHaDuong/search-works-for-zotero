@@ -2,13 +2,24 @@
 UPSTREAM_REPOSITORY=https://github.com/oscardvs/zoteus.git
 FORK_REPOSITORY=https://github.com/MinhHaDuong/zoteus.git
 UPSTREAM_BRANCH=main
-UPSTREAM_REVIEWED_SHA=b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c
-UPSTREAM_REVIEWED_VERSION=v1.12.0
-UPSTREAM_REVIEWED_DATE=2026-09-01
+# The reviewed SHA is `main`'s TIP, not the v1.13.0 tag (`8f16efe`), which sits three
+# commits earlier — the #43 dtype work, filed under `[Unreleased]` in upstream's own
+# changelog, plus a registry-description fix. The tip is pinned because `upstream-status`
+# compares the reviewed SHA against `main`: a tag pin leaves that target red on the day it
+# is written, and a permanently-red status target is a retired one. The VERSION below
+# therefore names the last release CONTAINED in the reviewed tree, which is what the
+# standing page dates itself by — the gap is disclosed here and on the page rather than
+# spelled into the version string, because `check_progress.PAGE_VERSION` parses `vN.N.N`
+# and a `v1.13.0+3` would not match itself. Ticket 0618.
+UPSTREAM_REVIEWED_SHA=b0e0bc872b5727d21ea83aba8bfe834293013264
+UPSTREAM_REVIEWED_VERSION=v1.13.0
+UPSTREAM_REVIEWED_DATE=2026-09-03
 # The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in
 # `src/features/search/sqlite-index.ts`, mirrored in `bench/index_schema.mjs` and stamped
-# into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It has
-# been 1 since v1.7.0 and is still 1 at the reviewed SHA, so this line is a place for a
-# future bump to land rather than a record of a past one — and it is not decoration,
-# because `tests/test_index_schema_fixtures.py` asserts all three agree.
-UPSTREAM_INDEX_SCHEMA_VERSION=1
+# into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It was 1
+# from v1.7.0 to v1.12.0 and moved to 2 in v1.13.0, when keeping diacritics in the keyword
+# index changed the FTS tokenizer and added the `accent_variants` table. That bump is the
+# first this line has ever recorded, and it arrived while the leg of
+# `tests/test_index_schema_fixtures.py` that compares this declaration against upstream's
+# own constant was SKIPPING for want of a `fork/` checkout — see ticket 0620.
+UPSTREAM_INDEX_SCHEMA_VERSION=2

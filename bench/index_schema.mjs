@@ -18,12 +18,29 @@
 // file is not an index at all", and neither of those from "the driver is looking in the
 // wrong place".
 //
-// Current generation, as written by `sqlite-index.ts` (SCHEMA_VERSION 1, unbumped since
-// v1.7.0 and still 1 at v1.12.0):
+// Current generation, as written by `sqlite-index.ts` (SCHEMA_VERSION 2, bumped in
+// v1.13.0 after five releases at 1):
 //
 //   passages(pid INTEGER PRIMARY KEY, id, item_key, title, text, source, vector)
-//   passages_fts USING fts5(text, content='passages', content_rowid='pid')
-//   items(item_key, title), meta(key, value)
+//   passages_fts USING fts5(text, content='passages', content_rowid='pid',
+//                           tokenize='unicode61 remove_diacritics 0')
+//   accent_variants(folded, term, df) WITHOUT ROWID
+//   items(item_key, title), meta(key, value), vector_codes(pid, code)
+//
+// What the 1 -> 2 bump did, and did not do. It did NOT touch `passages`: the DDL is
+// byte-identical across the bump, so every column below is exactly as reliable as it was.
+// It changed the FTS tokenizer from `remove_diacritics 2` to `0` — the index now stores
+// each word as written and buys the unaccented spelling query-side by expansion — and
+// added `accent_variants` to carry that expansion map. Upstream's own migration rung
+// rebuilds `passages_fts` from `passages.text` in place and re-computes no vector.
+//
+// Two consequences for a driver, neither of which the assertion below can enforce and
+// both of which a measurement can be wrong about. First, `passages_fts` no longer holds
+// `passages.text` verbatim: upstream inserts `normalizeForSearch(text)`, so anything
+// reconstructing or diffing the FTS content must apply that function. Second, every
+// committed keyword measurement in `bench/` was taken against `remove_diacritics 2`, a
+// tokenizer upstream no longer ships — those artifacts are history, not current fact.
+// Ticket 0619.
 //
 // Pre-rename generation, transcribed from an index that fork generation actually built:
 //
@@ -51,15 +68,21 @@ export const FTS_TABLE = 'passages_fts';
 /**
  * The value upstream stamps into `meta.schemaVersion`, mirrored from `sqlite-index.ts`.
  *
- * A constant that has never moved — 1 since v1.7.0, still 1 at v1.12.0 — and mirroring it
- * here would be decoration if nothing consumed it. Two things do: the fixture generator
+ * A constant that stood at 1 from v1.7.0 to v1.12.0 and moved to 2 in v1.13.0, and
+ * mirroring it here would be decoration if nothing consumed it. Two things do: the fixture generator
  * stamps it into the current-generation fixture, and the standing test asserts that stamp
  * equals `UPSTREAM_INDEX_SCHEMA_VERSION` in `UPSTREAM` and (when a fork checkout is
  * present) upstream's own `const SCHEMA_VERSION`. So the day upstream bumps it, the
  * declaration and the mirror disagree with the source and the suite says so, which is the
  * only reason to write a constant down twice.
+ *
+ * That day was 2026-09-03, and the third leg did not say so: it requires a `fork/`
+ * checkout, `fork/` is gitignored and absent on a fresh clone, and the leg SKIPPED while
+ * the other two — declaration against mirror against fixture stamp — agreed with each
+ * other and with nothing upstream. Two numbers this repository wrote down cannot check a
+ * third it did not. Ticket 0620 gives the leg a source it can always reach.
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /**
  * Tables that identify the pre-rename generation, transcribed from an index that fork
