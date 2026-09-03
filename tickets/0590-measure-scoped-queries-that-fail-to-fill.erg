@@ -17,8 +17,8 @@ two-action path: bounded deeper refetch, then honest R18 disclosure. This ticket
 measures how often realistic collection and tag scopes reach that disclosure.
 It does not block removal and does not presume that a replacement is needed.
 
-The library half of that question -- the distribution of scope sizes, and the
-frontier it crosses -- is ticket 0605, which runs without a query harness and
+The library half of that question — the distribution of scope sizes, and the
+frontier it crosses — is ticket 0605, which runs without a query harness and
 supplies this ticket's scope sample. What remains here is everything a census
 cannot answer, and four corrections to how the count was first framed.
 
@@ -27,7 +27,7 @@ vector scan a genuine pushdown: the bitmap applies before the dot product, so
 the semantic arm returns an exact scoped top-k whenever the scope holds k
 entries at all. Only the keyword arm starves. A frequency counted on the keyword
 list is therefore a frequency about a *stage*, where what R18 discloses is the
-*answer*, after fusion -- and under the default hybrid deployment a starved
+*answer*, after fusion — and under the default hybrid deployment a starved
 keyword list can be entirely invisible to the user. Both readings are expensive
 in opposite directions: counting the stage overstates the failure rate and could
 commission a mechanism nothing needs, while counting only the fused arm hides a
@@ -35,8 +35,8 @@ real failure in the keyword-only deployment, which §5.2.6's own degraded path
 produces whenever the embedder is loading, absent or failed. So the measurement
 is defined post-fusion, and keyword-only is a separate labelled arm.
 
-**The query sample sets the answer.** Scope-congruent use -- searching a
-collection for what that collection is about -- concentrates in-scope hits at
+**The query sample sets the answer.** Scope-congruent use — searching a
+collection for what that collection is about — concentrates in-scope hits at
 the top of the ranked stream and fills k far below the null frontier, where an
 incongruent query behaves like the null. The frequency is a property of the
 (scope, query) joint, so a single "representative" query set silently picks the
@@ -56,11 +56,11 @@ it, and does not make it.
 
 **A budget-exhausted answer has no honest sentence today.** R18 is written about
 *empty* answers, and §5.2.6's three disjoint sentences are computed from
-coverage: "partial: 812 of 947 -- the miss may be coverage" says the index may
+coverage: "partial: 812 of 947 — the miss may be coverage" says the index may
 not hold the scope yet. A stream that ran out of budget is not that case. The
 scope is fully indexed, and the answer is short because the search stopped. Both
 would print the word "partial", and the two ask the user for opposite next moves
--- wait, versus widen or rephrase -- which is the confusion R18 exists to
+-- wait, versus widen or rephrase — which is the confusion R18 exists to
 prevent, one level up. This ticket invents no sentence. It records how often the
 case arises and files the question for the author, whose answer would be a typed
 disclosure beside `CROSS_LINGUAL_DEGRADED` or a ruling that the existing
@@ -77,7 +77,7 @@ sentence covers it.
    whether the fused answer fills k, whether the keyword arm alone fills k, and
    the latency.
 4. Report fill-k and give-up frequency by scope kind, by f band, by query arm and
-   by refetch depth -- never as one pooled number.
+   by refetch depth — never as one pooled number.
 5. If the give-up is common in an arm a user actually sees, price the three
    candidates: an indexed temporary table, filtering the ranked stream before
    truncation, and exhaustive scoring of a small scope, whose region 0605 bounds.
@@ -99,7 +99,7 @@ is a requirement question.
 - Run one arm with the semantic path disabled, so the harness observes the
   deployment in which keyword starvation is what the user gets.
 - Include a scope holding fewer than k entries in total. Its short answer is
-  honestly complete, not a give-up, and the harness must not count it as one --
+  honestly complete, not a give-up, and the harness must not count it as one —
   counting it would manufacture the very frequency this ticket reports.
 - Verify every non-filled arm emits disclosure rather than a complete-looking
   short list.
@@ -114,7 +114,7 @@ is a requirement question.
 - [ ] Scopes holding fewer than k entries are excluded from the give-up count and
       their number is reported.
 - [ ] Positive controls observe both filled and disclosed outcomes.
-- [ ] The disclosure-vocabulary question is filed for the author; no sentence is
-      invented here.
+- [ ] The disclosure-vocabulary question is filed in `DECISIONS.md`'s
+      awaiting-the-author list; no sentence is invented here.
 - [ ] No replacement mechanism is implemented without a later ruling.
 - [ ] `make check` and `./tickets/erg check` pass.

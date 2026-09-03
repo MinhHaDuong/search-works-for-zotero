@@ -17,23 +17,23 @@ harness, because that half bounds the other one and can run first.
 
 **Whether a filtered keyword stream fills k is mostly a fact about the library,
 not about queries.** SPEC.md §5.2.6 runs MATCH unconstrained with a candidate
-pool of `max(8xlimit, 256)`, deepened once to 4 096, and filters the stream with
+pool of `max(8×limit, 256)`, deepened once to 4 096, and filters the stream with
 the facet bitmap. Under a null model where scope membership is independent of
 BM25 rank, the number of in-scope candidates in a pool of D is Binomial(D, f),
-where f is the scope's share of the corpus's passages. Filling k needs D*f to be
-of order k. At the constants that section carries, that frontier sits near f =
-k/D, which is well under one percent -- so a scope holding more than about a
-percent of the library's passages is safe under the null, one holding far less
-is at risk, and everything between is decided by the correlation term 0590's
-query arm measures. The frontier is arithmetic on SPEC.md's constants, not a
-threshold this ticket owns or pins.
+where f is the scope's share of the corpus's passages. Filling k needs D times f
+to be of order k, so the frontier sits at f near k/D. SPEC.md pins no default k,
+which is exactly why this ticket publishes the frontier as a formula rather than
+as a number: a scope well above k/D is safe under the null, one well below it is
+at risk, and the band between is decided by the correlation term 0590's query arm
+measures. The frontier is arithmetic over SPEC.md §5.2.6's constants and the
+caller's k, and is not a threshold this ticket owns or pins.
 
 That makes the distribution of f over the author's real collections and tags the
 first thing to know, and it is a census: no queries, no timing, no ranking.
 
 **The precondition finding comes first, and it is the same one the year case
 had.** The shipped index stores no membership. `items` is `(item_key, title)`
-and `passages` is `(pid, id, item_key, title, text, source, vector)` -- there is
+and `passages` is `(pid, id, item_key, title, text, source, vector)` — there is
 no collection column and no tag column, exactly as there was no date column.
 A scope-frequency measurement therefore cannot be run against the index at all
 until membership is harvested from Zotero's local API, and saying so is an output
@@ -43,11 +43,11 @@ of this ticket rather than an obstacle to it.
 change the candidate list.** A scope at risk of not filling k is by construction
 one whose passage count is small relative to the pool. A scope that small can be
 scored directly, without any ranked stream: X4 killed `json_each` as a *MATCH
-constraint* at a thousand rowids and above, and it says nothing about scoring a
-few hundred passages the index can enumerate. So a third candidate stands beside
-the ruling's two -- score a small scope exhaustively -- and whether it covers the
-whole failure region is a census question, answered here, before anyone prices a
-new index structure. This ticket names the candidate and measures the region; it
+constraint*, measured at a thousand and at five thousand rowids, and it says
+nothing about scoring a few hundred passages the index can enumerate. So a third
+candidate stands beside the ruling's two — score a small scope exhaustively — and
+whether it covers the whole failure region is a census question, answered here,
+before anyone prices a new index structure. This ticket names the candidate and measures the region; it
 designs nothing.
 
 ## Actions
@@ -80,8 +80,8 @@ the correlation between scope and query becomes the whole of its question.
 
 - A scope known to be broad and one known to be a handful of items both appear,
   with plausible f.
-- One scope's passage count is computed two ways -- through the map and by a
-  direct count over the index -- and the two agree.
+- One scope's passage count is computed two ways — through the map and by a
+  direct count over the index — and the two agree.
 - Items belonging to no collection and carrying no tag are counted. They inflate
   the denominator and belong to no scope, so leaving them out would shift every f.
 
