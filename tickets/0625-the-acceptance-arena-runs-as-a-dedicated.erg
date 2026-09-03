@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-03T12:51Z claude created
 
+2026-09-03T13:02Z REFINED THE SAME DAY IT WAS FILED, by the author: CI are isolated by design, they don't need alt user. He is right, and the ticket as filed named a mechanism where the requirement is a property -- no target process runs under an identity that can reach data the operator cares about. A dedicated account buys that on a workstation that also holds his data; a disposable container or throwaway VM already IS it, having no second identity within reach, and demanding an account inside one is ceremony with no threat behind it. The two ways are not ranked; what stays forbidden is the third case, a target running as the operator on the operator's machine. Action 4 is narrowed to that case and action 5 is added: the artifact must record which posture a run had, since otherwise a green from an unprotected run is indistinguishable from a green from a protected one. What is explicitly NOT settled and must not be papered over: no reliable automatic probe for 'this environment is already a boundary' is known, and the two tempting ones are worse than none -- a flag saying I-am-in-CI is what gets set once on a workstation and forgotten, and a probe asking can-I-write-my-own-home answers yes in most CI images. The predicate is unsolved; say so rather than ship a check that cannot fail.
 --- body ---
 ## Context
 
@@ -42,14 +43,34 @@ second machine. The account is the floor and the namespace is the ceiling.
    get wrong; the second leaves the harness's own file writes as the operator,
    which is where the artifacts have to land anyway. Argue it; do not pick by
    convenience.
-2. Provision the account reproducibly, as a script in the repository rather than
-   a step in someone's memory, and on both machines. Name what privilege the
-   provisioning needs and what the run itself needs, which should be less.
+2. Do NOT create accounts from the harness. Creating a system user needs root,
+   and a benchmark that can create users is a benchmark holding privilege it
+   never needs at run time. The author settled this: benchmark users create the
+   account themselves if it is not there. So what this ticket owes is a short,
+   copyable recipe in the documentation — create the account, grant it read on
+   the library, give it the arena — and a harness that runs with no privilege of
+   its own and refuses when the account is absent.
 3. Make the arena and its contents belong to that account, and say in the
    artifact which account owned a run — a preserved arena an operator can no
    longer read is a surprise worth documenting rather than discovering.
-4. Make absence honest: no account, no run. `run.py` reports `not-run` with the
-   reason, and never falls back to the operator.
+4. Make absence honest: no account, no run, on a machine that has an operator.
+   `run.py` reports `not-run` with the reason and never falls back to him.
+5. Carry the posture into the artifact. A run in an environment that is its own
+   boundary — a disposable container, a throwaway VM — satisfies the requirement
+   without an account, and the artifact must say which of the two postures a run
+   had, so that a green taken without the account is identifiable afterwards.
+   No probe is needed and none should be written: the author ruled that asking
+   benchmark users to run under a dedicated `tester` account is acceptable, so
+   the posture is a documented precondition rather than something inferred. The
+   two tempting probes are recorded as rejected so nobody re-proposes them — a
+   flag saying *I am in CI* is what gets set on a workstation once and forgotten,
+   and *can I write my own home* answers yes in most CI images.
+6. Document the ask precisely, because it is only acceptable if it is precise:
+   `tester` holds **read** access to the Zotero library, which the benchmark
+   genuinely needs since the targets are read-only against it, and **write**
+   access to nothing but the arena. State that exposure plainly in the same
+   place — a target can read the library it is measured against, and can write
+   nothing the operator owns.
 
 ## Test
 
