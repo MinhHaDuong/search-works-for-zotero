@@ -13,6 +13,7 @@ recipe is known to mean something.
 import importlib.util
 import json
 import re
+import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -44,6 +45,26 @@ def good(**over) -> dict:
         "sha256": "0" * 64,
         "license_basis": "Published 1900; public domain everywhere.",
     }
+    doc.update(over)
+    return doc
+
+
+def representative(**over) -> dict:
+    first = good(id="example-pdf")
+    second = good(id="example-html", bytes_format="html",
+                  bytes_url="https://archive.org/download/exampleitem00some/example.html")
+    doc = {
+        "id": "example-work", "title": "An example", "author": "Someone", "year": 1900,
+        "language": "en", "tier": "MUST", "facet": "core", "item_type": "journalArticle",
+        "type_fidelity": "correct", "work_id": "example-work", "work_relations": [], "structural_features": [],
+        "attachments": [
+            {key: first[key] for key in fr.ATTACHMENT_REQUIRED if key in first} | {"bytes_format": "pdf"},
+            {key: second[key] for key in fr.ATTACHMENT_REQUIRED if key in second} | {"bytes_format": "html"},
+        ],
+    }
+    caps = {"pages": "does-not-cross", "chars": "does-not-cross", "combined": "neither", "locators": {}}
+    doc["attachments"][0].update(role="primary", relation="same-text-different-format", selection_expectation="indexed", cap_expectations=caps)
+    doc["attachments"][1].update(role="alternate-format", relation="same-text-different-format", selection_expectation="skipped-first-with-text", cap_expectations=caps, skip_reason="same-language sibling suppressed by first-with-text")
     doc.update(over)
     return doc
 
@@ -92,6 +113,40 @@ def test_open_archive_without_version_is_an_offence():
     assert fr.validate([good(**hal, version="v1")]) == []
 
 
+def test_project_gutenberg_ebook_number_is_persistent_and_unversioned():
+    source = dict(
+        archive="project-gutenberg", identifier="2701",
+        bytes_url="https://www.gutenberg.org/cache/epub/2701/pg2701.txt",
+        bytes_format="txt",
+    )
+    assert fr.validate([good(**source)]) == []
+    assert any("ebook number" in o for o in fr.validate([good(**(source | {"identifier": "moby-dick"}))]))
+    assert any("unversioned" in o for o in fr.validate([good(**(source | {"version": "v1"}))]))
+
+
+def test_native_text_html_and_epub_capability_checks(tmp_path):
+    text = tmp_path / "work.txt"
+    text.write_bytes("Project Gutenberg\r\nMoby-Dick\r\n".encode())
+    assert fr.validate_download_format(text, "txt") is None
+    text.write_bytes(b"not utf8: \xff")
+    assert "UTF-8" in fr.validate_download_format(text, "txt")
+
+    html = tmp_path / "work.html"
+    html.write_text("\ufeff<!DOCTYPE html><html><body>Work</body></html>", encoding="utf-8")
+    assert fr.validate_download_format(html, "html") is None
+    html.write_text("an error page without HTML markup", encoding="utf-8")
+    assert "HTML" in fr.validate_download_format(html, "html")
+
+    epub = tmp_path / "work.epub"
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
+        archive.writestr("META-INF/container.xml", "<container/>")
+    assert fr.validate_download_format(epub, "epub") is None
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr("readme.txt", "not an epub")
+    assert "EPUB" in fr.validate_download_format(epub, "epub")
+
+
 def test_faolex_is_admitted_for_one_document_only():
     fao = dict(archive="faolex", bytes_url="https://faolex.fao.org/docs/pdf/vie000001.pdf")
     assert any("FAOLEX is admitted for" in o for o in fr.validate([good(**fao, identifier="LEX-FAOC000001")]))
@@ -138,6 +193,45 @@ def test_duplicate_ids_and_missing_fields_are_offences():
     assert any("bare: missing title" in o for o in offences)
 
 
+def test_representative_parent_with_two_independently_provenanced_attachments_passes():
+    assert fr.validate([representative()]) == []
+
+
+def test_representative_schema_fails_closed_on_identity_type_and_attachment_semantics():
+    bad_type = representative(type_fidelity="maybe")
+    assert any("type_fidelity" in offence for offence in fr.validate([bad_type]))
+    missing_reason = representative(type_fidelity="intentionally-wrong")
+    assert any("type_fidelity_reason" in offence for offence in fr.validate([missing_reason]))
+    bad_relation = representative(work_relations=[{"type": "translation", "target": "Other"}])
+    assert any("target" in offence for offence in fr.validate([bad_relation]))
+    bad_source = representative()
+    del bad_source["attachments"][1]["license_basis"]
+    bad_source["attachments"][0]["role"] = "unknown"
+    offences = fr.validate([bad_source])
+    assert any("missing license_basis" in offence for offence in offences)
+    assert any("attachment role" in offence for offence in offences)
+
+
+def test_attachment_ids_are_global_so_export_markers_and_cache_paths_are_unambiguous():
+    other = representative(id="other-work", work_id="other-work")
+    assert any("globally unique" in offence for offence in fr.validate([representative(), other]))
+
+
+def test_cap_expectations_are_independent_consistent_and_located_across_boundaries():
+    crossing = representative()
+    crossing["attachments"][0]["cap_expectations"] = {
+        "pages": "crosses", "chars": "crosses", "combined": "both",
+        "locators": {"before_page_cap": "page-before-token", "after_page_cap": "page-after-token",
+                     "before_char_cap": "char-before-token", "after_char_cap": "char-after-token"},
+    }
+    assert fr.validate([crossing]) == []
+    crossing["attachments"][0]["cap_expectations"]["combined"] = "page-only"
+    crossing["attachments"][0]["cap_expectations"]["locators"].pop("after_char_cap")
+    offences = fr.validate([crossing])
+    assert any("contradicts" in offence for offence in offences)
+    assert any("before/after locators" in offence for offence in offences)
+
+
 def test_live_recipe_is_valid():
     recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
     assert isinstance(recipe, list) and recipe
@@ -161,7 +255,7 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     assert (len(recipe), hashed, open_by_archive) == (
         26,
         17,
-        {"gallica": 4, "hal": 4, "internet-archive": 1},
+        {"gallica": 4, "internet-archive": 1, "hal": 4},
     )
 
     readme = (FIXTURES / "README.md").read_text(encoding="utf-8")

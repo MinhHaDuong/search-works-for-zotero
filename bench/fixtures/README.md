@@ -62,6 +62,7 @@ admitted archives, and the identifier each pins:
 | Zenodo | version DOI | required; never the concept DOI |
 | FAOLEX | `LEX-FAOC…` | none; admitted for Decision 11/2017 only, with the `docs/pdf/` address, hash, and Wayback capture date pinned |
 | UK Government Web Archive | dated snapshot URL | the timestamp is the version |
+| Project Gutenberg | numeric ebook identifier | none; each official distribution is hash-pinned because Gutenberg corrects files in place |
 
 Nothing is deposited anywhere by this project to manufacture an identifier.
 `fetch_recipe.py` refuses a recipe that breaks any of this before it fetches a
@@ -177,7 +178,7 @@ belong to the declared archive and to no refused host), `sha256` (or `null`
 with `sha256_reason`), `license_basis`.
 
 Recommended, by convention: `bytes_format` (`pdf`, `djvu`, `wikitext`,
-`html`; default `pdf`), `min_size` (bytes below which a download is treated as
+`txt`, `html`, `epub`; default `pdf`), `min_size` (bytes below which a download is treated as
 an error page; default 1 000), `archive_checksums` (the archive's own md5 or
 sha1 where it publishes one), `page_count`, `provenance_check`,
 `wayback_capture` (for the unversioned database of record), `notes`.

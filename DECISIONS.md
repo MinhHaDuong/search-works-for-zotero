@@ -5968,3 +5968,121 @@ v2 soon after, at two full drains.
   filing merges — or is simply what `SYNC.md` is for, is a question this entry
   raises and does not answer. Ticket 0622 owns the catch-up's own mechanics and
   is the natural home if the answer is a mechanism.
+
+**2026-09-03 — RATIFIED: the golden fixture is representative, not an ideal
+catalogue.** The author ruled while reviewing ticket 0029's current mix that
+the source recipe records the Zotero item type actually injected, with most
+assignments bibliographically correct and a small, explicit set plausibly
+wrong. The fixture must preserve ordinary library noise without letting a
+mistaken type look like an unnoticed curation defect: every record therefore
+carries both the stored type and whether it is correct; an intentionally wrong
+assignment also names the canonical type and its rationale.
+
+The same representative rule reaches two other axes. The corpus trades
+redundant books rather than simply growing: it adds one article in each SHOULD
+language (Arabic, Russian, Chinese, German, Hindi and Spanish), subject to the
+standing archive, licence and byte-pin rules. Its attachment mix includes
+authentic archive-distributed PDF, DjVu, EPUB, DOCX, ODT, RTF, HTML, plain text
+and Markdown where sources support them; it does not convert a file merely to
+manufacture a format. Exhaustive capability and unsupported-format coverage
+remain ticket 0593's, including the legacy `.doc` gap.
+
+Finally, relationships that make a real library messy are data rather than
+accidents: the corpus carries one separately searchable translation pair, one
+near-duplicate publication pair, one book with a separately catalogued
+chapter, and one duplicate whose metadata conflicts. Stable work identities
+and typed relations make each intentional. These are corpus composition
+requirements, not retrieval thresholds; SPEC.md §5.2.8 owns the system-facing
+fixture description and ticket 0029 owns the concrete records.
+
+**2026-09-03 — RATIFIED: the representative fixture includes multi-attachment
+items.** The author added three shapes: one item carrying the same text in two
+authentic formats, one carrying the same text in two languages, and one
+carrying an article with its presentation. The recipe therefore no longer
+equates a source record with a Zotero parent-plus-one-file tuple. Bibliographic
+metadata, stored item type, type fidelity and work relations belong to the
+parent item; archive identifier, version, byte URL, hash, licence, format and
+attachment relation belong to each attachment. Every attachment retains the
+standing third-party provenance and no-conversion rules.
+
+The relation is explicit rather than inferred from filenames or attachment
+order: format alternatives name `same-text-different-format`, translations
+name their language and `translation`, and article/slides name
+`article`/`presentation`. D6 applies unchanged. Per parent and detected
+language, the deterministic first attachment with text is indexed and every
+same-language sibling records the ruled skip reason; declared renderings in
+different languages may each contribute their language. The fixture pins
+parent and attachment order, detected language, selected attachment keys and
+skip reasons. Retrieval answers with the stable parent/work identity, while a
+separate diagnostic records which attachment supplied or skipped a passage.
+An article and same-language presentation therefore test selection rather than
+silently promising that both bodies are indexed.
+
+**2026-09-03 — RATIFIED: representative failure controls may grow the golden
+fixture beyond its current roster.** The author accepted the following
+real-library breakages as fixture shapes: a bad PDF; a linked file that is missing; a valid
+file with no usable text; an extension or declared MIME type that lies; stale
+extraction; and an inconsistent parent/child relation. A metadata-only or
+note-only top-level item is included as the non-error boundary beside them.
+
+These controls are not forced into documents selected for relevance merely to
+hold the parent count fixed. The language-article change still trades against
+redundant books, while failure and relationship controls may add the records or
+attachments their shape actually requires. The passage distribution, source
+provenance and reviewability bound the fixture; its former record tally does
+not. Every failure control declares its expected terminal or degradation state
+and whether it participates in golden answers, so an intentionally broken
+record cannot become either a false retrieval failure or an unexplained pass.
+
+**2026-09-03 — RATIFIED: structural content is pinned, not presumed.** The
+representative corpus marks a table whose cells carry an answer, a figure whose
+caption carries an answer, an annex or appendix with a body-only answer, a
+footnote or endnote answer, a multi-column article, and an equation-heavy page
+whose surrounding prose carries the answer. A record may satisfy more than one
+shape. Each mark names the attachment and page or section, states what Zotero's
+extraction is expected to preserve, and distinguishes testing textual evidence
+from testing visual structure. The golden gate asks only for the text the
+system can retrieve; it does not claim to understand a chart, layout or
+equation from their appearance.
+
+**2026-09-03 — RATIFIED: annotation text keeps its provenance across PDF,
+database and note copies.** The golden fixture distinguishes an annotation
+embedded in PDF bytes, an annotation stored as a Zotero database child, and
+annotation content copied into a Zotero note. Identical displayed words do not
+make these the same object. The corpus carries an embedded/database duplicate,
+a generated note that repeats annotation content, and highlight, underline,
+text-note, image and ink annotations.
+
+Locator and rendering failures are explicit: annotations cover page labels and
+annotation-key locators; copied note content preserves paragraphs, bullets and
+line breaks; one note link carries only a page while another carries the
+annotation identity; and image-annotation export records an unavailable image
+rather than silently claiming complete Markdown. A copied note remains its own
+edited object after the source annotation is deleted. Every case records source
+kind and lineage so deduplication may collapse presentation without erasing
+provenance or treating an intentional copy as corruption.
+
+**2026-09-03 — RATIFIED: Project Gutenberg is an admitted fixture archive and
+is used for authentic format twins.** Its ebook number is the persistent work
+identifier, not an immutable byte version: Gutenberg corrects files in place.
+Each official attachment URL is therefore pinned independently by hash, and a
+mismatch is a content diff to review rather than an automatic re-pin. The
+underlying text's public-domain basis and the Project Gutenberg licence notice
+are both retained.
+
+The fixture uses one Gutenberg work whose official non-paginated UTF-8 text
+crosses the stock character boundary, with the archive's official HTML and
+EPUB distributions as same-work format siblings. These are archive-issued
+files, including Gutenberg's own generated EPUB, not conversions by this
+project. The choice exercises character-only truncation and D6 format
+selection without weakening the rule that every attachment has its own URL,
+hash, format evidence and redistribution basis.
+
+**2026-09-03 — RATIFIED: the fixture crosses both stock Zotero extraction
+caps.** The author required documents beyond the page boundary and the
+separately binding character boundary, including a document that crosses both.
+Page count never stands in for character count: the injected/exported evidence
+records total and indexed pages and characters independently, and the golden
+queries include answer-bearing text on each side of each truncation boundary.
+SPEC.md §5.2.8 owns the cap values; the recipe and export own which attachments
+demonstrate them.

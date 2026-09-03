@@ -58,6 +58,32 @@ def recipe_for(payload: bytes) -> list[dict]:
     ]
 
 
+def representative_recipe(payloads: tuple[bytes, bytes]) -> list[dict]:
+    sources = []
+    for name, payload, fmt, role in (
+        ("invented-pdf", payloads[0], "pdf", "primary"),
+        ("invented-html", payloads[1], "html", "alternate-format"),
+    ):
+        sources.append({
+            "id": name, "language": "en", "role": role,
+            "relation": "same-text-different-format",
+            "selection_expectation": "indexed" if role == "primary" else "skipped-first-with-text",
+            "cap_expectations": {"pages": "does-not-cross", "chars": "does-not-cross",
+                                 "combined": "neither", "locators": {}},
+            **({} if role == "primary" else {"skip_reason": "same-language sibling suppressed by first-with-text"}),
+            "archive": "internet-archive",
+            "identifier": "invented-control", "bytes_url": f"https://archive.org/download/invented-control/{name}.{fmt}",
+            "bytes_format": fmt, "sha256": hashlib.sha256(payload).hexdigest(),
+            "license_basis": "Invented by this test.",
+        })
+    return [{
+        "id": "invented-work", "title": "Invented work", "author": "Fixture Author",
+        "year": 1900, "language": "en", "tier": "MUST", "facet": "core",
+        "item_type": "journalArticle", "type_fidelity": "correct",
+        "work_id": "invented-work", "work_relations": [], "structural_features": [], "attachments": sources,
+    }]
+
+
 class MemoryZotero:
     def __init__(self):
         self.items = {}
@@ -129,6 +155,32 @@ def test_injection_is_idempotent_and_recipe_owned(tmp_path):
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
     )]]
+
+
+def test_representative_parent_reconciles_multiple_attachments_independently(tmp_path):
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html>same body</html>")
+    recipe = representative_recipe(payloads)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-pdf.pdf").write_bytes(payloads[0])
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+
+    first = gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    second = gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+
+    assert first["created_parents"] == 1 and first["created_attachments"] == 2
+    assert second == {"created_parents": 0, "updated_parents": 0,
+                      "created_attachments": 0, "updated_attachments": 0}
+    parent = next(item["data"] for item in zotero.items.values()
+                  if item["data"]["itemType"] != "attachment")
+    assert parent["itemType"] == "journalArticle"
+    children = [item["data"] for item in zotero.items.values()
+                if item["data"]["itemType"] == "attachment"]
+    assert {gf._tag_values(child)[0] for child in children} == {
+        gf.attachment_tag("invented-pdf"), gf.attachment_tag("invented-html")}
+    assert {Path(child["path"]).name for child in children} == {"invented-pdf.pdf", "invented-html.html"}
+    assert len(zotero.reindexes[0]) == 2
 
 
 def test_injection_refuses_unpinned_or_changed_source_bytes_before_writing(tmp_path):
@@ -369,7 +421,14 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
         "attachment_key": attachment,
         "fulltext_file": f"fulltext/{attachment}.json",
         "fulltext_version": 17,
+        "indexed_pages": 2,
+        "total_pages": 3,
+        "indexed_chars": None,
+        "total_chars": None,
     }]
+    assert manifest["parent_item_count"] == 1
+    assert manifest["attachment_count"] == 1
+    assert manifest["source_byte_count"] == len(b"%PDF-1.4\ncontrol\n")
     assert len(items) == 2
     assert fulltext["content"] == "offline golden control body"
     assert str(tmp_path) not in json.dumps(items)
@@ -391,6 +450,37 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
             cache_dir=cache,
         )
     assert (dest / "manifest.json").read_bytes() == old
+
+
+def test_representative_export_binds_two_attachments_and_their_semantics(tmp_path):
+    payloads = (b"%PDF-1.4\npdf body\n", b"<html>same body</html>")
+    recipe = representative_recipe(payloads)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-pdf.pdf").write_bytes(payloads[0])
+    (cache / "invented-html.html").write_bytes(payloads[1])
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    for key, item in zotero.items.items():
+        if item["data"]["itemType"] == "attachment":
+            zotero.fulltexts[key] = {"content": f"body {key}", "indexedPages": 1,
+                                     "totalPages": 1, "version": 17}
+    snapshot = export_again(recipe, zotero, cache, tmp_path / "representative")
+    recipe_path = tmp_path / "representative-recipe.json"
+    recipe_path.write_text(json.dumps(recipe), encoding="utf-8")
+    manifest_path = snapshot / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    assert len(manifest["attachments"]) == 2
+    assert {row["attachment_id"] for row in manifest["attachments"]} == {
+        "invented-pdf", "invented-html"}
+    assert {row["parent_key"] for row in manifest["attachments"]}.__len__() == 1
+    assert run_loader(snapshot, recipe_path).returncode == 0
+
+    manifest["attachments"][0]["role"] = "presentation"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    rejected = run_loader(snapshot, recipe_path)
+    assert rejected.returncode == 7
+    assert "semantics do not match" in rejected.stderr
 
 
 def test_export_refuses_broad_symlink_and_unowned_destinations_without_touching_them(tmp_path):

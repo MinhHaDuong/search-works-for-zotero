@@ -2426,7 +2426,35 @@ the library level is the only thing that can renew it: the RSS gate's revalidati
 is the pattern, and it binds every surrogate here, not only that one.
 
 - **The golden gate (D11 = set)**, which decides R34. A pinned multilingual fixture
-  corpus, ~40 queries, answer *sets* at k=10. Thresholds derive from the
+  corpus, ~40 queries, answer *sets* at k=10. The corpus represents a real
+  library rather than an ideal catalogue: it preserves declared, intentional
+  item-type errors beside correct types; uses authentic source formats rather
+  than converted format specimens; and identifies translations, alternate
+  publications, book/chapter relations and metadata-conflicting duplicates as
+  relations between records. It also carries multi-attachment items for the
+  same text in different formats, the same text in different languages, and an
+  article with its presentation; retrieval remains item-level and evidence
+  identifies the attachment that supplied or skipped a passage under D6's
+  deterministic per-language selection. The fixture pins attachment order,
+  detected languages, selected keys and sibling skip reasons; same-language
+  siblings do not imply that both bodies are indexed. Representative failure
+  controls cover malformed, missing, textless, mislabeled, stale and
+  parent-inconsistent attachments beside a metadata- or note-only item; each
+  declares its expected degradation and whether it belongs to an answer set.
+  Fixture size follows its pinned passage distribution and evidence needs, not
+  a fixed parent-item tally. Pinned structural examples cover answer-bearing
+  table cells, a figure caption, an annex or appendix, a footnote or endnote,
+  multi-column text, and equation-heavy prose; each names its attachment and
+  locator and says whether text or visual structure is under test. Annotation
+  fixtures distinguish PDF-embedded, Zotero-database and note-copied content;
+  preserve annotation and page locators, note block structure and source
+  lineage; and cover textual, image and ink shapes without treating identical
+  text as identical provenance. Project Gutenberg is an admitted source for
+  authentic same-work UTF-8 text, HTML and EPUB siblings; each official file
+  is pinned separately because the ebook identifier does not freeze bytes. The corpus
+  crosses Zotero's stock extraction limits of 100 pages and 500 000 characters
+  independently and together, recording total and indexed values for both and
+  placing answer-bearing text on each side of each boundary. Thresholds derive from the
   stability artifact: the measured per-query Jaccard minimum under
   legitimate perturbation is 0.25, so a 0.5 floor would flag legitimate
   churn. The thresholds: mean Jaccard ≥ 0.8, at most 5 % of queries below
