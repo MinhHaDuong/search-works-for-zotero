@@ -1,0 +1,187 @@
+%erg 0.1
+Title: Gap A: attribute zoteus's four network lookups under ZOTEUS_UPDATE_CHECK=false
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T16:47Z claude created
+2026-09-03T16:55Z claude note IMAGINE+PLAN pass: drift guard passed (premise still holds), found a leading hypothesis for Action 3 (single getaddrinfo may explain all four dns hits), confirmed the env var needs no adapter code change to propagate — see Context for detail and evidence.
+
+--- body ---
+## Context
+
+Child of tracker 0613 (goal 1 of the ladder), gap A. `Ticket-ref: tickets/0613`
+— this ticket does not close the tracker; two other gaps remain open there.
+
+`bench/results/0604-ladder-matrix/MATRIX.md` (run against v1.12.0) marks
+`R10-no-egress` FAIL: `ZOTEUS_UPDATE_CHECK` defaults `true` in the reviewed
+build, and the server logged "Update available" during the acceptance run.
+R10: *"Without an explicit opt-in, my library text and my queries MUST NOT
+leave this machine"*, with the one-time model-weight download the sole named
+exception. The existing DNS-detector control caught 0 off-machine connects
+only because the no-route namespace kills the lookup at DNS resolution before
+any connect happens — so the current FAIL is real but its full shape is
+unproven: 0613's own log names it unsettled "whether the update check
+accounts for all four lookups."
+
+0613 names the fix directly: "One arm settles it — the same assertion with
+`ZOTEUS_UPDATE_CHECK=false` — and it belongs beside the existing net-shared
+control, never as a graded configuration." So this ticket adds a diagnostic
+arm, not a new pass/fail gate: the default-config assertion keeps deciding
+R10-no-egress; this arm exists to attribute what's actually being resolved.
+
+**Planning-pass findings (2026-09-03), to confirm rather than assume in
+Actions 1-3.** `bench/results/0604-ladder-matrix/acceptance-zoteus-v1130.json`
+(the v1.13.0 re-run, already in the tree) is the source of the "four": subject
+`attempt_counts == {"off_machine": 0, "dns": 4}`, all four `connect
+127.0.0.53:53`. Reading the reviewed SHA's source live (GitHub raw fetch, not
+a built `fork/` — line numbers below are provisional and Action 1 must
+re-derive them from a real checkout): `src/config.ts` still declares
+`ZOTEUS_UPDATE_CHECK: bool(true)`, and `src/lib/update-check.ts` still does
+exactly one `fetch()`, to
+`https://api.github.com/repos/oscardvs/zoteus/releases/latest` (around line 5;
+`FETCH_TIMEOUT_MS = 5000` at line 4; the `fetch` call itself around lines
+67-77) — no retry, no redirect chain, cached 24h. One `fetch()` call is not
+obviously four lookups, which is exactly the gap this ticket exists to close.
+
+A concrete hypothesis for Action 3, from data already sitting in the v1130
+artifact: the harness's own positive-control probe (`_EGRESS_PROBE` in
+`bench/acceptance/assertions.py`), which does exactly ONE
+`socket.getaddrinfo('example.invalid', 443)` call and nothing else
+network-shaped, *also* recorded `dns: 4` on its isolated arm in that same
+artifact (`control.isolated.attempt_counts`). One hostname resolution
+producing four resolver-port syscalls looks like this sandbox's own
+glibc/strace signature for a single `getaddrinfo`-shaped call, not four
+independent application-level lookups — which would mean zoteus's one
+`fetch()` could plausibly account for all four by itself, with no second
+cause needed. Not yet confirmed: this needs the `ZOTEUS_UPDATE_CHECK=false`
+arm to actually drop to `dns: 0` (or to explain a residual) before it is
+trusted, and it needs Action 1's real-source read to rule out a second
+network-shaped call.
+
+Dependencies, checked this session: `fork/dist` does not exist in this
+worktree (gitignored, absent on a fresh checkout — `tickets/closed/0620`), but
+a `fork/` was built and driven successfully earlier today in a job-scoped tmp
+arena to produce the v1130 artifact above; `make upstream-checkout` then `npm
+ci && npm run build` is the known-working recipe
+(`bench/results/trunk-1.10.0/README.json`'s `how_trunk_was_obtained`). No
+padme/doudou dependency and no real Zotero library needed: `bwrap` and `sudo`
+are both present on this machine, the adapter needs no `--zotero-data-dir` for
+this arm, and the diagnostic arm reuses the same in-process
+no-route/DNS-detector harness (`bench/acceptance/sandbox.py`,
+`assertions.py::check_no_egress`) the graded run already uses. Confirmed no
+adapter code change is needed to make `ZOTEUS_UPDATE_CHECK=false` reach the
+target process: `zoteus.py::Zoteus._env()` never sets or strips that key, and
+`bench/mcp_drive.py::Server.__init__` merges `{**os.environ, **env}`, so
+exporting it in the shell that invokes `bench/acceptance/run.py` is
+sufficient — including under the default `--posture account`, since
+`posture.py::Posture.wrap`'s `--preserve-env=<names>` list is built from
+`sorted(env)` over that same merged dict.
+
+## Relevant files
+
+- `bench/acceptance/adapters/zoteus.py` — `Zoteus._env()` (~line 311) declares
+  the target's env; does not set `ZOTEUS_UPDATE_CHECK` today, so the shell's
+  value passes through untouched (see log entry above for the merge chain).
+- `bench/acceptance/assertions.py` — `check_no_egress` (~line 180) is the
+  R10-no-egress assertion to re-run unmodified; `_EGRESS_PROBE` (~line 993) is
+  the harness's own positive control.
+- `bench/acceptance/sandbox.py` — `run_traced`/`choose()`, the no-route
+  namespace + strace tracer; nothing here changes for this ticket.
+- `bench/results/0604-ladder-matrix/acceptance-zoteus-v1130.json` — the
+  existing default-config (`ZOTEUS_UPDATE_CHECK` unset → true) fail artifact
+  to diff the new arm's counts against.
+- `Makefile` — `upstream-checkout` target (~line 254) recreates `fork/` at
+  `UPSTREAM_REVIEWED_SHA`; build with `npm ci && npm run build` per
+  `bench/results/trunk-1.10.0/README.json`'s recorded recipe.
+
+## Actions
+
+1. Build a checkout to read from and to run: `make upstream-checkout` (or, if
+   `fork/` already exists in a scratch arena from a prior job, reuse it), then
+   `cd fork && npm ci && npm run build`. Read `src/lib/update-check.ts` and
+   `src/config.ts` from that real tree — not from the provisional line numbers
+   in the log entry above, which came from a fetched copy — and name the exact
+   file:line for every network-shaped call (`fetch`, `getaddrinfo`, DNS
+   client) reachable from server startup with `ZOTEUS_UPDATE_CHECK` at its
+   default. Confirm whether it is really only the one `fetch()` in
+   `update-check.ts`, or whether something else (e.g. the transformers.js
+   runtime probing for model updates, despite `ZOTEUS_TRANSFORMERS_PATH`
+   pointing at a local, vendored path with no `HF_HUB_OFFLINE`/
+   `TRANSFORMERS_OFFLINE` set — `src/config.ts` has neither) also resolves a
+   hostname on this path.
+2. Re-run the R10-no-egress acceptance assertion with `ZOTEUS_UPDATE_CHECK=false`,
+   same harness, same machine, same build:
+   ```
+   ZOTEUS_UPDATE_CHECK=false python3 bench/acceptance/run.py \
+     --adapter zoteus --arena "$ARENA" \
+     --adapter-option entrypoint=fork/dist/index.js \
+     --adapter-option transformers_path="$ZOTEUS_TRANSFORMERS_PATH" \
+     --output bench/results/0629-gap-a/acceptance-zoteus-update-check-false.json
+   ```
+   (`--posture` defaults to `account`; pass `--posture already-isolated` only
+   if this run's environment is a documented already-isolated boundary — do
+   not invent an account. `$ARENA` is a scratch dir, e.g.
+   `$(mktemp -d)/arena-zoteus-gap-a`; `$ZOTEUS_TRANSFORMERS_PATH` is whatever
+   local on-device runtime path is available on this machine, matching what
+   the v1130 artifact used.)
+3. Attribute each of the four lookups to a cause using this arm's evidence,
+   read against the default-config artifact and against Action 1's source
+   read. Confirm or refute the hypothesis logged above — that the harness's
+   own single-hostname control probe also produces `dns: 4`, so zoteus's one
+   `fetch()` may fully explain all four without needing a second cause. If the
+   new arm's `dns` count is not 0, name what remains and why (a leftover
+   lookup unrelated to update-check would be a second, separate R10 finding).
+4. Record the arm's result as an ungraded diagnostic beside the existing
+   net-shared control — do not fold it into `R10-no-egress`'s graded verdict,
+   which stays bound to the default configuration.
+5. Append the finding to 0613's log (which lookups are update-check-caused,
+   which aren't, with the file:line evidence) so 0613's Action 2 and Action 3
+   (deciding the upstream form) have a source to work from.
+
+## Test
+
+Red step: before trusting this arm's own zero (or non-zero) count, confirm
+the built-in positive controls inside `check_no_egress` still fire under
+`ZOTEUS_UPDATE_CHECK=false` exactly as they did under the default config —
+`control.net_shared` and `control.isolated` in the new artifact must each show
+`off_machine >= 1` and `dns >= 1`, matching the v1130 artifact's control block
+byte-for-byte in shape (values may differ run to run; presence must not). This
+is not a new code path to make red — `check_no_egress` always runs both
+controls before it trusts the subject arm — so the "red" to demonstrate is
+comparative: run the harness once more at the DEFAULT config on this same
+machine/build first (`dns: 4`, matching v1130) immediately before the
+`ZOTEUS_UPDATE_CHECK=false` run, so the two arms are adjacent in time, same
+build, same machine, and a changed count is attributable to the env var and
+not to machine drift. Two adjacent numbers, not one, are what make the
+diagnostic arm's result trustworthy — a single `ZOTEUS_UPDATE_CHECK=false` run
+with no same-session default-config comparison would only show that *a*
+number came back, not that changing the env var is what moved it (the
+existing v1130 artifact is a same-machine baseline but not a same-session
+one, and machine/build drift between the two is exactly the kind of gap the
+positive-control discipline exists to close).
+
+## Verification
+
+- [ ] Four lookups named by file:line, read from a real built `fork/` at the
+      reviewed SHA (not the provisional log-entry numbers)
+- [ ] A same-session default-config comparison run captured immediately
+      before the `ZOTEUS_UPDATE_CHECK=false` run, both under identical
+      machine/build/posture
+- [ ] `ZOTEUS_UPDATE_CHECK=false` arm run, artifact committed under
+      `bench/results/0629-gap-a/`, both controls firing in it
+- [ ] Each lookup attributed, with evidence — including whether the "one
+      `getaddrinfo` call looks like 4 resolver-port syscalls" hypothesis held
+- [ ] Entry appended to 0613's log
+
+## Invariants
+
+- This arm never overrides `R10-no-egress`'s graded verdict, which stays
+  bound to the default configuration per 0613's own instruction.
+- No new upstream filing here — deciding and filing the upstream form is
+  0613's own Action 3, out of this ticket's scope.
+
+## Exit criteria
+
+- The four lookups are attributed with evidence, the diagnostic arm is
+  committed, and 0613's log records the finding.
