@@ -15,6 +15,23 @@ absent drivers: `bench/smoke_upstream.py`, `bench/issue30_arms.py` and
 reasons; what matters here is that nothing named them until a scan derived the inventory
 from the tree.
 
+A FOURTH FILE ARRIVED WHILE THIS PR WAS OPEN, AND THE GUARD CAUGHT IT UNPROMPTED
+--------------------------------------------------------------------------------
+This is the strongest evidence in the module, and it was not staged. `d81584c` ("Arm R23's
+two directions…") landed on `main` after this branch was cut and added 184 lines to
+`bench/acceptance/adapters/zoteus.py`, taking it from 0 occurrences of `sqlite3` and 0 of
+`FROM meta` to 5 and 2. The branch was green on its own base and red the moment current
+`main` was merged in, naming exactly that file:
+
+    AssertionError: bench files that open a zoteus-built index and are in neither
+    DRIVERS (tests/test_index_schema_fixtures.py) nor EXCUSED:
+    {'bench/acceptance/adapters/zoteus.py': ['meta']}
+
+A real index-opening driver joined the repo, and the closure check named it on the first
+run against real traffic rather than against a fixture. Every synthetic control below is an
+argument that this would happen; this is the event. It is classified in `EXCUSED` on its
+own substrate merits, argued there.
+
 WHAT THE CLASS IS, AND WHY THE OBVIOUS PROBE MISSES A THIRD OF IT
 -----------------------------------------------------------------
 An earlier probe looked for drivers that take an index path on the command line — `--db`,
@@ -25,17 +42,31 @@ tests is not the property that matters. So the class this module scans for is **
 SQLite database and names a zoteus index table in SQL**, which is what "pinned to a schema
 upstream may rename" actually means.
 
-The other finding, stated because it shapes every classification below: all three
-uncovered files are Python, and `bench/index_schema.mjs` — the gate a rostered driver calls
-before its first query — is a JavaScript module. `DRIVERS` is entirely `.mjs`. The roster's
-hole is therefore not only hand-maintenance; a Python driver is structurally outside the
-gate, and putting one inside it means a second Python mirror of the schema constants. This
-repo's most expensive recurring defect is a fact stated twice (AGENTS.md, "One statement per
-fact"), and `bench/check_models.py` exists because of it. That cost is real, and it is why
-each of the three is excused on a reason of its own rather than gated by a duplicated
-mirror. Should a Python driver ever need the gate for its own sake, the port is one module
-and a test that asserts it agrees with the `.mjs` constants — not something to smuggle in
-behind a roster entry.
+A SECOND FINDING, RETRACTED — AND THE RETRACTION IS THE POINT
+-------------------------------------------------------------
+An earlier draft of this module argued structurally: every uncovered file is Python,
+`bench/index_schema.mjs` is a JavaScript module, `DRIVERS` is entirely `.mjs`, so a Python
+driver is outside the gate and rostering one would mean a second Python mirror of the
+schema constants — this repo's most expensive recurring defect (AGENTS.md, "One statement
+per fact"). **That argument is withdrawn. It does not hold, and it is not offered here.**
+
+The premise was measured and is false. All four Python drivers in the inventory already
+spawn `node` themselves — `Server(["node", …])` in `smoke_upstream.py`, `issue30_arms.py`,
+`issue30_codebuild_agreement.py` and `acceptance/adapters/zoteus.py`. Node is a hard
+runtime dependency of each, so reaching the gate needs a `subprocess.run(["node",
+"bench/index_schema_check.mjs", …])` shim, not a mirror of a single constant. The real
+obstacle is narrower and mechanical: `test_index_schema_fixtures.py::run_driver` hardcodes
+`["node", BENCH / spec["name"], …]`, so rostering a `.py` driver needs a suffix dispatch
+there. A few lines, not a duplicated fact.
+
+It is withdrawn now rather than quietly dropped because of where it would have led. The
+fourth file above is also Python. Had the structural argument been load-bearing, every
+Python driver that ever arrives would be excusable by the same sentence, and `EXCUSED`
+would be empty of judgement — the class closed by construction rather than by measurement,
+which is the failure this module was written against. None of the four excuses rests on it:
+each is a substrate argument about what its file reads and who decides the same question
+afterwards, and each stands or falls alone. A Python port of the gate remains a separate
+decision, on its own merits, not something to smuggle in behind a roster entry.
 
 HOW THE SCAN ERRS
 -----------------
@@ -70,7 +101,7 @@ guessed — the same predicates over that root name `corpus-language-mix.mjs`,
 `migrate-real-index.mjs`, `scan-shape-v190-vs-fused.mjs`, `snippet-droplist-probe.mjs`,
 `stoplist-cross-language.mjs`, `vocab-scan-cost.mjs` and `x4_probe_vocabulary.py`. The
 count is a finding rather than a nil because the identical run over `bench/` returns the
-known-positive inventory below, the three newly-classified files included.
+known-positive inventory below, the four newly-classified files included.
 
 They are out of scope deliberately, not overlooked. Several are one-off instruments pinned
 to the pre-rename generation the way `vec_real_measure.mjs` is, so classifying them is the
@@ -97,6 +128,7 @@ one that must never say that.
 import ast
 import re
 from pathlib import Path
+from typing import NamedTuple
 
 import pytest
 
@@ -245,44 +277,76 @@ UPSTREAM_OWNS_IT = (
     "would assert upstream's invariant on upstream's behalf (0101's ruling)"
 )
 
+class Excuse(NamedTuple):
+    """One excused file: the index tables its reason was written against, and the reason.
+
+    `tables` is the load-bearing half at rest, and it is what stops an excuse outliving
+    the file it describes. `test_no_excused_entry_is_stale` fires only when a file LEAVES
+    the class; nothing fired when an excused file changed WHAT IT TOUCHES. If
+    `smoke_upstream.py` gained a `SELECT … FROM passages_fts` tomorrow, its written reason
+    — which turns on `meta` being a generation discriminator — would become false and every
+    test would stay green. The reason would be human-checked once, at review, and never
+    again. Pinning the set the scan found when the reason was written turns that into a
+    red: `test_no_excused_entry_drifts_from_its_pinned_tables` reds by name, and the reason
+    gets re-read by whoever changed the file.
+
+    This is the idiom `VOCABULARY_FLOOR` already applies to the derivation, turned on
+    `EXCUSED`. The fourth file's arrival is the argument for it: the guard caught a file
+    ENTERING the class and would not have caught the identical change inside `EXCUSED`.
+
+    Tables come first because the reasons run to a paragraph, and a pin appended after ten
+    lines of prose is a pin nobody re-reads in a diff. The short machine-checked half sits
+    where the eye lands.
+    """
+
+    tables: frozenset[str]
+    why: str
+
+
 #: Files the scan names that are deliberately not rostered, each with the reason that makes
-#: the exclusion reviewable. A bare name would be the same undifferentiated cell the roster
-#: already is — "this driver hides a gate it should have" and "this file has no generation
-#: to be pinned to" are opposite findings, and a set of names cannot tell them apart. A
-#: blank reason is refused; see `unreasoned` and its control.
-EXCUSED: dict[str, str] = {
+#: the exclusion reviewable and the table set that reason was written against. A bare name
+#: would be the same undifferentiated cell the roster already is — "this driver hides a gate
+#: it should have" and "this file has no generation to be pinned to" are opposite findings,
+#: and a set of names cannot tell them apart. A blank reason is refused (`unreasoned`); a
+#: reason whose file has since moved to other tables is refused too (`drifted`).
+EXCUSED: dict[str, Excuse] = {
     # --- the guard's own substrate ---------------------------------------------------
-    "bench/index_schema.mjs": (
+    "bench/index_schema.mjs": Excuse(
+        frozenset({"passages"}),
         "the gate itself. The table names it appears to query are the ones it prints in its "
         "refusals, and the vocabulary this scan matches against is derived from its own "
         "exported constants — it is what the roster is held to, not a member of it"
     ),
-    "bench/fixtures/make_index_fixture.mjs": (
+    "bench/fixtures/make_index_fixture.mjs": Excuse(
+        frozenset({"index_meta", "items", "meta", "passage_meta", "passages", "passages_fts", "vector_codes"}),
         "the fixture generator. It WRITES both generations rather than reading one, and it "
         "is the other file the vocabulary is derived from; a generation gate on the thing "
         "that manufactures both generations would refuse its own output"
     ),
-    "bench/upstream_catchup.py": (
+    "bench/upstream_catchup.py": Excuse(
+        frozenset({"passages"}),
         "never opens a database: it greps upstream's `sqlite-index.ts` for the `passages` "
         "DDL and for `SCHEMA_VERSION`, and reports a move. It is the detector that tells "
         "this roster it needs updating, not a driver that could be pinned to a stale "
         "generation. It appears here only because the sqlite test is a token search"
     ),
     # --- their own scratch corpus ------------------------------------------------------
-    "bench/constrained_match.mjs": OWN_CORPUS,
-    "bench/cosine_fusion.mjs": OWN_CORPUS,
-    "bench/fts5_bench.mjs": OWN_CORPUS,
-    "bench/fts5_keyword_arm.mjs": OWN_CORPUS,
-    "bench/vec_scan_shapes.mjs": OWN_CORPUS,
-    "bench/vec_recall.ts": (
+    "bench/constrained_match.mjs": Excuse(frozenset({"passages", "passages_fts"}), OWN_CORPUS),
+    "bench/cosine_fusion.mjs": Excuse(frozenset({"passages"}), OWN_CORPUS),
+    "bench/fts5_bench.mjs": Excuse(frozenset({"passages"}), OWN_CORPUS),
+    "bench/fts5_keyword_arm.mjs": Excuse(frozenset({"passages"}), OWN_CORPUS),
+    "bench/vec_scan_shapes.mjs": Excuse(frozenset({"passages"}), OWN_CORPUS),
+    "bench/vec_recall.ts": Excuse(
+        frozenset({"passage_meta"}),
         "builds its own corpus through upstream's own `Fts5PassageStore` into a scratch "
         "$TMPDIR database and then re-opens that file raw, to run the exact float32 ranking "
         "the store no longer takes. The schema is whatever that store wrote in the same "
         "process; there is no foreign index to drift from"
     ),
     # --- upstream's own code owns the check, in the same run ----------------------------
-    "bench/derive_droplist.mjs": UPSTREAM_OWNS_IT,
-    "bench/smoke_upstream.py": (
+    "bench/derive_droplist.mjs": Excuse(frozenset({"meta"}), UPSTREAM_OWNS_IT),
+    "bench/smoke_upstream.py": Excuse(
+        frozenset({"meta"}),
         "an acceptance smoke driver, and the only file in this inventory that READS "
         "`meta.schemaVersion` and reports the value it found. `_restamp_and_open` copies "
         "the index, records the original version into the artifact, then deliberately "
@@ -293,7 +357,8 @@ EXCUSED: dict[str, str] = {
         "is the cost the roster exists to avoid. The copy then goes to upstream's own "
         "server, so upstream decides the same question a second time"
     ),
-    "bench/issue30_arms.py": (
+    "bench/issue30_arms.py": Excuse(
+        frozenset({"items", "meta", "passages"}),
         "`geometry(MASTER)` describes the substrate the run hands to upstream's own "
         "binaries: every arm gets a `shutil.copy2` of that same file and a v1.9.0 or "
         "v1.10.0 server started on it, so an index of a generation upstream cannot read is "
@@ -302,7 +367,31 @@ EXCUSED: dict[str, str] = {
         "case seen from the server side — and it runs before the servers start, so a rename "
         "costs seconds rather than the hour the roster exists to protect"
     ),
-    "bench/issue30_codebuild_agreement.py": (
+    "bench/acceptance/adapters/zoteus.py": Excuse(
+        frozenset({"meta"}),
+        "the fourth file — it arrived on `main` in `d81584c` while this PR was open and "
+        "this module's closure check named it, unprompted, on the first run against real "
+        "traffic. Excused on the same substrate reason as `bench/smoke_upstream.py`, and "
+        "NOT on being Python: it is `_restamp_and_open` moved into an acceptance adapter, "
+        "as its own file header says. Its whole SQL surface is three statements on "
+        "`meta.schemaVersion` — `_index` opens each `*.sqlite` candidate and asks whether "
+        "it carries the stamp (found by the stamp rather than by filename, because the "
+        "name has changed across versions of this target), `_stamp` reports the value "
+        "found, and `_restamp` writes `0` or `9999`, a version upstream MUST refuse, which "
+        "is the R23 clause the adapter exists to drive. `meta` is a generation "
+        "discriminator: the pre-rename generation calls it `index_meta` "
+        "(`PRERENAME_TABLES`), so this file structurally cannot commit the "
+        "right-name/wrong-content defect `index_schema.mjs` was written for. Rostering it "
+        "would refuse the adapter's own instrument, exactly as it would for "
+        "`smoke_upstream.py`. One difference from that file, recorded because it is real "
+        "and cuts against this excuse: `_index` catches `sqlite3.Error` and moves to the "
+        "next candidate, so a rename does not fail there — it reports no index, and "
+        "`_restamp` / `_reset_to_seeded_index` then raise by name one step later. Loud, "
+        "but not immediately, and no number read from a misread generation reaches an "
+        "artifact, since every value it reports IS the schema stamp"
+    ),
+    "bench/issue30_codebuild_agreement.py": Excuse(
+        frozenset({"vector_codes"}),
         "it counts `vector_codes` in a file upstream's own v1.10.0 server wrote moments "
         "earlier in the same run — the codes ARE the thing under measurement, so whatever "
         "upstream writes is what it counts and there is no generation for it to be pinned "
@@ -314,14 +403,42 @@ EXCUSED: dict[str, str] = {
 }
 
 
-def unreasoned(excused: dict[str, str]) -> list[str]:
+def unreasoned(excused: dict[str, Excuse]) -> list[str]:
     """Excused entries whose reason is blank. The load-bearing half of the mapping.
 
     A reason a contributor may leave empty is the same set of bare names with a longer
     type: every entry passes `""`, nothing breaks, and the list says exactly what it said
     before. Precedent and argument: `tests/test_acceptance_unsupported_reason.py`.
     """
-    return sorted(name for name, why in excused.items() if not (why or "").strip())
+    return sorted(name for name, e in excused.items() if not (e.why or "").strip())
+
+
+def drifted(found: dict[str, list[str]], excused: dict[str, Excuse]) -> dict[str, dict]:
+    """Excused files whose index tables no longer match the set their reason was written for.
+
+    The complement of `test_no_excused_entry_is_stale`, which fires when a file LEAVES the
+    class. This fires when it STAYS in the class and changes what it touches — the case
+    where the written reason silently becomes false while every test stays green. Compared
+    as sets so a reordering is not a drift; `found` is already sorted, the pin is a
+    frozenset, and neither ordering is load-bearing.
+
+    Files in `excused` that the scan does not name are ignored here on purpose: that is the
+    staleness check's finding, and reporting it twice under two names would make one red
+    look like two.
+    """
+    out: dict[str, dict] = {}
+    for name, excuse in excused.items():
+        if name not in found:
+            continue
+        now = frozenset(found[name])
+        if now != excuse.tables:
+            out[name] = {
+                "pinned": sorted(excuse.tables),
+                "found": sorted(now),
+                "arrived": sorted(now - excuse.tables),
+                "gone": sorted(excuse.tables - now),
+            }
+    return out
 
 
 def unclassified(repo: Path) -> dict[str, list[str]]:
@@ -425,6 +542,25 @@ def test_no_excused_entry_is_stale():
     found = set(drivers_that_open_an_index(REPO, vocabulary))
     stale = sorted(set(EXCUSED) - found)
     assert not stale, f"EXCUSED names files the scan no longer finds: {stale}"
+
+
+def test_no_excused_entry_drifts_from_its_pinned_tables():
+    """An excuse that outlives the file it describes is a claim nothing checks any more.
+
+    The staleness check above covers a file LEAVING the class. This covers the case it
+    cannot see: the file stays, and starts naming a table its written reason was never
+    about. Both `smoke_upstream.py` and `acceptance/adapters/zoteus.py` are excused on
+    `meta` being a generation discriminator; the day either gains a `passages_fts` read,
+    that argument stops holding and this reds by name rather than staying green.
+    """
+    vocabulary = index_vocabulary(BENCH)
+    found = drivers_that_open_an_index(REPO, vocabulary)
+    drift = drifted(found, EXCUSED)
+    assert not drift, (
+        "excused files now naming index tables their reason was not written against: "
+        f"{drift}. Re-read the reason in EXCUSED against the file, then either rewrite it "
+        "and re-pin the table set, or roster the driver."
+    )
 
 
 def test_no_driver_is_both_rostered_and_excused():
@@ -554,7 +690,74 @@ def test_a_file_that_only_mentions_a_table_in_prose_is_not_named(tmp_path):
 @pytest.mark.parametrize("blank", ["", "   ", "\n"])
 def test_a_blank_excuse_reason_is_refused(blank):
     """Widening the type without refusing the empty value changes nothing at all."""
-    assert unreasoned({"bench/whatever.py": blank}) == ["bench/whatever.py"]
+    excused = {"bench/whatever.py": Excuse(frozenset({"passages"}), blank)}
+    assert unreasoned(excused) == ["bench/whatever.py"]
+
+
+def test_an_excuse_that_gains_a_table_is_named(tmp_path):
+    """The degradation control, on a case known to be positive.
+
+    A file excused for reading `meta` alone, which now also reads `passages`. Nothing else
+    about it changed: it is still in the class, still excused, still carries a non-blank
+    reason. Every other test in this module stays green on it, which is precisely why this
+    one has to exist — before the pin, that file's written reason could become false
+    without a single red.
+    """
+    tree = _fixture_tree(tmp_path)
+    (tree / "bench" / "drifter.py").write_text(
+        "import sqlite3\n"
+        "con = sqlite3.connect('search-index.sqlite')\n"
+        "con.execute(\"SELECT value FROM meta WHERE key='schemaVersion'\")\n"
+        "con.execute('SELECT COUNT(*) FROM passages')\n"
+    )
+    found = drivers_that_open_an_index(tree, index_vocabulary(tree / "bench"))
+    excused = {"bench/drifter.py": Excuse(frozenset({"meta"}), "reads the stamp, nothing else")}
+
+    drift = drifted(found, excused)
+    assert "bench/drifter.py" in drift
+    assert drift["bench/drifter.py"]["arrived"] == ["passages"]
+    assert drift["bench/drifter.py"]["gone"] == []
+
+    # …and the same entry, pinned to what the file actually reads, is not named.
+    honest = {"bench/drifter.py": Excuse(frozenset({"meta", "passages"}), "re-read and re-pinned")}
+    assert drifted(found, honest) == {}
+
+
+def test_an_excuse_that_loses_a_table_is_named(tmp_path):
+    """The other direction, and it is not symmetric with the one above.
+
+    A file that stops reading a table its reason turned on is the quieter half: the reason
+    now over-claims rather than under-claims, so no argument in it is falsified by new
+    behaviour — it is merely describing a file that no longer exists. Named anyway, because
+    a pin that only ever grows is a pin that drifts upward forever and stops discriminating.
+    """
+    tree = _fixture_tree(tmp_path)
+    (tree / "bench" / "shrinker.py").write_text(
+        "import sqlite3\n"
+        "con = sqlite3.connect('search-index.sqlite')\n"
+        "con.execute('SELECT COUNT(*) FROM passages')\n"
+    )
+    found = drivers_that_open_an_index(tree, index_vocabulary(tree / "bench"))
+    excused = {
+        "bench/shrinker.py": Excuse(frozenset({"meta", "passages"}), "reads the stamp too")
+    }
+    drift = drifted(found, excused)
+    assert drift["bench/shrinker.py"]["gone"] == ["meta"]
+    assert drift["bench/shrinker.py"]["arrived"] == []
+
+
+def test_drift_is_not_reported_for_a_file_the_scan_no_longer_names(tmp_path):
+    """Staleness is one finding with one name, not two reds for one cause.
+
+    An excuse whose file has left the class entirely is `test_no_excused_entry_is_stale`'s
+    to report. If `drifted` also named it, a single deletion would red two tests and read
+    as two independent defects.
+    """
+    tree = _fixture_tree(tmp_path)
+    found = drivers_that_open_an_index(tree, index_vocabulary(tree / "bench"))
+    gone = {"bench/deleted.py": Excuse(frozenset({"meta"}), "a file that is not there")}
+    assert "bench/deleted.py" not in found
+    assert drifted(found, gone) == {}
 
 
 def test_an_absent_excuse_is_refused_by_the_closure_check(tmp_path):
