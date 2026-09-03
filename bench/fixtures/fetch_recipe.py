@@ -172,10 +172,19 @@ FAOLEX_ADMITTED = frozenset({"LEX-FAOC179224"})
 #: Hosts that are publishers or personal sites, never archives. Listed because
 #: each one appeared as a source in the closed PR #151. Compared lowercased.
 REFUSED_HOSTS = ("minh.haduong.com", "zotero.org", "www.gov.uk", "chinhphu.vn", "vbpl.vn", "thuvienphapluat.vn")
-REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "archive", "identifier", "bytes_url", "sha256", "license_basis")
+LEGACY_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "archive", "identifier", "bytes_url", "sha256", "license_basis")
+PARENT_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "item_type", "type_fidelity", "work_id", "work_relations", "structural_features", "attachments")
+ATTACHMENT_REQUIRED = ("id", "language", "role", "relation", "extraction_expectation", "archive", "identifier", "bytes_url", "sha256", "license_basis")
 LANGUAGES = frozenset({"en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la", "pt"})
 TIERS = frozenset({"MUST", "SHOULD"})
 FACETS = frozenset({"core", "notes", "group", "deep-body"})
+TYPE_FIDELITY = frozenset({"correct", "intentionally-wrong"})
+ATTACHMENT_RELATIONS = frozenset({"primary", "same-text-different-format", "translation", "article", "presentation"})
+ATTACHMENT_ROLES = frozenset({"primary", "article", "presentation", "translation", "alternate-format"})
+WORK_RELATIONS = frozenset({"translation", "same-work", "near-duplicate-publication", "book-chapter", "metadata-conflicting-duplicate"})
+EXTRACTION_EXPECTATIONS = frozenset({"indexed", "skipped-first-with-text"})
+STRUCTURAL_FEATURES = frozenset({"table", "figure-caption", "annex", "appendix", "footnote", "endnote", "multi-column", "equation-heavy-prose"})
+STRUCTURAL_EXPECTATIONS = frozenset({"present", "absent"})
 HEX64 = frozenset("0123456789abcdef")
 #: An id is one path component, because it names the cache file: `../x` or a
 #: slash would write outside the cache directory.
@@ -191,9 +200,11 @@ def validate(recipe: list[dict]) -> list[str]:
     """
     found: list[str] = []
     seen: set[str] = set()
+    seen_attachment_ids: set[str] = set()
     for doc in recipe:
         did = doc.get("id", "<no id>")
-        for key in REQUIRED:
+        legacy = "attachments" not in doc
+        for key in LEGACY_REQUIRED if legacy else PARENT_REQUIRED:
             if key not in doc:
                 found.append(f"{did}: missing {key}")
         if did in seen:
@@ -201,39 +212,122 @@ def validate(recipe: list[dict]) -> list[str]:
         seen.add(did)
         if not SLUG.match(str(did)):
             found.append(f"{did}: id is not a lowercase slug (one path component)")
-        if doc.get("bytes_format", "pdf") not in MAGIC:
-            found.append(f"{did}: bytes_format {doc.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
         for key in doc:
             if key.startswith("zotero_"):
                 found.append(f"{did}: {key} names a personal library")
-        if doc.get("archive") not in ADMITTED_ARCHIVES:
-            found.append(f"{did}: archive {doc.get('archive')!r} is not admitted")
-        if doc.get("archive") in VERSIONED_ARCHIVES and not VERSION.match(str(doc.get("version") or "")):
-            found.append(f"{did}: {doc['archive']} identifier carries no version of the form vN")
-        if doc.get("archive") == "faolex" and doc.get("identifier") not in FAOLEX_ADMITTED:
-            found.append(f"{did}: FAOLEX is admitted for {sorted(FAOLEX_ADMITTED)} only, not {doc.get('identifier')!r}")
-        url = doc.get("bytes_url") or ""
-        host = (urllib.parse.urlparse(url).hostname or "").lower()
-        if any(host == h or host.endswith("." + h) for h in REFUSED_HOSTS):
-            found.append(f"{did}: bytes_url {url} is a publisher or personal host, not an archive")
-        allowed = ARCHIVE_HOSTS.get(doc.get("archive"), ())
-        if url and not any(host == h or host.endswith("." + h) for h in allowed):
-            found.append(f"{did}: bytes_url host {host!r} does not belong to archive {doc.get('archive')!r}")
-        digest = doc.get("sha256")
-        if digest is None:
-            if not doc.get("sha256_reason"):
-                found.append(f"{did}: sha256 is null with no sha256_reason")
-        elif len(digest) != 64 or not set(digest) <= HEX64:
-            found.append(f"{did}: sha256 is not 64 hex characters")
         if doc.get("language") not in LANGUAGES:
             found.append(f"{did}: language {doc.get('language')!r} unknown")
         if doc.get("tier") not in TIERS:
             found.append(f"{did}: tier {doc.get('tier')!r} unknown")
         if doc.get("facet") not in FACETS:
             found.append(f"{did}: facet {doc.get('facet')!r} unknown")
-        if not doc.get("license_basis"):
-            found.append(f"{did}: license_basis is empty")
+        if not legacy:
+            if not isinstance(doc.get("item_type"), str) or not doc.get("item_type"):
+                found.append(f"{did}: item_type is empty")
+            if doc.get("type_fidelity") not in TYPE_FIDELITY:
+                found.append(f"{did}: type_fidelity {doc.get('type_fidelity')!r} unknown")
+            if doc.get("type_fidelity") == "intentionally-wrong" and not doc.get("type_fidelity_reason"):
+                found.append(f"{did}: intentionally-wrong type has no type_fidelity_reason")
+            if not SLUG.match(str(doc.get("work_id", ""))):
+                found.append(f"{did}: work_id is not a lowercase slug")
+            if not isinstance(doc.get("work_relations"), list):
+                found.append(f"{did}: work_relations must be a list")
+            else:
+                for relation in doc["work_relations"]:
+                    if not isinstance(relation, dict):
+                        found.append(f"{did}: each work relation must be an object")
+                        continue
+                    if set(relation) != {"type", "target"}:
+                        found.append(f"{did}: work relation must contain only type and target")
+                    if relation.get("type") not in WORK_RELATIONS:
+                        found.append(f"{did}: work relation type {relation.get('type')!r} unknown")
+                    if not SLUG.match(str(relation.get("target", ""))):
+                        found.append(f"{did}: work relation target is not a lowercase slug")
+            if not isinstance(doc.get("attachments"), list) or not doc.get("attachments"):
+                found.append(f"{did}: attachments must be a non-empty list")
+            features = doc.get("structural_features")
+            if not isinstance(features, list):
+                found.append(f"{did}: structural_features must be a list")
+            else:
+                attachment_names = {a.get("id") for a in doc.get("attachments", []) if isinstance(a, dict)}
+                for feature in features:
+                    if not isinstance(feature, dict) or set(feature) != {"feature", "attachment_id", "locator", "extraction_expectation"}:
+                        found.append(f"{did}: structural feature must contain feature, attachment_id, locator, and extraction_expectation")
+                        continue
+                    if feature["feature"] not in STRUCTURAL_FEATURES:
+                        found.append(f"{did}: structural feature {feature['feature']!r} unknown")
+                    if feature["attachment_id"] not in attachment_names:
+                        found.append(f"{did}: structural feature names an unknown attachment")
+                    if not isinstance(feature["locator"], str) or not feature["locator"].strip():
+                        found.append(f"{did}: structural feature locator is empty")
+                    if feature["extraction_expectation"] not in STRUCTURAL_EXPECTATIONS:
+                        found.append(f"{did}: structural extraction expectation unknown")
+        sources = [doc] if legacy else doc.get("attachments", [])
+        attachment_ids: set[str] = set()
+        for source in sources if isinstance(sources, list) else []:
+            if not isinstance(source, dict):
+                found.append(f"{did}: attachment must be an object")
+                continue
+            aid = source.get("id", did)
+            label = f"{did}/{aid}"
+            for key in () if legacy else ATTACHMENT_REQUIRED:
+                if key not in source:
+                    found.append(f"{label}: missing {key}")
+            if aid in attachment_ids:
+                found.append(f"{label}: duplicate attachment id")
+            attachment_ids.add(aid)
+            if aid in seen_attachment_ids:
+                found.append(f"{label}: attachment id is not globally unique")
+            seen_attachment_ids.add(aid)
+            if not SLUG.match(str(aid)):
+                found.append(f"{label}: attachment id is not a lowercase slug")
+            if not legacy and source.get("relation") not in ATTACHMENT_RELATIONS:
+                found.append(f"{label}: attachment relation {source.get('relation')!r} unknown")
+            if not legacy and source.get("role") not in ATTACHMENT_ROLES:
+                found.append(f"{label}: attachment role {source.get('role')!r} unknown")
+            if not legacy and source.get("extraction_expectation") not in EXTRACTION_EXPECTATIONS:
+                found.append(f"{label}: extraction_expectation {source.get('extraction_expectation')!r} unknown")
+            if source.get("extraction_expectation") == "skipped-first-with-text" and not source.get("skip_reason"):
+                found.append(f"{label}: skipped attachment has no skip_reason")
+            if source.get("bytes_format", "pdf") not in MAGIC:
+                found.append(f"{label}: bytes_format {source.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
+            if source.get("language", doc.get("language")) not in LANGUAGES:
+                found.append(f"{label}: language {source.get('language')!r} unknown")
+            _validate_source(source, label, found)
+        if not legacy and isinstance(sources, list):
+            by_language: dict[str, list[dict]] = {}
+            for source in sources:
+                if isinstance(source, dict):
+                    by_language.setdefault(source.get("language"), []).append(source)
+            for language, renderings in by_language.items():
+                indexed = [source for source in renderings if source.get("extraction_expectation") == "indexed"]
+                if len(indexed) != 1 or (indexed and indexed[0] is not renderings[0]):
+                    found.append(f"{did}: language {language!r} must index exactly the first attachment with text")
     return found
+
+
+def _validate_source(source: dict, label: str, found: list[str]) -> None:
+    archive = source.get("archive")
+    if archive not in ADMITTED_ARCHIVES:
+        found.append(f"{label}: archive {archive!r} is not admitted")
+    if archive in VERSIONED_ARCHIVES and not VERSION.match(str(source.get("version") or "")):
+        found.append(f"{label}: {archive} identifier carries no version of the form vN")
+    if archive == "faolex" and source.get("identifier") not in FAOLEX_ADMITTED:
+        found.append(f"{label}: FAOLEX is admitted for {sorted(FAOLEX_ADMITTED)} only, not {source.get('identifier')!r}")
+    url = source.get("bytes_url") or ""
+    host = (urllib.parse.urlparse(url).hostname or "").lower()
+    if any(host == h or host.endswith("." + h) for h in REFUSED_HOSTS):
+        found.append(f"{label}: bytes_url {url} is a publisher or personal host, not an archive")
+    allowed = ARCHIVE_HOSTS.get(archive, ())
+    if url and not any(host == h or host.endswith("." + h) for h in allowed):
+        found.append(f"{label}: bytes_url host {host!r} does not belong to archive {archive!r}")
+    digest = source.get("sha256")
+    if digest is None and not source.get("sha256_reason"):
+        found.append(f"{label}: sha256 is null with no sha256_reason")
+    elif digest is not None and (len(digest) != 64 or not set(digest) <= HEX64):
+        found.append(f"{label}: sha256 is not 64 hex characters")
+    if not source.get("license_basis"):
+        found.append(f"{label}: license_basis is empty")
 
 
 def load_recipe(path: Path) -> list[dict]:
@@ -252,12 +346,14 @@ def run(recipe: list[dict], cache_dir: Path, timeout: float, only: set[str] | No
     cache_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for doc in recipe:
-        if only and doc["id"] not in only:
-            continue
-        if doc.get("bytes_url") is None:
-            rows.append({"id": doc["id"], "archive": doc["archive"], "status": "no-bytes-url"})
-            continue
-        rows.append(fetch_one(doc, cache_dir, timeout))
+        sources = doc.get("attachments", [doc])
+        for source in sources:
+            if only and source["id"] not in only and doc["id"] not in only:
+                continue
+            if source.get("bytes_url") is None:
+                rows.append({"id": source["id"], "archive": source["archive"], "status": "no-bytes-url"})
+                continue
+            rows.append(fetch_one(source, cache_dir, timeout))
     return rows
 
 

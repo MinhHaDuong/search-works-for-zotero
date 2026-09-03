@@ -73,19 +73,27 @@ function requireOnlyManagedMarker(data, expected, label) {
 }
 
 function expectedParent(doc, collectionKey) {
-  return {
-    itemType: 'document',
+  const expected = {
+    itemType: doc.item_type ?? 'document',
     title: doc.title,
     creators: [{ creatorType: 'author', name: doc.author }],
     date: String(doc.year),
     language: doc.language,
-    url: doc.bytes_url,
-    archive: doc.archive,
-    archiveLocation: doc.identifier,
-    extra: `ticket-0029 recipe id: ${doc.id}`,
+    extra: [
+      `ticket-0029 recipe id: ${doc.id}`,
+      `ticket-0029 work id: ${doc.work_id ?? doc.id}`,
+      `ticket-0029 type fidelity: ${doc.type_fidelity ?? 'unreviewed'}`,
+      `ticket-0029 work relations: ${JSON.stringify(canonicalJson(doc.work_relations ?? []))}`,
+    ].join('\n'),
     collections: [collectionKey],
   };
+  if (!doc.attachments) Object.assign(expected, {
+    url: doc.bytes_url, archive: doc.archive, archiveLocation: doc.identifier,
+  });
+  return expected;
 }
+
+function sources(doc) { return doc.attachments ?? [doc]; }
 
 function requireFields(data, expected, label) {
   for (const [field, value] of Object.entries(expected)) {
@@ -181,19 +189,40 @@ export function loadGoldenExport(directory, options = {}) {
   }
   if (!Array.isArray(recipe) || recipe.length === 0) throw new Error('source recipe must be a non-empty array');
   const recipeById = new Map();
+  const sourceById = new Map();
   for (const doc of recipe) {
     if (!doc || typeof doc.id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(doc.id) || recipeById.has(doc.id)) {
       throw new Error(`source recipe has duplicate or empty id ${doc?.id ?? ''}`);
     }
-    const requiredStrings = [
-      'title', 'author', 'language', 'archive', 'identifier', 'bytes_url', 'license_basis',
-    ];
+    const requiredStrings = ['title', 'author', 'language'];
     if (requiredStrings.some((field) => typeof doc[field] !== 'string' || !doc[field])) {
       throw new Error(`${doc.id}: source recipe lacks required provenance metadata`);
     }
-    if (!Number.isInteger(doc.year) || !/^[0-9a-f]{64}$/.test(doc.sha256 ?? '') ||
-        !Object.hasOwn(CONTENT_TYPES, doc.bytes_format ?? 'pdf')) {
-      throw new Error(`${doc.id}: source recipe has invalid year, sha256, or bytes_format`);
+    if (!Number.isInteger(doc.year)) throw new Error(`${doc.id}: source recipe has invalid year`);
+    if (doc.attachments && (typeof doc.item_type !== 'string' || !doc.item_type ||
+        !['correct', 'intentionally-wrong'].includes(doc.type_fidelity) ||
+        typeof doc.work_id !== 'string' || !Array.isArray(doc.work_relations) ||
+        !Array.isArray(doc.structural_features))) {
+      throw new Error(`${doc.id}: source recipe lacks parent identity/type metadata`);
+    }
+    for (const source of sources(doc)) {
+      if (!source || typeof source.id !== 'string' || sourceById.has(source.id)) {
+        throw new Error(`${doc.id}: duplicate or empty attachment id ${source?.id ?? ''}`);
+      }
+      if (['archive', 'identifier', 'bytes_url', 'license_basis'].some(
+        (field) => typeof source[field] !== 'string' || !source[field]) ||
+          !/^[0-9a-f]{64}$/.test(source.sha256 ?? '') ||
+          !Object.hasOwn(CONTENT_TYPES, source.bytes_format ?? 'pdf')) {
+        throw new Error(`${source.id}: source recipe has invalid provenance, sha256, or bytes_format`);
+      }
+      if (doc.attachments && (typeof source.language !== 'string' || !source.language ||
+          typeof source.role !== 'string' || !source.role ||
+          typeof source.relation !== 'string' || !source.relation ||
+          !['indexed', 'skipped-first-with-text'].includes(source.extraction_expectation) ||
+          (source.extraction_expectation === 'skipped-first-with-text' && !source.skip_reason))) {
+        throw new Error(`${source.id}: source recipe lacks attachment semantics`);
+      }
+      sourceById.set(source.id, { parent: doc, source });
     }
     recipeById.set(doc.id, doc);
   }
@@ -204,22 +233,29 @@ export function loadGoldenExport(directory, options = {}) {
   }
 
   const recipeIds = new Set();
-  const parentKeys = new Set();
+  const parentByRecipe = new Map();
+  const parentKeyOwners = new Map();
   const attachmentKeys = new Set();
+  const attachmentIds = new Set();
   const consumedItemKeys = new Set();
   const fulltext = new Map();
+  const expectedAttachmentOrder = recipe.flatMap((doc) => sources(doc).map((source) => source.id));
+  const observedAttachmentOrder = [];
   for (const row of manifest.attachments) {
     const { recipe_id: recipeId, parent_key: parent, attachment_key: key } = row;
-    if (!recipeId || recipeIds.has(recipeId)) throw new Error(`duplicate or empty recipe id ${recipeId ?? ''}`);
+    if (!recipeId) throw new Error('empty recipe id');
     if (!recipeById.has(recipeId)) throw new Error(`${recipeId}: attachment is not present in the source recipe`);
-    if (!parent || parentKeys.has(parent) || attachmentKeys.has(parent)) {
+    if (!parent || attachmentKeys.has(parent) ||
+        (parentKeyOwners.has(parent) && parentKeyOwners.get(parent) !== recipeId) ||
+        (parentByRecipe.has(recipeId) && parentByRecipe.get(recipeId) !== parent)) {
       throw new Error(`${recipeId}: duplicate or empty parent key ${parent ?? ''}`);
     }
-    if (!key || attachmentKeys.has(key) || parentKeys.has(key)) {
+    if (!key || attachmentKeys.has(key) || parentKeyOwners.has(key)) {
       throw new Error(`${recipeId}: duplicate or empty attachment key ${key ?? ''}`);
     }
     recipeIds.add(recipeId);
-    parentKeys.add(parent);
+    parentByRecipe.set(recipeId, parent);
+    parentKeyOwners.set(parent, recipeId);
     attachmentKeys.add(key);
     const parentItem = itemByKey.get(parent);
     if (!parentItem) throw new Error(`${recipeId}: missing parent item ${parent}`);
@@ -234,16 +270,30 @@ export function loadGoldenExport(directory, options = {}) {
       throw new Error(`${recipeId}: ${key} is not the declared linked child of ${parent}`);
     }
     const doc = recipeById.get(recipeId);
-    const expectedPath = `attachments:${doc.id}.${doc.bytes_format ?? 'pdf'}`;
+    const attachmentId = doc.attachments ? row.attachment_id : doc.id;
+    const sourceEntry = sourceById.get(attachmentId);
+    if (!sourceEntry || sourceEntry.parent.id !== recipeId || attachmentIds.has(attachmentId)) {
+      throw new Error(`${recipeId}: duplicate, empty, or foreign attachment id ${attachmentId ?? ''}`);
+    }
+    attachmentIds.add(attachmentId);
+    observedAttachmentOrder.push(attachmentId);
+    const source = sourceEntry.source;
+    if (doc.attachments && (row.role !== source.role || row.relation !== source.relation ||
+        row.language !== source.language || row.bytes_format !== (source.bytes_format ?? 'pdf') ||
+        row.extraction_expectation !== source.extraction_expectation ||
+        row.skip_reason !== (source.skip_reason ?? ''))) {
+      throw new Error(`${attachmentId}: manifest attachment semantics do not match the recipe`);
+    }
+    const expectedPath = `attachments:${source.id}.${source.bytes_format ?? 'pdf'}`;
     if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
       throw new Error(`${recipeId}: linked-file path is not portable`);
     }
-    requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${recipeId}`, recipeId);
+    requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${source.id}`, source.id);
     requireFields(data, {
-      itemType: 'attachment', title: doc.title,
-      contentType: CONTENT_TYPES[doc.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
-      extra: `ticket-0029 source sha256: ${doc.sha256}; fulltext: reindexed`,
-    }, recipeId);
+      itemType: 'attachment', title: source.title ?? doc.title,
+      contentType: CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
+      extra: `ticket-0029 source sha256: ${source.sha256}; role: ${source.role ?? 'primary'}; relation: ${source.relation ?? 'primary'}; language: ${source.language ?? ''}; extraction: ${source.extraction_expectation ?? 'indexed'}; skip reason: ${source.skip_reason ?? ''}; fulltext: reindexed`,
+    }, source.id);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
     }
@@ -264,8 +314,17 @@ export function loadGoldenExport(directory, options = {}) {
     consumedItemKeys.add(parent);
     consumedItemKeys.add(key);
   }
-  if (recipeIds.size !== recipeById.size || [...recipeById.keys()].some((id) => !recipeIds.has(id))) {
-    throw new Error(`manifest attachment ids are not an exact bijection with the ${recipeById.size}-record recipe`);
+  if (recipeIds.size !== recipeById.size || [...recipeById.keys()].some((id) => !recipeIds.has(id)) ||
+      attachmentIds.size !== sourceById.size || [...sourceById.keys()].some((id) => !attachmentIds.has(id))) {
+    throw new Error(`manifest attachments are not an exact bijection with the ${sourceById.size}-attachment recipe`);
+  }
+  if (JSON.stringify(observedAttachmentOrder) !== JSON.stringify(expectedAttachmentOrder)) {
+    throw new Error('manifest attachment order does not match the recipe');
+  }
+  if (manifest.parent_item_count !== recipe.length ||
+      manifest.attachment_count !== sourceById.size ||
+      !Number.isInteger(manifest.source_byte_count) || manifest.source_byte_count <= 0) {
+    throw new Error('manifest parent, attachment, or source-byte count does not match the recipe');
   }
   if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
     throw new Error('items export contains a row not consumed by the recipe attachment mapping');
@@ -471,7 +530,7 @@ export function validateGoldenBuildResult(fixture, result, requests, dataDirecto
   if (state !== 'done') {
     throw new Error(`golden replay build did not finish successfully (${state || 'missing state'})`);
   }
-  const expectedItems = fixture.manifest.attachments.length;
+  const expectedItems = fixture.manifest.parent_item_count;
   const builtItems = status.itemsFetched ?? status.items;
   if (!Number.isInteger(builtItems) || builtItems !== expectedItems) {
     throw new Error(`golden replay built ${builtItems ?? 'no'} items; expected ${expectedItems}`);

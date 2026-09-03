@@ -48,6 +48,25 @@ def good(**over) -> dict:
     return doc
 
 
+def representative(**over) -> dict:
+    first = good(id="example-pdf")
+    second = good(id="example-html", bytes_format="html",
+                  bytes_url="https://archive.org/download/exampleitem00some/example.html")
+    doc = {
+        "id": "example-work", "title": "An example", "author": "Someone", "year": 1900,
+        "language": "en", "tier": "MUST", "facet": "core", "item_type": "journalArticle",
+        "type_fidelity": "correct", "work_id": "example-work", "work_relations": [], "structural_features": [],
+        "attachments": [
+            {key: first[key] for key in fr.ATTACHMENT_REQUIRED if key in first} | {"bytes_format": "pdf"},
+            {key: second[key] for key in fr.ATTACHMENT_REQUIRED if key in second} | {"bytes_format": "html"},
+        ],
+    }
+    doc["attachments"][0].update(role="primary", relation="same-text-different-format", extraction_expectation="indexed")
+    doc["attachments"][1].update(role="alternate-format", relation="same-text-different-format", extraction_expectation="skipped-first-with-text", skip_reason="same-language sibling suppressed by first-with-text")
+    doc.update(over)
+    return doc
+
+
 def test_a_clean_entry_passes():
     assert fr.validate([good()]) == []
 
@@ -138,6 +157,30 @@ def test_duplicate_ids_and_missing_fields_are_offences():
     assert any("bare: missing title" in o for o in offences)
 
 
+def test_representative_parent_with_two_independently_provenanced_attachments_passes():
+    assert fr.validate([representative()]) == []
+
+
+def test_representative_schema_fails_closed_on_identity_type_and_attachment_semantics():
+    bad_type = representative(type_fidelity="maybe")
+    assert any("type_fidelity" in offence for offence in fr.validate([bad_type]))
+    missing_reason = representative(type_fidelity="intentionally-wrong")
+    assert any("type_fidelity_reason" in offence for offence in fr.validate([missing_reason]))
+    bad_relation = representative(work_relations=[{"type": "translation", "target": "Other"}])
+    assert any("target" in offence for offence in fr.validate([bad_relation]))
+    bad_source = representative()
+    del bad_source["attachments"][1]["license_basis"]
+    bad_source["attachments"][0]["role"] = "unknown"
+    offences = fr.validate([bad_source])
+    assert any("missing license_basis" in offence for offence in offences)
+    assert any("attachment role" in offence for offence in offences)
+
+
+def test_attachment_ids_are_global_so_export_markers_and_cache_paths_are_unambiguous():
+    other = representative(id="other-work", work_id="other-work")
+    assert any("globally unique" in offence for offence in fr.validate([representative(), other]))
+
+
 def test_live_recipe_is_valid():
     recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
     assert isinstance(recipe, list) and recipe
@@ -160,8 +203,8 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     }
     assert (len(recipe), hashed, open_by_archive) == (
         26,
-        17,
-        {"gallica": 4, "hal": 4, "internet-archive": 1},
+        21,
+        {"gallica": 4, "internet-archive": 1},
     )
 
     readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
@@ -173,18 +216,15 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     assert tally, "README must carry a dated, machine-checkable recipe tally"
     assert tuple(map(int, tally.groups()[1:])) == (len(recipe), hashed, len(recipe) - hashed)
     challenge_split = re.search(
-        r"(\d+) of those\s+open records belong to the two represented archives.*?: "
-        r"(\d+) HAL\s+.*?and (\d+) Gallica",
+        r"(\d+) of those\s+open records belong to Gallica",
         readme,
         re.DOTALL,
     )
     assert challenge_split, "README must account for the open hashes by source"
     assert tuple(map(int, challenge_split.groups())) == (
-        open_by_archive["hal"] + open_by_archive["gallica"],
-        open_by_archive["hal"],
         open_by_archive["gallica"],
     )
-    assert "The ninth is the oversized Malynes scan" in readme
+    assert "The fifth is the oversized Malynes scan" in readme
 
 
 def test_fetch_script_has_argparse_and_no_extraction():
