@@ -419,6 +419,31 @@ MINIMUM_PAIRS = 462
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
 #: legitimately live in several documents; it must be current in every one that claims it.
 FIGURES = [
+    # ---- 0612, cross-lingual headline confirmed on the task metric (padme run).
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.8499 (-5.1%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8955\u2192{} (-5.1%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9510 (-0.8%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9585\u2192{} (-0.8%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.7951 (-11.9%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.9030\u2192{} (-11.9%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9391 (-3.3%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9707\u2192{} (-3.3%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.8920 (-2.4%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.9142\u2192{} (-2.4%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9518 (-1.1%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9621\u2192{} (-1.1%)"}, "dot"),
     # ---- 0612, the same-item task metric: does the pooling correction hold outside a
     # cross-lingual set? Declared against the two raw vec_task_recall.mjs outputs, dot
     # convention because the reader meets these in the upstream PR body.

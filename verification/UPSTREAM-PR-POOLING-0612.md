@@ -123,6 +123,25 @@ and the width check cannot tell them apart. Measured on MiniLM the two readings 
 one text sit at cosine 0.53, where a prefix mismatch on a non-E5 model costs
 nothing.
 
+## Confirmed on a second, independent metric
+
+The three models measured cross-lingually above were re-run on the same-item
+task metric, on a different machine (padme, not doudou), same corpus, same
+probes and seed. All three degrade in the same direction as the cross-lingual
+figures, smaller in size — expected, since this task asks a coarser question
+(does the model recognise two different passages of one document as related)
+than cross-lingual query-to-answer relevance does:
+
+| model | recall@30, task metric | MRR, task metric |
+|---|---|---|
+| `granite-embedding-97m-multilingual-r2` | 0.8955→0.8499 (-5.1%) | 0.9585→0.9510 (-0.8%) |
+| `gte-multilingual-base` | 0.9030→0.7951 (-11.9%) | 0.9707→0.9391 (-3.3%) |
+| `arctic-embed-m-v2` | 0.9142→0.8920 (-2.4%) | 0.9621→0.9518 (-1.1%) |
+
+This is the check the BGE result below asked for: not every model shows the same
+size of effect on every task, but for the three models this PR's headline number
+comes from, the correction helps on two independently-chosen metrics, not one.
+
 ## The four models #51's own sample names
 
 `BAAI/bge-small-en-v1.5`, `BAAI/bge-base-en-v1.5`, `mixedbread-ai/mxbai-embed-large-v1`
