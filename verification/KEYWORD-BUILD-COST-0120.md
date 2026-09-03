@@ -130,7 +130,7 @@ index:
   fired it since, so a population can sit truncated indefinitely under a raised limit.
   The worst loses 100 of 3 949 pages. One document held in both libraries shows the
   size of it — the group copy's cache is 10 705 102 B against 303 749 B for the user
-  copy of the same volume.
+  copy of the same volume. Ticket 0610 owns draining them.
 - **3 882 PDF caches are pre-form-feed**, written by the extractor generation before
   2024. A cache extracted in full under the old extractor has `indexedPages ==
   totalPages`, so `reindexTruncated`'s query never selects it and no upstream
