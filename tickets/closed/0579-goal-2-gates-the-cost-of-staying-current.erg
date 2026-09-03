@@ -2,6 +2,7 @@
 Title: Goal-2 gates: the cost of staying current, and the schema flip served
 Created: 2026-09-02
 Author: claude
+Closed: goal 2's three requirements each carry an assertion, red before green from a fixture; R23 re-measured with both arms armed
 
 --- log ---
 2026-09-02T10:51Z claude created
@@ -12,6 +13,7 @@ Author: claude
 2026-09-02T21:30Z claude note bounced REROLL: R23's second arm had measured the empty index the first arm's restart left, so the 1 to 9999 direction never ran while three documents claimed both. Each arm now resets to the seeded index and queries it first, and reports not-run when that query serves nothing
 2026-09-02T21:30Z claude note re-measured on padme, run3: both arms armed at 2 hits each, both restamped from stamp 1, both red the same way — the second direction agrees with the first rather than differing from it
 
+2026-09-03T03:54Z Minh Ha-Duong closed — goal 2's three requirements each carry an assertion, red before green from a fixture; R23 re-measured with both arms armed
 --- body ---
 
 ## Context
