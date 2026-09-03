@@ -95,6 +95,23 @@ that matters is subject-versus-control **within** an arm, exactly as the
 assertion already
 does it.
 
+**And that reading is checkable from the record.** It was first written off
+strace output this directory does not keep — a trace carries this machine's
+paths and pids — which left every claim in the paragraph above unverifiable
+from what is committed: `attempts` carries an address and a port, no errno, no
+send. Each arm now carries a `resolver_shape` block beside its counts:
+
+| arm | `connect_outcomes` | `query_messages_sent` |
+|---|---|---|
+| `one_getaddrinfo/isolated` | `{"ENETUNREACH": 4}` | 0 |
+| `one_getaddrinfo/net_shared` | `{"ok": 3}` | 6 |
+
+Six messages over three connects is the A and the AAAA on each. Zero against
+four is what makes the isolated arm a different quantity rather than a smaller
+one. Query payloads are counted and never transcribed there — they carry the
+search-domain configuration named above, and the artifact is read by tooling
+that has no reason to hold it.
+
 **The hypothesis 0629 logged holds.** Four lookups need no second cause:
 zoteus's one `fetch()` accounts for all of them.
 
