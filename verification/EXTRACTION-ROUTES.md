@@ -1,16 +1,25 @@
-# Four extraction routes, timed on one document — 2026-09-03
+# Extending 0500 to the structured-text route — 2026-09-03
 
-Ticket 0500 timed the build's own path and closed. It measured a *cache read*
-plus a forced flat re-parse, over a sample of short attachments, and it did not
-touch the structured-text route at all. This pass answers the different
-question: **what does each way of getting text out of a PDF actually cost**, on
-one document, so the routes can be compared without dividing an aggregate by a
-count.
+**Most of this table is ticket 0500's, and 0500's numbers are the better ones.**
+It pinned the two routes a build can take — the cache read and the forced flat
+re-parse — at `bench/results/0500-extract-chunk/extract-chunk-throughput.json`,
+declared in `bench/check_figures.py`, over five disjoint repetitions and 22 562
+passages, with a warm-up discipline and a min-max spread. Nothing here improves
+on that, and where the two disagree 0500 wins on method.
 
-**The control is a single document, used by every route:** the IPCC AR6 WGIII
-volume, **2 913 pages**, 88 466 648 B. It is the largest thing in the library and
-the only one where per-page cost is not swamped by fixed overhead — 0500's arm B
-put five pages through in 278 ms, of which almost none was parsing.
+What 0500 did not measure is the **structured-text route**, which did not exist
+in its frame: `.zotero-sdt-cache` is produced by a different worker, on a
+different trigger, and no artifact in this repository timed it. That is what
+this pass adds, and the rest of the table is here only so the new route has
+something to be compared against on equal terms.
+
+**The equal terms are the point.** 0500 measured its two arms on different
+populations, which is right for pricing a build and wrong for ranking routes. So
+every route below ran on one document: the IPCC AR6 WGIII volume, **2 913
+pages**, 88 466 648 B. Choosing the longest document is 0500's own finding
+applied, not a new one — it reported the per-passage cost falling with document
+size, *"what a fixed per-file overhead over a variable yield looks like"*, and
+its five-page sample spent almost none of its 278 ms parsing.
 
 Machine: `doudou`, Intel i5-8250U @ 1,6 GHz, 8 cores, 23,4 GB, no GPU — the
 reference machine SPEC.md §5.2.8 names.
@@ -64,13 +73,15 @@ times the entire 8 h 14 index build of 2026-09-02. That is the number 0606 needs
 beside its size ratio: the pack is not only ~2,2x the bytes, it is ~9x the time
 of the flat extraction it would replace, and ~42x `pdftotext`.
 
-## What this says about where the build's time actually goes
+## Where the build's time goes — 0500's number, re-divided
 
-The 2026-09-02 build measured **29 643,9 s** (8 h 14) for 363 613 passages.
-0500's measured extract-plus-chunk rate is 0,174 ms/passage, so extract and chunk
-together account for **63,3 s — 0,21 % of that build** (derived). The embedder is
-the build. Any effort spent making extraction faster is spent on a fifth of one
-percent, which is worth knowing before optimising it.
+This paragraph adds no measurement. 0500 pinned extract plus chunk at
+0,164 ms/passage and re-cut §5.2.8's allocation from it; against the
+2026-09-02 build's **29 643,9 s** over 363 613 passages, those stages come to
+**about 63 s, or 0,2 % of the build** (derived from 0500's rate, not measured
+here). The embedder is the build. Restated only because the ratio is the form in
+which it decides whether to optimise extraction at all, and 0500 expressed it as
+a per-passage allocation rather than as a share.
 
 The corollary points the other way and is the one that matters for 0120: because
 the build only ever *reads* what the platform already extracted, the platform's
@@ -94,6 +105,10 @@ stopped at 100 pages, the build inherits 100 pages at full speed.
   `textMaxLength` 999999999), so the flat route here extracts all 2 913 pages
   where a default install would stop at 100 — and would look ~29x faster for it.
 - **The library projections are rate x page count**, not an end-to-end run.
+- **The flat figure sits below the 60-80 pages/s previously recorded** for
+  platform reindexing. Not a contradiction to resolve here: 45,7 pages/s is one
+  2 913-page document with both caps raised, where the earlier range came from
+  other documents. Recorded so the gap is visible rather than averaged away.
 - One machine, no GPU. The SDT route is ONNX segmentation and is the route most
   likely to move with hardware.
 
