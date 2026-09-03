@@ -80,7 +80,7 @@ _OUTCOME = re.compile(r"=\s*-?\d+\s*(?P<errno>E[A-Z]+)?")
 _MESSAGE = re.compile(r"msg_hdr=|sendto\(")
 
 
-def resolver_shape(trace: str, attempts) -> dict:
+def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
     """What the resolver traffic *was*, beyond how much of it there was.
 
     The `dns` counts alone cannot distinguish an arm whose connects failed and
@@ -132,7 +132,8 @@ def measure(log_dir: Path) -> dict:
                 log_dir=log_dir,
                 tag=f"{name}-{arm}",
             )
-            trace = (log_dir / f"{name}-{arm}.strace").read_text(errors="replace")
+            log = log_dir / f"{name}-{arm}.strace"
+            trace = log.read_text(errors="replace") if log.exists() else ""
             log.info("%s/%s: %s", name, arm, result.counts())
             arms[f"{name}/{arm}"] = {
                 "program": source,

@@ -24,11 +24,16 @@ counts the v1130 subject arm has to be explained by.
 """
 
 import json
+import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 ARTIFACT = REPO / "bench" / "results" / "0629-gap-a" / "syscall-shape.json"
 PROBE = REPO / "bench" / "probe_getaddrinfo_shape.py"
+
+sys.path.insert(0, str(REPO / "bench"))
+from acceptance.sandbox import Attempt  # noqa: E402
+from probe_getaddrinfo_shape import resolver_shape  # noqa: E402
 V1130 = (
     REPO
     / "bench"
@@ -124,3 +129,35 @@ def test_one_getaddrinfo_explains_the_v1130_subject_count():
         "the subject arm this ticket attributes no longer shows the count the probe "
         "explains; re-run the probe before trusting the attribution"
     )
+
+
+def _dns_attempt(errno: str | None) -> Attempt:
+    line = f"connect(5, ...) = -1 {errno} (Network is unreachable)" if errno else "connect(5, ...) = 0"
+    return Attempt(call="connect", address="127.0.0.53", port=53, detector="dns", line=line)
+
+
+def test_resolver_shape_is_a_pure_function_of_trace_and_attempts():
+    """resolver_shape() has no artifact-level coverage of its own regexes --
+    every existing assertion goes through one fixed committed trace. A wrong
+    _OUTCOME/_MESSAGE regex that happened to still produce {"ENETUNREACH": 4}
+    and 6 on THIS machine's trace would pass every other test in this file."""
+    attempts = [_dns_attempt("ENETUNREACH"), _dns_attempt("ENETUNREACH"), _dns_attempt(None)]
+    trace = (
+        "connect(5, ...) = -1 ENETUNREACH (Network is unreachable)\n"
+        "connect(5, ...) = -1 ENETUNREACH (Network is unreachable)\n"
+        "connect(5, ...) = 0\n"
+        "sendmmsg(5, [{msg_hdr={...}}, {msg_hdr={...}}], 2, 0) = 2\n"
+        "getpid() = 12345\n"  # an unrelated line: must not be counted as a message
+    )
+    shape = resolver_shape(trace, attempts)
+    assert shape["connect_outcomes"] == {"ENETUNREACH": 2, "ok": 1}, shape
+    assert shape["query_messages_sent"] == 2, shape
+
+
+def test_resolver_shape_falls_back_to_unparsed_on_an_unmatched_connect_line():
+    """A connect line with no readable return code (e.g. an interleaved
+    -f trace fragment) must not be silently folded into "ok" or dropped."""
+    attempts = [Attempt(call="connect", address="127.0.0.53", port=53,
+                         detector="dns", line="<... connect resumed>")]
+    shape = resolver_shape("<... connect resumed>", attempts)
+    assert shape["connect_outcomes"] == {"unparsed": 1}, shape
