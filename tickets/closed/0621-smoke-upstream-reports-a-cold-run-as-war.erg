@@ -2,10 +2,12 @@
 Title: smoke_upstream reports a cold run as warm and undercounts RRF scores
 Created: 2026-09-03
 Author: claude
+Closed: autoclosed — PR #304
 
 --- log ---
 2026-09-03T12:07Z claude created
 
+2026-09-03T15:48Z MinhHaDuong closed — autoclosed — PR #304
 --- body ---
 
 ## Context
