@@ -33,9 +33,11 @@ or the network.
 """
 
 import json
+import os
 import re
 import shutil
 import subprocess
+import sys
 import warnings
 from pathlib import Path
 
@@ -302,6 +304,17 @@ SCHEMA_TS = "src/features/search/sqlite-index.ts"
 SCHEMA_CONST = re.compile(r"^const SCHEMA_VERSION\s*=\s*(\d+)\s*;", re.M)
 
 
+#: Set by `make schema-gate` (and by anything else that has arranged for a source to be
+#: reachable). Inside `make check` the not-run outcome may not redden — a fresh clone has
+#: neither mirror nor checkout, and a gate a fresh clone cannot satisfy gets waived, which
+#: is a green meaning "we decided not to look". But a *warning* collapses to exit 0 just as
+#: a skip does, so on its own it leaves the automated gate unable to tell "leg 3 checked the
+#: declaration" from "leg 3 never looked" — the literal condition ticket 0620 is about. This
+#: is the second channel, and it is the convention the Makefile already records for
+#: `fold-gate`: a target that has made the source reachable exits non-zero when it was not.
+STRICT_ENV = "SCHEMA_LEG_STRICT"
+
+
 class SchemaLegNotRun(UserWarning):
     """Emitted when leg 3 could not reach upstream's constant at all.
 
@@ -360,10 +373,17 @@ def read_upstream_schema_version(roots, sha):
             if not (repo / "HEAD").exists() and not (repo / ".git").exists():
                 reasons.append(f"no repository at {repo} (run `make {fix}`)")
                 continue
-            done = subprocess.run(
-                ["git", "-C", str(repo), "show", f"{sha}:{SCHEMA_TS}"],
-                capture_output=True, text=True, timeout=60,
-            )
+            try:
+                done = subprocess.run(
+                    ["git", "-C", str(repo), "show", f"{sha}:{SCHEMA_TS}"],
+                    capture_output=True, text=True, timeout=60,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                # The one path that could still raise past the not-run contract: a hung git
+                # under lock contention, or no git binary at all. Both are "could not look",
+                # and a not-run that names what stopped it is the whole point of the leg.
+                reasons.append(f"could not read {repo}: {type(exc).__name__}: {exc}")
+                continue
             if done.returncode != 0:
                 reasons.append(
                     f"{repo} does not hold {sha[:12]}:{SCHEMA_TS} — run `make {fix}`"
@@ -415,6 +435,8 @@ def test_the_declaration_matches_upstreams_own_constant():
     not_run = check_declaration_against_upstream(candidate_roots(), upstream_declarations())
     if not_run:
         warnings.warn(not_run, SchemaLegNotRun, stacklevel=2)
+        if os.environ.get(STRICT_ENV):
+            pytest.fail(not_run)
         pytest.skip(not_run)
 
 
@@ -434,6 +456,9 @@ def _mirror_of(tmp_path, ts_body):
         "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
         "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t",
         "PATH": "/usr/bin:/bin", "HOME": str(tmp_path),
+        # `HOME` keeps `~/.gitconfig` out; this keeps `/etc/gitconfig` out too, so a host
+        # that enforces commit signing system-wide cannot break the synthetic mirror.
+        "GIT_CONFIG_NOSYSTEM": "1",
     }
     def git(*argv, cwd):
         done = subprocess.run(["git", *argv], cwd=cwd, env=env,
@@ -468,6 +493,40 @@ def test_leg_three_is_green_on_the_same_mirror_when_the_declaration_is_right(tmp
     root, sha = _mirror_of(tmp_path, "const SCHEMA_VERSION = 2;\n")
     right = {"UPSTREAM_REVIEWED_SHA": sha, "UPSTREAM_INDEX_SCHEMA_VERSION": "2"}
     assert check_declaration_against_upstream([root], right) is None, "must not report not-run"
+
+
+def _blind_leg(monkeypatch, tmp_path):
+    """Point the collected leg at a directory holding neither source."""
+    empty = tmp_path / "bare-clone"
+    empty.mkdir()
+    monkeypatch.setattr(sys.modules[__name__], "candidate_roots", lambda: [empty])
+
+
+def test_the_collected_leg_skips_and_warns_when_it_cannot_look(monkeypatch, tmp_path):
+    """The four lines of wiring inside the collected test, which the helper-level controls
+    do not reach: a not-run must WARN as well as skip, or `-q` hides it entirely."""
+    _blind_leg(monkeypatch, tmp_path)
+    monkeypatch.delenv(STRICT_ENV, raising=False)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with pytest.raises(pytest.skip.Exception, match="NOT-RUN"):
+            test_the_declaration_matches_upstreams_own_constant()
+    assert any(issubclass(w.category, SchemaLegNotRun) for w in caught), (
+        "a not-run that only skips is invisible under -q — it must warn too"
+    )
+
+
+def test_the_collected_leg_fails_rather_than_skips_under_the_strict_gate(monkeypatch, tmp_path):
+    """The second channel, and the one an exit code can see. A skip and a warning both leave
+    pytest at exit 0, so inside `make check` nothing scripted can tell a verified declaration
+    from an unlooked-at one. `make schema-gate` has made a source reachable before it runs,
+    so there a not-run is a failure — the `fold-gate` convention, one file over."""
+    _blind_leg(monkeypatch, tmp_path)
+    monkeypatch.setenv(STRICT_ENV, "1")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(pytest.fail.Exception, match="NOT-RUN"):
+            test_the_declaration_matches_upstreams_own_constant()
 
 
 def test_leg_three_reports_not_run_when_neither_mirror_nor_checkout_is_present(tmp_path):

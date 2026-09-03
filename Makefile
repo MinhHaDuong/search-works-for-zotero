@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate schema-gate
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -80,6 +80,7 @@ help:
 	@echo "make models      — the registry is well formed and nothing else in bench/ names a model"
 	@echo "make names       — committed artifacts address a document by key, never by name"
 	@echo "make fold-gate   — R19: every token the query side produces is one the index can produce"
+	@echo "make schema-gate — 0620: the declared index-schema generation IS upstream's at the reviewed SHA (not-run is red here, unlike in check)"
 	@echo "make tickets     — erg check over the ticket store"
 	@echo "make ticket-logs — no log entry is stamped after the commit that wrote it"
 	@echo "make acceptance-fixtures — the acceptance layer's fail-controls still fail"
@@ -231,6 +232,24 @@ upstream-catchup:
 # where the hand-written figure in four documents said three.
 upstream-rebaseline:
 	python3 bench/upstream_catchup.py --rebaseline
+
+# Leg 3 of tests/test_index_schema_fixtures.py, run where a not-run is a FAILURE.
+#
+# Inside `check` that leg reports NOT-RUN when neither `upstream.git/` nor `fork/` is
+# there, because a fresh clone has neither and a gate a fresh clone cannot satisfy gets
+# waived — which is a green meaning "we decided not to look", the same reasoning
+# `fold-gate` above records. But a skip and a warning both leave pytest at exit 0, so
+# `check` alone cannot tell a verified declaration from an unlooked-at one. That is
+# ticket 0620's own defect, one level up, and this target is the second channel: it
+# fetches the mirror first, so nothing here can be not-run for want of a source, and
+# `SCHEMA_LEG_STRICT` turns a not-run into a red.
+#
+# Exit codes: 0 the declaration is upstream's at the reviewed SHA, non-zero it disagrees
+# or could not be read (NOT-RUN, never green).
+schema-gate:
+	@python3 bench/upstream_catchup.py >/dev/null 2>&1 || true
+	SCHEMA_LEG_STRICT=1 python3 -m pytest tests/test_index_schema_fixtures.py -q \
+	  -k the_declaration_matches_upstreams_own_constant
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }
