@@ -4,7 +4,7 @@
 
 **For:** whoever is finishing ticket 0029.
 **Written:** overnight 2026-09-02/03, read-only on code.
-**Revised:** 2026-09-03, re-verified against `origin/main` at `1bdc123`.
+**Revised:** 2026-09-03, re-verified against `origin/main` at `34e251f`.
 **Subject:** `tickets/0029-the-golden-fixture-corpus-and-a-zotero-f.erg`.
 
 This began as a decision brief recommending that 0029 be decomposed. The author
@@ -27,29 +27,39 @@ layers in one pass.
 
 **`origin/main` moved under this brief, in three places.**
 
-- **`bench/acceptance/durability.py` is now on `origin/main`.** §4 says it is
-  not; that was true at `1f1aeb3`, and PR #226 has since merged at `1bdc123`.
-  The finding it carries is unaffected and was re-checked at `1bdc123`: the
-  zoteus adapter still declines the two write perturbations
+- **`bench/acceptance/durability.py` is now on `origin/main`.** It was absent
+  at `1f1aeb3`, when this brief was written; PR #226 merged it. The finding it
+  carries is unaffected and was re-checked at `34e251f`: the zoteus adapter
+  still declines the two write perturbations
   (`bench/acceptance/adapters/zoteus.py:349`), so the R3 clauses still report
-  `not-run` for want of a library the harness may write to.
+  `not-run` for want of a library the harness may write to. §4 now says so
+  itself rather than relying on this correction.
+- **PR #226 shifted every goal-1 address in §4**, and spliced
+  `**durability.ALL` into the `assertions.py` registry, so that registry now
+  carries R3, R13 and R23 as well as R10 and R15. §4's table, its registry
+  address and its claim about what `assertions.py` asserts are all refreshed to
+  `34e251f`, and §4 states the ref they are current as of.
 - **`bench/fixtures/recipe.json` holds 26 documents, not 27.** Commit
   `c99b9e8` ("Record embedder tolerance and drop unlicensed fixture", merged in
   PR #242) removed `hal-04214661` on an author ruling. Seventeen of the 26 are
   hashed; the language split is vi 10, fr 8, en 7, de 1. Every count in this
   brief written as 27 should be read as 26, and §2 carries the corrected
   arithmetic.
-- **Nothing else moved.** Re-checked at `1bdc123`: `check-slow` is still absent
-  from the `Makefile`, `R21` no longer appears in `SPEC.md`, and
-  `README.md:251-256` and `:269` still name 0029 as the test home for seven
-  requirements.
 
-**One conflict is left open on purpose.** This branch is based at `1f1aeb3`.
-Its single log line on 0029 and the author's 2026-09-03 ruling line both append
-to the same tail, so the ticket file conflicts. It is not resolved here,
-because 0029 belongs to another worker. The union is both lines in
-chronological order, this brief's `2026-09-02T22:41Z` entry before the
-`2026-09-03T03:44Z` ruling; neither replaces the other.
+**Re-checked at `34e251f` and still true, and this is the whole list.**
+`check-slow` is absent from the `Makefile`. `R21` does not appear in `SPEC.md`.
+`README.md:251-256` and `:269` still name 0029 as the test home for seven
+requirements. The first revision of this brief wrote "nothing else moved" over
+this list, which was false: §4's goal-1 addresses had already shifted, and a
+blanket claim covered the shift instead of reporting it.
+
+**The one merge conflict was resolved as the union.** This branch's single log
+line on 0029 and the author's 2026-09-03 ruling line both append to the same
+tail, so the ticket file conflicted when `origin/main` came in. Commit
+`2cdcf6f` kept both lines in chronological order, this brief's
+`2026-09-02T22:41Z` entry before the `2026-09-03T03:44Z` ruling. Neither
+replaces the other, and the branch's diff against the ticket file is exactly
+its own one inserted line.
 
 ---
 
@@ -201,16 +211,22 @@ the first case and half right in the second.
 
 ### Goal 1 — five assertions, none needing a corpus or an index
 
-`bench/acceptance/assertions.py` on `origin/main` asserts R10 and R15 only.
-Its registry is at `assertions.py:523`.
+**Every address in this section is as of `origin/main` at `34e251f`.** The
+first revision took them at `1f1aeb3`; PR #226 shifted all of them, so they are
+refreshed here rather than left for the next reader to chase.
+
+`bench/acceptance/assertions.py` defines R10's and R15's five clauses itself.
+Its registry (`ALL`, at `assertions.py:553`) also splices `**durability.ALL`,
+so R3, R13 and R23 reach a run through it — one registry for the layer, by
+design. The five below are the ones this file defines.
 
 | assertion | address | what it needs |
 |---|---|---|
-| `check_local_by_default` | `assertions.py:244` | neither. Reads `configure()` and `status()["embedding"]`. |
-| `check_no_egress` | `assertions.py:143` | neither. Traces syscalls; the query it passes is the literal string supplied at `run.py:69`. |
-| `check_residue_inventory` | `assertions.py:331` | neither. A filesystem diff around `install()`. |
-| `check_model_cache_under_declared_roots` | `assertions.py:397` | neither. Queries only to trigger a weight download, and never reads the answer. |
-| `check_uninstall_removes_declared_state` | `assertions.py:292` | neither. Sweeps declared roots for survivors. |
+| `check_local_by_default` | `assertions.py:270` | neither. Reads `configure()` and `status()["embedding"]`. |
+| `check_no_egress` | `assertions.py:169` | neither. Traces syscalls; the query it passes is the literal string supplied at `run.py:80`. |
+| `check_residue_inventory` | `assertions.py:357` | neither. A filesystem diff around `install()`. |
+| `check_model_cache_under_declared_roots` | `assertions.py:423` | neither. Queries only to trigger a weight download, and never reads the answer. |
+| `check_uninstall_removes_declared_state` | `assertions.py:318` | neither. Sweeps declared roots for survivors. |
 
 **The golden fixture corpus buys goal 1 nothing.** Goal 1 closes at the
 fixture level on process lifecycle, egress and filesystem residue, and it
@@ -218,10 +234,12 @@ already has its fixtures — the synthetic doubles in
 `bench/acceptance/adapters/stubs.py`, which stand in for nothing
 Zotero-shaped and are right not to.
 
-### Goal 2 — five assertions, on an open PR, and only two want documents
+### Goal 2 — five assertions, now on `origin/main`, and only two want documents
 
-`bench/acceptance/durability.py` is **not on `origin/main`**. It lives in open
-PR #226 (branch `t0579-goal-2-gates`); registry at `durability.py:725`.
+`bench/acceptance/durability.py` **is on `origin/main`**: PR #226 (branch
+`t0579-goal-2-gates`) merged it after the first revision of this brief, which
+recorded it as absent. Its registry is at `durability.py:725`, and
+`assertions.py` folds that registry into its own.
 
 | assertion | address | what it needs |
 |---|---|---|
@@ -233,9 +251,9 @@ PR #226 (branch `t0579-goal-2-gates`); registry at `durability.py:725`.
 
 The two R3 assertions are the interesting ones. They drive an
 adapter-declared `perturb()` hook (`durability.py:192`), and the zoteus
-adapter **declines** it: the PR's diff to `bench/acceptance/adapters/zoteus.py`
-raises `NotImplementedError` because editing an item would write to the
-author's own Zotero library, which R15 excludes from derived state. The
+adapter **declines** it: `bench/acceptance/adapters/zoteus.py:349` raises
+`NotImplementedError` because editing an item would write to the author's own
+Zotero library, which R15 excludes from derived state. The
 blocker is not the absence of a golden corpus. It is the absence of *any*
 library the harness owns and may perturb.
 
@@ -247,8 +265,8 @@ corpus, and it sits inside the golden corpus's own delivery path.
 
 The two index-needing assertions (R13-both-answer, R23-foreign-stamp) need a
 *serving* index, not a *good* one. The one real-target measurement that
-exists, `bench/results/smoke-1.12.0/acceptance-zoteus.json` on the PR branch,
-ran against a five-item private library at `/home/haduong/data/Zotero-fresh`
+exists, `bench/results/smoke-1.12.0/acceptance-zoteus.json`, ran against a
+five-item private library at `/home/haduong/data/Zotero-fresh`
 with an index seeded from an uncommitted local sqlite file. That is the
 current stand-in, and it is neither committable nor reproducible by anyone
 else.
@@ -283,8 +301,9 @@ there is no continuity to preserve, only a set to build.
 **Recommendation: pin the fixture at roughly 2 000 indexed passages. That is
 the 26 documents now in `bench/fixtures/recipe.json` indexed at 80 000
 characters each, and it costs about three minutes to build cold on the
-reference machine.** The ceiling below is sound; the floor is contested in §2,
-so treat 2 000 as a defensible choice rather than a derived requirement.
+reference machine.** The ceiling below is sound; the floor is retracted, and
+the block quote carrying it says so before it is read. Treat 2 000 as a
+defensible choice rather than a derived requirement.
 
 ### The build clock
 
@@ -326,7 +345,8 @@ aggregates; the derivation is shown here rather than asserted.
 
 ### Why 2 000, and not fewer
 
-A ceiling and a floor bracket the number. The floor is the one that matters.
+A ceiling and a floor bracketed the number. The ceiling stands. The floor is
+retracted, and only the ceiling is load-bearing now.
 
 **Ceiling: the build must fit in a wait, not a lane.** At 88 ms per passage,
 one hour buys 40 000 passages and five minutes buys 3 400. The corpus is
@@ -334,20 +354,21 @@ rebuilt when a document is re-pinned or the embedder changes, not once per
 test run, so a three-minute cold build is a coffee and an hour is a
 scheduling problem.
 
-**Floor: R34 must not be satisfiable by accident.** R34 asserts that every
-pinned answer comes back inside the first ten results, absolutely. On a corpus
-of P passages, a ranker returning ten at random satisfies one query with
-probability 10/P. At P = 200 that is 5 % and the gate is close to vacuous; at
-P = 2 000 it is 0,5 %, and across 40 queries a random ranker passes the whole
-set with vanishing probability. A gate whose green is reachable without the
-property it asserts is not a gate, which is the argument this repository
-already applies to positive controls. **2 000 passages is where the top-ten
-cut becomes a real cut**, and that, not the document count, is the reason for
-the number.
+> **RETRACTED 2026-09-03.** The floor argument below is kept for the record and
+> is not a current recommendation. Its arithmetic is right; the inference from
+> that arithmetic to a corpus size is not, for the four reasons §2 sets out.
+> Read §2 before pinning any number on the strength of what follows.
 
-**This floor argument is weak, and §2 says why.** The arithmetic holds; the
-inference from it to a corpus size does not. Read §2 before pinning a number
-on the strength of this paragraph.
+> **Floor: R34 must not be satisfiable by accident.** R34 asserts that every
+> pinned answer comes back inside the first ten results, absolutely. On a
+> corpus of P passages, a ranker returning ten at random satisfies one query
+> with probability 10/P. At P = 200 that is 5 % and the gate is close to
+> vacuous; at P = 2 000 it is 0,5 %, and across 40 queries a random ranker
+> passes the whole set with vanishing probability. A gate whose green is
+> reachable without the property it asserts is not a gate, which is the
+> argument this repository already applies to positive controls. **2 000
+> passages is where the top-ten cut becomes a real cut**, and that, not the
+> document count, is the reason for the number.
 
 ### How the documents reach a passage count
 
@@ -480,7 +501,9 @@ library proves the promise.**
 ## 8. PR #232 and PR #233: keep both, fold neither
 
 The backlog lead read both as small private instances of the same missing
-thing. Half right, and the wrong half is the half that would cost work.
+thing. Half right, and the wrong half is the half that would cost work. PR #233
+has since merged at `d179847`; the reading below stands, and what it recommends
+for #233 is now what the tree holds.
 
 **Right about the pattern.** All three — PR #232, PR #233 and 0029 — build a
 committed substrate plus controls that make a check fire in both directions,
@@ -495,13 +518,14 @@ tracker.
   closure guard over the *bench driver inventory*: it refuses a driver that
   opens a zoteus index without appearing in the roster. It contains no
   document, no query and no answer. Overlap with 0029: none. **Keep as-is.**
-- **PR #233** (ticket 0599, `bench/fixtures/make_attachment_fixtures.py`)
-  generates eight minimal files, one per container format, to exercise
-  content-signature classification. Its question is what Zotero does with a
-  container; 0029's question is what retrieval returns. A one-page synthetic
-  DOCX carrying a `ZZFMT` token cannot serve an answer set, and a licensed
-  454-page Gallica scan cannot be a minimal format probe. Overlap: structural
-  only. It is scoped by tracker 0593, a separate estate. **Keep as-is.**
+- **PR #233** (ticket 0599, `bench/fixtures/make_attachment_fixtures.py`),
+  merged at `d179847`, generates eight minimal files, one per container format,
+  to exercise content-signature classification. Its question is what Zotero
+  does with a container; 0029's question is what retrieval returns. A one-page
+  synthetic DOCX carrying a `ZZFMT` token cannot serve an answer set, and a
+  licensed 454-page Gallica scan cannot be a minimal format probe. Overlap:
+  structural only. It is scoped by tracker 0593, a separate estate. **It landed
+  unfolded, which is what this reading asked for.**
 
 **Neither should be re-sized as 0029's first slice**, and the reason is
 positive rather than defensive: 0029's first slice, as recommended in §11 (superseded), is
@@ -537,7 +561,7 @@ retired on 2026-08-31 as apparatus; the stability reading now sits beside R34
 in §5.2.8's golden-gate paragraph, and 0581 owns the requirement that a
 constructed input make the two readings disagree. Correct the body.
 
-**`check-slow` does not exist.** `SPEC.md:2370` specifies
+**`check-slow` does not exist.** `SPEC.md:2371` specifies
 `check-slow: check rss-gate convergence soak`; the `Makefile` has `check`,
 `check-fast` and `lint`, and no `check-slow`. 0029's exit criterion "0026's
 golden gate consumes it in `make check`" therefore names the wrong target: a
