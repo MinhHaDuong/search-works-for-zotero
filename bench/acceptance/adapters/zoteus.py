@@ -144,6 +144,62 @@ FOREIGN_STAMPS = {RESTAMP_OLDER: "0", RESTAMP_NEWER: "9999"}
 #: `meta` table. Target knowledge, which is why it is here and not in the layer.
 STAMP_KEY = "schemaVersion"
 
+#: The names a work-counter object would arrive under if this target ever shipped
+#: one. `SPEC.md` §5.2.8 fixes the counter names — `work.<stage>.<trigger>.<outcome>`
+#: — and fixes nothing about what encloses them, so the derivation looks for the
+#: object under either the vocabulary's own word or the generic one, at the top
+#: level of a status reply. It is a search of what came back, not a constant.
+WORK_OBJECT_KEYS = ("work", "counters")
+
+#: The prefix every counter name the layer reads carries (`durability._field`
+#: refuses a name without it), so a target that grouped its counters under
+#: `counters` still reaches the layer under the names the layer parses.
+WORK_PREFIX = "work"
+
+
+def _flatten_counters(reported: dict, prefix: str = WORK_PREFIX) -> dict[str, int]:
+    """Flatten a counter object into the layer's dotted `work.<...>` names.
+
+    Nested (`{"record": {"edit": {"done": 1}}}`) and already-flat
+    (`{"work.record.edit.done": 1}`) are both accepted, because a counter object
+    is not shipped yet and neither shape can be presumed. Non-integer leaves are
+    dropped rather than coerced: a phase string sitting beside the counters is
+    not a counter, and coercing it would raise on a payload this is only reading.
+    Booleans are dropped too — `True` is an `int` in Python and a flag is not a
+    count.
+    """
+    flat: dict[str, int] = {}
+    for key, value in reported.items():
+        name = str(key)
+        full = name if name.startswith(f"{WORK_PREFIX}.") else f"{prefix}.{name}"
+        if isinstance(value, dict):
+            flat.update(_flatten_counters(value, full))
+        elif isinstance(value, bool):
+            continue
+        elif isinstance(value, int):
+            flat[full] = value
+    return flat
+
+
+def _work_counters(*payloads: dict) -> dict[str, int] | None:
+    """The work counters these status replies actually carry, or None if none do.
+
+    This is the whole of the adapter's answer for `work`: the nil is *observed*
+    on each run rather than written down, so a build that starts reporting
+    counters is read as reporting them without anyone editing this file. Measured
+    on 2026-09-03 against a live server in this adapter's default configuration,
+    the index status carries no such object and this returns None — but it
+    returns None because it looked, which is the difference the layer's `not-run`
+    rests on.
+    """
+    for payload in payloads:
+        for key, value in payload.items():
+            if str(key).lower() in WORK_OBJECT_KEYS and isinstance(value, dict):
+                flat = _flatten_counters(value)
+                if flat:
+                    return flat
+    return None
+
 
 def _payload(response: dict) -> dict:
     """The structured body of a tool reply, whichever way this transport carries it."""
@@ -337,13 +393,15 @@ class Zoteus:
                 "active": index.get("embedderActive") is True,
                 "model": index.get("embedderModel"),
             },
-            # Explicitly None rather than absent. This target's status carries
-            # coverage and phase but no `work.<stage>.<trigger>.<outcome>` counter
-            # of any kind — measured on 2026-09-03, all 29 top-level keys read,
-            # no `work` or `counters` object anywhere. Saying so here is the
-            # difference between an adapter that answered and one that forgot,
-            # and it is what makes R3's `not-run` a finding rather than a gap.
-            "work": None,
+            # Derived from the two replies just read, never written down: see
+            # `_work_counters`. The key is always present, and that is the point
+            # — `None` here means the adapter looked at this run's own status and
+            # found no `work.<stage>.<trigger>.<outcome>` object, which is what
+            # makes R3's and R13's `not-run` a finding rather than an adapter
+            # that forgot to populate a key. Against every build measured so far
+            # it is None; against one that ships counters it will not be, with no
+            # edit to this file.
+            "work": _work_counters(index, whoami),
             "reported": {"whoami_embeddings": embeddings, "index_embedder": index.get("embedder")},
         }
 
