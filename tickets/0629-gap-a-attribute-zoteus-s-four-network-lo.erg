@@ -1,0 +1,70 @@
+%erg 0.1
+Title: Gap A: attribute zoteus's four network lookups under ZOTEUS_UPDATE_CHECK=false
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T16:47Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0613 (goal 1 of the ladder), gap A. `Ticket-ref: tickets/0613`
+— this ticket does not close the tracker; two other gaps remain open there.
+
+`bench/results/0604-ladder-matrix/MATRIX.md` (run against v1.12.0) marks
+`R10-no-egress` FAIL: `ZOTEUS_UPDATE_CHECK` defaults `true` in the reviewed
+build, and the server logged "Update available" during the acceptance run.
+R10: *"Without an explicit opt-in, my library text and my queries MUST NOT
+leave this machine"*, with the one-time model-weight download the sole named
+exception. The existing DNS-detector control caught 0 off-machine connects
+only because the no-route namespace kills the lookup at DNS resolution before
+any connect happens — so the current FAIL is real but its full shape is
+unproven: 0613's own log names it unsettled "whether the update check
+accounts for all four lookups."
+
+0613 names the fix directly: "One arm settles it — the same assertion with
+`ZOTEUS_UPDATE_CHECK=false` — and it belongs beside the existing net-shared
+control, never as a graded configuration." So this ticket adds a diagnostic
+arm, not a new pass/fail gate: the default-config assertion keeps deciding
+R10-no-egress; this arm exists to attribute what's actually being resolved.
+
+## Actions
+
+1. Identify the four network lookups from source (`fork/dist` at the reviewed
+   SHA) — read, don't guess; name file and line for each.
+2. Re-run the R10-no-egress acceptance assertion with `ZOTEUS_UPDATE_CHECK=false`
+   inside the same no-route/DNS-detector harness used for the graded run.
+3. Attribute each of the four lookups to a cause (update-check vs something
+   else) using this arm's evidence.
+4. Record the arm's result as an ungraded diagnostic beside the existing
+   net-shared control — do not fold it into `R10-no-egress`'s graded verdict.
+5. Append the finding to 0613's log (which lookups are update-check-caused,
+   which aren't) so 0613's Action 2 and Action 3 (deciding the upstream form)
+   have a source to work from.
+
+## Test
+
+- The DNS-detector's positive control (a deliberate off-machine call) must
+  still fire inside this arm's harness before the arm's own zero-count result
+  is trusted — same positive-control discipline the existing R10 assertion
+  already applies.
+
+## Verification
+
+- [ ] Four lookups named by file:line
+- [ ] `ZOTEUS_UPDATE_CHECK=false` arm run, artifact committed under `bench/results/`
+- [ ] Each lookup attributed, with evidence
+- [ ] Entry appended to 0613's log
+
+## Invariants
+
+- This arm never overrides `R10-no-egress`'s graded verdict, which stays
+  bound to the default configuration per 0613's own instruction.
+- No new upstream filing here — deciding and filing the upstream form is
+  0613's own Action 3, out of this ticket's scope.
+
+## Exit criteria
+
+- The four lookups are attributed with evidence, the diagnostic arm is
+  committed, and 0613's log records the finding.

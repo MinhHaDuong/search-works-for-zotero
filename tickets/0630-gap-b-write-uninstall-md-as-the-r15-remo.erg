@@ -1,0 +1,78 @@
+%erg 0.1
+Title: Gap B: write UNINSTALL.md as the R15 removal procedure
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T16:47Z claude created
+
+--- body ---
+## Context
+
+Child of tracker 0613 (goal 1 of the ladder), gap B. `Ticket-ref: tickets/0613`
+— this ticket does not close the tracker; gap C remains blocked elsewhere.
+
+`R15-uninstall-removes-declared-state` is `not-offered` for zoteus. The
+2026-09-03 ruling (0613's log) retired the earlier reading that zoteus must
+grow a callable uninstall verb: an external MCP server has no host uninstall
+lifecycle to hook, so the ratified surface for this architecture class is a
+**published removal procedure** the harness can execute verbatim and sweep.
+Two preconditions the ruling attached: TMPDIR/XDG redirection in the arena
+(status not re-checked here — 0613's log said only HOME was redirected as of
+2026-09-03), and a dedicated account owning the arena rather than the
+operator's home — **that second precondition is done**: ticket 0625 closed.
+
+Form is already decided (0613's log, 2026-09-03T13:43Z): not an upstream
+issue asking the maintainer to write this — **we draft it ourselves**, in
+this project's own documentation voice (`docs/configuration.md`,
+`docs/semantic-search.md`), using the declared derived-state roots from
+`bench/acceptance/adapters/zoteus.py`'s Declaration (data dir, model cache
+under it since upstream PR #27) phrased as steps a user follows, with the
+pre-PR-#27 case as the worked example of why "just delete the data
+directory" was wrong before that merge.
+
+**Per this repo's own upstream discipline**: a repo-side PR is the spec/
+measurement record, not the shipped artifact — the actual upstream
+submission is a separate, GOVERNANCE.md-gated action, not something this
+ticket files on its own. This ticket's deliverable is the drafted procedure,
+committed in this repo, ready for that later hand-off.
+
+## Actions
+
+1. Read `bench/acceptance/adapters/zoteus.py`'s Declaration for the exact
+   derived-state roots (data dir path, model cache location relative to it).
+2. Draft `UNINSTALL.md` in this project's own docs style, listing concrete
+   removal steps (exact paths, in the order a user would follow them).
+3. Include the pre-PR-#27 case as a worked example (why "delete the data
+   directory alone" was wrong before the model cache moved under it).
+4. Note in the draft, or in this ticket's log, whether TMPDIR/XDG redirection
+   in the arena is confirmed complete — if not, flag it rather than silently
+   assuming the ruling's other precondition is satisfied.
+5. Do NOT open an upstream PR from this ticket. Commit the draft in this
+   repo and reference the GOVERNANCE.md lane that owns the hand-off.
+
+## Test
+
+- The draft's removal steps are checked against the adapter's own Declaration
+  programmatically where possible (e.g. a test asserting every path the draft
+  names appears in the Declaration, and vice versa) rather than eyeballed —
+  the exact class of drift PR #27 exists to prevent from recurring silently.
+
+## Verification
+
+- [ ] `UNINSTALL.md` drafted, paths sourced from the Declaration, not guessed
+- [ ] Pre-#27 worked example included
+- [ ] TMPDIR/XDG redirection status recorded (confirmed or flagged open)
+- [ ] No upstream PR opened by this ticket
+
+## Invariants
+
+- The dedicated-account precondition (0625) is not touched or re-verified
+  here — it's independently closed.
+- Gap C stays out of scope; this ticket does not touch R22.
+
+## Exit criteria
+
+- `UNINSTALL.md` is drafted and committed, its removal steps traceable to the
+  adapter's Declaration, and 0613's log records the draft plus the
+  TMPDIR/XDG redirection finding.

@@ -124,4 +124,6 @@ edited to list each child as it is created.
 
 | child | scope | state |
 |---|---|---|
-| — | none filed yet | see the gaps above |
+| 0629 | gap A — attribute the four network lookups under `ZOTEUS_UPDATE_CHECK=false` | filed 2026-09-03 |
+| 0630 | gap B — draft `UNINSTALL.md` as the R15 removal procedure | filed 2026-09-03 |
+| — | gap C — blocked on 0033 (itself blocked on 0032) | not filed |
