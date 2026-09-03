@@ -1,0 +1,63 @@
+%erg 0.1
+Title: Ruling: does a budget-exhausted answer need its own disclosure
+Created: 2026-09-03
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-03T09:45Z claude created
+
+2026-09-03T09:45Z claude note filed to give one of 0590's three awaiting entries a queue handle; carries the zero-hit corollary, which is the half that is a defect rather than a design question
+
+--- body ---
+
+## The decision
+
+`DECISIONS.md`, awaiting entry of 2026-09-03: *"Whether a budget-exhausted
+answer needs a disclosure of its own, distinct from R18's (raised 2026-09-03,
+reimagining ticket 0590; a second reviewer found the zero-hit corollary
+below)."* That entry owns the argument; this ticket carries the decision.
+
+R18 is written about **empty** answers. A scoped answer that is short because
+the filtered stream ran out of budget is not empty, so R18's text does not reach
+it — and SPEC.md §5.2.6's three sentences are all computed from indexing
+coverage. Two different partials therefore print the same word and ask the user
+for opposite next moves: wait for indexing, or widen the query. That is the
+confusion R18 exists to prevent, one level up.
+
+## The corollary, which is worse
+
+For a scoped query whose stream exhausts at **zero** in-scope hits, the rule as
+specified selects *"fully covered — nothing matches"*, and that sentence would
+be **false**: the scope is covered, and whether anything matches was never
+established, because the search stopped. It was found by review, not by design.
+
+Scope note, so the claim is not read wider than it is: this is a defect in the
+rule as §5.2.6 specifies it. Whether the shipped path can reach that state
+today is not established here, and establishing it is one line of work under
+whichever option is ruled.
+
+## The three ways to rule
+
+1. **A typed disclosure** beside `CROSS_LINGUAL_DEGRADED` and
+   `CJK_KEYWORD_DEGRADED` — where the design already puts a condition the
+   sentences cannot carry.
+2. **A fourth sentence** in §5.2.6's set.
+3. **The existing "partial" covers both causes** — which still needs the
+   zero-hit case answered on its own, since no reading of "fully covered —
+   nothing matches" is true there.
+
+0590 measures how often the case arises and deliberately invents no sentence,
+so nothing downstream is waiting on this to keep moving.
+
+## Relevant files
+
+- `DECISIONS.md` — the awaiting entry. Read, not edited by this ticket.
+- `SPEC.md` §5.2.6 — the three disjoint sentences; R18 — the empty-answer rule.
+- `tickets/0590-measure-scoped-queries-that-fail-to-fill.erg` — the frequency.
+
+## Exit criteria
+
+- [ ] Ruled in `DECISIONS.md`: one of the three ways, or a fourth.
+- [ ] The zero-hit case answered explicitly, whichever way the rest is ruled.
+- [ ] SPEC.md carries the result; no sentence is invented outside the ruling.

@@ -1,0 +1,50 @@
+%erg 0.1
+Title: Ruling: confirm the 0590 and 0605 numbering deviation
+Created: 2026-09-03
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-03T09:45Z claude created
+
+2026-09-03T09:45Z claude note filed to give one of 0590's three awaiting entries a queue handle; the smallest of the three, and the only one that is a confirmation rather than a design choice
+
+--- body ---
+
+## The decision
+
+`DECISIONS.md`, awaiting entry of 2026-09-03: *"Whether 0590 keeping the
+commissioned question, with the census filed as 0605, is the split the author
+intended (raised 2026-09-03)."*
+
+The instruction was to reduce 0590 to the census and file the query arm as a new
+ticket. The identifiers were assigned the other way round — 0590 kept the
+commissioned question, 0605 is the census — deliberately, and without asking
+again. The reason: the ratified entry of 2026-09-02 reads *"Ticket 0590
+measures how often that disclosure occurs"*, and the ledger is append-only, so
+making 0590 the census would have falsified a ratified sentence with no way to
+correct it.
+
+The **cut** is the one asked for. Only the numbering differs, and SPEC.md
+§5.2.6's two pointers to 0590 stay true under the assignment made.
+
+It is recorded because a deviation from an instruction should not survive only
+in a session transcript.
+
+## What is being asked
+
+Confirmation, or a renumber. A renumber is cheap in the tickets and expensive in
+the ledger, which is the whole reason the deviation was taken.
+
+## Relevant files
+
+- `DECISIONS.md` — the awaiting entry, and the ratified entry of 2026-09-02
+  whose sentence constrained the assignment.
+- `SPEC.md` §5.2.6 — the two pointers to 0590.
+- `tickets/0590-...`, `tickets/0605-...` — the two halves as filed.
+
+## Exit criteria
+
+- [ ] Confirmed or reversed in `DECISIONS.md`.
+- [ ] If reversed, the ledger's ratified sentence is reconciled explicitly
+      rather than silently, and §5.2.6's pointers follow.
