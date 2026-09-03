@@ -4047,6 +4047,47 @@ is checked against it, a target documenting nothing still reports `not-offered`,
 the sweep runs over the arena rather than the declaration, and the clause ships
 only once demonstrated red.
 
+**2026-09-03 — the acceptance arena runs as a dedicated user. Not optional.**
+The author, ruling on the correction above: *"The alt user is not optional."* The
+previous entry had it as a preference — *where a dedicated account is available it
+should own the arena* — and that is now wrong. It is a requirement of the harness,
+and it binds every assertion rather than only the uninstall clause.
+
+**Why it binds everything, not just the clause that provoked it.** The harness
+installs software it does not control, runs it against a library, and sweeps a
+filesystem afterwards. Every one of those steps has been running as the operator,
+under whose identity a target can read his mail, his keys and his research, and
+under whose identity a harness bug deletes them. The uninstall clause made the
+exposure vivid because it ends in a deletion, but nothing about the exposure was
+created by that clause: it has been the standing posture of every measurement
+taken so far.
+
+**Namespace isolation is not a substitute and never was.** `sandbox.py`'s
+mechanism is bound to the R10 egress arm; the residue and durability assertions
+run outside it, and the mechanism itself is probed rather than guaranteed —
+bwrap is unusable rootless on the second machine. A protection that is absent
+from most assertions and unavailable on some machines cannot be the thing
+standing between an untrusted target and the operator's home. The two compose:
+the account is the floor, the namespace is the ceiling.
+
+**What it costs, stated rather than discovered later.** The account must exist on
+every machine that runs the harness, including the second machine and any
+container a CI would use. The adapters start target processes, so process spawning
+has to cross a user boundary, and the arena's files come to belong to that account
+rather than to the operator, which changes how an operator inspects a preserved
+arena after a run. Where the account does not exist, the affected assertions
+report `not-run` — never a pass, and never a run as the operator "just this once".
+
+**What it does not do.** It does not invalidate a measurement already taken. A
+residue sweep in a harness-owned arena measured what appeared against what was
+declared, and that reading stands whoever owned the files. What changes is that
+those runs are not repeatable under the posture this entry requires until the
+account exists, so a re-run is the way to carry them forward rather than a
+re-reading.
+
+Ticket 0625 carries the implementation, and it is a precondition of the uninstall
+clause shipping rather than a parallel improvement.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
