@@ -126,11 +126,46 @@ def test_resolve_accepts_when_the_account_exists_and_works(monkeypatch):
     assert resolved.refused is None
     assert resolved.account == "tester"
     wrapped = resolved.wrap(["node", "server.js"], {"HOME": "/arena/home"})
-    assert wrapped[:6] == ["sudo", "-n", "-u", "tester", "--", "env"]
-    assert "HOME=/arena/home" in wrapped
-    assert wrapped[-2:] == ["node", "server.js"], (
-        "the target's own argv must survive intact at the tail of the wrap"
+    assert wrapped == [
+        "sudo", "-n", "-u", "tester", "--preserve-env=HOME", "--",
+        "node", "server.js",
+    ]
+
+
+def test_wrap_never_puts_an_environment_value_on_the_argv(monkeypatch):
+    """The regression a first draft of this module introduced, and the fix.
+
+    An earlier version carried `env -i KEY=VALUE ...` on this argv, which
+    would have put anything ambient in the operator's shell -- an API key, a
+    token -- somewhere any local account can read it (`ps`, `/proc/*/cmdline`)
+    for as long as the wrapped process lives, worse than the exposure this
+    ticket exists to close. Only NAMES may appear; a value survives nowhere
+    in the returned argv.
+    """
+    monkeypatch.setattr(posture, "_account_exists", lambda account: True)
+    monkeypatch.setattr(posture, "_works", lambda account: True)
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    secret = "sk-not-a-real-secret-but-shaped-like-one-9f3c7b"
+    wrapped = resolved.wrap(["node", "server.js"], {
+        "HOME": "/arena/home", "OPENAI_API_KEY": secret,
+    })
+    joined = " ".join(wrapped)
+    assert secret not in joined
+    assert "OPENAI_API_KEY" in joined, (
+        "the NAME must still be forwarded via --preserve-env, or the target "
+        "never receives the variable at all"
     )
+    assert "=" + secret not in joined and f"OPENAI_API_KEY={secret}" not in joined
+
+
+def test_wrap_omits_preserve_env_entirely_for_an_empty_environment(monkeypatch):
+    """`--preserve-env=` with an empty value is not a flag to hand `sudo`."""
+    monkeypatch.setattr(posture, "_account_exists", lambda account: True)
+    monkeypatch.setattr(posture, "_works", lambda account: True)
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    wrapped = resolved.wrap(["true"], {})
+    assert wrapped == ["sudo", "-n", "-u", "tester", "--", "true"]
+    assert not any(part.startswith("--preserve-env") for part in wrapped)
 
 
 def test_already_isolated_posture_never_wraps_and_needs_no_account():

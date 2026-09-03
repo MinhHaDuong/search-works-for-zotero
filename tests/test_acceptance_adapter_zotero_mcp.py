@@ -311,3 +311,23 @@ def test_running_refuses_before_spawning_when_the_posture_is_unavailable(tmp_pat
     with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
         with target.running():
             pytest.fail("the lifecycle yielded despite a refused posture")
+
+
+def test_install_refuses_before_spawning_when_the_posture_is_unavailable(tmp_path):
+    """A review round's finding, pinned: `install()` fetches and executes
+    third-party code with network access -- the exposure ticket 0625 exists
+    to close -- and unlike `running()`'s single server spawn it is not a
+    process the lifecycle wraps once; each `uv`/`pip` step is its own spawn.
+    A first version of this adapter wrapped `running()` but left `install()`
+    untouched, so every install step ran unwrapped, as the operator,
+    whatever the posture. Neither `uv` nor a real venv is needed here: the
+    refusal happens before the first step's `subprocess.run`.
+    """
+    refused = posture.Posture(
+        posture.ACCOUNT_POSTURE, account=None,
+        refused="synthetic refusal for this test",
+    )
+    target = adapter.ZoteroMCP(home=tmp_path / "home", venv=tmp_path / "venv",
+                               posture=refused)
+    with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
+        target.install()

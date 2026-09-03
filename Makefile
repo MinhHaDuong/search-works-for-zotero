@@ -53,7 +53,13 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #   # binary each --adapter-option names.
 #
 #   sudo install -d -o tester -g tester "$(ACCEPTANCE_ARENA)"
-#   echo "operator ALL=(tester) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
+#
+#   # NOPASSWD so the operator can drive the harness unattended, and SETENV so
+#   # sudo forwards the named environment variables wrap() lists on
+#   # --preserve-env instead of refusing the whole invocation outright — see
+#   # Posture.wrap's own docstring in bench/acceptance/posture.py for why
+#   # values never ride on this or any other argv, only names do:
+#   echo "operator ALL=(tester) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
 #
 # `tester` gets READ on the library and on the target checkouts (every target
 # here is read-only against the library, and its own binary need only be

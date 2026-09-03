@@ -42,8 +42,10 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
     sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/library
     sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/library
     sudo install -d -o tester -g tester /path/to/the/acceptance/arena
-    # then let the operator drive the harness without a password as tester:
-    echo "operator ALL=(tester) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
+    # then let the operator drive the harness without a password as tester,
+    # AND forward the named environment variables wrap() lists on --preserve-env
+    # (SETENV) rather than sudo silently dropping them (see wrap()'s own docstring):
+    echo "operator ALL=(tester) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
 
 The parent-traverse line is not decoration: verified on a second machine
 ("padme", 2026-09) where `$HOME` is `0750` under Ubuntu's private-group-per-
@@ -94,6 +96,7 @@ This module holds no target's name and no tool name. It runs an argv, the same
 promise `sandbox.py` makes about itself.
 """
 
+import os
 import pwd
 import subprocess
 from dataclasses import dataclass
@@ -147,11 +150,38 @@ class Posture:
 
         `already-isolated` returns `argv` unchanged: there is no second
         identity on this machine to cross into, by the operator's own
-        declaration. `account` prepends the switch and carries `env` on the
-        command line — via a bare `env` invocation inside the switch — rather
-        than through the wrapping process's own environment, because `sudo`
-        resets the environment by default and a sudoers rule that happens to
-        keep it is exactly the configuration this module must not assume.
+        declaration.
+
+        `account` prepends the switch, and this is the one place a first
+        version of this module got the boundary itself wrong, corrected in
+        review before it merged: `env` is NOT written onto this argv, in any
+        form. An earlier draft carried `env -i KEY=VALUE ...` here, which
+        moved every value in `env` — including anything ambient in the
+        operator's own shell, an API key or a token among them — from
+        `Popen`'s `env=` (visible only via `/proc/<pid>/environ`, to the
+        owning uid or root) onto this process's OWN argv, which any local
+        user can read for as long as the process lives via `ps` or
+        `/proc/<pid>/cmdline`, and which a process-accounting or auditd setup
+        logs durably regardless. That is a strictly worse channel than the one
+        this ticket exists to close, for the sake of the account boundary this
+        ticket exists to open.
+
+        The fix keeps values off every argv, on both sides of the switch, by
+        forwarding them through the environment `sudo`'s OWN process receives
+        instead — which is exactly what the caller already sets via `Popen`'s
+        `env=` on the wrapped argv this method returns, unchanged from before
+        this ticket. `--preserve-env=<names>` only carries NAMES: `KEY`, never
+        `KEY=VALUE`, so nothing secret reaches an argv anyone can list. `sudo`
+        then forwards those names' values from ITS OWN received environment to
+        the account-switched child via `execve`'s `envp`, the same channel
+        `Popen`'s `env=` always used and the same visibility rule as before —
+        readable via `/proc/<child-pid>/environ` by the child's own uid (now
+        `tester`) or root, never by an arbitrary local account. This needs the
+        `SETENV` sudoers tag (the recipe below carries it): without it `sudo`
+        ignores `--preserve-env` outright rather than silently ignoring only
+        the listed names, so a misconfigured sudoers rule fails the `_works`
+        probe rather than quietly narrowing what reaches the target.
+
         `-n` is load-bearing: without it a `sudo` with no working NOPASSWD rule
         blocks on a password prompt nothing will ever answer, which is a hang
         dressed as a working boundary rather than the honest refusal `_works`
@@ -161,8 +191,9 @@ class Posture:
             raise PostureUnavailable(self.refused)
         if self.account is None:
             return list(argv)
-        assignments = [f"{key}={value}" for key, value in sorted(env.items())]
-        return ["sudo", "-n", "-u", self.account, "--", "env", "-i", *assignments, *argv]
+        names = ",".join(sorted(env))
+        preserve = [f"--preserve-env={names}"] if names else []
+        return ["sudo", "-n", "-u", self.account, *preserve, "--", *argv]
 
     def as_json(self) -> dict:
         """What a run's artifact records about its own identity boundary.
@@ -189,17 +220,36 @@ def _account_exists(account: str) -> bool:
     return True
 
 
+#: Named on the `_works` probe's `--preserve-env` so the probe exercises the
+#: SAME sudoers permission a real spawn needs, not merely `sudo -n -u account`.
+#: `wrap()` builds `--preserve-env=<names>` only when `env` is non-empty, so a
+#: probe called with `{}` (a bare account switch) would never touch the
+#: `SETENV` tag at all and would read a sudoers rule with NOPASSWD but no
+#: SETENV as working -- a real adapter's first genuine spawn, whose `env` is
+#: never empty, would then be the first place that misconfiguration surfaces.
+_PROBE_ENV_NAME = "_ACCEPTANCE_POSTURE_PROBE"
+
+
 def _works(account: str) -> bool:
     """Run a trivial command as the account and see whether it actually ran.
 
     Not a PATH-style lookup and not a passwd-database lookup either, for the
     reason the module docstring gives: an account that exists but has no
     working sudoers rule must read as unavailable, not as available with a
-    surprise later.
+    surprise later. The probe carries one synthetic environment name so it
+    exercises `--preserve-env`'s `SETENV` requirement too (see
+    `_PROBE_ENV_NAME`) -- `sudo` refuses the whole invocation, not merely the
+    unlisted names, when the invoking user lacks permission to preserve what
+    was named, so a missing `SETENV` grant shows up here as a failed probe
+    rather than as a silently narrower environment reaching a real target.
     """
     probe = Posture(ACCOUNT_POSTURE, account)
+    probe_env = {**os.environ, _PROBE_ENV_NAME: "1"}
     try:
-        done = subprocess.run(probe.wrap(["true"], {}), capture_output=True, timeout=30)
+        done = subprocess.run(
+            probe.wrap(["true"], {_PROBE_ENV_NAME: "1"}),
+            capture_output=True, timeout=30, env=probe_env,
+        )
     except (OSError, subprocess.SubprocessError):
         return False
     return done.returncode == 0
