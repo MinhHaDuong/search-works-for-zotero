@@ -13,6 +13,7 @@ it a control rather than a smoke test.
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -153,8 +154,13 @@ def test_census_does_not_mutate_the_library(library: Path):
     assert before == after, "the probe is read-only over the author's storage tree"
 
 
-def test_unreadable_cache_is_reported_not_swallowed(tmp_path: Path):
-    """A cache the probe cannot read is a third answer, never a silent 'fine'."""
+def test_undecodable_bytes_are_reported_not_swallowed(tmp_path: Path):
+    """A cache with undecodable bytes is a third answer, never a silent 'fine'.
+
+    This is the decode-error path (readable file, invalid UTF-8) -- see
+    test_permission_denied_directory_is_reported_unreadable below for the
+    genuinely unreadable path (OSError), which is a different code branch.
+    """
     root = tmp_path / "storage"
     root.mkdir()
     cache = _write(root, "IIIIIIII", "i.pdf", PAGE)
@@ -163,6 +169,34 @@ def test_unreadable_cache_is_reported_not_swallowed(tmp_path: Path):
     detail = r["caches_detail"][0]
     assert detail["decode_errors"] > 0
     assert r["decode_error_caches"] == 1
+
+
+def test_permission_denied_directory_is_reported_unreadable(tmp_path: Path):
+    """A directory the walker cannot enter is counted, not silently dropped.
+
+    Positive control for the walker's completeness, not just per-cache
+    classification: Path.glob("*/CACHE_NAME") swallows PermissionError while
+    scanning a subdirectory it cannot enter, so a naive walker never even
+    reaches the per-cache try/except -- the directory just vanishes from every
+    count, and "unreadable_caches: 0" becomes indistinguishable between "fully
+    scanned" and "silently skipped". This asserts the walker itself surfaces
+    that failure.
+    """
+    root = tmp_path / "storage"
+    root.mkdir()
+    _write(root, "AAAAAAAA", "a.pdf", PAGE)
+    denied = root / "BBBBBBBB"
+    denied.mkdir()
+    (denied / "b.pdf").write_text("x")
+    (denied / ".zotero-ft-cache").write_text("secret")
+    os.chmod(denied, 0o000)
+    try:
+        r = census.census(root)
+    finally:
+        os.chmod(denied, 0o755)  # restore so pytest's own cleanup can remove it
+    assert r["caches"] == 1, "the readable cache must still be counted"
+    assert r["unreadable_caches"] == 1, "the denied directory must not vanish silently"
+    assert r["unreadable_detail"][0]["key"] == "BBBBBBBB"
 
 
 @pytest.mark.integration

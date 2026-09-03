@@ -139,11 +139,28 @@ def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
     """Walk `storage/*/.zotero-ft-cache` and aggregate. Read-only."""
     detail: list[dict] = []
     unreadable: list[dict] = []
-    for cache in sorted(Path(storage).glob("*/" + CACHE_NAME)):
+    # Path.glob("*/" + CACHE_NAME) is not used here: its internal recursion
+    # silently drops a subdirectory it cannot scandir/stat (permission denied),
+    # which made "unreadable_caches" indistinguishable between "fully scanned"
+    # and "silently skipped" -- a real defect found and reproduced by review.
+    # iterdir() on `storage` itself only needs permission on `storage`, so
+    # every immediate child directory is enumerated regardless of its own
+    # permissions; each child's actual read failure then surfaces through the
+    # existing per-cache try/except OSError below, where it belongs.
+    for entry in sorted(Path(storage).iterdir()):
         try:
+            if not entry.is_dir():
+                continue
+        except OSError as e:
+            unreadable.append({"key": entry.name, "error": str(e)})
+            continue
+        cache = entry / CACHE_NAME
+        try:
+            if not cache.exists():
+                continue
             detail.append(classify(cache, mojibake_fixer))
         except OSError as e:
-            unreadable.append({"key": cache.parent.name, "error": str(e)})
+            unreadable.append({"key": entry.name, "error": str(e)})
 
     pdfs = [c for c in detail if c["is_pdf"]]
     measured = [c for c in pdfs if c["mojibake"] is not None]
