@@ -55,8 +55,9 @@ ceilings after the 2026-09-02 topology.
 
 - **ticket 0578** — goal 1: the fold sweep, R10's egress clause and R15's
   deletion clause, extending `bench/smoke_upstream.py` against stock upstream at
-  the reviewed SHA. Blocked-by: nothing. R22 and R31 stay on goal 1's roster but
-  are owned by ticket 0033 and ticket 0488.
+  the reviewed SHA. Blocked-by: nothing. R22 stays on goal 1's roster and is
+  owned by ticket 0033; R31 was on it until 2026-09-03, when it was retired
+  (`DECISIONS.md`) and the rung became three terms.
 - **ticket 0579** — goal 2: R3's counter-churn clause and R23's serving half,
   against a built index on the fork branch `conductor-integration`. Blocked-by:
   nothing open. R13 is ticket 0035's.
