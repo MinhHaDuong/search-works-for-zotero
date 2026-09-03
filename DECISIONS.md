@@ -4141,6 +4141,62 @@ users is a benchmark holding privilege it never needs while running. Ticket 0625
 therefore owes the recipe and a harness that runs unprivileged and refuses when
 the account is absent, rather than a provisioning script it executes itself.
 
+**2026-09-03 — RATIFIED: the golden fixture is reframed as one adversarial
+library plus a derived question bank, not a checklist of independent corpus
+properties.** Ticket 0029 had accreted 25 exit-criteria bullets across roughly
+14 largely-independent dimensions (item-type fidelity, format coverage,
+work-identity relations, multi-attachment shapes, failure controls, structural
+marks, annotation provenance, Gutenberg admission, extraction-cap crossing,
+R33/R34's probe shapes, intersections, cross-lingual anchors, the group-library
+slice) with no declared partition — the monster-ticket pattern
+`rules/workflow.md` names. The author's reframe: one deliberately adversarial
+library (personal-library-shaped fixture plus one closed group under the same
+recipe — "one library" does not drop the ratified group-library slice, it
+folds it under one injection/export/harness rather than a separate one), and a
+question bank sized to what the library's own hard cases demand, not to a
+round number.
+
+**The 25 bullets stay, as a coverage ledger, not as the operational spec.**
+Each bullet is satisfied by naming which cluster of the question bank exercises
+it; a bullet with no citing question is a gap the ledger surfaces, not a
+silently dropped requirement. This is the same discipline
+`rules/prose/cutting.md` uses for a word-budget cut: reframing to a simpler
+shape must not lose coverage it cannot show it kept.
+
+**The question count is derived from a sub-case tally, not picked.** Walking
+the 14 dimensions at roughly one to two questions per named sub-case (six
+SHOULD languages, nine source formats, four work-identity relation types, three
+multi-attachment shapes, seven failure controls, six structural marks, twelve
+annotation-provenance/shape/edge-case combinations, the Gutenberg cap-crossing
+pair, six extraction-cap-crossing conditions, R33's three probe shapes at
+several instances each for robustness, two intersection combinations, four
+cross-lingual anchor pairs, and the group-library slice) sums to **≈97**,
+independently landing near the "about 100" the author's own instinct named —
+recorded as corroboration, not as proof either number is right. The tally is
+a first-pass estimate: some dimensions may need more instances once real
+documents are chosen, and a document satisfying several dimensions at once
+(the ratified marks note "a record may satisfy more than one shape") may let
+the actual authored count run lower without losing coverage. The full tally
+table is in ticket 0029.
+
+**Reuse is bounded, not free.** A flexible document — the Gutenberg ebook, a
+multi-attachment parent — could absorb many of the tally's sub-cases at no
+sourcing cost, which would satisfy the count while concentrating the question
+bank on a handful of documents and defeating "representative." A question
+anchors to at most a small, named number of documents (proposed: 4; the
+author's call, not fixed here) before a distinct source is required instead.
+Natural multi-dimension reuse (one Gutenberg work serving the archive-format
+and cap-crossing dimensions together, as already ratified) stays inside that
+bound; stacking unrelated dimensions onto one document to hit the tally does
+not.
+
+**Sequencing is unchanged by the reframe.** The harness triplet (injection
+script, export snapshot, Zotero-free replay harness) still goes first, built
+against the recipe's 17 already-hashed documents — it does not wait on the 9
+records still stuck behind browser-only challenge pages, and it is what lets
+the question-bank design be tested against a real replay before more sourcing
+hours are spent.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database

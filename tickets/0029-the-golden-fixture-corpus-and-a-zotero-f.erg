@@ -24,6 +24,7 @@ Author: claude
 2026-09-02T22:41Z claude note SCOPING BRIEF filed: conception/0029-scoping-brief.md (overnight 2026-09-02/03). Recommends decomposing this ticket into a tracker plus five children split by what each layer needs that the others do not (browser and hands / live Zotero and a library account / the repository alone / the author's judgement), and scheduling the repository-only child FIRST rather than last -- a recommendation since SUPERSEDED by the author assigning 0029 whole, kept as record in the brief's sections 11-12. Three findings that change the shape: goal 1's five assertions in bench/acceptance/assertions.py need neither corpus nor index; two of goal 2's five (durability.py, merged since in PR #226) are not-run because the zoteus adapter declines to perturb the author's own library, so a WRITABLE FIXTURE LIBRARY -- not a golden corpus -- is what unblocks R3; and the index build reads Zotero ONLY over the local HTTP API, never zotero.sqlite and never the attachment store, so Zotero-free is one job and not three. Size recommended at ~2 000 indexed passages, set by the 88,03 ms/passage measured embed ceiling ALONE: the brief's R34 corpus-size floor argument is retracted in its own sections 2 and 5, R34 being conjunctive over the pinned query set, so a random ranker's pass probability is (10/P)^Q and does not fall out of P. What the brief asks to be pinned instead is maxChars, on determinism grounds: the product ships 40 000 and bench/run_build.py:72 ships 200 000, a fivefold difference nothing on disk records. Three rulings asked: drop R8 (its monster is synthetic and belongs with 0582), correct the retired-R21 reference, and note that check-slow does not exist. PR #232 and #233 do not overlap and should be folded into neither
 2026-09-03T03:44Z Minh Ha-Duong ruled drop HAL-04214661: not his work, no reusable licence and no authors' consent; recipe retains ten Vietnamese records
 2026-09-03T05:24Z codex note CORPUS SWEEP 2026-09-03: after the ruled HAL-04214661 drop, the live recipe is 26 records / 17 hashes / 9 open, including 10 Vietnamese records and two Vietnamese HAL records (ART, COMM). A fresh conservative probe fetched no bytes to the recipe: all four small HAL PDFs advertised application/pdf to HEAD but returned an HTML challenge to GET and were classified blocked; a representative Gallica HEAD returned HTTP 429; the 352 593 392-byte Malynes scan was not downloaded. Remaining pins are four HAL browser fetches, four Gallica browser fetches, and one full Malynes fetch.
+2026-09-03T17:03Z Minh Ha-Duong ruled REFRAME (DECISIONS.md): one adversarial library plus a derived question bank, replacing the 25-bullet checklist as the operational shape (the checklist stays as a coverage ledger). Question count derived from a per-dimension sub-case tally, ≈97, landing near the author's own "about 100" instinct as corroboration rather than proof. Reuse across documents bounded at 4 per question, per the author's follow-up, to stop the tally being satisfied by loading a handful of flexible documents. Tracker structure added; the harness triplet is the first child to file, unblocked by the 9 browser-only sourcing fetches.
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -48,6 +49,55 @@ never a personal library; versioned open archives (arXiv vN, Zenodo version
 DOI, HAL id with version) beside Gallica, Internet Archive, Wikimedia Commons
 and Wikisource revision ids; no self-deposit. Zotero #6012's calibration
 corpus stays out.
+
+## Reframe: one adversarial library, a derived question bank
+
+Ratified 2026-09-03 (DECISIONS.md). This ticket's 25 exit criteria, below,
+had accreted across roughly 14 independent dimensions with no declared
+partition — the monster-ticket pattern. Reframed as one deliberately
+adversarial library (personal-library-shaped fixture plus one closed group
+under the same recipe — the group-library slice is folded in, not dropped)
+plus a question bank sized to what the library's hard cases demand.
+
+**The exit criteria below are now a coverage ledger, not the operational
+spec.** Each bullet is satisfied by naming which question(s) exercise it; a
+bullet with no citing question is a surfaced gap, not a silent drop.
+
+**The tally that derived ≈97, and lands the question bank near "about 100":**
+
+| dimension | sub-cases | q/sub-case | subtotal |
+|---|---|---|---|
+| SHOULD-language articles | 6 languages | 1 | 6 |
+| Source format coverage | 9 formats | 1 | 9 |
+| Work-identity relations | 4 types | 2 | 8 |
+| Multi-attachment parent shapes | 3 shapes | 2 | 6 |
+| Failure controls | 7 controls | 1 | 7 |
+| Structural marks | 6 marks | 2 | 12 |
+| Annotation provenance/shape/edge cases | ~12 combos | 1 | 12 |
+| Gutenberg cap-crossing pair | 1 work | 3 | 3 |
+| Extraction-cap-crossing conditions | 3 conditions | 2 | 6 |
+| R33 probe shapes | 3 shapes | 4 | 12 |
+| Intersections (monster × script, scale × multilingual) | 2 combos | 2 | 4 |
+| Cross-lingual anchor pairs | 4 pairs | 2 | 8 |
+| Group-library slice | — | — | 4 |
+| **total** | | | **≈97** |
+
+Item-type fidelity is corpus-composition bookkeeping (recorded per injected
+item, not a dedicated question) and isn't in this table. This is a first-pass
+estimate — refine per-row as real documents are chosen; a document satisfying
+several dimensions at once may let the authored count run lower.
+
+**Reuse is bounded.** A question anchors to at most 4 documents before a
+distinct source is required — natural multi-dimension reuse (one document
+serving two ratified dimensions at once) stays inside that bound; stacking
+unrelated dimensions onto one flexible document to hit the tally does not.
+
+**Sequencing is unchanged.** The harness triplet (injection script, export
+snapshot, Zotero-free replay harness) goes first, against the 17
+already-hashed documents — it does not wait on the 9 records stuck behind
+browser-only challenge pages (4 HAL, 4 Gallica, 1 Malynes), and it lets the
+question-bank design be tested against a real replay before more sourcing
+hours are spent.
 
 ## Re-sourcing PR #151's 19 documents (ruling 2)
 | status | documents | action |
@@ -140,9 +190,10 @@ corpus stays out.
       Vietnamese entries, gated separately from the monolingual queries so a
       regression names which of R7 and R29 it broke (R29 ratified 2026-08-31;
       SPEC.md §5.2.8 owns the thresholds, this ticket pins them)
-- [ ] ~40 queries with pinned answer sets, each labelled by facet, language
+- [ ] ≈97 queries with pinned answer sets (the reframe's derived tally above,
+      superseding the earlier ~40 figure), each labelled by facet, language
       lane and carrying signal (exact string / paraphrase / agreement); no
-      difficulty tiers
+      difficulty tiers; a question anchors to at most 4 documents
 - [ ] 0026's golden gate consumes it in make check
 - [ ] R33's three probe shapes present: a rare exact string, a paraphrase sharing
       no content word with its answer, and an agreement case
@@ -154,3 +205,15 @@ corpus stays out.
       and no feed slice
 - [ ] passage-length distribution pinned beside the export (SPEC.md §5.2.8)
 - [ ] SPEC.md §5.2.8's fixture description updated to the three-layer shape
+
+## Children
+
+Children are filed when their work starts, not up front (severity floor,
+`rules/workflow.md`). This tracker is edited to list each child as it is
+created.
+
+| child | scope | state |
+|---|---|---|
+| — | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | not yet filed |
+| — | the 9 browser-only sourcing fetches (4 HAL, 4 Gallica, 1 Malynes) | human-hands work, not a raid candidate |
+| — | question-bank authoring per the tally above | not yet filed; blocked on the harness child existing to test against |
