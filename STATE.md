@@ -23,31 +23,31 @@ is [`README.md`](README.md)'s.
 
 ## Handoff
 
-**The full-library build finished** — 8 h 14, 363 613 passages, a 1,71 GB index,
-and the first populated current-schema data dir that serves. It unblocks 0605,
-0120 and 0503's measurement half, all deferred all night for want of it;
-0594/0595/0596 need no machine; `make ladder-matrix` is asked for and unfiled.
+**The full-library build finished** — 8 h 14, 363 613 passages, a 1,71 GB index, the
+first populated current-schema data dir that serves. It unblocks 0605, 0120 and 0503's
+measurement half; 0594/0595/0596 need no machine; `make ladder-matrix` is asked for and
+unfiled.
 
-**Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028, and 0581
-waits on 0029, which codex holds. No lane work reaches either.
+**Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028; 0581 waits on
+0029, which codex holds. No lane work reaches either.
 
-**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — the service ceiling
-(0577 closed) and the 0590 redesign's three entries included. Still open: **is 0491 inside the codex fence**.
+**Open:** #255, its base long stale and needing a re-merge;
+`claude/resume-journee-taj5f8` undecided.
 
-**Open:** #255 — its base has moved nine merges, so its quoted gates are stale and it
-needs a re-merge. #232 and #235 merged after their one citation fix each (`0bb5304`,
-`9dd6fcd`); `claude/resume-journee-taj5f8` undecided.
+**Next session.** The three probes this line used to order are answered and merged
+(`28a5685`, `8c261ba`): `reindexTruncated` ships but fires only on a live preference
+change, so **1 053 attachments sit truncated at 100 pages** under a raised cap; the WASM
+worker is **uncapped** (2 913 of 2 913); 0606's ratio is **2,24** at book scale, and that
+route runs at 5,26 pages/s — about 24,6 h to pack the library. What remains is **0120
+action 1**, the measured saving, still the only thing that ticket formally requires and
+still without a figure.
 
-**2026-09-03, the extract session (0120, 0483, 0606).** `main` green at 592/13, 169
-tickets. #256 merged (`b6d739a`) after `REROLL` then `ESCALATE` on its page; this branch
-merged on the author's explicit instruction with **no review verdict on its page**, which
-he waived and which is recorded there rather than inferred. What it leaves for the next
-session, in order: **two greps on this machine settle more than anything written today** —
-whether build `20260817151751` carries `reindexTruncated` (grep the extracted `omni.ja`),
-and whether the WASM document-worker caps pages (open `65F79PTJ`, 2 913 pages, in the
-reader; read the pack's page catalog with `verification/probes/sdt_read.py`). Then 0606's
-action 1, the pack-to-flat size ratio on the two real packs, which decides that ticket's
-shape before any code. Then 0120 action 1, the measured saving, still the only thing the
-ticket formally requires and still without a figure. Awaiting the author beyond
-`DECISIONS.md`'s standing list: three entries of 2026-09-03 — the refresh belonging to the
-R1 tick, supersession being total, and 0606's third extractor identity in C1 link 1.
+**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list. Still open here:
+**is 0491 inside the codex fence**, and the two questions the 2026-09-03 ladder re-cut
+raised — whether to split 0606, and which ticket owns the dispatcher 0564 and 0606
+action 4 both describe. The re-cut itself is in the tickets (0606, 0557, 0560/0561/0564).
+
+**The 0557 ladder was specified without reading the fork, and three of its premises are wrong**
+(logged on 0557). seg/1 is built (fork `t0028-seg1` at `f936102`, 26 tests); 0560 is substantially
+built as `extractPdfOutline`, dated a day before the tracker was filed; 0558 likely the same via
+`annotate.ts` and upstream #29. Read the fork before picking up any child of 0557.

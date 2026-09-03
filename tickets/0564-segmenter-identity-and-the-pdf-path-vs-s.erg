@@ -7,6 +7,8 @@ Blocked-by: 0557
 --- log ---
 2026-09-01T13:31Z claude created
 
+2026-09-03T09:38Z Minh Ha-Duong note overlap flagged by the ladder re-cut of the same day: this ticket's PDF-path-vs-seg/1 selection rule and 0606's action 4 (their pack if present and of a known version, else ours if present and current, else the flat path) are two tickets writing one dispatcher. One place, not two; which ticket owns it is unsettled and goes to the author with the 0606 split question.
+
 --- body ---
 ## Context
 

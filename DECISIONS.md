@@ -5530,3 +5530,55 @@ v2 soon after, at two full drains.
   The cut is the one asked for; only the numbering differs, and SPEC.md §5.2.6's
   two pointers to 0590 stay true. Recorded because a deviation from an
   instruction should not survive only in a session transcript.
+
+- **A third extractor identity in C1 link 1: packs we produce ourselves
+  (raised 2026-09-03, ticket 0606).** The author ruled the *shape* in session —
+  produce SDT-compatible packs ourselves, same container and same block schema,
+  in our own store, under our own extractor identity, Zotero's pack winning
+  wherever one exists. The chain consequence was not ruled and is what this
+  entry asks for.
+
+  C1 link 1 enumerates two extractor identities today: Zotero's flat extraction,
+  served by the local API, and the SDT pack produced by `zotero/document-worker`
+  and read from disk beside the attachment. Our packs would be a third. The key
+  shape does not have to change to carry it — a pack already names its own
+  processor type and version in its metadata, and `sdt.js` already validates on
+  `(packVersion, schemaMajorVersion, source.hash, processor.type,
+  processor.version)`, treating an unknown processor version as
+  `stale-processor`. So the degradation is in our favour by their own design:
+  ours is refused wherever theirs is expected, and ours is the placeholder for
+  where no pack exists at all.
+
+  **What ratification would cost, and it is the reason to ask rather than
+  assume.** A third identity means a third value the freshness key can take, so
+  the day Zotero's pack replaces ours for an attachment, C1 link 1's identity
+  flips — total supersession through all three links, a measured 8 h 14 for a
+  full build. Ticket 0606 plans that as a drain rather than an event: newest
+  first, the older chain serving while it drains under R4 and D3's serve-stale,
+  and R17 saying where the drain has reached. R17's coverage counters would
+  count pack-sourced-theirs, pack-sourced-ours and flat-sourced apart, which is
+  a reporting change this ledger has not ruled either.
+
+  **What is not asked here.** Nothing about writing into Zotero's data
+  directory — the store is ours, and `storage/<KEY>/.zotero-sdt-cache` was
+  rejected in the same session. Nothing filed upstream: #6012 is read, not
+  touched. And nothing about the segmenter's own contract, which is unchanged:
+  pack blocks are one signal provenance among six, and seg/1 remains the
+  implementation for the empty signal list, so a library-wide pack supply does
+  not retire it.
+
+  The ticket's exit criteria already gate shipping on this entry being ruled,
+  and on a measured size ratio that could reopen the shape before any of it
+  matters.
+
+- **Where the pack producer's seam falls, given that the format carries no
+  outline (raised 2026-09-03, ticket 0606).** Read off the pack reader: a pack
+  is metadata, a page catalog, and typed blocks carrying `type`, `content` runs
+  with a per-glyph `textMap`, and `anchor.pageRects`. There is no outline field,
+  and a PDF's embedded table of contents is document metadata rather than page
+  content. So the 0557 ladder splits: 0561's layout heading heuristic moves
+  inside the producer and emits blocks, while 0560's embedded TOC stays outside
+  as its own signal provenance — carrying it in a pack would need a field of
+  ours, which 0606's second condition forbids outright. This is recorded as a
+  consequence of the schema rather than a preference, and it is the one place
+  where "compatible" bites: the format decides what our producer may say.
