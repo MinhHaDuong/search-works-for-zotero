@@ -1,0 +1,40 @@
+{
+  "elapsed_s": 142.5,
+  "peak_rss_kb": 2273592,
+  "status": {
+    "documents": 481920,
+    "vectors": 0,
+    "items": 7546,
+    "storage": "sqlite",
+    "embedder": "none (keyword-only)",
+    "embedderConfigured": "off",
+    "embedderActive": false,
+    "fulltextEnabled": true,
+    "fulltextItems": 5559,
+    "fulltextPassages": 466818,
+    "ownWordsEnabled": true,
+    "ownWordsItems": 611,
+    "ownWordsPassages": 2695,
+    "builtFromVersion": 7546,
+    "libraryVersion": 26458,
+    "fulltextVersion": 25076,
+    "libraryBackend": "local",
+    "library": "user",
+    "passages": 481920,
+    "state": "done",
+    "operation": "build",
+    "itemsFetched": 7546,
+    "itemsRemoved": 0,
+    "itemsTotal": 7546,
+    "itemsAvailable": 7546,
+    "phase": "fulltext",
+    "fulltextItemsScanned": 5999,
+    "fulltextItemsTotal": 5999
+  },
+  "files": {
+    "search-index.sqlite": 995409920,
+    "search-index.sqlite-wal": 169562752,
+    "search-index.sqlite-shm": 360448,
+    "update-check.json": 122
+  }
+}
