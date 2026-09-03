@@ -1,9 +1,14 @@
-// R19's fold gate (SPEC.md §5.2.8): does the JS query side agree, codepoint by codepoint,
+// The fold gate (SPEC.md §5.2.8): does the JS query side agree, codepoint by codepoint,
 // with what FTS5 actually indexes?
 //
-// Filed as ticket 0009's probe. R19 ("every token the query side produces MUST be one the
-// index side can also produce") turned it into a standing gate, and ticket 0578 Action 5
-// gave it the three things a gate needs and a probe does not.
+// Filed as ticket 0009's probe. R19, as it then read ("every token the query side produces
+// MUST be one the index side can also produce"), turned it into a standing gate, and ticket
+// 0578 Action 5 gave it the three things a gate needs and a probe does not.
+//
+// R19 was reworded on 2026-09-03 (DECISIONS.md) into a promise about what a user sees, and
+// this gate stopped being its evidence: it reads a normalizer's source, where the promise is
+// kept or broken in what a query returns. Nothing below changes — the clause the gate asserts
+// is its own, SPEC.md §5.2.8 owns it, and it serves no requirement.
 //
 // The method is the only one that settles it: put each codepoint through a REAL FTS5 table
 // declared with the shipped tokenizer, read back what SQLite stored via `fts5vocab`, and
@@ -15,7 +20,7 @@
 //                 than it could. Costly, not wrong.
 //   - `misses`    the query produces a term the index does not hold, while the index holds
 //                 terms of its own: the query goes where the index is not. This is the
-//                 0009 defect class and R19's clause, and it is what fails this gate.
+//                 0009 defect class and the gate's own clause, and it is what fails this gate.
 //   - `widens`    the query produces a term where the index stores nothing at all.
 //
 // ── Exit codes ────────────────────────────────────────────────────────────────────────
@@ -254,8 +259,8 @@ function querySide(text) {
 const sorted = (terms_) => [...new Set(terms_)].sort();
 
 /**
- * The verdict for one input, over R19's clause: every term the query side produces must be
- * one the index side can also produce.
+ * The verdict for one input, over the gate's clause: every term the query side produces must
+ * be one the index side can also produce.
  */
 function classify(indexed, queried) {
   const index = sorted(indexed);
@@ -308,7 +313,7 @@ for (const [name, lo, hi, why] of ranges) {
 // A sweep that agreed everywhere would be indistinguishable from one that compared a
 // string to itself. These run on every invocation, `--blocks` included: they are the
 // gate's fixed control set, not one of its ranges. These are the cases 0009 was about, plus one per script class added by
-// 0578: each MUST agree, or the fold does not do what R19 says it does. They are part of
+// 0578: each MUST agree, or the fold does not do what the gate says it does. They are part of
 // the gate's verdict, not a printout beside it — before 0578 nothing failed on them.
 const REGRESSIONS = [
   ['théorie', 'the defect that opened the ticket'],
@@ -368,8 +373,8 @@ const missesTotal = missesCodepoint.length + missesWord.length;
 const elapsedMs = Date.now() - started;
 
 const out = {
-  probe: 'R19 fold gate — JS query side versus what FTS5 unicode61 remove_diacritics 2 actually indexes',
-  requirement: 'R19 (SPEC.md §3); the gate is SPEC.md §5.2.8',
+  probe: 'Fold gate — JS query side versus what FTS5 unicode61 remove_diacritics 2 actually indexes',
+  requirement: 'none; the gate is SPEC.md §5.2.8, apparatus over our own tree rather than evidence for a requirement since R19 was reworded on 2026-09-03',
   tokenizer: 'unicode61 remove_diacritics 2',
   tree,
   tree_version: treeVersion,
