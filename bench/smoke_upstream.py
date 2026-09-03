@@ -401,7 +401,8 @@ def rank_fusion_agreement(runs: list[dict]) -> dict:
     for its own rank — the counter read zero for a reason that was the check's,
     not the target's.
 
-    A hit matches when some rank in 1..limit fuses to its score. A *query* counts
+    A hit matches when some rank fuses to its score — any rank, not one bounded
+    by the query's limit, for the reason `_rrf_rank_of` gives. A *query* counts
     only when every one of its hits matches AND the ranks ascend, since a fused
     list is ordered by score; a descending or repeated rank is not a fusion
     ordering. A query that returned nothing demonstrates nothing and is not
