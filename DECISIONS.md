@@ -3781,11 +3781,12 @@ proves long; values below it never prove short. An unresolved length takes the
 long-document-safe path and reports the signal and certainty that selected it.
 
 **2026-09-03 — a lane does not press merge. Ratified: the sub-agent hands the
-open pull request up to the coordinator, and the lead organizes the review and
-the merge in one pass.** The author, on being shown two merge requests that the
-lane holding them had corrected, re-gated and then merged itself: *un sous-agent
-ne fusionne pas ; un sous-agent remonte une PR ouverte au coordinateur, et le
-chef d'équipe organise la revue et merge en une passe.* That settles the
+open pull request up to the coordinator, and the supervisor merges them as they
+arrive, telling the other lanes to rebase.** The author, on being shown two
+merge requests that the lane holding them had corrected, re-gated and then
+merged itself: *un sous-agent ne fusionne pas ; il remonte une PR ouverte au
+coordinateur* — and, asked to confirm the cadence: *le superviseur merge au fur
+et à mesure et prévient les autres lanes de rebaser.* That settles the
 question the 2026-09-02 entry left open, and it settles it on that entry's
 second option — a second party presses merge — while naming who the second
 party is: the coordinator the lane reports to, not an arbitrary other lane.
@@ -3799,12 +3800,21 @@ page carries and whoever wrote the change. What a lane may still do on its own
 pull request is unchanged and is the whole of its job there: correct it,
 re-measure it, re-merge a moved base, and say on the page what remains.
 
-What follows for the lead. Review and merge are **one pass over the open set**,
-not a merge per lane as each finishes. The serialization cost the 2026-09-02
-entry priced — with no second party awake, branches queue until morning — is
-accepted, and the pass is where it is paid. The repository has no continuous
-integration, so the pass is also where the gates get read by someone who did not
-run them.
+What follows for the supervisor. Merges go in **as they arrive**, not batched
+into one pass: a lane that is done does not wait behind a lane that is not, and
+the 2026-09-02 entry's serialization cost — branches queueing until someone is
+awake — is refused rather than paid. The repository has no continuous
+integration, so the merge is still where the gates get read by someone who did
+not run them; what is rejected is the queue, not the reading.
+
+The cadence has a cost and it is named: **every merge invalidates the base of
+every other open branch.** So the merge is not finished when the button is
+pressed — the supervisor tells the other lanes that `main` has moved, and each
+re-merges it, re-runs `make check` at the new base, and re-quotes the gates on
+its own page. A lane's measurement is only ever true of the base it was taken
+at, which is exactly what the two merges below had to redo when their base moved
+from `e7b6322` to `1ff51ed` overnight. An unannounced merge converts a green
+page into a stale one silently, and that is the failure this clause is against.
 
 The occasion, recorded as the breach it was rather than as the reason: on the
 morning of 2026-09-03 the lane holding #232 and #235 corrected the citation
@@ -5126,7 +5136,7 @@ than judging payloads.
 **2026-09-02 — may a lane merge its own pull request? RATIFIED 2026-09-03: it
 may not.** The question, its measured occasion and the three ways it could go
 are kept in the ledger entry above, which rules on it: a lane hands the open
-pull request up, and the coordinator reviews and merges in one pass.
+pull request up, and the supervisor merges as they arrive and calls the rebase.
 
 **2026-09-03 — Does "no non-default option" reach a harness-setup preference?
 The adapter roster's `httpServer.port` move, put as a question and not

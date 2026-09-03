@@ -163,15 +163,19 @@ channel existed and was simply not used.
 - **When these rules block a merge, say what is missing and stop.** An unmerged
   branch with a named blocker is a working state; a merged one with an invented
   verdict is not recoverable.
-
 - **A lane does not press merge at all — not even on its own pull request.**
   Ratified 2026-09-03: a lane's terminal state is an *open* pull request, based
   on the current `main`, with its gates measured at that base and quoted on the
   page, its blockers named, and out of draft when it is ready to be read. The
   lane then hands it up to the coordinator that launched it. Review and merge
-  are the lead's, taken as one pass over the open set rather than a merge per
-  lane as each finishes; the queueing this costs overnight is accepted. The
-  ledger entry is in `DECISIONS.md`.
+  are the supervisor's, taken **as pull requests arrive** rather than batched:
+  a finished lane does not queue behind an unfinished one. The ledger entry is
+  in `DECISIONS.md`.
+- **A merge moves every other open branch's base, so it is announced.** The
+  supervisor tells the live lanes that `main` has moved; each one re-merges it,
+  re-runs `make check` at the new base, and re-quotes its gates on its own page.
+  A gate reading is true only of the base it was taken at, and an unannounced
+  merge turns a green page stale without touching it.
 
 ## Upstream relations
 

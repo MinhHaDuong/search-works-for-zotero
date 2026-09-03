@@ -33,7 +33,7 @@ waits on 0029, which codex holds. No lane work reaches either.
 
 **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list, the service ceiling
 included (0577 closed, GPU arm measured). Merge authority is ruled — lanes hand PRs up, the
-lead merges in one pass. Still open: **is 0491 inside the codex fence**, the documents disagree.
+supervisor merges as they come and calls the rebase. Still open: **is 0491 inside the fence**.
 
 **Open:** nothing. #232 and #235 merged after their one citation fix each (`0bb5304`,
 `9dd6fcd`); `main` green at 592/13, 167 tickets. `claude/resume-journee-taj5f8` undecided.
