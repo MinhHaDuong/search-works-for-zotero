@@ -1,43 +1,199 @@
 # Ticket 0029 — scoping brief
 
-**For:** the author, to decide from.
+**Status: the findings stand; the recommendation is superseded.**
+
+**For:** whoever is finishing ticket 0029.
 **Written:** overnight 2026-09-02/03, read-only on code.
+**Revised:** 2026-09-03, re-verified against `origin/main` at `1bdc123`.
 **Subject:** `tickets/0029-the-golden-fixture-corpus-and-a-zotero-f.erg`.
 
-Every lane of the 2026-09-02 overnight run was rate-limited by needing a real
-index or a real Zotero. 0029 is the item that removes that constraint, and it
-was fenced off pending this scoping. Nothing here changes code; the
-measurements cited come from committed artifacts and from source, and none was
-re-run.
+This began as a decision brief recommending that 0029 be decomposed. The author
+has since assigned 0029 whole to another worker, so that recommendation is
+overtaken and has been moved to the end (§11 and §12) rather than deleted. What
+is left at the front is the part with value to someone executing the ticket:
+what the corpus is for, what it costs, what the fixture level cannot buy, and
+the two things most likely to be got wrong.
 
 ---
 
-## 1. Recommendation
+## 1. Status: what changed, and what was re-checked
 
-**Decompose 0029 into a tracker with five children, split by what each layer
-needs that the others do not — a browser and a pair of hands, a live Zotero
-and a public library account, the repository alone, the author's own
-judgement — and schedule the repository-only child first rather than last.**
-That child is the Zotero-free replay harness with a generated library behind
-it. It is the only piece of 0029 runnable tonight, it is what every blocked
-downstream ticket is actually waiting on, and it delivers something 0029's
-body does not currently claim: a library the harness is allowed to write to,
-which is what two of goal 2's five assertions are `not-run` for want of today.
+**The recommendation is superseded.** §11 argued for a tracker plus five
+children with the repository-only child scheduled first. The author assigned
+0029 whole on 2026-09-03. The partition boundary in §12 stays on the record
+because it is reusable if 0029 is ever split, and because the reasoning about
+which layer needs what is worth reading even by someone building all five
+layers in one pass.
 
-The alternative I reject is executing 0029 in its written order — recipe,
-injection, export, harness, answer sets. That order is the dependency chain of
-the *corpus*, and it puts three human-bound steps in front of the one piece of
-engineering that unblocks other work. It also front-loads the two steps most
-likely to stall: ten of the recipe's twenty-seven documents sit behind archive
-challenge pages only a browser can clear (`bench/fixtures/README.md`, "What
-the recipe holds"), and the injection step needs doudou's Zotero idle, which
-is the scarcest resource in the project.
+**`origin/main` moved under this brief, in three places.**
 
-One further recommendation, smaller: **drop R8 from 0029's charter.** See §7.
+- **`bench/acceptance/durability.py` is now on `origin/main`.** §4 says it is
+  not; that was true at `1f1aeb3`, and PR #226 has since merged at `1bdc123`.
+  The finding it carries is unaffected and was re-checked at `1bdc123`: the
+  zoteus adapter still declines the two write perturbations
+  (`bench/acceptance/adapters/zoteus.py:349`), so the R3 clauses still report
+  `not-run` for want of a library the harness may write to.
+- **`bench/fixtures/recipe.json` holds 26 documents, not 27.** Commit
+  `c99b9e8` ("Record embedder tolerance and drop unlicensed fixture", merged in
+  PR #242) removed `hal-04214661` on an author ruling. Seventeen of the 26 are
+  hashed; the language split is vi 10, fr 8, en 7, de 1. Every count in this
+  brief written as 27 should be read as 26, and §2 carries the corrected
+  arithmetic.
+- **Nothing else moved.** Re-checked at `1bdc123`: `check-slow` is still absent
+  from the `Makefile`, `R21` no longer appears in `SPEC.md`, and
+  `README.md:251-256` and `:269` still name 0029 as the test home for seven
+  requirements.
+
+**One conflict is left open on purpose.** This branch is based at `1f1aeb3`.
+Its single log line on 0029 and the author's 2026-09-03 ruling line both append
+to the same tail, so the ticket file conflicts. It is not resolved here,
+because 0029 belongs to another worker. The union is both lines in
+chronological order, this brief's `2026-09-02T22:41Z` entry before the
+`2026-09-03T03:44Z` ruling; neither replaces the other.
 
 ---
 
-## 2. What the corpus is for, and what it is not for
+## 2. Act on this first: pin `maxChars`, and treat the floor argument as an argument
+
+This is the one number that will bite whoever builds the corpus. It is set by
+configuration rather than by the corpus, and the product and the bench driver
+already disagree about it by a factor of five.
+
+### The constants, re-verified
+
+Both checkouts carry the same values; only the line numbers differ.
+
+| constant | value | address |
+|---|---|---|
+| `FULLTEXT_CHUNK_SIZE` | 1200 | `fork/src/features/search/index-manager.ts:70`, `fork-stock/…:58` |
+| `FULLTEXT_CHUNK_OVERLAP` | 150 | `fork/src/features/search/index-manager.ts:71`, `fork-stock/…:59` |
+| `DEFAULT_FULLTEXT_MAX_CHARS` | 40 000 | `fulltext-source.ts:11`, both checkouts |
+
+Stride is 1200 − 150 = **1 050 characters**. `chunkText`
+(`fork/src/features/search/chunker.ts:7`) snaps each cut back to the last space
+when that space falls past the halfway mark, so the true stride is a little
+under 1 050 and the passage counts below are lower bounds by a passage or two.
+
+40 000 is the **shipped** default, not merely a library default:
+`config.ts:186-190` gives `ZOTEUS_INDEX_FULLTEXT_MAX_CHARS` a Zod
+`.default(DEFAULT_FULLTEXT_MAX_CHARS)`, and `build.ts:449` reads
+`ctx.config.indexFulltextMaxChars`. **`bench/run_build.py:72` overrides it to
+200 000.** So a corpus built through the product and the same corpus built
+through the bench driver differ fivefold in passage count today, with nothing
+recording which was used.
+
+### The arithmetic
+
+Passages per document = ceil(maxChars / 1 050), for any document at least
+`maxChars` long.
+
+| maxChars | passages/doc | × 26 docs | 10/P at that size |
+|---|---|---|---|
+| 40 000 (product default) | 39 | **1 014** | 0,99 % |
+| 80 000 | 77 | 2 002 | 0,50 % |
+| 200 000 (bench driver default) | 191 | 4 966 | 0,20 % |
+
+Two corrections to the naive multiplication. One record,
+`vn-decision-11-2017-qdttg-solar-fit-en`, is nine pages and yields roughly 22
+passages rather than 39 at any cap, so the 40 000 row is closer to **997**.
+Seven records carry no `page_count` at all; the other eighteen are long enough
+that the cap, not the document, sets their passage count.
+
+### The floor argument is an argument, and not a strong one
+
+§5 argues a floor from R34: a ranker returning ten at random satisfies one
+query with probability 10/P, which is 5 % at P = 200 and 0,5 % at P = 2 000, so
+2 000 is where the top-ten cut becomes a real cut. The arithmetic is right and
+the conclusion does not follow.
+
+**It uses the wrong statistic.** R34 is absolute: every pinned answer inside
+the first ten. A random ranker therefore passes the *gate* with probability
+(10/P)^Q over Q queries, not 10/P. At Q = 40 that is vanishing at 1 014
+passages, at 2 000, and at 200 alike. The variable carrying the non-vacuity is
+the query count, not the corpus size. §5's own text notices this in one clause
+and then credits the corpus size for it.
+
+**It uses the wrong null.** The failure R34 will actually meet is not a random
+ranker but a degenerate non-random one: a keyword-only fallback, which the
+2026-09-02 overnight briefing records happening silently whenever
+`@huggingface/transformers` is absent from the built fork, or a ranker that
+returns the same ten items for every query. Corpus size does nothing against
+either. Query design and distractor density do.
+
+**And raising the cap is the least useful way to raise P.** The passages a
+higher cap adds are further overlapping windows of documents already in the
+corpus. They inflate P without adding a competing *document*, which is what a
+top-ten cut has to discriminate against. If a larger corpus is wanted, more
+documents buy it; a larger cap mostly buys build time.
+
+**No bar is declared anywhere.** Calling 5 % "close to vacuous" and 0,5 % "a
+real cut" is a judgement, not a rule. No `SPEC.md` clause and no ruling names a
+vacuity threshold, and 0,99 % sits between the two numbers the argument uses to
+anchor itself.
+
+### What survives, and it is the part that matters
+
+The consequence stands on firmer ground than the floor:
+
+**The fixture must pin `maxChars` explicitly and record the pinned value in the
+export, beside the passage count it produced.** Not because 40 000 is too
+small, but because the product ships 40 000 and the bench driver ships 200 000,
+so an unpinned corpus is a different corpus depending on who builds it, and a
+pinned answer set is valid only over the corpus that produced it. Whether the
+pinned value should also exceed 40 000 is a judgement to make deliberately
+rather than inherit from this brief's arithmetic.
+
+One consequence for R32, unchanged from §5: pinning the cap above the shipped
+default is safe, because `SPEC.md` §5.2.8 binds R32 as a rate rather than a
+wall clock. It still has to be written down, since the fixture's rate is then
+measured at a cap the product does not ship.
+
+---
+
+## 3. The open question, live and being answered by default: fixture provenance
+
+**Is a fixture library allowed to be generated, or must every fixture document
+be drawn from the recipe?**
+
+The 2026-09-02 rulings say a fixture document names a public archive identifier
+and never a personal library. Read strictly, that governs the *golden corpus*.
+Read as a general rule, it forbids a generated library outright. The repository
+already generates fixture content under the opposite reading:
+`bench/fixtures/make_index_fixture.mjs` writes 600 synthetic passages with
+invented titles, and its header gives the reason, which is that real titles are
+document names and the naming ruling keeps those out of anything committed.
+
+**Nothing has ruled on it, and something is answering it anyway.** Commit
+`c99b9e8` records a 2026-09-03 author ruling dropping `hal-04214661` from the
+recipe: the work is not the author's, the HAL deposit rests on the repository's
+distribution authorisation rather than a reusable licence, and the fixture has
+no consent from its authors. That is a real ruling, made by the author, and it
+is the first one that *removes* a record rather than pinning it.
+
+Two things follow.
+
+**Provenance policy is accreting from cases without being written as a
+policy.** Each document is ruled on at the moment it blocks. That is a
+reasonable way to unblock a document and a poor way to answer the general
+question, and the general question is the one that decides whether a
+Zotero-free harness can have a library at all.
+
+**The direction of the case law is not what a strict reading would predict.**
+The HAL ruling turns on licence and on authors' consent. A generated library
+has neither problem: nobody's work, nobody's consent, no archive. If anything
+the ruling is evidence for the generated reading. But that is an inference from
+an adjacent ruling, which is the move this repository's own discipline forbids,
+so it stays an inference.
+
+My reading, unchanged and still not a ruling: the provenance rule governs
+documents whose *content is measured for relevance*, and a generated library
+measured for durability and lifecycle falls outside it. Whoever finishes 0029
+will settle this by whatever they build, and the settlement will land in code
+rather than in `DECISIONS.md` unless it is asked first.
+
+---
+
+## 4. What the corpus is for, and what it is not for
 
 The premise handed to this session was that the corpus serves goal 1's five
 assertions and goal 2's five. Read against the code, that premise is wrong in
@@ -122,12 +278,13 @@ there is no continuity to preserve, only a set to build.
 
 ---
 
-## 3. Size: 2 000 passages, and the arithmetic
+## 5. Size: the build clock, and the argument for 2 000 passages
 
 **Recommendation: pin the fixture at roughly 2 000 indexed passages. That is
-the 27 documents already in `bench/fixtures/recipe.json` indexed at 80 000
+the 26 documents now in `bench/fixtures/recipe.json` indexed at 80 000
 characters each, and it costs about three minutes to build cold on the
-reference machine.**
+reference machine.** The ceiling below is sound; the floor is contested in §2,
+so treat 2 000 as a defensible choice rather than a derived requirement.
 
 ### The build clock
 
@@ -188,29 +345,18 @@ already applies to positive controls. **2 000 passages is where the top-ten
 cut becomes a real cut**, and that, not the document count, is the reason for
 the number.
 
-### How 27 documents reach 2 000 passages
+**This floor argument is weak, and §2 says why.** The arithmetic holds; the
+inference from it to a corpus size does not. Read §2 before pinning a number
+on the strength of this paragraph.
 
-The passage count is set by a configuration knob, not by the corpus. Verified
-in `fork-stock/src/features/search/`:
+### How the documents reach a passage count
 
-- `index-manager.ts:58-59` — `FULLTEXT_CHUNK_SIZE = 1200`,
-  `FULLTEXT_CHUNK_OVERLAP = 150`. Stride 1 050 **characters**.
-- `fulltext-source.ts:11` — `DEFAULT_FULLTEXT_MAX_CHARS = 40_000` per item.
-- `bench/run_build.py:72` — the bench driver overrides it to 200 000.
-
-Passages per document = ceil(maxChars / 1 050). So:
-
-| maxChars per item | passages/doc | × 27 docs | build |
-|---|---|---|---|
-| 40 000 (product default) | 39 | 1 053 | 93 s |
-| **80 000 (recommended)** | **77** | **2 079** | **183 s** |
-| 200 000 (bench driver default) | 191 | 5 157 | 454 s |
-
-**At the product default the fixture lands under the R34 floor.** The corpus
-must therefore pin the cap above the shipped default and record it in the
-export. That is safe for R32, which `SPEC.md` §5.2.8 binds as a rate rather
-than a wall clock, but it has to be written down: the fixture's rate is
-measured at a cap the product does not ship.
+**Moved to §2 and corrected there.** The constants, the shipped default, the
+bench driver's override and the count at each cap now live at the front of this
+brief, because they are the thing most likely to be got wrong. The short
+version: the passage count is set by `maxChars`, the product ships 40 000, the
+bench driver ships 200 000, and the fixture has to pin one of them and record
+which.
 
 ### The passage-length distribution the ticket asks to pin
 
@@ -239,7 +385,7 @@ that truncation visible.
 
 ---
 
-## 4. What "Zotero-free" means here: the local HTTP API, and nothing else
+## 6. What "Zotero-free" means here: the local HTTP API, and nothing else
 
 Verified by reading `fork-stock/src` at the reviewed baseline (`UPSTREAM`,
 `UPSTREAM_REVIEWED_SHA=b05ed69a…`, v1.12.0):
@@ -290,7 +436,7 @@ reason the corpus earns its cost, and it is written down nowhere yet.
 
 ---
 
-## 5. What the fixture level cannot buy
+## 7. What the fixture level cannot buy
 
 `SPEC.md` §5.2.8 and `README.md`'s goals ladder both state the rule: the
 library level decides, the fixture stands in for it, and every surrogate
@@ -308,7 +454,7 @@ fixture run leaves all of the following unmeasured.
 - **The attachment mix.** The census
   (`bench/results/0140-passage-census/census.json`) reads 8 700 PDFs, 4 867
   HTML and 63 other, with medians of 35, 5 and 29 passages per attachment. A
-  27-document, PDF-dominated corpus has no HTML slice and cannot represent
+  26-document, PDF-dominated corpus has no HTML slice and cannot represent
   that mix.
 - **Scale, and every ranking term that depends on it.** The design point is
   567 829 passages (same artifact); the fixture is 2 000. That is a factor of
@@ -331,7 +477,7 @@ library proves the promise.**
 
 ---
 
-## 6. PR #232 and PR #233: keep both, fold neither
+## 8. PR #232 and PR #233: keep both, fold neither
 
 The backlog lead read both as small private instances of the same missing
 thing. Half right, and the wrong half is the half that would cost work.
@@ -358,7 +504,7 @@ tracker.
   only. It is scoped by tracker 0593, a separate estate. **Keep as-is.**
 
 **Neither should be re-sized as 0029's first slice**, and the reason is
-positive rather than defensive: 0029's first slice, as recommended in §1, is
+positive rather than defensive: 0029's first slice, as recommended in §11 (superseded), is
 the replay harness, which needs a *library* fixture, not a *format* fixture
 and not a *roster* guard.
 
@@ -373,7 +519,7 @@ sequel, not 0029.
 
 ---
 
-## 7. Three smaller rulings this brief asks for
+## 9. Three smaller rulings this brief asks for
 
 **R8 does not belong in 0029.** `README.md:269` assigns R8 — a 15 000-item
 library answered, a 15 000-page PDF indexed whole — to ticket 0029. The corpus
@@ -389,8 +535,7 @@ line: the synthetic monster is generated in a non-Latin script.**
 reading against "the stability reading of the same fixture R21 uses". R21 was
 retired on 2026-08-31 as apparatus; the stability reading now sits beside R34
 in §5.2.8's golden-gate paragraph, and 0581 owns the requirement that a
-constructed input make the two readings disagree. Correct the body on
-decomposition.
+constructed input make the two readings disagree. Correct the body.
 
 **`check-slow` does not exist.** `SPEC.md:2370` specifies
 `check-slow: check rss-gate convergence soak`; the `Makefile` has `check`,
@@ -401,7 +546,72 @@ belongs in `check-slow`, and something has to create it.
 
 ---
 
-## 8. The proposed partition
+## 10. Verified against assumed
+
+**Verified by reading source or a committed artifact:** the five goal-1
+assertions and their inputs; that `durability.py` was not on `origin/main` when this was written, and is now (see §1);
+that the zoteus adapter declines the R3 perturbation, and why; that the index
+build touches only the local HTTP API and never the data directory or the
+attachment store; the chunk size, the overlap and both max-chars defaults; the
+88,03 ms/passage embed figure and that fp32 is the shipped cell; the 80,6 s
+attachment walk; the recipe's records, 17 of them hashed (26 records since `c99b9e8`; 27 when this brief was written), and its language
+distribution; that `check-slow` does not exist; that R21 is retired; that no
+answer set is committed anywhere; that 0101 closed with no 0029 flag on it.
+
+**Derived, and labelled as such:** every per-passage rate in §5 is an
+aggregate divided by a count, the 88,03 ms figure's own artifact included. Two
+independent routes agree within 20 %, which is a cross-check and not a
+measurement.
+
+**Assumed, each worth one experiment:** that a 1 200-character passage
+overruns the 498-token budget in a one-character-per-token script (§5, last
+subsection), settled by one tokenizer run with no Zotero involved; and that
+the `0263-cpu-arm` run was taken on doudou, inferred from its corpus path
+rather than from a host field the artifact does not carry.
+
+**Not determined:** whether the fork's `conductor-integration` branch can be
+carried into this repository as the harness's replay layer, or whether child A
+should write a replay of its own. That is child A's first design decision, and
+this brief does not pre-empt it.
+
+---
+
+## 11. SUPERSEDED — the original recommendation
+
+> **Superseded 2026-09-03.** The author assigned 0029 whole to another worker,
+> so the decomposition below was not adopted. It is kept because a proposal that
+> was overtaken is part of the record, and because the partition boundary in §12
+> stays usable if 0029 is ever split. Nothing in §11 or §12 should be read as a
+> current recommendation.
+
+**Decompose 0029 into a tracker with five children, split by what each layer
+needs that the others do not — a browser and a pair of hands, a live Zotero
+and a public library account, the repository alone, the author's own
+judgement — and schedule the repository-only child first rather than last.**
+That child is the Zotero-free replay harness with a generated library behind
+it. It is the only piece of 0029 runnable tonight, it is what every blocked
+downstream ticket is actually waiting on, and it delivers something 0029's
+body does not currently claim: a library the harness is allowed to write to,
+which is what two of goal 2's five assertions are `not-run` for want of today.
+
+The alternative I reject is executing 0029 in its written order — recipe,
+injection, export, harness, answer sets. That order is the dependency chain of
+the *corpus*, and it puts three human-bound steps in front of the one piece of
+engineering that unblocks other work. It also front-loads the two steps most
+likely to stall: ten of the recipe's twenty-six documents sit behind archive
+challenge pages only a browser can clear (`bench/fixtures/README.md`, "What
+the recipe holds"), and the injection step needs doudou's Zotero idle, which
+is the scarcest resource in the project.
+
+One further recommendation, smaller: **drop R8 from 0029's charter.** See §9.
+
+---
+
+## 12. SUPERSEDED — the proposed partition
+
+> **Superseded 2026-09-03**, with §11. Kept for the partition boundary, which
+> stays usable if 0029 is ever split, and for the per-child list of what each
+> layer needs, which is worth reading even when one worker builds all five.
 
 0029 is a monster by the standing test: fifteen exit criteria, three layers,
 seven requirements, four blocked tickets behind it, and at least three
@@ -440,58 +650,3 @@ artifacts.
 on E. 0032 waits on A, because the offered spec needs a runnable harness
 rather than pinned answers — the offer travels at fixture level, and the
 answers are the part that never does.
-
----
-
-## 9. Verified against assumed
-
-**Verified by reading source or a committed artifact:** the five goal-1
-assertions and their inputs; that `durability.py` is not on `origin/main`;
-that the zoteus adapter declines the R3 perturbation, and why; that the index
-build touches only the local HTTP API and never the data directory or the
-attachment store; the chunk size, the overlap and both max-chars defaults; the
-88,03 ms/passage embed figure and that fp32 is the shipped cell; the 80,6 s
-attachment walk; the recipe's 27 records, 17 of them hashed, and its language
-distribution; that `check-slow` does not exist; that R21 is retired; that no
-answer set is committed anywhere; that 0101 closed with no 0029 flag on it.
-
-**Derived, and labelled as such:** every per-passage rate in §3 is an
-aggregate divided by a count, the 88,03 ms figure's own artifact included. Two
-independent routes agree within 20 %, which is a cross-check and not a
-measurement.
-
-**Assumed, each worth one experiment:** that a 1 200-character passage
-overruns the 498-token budget in a one-character-per-token script (§3, last
-subsection), settled by one tokenizer run with no Zotero involved; and that
-the `0263-cpu-arm` run was taken on doudou, inferred from its corpus path
-rather than from a host field the artifact does not carry.
-
-**Not determined:** whether the fork's `conductor-integration` branch can be
-carried into this repository as the harness's replay layer, or whether child A
-should write a replay of its own. That is child A's first design decision, and
-this brief does not pre-empt it.
-
----
-
-## 10. The question I most want answered first
-
-**Is child A allowed to generate its library, or must every fixture document
-come from the recipe?**
-
-The 2026-09-02 rulings say a fixture document names a public archive
-identifier and never a personal library. Read strictly, that governs the
-*golden corpus*. Read as a general rule, it also forbids child A's generated
-library — and child A's whole value is that it needs no archive, no browser
-and no Zotero.
-
-The repository already generates fixture content under a different reading:
-`bench/fixtures/make_index_fixture.mjs` writes 600 synthetic passages with
-invented titles, and its header gives the reason — real titles are document
-names, which the naming ruling keeps out of anything committed.
-
-So the two rules point opposite ways depending on which artifact is in view,
-and the answer decides whether the recommended first slice exists at all. My
-reading is that the provenance ruling governs documents whose *content is
-measured for relevance*, and that a generated library measured for durability
-and lifecycle falls outside it. That is my reading and not a ruling, and it is
-the one thing I would not proceed on without you.
