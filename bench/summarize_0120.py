@@ -285,6 +285,12 @@ def main():
                                      "peak; assigning this figure to one of them is a ruling, "
                                      "not a measurement, and SPEC.md §5.2.9 records that "
                                      "ceiling as awaiting a re-pin.",
+        "and_the_plateau_is_bounded_too": "flat for the last 87 s of a 305,9 s build, on one "
+                                          "library and one machine. That is what a working-set "
+                                          "ceiling looks like, and it is not proof of one: a "
+                                          "plateau held over 87 s says nothing about a build "
+                                          "that runs for hours, and the 2026-09-02 embedding "
+                                          "build reached 2 409,6 MiB on the same library.",
     }
 
     if a.index_db and a.index_db.exists():

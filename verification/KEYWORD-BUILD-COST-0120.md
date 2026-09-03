@@ -185,6 +185,10 @@ is.
 - **The WAL is reported beside the main file, not folded into it.** The full run left
   141,1 MiB of WAL; a checkpoint moves those bytes without changing what the build
   needed.
+- **The memory plateau is 87 s of a 305,9 s build, on one library.** That is the shape
+  of a working-set ceiling and not proof of one — a level reading held for 87 s says
+  nothing about a build that runs for hours, and the embedding build on this same
+  library reached 2 409,6 MiB.
 - One machine, no GPU.
 
 ## What this does and does not decide
