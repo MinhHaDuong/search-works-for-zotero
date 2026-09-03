@@ -9,9 +9,11 @@ Author: Minh Ha-Duong
 2026-08-29T17:42Z claude note filed at the author's request after the year-scope measurement. Two of the four facets he named are R5 clauses (date, item type) and two are not (creator, title), so action 1 is a ruling rather than code — R5 enumerates collection, tag, item type and date, and building a creator filter against a requirement that does not name one is how a sheet drifts. Title is the odd one: it is already stored on both items and passages and already searchable as text, so filtering by it may mean a field restriction rather than a scope, which is a different feature. Blocked-by is deliberately NOT set on the ratification entries: they are questions to the author rather than work items, and a Blocked-by pointing at a ledger entry would be unresolvable by any executor
 2026-08-31T14:54Z claude note PRECONDITION DISCHARGED upstream 2026-08-31. Issue #34's migration path shipped in v1.11.0 (d26f090 merging 3341844): a ladder of upgrade steps carries an older index forward in place, each step inside the one transaction that stamps the new version, so a database is either fully upgraded or fully untouched and a throwing step rolls back to the sideline; and a sidelined index becomes a read-only vector source, so a passage returning with the same id and byte-identical text keeps its stored vector instead of being re-embedded. This ticket's note that a facet-column schema change should land WITH a migration rather than before one is now satisfiable: the migration exists, so the facet columns can be an additive ladder step. Re-read the ladder's shape at v1.12.0 before designing the step
 2026-09-02T15:43Z codex note author ratified the stored-attribute path now for year/date and item type; collections and tags remain under X4, creator and title remain separate
+2026-09-03T18:03Z claude note Imagine+Plan pass. Drift guard: reviewed baseline moved from the v1.12.0 this ticket's 2026-08-31 entry pointed at to v1.13.0 (b0e0bc8, STATE.md, ticket 0618) — re-read there. The ladder now carries its first real rung (`to: 2`, keeps diacritics), so this ticket's rung is no longer the ladder's maiden voyage, it is the second entry and has a shipped precedent to match: fork/src/features/search/sqlite-index.ts SCHEMA_VERSION at :63, SCHEMA_MIGRATIONS at :175-204, contract at :147-157. items/passages table shapes are unchanged since the 2026-08-29 measurement (`items(item_key, title)` only, sqlite-index.ts:929) — the precondition this ticket names still holds verbatim. R5 itself is unchanged at this SHA (verification/UPSTREAM-1.13.0-REREAD.md, "R5 — unchanged"). Query surface (`q, limit, mode, auto_build`, src/tools/semantic-search.ts:21-25) and the query()/keywordSearch/vectorSearch shape (index-manager.ts:2087-2136, sqlite-index.ts:1024-1030,1422,1496) are also unchanged. No drift that touches this ticket's premise. Refined Actions/Test/Verification below with file:line citations at this SHA; did not implement (Plan phase only)
 2026-09-03T18:20Z claude note migration rung prepared on the fork branch `facet-columns-year-item-type` (`114c7a4`, MinhHaDuong/zoteus), cut from upstream b0e0bc8. SCHEMA_VERSION 2 -> 3; rung 3 is two ALTER TABLEs (items.year INTEGER, items.item_type TEXT) plus two indexes, inside the transaction that stamps the version, so no row is invalidated and no vector re-embedded. Both columns land NULL because the values are Zotero's and the rung has nothing to derive them from — which made putItem's INSERT OR IGNORE a real gap rather than polish: it leaves an existing row untouched, so a migrated item would stay unscopable until its title changed, i.e. forever on a settled library. putItem now follows the ignored insert with a COALESCE update, which fills a NULL and never blanks a stored value; the new-item counter still keys on the insert alone. Three new cases in tests/features/search-schema-migration.test.ts, red first, including the control that a facet-less touch must not blank. Fork gate green: typecheck, eslint, 1049 tests. NOT filed upstream — that needs the author's authorization. Actions 3-5 (query path, tool schema, R18 scope block) and real-corpus validation against bench/results/0605-padme-full-index/ are out of this round; no exit criterion is met yet, so the ticket stays open
 2026-09-03T18:34Z claude note corrections to the entry above, from PR #318's review. (1) It said the next crawl would fill the new columns; at `114c7a4` nothing did — both putItem call sites still passed two arguments while holding the Zotero item on that line, so the setter was proven and the feature was not. Fixed in `0c38c03` on the same branch: itemFacets() reads meta.parsedDate (falling back to raw data.date) and data.itemType at both sites, a dateless item keeps a NULL year rather than a guessed one, and a new case drives build() end to end over a meta-dated, a raw-dated and a dateless item. The in-memory index's putItem takes the parameters and voids them explicitly — it answers no scoped query, and a facet silently dropped is this repo's recurring axis defect. Fork gate green again: typecheck, eslint, 1050 tests. (2) The artifact path was wrong: there is no bench/results/0605-padme-full-index/. The deferred validation is against 0605's own declared output, `bench/results/0605-scope-census/`, which does not exist yet either — 0605 is not run. (3) The 43x figure is a MEDIAN ratio (254,8 ms against 11 141,9 ms in bench/results/0025-year-scope/year-vs-json-each.json), not a bare speedup
 2026-09-03T18:40Z claude note round 2 of PR #318 raised no blocker and two cheap correctness notes on itemFacets, both fixed in `bc1444d` on the fork branch: an empty meta.parsedDate no longer suppresses the raw data.date fallback (`??` treated the API's I-could-not-parse as a value), and the year pattern is narrowed to 1500-2199 so a page number beside the date in a free-text field is not read as a year. The floor costs a genuinely pre-1500 item its year, which is the direction the function prefers throughout — no year beats a wrong one, because a wrong one files the item under a scope it does not belong to. Both cases added to the build-driven test, each able to fail against the previous commit. Fork gate green: typecheck, eslint, 1050 tests. Branch tip `bc1444d`
+2026-09-03T18:52Z claude note note: the "bench/results/0605-padme-full-index/" path this entry's 18:34Z correction called nonexistent now DOES exist — it was committed separately (PR #319, ticket 0605's own log) after this branch forked. 0441's own deferred validation target is still correctly 0605's census output, `bench/results/0605-scope-census/`, which remains unrun; the full-index build is a different artifact (0605 Action 2's join target, not its Action 3 output) and was never this ticket's own deferred-validation path to begin with.
 --- body ---
 ## Context
 The author asked to search his library scoped by **year**, and named
@@ -81,38 +83,128 @@ claims completeness; it does not require constraining MATCH, and says so.
   metadata is written), `src/tools/semantic-search.ts` (the input schema).
 
 ## Actions
-1. Settle the scope question first, since two facets are unratified: put the
-   author/title reading to the author and record the ruling. Do not build a
-   creator filter against a requirement that does not name one.
-2. Add the columns the facets need to the index schema — at minimum `year` and
-   `item_type` on `items`, `creator` if ruling 1 admits it — populated at build
-   time from data the crawl already fetches. Note this is a schema change, and
-   upstream has no migration path (issue #34): every user re-embeds unless that
-   is addressed first, which is an argument for landing this *with* a migration
-   rather than before one.
-3. Extend the query path to take an optional filter and apply it while ranking,
-   never after truncation.
-4. Surface the filter on `zotero_semantic_search`'s input schema.
-5. Answer R18 honestly for a scoped query: when the ranked stream is exhausted
-   before k is filled, say "this scope is not indexed yet" or "nothing matches"
-   *for the scope asked about*. This is the rung that catches what the filter
-   cannot, and X4's verdict made it load-bearing.
+1. **DONE 2026-09-02.** Author ratified the stored-attribute path for
+   year/date and item type (DECISIONS.md, "Scoping by a stored attribute is
+   affordable..."). Creator and title stay out of this ticket; collections and
+   tags stay on X4/0605's mechanism. Nothing left to build for this action —
+   do not build a creator filter.
+2. **Migration ladder rung.** In `fork/src/features/search/sqlite-index.ts`:
+   bump `SCHEMA_VERSION` (currently `2`, :63) to `3` and append a rung to
+   `SCHEMA_MIGRATIONS` (currently one entry, `to: 2`, :175-204) whose `up(db)`
+   runs, inside the migration's own transaction per the ladder contract
+   (:147-157):
+   ```
+   ALTER TABLE items ADD COLUMN year INTEGER;
+   ALTER TABLE items ADD COLUMN item_type TEXT;
+   CREATE INDEX items_year ON items(year);
+   CREATE INDEX items_item_type ON items(item_type);
+   ```
+   This is exactly the shape `bench/year_scope.mjs` measured (`ALTER TABLE
+   items ADD COLUMN year INTEGER` + `CREATE INDEX items_year ON items(year)`).
+   The join side needs no new index: `passages_item` on `passages(item_key)`
+   already exists (:939). `createSchema()` (:926-974) also needs the two
+   columns/indexes added directly — a fresh install never walks the ladder.
+   No vector is touched by this rung (matches the `to: 2` precedent's own
+   contract note that most schema changes invalidate no stored row).
+3. **Backfill path, and its honest limit.** Extend `putItem(itemKey, title)`
+   (abstract at index-manager.ts:416; SQLite impl at sqlite-index.ts:1235-1239,
+   backed by `insertItem` at :981) to take `year`/`itemType`, sourced at the
+   existing call sites (index-manager.ts:834, :2018) from the same `d =
+   item.data` object already destructured there (`d.itemType`; prefer
+   `item.meta?.parsedDate` over raw `d.date` if the crawl fetches `meta` —
+   confirm this empirically at execution time, not assumed here). `insertItem`
+   is `INSERT OR IGNORE` (:981), which never updates an existing row — change
+   it to an upsert (`ON CONFLICT(item_key) DO UPDATE SET
+   title=excluded.title, year=excluded.year, item_type=excluded.item_type`)
+   so a changed item picks up its year/item_type the next time it is touched.
+   Incremental updates already delete+reinsert a changed item
+   (index-manager.ts:1547, :1582), so this is sufficient for anything the
+   crawl revisits. **Items untouched since before the migration keep NULL
+   forever until a full rebuild** — this is not an edge case, it is the fact
+   Action 6/R18 below has to answer for.
+4. **Query-time predicate.** Extend the `keyword` prepared statement
+   (sqlite-index.ts:1024-1030) and the vector rescore path
+   (`vectorSearch`, :1496) to join `items i ON i.item_key = p.item_key` and add
+   `AND i.year BETWEEN ? AND ?` / `AND i.item_type = ?` when a scope is
+   supplied — the same join `bench/year_scope.mjs`'s `byYear` statement used,
+   measured 43x cheaper than X4's `json_each` mechanism
+   (`bench/results/0025-year-scope/year-vs-json-each.json`). Wire it through
+   `keywordSearch`/`vectorSearch` (:1422, :1496), called from `query()`
+   (index-manager.ts:2087-2136) — the filter must be inside the `pool =
+   limit * 3` fetch (line 2094), never a post-filter on `fused` after the
+   `hits.length >= limit` truncation at line 2133. This is X4's own mechanism
+   distinction (rowid-set join vs. arbitrary rowid blob) and R5's "before any
+   answer is truncated" clause.
+5. Surface the filter on `zotero_semantic_search`'s input schema
+   (src/tools/semantic-search.ts:21-25, currently `q, limit, mode,
+   auto_build` only — unchanged at this SHA), as an optional
+   `scope: { year?: {from, to}, item_type?: string }`, threaded through
+   `ctx.search.query(args.q, {...})` (:115) into `QueryOptions`.
+6. Answer R18 honestly for a scoped query: when the ranked stream is exhausted
+   before k is filled *because the scope is narrow*, distinguish that from
+   "nothing matches" globally. This is the rung that catches what Action 3's
+   NULL-until-touched fact creates: an old, unbackfilled item must not read as
+   "excluded because out of scope" when it is really "not yet classified".
+   X4's verdict made this load-bearing.
 
 ## Test
-Red first, on a fixture index carrying two items of different years: a query
-scoped to the year of the non-matching item must return zero hits AND a
-`scope{}` block saying which — not an empty list. That test fails today for the
-strongest possible reason, which is that no filter argument exists to write.
+**Unit level, first, red.** Model it on
+`fork/tests/features/search-schema-migration.test.ts`, which already builds a
+`to: 2`-stamped fixture and upgrades it in-process through the real
+`migrationPath()` — its own doc comment names "ADD_COLUMN-style rungs" as
+existing generic machinery fixtures, "not shipped migrations"; this ticket
+ships the first ADD_COLUMN-shaped rung for real, so it is the natural place to
+add cases, not a new test file. Two cases:
+1. A `to: 2` fixture with two items of different `year`/`item_type`, migrated
+   to `to: 3`. Assert: no vector touched (matches the existing pinned cases in
+   that file), `year`/`item_type` columns and their indexes exist, and a query
+   scoped to the *non-matching* item's year returns zero hits AND a `scope{}`
+   block naming the reason — not an empty list. This fails today for the
+   strongest possible reason: no filter argument exists to write, and no
+   `year`/`item_type` column exists to filter on.
+2. A pre-migration item (present before the `to: 3` rung ran, so `year`/
+   `item_type` are NULL after migration) is excluded from a year-scoped query
+   *with the "not yet classified" R18 distinction*, not silently matched and
+   not silently folded into "nothing matches" — this is Action 3's backfill
+   limit made concrete, and it is a case a real-corpus run cannot exercise
+   deterministically the way a fixture can (which items are unbackfilled on
+   the real library depends on incremental-update history, not on this rung).
+
+Small, in-memory or tmp-file SQLite, no network, no embedder — fast, part of
+`npm test` (vitest) in `fork/`.
+
+**Deferred, named, non-blocking: real-corpus validation.** Against the running
+keyword-only build at `bench/results/0605-padme-full-index/` (sqlite, ~7,546
+items, no embeddings) once it is available — as of this Plan pass its
+`build-result.json` already shows a *completed* run (elapsed_s 142.5, 7546
+items, 481920 documents), which may mean the "many hours out" framing at
+kickoff was about a different, still-running process; confirm the actual
+process state before treating it as free capacity. Either way this is Phase 5
+execution's job: do not start a competing build or a heavy local-API-driving
+test against padme's Zotero desktop while anything is still using it.
 
 ## Verification
-- [ ] A year-scoped query returns only items of that year, on the real library
+- [ ] Migration rung `to: 3` upgrades a `to: 2` fixture in place: no re-embed,
+      no vector touched, `year`/`item_type` columns and their indexes exist
+      afterward (unit, fixture scale)
+- [ ] A fresh install (`createSchema()` path) carries the same columns/indexes
+      without ever walking the ladder (unit)
+- [ ] A year-scoped and an item-type-scoped query each return only matching
+      items, on a fixture (unit, first) and later on the real library (follow-up)
 - [ ] The filter is applied before truncation, shown by a case where an
-      unscoped top-k contains none of the in-scope hits
+      unscoped top-k contains none of the in-scope hits (unit, fixture scale;
+      re-check on the real index in the follow-up)
+- [ ] A pre-migration, unbackfilled item is excluded from a scoped query with
+      the "not yet classified" distinction, not silently matched and not
+      folded into "nothing matches" (unit)
+- [ ] An empty scoped result (scope narrow, corpus has nothing in it) carries
+      R18's distinction from an unbackfilled item's exclusion above — two
+      different reasons, two different messages
 - [ ] p95 for a scoped query stays within the unscoped baseline's band on the
-      real index (the probe measured no marginal cost; this re-checks it in the
-      server rather than in SQL)
-- [ ] An empty scoped result carries R18's distinction
-- [ ] `make check` green
+      real index — follow-up, once the real-corpus run is available; the probe
+      already measured no marginal cost at SQL level, this re-checks it in the
+      server
+- [ ] `npm test` (vitest) green in `fork/`; `make check` green in this repo
 
 ## Invariants
 - X4's verdict stands: no `json_each` rowid-set step ships. This ticket adds a
@@ -123,7 +215,8 @@ strongest possible reason, which is that no filter argument exists to write.
 - Nothing here is filed upstream without the author's authorization.
 
 ## Exit criteria
-- [ ] The author/title reading is ruled on in `DECISIONS.md`
+- [x] The author/title reading is ruled on in `DECISIONS.md` — done 2026-09-02
 - [ ] Year and item-type scoping work end to end against the real library
-- [ ] R18's scope block answers an exhausted scope
+- [ ] R18's scope block answers an exhausted scope, and distinguishes it from
+      an unbackfilled (pre-migration) item's exclusion
 - [ ] The stored-attribute ledger entry is ratified and SPEC.md §5.2.2 edited to match
