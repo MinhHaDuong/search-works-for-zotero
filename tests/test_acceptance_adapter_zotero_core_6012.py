@@ -126,7 +126,23 @@ def test_the_matching_build_constructs_and_is_read_back(tmp_path):
     target = an_adapter(tmp_path, application=a_build(tmp_path))
     assert target.build["Version"] == adapter.VERSION
     assert target.build["BuildID"] == adapter.BUILD_ID
-    assert target.install()["pin_checked"] is True
+    event = target.install()
+    assert event["pin_checked"] is True
+    assert event["application_ini"]["Version"] == adapter.VERSION
+
+
+def test_the_install_event_records_the_build_s_stamp_and_not_its_location(tmp_path):
+    """`bench/results/**` is a public tree, and a build's path is one machine's business.
+
+    `run.py` states the rule for the fixture artifact — verdicts, never paths —
+    and there is no reason the per-target artifacts should be the exception. The
+    identity that decides what ran is the application.ini stamp, which is
+    recorded; the directory it sits in is not.
+    """
+    build_at = a_build(tmp_path)
+    event = an_adapter(tmp_path, application=build_at).install()
+    assert str(build_at) not in repr(event)
+    assert str(build_at.parent) not in repr(event)
 
 
 def test_the_build_id_is_recorded_and_not_enforced(tmp_path):

@@ -795,7 +795,11 @@ class ZoteroCore6012:
                 "and its four dead ends are in this adapter's module docstring"
             ),
             "commit": COMMIT,
-            "application": str(self.application),
+            # The build's own stamp is the provenance; WHERE it sits on one
+            # machine is not, and `bench/results/**` is a public tree — the rule
+            # `run.py` states for the fixture artifact, which has no reason to
+            # stop at that one file. So the path is deliberately absent here and
+            # the identity that decides what ran is present.
             "application_ini": {k: v for k, v in self.build.items() if k != "_path"},
             "pin_checked": bool(self.build),
             "pin_expected_version": VERSION,
