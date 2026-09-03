@@ -408,26 +408,6 @@
   "notes": "EN side of the cross-lingual pair with vn-constitution-1992-vi: an English query against Vietnamese content with a known-aligned answer (R29)."
  },
  {
-  "id": "hal-04214661-o-nhiem-khong-khi",
-  "title": "Ô nhiễm không khí : Cần làm gì để bảo vệ mình ? (\"How to improve air quality in Vietnam?\")",
-  "author": "Géraldine Le Nir; Juliette Laurent; Marie Lan Nguyen Leroy",
-  "year": 2023,
-  "language": "vi",
-  "tier": "MUST",
-  "facet": "core",
-  "archive": "hal",
-  "identifier": "hal-04214661",
-  "version": "v1",
-  "bytes_url": "https://hal.science/hal-04214661/file/Sach%20O%20nhiem%20khong%20khi%20-%20PRX.pdf",
-  "bytes_format": "pdf",
-  "sha256": null,
-  "sha256_reason": "HAL serves an Anubis proof-of-work challenge to scripted clients (HTTP 200 with a challenge page, not the PDF). Fetch once in a browser, hash, and pin.",
-  "page_count": null,
-  "license_basis": "HAL deposit under the HAL authorisation, not a Creative Commons licence: the depositor authorizes distribution through HAL; reuse in this fixture rests on the authors' consent, to be obtained before the export is committed.",
-  "provenance_check": "HAL API record confirmed: docType OUV, one file, version 1.",
-  "notes": "Recent Vietnamese scientific book (air pollution). Weakest licence in the recipe; drop rather than guess if the authors do not answer."
- },
- {
   "id": "hal-04332519-economies-of-scale",
   "title": "Tính kinh tế theo quy mô trong tiêu dùng điện của các hộ gia đình tại Việt Nam (\"Economy of Scale in Electricity Consumption of Households in Vietnam\")",
   "author": "Hoài Sơn Nguyễn; Minh Ha-Duong; Xuân Tháng Nguyễn",

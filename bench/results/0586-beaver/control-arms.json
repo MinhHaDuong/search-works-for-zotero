@@ -1,0 +1,137 @@
+{
+  "probe": "every guard in the Beaver adapter's test file, driven red from a planted defect against the committed tree (ticket 0586)",
+  "not_a_test_suite": "each row plants ONE defect, runs ONE guard, and requires it to FAIL. A guard that stays green under its own planted defect is not a guard; this artifact is red when an arm reads STILL GREEN.",
+  "arms": [
+    {
+      "arm": "sweep blind to a file root",
+      "file": "bench/acceptance/assertions.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_survivor_sweep_sees_a_root_that_is_a_file"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "a journal sibling dropped from the declaration",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_sidecar_database_declares_its_journal_siblings"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "a target preference smuggled into harness setup",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_no_harness_preference_is_a_target_preference"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "configure writes instead of reporting",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_configure_applies_nothing"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "an absent verb returns instead of raising",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_four_absent_verbs_raise_rather_than_return"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "a dead host recorded instead of raised",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_a_host_that_never_starts_raises_rather_than_returning_a_verdict"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "the pin stated but not checked",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_an_artifact_that_is_not_the_pinned_one_is_refused"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "readiness waits on the HOST's database, which does not discriminate",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_plugin_signal_is_the_targets_own_file_not_the_hosts"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "uninstall deletes derived state on the target's behalf",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_uninstall_removes_the_installed_artifact_and_no_derived_state"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "the control that DOES exist left unnamed in pause's reason",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_pause_is_absent_for_the_opposite_reason_to_the_second_targets"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "a reason collapsed back into an undifferentiated cell",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_every_absent_verb_carries_a_reason_long_enough_to_be_one",
+        "tests/test_acceptance_adapter_beaver.py::test_pause_is_absent_for_the_opposite_reason_to_the_second_targets"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "a derived-state root outside the arena",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_every_derived_state_root_is_inside_the_arena"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "the preferences-file admission dropped",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_preferences_file_is_recorded_as_an_admission"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "the host directories exempted with no cost stated",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_the_hosts_own_directories_are_exempted_with_the_cost_stated"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "the lifecycle signals the process, not its group",
+      "file": "bench/acceptance/adapters/beaver.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_adapter_beaver.py::test_stopping_the_lifecycle_leaves_no_orphan_of_the_hosts_own_child"
+      ],
+      "verdict": "RED"
+    },
+    {
+      "arm": "this target's name planted in a layer module",
+      "file": "bench/acceptance/assertions.py",
+      "tests_required_to_fail": [
+        "tests/test_acceptance_layer_is_target_neutral.py::test_layer_names_no_target"
+      ],
+      "verdict": "RED"
+    }
+  ],
+  "red": 16,
+  "total": 16
+}

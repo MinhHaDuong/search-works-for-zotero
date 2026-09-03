@@ -5046,3 +5046,136 @@ and scope `R10-no-egress` to data-bearing calls, which trades a false red today
 for a class of true reds it would stop seeing tomorrow. The last is the one to
 be most careful with: the assertion's value is that it counts attempts rather
 than judging payloads.
+
+**2026-09-02 — may a lane merge its own pull request? Not ratified: the
+governance half of the merge-authority rule is the author's.** `AGENTS.md` now
+carries what is not in dispute: no merge before a review verdict is recorded on
+the pull request itself, a verdict quoted as received, an unreported reviewer
+leaving the branch BLOCKED rather than inferred, no finding attributed to a
+reviewer who did not make it, the reviewer posting its own verdict to the page
+with a waiting lead polling it, and no lane merging a pull request another lane
+is gating. What it deliberately does not say is who presses the button once a
+verdict exists.
+
+The occasion is measurable rather than argued. Of the five pull requests merged
+on 2026-09-02 — #215, #216, #217, #219, #220 — **none carries a review or a
+comment on its own page**, against #218 of the same evening, which carries a
+`/verify-gate` verdict and a gate lead's bounce. The channel worked; it was not
+used. Whether a verdict was reached in a session and never posted, or never
+reached, is unrecoverable from here, and that unrecoverability is the cost.
+
+Three ways it could go, and no default is proposed.
+
+Lanes self-merge on a recorded verdict. Cheapest, keeps a lane's throughput
+independent of anyone else's availability, and it is what the repository has
+been doing. Its weakness is precisely tonight's failure mode: the same session
+that would have to fabricate a verdict is the session that presses merge, so
+nothing external ever has to agree.
+
+A second party presses merge. Strongest separation, and it is the only variant
+where an invented verdict has to survive someone else reading it. It costs a
+serialization point: with several lanes live overnight and no second party
+awake, branches queue until morning, which converts a review problem into a
+scheduling one.
+
+Self-merge allowed, but only where the verdict came from a seat the lane did not
+drive. This is the middle, and it needs one thing the repository does not have:
+a mechanical statement of what counts as a seat the lane did not drive. Without
+that it is the first option with more words. The reviewer-posts-its-own-verdict
+clause now in `AGENTS.md` moves part of the burden: the verdict's existence and
+its timing become page facts rather than lane claims, so the option no longer
+has to establish those. It supplies nothing about the seat, since one forge
+account signs every artifact, and that mechanical statement remains what this
+option turns on.
+
+There is a fourth consideration that belongs to the author rather than to the
+rule: this repository has **no continuous integration** — `make check` is the
+gate and it runs where a lane runs it. So the pull-request page is not merely
+the polite place to record a verdict; it is the only durable place a verdict can
+exist at all.
+
+**2026-09-03 — Does "no non-default option" reach a harness-setup preference?
+The adapter roster's `httpServer.port` move, put as a question and not
+ratified.** Filed by gate lead #5 after merging the adapter batch (#234, #236,
+#237, #238). Nothing here is enacted; the roster ships as measured and the
+contract text is untouched.
+
+The ratified adapter contract of 2026-09-02 reads: "A thin adapter per target
+declares its surfaces and contains only the minimal transport needed to invoke
+them: no patch or workaround, non-default option, access the target does not
+give its users, or result scoring." There is no carve-out.
+
+Three adapters write `extensions.zotero.httpServer.port` away from the shipped
+23119 — ZotSeek 23219, Beaver 23319, Zotero core #6012 23519 — and the
+host-baseline driver allocates 23419 and, for its control cell, 23429. The
+reason is that several target instances share one machine. The faithful
+alternative is one instance at a time on the shipped port, and its cost is
+serialization of the roster.
+
+**The deviation is inert with respect to every verdict this roster recorded,
+and that was checked against the artifacts rather than argued.** Seven
+assertions actually ran across the three seats. The only detector that reads a
+port is `check_no_egress`'s DNS arm, whose `RESOLVER_PORTS` is
+`{53, 853, 5353}`, disjoint from every allocated value; across every committed
+artifact the sole loopback destination recorded is `127.0.0.53:53`, and
+`off_machine` is zero in every isolated *subject* arm. Say subject and not arm:
+each seat's isolated *control* arm records `off_machine: 1` deliberately,
+because `check_no_egress` reports not-run unless the control trips both
+detectors, so a zero there would void the check. The residue and uninstall checks
+compare paths, and a port changes bytes inside a `prefs.js`, never a path. The
+two clauses that could reach a port at all, `R10-local-by-default` and
+`R15-model-cache-under-declared-roots`, are `not-offered` on all three seats,
+which their declarations of `status` and `query` as absent make structural
+rather than lucky.
+
+**Inert is not the same as immaterial, and the narrower statement is the true
+one.** `check_no_egress` passes only on `subject.returncode == 0`. The port is
+precisely what lets an instance start on a shared machine, so it is inert with
+respect to the *content* of the verdicts and not with respect to their
+*decidability*. A ruling that treats "it changed no number" as the whole answer
+would be resting on the weaker claim.
+
+**One thing the roster does inconsistently, worth ruling on beside the first
+question.** All three adapter modules open by restating the contract line "no
+patch or workaround, no non-default option, no access unavailable to the
+target's own users, and no scoring of a result", and all three then write a
+non-default port. Only `zotero_core_6012.py` resolves the tension in the same
+file, naming the deviation, citing the shipped 23119, and stating the
+alternative and its cost. `zotseek.py` and `beaver.py` declare the write as
+harness setup and never raise the tension, so a reader of either meets a
+compliance claim the file itself does not meet.
+
+**The questions.** (1) Does "non-default option" reach a preference the harness
+writes to make instances coexist, or only options governing the target's own
+retrieval behaviour? The same ruling governs the sideload scope preferences
+`extensions.autoDisableScopes` and `extensions.enabledScopes`, which are
+genuine non-default writes made on the same grounds. It does not govern
+`httpServer.enabled`, which the roster writes at its shipped default and which
+therefore discloses rather than changes. (2) If it
+reaches them, does the roster re-run serialized on the shipped port, or does
+the contract gain a carve-out? (3) If a carve-out, is disclosure a requirement
+of it, in the form `zotero_core_6012.py` already uses, so that no module
+restates a compliance claim it does not meet?
+
+Note that the same ratified entry already says, one paragraph on, "Starting and
+stopping the target process are adapter-declared harness setup, not indexing
+controls." Whether a port an instance binds is part of starting the process, or
+an option of it, is the hinge, and the gate does not presume it.
+
+**2026-09-03 — Local embedder validation accepts an L2-norm error of at most
+0,00001.** The author ratified this tolerance for R31's automatic compatibility
+fixture. The check is numerical compatibility, not retrieval quality: every
+returned vector must have a finite L2 norm and `|norm - 1| ≤ 0,00001`. The
+number lives in SPEC.md §5.2.6 with the other gate mechanics. It does not enter
+the embedder fingerprint; validation standing is explicitly outside vector
+identity, while the validation cache key carries the exact entry and runtime
+shape.
+
+**2026-09-03 — Drop HAL-04214661 from the golden-fixture recipe.** The author
+confirmed that the work is not his and ruled “Drop it.” Its HAL deposit rests
+on the repository's distribution authorisation rather than a reusable licence,
+and the fixture has no consent from Géraldine Le Nir, Juliette Laurent and
+Marie Lan Nguyen Leroy. The record is removed rather than left as a future
+fetch. This changes no language requirement: the remaining Vietnamese slice
+still contains ten records, including the other two versioned HAL works and
+the administrative, literary, dictionary and bilingual anchors.

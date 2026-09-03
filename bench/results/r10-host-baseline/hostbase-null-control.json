@@ -1,0 +1,51 @@
+{
+  "probe": "what the host application attempts with NO plugin installed — the baseline an in-process-plugin target's R10 number has to be read against (SPEC.md §3 R10, §5.2.8)",
+  "not_a_verdict": "this scores nothing and decides nothing. A plugin target's egress number is the host's plus the plugin's, and this measures only the first term. Compare the two; never subtract one from the other in code, which would be the harness scoring a result.",
+  "date": "2026-09-03",
+  "host_version": "unknown",
+  "isolation_mechanism": "podman-unshare",
+  "detectors": {
+    "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+    "dns": "a connect/sendto/sendmsg to a resolver port, loopback included — under isolation a hostname attempt dies at resolution and leaves no off-machine connect, so a detector without this one reports a false green"
+  },
+  "instrument_works_here": false,
+  "why_the_control": "the shared arm must trip BOTH detectors or the instrument is not known to work on this machine, and no cell decides anything",
+  "cells": {
+    "virgin-isolated": {
+      "network_shared": false,
+      "isolation_mechanism": "podman-unshare",
+      "dwell_seconds": 5,
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      },
+      "destinations": [],
+      "returncode": 0,
+      "host_reached_its_database": false
+    },
+    "warmed-isolated": {
+      "network_shared": false,
+      "isolation_mechanism": "podman-unshare",
+      "dwell_seconds": 5,
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      },
+      "destinations": [],
+      "returncode": 0,
+      "host_reached_its_database": false
+    },
+    "virgin-shared": {
+      "network_shared": true,
+      "isolation_mechanism": "podman-unshare",
+      "dwell_seconds": 5,
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      },
+      "destinations": [],
+      "returncode": 0,
+      "host_reached_its_database": false
+    }
+  }
+}
