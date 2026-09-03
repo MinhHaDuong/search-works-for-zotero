@@ -1,7 +1,6 @@
 # Pooling follows the model, from a curated table
 
-*Draft PR body, ticket 0612. Not sent. Written against upstream `b0e0bc8`, after
-issue #51.*
+*Sent 2026-09-03 as `oscardvs/zoteus#52`, from `oscardvs/zoteus#51`'s own text. Ticket 0612.*
 
 Fixes #51.
 

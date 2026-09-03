@@ -56,7 +56,15 @@ for it. It is also the knob ticket 0220 proposed and this repo withdrew on
 2026-08-29 — shipped by him, soundly, with the identity fix that withdrawal said
 a knob could not travel without. Pooling is now the one vector-affecting property
 still written at the call site, one occurrence in the whole `src` tree, and the
-rebuild is staged with that first. The
+rebuild is staged with that first; updated 2026-09-03 a further time — **the
+pooling fix filed**. Rebuilt on a fork review station (`MinhHaDuong/zoteus#10`,
+base pinned at `b0e0bc8`) through two adversarial review rounds and a
+decorrelated seat, then **filed as `oscardvs/zoteus#51`-fixing PR #52** (a
+curated `MODEL_POOLING` table, `ZOTEUS_EMBEDDING_POOLING` override, and the
+pooling suffixed into the embedder identity on `fp32`'s own rule) after the
+maintainer opened #51 himself, credited the finding, and said on #43 he was
+holding the release for it. A comment on #43 carries the size of the loss and
+points at #52. Ticket 0612 stays open until the PR resolves. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*

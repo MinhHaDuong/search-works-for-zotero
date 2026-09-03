@@ -1,8 +1,6 @@
 # Comment on oscardvs/zoteus#43 — draft, not sent
 
-*Ticket 0612. Posted only after the pooling PR exists, with `#NN` replaced by its
-number. Written against upstream `b0e0bc8`, after the maintainer's 11:28 comment
-naming the pooling fix as the thing the next release waits on.*
+*Ticket 0612. Sent 2026-09-03 as https://github.com/oscardvs/zoteus/issues/43#issuecomment-5527294381.*
 
 Kept short on purpose: he described the defect himself in that thread, so
 restating it would be telling him what he just said. What this adds is the
