@@ -4965,7 +4965,10 @@ assertions actually ran across the three seats. The only detector that reads a
 port is `check_no_egress`'s DNS arm, whose `RESOLVER_PORTS` is
 `{53, 853, 5353}`, disjoint from every allocated value; across every committed
 artifact the sole loopback destination recorded is `127.0.0.53:53`, and
-`off_machine` is zero in every isolated arm. The residue and uninstall checks
+`off_machine` is zero in every isolated *subject* arm. Say subject and not arm:
+each seat's isolated *control* arm records `off_machine: 1` deliberately,
+because `check_no_egress` reports not-run unless the control trips both
+detectors, so a zero there would void the check. The residue and uninstall checks
 compare paths, and a port changes bytes inside a `prefs.js`, never a path. The
 two clauses that could reach a port at all, `R10-local-by-default` and
 `R15-model-cache-under-declared-roots`, are `not-offered` on all three seats,
@@ -4991,14 +4994,17 @@ compliance claim the file itself does not meet.
 
 **The questions.** (1) Does "non-default option" reach a preference the harness
 writes to make instances coexist, or only options governing the target's own
-retrieval behaviour? The same ruling governs `httpServer.enabled` and the
-sideload scope preferences, which are set on the same grounds. (2) If it
+retrieval behaviour? The same ruling governs the sideload scope preferences
+`extensions.autoDisableScopes` and `extensions.enabledScopes`, which are
+genuine non-default writes made on the same grounds. It does not govern
+`httpServer.enabled`, which the roster writes at its shipped default and which
+therefore discloses rather than changes. (2) If it
 reaches them, does the roster re-run serialized on the shipped port, or does
 the contract gain a carve-out? (3) If a carve-out, is disclosure a requirement
 of it, in the form `zotero_core_6012.py` already uses, so that no module
 restates a compliance claim it does not meet?
 
-Note that the same paragraph of the ratified entry already says "Starting and
+Note that the same ratified entry already says, one paragraph on, "Starting and
 stopping the target process are adapter-declared harness setup, not indexing
 controls." Whether a port an instance binds is part of starting the process, or
 an option of it, is the hinge, and the gate does not presume it.
