@@ -115,9 +115,10 @@ that works from one that does not:
   `R13-two-processes-do-not-duplicate-work`,
   `R23-foreign-stamp-ends-up-serving`) exist **only** for zoteus, because
   `durability.py` landed after the other three adapters ran.
-- Goal 1 is covered for only two of its four terms: R10 and R15 have checks;
-  R22 belongs to ticket 0033 and R31 to ticket 0488, neither in this layer. Both
-  are `no test` rows, and that is the correct reading.
+- Goal 1 is three terms since R31's retirement (`DECISIONS.md`, 2026-09-03),
+  and every one of them has checks: R10 and R15 from ticket 0578, R22's two from
+  PR #255. The committed artifacts predate R22's pair, so its cells read
+  `no run` rather than `no test`, and that is the correct reading.
 - Goals 3, 4 and 5: no checks at all.
 
 ## Actions

@@ -3822,6 +3822,48 @@ only in the case where no orchestrator is live, which is what happened twice on
 2026-09-03 and is the exception the word *normalement* leaves room for.
 
 
+**2026-09-03 — R31 is retired as apparatus, and goal 1's rung is three terms.**
+The author read the requirement and said what three assertion attempts had been
+circling: it reads as *the configuration subsystem should work as it says*. That
+is the shape 2026-08-31 retired R20, R21 and R26 for — a requirement about a
+component rather than about what the user can know or do — and R31 survived that
+pass in the sentence immediately after them, rewritten rather than retired.
+
+**The evidence is mechanical, not a matter of taste.** Three assertions were
+written for R31 in one day and each was withdrawn under review: one reading
+exceptions, where a raising `configure` graded green and a raising `query` red,
+which the layer cannot tell from a dead transport; one reading status, whose red
+condition — the embedder not active after `configure` returned — is a strict
+subset of `R10-local-by-default`'s; and one comparing the entry in effect against
+the entry offered, which is conformance to self-description and adds nothing to
+whatever promise the entry serves. A requirement whose every reachable falsifier
+belongs to a neighbour has no extension of its own. That is the apparatus test
+run as a measurement rather than as a judgement, and it returned the same answer
+three times.
+
+**What is kept, and where.** The mechanism is not retired with the number: the
+embedder entry, the fingerprint over every vector-affecting field, the
+requested-versus-actual handshake and the compatibility fixture stay in SPEC.md
+§5.2.5 and §5.2.6, which is where a mechanism belongs — the precedent is the fold
+gate, apparatus rather than a promise. Its gate is white-box and repo-side, which
+is why the acceptance layer could not reach it: it is not a property at the
+machine boundary. The user-facing residue goes where R21's went — R17 and R18
+carry *say what answered this*, R34's floor carries *the answers do not quietly
+get worse*. The glossary entries for **embedder entry** and **validation
+attestation** now cite §5.2.5 and §5.2.6 alone, and the handshake paragraph cites
+§5.2.5.
+
+**What is not ruled here.** The harm R31 was reaching for is real and has a live
+instance: the zoteus adapter declares that without a model runtime the target
+falls back to keyword-only, and "answered semantically" and "fell back to
+keyword-only" are the same file and different facts. Asserting that is R17's and
+R18's work, under their numbers, and no ticket is filed for it here. Ticket 0488
+keeps the curated-registry implementation unchanged — the registry was always the
+mechanism, and losing the requirement number does not lose the invariant its
+children build. R31 is never reused; the gap is the record.
+
+Goal 1 binds: R10, R15, R22.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database

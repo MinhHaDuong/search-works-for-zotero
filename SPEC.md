@@ -113,7 +113,7 @@ the entry points at the question rather than settling it.
   assigns ranks. Authoritative: SPEC.md §5.2.6.
 - **embedder entry** — one indivisible curated configuration whose complete
   vector-affecting fields produce its fingerprint. Authoritative:
-  SPEC.md R31 and SPEC.md §5.2.5.
+  SPEC.md §5.2.5.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
@@ -236,7 +236,7 @@ the entry points at the question rather than settling it.
 - **validation attestation** — an optional content-free report that one exact
   embedder entry passed the automatic compatibility fixture on a stated runtime
   shape; it is not a retrieval-quality judgement. Authoritative:
-  SPEC.md R31 and SPEC.md §5.2.6.
+  SPEC.md §5.2.6.
 - **warm** — describes a query answered with the embedder already resident and
   the store already open: nothing loads and nothing builds when the clock
   starts, which is the state R6's latency bounds are stated for; the first
@@ -560,19 +560,6 @@ regression names which promise it broke. When the semantic path is unavailable
 the reply MUST say that cross-language matching is down, rather than return a
 silent miss that reads as an honest empty. Query translation is not the
 mechanism; see "Out of scope".
-
-#### Embedding configurations
-
-**R31. Validation.** A search configuration offered to me MUST prove it works on
-my machine before it is used, or fail loudly there.
-
-Before it creates or queries an index on a concrete machine it MUST pass the
-bundled automatic validation there or fail explicitly, and that failure MUST NOT
-silently select another configuration. What identifies such a configuration —
-every field that changes its vectors, carried as one versioned entry — is
-SPEC.md's. Sharing a content-free validation attestation MAY be offered only
-by explicit opt-in, and library text, query text and Zotero identifiers MUST NOT
-enter it.
 
 #### Custody and lifecycle
 
@@ -1937,7 +1924,7 @@ of work orders, in both directions — returning records drain into the same
 bounded append-fsync-commit loop that bounds the windows, never into a
 queue ahead of it.
 
-**The handshake crosses the pipe** (R31). The model is resident in the
+**The handshake crosses the pipe** (§5.2.5). The model is resident in the
 embedding service, which answers every embed call with the requested and actual
 fingerprint, dimension, runtime, execution provider and local-validation
 standing; the worker carries that answer home with the first record of every
