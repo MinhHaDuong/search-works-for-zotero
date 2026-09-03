@@ -2,10 +2,14 @@
 Title: Build the attachment-format fixture matrix and its content-detection controls
 Created: 2026-09-02
 Author: claude
+Closed: the eight-format fixture matrix and its content-capability classifier landed in merge request #233; legacy .doc is a declared gap carried into 0600, not a faked fixture
 
 --- log ---
 2026-09-02T21:58Z claude created
 
+2026-09-02T22:08Z claude note MATRIX AND CLASSIFIER BUILT. Eight faithful fixtures (PDF, EPUB, HTML, TXT, Markdown, DOCX, ODT, RTF) from bench/fixtures/make_attachment_fixtures.py, each carrying a unique ZZFMT token; bench/attachment_format.py decides format from bytes, reading the OCF/ODF mimetype member and the OOXML parts to separate the three ZIP-container formats. Legacy .doc is DECLARED AS A GAP rather than faked: the classifier answers ole-compound, the container family, and never doc, and the gap travels in the generator's GAPS table into ticket 0600. Markdown classifies as text, asserted explicitly, because Markdown carries no content signature; what a .md attachment is EXPOSED as remains ticket 0600's observation. 37 tests, fast tier, 0,49 s; independent confirmation from file(1) on all eight and pdftotext extracting the PDF token, neither of which is a dependency of the suite.
+2026-09-02T22:21Z claude note EXIT AND VERIFICATION BOXES TICKED, 11 of 12, against the reviewer's independent re-execution on PR 233 rather than against this lane's own report. The twelfth stays unticked and is named as mis-specified: whether ticket 0600 can run against this matrix is answered by 0600's first run, not by anything this ticket can execute, so ticking it would be a verification claim nobody made. Left standing rather than deleted so that run has somewhere to land. Taken as tracker 0026's finding F4 asks -- two of three tickets closed that night closed at 0 boxes of 14 and 0 of 5, which is how a checkbox stops carrying signal.
+2026-09-03T04:13Z Minh Ha-Duong closed — the eight-format fixture matrix and its content-capability classifier landed in merge request #233; legacy .doc is a declared gap carried into 0600, not a faked fixture
 --- body ---
 ## Context
 
@@ -90,18 +94,22 @@ observes the only answer available: whether Zotero exposes a `.md` attachment as
 
 ## Verification
 
-- [ ] Each fixture's bytes are valid for its format: the ZIP members open, the
+Every box below is ticked against `tests/test_attachment_format_fixtures.py` and
+the transcripts in pull request 233, and each was independently re-executed by
+that pull request's reviewer rather than read from its body.
+
+- [x] Each fixture's bytes are valid for its format: the ZIP members open, the
       EPUB and ODT `mimetype` entries are first and stored, the PDF's cross
       reference offsets point at its object headers.
-- [ ] Each fixture carries its unique token.
-- [ ] The classifier answers correctly on every fixture, by content.
-- [ ] The misleading-extension control fails the naive classifier and passes the
+- [x] Each fixture carries its unique token.
+- [x] The classifier answers correctly on every fixture, by content.
+- [x] The misleading-extension control fails the naive classifier and passes the
       content one, and the red half is recorded in the pull request.
-- [ ] The three ZIP-container formats get three different answers.
-- [ ] The generator is deterministic: two runs produce identical bytes.
-- [ ] No new dependency: `requirements-check.txt` is unchanged and the
+- [x] The three ZIP-container formats get three different answers.
+- [x] The generator is deterministic: two runs produce identical bytes.
+- [x] No new dependency: `requirements-check.txt` is unchanged and the
       classifier is stdlib only.
-- [ ] `make check` and `./tickets/erg check` pass.
+- [x] `make check` and `./tickets/erg check` pass.
 
 ## Invariants
 
@@ -114,8 +122,17 @@ code or in prose.
 
 ## Exit criteria
 
-- [ ] The generator and the classifier are committed and run in the fast tier.
-- [ ] Every format named by ticket 0593 is either a faithful fixture or a
+- [x] The generator and the classifier are committed and run in the fast tier.
+- [x] Every format named by ticket 0593 is either a faithful fixture or a
       declared, named gap with its reason.
-- [ ] The misleading-extension control has been seen red.
+- [x] The misleading-extension control has been seen red.
 - [ ] Ticket 0600 can run against this matrix without producing a file.
+
+The last box stays unticked, and it is a criterion this ticket cannot decide
+about itself rather than work left undone. What is deliverable here is the
+capability: `--output-dir` writes the whole matrix from the committed generator,
+so ticket 0600 authors no file. Whether that is ENOUGH for ticket 0600 is
+answered by ticket 0600's first run and by nothing else, so ticking it here
+would be a verification claim nobody made. It was mis-specified as an exit
+criterion of this ticket; it is left standing rather than deleted so ticket
+0600's first run has somewhere to land.
