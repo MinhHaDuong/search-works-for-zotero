@@ -164,18 +164,32 @@ channel existed and was simply not used.
   branch with a named blocker is a working state; a merged one with an invented
   verdict is not recoverable.
 - **A lane does not press merge at all — not even on its own pull request.**
-  Ratified 2026-09-03: a lane's terminal state is an *open* pull request, based
-  on the current `main`, with its gates measured at that base and quoted on the
-  page, its blockers named, and out of draft when it is ready to be read. The
-  lane then hands it up to the coordinator that launched it. Review and merge
-  are the supervisor's, taken **as pull requests arrive** rather than batched:
-  a finished lane does not queue behind an unfinished one. The ledger entry is
-  in `DECISIONS.md`.
-- **A merge moves every other open branch's base, so it is announced.** The
-  supervisor tells the live lanes that `main` has moved; each one re-merges it,
-  re-runs `make check` at the new base, and re-quotes its gates on its own page.
-  A gate reading is true only of the base it was taken at, and an unannounced
-  merge turns a green page stale without touching it.
+  Ratified 2026-09-03; the ruling is one line of `DECISIONS.md` and everything
+  below is this document's, because it is harness and will be retuned as the
+  orchestration changes. A lane's terminal state is an *open* pull request:
+  based on the current `main`, gates measured **at that base** and quoted on the
+  page, blockers named, out of draft when it is ready to be read. The lane then
+  hands it up to the coordinator that launched it and stops. What it may still
+  do on its own page is the whole of its job there — correct it, re-measure it,
+  re-merge a moved base, say what remains.
+- **The coordinator merges as pull requests arrive, not in a batched pass.** A
+  finished lane does not queue behind an unfinished one, and overnight that is
+  the difference between a lane's work landing and a lane's work waiting for
+  someone to wake up. The review this repository has instead of continuous
+  integration is the merge itself: `make check` runs where a lane runs it, so
+  the coordinator reads the gates the page quotes rather than re-running them.
+- **A merge moves every other open branch's base, so it is announced.** This is
+  the cost of merging as they arrive, and it falls on the coordinator to pay:
+  tell the live lanes that `main` has moved. Each one re-merges it, re-runs
+  `make check` at the new base, and re-quotes its gates on its own page. A gate
+  reading is true only of the base it was taken at — an unannounced merge turns
+  a green page stale without touching it, and the page still reads green.
+- **The occasion, kept because the rule is easier to follow with it.** On
+  2026-09-03 the lane holding #232 and #235 corrected the defect each was
+  bounced on, re-measured both, took both out of draft — and merged both itself.
+  The changes were gated and `main` stayed green; the procedure was wrong. A
+  lane that has just proved its own change is exactly the lane least able to
+  notice it is merging on its own say-so.
 
 ## Upstream relations
 
