@@ -1,0 +1,154 @@
+%erg 0.1
+Title: Produce SDT-compatible packs ourselves, in our own store, disposable when Zotero's arrive
+Created: 2026-09-03
+Author: claude
+Blocked-by: 0557
+Label: needs-human
+
+--- log ---
+2026-09-03T09:00Z claude created
+2026-09-03T09:06Z claude note the author's idea and his ruling of the same session, filed at his instruction. Four shapes were put to him and he took option 1: same container and block schema, OUR store, our own extractor identity, their pack winning wherever it exists. Rejected in front of him and recorded so nobody re-proposes them: writing into storage/<KEY>/.zotero-sdt-cache (a platform write, silently clobbered, and their validator regenerates over it anyway), an internal format of our own (the consumer would then have to change on the day Zotero arrives, so nothing is throwable, which is his own argument against it), and waiting (6012 is a draft, and it will never reach the old extractor generation). Also settled in the same exchange, and NOT part of this ticket: a COW reflink clone of storage/ is close to free and is the right tool for the reindex-irreversibility problem -- snapshot before a re-extraction campaign, compare, drop -- but it belongs to the experimental protocol on the reference machine, not to the design, and it buys nothing for a store of packs we generate ourselves, since there are no shared blocks in bytes nobody has written yet
+
+--- body ---
+## Context
+
+The author, 2026-09-03, against the substrate problem this project keeps
+hitting: **we cannot build on moving sand.** Zotero's structured-text pack is
+the right substrate for the ratified unit of answer — `anchor.pageRects` per
+block and a per-glyph `textMap` are entry-level location — but everything about
+its *supply* moves. #6012 is a draft, `SDT_PROCESSOR_VERSIONS` bumps
+regenerate packs silently (`SYNC.md`), and a pack exists only for an attachment
+opened in the reader: 2 of 13 631 on the author's machine.
+
+His inversion: stop consuming an artifact whose producer moves, and **produce
+the artifact ourselves, in their format**. The only coupling left is the
+format. The consumer — segmenter, chunker, locator — is written once against
+the pack and never changes on the day Zotero's packs arrive; it changes
+feeder, not shape. And our producer is then genuinely throwable.
+
+**Why this is cheaper than it sounds, and why it is not new work.** The
+container writer already exists: `build_pack()` at
+`tests/test_sdt_read.py:40` writes a valid pack byte by byte — header, index,
+deflated metadata and page catalog, per-chunk offset tables — because the
+malformed cases had to be constructed. The hard part was never the container
+but the *blocks*, and those are the 0557 ladder we are already building (0560's
+embedded TOC, 0561's layout heading heuristic on pdf.js text runs, 0562's
+bylines). This ticket re-targets that ladder's output into the pack format
+instead of an ad-hoc internal structure.
+
+**Why it composes with them rather than fighting them.** `sdt.js` validates a
+pack on `(packVersion, schemaMajorVersion, source.hash, processor.type,
+processor.version)` and treats an unknown processor version as
+`stale-processor`. So the degradation is already in our favour by their own
+design: wherever their pack exists it wins, and ours is the placeholder for
+where it does not.
+
+## The ruling this rests on, and what is not settled
+
+The author ruled the *shape* (option 1). The chain change it implies is **not**
+ratified and goes to `DECISIONS.md` first, per the chain's rule: our packs are
+a **third extractor identity** in C1 link 1, which today enumerates two —
+Zotero's flat extraction and its pack. Ticket 0120's awaiting-ratification
+entries of the same day carry the surrounding argument (R1 owes the quality
+hole; supersession is total; the remedy is our own extraction) and this ticket
+narrows *what* that extraction produces.
+
+## Conditions, all of them the author's, and each one load-bearing
+
+1. **"Compatible" means same container and same block schema, in OUR store.**
+   Not byte-interoperable with Zotero's validator, not written into
+   `storage/<KEY>/`. Correctness is owed to our own reader and to nothing else.
+2. **Disposability discipline, and it is what makes or breaks the ticket.** No
+   field of ours in the pack, no block type they do not have, no assumption
+   that our packs are complete. One convenience field and the consumer has
+   learned something about the producer, and the code stops being throwable.
+3. **Only where Zotero has no pack.** Theirs wins wherever it exists, so the
+   population we produce shrinks toward zero as they roll out: **the disposal
+   is progressive, not a big-bang.**
+4. **A cache, not a store.** Any pack may be deleted at any moment and
+   re-derived; losing one costs CPU and never correctness. Written atomically
+   `tmp` + rename, which is what `sdt.js` itself does.
+5. **Self-stale, no parallel registry.** `source.hash` is their own field, so a
+   pack whose file changed detects itself. Garbage collection is the item
+   census the tick already runs for R1: key gone, pack gone.
+6. **Never the source files.** Not the PDFs (read through the local API's
+   `/file/view/url` redirect) and not `.zotero-ft-cache` (the API serves it
+   byte-identical, measured, ticket 0483). Duplicating those would be
+   re-inventing `storage/`.
+
+## Actions
+
+1. **Measure the size ratio first, before the shape is fixed.** The two real
+   packs are on the reference machine and their byte sizes have never been
+   read: `ls -l storage/GMAP993G/.zotero-sdt-cache` and `BSMCQ6BM`'s, each
+   against its `.zotero-ft-cache`. The packs hold *less text* than the flat
+   cache (0,91 and 0,99 measured, running heads excluded) but add block JSON,
+   page rects and a per-glyph `textMap`, all deflated, and that last term is
+   the one that could dominate. At a ratio near 1 over 8 590 PDFs this is of
+   the order of a gigabyte beside a 1,71 GB index and the shape stands; **at a
+   ratio near 3 this ticket is re-opened**, because keeping only the blocks the
+   segmenter needs would break condition 2.
+2. Promote `build_pack()` from test fixture to a real writer beside
+   `verification/probes/sdt_read.py`, and pin it by round-tripping: every pack
+   we write is read back by the existing reader and compared block for block.
+3. Re-target the 0557 ladder's output into blocks and page anchors: block
+   types drawn only from the taxonomy their bundle carries, page rects from
+   pdf.js geometry, `source.hash` and a processor identity of ours in the
+   metadata.
+4. Source selection in the extract shim, one rule: their pack if present and of
+   a known version, else ours if present and current, else the flat path. Never
+   a direct read of `.zotero-ft-cache`.
+5. **Plan the switch-over as a drain, not an event.** The day their pack
+   replaces ours for an attachment, C1 link 1's identity flips, which is total
+   supersession through all three links — a measured 8 h 14 for a full build.
+   Newest-first, the older chain serving while it drains (R4, D3's
+   serve-stale), and R17 saying where the drain is.
+6. **Give our extractor the embedder registry's discipline** (tickets 0488,
+   0495): a declared, dated, gated identity whose improvements are batched into
+   rare bumps. Every improvement re-drains the library, so shipping them as
+   they are written is not affordable.
+
+## Test
+
+- Round-trip: every pack the writer produces is read by
+  `verification/probes/sdt_read.py` and refused by it when deliberately
+  corrupted — reuse the existing malformed-case fixtures rather than inventing
+  new ones.
+- Red first, on the disposal property: a fixture attachment holding **both**
+  our pack and a Zotero pack asserts the indexed text is Zotero's, and that
+  removing our pack changes nothing at all. That test is what proves the
+  consumer learned nothing about the producer.
+- The two real packs stay the fidelity reference: our blocks over the same two
+  documents are compared to theirs, and the comparison is reported, not scored.
+
+## Verification
+
+- [ ] The size ratio is measured before the shape is fixed
+- [ ] A pack of ours round-trips through the existing reader, block for block
+- [ ] With a Zotero pack present, ours is not read and its removal is a no-op
+- [ ] No field, block type or assumption of ours appears anywhere in the format
+
+## Invariants
+
+- The entry as unit of answer is not reopened; this ticket serves it.
+- Nothing is written into Zotero's data directory, and nothing is filed
+  upstream. #6012 is read, not touched.
+- The chain change (a third extractor identity in C1 link 1) reaches
+  `DECISIONS.md` before any of it ships.
+- No copyleft code vendored (MIT): the format is implemented from what we read,
+  `pdf.js` is Apache-2.0 and is already vendored for tier 1 (ticket 0560).
+- Coverage honesty survives: R17 counts pack-sourced-theirs,
+  pack-sourced-ours and flat-sourced apart, and R24's locator says "page" only
+  where a block anchor gives one.
+
+## Exit criteria
+
+- [ ] The ruling is recorded in `DECISIONS.md` and `SPEC.md` C1 lists the third
+      extractor identity
+- [ ] The size ratio is in `bench/results/` and the shape decision cites it
+- [ ] The writer ships beside the reader, round-tripped in `make check`
+- [ ] The quality arm is run before any pack of ours is indexed: our blocks
+      against theirs on the two real packs, and against X5's eleven uncapped
+      attachments; a result worse than Zotero's current path stops the ticket
+- [ ] The disposal path is written down: what is deleted, what drains, and what
+      the user sees while it does
