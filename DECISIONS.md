@@ -4980,3 +4980,242 @@ taken with a pre-warmed cache and the red without one. The correlation is
 strong; the cause is not established here, and the experiment that would settle
 it is the isolated arm run twice, cache cold and cache warm. Recorded as an
 observation for the goal-1 lane rather than as a verdict on R10.
+
+**2026-09-02 — R19's fold gate is red against current upstream, and SPEC.md
+§5.2.8 says it cannot be. Not ratified: which of the sentence and the gate is
+wrong is the author's to rule.** §5.2.8 records that the waiver keyed to
+upstream pull request #19 retired with its merge, so "against current upstream
+the gate runs green by right". Ticket 0578 ran the gate against stock at the
+reviewed SHA and it came back red on 25 misses, 24 of them at codepoint level
+and one at word level (`bench/results/0578-fold-sweep/codepoints.json`).
+Sixteen are the Roman numerals U+2160–U+216F, category Nl, which a
+per-character uppercase pass does not reach. The other nine — eight codepoints
+U+0958–U+095F and the word `क़` — are precomposed Devanagari nukta forms, whose
+base-plus-nukta spelling agrees, so that finding is about the precomposed
+spelling and not about the script.
+
+The sentence was left standing deliberately when that measurement merged, and
+README.md's standing row for R19 was not: it claimed the property held and the
+sweep passed, and it has been corrected to what ran. So the two documents now
+disagree, on purpose, until this is ruled.
+
+What makes it a ruling rather than a correction is that the falsifying evidence
+does not say which end is wrong — and it leaves that open for only sixteen of
+the 25. The nine Devanagari misses are accounted for. The earlier artifact
+(`bench/results/0009-fold-sweep/codepoints.json`) swept 1 301 codepoints over
+eight blocks, none of them Devanagari, where the run behind the red swept
+30 309 over nineteen. That class was structurally invisible to the old sweep,
+so its appearance is the widened net rather than a regression.
+
+The sixteen Roman numerals are the part nothing accounts for, and more sharply
+than a raw count suggests. Both runs cover the block Number Forms, 64
+codepoints swept in each; both report the same six tail codepoints
+U+218A–U+218F as `narrows`; and the sixteen numerals do not appear in the old
+divergence list at all, having agreed. Today FTS5 indexes `Ⅰ` as `ⅰ` while the
+query side produces `Ⅰ`. The widened net is ruled out for them, and what is
+left is a real change between the two runs that this evidence does not
+identify: upstream's `normalizeForSearch` moving, or the fork tree differing
+between the runs, both stay open. The sweep's own reclassification does not
+explain them, since the old classifier called a divergence `narrows` only where
+the query side produced no tokens, and would have called `['Ⅰ']` against
+`['ⅰ']` a miss exactly as the new one does. Settling the sixteen needs the
+upstream diff between the two run dates, which nobody has read.
+
+**The old artifact's clean sheet has a mechanical explanation, and it is not
+the exit code.** Its miss list is empty because that same old classifier put
+all fifteen of its divergences in `narrows` — nine in Greek and Coptic, six in
+Number Forms, none in the branch a gate would read. The script did also write
+the artifact before it computed its warning, and returned zero whatever the
+count, so no gate reading its exit status could have failed on it either. That
+is a true observation about the gate and a separate one; neither of the two
+says the old sweep was sound.
+
+Three ways it could go, and no default is proposed. Strike "green by right" and
+let §5.2.8 carry the gate as red-against-stock, which is honest and leaves R19
+with no green anywhere. Keep the sentence and scope it to the Latin tier it was
+written about, which is what the retired waiver actually concerned, and give the
+Nl and precomposed-nukta classes their own named exception. Or treat the misses
+as a defect to be filed upstream, in which case the sentence is a forward
+statement rather than a false one and the gate stays red until it lands. The
+first two are ours to write; the third is bounded by GOVERNANCE.md's volume
+budget and is a filing decision, not a wording one.
+
+**2026-09-02 — the default path makes an external call SPEC.md says it does
+not. Not ratified: whether the clause moves or the code does is the author's.**
+`SPEC.md` §5.2.7 states "the sole permitted external call on the default path is
+the one-time model-weight download"; §3's R10 body states "the default build and
+query path make zero external calls"; §6 states "the default path sends
+nothing". At the reviewed SHA (`UPSTREAM`, v1.12.0) the server contacts
+`https://api.github.com/repos/oscardvs/zoteus/releases/latest` at startup, from
+`src/lib/update-check.ts`, gated on `ZOTEUS_UPDATE_CHECK`, which
+`src/config.ts` defaults to **true**. The call is cached for a day, times out in
+five seconds, swallows every failure, and carries no library text, no query and
+no identifier — a bare unauthenticated GET with a `User-Agent` naming the
+version.
+
+It was measured, not read: the acceptance layer's first run against a real
+target returned `R10-no-egress` **fail** on the disclosed GPU host, the trace
+carrying a name lookup for `api.github.com` inside a namespace with no route out
+(pull request #216). The two-detector design is what caught it — inside a
+no-route namespace a target reaching for a hostname dies at resolution and never
+attempts an off-machine connect, so a connect-only detector would have called it
+green.
+
+Nothing in this repository recorded it before this entry. The finding lived in a
+pull-request body; the tree carried no artifact, no ticket and no line, while
+`README.md` carried `shipped` / `measured` for R10 and `SPEC.md` carried the
+three sentences above.
+
+The reading matters for the remedy, and the two are not the same size. R10's own
+promise — my library text and my queries do not leave this machine — is
+**untouched**: a release-tag lookup carries neither, which is why README.md's
+verdict for R10 is unchanged and the finding is recorded in its standing prose
+instead. What is falsified is the stricter *count* the specification chose to
+state, and that count is load-bearing precisely because it is countable: "zero
+external calls" is falsifiable by one, where "no user data leaves" is not.
+
+Four ways it could go, none proposed as a default. Amend the clause to name the
+release check as a second permitted call, disclosed in status the way the model
+download is, which keeps the count honest and costs a sentence. Amend it to a
+data clause — no library text, query text or Zotero identifier leaves — which is
+what R10 actually promises, and accept that the specification then no longer
+gives a checkable call count. File the default upstream as an R10 defect and ask
+that the check be opt-in, which is a filing decision under GOVERNANCE.md's
+budget rather than a wording one. Or declare the harness's assertion too strict
+and scope `R10-no-egress` to data-bearing calls, which trades a false red today
+for a class of true reds it would stop seeing tomorrow. The last is the one to
+be most careful with: the assertion's value is that it counts attempts rather
+than judging payloads.
+
+**2026-09-02 — may a lane merge its own pull request? Not ratified: the
+governance half of the merge-authority rule is the author's.** `AGENTS.md` now
+carries what is not in dispute: no merge before a review verdict is recorded on
+the pull request itself, a verdict quoted as received, an unreported reviewer
+leaving the branch BLOCKED rather than inferred, no finding attributed to a
+reviewer who did not make it, the reviewer posting its own verdict to the page
+with a waiting lead polling it, and no lane merging a pull request another lane
+is gating. What it deliberately does not say is who presses the button once a
+verdict exists.
+
+The occasion is measurable rather than argued. Of the five pull requests merged
+on 2026-09-02 — #215, #216, #217, #219, #220 — **none carries a review or a
+comment on its own page**, against #218 of the same evening, which carries a
+`/verify-gate` verdict and a gate lead's bounce. The channel worked; it was not
+used. Whether a verdict was reached in a session and never posted, or never
+reached, is unrecoverable from here, and that unrecoverability is the cost.
+
+Three ways it could go, and no default is proposed.
+
+Lanes self-merge on a recorded verdict. Cheapest, keeps a lane's throughput
+independent of anyone else's availability, and it is what the repository has
+been doing. Its weakness is precisely tonight's failure mode: the same session
+that would have to fabricate a verdict is the session that presses merge, so
+nothing external ever has to agree.
+
+A second party presses merge. Strongest separation, and it is the only variant
+where an invented verdict has to survive someone else reading it. It costs a
+serialization point: with several lanes live overnight and no second party
+awake, branches queue until morning, which converts a review problem into a
+scheduling one.
+
+Self-merge allowed, but only where the verdict came from a seat the lane did not
+drive. This is the middle, and it needs one thing the repository does not have:
+a mechanical statement of what counts as a seat the lane did not drive. Without
+that it is the first option with more words. The reviewer-posts-its-own-verdict
+clause now in `AGENTS.md` moves part of the burden: the verdict's existence and
+its timing become page facts rather than lane claims, so the option no longer
+has to establish those. It supplies nothing about the seat, since one forge
+account signs every artifact, and that mechanical statement remains what this
+option turns on.
+
+There is a fourth consideration that belongs to the author rather than to the
+rule: this repository has **no continuous integration** — `make check` is the
+gate and it runs where a lane runs it. So the pull-request page is not merely
+the polite place to record a verdict; it is the only durable place a verdict can
+exist at all.
+
+**2026-09-03 — Does "no non-default option" reach a harness-setup preference?
+The adapter roster's `httpServer.port` move, put as a question and not
+ratified.** Filed by gate lead #5 after merging the adapter batch (#234, #236,
+#237, #238). Nothing here is enacted; the roster ships as measured and the
+contract text is untouched.
+
+The ratified adapter contract of 2026-09-02 reads: "A thin adapter per target
+declares its surfaces and contains only the minimal transport needed to invoke
+them: no patch or workaround, non-default option, access the target does not
+give its users, or result scoring." There is no carve-out.
+
+Three adapters write `extensions.zotero.httpServer.port` away from the shipped
+23119 — ZotSeek 23219, Beaver 23319, Zotero core #6012 23519 — and the
+host-baseline driver allocates 23419 and, for its control cell, 23429. The
+reason is that several target instances share one machine. The faithful
+alternative is one instance at a time on the shipped port, and its cost is
+serialization of the roster.
+
+**The deviation is inert with respect to every verdict this roster recorded,
+and that was checked against the artifacts rather than argued.** Seven
+assertions actually ran across the three seats. The only detector that reads a
+port is `check_no_egress`'s DNS arm, whose `RESOLVER_PORTS` is
+`{53, 853, 5353}`, disjoint from every allocated value; across every committed
+artifact the sole loopback destination recorded is `127.0.0.53:53`, and
+`off_machine` is zero in every isolated *subject* arm. Say subject and not arm:
+each seat's isolated *control* arm records `off_machine: 1` deliberately,
+because `check_no_egress` reports not-run unless the control trips both
+detectors, so a zero there would void the check. The residue and uninstall checks
+compare paths, and a port changes bytes inside a `prefs.js`, never a path. The
+two clauses that could reach a port at all, `R10-local-by-default` and
+`R15-model-cache-under-declared-roots`, are `not-offered` on all three seats,
+which their declarations of `status` and `query` as absent make structural
+rather than lucky.
+
+**Inert is not the same as immaterial, and the narrower statement is the true
+one.** `check_no_egress` passes only on `subject.returncode == 0`. The port is
+precisely what lets an instance start on a shared machine, so it is inert with
+respect to the *content* of the verdicts and not with respect to their
+*decidability*. A ruling that treats "it changed no number" as the whole answer
+would be resting on the weaker claim.
+
+**One thing the roster does inconsistently, worth ruling on beside the first
+question.** All three adapter modules open by restating the contract line "no
+patch or workaround, no non-default option, no access unavailable to the
+target's own users, and no scoring of a result", and all three then write a
+non-default port. Only `zotero_core_6012.py` resolves the tension in the same
+file, naming the deviation, citing the shipped 23119, and stating the
+alternative and its cost. `zotseek.py` and `beaver.py` declare the write as
+harness setup and never raise the tension, so a reader of either meets a
+compliance claim the file itself does not meet.
+
+**The questions.** (1) Does "non-default option" reach a preference the harness
+writes to make instances coexist, or only options governing the target's own
+retrieval behaviour? The same ruling governs the sideload scope preferences
+`extensions.autoDisableScopes` and `extensions.enabledScopes`, which are
+genuine non-default writes made on the same grounds. It does not govern
+`httpServer.enabled`, which the roster writes at its shipped default and which
+therefore discloses rather than changes. (2) If it
+reaches them, does the roster re-run serialized on the shipped port, or does
+the contract gain a carve-out? (3) If a carve-out, is disclosure a requirement
+of it, in the form `zotero_core_6012.py` already uses, so that no module
+restates a compliance claim it does not meet?
+
+Note that the same ratified entry already says, one paragraph on, "Starting and
+stopping the target process are adapter-declared harness setup, not indexing
+controls." Whether a port an instance binds is part of starting the process, or
+an option of it, is the hinge, and the gate does not presume it.
+
+**2026-09-03 — Local embedder validation accepts an L2-norm error of at most
+0,00001.** The author ratified this tolerance for R31's automatic compatibility
+fixture. The check is numerical compatibility, not retrieval quality: every
+returned vector must have a finite L2 norm and `|norm - 1| ≤ 0,00001`. The
+number lives in SPEC.md §5.2.6 with the other gate mechanics. It does not enter
+the embedder fingerprint; validation standing is explicitly outside vector
+identity, while the validation cache key carries the exact entry and runtime
+shape.
+
+**2026-09-03 — Drop HAL-04214661 from the golden-fixture recipe.** The author
+confirmed that the work is not his and ruled “Drop it.” Its HAL deposit rests
+on the repository's distribution authorisation rather than a reusable licence,
+and the fixture has no consent from Géraldine Le Nir, Juliette Laurent and
+Marie Lan Nguyen Leroy. The record is removed rather than left as a future
+fetch. This changes no language requirement: the remaining Vietnamese slice
+still contains ten records, including the other two versioned HAL works and
+the administrative, literary, dictionary and bilingual anchors.

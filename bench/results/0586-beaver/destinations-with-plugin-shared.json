@@ -1,0 +1,555 @@
+{
+  "probe": "R10 destinations for one argv, on both arms. An OBSERVATION carried beside the acceptance layer's verdict, never a verdict: SPEC.md §3 R10 is asserted in bench/acceptance/, which never runs its subject with a route. This does, because inside a no-route namespace every name resolves to the same stub resolver and a destination has no name.",
+  "label": "with-plugin-shared",
+  "conditions": "empty library, no account, no credentials, virgin profile; identical to the host-only cell except for the pinned artifact in profile/extensions",
+  "date": "2026-09-03",
+  "mechanism": "podman-unshare",
+  "argv": [
+    "timeout",
+    "90",
+    "/home/haduong/.local/Zotero_linux-x86_64/zotero",
+    "-profile",
+    "/home/haduong/data/ladder/beaver/ab/A-shared/profile",
+    "-datadir",
+    "/home/haduong/data/ladder/beaver/ab/A-shared/data",
+    "-no-remote"
+  ],
+  "env_overrides": [
+    "DISPLAY",
+    "HOME"
+  ],
+  "instrument_works_here": true,
+  "cells": {
+    "shared": {
+      "network_shared": true,
+      "returncode": 124,
+      "attempt_counts": {
+        "off_machine": 261,
+        "dns": 42
+      },
+      "destinations": [
+        {
+          "detector": "off_machine",
+          "address": "13.33.153.35",
+          "port": 443,
+          "attempts": 67,
+          "reverse_name": "server-13-33-153-35.lhr3.r.cloudfront.net",
+          "destination": "13.33.153.35:443/off_machine"
+        },
+        {
+          "detector": "dns",
+          "address": "127.0.0.53",
+          "port": 53,
+          "attempts": 42,
+          "reverse_name": null,
+          "destination": "127.0.0.53:53/dns"
+        },
+        {
+          "detector": "off_machine",
+          "address": "104.18.94.41",
+          "port": 443,
+          "attempts": 22,
+          "reverse_name": null,
+          "destination": "104.18.94.41:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.1.91",
+          "port": 0,
+          "attempts": 12,
+          "reverse_name": null,
+          "destination": "151.101.1.91:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.65.91",
+          "port": 0,
+          "attempts": 12,
+          "reverse_name": null,
+          "destination": "151.101.65.91:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.129.91",
+          "port": 0,
+          "attempts": 12,
+          "reverse_name": null,
+          "destination": "151.101.129.91:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.193.91",
+          "port": 0,
+          "attempts": 12,
+          "reverse_name": null,
+          "destination": "151.101.193.91:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "74.125.250.129",
+          "port": 19302,
+          "attempts": 11,
+          "reverse_name": null,
+          "destination": "74.125.250.129:19302/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a04:4e42:400::347",
+          "port": 0,
+          "attempts": 6,
+          "reverse_name": null,
+          "destination": "2a04:4e42:400::347:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a04:4e42:600::347",
+          "port": 0,
+          "attempts": 6,
+          "reverse_name": null,
+          "destination": "2a04:4e42:600::347:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a04:4e42::347",
+          "port": 0,
+          "attempts": 6,
+          "reverse_name": null,
+          "destination": "2a04:4e42::347:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a04:4e42:200::347",
+          "port": 0,
+          "attempts": 6,
+          "reverse_name": null,
+          "destination": "2a04:4e42:200::347:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "162.159.207.0",
+          "port": 3478,
+          "attempts": 6,
+          "reverse_name": null,
+          "destination": "162.159.207.0:3478/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "34.198.148.225",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-34-198-148-225.compute-1.amazonaws.com",
+          "destination": "34.198.148.225:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "3.212.202.84",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-3-212-202-84.compute-1.amazonaws.com",
+          "destination": "3.212.202.84:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "100.55.190.27",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-100-55-190-27.compute-1.amazonaws.com",
+          "destination": "100.55.190.27:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "50.19.175.199",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-50-19-175-199.compute-1.amazonaws.com",
+          "destination": "50.19.175.199:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "44.206.92.158",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-44-206-92-158.compute-1.amazonaws.com",
+          "destination": "44.206.92.158:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "100.52.15.171",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": "ec2-100-52-15-171.compute-1.amazonaws.com",
+          "destination": "100.52.15.171:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "104.18.94.41",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": null,
+          "destination": "104.18.94.41:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "104.18.95.41",
+          "port": 0,
+          "attempts": 3,
+          "reverse_name": null,
+          "destination": "104.18.95.41:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:1192",
+          "port": 443,
+          "attempts": 3,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:1192:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "100.51.230.198",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": "ec2-100-51-230-198.compute-1.amazonaws.com",
+          "destination": "100.51.230.198:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "54.156.137.147",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": "ec2-54-156-137-147.compute-1.amazonaws.com",
+          "destination": "54.156.137.147:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "34.198.148.225",
+          "port": 443,
+          "attempts": 2,
+          "reverse_name": "ec2-34-198-148-225.compute-1.amazonaws.com",
+          "destination": "34.198.148.225:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a04:4e42:1d::347",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2a04:4e42:1d::347:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.1.91",
+          "port": 443,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "151.101.1.91:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "34.149.226.178",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": "178.226.149.34.bc.googleusercontent.com",
+          "destination": "34.149.226.178:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:1901:0:8d82::",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2600:1901:0:8d82:::0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:5e29",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:5e29:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:5f29",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:5f29:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:1092",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:1092:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:1192",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:1192:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2606:4700::6812:1092",
+          "port": 443,
+          "attempts": 2,
+          "reverse_name": null,
+          "destination": "2606:4700::6812:1092:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "100.63.229.214",
+          "port": 0,
+          "attempts": 2,
+          "reverse_name": "ec2-100-63-229-214.compute-1.amazonaws.com",
+          "destination": "100.63.229.214:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:5e00:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:5e00:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:3200:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:3200:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:3e00:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:3e00:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:c200:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:c200:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:6000:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:6000:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:9000:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:9000:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:c000:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:c000:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2600:9000:204e:9e00:13:6d07:1753:9741",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2600:9000:204e:9e00:13:6d07:1753:9741:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.249.227.22",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "server-13-249-227-22.cdg50.r.cloudfront.net",
+          "destination": "13.249.227.22:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.249.227.22",
+          "port": 80,
+          "attempts": 1,
+          "reverse_name": "server-13-249-227-22.cdg50.r.cloudfront.net",
+          "destination": "13.249.227.22:80/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.65.91",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "151.101.65.91:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.33.153.35",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "server-13-33-153-35.lhr3.r.cloudfront.net",
+          "destination": "13.33.153.35:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.33.153.95",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "server-13-33-153-95.lhr3.r.cloudfront.net",
+          "destination": "13.33.153.95:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.33.153.129",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "server-13-33-153-129.lhr3.r.cloudfront.net",
+          "destination": "13.33.153.129:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "13.33.153.16",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "server-13-33-153-16.lhr3.r.cloudfront.net",
+          "destination": "13.33.153.16:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "34.149.226.178",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": "178.226.149.34.bc.googleusercontent.com",
+          "destination": "34.149.226.178:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "151.101.1.91",
+          "port": 80,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "151.101.1.91:80/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "3.212.202.84",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": "ec2-3-212-202-84.compute-1.amazonaws.com",
+          "destination": "3.212.202.84:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "100.52.15.171",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": "ec2-100-52-15-171.compute-1.amazonaws.com",
+          "destination": "100.52.15.171:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "140.82.121.4",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": "lb-140-82-121-4-fra.github.com",
+          "destination": "140.82.121.4:443/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "104.18.38.233",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "104.18.38.233:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "172.64.149.23",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "172.64.149.23:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a06:98c1:3105::ac40:9517",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2a06:98c1:3105::ac40:9517:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "2a06:98c1:3106::6812:26e9",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "2a06:98c1:3106::6812:26e9:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "104.18.38.233",
+          "port": 80,
+          "attempts": 1,
+          "reverse_name": null,
+          "destination": "104.18.38.233:80/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "185.199.110.133",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "cdn-185-199-110-133.github.com",
+          "destination": "185.199.110.133:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "185.199.111.133",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "cdn-185-199-111-133.github.com",
+          "destination": "185.199.111.133:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "185.199.108.133",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "cdn-185-199-108-133.github.com",
+          "destination": "185.199.108.133:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "185.199.109.133",
+          "port": 0,
+          "attempts": 1,
+          "reverse_name": "cdn-185-199-109-133.github.com",
+          "destination": "185.199.109.133:0/off_machine"
+        },
+        {
+          "detector": "off_machine",
+          "address": "185.199.110.133",
+          "port": 443,
+          "attempts": 1,
+          "reverse_name": "cdn-185-199-110-133.github.com",
+          "destination": "185.199.110.133:443/off_machine"
+        }
+      ],
+      "stderr_tail": "Missing chrome or resource URL: chrome://zotero/skin/16/white/loading.svg\nERROR: Cannot run unopkg as root without --shared or --bundled option.\n\nERROR: Cannot run unopkg as root without --shared or --bundled option.\n\ndpkg-query: aucun paquet ne correspond à openoffice\\.org-writer\nExceptionHandler::GenerateDump attempting to generate:\u0000/home/haduong/data/ladder/beaver/ab/A-shared/home/.config/mozilla/firefox/m4yy6r2e.default-esr/minidumps/6b63053f-4e9e-f484-7160-575940e7ce7e.dmp\nExceptionHandler::WaitForContinueSignal waiting for continue signal...\nExceptionHandler::GenerateDump cloned child 1898183\nExceptionHandler::SendContinueSignalToChild sent continue signal to child\nExceptionHandler::GenerateDump minidump generation \u0000failed\n\u0000Exiting due to channel error.\nExiting due to channel error.\nExiting due to channel error.\n[1898141] Sandbox: Unexpected EOF, op open flags 02000000 path /usr/lib/libavcodec.so.61\n"
+    }
+  }
+}
