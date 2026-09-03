@@ -1,13 +1,14 @@
-"""Goal 1's two remaining clauses decide, and say so when they cannot decide.
+"""R22's two clauses decide, and say so when they cannot decide.
 
 README.md's goals ladder puts R10, R15, R22 and R31 on the lowest rung and rules
 the method: the assertions for a rung are built before anything on it is made to
 work, because until they exist a row can only be `code` or `inferred` — a claim
-about nobody. R10 and R15 arrived with the acceptance layer; these are the other
-two, and this file is what stops each of them from being a habit.
+about nobody. R10 and R15 arrived with the acceptance layer; R22's two are these,
+and R31 is the rung's one clause the layer cannot decide, for the reason
+`assertions.py` states where its assertion would have gone.
 
-Four defects it guards, and each of them produces a **green** rather than an
-error, which is why they need fixtures rather than a careful reading.
+Five defects this file guards, and each of them produces a **green** rather than
+an error, which is why they need fixtures rather than a careful reading.
 
 **A pause graded from its own reply.** `pause` returning `{"paused": True}` says
 that the verb was called and nothing whatever about the workers. A check reading
@@ -22,12 +23,16 @@ first clause and red on the second, and that asymmetry is the point: a single
 merged assertion could not report it, and a marker held in an adapter attribute
 would make the fixture impossible to write at all.
 
-**A configuration graded by whether the call returned.** R31's defect is an
-order, not an exception: the configuration is accepted, and what was accepted
-fails later at the query that first invokes it. `stub-configures-blind` is that
-order. Its mirror — a target that raises at `configure` — must be green, because
-failing loudly before use is the clause's other branch, and a check that reddens
-on any exception scores the two identically.
+**A finding with no positive control.** Both clauses find that a counter did not
+move, and a counter that would not have moved anyway produces that finding on a
+target whose control does nothing. So the same change is made once with the
+target running, and a change that creates no work then leaves the clause
+undecided rather than green.
+
+**A fail-control that fails a clause it is not about.** The pause was first
+honoured in `_edit_one_item`, which three fixtures override, so two of goal 2's
+fail-controls kept working while stopped and went red on R22. The gate moved to
+`_bump`, where doing the work actually happens and no subclass can forget it.
 
 **An instrument that could not look, read as a verdict.** A target with no work
 counters cannot decide the pause clauses, and a target with no such control at
@@ -37,6 +42,7 @@ today; a state no fixture produces is a state nobody has checked survives the
 artifact.
 """
 
+import json
 import sys
 from contextlib import contextmanager
 from pathlib import Path
@@ -56,12 +62,11 @@ from acceptance.interface import (  # noqa: E402
     Declaration,
 )
 
-#: The rung's two new clauses, by the function that asserts them.
+#: R22's two clauses, by the function that asserts them.
 PAUSE_CLAUSES = (
     assertions.check_pause_stops_background_work,
     assertions.check_pause_holds_across_restart,
 )
-GOAL_1_CLAUSES = (*PAUSE_CLAUSES, assertions.check_configure_proves_it_works_here)
 
 
 def a_stub(name: str, tmp_path: Path, at: str = ""):
@@ -75,21 +80,21 @@ def a_stub(name: str, tmp_path: Path, at: str = ""):
 # --------------------------------------------------------------------------
 
 
-def test_every_goal_1_clause_is_in_the_registry():
+def test_every_pause_clause_is_in_the_registry():
     """A check the registry does not name is dead code that looks like coverage."""
     registered = {cid: fn for cid, fn in assertions.ALL.items()}
-    for fn in GOAL_1_CLAUSES:
+    for fn in PAUSE_CLAUSES:
         assert fn in registered.values(), f"{fn.__name__} is in the module but not in ALL"
 
 
-@pytest.mark.parametrize("assertion", GOAL_1_CLAUSES)
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_the_registry_maps_each_id_to_the_function_that_produces_it(assertion, tmp_path):
     """The id a check reports is the key it is registered under."""
     produced = assertion(a_stub("stub-quiet", tmp_path, at=assertion.__name__))
     assert assertions.ALL[produced.check] is assertion
 
 
-@pytest.mark.parametrize("assertion", GOAL_1_CLAUSES)
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_quiet_target_is_green(assertion, tmp_path):
     """An assertion that has only ever failed is as uninformative as one that never has."""
     check = assertion(a_stub("stub-quiet", tmp_path, at=assertion.__name__))
@@ -148,7 +153,13 @@ def test_a_queued_change_is_not_work_done(tmp_path):
     def queues_while_stopped():
         event = original()
         if target._is_paused():
-            target._bump(work__record__edit__queued=1)
+            # Written past `_bump`, which a stopped fixture no-ops: this models a
+            # target that keeps noticing while it is stopped, which the base
+            # fixture does not do and which the clause must not redden on.
+            counters = target._counters()
+            counters["work.record.edit.queued"] = (
+                counters.get("work.record.edit.queued", 0) + 1)
+            target._write(target._ledger(), json.dumps(counters))
         return event
 
     target._edit_one_item = queues_while_stopped
@@ -162,67 +173,11 @@ def test_a_queued_change_is_not_work_done(tmp_path):
 
 
 # --------------------------------------------------------------------------
-# R31 — the order, not the exception.
-# --------------------------------------------------------------------------
-
-
-def test_a_configuration_accepted_while_dead_is_red(tmp_path):
-    """The red is the target's own report, not an exception."""
-    check = assertions.check_configure_proves_it_works_here(
-        a_stub("stub-configures-blind", tmp_path))
-    assert check.result == FAIL
-    assert check.detail["configure_event"]["validated"] is False
-    assert check.detail["embedder_active_after_configure"] is False
-
-
-@pytest.mark.parametrize("surface", ["configure", "query"])
-def test_a_surface_that_raises_is_not_run_rather_than_a_verdict(surface, tmp_path):
-    """Neither direction of the exception reading survives, and that is the point.
-
-    The first version of this clause graded a raising `configure` green — it
-    "failed loudly" — and a raising `query` red — it "could not answer". The
-    layer cannot tell a target refusing a configuration from a transport that
-    died, so one reading manufactured a green out of a broken instrument and the
-    other manufactured a red out of the same event one verb later. Both are
-    `not-run`, and this test is parametrized over the pair so that reintroducing
-    either asymmetry fails here.
-    """
-    target = a_stub("stub-quiet", tmp_path, at=surface)
-
-    def raises(*args, **kwargs):
-        raise RuntimeError("the transport to this target died")
-
-    setattr(target, surface, raises)
-    check = assertions.check_configure_proves_it_works_here(target)
-    assert check.result == NOT_RUN
-    assert "RuntimeError" in check.detail["why"]
-    assert "cannot tell" in check.detail["why"]
-
-
-def test_a_target_reporting_no_embedder_state_leaves_the_clause_undecided(tmp_path):
-    """Whether what was accepted is in effect cannot be read from silence."""
-    target = a_stub("stub-quiet", tmp_path)
-    target.status = lambda: {"embedding": {}, "work": {}}
-    check = assertions.check_configure_proves_it_works_here(target)
-    assert check.result == NOT_RUN
-    assert "no embedder state" in check.detail["why"]
-
-
-def test_an_empty_answer_is_an_answer(tmp_path):
-    """A correctly configured target holding nothing yet must not redden this."""
-    target = a_stub("stub-quiet", tmp_path)
-    target.query = lambda q, mode, limit: {"hits": []}
-    check = assertions.check_configure_proves_it_works_here(target)
-    assert check.result == PASS
-    assert check.detail["hits_after_configure"] == 0
-
-
-# --------------------------------------------------------------------------
 # The states that are not verdicts.
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("assertion", GOAL_1_CLAUSES)
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_target_without_the_surface_is_not_offered_rather_than_red(assertion, tmp_path):
     """R22 is verified absent upstream, so this is the state a real run reports."""
     check = assertion(a_stub("stub-verbless", tmp_path, at=assertion.__name__))
@@ -231,28 +186,85 @@ def test_a_target_without_the_surface_is_not_offered_rather_than_red(assertion, 
     assert check.detail["why_absent"], "an absent verb carries the reason it is absent"
 
 
-def test_a_raising_verb_does_not_take_the_egress_sweep_down_with_it(tmp_path):
-    """One fixture's broken verb must not score every target red on another clause.
-
-    `drive()` is what `--drive` runs under the tracer, and it grades nothing: the
-    egress clause is about what a default-configuration run touched, and a target
-    that raises at `query` has still either reached off this machine or not. An
-    exception escaping instead ends that subprocess non-zero, which
-    `check_no_egress` reads as its own failure — R10 red on a target for a defect
-    in R31's fixture. Reproduced against `stub-configures-blind` before the guard.
-    """
+def _run_module():
     import importlib.util
 
     spec = importlib.util.spec_from_file_location(
         "acceptance_run", REPO / "bench" / "acceptance" / "run.py")
     run = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(run)
+    return run
 
-    done = run.drive(a_stub("stub-configures-blind", tmp_path))
+
+def _raises(*args, **kwargs):
+    raise RuntimeError("this verb is broken on this target")
+
+
+def test_one_raising_verb_does_not_take_the_egress_sweep_down_with_it(tmp_path):
+    """A broken verb must not score a target red on a clause about egress.
+
+    `drive()` is what `--drive` runs under the tracer, and it grades nothing: a
+    target that raised at `query` after installing and configuring has still
+    either reached off this machine or not, with the tracer watching throughout.
+    An exception escaping instead ends that subprocess non-zero, which
+    `check_no_egress` reads as its own failure.
+    """
+    target = a_stub("stub-quiet", tmp_path)
+    target.query = _raises
+    done = _run_module().drive(target)
     assert "raised: RuntimeError" in done["query"], (
         "a verb that raised must be recorded rather than propagated"
     )
     assert done["install"], "the verbs before it must still have been driven"
+
+
+def test_every_verb_raising_is_not_survivable(tmp_path):
+    """The other half, and it is the one that would be a false green.
+
+    `check_no_egress` grades `returncode == 0` plus zero traced attempts. A
+    target whose every verb raised exercised nothing at all, so swallowing them
+    would return it green on a clause about what it touched — worse than the
+    crash the guard replaced. That case re-raises.
+    """
+    target = a_stub("stub-quiet", tmp_path, at="all-broken")
+    for verb in ("install", "configure", "resume", "query"):
+        setattr(target, verb, _raises)
+    with pytest.raises(RuntimeError):
+        _run_module().drive(target)
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_a_change_that_creates_no_work_leaves_the_clause_undecided(assertion, tmp_path):
+    """The positive control, without which both clauses are a green about nothing.
+
+    Their whole finding is that a counter did not move. A target whose change
+    would not have moved one produces that finding whatever its control does, so
+    the change is made once while running and the clause is only decided if it
+    created work then.
+    """
+    target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
+    target._edit_one_item = lambda: {
+        "perturbation": assertions.durability.EDIT_ONE_ITEM, "sections": 0}
+    check = assertion(target)
+    assert check.result == NOT_RUN
+    assert "created no work" in check.detail["why"]
+
+
+@pytest.mark.parametrize("fixture", [
+    "stub-recomputes-whole-library-on-edit",
+    "stub-duplicates-work-on-company",
+])
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_another_goal_s_fail_control_is_not_red_here(fixture, assertion, tmp_path):
+    """A fixture built for one clause must not fail one it is not about.
+
+    Both of these did, and neither by modelling anything about a pause: the
+    honouring of it lived in `_edit_one_item`, which the first overrides, and in
+    a first build the second is not idempotent about. The gate is now in `_bump`,
+    where doing the work happens and no subclass can route around it.
+    """
+    check = assertion(a_stub(fixture, tmp_path, at=f"{fixture}-{assertion.__name__}"))
+    assert check.result == PASS
 
 
 class _Counterless:
@@ -320,15 +332,3 @@ def test_a_target_that_cannot_be_perturbed_is_not_run_rather_than_green(assertio
 
     check = assertion(_NoPerturbation(tmp_path))
     assert check.result == NOT_RUN
-
-
-def test_a_target_that_reports_no_hits_leaves_the_configure_clause_undecided(tmp_path):
-    """"It works here" cannot be read from the fact that a call returned."""
-
-    class _Hitless(_Counterless):
-        def query(self, q, mode, limit):
-            return {"answered": True}
-
-    check = assertions.check_configure_proves_it_works_here(_Hitless(tmp_path))
-    assert check.result == NOT_RUN
-    assert "nothing here to be read from" in check.detail["why"]

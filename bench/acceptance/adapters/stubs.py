@@ -57,7 +57,7 @@ fixtures mean anything. Two adapter instances over one arena are two processes
 on one data directory; counters held in memory would be two independent ledgers
 and the duplicate-work fixture could not express its defect at all.
 
-**Goal 1's remaining three, added with the pause and configure assertions.**
+**Goal 1's remaining two, added with the pause assertions.**
 
 `ignores-pause` offers the control, answers success from it, and keeps working.
 The finding it models is not a missing switch — a missing switch is
@@ -65,11 +65,6 @@ The finding it models is not a missing switch — a missing switch is
 rather than a milder one. `forgets-pause-on-restart` is the same control done
 almost right: the work does stop, and the stopping is kept where a restart loses
 it, which is the state R22's clause names restarts to exclude.
-
-`configures-blind` accepts a configuration without trying it and fails at the
-query that first invokes it. The order is its entire content: the same target
-failing at `configure` would be green, because failing loudly before use is what
-R31 asks for.
 
 **The pause marker is a file for the same reason the ledger is.** A pause held in
 an adapter attribute survives a `running()` block by accident of the process, so
@@ -116,7 +111,6 @@ NAMES = (
     "stub-abandons-foreign-stamp",
     "stub-ignores-pause",
     "stub-forgets-pause-on-restart",
-    "stub-configures-blind",
 )
 
 #: The fixture library: four items of three sections each. These are the
@@ -163,7 +157,21 @@ class _Stub:
             return {}
 
     def _bump(self, **counters: int) -> dict[str, int]:
-        """Move counters and persist them, the way a ledger transition would."""
+        """Move counters and persist them, the way a ledger transition would.
+
+        **A stopped fixture moves nothing**, and the gate lives here rather than
+        in the perturbation for a reason found by review rather than by design.
+        It was first written into `_edit_one_item`, which three fixtures override
+        — so `recomputes-whole-library-on-edit` kept working while stopped and
+        went red on both R22 clauses, a fail-control built for R3 failing two
+        clauses it is not about, and `duplicates-work-on-company` did the same
+        through its non-idempotent first build. A pause honoured in one method
+        that subclasses replace is a pause every future fixture can forget.
+        Doing the work is bumping a counter, so this is the one place it can be
+        stopped once for all of them.
+        """
+        if self._is_paused():
+            return self._counters()
         current = self._counters()
         for name, by in counters.items():
             current[name.replace("__", ".")] = current.get(name.replace("__", "."), 0) + by
@@ -227,15 +235,13 @@ class _Stub:
     def _edit_one_item(self) -> dict:
         """One title changes: its record recomputes, and its sections re-embed.
 
-        Unless this fixture has been stopped, in which case the change is noticed
-        and no work is done — which is what R22 asks of a target, and what makes
-        `stub-quiet` the green baseline for the pause clauses as well.
+        The change is noticed whether or not this fixture has been stopped; what
+        a stopped fixture does not do is the work, and `_bump` is where that is
+        enforced for every subclass at once.
         """
-        event = {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
-        if self._is_paused():
-            return {**event, "work_done_while_stopped": False}
         self._bump(work__record__edit__done=1, work__embed__edit__done=SECTIONS)
-        return event
+        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS,
+                "work_done": not self._is_paused()}
 
     def _resync_identical_bytes(self) -> dict:
         """Signals move, keys are verified, nothing is recomputed."""
@@ -566,60 +572,6 @@ class _ForgetsPauseOnRestartStub(_Stub):
             marker.unlink()
 
 
-class _ConfiguresBlindStub(_Stub):
-    """R31's red: the configuration is accepted without being tried, and is dead.
-
-    `configure` returns success and validates nothing, and the target's own
-    `status` then reports that what it accepted is not in effect. The report is
-    the fixture's whole content, and it is a report rather than an exception on
-    purpose: the assertion cannot tell a target refusing a configuration from a
-    transport that died, so a fixture expressing its defect by raising would be
-    asking to be graded on something no target's verdict can rest on.
-
-    The query still fails, because a configuration that is not in effect cannot
-    serve — but nothing grades that failure, and the assertion reports `not-run`
-    if it reaches it. It is here so the fixture is coherent, not so it is scored.
-
-    **It reddens `R10-local-by-default` as well, and that red is kept.** One
-    fixture per cause is about a red naming a defect rather than a region, and
-    this is one cause reaching two clauses rather than two causes: R10's own
-    falsifier names "a local embedder that is configured but not running", which
-    is a literal description of the state this fixture reports. Suppressing it
-    would mean keying the fixture's behaviour on which assertion is looking,
-    which is a fixture built to dodge a clause. R10 has its own fail-control in
-    `remote-embedder`, so nothing rests on this one either way.
-    """
-
-    #: Whether this instance has been handed the configuration it never checked.
-    #: The failure is bounded to that, and the bound is what keeps the fixture to
-    #: one cause: a stub whose query raised unconditionally also failed R13's
-    #: both-answer clause, which is a true verdict about the stub and a false lead
-    #: about the defect — a red naming a region instead of a cause.
-    _configured = False
-
-    def configure(self) -> dict:
-        self._require("configure")
-        self._configured = True
-        return {"configuration": self.declaration.default_configuration,
-                "validated": False}
-
-    def status(self) -> dict:
-        reported = super().status()
-        if not self._configured:
-            return reported
-        return {**reported,
-                "embedding": {"locality": "local", "active": False, "model": None}}
-
-    def query(self, q: str, mode: str, limit: int) -> dict:
-        self._require("query")
-        if not self._configured:
-            return super().query(q, mode, limit)
-        raise RuntimeError(
-            "the configured embedder could not be loaded on this machine, reported "
-            "when the query invoked it — which is after the configuration was accepted"
-        )
-
-
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
                  unsupported: dict[str, str] | None = None) -> Declaration:
     return Declaration(
@@ -692,9 +644,6 @@ def build(name: str, arena: Path, **_opts):
         return _ForgetsPauseOnRestartStub(
             name, arena, _declaration(name, arena, roots=(data,)))
 
-    if name == "stub-configures-blind":
-        return _ConfiguresBlindStub(name, arena, _declaration(name, arena, roots=(data,)))
-
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(
             name, arena, roots=(data,),
@@ -712,7 +661,6 @@ def build(name: str, arena: Path, **_opts):
                 "pause": "declared absent on purpose, as above; a target with no such "
                          "control is a different finding from one whose control does "
                          "nothing, and both must be reachable",
-                "configure": "declared absent on purpose, as above",
             },
         ))
 

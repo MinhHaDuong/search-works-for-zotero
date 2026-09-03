@@ -5,11 +5,13 @@ goals ladder; `SPEC.md` §5.2.8 owns this harness; `DECISIONS.md`'s ratified ent
 of 2026-09-02 owns the ruling. None is restated here — this module cites
 addresses and asserts clauses.
 
-**Why goal 1 is complete here and goal 2 is not.** The ladder's method is tests
-first, bottom-up: until a rung's assertions exist, its rows can only be `code` or
-`inferred`, a claim about nobody. R22 and R31 were the two members of the lowest
-rung with no assertion at all, and the pause clauses read the work counters
-`durability.py` already defines rather than a second set of their own.
+**The ladder's method is tests first, bottom-up**: until a rung's assertions
+exist, its rows can only be `code` or `inferred`, a claim about nobody. R22's two
+clauses were the last members of the lowest rung with no assertion at all, and
+they read the work counters `durability.py` already defines rather than a second
+set of their own. R31 is the rung's one clause this layer cannot decide, and the
+section below says why rather than leaving its absence to be read as an
+oversight.
 
 **What this file may not contain**, and the reason it is checked rather than
 promised: no target's name, no tool name, no path literal, no data-directory
@@ -606,6 +608,66 @@ def _pause_verdict(cid: str, req: str, clause: str, falsified: str, target: Targ
     )
 
 
+def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
+                             target: Target) -> tuple[dict | None, Check | None]:
+    """The positive control: the same change, made while the target is running.
+
+    Without it both pause clauses are a green that means "could not look". Their
+    whole finding is that a counter did not move, and a counter that would not
+    have moved anyway produces that finding on a target whose control does
+    nothing — a fixture whose edit perturbation is a no-op passes both clauses
+    perfectly. So the change is made once with the target running and unpaused,
+    and the clause is only decided if it created work then.
+
+    `install` runs first where it is offered, for the reason
+    `check_model_cache_under_declared_roots` runs it: a target whose work only
+    exists after installation would otherwise be graded on a state the harness
+    withheld from it.
+
+    Returns `(control, None)` when work was created, and `(None, check)` carrying
+    the `not-run` when it was not.
+    """
+    with target.running():
+        if durability.work_counters(target) is None:
+            return None, durability.no_counters(cid, req, clause, falsified, target)
+        if target.declaration.offers("install"):
+            try:
+                target.install()
+            except UnsupportedVerb:
+                raise
+            except Exception as why:
+                return None, not_run(
+                    cid, req, clause, falsified, target, "install",
+                    f"the target's install surface raised ({type(why).__name__}: {why}), "
+                    "so no state exists for a change to create work against",
+                )
+        before, settled = durability.settle(target)
+        if not settled:
+            return None, durability.unsettled(cid, req, clause, falsified, target,
+                                              "before the positive control")
+        event, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        if why:
+            return None, not_run(cid, req, clause, falsified, target, "pause", why)
+        after, settled = durability.settle(target)
+        if not settled:
+            return None, durability.unsettled(cid, req, clause, falsified, target,
+                                              "after the positive control")
+
+    created = {k: v for k, v in durability.delta(before, after).items()
+               if durability.outcome_of(k) == durability.DONE and v > 0}
+    if not created:
+        return None, not_run(
+            cid, req, clause, falsified, target, "pause",
+            "the change the harness makes created no work on this target even while it "
+            "was running, so a stopped target creating none proves nothing about the "
+            "control. Reported as not decided rather than as a green: a clause whose "
+            "finding is that a counter did not move needs the counter to have been "
+            "able to move.",
+        )
+    return {"perturbation": durability.EDIT_ONE_ITEM, "event": event,
+            "done_deltas_while_running": created}, None
+
+
 def check_pause_stops_background_work(target: Target) -> Check:
     """R22: after the control is used, a change that would create work creates none.
 
@@ -614,6 +676,10 @@ def check_pause_stops_background_work(target: Target) -> Check:
     target returning `paused` from its pause surface satisfies any check that
     reads the reply, whatever its workers then go on to do; §5.2.8's counters are
     the only thing here that distinguishes the two.
+
+    The positive control runs first, because the counters have to be shown
+    capable of moving before their not moving means anything — see
+    `_the_change_creates_work`.
 
     A target with no such surface reports `not-offered`, and that is a different
     finding rather than a softer one: R22's own status on the sheet is *verified
@@ -631,9 +697,11 @@ def check_pause_stops_background_work(target: Target) -> Check:
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
 
+    control, undecided = _the_change_creates_work(cid, req, clause, falsified, target)
+    if undecided:
+        return undecided
+
     with target.running():
-        if durability.work_counters(target) is None:
-            return durability.no_counters(cid, req, clause, falsified, target)
         _, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
@@ -658,6 +726,7 @@ def check_pause_stops_background_work(target: Target) -> Check:
 
     return _pause_verdict(cid, req, clause, falsified, target, before, after, {
         "pause_event": paused,
+        "positive_control": control,
         "change_made_while_stopped": change,
         "restarted": False,
     })
@@ -676,6 +745,10 @@ def check_pause_holds_across_restart(target: Target) -> Check:
 
     `resume` is never called, which is why the clause can be read at all: a
     harness that asked the target to carry on would be measuring its own request.
+
+    The positive control runs first here too, and the restart makes it matter
+    more rather than less: a target that stops doing work simply because it was
+    restarted would otherwise be indistinguishable from one whose control held.
     """
     cid, req = "R22-pause-holds-across-restart", "R22"
     clause = ("the control that stops all background work holds across a restart, with "
@@ -687,9 +760,11 @@ def check_pause_holds_across_restart(target: Target) -> Check:
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
 
+    control, undecided = _the_change_creates_work(cid, req, clause, falsified, target)
+    if undecided:
+        return undecided
+
     with target.running():
-        if durability.work_counters(target) is None:
-            return durability.no_counters(cid, req, clause, falsified, target)
         _, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
@@ -718,6 +793,7 @@ def check_pause_holds_across_restart(target: Target) -> Check:
 
     return _pause_verdict(cid, req, clause, falsified, target, before, after, {
         "pause_event": paused,
+        "positive_control": control,
         "change_made_while_stopped": change,
         "restarted": True,
         "resume_called": False,
@@ -725,132 +801,36 @@ def check_pause_holds_across_restart(target: Target) -> Check:
 
 
 # --------------------------------------------------------------------------
-# R31 — a configuration proves it works here, or fails loudly here.
+# R31 — why this layer does not assert it, and what would let it.
 # --------------------------------------------------------------------------
-
-
-def check_configure_proves_it_works_here(target: Target) -> Check:
-    """R31: a configuration is not accepted silently while what it configured is dead.
-
-    The red is read from the target's own report, not from an exception, and that
-    is the correction that shapes the whole assertion. The first version graded
-    exceptions: a `configure` that raised was green (it "failed loudly") and a
-    `query` that raised was red (it "could not answer"). Both readings were
-    wrong, and wrong in the same way — the layer cannot tell a target refusing a
-    configuration from a transport that died, so one reading manufactured a green
-    out of a broken instrument and the other manufactured a red out of the
-    identical event one verb later. An exception here decides nothing, and the
-    honest verdict for a harness that could not look is `not-run`.
-
-    What can be read is the normalized status shape this module already declares
-    for R10. After `configure` returns, `embedding.active` is the target saying
-    whether what it just accepted is in effect. A configuration accepted without
-    complaint whose embedder is not active is exactly the shipped defect R31's row
-    names: nothing validates before an index is created or queried, and the
-    failure surfaces later, when the embedder is actually invoked.
-
-    - `configure` returns, the target reports its embedder active, and the query
-      is answered: green.
-    - `configure` returns and the target reports the embedder inactive: red.
-    - anything raises, or the target reports no embedder state, or it answers
-      without saying what it matched: `not-run`, naming what could not be read.
-
-    **What this does not catch, stated because the row's evidence depends on it.**
-    A target that validates nothing and happens to work on this machine is green
-    here. That is not a hole to be plugged from the harness side: proving that a
-    validation ran needs a configuration known to be unusable, and offering one
-    means naming a target's own configuration surface, which the contract puts in
-    the adapter. Until an adapter offers that, this clause's green means "not
-    caught accepting a dead configuration", and the sheet's evidence column stays
-    where it is.
-
-    `install` runs first where it is offered, for the reason
-    `check_model_cache_under_declared_roots` runs it: a target whose retrieval
-    surface only exists after installation would otherwise be graded on a state
-    the harness withheld from it.
-
-    An empty hit list is an answer, not a failure: a target may be configured
-    correctly and hold nothing yet, and a clause about configuration must not
-    redden on an empty corpus.
-    """
-    cid, req = "R31-configure-proves-or-fails-loudly", "R31"
-    clause = ("a configuration offered to me proves it works on this machine before it "
-              "is used, or fails loudly here")
-    falsified = ("a configure that returns without complaint while the target reports "
-                 "that what it configured is not in effect")
-
-    for verb in ("configure", "query", "status"):
-        if not target.declaration.offers(verb):
-            return not_offered(cid, req, clause, falsified, target, verb)
-
-    def could_not_look(verb: str, why: BaseException) -> Check:
-        return not_run(
-            cid, req, clause, falsified, target, verb,
-            f"the target's {verb} surface raised ({type(why).__name__}: {why}). The "
-            "layer cannot tell a target refusing a configuration from an instrument "
-            "that broke, so this decides nothing either way — grading it green would "
-            "read a dead transport as a loud refusal, and grading it red would read "
-            "one as a defect.",
-        )
-
-    q, limit = "a query the harness supplies once the configuration is accepted", 5
-    with target.running():
-        try:
-            if target.declaration.offers("install"):
-                target.install()
-            accepted = target.configure()
-            reported = (target.status().get("embedding") or {}).get("active")
-        except UnsupportedVerb:
-            raise
-        except Exception as why:
-            return could_not_look("configure", why)
-
-        if reported is None:
-            return not_run(
-                cid, req, clause, falsified, target, "status",
-                "the target reports no embedder state, so whether what it just accepted "
-                "is in effect has nothing here to be read from and the clause is not "
-                "decided",
-            )
-        if not reported:
-            return Check(
-                check=cid, requirement=req, clause=clause, falsified_by=falsified,
-                result=FAIL, target=target.declaration.name, verb="configure",
-                detail={
-                    "configure_event": accepted,
-                    "embedder_active_after_configure": False,
-                    "reads": ("the configuration was accepted without complaint and the "
-                              "target itself reports that what it configured is not in "
-                              "effect, which is the order the clause forbids"),
-                },
-            )
-        try:
-            answer = target.query(q, MEANING, limit)
-        except UnsupportedVerb:
-            raise
-        except Exception as why:
-            return could_not_look("query", why)
-
-    hits = durability.hits_of(answer)
-    if hits is None:
-        return not_run(
-            cid, req, clause, falsified, target, "query",
-            "this target answers without reporting what it matched, so whether the "
-            "configured path can serve has nothing here to be read from and the clause "
-            "is not decided",
-        )
-    return Check(
-        check=cid, requirement=req, clause=clause, falsified_by=falsified,
-        result=PASS, target=target.declaration.name, verb="configure",
-        detail={
-            "configure_event": accepted,
-            "embedder_active_after_configure": True,
-            "hits_after_configure": len(hits),
-            "reads": ("the configuration was accepted, the target reports what it "
-                      "configured is in effect, and the path answered; an empty hit "
-                      "list is an answer, not a failure"),
-        },
-    )
+#
+# R31 asks that a configuration offered to me prove it works on my machine
+# BEFORE it is used, or fail loudly there. The load-bearing word is "before":
+# the clause is about when validation happens, not about whether the target
+# ends up working.
+#
+# An assertion was written for it and withdrawn under review, and the reason is
+# worth keeping because it is not a bug that a rewrite fixes. Everything the
+# layer can observe through the seven verbs after `configure` returns — the
+# embedder's reported locality, whether it is active, whether a query answers —
+# is a fact about the target's CURRENT state, and `check_local_by_default`
+# already grades that state, over a strictly wider condition. So the assertion
+# reddened exactly where R10 already reddened and nowhere else: it had no
+# discriminating power, and a check that cannot fail where its own requirement
+# fails is a green about nobody wearing a requirement's number.
+#
+# Reading exceptions does not rescue it either, and that was the first attempt:
+# a `configure` that raises was graded green ("it failed loudly") and a `query`
+# that raises red ("it could not answer"), when the layer cannot tell either one
+# from a transport that died.
+#
+# What would make the clause decidable is a way to offer a configuration KNOWN to
+# be unusable here and watch when the target notices. `configure` takes no
+# argument (`interface.py`, VERBS; SPEC.md §5.2.8), so the harness cannot offer
+# one, and inventing the configuration itself would mean naming a target's own
+# settings surface in this layer — which the ratified contract puts in the
+# adapter. Extending the contract is the author's, not this layer's: ticket 0488
+# carries it.
 
 
 # --------------------------------------------------------------------------
@@ -894,6 +874,5 @@ ALL = {
     "R15-uninstall-removes-declared-state": check_uninstall_removes_declared_state,
     "R22-pause-stops-background-work": check_pause_stops_background_work,
     "R22-pause-holds-across-restart": check_pause_holds_across_restart,
-    "R31-configure-proves-or-fails-loudly": check_configure_proves_it_works_here,
     **durability.ALL,
 }

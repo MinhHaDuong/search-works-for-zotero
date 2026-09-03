@@ -44,7 +44,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from acceptance import adapters  # noqa: E402
 from acceptance.assertions import EGRESS_VERBS, MEANING, check_no_egress  # noqa: E402
 from acceptance.assertions import (  # noqa: E402
-    check_configure_proves_it_works_here,
     check_local_by_default,
     check_model_cache_under_declared_roots,
     check_pause_holds_across_restart,
@@ -72,17 +71,25 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
     Used by `--drive`, which the egress assertion runs under the tracer. A verb
     the adapter declares absent is skipped and named; it is not simulated.
 
-    **A verb that raises is recorded and the sweep carries on**, and that is not
-    leniency: this function grades nothing. Its whole job is to make a
-    default-configuration run happen while a tracer watches, and R10's clause is
-    about what that run touched — a target that raises at `query` has still
-    either reached off this machine or not, and the tracer has still seen it.
-    Letting the exception out instead ends this subprocess non-zero, which
-    `check_no_egress` reads as its own failure: one broken verb then scores the
-    target red on a clause about egress, which is a verdict about nothing. A
-    fixture built to fail R31 did exactly that.
+    **One verb that raises is recorded and the sweep carries on; all of them
+    raising is not survivable, and the asymmetry is the whole of it.** This
+    function grades nothing — its job is to make a default-configuration run
+    happen while a tracer watches, and a target that raised at `query` after
+    installing and configuring has still either reached off this machine or not,
+    with the tracer watching throughout. Letting that one exception out instead
+    ends this subprocess non-zero, which `check_no_egress` reads as its own
+    failure: one broken verb then scores the target red on a clause about egress,
+    which is a verdict about nothing.
+
+    But swallowing *every* verb is worse than the crash it replaced. The egress
+    verdict is `returncode == 0` plus zero traced attempts, so a target whose
+    four verbs all raise would have exercised nothing at all and come back
+    **green** on a clause about what it touched — a green that means "could not
+    look", which is the exact failure this layer exists to make impossible. So
+    that case re-raises, and the caller's non-zero reading stands.
     """
     done: dict[str, object] = {}
+    raised: list[BaseException] = []
     with target.running():
         for verb in verbs:
             if not target.declaration.offers(verb):
@@ -97,6 +104,12 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
                 done[verb] = "not-offered"
             except Exception as why:
                 done[verb] = f"raised: {type(why).__name__}: {why}"
+                raised.append(why)
+    exercised = [v for v, outcome in done.items()
+                 if not (isinstance(outcome, str)
+                         and outcome.startswith(("raised:", "not-offered")))]
+    if raised and not exercised:
+        raise raised[0]
     return done
 
 
@@ -171,9 +184,6 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
 
     where = arena_for("R22-pause-holds-across-restart")
     run.checks.append(check_pause_holds_across_restart(make_target(where)))
-
-    where = arena_for("R31-configure-proves-or-fails-loudly")
-    run.checks.append(check_configure_proves_it_works_here(make_target(where)))
 
     # Goal 2. The two R13 clauses take a SECOND target built over the same arena:
     # two adapter instances resolving one declared derived-state root is what
