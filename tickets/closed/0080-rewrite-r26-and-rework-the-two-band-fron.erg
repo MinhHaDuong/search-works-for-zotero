@@ -2,6 +2,7 @@
 Title: Rewrite R26 and rework the two-band frontier it justified
 Created: 2026-08-29
 Author: claude
+Closed: R26 retired (DECISIONS.md 2026-08-31), tier priority replaces the two-band frontier, SPEC.md 5.2.3/5.2.8 reworked with no orphan machinery, C2's smallest-first rejection re-argued on the new standard, positive control exhibited red-then-green. The convergence gate's actual code is 0026/0555's own build, descoped from this ticket per author decision 2026-09-03
 
 --- log ---
 2026-08-29T09:33Z claude created
@@ -13,6 +14,7 @@ Author: claude
 2026-09-02T20:18Z claude note THE BODY TIER GETS NO NEW MECHANISM, and the band cap keeps its job. Three facts carry it, all recorded in SPEC 5.2.3: the class order already gives every item its record and own words before any body passage, so a monster delays no item's discoverability; K sits at the median attachment's own passage count (bench/results/0140-passage-census/census.json), so band 1 holds the tails of longer-than-median documents rather than ordinary items queued behind a monster; and the ratified fresh-against-backfill interleave (r=3, DECISIONS.md 2026-09-01) already leaves each lane its share, so what stays unbounded is one long document's tail against another's inside ONE lane. Both alternatives were weighed and cost more: a recurring band (band n = passages [nK,(n+1)K), this cap generalized, stateless) finishes no long document early and re-seeks each slab once per round; a per-item round robin is either that same shape under another name or it holds a rotation cursor over a set that changes while the build runs -- the shape vetoed 2026-08-29 and declined again by the interleave, which holds no counter for that reason. No DECISIONS.md entry filed: a no-new-rule conclusion is a design position, not a ruling, and the author can overrule it cheaply. Reconciled against 0555 (its Action 2 and its monster property are unchanged by this) and 0554 (the ~1 s micro-batch quantum is a TIME quantum for yield, a different quantity from K -- said so rather than left to be conflated)
 2026-09-02T20:18Z claude note THE OTHER THREE ACTIONS. (3) 5.2.8's boundary identity is RETIRED, not reworked: covered == |{(dateAdded,lib,itemKey) >= boundary}| - partial - quarantined + outOfBand has its left side defined by the boundary's position, so it restates the vetoed prefix claim in arithmetic and would read the library's churn as a coverage fault. What replaces it was already in the paragraph above it -- idle reconciliation recomputes the counters with real COUNTs and the harness fails on drift, which holds them to the ledger and not to a position. outOfBand survives the identity it was introduced to balance, on its own R4 ground. (5) C2/#6012: the rejection of smallest-first STANDS and its stated ground does not. The old ground -- neither ordering is asserted as an invariant over a moving set -- was a defence of the retired prefix observable and settles nothing now nobody asserts one. Re-argued on what actually separates them: smallest-first buys anti-monopoly by ordering the body queue on document length, so the newest long book waits behind every short one; the band cap buys the same property blind to length, so recency survives here and cannot survive there. (4) The convergence gate's SPEC text asserts the class order and nothing positional, but the gate has NO code in this repo and no Makefile target -- 0026 owns building it, 0555 the scheduler-side property suite -- so that exit criterion stays open and this PR is a Ticket-ref
 2026-09-02T20:19Z claude note POSITIVE CONTROL, red then green. The class-order assertion has no implementation to break, so it was exhibited falsifiable against a synthetic dispatch log instead: three items, one the 15 000-page monster, the same 15 events ordered body-first and then class-ordered. Body-first: 6 violations, exit 1. Class-ordered: 0 violations, exit 0. Transcripts in the PR body. The probe is scratch and deliberately NOT committed -- a permanent test of a predicate no producer feeds is apparatus without a subject, and the guard budget in this repo is net-negative
+2026-09-03T15:45Z MinhHaDuong closed — R26 retired (DECISIONS.md 2026-08-31), tier priority replaces the two-band frontier, SPEC.md 5.2.3/5.2.8 reworked with no orphan machinery, C2's smallest-first rejection re-argued on the new standard, positive control exhibited red-then-green. The convergence gate's actual code is 0026/0555's own build, descoped from this ticket per author decision 2026-09-03
 --- body ---
 ## Context
 The author rejected R26 as written on 2026-08-29. The requirement asserted
@@ -104,8 +106,13 @@ has never failed has not been shown to be able to.
       no ratification. The argument is in §5.2.3 and the author can overrule
       it cheaply
 - [x] SPEC.md §5.2.3 reworked with no orphan machinery
-- [ ] The convergence gate asserts the tier ordering — SPEC.md §5.2.8 now
-      states it and nothing else, but the gate has no code in this repo and
-      no Makefile target; building it is ticket 0026's, and 0555 owns the
-      scheduler-side property suite. Stays open
+- [x] descoped 2026-09-03 (author decision, same shape as 0028/0025): the
+      convergence gate asserting the tier ordering IN CODE is 0026's own
+      build (it owns the convergence-harness rungs) and 0555's (scheduler-
+      side property suite), not a step of this ticket. This ticket's job was
+      the SPEC text and the design argument — SPEC.md §5.2.8 already states
+      the tier ordering and nothing positional (Action 4), verified above by
+      a red-then-green positive control against a synthetic dispatch log.
+      0026 and 0555 carry the code; not filed as a fresh Ticket-ref since
+      both already exist and already own this surface
 - [x] `make check` passes
