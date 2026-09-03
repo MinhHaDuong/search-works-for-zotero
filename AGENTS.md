@@ -164,8 +164,14 @@ channel existed and was simply not used.
   branch with a named blocker is a working state; a merged one with an invented
   verdict is not recoverable.
 
-Who may press merge once a verdict is recorded — the lane that wrote the change,
-or a second party — is not settled here. The question is in `DECISIONS.md`.
+- **A lane does not press merge at all — not even on its own pull request.**
+  Ratified 2026-09-03: a lane's terminal state is an *open* pull request, based
+  on the current `main`, with its gates measured at that base and quoted on the
+  page, its blockers named, and out of draft when it is ready to be read. The
+  lane then hands it up to the coordinator that launched it. Review and merge
+  are the lead's, taken as one pass over the open set rather than a merge per
+  lane as each finishes; the queueing this costs overnight is accepted. The
+  ledger entry is in `DECISIONS.md`.
 
 ## Upstream relations
 

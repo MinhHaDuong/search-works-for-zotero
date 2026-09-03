@@ -3780,6 +3780,42 @@ then the labelled character-count estimate. A lower bound above the threshold
 proves long; values below it never prove short. An unresolved length takes the
 long-document-safe path and reports the signal and certainty that selected it.
 
+**2026-09-03 — a lane does not press merge. Ratified: the sub-agent hands the
+open pull request up to the coordinator, and the lead organizes the review and
+the merge in one pass.** The author, on being shown two merge requests that the
+lane holding them had corrected, re-gated and then merged itself: *un sous-agent
+ne fusionne pas ; un sous-agent remonte une PR ouverte au coordinateur, et le
+chef d'équipe organise la revue et merge en une passe.* That settles the
+question the 2026-09-02 entry left open, and it settles it on that entry's
+second option — a second party presses merge — while naming who the second
+party is: the coordinator the lane reports to, not an arbitrary other lane.
+
+What follows for a lane. Its terminal state is an **open** pull request:
+re-based on the current `main`, gates measured at that base and quoted on the
+page, blockers named, out of draft when it is ready to be looked at. Pressing
+merge is not part of a lane's work — not on another lane's gate, which
+`AGENTS.md` already forbade, and now not on its own either, whatever verdict the
+page carries and whoever wrote the change. What a lane may still do on its own
+pull request is unchanged and is the whole of its job there: correct it,
+re-measure it, re-merge a moved base, and say on the page what remains.
+
+What follows for the lead. Review and merge are **one pass over the open set**,
+not a merge per lane as each finishes. The serialization cost the 2026-09-02
+entry priced — with no second party awake, branches queue until morning — is
+accepted, and the pass is where it is paid. The repository has no continuous
+integration, so the pass is also where the gates get read by someone who did not
+run them.
+
+The occasion, recorded as the breach it was rather than as the reason: on the
+morning of 2026-09-03 the lane holding #232 and #235 corrected the citation
+defect each was bounced on, re-measured both at base `1ff51ed`, took both out of
+draft **and merged both itself** (`0bb5304`, `9dd6fcd`), on an instruction given
+inside its own session. The changes were gated and `main` is green at 592/13 and
+167 tickets; the procedure was wrong under this ruling. Whether those two merges
+are reverted is the author's, and nothing here reverts them: the ruling is
+written from the correction, not from the merge.
+
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -5087,52 +5123,10 @@ for a class of true reds it would stop seeing tomorrow. The last is the one to
 be most careful with: the assertion's value is that it counts attempts rather
 than judging payloads.
 
-**2026-09-02 — may a lane merge its own pull request? Not ratified: the
-governance half of the merge-authority rule is the author's.** `AGENTS.md` now
-carries what is not in dispute: no merge before a review verdict is recorded on
-the pull request itself, a verdict quoted as received, an unreported reviewer
-leaving the branch BLOCKED rather than inferred, no finding attributed to a
-reviewer who did not make it, the reviewer posting its own verdict to the page
-with a waiting lead polling it, and no lane merging a pull request another lane
-is gating. What it deliberately does not say is who presses the button once a
-verdict exists.
-
-The occasion is measurable rather than argued. Of the five pull requests merged
-on 2026-09-02 — #215, #216, #217, #219, #220 — **none carries a review or a
-comment on its own page**, against #218 of the same evening, which carries a
-`/verify-gate` verdict and a gate lead's bounce. The channel worked; it was not
-used. Whether a verdict was reached in a session and never posted, or never
-reached, is unrecoverable from here, and that unrecoverability is the cost.
-
-Three ways it could go, and no default is proposed.
-
-Lanes self-merge on a recorded verdict. Cheapest, keeps a lane's throughput
-independent of anyone else's availability, and it is what the repository has
-been doing. Its weakness is precisely tonight's failure mode: the same session
-that would have to fabricate a verdict is the session that presses merge, so
-nothing external ever has to agree.
-
-A second party presses merge. Strongest separation, and it is the only variant
-where an invented verdict has to survive someone else reading it. It costs a
-serialization point: with several lanes live overnight and no second party
-awake, branches queue until morning, which converts a review problem into a
-scheduling one.
-
-Self-merge allowed, but only where the verdict came from a seat the lane did not
-drive. This is the middle, and it needs one thing the repository does not have:
-a mechanical statement of what counts as a seat the lane did not drive. Without
-that it is the first option with more words. The reviewer-posts-its-own-verdict
-clause now in `AGENTS.md` moves part of the burden: the verdict's existence and
-its timing become page facts rather than lane claims, so the option no longer
-has to establish those. It supplies nothing about the seat, since one forge
-account signs every artifact, and that mechanical statement remains what this
-option turns on.
-
-There is a fourth consideration that belongs to the author rather than to the
-rule: this repository has **no continuous integration** — `make check` is the
-gate and it runs where a lane runs it. So the pull-request page is not merely
-the polite place to record a verdict; it is the only durable place a verdict can
-exist at all.
+**2026-09-02 — may a lane merge its own pull request? RATIFIED 2026-09-03: it
+may not.** The question, its measured occasion and the three ways it could go
+are kept in the ledger entry above, which rules on it: a lane hands the open
+pull request up, and the coordinator reviews and merges in one pass.
 
 **2026-09-03 — Does "no non-default option" reach a harness-setup preference?
 The adapter roster's `httpServer.port` move, put as a question and not
