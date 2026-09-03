@@ -1,0 +1,117 @@
+%erg 0.1
+Title: Census collection and tag membership, and derive the fill-k frontier
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T07:44Z claude created
+
+2026-09-03T07:45Z claude note split out of 0590 at the author's direction. Holds the query-free half: harvest membership, distribute f, derive the frontier, and bound the at-risk region against the refetch depth
+2026-09-03T08:33Z claude note second review trimmed 'a few hundred passages' from the at-risk region: the frontier moves with k and the refetch depth, so the magnitude is what this ticket measures rather than an illustration it can give in advance
+2026-09-03T08:43Z claude note substrate declared: actions 1 and 2 need the author's machine, everything after is arithmetic over the committed summary, and the harvest driver's own correctness is gated in-container by the roster-closure rule rather than by the real index
+2026-09-03T08:53Z claude note second review of PR #258 caught the roster criterion naming the wrong component: harvest_years.py opens no database and is in neither the roster nor EXCUSED, so a harvest driver modelled on it is not what the closure rule gates. Action 2's join is, as year_scope.mjs is. Criterion and substrate section corrected
+--- body ---
+## Context
+
+Split out of ticket 0590, which the 2026-09-02 ruling commissioned to measure how
+often a realistic collection or tag scope reaches the ladder's honest give-up.
+0590 keeps that question. This ticket holds the half of it that needs no query
+harness, because that half bounds the other one and can run first.
+
+**Whether a filtered keyword stream fills k is mostly a fact about the library,
+not about queries.** SPEC.md §5.2.6 runs MATCH unconstrained with a candidate
+pool of `max(8×limit, 256)`, deepened once to 4 096, and filters the stream with
+the facet bitmap. Under a null model where scope membership is independent of
+BM25 rank, the number of in-scope candidates in a pool of D is Binomial(D, f),
+where f is the scope's share of the corpus's passages. Filling k needs D times f
+to be of order k, so the frontier sits at f near k/D. SPEC.md pins no default k,
+which is exactly why this ticket publishes the frontier as a formula rather than
+as a number: a scope well above k/D is safe under the null, one well below it is
+at risk, and the band between is decided by the correlation term 0590's query arm
+measures. The frontier is arithmetic over SPEC.md §5.2.6's constants and the
+caller's k, and is not a threshold this ticket owns or pins.
+
+That makes the distribution of f over the author's real collections and tags the
+first thing to know, and it is a census: no queries, no timing, no ranking.
+
+**The precondition finding comes first, and it is the same one the year case
+had.** The shipped index stores no membership. `items` is `(item_key, title)`
+and `passages` is `(pid, id, item_key, title, text, source, vector)` — there is
+no collection column and no tag column, exactly as there was no date column.
+A scope-frequency measurement therefore cannot be run against the index at all
+until membership is harvested from Zotero's local API, and saying so is an output
+of this ticket rather than an obstacle to it.
+
+**The at-risk region may be the exhaustively scannable region, and that would
+change the candidate list.** A scope at risk of not filling k is by construction
+one whose passage count is small relative to the pool. A scope that small can be
+scored directly, without any ranked stream: X4 killed `json_each` as a *MATCH
+constraint*, measured at a thousand and at five thousand rowids, and it says
+nothing about scoring the small explicit set an at-risk scope amounts to — whose
+size this ticket measures rather than guesses, since the frontier moves with k
+and with the refetch depth. So a third candidate stands beside the ruling's two
+— score a small scope exhaustively — and whether it covers the whole failure
+region is a census question, answered here, before anyone prices a new index
+structure. This ticket names the candidate and measures the region; it designs
+nothing.
+
+## Actions
+
+1. Harvest collection and tag membership per item from Zotero's local API into a
+   map, with a driver beside `bench/harvest_years.py`. Record whether the local
+   API returns membership on the item or requires enumerating each collection,
+   and whether group libraries answer only under their own path.
+2. Join the map to the current-schema full-library index and compute, per scope,
+   the item count, the **passage** count and f. Passages are the unit the pool is
+   drawn in; items and passages differ by the per-item chunk count, and using
+   items would misplace every scope on the frontier by that factor.
+3. Report the distribution of f separately for collections and for tags:
+   quantiles, and the share of scopes below the frontier at the constants
+   SPEC.md §5.2.6 carries.
+4. Publish the frontier as a formula in the artifact, so a later change to k or
+   to the refetch depth re-reads this census instead of re-harvesting.
+5. Report the passage-count quantiles of the at-risk scopes against the refetch
+   depth, which is what says whether exhaustive scoring covers the failure region.
+
+## Substrate
+
+Actions 1 and 2 need the author's machine — the library and the current-schema
+index are both there — in the pattern 0025's substrate map uses for a private
+substrate. Everything after them is arithmetic over the committed summary.
+
+Action 2's join opens the index, so it belongs on the roster in
+`tests/test_index_schema_fixtures.py` or is excused there, and meets a fixture
+of both schema generations before it meets the real one. Action 1's harvest
+reads the local API and opens nothing, as `bench/harvest_years.py` does not.
+Neither half waits on 0029.
+
+## Decision rule
+
+Descriptive. It commissions nothing and proposes no mechanism. If no scope in
+the library falls below the null frontier, 0590's query arm is measuring a case
+with no instances and can say so at the cost of one census. If many do, 0590
+draws its sample from these quantiles rather than from a hand-picked list, and
+the correlation between scope and query becomes the whole of its question.
+
+## Test
+
+- A scope known to be broad and one known to be a handful of items both appear,
+  with plausible f.
+- One scope's passage count is computed two ways — through the map and by a
+  direct count over the index — and the two agree.
+- Items belonging to no collection and carrying no tag are counted. They inflate
+  the denominator and belong to no scope, so leaving them out would shift every f.
+
+## Exit criteria
+
+- [ ] Whether the shipped index stores collection or tag membership is stated as
+      a finding, with the schema quoted.
+- [ ] `bench/results/0605-scope-census/` carries the harvest summary and the f
+      distribution for collections and for tags.
+- [ ] The frontier is stated as a formula over SPEC.md §5.2.6's constants, and no
+      new number is pinned here.
+- [ ] At-risk scope passage counts are reported against the refetch depth.
+- [ ] The index-opening half — action 2's join, not action 1's harvest — is on
+      `tests/test_index_schema_fixtures.py`'s roster or excused there.
+- [ ] No mechanism is designed and no threshold is invented.
+- [ ] `make check` and `./tickets/erg check` pass.

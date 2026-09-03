@@ -169,7 +169,10 @@ channel existed and was simply not used.
   orchestration changes. A lane's terminal state is an *open* pull request:
   based on the current `main`, gates measured **at that base** and quoted on the
   page, blockers named, out of draft when it is ready to be read. The lane then
-  hands it up to the coordinator that launched it and stops. What it may still
+  hands it up to the coordinator that launched it and stops. **The coordinator is
+  normally the orchestrating agent**, the one that dispatched the lanes — not the
+  author, who ratifies the arrangement rather than running it, and who is the
+  coordinator only when no orchestrator is live. What it may still
   do on its own page is the whole of its job there — correct it, re-measure it,
   re-merge a moved base, say what remains.
 - **The coordinator merges as pull requests arrive, not in a batched pass.** A

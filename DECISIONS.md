@@ -3805,6 +3805,23 @@ was wrong under this ruling. Nothing here reverts them: whether those two merges
 stand is the author's, and this entry is written from the correction rather than
 from the merge.
 
+**2026-09-03 — the two merges of that morning stand, and the coordinator is
+normally the orchestrator rather than the author.** Two things the entry above
+left open, closed by the author the same day. *Garde les deux merges, ne reverte
+pas*: #232 and #235 stay as merged (`0bb5304`, `9dd6fcd`). The breach is recorded
+above and is not undone, because the changes were gated, `main` was green at the
+time and is green now, and reverting a correct change to punctuate a procedural
+point costs the record more than it buys.
+
+And, asked to confirm who the coordinator is: *le superviseur est l'agent MOE,
+normalement.* So the second party that presses merge is the **orchestrating agent
+that launched the lane**, not the author — `AGENTS.md` already said "the
+coordinator that launched it", and this fixes that reading rather than changing
+it. The author sits above the arrangement and ratifies it; he is the coordinator
+only in the case where no orchestrator is live, which is what happened twice on
+2026-09-03 and is the exception the word *normalement* leaves room for.
+
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -5326,3 +5343,190 @@ the reference machine's figure is the fleet's floor rather than its bound; the
 worst case measured anywhere is **1 860,8 MB**. Artifacts:
 `bench/results/0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json` and
 `…-gpu-host-cpu.json`.
+
+**2026-09-03 — Bringing the old-generation full texts up to date: copy first,
+re-extract over the copy, and never inside the R1 tick (awaiting
+ratification).** Raised by the author 2026-09-03 in the session that re-read
+ticket 0120; the facts it rests on are that ticket's log and 0483's. Filed here
+because 0120's exit criterion requires a design change to reach `DECISIONS.md`
+before the ticket records a recommendation.
+
+**What it would decide.** (1) The extract stage MAY bring an attachment's text
+up to date — a pre-form-feed extractor generation (3 882 of 8 590 PDF caches),
+or a body truncated at `fulltext.pdfMaxPages` / `fulltext.textMaxLength` — but
+never as part of the unattended tick. R1 is the duty to become searchable
+without anyone asking; a stale or capped extraction is a declared quality
+state, not a coverage hole, so the refresh is an explicitly invoked maintenance
+verb. (2) The mechanism is copy-then-re-extract: our store takes a copy of the
+platform text and serves it immediately, and an uncapped re-extraction later
+replaces our copy, per attachment. Zotero's own `.zotero-ft-cache` is never the
+thing we overwrite in the ordinary course. (3) Truncation is reported before it
+is repaired: 0483's ledger state, fed by the API's `indexedPages`/`totalPages`,
+and R17's sentence counts attachments served from an old-generation or
+truncated extraction apart.
+
+**Why the overwrite is the part that matters.** Re-indexing through
+`bench/zotero-fulltext-plugin` (PR #189) replaces Zotero's cache and bumps the
+full-text version, so the previous extraction cannot be recovered or compared
+against, and X6 observed group-library attachments coming back at full-text
+version 0 (ticket 0025 log, 2026-09-02). The caps themselves are Zotero
+preferences: X5's uncapped arm was obtained by the author lifting the pref by
+hand, a global, out-of-band change to the user's configuration, which is not
+something an unattended tick may make.
+
+**The price, stated rather than minimised.** A duplicate in time and space:
+819,4 MiB of flat cache today and more once uncapped, plus the extraction time
+(measured at 63–80 pages/s end to end on this machine, so time is not the
+binding cost). The second cost is a second source of truth, which is a
+freshness problem (ticket 0480) and must be answered by the same device 0572
+already specifies for packs: an extractor identity per attachment, recorded in
+the ledger, so which copy is current is derived and not guessed.
+
+**Unaffected.** The flat/structured dual channel stays as ratified 2026-09-02 —
+pack-first, flat fallback, a mechanism under R24 (ticket 0572). Nothing here
+chooses between the platform FTS5 index, the SDT pack, both or neither; ticket
+0120's action 7 is untouched and still needs its action 1 figure, which needs
+the reference machine.
+
+**The two questions this cannot answer alone, and why they are the author's.**
+(a) May a verb of ours WRITE into Zotero at all? The plugin's reindex crosses
+the read-only posture C2 describes, and doing it under any automatic trigger
+would make an irreversible platform-side change on our schedule. (b) Is the
+uncapped copy a third channel, or a variant of the flat channel carrying its
+own extractor identity? The recommendation here is the second — one flat path
+whose identity says which extractor produced it — so the number of source paths
+does not grow.
+
+
+**2026-09-03 — The refresh belongs to the R1 tick after all; the entry above is
+reversed in its first clause and left standing (awaiting ratification).** The
+author, the same day, against the entry above. A new entry rather than an edit,
+per the ledger's own rule: what is reversed is named, and the text it reverses
+stays where it is.
+
+**What is reversed.** Clause (1) of the entry above — *the refresh is an
+explicitly invoked maintenance verb, never part of the unattended tick*. It
+fails R1's second clause, which the filing did not weigh: the system MUST NOT
+need a manual rebuild, whatever state it is in. An operator invoking a refresh
+over 3 882 old-generation caches is that manual rebuild. A capped or
+old-generation extraction is therefore **a quality hole R1 promises to fill**,
+and the refresh belongs to the tick. Clauses (2) and (3) stand as written.
+
+**The machinery is already in the requirement.** R1's ladder row carries
+*superseded work draining to the latest chain unattended*: a body extracted
+under a superseded extraction contract — the extractor identity and the caps in
+force, C1 link 1 — is superseded work, and drains newest-first like any other.
+
+**And the remedy is our own extraction**, since neither Zotero's database nor
+its filesystem is ours to write: lifting a cap writes `prefs.js`, and the
+re-extraction it enables rewrites `.zotero-ft-cache`. That inference is carried
+by the no-write rule, not by a fact about Zotero —
+`bench/zotero-fulltext-plugin` performs exactly that write today (X5) — so the
+rule is what is being ratified, with that consequence attached. The marginal
+cost is lower than a standalone extract stage suggests: `pdf.js` is already
+vendored for tier 1 (ticket 0560, Apache-2.0), the bytes are already reachable
+through the local API's `/file/view/url` redirect (tracker 0557), and C1 link 1
+already enumerates extractor identities. What it is not is free: **text we
+extracted ourselves cannot be asked back from Zotero, so it must be stored**,
+and our store becomes authoritative for text rather than
+derived-and-discardable, against C3's streaming shape today.
+
+**Still open, and ranked.** (1) The quality gate, the blocker: a third extractor
+generation asserted to beat Zotero's current PDFWorker path, unmeasured;
+re-extracting 3 882 old caches with something worse is a regression dressed as a
+fix. X5's eleven attachments are a ready-made uncapped control corpus. (2) It is
+a **PDF** answer: 4 758 `text/html`, 10 EPUB, 3 `text/plain` and 268 orphan
+caches stay Zotero-sourced, so mixed provenance is permanent and R17's sentence
+must carry it. (3) Sequencing against #6012, whose `cb27b75` runs all SDT
+extraction to completion before embedding. (4) The granularity widening moves
+what counts as covered, hence the denominator the convergence harness measures
+(tickets 0026, 0580).
+
+**2026-09-03 — The extraction-contract bound is withdrawn: R1 does imply the
+treadmill (awaiting ratification).** The author, the same day, against the
+entry immediately above, which is left standing.
+
+**What is withdrawn.** The sentence in the entry above making the extraction
+contract *the bound that keeps the widening finite*. It gave C1 link 1 an
+exemption link 3 has never had — swap the embedder entry and the whole library
+re-embeds unattended, which is the accepted behaviour the registry work
+(tickets 0488, 0495) exists to gate. **Supersession is total.** The rest of
+that entry stands.
+
+**What survives is a distinction between triggers, not a limit on what R1
+owes.** A bump *we* declare is deliberate, dated, one event, costed before it is
+pressed. A bump that happens *to* us is not: `SYNC.md`'s Zotero extraction row
+records that a `SDT_PROCESSOR_VERSIONS` bump silently re-extracts existing
+packs, so under total supersession an unannounced upstream bump drains
+extraction, chunking and embedding across the library on the user's machine,
+unasked. The drift watch is therefore load-bearing, not informational.
+
+R1 says *unattended*, not *immediate*, which is where the treadmill is made
+survivable: draining is newest-first and paced by the tick and the
+latency-paced worker (§5.2.4), and the older chain keeps serving while it
+drains (R4, D3's serve-stale). The obligation this creates is **reporting**:
+R17 must say where the treadmill is — N items on the latest chain, M draining,
+which chain still serves — or a full drain is indistinguishable from a broken
+index.
+
+And it raises the price of owning C1 link 1: every improvement to *our*
+extractor re-drains the library through all three links, at a measured 8 h 14
+for the full build (`STATE.md`). So our extractor needs the discipline the
+embedder registry already has — a declared, dated, gated identity whose
+improvements are batched into rare bumps — and the quality gate named in the
+entry above moves from prudence to cost control, since an unmeasured v1 means a
+v2 soon after, at two full drains.
+
+- **Whether the keyword ladder's refetch depth is the answer to the scope
+  give-up, rather than a new mechanism (raised 2026-09-03, reimagining ticket
+  0590).** SPEC.md §5.2.6's ladder refetches once to a fixed depth and then
+  discloses. The 2026-09-02 ruling named two candidate replacements should
+  partial answers prove common — an indexed temporary table, and filtering the
+  ranked stream before truncation — and both are mechanisms. The cheapest
+  candidate is neither: it is the depth itself, which is a constant in that
+  section and not a measured bound.
+
+  What makes it worth asking rather than assuming: X4's own run shows the far
+  end is not obviously expensive, since ranking its whole corpus unconstrained
+  was cheap against the same rule's allowance. That prices the search half
+  only — the arm returned a top-k, where a deeper refetch also materializes its
+  candidates — so the remainder is unmeasured, and 0590 now sweeps the depth
+  with its latency rather than reporting a frequency at one value. The ruling
+  asked from here is not a number. It is whether raising the depth is admitted
+  as a candidate beside the two the ledger named, so that the sweep's evidence
+  can be acted on without a second round.
+
+- **Whether a budget-exhausted answer needs a disclosure of its own, distinct
+  from R18's (raised 2026-09-03, reimagining ticket 0590; a second reviewer
+  found the zero-hit corollary below).** R18 is written about *empty* answers:
+  "An empty answer MUST say whether nothing matched or the scope is not indexed
+  yet." A scoped answer that is short because the filtered stream ran out of
+  budget is not empty, so R18's text does not reach it. And §5.2.6's three
+  disjoint sentences are all computed from indexing coverage — "partial: 812 of
+  947 — the miss may be coverage" says the index may not hold the scope yet.
+
+  Two different partials would therefore print the same word, and they ask the
+  user for opposite next moves: wait for indexing, or widen the query. That is
+  the confusion R18 exists to prevent, one level up. The corollary is worse and
+  was found by review rather than by design: for a scoped query whose stream
+  exhausts at zero in-scope hits, "fully covered — nothing matches" is the
+  sentence the current rule selects, and it would be false — the scope is
+  covered, and whether anything matches was never established.
+
+  Three ways to rule. A typed disclosure beside `CROSS_LINGUAL_DEGRADED` and
+  `CJK_KEYWORD_DEGRADED`, which is where the design already puts a condition
+  the sentences cannot carry; or a fourth sentence in §5.2.6's set; or a ruling
+  that the existing "partial" covers both causes, which would need the zero-hit
+  case answered on its own. Ticket 0590 measures how often the case arises and
+  deliberately invents no sentence.
+
+- **Whether 0590 keeping the commissioned question, with the census filed as
+  0605, is the split the author intended (raised 2026-09-03).** The instruction
+  was to reduce 0590 to the census and file the query arm as a new ticket. The
+  identifiers were assigned the other way round, deliberately and without
+  asking again: the ratified entry of 2026-09-02 reads "Ticket 0590 measures how
+  often that disclosure occurs", and this ledger is append-only, so making 0590
+  the census would have falsified a ratified sentence with no way to correct it.
+  The cut is the one asked for; only the numbering differs, and SPEC.md §5.2.6's
+  two pointers to 0590 stay true. Recorded because a deviation from an
+  instruction should not survive only in a session transcript.
