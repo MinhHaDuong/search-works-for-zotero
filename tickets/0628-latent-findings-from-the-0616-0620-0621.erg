@@ -6,6 +6,7 @@ Author: MinhHaDuong
 --- log ---
 2026-09-03T15:50Z MinhHaDuong created
 2026-09-03T16:05Z claude note roar sweep for the class 0626 fixed (missing spawn-witness in a posture-refusal test) found it live in the two adapters cited as the pattern to mirror. Finding 7 added
+2026-09-03T16:08Z claude note findings 3 and 4 fixed by 0621's own execute agent (PR #312, merged): exact rel_tol equality plus a rank cap of 10x the limit replaces the unbounded six-place-rounded inversion, and a math.isfinite guard replaces the NaN-crashing round(). All three artifacts reproduce unchanged; tests 13 -> 23
 
 --- body ---
 ## Context
@@ -34,20 +35,20 @@ per the severity floor — none alone clears the bar for a dedicated ticket.
    Not live today (today's upstream file has no such comment), cheap fix:
    assert exactly one match, or take the last one.
 
-3. **0621 (`bench/smoke_upstream.py`)** — `_rrf_rank_of` has no upper bound
-   on the recovered rank. Below roughly score < 0.0164, 6-decimal rounding
-   becomes coarser than the spacing between consecutive RRF values, so an
-   increasing fraction of ordinary weak similarity scores get accepted as
-   "proven RRF rank," defeating the diagnostic's purpose for that range.
-   Informational field only — doesn't move any current pass/fail, and no
-   committed artifact has a score in that range. Fix: bound `rank` (e.g.
-   `rank <= limit * K` for a generous K).
+3. **FIXED (PR #312).** 0621 (`bench/smoke_upstream.py`) — `_rrf_rank_of` had
+   no upper bound on the recovered rank. Below roughly score < 0.0164,
+   6-decimal rounding became coarser than the spacing between consecutive
+   RRF values, so an increasing fraction of ordinary weak similarity scores
+   got accepted as "proven RRF rank," defeating the diagnostic's purpose for
+   that range. Informational field only — never moved any pass/fail, and no
+   committed artifact had a score in that range. Fixed with exact equality
+   (`rel_tol=1e-9`) and a rank cap of 10x the limit.
 
-4. **0621 (same file)** — a NaN score crashes the whole script (uncaught
-   `ValueError` in `round(1/float(score))`), losing the JSON artifact for
-   every check, not just this one. Mechanism confirmed; whether a real
-   server can put a literal NaN on the wire is not established. Cheap fix:
-   `math.isnan`/`math.isinf` guard before the round().
+4. **FIXED (PR #312).** 0621 (same file) — a NaN score crashed the whole
+   script (uncaught `ValueError` in `round(1/float(score))`), losing the
+   JSON artifact for every check, not just this one. Fixed with a
+   `math.isfinite` guard before the round(), covering NaN and both
+   infinities.
 
 5. **0624 (`bench/acceptance/adapters/zoteus.py`)** — the README row and
    two code comments claim the work-counter derivation covers "any build
@@ -101,3 +102,4 @@ per the severity floor — none alone clears the bar for a dedicated ticket.
 
 - [ ] Each finding above is fixed, or explicitly deferred again with a
       reason, one at a time or in whatever grouping makes sense
+      (findings 3, 4 fixed — PR #312; findings 1, 2, 5, 6, 7 remain)
