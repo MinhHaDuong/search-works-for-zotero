@@ -118,23 +118,46 @@ def test_the_draft_names_the_symbol_and_not_the_arena_path(draft, declaration):
     )
 
 
-def test_the_draft_places_the_model_cache_under_the_single_root(draft):
-    """The model cache is a subdirectory of the root, not a second location.
+def _removal_step(draft: str) -> str:
+    """The text of the removal step alone -- list item 3 up to list item 4.
 
-    Before upstream PR #27 it was neither -- `@huggingface/transformers`
-    cached weights inside its own install -- and 'delete the data directory'
-    was an incomplete uninstall for exactly that reason. The doc has to state
-    the post-#27 containment, and a regression that moved the cache back out
-    would leave this sentence false.
+    Scoping matters more here than it looks. An unscoped search over the whole
+    document passes on the very regression this file exists to catch: the
+    historical 'If you installed before v1.10.0' section names the same symbol
+    beside the same word, for the opposite purpose (weights that were *not*
+    contained), so deleting the operative containment sentence from the
+    removal step leaves an unscoped match standing. Round 1 of the review
+    demonstrated exactly that against the first version of this check.
     """
+    start = draft.find("\n3. **Delete the data directory.")
+    assert start != -1, (
+        "the removal step is no longer list item 3 titled 'Delete the data "
+        "directory'; this check can no longer find the text it grades"
+    )
+    end = draft.find("\n4. ", start)
+    assert end != -1, "the removal step is not followed by a further step"
+    return draft[start:end]
+
+
+def test_the_draft_places_the_model_cache_under_the_single_root(draft):
+    """The removal step itself says the model cache is inside the one root.
+
+    Before upstream PR #27 it was not -- `@huggingface/transformers` cached
+    weights inside its own install -- and 'delete the data directory' was an
+    incomplete uninstall for exactly that reason. The doc has to state the
+    post-#27 containment *where a user acts on it*, in the step that deletes
+    the directory, not only in the historical note explaining why it once was
+    not true.
+    """
+    step = _removal_step(draft)
     # The clause is `<ZOTEUS_DATA_DIR>/models`, or the same containment said in
     # prose within one line: the symbol and `models` bound together, not two
-    # separate mentions pages apart.
+    # separate mentions paragraphs apart.
     bound = re.compile(
         r"`?\$?\{?" + DATA_DIR_SYMBOL + r"\}?`?[^\n]{0,80}\bmodels\b",
     )
-    assert bound.search(draft), (
-        "the draft does not tie the model cache to the declared root; it must "
-        f"state that weights live under `<{DATA_DIR_SYMBOL}>/models`, so that "
-        "removing the one root removes them too"
+    assert bound.search(step), (
+        "the removal step does not tie the model cache to the declared root; "
+        f"it must state that weights live under `<{DATA_DIR_SYMBOL}>/models`, "
+        "so that removing the one root removes them too"
     )

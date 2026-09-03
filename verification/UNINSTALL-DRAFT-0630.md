@@ -1,8 +1,15 @@
 # UNINSTALL.md draft — ticket 0630, the R15 removal procedure
 
-Drafted 2026-09-03 against the reviewed baseline `b0e0bc8` (`UPSTREAM`,
-v1.13.0), reading `src/lib/paths.ts`, `src/features/search/embeddings.ts`,
-`src/lib/update-check.ts` and `docs/configuration.md` in the `fork/` checkout.
+Drafted 2026-09-03 from `src/lib/paths.ts`, `src/features/search/embeddings.ts`,
+`src/tools/whoami.ts`, `src/lib/update-check.ts` and `docs/configuration.md`.
+
+**Read at v1.12.0 (`b05ed69`), re-verified at the reviewed baseline.** The
+`fork/` checkout on this machine sits at `b05ed69`, one release behind the
+`b0e0bc8` (v1.13.0) that `UPSTREAM` names — a stale-checkout finding in its own
+right, reported to the wave. Review round 1 re-read every claim below against
+`b0e0bc8` itself: the substance held, and the line-number citations recorded in
+this ticket's log were corrected there. Nothing in the content depends on a
+line number.
 
 **Not sent.** This is a staged artifact in the same form as
 `verification/ISSUE-DRAFT-0530.md` and
@@ -48,7 +55,7 @@ zoteus until the redirection gap closes.
 **Zoteus writes everything it derives into one directory.** Removing that
 directory removes the search index, the on-device model weights, and the
 update-check cache — every file the server has ever written for itself. Your
-Zotero library is not in it and is never touched.
+Zotero library is somewhere else entirely, and nothing below goes near it.
 
 ## Where that directory is
 
@@ -60,8 +67,8 @@ Zotero library is not in it and is never touched.
 | Windows | `%APPDATA%\zoteus` |
 | Linux, BSD, everything else | `${XDG_DATA_HOME:-~/.local/share}/zoteus` |
 
-`zotero_whoami` reports the resolved path if you would rather read it than
-derive it.
+The table above is the whole rule: no tool reports the resolved path, so if
+you set `ZOTEUS_DATA_DIR` yourself, read it back from wherever you set it.
 
 ## The steps
 
@@ -76,11 +83,20 @@ derive it.
    but doing this second means the client will not relaunch the server while
    you are deleting its files.
 
-3. **Delete the data directory.** The one from the table above:
+3. **Delete the data directory.** The one from the table above — and only
+   that one. It is not your Zotero library, which lives elsewhere and is not
+   part of this procedure; check the path you are about to remove against the
+   table before you run anything.
 
    ```sh
-   rm -rf "${ZOTEUS_DATA_DIR:-$HOME/.local/share/zoteus}"    # Linux/BSD default
-   rm -rf ~/Library/Application\ Support/zoteus              # macOS default
+   # Linux/BSD, default location
+   rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/zoteus"
+   # macOS, default location
+   rm -rf ~/Library/Application\ Support/zoteus
+   # Windows, PowerShell, default location
+   Remove-Item -Recurse -Force "$env:APPDATA\zoteus"
+   # any platform, if you set the variable yourself
+   rm -rf "$ZOTEUS_DATA_DIR"
    ```
 
    That is the whole removal. The index (`search-index.sqlite` and its
@@ -99,7 +115,11 @@ derive it.
 
 **Your Zotero library.** Zoteus reads the desktop app's data directory
 (`~/Zotero` by default, `ZOTERO_DATA_DIR` if you moved it) to open attachment
-files, and never writes to it. Do not delete it as part of removing Zoteus.
+files, and writes no file into it. That is a claim about the directory, not
+about your library: unless you ran with `ZOTEUS_READ_ONLY=true`, Zoteus could
+add and edit items through the API like any other client, and removing it
+leaves those items where they are. Do not delete the directory as part of
+removing Zoteus.
 
 **Your API keys.** They live wherever you put them — a shell profile, your
 MCP client's configuration, a secret manager. Zoteus keeps no copy of its own,
