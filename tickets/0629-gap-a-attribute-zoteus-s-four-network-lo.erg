@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-03T16:47Z claude created
 2026-09-03T16:55Z claude note IMAGINE+PLAN pass: drift guard passed (premise still holds), found a leading hypothesis for Action 3 (single getaddrinfo may explain all four dns hits), confirmed the env var needs no adapter code change to propagate — see Context for detail and evidence.
+2026-09-03T18:18Z claude note EXECUTED, hypothesis CONFIRMED, one arm blocked on machine configuration. fork/ built at UPSTREAM_REVIEWED_SHA b0e0bc8 (re-read from UPSTREAM, unmoved since the ticket was filed). Action 1: exactly one network-shaped call is reachable from server startup in the acceptance configuration -- src/lib/update-check.ts:93 (URL at :5), wired at src/server.ts:184-190, gated on ZOTEUS_UPDATE_CHECK (src/config.ts:237, :408). The cloud-key probe (src/router/capabilities.ts:40) is guarded by web.hasKey and the run logged cloud=none; the desktop probe (:55-56, three attempts) targets an IP literal; the transformers runtime left no residual. Action 3: the logged hypothesis holds and is now measured rather than inferred -- bench/probe_getaddrinfo_shape.py, six arms, gives one getaddrinfo = dns 4 isolated / dns 3 net-shared, against a null arm at 0/0 and a numeric-address connect at off_machine 1, dns 0. All four lookups are that one fetch(). Action 2 (the ZOTEUS_UPDATE_CHECK=false arm) did NOT run: every target-process assertion reports not-run because /etc/sudoers.d/acceptance-tester is absent on this machine, so 0625's posture correctly refuses to run a target as the operator. That gate landed at 16:15 today, after the v1130 artifact was taken at 15:44, which is why that run could decide a clause this one cannot. Needs one root-owned line; the remedy and the verbatim re-run command are in bench/results/0629-gap-a/README.md sect. 3. Action 5 done: 0613's log carries the finding.
 
 --- body ---
 ## Context
@@ -163,16 +164,22 @@ positive-control discipline exists to close).
 
 ## Verification
 
-- [ ] Four lookups named by file:line, read from a real built `fork/` at the
+- [x] Four lookups named by file:line, read from a real built `fork/` at the
       reviewed SHA (not the provisional log-entry numbers)
 - [ ] A same-session default-config comparison run captured immediately
       before the `ZOTEUS_UPDATE_CHECK=false` run, both under identical
-      machine/build/posture
+      machine/build/posture — BLOCKED, see below
 - [ ] `ZOTEUS_UPDATE_CHECK=false` arm run, artifact committed under
-      `bench/results/0629-gap-a/`, both controls firing in it
-- [ ] Each lookup attributed, with evidence — including whether the "one
+      `bench/results/0629-gap-a/`, both controls firing in it — BLOCKED: both
+      arms report `not-run` on this machine, because `/etc/sudoers.d/`
+      `acceptance-tester` is absent and 0625's posture refuses to run a target
+      as the operator. One root-owned line fixes it; the remedy and the
+      verbatim re-run command are in `bench/results/0629-gap-a/README.md` § 3.
+- [x] Each lookup attributed, with evidence — including whether the "one
       `getaddrinfo` call looks like 4 resolver-port syscalls" hypothesis held
-- [ ] Entry appended to 0613's log
+      (it held: measured, with a null arm and a discriminating control, in
+      `bench/results/0629-gap-a/syscall-shape.json`)
+- [x] Entry appended to 0613's log
 
 ## Invariants
 
