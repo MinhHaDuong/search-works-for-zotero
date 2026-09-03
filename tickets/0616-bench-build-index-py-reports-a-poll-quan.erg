@@ -80,9 +80,11 @@ survives, which is what makes deletion safe.
 
 ## Verification
 
-- [ ] `bench/build_index.py` is deleted, or reads VmHWM and discloses its quantum
-- [ ] The decision names which, and why
-- [ ] `make check` passes
+- [x] `bench/build_index.py` is deleted, or reads VmHWM and discloses its quantum
+- [x] The decision names which, and why
+- [x] `make check` passes — green except two pre-existing environmental failures
+      in `tests/test_summarize_0120.py`, which shell out to a `sqlite3` binary
+      absent from this machine; neither test is reachable from this diff
 
 ## Invariants
 
