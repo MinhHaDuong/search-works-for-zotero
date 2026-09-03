@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-03T15:50Z MinhHaDuong created
+2026-09-03T16:05Z claude note roar sweep for the class 0626 fixed (missing spawn-witness in a posture-refusal test) found it live in the two adapters cited as the pattern to mirror. Finding 7 added
 
 --- body ---
 ## Context
@@ -70,6 +71,31 @@ per the severity floor — none alone clears the bar for a dedicated ticket.
    five adapters (including beaver/zotero_mcp), not introduced by 0626;
    out of that ticket's stated scope (mirrors an existing refusal-only
    pattern) but worth closing once, for all five adapters together.
+
+7. **0625/0626 (`tests/test_acceptance_adapter_{beaver,zotero_mcp}.py`)** —
+   found by sweeping for the exact class 0626 fixed in `zotero_core_6012`
+   (a refusal test that stays green even if `wrap()` moves to just after
+   the spawn, because `PostureUnavailable` still raises, one line late,
+   with the process/server already constructed). Neither of the two
+   *already-covered* adapters — the ones 0626's new tests were written to
+   mirror — has the trailing witness assertion (`self._process is None` /
+   `self.server is None`) that makes that mutation detectable:
+   - `zotero_mcp.py`: **live gap, not just theoretical.** Its `running()`
+     calls `drive.Server(cmd, env, self.timeout)` right after `wrap()`
+     (`zotero_mcp.py:417-419`), and `mcp_drive.Server.__init__` spawns a
+     real subprocess on construction on any machine with `node` installed
+     — the same shared helper that made the identical mutation catchable
+     only by a witness assertion in `zoteus.py`. A future edit moving
+     `wrap()` after `drive.Server(...)` would leave this test green while
+     spawning the target unwrapped.
+   - `beaver.py`: same missing assertion, but currently caught by
+     fixture coincidence instead — `zotero` points at a nonexistent
+     binary, so a late-wrap mutation gets a `FileNotFoundError` before
+     `PostureUnavailable`, same shape as `zotseek.py`'s test (which 0626
+     itself flagged as resting on coincidence rather than the assertion).
+   Fix: add `assert self._server is None` (`zotero_mcp.py`) and
+   `assert self._process is None` (`beaver.py`) after each `pytest.raises`
+   block, mirroring `zoteus.py`'s and `zotero_core_6012.py`'s tests.
 
 ## Exit criteria
 
