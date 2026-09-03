@@ -310,16 +310,17 @@ not say that, and `README.md` disclosed as much; the disclosure is discharged.
 
 Against the real target: four pass, one fail, one not-offered, six not-run.
 
-- **`R10-no-egress` is red again**, and what it reads has changed. The run
-  records name-lookup attempts, all of them to this machine's own stub resolver,
-  and **zero attempts off the machine**. Its own captured output shows the
-  permitted one-time model-weight download failing on a blocked fetch under the
-  network-isolated arm, so at least part of that count is the download `SPEC.md`
-  §6 allows. How much is **not established**, and the clause grades any lookup
-  rather than any departure. The startup release check that raised the original
-  question is unchanged at this baseline and still on by default, so the
-  question in `DECISIONS.md` stands; what has changed is that this run cannot be
-  cited as evidence about *that* endpoint specifically.
+- **`R10-no-egress` is red again**, and the attribution was measured rather than
+  inferred. Every attempt is a name lookup to this machine's own stub resolver;
+  **zero go off the machine**. Reading the system calls rather than trusting the
+  count, the names asked for are **two**: the release-update endpoint the server
+  contacts at startup, and the model-weight host, because the isolated arm
+  starts with no cache and the permitted one-time download reaches for it and
+  fails (the server then logs the fall back to keyword-only). So the update
+  check did **not** stop firing — the question in `DECISIONS.md` stands
+  untouched — and attributing the whole red to it would have been wrong in both
+  directions. Both of the layer's own egress controls tripped both detectors on
+  this host, so the instrument is known to work here.
 - **`R15-residue-inventory` and `R15-model-cache-under-declared-roots` pass**
   against a real target for the first time. Every location the target created is
   accounted for by its declaration, and nothing sits outside it. This is what
@@ -330,16 +331,55 @@ Against the real target: four pass, one fail, one not-offered, six not-run.
 - **`R13-two-processes-both-answer` passes**; the third-process detector returns
   identical hits after both are gone.
 - **Both R3 clauses and `R13-two-processes-do-not-duplicate-work` are not-run**,
-  for the reason this repository has now re-earned rather than re-asserted: the
-  target reports no per-stage, per-trigger, per-outcome work counter.
+  on a nil re-earned rather than re-asserted — and earned with a control. The
+  target's index status was read live on a running server in the layer's own
+  default configuration: twenty-eight top-level scalar keys, nothing matching
+  `work` or `counter`. Then thirty of the seeded index's vectors were removed
+  and the status re-read: the coverage key that reports a shortfall **appeared**,
+  as a twenty-ninth key with the right value, and still no `work` beside it. A
+  probe that can be seen to notice a key arriving is a probe whose zero means
+  something. `embedRate` is unreachable in any configuration the layer may run,
+  because upstream gates it on two API providers and the default-configuration
+  clause admits only the local embedder.
 - **Both R22 clauses are not-run**, because the positive control and the graded
-  target could not be shown to resolve separate state on this host.
-- **`R23-foreign-stamp-ends-up-serving` is not-run rather than red.** Its
-  newer-stamp arm could not be armed: with the index put back into the state the
-  clause is about, it served nothing, so an empty answer afterwards would have
-  been a fact about the arm and not about the direction. Reported as not decided
-  on purpose — a clause that cannot be armed and a clause that fails are not the
-  same finding, and the previous baseline reported this one as red.
+  target could not be shown to resolve separate state on this host: the driver
+  builds both instances from one set of adapter options, so both declare the
+  same library. What that would take is a second Zotero library the harness may
+  hand the control, and a way to pass per-instance options. Neither is a fact
+  about the target, whose pause is verified absent anyway.
+- **`R23-foreign-stamp-ends-up-serving` is not-run rather than red, and the
+  cause is the harness's.** Isolated with a discriminating control rather than
+  reasoned about: the arm that puts the index back before changing the stamp
+  replaces the database file and leaves the previous run's write-ahead log
+  beside it, so the empty index's log is recovered over the copy and the arm
+  starts from nothing. Three arms on one seed separate it — fresh-and-seeded
+  answers, the adapter's own sequence answers nothing, and the same sequence
+  with the sidecars removed answers again. The layer's own guard is what caught
+  it: it saw the arm start empty and reported not decided rather than a red,
+  which is exactly the behaviour that clause documents. Ticket 0623.
+
+### Two defects in the instrument that this re-read did NOT fix
+
+Both are in `bench/acceptance/adapters/zoteus.py`, both were found by running
+it, and both are filed rather than repaired here, because repairing an adapter
+mid-re-baseline would mean re-running everything that already ran.
+
+**The older foreign stamp is now off the ladder (ticket 0623).**
+`FOREIGN_STAMPS` writes the previous-version arm as a stamp two below the
+build's, with the comment "it is what every user holds the day the build's
+schema version is incremented". At this baseline that is false — what every
+user holds is one below, and one below is precisely what the new rung migrates.
+Two below fails the contiguity rule and sidelines whatever upstream does, so the
+assertion as parameterized **structurally cannot observe the capability this
+release added**. Its red at the previous baseline was a true finding; the same
+red today would be an artefact of a constant.
+
+**The adapter writes the work-counter nil down (ticket 0624).** `status()`
+returns `"work": None` as a literal, with an honest comment saying it was
+measured on a given day. It would return `None` on a target that had counters,
+so three assertions and two `measured` rows rest on a value that cannot change
+when the world does. The nil is true today — the live read above is what
+establishes that — but nothing in the tree repeats that read.
 
 ### One defect in the instrument, found by running it and not fixed here
 
