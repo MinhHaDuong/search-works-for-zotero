@@ -5,8 +5,8 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-03T15:50Z MinhHaDuong created
-2026-09-03T16:05Z claude note roar sweep for the class 0626 fixed (missing spawn-witness in a posture-refusal test) found it live in the two adapters cited as the pattern to mirror. Finding 7 added
-2026-09-03T16:08Z claude note findings 3 and 4 fixed by 0621's own execute agent (PR #312, merged): exact rel_tol equality plus a rank cap of 10x the limit replaces the unbounded six-place-rounded inversion, and a math.isfinite guard replaces the NaN-crashing round(). All three artifacts reproduce unchanged; tests 13 -> 23
+2026-09-03T15:58Z claude note roar sweep for the class 0626 fixed (missing spawn-witness in a posture-refusal test) found it live in the two adapters cited as the pattern to mirror. Finding 7 added
+2026-09-03T16:05Z claude note findings 3 and 4 fixed by 0621's own execute agent (PR #312, merged): exact rel_tol equality plus a rank cap of 10x the limit replaces the unbounded six-place-rounded inversion, and a math.isfinite guard replaces the NaN-crashing round(). All three artifacts reproduce unchanged; tests 13 -> 23
 
 --- body ---
 ## Context
