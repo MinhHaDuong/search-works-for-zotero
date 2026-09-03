@@ -15,9 +15,9 @@ The pooling fix is up: #NN, tracked as #51.
 What it costs, since the thread has the defect but not a size for it. Measured on
 a 257-passage, 68-query cross-lingual set (English, French, German, Vietnamese
 and Russian queries against passages in the target language), with pooling as the
-only variable at fp32: `granite-embedding-97m-multilingual-r2` loses 27,5% of its
-MRR and 34,6% of its hit@1, `gte-multilingual-base` 12,7% and 10,3%,
-`arctic-embed-m-v2` 10,3% and 14,7%. Different corpus and different task from
+only variable at fp32: `granite-embedding-97m-multilingual-r2` loses 27.5% of its
+MRR and 34.6% of its hit@1, `gte-multilingual-base` 12.7% and 10.3%,
+`arctic-embed-m-v2` 10.3% and 14.7%. Different corpus and different task from
 your German/English probe, so it is a second opinion rather than a replacement
 for one.
 
