@@ -14,6 +14,11 @@
     "off_machine": 0,
     "dns": 0
    },
+   "resolver_shape": {
+    "connect_outcomes": {},
+    "query_messages_sent": 0,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
+   },
    "attempts": []
   },
   "nothing/net_shared": {
@@ -23,6 +28,11 @@
     "off_machine": 0,
     "dns": 0
    },
+   "resolver_shape": {
+    "connect_outcomes": {},
+    "query_messages_sent": 0,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
+   },
    "attempts": []
   },
   "numeric_connect_only/isolated": {
@@ -31,6 +41,11 @@
    "counts": {
     "off_machine": 1,
     "dns": 0
+   },
+   "resolver_shape": {
+    "connect_outcomes": {},
+    "query_messages_sent": 0,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
    },
    "attempts": [
     {
@@ -48,6 +63,11 @@
     "off_machine": 1,
     "dns": 0
    },
+   "resolver_shape": {
+    "connect_outcomes": {},
+    "query_messages_sent": 0,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
+   },
    "attempts": [
     {
      "call": "connect",
@@ -63,6 +83,13 @@
    "counts": {
     "off_machine": 0,
     "dns": 4
+   },
+   "resolver_shape": {
+    "connect_outcomes": {
+     "ENETUNREACH": 4
+    },
+    "query_messages_sent": 0,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
    },
    "attempts": [
     {
@@ -97,6 +124,13 @@
    "counts": {
     "off_machine": 0,
     "dns": 3
+   },
+   "resolver_shape": {
+    "connect_outcomes": {
+     "ok": 3
+    },
+    "query_messages_sent": 6,
+    "note": "query payloads are counted, never transcribed: they carry this machine's search-domain configuration"
    },
    "attempts": [
     {

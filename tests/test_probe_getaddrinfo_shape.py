@@ -24,11 +24,16 @@ counts the v1130 subject arm has to be explained by.
 """
 
 import json
+import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 ARTIFACT = REPO / "bench" / "results" / "0629-gap-a" / "syscall-shape.json"
 PROBE = REPO / "bench" / "probe_getaddrinfo_shape.py"
+
+sys.path.insert(0, str(REPO / "bench"))
+from acceptance.sandbox import Attempt  # noqa: E402
+from probe_getaddrinfo_shape import resolver_shape  # noqa: E402
 V1130 = (
     REPO
     / "bench"
@@ -76,18 +81,43 @@ def test_artifact_carries_a_control_that_touches_a_socket_without_a_lookup():
 
 
 def test_one_getaddrinfo_explains_the_v1130_subject_count():
-    """The load-bearing claim: one lookup == the four the subject arm recorded."""
+    """The load-bearing claim: one lookup == the four the subject arm recorded.
+
+    The counts asserted here are what the committed artifact recorded on the
+    machine that produced it, not constants of the world — the README says why
+    (the shared arm walks this machine's `resolv.conf` search list). Since
+    nothing re-invokes the probe, a red here means the *record* changed, and a
+    machine that has drifted underneath an unchanged record is invisible to
+    this file by construction.
+    """
     arms = _arms()
     isolated = arms["one_getaddrinfo/isolated"]["counts"]
     shared = arms["one_getaddrinfo/net_shared"]["counts"]
     assert isolated["off_machine"] == 0, isolated
     assert isolated["dns"] == 4, (
-        f"one getaddrinfo no longer costs four resolver connects under isolation "
-        f"({isolated}); 0629's attribution of the v1130 subject arm rests on this"
+        f"the recorded isolated-arm cost of one getaddrinfo is no longer four "
+        f"resolver connects ({isolated}); 0629's attribution of the v1130 "
+        "subject arm rests on it"
     )
     assert shared["dns"] == 3, (
-        f"one getaddrinfo no longer costs three resolver connects with a route "
-        f"({shared}); the v1130 net-shared control's dns:3 rests on this"
+        f"the recorded net-shared cost of one getaddrinfo is no longer three "
+        f"resolver connects ({shared}); the v1130 control's dns:3 rests on it"
+    )
+
+    isolated_shape = arms["one_getaddrinfo/isolated"]["resolver_shape"]
+    shared_shape = arms["one_getaddrinfo/net_shared"]["resolver_shape"]
+    assert isolated_shape["connect_outcomes"] == {"ENETUNREACH": 4}, (
+        "the isolated arm's connects are what makes the two arms different "
+        f"quantities; the record no longer shows them all failing: {isolated_shape}"
+    )
+    assert isolated_shape["query_messages_sent"] == 0, (
+        "the isolated arm is recorded as having sent a query, which would make it "
+        f"the same quantity as the shared arm: {isolated_shape}"
+    )
+    assert shared_shape["connect_outcomes"] == {"ok": 3}, shared_shape
+    assert shared_shape["query_messages_sent"] == 6, (
+        "six messages -- an A and an AAAA on each of three connects -- is what the "
+        f"README's search-list reading rests on: {shared_shape}"
     )
 
     egress = next(
@@ -99,3 +129,35 @@ def test_one_getaddrinfo_explains_the_v1130_subject_count():
         "the subject arm this ticket attributes no longer shows the count the probe "
         "explains; re-run the probe before trusting the attribution"
     )
+
+
+def _dns_attempt(errno: str | None) -> Attempt:
+    line = f"connect(5, ...) = -1 {errno} (Network is unreachable)" if errno else "connect(5, ...) = 0"
+    return Attempt(call="connect", address="127.0.0.53", port=53, detector="dns", line=line)
+
+
+def test_resolver_shape_is_a_pure_function_of_trace_and_attempts():
+    """resolver_shape() has no artifact-level coverage of its own regexes --
+    every existing assertion goes through one fixed committed trace. A wrong
+    _OUTCOME/_MESSAGE regex that happened to still produce {"ENETUNREACH": 4}
+    and 6 on THIS machine's trace would pass every other test in this file."""
+    attempts = [_dns_attempt("ENETUNREACH"), _dns_attempt("ENETUNREACH"), _dns_attempt(None)]
+    trace = (
+        "connect(5, ...) = -1 ENETUNREACH (Network is unreachable)\n"
+        "connect(5, ...) = -1 ENETUNREACH (Network is unreachable)\n"
+        "connect(5, ...) = 0\n"
+        "sendmmsg(5, [{msg_hdr={...}}, {msg_hdr={...}}], 2, 0) = 2\n"
+        "getpid() = 12345\n"  # an unrelated line: must not be counted as a message
+    )
+    shape = resolver_shape(trace, attempts)
+    assert shape["connect_outcomes"] == {"ENETUNREACH": 2, "ok": 1}, shape
+    assert shape["query_messages_sent"] == 2, shape
+
+
+def test_resolver_shape_falls_back_to_unparsed_on_an_unmatched_connect_line():
+    """A connect line with no readable return code (e.g. an interleaved
+    -f trace fragment) must not be silently folded into "ok" or dropped."""
+    attempts = [Attempt(call="connect", address="127.0.0.53", port=53,
+                         detector="dns", line="<... connect resumed>")]
+    shape = resolver_shape("<... connect resumed>", attempts)
+    assert shape["connect_outcomes"] == {"unparsed": 1}, shape

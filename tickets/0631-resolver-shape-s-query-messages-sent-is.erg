@@ -1,0 +1,112 @@
+%erg 0.1
+Title: resolver_shape()'s query_messages_sent is unscoped, misses sendmsg(), ignores return code
+Created: 2026-09-03
+Author: MinhHaDuong
+
+--- log ---
+2026-09-03T19:59Z MinhHaDuong created
+
+--- body ---
+## Context
+
+`bench/probe_getaddrinfo_shape.py`'s `resolver_shape()` (added in PR #326,
+ticket 0629) derives, from a raw strace trace and the sandbox's already-
+classified `Attempt` list, two committed-artifact facts: `connect_outcomes`
+(errno bucket per DNS-detector connect) and `query_messages_sent` (count of
+resolver query payloads). Multiple independent review passes on PR #326 found
+that this function's general correctness does not match the specific
+correctness of the three numbers it currently ships — the committed artifact
+(`bench/results/0629-gap-a/syscall-shape.json`) is right, but only because
+this machine's trace happens to avoid every edge case below. This ticket is
+the hardening pass, not a claim that the shipped numbers are wrong.
+
+The artifact is explicitly drift-blind by design (the test docstring: "nothing
+re-invokes the probe... a machine that has drifted underneath an unchanged
+record is invisible to this file by construction") and `resolver_shape` has
+exactly one call site. That is why this is a follow-up rather than a PR #326
+blocker — none of these gaps fire on the committed data, and the function
+is not (yet) reused elsewhere.
+
+## Findings, by reviewer confidence
+
+1. **`query_messages_sent` is not scoped to resolver traffic.** The outer
+   filter (`"sendmmsg(" in line or "sendto(" in line`) scans the *entire*
+   trace, not just lines tied to an `attempt.detector == "dns"` connect —
+   unlike `connect_outcomes`, which does filter by detector. Any non-DNS UDP
+   send elsewhere in a real trace (QUIC, any other protocol) would be folded
+   into the same counter.
+2. **Plain `sendmsg(` is invisible.** `sandbox.py`'s own `_SYSCALLS` traces
+   `("connect", "sendto", "sendmsg")` as equally significant, but the filter
+   only matches `"sendmmsg("` or `"sendto("` — `"sendmsg("` is a substring of
+   neither. A resolver that queries via unbatched `sendmsg` instead of
+   `sendmmsg` would report 0 messages sent for an arm that did send.
+3. **No return-code check before counting a message as sent.** A failed
+   `sendto`/`sendmmsg` (`= -1 E...`), or a `sendmmsg` partial send (return <
+   array length), is still counted at its full attempted length —
+   `query_messages_sent` measures messages *attempted*, not *sent*, despite
+   its name and the README's framing.
+4. **`_OUTCOME`'s bare `.search()` can grab the wrong `=<digits>` on IPv6.**
+   `_OUTCOME = re.compile(r"=\s*-?\d+\s*(?P<errno>E[A-Z]+)?")` returns the
+   leftmost match. An IPv6 connect line carries `sin6_scope_id=<N>` before the
+   trailing return code; when the scope id is a bare digit (commonly `0`),
+   `.search()` binds there instead of the real `= -1 E...` at the end,
+   misclassifying a failed connect as `"ok"`. Reproduced directly against a
+   real IPv6 strace line by one reviewer (high confidence); a second reviewer
+   found the same class independently (medium confidence, code-reading only).
+   IPv4-only on this machine today, so inert against the committed artifact.
+
+## Relevant files
+
+- `bench/probe_getaddrinfo_shape.py` — `resolver_shape()` (~line 83),
+  `_OUTCOME`/`_MESSAGE` regexes (~lines 75-80), the `measure()` call site.
+- `bench/acceptance/sandbox.py` — `Attempt`, `attempts_in()`, `_SYSCALLS`
+  (the syscalls actually traced; `sendmsg` is already one of them).
+- `tests/test_probe_getaddrinfo_shape.py` — carries two direct
+  `resolver_shape()` unit tests added alongside this ticket (ok/errno path,
+  the `unparsed` fallback for a split connect line); neither exercises IPv6
+  scope_id, a failed/partial send, or a bare `sendmsg(` line.
+
+## Actions
+
+1. Scope `query_messages_sent` to lines associated with an
+   `attempt.detector == "dns"` connect, mirroring `connect_outcomes` — this
+   likely needs the trace's send lines correlated to a resolver socket/fd
+   rather than scanned globally.
+2. Add `sendmsg(` (not just `sendmmsg(`) to the outer filter.
+3. Read each send line's own trailing return code; do not count a failed or
+   partial send as fully sent.
+4. Anchor `_OUTCOME` on the line's trailing return code specifically
+   (e.g. `=\s*(-?\d+)\s*(?P<errno>E[A-Z]+)?\s*(?:\(.*\))?\s*$`) rather than a
+   bare `.search()`, so an earlier `=<digit>` field (IPv6 `sin6_scope_id`,
+   or any future field shaped the same way) cannot be mistaken for it.
+
+## Test
+
+Red-first, per finding: a synthetic trace line with a non-DNS `sendto` mixed
+into an otherwise all-DNS trace (finding 1); a synthetic `sendmsg(` line
+carrying one query (finding 2); a `sendmmsg` line whose return code is less
+than its message-array length (finding 3); a real IPv6 failed-connect line
+with `sin6_scope_id=0` (finding 4, reproduced by a reviewer against real
+strace output — worth capturing verbatim as a fixture).
+
+## Verification
+
+- [ ] Each of the four findings above has a red-before-green unit test.
+- [ ] The three numbers currently committed in
+      `bench/results/0629-gap-a/syscall-shape.json` are unchanged by the fix
+      (this machine's trace shape doesn't hit any of these paths).
+- [ ] `make check` passes.
+
+## Invariants
+
+- `resolver_shape()` stays a pure function of `(trace, attempts)` — no new
+  I/O, no re-invocation of the probe.
+- The privacy invariant holds: no raw trace text or `attempt.line` enters the
+  returned dict or the committed artifact (verified by three separate
+  reviewers on PR #326; do not regress it while fixing the above).
+
+## Exit criteria
+
+`resolver_shape()`'s outcome and message-count logic is correct in general —
+not just for the three toy programs and the one machine that produced the
+currently-committed artifact — with unit coverage for each finding above.

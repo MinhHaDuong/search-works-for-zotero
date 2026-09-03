@@ -32,6 +32,7 @@ not a run against a target.
 import argparse
 import json
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -70,6 +71,51 @@ DEFAULT_OUTPUT = (
 )
 
 
+#: How a `connect` line ends, in the tracer's own text: `= 0` or `= -1 ENAME (…)`.
+_OUTCOME = re.compile(r"=\s*-?\d+\s*(?P<errno>E[A-Z]+)?")
+
+#: One message inside a `sendmmsg`/`sendto` on a resolver socket. Counted, never
+#: read: the payload carries this machine's search-domain configuration, and
+#: `bench/results/**` is a public tree.
+_MESSAGE = re.compile(r"msg_hdr=|sendto\(")
+
+
+def resolver_shape(trace: str, attempts: list[sandbox.Attempt]) -> dict:
+    """What the resolver traffic *was*, beyond how much of it there was.
+
+    The `dns` counts alone cannot distinguish an arm whose connects failed and
+    sent nothing from one whose connects succeeded and carried queries — and
+    that distinction is the whole explanation of why the isolated and shared
+    arms report different numbers. The counts below are derived from the same
+    trace `attempts` comes from, and are committed so the reading in this
+    directory's README is checkable from the record rather than from a log file
+    the repository does not keep.
+
+    Query payloads are counted and never transcribed: they name this machine's
+    search-domain configuration.
+    """
+    outcomes: dict[str, int] = {}
+    for attempt in attempts:
+        if attempt.detector != "dns":
+            continue
+        match = _OUTCOME.search(attempt.line)
+        key = (match.group("errno") or "ok") if match else "unparsed"
+        outcomes[key] = outcomes.get(key, 0) + 1
+    messages = sum(
+        len(_MESSAGE.findall(line))
+        for line in trace.splitlines()
+        if "sendmmsg(" in line or "sendto(" in line
+    )
+    return {
+        "connect_outcomes": outcomes,
+        "query_messages_sent": messages,
+        "note": (
+            "query payloads are counted, never transcribed: they carry this "
+            "machine's search-domain configuration"
+        ),
+    }
+
+
 def measure(log_dir: Path) -> dict:
     """Run every program on both arms and return the artifact body."""
     mechanism, why = sandbox.choose()
@@ -86,11 +132,14 @@ def measure(log_dir: Path) -> dict:
                 log_dir=log_dir,
                 tag=f"{name}-{arm}",
             )
+            log = log_dir / f"{name}-{arm}.strace"
+            trace = log.read_text(errors="replace") if log.exists() else ""
             log.info("%s/%s: %s", name, arm, result.counts())
             arms[f"{name}/{arm}"] = {
                 "program": source,
                 "returncode": result.returncode,
                 "counts": result.counts(),
+                "resolver_shape": resolver_shape(trace, result.attempts),
                 "attempts": [a.as_json() for a in result.attempts],
             }
     return {
