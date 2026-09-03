@@ -19,6 +19,27 @@ include UPSTREAM
 # by the guards above. Override to put them elsewhere.
 ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 
+# A real run against a real target (not `make acceptance-fixtures`, which only
+# drives the in-process stub adapters below and needs none of this) MUST run
+# its target process under a dedicated account, never as the operator
+# (DECISIONS.md, ratified 2026-09-03; ticket 0625). `bench/acceptance/run.py`
+# defaults `--posture account` and refuses (`not-run`, never a fallback) when
+# the account below is absent or its sudoers rule does not work — it does not
+# create the account itself. A short, copyable recipe, once per machine:
+#
+#   sudo useradd --create-home --shell /usr/sbin/nologin tester
+#   sudo setfacl -R -m u:tester:rX  /path/to/your/Zotero/library
+#   sudo setfacl -R -m d:u:tester:rX /path/to/your/Zotero/library
+#   sudo install -d -o tester -g tester "$(ACCEPTANCE_ARENA)"
+#   echo "operator ALL=(tester) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
+#
+# `tester` gets READ on the library (every target here is read-only against
+# it) and WRITE on nothing but the arena. Where the run's own environment is
+# itself the boundary instead — a disposable container, a throwaway VM, with
+# no second identity within reach — pass `--posture already-isolated`; the
+# harness does not probe for this, the operator states it (see
+# `bench/acceptance/posture.py`'s module docstring for why no probe is safe).
+
 help:
 	@echo "make check       — everything: lint, figures, tests"
 	@echo "make check-fast  — the tests alone"

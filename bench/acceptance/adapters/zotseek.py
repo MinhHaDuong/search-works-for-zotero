@@ -154,6 +154,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 #: The plugin's add-on id, from `manifest.json` at the pinned commit. It is the
 #: filename a sideloaded XPI must take in the profile's `extensions/` directory.
@@ -560,7 +561,8 @@ class ZotSeek:
 
     def __init__(self, arena: Path, *, launcher: Path, artifact: Path,
                  port: int = 23219, display: str = ":1",
-                 startup_timeout: float = 300.0, settle: float = 20.0) -> None:
+                 startup_timeout: float = 300.0, settle: float = 20.0,
+                 posture: Posture | None = None) -> None:
         arena = Path(arena).resolve()
         if arena == Path.home().resolve():
             raise ValueError(
@@ -590,6 +592,10 @@ class ZotSeek:
             )
         self.declaration = declaration(arena, port=self.port)
         self._process: subprocess.Popen | None = None
+        #: See `beaver.Beaver._posture`: `None` unwraps the spawn (every test
+        #: in this file builds directly and gets that), `run.py` always
+        #: resolves a real `Posture` first (ticket 0625).
+        self._posture = posture
 
     # ---- adapter-declared harness setup, deliberately not an interface verb ----
 
@@ -668,6 +674,13 @@ class ZotSeek:
         self._place_artifact()
         argv = [str(self.launcher), "-profile", str(self.profile),
                 "-datadir", str(self.data), "-no-remote"]
+        # Only the process spawn crosses the identity boundary (ticket 0625,
+        # Action 1) — the profile write and the sideload above are the
+        # harness's own setup and stay the operator's. `wrap` raises
+        # `PostureUnavailable` before this Popen if the posture is refused;
+        # never caught here to fall back to an unwrapped spawn.
+        if self._posture is not None:
+            argv = self._posture.wrap(argv, self.environment())
         log = self.arena / HOST_LOG
         started = time.monotonic()
         with log.open("wb") as sink:
@@ -859,7 +872,8 @@ NAMES = ("zotseek",)
 
 def build(name: str, arena: Path, *, launcher: str = "", artifact: str = "",
           port: str | int = 23219, display: str = ":1",
-          startup_timeout: str | float = 300.0, **_opts) -> ZotSeek:
+          startup_timeout: str | float = 300.0, posture: Posture | None = None,
+          **_opts) -> ZotSeek:
     """Construct the adapter from the driver's opaque `--adapter-option` pairs.
 
     Neither the launcher nor the artifact is defaulted, and both refusals are the
@@ -890,4 +904,5 @@ def build(name: str, arena: Path, *, launcher: str = "", artifact: str = "",
         port=int(port),
         display=display or os.environ.get("DISPLAY", ":0"),
         startup_timeout=float(startup_timeout),
+        posture=posture,
     )

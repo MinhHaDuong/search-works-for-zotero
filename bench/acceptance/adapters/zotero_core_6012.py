@@ -164,6 +164,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 #: The head `gh api repos/zotero/zotero/pulls/6012` returned on 2026-09-03. The
 #: pull request force-pushed off `77e2c4b` at 2026-09-02T19:23:11Z, so the ref
@@ -687,7 +688,7 @@ class ZoteroCore6012:
 
     def __init__(self, arena: Path, *, application: Path, port: int = 23519,
                  display: str = ":1", startup_timeout: float = 300.0,
-                 settle: float = 20.0) -> None:
+                 settle: float = 20.0, posture: Posture | None = None) -> None:
         arena = Path(arena).resolve()
         if arena == Path.home().resolve():
             raise ValueError(
@@ -738,6 +739,10 @@ class ZoteroCore6012:
             )
         self.declaration = declaration(arena, port=self.port)
         self._process: subprocess.Popen | None = None
+        #: See `beaver.Beaver._posture`: `None` unwraps the spawn (every test
+        #: in this file builds directly and gets that), `run.py` always
+        #: resolves a real `Posture` first (ticket 0625).
+        self._posture = posture
 
     # ---- adapter-declared harness setup, deliberately not an interface verb ----
 
@@ -794,6 +799,13 @@ class ZoteroCore6012:
         self._write_profile()
         argv = [str(self.application), "-profile", str(self.profile),
                 "-datadir", str(self.data), "-no-remote"]
+        # Only the process spawn crosses the identity boundary (ticket 0625,
+        # Action 1) — the profile write above is the harness's own setup and
+        # stays the operator's. `wrap` raises `PostureUnavailable` before this
+        # Popen if the posture is refused; never caught here to fall back to
+        # an unwrapped spawn.
+        if self._posture is not None:
+            argv = self._posture.wrap(argv, self.environment())
         log = self.arena / HOST_LOG
         started = time.monotonic()
         with log.open("wb") as sink:
@@ -986,7 +998,7 @@ NAMES = ("zotero-core-6012",)
 
 def build(name: str, arena: Path, *, application: str = "", port: str | int = 23519,
           display: str = ":1", startup_timeout: str | float = 300.0,
-          **_opts) -> ZoteroCore6012:
+          posture: Posture | None = None, **_opts) -> ZoteroCore6012:
     """Construct the adapter from the driver's opaque `--adapter-option` pairs.
 
     The build is not defaulted, and the refusal is the point. This target has no
@@ -1010,4 +1022,5 @@ def build(name: str, arena: Path, *, application: str = "", port: str | int = 23
         port=int(port),
         display=display or os.environ.get("DISPLAY", ":0"),
         startup_timeout=float(startup_timeout),
+        posture=posture,
     )

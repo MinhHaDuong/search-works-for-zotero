@@ -30,6 +30,16 @@ sandbox. It constructs the adapter and calls the verbs it offers, printing what
 happened; the outer process traces it. The seam matters: the adapter never
 learns it is being sandboxed, or the layer's isolation concern would have leaked
 into a target's declaration.
+
+**`--posture`, ratified 2026-09-03 (DECISIONS.md; ticket 0625).** A target
+process never runs as the operator. The default, `account`, needs a dedicated
+account this harness never creates itself (see `posture.py`'s module docstring
+for the recipe) and refuses — `not-run`, on every assertion that needs a target
+process, never a fallback — where the account is absent or does not work.
+`already-isolated` says the run's own environment is the boundary (a disposable
+container, a throwaway VM) and skips the account; the harness does not probe
+for this, the operator states it. Every artifact records which posture the run
+had.
 """
 
 import argparse
@@ -61,6 +71,7 @@ from acceptance.durability import (  # noqa: E402
 from acceptance.interface import DRIVE_INCOMPLETE  # noqa: E402
 from acceptance.interface import FAIL, NOT_OFFERED, NOT_RUN, PASS, Check, Run  # noqa: E402
 from acceptance.interface import UnsupportedVerb  # noqa: E402
+from acceptance import posture as posture_mod  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
 log = logging.getLogger("acceptance")
@@ -368,8 +379,22 @@ def main() -> int:
                     help="run every fail-control and record which state each assertion reached")
     ap.add_argument("--adapter-option", action="append", default=[], metavar="KEY=VALUE",
                     help="an input this adapter needs; repeatable, passed through uninterpreted")
+    ap.add_argument(
+        "--posture", choices=posture_mod.POSTURES, default=posture_mod.ACCOUNT_POSTURE,
+        help=(
+            "the identity boundary this run has (DECISIONS.md, ratified 2026-09-03; "
+            "ticket 0625): 'account' (default) means a target process runs under the "
+            "dedicated account this harness never creates itself, and every assertion "
+            "needing a target process reports not-run where the account is absent or "
+            "unusable, never a run as the operator. 'already-isolated' says the "
+            "environment itself is the boundary (a disposable container, a throwaway "
+            "VM) and no account is required or checked for — the harness does not "
+            "probe for this, it is a documented precondition the operator states"
+        ),
+    )
     a = ap.parse_args()
     options = adapter_options(a.adapter_option)
+    resolved_posture = posture_mod.resolve(a.posture)
 
     if a.list_adapters:
         for name in adapters.available():
@@ -387,7 +412,7 @@ def main() -> int:
 
     def make_target(where: Path):
         where.mkdir(parents=True, exist_ok=True)
-        return adapters.load(a.adapter, where, **options)
+        return adapters.load(a.adapter, where, posture=resolved_posture, **options)
 
     if a.drive:
         # The lifecycle is inside the guard, not outside it. A target whose
@@ -419,16 +444,24 @@ def main() -> int:
     log_dir = Path(a.log_dir).resolve() if a.log_dir else arena / "trace"
 
     def drive_argv_for(where: Path) -> list[str]:
+        # `--posture` rides along rather than being left to its default,
+        # because the `--drive` subprocess resolves its own posture fresh (a
+        # resolved account cannot be handed across a process boundary, per
+        # `posture.resolve`'s own docstring) and it must resolve the SAME one
+        # this outer process was asked for, not silently fall back to the
+        # default if the caller asked for `already-isolated`.
         passthrough: list[str] = []
         for key, value in options.items():
             passthrough += ["--adapter-option", f"{key}={value}"]
         return [
             sys.executable or "python3", str(Path(__file__).resolve()),
-            "--adapter", a.adapter, "--arena", str(where), "--drive", *passthrough,
+            "--adapter", a.adapter, "--arena", str(where), "--drive",
+            "--posture", a.posture, *passthrough,
         ]
 
     run = assess(make_target, base_arena=arena, log_dir=log_dir,
                  drive_argv_for=drive_argv_for)
+    run.posture = resolved_posture.as_json()
     run.write(Path(a.output))
 
     for check in run.checks:

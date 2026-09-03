@@ -329,6 +329,15 @@ class Run:
     checks: list[Check] = field(default_factory=list)
     date: str = ""
 
+    #: What identity boundary this run had, as `posture.Posture.as_json()`
+    #: produces it — never imported here to keep this module to the three
+    #: things its own docstring names, so `run.py` sets this after `assess()`
+    #: returns. Ratified 2026-09-03 (DECISIONS.md; ticket 0625): a run taken
+    #: without the account, in an environment claiming to be its own boundary,
+    #: must be identifiable as such afterwards, or a green from an unprotected
+    #: run is indistinguishable from a green from a protected one.
+    posture: dict = field(default_factory=dict)
+
     def summary(self) -> dict[str, int]:
         return {s: sum(1 for c in self.checks if c.result == s) for s in STATES}
 
@@ -345,6 +354,7 @@ class Run:
             ),
             "date": self.date,
             "declaration": self.target.as_json(),
+            "posture": self.posture,
             "checks": [c.as_json() for c in self.checks],
             "summary": self.summary(),
         }

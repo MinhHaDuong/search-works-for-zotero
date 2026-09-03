@@ -110,6 +110,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 #: The distribution name on PyPI, which is NOT the repository's name.
 DISTRIBUTION = "zotero-mcp-server"
@@ -340,7 +341,7 @@ class ZoteroMCP:
     """
 
     def __init__(self, home: Path, venv: Path, timeout: float = 180.0,
-                 config: dict | None = None) -> None:
+                 config: dict | None = None, posture: Posture | None = None) -> None:
         home = Path(home).resolve()
         if home == Path.home().resolve():
             raise ValueError(
@@ -355,6 +356,10 @@ class ZoteroMCP:
         self.config = DEFAULT_CONFIG if config is None else config
         self.declaration = declaration(home)
         self._server = None
+        #: See `beaver.Beaver._posture`: `None` unwraps the spawn (every test
+        #: in this file builds directly and gets that), `run.py` always
+        #: resolves a real `Posture` first (ticket 0625).
+        self._posture = posture
 
     # ---- transport -------------------------------------------------------
 
@@ -392,8 +397,21 @@ class ZoteroMCP:
         """Start the server, yield, stop it. Harness setup, not an interface verb."""
         drive = _load_mcp_drive()
         cmd = [str(self.executable), "serve", "--transport", "stdio"]
+        env = self.environment()
+        # Only the process spawn crosses the identity boundary (ticket 0625,
+        # Action 1). `mcp_drive.Server` merges its `env` argument over
+        # `os.environ` itself and hands the result to `subprocess.Popen` — a
+        # merge that would land on the wrapping `sudo` process rather than on
+        # the target once wrapped, so the merge is done here instead and
+        # carried on the command line by `wrap`, which is what actually
+        # reaches the account. `wrap` raises `PostureUnavailable` before
+        # anything is started if the posture is refused; never caught here to
+        # fall back to an unwrapped spawn.
+        if self._posture is not None:
+            cmd = self._posture.wrap(cmd, {**os.environ, **env})
+            env = {}
         self.home.mkdir(parents=True, exist_ok=True)
-        server = drive.Server(cmd, self.environment(), self.timeout)
+        server = drive.Server(cmd, env, self.timeout)
         self._server = server
         try:
             self._bounded(server, "initialize", handshake=True)
@@ -622,7 +640,8 @@ NAMES = ("zotero-mcp",)
 
 
 def build(name: str, arena: Path, *, home: str = "", venv: str = "",
-          timeout: str | float = 180.0, **_opts) -> ZoteroMCP:
+          timeout: str | float = 180.0, posture: Posture | None = None,
+          **_opts) -> ZoteroMCP:
     """Construct the adapter from the driver's opaque `--adapter-option` pairs.
 
     Neither `home` nor `venv` is defaulted, and the refusal is the point rather
@@ -645,4 +664,5 @@ def build(name: str, arena: Path, *, home: str = "", venv: str = "",
             "(--adapter-option venv=<dir>). It is not defaulted: a guessed prefix is how "
             "a run measures an installation nobody chose."
         )
-    return ZoteroMCP(home=Path(home), venv=Path(venv), timeout=float(timeout))
+    return ZoteroMCP(home=Path(home), venv=Path(venv), timeout=float(timeout),
+                     posture=posture)
