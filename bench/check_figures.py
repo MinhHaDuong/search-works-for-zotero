@@ -81,6 +81,11 @@ PROSE = {
     # unguarded is silent. This one arrived 2026-08-29.
     "v30": ["verification/issue-30-thread.md"],
     "v0220": ["verification/DEVICE-AUTO-0220.md"],
+    # Ticket 0612's pooling ablation. Two documents carry one table: the repo report and
+    # the draft that goes upstream. The outward one is the reason these are declared -- a
+    # number leaving the repo is the case this guard was argued for.
+    "v0612": ["verification/POOLING-DEFECT-0612.md"],
+    "u0612": ["verification/UPSTREAM-PR-POOLING-0612.md"],
     "v0267": ["verification/EMBEDDER-RECOMMENDATION-0267.md"],
     "v0120": ["verification/KEYWORD-BUILD-COST-0120.md"],
     "vsmoke": ["verification/SMOKE-1.10.0.md"],
@@ -305,7 +310,7 @@ def warm_verdict(blob) -> str | None:
     )
 
 
-def render_value(value, places: int, pct: bool = False) -> str:
+def render_value(value, places: int, pct: bool = False, dot: bool = False) -> str:
     """A scalar, or a two-element range rendered as `lo-hi`.
 
     Declaring the ends of a range as two separate figures made each one's anchor contain
@@ -313,36 +318,52 @@ def render_value(value, places: int, pct: bool = False) -> str:
     fixer surfaced immediately by refusing both.
     """
     if isinstance(value, list) and len(value) == 2:
-        return f"{rendered(value[0], places, pct)}-{rendered(value[1], places, pct)}"
+        return f"{rendered(value[0], places, pct, dot)}-{rendered(value[1], places, pct, dot)}"
     if isinstance(value, list):
         # A per-run sequence, written a/b/c/d. Declared because the sentence quoting it
         # claims the runs are read from the artifact rather than reconstructed from git
         # history — and it was, twice, quoting the previous run while saying so.
-        return "/".join(rendered(v, places, pct) for v in value)
-    return rendered(value, places, pct)
+        return "/".join(rendered(v, places, pct, dot) for v in value)
+    return rendered(value, places, pct, dot)
 
 
-def rendered(value: float, places: int, pct: bool = False) -> str:
-    """The figure with no thousands separator and a decimal comma — the comparison form.
+def rendered(value: float, places: int, pct: bool = False, dot: bool = False) -> str:
+    """The figure with no thousands separator — the comparison form.
 
     `pct` covers a fraction the prose writes as a percentage. A rendering the declaration
     cannot express is a figure the check quietly cannot cover, so the modes live here
     rather than in an exception list.
+
+    `dot` keeps the decimal point. The repository writes a decimal comma and every figure
+    declared before 2026-09-03 renders that way, but a document destined for an
+    English-language forge is written in that convention and would otherwise have to
+    choose between matching its own code samples and being checkable at all. It is the
+    outward documents this guard exists for most, so the mode lives here rather than
+    costing them their coverage.
     """
     if pct:
         value *= 100
-    return f"{value:.{places}f}".replace(".", ",")
+    text = f"{value:.{places}f}"
+    return text if dot else text.replace(".", ",")
 
 
-def display(value, places: int, pct: bool = False) -> str:
-    """How it reads in the documents, for messages only."""
+def display(value, places: int, pct: bool = False, dot: bool = False) -> str:
+    """How it reads in the documents, for messages only.
+
+    `dot` matters here even though nothing downstream parses this string: a failure names
+    the value the reader should go and find, and naming it in the other convention sends
+    them looking for a string their document does not contain.
+    """
     if isinstance(value, list) and len(value) > 2:
-        return "/".join(display(v, places, pct) for v in value)
+        return "/".join(display(v, places, pct, dot) for v in value)
     if isinstance(value, list) and len(value) == 2:
-        return f"{display(value[0], places, pct)}-{display(value[1], places, pct)}"
+        return f"{display(value[0], places, pct, dot)}-{display(value[1], places, pct, dot)}"
     if pct:
         value *= 100
-    text = f"{value:,.{places}f}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", " ")
+    if dot:
+        text = f"{value:,.{places}f}"
+    else:
+        text = f"{value:,.{places}f}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", " ")
     return text + "%" if pct else text
 
 
@@ -419,6 +440,102 @@ MINIMUM_PAIRS = 629
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
 #: legitimately live in several documents; it must be current in every one that claims it.
 FIGURES = [
+    # ---- 0612, cross-lingual headline confirmed on the task metric (padme run).
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.8499 (-5.1%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8955\u2192{} (-5.1%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9510 (-0.8%)"}, "dot"),
+    ("0612-task-pooling/granite-97m-multilingual-r2-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9585\u2192{} (-0.8%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.7951 (-11.9%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.9030\u2192{} (-11.9%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9391 (-3.3%)"}, "dot"),
+    ("0612-task-pooling/gte-multilingual-base-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9707\u2192{} (-3.3%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "| {}\u21920.8920 (-2.4%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.9142\u2192{} (-2.4%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "| {}\u21920.9518 (-1.1%)"}, "dot"),
+    ("0612-task-pooling/arctic-embed-m-v2-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9621\u2192{} (-1.1%)"}, "dot"),
+    # ---- 0612, the same-item task metric: does the pooling correction hold outside a
+    # cross-lingual set? Declared against the two raw vec_task_recall.mjs outputs, dot
+    # convention because the reader meets these in the upstream PR body.
+    ("0612-task-pooling/minilm-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "MRR 2.9% ({}\u21920.8230"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8880\u2192{}, 0.9559"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "0.8230, {}\u21920.9285)"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9559\u2192{})"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "positive ({}\u21920.8696"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8620\u2192{}, 0.9444"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "0.8696, {}\u21920.9452)"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9444\u2192{})"}, "dot"),
+    # ---- 0612, what one hardcoded pooling mode costs. Declared twice on purpose: the
+    # repository writes a decimal comma, and the document that goes to the forge is read
+    # beside its own code samples and writes a decimal point. One artifact, two renderings,
+    # so neither document buys its convention by losing its coverage.
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.correct.mrr", 4,
+     {"v0612": "| {} | 0,3842 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.forced.mrr", 4,
+     {"v0612": "| 0,5301 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -34,6%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-27,5%** | {}% |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.correct.mrr", 4,
+     {"u0612": "| {} | 0.3842 |"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.forced.mrr", 4,
+     {"u0612": "| 0.5301 | {} | **"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.mrr_relative_pct", 1,
+     {"u0612": "**{}%** | -34.6%"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.hit_at_1_relative_pct", 1,
+     {"u0612": "**-27.5%** | {}% |"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.correct.mrr", 4,
+     {"v0612": "| {} | 0,6331 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.forced.mrr", 4,
+     {"v0612": "| 0,7255 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -10,3%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-12,7%** | {}% |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.correct.mrr", 4,
+     {"u0612": "| {} | 0.6331 |"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.forced.mrr", 4,
+     {"u0612": "| 0.7255 | {} | **"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.mrr_relative_pct", 1,
+     {"u0612": "**{}%** | -10.3%"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.hit_at_1_relative_pct", 1,
+     {"u0612": "**-12.7%** | {}% |"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.correct.mrr", 4,
+     {"v0612": "| {} | 0,5887 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.forced.mrr", 4,
+     {"v0612": "| 0,6560 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -14,7%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-10,3%** | {}% |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.correct.mrr", 4,
+     {"u0612": "| {} | 0.5887 |"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.forced.mrr", 4,
+     {"u0612": "| 0.6560 | {} | **"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.mrr_relative_pct", 1,
+     {"u0612": "**{}%** | -14.7%"}, "dot"),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.hit_at_1_relative_pct", 1,
+     {"u0612": "**-10.3%** | {}% |"}, "dot"),
     # ---- 0008, the real-vector measurement. The latency table is anchored: every stale
     # figure on this branch was a table cell whose value also appeared elsewhere.
     ("0008-real-vectors/real-93022.json", "corpus.vectors", 0,
@@ -1990,6 +2107,7 @@ def run(
         artifact, path, places, prose_keys = entry[:4]
         flags = set(entry[4:])
         pct = "pct" in flags
+        dot = "dot" in flags
         wants_warm = "warm" in flags
         f = Path(results_dir) / artifact
         if not f.exists():
@@ -2015,9 +2133,9 @@ def run(
             # needs to go down. A figure re-measured warm gets `"warm"` on its
             # declaration and moves from this count into the enforced set.
             cannot_say.add(f"{artifact}:{path}")
-        want = render_value(value, places, pct)
+        want = render_value(value, places, pct, dot)
         if listing:
-            log.info("%-46s %-58s %s", artifact, path, display(value, places, pct))
+            log.info("%-46s %-58s %s", artifact, path, display(value, places, pct, dot))
         for key, anchor in prose_keys.items():
             doc = resolve(key)
             if doc is None:
@@ -2060,7 +2178,7 @@ def run(
                 )
             if not ok:
                 failures.append(
-                    f"STALE  {artifact}:{path} = {display(value, places, pct)} not found "
+                    f"STALE  {artifact}:{path} = {display(value, places, pct, dot)} not found "
                     f"{where} {doc.relative_to(REPO)}"
                 )
 

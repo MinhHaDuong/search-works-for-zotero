@@ -1,0 +1,120 @@
+{
+  "ticket": "0612",
+  "what": "cost of upstream's hardcoded mean pooling on models that declare cls",
+  "queries_ranked": 64,
+  "cells": [
+    {
+      "model_id": "arctic-embed-m-v2",
+      "model": "Snowflake/snowflake-arctic-embed-m-v2.0",
+      "dtype": "fp32",
+      "correct_pooling": "cls",
+      "forced_pooling": "mean",
+      "template": {
+        "query": "query: ",
+        "passage": ""
+      },
+      "correct": {
+        "queries_ranked": 64,
+        "mrr": 0.656,
+        "hit_at_1": 0.5312,
+        "hit_at_5": 0.8281,
+        "hit_at_10": 0.9219,
+        "negative_control_clean": 3,
+        "negative_control_n": 4
+      },
+      "forced": {
+        "queries_ranked": 64,
+        "mrr": 0.5887,
+        "hit_at_1": 0.4531,
+        "hit_at_5": 0.7344,
+        "hit_at_10": 0.8438,
+        "negative_control_clean": 3,
+        "negative_control_n": 4
+      },
+      "delta": {
+        "mrr": -0.0673,
+        "hit_at_1": -0.0781,
+        "hit_at_5": -0.0937,
+        "hit_at_10": -0.0781,
+        "mrr_relative_pct": -10.3,
+        "hit_at_1_relative_pct": -14.7
+      }
+    },
+    {
+      "model_id": "granite-97m-multilingual-r2",
+      "model": "onnx-community/granite-embedding-97m-multilingual-r2-ONNX",
+      "dtype": "fp32",
+      "correct_pooling": "cls",
+      "forced_pooling": "mean",
+      "template": {
+        "query": "",
+        "passage": ""
+      },
+      "correct": {
+        "queries_ranked": 64,
+        "mrr": 0.5301,
+        "hit_at_1": 0.4062,
+        "hit_at_5": 0.6406,
+        "hit_at_10": 0.75,
+        "negative_control_clean": 1,
+        "negative_control_n": 4
+      },
+      "forced": {
+        "queries_ranked": 64,
+        "mrr": 0.3842,
+        "hit_at_1": 0.2656,
+        "hit_at_5": 0.5625,
+        "hit_at_10": 0.6094,
+        "negative_control_clean": 0,
+        "negative_control_n": 4
+      },
+      "delta": {
+        "mrr": -0.1459,
+        "hit_at_1": -0.1406,
+        "hit_at_5": -0.0781,
+        "hit_at_10": -0.1406,
+        "mrr_relative_pct": -27.5,
+        "hit_at_1_relative_pct": -34.6
+      }
+    },
+    {
+      "model_id": "gte-multilingual-base",
+      "model": "onnx-community/gte-multilingual-base",
+      "dtype": "fp32",
+      "correct_pooling": "cls",
+      "forced_pooling": "mean",
+      "template": {
+        "query": "",
+        "passage": ""
+      },
+      "correct": {
+        "queries_ranked": 64,
+        "mrr": 0.7255,
+        "hit_at_1": 0.6094,
+        "hit_at_5": 0.875,
+        "hit_at_10": 0.9062,
+        "negative_control_clean": 2,
+        "negative_control_n": 4
+      },
+      "forced": {
+        "queries_ranked": 64,
+        "mrr": 0.6331,
+        "hit_at_1": 0.5469,
+        "hit_at_5": 0.7031,
+        "hit_at_10": 0.7656,
+        "negative_control_clean": 3,
+        "negative_control_n": 4
+      },
+      "delta": {
+        "mrr": -0.0924,
+        "hit_at_1": -0.0625,
+        "hit_at_5": -0.1719,
+        "hit_at_10": -0.1406,
+        "mrr_relative_pct": -12.7,
+        "hit_at_1_relative_pct": -10.3
+      }
+    }
+  ],
+  "worst_mrr_relative_pct": -27.5,
+  "best_mrr_relative_pct": -10.3
+}

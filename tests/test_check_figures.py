@@ -44,6 +44,27 @@ def test_rendered_uses_a_decimal_comma_and_no_thousands_separator():
     assert cf.rendered(0.5213, 1, pct=True) == "52,1"
 
 
+def test_the_dot_mode_keeps_the_decimal_point_for_an_outward_document():
+    # A document written for an English-language forge is read beside its own code
+    # samples and writes a decimal point. Without this mode it would have to choose
+    # between matching them and being covered at all, and the outward documents are
+    # the ones this guard is argued for.
+    assert cf.rendered(101.42, 1, dot=True) == "101.4"
+    assert cf.rendered(0.5213, 1, pct=True, dot=True) == "52.1"
+    assert cf.rendered(-27.53, 1, dot=True) == "-27.5"
+    # The comma stays the default, so nothing declared before the mode existed moves.
+    assert cf.rendered(101.42, 1) == "101,4"
+
+
+def test_a_failure_names_the_value_in_the_document_own_convention():
+    # Messages only, and load-bearing anyway: a STALE line tells the reader what string
+    # to go and find. Naming it in the other convention sends them hunting for a string
+    # their document does not contain.
+    assert cf.display(101.42, 1, dot=True) == "101.4"
+    assert cf.display(101.42, 1) == "101,4"
+    assert cf.display(0.5213, 1, pct=True, dot=True) == "52.1%"
+
+
 def test_render_value_handles_a_two_element_range():
     # Declaring the ends of a range as two figures made each anchor contain the other's
     # value, so fixing either broke the other.

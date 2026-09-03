@@ -12,6 +12,7 @@ Blocked-by: 0029
 2026-08-31T08:21Z claude note R32 ADDS A BUILD-TIME BUDGET TO THIS GATE, ruled 2026-08-31 (spec/DECISIONS.md, goal 1 step 1). R30 was split and time to coverage became R32, whose reference machine is laptop-class CPU: an initial build must reach record coverage inside the record bound and body coverage inside the build bound. So an entry the default cannot meet the build bound with is not eligible to be the default, which is a resource limit of exactly the kind this ticket's exit criteria already apply. On today's CPU evidence, per passage: multilingual-e5-small 59,75 ms and granite-97m-multilingual-r2 68,54 ms against multilingual-e5-base 137,57 ms, gte-multilingual-base 153,90 ms, arctic-embed-m-v2 166,70 ms and granite-311m-multilingual-r2 231,74 ms (the cells ticket 0481 recovered from bench/results/0264-gpu-arm/, whose auto runs never received a device), with MiniLM at 77,6 ms on an i5-8250U laptop for scale (bench/results/0025-x1-recall/embed-feasibility.json). Against DESIGN 2.9's measured 567 829 passages that is roughly 9-11 h for the two small multilingual candidates and 22-37 h for the four larger: an overnight build separates them. Two hosts, so the laptop figure against the rest is an order of magnitude and not a ratio, and the multilingual cells were fidelity runs rather than throughput benchmarks. The bound itself is unpinned until measured on the reference machine, and is pinned in the change that first asserts it
 2026-08-31T14:05Z claude note THE ELIGIBILITY TEST IS NOW A NUMBER, not a comparison (spec/DESIGN.md 2.8, 2026-08-31). R32's build bound is pinned at MUST-inside-24-hours on a disclosed laptop-class machine, with 12 hours as the SHOULD. On the CPU evidence already in hand that separates the two small multilingual candidates, which land in the SHOULD band, from the four base-sized ones, which clear neither. An entry the default cannot meet the build bound with is not eligible to be the default, and the bound is now concrete enough for this ticket to apply without re-deriving it
 2026-09-03T05:18Z Minh Ha-Duong note blocker 0493 closed — Blocked-by removed.
+2026-09-03T13:00Z claude note author directive 2026-09-03: an entry discloses measured space, speed and recall together, never size alone. Ground: a precision is chosen to buy space, so the entry must say what that space costs elsewhere -- 0612 measured a case where q8 leaves the pooling correction almost inert on granite-97m (cosine 0,999 between the two readings, against 0,53 for MiniLM at either precision), which a size column alone would never surface. Exit criteria amended
 --- body ---
 ## Scope
 
@@ -32,6 +33,14 @@ evidence only.
 - Every proposed shipped entry passes local compatibility, the golden retrieval
   gate and resource limits on its supported shapes.
 - Licences, artifact sizes and runtime support are disclosed beside the entry.
+- **Every entry discloses its measured space, speed and recall, not its size alone.**
+  On-disk bytes at the rung the entry actually ships, per-passage embedding time on a
+  named machine, and retrieval on the task metric. A precision is chosen to buy space,
+  so the entry has to say what that space costs in the other two: q8 halves the download
+  and can leave retrieval where it was, and it can also make a correction inert (measured
+  on granite-97m, ticket 0612, where the mean and cls readings converge to cosine 0,999
+  at q8 against 0,53 for MiniLM at either precision). A size without the pair beside it
+  invites the reader to price a rung on the only number that is easy to get.
 - The decision and its negative controls are recorded in DECISIONS.md.
 - The entry proposed as the default is R7-conformant, read from its declared
   language set rather than from its name or its scores, and R29-conformant on

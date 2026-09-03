@@ -31,17 +31,52 @@ rows re-read (`verification/UPSTREAM-1.12.0-REREAD.md`, extended from the
 four ticket 0504 read), and the smoke re-run against a fresh 1-item build
 over the cloud API (`bench/results/smoke-1.12.0/checks.json`) keeps R10
 and R23 at `measured` rather than letting the bump silently demote them.
-updated 2026-09-03 against `b0e0bc8` (v1.13.0 plus four commits), which
-drained the tracker a third time and is the release where **the whole 0091
-stopword series merged**: PRs #45, #46 and #47 all landed, the maintainer
-closed #37, #43, #44, #48 and #49 in the same window, and the index schema
-stamp moved for the first time since v1.7.0 — our #46 changed the FTS
-tokenizer, so upstream now carries a real migration ladder and its first rung
-is ours. Ticket 0618 bumped the baseline and re-read all twenty-three rows
+The reviewed baseline in `UPSTREAM` was v1.12.0 through the events below, then
+bumped a second time by ticket 0618, described after them; updated 2026-09-03 —
+**the whole 0091 series merged** (PRs #45, #46 and #47, all at 07:58, no changes
+asked for), which empties every in-flight slot; one minute later the maintainer
+**closed issue #43 by building local model selection himself**, the same shape
+as the storage layer and as #33/#34. What he shipped, verified at `76bbb07`:
+`ZOTEUS_EMBEDDING_MODEL` reaches the local provider as a raw Hugging Face id, E5
+prefixes are applied by a regex on that id with `ZOTEUS_EMBEDDING_PREFIXES` as
+override, and identity becomes `local:<model>`. Two vector-affecting properties
+stayed behind. `pooling: 'mean'` is still hardcoded for every model the new knob
+can name, and `dtype` is absent from the file. Ticket 0612 measured the first
+and drafted a filing for both (`verification/POOLING-DEFECT-0612.md`). In the
+same thread, after the close, **Michael-Logies asked for a quantized entry** for
+ChromeOS-class machines and named dtype-in-identity as its precondition, which
+is the registry entry by another route. The `pr43-minilm-e5-registry` branch
+offered on #43 is now 14 ahead and 33 behind and touches the file he rewrote:
+it needs rebuilding onto his seam, not rebasing onto it. **He then shipped the
+dtype work the same afternoon** (`230183d` at 13:18, merged `b0e0bc8`):
+`ZOTEUS_EMBEDDING_DTYPE` selects the weight precision and enters the identity as
+`local:<model>@<dtype>`, which is Michael-Logies' quantized entry delivered
+within hours of the ask and the precondition the maintainer had named for it.
+It is also the knob ticket 0220 proposed and this repo withdrew on 2026-08-29 —
+shipped by him, soundly, with the identity fix that withdrawal said a knob could
+not travel without. Pooling was now the one vector-affecting property still
+written at the call site, one occurrence in the whole `src` tree; updated
+2026-09-03 a further time — **the pooling fix filed and merged**. Rebuilt on a
+fork review station (`MinhHaDuong/zoteus#10`, base pinned at `b0e0bc8`) through
+two adversarial review rounds and a decorrelated seat, then **filed as
+`oscardvs/zoteus#51`-fixing PR #52** (a curated `MODEL_POOLING` table,
+`ZOTEUS_EMBEDDING_POOLING` override, and the pooling suffixed into the embedder
+identity on `fp32`'s own rule) after the maintainer opened #51 himself,
+credited the finding, and said on #43 he was holding the release for it. A
+comment on #43 carried the size of the loss and pointed at #52. **He merged #52
+verbatim, nineteen minutes after filing, no review comments** — the thirteenth
+of thirteen PRs from this fork, none rejected, none rebuilt. #51 closed with it.
+Ticket 0612's own close is still ours to do.
+
+In the same window, on `b0e0bc8` (v1.13.0 plus four commits), the maintainer
+drained the tracker a third time: closing #37, #43, #44, #48 and #49, and moving
+the index schema stamp for the first time since v1.7.0 — our #46 changed the FTS
+tokenizer, so upstream now carries a real migration ladder and its first rung is
+ours. Ticket 0618 bumped the baseline and re-read all twenty-three rows
 (`verification/UPSTREAM-1.13.0-REREAD.md`). The reviewed baseline in `UPSTREAM`
-now names v1.13.0 and is current with `main`; it pins main's TIP rather than
-the v1.13.0 tag, four commits earlier, because `upstream-status` compares
-against `main` and a tag pin is red on the day it is written. The
+now names v1.13.0 and is current with `main`; it pins main's TIP rather than the
+v1.13.0 tag, four commits earlier, because `upstream-status` compares against
+`main` and a tag pin is red on the day it is written. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*
