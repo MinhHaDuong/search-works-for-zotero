@@ -17,11 +17,18 @@ from the tree.
 
 A FOURTH FILE ARRIVED WHILE THIS PR WAS OPEN, AND THE GUARD CAUGHT IT UNPROMPTED
 --------------------------------------------------------------------------------
-This is the strongest evidence in the module, and it was not staged. `d81584c` ("Arm R23's
-two directions…") landed on `main` after this branch was cut and added 184 lines to
-`bench/acceptance/adapters/zoteus.py`, taking it from 0 occurrences of `sqlite3` and 0 of
-`FROM meta` to 5 and 2. The branch was green on its own base and red the moment current
-`main` was merged in, naming exactly that file:
+This is the strongest evidence in the module, and it was not staged. `97d1490` ("Ticket
+0579: goal 2's gates, asserted over the same seven verbs") landed on `main` after this
+branch was cut and took `bench/acceptance/adapters/zoteus.py` across the class boundary:
++143/-2 lines, `sqlite3` 0 -> 4, `FROM meta` 0 -> 2. `d81584c` ("Arm R23's two
+directions…") then added a further +43/-2, taking `sqlite3` to 5 and leaving `FROM meta`
+unchanged at 2. Over the whole range `5d2514d..8a5ad06` the file gained 184 lines, 0 -> 5
+and 0 -> 2. Neither commit is an ancestor of the branch base `5d2514d`, so the driver did
+arrive from another lane while this merge request was open. (An earlier round of this
+module attributed the whole crossing to `d81584c` alone: that was wrong, and the per-commit
+numbers above are `grep -c` counts on the file at each ref, plus `git show --stat`.) The
+branch was green on its own base and red the moment current `main` was merged in, naming
+exactly that file:
 
     AssertionError: bench files that open a zoteus-built index and are in neither
     DRIVERS (tests/test_index_schema_fixtures.py) nor EXCUSED:
@@ -369,9 +376,10 @@ EXCUSED: dict[str, Excuse] = {
     ),
     "bench/acceptance/adapters/zoteus.py": Excuse(
         frozenset({"meta"}),
-        "the fourth file — it arrived on `main` in `d81584c` while this PR was open and "
-        "this module's closure check named it, unprompted, on the first run against real "
-        "traffic. Excused on the same substrate reason as `bench/smoke_upstream.py`, and "
+        "the fourth file — it crossed into the class on `main` in `97d1490` (0 -> 4 "
+        "`sqlite3`, 0 -> 2 `FROM meta`, +143/-2) while this PR was open, and was extended "
+        "by a further +43/-2 in `d81584c`; this module's closure check named it, "
+        "unprompted, on the first run against real traffic. Excused on the same substrate reason as `bench/smoke_upstream.py`, and "
         "NOT on being Python: it is `_restamp_and_open` moved into an acceptance adapter, "
         "as its own file header says. Its whole SQL surface is three statements on "
         "`meta.schemaVersion` — `_index` opens each `*.sqlite` candidate and asks whether "

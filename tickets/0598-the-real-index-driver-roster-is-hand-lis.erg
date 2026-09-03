@@ -8,6 +8,8 @@ Author: Claude Opus 5
 
 2026-09-02T22:23Z Claude-Opus-5 note Recorded the verification/probes/ gap (16 files in the class, out of scope); search root is now a named constant with three tests on it
 2026-09-03T04:34Z Claude-Opus-5 note REROLL fix: merged origin/main in; bench/acceptance/adapters/zoteus.py arrived in d81584c and the guard named it unprompted, recorded as an unplanned live positive control; classified excused on smoke_upstream's substrate reason; the structural Python-vs-.mjs argument retracted as measurably false; each EXCUSED entry now pins its table set so an excuse cannot outlive its file
+2026-09-03T06:05Z Claude-Opus-5 note Correction to the 2026-09-03T04:34Z entry above: the commit that took bench/acceptance/adapters/zoteus.py across the class boundary is 97d1490 (0->4 sqlite3, 0->2 FROM meta, +143/-2), not d81584c, which added a further +43/-2 and took sqlite3 to 5; 184 lines is the 5d2514d..8a5ad06 range total. Neither is an ancestor of the branch base, so the arrived-from-another-lane finding stands unchanged. Also recorded: mutant D1 measured past the module boundary leaves 591 of 592 tests green, not 22 of 23 — the drift was invisible to the whole repository
+
 --- body ---
 ## Context
 
@@ -162,10 +164,23 @@ therefore reds three tests by name instead of silently changing what the module 
 Recorded here because it is stronger evidence than anything staged in this ticket, and
 because it happened by accident rather than by design.
 
-While this merge request was open, `d81584c` ("Arm R23's two directions…") landed on
-`main` and added 184 lines to `bench/acceptance/adapters/zoteus.py`, taking that file
-from 0 occurrences of `sqlite3` and 0 of `FROM meta` to 5 and 2. `d81584c` is not an
-ancestor of this branch's base `5d2514d`. So a genuine index-opening driver ARRIVED in
+While this merge request was open, `97d1490` ("Ticket 0579: goal 2's gates, asserted
+over the same seven verbs") landed on `main` and took
+`bench/acceptance/adapters/zoteus.py` across the class boundary: +143/-2 lines, and that
+file from 0 occurrences of `sqlite3` and 0 of `FROM meta` to 4 and 2. `d81584c` ("Arm
+R23's two directions…") then added a further +43/-2, taking `sqlite3` to 5 and leaving
+`FROM meta` unchanged; over the whole range `5d2514d..8a5ad06` the file gained 184 lines,
+0 -> 5 and 0 -> 2. Neither commit is an ancestor of this branch's base `5d2514d`.
+
+An earlier round of this ticket, of the guard module and of the merge request attributed
+the whole crossing to `d81584c` alone, with the range's numbers. That was wrong, and it
+propagated through every reader of the thread before one ran `git show --stat d81584c`.
+The finding is untouched by the correction — only the SHA and three numbers were — but
+the correction is recorded here rather than quietly applied, because a load-bearing claim
+nobody executed is the defect this repository keeps re-finding, and this one shipped
+inside the machinery written against it.
+
+So a genuine index-opening driver ARRIVED in
 the repository, from another lane, with nobody staging it for this guard — which is
 precisely the event the ticket was filed against, in precisely the manner the ticket
 predicted (silently, in a file the roster had never heard of).
