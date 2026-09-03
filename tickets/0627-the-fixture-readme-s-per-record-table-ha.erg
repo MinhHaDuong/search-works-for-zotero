@@ -1,0 +1,72 @@
+%erg 0.1
+Title: The fixture README's per-record table has no test cross-checking it against recipe.json
+Created: 2026-09-03
+Author: Minh Ha-Duong
+
+--- log ---
+2026-09-03T15:46Z Minh Ha-Duong created
+
+--- body ---
+## Context
+
+PR #298 (recovering an interrupted Codex session's ticket-0029 work) replayed
+a commit that rewrote `bench/fixtures/README.md`'s "What the recipe holds"
+paragraph and its per-record table back to stale, pre-HAL-unpin content: the
+four HAL rows' "bytes pinned" column read `sha256` with fabricated page
+counts (256, 7, 2) while the live `recipe.json` had `sha256: null` and
+`page_count: null` for all four. `test_live_recipe_tally_is_swept_into_its_documentation`
+(`tests/test_fixture_recipe.py`) is the test that exists specifically to
+catch this class of drift, and it passed anyway — because it only
+regex-matches the prose paragraph's aggregate counts, never the per-row
+table. A first "repair" commit on the PR (`a95f089`) fixed the prose and
+still missed the table for the same reason; the actual fix landed only after
+`/gaze` review caught it by hand-diffing the table against `recipe.json`.
+
+This is exactly the class `AGENTS.md` names as the project's "most expensive
+recurring defect" — duplicated numbers drifting apart — just one level down:
+not a duplicated *aggregate*, but a duplicated *per-row* fact (each record's
+hash-pinned status and page count), with the existing test covering only the
+aggregate.
+
+## Relevant files
+
+- `tests/test_fixture_recipe.py` — `test_live_recipe_tally_is_swept_into_its_documentation`
+  owns this cross-check today, aggregate-only.
+- `bench/fixtures/README.md` — the "## What the recipe holds" table, one row
+  per `recipe.json` entry, columns include `pages` and `bytes pinned`.
+- `bench/fixtures/recipe.json` — the source of truth each row should mirror
+  (`page_count`, `sha256`).
+
+## Actions
+
+1. Extend (or add alongside) the existing tally test: for every row in the
+   README table, parse its `id`, `pages`, and `bytes pinned` cell and assert
+   they match the corresponding `recipe.json` entry's `page_count` and
+   hash-pinned state (`sha256` present vs the table's open-state label).
+2. Decide how to represent `page_count: null` in the table (currently `—`)
+   and enforce that mapping too, so a fabricated page count is caught the
+   same way a wrong pin-status is.
+
+## Test
+
+Red step: revert `bench/fixtures/README.md`'s four HAL rows to the stale
+`sha256`/fabricated-page-count values from `fe8e5d3` (still in `git log`) and
+confirm the new test fails against them before writing the fix.
+
+## Verification
+
+- [ ] New/extended test fails against the reverted (stale) table
+- [ ] New/extended test passes against the current, correct table
+- [ ] `make check` green
+
+## Invariants
+
+- Must not touch `recipe.json` itself or the existing aggregate assertions.
+- Must not require restructuring the table's markdown format.
+
+## Exit criteria
+
+Every row of the fixture README's record table is asserted against
+`recipe.json`'s `sha256`/`page_count` for that row's `id`, so a future edit
+that reintroduces stale per-row content fails `make check` the same way a
+wrong aggregate count already does.
