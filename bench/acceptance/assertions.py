@@ -259,12 +259,20 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
         # then raises, so testing the return code alone would downgrade the exact
         # target this clause exists to catch — an attempt the tracer recorded is
         # a finding whatever else went wrong afterwards, and it stands.
-        return not_run(
+        undecided = not_run(
             cid, req, clause, falsified, target, "query",
             "a verb raised inside the driven run, so part of the default-configuration "
             "path never executed and the attempt counts are read off an incomplete "
             "sweep; this clause is not decided",
         )
+        # The measurement rides along with the reason. `run_fixtures` reads
+        # `detail["subject"]` for this check, and a not-run carrying only prose
+        # publishes `attempt_counts: null` — which makes a zero that was measured
+        # on an incomplete run indistinguishable from one nobody looked for.
+        undecided.detail = {**undecided.detail, "subject": subject.as_json(),
+                            "control": control, "verbs_driven": driven,
+                            "verbs_not_offered": skipped}
+        return undecided
     return Check(
         check=cid, requirement=req, clause=clause, falsified_by=falsified,
         result=PASS if clean and subject.returncode == 0 else FAIL,
@@ -657,13 +665,27 @@ def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
     Returns `(control, None)` when work was created, and `(None, check)` carrying
     the `not-run` when it was not.
     """
-    graded = set(target.declaration.derived_state_roots)
-    if graded & set(control.declaration.derived_state_roots):
+    def paths(who: Target) -> set:
+        # Both halves, because the change and the work land in different places.
+        # The declared derived-state roots are where the work is recorded; what
+        # the adapter argued is NOT derived state is where the change is made —
+        # a target's source library is declared there, and two instances given
+        # the same adapter options resolve the same one. A guard reading only the
+        # first would pass a control that edits the very library the graded
+        # target is about to edit, consuming the change and turning the clause
+        # into the false pass it exists to prevent.
+        declared = who.declaration
+        return set(declared.derived_state_roots) | {p for p, _why in declared.not_derived_state}
+
+    shared = paths(target) & paths(control)
+    if shared or not (paths(target) and paths(control)):
         return None, not_run(
             cid, req, clause, falsified, target, "status",
-            "the positive control resolves a derived-state root the graded target also "
-            "resolves, so the work it does would land in the counters this clause reads; "
-            "the two must be independent and this run is not decided",
+            "the positive control and the graded target do not demonstrably resolve "
+            "separate state: they share a declared path, or one of them declares none "
+            "at all and independence cannot be established from the declarations. The "
+            "control's own work would land in the counters this clause reads, or its "
+            "change would consume the graded target's, so this run is not decided.",
         )
     with control.running():
         if durability.work_counters(control) is None:

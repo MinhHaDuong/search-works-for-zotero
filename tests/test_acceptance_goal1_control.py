@@ -46,6 +46,7 @@ artifact.
 """
 
 import json
+import os
 import sys
 from contextlib import contextmanager
 from pathlib import Path
@@ -426,13 +427,20 @@ def test_a_control_sharing_a_root_is_refused_rather_than_measured(assertion, tmp
     about two processes on one. Here they must not: a control sharing a root does
     its work into the very counters this clause reads, so the finding "no work
     happened while stopped" would be read off a ledger the control was writing.
+
+    The guard reads what an adapter argued is NOT derived state as well, because
+    that is where a target's source library is declared and where the change is
+    actually made — two instances sharing one library would have the control
+    consume the graded target's change, which is the same false pass by the other
+    route. A declaration naming no path at all cannot demonstrate independence
+    either way, and is refused rather than assumed.
     """
     where = tmp_path / assertion.__name__
     where.mkdir(parents=True, exist_ok=True)
     check = assertion(stubs.build("stub-quiet", where),
                       control=stubs.build("stub-quiet", where))
     assert check.result == NOT_RUN
-    assert "also resolves" in check.detail["why"]
+    assert "share a declared path" in check.detail["why"]
 
 
 def test_an_assertion_that_raises_is_recorded_rather_than_ending_the_run(tmp_path):
@@ -459,3 +467,64 @@ def test_an_assertion_that_raises_is_recorded_rather_than_ending_the_run(tmp_pat
               if c.result == NOT_RUN and "the assertion raised" in str(c.detail)]
     assert raised, "an assertion that raised must reach the artifact as not-run"
     assert result.summary()[FAIL] == 0, "an instrument failure is never a red"
+
+
+def test_a_control_sharing_only_the_library_is_refused(tmp_path):
+    """The other half of independence, and the one the stubs cannot reach.
+
+    A real adapter's two instances take the same options, so they resolve the
+    same source library — declared under `not_derived_state`, not under the
+    derived-state roots. A guard reading only the roots would let the control
+    make its change in the very library the graded target is about to change,
+    consuming it and turning the clause into the false pass the control exists to
+    prevent. The stubs edit an arena-local ledger, so nothing in the fixture
+    matrix can catch this; it needs a declaration written for it.
+    """
+    library = tmp_path / "a-library"
+
+    def instance(at: str):
+        target = a_stub("stub-quiet", tmp_path, at=at)
+        target.declaration = Declaration(
+            name="shares-a-library", revision="fixture",
+            derived_state_roots=(tmp_path / at / "data",),
+            query_transport="in process", default_configuration="the only one",
+            process="none",
+            not_derived_state=((library, "the user's own library, not derived state"),),
+        )
+        return target
+
+    check = assertions.check_pause_stops_background_work(
+        instance("graded"), control=instance("control"))
+    assert check.result == NOT_RUN
+    assert "share a declared path" in check.detail["why"]
+
+
+def test_a_lifecycle_that_never_starts_is_incomplete_rather_than_egress(tmp_path):
+    """A target whose process never started has not attempted anything.
+
+    `running()` raises before the verb loop is reached, so an uncaught one exits
+    the drive subprocess on a code `check_no_egress` grades as a red — reporting
+    a target that never ran as one that reached off this machine. It is the same
+    incomplete run as a verb raising and exits the same way.
+    """
+    import subprocess
+
+    done = subprocess.run(
+        [sys.executable, str(REPO / "bench" / "acceptance" / "run.py"),
+         "--adapter", "stub-quiet", "--arena", str(tmp_path / "arena"), "--drive"],
+        capture_output=True, text=True, timeout=120, cwd=REPO,
+        env={**os.environ, "PYTHONPATH": str(REPO / "bench")},
+    )
+    assert done.returncode == 0, f"the control arm must be a clean drive: {done.stderr}"
+
+    run_module = _run_module()
+    target = a_stub("stub-quiet", tmp_path, at="no-lifecycle")
+
+    @contextmanager
+    def never_starts():
+        raise RuntimeError("this target's process did not start")
+        yield  # pragma: no cover
+
+    target.running = never_starts
+    with pytest.raises(RuntimeError):
+        run_module.drive(target)

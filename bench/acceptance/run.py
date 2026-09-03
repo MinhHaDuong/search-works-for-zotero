@@ -225,13 +225,11 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
     record("R15-uninstall-removes-declared-state", "R15",
            lambda w=where: check_uninstall_removes_declared_state(make_target(w), arena=w))
 
-    # Goal 1's remaining rung members. Each takes one target in an arena of its
-    # own like the rest; the pause clauses need no second target and no tracer,
-    # which is the sense in which this rung is the cheapest to assert.
-    # The pause clauses take a SECOND target, and unlike R13's pair it must NOT
-    # share a root: it is the never-stopped instance the positive control makes
-    # its change on, so a shared root would put its work in the counters the
-    # clause reads. Hence an arena of its own.
+    # Goal 1's remaining rung members. They need no tracer, which is part of why
+    # this rung is the cheapest to assert — but they do take a SECOND target, and
+    # unlike R13's pair it must NOT share a root: it is the never-stopped
+    # instance the positive control makes its change on, so a shared root would
+    # put its work in the counters the clause reads. Hence an arena of its own.
     where = arena_for("R22-pause-stops-background-work")
     control = arena_for("R22-pause-stops-background-work-control")
     record("R22-pause-stops-background-work", "R22",
@@ -393,7 +391,18 @@ def main() -> int:
         return adapters.load(a.adapter, where, **options)
 
     if a.drive:
-        done = drive(make_target(arena))
+        # The lifecycle is inside the guard, not outside it. A target whose
+        # process never starts raises out of `running()` before the verb loop is
+        # reached, and an uncaught one exits 1 — which the egress clause grades
+        # as a red, reporting a target that never ran as one that attempted
+        # egress. That is the instrument-failure-as-red case this exit code
+        # exists to close, and it is the same case as a verb raising.
+        try:
+            done = drive(make_target(arena))
+        except Exception as why:
+            print(json.dumps({"drive": f"raised: {type(why).__name__}: {why}"},
+                             ensure_ascii=False))
+            return DRIVE_INCOMPLETE
         print(json.dumps(done, ensure_ascii=False, default=str))
         # A verb that raised leaves a hole in what the tracer watched, and the
         # egress verdict is read from `returncode == 0` plus zero attempts: a run
