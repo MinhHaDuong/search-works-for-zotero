@@ -5411,10 +5411,39 @@ Two consequences, both using machinery that already exists. R1's own ladder row
 already carries *superseded work draining to the latest chain unattended*: a
 body extracted under a superseded **extraction contract** — the extractor
 identity and the caps in force, C1 link 1 — is superseded work, and drains
-newest-first like any other. That contract is also the bound that keeps the
-widening finite: R1 re-earns a body when the contract changes, not because
-better text is obtainable somewhere, or the requirement becomes a treadmill
-driven by our own extractor version rather than by library change.
+newest-first like any other.
+
+**Second amendment, same day: the bound proposed here is withdrawn on the
+author's push-back.** R1 *does* imply the treadmill, and offering link 1 a
+bound was giving the extractor an exemption link 3 has never had — swap the
+embedder entry and the whole library re-embeds unattended, which is the
+accepted behaviour the registry work (tickets 0488, 0495) exists to gate.
+Supersession is total.
+
+What survives is a distinction between **triggers**, not a limit on what R1
+owes. A bump *we* declare is deliberate, dated, one event, costed before it is
+pressed. A bump that happens *to* us is not: SYNC.md's Zotero extraction row
+records that a `SDT_PROCESSOR_VERSIONS` bump silently re-extracts existing
+packs, so under total supersession an unannounced upstream bump drains
+extraction, chunking and embedding across the library on the user's machine,
+unasked. The drift watch is therefore load-bearing, not informational — it is
+what turns someone else's bump into a dated event.
+
+R1 says *unattended*, not *immediate*, which is where the treadmill is made
+survivable: draining is newest-first and paced by the tick and the
+latency-paced worker (§5.2.4), and the older chain keeps serving while it
+drains (R4, D3's serve-stale). The obligation this creates is **reporting**:
+R17 must say where the treadmill is — N items on the latest chain, M draining,
+which chain still serves — or a full drain is indistinguishable from a broken
+index.
+
+And it raises the price of owning link 1: every improvement to *our* extractor
+re-drains the library through all three links, at a measured 8 h 14 for the
+full build (`STATE.md`). So our extractor needs the discipline the embedder
+registry already has — a declared, dated, gated identity whose improvements are
+batched into rare bumps — and the quality gate below moves from prudence to
+cost control, since an unmeasured v1 means a v2 soon after, at two full
+drains.
 
 And since neither Zotero's database nor its filesystem is ours to write —
 lifting a cap writes `prefs.js`, and the re-extraction it enables rewrites
