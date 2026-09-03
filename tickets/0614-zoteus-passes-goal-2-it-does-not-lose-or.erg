@@ -1,0 +1,107 @@
+%erg 0.1
+Title: Zoteus passes goal 2 — it does not lose or corrupt what it built
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T11:23Z claude created
+
+--- body ---
+## Context
+
+Goal 2 of the ladder (`README.md`): *the cost of staying current is what
+changed, two server processes on one data directory do not corrupt or duplicate,
+and an index under another schema version ends up served.* Three terms: **R3,
+R13, R23**. Second rung because these need a built index but not a good one.
+
+This tracker holds one question: **is goal 2 kept for zoteus?** Today no clause
+of it has been decided at all.
+
+## Where the rung stands for zoteus
+
+From `bench/results/0604-ladder-matrix/MATRIX.md`, 2026-09-03, revision 1.12.0 —
+every cell `not-run`, and the reasons differ:
+
+| clause | why not decided |
+|---|---|
+| `R3-edit-recomputes-only-what-changed` | no `work.<stage>.<trigger>.<outcome>` counters to read |
+| `R3-identical-resync-recomputes-nothing` | idem |
+| `R13-two-processes-both-answer` | no process reported a hit list |
+| `R13-two-processes-do-not-duplicate-work` | no counters |
+| `R23-foreign-stamp-ends-up-serving` | the target answers without reporting what it matched |
+
+Four of five turn on one absence, which is why the counters are the largest
+single unblock on the whole board and not only this rung's.
+
+## The gap this tracker owns that 0033 does not
+
+**A non-destructive resume, required by R3 and R4 — not by R22.** zoteus's only
+action that continues an interrupted build is also the full rebuild, and on a
+damaged index it deletes the unreadable file first. Continuing therefore
+re-embeds every byte that did not change, which is the sentence R3 exists to
+forbid: *"The cost of staying current MUST be proportional to what changed,
+never to the size of the library … MUST re-embed nothing whose bytes are
+unchanged."* Deleting the index before rebuilding also strains R4's *"the index
+MUST answer queries at every moment of its life"*.
+
+Recorded because it was nearly mis-filed: the ratified seven-verb interface
+names `resume`, and the adapter declares it absent, which invites reading the
+gap as an interface gap on goal 1's rung. **An interface verb is not a promise.**
+The promise is R3's, and R3 sits here.
+
+**And it is the hard one of the three, for a reason worth stating.** The other
+two gaps found by the 2026-09-03 reread are contained: an uninstall surface
+removes a declared set of paths, and R22's restart clause needs a measurement
+before it needs any code at all. A resume that neither rebuilds nor deletes is
+not contained — it requires the system to know, per item and per stage, what was
+finished, what was in flight when the stop arrived, and what is downstream of a
+key that has since changed. That is the same substrate the counters need: a
+ledger whose unit of invalidation is (item × stage), which is R3's own body
+("the unit of invalidation is (item × stage)") and is what ticket 0033 builds.
+
+So gap 3 and the counters are **one piece of work seen from two sides** — resume
+asks the ledger *what is left to do*, the counters ask it *what has been done* —
+and neither is a small contained contribution of the kind `SYNC.md` records
+going upstream as a pull request. That argues for the issue form the maintainer
+builds himself, and it argues against scheduling gap 3 as though it were a
+sibling of the uninstall surface.
+
+## Depends on
+
+- **ticket 0033** — the ledger, freshness and counters. Four of this rung's five
+  cells cannot be read until it lands. This tracker does not restate its scope.
+- **ticket 0613** — goal 1. Not a blocker in the erg sense: the rungs are ordered
+  by build order, not by dependency, and README records that the durability rung
+  precedes goal 1 in one direction while goal 1 is numbered first.
+
+## Exit criteria
+- [ ] all five goal-2 clauses green for zoteus, each resting on a run
+- [ ] the resume gap has a decided upstream form and is filed, or is recorded as
+      deliberately not filed with the reason
+
+## Why one tracker per rung, per target
+
+The ladder's rungs are conjunctions: a rung is kept when every one of its members
+holds, and at no state before that. Nothing in the repository asserted that
+conjunction *for a named target* — `README.md` reports each requirement's
+standing across the project, and `bench/results/0604-ladder-matrix/MATRIX.md`
+reports each clause against each target, but neither answers "is this rung kept
+for zoteus". These three trackers answer exactly that, one each, and they close
+only when their rung's every clause is green for zoteus.
+
+zoteus is the named target because *works for me* is the acceptance standard and
+this is the tool the author runs. A green here is a green for zoteus and for
+nothing else; the other four roster targets are measured by the same layer and
+are not this tracker's business.
+
+## Children
+
+Children are filed when their work starts, not up front. The gaps below are
+enumerated with the requirement sentence each rests on, which is what a child
+ticket would carry anyway; filing four stubs today would inflate the queue
+without advancing anything (severity floor, `rules/workflow.md`). This tracker is
+edited to list each child as it is created.
+
+| child | scope | state |
+|---|---|---|
+| — | none filed yet | see the gaps above |
