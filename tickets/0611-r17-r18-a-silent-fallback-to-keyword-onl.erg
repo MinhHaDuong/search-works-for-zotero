@@ -1,0 +1,94 @@
+%erg 0.1
+Title: R17/R18: a silent fallback to keyword-only is an answer lying about what produced it
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T10:54Z claude created
+
+--- body ---
+## Context
+
+R31 was retired on 2026-09-03 (`DECISIONS.md`). Its ruling states that the harm
+it was reaching for is real, names a live instance, assigns the residue to R17,
+R18 and R34 — and files nothing. The review of PR #266 called that out, and it
+is right: the inheritance is asserted rather than made real, and the retirement
+removed the one visible, numbered, ladder-tracked placeholder that had been
+keeping this concrete defect from disappearing quietly.
+
+The instance, in the adapter's own words
+(`bench/acceptance/adapters/zoteus.py`): without being pointed at a model
+runtime the target **falls back to keyword-only, silently**, and "answered
+semantically" and "fell back to keyword-only" are *the same file and different
+facts*. A user whose semantic lane is down gets results that look like results.
+That is R18's failure mode one level up — R18 makes an *empty* answer say which
+emptiness it is; nothing yet makes a *degraded* answer say it is degraded — and
+R17's "name the execution device actually serving" is the surface where it
+should be visible, since a user who cannot see that cannot explain the answers
+they get.
+
+Note what this ticket is NOT. It is not R31 under a new number: R31 asked *when*
+a configuration is validated, which three assertion attempts each failed to
+distinguish from R10. This asks whether an answer discloses what produced it,
+which is a property of the reply, observable at the boundary, and belongs to
+promises that already exist.
+
+## Relevant files
+
+- `SPEC.md` R17 and R18 — the two promises this defect falls between; R17's
+  device clause and R18's three disjoint sentences.
+- `SPEC.md` §5.2.6 — where the disclosure sentences and the typed degradation
+  labels (`CROSS_LINGUAL_DEGRADED`, `CJK_KEYWORD_DEGRADED`) live. A fourth
+  condition may belong beside them rather than in new prose.
+- `bench/acceptance/adapters/zoteus.py` — the declaration that records the
+  fallback, and the `status()` that reads whoami plus index status precisely
+  because "a configuration that says local and a process that fell back to
+  keyword-only are the same file and different facts".
+- `bench/acceptance/assertions.py` — where an assertion would go.
+- `DECISIONS.md`, 2026-09-03, R31's retirement — the ruling that owes this
+  ticket its existence.
+
+## Actions
+
+1. Decide the address before writing anything: is this a clause of R18
+   (an answer discloses which kind it is), of R17 (status names what is
+   actually serving), or a typed disclosure beside §5.2.6's two existing ones?
+   The ledger already carries an open question of exactly this shape for
+   budget-exhausted answers, raised 2026-09-03 against ticket 0590 — the two
+   should be ruled together or explicitly kept apart, because both ask whether
+   a *degraded* answer needs a sentence R18 does not currently reach.
+2. Assert it over the seven verbs. The harness controls whether the model
+   runtime path is supplied, so the degraded state is reachable on demand —
+   which is what makes this decidable where R31 was not.
+3. Red first: a fail-control whose query answers from the keyword lane while
+   reporting nothing about it must go red, or the assertion has not shown it
+   can detect the defect.
+
+## Test
+
+Drive `configure` and `query` through the adapter with no model runtime
+supplied, then read the reply and `status`. The assertion is red when an answer
+comes back with no indication that the semantic lane did not serve it. Run it
+first against the supplied-runtime arm as the discriminating control: if it
+reddens there too, it is grading something else.
+
+## Verification
+
+- [ ] the assertion reddens with no runtime supplied and passes with one, on
+      the same target and the same query
+- [ ] the state it reports is distinguishable from `not-offered` and `not-run`
+- [ ] the clause it names exists in `SPEC.md` under R17, R18 or §5.2.6, and the
+      ruling that put it there is in `DECISIONS.md`
+
+## Invariants
+
+- No new requirement number. R31 is retired and never reused, and this defect
+  is a clause of promises that already exist — minting a number for it would
+  re-run the mistake this ticket is the consequence of.
+- The adapter declares and does nothing else: the fallback is observed through
+  the target's own surfaces, never inferred from a path this repository knows.
+
+## Exit criteria
+- [ ] the address is ruled and the clause is written where the ruling puts it
+- [ ] an assertion exists, seen red against a fail-control before green
+- [ ] `make check` green; `./tickets/erg check tickets/` green
