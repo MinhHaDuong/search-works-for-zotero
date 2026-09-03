@@ -4941,6 +4941,112 @@ Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
 
+**2026-09-02 — R19's fold gate is red against current upstream, and SPEC.md
+§5.2.8 says it cannot be. Not ratified: which of the sentence and the gate is
+wrong is the author's to rule.** §5.2.8 records that the waiver keyed to
+upstream pull request #19 retired with its merge, so "against current upstream
+the gate runs green by right". Ticket 0578 ran the gate against stock at the
+reviewed SHA and it came back red on 25 misses, 24 of them at codepoint level
+and one at word level (`bench/results/0578-fold-sweep/codepoints.json`).
+Sixteen are the Roman numerals U+2160–U+216F, category Nl, which a
+per-character uppercase pass does not reach. The other nine — eight codepoints
+U+0958–U+095F and the word `क़` — are precomposed Devanagari nukta forms, whose
+base-plus-nukta spelling agrees, so that finding is about the precomposed
+spelling and not about the script.
+
+The sentence was left standing deliberately when that measurement merged, and
+README.md's standing row for R19 was not: it claimed the property held and the
+sweep passed, and it has been corrected to what ran. So the two documents now
+disagree, on purpose, until this is ruled.
+
+What makes it a ruling rather than a correction is that the falsifying evidence
+does not say which end is wrong — and it leaves that open for only sixteen of
+the 25. The nine Devanagari misses are accounted for. The earlier artifact
+(`bench/results/0009-fold-sweep/codepoints.json`) swept 1 301 codepoints over
+eight blocks, none of them Devanagari, where the run behind the red swept
+30 309 over nineteen. That class was structurally invisible to the old sweep,
+so its appearance is the widened net rather than a regression.
+
+The sixteen Roman numerals are the part nothing accounts for, and more sharply
+than a raw count suggests. Both runs cover the block Number Forms, 64
+codepoints swept in each; both report the same six tail codepoints
+U+218A–U+218F as `narrows`; and the sixteen numerals do not appear in the old
+divergence list at all, having agreed. Today FTS5 indexes `Ⅰ` as `ⅰ` while the
+query side produces `Ⅰ`. The widened net is ruled out for them, and what is
+left is a real change between the two runs that this evidence does not
+identify: upstream's `normalizeForSearch` moving, or the fork tree differing
+between the runs, both stay open. The sweep's own reclassification does not
+explain them, since the old classifier called a divergence `narrows` only where
+the query side produced no tokens, and would have called `['Ⅰ']` against
+`['ⅰ']` a miss exactly as the new one does. Settling the sixteen needs the
+upstream diff between the two run dates, which nobody has read.
+
+**The old artifact's clean sheet has a mechanical explanation, and it is not
+the exit code.** Its miss list is empty because that same old classifier put
+all fifteen of its divergences in `narrows` — nine in Greek and Coptic, six in
+Number Forms, none in the branch a gate would read. The script did also write
+the artifact before it computed its warning, and returned zero whatever the
+count, so no gate reading its exit status could have failed on it either. That
+is a true observation about the gate and a separate one; neither of the two
+says the old sweep was sound.
+
+Three ways it could go, and no default is proposed. Strike "green by right" and
+let §5.2.8 carry the gate as red-against-stock, which is honest and leaves R19
+with no green anywhere. Keep the sentence and scope it to the Latin tier it was
+written about, which is what the retired waiver actually concerned, and give the
+Nl and precomposed-nukta classes their own named exception. Or treat the misses
+as a defect to be filed upstream, in which case the sentence is a forward
+statement rather than a false one and the gate stays red until it lands. The
+first two are ours to write; the third is bounded by GOVERNANCE.md's volume
+budget and is a filing decision, not a wording one.
+
+**2026-09-02 — the default path makes an external call SPEC.md says it does
+not. Not ratified: whether the clause moves or the code does is the author's.**
+`SPEC.md` §5.2.7 states "the sole permitted external call on the default path is
+the one-time model-weight download"; §3's R10 body states "the default build and
+query path make zero external calls"; §6 states "the default path sends
+nothing". At the reviewed SHA (`UPSTREAM`, v1.12.0) the server contacts
+`https://api.github.com/repos/oscardvs/zoteus/releases/latest` at startup, from
+`src/lib/update-check.ts`, gated on `ZOTEUS_UPDATE_CHECK`, which
+`src/config.ts` defaults to **true**. The call is cached for a day, times out in
+five seconds, swallows every failure, and carries no library text, no query and
+no identifier — a bare unauthenticated GET with a `User-Agent` naming the
+version.
+
+It was measured, not read: the acceptance layer's first run against a real
+target returned `R10-no-egress` **fail** on the disclosed GPU host, the trace
+carrying a name lookup for `api.github.com` inside a namespace with no route out
+(pull request #216). The two-detector design is what caught it — inside a
+no-route namespace a target reaching for a hostname dies at resolution and never
+attempts an off-machine connect, so a connect-only detector would have called it
+green.
+
+Nothing in this repository recorded it before this entry. The finding lived in a
+pull-request body; the tree carried no artifact, no ticket and no line, while
+`README.md` carried `shipped` / `measured` for R10 and `SPEC.md` carried the
+three sentences above.
+
+The reading matters for the remedy, and the two are not the same size. R10's own
+promise — my library text and my queries do not leave this machine — is
+**untouched**: a release-tag lookup carries neither, which is why README.md's
+verdict for R10 is unchanged and the finding is recorded in its standing prose
+instead. What is falsified is the stricter *count* the specification chose to
+state, and that count is load-bearing precisely because it is countable: "zero
+external calls" is falsifiable by one, where "no user data leaves" is not.
+
+Four ways it could go, none proposed as a default. Amend the clause to name the
+release check as a second permitted call, disclosed in status the way the model
+download is, which keeps the count honest and costs a sentence. Amend it to a
+data clause — no library text, query text or Zotero identifier leaves — which is
+what R10 actually promises, and accept that the specification then no longer
+gives a checkable call count. File the default upstream as an R10 defect and ask
+that the check be opt-in, which is a filing decision under GOVERNANCE.md's
+budget rather than a wording one. Or declare the harness's assertion too strict
+and scope `R10-no-egress` to data-bearing calls, which trades a false red today
+for a class of true reds it would stop seeing tomorrow. The last is the one to
+be most careful with: the assertion's value is that it counts attempts rather
+than judging payloads.
+
 **2026-09-02 — may a lane merge its own pull request? Not ratified: the
 governance half of the merge-authority rule is the author's.** `AGENTS.md` now
 carries what is not in dispute: no merge before a review verdict is recorded on
