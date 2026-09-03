@@ -87,6 +87,16 @@ NOT_RUN = "not-run"
 STATES: tuple[str, ...] = (PASS, FAIL, NOT_OFFERED, NOT_RUN)
 
 
+#: What the driver's inner `--drive` mode exits with when it ran but a verb
+#: raised inside it. Distinct from 0, which says the run is a basis for the
+#: egress clause, and from the exit of a process that died, which says nothing
+#: about how far it got. The egress assertion reads it as `not-run` and never as
+#: a red: a hole in what the tracer watched is the harness failing to look, not
+#: the target failing the clause. It lives here rather than in the driver because
+#: the driver imports the assertions and the assertions must not import back.
+DRIVE_INCOMPLETE = 3
+
+
 class UnsupportedVerb(Exception):
     """Raised by an adapter asked for a verb its declaration lists as absent.
 

@@ -332,3 +332,115 @@ def test_a_target_that_cannot_be_perturbed_is_not_run_rather_than_green(assertio
 
     check = assertion(_NoPerturbation(tmp_path))
     assert check.result == NOT_RUN
+
+
+# --------------------------------------------------------------------------
+# What the third review round found: three ways to a verdict about nothing.
+# --------------------------------------------------------------------------
+
+
+def test_startup_work_after_a_restart_is_not_graded_as_the_pause_failing(tmp_path):
+    """The window opens after the restart settles, not before it.
+
+    A target that scans or reconciles on start does work between the pause and
+    the change, and reading the baseline across the restart puts that work inside
+    the graded window — a red on a target whose pause held perfectly. The clause
+    is about a change made AFTER the restart.
+    """
+    target = a_stub("stub-quiet", tmp_path)
+    started = {"n": 0}
+    original = target._on_start
+
+    def works_on_start():
+        original()
+        started["n"] += 1
+        # Written past `_bump`, which a stopped fixture no-ops: this is a target
+        # doing startup work despite the pause, which is not this clause's
+        # falsifier and must not be read as one.
+        counters = target._counters()
+        counters["work.record.startup.done"] = (
+            counters.get("work.record.startup.done", 0) + 1)
+        target._write(target._ledger(), json.dumps(counters))
+
+    target._on_start = works_on_start
+    check = assertions.check_pause_holds_across_restart(target)
+    assert started["n"] >= 2, "the clause must actually have restarted the target"
+    assert check.result == PASS
+    assert check.detail["done_deltas_while_stopped"] == {}
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_the_positive_control_runs_after_the_graded_window(assertion, tmp_path):
+    """A control placed first turns "the harness consumed the change" into a pass.
+
+    On a target where making the same change twice is a no-op the second time,
+    a control that runs first leaves the graded phase with no work to find for
+    reasons that have nothing to do with the pause. Run last, the same target
+    reports `not-run`. This fixture makes the change exactly once, ever.
+    """
+    target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
+    original = target._edit_one_item
+    spent = {"done": False}
+
+    def only_once():
+        if spent["done"]:
+            return {"perturbation": assertions.durability.EDIT_ONE_ITEM, "sections": 0}
+        spent["done"] = True
+        return original()
+
+    target._edit_one_item = only_once
+    check = assertion(target)
+    assert check.result == NOT_RUN
+    assert "created no work" in check.detail["why"]
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_a_target_that_cannot_be_let_go_leaves_the_clause_undecided(assertion, tmp_path):
+    """No resume, no positive control, and therefore no verdict."""
+
+    class _NoResume(_Counterless):
+        def __init__(self, arena):
+            super().__init__(arena)
+            self.declaration = Declaration(
+                name="no-resume", revision="fixture", derived_state_roots=(arena,),
+                query_transport="in process", default_configuration="the only one",
+                process="none",
+                unsupported={"resume": "declared absent for this fixture's purpose"},
+            )
+
+        def status(self):
+            return {"embedding": {"locality": "local", "active": True},
+                    "work": {"work.record.new.done": 1}}
+
+        def perturb(self, what):
+            return {"perturbation": what, "sections": 1}
+
+    check = assertion(_NoResume(tmp_path / assertion.__name__))
+    assert check.result == NOT_RUN
+    assert "let it work again" in check.detail["why"]
+
+
+def test_an_assertion_that_raises_is_recorded_rather_than_ending_the_run(tmp_path):
+    """Every assertion after it would otherwise go unrecorded, and no artifact written.
+
+    Guarding call sites inside each assertion does not converge — a review found
+    the guards covering `query` while `install`, `configure` and `status` beside
+    it stayed open, and `settle` reads `status` at five more points. The
+    invariant belongs where every assertion passes through.
+    """
+    run_module = _run_module()
+
+    def make(at: Path):
+        at.mkdir(parents=True, exist_ok=True)
+        target = stubs.build("stub-quiet", at)
+        target.status = _raises
+        return target
+
+    result = run_module.assess(
+        make, base_arena=tmp_path / "arena", log_dir=tmp_path / "trace",
+        drive_argv_for=lambda at: ["true"])
+    assert result.checks, "the run must have recorded every assertion"
+    raised = [c for c in result.checks
+              if c.result == NOT_RUN and "the assertion raised" in str(c.detail)]
+    assert raised, "an assertion that raised must reach the artifact as not-run"
+    assert result.summary()[FAIL] == 0, "an instrument failure is never a red"

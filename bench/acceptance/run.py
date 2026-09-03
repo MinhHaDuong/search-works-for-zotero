@@ -58,7 +58,8 @@ from acceptance.durability import (  # noqa: E402
     check_two_processes_both_answer,
     check_two_processes_do_not_duplicate_work,
 )
-from acceptance.interface import FAIL, NOT_OFFERED, NOT_RUN, PASS, Run  # noqa: E402
+from acceptance.interface import DRIVE_INCOMPLETE  # noqa: E402
+from acceptance.interface import FAIL, NOT_OFFERED, NOT_RUN, PASS, Check, Run  # noqa: E402
 from acceptance.interface import UnsupportedVerb  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
@@ -81,12 +82,15 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
     failure: one broken verb then scores the target red on a clause about egress,
     which is a verdict about nothing.
 
-    But swallowing *every* verb is worse than the crash it replaced. The egress
-    verdict is `returncode == 0` plus zero traced attempts, so a target whose
-    four verbs all raise would have exercised nothing at all and come back
-    **green** on a clause about what it touched — a green that means "could not
-    look", which is the exact failure this layer exists to make impossible. So
-    that case re-raises, and the caller's non-zero reading stands.
+    But swallowing is not the same as forgetting, and the egress verdict is
+    `returncode == 0` plus zero traced attempts. A run in which any verb raised
+    covered less of the default path than the clause is about, so zero attempts
+    then means "this path never executed" rather than "this path stayed home" —
+    the same number, opposite readings. `--drive` therefore exits
+    `DRIVE_INCOMPLETE` whenever this dictionary carries a `raised:`, and
+    `check_no_egress` turns that into `not-run`. A target whose four verbs all
+    raise is the extreme of the same case, and re-raising it keeps the caller's
+    reading of a process that died intact.
     """
     done: dict[str, object] = {}
     raised: list[BaseException] = []
@@ -144,6 +148,43 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
     """
     run = Run(target=make_target(base_arena).declaration, date=time.strftime("%Y-%m-%d"))
 
+    def record(check_id: str, requirement: str, produce):
+        """Append one assertion's verdict, or the `not-run` saying it never reached one.
+
+        Nothing here wraps a check for tidiness. An assertion reaches a target
+        through verbs, a verb on a real target reaches a process over a transport,
+        and a transport can die at any of them — and this driver held no guard at
+        all, so one raising verb ended the whole run with a traceback: every
+        assertion after it unrecorded, and the artifact a gate reads never
+        written. That was reproduced by a fixture, not imagined.
+
+        Guarding each call site inside each assertion was the first attempt and it
+        does not converge: a review found the guards covering `query` while
+        `install`, `configure` and `status` beside it stayed open, and `settle`
+        reads `status` at five more points. The invariant belongs where every
+        assertion passes through, once, and it is the layer's own rule — a check
+        that could not look reports that it could not look.
+
+        It hides nothing: the exception's type and message reach the artifact, and
+        `not-run` is counted apart from green rather than absorbed into it.
+        """
+        try:
+            run.checks.append(produce())
+        except Exception as why:
+            log.info("%-38s raised: %s: %s", check_id, type(why).__name__, why)
+            run.checks.append(Check(
+                check=check_id, requirement=requirement,
+                clause="not reached: the assertion raised before it decided this clause",
+                falsified_by="nothing; this check did not run against this target",
+                result=NOT_RUN, target=run.target.name, verb=None,
+                detail={"why": (
+                    f"the assertion raised ({type(why).__name__}: {why}) before it "
+                    "reached a verdict, so this clause is not decided. Recorded rather "
+                    "than allowed to end the run: every assertion after it would "
+                    "otherwise go unrecorded and no artifact would be written."
+                )},
+            ))
+
     def arena_for(check_id: str) -> Path:
         """A directory this run alone has written to.
 
@@ -159,31 +200,35 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
         return arena
 
     where = arena_for("R10-local-by-default")
-    run.checks.append(check_local_by_default(make_target(where)))
+    record("R10-local-by-default", "R10",
+           lambda w=where: check_local_by_default(make_target(w)))
 
     where = arena_for("R10-no-egress")
-    run.checks.append(check_no_egress(
-        make_target(where), arena=where, log_dir=log_dir,
-        drive_argv=drive_argv_for(where),
-    ))
+    record("R10-no-egress", "R10", lambda w=where: check_no_egress(
+        make_target(w), arena=w, log_dir=log_dir, drive_argv=drive_argv_for(w)))
 
     where = arena_for("R15-residue-inventory")
-    run.checks.append(check_residue_inventory(make_target(where), arena=where))
+    record("R15-residue-inventory", "R15",
+           lambda w=where: check_residue_inventory(make_target(w), arena=w))
 
     where = arena_for("R15-model-cache-under-declared-roots")
-    run.checks.append(check_model_cache_under_declared_roots(make_target(where), arena=where))
+    record("R15-model-cache-under-declared-roots", "R15",
+           lambda w=where: check_model_cache_under_declared_roots(make_target(w), arena=w))
 
     where = arena_for("R15-uninstall-removes-declared-state")
-    run.checks.append(check_uninstall_removes_declared_state(make_target(where), arena=where))
+    record("R15-uninstall-removes-declared-state", "R15",
+           lambda w=where: check_uninstall_removes_declared_state(make_target(w), arena=w))
 
     # Goal 1's remaining rung members. Each takes one target in an arena of its
     # own like the rest; the pause clauses need no second target and no tracer,
     # which is the sense in which this rung is the cheapest to assert.
     where = arena_for("R22-pause-stops-background-work")
-    run.checks.append(check_pause_stops_background_work(make_target(where)))
+    record("R22-pause-stops-background-work", "R22",
+           lambda w=where: check_pause_stops_background_work(make_target(w)))
 
     where = arena_for("R22-pause-holds-across-restart")
-    run.checks.append(check_pause_holds_across_restart(make_target(where)))
+    record("R22-pause-holds-across-restart", "R22",
+           lambda w=where: check_pause_holds_across_restart(make_target(w)))
 
     # Goal 2. The two R13 clauses take a SECOND target built over the same arena:
     # two adapter instances resolving one declared derived-state root is what
@@ -191,21 +236,26 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
     # knowing any path. Everything else here is one target in an arena of its own,
     # for the reason the docstring above gives.
     where = arena_for("R3-edit-recomputes-only-what-changed")
-    run.checks.append(check_edit_recomputes_only_what_changed(make_target(where)))
+    record("R3-edit-recomputes-only-what-changed", "R3",
+           lambda w=where: check_edit_recomputes_only_what_changed(make_target(w)))
 
     where = arena_for("R3-identical-resync-recomputes-nothing")
-    run.checks.append(check_identical_resync_recomputes_nothing(make_target(where)))
+    record("R3-identical-resync-recomputes-nothing", "R3",
+           lambda w=where: check_identical_resync_recomputes_nothing(make_target(w)))
 
     where = arena_for("R13-two-processes-both-answer")
-    run.checks.append(check_two_processes_both_answer(
-        make_target(where), second=make_target(where)))
+    record("R13-two-processes-both-answer", "R13",
+           lambda w=where: check_two_processes_both_answer(
+               make_target(w), second=make_target(w)))
 
     where = arena_for("R13-two-processes-do-not-duplicate-work")
-    run.checks.append(check_two_processes_do_not_duplicate_work(
-        make_target(where), second=make_target(where)))
+    record("R13-two-processes-do-not-duplicate-work", "R13",
+           lambda w=where: check_two_processes_do_not_duplicate_work(
+               make_target(w), second=make_target(w)))
 
     where = arena_for("R23-foreign-stamp-ends-up-serving")
-    run.checks.append(check_foreign_stamp_ends_up_serving(make_target(where)))
+    record("R23-foreign-stamp-ends-up-serving", "R23",
+           lambda w=where: check_foreign_stamp_ends_up_serving(make_target(w)))
     return run
 
 
@@ -329,7 +379,16 @@ def main() -> int:
         return adapters.load(a.adapter, where, **options)
 
     if a.drive:
-        print(json.dumps(drive(make_target(arena)), ensure_ascii=False, default=str))
+        done = drive(make_target(arena))
+        print(json.dumps(done, ensure_ascii=False, default=str))
+        # A verb that raised leaves a hole in what the tracer watched, and the
+        # egress verdict is read from `returncode == 0` plus zero attempts: a run
+        # whose retrieval path never executed would otherwise come back green on
+        # a clause about what that path touched. DRIVE_INCOMPLETE says "this run
+        # is not a basis for the clause" without saying "this target failed",
+        # which is the difference between `not-run` and a red.
+        if any(isinstance(v, str) and v.startswith("raised:") for v in done.values()):
+            return DRIVE_INCOMPLETE
         return 0
 
     if not a.output:
