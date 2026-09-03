@@ -280,11 +280,26 @@ def main():
                     f"{traj['held_for_s']} s of the build",
         "so_it_is_a_plateau_not_a_spike": traj["held_for_s"] > 0,
         "trajectory": traj,
-        "what_this_does_not_settle": "which C3 row a keyword build's server process answers "
-                                     "to. C3 names a server steady state and a pipeline-worker "
-                                     "peak; assigning this figure to one of them is a ruling, "
-                                     "not a measurement, and SPEC.md §5.2.9 records that "
-                                     "ceiling as awaiting a re-pin.",
+        "no_c3_row_applies": "C3's two ~750 MB rows — server steady-state RSS and "
+                             "pipeline-worker peak — both describe SPEC.md §5.2.5's topology: "
+                             "a conductor and query servers holding no model beside one "
+                             "embedding service that does, with §5.2.9's P0 idling near "
+                             "100 MB. The measured binary is stock upstream v1.12.0 and "
+                             "implements neither side of that split, which the process_scope "
+                             "grep is what establishes. So reading this figure as level with "
+                             "the ceiling compares a single-process build against a budget "
+                             "written for a topology it does not implement. Both figures are "
+                             "annotated as awaiting a re-pin besides.",
+        "what_it_does_support": "C3's PROPERTY rather than its number: the RAM ceiling is "
+                                "independent of library and document size because extraction "
+                                "and chunking stream. Flat through the metadata pass and the "
+                                "whole attachment walk, climbing only with full text, then "
+                                "flat again while the crawl works through thousands more "
+                                "items, is the shape that property predicts.",
+        "the_measurement_that_would_settle_it": "the same run against our own topology — a P0 "
+                                                "that should idle near 100 MB, weighed against "
+                                                "the server row. Nobody has that number and "
+                                                "this run is not it.",
         "and_the_plateau_is_bounded_too": "flat for the last 87 s of a 305,9 s build, on one "
                                           "library and one machine. That is what a working-set "
                                           "ceiling looks like, and it is not proof of one: a "

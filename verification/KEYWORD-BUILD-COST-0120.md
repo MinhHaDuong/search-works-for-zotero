@@ -106,10 +106,9 @@ cannot see a marginal rate that rises with scale, and this one evidently does. T
 number to carry forward is the measured 305,9 s; the fit is here for what it says about
 a *smaller* library, where the fixed term dominates and the marginal term is nearly free.
 
-## Peak RSS sits at the C3 figure
+## What the peak says, and which budget it does not answer to
 
-The full build's peak is not comfortably inside SPEC.md §4 C3's ~750 MB; it is level
-with it. **It is a plateau, not a spike, and it belongs to one process.** The driver's
+**It is a plateau, not a spike, and it belongs to one process.** The driver's
 own poll series says so: the run opens at 0,16 GB and holds it through the metadata
 pass and the 8 037-attachment walk, climbs once the full-text pass begins, reaches
 0,71 GB at 219 s and stays flat for the remaining 87 s. So the figure is steady-state
@@ -117,13 +116,30 @@ indexing rather than a one-off cost of setting the crawl up, and it stops growin
 before the library does. As to scope, `run_build.py` reads `VmHWM` from
 `/proc/<server pid>/status`, which is per-process, and the built server spawns nothing
 — no `new Worker`, no `child_process`, no `spawn(` anywhere under `fork/dist` — so one
-process is also the whole tree here, with no embedding service beside it. Two things
-bound what that observation licenses. It is a *build* peak of the server
-process, where C3's rows name a server steady state and a pipeline-worker peak — which
-row owns a keyword build is not settled here and is not this action's to settle. And it
-is 30,3 % of the embedding build's 2 409,6 MiB, so on this axis too the embedder is the
-consumer. What can be said flatly: the keyword half alone very nearly fills the budget,
-so a plan that assumes it is cheap in memory because it is cheap in time is wrong.
+process is also the whole tree here, with no embedding service beside it.
+
+**No C3 budget row applies to this number, and an earlier draft of this note said one
+did.** C3 carries two ~750 MB rows — server steady-state RSS, and pipeline-worker peak
+— and both describe the topology of SPEC.md §5.2.5: a conductor and query servers that
+hold no model, beside one embedding service that does, where §5.2.9 has a P0 idling at
+about 100 MB. The measured binary is stock upstream v1.12.0, which implements neither
+side of that split; the grep above is what establishes it. So reading 730,6 MiB as
+"level with the ~750 MB ceiling" compares a single-process build against a budget
+written for a topology it does not implement, and the comparison is void rather than
+tight. Both figures are annotated in the spec as awaiting a re-pin besides, so headroom
+arguments under either are arguments under a provisional number.
+
+**What the trajectory does speak to is C3's property rather than its number**, and it
+speaks for it. C3's claim is that the RAM ceiling is independent of library and
+document size, because extraction and chunking stream, so peak memory is proportional
+to a section batch rather than to the document. Flat through the metadata pass and the
+entire 8 037-attachment walk, climbing only when full text begins, then flat again for
+the last 87 s while the crawl works through thousands more items — that is the shape
+the property predicts, observed once, on one library.
+
+The measurement that would make this a C3 question is the same one taken against our
+own topology: a P0 that should idle near 100 MB, weighed against the server row.
+Nobody has that number and this run is not it.
 
 ## What the 305,9 s actually indexed, which is not the library
 

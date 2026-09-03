@@ -4,7 +4,7 @@
   "warm": true,
   "warm_basis": "no model load and no download inside any timed window — every arm ran with the embedder off, which the status object records as vectors 0 and an inactive embedder, and this assembler sets the flag from that rather than by hand. Each arm was also a re-run over caches an earlier identical run had already read, so the platform's own text was warm in the page cache. The one fixed cost that remains inside the window is the 8 037-attachment page walk, which is not amortizable — every build pays it whole — and it is reported as the fit's fixed term rather than smuggled into the per-passage rate.",
   "what": "wall time, peak RSS and disk of our own keyword-only index build on the real library, against zero for the platform FTS5 path",
-  "date": "2026-09-03T11:09:48Z",
+  "date": "2026-09-03T11:16:16Z",
   "machine": {
     "host": "doudou",
     "cpu": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
@@ -13,9 +13,9 @@
     "kernel": "7.0.0-30-generic",
     "node": "v22.23.1",
     "loadavg_at_summary": [
-      5.6,
-      4.91,
-      4.39
+      2.36,
+      2.84,
+      3.64
     ],
     "is_reference_machine": "yes — SPEC.md §5.2.8 names an Intel i5-8250U at 1,6 GHz, no GPU"
   },
@@ -306,7 +306,9 @@
           ]
         ]
       },
-      "what_this_does_not_settle": "which C3 row a keyword build's server process answers to. C3 names a server steady state and a pipeline-worker peak; assigning this figure to one of them is a ruling, not a measurement, and SPEC.md §5.2.9 records that ceiling as awaiting a re-pin.",
+      "no_c3_row_applies": "C3's two ~750 MB rows — server steady-state RSS and pipeline-worker peak — both describe SPEC.md §5.2.5's topology: a conductor and query servers holding no model beside one embedding service that does, with §5.2.9's P0 idling near 100 MB. The measured binary is stock upstream v1.12.0 and implements neither side of that split, which the process_scope grep is what establishes. So reading this figure as level with the ceiling compares a single-process build against a budget written for a topology it does not implement. Both figures are annotated as awaiting a re-pin besides.",
+      "what_it_does_support": "C3's PROPERTY rather than its number: the RAM ceiling is independent of library and document size because extraction and chunking stream. Flat through the metadata pass and the whole attachment walk, climbing only with full text, then flat again while the crawl works through thousands more items, is the shape that property predicts.",
+      "the_measurement_that_would_settle_it": "the same run against our own topology — a P0 that should idle near 100 MB, weighed against the server row. Nobody has that number and this run is not it.",
       "and_the_plateau_is_bounded_too": "flat for the last 87 s of a 305,9 s build, on one library and one machine. That is what a working-set ceiling looks like, and it is not proof of one: a plateau held over 87 s says nothing about a build that runs for hours, and the 2026-09-02 embedding build reached 2 409,6 MiB on the same library."
     },
     "on_disk_decomposition": {
