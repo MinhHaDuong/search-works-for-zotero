@@ -5219,3 +5219,13 @@ Marie Lan Nguyen Leroy. The record is removed rather than left as a future
 fetch. This changes no language requirement: the remaining Vietnamese slice
 still contains ten records, including the other two versioned HAL works and
 the administrative, literary, dictionary and bilingual anchors.
+
+**2026-09-03 — Do not build the optional compatibility-attestation aggregator
+now.** The author agreed that ticket 0494's condition is unmet. Local validation
+is authoritative for an installation, compatibility counts have no current
+consumer or gating role, and no operator, destination, retention, transport-log,
+abuse, deduplication or rare-bucket privacy policy has been chosen for a hosted
+collector. Ticket 0494 therefore closes without an endpoint after its 0493
+dependency clears. R31's optional `MAY` remains unchanged: later work may revive
+aggregation after its operator, consumer and privacy design are explicitly
+authorised.

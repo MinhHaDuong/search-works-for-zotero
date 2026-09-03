@@ -1,0 +1,75 @@
+%erg 0.1
+Title: Carry the ruled attachment-format policy into SPEC.md, R17 and acceptance
+Created: 2026-09-02
+Author: claude
+Blocked-by: 0600
+
+--- log ---
+2026-09-02T21:58Z claude created
+
+--- body ---
+## Context
+
+Ticket 0593 was ruled a monster on 2026-09-02 and is now the tracker for the
+attachment-format estate. This is its implementation child: once the author has
+ratified the attachment-format policy in `DECISIONS.md`, this carries it into
+`SPEC.md`, gives R17 the per-attachment extraction route and reason it currently
+has no field for, and adds the acceptance coverage that holds the chain to the
+ruled matrix.
+
+It cannot start earlier, and the reason is the repository's own order of
+authority: rulings land in `DECISIONS.md` first and `SPEC.md` is edited to
+match. Writing an eligibility rule into `SPEC.md` before ticket 0600's ruling
+would put a design number in the specification that no entry ratifies.
+
+The vocabulary is the ruling's, not this ticket's. Ticket 0593's candidate list
+named `zotero-fulltext`, `pdf-source`, `unsupported-format`, `unavailable` and
+`failed`; whether those are the final names is ticket 0600's outcome, and this
+implements whatever it returns.
+
+## Actions
+
+1. State eligibility, fallbacks and reporting in `SPEC.md`, once each, in the
+   sections that own them. One statement per fact: no threshold or rule is
+   restated in a second section or in a ticket.
+2. Add a per-attachment extraction-route/reason field, and R17 counts over the
+   ruled vocabulary.
+3. Add acceptance fixtures proving metadata stays searchable for every format in
+   the matrix, and that body search behaves exactly as the ruled matrix
+   declares.
+
+## Test
+
+- Every named format has a positive metadata-search control.
+- Every supported format has a body-token control that finds ticket 0599's
+  unique token, so a pass cannot rest on shared metadata alone.
+- Every unsupported format has an explicit-reason control: the absence is
+  reported with its reason, and a blank or missing reason fails. The pattern is
+  already in the tree at `tests/test_acceptance_unsupported_reason.py`, where the
+  blank-reason refusal is the load-bearing half; follow it rather than inventing
+  a second one.
+- No test invokes a network or a document-conversion service.
+
+## Verification
+
+- [ ] `SPEC.md` states eligibility, fallbacks and reporting once, in their
+      owning sections, and its header date is bumped.
+- [ ] R17 reports the extraction route and the explicit unsupported reason.
+- [ ] Acceptance coverage matches the ruled matrix, format by format.
+- [ ] `make check` and `./tickets/erg check` pass.
+
+## Invariants
+
+See tracker 0593 §Invariants — inherited unchanged.
+
+Child-specific consequence, which is this ticket's own and not a restatement:
+nothing implemented here may dispatch on a filename, in `SPEC.md`'s prose or in
+the acceptance fixtures. This is the child that writes the policy down, so it is
+the one that can betray the capability rule by wording alone.
+
+## Exit criteria
+
+- [ ] `SPEC.md` carries the ruled eligibility, fallbacks and reporting.
+- [ ] R17 reports the extraction route and the unsupported reason, in the ruled
+      vocabulary.
+- [ ] Acceptance coverage matches the ruled matrix.
