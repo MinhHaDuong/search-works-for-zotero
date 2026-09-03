@@ -5229,3 +5229,117 @@ collector. Ticket 0494 therefore closes without an endpoint after its 0493
 dependency clears. R31's optional `MAY` remains unchanged: later work may revive
 aggregation after its operator, consumer and privacy design are explicitly
 authorised.
+
+**2026-09-03 — R19 is reworded from an agreement between two normalizers into a
+promise about what a user sees.** The author ratified the wording and instructed
+the merge. The clause now reads: in semantic and hybrid search, when a document
+and a query write the same word in different but equivalent forms, the query
+MUST still find the document; lexical search is exempt, because there the user
+has asked for the string as typed and matching it literally is the promise.
+
+**Why the old clause could not stay.** "Every token the query side produces MUST
+be one the index side can also produce" is a statement over two normalizers'
+token sets. Nothing but the source tree decides it, so a requirement written as
+a user-facing promise was in fact an internal property, and the only instrument
+that could report on it was a sweep reading our own code. The new clause is
+decidable through the `query` verb alone, against any target, with no access to
+its source — which is what a requirement in this sheet is supposed to be.
+
+**What made the question live.** The fold sweep is red against stock at the
+reviewed baseline, on twenty-five misses
+(`bench/results/0578-fold-sweep/codepoints.json`). Nine of them — eight
+codepoints and one word — are precomposed Devanagari nukta forms whose
+base-plus-nukta spelling agrees, and their cause is established: the old sweep
+covered eight Unicode blocks and none was Devanagari, the run behind this red
+covers nineteen, and that widened net accounts for all nine. The other sixteen
+are the Roman numerals U+2160 to U+216F, and they are genuinely unexplained:
+both runs sweep Number Forms, both return the same six tail codepoints as
+`narrows`, and the sixteen numerals are absent from the old divergence list
+entirely, having agreed. The one experiment that would settle them is the
+upstream diff between the two run dates, which nobody has read.
+
+**The lexical exemption's ground, and it is the direction of travel rather than
+today's machinery.** Upstream PR #46 (`pr2-expansion`, "Keep diacritics in the
+keyword index; expand unaccented queries instead"), filed with PR #45 and PR
+#47 as the ticket 0091 series, is ours. On the keyword path it stops folding
+diacritics away systematically and keeps the true form, reaching an unaccented
+query by an explicit gated expansion instead. That is precisely the property the
+old clause required, broken on purpose: with the index holding the accented form
+and the query side producing the unaccented one, the two token sets no longer
+agree, and the bridge is built at query time rather than by the two normalizers
+meeting in the middle. Under the old wording our own upstream filing would have
+put us in violation of our own ratified requirement. So this reword is
+consistency work and not only a clearer promise: it aligns the sheet with a
+change already sent upstream. On the keyword path matching what the user typed
+is the promise, and reaching equivalent forms is an option the user turns on;
+R19's behavioural promise therefore attaches exactly where no such option
+mediates, which is semantic and hybrid.
+
+**The narrowing, which is a real cost and is accepted as one.** The old clause
+covered every token the query side can produce — unbounded, and checkable only
+by reading source. The new one covers the pairs the fixture corpus pins, per
+script class. Coverage becomes a property of the corpus, so a form nobody pinned
+is a form nobody checks, and widening the promise now means widening the corpus.
+This is the same trade R34 already makes, and it is preferred here for the same
+reason: a promise a user can see broken is worth more than a property only a
+reader of our source can confirm.
+
+**What the ruling does to the gate.** The character-folding sweep stays exactly
+as it is, red and all, as a gate in SPEC.md §5.2.8 — but it is no longer R19's
+evidence and cannot become it, because it reads a normalizer's source and this
+promise is kept or broken in what a query returns. It now serves no requirement
+of its own, joining the RAM and golden gates, which have been in that position
+since 2026-08-31. SPEC.md's glossary is corrected on both counts: the four-gates
+entry, and the `unicode61` entry, which pointed at R19 as the agreement check
+and now points at the gate.
+
+**And what it does to the status page.** README.md's R19 row goes from `partial`
+/ `measured` to `none` / `inferred`. That is a downgrade and the honest
+direction: the old verdict rested on a source read that the reworded clause no
+longer admits, and no behavioural assertion of the new shape has been written,
+let alone run. One figure loses its only prose home in the same edit — ticket
+0009's `codepoints_swept`, which the old R19 quoted live as "over 1 301
+codepoints"; its declaration comes out of `bench/check_figures.py` rather than
+being re-quoted somewhere it is not needed, and the artifact and its ticket stay
+authoritative for the number.
+
+**2026-09-03 — the GPU host does not rescue the service ceiling, and the shipped
+runtime never touches a GPU. Supersedes the "not run" paragraph of the
+2026-09-02 service-ceiling entry; it changes no ruling and asks for none.** The
+author stopped padme's resident judge driver, so ticket 0577's
+second-configuration arm finally had a device. SPEC.md §5.2.8 admits a GPU host
+only as a configuration reported beside the reference machine, so nothing below
+displaces the four cells: the binding arm is still doudou.
+
+**The shipped runtime does not use a GPU**, measured rather than read off the
+source. In one run on a host with two working cards and a loadable CUDA
+provider, the shipped call — `pipeline()` with no device key, as
+`embeddings.ts` makes it — holds **300,4 MB** of host RSS and no device memory
+at all, while the cell differing from it only by `device: 'cuda'` holds
+**548,2 MB** and **318 MB** of VRAM. Both arms of the detector fired in the same
+session, which is what makes the null a measurement. Reaching the device also
+took more than an option: onnxruntime-node ships the CUDA provider library but
+not its cuDNN, so the arm needed cuDNN 9 on `LD_LIBRARY_PATH`.
+
+**A GPU host raises the host ceiling rather than relieving it.** Cell 4 is
+**1 331,9 MB** there against 1 002,5 MB on the reference machine, plus **836 MB**
+of VRAM — 78 % over C3's ~750 MB where the reference machine is 34 % over. The CUDA
+context alone costs about 248 MB of host memory before any batch — 548,2 MB at
+rest against **300,5 MB** for the same model on that machine's CPU. And the rung C3
+recommends gains nothing from the device: `multilingual-e5-base` at q8 derives
+the same batch of **8** under CUDA (**850,6 ms**) as on that machine's CPU
+(**831,3 ms**), while the incumbent at fp32 takes **1 183,1 ms** for a batch of
+**64** on that CPU and **245,5 ms** under CUDA. So "run the service on a GPU host"
+is not among the remedies the pending ruling is choosing between.
+
+One observation the ruling may want, put as an observation and not a proposal:
+**a ceiling in bytes is not portable while the batch size is derived from a time
+quantum.** The at-rest cells agree across the two machines to within 1 %, so
+residency is a property of the models; what moves is the derived batch — 16
+passages on the reference machine, **64** on the GPU host's CPU, **128** under
+CUDA — and cell 2 moves with it, 464,7 / **1 073,8** / **964,2** MB. A faster device earns a
+larger batch out of the ratified ~1 s quantum and holds more memory for it, so
+the reference machine's figure is the fleet's floor rather than its bound; the
+worst case measured anywhere is **1 860,8 MB**. Artifacts:
+`bench/results/0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json` and
+`…-gpu-host-cpu.json`.

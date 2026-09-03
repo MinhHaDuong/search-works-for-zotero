@@ -2,11 +2,14 @@
 Title: Aggregate opt in compatibility attestations
 Created: 2026-08-30
 Author: Minh Ha-Duong
-Blocked-by: 0493
+Closed: Conditional endpoint not justified; closes without implementation under the 2026-09-03 ruling and verification report.
 
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-09-03T05:18Z Minh Ha-Duong note blocker 0493 closed — Blocked-by removed.
+2026-09-03T05:18Z Verification recorded in verification/COMPATIBILITY-ATTESTATION-0494.md. Under the author ruling, no current consumer or authorised operator/privacy design justifies an aggregation endpoint; R31 MAY remains.
+2026-09-03T05:18Z Minh Ha-Duong closed — Conditional endpoint not justified; closes without implementation under the 2026-09-03 ruling and verification report.
 --- body ---
 ## Scope
 

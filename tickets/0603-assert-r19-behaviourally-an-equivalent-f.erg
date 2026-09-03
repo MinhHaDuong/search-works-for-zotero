@@ -1,0 +1,167 @@
+%erg 0.1
+Title: Assert R19 behaviourally: an equivalent-form query finds the document, through the query verb
+Created: 2026-09-03
+Author: claude
+Blocked-by: 0029
+
+--- log ---
+2026-09-03T05:17Z claude created
+
+2026-09-03T05:22Z claude note Filed by the ripple lane against origin/main 5282918, the merge of the R19 reword (8ad8cb3). Not folded into ticket 0580, which README.md already names for this rung, and the reason is a difference of instrument and of reachability rather than a preference: 0580's harness drives our own assembled conductor from an empty data directory and is Blocked-by 0566, whose chain runs 0566 to 0565 to 0028 to experiment X5, so nothing a lane does reaches it; this assertion drives a target through the ratified query verb, needs no conductor and no build of ours, and its only real prerequisite is the corpus. Filing it behind 0566 would leave the sheet's one evidence-free ratified requirement sitting behind an unreachable blocker. 0580's action 8 and its matching exit criterion quoted the retired clause verbatim and are corrected in the same pull request as this filing. Ticket 0029 is held by another lane and was read, cited and not touched.
+--- body ---
+
+## Context
+
+R19 was reworded and merged on 2026-09-03 (`DECISIONS.md`, entry
+"R19 is reworded from an agreement between two normalizers into a promise about
+what a user sees"; `SPEC.md` R19; merge `5282918`). It now reads: in semantic
+and hybrid search, when a document and a query write the same word in different
+but equivalent forms, the query MUST still find the document; lexical search is
+exempt, because there the user has asked for the string as typed and matching it
+literally is the promise.
+
+The reword deleted the requirement's only evidence path and put nothing in its
+place, deliberately. The character-folding sweep compares two normalizers'
+source and cannot decide a promise about what a query returns, so `SPEC.md`
+§5.2.8 keeps it as a gate serving no requirement, and `README.md`'s standing row
+for R19 went from `partial` / `measured` to **`none` / `inferred`**, saying in
+its own prose that nothing of the new shape has been executed.
+
+So a ratified requirement stands on the sheet with no assertion at all. That is
+what this ticket builds: the round trip a user makes, driven through the
+interface, against any target, with no access to its source.
+
+**Why this is not ticket 0580's.** `README.md`'s goal-3 roster names ticket 0029
+and ticket 0580 for R19, and 0580 is goal 3's acceptance spec — but its
+instrument is the convergence harness, which drives ticket 0566's assembled
+conductor from an empty data directory, and 0566 is blocked behind 0565, 0554,
+0575, 0576 and 0577, with 0565 blocked behind 0028, which experiment X5 gates.
+This assertion needs none of that. It indexes a corpus through `install` and
+`configure`, asks one question through `query`, and reads the answer. Its real
+prerequisite is the corpus, which is ticket 0029's. Putting it behind 0566 would
+be filing the sheet's only evidence-free ratified requirement behind a blocker
+no lane can reach.
+
+**Why it is blocked on ticket 0029 and not on nothing.** R19's own last
+paragraph makes which forms count as equivalent a property of the fixture
+corpus, per script class, and `README.md`'s roster address for R19 moved to
+ticket 0029 in the reword's own sweep. Without pinned pairs there is no pair to
+query with, and inventing pairs here would re-open the narrowing the ruling
+priced and accepted. **Ticket 0029 is held by another lane: read it, cite it,
+and do not edit it.**
+
+## Relevant files
+
+- `SPEC.md`, R19 under "#### Normalization" — the ratified clause, its
+  exemption, and the sentence making equivalence a property of the corpus.
+- `SPEC.md` §5.2.8, "**The fold gate.**" — what is explicitly *not* this
+  requirement's evidence. Do not wire the two together.
+- `README.md`, the goal-3 roster row for R19 (`ticket 0029, ticket 0580`) and
+  the standing row for R19 (`ratified | none | inferred`). Both are recomputed
+  or hand-read by `bench/check_progress.py`; changing a token there moves bars.
+- `DECISIONS.md`, the 2026-09-03 R19 entry — the ruling, the lexical
+  exemption's ground in upstream pull request #46 (`pr2-expansion`), and the
+  accepted narrowing.
+- `bench/acceptance/assertions.py` — the layer this check joins; the `ALL`
+  registry, and `R10-no-egress` as the worked example of a check whose subject
+  is the `query` verb.
+- `bench/acceptance/interface.py` — the ratified seven-verb interface.
+- `bench/acceptance/adapters/` — the five ratified targets' adapters.
+- `bench/acceptance/run.py` — how a check reaches an artifact.
+- `tests/test_acceptance_layer_is_target_neutral.py` — the invariant this must
+  not break.
+- `tickets/0029-the-golden-fixture-corpus-and-a-zotero-f.erg` — the corpus that
+  pins the pairs. **Read-only: another lane holds it.**
+- `tickets/0580-goal-3-acceptance-spec-the-convergence-h.erg` — goal 3's
+  acceptance spec, whose R19 clauses were corrected to point here.
+
+## Actions
+
+1. Read ticket 0029's pinned equivalence pairs, per script class, and consume
+   them. Until that corpus exists the check reports `not-run` naming the absent
+   corpus as its reason — never `pass`, and never silently absent.
+2. Register a check in `bench/acceptance/assertions.py` whose subject verb is
+   `query`: index a corpus in which a document is written with form A of a
+   pinned pair, ask for form B, assert the document is in the answer. Drive it
+   through the ratified verbs only. No source read, no file-layout knowledge,
+   no target named.
+3. One assertion per MUST clause, per the tracker's standing invariant. The
+   promise clause and the exemption clause are two, not one:
+   - the promise, asserted on the semantic and hybrid modes;
+   - the exemption, asserted on the lexical mode — a target that returns
+     nothing for form B on a *lexical* query MUST NOT be scored `fail`, because
+     matching the string as typed is what was promised there.
+   Without the second arm the first can be satisfied by a target that folds
+   everything everywhere, and the exemption becomes untested prose.
+4. One row per script class the corpus pins (R7 names the classes). A class the
+   corpus does not pin yields **`no test`**, never `pass` — the narrowing the
+   ruling accepted is only honest if an unpinned class is visibly unchecked.
+5. Wire the layer's existing states rather than inventing one: a target
+   declaring `query` absent yields `not-offered`; a run that cannot decide
+   yields `not-run` with its reason recorded. Never a green that means the run
+   could not look.
+6. Once the check exists and has run, add its address to `README.md`'s goal-3
+   roster row for R19 beside ticket 0029, and move the standing row's evidence
+   token off `inferred` to what actually ran — and not before. `check_progress`
+   recomputes the bars and tallies from the tokens; the spelled-out counts near
+   the top of that page are hand-maintained and marked with an asterisk, so
+   re-verify them in the same edit.
+
+## Test
+
+Red first, and the red must discriminate.
+
+- **The fail-control is a literal matcher.** A stub target that indexes form A
+  and answers only byte-identical queries MUST be scored `fail` by the promise
+  arm before the check is trusted anywhere. A check that has only ever been run
+  against targets that pass has not been shown to report.
+- **The exemption's own red.** The same literal matcher, queried in lexical
+  mode, MUST be scored `pass` — if both arms move together, the exemption arm
+  is not testing the exemption, it is testing the same thing twice.
+- **The empty-corpus red.** Run the check against a corpus pinning no pair for
+  a script class and confirm the class reads `no test` or `not-run`, never
+  `pass`. This is the arm that catches the failure mode the whole layer exists
+  to prevent, a green that means nobody looked.
+
+## Verification
+
+- [ ] the promise arm was seen `fail` against the literal-matcher fail-control
+      before it was seen `pass` against anything
+- [ ] the exemption arm was seen `pass` on the same fail-control in lexical
+      mode, and the two arms are demonstrably not one assertion
+- [ ] an unpinned script class reads `no test` or `not-run`, and the run says
+      which
+- [ ] a target declaring `query` absent yields `not-offered`, not `fail`
+- [ ] no committed artifact's existing verdict changed silently; any that moves
+      is regenerated from the edited code and said so
+- [ ] `tests/test_acceptance_layer_is_target_neutral.py` green
+- [ ] `make check` green; `./tickets/erg check tickets/` green
+
+## Invariants
+
+- **Interface only.** Every state is reached by driving the target through the
+  ratified seven verbs, as a user would. Reading a target's source is what the
+  reword took away from this requirement; do not give it back.
+- **The layer names no target.** Do not special-case an adapter to make a row
+  come out.
+- **The fold sweep is not this requirement's evidence and cannot become it.**
+  `SPEC.md` §5.2.8 says so in the gate's own entry. Do not couple the two, and
+  do not resurrect the retired clause as a second assertion here.
+- No threshold, bound or corpus definition is restated in this ticket; `SPEC.md`
+  owns R19's clause and ticket 0029 owns the pairs.
+- The unit is the MUST clause, not the requirement — inherited from tracker
+  ticket 0026.
+
+## Exit criteria
+
+- [ ] a check registered in `bench/acceptance/assertions.py` whose subject is
+      the `query` verb decides R19's promise clause, target-neutral, with no
+      source access
+- [ ] the lexical exemption is a second assertion with its own control, and a
+      literal matcher passes it while failing the promise arm
+- [ ] the pairs come from ticket 0029's corpus, per script class, and an
+      unpinned class is visibly unchecked rather than quietly green
+- [ ] every state the layer defines — pass, fail, not-offered, not-run — is
+      reachable and was reached at least once in a real run or a control
+- [ ] `README.md`'s R19 rows carry this ticket's address and an evidence token
+      that names what ran

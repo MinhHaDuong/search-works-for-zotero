@@ -1,4 +1,4 @@
-"""R19's fold gate can fail, can fall back, and can say it could not look.
+"""The fold gate can fail, can fall back, and can say it could not look.
 
 Three defects shipped together in `bench/fold_sweep.mjs`, and all three were the
 same defect wearing different clothes: the gate could not report a red.
@@ -49,8 +49,8 @@ export function tokenize(text) {
 """
 
 #: A checkout that folds everything to nothing. Every probe narrows and none
-#: misses, so the gate must call it agreed: R19 is a claim about terms the query
-#: side produces, and this one produces none. Without this arm the exit-code
+#: misses, so the gate must call it agreed: the gate's clause is about terms the
+#: query side produces, and this one produces none. Without this arm the exit-code
 #: assertions below would pass on a gate hardwired to fail.
 NEVER_A_TOKEN = """\
 export function normalizeForSearch(text) { return ''; }

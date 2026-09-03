@@ -21,10 +21,10 @@
 //
 //   node bench/service_ceiling_rss.mjs --drive --output <file.json>
 //   node bench/service_ceiling_rss.mjs --cell 3 --corpus <file.json>   (child)
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { cpus, loadavg, totalmem } from 'node:os';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 // Models are named by REGISTRY ID and resolved here — repository, pooling and
 // normalize together. Pooling and normalize are properties of the model, not of this
@@ -67,6 +67,21 @@ const { values: opt } = parseArgs({
     // growing for a second or two after a model load, so a settle applied to some
     // cells and not others measures the settle instead of the batch.
     'settle-ms': { type: 'string', default: '2000' },
+    // Execution provider for BOTH generations. Empty means "as the shipped provider
+    // loads it": no device key at all when no dtype is asked for, `device: 'cpu'` beside
+    // a dtype. `cuda` is the GPU second configuration of SPEC.md §5.2.8 — reported
+    // BESIDE the reference machine and never as a substitute for it. The shipped
+    // provider (fork/src/features/search/embeddings.ts) passes no device key at all, so
+    // a non-empty value here is by construction NOT the shipped configuration.
+    device: { type: 'string', default: '' },
+    // Which arm of §5.2.8 this run is, declared by the operator and checkable by the
+    // reader against the machine/device block the summary records beside it.
+    arm: { type: 'string', default: '' },
+    // Sample per-process VRAM through nvidia-smi while a cell runs. Off unless asked
+    // for: the sampler is a child process, and spawning one from the measured process
+    // is a perturbation of the very high-water mark being measured. It is started ONCE,
+    // before any model load, when the process is still ~50 MB.
+    'vram-sample': { type: 'boolean', default: false },
     warm: { type: 'boolean', default: false },
     'make-corpus': { type: 'string', default: '' },
     'dist-root': { type: 'string', default: '/home/haduong/CNRS/code/search-works-for-zotero/fork/dist' },
@@ -90,7 +105,7 @@ function vmrssKb() {
 }
 const mb = (kb) => Number((kb / 1024).toFixed(1));
 
-async function loadModel(id, dtype, cacheDir) {
+async function loadModel(id, dtype, cacheDir, device = opt.device) {
   const { repo, pooling, normalize } = resolveModel(id);
   if (pooling === null || normalize === null) {
     throw new Error(`[registry] ${id} declares no pooling or no normalize; a run on it would guess the geometry`);
@@ -102,7 +117,10 @@ async function loadModel(id, dtype, cacheDir) {
   // No dtype key at all when none is asked for: passing `undefined` is not the
   // same as omitting it in transformers.js, and the incumbent is measured exactly
   // as the shipped provider loads it.
-  const optsPipe = dtype ? { dtype, device: 'cpu' } : {};
+  // With --device empty this is byte-for-byte the call the merged reference-machine run
+  // made; a non-empty --device names the execution provider explicitly for both
+  // generations, which is what a second configuration on a GPU host takes.
+  const optsPipe = device ? (dtype ? { dtype, device } : { device }) : dtype ? { dtype, device: 'cpu' } : {};
   const extractor = await pipeline('feature-extraction', repo, optsPipe);
   const load_ms = Number(process.hrtime.bigint() - t0) / 1e6;
   return { extractor, load_ms, repo, pooling, normalize };
@@ -141,16 +159,100 @@ async function deriveBatchSize(model, corpus, quantumMs) {
   return { size: best.size, wall_ms: Number(best.wall_ms.toFixed(1)), trail };
 }
 
+/**
+ * Start a per-process VRAM sampler and return its handle.
+ *
+ * `nvidia-smi --query-compute-apps` reports memory PER PROCESS, so the reading is
+ * attributable to this cell and immune to whatever else already holds the card — a
+ * whole-device figure would fold in a resident display server and be unreadable.
+ */
+function spawnDetachedSampler(logPath) {
+  const fd = openSync(logPath, 'w');
+  const p = spawn(
+    'bash',
+    ['-c', 'while :; do nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader,nounits; sleep 0.2; done'],
+    { stdio: ['ignore', fd, 'ignore'], detached: true },
+  );
+  p.unref();
+  return p;
+}
+
+/** Peak VRAM this process held, in MB, from the sampler's log. Null if it never appeared. */
+function readSelfVramPeakMb(logPath, pid) {
+  let peak = null;
+  let text = '';
+  try {
+    text = readFileSync(logPath, 'utf8');
+  } catch {
+    return null;
+  }
+  for (const line of text.split('\n')) {
+    const [p, m] = line.split(',').map((s) => s.trim());
+    if (Number(p) !== pid) continue;
+    const v = Number(m);
+    if (Number.isFinite(v) && (peak === null || v > peak)) peak = v;
+  }
+  return peak;
+}
+
 // ------------------------------------------------------------------- the child
 
 if (opt.cell) {
   const corpus = JSON.parse(readFileSync(opt.corpus, 'utf8'));
   const cell = opt.cell;
   const cacheDir = opt['cache-dir'] || undefined;
-  const out = { cell, rss_baseline_mb: mb(vmrssKb()) };
+  const out = { cell, rss_baseline_mb: mb(vmrssKb()), device: opt.device || '(shipped default)' };
+
+  // VRAM is a DIFFERENT quantity from RSS, not a second reading of it: under a GPU
+  // provider the weights and the activations live in device memory, so the host
+  // high-water mark below no longer covers them and the two are not comparable across
+  // devices. Sampled here so that a GPU cell can report both, and started once, before
+  // any load, so the sampler's own fork does not land in the peak it is watching.
+  let vramLog = null;
+  let sampler = null;
+  if (opt['vram-sample']) {
+    vramLog = `/tmp/service-ceiling-vram-${process.pid}.csv`;
+    sampler = spawnDetachedSampler(vramLog);
+  }
+  /** Harvest the VRAM peak into `out` and tear the sampler down. Safe to call when no sampler runs. */
+  const closeSampler = () => {
+    if (!sampler) return;
+    out.vram_peak_mb = readSelfVramPeakMb(vramLog, process.pid);
+    out.vram_note =
+      out.vram_peak_mb === null
+        ? 'this process never appeared in nvidia-smi compute-apps: it held NO device memory, whatever device was requested'
+        : 'device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device';
+    try {
+      process.kill(-sampler.pid);
+    } catch {
+      /* the sampler is detached; a failed kill is not a measurement error */
+    }
+    try {
+      rmSync(vramLog);
+    } catch {
+      /* nothing depends on the log surviving the cell */
+    }
+    sampler = null;
+  };
 
   const a = await loadModel(opt['model-a'], opt['dtype-a'], cacheDir);
   out.model_a = { repo: a.repo, dtype: opt['dtype-a'] || '(package default)', load_ms: Number(a.load_ms.toFixed(1)) };
+
+  if (cell === 'warm') {
+    // The warm pass, run BY the drive rather than trusted to have happened. It loads
+    // every generation and throws one batch at each, and reports what that cost. The
+    // timings are discarded — they exist to be witnessed, not to be quoted.
+    const b0 = await loadModel(opt['model-b'], opt['dtype-b'], cacheDir);
+    out.model_b = { repo: b0.repo, dtype: opt['dtype-b'], load_ms: Number(b0.load_ms.toFixed(1)) };
+    const texts = Array.from({ length: 4 }, (_, k) => corpus[k % corpus.length]);
+    out.discarded_batches = [
+      { on: 'a', size: 4, ...(await embedBatch(a, texts)) },
+      { on: 'b', size: 4, ...(await embedBatch(b0, texts)) },
+    ];
+    closeSampler();
+    process.stdout.write('CELLJSON ' + JSON.stringify(out) + '\n');
+    process.exit(0);
+  }
 
   if (cell === 'derive') {
     // Derivation runs in a process of its own. It sweeps batch sizes upward, so its
@@ -160,6 +262,7 @@ if (opt.cell) {
     const bb = await loadModel(opt['model-b'], opt['dtype-b'], cacheDir);
     const db = await deriveBatchSize(bb, corpus, Number(opt['quantum-ms']));
     out.derived = { quantum_ms: Number(opt['quantum-ms']), a: da, b: db };
+    closeSampler();
     process.stdout.write('CELLJSON ' + JSON.stringify(out) + '\n');
     process.exit(0);
   }
@@ -211,6 +314,9 @@ if (opt.cell) {
     out.peak_rss_before_batch_mb = mb(pre_batch_peak);
     out.peak_rss_at_rest_before_derivation_mb = mb(rest_peak);
   }
+  // The RSS readings above are already taken, and VmHWM is monotone, so tearing the
+  // sampler down here cannot move them.
+  closeSampler();
   process.stdout.write('CELLJSON ' + JSON.stringify(out) + '\n');
   process.exit(0);
 }
@@ -280,11 +386,22 @@ const results = {};
 
 /** Spawn one child cell and return its parsed row. */
 function runCell(c, extra = []) {
+  // `extra` goes LAST, after every driver-level flag, because parseArgs lets the last
+  // occurrence win and `extra` is how a caller overrides the run's own settings — the
+  // no-settle control arm overrides --settle-ms, the F1 cells override --model-a, and
+  // the device controls override --device. Spread earlier, `extra` is silently
+  // overridden instead of overriding: the first version of this line put it before the
+  // --device push, and the device-control arm then ran on CUDA while reporting itself
+  // as the shipped CPU call. It was caught only because a hand-run pair on the same
+  // host had already established what the shipped call reports.
   const args = [self, '--cell', c, '--corpus', opt.corpus, '--transformers-path', opt['transformers-path'],
     '--model-a', opt['model-a'], '--model-b', opt['model-b'], '--dtype-b', opt['dtype-b'],
-    '--quantum-ms', opt['quantum-ms'], '--settle-ms', opt['settle-ms'], ...extra];
+    '--quantum-ms', opt['quantum-ms'], '--settle-ms', opt['settle-ms']];
   if (opt['dtype-a']) args.push('--dtype-a', opt['dtype-a']);
   if (opt['cache-dir']) args.push('--cache-dir', opt['cache-dir']);
+  if (opt.device) args.push('--device', opt.device);
+  if (opt['vram-sample']) args.push('--vram-sample');
+  args.push(...extra);
   const t0 = Date.now();
   const r = spawnSync('node', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const line = (r.stdout || '').split('\n').find((l) => l.startsWith('CELLJSON '));
@@ -293,6 +410,42 @@ function runCell(c, extra = []) {
   row.wall_s = Number(((Date.now() - t0) / 1000).toFixed(1));
   return row;
 }
+
+/** Bytes on disk under a directory, or null when there is nothing to look at. */
+function treeBytes(dir) {
+  if (!dir) return null;
+  try {
+    return Number(execFileSync('du', ['-sb', dir], { encoding: 'utf8' }).split(/\s+/)[0]);
+  } catch {
+    return null;
+  }
+}
+
+// The warm pass, performed HERE and witnessed, rather than asserted.
+//
+// `warm: true` used to be a literal in the summary below while warming was a separate
+// optional flag on a separate invocation — so the artifact claimed a property of a run
+// it had no way to observe, and deleting the flag from the command line changed nothing
+// it said. That is worse than not knowing, because ticket 0260's whole point is that an
+// artifact which cannot say is as bad as one that lies.
+//
+// So the drive warms, in a process of its own, and records what warming actually did:
+// the load it performed, the discarded batches it threw away, and the bytes the model
+// cache held before and after. `warm` below is set from whether that child succeeded,
+// and a reader can check the claim against the witness instead of taking it.
+//
+// What the warm pass removes, and what it cannot. It removes the WEIGHT DOWNLOAD, which
+// is paid once per machine and would otherwise sit inside whichever cell ran first.
+// It does not remove the per-process model load or the first-batch graph initialisation:
+// every cell is a fresh process by construction, so those are paid in every cell, and
+// they are part of what a resident service costs rather than an artefact of the
+// measurement. The peak/steady split and `rss_baseline_mb` are what keep them legible.
+const cacheBytesBefore = treeBytes(opt['cache-dir']);
+const warmRow = runCell('warm');
+if (warmRow.failed) {
+  throw new Error(`the warm pass failed, so no cell below could be called warm: ${warmRow.stderr}`);
+}
+const cacheBytesAfterWarm = treeBytes(opt['cache-dir']);
 
 const derived = opt['batch-a'] && opt['batch-b']
   ? { derived: { quantum_ms: Number(opt['quantum-ms']), a: { size: Number(opt['batch-a']) }, b: { size: Number(opt['batch-b']) }, source: 'pinned on the command line' } }
@@ -307,6 +460,23 @@ const median = (xs) => {
   const v = [...xs].sort((a, b) => a - b);
   return v.length % 2 ? v[(v.length - 1) / 2] : Number(((v[v.length / 2 - 1] + v[v.length / 2]) / 2).toFixed(1));
 };
+/**
+ * Device memory across a cell's reps, or nothing at all when the arm did not sample it.
+ *
+ * A cell whose reps held no device memory reports 0 rather than null — that is a
+ * measurement (the provider ran on the host) and must not read as "not sampled".
+ */
+const vramOf = (runs) => {
+  const seen = runs.filter((r) => 'vram_peak_mb' in r);
+  if (!seen.length) return {};
+  const v = seen.map((r) => (r.vram_peak_mb === null ? 0 : r.vram_peak_mb));
+  return {
+    vram_peak_mb: median(v),
+    vram_peak_mb_reps: v,
+    vram_note: seen[0].vram_note,
+  };
+};
+
 const cells = ['1', '2', '3', '4', '4b'];
 for (const c of cells) {
   const runs = [];
@@ -338,11 +508,41 @@ for (const c of cells) {
     model_a: runs[0].model_a,
     model_b: runs[0].model_b ?? null,
     wall_s: runs[0].wall_s,
+    // The FIXED term, reported as its own number rather than folded into the cell: the
+    // node process before a single weight is loaded. Everything above it is the model
+    // plus, in the batch cells, the batch.
+    baseline_rss_mb: median(runs.map((r) => r.rss_baseline_mb)),
+    ...vramOf(runs),
   };
   console.log(
     `cell ${c}: peak median ${results[c].peak_rss_mb} MB ` +
       `(spread ${results[c].peak_rss_mb_spread}, n=${runs.length}), steady ${results[c].steady_rss_mb} MB`,
   );
+}
+
+// Device controls. Only meaningful when a device was named, and then they are not
+// optional: `vram_peak_mb: null` is what this instrument reports both when a process
+// held no device memory and when nvidia-smi could not be read, so the GPU cells above
+// are worth nothing until the same detector has been shown to answer BOTH ways in the
+// same session on the same host. Two arms, run as cell 1:
+//   - the SHIPPED call, no device key at all, which is how the extension loads a model;
+//   - an explicit `device: 'cpu'`, which is how the shipped provider loads one beside a dtype.
+// Either arm coming back with a device-memory figure would mean the GPU cells prove
+// nothing about the device; both coming back null while the cells above hold VRAM is
+// what makes "the shipped runtime does not touch the GPU" a measurement and not a
+// reading of the source.
+const deviceControls = {};
+if (opt['vram-sample'] && opt.device) {
+  for (const [name, extra, what] of [
+    ['shipped_call_no_device_key', ['--device', ''], 'the shipped call: pipeline() with no device key, as fork/src/features/search/embeddings.ts makes it'],
+    ['explicit_cpu', ['--device', 'cpu'], 'an explicit device: cpu, as the shipped provider passes beside a dtype'],
+  ]) {
+    const r = runCell('1', ['--batch-a', BA, '--batch-b', BB, ...extra]);
+    deviceControls[name] = r.failed
+      ? { failed: true, what }
+      : { what, peak_rss_mb: r.peak_rss_mb, vram_peak_mb: r.vram_peak_mb ?? null, device: r.device };
+    console.log(`device control ${name}: RSS ${deviceControls[name].peak_rss_mb} MB, VRAM ${deviceControls[name].vram_peak_mb}`);
+  }
 }
 
 // Control arm: the same cells with NO settle. Reported beside the cells rather than
@@ -383,6 +583,8 @@ for (const [name, base] of [['1b', '1'], ['2b', '2']]) {
     peak_rss_mb_reps: peaks,
     batch: runs[0].batch ?? null,
     model_a: runs[0].model_a,
+    baseline_rss_mb: median(runs.map((r) => r.rss_baseline_mb)),
+    ...vramOf(runs),
   };
   console.log(`cell ${name}: peak median ${results[name].peak_rss_mb} MB (spread ${results[name].peak_rss_mb_spread})`);
 }
@@ -398,11 +600,36 @@ const summary = {
   // the quantity being measured and a service that has not loaded its model is not
   // resident; the peak/steady split below is what lets a reader separate the load
   // transient from the settled figure.
-  warm: true,
-  warm_basis:
-    'weights pre-downloaded by a separate --warm pass, so no cell window holds a ' +
-    'download; the model load is intrinsic to residency and is disclosed as the ' +
-    'gap between peak_rss_mb and steady_rss_mb rather than hidden',
+  // Set from the code path that ran, not written as a literal: `warm` is true exactly
+  // when this drive's own warm child succeeded, and the witness beside it is what a
+  // reader checks the claim against.
+  warm: !warmRow.failed && Array.isArray(warmRow.discarded_batches) && warmRow.discarded_batches.length === 2,
+  warm_witness: {
+    what:
+      'the warm pass this drive performed before any measured cell, in a process of its ' +
+      'own: both generations loaded and one batch thrown at each. Its timings are ' +
+      'DISCARDED and recorded only as evidence that the warming happened.',
+    loads: [
+      { on: 'a', repo: warmRow.model_a?.repo ?? null, load_ms: warmRow.model_a?.load_ms ?? null },
+      { on: 'b', repo: warmRow.model_b?.repo ?? null, load_ms: warmRow.model_b?.load_ms ?? null },
+    ],
+    discarded_batches: warmRow.discarded_batches ?? null,
+    cache_dir: opt['cache-dir'] || null,
+    cache_bytes_before: cacheBytesBefore,
+    cache_bytes_after_warm: cacheBytesAfterWarm,
+    cache_bytes_downloaded_by_warm:
+      cacheBytesBefore != null && cacheBytesAfterWarm != null ? cacheBytesAfterWarm - cacheBytesBefore : null,
+    cache_bytes_after_cells: treeBytes(opt['cache-dir']),
+    removes:
+      'the weight download, which is paid once per machine and would otherwise sit inside ' +
+      'whichever cell ran first. cache_bytes_after_cells equal to cache_bytes_after_warm is ' +
+      'the witness that no cell window held one.',
+    does_not_remove:
+      'the per-process model load and the first-batch graph initialisation. Every cell is a ' +
+      'FRESH process by construction, so both are paid in every cell -- they are part of what ' +
+      'a resident service costs, not an artefact of the measurement, and the peak/steady split ' +
+      'plus rss_baseline_mb are what keep them legible.',
+  },
   what: 'peak RSS of one embedding-service process, four cells, one process per cell',
   date: new Date().toISOString().slice(0, 19) + 'Z',
   machine: {
@@ -412,7 +639,44 @@ const summary = {
     mem_gb: Number((totalmem() / 2 ** 30).toFixed(1)),
     node: process.version,
     loadavg: loadavg().map((x) => Number(x.toFixed(2))),
-    arm: 'binding — the reference machine of SPEC.md §5.2.8 (Intel i5-8250U, four cores, no GPU)',
+    // Declared by the operator, and checkable against the cpu/gpu/device facts recorded
+    // beside it. SPEC.md §5.2.8 binds every ceiling to the reference machine and admits a
+    // GPU host only as a second configuration reported beside it, never as a substitute.
+    arm: opt.arm || 'binding — the reference machine of SPEC.md §5.2.8 (Intel i5-8250U, four cores, no GPU)',
+    device_requested: opt.device || '(none — the shipped provider passes no device key)',
+    gpu: (() => {
+      try {
+        return execFileSync('nvidia-smi', ['--query-gpu=index,name,memory.total,driver_version', '--format=csv,noheader'])
+          .toString()
+          .trim()
+          .split('\n')
+          .map((s) => s.trim());
+      } catch {
+        return null;
+      }
+    })(),
+    onnxruntime_node: (() => {
+      try {
+        const p = `${opt['transformers-path']}/../../onnxruntime-node/package.json`;
+        return JSON.parse(readFileSync(p, 'utf8')).version;
+      } catch {
+        return null;
+      }
+    })(),
+    transformers_js: (() => {
+      try {
+        return JSON.parse(readFileSync(`${opt['transformers-path']}/package.json`, 'utf8')).version;
+      } catch {
+        return null;
+      }
+    })(),
+    // What it took to reach the device, recorded because it is the difference between
+    // the shipped configuration and this one. onnxruntime-node ships the CUDA provider
+    // library but not its cuDNN dependency, so on a host without cuDNN 9 the provider
+    // refuses to load and the run is a CPU run wearing a GPU label — ticket 0481's
+    // defect exactly. Both are recorded so a reader can tell which happened.
+    ld_library_path: process.env.LD_LIBRARY_PATH ?? null,
+    cuda_visible_devices: process.env.CUDA_VISIBLE_DEVICES ?? null,
   },
   // The corpus itself is NOT committed: it is 256 passages of the author's own
   // library. Its shape is, because batch residency depends on token length and a
@@ -431,13 +695,22 @@ const summary = {
     };
   })(),
   generations: {
-    a: { repo: resolveModel(opt['model-a']).repo, dtype: opt['dtype-a'] || '(package default, as the shipped provider loads it)' },
-    b: { repo: resolveModel(opt['model-b']).repo, dtype: opt['dtype-b'] },
+    a: {
+      repo: resolveModel(opt['model-a']).repo,
+      dtype: opt['dtype-a'] || '(package default, as the shipped provider loads it)',
+      device: opt.device || '(no device key, as the shipped provider loads it)',
+    },
+    b: {
+      repo: resolveModel(opt['model-b']).repo,
+      dtype: opt['dtype-b'],
+      device: opt.device || 'cpu (explicit, as the shipped provider does beside a dtype)',
+    },
   },
   batch_size_derivation: derived.derived,
   cells: results,
   settle_ms: Number(opt['settle-ms']),
   controls_no_settle: controls,
+  device_controls: deviceControls,
   deltas_mb: {
     live_batch_one_generation: delta('2', '1'),
     second_generation_at_rest: delta('3', '1'),
@@ -445,6 +718,21 @@ const summary = {
     dual_embed_window_price: delta('4', '2'),
     both_batches_in_flight: delta('4b', '3'),
     live_batch_candidate_alone: delta('2b', '1b'),
+  },
+  // Fixed against marginal, kept apart on purpose. A peak RSS is not a per-unit rate, so
+  // the amortisation error that inflates a rate measured on a small denominator does not
+  // reach these figures — but the same discipline does: the terms a cell is MADE of are
+  // named here rather than left for a reader to infer from one number.
+  terms_mb: {
+    fixed_process_baseline: results['1']?.baseline_rss_mb ?? null,
+    fixed_one_generation_resident: peak('1'),
+    fixed_second_generation_resident: delta('3', '1'),
+    marginal_live_batch_one_generation: delta('2', '1'),
+    marginal_live_batch_two_generations: delta('4', '3'),
+    note:
+      'a peak, never a rate: nothing here is an elapsed time divided by a count. The batch ' +
+      'terms are marginal at THIS run\'s derived batch size, which is a property of the ' +
+      'device and not of the models -- read them beside batch_size_derivation, never alone.',
   },
   ceiling_candidate_mb: peak('4'),
   reps_per_cell: REPS,
