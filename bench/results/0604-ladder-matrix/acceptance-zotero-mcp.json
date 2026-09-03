@@ -1,0 +1,358 @@
+{
+  "probe": "the target-neutral acceptance layer, run against one adapter (SPEC.md §5.2.8; DECISIONS.md, ratified 2026-09-02)",
+  "not_a_test_suite": "each check exercises ONE MUST clause of one requirement, once, against ONE named target. A green is a green for that target and for nothing else.",
+  "date": "2026-09-03",
+  "declaration": {
+    "target": "54yyyu/zotero-mcp",
+    "revision": "zotero-mcp-server==0.11.0 (repository 54yyyu/zotero-mcp, tag v0.11.0, commit 3cb3e2e34fab1fab7dc252102b03cdeec9915b78). One string does not pin what was measured: two of the three default egress calls and three of the five derived-state roots below come from fastmcp, chromadb and onnxruntime rather than from this package. The resolved closure is recorded in zotero-mcp-0.11.0-core.lock, beside this adapter. The repository's server.json is stale at 0.9.1 and is not the version; the PyPI distribution is not named after the repository.",
+    "derived_state_roots": [
+      "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.config/zotero-mcp",
+      "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/zotero-mcp",
+      "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/chroma",
+      "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.local/share/fastmcp",
+      "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/Microsoft/DeveloperTools"
+    ],
+    "query_transport": "stdio JSON-RPC to `<venv>/bin/zotero-mcp serve --transport stdio` (stdio is the default transport), driven by bench/mcp_drive.py unchanged. `initialize` is clean and 38 tools are listed with Zotero entirely absent — measured 2026-09-02. Two properties of that transport the caller must know: fastmcp prints an ANSI banner and a PyPI update notice on stderr before `initialize` returns, and `Server.call` has no timeout of its own, so this adapter bounds every call and raises TransportTimeout rather than hanging. Retrieval is two tools and no fusion: `zotero_search_items` (substring over title, creators and year; qmode='everything' widens to Zotero's own server-side full text) serves `exact`, `zotero_semantic_search` serves `meaning` where the [semantic] extra is installed, and `combined` has no implementation at all — no BM25, no reciprocal-rank fusion, nothing that merges two lists (grepped `src/` for rrf, reciprocal.rank and bm25 at the pinned commit: zero hits). `exact` is advisory rather than binding: on an empty result set the tool escalates through a four-strategy cascade ending in semantic search, no option disables it, and the escalation is disclosed as a prose note in the reply and in no machine-readable field.",
+    "default_configuration": "`pip install zotero-mcp-server` — the README's own command — with none of the [semantic], [pdf], [scite] or [all] extras, at the closure recorded in zotero-mcp-0.11.0-core.lock. Consequences that decide what this target can be asked: semantic search is absent from the default install, so `meaning` is unreachable until an extra the documented command does not pull is added; no configuration file exists, so the server's startup auto-update path returns before importing ChromaDB and no unattended indexing runs; and ZOTERO_LOCAL is unset, so the client addresses the Zotero Web API rather than 127.0.0.1:23119. `configure()` writes ~/.config/zotero-mcp/config.json, the file the README documents users editing by hand, with the values `zotero-mcp setup` produces when every prompt is left at its first option. Three default egress calls: https://api.zotero.org/schema on every start behind a 7-day TTL (bodyless GET, carrying no library and no query text); fastmcp's own PyPI update check to https://pypi.org/pypi/fastmcp/json behind a 12-hour TTL, which zotero-mcp documents nowhere; and, once the semantic extra is present, a 79.3 MB model download from chroma-onnx-models.s3.amazonaws.com on the first embed — R10's named exception, and named by this target in no place a user would find it. Every hosted embedding path (OpenAI, Gemini, their batch APIs, Ollama, HuggingFace) is off by default.",
+    "process": "HOME is the sandbox, and it is the only one this target has: `get_chroma_client` builds its ChromaClient with no persist_directory so the store falls back to Path.home()/.config/zotero-mcp, and `update_database` hardcodes Path.home() for its lock, which is why --config-path relocates part of one root and nothing else. HOME is a property of the process the harness starts, not an option the target offers, which is why it is declared here. The adapter refuses to be constructed on the operator's own HOME: with no sandbox, the residue sweep this declaration exists to serve would run against the operator's real state. Start: `<venv>/bin/zotero-mcp serve --transport stdio` with HOME set and the 31 variables the target reads blanked, so an ambient OPENAI_API_KEY or ZOTERO_LOCAL cannot make the measured configuration something other than the default. Stop: terminate, then kill on a 10-second grace. The lifespan's schema refresh is a background task, so a session stopped immediately after its last call leaves less residue than the same session held a few seconds longer — measured 2026-09-02, and a residue sweep has to allow for it.",
+    "unsupported_verbs": [
+      "pause",
+      "resume",
+      "uninstall"
+    ],
+    "unsupported": [
+      {
+        "verb": "pause",
+        "why": "there is no background work to pause. In the default configuration this target does no unattended indexing at all — all three background paths are gated on configuration that is off by default, and indexing is a foreground command a user runs. That is the architectural opposite of a target with background work and no control over it"
+      },
+      {
+        "verb": "resume",
+        "why": "absent for pause's reason: there is nothing to resume"
+      },
+      {
+        "verb": "uninstall",
+        "why": "no uninstall surface: the documented removal is uninstalling the package, which is not a verb this target offers and which the harness will not stand in for"
+      }
+    ],
+    "not_derived_state": []
+  },
+  "checks": [
+    {
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "status",
+      "detail": {
+        "why": "the adapter reports no embedding locality for this target, so this clause has nothing to read and is not decided"
+      }
+    },
+    {
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "result": "pass",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "query",
+      "detail": {
+        "verbs_driven": [
+          "install",
+          "configure",
+          "query"
+        ],
+        "verbs_not_offered": [
+          "resume"
+        ],
+        "isolation_mechanism": {
+          "name": "bwrap",
+          "how": "bubblewrap: the host tree read-only, the declared derived-state roots re-bound read-write, and --unshare-net for the isolated arm",
+          "writable_enforced": true
+        },
+        "subject": {
+          "mechanism": "bwrap",
+          "network_shared": false,
+          "returncode": 0,
+          "attempt_counts": {
+            "off_machine": 0,
+            "dns": 0
+          },
+          "attempts": [],
+          "stdout_tail": "{\"install\": {\"verb\": \"install\", \"installer\": \"uv\", \"distribution\": \"zotero-mcp-server\", \"version\": \"0.11.0\", \"commit\": \"3cb3e2e34fab1fab7dc252102b03cdeec9915b78\", \"lock\": \"/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/retire-r31/bench/acceptance/adapters/zotero-mcp-0.11.0-core.lock\", \"venv\": \"/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv\", \"home\": \"/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home\", \"steps\": [{\"argv\": [\"/home/haduong/.local/bin/uv\", \"venv\", \"/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv\"], \"returncode\": 2, \"stderr\": \"\\u001b[1m\\u001b[31merror\\u001b[39m\\u001b[0m\\u001b[1m:\\u001b[0m Could not acquire lock\\n  \\u001b[1m\\u001b[31mCaused by\\u001b[39m\\u001b[0m: Could not create temporary file\\n  \\u001b[1m\\u001b[31mCaused by\\u001b[39m\\u001b[0m: Read-only file system (os error 30) at path \\\"/data/cache/uv/.tmp4biXLq\\\"\\n\"}], \"executable_present\": true}, \"configure\": {\"verb\": \"configure\", \"path\": \"/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.config/zotero-mcp/config.json\", \"config\": {\"semantic_search\": {\"embedding_model\": \"default\", \"update_config\": {\"auto_update\": false, \"update_frequency\": \"manual\"}}}, \"channel\": \"config.json (per call); the stdin wizard is not driven\"}, \"resume\": \"not-offered\", \"query\": {\"verb\": \"query\", \"mode_requested\": \"meaning\", \"mode_served\": null, \"served\": false, \"hits\": null, \"raw\": null, \"why\": \"the [semantic] extra is not installed in this venv, and the README's documented install command does not pull it. The tool is still listed by tools/list and answers with an install hint, which is a surface without a capability.\"}}\n",
+          "stderr_tail": "m                                \u001b[1;34mFastMCP 3.4.7\u001b[0m                                 \u001b[2m│\u001b[0m\n[server] \u001b[2m│\u001b[0m                            \u001b[2mhttps://gofastmcp.com\u001b[0m                             \u001b[2m│\u001b[0m\n[server] \u001b[2m│\u001b[0m                                                                              \u001b[2m│\u001b[0m\n[server] \u001b[2m│\u001b[0m                  \u001b[1m🖥 \u001b[0m\u001b[1m \u001b[0m\u001b[36mServer:     \u001b[0m\u001b[36m \u001b[0m\u001b[2mZotero, 3.4.7             \u001b[0m                  \u001b[2m│\u001b[0m\n[server] \u001b[2m│\u001b[0m                  \u001b[1m🚀\u001b[0m\u001b[1m \u001b[0m\u001b[36mDeploy free:\u001b[0m\u001b[36m \u001b[0m\u001b[2mhttps://horizon.prefect.io\u001b[0m                  \u001b[2m│\u001b[0m\n[server] \u001b[2m│\u001b[0m                                                                              \u001b[2m│\u001b[0m\n[server] \u001b[2m╰──────────────────────────────────────────────────────────────────────────────╯\u001b[0m\n[server] \u001b[34m╭──────────────────────────────────────────────────────────────────────────────╮\u001b[0m\n[server] \u001b[34m│\u001b[0m                          \u001b[1m🎉 Update available: \u001b[0m\u001b[1;32m4.0.2\u001b[0m                          \u001b[34m│\u001b[0m\n[server] \u001b[34m│\u001b[0m                      \u001b[2mRun: pip install --upgrade fastmcp\u001b[0m                      \u001b[34m│\u001b[0m\n[server] \u001b[34m╰──────────────────────────────────────────────────────────────────────────────╯\u001b[0m\n[server] \n[server] \n[server] Starting Zotero MCP server...\n[server] \u001b[2;36m[09/03/26 12:38:53]\u001b[0m\u001b[2;36m \u001b[0m\u001b[34mINFO    \u001b[0m Starting MCP server \u001b[32m'Zotero'\u001b[0m with  \u001b]8;id=15296337;file:///home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv/lib/python3.12/site-packages/fastmcp/server/mixins/transport.py\u001b\\\u001b[2mtransport.py\u001b[0m\u001b]8;;\u001b\\\u001b[2m:\u001b[0m\u001b]8;id=15296338;file:///home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv/lib/python3.12/site-packages/fastmcp/server/mixins/transport.py#241\u001b\\\u001b[2m241\u001b[0m\u001b]8;;\u001b\\\n[server] \u001b[2;36m                    \u001b[0m         transport \u001b[32m'stdio'\u001b[0m                  \u001b[2m                \u001b[0m\n[server] Warning: could not refresh the Zotero schema; using the cached or vendored copy.\n"
+        },
+        "control": {
+          "net_shared": {
+            "mechanism": "bwrap",
+            "network_shared": true,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 3
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "isolated": {
+            "mechanism": "bwrap",
+            "network_shared": false,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 4
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "why_both": "the shared arm proves the tracer sees attempts and the machine has a route; the isolated arm proves each detector still fires when nothing can leave. Without both, a zero from the subject arm is indistinguishable from an instrument that could not look."
+        },
+        "detectors": {
+          "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+          "dns": "a connect/sendto/sendmsg to a resolver port, loopback included: inside a no-route namespace a hostname attempt dies at resolution and leaves no off-machine connect at all, so a detector without this one reports a false green"
+        },
+        "run_completed": true
+      }
+    },
+    {
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state",
+      "result": "pass",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "install",
+      "detail": {
+        "install_event": {
+          "verb": "install",
+          "installer": "uv",
+          "distribution": "zotero-mcp-server",
+          "version": "0.11.0",
+          "commit": "3cb3e2e34fab1fab7dc252102b03cdeec9915b78",
+          "lock": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/retire-r31/bench/acceptance/adapters/zotero-mcp-0.11.0-core.lock",
+          "venv": "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv",
+          "home": "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home",
+          "steps": [
+            {
+              "argv": [
+                "/home/haduong/.local/bin/uv",
+                "venv",
+                "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv"
+              ],
+              "returncode": 2,
+              "stderr": "Using CPython \u001b[36m3.12.13\u001b[39m\u001b[36m\u001b[39m\nCreating virtual environment at: \u001b[36m/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv\u001b[39m\n\u001b[1m\u001b[31merror\u001b[39m\u001b[0m\u001b[1m:\u001b[0m Failed to create virtual environment\n  \u001b[1m\u001b[31mCaused by\u001b[39m\u001b[0m: A virtual environment already exists at: /home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/venv\n\n\u001b[36m\u001b[1mhint\u001b[0m\u001b[39m\u001b[1m:\u001b[0m Use the `--clear` flag or set `UV_VENV_CLEAR=1` to replace the existing virtual environment\n"
+            }
+          ],
+          "executable_present": true
+        },
+        "arena": "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/arena/2026-09-03/123842-R15-residue-inventory",
+        "created_count": 0,
+        "declared_roots": [
+          "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.config/zotero-mcp",
+          "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/zotero-mcp",
+          "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/chroma",
+          "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.local/share/fastmcp",
+          "/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-mcp/home/.cache/Microsoft/DeveloperTools"
+        ],
+        "not_derived_state": [],
+        "residue": [],
+        "residue_count": 0,
+        "reads": "the declaration is compared against what appeared in a harness-owned arena, never read back against itself"
+      }
+    },
+    {
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "query",
+      "detail": {
+        "why": "the target reports no model in effect, so this run exercised no weights and decides nothing about where they land"
+      }
+    },
+    {
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall",
+      "result": "not-offered",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "uninstall",
+      "detail": {
+        "verb": "uninstall",
+        "why": "the adapter declares 'uninstall' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "no uninstall surface: the documented removal is uninstalling the package, which is not a verb this target offers and which the harness will not stand in for",
+        "unsupported_verbs": [
+          "pause",
+          "resume",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R22-pause-stops-background-work",
+      "requirement": "R22",
+      "clause": "there is one obvious way to stop all background work, and after it is used a change that would create work creates none",
+      "falsified_by": "any work.*.*.done counter advancing against a change made while the target is stopped",
+      "result": "not-offered",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "pause",
+      "detail": {
+        "verb": "pause",
+        "why": "the adapter declares 'pause' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "there is no background work to pause. In the default configuration this target does no unattended indexing at all — all three background paths are gated on configuration that is off by default, and indexing is a foreground command a user runs. That is the architectural opposite of a target with background work and no control over it",
+        "unsupported_verbs": [
+          "pause",
+          "resume",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R22-pause-holds-across-restart",
+      "requirement": "R22",
+      "clause": "the control that stops all background work holds across a restart, with no one asking for it again",
+      "falsified_by": "any work.*.*.done counter advancing against a change made after the process is restarted, with no resume in between",
+      "result": "not-offered",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "pause",
+      "detail": {
+        "verb": "pause",
+        "why": "the adapter declares 'pause' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "there is no background work to pause. In the default configuration this target does no unattended indexing at all — all three background paths are gated on configuration that is off by default, and indexing is a foreground command a user runs. That is the architectural opposite of a target with background work and no control over it",
+        "unsupported_verbs": [
+          "pause",
+          "resume",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "query",
+      "detail": {
+        "why": "no process reported a hit list, so whether they answered cannot be read from what this target returns; the clause is not decided"
+      }
+    },
+    {
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand",
+      "result": "not-run",
+      "target": "54yyyu/zotero-mcp",
+      "verb": "query",
+      "detail": {
+        "why": "this target answers without reporting what it matched, so 'ends up serving' has nothing to be read from; the clause is not decided rather than assumed either way"
+      }
+    }
+  ],
+  "summary": {
+    "pass": 2,
+    "fail": 0,
+    "not-offered": 3,
+    "not-run": 7
+  }
+}

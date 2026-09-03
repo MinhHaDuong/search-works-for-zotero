@@ -83,18 +83,18 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Designed** — the promise has a settled design behind it.
 
-`●●●●●●●●●●●●●●●●●●●●●●●●` &nbsp; 24 ratified · 0 still open
+`●●●●●●●●●●●●●●●●●●●●●●●` &nbsp; 23 ratified · 0 still open
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○` &nbsp; 3 shipped · 15 partial · 6 not yet
+`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○` &nbsp; 3 shipped · 15 partial · 5 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-11 measured · 9 read in the source · 4 inferred
+11 measured · 8 read in the source · 4 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
@@ -145,7 +145,6 @@ upstream, and on what terms, is [`SYNC.md`](SYNC.md) and
 | Corpus | `●●` | `●◐` |
 | Query | `●●●●●●` | `◐◐◐◐○○` |
 | Multilingual | `●●` | `◐○` |
-| Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●` | `●◐◐○` |
 | Multi-library and multi-process | `●●` | `●◐` |
 | Normalization | `●` | `○` |
@@ -186,15 +185,14 @@ accept.
 
 ## Goal 1 — I can install it and take it off again
 
-Nothing leaves this machine unasked, one obvious switch stops the work,
+Nothing leaves this machine unasked, one obvious switch stops the work, and
 uninstall removes every declared piece of derived state and leaves no
-undeclared residue, and a configuration proves it runs here before it is used.
-Lowest rung because its assertions need no corpus, no
+undeclared residue. Lowest rung because its assertions need no corpus, no
 build and no library: they are decidable the moment the system is installed.
 
-`●◐○○` &nbsp; 4 in the bundle · 1 rest on something that ran
+`●◐○` &nbsp; 3 in the bundle · 1 rest on something that ran
 
-**Three of the rung's four clauses are asserted**, which is what the method asks
+**Every clause of the rung is asserted**, which is what the method asks
 for before anything on it is made to work: seven checks in
 [`bench/acceptance/assertions.py`](bench/acceptance/assertions.py), each with a
 fail-control of its own, driven red by `make acceptance-fixtures`. That is not
@@ -217,22 +215,23 @@ target the harness cannot hand a separate library is therefore undecided here �
 truthfully, since its clause was never tested — and ticket 0033 carries what
 closing that would take.
 
-**R31 is the one this layer cannot decide, and its absence is a finding rather
-than an omission.** The clause is about *when* a configuration is validated —
-before it is used, or not at all — and everything observable through the seven
-verbs after `configure` returns is a fact about the target's current state, which
-R10's local-by-default clause already grades over a strictly wider condition. An
-assertion was written for it and withdrawn: it reddened exactly where R10
-reddened and nowhere else. Deciding it needs a way to offer a configuration known
-to be unusable and watch when the target notices, and `configure` takes no
-argument. That is a question for the contract, and it is ticket 0488's.
+**The rung had a fourth term until 2026-09-03, and what retired it was this
+layer failing three times to assert it.** R31 asked that a configuration prove it
+works here before it is used, or fail loudly. Three assertions were written for
+it — reading exceptions, then reading status, then comparing entry identity — and
+each one's red condition turned out to be another requirement's, R10's. A
+requirement whose every reachable falsifier belongs to a neighbour has no
+extension of its own, which is the apparatus test that retired R20, R21 and R26
+on 2026-08-31, measured rather than judged. It is retired, its mechanism kept in
+SPEC.md §5.2.5 and §5.2.6, and its user-facing residue is where R21's already
+went: R17 and R18 say what answered, R34 holds the floor
+([DECISIONS.md](DECISIONS.md), 2026-09-03).
 
 | | the clause goal 1 binds | decided at | where its test lives |
 |---|---|---|---|
 | R10 | my library text and my queries stay on this machine without an opt-in | both | `R10-local-by-default`, `R10-no-egress` |
 | R15 | uninstall removes every declared piece of derived state and leaves no undeclared residue | both | `R15-residue-inventory`, `R15-model-cache-under-declared-roots`, `R15-uninstall-removes-declared-state` |
 | R22 | one obvious way to stop all background work, holding across restarts | both | `R22-pause-stops-background-work`, `R22-pause-holds-across-restart`; the implementation is ticket 0033 |
-| R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | undecidable by the acceptance layer as the contract stands; ticket 0488 |
 
 ## Goal 2 — it does not lose or corrupt what it built
 
@@ -388,12 +387,6 @@ demonstrated. They are not the same kind of statement.
 |---|---|---|---|---|---|
 | R7 | The default path MUST work in English, French and Vietnamese with no configuration, and SHOULD work in Arabic, Chinese, German, Hindi, Russian and Spanish | ratified | partial | measured | Accent folding merged, and the default embedder is local — but local is not multilingual: stock upstream hardcodes the English-tuned MiniLM construction, so the MUST tier fails at English alone and the SHOULD tier is not reachable at all, read in the source rather than measured. The English stopword list is still in place: experiment X2 measured its deletion and the deletion failed, so a library-derived droplist became a precondition rather than a follow-up. The two tiers were ruled on 2026-08-31 and do not move the verdict; every candidate the study measured declares both tiers, so the filter's field is unchanged. Ticket 0240 measured the replacement field and closed with a recommendation that sets no default; ticket 0495 decides what ships. Ticket 0090, ticket 0091. |
 | R29 | A query in English or French MUST retrieve relevant Vietnamese content without the user translating anything | ratified | none | measured | Stock upstream embeds with the incumbent English MiniLM chain, which `verification/SMOKE-1.10.0.md` names as observed on a running server, so no cross-lingual channel exists at the reviewed baseline. That a multilingual embedder supplies one is measured rather than assumed: ticket 0266 ran EN and FR queries against Vietnamese, German and Russian content at every deployed dtype (`bench/results/0266-cross-lingual/SUMMARY.json`), and its negative control clears at every dtype for only two candidates of the six. The promise is a gate criterion for whichever entry the registry ships: ticket 0037, ticket 0495. |
-
-### Embedding configurations
-
-| | promise | designed | delivered | evidence | standing |
-|---|---|---|---|---|---|
-| R31 | A search configuration offered to me MUST prove it works on my machine before it is used, or fail loudly there | ratified | none | code | Stock upstream hardcodes the local MiniLM construction and has no complete entry-level validation, so nothing validates before an index is created or queried. Issue #38 makes one existing failure louder — a `@huggingface/transformers` package that will not resolve or import now names the configured directory and the Node version, platform and architecture it was loaded under — but the check still fires reactively, when the embedder is actually invoked, on one dependency-resolution failure class rather than as upfront validation of the configuration. The invariant-first implementation is ticket 0488. |
 
 ### Custody and lifecycle
 
