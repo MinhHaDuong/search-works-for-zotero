@@ -1,0 +1,95 @@
+%erg 0.1
+Title: The acceptance adapter's R23 arm un-resets itself, and its older stamp is off the ladder
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:49Z claude created
+
+--- body ---
+
+## Context
+
+Found by re-running the acceptance layer at the v1.13.0 baseline (ticket 0618),
+where `R23-foreign-stamp-ends-up-serving` came back `not-run` having been red at
+the previous baseline. The change is the harness's, not the target's, and it is
+two separate defects in `bench/acceptance/adapters/zoteus.py` that happen to
+land on the same clause.
+
+### 1. The seed reset is silently undone by a stale write-ahead log
+
+`_reset_to_seeded_index` does `shutil.copyfile(seed, data_dir / name)`. It
+replaces the main database file and leaves the previous run's
+`search-index.sqlite-wal` and `-shm` beside it. Those sidecars belong to the
+*fresh empty* index the sideline opened — a different database — and SQLite
+recovers that log over the newly copied bytes. The reset reads as done and the
+index is empty.
+
+Isolated with a discriminating control rather than reasoned about, three arms on
+one seed with one variable:
+
+| arm | what it does | result |
+|---|---|---|
+| A | fresh dir, seed, query | 87 passages, 5 hits |
+| B | seed, query, restamp, restart (sidelines), copy seed back — *what the adapter does* | 0 passages, no hit list |
+| C | identical to B, but `search-index.sqlite*` removed before the copy | 87 passages, 5 hits |
+
+The first arm escapes it because its stale log came from the same seeded
+content. The second does not.
+
+**The layer behaved correctly.** Its own guard saw `hits_before_restamp` at zero
+and reported `not-run` rather than a red, which is exactly what
+`check_foreign_stamp_ends_up_serving` documents it should do. Nothing here is
+wrong with the assertion; the arming step is.
+
+### 2. The older stamp is now off the ladder, and its comment says otherwise
+
+`FOREIGN_STAMPS = {RESTAMP_OLDER: "0", RESTAMP_NEWER: "9999"}`, with the comment
+*"Older is the one that matters — it is what every user holds the day the build's
+schema version is incremented."*
+
+At v1.13.0 that sentence is false. What every user holds is stamp 1, and 1 is
+exactly the stamp upstream's new rung migrates in place. Stamp 0 is two below
+the current version, so `migrationPath` fails on contiguity and the file is
+sidelined — which it will be whatever upstream does. **As parameterized, the
+assertion structurally cannot observe the capability v1.13.0 added.** Its red at
+the previous baseline was a true finding; the same red today would be an
+artefact of the constant.
+
+Measured, same seed, three clean arenas, one stamp each:
+
+- stamp 0 → sidelined, fresh empty index, no hit list
+- stamp 1 → **migrated in place**, 87 passages and 87 vectors preserved, 5 hits,
+  and the server names the upgrade in its own notice
+- stamp 9999 → sidelined, fresh empty index, no hit list
+
+### 3. A smaller gap, same family
+
+R23's early `not-run` carries prose and nothing else — no arm data, no
+`hits_before_restamp`, no stamps. `check_no_egress` deliberately attaches its
+subject and control measurements to its own `not-run`, so a zero that was
+measured is distinguishable from one nobody looked for. R23's early returns do
+not, so the committed artifact records that the second arm could not be armed
+and not what the first arm saw.
+
+## Actions
+
+1. Remove `search-index.sqlite*` before the copy, or copy the sidecars with it.
+2. Re-parameterize the older arm to the stamp one below the build's, which is
+   the case the clause is about, and keep an off-ladder stamp as a *separate*
+   arm if the sideline path is still worth asserting. The comment must say which
+   is which — `bench/smoke_upstream.py` already carries that distinction in its
+   `what_each_stamp_exercises` note and is the model.
+3. Attach the arm data to R23's `not-run`, as the egress clause does.
+
+## Test
+
+Red first, and it is already reproducible: arm B above. The fix is proven when
+arm B returns what arm C returns.
+
+## Exit criteria
+- [ ] `R23-foreign-stamp-ends-up-serving` decides rather than reporting not-run,
+      against a target where the reset actually took
+- [ ] The older arm exercises the migrate-in-place case, or says in its own
+      comment why it deliberately does not
+- [ ] A `not-run` from this clause carries what it measured, not only prose

@@ -1,6 +1,6 @@
 """The assertion layer. One clause per assertion, phrased over the seven verbs.
 
-`SPEC.md` §3 owns R10, R15, R22 and R31 — goal 1's whole rung, per README.md's
+`SPEC.md` §3 owns R10, R15 and R22 — goal 1's whole rung, per README.md's
 goals ladder; `SPEC.md` §5.2.8 owns this harness; `DECISIONS.md`'s ratified entry
 of 2026-09-02 owns the ruling. None is restated here — this module cites
 addresses and asserts clauses.
@@ -9,9 +9,9 @@ addresses and asserts clauses.
 exist, its rows can only be `code` or `inferred`, a claim about nobody. R22's two
 clauses were the last members of the lowest rung with no assertion at all, and
 they read the work counters `durability.py` already defines rather than a second
-set of their own. R31 is the rung's one clause this layer cannot decide, and the
-section below says why rather than leaving its absence to be read as an
-oversight.
+set of their own. The rung had a fourth term, R31, until this layer's failure to
+assert it retired it; the section below keeps that finding, because it is the
+argument for the retirement and not a note about a missing check.
 
 **What this file may not contain**, and the reason it is checked rather than
 promised: no target's name, no tool name, no path literal, no data-directory
@@ -946,36 +946,34 @@ def check_pause_holds_across_restart(target: Target, *, control: Target) -> Chec
 
 
 # --------------------------------------------------------------------------
-# R31 — why this layer does not assert it, and what would let it.
+# R31 — retired on 2026-09-03, and this layer's three failures are why.
 # --------------------------------------------------------------------------
 #
-# R31 asks that a configuration offered to me prove it works on my machine
-# BEFORE it is used, or fail loudly there. The load-bearing word is "before":
-# the clause is about when validation happens, not about whether the target
-# ends up working.
+# R31 asked that a configuration offered to me prove it works on my machine
+# BEFORE it is used, or fail loudly there. It sat on goal 1's rung with R10,
+# R15 and R22 until the author retired it (`DECISIONS.md`, 2026-09-03). The
+# reasoning is kept here rather than deleted with the number, because it is a
+# finding this file produced and the ledger's entry cites it.
 #
-# An assertion was written for it and withdrawn under review, and the reason is
-# worth keeping because it is not a bug that a rewrite fixes. Everything the
-# layer can observe through the seven verbs after `configure` returns — the
-# embedder's reported locality, whether it is active, whether a query answers —
-# is a fact about the target's CURRENT state, and `check_local_by_default`
-# already grades that state, over a strictly wider condition. So the assertion
-# reddened exactly where R10 already reddened and nowhere else: it had no
-# discriminating power, and a check that cannot fail where its own requirement
-# fails is a green about nobody wearing a requirement's number.
+# Three assertions were written for it, each withdrawn under review:
 #
-# Reading exceptions does not rescue it either, and that was the first attempt:
-# a `configure` that raises was graded green ("it failed loudly") and a `query`
-# that raises red ("it could not answer"), when the layer cannot tell either one
-# from a transport that died.
+#   1. Reading exceptions. A `configure` that raised graded green ("it failed
+#      loudly"), a `query` that raised red ("it could not answer") — when the
+#      layer can tell neither one from a transport that died.
+#   2. Reading status. The red condition it could observe — the embedder not
+#      active after `configure` returned — is a strict subset of
+#      `check_local_by_default`'s, so it reddened exactly where R10 reddened
+#      and nowhere else.
+#   3. Comparing the entry in effect against the entry offered. That is
+#      conformance to self-description, which every requirement already
+#      assumes, and it adds nothing to whatever promise the entry serves.
 #
-# What would make the clause decidable is a way to offer a configuration KNOWN to
-# be unusable here and watch when the target notices. `configure` takes no
-# argument (`interface.py`, VERBS; SPEC.md §5.2.8), so the harness cannot offer
-# one, and inventing the configuration itself would mean naming a target's own
-# settings surface in this layer — which the ratified contract puts in the
-# adapter. Extending the contract is the author's, not this layer's: ticket 0488
-# carries it.
+# A requirement whose every reachable falsifier belongs to a neighbour has no
+# extension of its own. Its mechanism was never in question and stays in
+# SPEC.md §5.2.5 and §5.2.6 — entry identity, the fingerprint, the
+# requested-versus-actual handshake — gated white-box and repo-side, which is
+# why nothing phrased over the seven verbs could reach it. What a user can see
+# of it belongs to R17 and R18 (say what answered this) and to R34's floor.
 
 
 # --------------------------------------------------------------------------

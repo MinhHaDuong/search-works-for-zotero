@@ -1,0 +1,111 @@
+%erg 0.1
+Title: Make the next upstream catch-up cheaper than this one
+Created: 2026-09-03
+Author: claude
+Closed: PR #290 merged: three deliberate automations landed for the next catch-up, none new-guard -- catch-up residue report widened, one clause on an existing guard, one recipe target (make upstream-rebaseline), each demonstrated red before green including a three-arm control over real upstream history. Earned its place on first run: caught the hand-written tag gap wrong (3 vs actual 4).
+
+--- log ---
+2026-09-03T12:08Z claude created
+2026-09-03T13:00Z claude note DONE, and NO NEW GUARD -- which was the question the ticket asked itself. One clause added to an existing guard that already claimed to cover the hole, one report change, one recipe target. The guard budget is untouched, so nothing had to be retired to pay for it. Each item's red was seen before its green. (1) WATCHED widened from one directory to five entries, each naming the rows that need it, and the residue outside it is now reported beside the verdict whichever way the verdict goes. Three-arm control against real upstream history, run from the committed script via the new --base/--head: v1.7.2..v1.7.3 is the positive arm, where the old set is EMPTY and the new one reports TOUCHED on src/config.ts at 155/71, with 17 files outside it printed as 'NOT read by this verdict' -- the old text for that release was 'None of it is yours'. v1.12.0..v1.13.0 is the discriminating middle: TOUCHED both ways, but 20 files against 15, the five extra including the config.ts that made R7's row wrong. v1.0.3..v1.0.4 is the negative arm, QUIET both ways, so the widening did not simply make everything TOUCHED. (2) check_baseline gained the artifact-path clause. Red demonstrated in a scratch tree reconstructed from this branch's own history -- UPSTREAM at v1.13.0, the page's single 'Measured against' line edited to match, nothing else: the guard as it stood on main reports '0 findings' on a page citing bench/results/smoke-1.10.0/ twice and smoke-1.12.0/ eight times; the repaired guard reports two findings naming both releases. Four unit tests pin the clause in both directions, including that a ticket-named directory like 0578-fold-sweep makes no baseline claim. (3) make upstream-rebaseline computes the UPSTREAM block from the mirror and prints the nine-item recipe. It earned its place on the day it was written: it reported a tag gap of FOUR where the hand-written figure in UPSTREAM, SYNC.md, the re-read report and ticket 0618 all said three. That correction is a commit of its own on the 0618 branch. make check green, 650 passed.
+2026-09-03T13:37Z Minh Ha-Duong closed — PR #290 merged: three deliberate automations landed for the next catch-up, none new-guard -- catch-up residue report widened, one clause on an existing guard, one recipe target (make upstream-rebaseline), each demonstrated red before green including a three-arm control over real upstream history. Earned its place on first run: caught the hand-written tag gap wrong (3 vs actual 4).
+--- body ---
+
+## Context
+
+The v1.13.0 re-baseline (ticket 0618) was the third done by hand. `UPSTREAM`,
+`make upstream-status` and `bench/upstream_catchup.py` already carry the
+mechanical half — has upstream moved, and what moved under the surface we watch.
+What is still hand work is everything downstream of the verdict, and three
+specific things went wrong or nearly went wrong this time.
+
+**1. The catch-up's QUIET verdict is a claim about everything, made from a look
+at one directory.** `WATCHED = ["src/features/search/"]`. Its own test says the
+worst failure this script has is to "say 'none of it is yours' about
+everything", and guards against a *typo* in that list — not against the list
+being too narrow. At v1.13.0 the narrow set missed `src/config.ts`, which is
+where `ZOTEUS_EMBEDDING_MODEL` became the local model's name and where the
+weight-precision selector landed: the two facts that made `README.md`'s R7 row
+wrong rather than dated. It also missed `src/features/fulltext/passages.ts` and
+`src/tools/`. The verdict text has to be earned, not asserted: either the
+watched set covers what the standing actually reasons about, or the residue
+outside it is reported beside the verdict so a nil is never mistaken for a nil
+overall.
+
+**2. `check_progress.check_baseline` cannot see a stale artifact citation.** Its
+docstring says "The page describes the reviewed release, and no other", and it
+enforces that over version strings matching `vN.N.N`. A baseline-stamped
+artifact directory carries no `v`. Demonstrated on this branch: with `UPSTREAM`
+moved to v1.13.0, changing the single word `v1.12.0` on the page took the guard
+from two findings to **zero**, on a page still citing `bench/results/smoke-1.12.0/`
+nine times and `smoke-1.10.0` twice. Worse, two of those citations were already
+stale at the *previous* pin and nothing had caught them: the paragraph
+describing the smoke instrument pointed at the v1.10.0 run while `UPSTREAM`
+said v1.12.0, and `make check` was green.
+
+**3. A re-baseline touches more files than anything enumerates.** `UPSTREAM`
+(four keys, one of them the index schema generation), the mirror in
+`bench/index_schema.mjs`, the fixture stamp, `README.md`'s rows and bars and
+"Measured against" line, `SYNC.md`'s head note, a new `DECISIONS.md` entry, a
+new `verification/UPSTREAM-<version>-REREAD.md`, a new smoke artifact
+directory, and the tag-versus-tip decision about which SHA to pin. Nothing in
+the tree lists that. Both previous re-baselines rediscovered it.
+
+## What this ticket is NOT
+
+Not a new guard for its own sake. `rules/workflow.md` prices a new guard at two
+retirements, and neither of the two checks below is new: both are repairs of a
+hole in a guard that already claims to cover it. Item 1 changes a report, not a
+gate. If the honest answer to item 3 is a printed recipe rather than a check,
+that is the right answer — a checklist nobody can forget beats a guard nobody
+can satisfy.
+
+## Actions
+
+1. `bench/upstream_catchup.py`: report the delta OUTSIDE the watched set beside
+   the verdict, and widen the watched set to the surfaces the standing reasons
+   about. Demonstrate red: find a real upstream range where the narrow set is
+   empty and something outside it changed, and show the old text saying "none
+   of it is yours" about it.
+2. `bench/check_progress.py`: extend the BASELINE clause to baseline-stamped
+   artifact paths, default-deny like the version strings. Demonstrate red
+   against the state this branch was in at its second commit.
+3. A `make upstream-rebaseline` that prints what a re-baseline must touch,
+   computed rather than typed: the exact `UPSTREAM` block for the current tip
+   (SHA, version, date, index schema generation read from the mirror), the tag
+   gap if the tip is past a release, and the list of files and artifacts the
+   last two re-baselines had to touch.
+
+## Test
+
+Every item above ships with its red seen first. Item 2's red was already
+observed, in the middle of ticket 0618's own work and recorded here because it
+will not be reproducible once that branch lands. The sequence, in order:
+
+1. `UPSTREAM` bumped to v1.13.0, page untouched. `check_progress` reports two
+   findings — the page never names v1.13.0, and the page names v1.12.0.
+2. The single word on the "Measured against upstream" line changed to v1.13.0,
+   nothing else. `check_progress` reports **zero findings**.
+3. `grep -c 'smoke-1.12.0\|smoke-1.10.0\|SMOKE-1.10.0' README.md` on that same
+   tree: **nine**.
+
+Zero findings on a page citing nine artifact paths from two superseded
+baselines is the state to reproduce, and the repaired clause must fail on it.
+Reproduce it by reverting the citation half of the 0618 page edit while keeping
+the version line.
+
+## Invariants
+
+- No guard whose all-clear is reachable by failing to look.
+- The catch-up must stay cheap enough to run on every session; widening the
+  watched set must not turn every upstream release into TOUCHED for reasons
+  nobody acts on.
+
+## Exit criteria
+- [ ] `make upstream-catchup`'s QUIET verdict is earned over the whole delta,
+      not asserted from one directory
+- [ ] A stale baseline-stamped artifact citation on the standing page fails
+      `make check`, demonstrated red before it is trusted
+- [ ] The re-baseline recipe is in the Makefile or in the catch-up's own
+      output, not in a session's memory
+- [ ] Ticket 0620's leg gets its always-reachable source, or this ticket
+      records why it did not

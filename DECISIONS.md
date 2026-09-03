@@ -3822,6 +3822,325 @@ only in the case where no orchestrator is live, which is what happened twice on
 2026-09-03 and is the exception the word *normalement* leaves room for.
 
 
+**2026-09-03 — R31 is retired as apparatus, and goal 1's rung is three terms.**
+The author read the requirement and said what three assertion attempts had been
+circling: it reads as *the configuration subsystem should work as it says*. That
+is the shape 2026-08-31 retired R20, R21 and R26 for — a requirement about a
+component rather than about what the user can know or do — and R31 survived that
+pass in the sentence immediately after them, rewritten rather than retired.
+
+**The evidence is mechanical, not a matter of taste.** Three assertions were
+written for R31 in one day and each was withdrawn under review: one reading
+exceptions, where a raising `configure` graded green and a raising `query` red,
+which the layer cannot tell from a dead transport; one reading status, whose red
+condition — the embedder not active after `configure` returned — is a strict
+subset of `R10-local-by-default`'s; and one comparing the entry in effect against
+the entry offered, which is conformance to self-description and adds nothing to
+whatever promise the entry serves. A requirement whose every reachable falsifier
+belongs to a neighbour has no extension of its own. That is the apparatus test
+run as a measurement rather than as a judgement, and it returned the same answer
+three times.
+
+**What is kept, and where.** The mechanism is not retired with the number: the
+embedder entry, the fingerprint over every vector-affecting field, the
+requested-versus-actual handshake and the compatibility fixture stay in SPEC.md
+§5.2.5 and §5.2.6, which is where a mechanism belongs — the precedent is the fold
+gate, apparatus rather than a promise. Its gate is white-box and repo-side, which
+is why the acceptance layer could not reach it: it is not a property at the
+machine boundary. The user-facing residue goes where R21's went — R17 and R18
+carry *say what answered this*, R34's floor carries *the answers do not quietly
+get worse*. The glossary entries for **embedder entry** and **validation
+attestation** now cite §5.2.5 and §5.2.6 alone, and the handshake paragraph cites
+§5.2.5.
+
+**What is not ruled here.** The harm R31 was reaching for is real and has a live
+instance: the zoteus adapter declares that without a model runtime the target
+falls back to keyword-only, and "answered semantically" and "fell back to
+keyword-only" are the same file and different facts. Asserting that is R17's and
+R18's work, under their numbers, and no ticket is filed for it here. Ticket 0488
+keeps the curated-registry implementation unchanged — the registry was always the
+mechanism, and losing the requirement number does not lose the invariant its
+children build. R31 is never reused; the gap is the record.
+
+Goal 1 binds: R10, R15, R22.
+
+**2026-09-03 — C4 is dissolved; the speed of status is R17's, and the counters
+stay in the design.** Ruled by the author the same afternoon as R31's
+retirement, and it is the mirror image of it: R31 was a requirement that turned
+out to be apparatus, and C4 was apparatus with a requirement hidden inside it.
+
+**What made it wrong is §4's own definition.** That section holds "facts about
+Zotero, the upstream project, and the user's machine that the design must
+operate under". C1, C2 and C3 each name a fact in their title; C4's title named
+a mechanism — *status answers from counters* — and its body forbade an
+alternative, "never by scanning a table a stage is writing". A section of facts
+does not get to choose an implementation. A second tell came with it: C4's one testable
+clause said "a few milliseconds", which is not a threshold, so the only thing a
+user could check was the only thing nothing could fail.
+
+A third tell was drafted and withdrawn under review, and it is recorded because
+the withdrawal is the useful part. C4 said MUST, which §3 scopes to the R-items
+alone — but C1 carries an unscoped MUST of its own ("stored state MUST therefore
+be partitioned by server ID", SPEC.md §4), so that argument proves too much: it
+would convict a constraint nobody proposes to dissolve. What actually
+distinguishes C4 is the title naming a mechanism and the body forbidding an
+alternative, and that stands on its own.
+
+**The author's cut: the user-observable and testable thing is speed.** Applying
+it splits C4 into three pieces, two of which were already correctly housed
+elsewhere and neither of which needed writing:
+
+1. *The account of work done* is R17's, and was already stated there
+   mechanism-free — "Every stage MUST also report what it processed and which
+   input triggered it, so one edited item shows up as one unit of work rather
+   than as a wave." Nothing about counters. This is what the acceptance layer
+   actually needs in order to decide R22, R3 and R13.
+2. *The counters* — `work.<stage>.<trigger>.<outcome>`, the same-transaction
+   update, the surfaced `drift` — are §5.2.8's, in full, and are one design's way
+   of meeting (1). They keep their paragraph and lose C4's address for R17's.
+3. *The speed* is the residue, and it is a promise: R17 gains it as a clause.
+
+**The clause is stated as a rate, not a wall clock, for R32's reason.** A flat
+millisecond figure silently fixes the library size; what is promised is that
+asking costs the same at 1k items and at 60k, while all three queues run. The
+band itself is deliberately unstated: 374 ms is the cost of the *rejected*
+implementation and sub-millisecond is the point read, so neither is a promise
+anyone made. §5.2.9 records that the band is open and names its measurer — the
+convergence harness already polls status at 1 Hz for the length of a build and
+touches nothing else, so timing those polls yields the distribution at no extra
+cost. A bound nobody measured is a bound nothing can fail, which is the defect
+this entry exists to remove rather than relocate.
+
+**What this buys the harness.** As written, C4 made the acceptance layer demand
+a mechanism: `assertions.py` and `durability.py` both report a clause `not-run`
+because a target "reports no work.<stage>.<trigger>.<outcome> counters
+(SPEC.md §5.2.8, Counters (C4))". Seven of zoteus's twelve cells on 2026-09-03
+turned on that phrasing. The property is R17's and a target meeting it another
+way — an event log, a status field — would be judged identically today, wrongly.
+Correcting those two citations is follow-on work and is not in this entry's
+change. As a speed clause the residue also becomes assertable over the seven
+verbs, which C4 never was: call status while the queues run and time it.
+
+C4 is never reused; §4 numbers C1 to C3 and the gap is the record.
+
+**2026-09-03 — a documented removal procedure is an uninstall surface, and the
+harness may execute it verbatim.** The author's, in session: asked whether "remove
+one directory and the executable" plus an `UNINSTALL.md` should count, he ruled
+that it should — *"I concur. Draft and retire."*
+
+**What the old rule made impossible.** The ratified interface says a target with
+no uninstall surface reports `not-offered`, and that the harness never simulates
+success by deleting files itself. That was aimed at a real abuse: a harness
+inventing a cleanup, running it, and calling the clean result a pass. But an
+external MCP server has no host uninstall lifecycle to hook — ZotSeek gets an
+`ADDON_UNINSTALL` because Zotero fires one; zoteus has nothing — so for that
+whole architecture class the only possible removal is a documented procedure the
+user follows. Under the old reading their R15 cell was permanently `not-offered`,
+and since a rung is a conjunction and `not-offered` is not a hold, **goal 1
+became unkeepable by construction for an entire class of target, for a reason no
+user would ever notice.** That is an instrument requirement leaking into a
+product requirement, which is the defect two other rulings of the same day
+removed from the other direction.
+
+**The carve-out, and it is deliberately narrow.** An adapter may declare the
+target's *published* removal procedure, and the harness may execute exactly those
+steps and then sweep. The prohibition stands everywhere else: the harness may
+still not invent a cleanup, and a target that documents no procedure still
+reports `not-offered`. The distinction that makes this honest is that running a
+target's own instructions tests the target, where inventing an `rm` tests
+nothing.
+
+Four conditions, each closing a way the carve-out could rot:
+
+1. **Transcribed, with its source cited.** The declaration names where the
+   procedure is published — file plus anchor — and a check asserts the
+   transcription still matches the published text, so a doc that changes under us
+   fails loudly instead of silently grading a superseded procedure.
+2. **Contained.** Every path a step touches must resolve inside the harness-owned
+   arena. A step reaching outside it makes the run `not-run` rather than
+   executing — which protects the operator's machine, and is itself a finding:
+   instructions that only work at a hardcoded absolute path are instructions that
+   do not work.
+3. **Swept over the arena, not over the declaration.** The residue inventory
+   already compares what appeared against what was declared rather than reading a
+   declaration back, and that is what must grade this: the failure being tested
+   is an *incomplete procedure*, so a sweep scoped to the declared roots would
+   grade itself.
+4. **The arena must be able to see the failure.** Measured 2026-09-03: only
+   `HOME` is redirected, and only in one adapter; nothing redirects `TMPDIR` or
+   the `XDG_*` roots. A target writing outside the redirected HOME would leave
+   traces the sweep cannot see, and the assertion would pass — an all-clear
+   indistinguishable from "I could not look". Redirecting them is a precondition
+   of the carve-out shipping, not a later refinement.
+
+**Rejected: a container.** It would see the whole filesystem, and it would change
+what is measured — no desktop session, no dbus, a different XDG layout — so "no
+traces" would be a pass for a configuration nobody runs. It also duplicates sweep
+semantics, giving the project two definitions of residue that drift. The arena is
+reused instead, which is the instrument that has already produced a real residue
+finding.
+
+**The carve-out ships only when demonstrated red.** `stub-uninstall-leaves-residue`
+and `stub-under-declares` must redden through the documented-steps path exactly as
+they do through the verb path. The strongest control is not a stub, though, and it
+is real history: **before upstream PR #27 the transformers model cache landed
+outside the data directory**, so an `UNINSTALL.md` saying "delete the data
+directory" would have been wrong, and this sweep would have caught it. Where
+pinning that revision is cheap, it is the positive control to use.
+
+**Consequences.** The upstream ask shrinks from *build an uninstall verb* —
+design-sized, an issue the maintainer builds — to *publish the removal
+procedure*, a contained documentation change of the form that has merged verbatim
+twice. Tracker 0613's R15 gap is re-stated accordingly, and the verb framing is
+retired rather than left beside the new one, so the tracker does not carry two
+incompatible readings of what its cell needs. `SPEC.md` §5.2.7's sentence that
+`purge` is maintenance and not a substitute is untouched and unaffected: purge is
+checkpoint plus VACUUM plus compaction, which keeps a living index rather than
+removing one, so it was never a candidate for this role.
+
+**2026-09-03 — correction to the entry above: the harness transcribes paths, and
+executes nothing.** The author, on reading it: *"I am not comfortable taking the
+risk with 'follow the rm given in that file from the internet'. At least the arena
+should be a new user, not my home; even better isolation should be considered."*
+He is right and the entry above was wrong in its second condition.
+
+**Why the containment condition was not enough.** It said every path a step
+touches must resolve inside the arena. That is a code check standing between an
+externally-authored command line and the operator's home directory, and its
+failure modes are ordinary: a symlink inside the arena pointing out, `$HOME`
+expanded late, a relative path after a `cd`, a glob. Any one of them and the
+harness runs `rm -rf` as the operator, on a string from a repository we do not
+control. A guard whose failure mode is the operator's home directory is not a
+guard; it is a wager.
+
+**The replacement removes the risk instead of fencing it, and loses nothing.**
+R15 grades *derived state*, so the only thing the harness ever needs from a
+published procedure is **the list of locations it tells the user to delete**. The
+adapter transcribes those **paths, not commands**. The harness removes exactly
+those paths itself, with no shell, no glob expansion, and no externally-authored
+string evaluated anywhere. A documented step that is not a path — `npm uninstall
+-g …`, removing a desktop extension through its host — is outside R15's subject
+and is recorded rather than performed: an installed package is not target-created
+derived state.
+
+This deliberately re-enters the prohibition on the harness deleting files itself,
+and that is the point rather than an oversight: what makes it legitimate is not
+*who* deletes but *what the deletion is derived from*. The paths come from the
+target's own published documentation, the transcription is checked against that
+text, and the residue sweep grades completeness. A doc that names the wrong
+directory is transcribed wrong and the sweep still reds — which is the failure
+being hunted, and exactly what the pre-#27 model cache would have produced.
+
+**Isolation, which the author raised and which stands on its own.** The episode —
+install, real work, removal, sweep — runs inside `sandbox.py`'s pluggable
+namespace with only the declared roots bound read-write, so a harness bug reaches
+only what was bound. The mechanism is already in the tree for R10's egress arm and
+stays probed at runtime rather than pinned: bwrap is unusable rootless on the
+second machine, where podman-unshare is the fallback. Where a dedicated account is
+available it should own the arena. Today the arena sits under the operator's home
+with only `HOME` redirected — that is the weakest point in the current setup, and
+it is a precondition of this clause shipping, alongside the `TMPDIR` and `XDG_*`
+redirection the entry above already requires.
+
+Everything else in the entry above stands: the transcription cites its source and
+is checked against it, a target documenting nothing still reports `not-offered`,
+the sweep runs over the arena rather than the declaration, and the clause ships
+only once demonstrated red.
+
+**2026-09-03 — the acceptance arena runs as a dedicated user. Not optional.**
+The author, ruling on the correction above: *"The alt user is not optional."* The
+previous entry had it as a preference — *where a dedicated account is available it
+should own the arena* — and that is now wrong. It is a requirement of the harness,
+and it binds every assertion rather than only the uninstall clause.
+
+**Why it binds everything, not just the clause that provoked it.** The harness
+installs software it does not control, runs it against a library, and sweeps a
+filesystem afterwards. Every one of those steps has been running as the operator,
+under whose identity a target can read his mail, his keys and his research, and
+under whose identity a harness bug deletes them. The uninstall clause made the
+exposure vivid because it ends in a deletion, but nothing about the exposure was
+created by that clause: it has been the standing posture of every measurement
+taken so far.
+
+**Namespace isolation is not a substitute and never was.** `sandbox.py`'s
+mechanism is bound to the R10 egress arm; the residue and durability assertions
+run outside it, and the mechanism itself is probed rather than guaranteed —
+bwrap is unusable rootless on the second machine. A protection that is absent
+from most assertions and unavailable on some machines cannot be the thing
+standing between an untrusted target and the operator's home. The two compose:
+the account is the floor, the namespace is the ceiling.
+
+**What it costs, stated rather than discovered later.** The account must exist on
+every machine that runs the harness, including the second machine and any
+container a CI would use. The adapters start target processes, so process spawning
+has to cross a user boundary, and the arena's files come to belong to that account
+rather than to the operator, which changes how an operator inspects a preserved
+arena after a run. Where the account does not exist, the affected assertions
+report `not-run` — never a pass, and never a run as the operator "just this once".
+
+**What it does not do.** It does not invalidate a measurement already taken. A
+residue sweep in a harness-owned arena measured what appeared against what was
+declared, and that reading stands whoever owned the files. What changes is that
+those runs are not repeatable under the posture this entry requires until the
+account exists, so a re-run is the way to carry them forward rather than a
+re-reading.
+
+Ticket 0625 carries the implementation, and it is a precondition of the uninstall
+clause shipping rather than a parallel improvement.
+
+**2026-09-03 — refinement: the requirement is the property, and CI already has
+it.** The author, on the entry above: *"CI are isolated by design, they don't need
+alt user."* Correct, and the entry above named a mechanism where it should have
+named a property — the defect two other rulings of the same day removed from the
+sheet, reappearing in a ruling written hours later.
+
+**The property.** No target process runs under an identity that can reach data
+the operator cares about. That is what the dedicated account buys on a shared
+workstation, and it is what a disposable CI container or a throwaway VM already
+is: there is no second identity there whose mail, keys and research are within
+reach, and the boundary is the environment itself. Demanding an account inside a
+container is ceremony with no threat behind it, and ceremony is how a safety rule
+becomes something people route around.
+
+**Two ways to satisfy it, and they are not ranked.** A dedicated account on a
+machine that also holds the operator's own data; or an environment that is itself
+the boundary and is discarded after the run. What is forbidden is the third case
+this ruling exists for: a target running as the operator on the operator's
+machine.
+
+**The escape hatch must be recorded, not merely permitted.** Whatever posture a
+run had, the artifact names it — as it already names its isolation mechanism, its
+target and its revision. A run taken without the account, in an environment
+claiming to be its own boundary, must be identifiable as such afterwards.
+Otherwise a green from an unprotected run is indistinguishable from a green from
+a protected one, which is the shape of defect this project keeps finding in its
+own instruments.
+
+**And the probe is not needed, because the posture is documented.** The author,
+in the same exchange: *"Asking benchmark users to run under `tester` is
+acceptable."* That closes what had just been recorded as an open question. The
+harness does not have to infer whether its environment is a boundary — it says
+what it requires, the operator provides it, and the artifact records which account
+a run belonged to. An inferred posture would have needed a predicate nobody has:
+a flag saying *I am in CI* is the thing set once on a workstation and forgotten,
+and a probe asking *can I write my own home* answers yes in most CI images too.
+A documented precondition needs neither.
+
+**What `tester` is, concretely, since asking for it is acceptable only if the ask
+is precise.** A dedicated account with **read** access to the Zotero library —
+which the benchmark genuinely needs, zoteus being read-only against it — and
+**write** access to nothing but the arena. That is the exposure honestly stated:
+a target can read the library it is being measured against, which is the point,
+and can write nothing the operator owns. In a disposable container the same
+posture holds by construction and no account is created.
+
+**The harness does not create the account.** *"They can create if necessary"* —
+so provisioning is the operator's, done once, with a copyable recipe in the
+documentation. Creating a system user needs root, and a benchmark able to create
+users is a benchmark holding privilege it never needs while running. Ticket 0625
+therefore owes the recipe and a harness that runs unprivileged and refuses when
+the account is absent, rather than a provisioning script it executes itself.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -5582,3 +5901,70 @@ v2 soon after, at two full drains.
   ours, which 0606's second condition forbids outright. This is recorded as a
   consequence of the schema rather than a preference, and it is the one place
   where "compatible" bites: the format decides what our producer may say.
+
+- **RATIFIED 2026-09-03 — the reviewed baseline pins `main`, not the latest
+  shipped tag.** The author's own words: *"We want main, not latest shipped."*
+  Standing convention from this re-baseline forward, not a one-off for v1.13.0.
+
+  Upstream released v1.13.0 on 2026-09-03 and `main` moved four commits past
+  the tag the same day. `make upstream-status` compares `UPSTREAM_REVIEWED_SHA`
+  against `main`, so pinning the tag would have left that target red on the day
+  it was written — and a status target that is permanently red is one nobody
+  reads, which retires the only instrument that tells this repository upstream
+  has moved at all. The tip is pinned. `UPSTREAM_REVIEWED_VERSION` keeps naming
+  `v1.13.0`, the last release *contained in* the reviewed tree, because that is
+  what the standing page dates itself by and what `check_progress`'s BASELINE
+  clause parses; the gap is disclosed in `UPSTREAM`'s own comment and in the
+  re-read rather than spelled into the version string, since `PAGE_VERSION`
+  reads `vN.N.N` and a `v1.13.0+4` would fail to match itself.
+
+  This repository prepares work for upstream: `main` is the tree our PRs land
+  on and the tree the maintainer reads, so it is the tree a filing has to be
+  true of. A release tag is a lagging snapshot of that. Pinning `main` also
+  makes `upstream-status` coherent — the thing it watches and the thing this
+  repository claims to have reviewed are now the same object, which a tag pin
+  is not.
+
+  **The cost, ratified alongside the choice rather than discovered later.** The
+  reviewed tree can contain unreleased work — here, the #43 weight-precision
+  selector, which upstream files under `[Unreleased]` — while the page says
+  "measured against v1.13.0". A reader who fetches the v1.13.0 tag and looks for
+  the dtype knob will not find it. So **a verdict taken at this pin describes
+  `main`, not a release anyone can install**, and any claim about what a user
+  gets *today* — an R32-shaped "on a laptop-class machine" statement, not a
+  filing — must say so explicitly rather than cite the reviewed SHA as if it
+  named a release.
+
+  The adversarial review of PR #287 dissented and the dissent is kept rather
+  than discarded, because its cost is the one paragraph above: pinning wherever
+  was last read, rather than teaching `upstream-status` a third state between
+  QUIET and STALE ("moved, but not released"), retires the one signal that
+  would otherwise say "reviewed ahead of any installable release" — which is
+  exactly the situation this re-baseline is in. Recorded as the alternative this
+  ruling declines, not as an open question: the ruling stands, and a future
+  re-baseline that finds the disclosure insufficient can propose the third
+  state then, against a real second instance rather than a hypothetical one.
+
+- **Trigger (c) fired three times in one release, and two of the three were our
+  own merged work (raised 2026-09-03, ticket 0618).** Recorded, not asked —
+  the ruling of 2026-09-01 already settles that any one of them authorizes a
+  bump. What is worth a ledger line is the pattern, because it changes what the
+  trigger is likely to catch next.
+
+  The three rows whose `delivered` verdict was **wrong** rather than merely
+  dated: R23 ("no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS`
+  is empty" — upstream now migrates every index in the field, and the first rung
+  exists *because* our pull request #46 changed the tokenizer); R7 ("stock
+  upstream hardcodes the English-tuned MiniLM construction", and "the English
+  stopword list is still in place" — both false, the second because our pull
+  request #47 deleted it); and R12, whose one unguarded seam was closed by
+  upstream #44, this repository's own courtesy filing.
+
+  So the trigger's dominant source is no longer the maintainer shipping past us.
+  It is **our own filings landing**, which is a failure mode with a shorter
+  fuse: this repository knows the day it sends a pull request that a row will
+  become wrong if it merges, and nothing connects the two. Whether that warrants
+  a mechanism — a row naming the filing that would falsify it, checked when the
+  filing merges — or is simply what `SYNC.md` is for, is a question this entry
+  raises and does not answer. Ticket 0622 owns the catch-up's own mechanics and
+  is the natural home if the answer is a mechanism.

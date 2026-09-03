@@ -98,7 +98,91 @@ def test_passages_ddl_pattern_captures_the_column_list():
 
 
 def test_watched_surface_is_the_layer_the_requirements_are_about():
-    """A typo here silently reports QUIET forever, which is the worst failure
-    this script has: it would say "none of it is yours" about everything."""
-    assert uc.WATCHED == ["src/features/search/"]
+    """A typo here silently reports QUIET forever, which used to be the worst
+    failure this script has: it would say "none of it is yours" about everything.
+
+    Pinned by name rather than by count, because the failure this guards is a path
+    that stopped matching — a rename upstream, a stray character — and a length
+    check would pass straight through one. It was a single directory until
+    2026-09-03 and that was too few: the standing report reasons about the
+    configuration surface and the tool surface too, and a release touching only
+    those was reported QUIET (ticket 0622).
+    """
+    assert uc.WATCHED == [
+        "src/features/",
+        "src/tools/",
+        "src/config.ts",
+        "src/router/",
+        "src/lib/update-check.ts",
+    ]
     assert uc.SCHEMA_FILE.startswith(uc.WATCHED[0])
+
+
+def test_the_watched_surface_covers_what_the_standing_page_cites():
+    """The set is a judgement, and this is the half of it a test can hold.
+
+    Every path here is in `WATCHED` because a standing row reasons about it. The
+    inverse — that nothing the page reasons about is missing — cannot be checked
+    mechanically, which is why the list carries a written reason per entry. What
+    IS checkable is that the entries are prefixes a diff can use: an entry that
+    matches nothing makes this script quieter without making it wrong-looking.
+    """
+    for path in uc.WATCHED:
+        assert path.startswith("src/"), path
+        assert not path.startswith("/") and ".." not in path, path
+        # A directory entry ends in `/` and a file entry does not; the diff
+        # pathspec means different things for each, and a directory written
+        # without its slash would silently also match `src/toolsomething`.
+        assert path.endswith("/") or path.endswith(".ts"), path
+
+
+def test_residue_is_reported_separately_from_the_verdict():
+    """The verdict is computed from `WATCHED` and used to be STATED as a claim
+    about the whole release. These are the two halves that keep it honest, and
+    both are exercised through the real functions rather than asserted about the
+    source: `residue` returns a shortstat and the paths, and `report_residue`
+    prints the words "NOT read by this verdict" whenever there is any."""
+    assert uc.RESIDUE_NAMED > 0
+    assert callable(uc.residue)
+    assert callable(uc.report_residue)
+
+
+def test_report_residue_says_it_did_not_look(capsys):
+    uc.report_residue((" 3 files changed, 9 insertions(+)", ["docs/a.md (9)"]))
+    out = capsys.readouterr().out
+    assert "NOT read by this verdict" in out
+    assert "docs/a.md (9)" in out
+
+
+def test_report_residue_says_so_when_there_is_none(capsys):
+    """The other half. A run that looked outside and found nothing must read
+    differently from one that did not look, or the report has the same defect
+    the verdict had."""
+    uc.report_residue(("", []))
+    out = capsys.readouterr().out
+    assert "nothing changed outside" in out
+    assert "NOT read" not in out
+
+
+def test_the_rebaseline_recipe_names_every_document_a_re_baseline_touches():
+    """Three re-baselines rediscovered this list; the third wrote it down.
+
+    Pinned by name because the failure mode is silent omission: a re-baseline
+    that forgets `SYNC.md` produces a green `make check` and a document that
+    still calls a merged pull request in flight.
+    """
+    named = {path for path, _ in uc.REBASELINE_TOUCHES}
+    for required in (
+        "README.md",
+        "SPEC.md",
+        "SYNC.md",
+        "DECISIONS.md",
+        "bench/index_schema.mjs",
+        "bench/fixtures/make_index_fixture.mjs",
+        "tickets/",
+    ):
+        assert required in named, required
+    # Every entry carries a reason. A checklist line with no reason is one a
+    # future reader deletes.
+    for path, why in uc.REBASELINE_TOUCHES:
+        assert why and len(why) > 20, path

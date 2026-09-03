@@ -94,12 +94,15 @@ excerpts, not whole reports.
 
 ## What the recipe holds
 
-Twenty-six records on 2026-09-03: 17 with the bytes hashed, 9 with an
-identifier and a stated reason the hash is still open. Three archives answer
-scripted clients with a challenge page instead of the file: HAL (Anubis
-proof-of-work), Gallica (ALTCHA), and the UK Government Web Archive (a WAF
-captcha). Their entries are fetched once in a browser, hashed, and pinned by
-hand; `fetch_recipe.py` reports them as `unfetched` until then.
+As of 2026-09-03, the recipe holds 26 records: 17 with the bytes hashed and 9
+with an identifier and a stated reason the hash is still open. 8 of those
+open records belong to the two represented archives whose document endpoints
+answer scripted clients with a challenge page instead of the file: 4 HAL
+(Anubis proof-of-work) and 4 Gallica (ALTCHA). Those files are fetched once in
+a browser, hashed, and pinned by hand. The ninth is the oversized Malynes scan,
+whose Internet Archive md5 and sha1 remain a cross-check until its first full
+fetch. `fetch_recipe.py` reports a challenged request as `blocked` and an
+unhashed successful fetch as `unpinned`.
 
 | id | language | tier | facet | archive | pages | bytes pinned |
 |---|---|---|---|---|---|---|

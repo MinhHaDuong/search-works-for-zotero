@@ -66,7 +66,8 @@ candidate, and it can only price them against a boundary that exists.
   authorization, the macOS socket-path length hazard under the default data
   directory, and Windows as the open platform question.
 - R10 (missing local runtime yields keyword-only, never an API embedder), R15's
-  uninstall clause, R31's handshake, R6's latency band.
+  uninstall clause, §5.2.5's handshake (R31 retired 2026-09-03), R6's latency
+  band.
 
 ## Actions
 

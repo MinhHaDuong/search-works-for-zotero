@@ -1,0 +1,106 @@
+%erg 0.1
+Title: The egress sandbox's read-only /tmp kills every desktop-host target before its verbs run
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T11:45Z claude created
+
+2026-09-03T12:00Z CORRECTION TO THIS TICKET'S OWN CONTEXT, from the review of PR 278: the SIGSEGV claim is established for ONE target, not two, and I wrote it as two. Zotero core 6012's drive raised RuntimeError: the target exited with 139 before zotero.sqlite appeared, and 139 is 128+11, so that host was killed by SIGSEGV. ZotSeek's raised ProcessLookupError: [Errno 3] No such process, which is consistent with an early death and is evidence of neither SIGSEGV nor the icon-loader path. Neither artifact records timestamps, so 'about seven seconds' is not in the committed record for either. And on the target where the signal IS established, the read-only /tmp bind remains the leading hypothesis rather than a demonstrated cause -- no core dump, signal handler or host log was read. What survives unchanged: both drives exited DRIVE_INCOMPLETE before any verb ran, both cells are red on attempts the tracer actually recorded, and the defect this ticket exists for -- that a desktop-host target cannot currently get past startup under the sandbox -- is unaffected by which signal killed which host. What changes is action 1, which must now establish the cause on each target rather than assume one mechanism from one exit code. This is the hold-the-cause-until-isolated trap from the harness's own diagnosis discipline, and I walked into it while filing a ticket about someone else's measurement.
+--- body ---
+## Context
+
+R10's egress clause is asserted by driving a target inside an isolation
+mechanism with no route off the machine and watching whether anything tries to
+leave (`SPEC.md` §5.2.8; `bench/acceptance/assertions.py`, `check_no_egress`).
+The mechanism is pluggable and probed at runtime (`bench/acceptance/sandbox.py`),
+which was itself a finding: bwrap is unusable rootless on the second machine, so
+pinning it would have made R10 permanently `not-run` there.
+
+On 2026-09-03 the two desktop-host targets were driven under it for the first
+time — Zotero core PR #6012 and ZotSeek. Inside the sandbox `/tmp` is a
+read-only bind. GTK's icon loader must write a temporary file there, and the
+host aborts with SIGSEGV roughly seven seconds into startup, on both targets.
+Neither target's retrieval path ever executed.
+
+The assertion handles this honestly as far as it goes: a `DRIVE_INCOMPLETE`
+exit with a **zero** attempt count grades `not-run`, while an attempt the tracer
+actually recorded stands. So both cells came back **fail** on lookups made
+during startup — 98 for #6012, 94 for ZotSeek — and both control arms fired.
+
+## The defect
+
+**For any target whose process is a desktop application, this assertion can
+currently only ever measure startup.** That is not a property of those targets;
+it is the harness's sandbox meeting this machine's desktop stack. Two
+consequences, and the second is the one that spreads:
+
+1. A red produced this way is thin. It is a true statement — those lookups
+   happened, under a default configuration, with no route out — but it is silent
+   about the clause's real subject, which is whether *library text and queries*
+   leave the machine while the target does its work. A reader who takes the cell
+   at face value will believe more has been established than has been.
+2. The counts are not comparable across targets and the matrix now says so:
+   4 (zoteus), 60 (Beaver), 94 (ZotSeek), 98 (#6012) come from different
+   lifecycles and different windows. Only Beaver's lane ran a controlled
+   with-plugin versus host-only A/B. Any future desktop-host seat joins this
+   class automatically, so the incomparability grows with the roster.
+
+Both hosts start and stop cleanly in the R15 residue assertion, which uses no
+sandbox — so the fault is the sandbox's, not the targets'.
+
+## Relevant files
+
+- `bench/acceptance/sandbox.py` — the mechanism probe and the bind set; this is
+  where `/tmp` is made read-only.
+- `bench/acceptance/assertions.py`, `check_no_egress` — the `DRIVE_INCOMPLETE`
+  contract that made the honest half of this outcome possible.
+- `bench/results/0604-ladder-matrix/MATRIX.md` — the four counts and the
+  not-comparable note.
+- `bench/results/0586-beaver/` — the one lane that ran a controlled A/B, and the
+  shape a fixed sandbox should make reachable for the other desktop targets.
+
+## Actions
+
+1. Establish what the host actually needs. A writable private `/tmp` inside the
+   namespace is the obvious candidate and is not obviously safe: `/tmp` is a
+   plausible egress-staging location, and the clause is about what leaves the
+   machine rather than about what is written locally, so a private tmpfs
+   probably costs the assertion nothing. Argue it rather than assume it.
+2. Whatever the fix, it is a change to the isolation mechanism, so it must be
+   demonstrated on both mechanisms the probe can select, or the fix is a fix on
+   one machine.
+3. Re-run the four desktop-host cells and record whether the verdicts survive a
+   complete run. A red that was thin may become a well-founded red, may become a
+   pass, or may become `not-run` for a different reason. All three are results.
+
+## Test
+
+Red first, and the red already exists: at the current sandbox settings, driving
+either desktop-host target exits `DRIVE_INCOMPLETE` with a nonzero attempt count
+seven seconds in. The fix is demonstrated when the same drive reaches the query
+verb — which is checkable without judging the verdict, by asserting the run
+completed rather than by asserting its colour.
+
+## Verification
+
+- [ ] a desktop-host target completes its drive under isolation, on both
+      sandbox mechanisms or with the second recorded as unverified and why
+- [ ] the four cells are re-run and their verdicts recorded with the completed
+      runs behind them
+- [ ] the matrix's not-comparable note is updated or removed according to what
+      the re-run establishes
+
+## Invariants
+
+- No target is patched and no non-default option is passed to make a drive
+  complete: this is the harness's fault and the fix belongs in the harness.
+- The `DRIVE_INCOMPLETE` contract is not weakened. It is what kept this outcome
+  honest, and a fix that made incomplete runs grade as passes would be worse
+  than the defect.
+
+## Exit criteria
+- [ ] the sandbox no longer kills a desktop host before its verbs run, or the
+      reason it must is recorded and the affected cells read `not-run` rather
+      than a startup-only verdict
+- [ ] `make check` green; `./tickets/erg check tickets/` green

@@ -82,6 +82,28 @@ VERSION_KEY = "UPSTREAM_REVIEWED_VERSION"
 #: A row wanting to talk about an earlier release is talking about history,
 #: which is SYNC.md's, and widening this needs a test rather than a habit.
 PAGE_VERSION = re.compile(r"\bv\d+(?:\.\d+)+\b")
+#: A baseline-stamped artifact directory — `bench/results/smoke-1.12.0/`.
+#:
+#: The version rule above says "the page describes the reviewed release, and no
+#: other", and for two baselines it did not, because the thing carrying the
+#: release was not a version string. An artifact directory names its baseline
+#: without a `v`, so `PAGE_VERSION` never saw one, and the digit rule admits it
+#: for the opposite and equally good reason — a repository path is the most
+#: literal address there is.
+#:
+#: Between those two rules a row could cite a run made against a superseded
+#: release and read as current. Measured on 2026-09-03, mid-bump: with
+#: `UPSTREAM` moved to the new release and the single "Measured against" line
+#: edited to match, this guard reported ZERO findings on a page still citing
+#: two superseded artifact directories nine times. Two of those citations had
+#: been stale since the PREVIOUS bump and `make check` had been green over them
+#: the whole time. Ticket 0622.
+#:
+#: Deliberately narrow: only `bench/results/<name>-<semver>/`, the convention
+#: this repository stamps a measurement's baseline into. A directory whose
+#: trailing component is not a dotted number — `0578-fold-sweep`,
+#: `0025-x1-recall` — carries no baseline claim and is not matched.
+PAGE_ARTIFACT = re.compile(r"bench/results/[\w.-]*?-(\d+(?:\.\d+)+)/")
 
 #: The sheet's own section headings, inside its `### Requirements` block. One
 #: level deeper than before the 2026-09-01 merge (DECISIONS.md): the sheet's
@@ -454,6 +476,19 @@ def check_baseline(repo: Path, text: str) -> list[str]:
             f"BASELINE: the page names {other}, but the reviewed release is {version}. A status "
             f"read against {other} is not evidence about {version} — re-read it, do not retype it."
         )
+
+    # The same rule over the other thing that carries a release: an artifact
+    # directory. `v1.12.0` and `smoke-1.12.0` make the same claim about the same
+    # release, and only one of them used to be checked.
+    bare = version.lstrip("v")
+    for stamped in sorted({m.group(1) for m in PAGE_ARTIFACT.finditer(text)}):
+        if stamped != bare:
+            findings.append(
+                f"BASELINE: the page cites an artifact measured against {stamped}, but the "
+                f"reviewed release is {version}. Re-run the instrument at the reviewed "
+                f"baseline, or say in the prose that the run is history — a citation that "
+                f"reads as current evidence may not name a superseded release."
+            )
     return findings
 
 

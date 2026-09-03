@@ -323,6 +323,51 @@ def test_a_row_read_against_some_other_release(tmp_path):
     assert cp.run(build(tmp_path, page=page)) == 1
 
 
+def test_a_row_citing_an_artifact_from_a_superseded_baseline(tmp_path):
+    """The case that earns this clause its place, and it is a real one.
+
+    A version string and an artifact directory make the same claim about the
+    same release, and until 2026-09-03 only one of them was checked: `v1.12.0`
+    was policed, `bench/results/smoke-1.12.0/` was not, because it carries no
+    `v` and because the digit rule admits a repository path as the most literal
+    address there is.
+
+    Measured mid-bump on the real page: with `UPSTREAM` moved to the new release
+    and the one "Measured against" line edited to match, the unrepaired guard
+    reported ZERO findings on a page still citing two superseded artifact
+    directories ten times — two of those citations stale since the PREVIOUS bump,
+    with `make check` green over them the whole time. Ticket 0622.
+    """
+    page = PAGE.replace(
+        "Landed upstream.",
+        "Landed upstream (`bench/results/smoke-1.7.1/checks.json`).",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
+def test_an_artifact_from_the_reviewed_baseline_is_fine(tmp_path):
+    """The other half, without which the clause above would be satisfied by a
+    guard that refuses every artifact citation. The reviewed release is v1.10.0
+    and the directory stamps 1.10.0 — no `v`, deliberately, because that is the
+    shape the convention actually writes."""
+    page = PAGE.replace(
+        "Landed upstream.",
+        "Landed upstream (`bench/results/smoke-1.10.0/checks.json`).",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
+def test_an_unstamped_artifact_directory_is_not_a_baseline_claim(tmp_path):
+    """A directory named for a ticket carries no release and must not be read as
+    one. `0578-fold-sweep`, `0025-x1-recall` — the trailing component is not a
+    dotted number, so it makes no claim this clause could contradict."""
+    page = PAGE.replace(
+        "Landed upstream.",
+        "Landed upstream (`bench/results/0578-fold-sweep/codepoints.json`).",
+    )
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
 def test_upstream_absent_is_loud(tmp_path):
     """Nothing dates the standing, so the page cannot be believed about any release."""
     assert cp.run(build(tmp_path, upstream=None)) == 1

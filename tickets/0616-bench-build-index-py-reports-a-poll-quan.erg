@@ -1,0 +1,93 @@
+%erg 0.1
+Title: bench/build_index.py reports a poll-quantized elapsed and a ps-sampled peak
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T11:26Z claude created
+2026-09-03T11:27Z claude note found by the 0120 action-1 roar sweep for siblings of the defect that ticket hit: a driver that sleeps between status polls reports its own poll interval, not the job. build_index.py is the one sibling of nine sleeping bench scripts. Two others were checked and are clean, and both are precedents worth keeping: service_ceiling_rss.mjs states in its own artifact text that it records "a peak, never a rate: nothing here is an elapsed time divided by a count", and zotero_fulltext.py's quantum is disclosed in verification/EXTRACTION-ROUTES.md, which names the 250 ms poll and drove the run at --poll 0.25 for exactly that reason.
+
+--- body ---
+## Context
+
+Found by ticket 0120's roar sweep; 0120 owns the measurement this generalises
+from and is not blocked by this.
+
+`bench/build_index.py` carries both of the measurement defects that
+`bench/run_build.py` exists to avoid, and `run_build.py`'s own docstring
+documents each as wrong.
+
+**The poll quantum.** `--poll` defaults to **20.0**; the loop is
+`time.sleep(a.poll)` then a status call, breaking on the first poll that sees a
+terminal state, and `elapsed` is then reported as a timing (lines 71–90). So its
+elapsed is the true build time rounded up to the next 20 s boundary. This is not
+hypothetical: ticket 0120 action 1 drove `run_build.py` — the same loop shape —
+at `--poll 20` and got **140,3 s for two builds 44 493 passages apart**, and its
+full-library run read 332,9 s at `--poll 30` against 305,9 s at `--poll 5`.
+
+**The sampled peak.** Peak RSS comes from `ps -o rss=` between polls.
+`run_build.py`'s docstring says why that is wrong in its first sentence: "Peak
+RSS is read from /proc/<pid>/status VmHWM (kernel high-water mark), not sampled
+with ps: a sampler misses a spike between polls, VmHWM cannot." A 20 s sampling
+interval over a build whose memory climbs for a minute can miss the peak
+entirely.
+
+**Nothing quotes it today, which is why this is a floor-level finding rather
+than a correction.** No figure declared in `bench/check_figures.py` comes from
+it, and a repo-wide grep finds no reference to `bench/build_index.py` at all —
+every `build_index` hit is `issue30_build_index.mjs`, a different file. So no
+published number is wrong. What exists is a loaded gun: a plausible-looking
+driver that a future measurement could reach for and get both defects.
+
+## Relevant files
+
+- `bench/build_index.py` — the driver carrying both defects
+- `bench/run_build.py` — its successor, with `vmhwm_kb()` and the same loop
+- `bench/results/0120-keyword-build/keyword-build-cost.json` — records the
+  quantum under `under_measurement.poll_quantum_s` and what it does
+- `verification/KEYWORD-BUILD-COST-0120.md` — the measured demonstration
+
+## Actions
+
+1. Decide between deleting `bench/build_index.py` and repairing it. Deletion is
+   the likelier answer and should be argued first: it is unreferenced, its
+   successor exists, and the harness's standing preference is to remove a
+   superseded thing rather than grow it. Repair only if some caller outside this
+   repo's grep reach needs it.
+2. If repaired rather than deleted: read `VmHWM` as `run_build.py` does, and
+   make the poll default fine enough that the quantum is a small share of the
+   figure — or, better, record the quantum in the output so a reader can bound
+   it, which is what 0120's artifact now does.
+3. Decide whether the class deserves a standing guard, and say why either way.
+   An adherence test asserting that no bench driver reports an `elapsed` derived
+   from a sleep loop without also recording its poll interval would catch the
+   class coming back. Against it: the harness's guard budget is net-negative by
+   ruling, a new guard is meant to cost two retirements, and this sweep found
+   exactly one instance in nine candidates with two clean precedents. The
+   recommendation on the evidence is **no guard** — fix or delete the one
+   instance and rely on the two precedents plus 0120's artifact field as the
+   pattern to copy.
+
+## Test
+
+If action 1 lands on repair, the red step is a build driven at a coarse poll
+whose reported elapsed exceeds the true time by more than the quantum allows.
+If it lands on deletion, the test is the grep: no reference to the module
+survives, which is what makes deletion safe.
+
+## Verification
+
+- [ ] `bench/build_index.py` is deleted, or reads VmHWM and discloses its quantum
+- [ ] The decision names which, and why
+- [ ] `make check` passes
+
+## Invariants
+
+- `bench/run_build.py` is not changed by this ticket; 0120's artifact was
+  produced with it and must stay re-derivable.
+- No published figure is corrected here, because none comes from this driver.
+
+## Exit criteria
+
+- The driver is gone, or is as honest about its instrument as its successor
+- The guard question of action 3 is answered in the ticket, not left open

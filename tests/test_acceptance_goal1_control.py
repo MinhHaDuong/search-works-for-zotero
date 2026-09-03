@@ -1,11 +1,12 @@
 """R22's two clauses decide, and say so when they cannot decide.
 
-README.md's goals ladder puts R10, R15, R22 and R31 on the lowest rung and rules
+README.md's goals ladder puts R10, R15 and R22 on the lowest rung and rules
 the method: the assertions for a rung are built before anything on it is made to
 work, because until they exist a row can only be `code` or `inferred` — a claim
-about nobody. R10 and R15 arrived with the acceptance layer; R22's two are these,
-and R31 is the rung's one clause the layer cannot decide, for the reason
-`assertions.py` states where its assertion would have gone.
+about nobody. R10 and R15 arrived with the acceptance layer; R22's two are these.
+The rung carried a fourth term, R31, until this layer's three failed attempts at
+it retired it (`DECISIONS.md`, 2026-09-03); `assertions.py` keeps that finding
+where its assertion would have gone.
 
 Five defects this file guards, and each of them produces a **green** rather than
 an error, which is why they need fixtures rather than a careful reading.

@@ -1,0 +1,107 @@
+%erg 0.1
+Title: The acceptance arena runs as a dedicated user, never as the operator
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:51Z claude created
+
+2026-09-03T13:02Z REFINED THE SAME DAY IT WAS FILED, by the author: CI are isolated by design, they don't need alt user. He is right, and the ticket as filed named a mechanism where the requirement is a property -- no target process runs under an identity that can reach data the operator cares about. A dedicated account buys that on a workstation that also holds his data; a disposable container or throwaway VM already IS it, having no second identity within reach, and demanding an account inside one is ceremony with no threat behind it. The two ways are not ranked; what stays forbidden is the third case, a target running as the operator on the operator's machine. Action 4 is narrowed to that case and action 5 is added: the artifact must record which posture a run had, since otherwise a green from an unprotected run is indistinguishable from a green from a protected one. What is explicitly NOT settled and must not be papered over: no reliable automatic probe for 'this environment is already a boundary' is known, and the two tempting ones are worse than none -- a flag saying I-am-in-CI is what gets set once on a workstation and forgotten, and a probe asking can-I-write-my-own-home answers yes in most CI images. The predicate is unsolved; say so rather than ship a check that cannot fail.
+--- body ---
+## Context
+
+Ruled by the author 2026-09-03 (`DECISIONS.md`): *"The alt user is not
+optional."* The acceptance harness must run its arena as a dedicated account,
+never as the operator, and this binds every assertion rather than only the
+uninstall clause that provoked it.
+
+The harness installs software it does not control, runs it against a library and
+sweeps a filesystem afterwards — all of it, so far, under the operator's own
+identity, where a target can read his mail, his keys and his research and a
+harness bug can delete them. `sandbox.py`'s namespace is not a substitute: it is
+bound to the R10 egress arm, the residue and durability assertions run outside
+it, and it is probed rather than guaranteed, being unusable rootless on the
+second machine. The account is the floor and the namespace is the ceiling.
+
+## Relevant files
+
+- `bench/acceptance/adapters/*.py` — every adapter starts a target process; that
+  spawn is what has to cross a user boundary.
+- `bench/acceptance/interface.py` — `Declaration.process`, which is where an
+  adapter says how its target starts and stops.
+- `bench/acceptance/sandbox.py` — the namespace mechanism, which composes with
+  this and does not replace it.
+- `Makefile` — `ACCEPTANCE_ARENA`, today `$(HOME)/data/acceptance-arena`.
+- `bench/acceptance/run.py` — `--arena`, and where a missing account must turn
+  into `not-run` rather than a fallback.
+
+## Actions
+
+1. Decide the mechanism before writing any of it, because it sets everything
+   else: the harness re-executing itself as the account, versus each adapter
+   spawning its target under it. The first gives one boundary and one place to
+   get wrong; the second leaves the harness's own file writes as the operator,
+   which is where the artifacts have to land anyway. Argue it; do not pick by
+   convenience.
+2. Do NOT create accounts from the harness. Creating a system user needs root,
+   and a benchmark that can create users is a benchmark holding privilege it
+   never needs at run time. The author settled this: benchmark users create the
+   account themselves if it is not there. So what this ticket owes is a short,
+   copyable recipe in the documentation — create the account, grant it read on
+   the library, give it the arena — and a harness that runs with no privilege of
+   its own and refuses when the account is absent.
+3. Make the arena and its contents belong to that account, and say in the
+   artifact which account owned a run — a preserved arena an operator can no
+   longer read is a surprise worth documenting rather than discovering.
+4. Make absence honest: no account, no run, on a machine that has an operator.
+   `run.py` reports `not-run` with the reason and never falls back to him.
+5. Carry the posture into the artifact. A run in an environment that is its own
+   boundary — a disposable container, a throwaway VM — satisfies the requirement
+   without an account, and the artifact must say which of the two postures a run
+   had, so that a green taken without the account is identifiable afterwards.
+   No probe is needed and none should be written: the author ruled that asking
+   benchmark users to run under a dedicated `tester` account is acceptable, so
+   the posture is a documented precondition rather than something inferred. The
+   two tempting probes are recorded as rejected so nobody re-proposes them — a
+   flag saying *I am in CI* is what gets set on a workstation once and forgotten,
+   and *can I write my own home* answers yes in most CI images.
+6. Document the ask precisely, because it is only acceptable if it is precise:
+   `tester` holds **read** access to the Zotero library, which the benchmark
+   genuinely needs since the targets are read-only against it, and **write**
+   access to nothing but the arena. State that exposure plainly in the same
+   place — a target can read the library it is measured against, and can write
+   nothing the operator owns.
+
+## Test
+
+The control is the one that matters and it is cheap: a fixture target that writes
+to a path owned by the operator and outside the arena must **fail to write it**
+under the new posture, where today it would succeed. Run it against the current
+tree first to see it succeed — that is the red — then under the account.
+
+A second, weaker check: the artifact records the running account, and a run
+started as the operator is refused rather than recorded.
+
+## Verification
+
+- [ ] a target process cannot write to an operator-owned path outside the arena,
+      demonstrated by a fixture that succeeds before the change
+- [ ] a machine without the account reports `not-run`, with the reason, for every
+      assertion that needs one
+- [ ] the artifact names the account a run belonged to
+
+## Invariants
+
+- No fallback to the operator, ever, for any reason including "the account is
+  missing" and "this is only a fixture run".
+- The namespace mechanism is not weakened or made conditional on this: they
+  compose, and R10's egress arm keeps its own isolation.
+- Existing artifacts are not rewritten. A measurement already taken stands as
+  what it measured; carrying it forward is a re-run, not a re-reading.
+
+## Exit criteria
+- [ ] every assertion runs under the dedicated account on both machines, or
+      reports `not-run` where it does not exist
+- [ ] the uninstall clause's other preconditions — `TMPDIR` and `XDG_*`
+      redirection — are satisfied or explicitly still open
+- [ ] `make check` green; `./tickets/erg check tickets/` green

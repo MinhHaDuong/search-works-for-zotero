@@ -1,0 +1,90 @@
+%erg 0.1
+Title: Zoteus passes goal 3 — it answers, and it is honest about what it has
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T11:23Z claude created
+
+2026-09-03T11:29Z UPSTREAM #48 CLOSED 2026-09-03 with two items that land on this rung's requirements without being measured against them. Status now carries passagesWithoutVectors, so a half-embedded index is no longer indistinguishable from one with no vectors -- R18's emptiness distinction, and R17's coverage sentence, both of which this tracker owns. Status also reports a measured embedRate for API providers rather than a predicted one. Neither is asserted by anything: goal 3 still has no assertion for any of its seven terms, which is 0580's, and both fields are on main rather than in the reviewed SHA. Recorded so that a later reader does not mistake the absence of a green here for an absence upstream.
+2026-09-03T12:38Z claude note THE BASELINE MOVED: UPSTREAM names v1.13.0 / b0e0bc8 (ticket 0618), so the 2026-09-03 note's 'both fields are on main rather than in the reviewed SHA' is discharged -- passagesWithoutVectors and the measured embedRate are inside the reviewed tree now. Two corrections this rung must carry. The embedRate is reported for API providers ONLY, so the R17 account-of-work cell gains nothing on the local default path, which is the path this rung measures. And R19's fold gate no longer measures what this tracker's cell says it measures: our own merged PR #46 changed upstream's FTS tokenizer, so the twenty-five misses in bench/results/0578-fold-sweep/codepoints.json are a red against a substrate upstream no longer ships. That artifact is history; the re-measure is ticket 0619, and until it runs nothing may cite the red as a fact about current upstream. Every cell here was taken against b05ed69 and must be re-derived.
+--- body ---
+## Context
+
+Goal 3 of the ladder (`README.md`): *coverage converges unattended and the build
+finishes inside its bounds, the index answers while it is still filling, the
+query path waits for no freshness work, the two normalizers agree, and it says
+how much is behind an answer and which emptiness an empty one is.* Seven terms:
+**R1, R4, R6, R17, R18, R19, R32**.
+
+This tracker holds one question: **is goal 3 kept for zoteus?** Today the
+acceptance layer has no assertion for any of its seven terms, so the honest
+answer is that nothing has been asked.
+
+## Where the rung stands
+
+`bench/results/0604-ladder-matrix/MATRIX.md` covers twelve clauses over six
+requirements — R3, R10, R13, R15, R22, R23 — and **none of goal 3's**. The
+matrix's own limitations section says so: a reader must not read the sheet's
+coverage into that table.
+
+The assertions are ticket **0580**'s (goal-3 acceptance spec: the convergence
+harness), which is open and blocked. This tracker is not a duplicate of it:
+0580 builds the instrument, this one asks whether the target passes once it
+exists. They close on different events.
+
+## What is already known, and is not a verdict
+
+- **R17 gained a response-time clause on 2026-09-03**, when C4 was dissolved into
+  it (`DECISIONS.md`). Status must answer while all three queues run at a cost
+  that does not grow with library size. The invariance half is falsifiable today
+  — measure status latency at two library sizes — and the absolute band is
+  deliberately unpinned, with its measurer named in §5.2.9: recording the
+  latency of each status round trip, which is a driver change nobody has made.
+- **R17's account-of-work clause** — "Every stage MUST also report what it
+  processed and which input triggered it" — is the property the counters serve,
+  and it is what leaves goal 2 undecidable. Measured against zoteus 1.12.0: no
+  such report exists. That is a finding about the target, recorded here because
+  R17 is this rung's, even though its consequence is felt on the rung below.
+- **R19's fold gate is red against stock at the reviewed SHA** on 25 real misses
+  (16 Roman numerals U+2160–U+216F, 9 Devanagari nukta forms), recorded in
+  `bench/results/0578-fold-sweep/codepoints.json`. R19's other half — the two
+  normalizers agreeing at index time — needs a built index and is 0580's.
+
+## Depends on
+
+- **ticket 0580** — the goal-3 assertions. Nothing here is decidable before it.
+- **ticket 0033** — R17's account-of-work clause needs the same counters goal 2
+  waits on.
+
+## Exit criteria
+- [ ] all seven goal-3 clauses green for zoteus, each resting on a run
+- [ ] R19's fold gate green against the reviewed SHA, or its 25 misses carried
+      upstream and recorded as the measurement rather than the gate's defect
+
+## Why one tracker per rung, per target
+
+The ladder's rungs are conjunctions: a rung is kept when every one of its members
+holds, and at no state before that. Nothing in the repository asserted that
+conjunction *for a named target* — `README.md` reports each requirement's
+standing across the project, and `bench/results/0604-ladder-matrix/MATRIX.md`
+reports each clause against each target, but neither answers "is this rung kept
+for zoteus". These three trackers answer exactly that, one each, and they close
+only when their rung's every clause is green for zoteus.
+
+zoteus is the named target because *works for me* is the acceptance standard and
+this is the tool the author runs. A green here is a green for zoteus and for
+nothing else; the other four roster targets are measured by the same layer and
+are not this tracker's business.
+
+## Children
+
+Children are filed when their work starts, not up front. The gaps below are
+enumerated with the requirement sentence each rests on, which is what a child
+ticket would carry anyway; filing four stubs today would inflate the queue
+without advancing anything (severity floor, `rules/workflow.md`). This tracker is
+edited to list each child as it is created.
+
+| child | scope | state |
+|---|---|---|
+| — | none filed yet | see the gaps above |

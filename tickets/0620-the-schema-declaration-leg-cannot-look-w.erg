@@ -1,0 +1,68 @@
+%erg 0.1
+Title: The schema-declaration leg cannot look without a fork checkout, and skips
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:07Z claude created
+
+--- body ---
+
+## Context
+
+Filed by the v1.13.0 re-baseline (ticket 0618). The defect is not that a check
+was wrong; it is that the one check that could have been right did not run, on
+the exact day it was written for.
+
+`UPSTREAM_INDEX_SCHEMA_VERSION` is declared in `UPSTREAM`, mirrored in
+`bench/index_schema.mjs`, and stamped into the current-generation fixture by
+`bench/fixtures/make_index_fixture.mjs`. `tests/test_index_schema_fixtures.py`
+holds three legs over those three numbers:
+
+1. the declaration exists and is numeric;
+2. the declaration equals the fixture's stamp;
+3. the mirror equals upstream's own `const SCHEMA_VERSION`.
+
+Leg 2 is green by construction — the fixture is stamped *from* the mirror, so
+the two agree whether or not either is right. Leg 3 is the only one that reads
+anything upstream wrote, and it is guarded by
+
+    if not source.exists():
+        pytest.skip("no fork checkout — run `make upstream-checkout` to enable this leg")
+
+`fork/` is gitignored and absent on a fresh clone. So on 2026-09-03, the day
+upstream moved `SCHEMA_VERSION` from 1 to 2 for the first time since v1.7.0,
+the suite reported **20 passed, 1 skipped** on a tree whose declaration was
+wrong. That is a green that means "I could not look", which is the shape the
+harness rules name and this repository has now filed five separate lessons
+about.
+
+The bump itself was caught by `make upstream-catchup`, which reads the constant
+out of a bare mirror it maintains at `upstream.git/`. That is the point: a
+source the check can always reach already exists in this tree, and the check
+does not use it.
+
+## Actions
+
+1. Give leg 3 a source it can reach without a built checkout. `upstream.git/`
+   is a bare mirror; `git -C upstream.git show <UPSTREAM_REVIEWED_SHA>:src/features/search/sqlite-index.ts`
+   answers the question at the pinned commit, which is the *right* question —
+   leg 3 as written reads whatever `fork/` happens to be checked out at.
+2. When neither the mirror nor a checkout is present, the leg must report
+   NOT-RUN rather than skip into a green. A skip and a pass are the same colour
+   in a suite summary; that is the whole defect.
+3. Keep leg 2. It is worthless alone and useful beside leg 3: together they say
+   the fixture stamps what upstream stamps.
+
+## Test
+
+Red first, and the red is cheap because the tree was in it this morning: set
+`UPSTREAM_INDEX_SCHEMA_VERSION` and the mirror to a generation upstream does
+not declare, with no `fork/` present, and confirm the repaired leg fails where
+the current one skips.
+
+## Exit criteria
+- [ ] Leg 3 runs against the bare mirror at the reviewed SHA, with no `fork/`
+- [ ] With neither source present it reports not-run, distinguishably from pass
+- [ ] Demonstrated red against a deliberately wrong declaration, with no
+      checkout, before the fix is trusted
