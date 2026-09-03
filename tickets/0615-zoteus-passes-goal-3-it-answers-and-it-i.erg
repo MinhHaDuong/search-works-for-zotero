@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-03T11:23Z claude created
 
+2026-09-03T11:29Z UPSTREAM #48 CLOSED 2026-09-03 with two items that land on this rung's requirements without being measured against them. Status now carries passagesWithoutVectors, so a half-embedded index is no longer indistinguishable from one with no vectors -- R18's emptiness distinction, and R17's coverage sentence, both of which this tracker owns. Status also reports a measured embedRate for API providers rather than a predicted one. Neither is asserted by anything: goal 3 still has no assertion for any of its seven terms, which is 0580's, and both fields are on main rather than in the reviewed SHA. Recorded so that a later reader does not mistake the absence of a green here for an absence upstream.
 --- body ---
 ## Context
 
