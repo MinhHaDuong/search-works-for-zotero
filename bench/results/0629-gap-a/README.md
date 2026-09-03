@@ -57,7 +57,7 @@ through the acceptance layer's own tracer and sandbox
 The null arm is what makes four a signal rather than tracer noise; the numeric
 connect is the arm that could have come out the other way, and did not — a
 socket touched without a name resolved costs zero resolver connects. So the
-four are per-lookup, and they are the C library's, not the application's.
+four are per-lookup, and they are glibc's, not the application's.
 
 Both numbers match the v1130 artifact exactly, on both arms: subject
 `dns: 4` under isolation, net-shared control `dns: 3`. The artifact's own
