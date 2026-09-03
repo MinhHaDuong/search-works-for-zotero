@@ -9,8 +9,15 @@ DECISIONS.md's ratified entry of 2026-09-02.
 asserted once, against one named target. A green is a green for that target and
 for nothing else.
 
+**Beaver's column was filled after assembly, from its own committed artifact**
+(`../0586-beaver/acceptance.json`, same day; adapter merged in PR #237 and
+verified in #269). Its five goal-1 clauses are measured; the seven goal-2
+clauses read `not-measured` because `durability.py` landed after that run, not
+because anything was undecided. Those five change the totals below and nothing
+else in this document.
+
 **Instrument health:** healthy — `assertions_never_seen_red` is empty in
-`tmp/fixtures.json` (16 fixtures × 12 assertions, 2026-09-03), and every one of
+`acceptance-fixtures.json` (16 fixtures × 12 assertions, 2026-09-03), and every one of
 the twelve assertions was independently driven red by at least one fail-control,
 so none has gone inert.
 
@@ -20,29 +27,29 @@ so none has gone inert.
 
 | Clause | Req | verb | zoteus | Zotero core #6012 | ZotSeek | 54yyyu/zotero-mcp | Beaver |
 |---|---|---|---|---|---|---|---|
-| R10-local-by-default | R10 | status | **pass** | not-offered | not-offered | not-run | in-flight |
-| R10-no-egress | R10 | query | **FAIL** | not-staged | not-staged | **pass** | in-flight |
-| R15-residue-inventory | R15 | install | **pass** | not-staged | not-staged | **pass** | in-flight |
-| R15-model-cache-under-declared-roots | R15 | query | **pass** | not-offered | not-offered | not-run | in-flight |
-| R15-uninstall-removes-declared-state | R15 | uninstall | not-offered | not-offered | not-offered | not-offered | in-flight |
-| R22-pause-stops-background-work | R22 | pause | not-run | not-offered | not-offered | not-offered | in-flight |
-| R22-pause-holds-across-restart | R22 | pause | not-run | not-offered | not-offered | not-offered | in-flight |
-| R3-edit-recomputes-only-what-changed | R3 | status | not-run | not-offered | not-offered | not-run | in-flight |
-| R3-identical-resync-recomputes-nothing | R3 | status | not-run | not-offered | not-offered | not-run | in-flight |
-| R13-two-processes-both-answer | R13 | query | not-run | not-offered | not-offered | not-run | in-flight |
-| R13-two-processes-do-not-duplicate-work | R13 | status | not-run | not-offered | not-offered | not-run | in-flight |
-| R23-foreign-stamp-ends-up-serving | R23 | query | not-run | not-offered | not-offered | not-run | in-flight |
+| R10-local-by-default | R10 | status | **pass** | not-offered | not-offered | not-run | not-offered |
+| R10-no-egress | R10 | query | **FAIL** | not-staged | not-staged | **pass** | **FAIL** |
+| R15-residue-inventory | R15 | install | **pass** | not-staged | not-staged | **pass** | **pass** |
+| R15-model-cache-under-declared-roots | R15 | query | **pass** | not-offered | not-offered | not-run | not-offered |
+| R15-uninstall-removes-declared-state | R15 | uninstall | not-offered | not-offered | not-offered | not-offered | **FAIL** |
+| R22-pause-stops-background-work | R22 | pause | not-run | not-offered | not-offered | not-offered | not-measured |
+| R22-pause-holds-across-restart | R22 | pause | not-run | not-offered | not-offered | not-offered | not-measured |
+| R3-edit-recomputes-only-what-changed | R3 | status | not-run | not-offered | not-offered | not-run | not-measured |
+| R3-identical-resync-recomputes-nothing | R3 | status | not-run | not-offered | not-offered | not-run | not-measured |
+| R13-two-processes-both-answer | R13 | query | not-run | not-offered | not-offered | not-run | not-measured |
+| R13-two-processes-do-not-duplicate-work | R13 | status | not-run | not-offered | not-offered | not-run | not-measured |
+| R23-foreign-stamp-ends-up-serving | R23 | query | not-run | not-offered | not-offered | not-run | not-measured |
 
 Per-column totals, and they close against each artifact's own `summary` block:
 
-| Target | pass | fail | not-offered | not-run | not-staged | in-flight | artifact |
+| Target | pass | fail | not-offered | not-run | not-staged | not-measured | artifact |
 |---|---|---|---|---|---|---|---|
-| zoteus 1.12.0 | 3 | 1 | 1 | 7 | 0 | 0 | `tmp/acceptance-zoteus.json` |
-| Zotero core #6012 @19e7962 | 0 | 0 | 10 | 0 | 2 | 0 | `tmp/matrix/acceptance-zotero-core-6012.json` |
-| ZotSeek 1.21.2 @f442f82 | 0 | 0 | 10 | 0 | 2 | 0 | `tmp/matrix/acceptance-zotseek.json` |
-| zotero-mcp 0.11.0 @3cb3e2e | 2 | 0 | 3 | 7 | 0 | 0 | `tmp/matrix/acceptance-zotero-mcp.json` |
-| Beaver | — | — | — | — | — | 12 | none — ticket 0586 |
-| **60 cells** | **5** | **1** | **24** | **14** | **4** | **12** | |
+| zoteus 1.12.0 | 3 | 1 | 1 | 7 | 0 | 0 | `acceptance-zoteus.json` |
+| Zotero core #6012 @19e7962 | 0 | 0 | 10 | 0 | 2 | 0 | `acceptance-zotero-core-6012.json` |
+| ZotSeek 1.21.2 @f442f82 | 0 | 0 | 10 | 0 | 2 | 0 | `acceptance-zotseek.json` |
+| zotero-mcp 0.11.0 @3cb3e2e | 2 | 0 | 3 | 7 | 0 | 0 | `acceptance-zotero-mcp.json` |
+| Beaver 0.23.3 @`bec71e14` | 1 | 2 | 2 | 0 | 0 | 7 | `../0586-beaver/acceptance.json` |
+| **60 cells** | **6** | **3** | **26** | **14** | **4** | **7** | |
 
 Five cells of sixty are green. No cell is blank and no cell is inferred: each
 traces to a `result` field in a named artifact, except Beaver's column, marked
@@ -292,7 +299,7 @@ reaches the comparison. The #6012 column is silence about the gap, not evidence
 against it.
 
 **The instrument's clean bill of health is job-local, not committed.** It comes
-from `tmp/fixtures.json` (2026-09-03, 16 fixtures × 12 assertions). The repo's
+from `acceptance-fixtures.json` (2026-09-03, 16 fixtures × 12 assertions). The repo's
 committed fail-control matrix,
 `bench/results/smoke-1.12.0/acceptance-fixtures.json`, is dated 2026-09-02 and
 carries 14 fixtures × 10 checks — **no R22 rows at all**. Both report an empty
