@@ -78,14 +78,25 @@ taken. That the two mechanisms produce identical counts is a stronger reading
 than a single-apparatus repeat, not a weaker one — but it is a fact about the
 evidence and belongs stated rather than discovered.
 
-**The 4-vs-3 split is explained, from the traces, not waved at.** With a route,
-the three connects each succeed and each is followed by a `sendmmsg` carrying
-an A and an AAAA query — for `example.invalid`, then `example.invalid.loc`,
-then `example.invalid.net…`: one connect per entry of this machine's
-`resolv.conf` search list. Without a route, all four connects fail
-`ENETUNREACH` and **no query is ever sent**, so the isolated arm is walking a
-failure-retry ladder rather than the search list; why that ladder stops at
-four exactly is not established here, and does not need to be. Two
+**The 4-vs-3 split is explained, and the explanation is in the artifact.** Each
+arm now carries a `resolver_shape` block beside its counts, so the reading
+below is checkable from the committed record rather than from a trace file the
+repository does not keep:
+
+| arm | `connect_outcomes` | `query_messages_sent` |
+|---|---|---|
+| `one_getaddrinfo/isolated` | `{"ENETUNREACH": 4}` | 0 |
+| `one_getaddrinfo/net_shared` | `{"ok": 3}` | 6 |
+
+With a route the three connects succeed and carry six query messages — an A
+and an AAAA on each — which is the bare name plus one attempt per entry of
+this machine's two-entry `resolv.conf` search list. Without a route every
+connect fails `ENETUNREACH` and **no query is ever sent**, so that arm walks a
+failure-retry ladder rather than the search list; why the ladder stops at four
+exactly is not established here, and does not need to be. The query payloads
+are counted and never transcribed — they name this machine's search-domain
+configuration, and `bench/results/**` is a public tree, which is the same rule
+`acceptance/run.py` states about arena paths. Two
 consequences worth carrying: the absolute count is a property of this
 machine's resolver configuration, not a constant, and the isolated and shared
 counts are not the same quantity — which is why the comparison that matters is
