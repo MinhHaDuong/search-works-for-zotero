@@ -38,16 +38,59 @@
  *        --server <dist/index.js> --data-dir <dir> --embeddings local
  */
 import { DatabaseSync } from 'node:sqlite';
-import { existsSync, unlinkSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync, unlinkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
+  realpathSync, rmSync, statSync, writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { join, resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { join, parse, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
 import { SCHEMA_VERSION } from '../index_schema.mjs';
 
 export const GENERATIONS = ['current', 'prerename'];
+const SOURCE_TAG_PREFIX = 'zoteus-golden-source:';
+const ATTACHMENT_TAG_PREFIX = 'zoteus-golden-attachment:';
+const CONTENT_TYPES = {
+  pdf: 'application/pdf', djvu: 'image/vnd.djvu', html: 'text/html', wikitext: 'text/plain',
+};
+
+function tags(data) {
+  return new Set((data.tags ?? []).filter((tag) => tag && typeof tag.tag === 'string').map((tag) => tag.tag));
+}
+
+function requireOnlyManagedMarker(data, prefix, expected, label) {
+  const managed = [...tags(data)].filter((tag) => tag.startsWith(prefix));
+  if (managed.length !== 1 || managed[0] !== expected) {
+    throw new Error(`${label}: expected only managed marker ${expected}`);
+  }
+}
+
+function expectedParent(doc, collectionKey) {
+  return {
+    itemType: 'document',
+    title: doc.title,
+    creators: [{ creatorType: 'author', name: doc.author }],
+    date: String(doc.year),
+    language: doc.language,
+    url: doc.bytes_url,
+    archive: doc.archive,
+    archiveLocation: doc.identifier,
+    extra: `ticket-0029 recipe id: ${doc.id}`,
+    collections: [collectionKey],
+  };
+}
+
+function requireFields(data, expected, label) {
+  for (const [field, value] of Object.entries(expected)) {
+    if (JSON.stringify(canonicalJson(data[field])) !== JSON.stringify(canonicalJson(value))) {
+      throw new Error(`${label}: ${field} does not match the source recipe`);
+    }
+  }
+}
 
 /**
  * Read and prove the shape of a ticket-0029 Zotero export before serving a byte.
@@ -58,6 +101,7 @@ export const GENERATIONS = ['current', 'prerename'];
  * from quietly acquiring the standing of Zotero's extraction.
  */
 export function loadGoldenExport(directory, options = {}) {
+  if (!options.recipePath) throw new Error('golden export validation requires recipePath');
   const root = resolve(directory);
   const readJson = (relative, label) => {
     const path = resolve(root, relative);
@@ -96,28 +140,85 @@ export function loadGoldenExport(directory, options = {}) {
     const data = item?.data ?? item;
     const key = item?.key ?? data?.key;
     if (!key) throw new Error('items export contains an item without a key');
+    if (item?.key && data?.key && item.key !== data.key) {
+      throw new Error(`items export wrapper/data key mismatch for ${item.key}`);
+    }
     if (itemByKey.has(key)) throw new Error(`items export contains duplicate key ${key}`);
     itemByKey.set(key, item);
   }
   if (!Array.isArray(manifest.attachments) || manifest.attachments.length === 0) {
     throw new Error('manifest has no attachment exports');
   }
+  let recipe;
+  try {
+    recipe = JSON.parse(readFileSync(options.recipePath, 'utf8'));
+  } catch (error) {
+    throw new Error(`malformed source recipe ${options.recipePath}: ${error.message}`);
+  }
+  if (!Array.isArray(recipe) || recipe.length === 0) throw new Error('source recipe must be a non-empty array');
+  const recipeById = new Map();
+  for (const doc of recipe) {
+    if (!doc || typeof doc.id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(doc.id) || recipeById.has(doc.id)) {
+      throw new Error(`source recipe has duplicate or empty id ${doc?.id ?? ''}`);
+    }
+    const requiredStrings = [
+      'title', 'author', 'language', 'archive', 'identifier', 'bytes_url', 'license_basis',
+    ];
+    if (requiredStrings.some((field) => typeof doc[field] !== 'string' || !doc[field])) {
+      throw new Error(`${doc.id}: source recipe lacks required provenance metadata`);
+    }
+    if (!Number.isInteger(doc.year) || !/^[0-9a-f]{64}$/.test(doc.sha256 ?? '') ||
+        !Object.hasOwn(CONTENT_TYPES, doc.bytes_format ?? 'pdf')) {
+      throw new Error(`${doc.id}: source recipe has invalid year, sha256, or bytes_format`);
+    }
+    recipeById.set(doc.id, doc);
+  }
+  const canonical = JSON.stringify(canonicalJson(recipe));
+  const actual = createHash('sha256').update(canonical).digest('hex');
+  if (actual !== manifest.recipe_sha256) {
+    throw new Error(`snapshot recipe sha256 ${manifest.recipe_sha256} does not match ${options.recipePath} (${actual})`);
+  }
+
   const recipeIds = new Set();
+  const parentKeys = new Set();
+  const attachmentKeys = new Set();
+  const consumedItemKeys = new Set();
   const fulltext = new Map();
   for (const row of manifest.attachments) {
     const { recipe_id: recipeId, parent_key: parent, attachment_key: key } = row;
     if (!recipeId || recipeIds.has(recipeId)) throw new Error(`duplicate or empty recipe id ${recipeId ?? ''}`);
+    if (!recipeById.has(recipeId)) throw new Error(`${recipeId}: attachment is not present in the source recipe`);
+    if (!parent || parentKeys.has(parent) || attachmentKeys.has(parent)) {
+      throw new Error(`${recipeId}: duplicate or empty parent key ${parent ?? ''}`);
+    }
+    if (!key || attachmentKeys.has(key) || parentKeys.has(key)) {
+      throw new Error(`${recipeId}: duplicate or empty attachment key ${key ?? ''}`);
+    }
     recipeIds.add(recipeId);
-    if (!itemByKey.has(parent)) throw new Error(`${recipeId}: missing parent item ${parent}`);
+    parentKeys.add(parent);
+    attachmentKeys.add(key);
+    const parentItem = itemByKey.get(parent);
+    if (!parentItem) throw new Error(`${recipeId}: missing parent item ${parent}`);
+    const parentData = itemData(parentItem);
+    if (parentData.parentItem) throw new Error(`${recipeId}: declared parent ${parent} is itself a child`);
+    requireOnlyManagedMarker(parentData, SOURCE_TAG_PREFIX, `${SOURCE_TAG_PREFIX}${recipeId}`, recipeId);
+    requireFields(parentData, expectedParent(recipeById.get(recipeId), manifest.library.collection_key), recipeId);
     const attachment = itemByKey.get(key);
     if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
     const data = attachment.data ?? attachment;
     if (data.parentItem !== parent || data.linkMode !== 'linked_file') {
       throw new Error(`${recipeId}: ${key} is not the declared linked child of ${parent}`);
     }
-    if (typeof data.path === 'string' && !/^attachments:[^/\\]+$/.test(data.path)) {
+    const doc = recipeById.get(recipeId);
+    const expectedPath = `attachments:${doc.id}.${doc.bytes_format ?? 'pdf'}`;
+    if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
       throw new Error(`${recipeId}: linked-file path is not portable`);
     }
+    requireOnlyManagedMarker(data, ATTACHMENT_TAG_PREFIX, `${ATTACHMENT_TAG_PREFIX}${recipeId}`, recipeId);
+    requireFields(data, {
+      itemType: 'attachment', title: doc.title,
+      contentType: CONTENT_TYPES[doc.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
+    }, recipeId);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
     }
@@ -127,22 +228,22 @@ export function loadGoldenExport(directory, options = {}) {
       throw new Error(`${recipeId}: invalid fulltext version`);
     }
     const body = readJson(row.fulltext_file, `fulltext for ${key}`);
-    if (typeof body?.content !== 'string' || !Number.isInteger(body.indexedPages) ||
+    if (typeof body?.content !== 'string' || !body.content.trim() || !Number.isInteger(body.indexedPages) ||
         !Number.isInteger(body.totalPages)) {
       throw new Error(`${recipeId}: malformed fulltext for ${key}`);
     }
-    fulltext.set(key, { body, version: row.fulltext_version });
-  }
-  if (items.length !== manifest.attachments.length * 2) {
-    throw new Error(`items export has ${items.length} rows for ${manifest.attachments.length} recipe records`);
-  }
-  if (options.recipePath) {
-    const recipe = JSON.parse(readFileSync(options.recipePath, 'utf8'));
-    const canonical = JSON.stringify(canonicalJson(recipe));
-    const actual = createHash('sha256').update(canonical).digest('hex');
-    if (actual !== manifest.recipe_sha256) {
-      throw new Error(`snapshot recipe sha256 ${manifest.recipe_sha256} does not match ${options.recipePath} (${actual})`);
+    if (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages) {
+      throw new Error(`${recipeId}: invalid indexedPages/totalPages relation`);
     }
+    fulltext.set(key, { body, version: row.fulltext_version });
+    consumedItemKeys.add(parent);
+    consumedItemKeys.add(key);
+  }
+  if (recipeIds.size !== recipeById.size || [...recipeById.keys()].some((id) => !recipeIds.has(id))) {
+    throw new Error(`manifest attachment ids are not an exact bijection with the ${recipeById.size}-record recipe`);
+  }
+  if (consumedItemKeys.size !== itemByKey.size || [...itemByKey.keys()].some((key) => !consumedItemKeys.has(key))) {
+    throw new Error('items export contains a row not consumed by the recipe attachment mapping');
   }
   return { root, manifest, items, itemByKey, fulltext };
 }
@@ -214,7 +315,9 @@ export function goldenReplayResponse(fixture, method, rawUrl) {
   const fulltextMatch = route.match(/^\/items\/([^/]+)\/fulltext$/);
   if (fulltextMatch) {
     const found = fixture.fulltext.get(decodeURIComponent(fulltextMatch[1]));
-    return found ? answer(200, found.body) : answer(404, { error: 'no full text' });
+    return found
+      ? answer(200, found.body, { ...commonHeaders, 'last-modified-version': String(found.version) })
+      : answer(404, { error: 'no full text' });
   }
   const childrenMatch = route.match(/^\/items\/([^/]+)\/children$/);
   if (childrenMatch) {
@@ -262,8 +365,8 @@ export async function startGoldenReplay(fixture, options = {}) {
   const requests = [];
   const server = createServer((request, response) => {
     const url = new URL(request.url, 'http://127.0.0.1');
-    requests.push(`${request.method ?? 'GET'} ${url.pathname}${url.search}`);
     const result = goldenReplayResponse(fixture, request.method ?? 'GET', request.url);
+    requests.push({ method: request.method ?? 'GET', url: `${url.pathname}${url.search}`, status: result.status });
     sendJson(response, result.status, result.body, result.headers);
   });
   await new Promise((resolveListen, reject) => {
@@ -279,25 +382,134 @@ export async function startGoldenReplay(fixture, options = {}) {
   };
 }
 
+/** Keep runtime/loader/CUDA configuration, but never forward library or provider secrets. */
+export function offlineBuildEnvironment(source = process.env) {
+  const clean = { ...source };
+  const providerSecrets = new Set([
+    'OPENAI_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY',
+    'GOOGLE_APPLICATION_CREDENTIALS', 'ANTHROPIC_API_KEY', 'AZURE_OPENAI_API_KEY',
+    'HF_TOKEN', 'HUGGING_FACE_HUB_TOKEN',
+  ]);
+  for (const key of Object.keys(clean)) {
+    if (key.startsWith('ZOTERO_') || key.startsWith('ZOTEUS_') || providerSecrets.has(key)) delete clean[key];
+  }
+  clean.ZOTEUS_UPDATE_CHECK = 'false';
+  clean.ZOTEUS_OAUTH_ENABLED = 'false';
+  return clean;
+}
+
+/** Refuse a user's existing index and paths too broad to be a dedicated build target. */
+export function requireFreshBuildDirectory(directory) {
+  if (!directory) throw new Error('golden replay needs a dedicated data directory');
+  const candidate = resolve(directory);
+  if (!existsSync(candidate) || !statSync(candidate).isDirectory()) {
+    throw new Error(`golden replay data directory must already exist and be empty: ${candidate}`);
+  }
+  const actual = realpathSync(candidate);
+  if (candidate !== actual) throw new Error(`golden replay data directory must not be a symlink: ${candidate}`);
+  const broad = new Set([
+    parse(actual).root, resolve(homedir()), resolve(import.meta.dirname, '..', '..'), resolve(tmpdir()),
+  ]);
+  if (broad.has(actual)) throw new Error(`golden replay refuses broad data directory ${actual}`);
+  if (readdirSync(actual).length !== 0) throw new Error(`golden replay data directory is not empty: ${actual}`);
+  return actual;
+}
+
+export function claimFreshBuildDirectory(directory, fixture) {
+  const dataDirectory = requireFreshBuildDirectory(directory);
+  const sentinelName = '.zoteus-golden-build.json';
+  writeFileSync(join(dataDirectory, sentinelName), `${JSON.stringify({
+    schema: 'zoteus-golden-build/v1',
+    recipe_sha256: fixture.manifest.recipe_sha256,
+    export_root: fixture.root,
+  }, null, 2)}\n`, { flag: 'wx' });
+  if (readdirSync(dataDirectory).some((name) => name !== sentinelName)) {
+    throw new Error(`golden replay data directory changed while it was claimed: ${dataDirectory}`);
+  }
+  return dataDirectory;
+}
+
+function successfulRequest(requests, predicate) {
+  return requests.some((request) => request.method === 'GET' && request.status === 200 && predicate(new URL(request.url, 'http://replay')));
+}
+
+/** Prove the real driver built this fixture and exercised every required API surface. */
+export function validateGoldenBuildResult(fixture, result, requests, dataDirectory) {
+  const status = result?.status;
+  const state = String(status?.state ?? status?.status ?? '').toLowerCase();
+  if (state !== 'done') {
+    throw new Error(`golden replay build did not finish successfully (${state || 'missing state'})`);
+  }
+  const expectedItems = fixture.manifest.attachments.length;
+  const builtItems = status.itemsFetched ?? status.items;
+  if (!Number.isInteger(builtItems) || builtItems !== expectedItems) {
+    throw new Error(`golden replay built ${builtItems ?? 'no'} items; expected ${expectedItems}`);
+  }
+  if (!Number.isInteger(status.passages) || status.passages < expectedItems ||
+      !Number.isInteger(status.fulltextPassages) || status.fulltextPassages < expectedItems) {
+    throw new Error('golden replay produced no complete item/fulltext passage result');
+  }
+  const indexSize = result.files?.['search-index.sqlite'];
+  const indexPath = join(dataDirectory, 'search-index.sqlite');
+  if (!Number.isInteger(indexSize) || indexSize <= 0 || !existsSync(indexPath) || statSync(indexPath).size <= 0) {
+    throw new Error('golden replay did not produce a non-empty search-index.sqlite');
+  }
+  const failed = requests.find((request) => request.status !== 200);
+  if (failed) throw new Error(`golden replay received ${failed.status} for ${failed.method} ${failed.url}`);
+  const library = fixture.manifest.library;
+  const prefix = library.type === 'group' ? `/api/groups/${library.id}` : '/api/users/0';
+  const required = [
+    ['local capability probe', (url) => url.pathname === '/api/users/0/items'],
+    ['library item listing', (url) => url.pathname.startsWith(`${prefix}/`) && /\/items(?:\/top)?$/.test(url.pathname)],
+    ['fulltext census', (url) => url.pathname === `${prefix}/fulltext`],
+  ];
+  if (library.type === 'group') {
+    required.push(['local group discovery', (url) => url.pathname === '/api/users/0/groups']);
+  }
+  for (const row of fixture.manifest.attachments) {
+    required.push([
+      `fulltext body ${row.attachment_key}`,
+      (url) => url.pathname === `${prefix}/items/${encodeURIComponent(row.attachment_key)}/fulltext`,
+    ]);
+  }
+  for (const [label, predicate] of required) {
+    if (!successfulRequest(requests, predicate)) throw new Error(`golden replay did not exercise ${label}`);
+  }
+  return result;
+}
+
 /** Run the real MCP build driver against the replay, never a hand-written indexer. */
 export async function runGoldenBuild(fixture, options) {
-  const replay = await startGoldenReplay(fixture);
+  if (!['off', 'local'].includes(options.embeddings)) {
+    throw new Error('golden replay embeddings must be off or local');
+  }
+  const dataDirectory = claimFreshBuildDirectory(options.dataDir, fixture);
+  const resultDirectory = mkdtempSync(join(tmpdir(), 'zoteus-golden-result-'));
+  let replay;
+  try {
+    replay = await startGoldenReplay(fixture);
+  } catch (error) {
+    rmSync(resultDirectory, { recursive: true, force: true });
+    throw error;
+  }
   const topItems = fixture.items.filter((item) => !itemData(item).parentItem).length;
+  const resultPath = join(resultDirectory, 'build.json');
   const args = [
     'bench/run_build.py',
     '--server', options.server,
-    '--data-dir', options.dataDir,
+    '--data-dir', dataDirectory,
     '--backend', 'sqlite',
     '--poll', String(options.poll ?? 0.2),
     '--max-wait', String(options.maxWait ?? 3600),
     '--max-items', String(topItems),
     '--max-chars', String(fixture.manifest.index_fulltext_max_chars),
     '--embeddings', options.embeddings,
+    '--result-json', resultPath,
     '--build',
   ];
   if (options.transformersPath) args.push('--transformers-path', options.transformersPath);
   const env = {
-    ...process.env,
+    ...offlineBuildEnvironment(),
     ZOTERO_LOCAL_PORT: String(replay.port),
     ZOTEUS_LOCAL: 'on',
     ZOTERO_LIBRARY_TYPE: fixture.manifest.library.type,
@@ -305,22 +517,27 @@ export async function runGoldenBuild(fixture, options) {
   };
   try {
     const exitCode = await new Promise((resolveExit, reject) => {
-      const child = spawn(process.env.PYTHON ?? 'python3', args, {
+      const child = spawn(options.python ?? process.env.PYTHON ?? 'python3', args, {
         cwd: resolve(import.meta.dirname, '..', '..'), env, stdio: 'inherit',
       });
       child.once('error', reject);
       child.once('exit', (code, signal) => resolveExit(code ?? (signal ? 128 : 1)));
     });
+    if (exitCode !== 0) throw new Error(`golden replay build exited ${exitCode}`);
+    if (!existsSync(resultPath)) throw new Error('golden replay driver wrote no result JSON');
+    const buildResult = JSON.parse(readFileSync(resultPath, 'utf8'));
+    validateGoldenBuildResult(fixture, buildResult, replay.requests, dataDirectory);
     const result = {
       exit_code: exitCode,
       recipe_sha256: fixture.manifest.recipe_sha256,
       replay_requests: replay.requests,
+      build: buildResult,
     };
     if (options.report) writeFileSync(options.report, `${JSON.stringify(result, null, 2)}\n`);
-    if (exitCode !== 0) throw new Error(`golden replay build exited ${exitCode}`);
     return result;
   } finally {
     await replay.close();
+    rmSync(resultDirectory, { recursive: true, force: true });
   }
 }
 
@@ -556,8 +773,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.error(`golden replay requires ${missing.map((key) => `--${key}`).join(', ')}`);
       process.exit(2);
     }
-    if (!['off', 'local', 'openai', 'gemini'].includes(opt.embeddings)) {
-      console.error('--embeddings must be off, local, openai, or gemini');
+    if (!['off', 'local'].includes(opt.embeddings)) {
+      console.error('--embeddings must be off or local for offline replay');
       process.exit(2);
     }
     const fixture = loadGoldenExport(opt['replay-export'], { recipePath: opt.recipe });

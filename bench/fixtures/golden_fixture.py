@@ -225,26 +225,67 @@ def inject(
     return counts
 
 
-def _snapshot_rows(recipe: list[dict], client) -> tuple[list[dict], list[dict]]:
+def _observed_item_version(client) -> int:
+    value = getattr(client, "item_library_version", None)
+    if value is None:
+        value = getattr(client, "library_version", None)
+    if not isinstance(value, int) or value < 0:
+        raise GoldenFixtureError("Zotero did not report a valid item library version")
+    return value
+
+
+def _last_item_page_versions(client) -> list[int]:
+    versions = getattr(client, "last_item_page_versions", None)
+    return list(versions) if versions is not None else [_observed_item_version(client)]
+
+
+def _snapshot_rows(
+    recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str
+) -> tuple[list[dict], list[dict], int]:
     parents = client.list_top_items()
+    opening_versions = _last_item_page_versions(client)
+    if not opening_versions or len(set(opening_versions)) != 1:
+        raise GoldenFixtureError("Zotero item pages did not share one library version")
+    starting_item_version = opening_versions[0]
     items = []
     attachments = []
     census = client.fulltext_since(0)
+    seen_recipe_ids = set()
+    seen_item_keys = set()
     for doc in recipe:
+        if doc["id"] in seen_recipe_ids:
+            raise GoldenFixtureError(f"duplicate recipe id {doc['id']}")
+        seen_recipe_ids.add(doc["id"])
         parent = _one_marked(parents, source_tag(doc["id"]), "parent")
         if parent is None:
             raise GoldenFixtureError(f"{doc['id']}: no injected parent in Zotero")
+        if not _managed_equal(parent, _desired_parent(doc, collection_key)):
+            raise GoldenFixtureError(f"{doc['id']}: parent metadata drifted from the source recipe")
+        children = client.get_children(_key(parent))
+        if any(version != starting_item_version for version in _last_item_page_versions(client)):
+            raise GoldenFixtureError("Zotero items changed while the fixture snapshot was captured")
         child = _one_marked(
-            client.get_children(_key(parent)),
+            children,
             attachment_tag(doc["id"]),
             "linked attachment",
         )
         if child is None:
             raise GoldenFixtureError(f"{doc['id']}: no linked attachment in Zotero")
+        if len(children) != 1:
+            raise GoldenFixtureError(f"{doc['id']}: injected parent has an extra child")
         child_data = _data(child)
         if child_data.get("linkMode") != "linked_file":
             raise GoldenFixtureError(f"{doc['id']}: attachment is not a linked file")
+        linked_path = child_data.get("path")
+        if not isinstance(linked_path, str) or Path(linked_path).resolve() != source_paths[doc["id"]]:
+            raise GoldenFixtureError(f"{doc['id']}: linked attachment does not name its pinned source")
+        if not _managed_equal(child, _desired_attachment(doc, _key(parent), source_paths[doc["id"]])):
+            raise GoldenFixtureError(f"{doc['id']}: attachment metadata drifted from the source recipe")
         attachment_key = _key(child)
+        for item_key in (_key(parent), attachment_key):
+            if item_key in seen_item_keys:
+                raise GoldenFixtureError(f"duplicate exported Zotero item key {item_key}")
+            seen_item_keys.add(item_key)
         if attachment_key not in census:
             raise GoldenFixtureError(f"{doc['id']}: attachment has no /fulltext census entry")
         try:
@@ -255,14 +296,30 @@ def _snapshot_rows(recipe: list[dict], client) -> tuple[list[dict], list[dict]]:
             ) from error
         if not isinstance(census[attachment_key], int) or census[attachment_key] < 0:
             raise GoldenFixtureError(f"{doc['id']}: invalid /fulltext census version")
-        if not isinstance(fulltext, dict) or not isinstance(fulltext.get("content"), str):
+        if (
+            not isinstance(fulltext, dict)
+            or not isinstance(fulltext.get("content"), str)
+            or not fulltext["content"].strip()
+        ):
             raise GoldenFixtureError(f"{doc['id']}: malformed /fulltext response")
+        response_version = getattr(client, "last_fulltext_version", fulltext.get("version", None))
+        if response_version != census[attachment_key]:
+            raise GoldenFixtureError(f"{doc['id']}: fulltext body version does not match its census")
         if not isinstance(fulltext.get("indexedPages"), int) or not isinstance(
             fulltext.get("totalPages"), int
         ):
             raise GoldenFixtureError(
                 f"{doc['id']}: /fulltext lacks integer indexedPages/totalPages"
             )
+        indexed_pages = fulltext["indexedPages"]
+        total_pages = fulltext["totalPages"]
+        if indexed_pages < 0 or total_pages < 0 or indexed_pages > total_pages:
+            raise GoldenFixtureError(f"{doc['id']}: invalid indexedPages/totalPages relation")
+        if census[attachment_key] == 0:
+            repeated = client.get_fulltext(attachment_key)
+            repeated_version = getattr(client, "last_fulltext_version", repeated.get("version", None))
+            if repeated_version != 0 or canonical_json(repeated) != canonical_json(fulltext):
+                raise GoldenFixtureError(f"{doc['id']}: version-zero fulltext changed during capture")
         items.extend([parent, child])
         attachments.append(
             {
@@ -281,7 +338,22 @@ def _snapshot_rows(recipe: list[dict], client) -> tuple[list[dict], list[dict]]:
         raise GoldenFixtureError(
             f"fixture collection contains item(s) outside the source recipe: {', '.join(extras)}"
         )
-    return items, attachments
+    ending_parents = client.list_top_items()
+    ending_versions = _last_item_page_versions(client)
+    ending_census = client.fulltext_since(0)
+    if (
+        not ending_versions
+        or any(version != starting_item_version for version in ending_versions)
+        or canonical_json(ending_parents) != canonical_json(parents)
+    ):
+        raise GoldenFixtureError("Zotero items changed while the fixture snapshot was captured")
+    if ending_census != census:
+        raise GoldenFixtureError("Zotero fulltext changed while the fixture snapshot was captured")
+    return items, attachments, starting_item_version
+
+
+def canonical_json(value) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _portable_item(item: dict) -> dict:
@@ -321,6 +393,7 @@ def export_snapshot(
     pdf_max_pages: int,
     text_max_length: int,
     index_max_chars: int,
+    cache_dir: Path,
 ) -> Path:
     """Capture raw items/fulltext into an atomically replaced snapshot directory."""
     if library.get("type") not in {"user", "group"} or not isinstance(library.get("id"), int):
@@ -336,7 +409,13 @@ def export_snapshot(
             raise GoldenFixtureError(f"{name} must be recorded as a positive integer")
 
     verify_recipe_pins(recipe)
-    items, attachment_rows = _snapshot_rows(recipe, client)
+    source_paths = {doc["id"]: _source_path(doc, cache_dir) for doc in recipe}
+    items, attachment_rows, library_version = _snapshot_rows(
+        recipe, client, source_paths, collection_key
+    )
+    # This is deliberately after the API capture and immediately before staging the
+    # snapshot: extraction must still be attributable to the exact pinned source bytes.
+    verify_source_bytes(recipe, cache_dir)
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
@@ -365,9 +444,7 @@ def export_snapshot(
                 "linked_file_enclosure": "file: enclosure removed if present",
             },
             "attachments": public_rows,
-            "library_version": int(
-                getattr(client, "item_library_version", getattr(client, "library_version", 0))
-            ),
+            "library_version": library_version,
         }
         _write_json(temp / "items.json", [_portable_item(item) for item in items])
         _write_json(temp / "manifest.json", manifest)
@@ -408,6 +485,8 @@ class ZoteroLocalClient:
         self.server_id = None
         self.library_version = 0
         self.item_library_version = 0
+        self.last_item_page_versions = []
+        self.last_fulltext_version = None
 
     def _request(self, path: str, *, method: str = "GET", body=None):
         headers = dict(API_HEADERS)
@@ -449,6 +528,7 @@ class ZoteroLocalClient:
     def _paged(self, path: str) -> list[dict]:
         out = []
         start = 0
+        versions = []
         while True:
             separator = "&" if "?" in path else "?"
             page, headers = self._request(f"{path}{separator}limit=100&start={start}")
@@ -458,8 +538,12 @@ class ZoteroLocalClient:
             version = headers.get("Last-Modified-Version")
             if version and version.isdigit():
                 self.item_library_version = int(version)
+                versions.append(int(version))
+            else:
+                raise GoldenFixtureError(f"Zotero local API {path} omitted Last-Modified-Version")
             total = int(headers.get("Total-Results", len(out)))
             if not page or len(out) >= total:
+                self.last_item_page_versions = versions
                 return out
             start += len(page)
 
@@ -494,7 +578,11 @@ class ZoteroLocalClient:
         return result
 
     def get_fulltext(self, key):
-        result, _ = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        result, headers = self._request(f"/items/{urllib.parse.quote(key, safe='')}/fulltext")
+        version = headers.get("Last-Modified-Version")
+        if not version or not version.isdigit():
+            raise GoldenFixtureError("Zotero fulltext response omitted Last-Modified-Version")
+        self.last_fulltext_version = int(version)
         return result
 
 
@@ -529,6 +617,7 @@ def main() -> int:
     inject_parser = commands.add_parser("inject")
     inject_parser.add_argument("--cache-dir", type=Path, required=True)
     export_parser = commands.add_parser("export")
+    export_parser.add_argument("--cache-dir", type=Path, required=True)
     export_parser.add_argument("--destination", type=Path, required=True)
     export_parser.add_argument("--zotero-client-version", required=True)
     export_parser.add_argument("--pdf-max-pages", type=int, required=True)
@@ -554,6 +643,7 @@ def main() -> int:
                     pdf_max_pages=args.pdf_max_pages,
                     text_max_length=args.text_max_length,
                     index_max_chars=args.index_max_chars,
+                    cache_dir=args.cache_dir,
                 )
             )
         }
