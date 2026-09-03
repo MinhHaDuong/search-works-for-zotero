@@ -5476,3 +5476,57 @@ embedder registry already has — a declared, dated, gated identity whose
 improvements are batched into rare bumps — and the quality gate named in the
 entry above moves from prudence to cost control, since an unmeasured v1 means a
 v2 soon after, at two full drains.
+
+- **Whether the keyword ladder's refetch depth is the answer to the scope
+  give-up, rather than a new mechanism (raised 2026-09-03, reimagining ticket
+  0590).** SPEC.md §5.2.6's ladder refetches once to a fixed depth and then
+  discloses. The 2026-09-02 ruling named two candidate replacements should
+  partial answers prove common — an indexed temporary table, and filtering the
+  ranked stream before truncation — and both are mechanisms. The cheapest
+  candidate is neither: it is the depth itself, which is a constant in that
+  section and not a measured bound.
+
+  What makes it worth asking rather than assuming: X4's own run shows the far
+  end is not obviously expensive, since ranking its whole corpus unconstrained
+  was cheap against the same rule's allowance. That prices the search half
+  only — the arm returned a top-k, where a deeper refetch also materializes its
+  candidates — so the remainder is unmeasured, and 0590 now sweeps the depth
+  with its latency rather than reporting a frequency at one value. The ruling
+  asked from here is not a number. It is whether raising the depth is admitted
+  as a candidate beside the two the ledger named, so that the sweep's evidence
+  can be acted on without a second round.
+
+- **Whether a budget-exhausted answer needs a disclosure of its own, distinct
+  from R18's (raised 2026-09-03, reimagining ticket 0590; a second reviewer
+  found the zero-hit corollary below).** R18 is written about *empty* answers:
+  "An empty answer MUST say whether nothing matched or the scope is not indexed
+  yet." A scoped answer that is short because the filtered stream ran out of
+  budget is not empty, so R18's text does not reach it. And §5.2.6's three
+  disjoint sentences are all computed from indexing coverage — "partial: 812 of
+  947 — the miss may be coverage" says the index may not hold the scope yet.
+
+  Two different partials would therefore print the same word, and they ask the
+  user for opposite next moves: wait for indexing, or widen the query. That is
+  the confusion R18 exists to prevent, one level up. The corollary is worse and
+  was found by review rather than by design: for a scoped query whose stream
+  exhausts at zero in-scope hits, "fully covered — nothing matches" is the
+  sentence the current rule selects, and it would be false — the scope is
+  covered, and whether anything matches was never established.
+
+  Three ways to rule. A typed disclosure beside `CROSS_LINGUAL_DEGRADED` and
+  `CJK_KEYWORD_DEGRADED`, which is where the design already puts a condition
+  the sentences cannot carry; or a fourth sentence in §5.2.6's set; or a ruling
+  that the existing "partial" covers both causes, which would need the zero-hit
+  case answered on its own. Ticket 0590 measures how often the case arises and
+  deliberately invents no sentence.
+
+- **Whether 0590 keeping the commissioned question, with the census filed as
+  0605, is the split the author intended (raised 2026-09-03).** The instruction
+  was to reduce 0590 to the census and file the query arm as a new ticket. The
+  identifiers were assigned the other way round, deliberately and without
+  asking again: the ratified entry of 2026-09-02 reads "Ticket 0590 measures how
+  often that disclosure occurs", and this ledger is append-only, so making 0590
+  the census would have falsified a ratified sentence with no way to correct it.
+  The cut is the one asked for; only the numbering differs, and SPEC.md §5.2.6's
+  two pointers to 0590 stay true. Recorded because a deviation from an
+  instruction should not survive only in a session transcript.

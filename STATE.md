@@ -31,11 +31,11 @@ and the first populated current-schema data dir that serves. It unblocks 0605,
 **Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028, and 0581
 waits on 0029, which codex holds. No lane work reaches either.
 
-**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list, the service ceiling
-included (0577 closed, GPU arm measured). Merge authority is ruled — lanes hand PRs up; the
-cadence is [`AGENTS.md`](AGENTS.md)'s. Still open: **is 0491 inside the codex fence**.
+**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — the service ceiling
+(0577 closed) and the 0590 redesign's three entries included. Still open: **is 0491 inside the codex fence**.
 
-**Open:** nothing. #232 and #235 merged after their one citation fix each (`0bb5304`,
+**Open:** #255 — its base has moved nine merges, so its quoted gates are stale and it
+needs a re-merge. #232 and #235 merged after their one citation fix each (`0bb5304`,
 `9dd6fcd`); `claude/resume-journee-taj5f8` undecided.
 
 **2026-09-03, the extract session (0120, 0483, 0606).** `main` green at 592/13, 169
