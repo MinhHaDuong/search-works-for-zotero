@@ -2,10 +2,12 @@
 Title: Measure scoped queries that fail to fill k
 Created: 2026-09-02
 Author: codex
+Blocked-by: 0605
 
 --- log ---
 2026-09-02T15:45Z codex created
 
+2026-09-03T07:45Z claude note reimagined and split: the census half is 0605, which this now waits on. Four corrections to the count as framed -- it is defined post-fusion rather than on the keyword list, since the vector scan's bitmap pushdown means only the keyword arm starves; congruent and library-general query arms are separate, because the (scope, query) joint sets the answer; the refetch depth is swept rather than fixed, since one constant is a candidate answer and X4 priced its ceiling; and a budget-exhausted answer has no honest sentence today, which is filed for the author rather than invented here
 --- body ---
 ## Context
 
@@ -15,34 +17,104 @@ two-action path: bounded deeper refetch, then honest R18 disclosure. This ticket
 measures how often realistic collection and tag scopes reach that disclosure.
 It does not block removal and does not presume that a replacement is needed.
 
+The library half of that question -- the distribution of scope sizes, and the
+frontier it crosses -- is ticket 0605, which runs without a query harness and
+supplies this ticket's scope sample. What remains here is everything a census
+cannot answer, and four corrections to how the count was first framed.
+
+**The boundary is the answer, not the keyword list.** SPEC.md §5.2.6 gives the
+vector scan a genuine pushdown: the bitmap applies before the dot product, so
+the semantic arm returns an exact scoped top-k whenever the scope holds k
+entries at all. Only the keyword arm starves. A frequency counted on the keyword
+list is therefore a frequency about a *stage*, where what R18 discloses is the
+*answer*, after fusion -- and under the default hybrid deployment a starved
+keyword list can be entirely invisible to the user. Both readings are expensive
+in opposite directions: counting the stage overstates the failure rate and could
+commission a mechanism nothing needs, while counting only the fused arm hides a
+real failure in the keyword-only deployment, which §5.2.6's own degraded path
+produces whenever the embedder is loading, absent or failed. So the measurement
+is defined post-fusion, and keyword-only is a separate labelled arm.
+
+**The query sample sets the answer.** Scope-congruent use -- searching a
+collection for what that collection is about -- concentrates in-scope hits at
+the top of the ranked stream and fills k far below the null frontier, where an
+incongruent query behaves like the null. The frequency is a property of the
+(scope, query) joint, so a single "representative" query set silently picks the
+result. Two arms, reported separately and never pooled: congruent, with probe
+terms drawn from the scope's own passages by df band as X4 drew its probe
+vocabulary, and library-general, with X4's own vocabulary unrelated to the scope.
+
+**The refetch depth is a variable, not a given.** The give-up frequency is a
+function of it, and X4's own run prices the far end: ranking the whole 477 512-
+passage corpus unconstrained cost 73,6 ms median and 362,4 ms p95, which is what
+the deepest possible refetch costs. Reporting the frequency at the shipped depth
+alone would hand the author a number while hiding the cheapest candidate answer
+to it, which is one constant rather than a mechanism. Fill rate and latency are
+therefore reported as a curve over the depth, up to that unconstrained ceiling.
+Moving the constant is a SPEC.md change and stays a ruling; this ticket prices
+it, and does not make it.
+
+**A budget-exhausted answer has no honest sentence today.** R18 is written about
+*empty* answers, and §5.2.6's three disjoint sentences are computed from
+coverage: "partial: 812 of 947 -- the miss may be coverage" says the index may
+not hold the scope yet. A stream that ran out of budget is not that case. The
+scope is fully indexed, and the answer is short because the search stopped. Both
+would print the word "partial", and the two ask the user for opposite next moves
+-- wait, versus widen or rephrase -- which is the confusion R18 exists to
+prevent, one level up. This ticket invents no sentence. It records how often the
+case arises and files the question for the author, whose answer would be a typed
+disclosure beside `CROSS_LINGUAL_DEGRADED` or a ruling that the existing
+sentence covers it.
+
 ## Actions
 
-1. Pin a disclosed sample of realistic collection and tag scopes from the
-   author's library, including narrow, medium and broad memberships.
-2. Run representative pinned queries through the bounded deeper-refetch path.
-3. Record how often the filtered stream fills k and how often it ends in R18
-   partial disclosure, by scope kind and size.
-4. If partial answers are common, price the two candidates already named in the
-   ruling: an indexed temporary table, and filtering a ranked stream before
-   truncation. Do not build either in this ticket.
+1. Draw the scope sample from 0605's census quantiles rather than by hand:
+   narrow, medium and broad by f, for collections and for tags, with at least one
+   scope on each side of the null frontier.
+2. Run both query arms through the two-action path against the current-schema
+   full-library index.
+3. Record, per scope, query and refetch depth: the in-scope candidate count,
+   whether the fused answer fills k, whether the keyword arm alone fills k, and
+   the latency.
+4. Report fill-k and give-up frequency by scope kind, by f band, by query arm and
+   by refetch depth -- never as one pooled number.
+5. If the give-up is common in an arm a user actually sees, price the three
+   candidates: an indexed temporary table, filtering the ranked stream before
+   truncation, and exhaustive scoring of a small scope, whose region 0605 bounds.
+   Do not build any of them.
 
 ## Decision rule
 
-The measurement reports the distribution rather than inventing a threshold.
-The author decides from that evidence whether partial answers are benign or a
-replacement mechanism earns work; no automatic design change follows.
+The measurement reports the distribution rather than inventing a threshold. The
+author decides from that evidence whether partial answers are benign or a
+replacement mechanism earns work; no automatic design change follows. Two
+outcomes are ruled elsewhere and are named rather than acted on: raising the
+refetch depth is a SPEC.md change, and a typed disclosure for budget exhaustion
+is a requirement question.
 
 ## Test
 
 - Include a scope known to fill k and one deliberately too small to fill k, so
   the harness proves it can observe both outcomes.
-- Verify every non-filled arm emits R18 disclosure rather than a complete-looking
+- Run one arm with the semantic path disabled, so the harness observes the
+  deployment in which keyword starvation is what the user gets.
+- Include a scope holding fewer than k entries in total. Its short answer is
+  honestly complete, not a give-up, and the harness must not count it as one --
+  counting it would manufacture the very frequency this ticket reports.
+- Verify every non-filled arm emits disclosure rather than a complete-looking
   short list.
 
 ## Exit criteria
 
-- [ ] Scope sample and query set are pinned and disclosed.
-- [ ] Fill-k and partial frequencies are reported by scope kind and size.
+- [ ] Scope sample derives from 0605's census and is disclosed with each scope's f.
+- [ ] Fill-k and give-up frequencies are reported by scope kind, f band, query arm
+      and refetch depth.
+- [ ] The fused answer and the keyword arm are counted separately, and the
+      keyword-only deployment is labelled as its own arm.
+- [ ] Scopes holding fewer than k entries are excluded from the give-up count and
+      their number is reported.
 - [ ] Positive controls observe both filled and disclosed outcomes.
+- [ ] The disclosure-vocabulary question is filed for the author; no sentence is
+      invented here.
 - [ ] No replacement mechanism is implemented without a later ruling.
 - [ ] `make check` and `./tickets/erg check` pass.

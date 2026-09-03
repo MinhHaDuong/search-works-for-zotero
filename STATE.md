@@ -24,7 +24,7 @@ is [`README.md`](README.md)'s.
 ## Handoff
 
 **The full-library build finished** — 8 h 14, 363 613 passages, a 1,71 GB index,
-and the first populated current-schema data dir that serves. It unblocks 0590,
+and the first populated current-schema data dir that serves. It unblocks 0605,
 0120 and 0503's measurement half, all deferred all night for want of it;
 0594/0595/0596 need no machine; `make ladder-matrix` is asked for and unfiled.
 
