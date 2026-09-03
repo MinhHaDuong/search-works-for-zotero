@@ -91,8 +91,8 @@ def ftfy_version() -> str | None:
     return getattr(ftfy, "__version__", "unknown")
 
 
-def _attachment_suffixes(directory: Path) -> list[str]:
-    """The suffixes of the directory's non-hidden files. Raises on an unlistable one.
+def _attachment_files(directory: Path) -> list[Path]:
+    """The directory's non-hidden files. Raises on an unlistable one.
 
     It used to swallow `OSError` and return `[]`, which turned a directory that
     became unreadable mid-walk into an attachment-less one — an unreadable cache
@@ -100,15 +100,36 @@ def _attachment_suffixes(directory: Path) -> list[str]:
     walker's `try/except OSError` records it instead, which is the same rule the
     walk itself now follows.
     """
-    return [p.suffix.lower() for p in directory.iterdir() if p.is_file() and not p.name.startswith(".")]
+    return [p for p in directory.iterdir() if p.is_file() and not p.name.startswith(".")]
+
+
+def _is_pdf_file(path: Path) -> bool:
+    """Suffix first; an extensionless file is sniffed for the `%PDF` magic bytes
+    rather than assumed non-PDF. Confirmed against the real library: all 20 of
+    this census's "no attachment" directories in an earlier pass held one file
+    each with no suffix at all, and every one of them opened with `%PDF` --
+    Zotero's storage occasionally drops the extension from a downloaded
+    filename, the file underneath is unchanged. Reading four bytes is cheap
+    next to decoding the cache text this function already pays for.
+    """
+    if path.suffix.lower() == ".pdf":
+        return True
+    if path.suffix:
+        return False
+    try:
+        with path.open("rb") as f:
+            return f.read(4) == b"%PDF"
+    except OSError:
+        return False
 
 
 def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -> dict:
     """One cache's quality signals. Never raises on a bad file — it reports it."""
     directory = cache.parent
-    suffixes = _attachment_suffixes(directory)
-    attachments = [s for s in suffixes if s]
-    is_pdf = ".pdf" in suffixes
+    files = _attachment_files(directory)
+    suffixes = [p.suffix.lower() for p in files]
+    pdf_files = [p for p in files if _is_pdf_file(p)]
+    is_pdf = bool(pdf_files)
 
     raw = cache.read_bytes()
     text = raw.decode("utf-8", errors="replace")
@@ -125,8 +146,12 @@ def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
         # extraction's source is gone, so nothing dates it), and a directory
         # holding a PDF *and* something else, where the cache text may have come
         # from either. Neither is inside the single-page false-flag ceiling.
-        "no_attachment": not attachments,
-        "mixed_attachments": is_pdf and any(s != ".pdf" for s in attachments),
+        # Both checks are file-presence-based (via `files`/`pdf_files`), not
+        # suffix-based -- an extensionless real PDF (confirmed on the real
+        # library: every one of this census's "no attachment" hits, before
+        # this fix, was actually one of these) must not read as absent.
+        "no_attachment": not files,
+        "mixed_attachments": is_pdf and len(files) > len(pdf_files),
         "bytes": len(raw),
         "words": words,
         "form_feeds": form_feeds,

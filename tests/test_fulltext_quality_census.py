@@ -212,6 +212,37 @@ def test_orphaned_and_mixed_attachment_directories_are_counted(tmp_path: Path):
     assert r["pdf_caches_mixed_attachments"] == 1
 
 
+def test_an_extensionless_pdf_is_sniffed_not_assumed_absent(tmp_path: Path):
+    """A red-team finding on the real library: every 'no attachment' hit before
+    this test existed was actually a real PDF whose filename lost its
+    extension (Zotero occasionally truncates a long download name). Suffix
+    alone must not read that as the source being gone."""
+    root = tmp_path / "storage"
+    root.mkdir()
+    d = root / "LLLLLLLL"
+    d.mkdir()
+    # No suffix at all -- exactly the shape found on the real library.
+    (d / "2018 - a truncated download name with no exten").write_bytes(b"%PDF-1.7 stub")
+    (d / ".zotero-ft-cache").write_bytes(PAGE.encode("utf-8"))
+    r = census.census(root)
+    assert r["caches_with_no_attachment"] == 0, "a real PDF must not read as absent"
+    assert r["pdf_caches"] == 1
+    detail = r["caches_detail"][0]
+    assert detail["is_pdf"] is True
+    assert detail["no_attachment"] is False
+
+    # A non-PDF extensionless file must NOT be sniffed as a PDF -- the magic
+    # bytes are the discriminator, not merely "has no suffix".
+    d2 = root / "MMMMMMMM"
+    d2.mkdir()
+    (d2 / "not-actually-a-pdf").write_bytes(b"just some plain bytes, no magic header")
+    (d2 / ".zotero-ft-cache").write_bytes(PAGE.encode("utf-8"))
+    r2 = census.census(root)
+    detail2 = next(c for c in r2["caches_detail"] if c["key"] == "MMMMMMMM")
+    assert detail2["is_pdf"] is False
+    assert detail2["no_attachment"] is False, "a file is present, just not a PDF"
+
+
 def test_the_actionable_population_excludes_what_reextraction_cannot_help(library: Path):
     """The figure a policy acts on is not the raw no-form-feed count."""
     r = census.census(library)

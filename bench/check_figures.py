@@ -2073,7 +2073,7 @@ FIGURES = [
     # rather than merely dating something. Its zero is the load-bearing cell: an even
     # spread would have refuted the signal.
     ("0480-fulltext-quality/census.json", "summary.by_form_feed.with_form_feed.with_ligatures", 0,
-     {"v0480": "ligature glyphs (ﬁ ﬂ ﬀ) | **{}** | **1009** |"}),
+     {"v0480": "ligature glyphs (ﬁ ﬂ ﬀ) | **{}** | **1011** |"}),
     ("0480-fulltext-quality/census.json", "summary.by_form_feed.no_form_feed.mojibake", 0,
      {"v0480": "`ftfy.badness.is_bad` | 14 | {} |"}),
 
