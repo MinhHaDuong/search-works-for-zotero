@@ -33,16 +33,31 @@ and a benchmark that can create users is a benchmark holding privilege it never
 needs at run time. `tester` is provisioned once, out of band, by whoever runs
 this harness: a dedicated account with **read** access to the Zotero library —
 which the benchmark genuinely needs, since every target here is read-only
-against it — and **write** access to nothing but the arena. A short recipe:
+against it — and **write** access to nothing but the arena. The full recipe,
+with the private-group-`$HOME` trap it was corrected against, lives beside
+`ACCEPTANCE_ARENA` in the `Makefile`; the shape of it:
 
     sudo useradd --create-home --shell /usr/sbin/nologin tester
-    sudo setfacl -R -m u:tester:rX /path/to/your/Zotero/library
-    sudo setfacl -R -m d:u:tester:rX /path/to/your/Zotero/library
+    sudo setfacl -m u:tester:x /home/<operator>                      # PARENT traverse first
+    sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/library
+    sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/library
     sudo install -d -o tester -g tester /path/to/the/acceptance/arena
     # then let the operator drive the harness without a password as tester:
     echo "operator ALL=(tester) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
 
-That last line is the one `_works()` below actually exercises — a `tester`
+The parent-traverse line is not decoration: verified on a second machine
+("padme", 2026-09) where `$HOME` is `0750` under Ubuntu's private-group-per-
+user scheme, `tester` could not step INTO the directory holding the library at
+all without it, so the recursive grant on the library alone was unreachable.
+The same two grants — parent traverse, then recursive `rX` — apply to every
+built target checkout an adapter is pointed at via `--adapter-option`
+(`application=`/`launcher=`/`zotero=`/`entrypoint=`/`venv=`), not only to the
+library: `wrap()` below crosses the account boundary at the process spawn
+alone, so `tester` reads the SAME checkout the operator already built, in
+place, rather than a copy re-cloned under its own home — nothing here re-
+executes the harness itself under `tester`, only the target's own process.
+
+The sudoers line is the one `_works()` below actually exercises — a `tester`
 account that exists but has no such sudoers rule is exactly the case it is
 written to catch, distinctly from an absent account.
 

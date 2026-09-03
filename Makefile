@@ -28,17 +28,41 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 # create the account itself. A short, copyable recipe, once per machine:
 #
 #   sudo useradd --create-home --shell /usr/sbin/nologin tester
-#   sudo setfacl -R -m u:tester:rX  /path/to/your/Zotero/library
-#   sudo setfacl -R -m d:u:tester:rX /path/to/your/Zotero/library
+#
+#   # Traverse-only on the PARENT first. Verified end to end on a second
+#   # machine ("padme", 2026-09), where $HOME uses Ubuntu's private-group-per-
+#   # user scheme (0750, group = that one user) — without this grant `tester`
+#   # cannot even step INTO the directory that holds the library, so the
+#   # recursive ACL on the library alone is unreachable and every read fails
+#   # closed. This is the step that looks unnecessary until you hit exactly
+#   # that layout, so it stays first and explicit rather than folded away:
+#   sudo setfacl -m u:tester:x /home/<operator>
+#   sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/Zotero/library
+#   sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/Zotero/library
+#
+#   # The SAME two grants — parent traverse, then recursive rX — are needed on
+#   # every built target checkout an adapter is pointed at via
+#   # --adapter-option (application=/launcher=/zotero=/entrypoint=/venv=), not
+#   # only on the library. `wrap()` (bench/acceptance/posture.py) crosses the
+#   # account boundary at the target's process spawn ALONE — the harness stays
+#   # running as the operator throughout (ticket 0625's Action 1), so nothing
+#   # is re-checked out or re-executed under tester's own home. `tester` just
+#   # needs to read and execute the SAME checkout the operator already built,
+#   # in place — which, under a private-group $HOME, needs the parent-traverse
+#   # grant exactly like the library does, all the way down from $HOME to the
+#   # binary each --adapter-option names.
+#
 #   sudo install -d -o tester -g tester "$(ACCEPTANCE_ARENA)"
 #   echo "operator ALL=(tester) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
 #
-# `tester` gets READ on the library (every target here is read-only against
-# it) and WRITE on nothing but the arena. Where the run's own environment is
-# itself the boundary instead — a disposable container, a throwaway VM, with
-# no second identity within reach — pass `--posture already-isolated`; the
-# harness does not probe for this, the operator states it (see
-# `bench/acceptance/posture.py`'s module docstring for why no probe is safe).
+# `tester` gets READ on the library and on the target checkouts (every target
+# here is read-only against the library, and its own binary need only be
+# executed, never written to) and WRITE on nothing but the arena. Where the
+# run's own environment is itself the boundary instead — a disposable
+# container, a throwaway VM, with no second identity within reach — pass
+# `--posture already-isolated`; the harness does not probe for this, the
+# operator states it (see `bench/acceptance/posture.py`'s module docstring for
+# why no probe is safe).
 
 help:
 	@echo "make check       — everything: lint, figures, tests"
