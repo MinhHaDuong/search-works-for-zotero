@@ -224,6 +224,38 @@ def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path
     export_again(recipe, zotero, cache, tmp_path / "current")
 
 
+def test_export_forces_fresh_extraction_when_hash_and_metadata_are_unchanged(tmp_path):
+    payload = b"%PDF-1.4\ncontrol\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    attachment = next(key for key, item in zotero.items.items()
+                      if item["data"]["itemType"] == "attachment")
+    zotero.fulltexts[attachment] = {
+        "content": "stale extraction", "indexedPages": 1, "totalPages": 1, "version": 1,
+    }
+    original_reindex = zotero.reindex_fulltext
+
+    def refresh(keys):
+        original_reindex(keys)
+        zotero.fulltexts[attachment] = {
+            "content": "fresh extraction from pinned bytes",
+            "indexedPages": 1, "totalPages": 1, "version": 2,
+        }
+
+    zotero.reindex_fulltext = refresh
+    destination = tmp_path / "fresh"
+    export_again(recipe, zotero, cache, destination)
+
+    assert zotero.reindexes[-1] == [attachment]
+    assert len(zotero.reindexes) == 2
+    exported = json.loads((destination / "fulltext" / f"{attachment}.json").read_text())
+    assert exported["content"] == "fresh extraction from pinned bytes"
+
+
 def test_failed_reindex_leaves_attachment_pending_and_unexportable(tmp_path):
     payload = b"%PDF-1.4\ncontrol\n"
     recipe = recipe_for(payload)
@@ -551,7 +583,9 @@ def test_export_requires_one_item_sequence_and_matching_fulltext_body_version(tm
         nonlocal calls
         calls += 1
         rows = original_list()
-        if calls == 2:
+        # Export's forced refresh performs one opening read before the snapshot's
+        # own opening/closing pair; mutate on the latter's closing read.
+        if calls == 3:
             zotero.library_version += 1
         return rows
 

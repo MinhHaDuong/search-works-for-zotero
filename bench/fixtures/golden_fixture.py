@@ -100,13 +100,6 @@ def verify_source_bytes(recipe: list[dict], cache_dir: Path) -> dict[str, Path]:
     return found
 
 
-def verify_recipe_pins(recipe: list[dict]) -> None:
-    for doc in recipe:
-        pinned = doc.get("sha256")
-        if not isinstance(pinned, str) or len(pinned) != 64:
-            raise GoldenFixtureError(f"{doc.get('id', '<no id>')}: source bytes are not pinned")
-
-
 def _tag_values(data: dict) -> list[str]:
     return [
         entry.get("tag")
@@ -415,6 +408,41 @@ def canonical_json(value) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _refresh_fulltext_from_pinned_sources(
+    recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
+    cache_dir: Path,
+) -> None:
+    """Force the export's extraction from the bytes verified around this operation."""
+    parents = client.list_top_items()
+    pending = []
+    for doc in recipe:
+        parent = _one_marked(parents, source_tag(doc["id"]), "parent")
+        if parent is None or not _managed_equal(parent, _desired_parent(doc, collection_key)):
+            raise GoldenFixtureError(f"{doc['id']}: parent metadata drifted from the source recipe")
+        children = client.get_children(_key(parent))
+        attachment = _one_marked(children, attachment_tag(doc["id"]), "linked attachment")
+        if attachment is None:
+            raise GoldenFixtureError(f"{doc['id']}: no linked attachment in Zotero")
+        if len(children) != 1:
+            raise GoldenFixtureError(f"{doc['id']}: injected parent has an extra child")
+        final = _desired_attachment(doc, _key(parent), source_paths[doc["id"]])
+        if not _managed_equal(attachment, final):
+            raise GoldenFixtureError(f"{doc['id']}: attachment metadata drifted from the source recipe")
+        waiting = _desired_attachment(
+            doc, _key(parent), source_paths[doc["id"]], extraction_state="pending"
+        )
+        pending.append((attachment, final, waiting))
+
+    waiting_items = client.write_items([_update_payload(attachment, waiting)
+                                        for attachment, _, waiting in pending])
+    client.reindex_fulltext([_key(attachment) for attachment in waiting_items])
+    # A linked file can change while Zotero is reading it.  Do not attest or export
+    # unless the complete source set still has the recipe hashes after extraction.
+    verify_source_bytes(recipe, cache_dir)
+    client.write_items([_update_payload(attachment, pending[index][1])
+                        for index, attachment in enumerate(waiting_items)])
+
+
 def _portable_item(item: dict) -> dict:
     """Emit only fields reviewed as inputs to the replay/index build."""
     data = _data(item)
@@ -504,8 +532,10 @@ def export_snapshot(
         if not isinstance(value, int) or value <= 0:
             raise GoldenFixtureError(f"{name} must be recorded as a positive integer")
 
-    verify_recipe_pins(recipe)
-    source_paths = {doc["id"]: _source_path(doc, cache_dir) for doc in recipe}
+    source_paths = verify_source_bytes(recipe, cache_dir)
+    _refresh_fulltext_from_pinned_sources(
+        recipe, client, source_paths, collection_key, cache_dir
+    )
     items, attachment_rows, library_version = _snapshot_rows(
         recipe, client, source_paths, collection_key
     )
@@ -799,7 +829,7 @@ def main() -> int:
             "snapshot": str(
                 export_snapshot(
                     recipe,
-                    _client(args, writes=False),
+                    _client(args, writes=True),
                     collection_key=args.collection_key,
                     destination=args.destination,
                     library={"type": args.library_type, "id": args.library_id},
