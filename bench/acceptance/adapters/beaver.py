@@ -524,6 +524,21 @@ class Beaver:
         #: this adapter directly (every test in this file does) keeps working.
         #: `run.py` never passes `None`: it always resolves a `Posture` first,
         #: ratified 2026-09-03 (DECISIONS.md; ticket 0625).
+        #:
+        #: This default is a deliberate, narrow fail-OPEN and worth naming as
+        #: one: any caller that constructs an adapter directly — bypassing
+        #: `run.py` entirely — gets an unwrapped spawn with no notice, silently,
+        #: rather than a refusal. Accepted because the only such callers are
+        #: this file's own tests (offline, no real target, no real library in
+        #: reach) and any future one-off script built the same way; the actual
+        #: measurement path — `run.py`'s `make_target`, every real invocation —
+        #: never omits `posture`, so the footgun has no trigger there. A script
+        #: that constructs an adapter directly against a REAL target and a REAL
+        #: library, outside `run.py`, is the one shape that would fire it, and
+        #: nothing here can distinguish that case from a test's fake one; the
+        #: mitigation is that no such script exists in this tree today, not a
+        #: runtime check — a check here would have no honest way to tell a
+        #: harmless test fixture from an unsafe production script apart.
         self._posture = posture
 
         self.home = self.arena / "home"

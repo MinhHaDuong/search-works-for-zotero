@@ -799,11 +799,10 @@ class ZoteroCore6012:
         self._write_profile()
         argv = [str(self.application), "-profile", str(self.profile),
                 "-datadir", str(self.data), "-no-remote"]
-        # Only the process spawn crosses the identity boundary (ticket 0625,
-        # Action 1) — the profile write above is the harness's own setup and
-        # stays the operator's. `wrap` raises `PostureUnavailable` before this
-        # Popen if the posture is refused; never caught here to fall back to
-        # an unwrapped spawn.
+        # See `beaver.Beaver.running`'s identical comment: only the process
+        # spawn crosses the identity boundary (ticket 0625, Action 1); `wrap`
+        # raises before this Popen on a refused posture and is never caught
+        # here to fall back to an unwrapped spawn.
         if self._posture is not None:
             argv = self._posture.wrap(argv, self.environment())
         log = self.arena / HOST_LOG

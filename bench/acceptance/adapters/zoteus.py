@@ -265,20 +265,12 @@ class Zoteus:
         self._seed()
         cmd = ["node", str(self.entrypoint)]
         env = self._env()
-        # Only the process spawn crosses the identity boundary (ticket 0625,
-        # Action 1) — the mkdir and the seed above are the harness's own
-        # setup, always the operator's. `env` is UNCHANGED by wrapping and
-        # still reaches `Server` below exactly as it always did: `Server`
-        # merges it over `os.environ` and hands the result to
-        # `subprocess.Popen`, which is the environment the wrapping `sudo`
-        # process itself receives — never on any argv (see `Posture.wrap`'s
-        # own docstring for why a value must never ride on a command line).
-        # `wrap` only adds `--preserve-env=<names>` to `cmd`, naming which of
-        # that merged environment's keys `sudo` forwards to `tester`, which is
-        # why it is handed the full merged view rather than this adapter's own
-        # partial `env`. `wrap` raises `PostureUnavailable` before anything
-        # starts if the posture is refused; never caught here to fall back to
-        # an unwrapped spawn.
+        # See `zotero_mcp.ZoteroMCP.running`'s identical comment (same
+        # `mcp_drive.Server` transport): only the process spawn crosses the
+        # identity boundary (ticket 0625, Action 1); `env` is unchanged by
+        # wrapping and still reaches `Server` exactly as before, `wrap` only
+        # adds `--preserve-env=<names>` to `cmd`, and a refused posture raises
+        # before anything starts rather than falling back to an unwrapped spawn.
         if self._posture is not None:
             cmd = self._posture.wrap(cmd, {**os.environ, **env})
         self.server = Server(cmd, env, timeout=self.timeout)

@@ -237,6 +237,27 @@ def test_the_artifact_names_the_posture_the_run_had(tmp_path):
 
 
 @pytest.mark.integration
+def test_already_isolated_prints_a_notice_that_no_account_is_checked(tmp_path):
+    """A review-round nit: the artifact records the posture, but nothing said
+    so on the terminal while the run was happening -- the one place an
+    operator watching a live run would see it before waiting for the JSON.
+    `already-isolated` is the one posture the harness cannot verify (the
+    module docstring argues why no probe is safe), which is exactly why it
+    is the one that must be said loudly rather than left to the artifact
+    alone.
+    """
+    output = tmp_path / "checks.json"
+    done = subprocess.run(
+        [sys.executable, str(RUN), "--adapter", "stub-quiet",
+         "--arena", str(tmp_path / "arena"), "--output", str(output),
+         "--posture", posture.ISOLATED_POSTURE],
+        capture_output=True, text=True, timeout=600, cwd=REPO,
+    )
+    assert "already-isolated" in done.stderr
+    assert "no dedicated account is required or checked" in done.stderr
+
+
+@pytest.mark.integration
 def test_a_stub_target_is_unaffected_by_a_missing_account(tmp_path):
     """The account requirement binds a target's own process spawn, and a stub
     fixture has none -- `stubs.py` simulates every verb in-process. Driving

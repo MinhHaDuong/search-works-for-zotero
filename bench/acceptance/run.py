@@ -410,6 +410,19 @@ def main() -> int:
     arena = Path(a.arena).resolve()
     arena.mkdir(parents=True, exist_ok=True)
 
+    if resolved_posture.name == posture_mod.ISOLATED_POSTURE:
+        # The one posture the harness cannot verify (module docstring: no
+        # reliable predicate for "this environment is already a boundary" is
+        # known). Silent here would mean the only place this claim is ever
+        # visible is a JSON field nobody reads mid-run; said once, loudly, so
+        # an operator watching the terminal sees that no account is being
+        # checked for on this run before a single target process starts.
+        log.info(
+            "--posture already-isolated: no dedicated account is required or "
+            "checked for on this run. This is a documented precondition the "
+            "operator states, not something the harness verifies."
+        )
+
     def make_target(where: Path):
         where.mkdir(parents=True, exist_ok=True)
         return adapters.load(a.adapter, where, posture=resolved_posture, **options)

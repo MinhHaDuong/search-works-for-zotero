@@ -3,6 +3,16 @@
 `SPEC.md` §3, R10 is the clause; `SPEC.md` §5.2.8 owns the harness. This module
 is apparatus and asserts nothing. It holds no target's name: it runs an argv.
 
+**This is the ceiling, not the floor.** `posture.py` is the other apparatus
+module a target's spawn passes through, and the two are not substitutes:
+DECISIONS.md's 2026-09-03 ruling (ticket 0625) puts it as "the account is the
+floor and the namespace is the ceiling" — this module's isolation is bound to
+R10's egress arm alone and is probed rather than guaranteed (unusable rootless
+on one of the two machines this harness runs on, per `choose()` below), where
+`posture.py`'s dedicated-account boundary is what every assertion needing a
+target process requires, machine and clause alike, or it reports `not-run`.
+Neither module imports the other; they compose only at each adapter's spawn.
+
 **Why a tracer and not just a namespace.** Running inside a namespace with no
 route proves nothing *left*. It does not prove nothing was *attempted*, and the
 clause is about the attempt: "the run completes and no connection to a
