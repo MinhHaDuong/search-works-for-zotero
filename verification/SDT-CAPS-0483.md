@@ -16,7 +16,11 @@ line on `doudou`: grep the extracted `omni.ja` for `reindexTruncated`.
 **The structured-text path is not capped by the full-text preferences.**
 
 - `sdt.js` contains **zero** occurrences of `Prefs`, `maxPages`, `maxLength`,
-  `limit`, `truncat` or `cap`. The grep is empty, not sparse.
+  `limit` or `truncat`, case-insensitively — five empty greps, not sparse ones.
+  The pattern actually run also carried `cap\b`, which is empty too; **bare
+  `cap` is not**, and an earlier draft of this line overstated it: `grep -ic cap`
+  returns 1, the word *captured* in the comment at `sdt.js:287`. Irrelevant to
+  the conclusion, and recorded because the line as first written was false.
 - Generation runs through `_generateUnqueued`, which calls
   `Zotero.PDFWorker.getStructuredDocumentText(item.id, { isPriority, onProgress })`.
 - In `pdfWorker/manager.js` the two entry points differ exactly here:

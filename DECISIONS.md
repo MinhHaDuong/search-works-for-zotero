@@ -5344,11 +5344,9 @@ worst case measured anywhere is **1 860,8 MB**. Artifacts:
 `bench/results/0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json` and
 `…-gpu-host-cpu.json`.
 
-
-**2026-09-03 — Bringing the old-generation full texts up to date: we re-extract,
-and R1 owns it (awaiting ratification; the "maintenance verb, never inside the
-R1 tick" half below was corrected by the author the same day and is struck —
-read the amendment at the end of this entry first).** Raised by the author 2026-09-03 in the session that re-read
+**2026-09-03 — Bringing the old-generation full texts up to date: copy first,
+re-extract over the copy, and never inside the R1 tick (awaiting
+ratification).** Raised by the author 2026-09-03 in the session that re-read
 ticket 0120; the facts it rests on are that ticket's log and 0483's. Filed here
 because 0120's exit criterion requires a design change to reach `DECISIONS.md`
 before the ticket records a recommendation.
@@ -5399,35 +5397,69 @@ own extractor identity? The recommendation here is the second — one flat path
 whose identity says which extractor produced it — so the number of source paths
 does not grow.
 
-**Amendment, same day, the author's.** The entry as filed put the refresh
-outside R1 as an invoked maintenance verb. That fails R1's *second* clause,
-which the filing did not weigh: the system MUST NOT need a manual rebuild,
-whatever state it is in. An operator invoking a refresh over 3 882
-old-generation caches is that manual rebuild. A capped or old-generation
-extraction is therefore a **quality hole R1 promises to fill**, and the refresh
-belongs to the tick.
 
-Two consequences, both using machinery that already exists. R1's own ladder row
-already carries *superseded work draining to the latest chain unattended*: a
-body extracted under a superseded **extraction contract** — the extractor
-identity and the caps in force, C1 link 1 — is superseded work, and drains
-newest-first like any other.
+**2026-09-03 — The refresh belongs to the R1 tick after all; the entry above is
+reversed in its first clause and left standing (awaiting ratification).** The
+author, the same day, against the entry above. A new entry rather than an edit,
+per the ledger's own rule: what is reversed is named, and the text it reverses
+stays where it is.
 
-**Second amendment, same day: the bound proposed here is withdrawn on the
-author's push-back.** R1 *does* imply the treadmill, and offering link 1 a
-bound was giving the extractor an exemption link 3 has never had — swap the
-embedder entry and the whole library re-embeds unattended, which is the
-accepted behaviour the registry work (tickets 0488, 0495) exists to gate.
-Supersession is total.
+**What is reversed.** Clause (1) of the entry above — *the refresh is an
+explicitly invoked maintenance verb, never part of the unattended tick*. It
+fails R1's second clause, which the filing did not weigh: the system MUST NOT
+need a manual rebuild, whatever state it is in. An operator invoking a refresh
+over 3 882 old-generation caches is that manual rebuild. A capped or
+old-generation extraction is therefore **a quality hole R1 promises to fill**,
+and the refresh belongs to the tick. Clauses (2) and (3) stand as written.
 
-What survives is a distinction between **triggers**, not a limit on what R1
-owes. A bump *we* declare is deliberate, dated, one event, costed before it is
-pressed. A bump that happens *to* us is not: SYNC.md's Zotero extraction row
+**The machinery is already in the requirement.** R1's ladder row carries
+*superseded work draining to the latest chain unattended*: a body extracted
+under a superseded extraction contract — the extractor identity and the caps in
+force, C1 link 1 — is superseded work, and drains newest-first like any other.
+
+**And the remedy is our own extraction**, since neither Zotero's database nor
+its filesystem is ours to write: lifting a cap writes `prefs.js`, and the
+re-extraction it enables rewrites `.zotero-ft-cache`. That inference is carried
+by the no-write rule, not by a fact about Zotero —
+`bench/zotero-fulltext-plugin` performs exactly that write today (X5) — so the
+rule is what is being ratified, with that consequence attached. The marginal
+cost is lower than a standalone extract stage suggests: `pdf.js` is already
+vendored for tier 1 (ticket 0560, Apache-2.0), the bytes are already reachable
+through the local API's `/file/view/url` redirect (tracker 0557), and C1 link 1
+already enumerates extractor identities. What it is not is free: **text we
+extracted ourselves cannot be asked back from Zotero, so it must be stored**,
+and our store becomes authoritative for text rather than
+derived-and-discardable, against C3's streaming shape today.
+
+**Still open, and ranked.** (1) The quality gate, the blocker: a third extractor
+generation asserted to beat Zotero's current PDFWorker path, unmeasured;
+re-extracting 3 882 old caches with something worse is a regression dressed as a
+fix. X5's eleven attachments are a ready-made uncapped control corpus. (2) It is
+a **PDF** answer: 4 758 `text/html`, 10 EPUB, 3 `text/plain` and 268 orphan
+caches stay Zotero-sourced, so mixed provenance is permanent and R17's sentence
+must carry it. (3) Sequencing against #6012, whose `cb27b75` runs all SDT
+extraction to completion before embedding. (4) The granularity widening moves
+what counts as covered, hence the denominator the convergence harness measures
+(tickets 0026, 0580).
+
+**2026-09-03 — The extraction-contract bound is withdrawn: R1 does imply the
+treadmill (awaiting ratification).** The author, the same day, against the
+entry immediately above, which is left standing.
+
+**What is withdrawn.** The sentence in the entry above making the extraction
+contract *the bound that keeps the widening finite*. It gave C1 link 1 an
+exemption link 3 has never had — swap the embedder entry and the whole library
+re-embeds unattended, which is the accepted behaviour the registry work
+(tickets 0488, 0495) exists to gate. **Supersession is total.** The rest of
+that entry stands.
+
+**What survives is a distinction between triggers, not a limit on what R1
+owes.** A bump *we* declare is deliberate, dated, one event, costed before it is
+pressed. A bump that happens *to* us is not: `SYNC.md`'s Zotero extraction row
 records that a `SDT_PROCESSOR_VERSIONS` bump silently re-extracts existing
 packs, so under total supersession an unannounced upstream bump drains
 extraction, chunking and embedding across the library on the user's machine,
-unasked. The drift watch is therefore load-bearing, not informational — it is
-what turns someone else's bump into a dated event.
+unasked. The drift watch is therefore load-bearing, not informational.
 
 R1 says *unattended*, not *immediate*, which is where the treadmill is made
 survivable: draining is newest-first and paced by the tick and the
@@ -5437,39 +5469,10 @@ R17 must say where the treadmill is — N items on the latest chain, M draining,
 which chain still serves — or a full drain is indistinguishable from a broken
 index.
 
-And it raises the price of owning link 1: every improvement to *our* extractor
-re-drains the library through all three links, at a measured 8 h 14 for the
-full build (`STATE.md`). So our extractor needs the discipline the embedder
-registry already has — a declared, dated, gated identity whose improvements are
-batched into rare bumps — and the quality gate below moves from prudence to
-cost control, since an unmeasured v1 means a v2 soon after, at two full
-drains.
-
-And since neither Zotero's database nor its filesystem is ours to write —
-lifting a cap writes `prefs.js`, and the re-extraction it enables rewrites
-`.zotero-ft-cache` — **the remedy is our own extraction**. That inference is
-carried by the no-write rule, not by a fact about Zotero:
-`bench/zotero-fulltext-plugin` performs exactly that write today (X5). So the
-rule is what is being ratified here, with that consequence attached.
-
-The marginal cost is lower than a standalone extract stage suggests: `pdf.js`
-is already vendored for tier 1 (ticket 0560, Apache-2.0), the bytes are already
-reachable through the local API's `/file/view/url` redirect without touching the
-filesystem (tracker 0557), and C1 link 1 already enumerates extractor
-identities — ours becomes a third one in a slot that exists. What it is not is
-free: **text we extracted ourselves cannot be asked back from Zotero, so it
-must be stored**, and our store becomes authoritative for text rather than
-derived-and-discardable, against C3's streaming shape today.
-
-**Still open, and ranked — this amendment settles who extracts, not whether to
-start.** (1) The quality gate, the blocker: a third extractor generation
-asserted to beat Zotero's current PDFWorker path, unmeasured; re-extracting
-3 882 old caches with something worse is a regression dressed as a fix. X5's
-eleven attachments are a ready-made uncapped control corpus. (2) It is a **PDF**
-answer: 4 758 `text/html`, 10 EPUB, 3 `text/plain` and 268 orphan caches stay
-Zotero-sourced, so mixed provenance is permanent and R17's sentence must carry
-it. (3) Sequencing against #6012, whose `cb27b75` runs all SDT extraction to
-completion before embedding — the mechanism that would make packs library-wide,
-superseding a flat re-extraction for exactly these documents. (4) The
-granularity widening moves what counts as covered, hence the denominator the
-convergence harness measures (tickets 0026, 0580).
+And it raises the price of owning C1 link 1: every improvement to *our*
+extractor re-drains the library through all three links, at a measured 8 h 14
+for the full build (`STATE.md`). So our extractor needs the discipline the
+embedder registry already has — a declared, dated, gated identity whose
+improvements are batched into rare bumps — and the quality gate named in the
+entry above moves from prudence to cost control, since an unmeasured v1 means a
+v2 soon after, at two full drains.
