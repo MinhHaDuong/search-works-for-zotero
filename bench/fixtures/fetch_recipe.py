@@ -38,6 +38,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 from pathlib import Path
 
 log = logging.getLogger("fetch_recipe")
@@ -54,7 +55,42 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) Firefox/128.0"
 
 #: First bytes each format must open with. An HTML error page served with a
 #: 200 fails this check instead of poisoning the cache.
-MAGIC = {"pdf": b"%PDF", "djvu": b"AT&T", "wikitext": None, "html": None}
+MAGIC = {"pdf": b"%PDF", "djvu": b"AT&T", "wikitext": None, "txt": None, "html": None, "epub": b"PK"}
+
+
+def validate_download_format(path: Path, fmt: str) -> str | None:
+    """Return a native-format defect, or ``None`` when the bytes are plausible.
+
+    Prefix magic is sufficient for PDF and DjVu. Text must really be UTF-8,
+    HTML must contain HTML markup rather than arbitrary UTF-8, and an EPUB is
+    a ZIP whose first, uncompressed member declares the EPUB media type.
+    """
+    if fmt in {"txt", "wikitext"}:
+        data = path.read_bytes()
+        if b"\x00" in data:
+            return "expected UTF-8 text, got NUL bytes"
+        try:
+            data.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return "expected UTF-8 text"
+    elif fmt == "html":
+        try:
+            head = path.read_bytes()[:16_384].decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return "expected UTF-8 HTML"
+        if not re.search(r"<!doctype\s+html|<html(?:\s|>)", head, re.IGNORECASE):
+            return "expected HTML document markup"
+    elif fmt == "epub":
+        try:
+            with zipfile.ZipFile(path) as archive:
+                members = archive.infolist()
+                if (not members or members[0].filename != "mimetype" or
+                        members[0].compress_type != zipfile.ZIP_STORED or
+                        archive.read(members[0]) != b"application/epub+zip"):
+                    return "expected EPUB mimetype as first uncompressed member"
+        except (OSError, zipfile.BadZipFile):
+            return "expected EPUB ZIP container"
+    return None
 
 
 def sha256_of(path: Path) -> str:
@@ -65,7 +101,8 @@ def sha256_of(path: Path) -> str:
     return digest.hexdigest()
 
 
-def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, min_size: int) -> None:
+def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, min_size: int,
+                    fmt: str | None = None) -> None:
     """Fetch `url` to `dest` through a temp file and a rename."""
     tmp = dest.with_suffix(dest.suffix + ".partial")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -81,6 +118,10 @@ def download_atomic(url: str, dest: Path, timeout: float, magic: bytes | None, m
         if head != magic:
             tmp.unlink()
             raise RuntimeError(f"{url}: expected {magic!r} at file start, got {head!r}")
+    defect = validate_download_format(tmp, fmt) if fmt else None
+    if defect:
+        tmp.unlink()
+        raise RuntimeError(f"{url}: {defect}")
     os.replace(tmp, dest)
 
 
@@ -113,7 +154,7 @@ def fetch_one(doc: dict, cache_dir: Path, timeout: float) -> dict:
     if not dest.exists():
         log.info("fetching %s from %s", doc["id"], doc["bytes_url"])
         try:
-            download_atomic(doc["bytes_url"], dest, timeout, MAGIC.get(fmt), doc.get("min_size", 1_000))
+            download_atomic(doc["bytes_url"], dest, timeout, MAGIC.get(fmt), doc.get("min_size", 1_000), fmt)
         except Exception as exc:  # noqa: BLE001 — one dead archive must not stop the others
             row["status"] = classify_failure(exc)
             row["reason"] = str(exc)
@@ -145,6 +186,7 @@ ADMITTED_ARCHIVES = frozenset(
         "zenodo",
         "faolex",
         "uk-government-web-archive",
+        "project-gutenberg",
     }
 )
 VERSIONED_ARCHIVES = frozenset({"hal", "arxiv", "zenodo"})
@@ -165,6 +207,7 @@ ARCHIVE_HOSTS = {
     "zenodo": ("zenodo.org",),
     "faolex": ("faolex.fao.org",),
     "uk-government-web-archive": ("webarchive.nationalarchives.gov.uk",),
+    "project-gutenberg": ("gutenberg.org",),
 }
 #: FAOLEX is admitted for one document by the ruling of 2026-09-02, not as an
 #: archive in general; a second FAOLEX record needs its own ruling.
@@ -334,6 +377,11 @@ def _validate_source(source: dict, label: str, found: list[str]) -> None:
         found.append(f"{label}: archive {archive!r} is not admitted")
     if archive in VERSIONED_ARCHIVES and not VERSION.match(str(source.get("version") or "")):
         found.append(f"{label}: {archive} identifier carries no version of the form vN")
+    if archive == "project-gutenberg":
+        if not re.fullmatch(r"[1-9][0-9]*", str(source.get("identifier") or "")):
+            found.append(f"{label}: Project Gutenberg identifier is not a numeric ebook number")
+        if source.get("version") is not None:
+            found.append(f"{label}: Project Gutenberg ebook number is unversioned")
     if archive == "faolex" and source.get("identifier") not in FAOLEX_ADMITTED:
         found.append(f"{label}: FAOLEX is admitted for {sorted(FAOLEX_ADMITTED)} only, not {source.get('identifier')!r}")
     url = source.get("bytes_url") or ""

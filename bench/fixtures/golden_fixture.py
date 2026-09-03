@@ -39,6 +39,8 @@ CONTENT_TYPES = {
     "djvu": "image/vnd.djvu",
     "html": "text/html",
     "wikitext": "text/plain",
+    "txt": "text/plain; charset=utf-8",
+    "epub": "application/epub+zip",
 }
 
 

@@ -58,6 +58,7 @@ const EXPORT_SENTINEL = '.zoteus-golden-export.json';
 const EXPORT_SENTINEL_SCHEMA = 'zoteus-golden-export/v1';
 const CONTENT_TYPES = {
   pdf: 'application/pdf', djvu: 'image/vnd.djvu', html: 'text/html', wikitext: 'text/plain',
+  txt: 'text/plain; charset=utf-8', epub: 'application/epub+zip',
 };
 
 function tagValues(data) {

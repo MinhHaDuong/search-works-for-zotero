@@ -13,6 +13,7 @@ recipe is known to mean something.
 import importlib.util
 import json
 import re
+import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -110,6 +111,40 @@ def test_open_archive_without_version_is_an_offence():
     assert any("no version" in o for o in fr.validate([good(**hal)]))
     assert any("no version" in o for o in fr.validate([good(**hal, version="final")]))
     assert fr.validate([good(**hal, version="v1")]) == []
+
+
+def test_project_gutenberg_ebook_number_is_persistent_and_unversioned():
+    source = dict(
+        archive="project-gutenberg", identifier="2701",
+        bytes_url="https://www.gutenberg.org/cache/epub/2701/pg2701.txt",
+        bytes_format="txt",
+    )
+    assert fr.validate([good(**source)]) == []
+    assert any("ebook number" in o for o in fr.validate([good(**(source | {"identifier": "moby-dick"}))]))
+    assert any("unversioned" in o for o in fr.validate([good(**(source | {"version": "v1"}))]))
+
+
+def test_native_text_html_and_epub_capability_checks(tmp_path):
+    text = tmp_path / "work.txt"
+    text.write_bytes("Project Gutenberg\r\nMoby-Dick\r\n".encode())
+    assert fr.validate_download_format(text, "txt") is None
+    text.write_bytes(b"not utf8: \xff")
+    assert "UTF-8" in fr.validate_download_format(text, "txt")
+
+    html = tmp_path / "work.html"
+    html.write_text("\ufeff<!DOCTYPE html><html><body>Work</body></html>", encoding="utf-8")
+    assert fr.validate_download_format(html, "html") is None
+    html.write_text("an error page without HTML markup", encoding="utf-8")
+    assert "HTML" in fr.validate_download_format(html, "html")
+
+    epub = tmp_path / "work.epub"
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
+        archive.writestr("META-INF/container.xml", "<container/>")
+    assert fr.validate_download_format(epub, "epub") is None
+    with zipfile.ZipFile(epub, "w") as archive:
+        archive.writestr("readme.txt", "not an epub")
+    assert "EPUB" in fr.validate_download_format(epub, "epub")
 
 
 def test_faolex_is_admitted_for_one_document_only():

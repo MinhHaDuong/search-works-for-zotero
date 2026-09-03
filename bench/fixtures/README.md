@@ -62,6 +62,7 @@ admitted archives, and the identifier each pins:
 | Zenodo | version DOI | required; never the concept DOI |
 | FAOLEX | `LEX-FAOC…` | none; admitted for Decision 11/2017 only, with the `docs/pdf/` address, hash, and Wayback capture date pinned |
 | UK Government Web Archive | dated snapshot URL | the timestamp is the version |
+| Project Gutenberg | numeric ebook identifier | none; each official distribution is hash-pinned because Gutenberg corrects files in place |
 
 Nothing is deposited anywhere by this project to manufacture an identifier.
 `fetch_recipe.py` refuses a recipe that breaks any of this before it fetches a
@@ -112,8 +113,8 @@ unhashed successful fetch as `unpinned`.
 | malynes-1622-lex-mercatoria | en | MUST | deep-body | internet-archive | 515 | archive md5/sha1 |
 | ramsey-1931-foundations-of-mathematics | en | MUST | core | internet-archive | 340 | sha256 |
 | depitre-1908-oeuvres-cournot | fr | MUST | core | gallica | — | not yet |
-| ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | core | hal | 180 | not yet |
-| ha-duong-1998-irreversibilite-these | fr | MUST | deep-body | hal | — | not yet |
+| ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | core | hal | 180 | sha256 |
+| ha-duong-1998-irreversibilite-these | fr | MUST | deep-body | hal | 256 | sha256 |
 | johnson-1785-dictionary | en | MUST | deep-body | internet-archive | 1 104 | sha256 |
 | baudelaire-1857-fleurs-du-mal | fr | MUST | core | internet-archive | 262 | sha256 |
 | stein-1925-making-of-americans | en | MUST | deep-body | internet-archive | 940 | sha256 |
@@ -124,8 +125,8 @@ unhashed successful fetch as `unpinned`.
 | tran-trong-kim-1920-viet-nam-su-luoc-wikisource | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-vi | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-en | en | MUST | core | wikisource | — | sha256 |
-| hal-04332519-economies-of-scale | vi | MUST | core | hal | — | not yet |
-| hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | — | not yet |
+| hal-04332519-economies-of-scale | vi | MUST | core | hal | 7 | sha256 |
+| hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | 2 | sha256 |
 | des-michels-1883-luc-van-tien | vi | MUST | core | gallica | 454 | not yet |
 | des-michels-1884-kim-van-kieu-t2p1 | vi | MUST | core | gallica | 309 | not yet |
 | bonet-1899-dictionnaire-annamite-francais-t1 | vi | MUST | core | internet-archive | 488 | sha256 |
@@ -176,7 +177,7 @@ belong to the declared archive and to no refused host), `sha256` (or `null`
 with `sha256_reason`), `license_basis`.
 
 Recommended, by convention: `bytes_format` (`pdf`, `djvu`, `wikitext`,
-`html`; default `pdf`), `min_size` (bytes below which a download is treated as
+`txt`, `html`, `epub`; default `pdf`), `min_size` (bytes below which a download is treated as
 an error page; default 1 000), `archive_checksums` (the archive's own md5 or
 sha1 where it publishes one), `page_count`, `provenance_check`,
 `wayback_capture` (for the unversioned database of record), `notes`.
