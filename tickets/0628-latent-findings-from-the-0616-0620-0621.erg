@@ -1,0 +1,77 @@
+%erg 0.1
+Title: Latent findings from the 0616/0620/0621/0624/0626 raid wave
+Created: 2026-09-03
+Author: MinhHaDuong
+
+--- log ---
+2026-09-03T15:50Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Merged 2026-09-03 without waiting on these: none of them affect any current
+verdict or committed artifact, and each requires a condition this codebase
+doesn't currently produce. Bundled here rather than filed as five tickets,
+per the severity floor — none alone clears the bar for a dedicated ticket.
+
+## Findings
+
+1. **0620 (`tests/test_index_schema_fixtures.py`)** — the module-level
+   `pytestmark` applies `skipif(node missing)` to every test in the file,
+   including the new leg-3 tests, which only need `git`. On a node-less
+   machine holding a valid `upstream.git/` mirror, the new leg silently
+   SKIPs instead of reporting NOT-RUN — the exact "skip and pass are the
+   same colour" defect this ticket exists to close, one layer up. `make
+   schema-gate` (added by the same PR) sidesteps this for its own strict
+   run, but the plain suite doesn't. Fix: exempt the leg-3 tests from the
+   node skipif, or split them into their own module.
+
+2. **0620 (same file)** — `check_declaration_against_upstream`'s regex
+   takes the *first* `^const SCHEMA_VERSION` match in the upstream file.
+   An unprefixed historical value inside a `/* */` block comment (sitting
+   at column 0) ahead of the live declaration would be read as the answer.
+   Not live today (today's upstream file has no such comment), cheap fix:
+   assert exactly one match, or take the last one.
+
+3. **0621 (`bench/smoke_upstream.py`)** — `_rrf_rank_of` has no upper bound
+   on the recovered rank. Below roughly score < 0.0164, 6-decimal rounding
+   becomes coarser than the spacing between consecutive RRF values, so an
+   increasing fraction of ordinary weak similarity scores get accepted as
+   "proven RRF rank," defeating the diagnostic's purpose for that range.
+   Informational field only — doesn't move any current pass/fail, and no
+   committed artifact has a score in that range. Fix: bound `rank` (e.g.
+   `rank <= limit * K` for a generous K).
+
+4. **0621 (same file)** — a NaN score crashes the whole script (uncaught
+   `ValueError` in `round(1/float(score))`), losing the JSON artifact for
+   every check, not just this one. Mechanism confirmed; whether a real
+   server can put a literal NaN on the wire is not established. Cheap fix:
+   `math.isnan`/`math.isinf` guard before the round().
+
+5. **0624 (`bench/acceptance/adapters/zoteus.py`)** — the README row and
+   two code comments claim the work-counter derivation covers "any build
+   that starts reporting counters... with no edit to the adapter." The
+   actual mechanism only recognizes counters under the literal top-level
+   keys `work`/`counters` in two specific RPC replies (`WORK_OBJECT_KEYS`).
+   A build that groups counters under a third key name, or nests one level
+   deeper, is silently read as `None` — the same overclaim shape this
+   ticket was filed to close, relocated into the fix's own wording. Fix:
+   narrow the three claims to name the actual key set and replies, or
+   widen `_work_counters` to match what's claimed.
+
+6. **0626 (`tests/test_acceptance_adapter_{zotseek,zotero_core_6012,zoteus}.py`)**
+   — none of the three new posture-refusal tests check that `wrap()`'s
+   *return value* is actually used. If a future edit dropped `argv =
+   self._posture.wrap(...)` to a bare `self._posture.wrap(...)`, all three
+   refusal tests would stay green (refusal raises unconditionally before
+   returning anything), but a real *accepted* posture would silently spawn
+   the target unwrapped — the identity-boundary breach tickets 0625/0626
+   exist to prevent. Confirmed empirically. Pre-existing gap across all
+   five adapters (including beaver/zotero_mcp), not introduced by 0626;
+   out of that ticket's stated scope (mirrors an existing refusal-only
+   pattern) but worth closing once, for all five adapters together.
+
+## Exit criteria
+
+- [ ] Each finding above is fixed, or explicitly deferred again with a
+      reason, one at a time or in whatever grouping makes sense
