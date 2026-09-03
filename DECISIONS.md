@@ -4940,3 +4940,65 @@ settled one, which is the figure a ceiling must carry.
 Not run, and recorded as not-run rather than as a negative: the GPU
 second configuration. The disclosed GPU host's two devices were fully held by a
 resident judge driver that must not be stopped, so that arm had no device.
+
+**2026-09-03 — Does "no non-default option" reach a harness-setup preference?
+The adapter roster's `httpServer.port` move, put as a question and not
+ratified.** Filed by gate lead #5 after merging the adapter batch (#234, #236,
+#237, #238). Nothing here is enacted; the roster ships as measured and the
+contract text is untouched.
+
+The ratified adapter contract of 2026-09-02 reads: "A thin adapter per target
+declares its surfaces and contains only the minimal transport needed to invoke
+them: no patch or workaround, non-default option, access the target does not
+give its users, or result scoring." There is no carve-out.
+
+Three adapters write `extensions.zotero.httpServer.port` away from the shipped
+23119 — ZotSeek 23219, Beaver 23319, Zotero core #6012 23519 — and the
+host-baseline driver allocates 23419 and, for its control cell, 23429. The
+reason is that several target instances share one machine. The faithful
+alternative is one instance at a time on the shipped port, and its cost is
+serialization of the roster.
+
+**The deviation is inert with respect to every verdict this roster recorded,
+and that was checked against the artifacts rather than argued.** Seven
+assertions actually ran across the three seats. The only detector that reads a
+port is `check_no_egress`'s DNS arm, whose `RESOLVER_PORTS` is
+`{53, 853, 5353}`, disjoint from every allocated value; across every committed
+artifact the sole loopback destination recorded is `127.0.0.53:53`, and
+`off_machine` is zero in every isolated arm. The residue and uninstall checks
+compare paths, and a port changes bytes inside a `prefs.js`, never a path. The
+two clauses that could reach a port at all, `R10-local-by-default` and
+`R15-model-cache-under-declared-roots`, are `not-offered` on all three seats,
+which their declarations of `status` and `query` as absent make structural
+rather than lucky.
+
+**Inert is not the same as immaterial, and the narrower statement is the true
+one.** `check_no_egress` passes only on `subject.returncode == 0`. The port is
+precisely what lets an instance start on a shared machine, so it is inert with
+respect to the *content* of the verdicts and not with respect to their
+*decidability*. A ruling that treats "it changed no number" as the whole answer
+would be resting on the weaker claim.
+
+**One thing the roster does inconsistently, worth ruling on beside the first
+question.** All three adapter modules open by restating the contract line "no
+patch or workaround, no non-default option, no access unavailable to the
+target's own users, and no scoring of a result", and all three then write a
+non-default port. Only `zotero_core_6012.py` resolves the tension in the same
+file, naming the deviation, citing the shipped 23119, and stating the
+alternative and its cost. `zotseek.py` and `beaver.py` declare the write as
+harness setup and never raise the tension, so a reader of either meets a
+compliance claim the file itself does not meet.
+
+**The questions.** (1) Does "non-default option" reach a preference the harness
+writes to make instances coexist, or only options governing the target's own
+retrieval behaviour? The same ruling governs `httpServer.enabled` and the
+sideload scope preferences, which are set on the same grounds. (2) If it
+reaches them, does the roster re-run serialized on the shipped port, or does
+the contract gain a carve-out? (3) If a carve-out, is disclosure a requirement
+of it, in the form `zotero_core_6012.py` already uses, so that no module
+restates a compliance claim it does not meet?
+
+Note that the same paragraph of the ratified entry already says "Starting and
+stopping the target process are adapter-declared harness setup, not indexing
+controls." Whether a port an instance binds is part of starting the process, or
+an option of it, is the hinge, and the gate does not presume it.
