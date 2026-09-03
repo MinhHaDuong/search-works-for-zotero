@@ -80,16 +80,19 @@ evidence and belongs stated rather than discovered.
 
 **The 4-vs-3 split is explained, from the traces, not waved at.** With a route,
 the three connects each succeed and each is followed by a `sendmmsg` carrying
-an A and an AAAA query — for `example.invalid`, then `example.invalid.loc`,
-then `example.invalid.net…`: one connect per entry of this machine's
-`resolv.conf` search list. Without a route, all four connects fail
-`ENETUNREACH` and **no query is ever sent**, so the isolated arm is walking a
-failure-retry ladder rather than the search list; why that ladder stops at
-four exactly is not established here, and does not need to be. Two
-consequences worth carrying: the absolute count is a property of this
-machine's resolver configuration, not a constant, and the isolated and shared
-counts are not the same quantity — which is why the comparison that matters is
-subject-versus-control **within** an arm, exactly as the assertion already
+an A and an AAAA query — for the bare `example.invalid` first (glibc tries the
+unqualified name before the search list, since it already has a dot and
+`ndots` defaults to 1), then `example.invalid.localdomain`, then
+`example.invalid.netbird.cloud`: one connect for the bare name, then one per
+entry of this machine's two-entry `resolv.conf` search list. Without a route,
+all four connects fail `ENETUNREACH` and **no query is ever sent**, so the
+isolated arm is walking a failure-retry ladder rather than the search list;
+why that ladder stops at four exactly is not established here, and does not
+need to be. Two consequences worth carrying: the absolute count is a property
+of this machine's resolver configuration, not a constant, and the isolated
+and shared counts are not the same quantity — which is why the comparison
+that matters is subject-versus-control **within** an arm, exactly as the
+assertion already
 does it.
 
 **The hypothesis 0629 logged holds.** Four lookups need no second cause:
