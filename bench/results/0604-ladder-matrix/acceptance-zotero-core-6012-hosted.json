@@ -1,0 +1,1088 @@
+{
+  "probe": "the target-neutral acceptance layer, run against one adapter (SPEC.md §5.2.8; DECISIONS.md, ratified 2026-09-02)",
+  "not_a_test_suite": "each check exercises ONE MUST clause of one requirement, once, against ONE named target. A green is a green for that target and for nothing else.",
+  "date": "2026-09-03",
+  "declaration": {
+    "target": "zotero/zotero#6012",
+    "revision": "Zotero core pull request #6012 at commit 19e79625b1c6fbbdd75367aa85b62d5a7080d7f6, built from source on padme 2026-09-03. The build stamps its own provenance: application.ini reads Name=Zotero Version=11.0.SOURCE.19e79625b BuildID=20260903011524, and the Version string carries the pinned short hash, which is what this adapter checks at construction rather than documents. The pull request force-pushed off 77e2c4b at 2026-09-02T19:23:11Z, so refs/pull/6012/head is not a pin and the commit is; the BuildID is recorded and NOT enforced, because a faithful rebuild of the same commit produces a different one. No release carries this revision — the build recipe is in this module's docstring, and it is the whole of what makes the target setup reproducible.",
+    "derived_state_roots": [
+      "/tmp/matrix-hosted/zotero-core-6012/arena/data",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/profile",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/home/.cache/mozilla",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/home/.config/mozilla",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/home/.cache/zotero",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/home/.config/zotero",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/home/Downloads",
+      "/tmp/matrix-hosted/zotero-core-6012/arena/data/embeddings.sqlite"
+    ],
+    "query_transport": "none, and the field is being asked to describe something that is not a transport. This target is the reference manager itself, so its query surface is its own user interface: a search runs inside the application's window, in the process that owns the library, against its own data layer. zoteus reads Zotero over the local HTTP API and the two plugin targets read the host's data layer in process; this target IS the data layer, and there is nothing for it to send anything to.\n\nWhat a machine could reach, measured rather than read. The target's HTTP server does start in the default configuration — httpServer.enabled is true at build/defaults/preferences/zotero.js:171, gated at xpcom/zotero.js:715-716 — and it answers on 127.0.0.1:23519. Measured 2026-09-03: GET /connector/ping returns 200 and the literal body '<!DOCTYPE html><html><body>Zotero is running</body></html>'. That is a liveness signal; the POST form returns a fixed connector-preferences bundle (xpcom/server/server_connector.js, Ping.init) which names nothing about retrieval or embeddings. Every /api/ route answers 403 'Local API is not enabled' — measured on /api/, on /api/users/0/items with q= and with q=+qmode=everything, on /api/users/0/settings and on POST /api/local/authorize alike — because httpServer.localAPI.enabled is false at build/defaults/preferences/zotero.js:173 and gated at xpcom/server/server_localAPI.js:249. The eight probes and their bodies are in bench/results/0583-zotero-6012/http-surface.json.\n\nThis resolves an open observation from the lane's build smoke, which recorded code=000 on that port and left the cause unestablished: the server does answer, and a short smoke had not yet reached the point where it listens. Reported because a null that was never explained is how a false negative survives.",
+    "default_configuration": "the platform-native build at the pinned commit, launched with -profile, -datadir and -no-remote against an empty library, with no preference of the target's own set by the harness.\n\nTHE FEATURE UNDER TEST IS OFF. build/defaults/preferences/zotero.js:120-125 declares exactly three embedding preferences — embeddings.model \"\", with the comment 'disabled when \"\"'; embeddings.indexingPaused false; embeddings.indexFulltext false — and xpcom/embeddings.js:171-173, 179-181 makes an unknown model name mean isEnabled() is false. Independent confirmation, from a built tree, of what the BRIDGE-0496 note read from the pull request's API diff at 77e2c4b. Selecting a model is a non-default option, which the ratified contract forbids in as many words, so nothing here turns it on to get a greener run. Consequences that decide what this target can be asked: no embedder is in effect, so R10's local-by-default clause has no embedder to be about (see this module's finding 1); nothing is downloaded, so R15's model-cache clause has no download to be about; and no embeddings.sqlite is created, measured.\n\nMEASURED READ-BACK, not transcribed from the shipped defaults, because the ZotSeek lane found the two can differ. After a full start and a clean shutdown the profile carries 36 preferences in 45 lines — the file's nine standard header comments make up the difference, and a reviewer was right to catch an earlier version of this sentence calling all of them preferences. They are the toolkit's own first-run bookkeeping, the application's pane-open state, its word-processor-integration record, and the harness's own port — and NOT ONE key under extensions.zotero.embeddings. or search.bestMatch. The three preferences the pull request declares are therefore in effect at their shipped values, and the ABSENCE is the evidence: the toolkit omits a preference still sitting at its built-in default. (Contrast ZotSeek, which writes sixteen of its own keys and whose effective set differs from its shipped file.)\n\nHow the process is stopped changes that count, which is why the flush is described rather than assumed: an earlier arm here that killed the process group after a 12 s grace left ONE preference in the profile, the harness's port, against 36 after the escalation `process` describes. Same class as the residue that appears only seconds after a call returns on the zotero-mcp seat — a short stop measures a different state, not a cleaner one.\n\nTwo further facts about the default configuration, both re-derived at this head. The retrieval-mode selector search.bestMatchEngine defaults to 'hybrid' and is marked 'Temporary, for testing' (build/defaults/preferences/zotero.js:110-113, read at xpcom/bestMatch.js:815-830); its three values are R33's three modes under the target's own names. And the outbound preference embeddings.endpoint, which routes passage embedding to an external server, is read at xpcom/embeddings.js:1034 and is declared in no preferences file and named in no preferences pane — still undeclared at this head, as the BRIDGE-0496 note found at 77e2c4b. Empty by default, so it changes nothing about what was measured; recorded because an undeclared preference that decides where library text goes is R10's business.",
+    "process": "the harness starts the TARGET, and there is no host to separate it from — which is the whole of what makes this seat different from the plugin ones. Start: the build's launcher with -profile, -datadir and -no-remote, under HOME set to a scratch directory inside the arena and DISPLAY pointed at an existing X server, with the profile carrying TWO harness preferences and nothing else. There is no headless mode.\n\nBoth are named because a preference written by the harness is the easiest place for a non-default option to hide as setup. httpServer.enabled is written at its shipped default (build/defaults/preferences/zotero.js:171), so it discloses rather than changes.\n\nTHE PORT IS A DEVIATION FROM THE SHIPPED DEFAULT, DISCLOSED. Not not-a-deviation: the shipped value is 23119 (same file:172) and this run used another, and the ratified contract forbids a non-default option with no carve-out for one that does not touch the feature under test. Three things belong beside that admission rather than an argument that talks it away. (a) Why: several instances share this machine, the shipped port is held by a resident one, and a collision makes the target fail to start — which the layer would read as a defect of the target rather than of the arrangement. (b) What it could and could not move, in a form a reader can CHECK rather than take on trust: no assertion that ran against any adapter on this roster reads anything through an HTTP port. check_local_by_default needs configure and status; check_model_cache_under_declared_roots needs install, query and status; and every adapter that could have reached a port declares query and status absent, so those clauses report not-offered before any transport is touched. The committed artifacts carry the declarations that make that checkable. (c) The alternative that would remove it, named rather than omitted: run one instance at a time on the shipped port. That is strictly more faithful and it costs serialization across lanes, which is why it was not taken on a machine carrying four; a single-lane run should prefer it. The deviation came from one lane briefing and appears on three adapters, so whether the contract's letter should carry a carve-out for coexistence plumbing is a standing question for the author and not three independent judgment calls. That claim is cited rather than asserted, because a reviewer was right that it cannot be checked from this repository as it stands: the other two adapters are not on the default branch yet. They are the ZotSeek seat, `adapters/zotseek.py:612` at merge request 236 head 1eb1254, and the Beaver seat, `adapters/beaver.py:196` at merge request 237 head 9af07d9. The two adapters that ARE on the default branch, for targets that speak stdio rather than HTTP, carry no port literal at all — which is the reviewer's observation and is consistent with this: the deviation belongs to the architecture class that has a listening socket, not to the roster as a whole.\n\nA THIRD preference, app.update.enabled=false, was written by an earlier version of this adapter and has been REMOVED as a genuine non-default option — see the note on HARNESS_PREFS; on this seat the application's own update check is inside R10's clause, not beside it. Re-measured after the removal, the subject arm's counts are unchanged, so the suppression had not in fact biased this run; the removal stands on the contract and not on that number.\n\nReadiness is the appearance of data/zotero.sqlite, measured at 2 s. On a plugin target that file is the host's and proves nothing about the target, so ZotSeek has to wait on a file the plugin itself writes; here the two coincide, and the ambiguity that adapter had to engineer around does not exist. A settle window follows, because the data directory is still filling when the database appears.\n\nStop: signal the whole process GROUP, on SIGTERM twice and then SIGKILL. The launcher is a shell script that execs the real binary, and the application starts the office suite's registration helper (measured: the run's log carries unopkg's output) — so signalling the direct child leaves descendants reparented and alive, holding the databases open, and the egress tracer follows descendants and waits for them. Both plugin lanes hit this independently. `start_new_session` is what makes the group addressable without the kill reaching the harness.\n\nHOME is the sandbox and the adapter refuses the operator's own. What appears under it, measured 2026-09-03: .cache/{mozilla,zotero,fontconfig,nvidia}/, .config/{mozilla,zotero,pulse,libreoffice}/ and Downloads/, with the top-level shape identical across two runs and the file counts NOT — 1742 and 1498 — the difference living inside the font, GL-shader and office-suite caches. The four that are the target's or its toolkit's are declared as derived-state roots; the rest are exempted below.\n\nR10's SUBJECT IS THIS TARGET'S OWN PROCESS, exactly and with nothing else in it. The plugin lanes each found that a process tracer cannot separate a plugin from its host, since every name lookup issues from one pid; here that pid is the target, so this seat reports as the target's what they had to report as unattributable. The other half of the same fact is that there is NO host-only control arm available — subtracting the host would be subtracting the target — and none is attempted.\n\nTHIS BUILD'S OWN BASELINE, three cells, measured on padme 2026-09-03 with the same driver the lane lead used for Zotero 10.0.1 (bench/r10_host_baseline.py, PR #234), so the two are comparable; the artifact is bench/results/0583-zotero-6012/r10-baseline.json. Over a 75 s dwell: virgin-isolated 0 off-machine / 430 name lookups, warmed-isolated 0 / 60, and the discriminating control virgin-shared 423 / 82, which is what says the instrument works here. Beside it, the lane lead's Zotero 10.0.1 cells on the same machine and driver: 0 / 426 virgin, 0 / 60 warmed, 456 / 80 shared. THE PULL REQUEST ADDS NO MEASURABLE EGRESS — the two builds' figures are within a few lookups of each other at both arena states, and both attempt zero off-machine connections. That is an observation about two runs of two builds and not an arithmetic claim; nothing is subtracted anywhere, in code or by hand.\n\nTHE ARENA STATE IS PART OF THE MEASUREMENT, and the sevenfold gap between the two isolated cells is why it is stated rather than assumed: this adapter runs against a VIRGIN profile and data directory, created fresh inside the arena on every construction, never seeded and never cleared afterwards — the expensive end of the range, because a first run does update, blocklist and first-run work a warmed one does not.\n\nTHE WINDOWS DIFFER AND THE NUMBERS ARE THEREFORE NOT COMPARABLE ACROSS THEM. The baseline cells above run a fixed 75 s dwell. The egress assertion's subject arm runs this adapter's own lifecycle — readiness plus a settle, then the two offered verbs, then the stop — which is roughly a third of that, and it reads 0 off-machine and about 40 name lookups, every one of them to the stub resolver on loopback. A smaller number over a shorter window is not less egress; it is less time. Read the subject arm against the clause, which is about whether anything is attempted, and read the cells against each other.",
+    "unsupported_verbs": [
+      "pause",
+      "query",
+      "resume",
+      "status",
+      "uninstall"
+    ],
+    "unsupported": [
+      {
+        "verb": "pause",
+        "why": "the roster's best-matching pause control, and the harness cannot reach it. SPEC.md §5.2.8 defines pause and resume as the two transitions of one durable background-work control, resume idempotent and never forcing a rebuild. That is exactly what this target implements: stopIndexing() at xpcom/embeddings.js:3141-3150 clears both queues, cancels the kick timer and persists embeddings.indexingPaused, and isPaused() at :1824-1826 reads it back — 'Persisted so a stop survives a restart', in the target's own comment. Both are called from ONE place, the preferences pane (preferences/preferences_advanced.js:103, :107), which is a GUI control; no route reaches them and the preference is settable only through the configuration editor or by editing the profile while the application is stopped. Even reached, it would govern nothing here: with embeddings.model \"\" there is no indexing to stop (:1809 gates the work on isEnabled()). So the control is real, durable and correct, the work it governs is off, and neither is machine-reachable — three separate things, and the reason field is the only place they can be told apart"
+      },
+      {
+        "verb": "query",
+        "why": "the surface is the application's own user interface, and no machine route to it exists in the default configuration. Measured on the running build 2026-09-03, not read: every /api/ route answers 403 'Local API is not enabled' (xpcom/server/server_localAPI.js:249; the preference is false at build/defaults/preferences/zotero.js:173), and the endpoints that ARE on by default are the browser connector's — ping, translator and save routes, none of which searches a library. Enabling the local API is a non-default option, which the contract forbids; it would also change R10's subject by opening a namespace the default configuration does not open. And it would not deliver a query even then: the one indirect route to inference at this head runs a saved search carrying a root-level bestMatch condition (data/searchConditions.js, data/search.js) over the local API, which returns ITEMS and no vector, embeds one query with no passage or batch path, and WRITES DURABLE LIBRARY STATE PER QUERY — a side effect masquerading as a transport (established at source in the BRIDGE-0496 note, re-derived here at this head). Its write path additionally needs POST /api/local/authorize, which prompts the user, and which answers 403 here for the same reason. Finally there would be nothing behind it: with embeddings.model \"\" no embedder is in effect, so the 'meaning' mode has no engine at all"
+      },
+      {
+        "verb": "resume",
+        "why": "absent for pause's reason and by the same GUI control. Worth recording separately because startIndexing() at xpcom/embeddings.js:2965-2971 is the contract's resume almost verbatim — it clears the paused preference, is documented as safe to call while the consumer is already running, and re-enqueues work that is then skipped by source hash rather than rebuilt — and because its FIRST line returns immediately when isEnabled() is false, which it is in the default configuration. A resume that is correct, idempotent, non-rebuilding and a no-op is not a verb the harness can assert against"
+      },
+      {
+        "verb": "status",
+        "why": "this target computes the roster's most complete status object and no transport carries it, which is a fifth kind of absence and the finding this seat exists to produce. xpcom/embeddings.js:2872-2889 returns enabled, model, indexing, stopping, paused, phase, per-library indexed/eligible and indexedAttachments/eligibleAttachments counts, download and extraction progress and the last error — a closer fit to this layer's normalized status than anything else on the roster publishes — and its own doc comment says it is 'for the preferences UI'. Nothing exposes it: enumerating every Zotero.Server.Endpoints registration under xpcom/server/ at this head reaches the connector, integration and local-API sets and not one of them names Zotero.Embeddings or Zotero.ML, and the local API is 403 by default in any case. GET /connector/ping is on by default and is liveness only ('Zotero is running'), which is not a status in this layer's sense — the harness observes convergence through status, and a liveness byte cannot carry a coverage sentence. Reading the preference file instead would answer from configuration where the clause is about a running process, and constructing a status the target does not publish is a workaround; neither is done"
+      },
+      {
+        "verb": "uninstall",
+        "why": "there is no removal surface anywhere in this target, and the reason is the fourth distinct one on this roster. zoteus reports no such surface yet; zotero-mcp reports that the documented removal is uninstalling a package; ZotSeek reports a real uninstall hook with no trigger a machine can reach. This target reports something else again: it is the application, so its removal is deleting the tree the operator unpacked — an operation of the file system, not of the target — and the state it leaves behind is the data directory, which is THE USER'S LIBRARY. A reference manager that offered to delete its own data directory would be offering to delete the thing it exists to keep. Grepping the target for an uninstall surface at the pinned commit returns only the plugin manager's own machinery for uninstalling OTHER add-ons (xpcom/plugins.js) and a vendored regular-expression library's unrelated install/uninstall API. The harness will not delete the declared roots on the target's behalf: R15's uninstall clause forbids manufacturing a clean result that way"
+      }
+    ],
+    "not_derived_state": [
+      {
+        "path": "/tmp/matrix-hosted/zotero-core-6012/arena/host.log",
+        "why": "READ A GREEN RESIDUE VERDICT ON THIS TARGET AS EXACTLY THIS, and the statement belongs where a reader of the artifact meets it: nothing appeared in the arena outside the seven declared roots and the three desktop entries exempted below. Measured across two runs, the exempted groups are STABLE at 116 files — 107 the office suite's configuration, 1 the sound server's, 8 inside .cache — plus 1 for this log; every other file created (963 and 953 on the two runs, the difference living in the toolkit's own cache, which is a DECLARED root) falls under a declared root. Read the check's own created_count for a run's total rather than a figure written here, which is what varies.\n\nWhat could still fail it: a write at the top of the sandbox HOME, a new directory under .config, a new top-level entry in the arena, or anything outside the arena's own tree. What could not: a new file inside .cache. A green here is not a claim that this target wrote nowhere else on the machine.\n\nThis entry itself is the HARNESS's own instrument, not the target's state. The arena is documented as harness-owned but the residue sweep counts every file in it, so an adapter cannot capture its target's output inside its own arena without declaring the capture. Not avoidable by piping: this target is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict"
+      },
+      {
+        "path": "/tmp/matrix-hosted/zotero-core-6012/arena/home/.cache",
+        "why": "the DESKTOP's shared cache root, and this is the ONE wholesale exemption in this declaration. What it actually covers, enumerated and counted on real runs: .cache/fontconfig, 3 files, the font library's cache; .cache/nvidia, 4 files, the GL driver's shader cache; and ONE file directly under .cache — the sound server's client cache, whose name embeds this machine's own id. EIGHT FILES, the same eight on both runs measured. The two subtrees here that are the target's, .cache/mozilla (100 and 110 files on those runs) and .cache/zotero, are declared derived-state ROOTS above and are accounted for by declaration rather than by this exemption. It stays wholesale for the single file, which cannot be named portably; the cost is that a NEW entry appearing under .cache would be invisible to the sweep, and that is the honest statement of this check's reach. Measured: the contents of these three are also the whole of the nondeterminism between two runs of this adapter, 1742 files against 1498"
+      },
+      {
+        "path": "/tmp/matrix-hosted/zotero-core-6012/arena/home/.config/pulse",
+        "why": "the sound server's own client configuration, 1 file. Named rather than covered by a wholesale .config exemption, which an earlier version of this declaration used: exempting the whole of .config hid 108 files behind an argument that only ever applied to two named entries, and a reviewer was right that it left the residue sweep with no reach over that root at all"
+      },
+      {
+        "path": "/tmp/matrix-hosted/zotero-core-6012/arena/home/.config/libreoffice",
+        "why": "the office suite's own configuration store, 107 files — by far the largest exemption here and the one that is an admission rather than a formality. It exists because the target registers its word-processor integration on first run and the office suite's OWN installer writes it (measured; the run's log carries unopkg's output, and the profile carries the target's zoteroOpenOfficeIntegration bookkeeping). So it is state the TARGET CAUSES inside a THIRD program's configuration store, and derived_state_roots — a tuple of paths — has no way to say that. Declaring it a root would claim another program's configuration for this target; omitting it silently would hide state the target causes. This entry is the admission, not the resolution. With it and the entry above named, .config is no longer exempt as a whole: a new directory appearing there IS residue"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target computes the roster's most complete status object and no transport carries it, which is a fifth kind of absence and the finding this seat exists to produce. xpcom/embeddings.js:2872-2889 returns enabled, model, indexing, stopping, paused, phase, per-library indexed/eligible and indexedAttachments/eligibleAttachments counts, download and extraction progress and the last error — a closer fit to this layer's normalized status than anything else on the roster publishes — and its own doc comment says it is 'for the preferences UI'. Nothing exposes it: enumerating every Zotero.Server.Endpoints registration under xpcom/server/ at this head reaches the connector, integration and local-API sets and not one of them names Zotero.Embeddings or Zotero.ML, and the local API is 403 by default in any case. GET /connector/ping is on by default and is liveness only ('Zotero is running'), which is not a status in this layer's sense — the harness observes convergence through status, and a liveness byte cannot carry a coverage sentence. Reading the preference file instead would answer from configuration where the clause is about a running process, and constructing a status the target does not publish is a workaround; neither is done",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "result": "fail",
+      "target": "zotero/zotero#6012",
+      "verb": "query",
+      "detail": {
+        "verbs_driven": [
+          "install",
+          "configure"
+        ],
+        "verbs_not_offered": [
+          "resume",
+          "query"
+        ],
+        "isolation_mechanism": {
+          "name": "bwrap",
+          "how": "bubblewrap: the host tree read-only, the declared derived-state roots re-bound read-write, and --unshare-net for the isolated arm",
+          "writable_enforced": true
+        },
+        "subject": {
+          "mechanism": "bwrap",
+          "network_shared": false,
+          "returncode": 3,
+          "attempt_counts": {
+            "off_machine": 0,
+            "dns": 98
+          },
+          "attempts": [
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            }
+          ],
+          "stdout_tail": "{\"drive\": \"raised: RuntimeError: the target exited with 139 before zotero.sqlite appeared; its output is at /tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R10-no-egress/host.log.\"}\n",
+          "stderr_tail": ""
+        },
+        "control": {
+          "net_shared": {
+            "mechanism": "bwrap",
+            "network_shared": true,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 3
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "isolated": {
+            "mechanism": "bwrap",
+            "network_shared": false,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 4
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "why_both": "the shared arm proves the tracer sees attempts and the machine has a route; the isolated arm proves each detector still fires when nothing can leave. Without both, a zero from the subject arm is indistinguishable from an instrument that could not look."
+        },
+        "detectors": {
+          "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+          "dns": "a connect/sendto/sendmsg to a resolver port, loopback included: inside a no-route namespace a hostname attempt dies at resolution and leaves no off-machine connect at all, so a detector without this one reports a false green"
+        },
+        "run_completed": false
+      }
+    },
+    {
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state",
+      "result": "fail",
+      "target": "zotero/zotero#6012",
+      "verb": "install",
+      "detail": {
+        "install_event": {
+          "verb": "install",
+          "channel": "the platform-native build at the pinned commit, launched against a fresh profile and data directory. No release carries this revision, so the build is from source by the tree's own packaging scripts (app/scripts/fetch_xulrunner then app/scripts/dir_build); the recipe and its four dead ends are in this adapter's module docstring",
+          "commit": "19e79625b1c6fbbdd75367aa85b62d5a7080d7f6",
+          "application_ini": {
+            "Name": "Zotero",
+            "Version": "11.0.SOURCE.19e79625b",
+            "BuildID": "20260903123818"
+          },
+          "pin_checked": true,
+          "pin_expected_version": "11.0.SOURCE.19e79625b",
+          "materialized": {
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/data": 769,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/profile": 16,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.cache/mozilla": 126,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/mozilla": 75,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.cache/zotero": 0,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/zotero": 0,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/Downloads": 0,
+            "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/data/embeddings.sqlite": null
+          },
+          "target_preference_keys": []
+        },
+        "arena": "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory",
+        "created_count": 1171,
+        "declared_roots": [
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/data",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/profile",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.cache/mozilla",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/mozilla",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.cache/zotero",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/zotero",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/Downloads",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/data/embeddings.sqlite"
+        ],
+        "not_derived_state": [
+          {
+            "path": "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/host.log",
+            "why": "READ A GREEN RESIDUE VERDICT ON THIS TARGET AS EXACTLY THIS, and the statement belongs where a reader of the artifact meets it: nothing appeared in the arena outside the seven declared roots and the three desktop entries exempted below. Measured across two runs, the exempted groups are STABLE at 116 files — 107 the office suite's configuration, 1 the sound server's, 8 inside .cache — plus 1 for this log; every other file created (963 and 953 on the two runs, the difference living in the toolkit's own cache, which is a DECLARED root) falls under a declared root. Read the check's own created_count for a run's total rather than a figure written here, which is what varies.\n\nWhat could still fail it: a write at the top of the sandbox HOME, a new directory under .config, a new top-level entry in the arena, or anything outside the arena's own tree. What could not: a new file inside .cache. A green here is not a claim that this target wrote nowhere else on the machine.\n\nThis entry itself is the HARNESS's own instrument, not the target's state. The arena is documented as harness-owned but the residue sweep counts every file in it, so an adapter cannot capture its target's output inside its own arena without declaring the capture. Not avoidable by piping: this target is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict"
+          },
+          {
+            "path": "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.cache",
+            "why": "the DESKTOP's shared cache root, and this is the ONE wholesale exemption in this declaration. What it actually covers, enumerated and counted on real runs: .cache/fontconfig, 3 files, the font library's cache; .cache/nvidia, 4 files, the GL driver's shader cache; and ONE file directly under .cache — the sound server's client cache, whose name embeds this machine's own id. EIGHT FILES, the same eight on both runs measured. The two subtrees here that are the target's, .cache/mozilla (100 and 110 files on those runs) and .cache/zotero, are declared derived-state ROOTS above and are accounted for by declaration rather than by this exemption. It stays wholesale for the single file, which cannot be named portably; the cost is that a NEW entry appearing under .cache would be invisible to the sweep, and that is the honest statement of this check's reach. Measured: the contents of these three are also the whole of the nondeterminism between two runs of this adapter, 1742 files against 1498"
+          },
+          {
+            "path": "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/pulse",
+            "why": "the sound server's own client configuration, 1 file. Named rather than covered by a wholesale .config exemption, which an earlier version of this declaration used: exempting the whole of .config hid 108 files behind an argument that only ever applied to two named entries, and a reviewer was right that it left the residue sweep with no reach over that root at all"
+          },
+          {
+            "path": "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.config/libreoffice",
+            "why": "the office suite's own configuration store, 107 files — by far the largest exemption here and the one that is an admission rather than a formality. It exists because the target registers its word-processor integration on first run and the office suite's OWN installer writes it (measured; the run's log carries unopkg's output, and the profile carries the target's zoteroOpenOfficeIntegration bookkeeping). So it is state the TARGET CAUSES inside a THIRD program's configuration store, and derived_state_roots — a tuple of paths — has no way to say that. Declaring it a root would claim another program's configuration for this target; omitting it silently would hide state the target causes. This entry is the admission, not the resolution. With it and the entry above named, .config is no longer exempt as a whole: a new directory appearing there IS residue"
+          }
+        ],
+        "residue": [
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.local/share/gvfs-metadata/root",
+          "/tmp/matrix-hosted/zotero-core-6012/arena/2026-09-03/131241-R15-residue-inventory/home/.local/share/gvfs-metadata/root-3013411b.log"
+        ],
+        "residue_count": 2,
+        "reads": "the declaration is compared against what appeared in a harness-owned arena, never read back against itself"
+      }
+    },
+    {
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "query",
+      "detail": {
+        "verb": "query",
+        "why": "the adapter declares 'query' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the surface is the application's own user interface, and no machine route to it exists in the default configuration. Measured on the running build 2026-09-03, not read: every /api/ route answers 403 'Local API is not enabled' (xpcom/server/server_localAPI.js:249; the preference is false at build/defaults/preferences/zotero.js:173), and the endpoints that ARE on by default are the browser connector's — ping, translator and save routes, none of which searches a library. Enabling the local API is a non-default option, which the contract forbids; it would also change R10's subject by opening a namespace the default configuration does not open. And it would not deliver a query even then: the one indirect route to inference at this head runs a saved search carrying a root-level bestMatch condition (data/searchConditions.js, data/search.js) over the local API, which returns ITEMS and no vector, embeds one query with no passage or batch path, and WRITES DURABLE LIBRARY STATE PER QUERY — a side effect masquerading as a transport (established at source in the BRIDGE-0496 note, re-derived here at this head). Its write path additionally needs POST /api/local/authorize, which prompts the user, and which answers 403 here for the same reason. Finally there would be nothing behind it: with embeddings.model \"\" no embedder is in effect, so the 'meaning' mode has no engine at all",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "uninstall",
+      "detail": {
+        "verb": "uninstall",
+        "why": "the adapter declares 'uninstall' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "there is no removal surface anywhere in this target, and the reason is the fourth distinct one on this roster. zoteus reports no such surface yet; zotero-mcp reports that the documented removal is uninstalling a package; ZotSeek reports a real uninstall hook with no trigger a machine can reach. This target reports something else again: it is the application, so its removal is deleting the tree the operator unpacked — an operation of the file system, not of the target — and the state it leaves behind is the data directory, which is THE USER'S LIBRARY. A reference manager that offered to delete its own data directory would be offering to delete the thing it exists to keep. Grepping the target for an uninstall surface at the pinned commit returns only the plugin manager's own machinery for uninstalling OTHER add-ons (xpcom/plugins.js) and a vendored regular-expression library's unrelated install/uninstall API. The harness will not delete the declared roots on the target's behalf: R15's uninstall clause forbids manufacturing a clean result that way",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R22-pause-stops-background-work",
+      "requirement": "R22",
+      "clause": "there is one obvious way to stop all background work, and after it is used a change that would create work creates none",
+      "falsified_by": "any work.*.*.done counter advancing against a change made while the target is stopped",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "pause",
+      "detail": {
+        "verb": "pause",
+        "why": "the adapter declares 'pause' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the roster's best-matching pause control, and the harness cannot reach it. SPEC.md §5.2.8 defines pause and resume as the two transitions of one durable background-work control, resume idempotent and never forcing a rebuild. That is exactly what this target implements: stopIndexing() at xpcom/embeddings.js:3141-3150 clears both queues, cancels the kick timer and persists embeddings.indexingPaused, and isPaused() at :1824-1826 reads it back — 'Persisted so a stop survives a restart', in the target's own comment. Both are called from ONE place, the preferences pane (preferences/preferences_advanced.js:103, :107), which is a GUI control; no route reaches them and the preference is settable only through the configuration editor or by editing the profile while the application is stopped. Even reached, it would govern nothing here: with embeddings.model \"\" there is no indexing to stop (:1809 gates the work on isEnabled()). So the control is real, durable and correct, the work it governs is off, and neither is machine-reachable — three separate things, and the reason field is the only place they can be told apart",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R22-pause-holds-across-restart",
+      "requirement": "R22",
+      "clause": "the control that stops all background work holds across a restart, with no one asking for it again",
+      "falsified_by": "any work.*.*.done counter advancing against a change made after the process is restarted, with no resume in between",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "pause",
+      "detail": {
+        "verb": "pause",
+        "why": "the adapter declares 'pause' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the roster's best-matching pause control, and the harness cannot reach it. SPEC.md §5.2.8 defines pause and resume as the two transitions of one durable background-work control, resume idempotent and never forcing a rebuild. That is exactly what this target implements: stopIndexing() at xpcom/embeddings.js:3141-3150 clears both queues, cancels the kick timer and persists embeddings.indexingPaused, and isPaused() at :1824-1826 reads it back — 'Persisted so a stop survives a restart', in the target's own comment. Both are called from ONE place, the preferences pane (preferences/preferences_advanced.js:103, :107), which is a GUI control; no route reaches them and the preference is settable only through the configuration editor or by editing the profile while the application is stopped. Even reached, it would govern nothing here: with embeddings.model \"\" there is no indexing to stop (:1809 gates the work on isEnabled()). So the control is real, durable and correct, the work it governs is off, and neither is machine-reachable — three separate things, and the reason field is the only place they can be told apart",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target computes the roster's most complete status object and no transport carries it, which is a fifth kind of absence and the finding this seat exists to produce. xpcom/embeddings.js:2872-2889 returns enabled, model, indexing, stopping, paused, phase, per-library indexed/eligible and indexedAttachments/eligibleAttachments counts, download and extraction progress and the last error — a closer fit to this layer's normalized status than anything else on the roster publishes — and its own doc comment says it is 'for the preferences UI'. Nothing exposes it: enumerating every Zotero.Server.Endpoints registration under xpcom/server/ at this head reaches the connector, integration and local-API sets and not one of them names Zotero.Embeddings or Zotero.ML, and the local API is 403 by default in any case. GET /connector/ping is on by default and is liveness only ('Zotero is running'), which is not a status in this layer's sense — the harness observes convergence through status, and a liveness byte cannot carry a coverage sentence. Reading the preference file instead would answer from configuration where the clause is about a running process, and constructing a status the target does not publish is a workaround; neither is done",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target computes the roster's most complete status object and no transport carries it, which is a fifth kind of absence and the finding this seat exists to produce. xpcom/embeddings.js:2872-2889 returns enabled, model, indexing, stopping, paused, phase, per-library indexed/eligible and indexedAttachments/eligibleAttachments counts, download and extraction progress and the last error — a closer fit to this layer's normalized status than anything else on the roster publishes — and its own doc comment says it is 'for the preferences UI'. Nothing exposes it: enumerating every Zotero.Server.Endpoints registration under xpcom/server/ at this head reaches the connector, integration and local-API sets and not one of them names Zotero.Embeddings or Zotero.ML, and the local API is 403 by default in any case. GET /connector/ping is on by default and is liveness only ('Zotero is running'), which is not a status in this layer's sense — the harness observes convergence through status, and a liveness byte cannot carry a coverage sentence. Reading the preference file instead would answer from configuration where the clause is about a running process, and constructing a status the target does not publish is a workaround; neither is done",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "query",
+      "detail": {
+        "verb": "query",
+        "why": "the adapter declares 'query' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the surface is the application's own user interface, and no machine route to it exists in the default configuration. Measured on the running build 2026-09-03, not read: every /api/ route answers 403 'Local API is not enabled' (xpcom/server/server_localAPI.js:249; the preference is false at build/defaults/preferences/zotero.js:173), and the endpoints that ARE on by default are the browser connector's — ping, translator and save routes, none of which searches a library. Enabling the local API is a non-default option, which the contract forbids; it would also change R10's subject by opening a namespace the default configuration does not open. And it would not deliver a query even then: the one indirect route to inference at this head runs a saved search carrying a root-level bestMatch condition (data/searchConditions.js, data/search.js) over the local API, which returns ITEMS and no vector, embeds one query with no passage or batch path, and WRITES DURABLE LIBRARY STATE PER QUERY — a side effect masquerading as a transport (established at source in the BRIDGE-0496 note, re-derived here at this head). Its write path additionally needs POST /api/local/authorize, which prompts the user, and which answers 403 here for the same reason. Finally there would be nothing behind it: with embeddings.model \"\" no embedder is in effect, so the 'meaning' mode has no engine at all",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target computes the roster's most complete status object and no transport carries it, which is a fifth kind of absence and the finding this seat exists to produce. xpcom/embeddings.js:2872-2889 returns enabled, model, indexing, stopping, paused, phase, per-library indexed/eligible and indexedAttachments/eligibleAttachments counts, download and extraction progress and the last error — a closer fit to this layer's normalized status than anything else on the roster publishes — and its own doc comment says it is 'for the preferences UI'. Nothing exposes it: enumerating every Zotero.Server.Endpoints registration under xpcom/server/ at this head reaches the connector, integration and local-API sets and not one of them names Zotero.Embeddings or Zotero.ML, and the local API is 403 by default in any case. GET /connector/ping is on by default and is liveness only ('Zotero is running'), which is not a status in this layer's sense — the harness observes convergence through status, and a liveness byte cannot carry a coverage sentence. Reading the preference file instead would answer from configuration where the clause is about a running process, and constructing a status the target does not publish is a workaround; neither is done",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand",
+      "result": "not-offered",
+      "target": "zotero/zotero#6012",
+      "verb": "query",
+      "detail": {
+        "verb": "query",
+        "why": "the adapter declares 'query' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the surface is the application's own user interface, and no machine route to it exists in the default configuration. Measured on the running build 2026-09-03, not read: every /api/ route answers 403 'Local API is not enabled' (xpcom/server/server_localAPI.js:249; the preference is false at build/defaults/preferences/zotero.js:173), and the endpoints that ARE on by default are the browser connector's — ping, translator and save routes, none of which searches a library. Enabling the local API is a non-default option, which the contract forbids; it would also change R10's subject by opening a namespace the default configuration does not open. And it would not deliver a query even then: the one indirect route to inference at this head runs a saved search carrying a root-level bestMatch condition (data/searchConditions.js, data/search.js) over the local API, which returns ITEMS and no vector, embeds one query with no passage or batch path, and WRITES DURABLE LIBRARY STATE PER QUERY — a side effect masquerading as a transport (established at source in the BRIDGE-0496 note, re-derived here at this head). Its write path additionally needs POST /api/local/authorize, which prompts the user, and which answers 403 here for the same reason. Finally there would be nothing behind it: with embeddings.model \"\" no embedder is in effect, so the 'meaning' mode has no engine at all",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "pass": 0,
+    "fail": 2,
+    "not-offered": 10,
+    "not-run": 0
+  },
+  "how_this_was_produced": {
+    "what_this_file_is": "the four host-bound cells of the 2026-09-03 acceptance matrix, decided. `bench/acceptance/run.py` was run end to end against this adapter — every one of the twelve assertions, no assertion called by hand, nothing stubbed. It is committed BESIDE the staging artifact rather than replacing it: that file records what was staged and why two cells could not be looked at, and this one records what was seen when they could.",
+    "why_the_cells_were_blocked_and_what_changed": "R10-no-egress and R15-residue-inventory both walk into `with target.running():`, which starts a Zotero desktop host. On 2026-09-03 a peer session held the machine's Zotero for a full-library index build and every agent was forbidden to launch one, so the staging agents recorded `not-staged` — the harness's four states plus a fifth word for 'the run did not happen'. That prohibition was lifted; the staging was still on disk; these are the runs.",
+    "the_machine_as_it_actually_was": "doudou, 2026-09-03. THE PEER'S PORT WAS NOT FREE and this is recorded because it contradicts the brief: 127.0.0.1:23119 was still LISTENing throughout, held by the operator's own resident Zotero 10.0.1 (pid 792925, up 19 h 41 min at the start of this run) — which is simply what a running Zotero desktop does. It is not an obstacle: neither adapter uses 23119. #6012 listens on 23519 and ZotSeek on 23219, both measured free before the runs and both left free after. The resident process was alive and still holding its port when these runs finished, so nothing here disturbed it. The block was a policy on launching a host, not a port collision, and it is the policy that lifted.",
+    "instruments": "bwrap 0.11.1 (sandbox.choose() selected it, writable_enforced true), strace 6.19, and an Xvfb server on :77 started for these runs and used by both. No traffic was sent to 127.0.0.1:23119 by this session.",
+    "the_ten_other_cells_reproduced": "Every one of the ten `not-offered` verdicts the staging pass obtained by calling the assertion functions directly came back identical from a full run of the driver. That is a stronger reading than the staging pass could produce and it changes no cell: those ten stay `not-offered`, now from an executed run.",
+    "the_host_crash_inside_the_egress_sandbox": "THE DRIVEN RUN DID NOT COMPLETE, AND THE VERDICT IS STILL A RED. Inside the egress sandbox `/tmp` is a read-only bind, and GTK's icon loader writes a temporary file there before it can rasterise an icon; it cannot, so it aborts and the host dies of SIGSEGV about seven seconds into startup. `run.py --drive` therefore exits DRIVE_INCOMPLETE (3) and the check records `run_completed: false`. `check_no_egress` documents this exact case and decides it the way it is decided here: DRIVE_INCOMPLETE plus a ZERO attempt count is `not-run`, because a path that never executed cannot be said to have stayed home — but an attempt the tracer DID record stands whatever went wrong afterwards. The attempts below were recorded. What the incompleteness costs is reach, not validity: the lookups counted here are the ones the run got as far as making, and a complete run could only have made more. It is NOT evidence that the target's own retrieval path stays home, because that path never ran.\n\nThe crash is the harness's sandbox meeting this machine's desktop stack, not a defect of the target: the same host starts and runs to a clean stop in the residue assertion, which uses no sandbox. Whether the egress sandbox should give the host a writable temporary directory is a question for the harness lane; changing it here would have been changing the instrument in the middle of reading it.",
+    "how_to_read_the_egress_red": "Zero connections to any address off this machine. The red is the second detector: name lookups to the local stub resolver at 127.0.0.53:53, which the clause's `falsified_by` names in as many words ('or any name lookup'). Both control arms fired — net-shared and isolated each recorded one off-machine attempt and several lookups — so the instrument is known to work here and this zero-off-machine reading is not a could-not-look. Scope it the way the zoteus red is scoped in MATRIX.md: it says a default-configuration run performs name lookups, not that library text left the machine.",
+    "target_specific": {
+      "staging_inherited_from": "bench/results/0604-ladder-matrix/acceptance-zotero-core-6012.json and the phase-1 tree at /home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-core-6012. Verified intact before this run rather than assumed: the staged launcher is present at src/app/staging/Zotero_linux-x86_64/zotero (272 MB), and its app/application.ini reads Version=11.0.SOURCE.19e79625b — which is the pin the adapter checks at construction, and it checked it (the install event carries pin_checked: true). Nothing was rebuilt.",
+      "the_build_id_differs_from_the_earlier_artifact_and_that_was_expected": "This build stamps BuildID=20260903123818; the staging artifact recorded …011524. MATRIX.md already reports the two-builds-of-one-pin discrepancy. The declaration says the BuildID is recorded and NOT enforced, because a faithful rebuild of the same commit produces a different one — so the commit is what this run is pinned to and it matches. The binary measured here is the one on disk at the path above, which is now recorded.",
+      "command": "python3 bench/acceptance/run.py --adapter zotero-core-6012 --arena <scratch>/zotero-core-6012/arena --output <scratch>/acceptance.json --adapter-option application=/home/haduong/.claude/jobs/23ae8345/tmp/matrix/zotero-core-6012/src/app/staging/Zotero_linux-x86_64/zotero --adapter-option display=:77 --adapter-option port=23519",
+      "two_deviations_from_the_staged_command_line": "(a) DISPLAY. The staged script named :0, the operator's own live desktop; this run used an Xvfb server on :77 instead, so that a Zotero window did not open on top of the operator's session. The display is adapter-declared harness setup, not a target option, and the same Xvfb is what the ZotSeek staging report had already chosen. (b) The port was passed explicitly at 23519, which is the adapter's own default rather than a change to it; it is named on the command line so the artifact records what was in effect. The port's deviation from the target's shipped 23119 is the adapter's own disclosed one and is argued in the declaration, not introduced here.",
+      "residue_reading": "TWO FILES OUTSIDE THE DECLARATION, both under <arena>/home/.local/share/gvfs-metadata/ — the GIO metadata store, written under the sandbox HOME by the desktop stack the application runs on. The declaration exempts .cache wholesale and names .config/pulse and .config/libreoffice individually; it says nothing about .local, and its own text names this as one of the three things that could still fail it ('a write at the top of the sandbox HOME, a new directory under .config, a new top-level entry in the arena').\n\nSo this red is a DECLARATION-COMPLETENESS finding, which is what R15's ratified clause is for — not a claim that the target wrote library text somewhere it should not have. It is the same class as the .config/libreoffice entry the declaration already calls 'an admission, not the resolution': state a third program's stack creates because this target ran. It did not appear in the staging pass's own reading of what the arena holds, which was made on padme; this run is on doudou, whose desktop stack has gvfs active. The honest statement is that the declaration is incomplete on this machine, and that a declaration is only ever complete with respect to the machines it has been swept on."
+    },
+    "raw_artifact_is_unedited": "`probe`, `not_a_test_suite`, `date`, `declaration`, `checks` and `summary` are exactly what `Run.write()` emitted. This block was added around them and nothing inside them was touched."
+  },
+  "machine": "doudou"
+}
