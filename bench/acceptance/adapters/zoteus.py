@@ -71,9 +71,11 @@ restamps are done here, in sqlite, exactly as `bench/smoke_upstream.py`'s
 and only this adapter may know where it lives. Editing one item and resyncing
 identical bytes are declined: both are writes to the user's Zotero library,
 which this target is configured read-only against and which R15 excludes from
-derived state — and the clauses they serve read work counters this target does
-not report, so driving them would produce an undecidable run rather than a
-verdict.
+derived state. That is the whole reason, and it is a fact about the library
+rather than about the counters: every build measured so far also reports no work
+counters for those clauses to read, but the adapter now derives that on each run
+(`_work_counters`) instead of asserting it, so the refusal below says only what
+stays true whatever the status reply carries.
 
 **The model runtime path is a declared, overridable input, and it is the sharpest
 environmental trap here.** The built checkout does not vendor the on-device model
@@ -143,6 +145,101 @@ FOREIGN_STAMPS = {RESTAMP_OLDER: "0", RESTAMP_NEWER: "9999"}
 #: The key this target keeps its index schema version under, in the index's own
 #: `meta` table. Target knowledge, which is why it is here and not in the layer.
 STAMP_KEY = "schemaVersion"
+
+#: The names a work-counter object would arrive under if this target ever shipped
+#: one. `SPEC.md` §5.2.8 fixes the counter names — `work.<stage>.<trigger>.<outcome>`
+#: — and fixes nothing about what encloses them, so the derivation looks for the
+#: object under either the vocabulary's own word or the generic one, at the top
+#: level of a status reply. It is a search of what came back, not a constant.
+WORK_OBJECT_KEYS = ("work", "counters")
+
+#: The prefix every counter name the layer reads carries (`durability._field`
+#: refuses a name without it), so a target that grouped its counters under
+#: `counters` still reaches the layer under the names the layer parses.
+WORK_PREFIX = "work"
+
+
+def _is_counter_name(name: str) -> bool:
+    """Whether a flattened name is one the layer can read as a counter.
+
+    Mirrors `durability._field`, which returns '' for anything that is not four
+    dotted fields beginning with `work` — and every goal-2 clause filters its
+    deltas by `outcome_of`, so a name that fails here contributes to no verdict
+    while still being enough, by its mere presence, to make `work_counters`
+    non-None and let a clause decide. That is the ticket's own defect class
+    coming back through the other door: a target reporting a `work` field that
+    is not counters at all would earn a green from a check that had honestly
+    said `not-run`. Hence the shape gate.
+    """
+    parts = name.split(".")
+    return len(parts) == 4 and parts[0] == WORK_PREFIX and all(parts)
+
+
+def _count(value: object) -> int | None:
+    """`value` as a count, or None if it is not one.
+
+    Dropped rather than coerced: a phase string beside the counters is not a
+    counter, and `int()` on it would raise on a payload this is only reading.
+    Booleans go too — `True` is an `int` in Python and a flag is not a count.
+    An integral float is accepted, because JSON has one number type and a
+    serializer that emits `3.0` has still reported three.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return None
+
+
+def _flatten_counters(reported: dict, prefix: str = WORK_PREFIX,
+                      *, top: bool = True) -> dict[str, int]:
+    """Flatten a counter object into the layer's dotted `work.<...>` names.
+
+    Nested (`{"record": {"edit": {"done": 1}}}`) and already-flat
+    (`{"work.record.edit.done": 1}`) are both accepted, because no build ships a
+    counter object yet and neither shape can be presumed. The already-flat branch
+    fires only at the top level: a dotted key found *inside* a nested object
+    would otherwise discard its own ancestors and report a name from the wrong
+    address.
+
+    Only names the layer can parse survive (`_is_counter_name`), so a `work`
+    object that is not counters yields nothing and the caller reads it as no
+    counters — which is what it is.
+    """
+    flat: dict[str, int] = {}
+    for key, value in reported.items():
+        name = str(key)
+        already_flat = top and name.startswith(f"{WORK_PREFIX}.")
+        full = name if already_flat else f"{prefix}.{name}"
+        if isinstance(value, dict):
+            flat.update(_flatten_counters(value, full, top=False))
+            continue
+        count = _count(value)
+        if count is not None and _is_counter_name(full):
+            flat[full] = count
+    return flat
+
+
+def _work_counters(*payloads: dict) -> dict[str, int] | None:
+    """The work counters these status replies actually carry, or None if none do.
+
+    This is the whole of the adapter's answer for `work`: the nil is *observed*
+    on each run rather than written down, so a build that starts reporting
+    counters is read as reporting them without anyone editing this file. Measured
+    on 2026-09-03 against a live server in this adapter's default configuration,
+    the index status carries no such object and this returns None — but it
+    returns None because it looked, which is the difference the layer's `not-run`
+    rests on.
+    """
+    for payload in payloads:
+        for key, value in payload.items():
+            if str(key).lower() in WORK_OBJECT_KEYS and isinstance(value, dict):
+                flat = _flatten_counters(value)
+                if flat:
+                    return flat
+    return None
 
 
 def _payload(response: dict) -> dict:
@@ -337,13 +434,15 @@ class Zoteus:
                 "active": index.get("embedderActive") is True,
                 "model": index.get("embedderModel"),
             },
-            # Explicitly None rather than absent. This target's status carries
-            # coverage and phase but no `work.<stage>.<trigger>.<outcome>` counter
-            # of any kind — measured on 2026-09-03, all 29 top-level keys read,
-            # no `work` or `counters` object anywhere. Saying so here is the
-            # difference between an adapter that answered and one that forgot,
-            # and it is what makes R3's `not-run` a finding rather than a gap.
-            "work": None,
+            # Derived from the two replies just read, never written down: see
+            # `_work_counters`. The key is always present, and that is the point
+            # — `None` here means the adapter looked at this run's own status and
+            # found no `work.<stage>.<trigger>.<outcome>` object, which is what
+            # makes R3's and R13's `not-run` a finding rather than an adapter
+            # that forgot to populate a key. Against every build measured so far
+            # it is None; against one that ships counters it will not be, with no
+            # edit to this file.
+            "work": _work_counters(index, whoami),
             "reported": {"whoami_embeddings": embeddings, "index_embedder": index.get("embedder")},
         }
 
@@ -376,10 +475,8 @@ class Zoteus:
         if what in (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES):
             raise NotImplementedError(
                 "this would write to the user's own Zotero library, which this target is "
-                "configured read-only against and which R15 excludes from derived state; "
-                "and the clause it serves reads work counters this target does not "
-                "report, so driving it would produce an undecidable run rather than a "
-                "verdict"
+                "configured read-only against and which R15 excludes from derived state, "
+                "so the harness declines to drive it and the clause is not decided here"
             )
         raise NotImplementedError(f"this adapter has no way to do {what!r}")
 
