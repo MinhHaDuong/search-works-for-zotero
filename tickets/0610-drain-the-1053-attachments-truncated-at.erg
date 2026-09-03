@@ -1,0 +1,103 @@
+%erg 0.1
+Title: Drain the 1053 attachments truncated at 100 pages: reindexTruncated has no startup sweep
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T10:20Z claude created
+2026-09-03T10:22Z claude note filed out of the 2026-09-03 caps probe (verification/SDT-CAPS-0483.md). The population and the mechanism are both measured; what is missing is a drain, and the drain is upstream code rather than ours.
+
+--- body ---
+## Context
+
+`verification/SDT-CAPS-0483.md` established two facts on 2026-09-03 that together
+leave a population nothing will reach.
+
+**The mechanism exists and is upstream's.** `reindexTruncated`
+(`chrome/content/zotero/xpcom/fulltext.js:3093`, build `20260824184709`) selects
+exactly the rows a raised limit would extend:
+
+    SELECT itemID FROM fulltextItems
+    WHERE indexedPages IS NOT NULL AND indexedPages < totalPages AND indexedPages < ?
+
+**It is reachable from one place only.** The symbol occurs twice in the shipped
+`omni.ja` — the definition, and a preference observer at line 353 that schedules
+it debounced 5 s on `fulltext.pdfMaxPages` / `fulltext.textMaxLength`. There is
+no third call site and no startup sweep. So a limit raised while Zotero is
+closed, or raised under a build predating the feature, fires no observer and the
+affected attachments stay truncated with no catch-up path.
+
+`doudou` is the demonstration: `pdfMaxPages` reads 999999 and **1 053**
+attachments still carry `indexedPages = 100 < totalPages`, the worst losing 100
+of 3 949 pages. Truncated by chars: 0. The plugin's own status agrees
+independently (`partial: 1053`).
+
+This is distinct from the old-generation-cache half that ticket 0483's table
+already assigns to us. A cache fully extracted under an old extractor has
+`indexedPages == totalPages`, so `reindexTruncated`'s predicate never selects it.
+The population here is the opposite case: correctly *marked* as truncated, and
+still never drained.
+
+## Why it matters beyond one machine
+
+For these 1 053 attachments the platform full-text index holds only the first
+100 pages, so the build — which reads the platform cache and never parses
+(`verification/EXTRACTION-ROUTES.md`) — inherits 100 pages at full speed. Body
+coverage is bounded by an extraction policy, and R4/R17 honesty is stated over a
+corpus that is silently short.
+
+## Relevant files
+
+- `verification/SDT-CAPS-0483.md` — the probe, the counts, the code reading
+- `verification/EXTRACTION-ROUTES.md` — why a truncated cache is never re-parsed by us
+- `bench/zotero_fulltext.py` — `status` reports `partial`; `reindex` forces one attachment
+- `tickets/0483-zotero-extraction-caps-bound-body-covera.erg` — the parent question
+
+## Actions
+
+1. Decide whose problem this is, because that decision selects everything after
+   it. Either upstream gains a catch-up (a startup reconciliation, or a
+   migration that runs once when the stored limit differs from the effective
+   one), or we drain it ourselves through the control plugin. State the choice
+   and the reasoning; do not do both.
+2. If upstream: draft the item under `GOVERNANCE.md`'s form and volume bound,
+   with the two-occurrence reading as its evidence. The fix is small — the
+   predicate already exists and only its trigger is missing — which is the kind
+   of item that travels well.
+3. If ours: drain via `bench/zotero_fulltext.py reindex`, in batches, and price
+   it first. The flat parse measured 45,7 pages/s on a 2 913-page document, so
+   the arithmetic is worth doing before the run rather than after.
+4. Either way, make the population observable rather than rediscovered. A count
+   of `indexedPages < totalPages` belongs beside the other health figures, so a
+   silent regrowth is visible.
+
+## Test
+
+Before any drain, a positive control: pick one attachment with
+`indexedPages < totalPages`, record the pair, force it, and confirm both the
+ledger and the `.zotero-ft-cache` size move. A drain whose "all clear" is
+indistinguishable from "nothing ran" is not a drain — and this ticket exists
+because a mechanism that looked present did nothing.
+
+## Verification
+
+- [ ] The ownership decision is recorded with its reasoning
+- [ ] The positive control fired on a single attachment before any batch ran
+- [ ] `SELECT COUNT(*) FROM fulltextItems WHERE indexedPages < totalPages` is
+      reported before and after
+- [ ] The count is exposed somewhere a later session reads without re-deriving it
+
+## Invariants
+
+- No change to `pdfMaxPages` or `textMaxLength` as a side effect of draining;
+  the caps are the author's setting, and changing one silently re-triggers the
+  observer over the whole library.
+- Zotero must not be driven while an index build holds its local API — a
+  degraded build never recovers its concurrency (`RUNNING-BUILD.md`).
+- Nothing here reindexes the group library on a whim: group items re-extract to
+  version 0, which moves rows other measurements quote.
+
+## Exit criteria
+
+- The population is drained, or the item is filed upstream and this ticket
+  closes pointing at it. Either outcome is complete; leaving both open is not.
