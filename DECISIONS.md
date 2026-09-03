@@ -5902,10 +5902,9 @@ v2 soon after, at two full drains.
   consequence of the schema rather than a preference, and it is the one place
   where "compatible" bites: the format decides what our producer may say.
 
-- **The reviewed baseline pins `main`'s tip, not the release tag (raised
-  2026-09-03, ticket 0618).** Recorded as done rather than proposed, because it
-  was forced by an existing target rather than chosen, and asked here because it
-  becomes a standing convention the moment a second re-baseline follows it.
+- **RATIFIED 2026-09-03 — the reviewed baseline pins `main`, not the latest
+  shipped tag.** The author's own words: *"We want main, not latest shipped."*
+  Standing convention from this re-baseline forward, not a one-off for v1.13.0.
 
   Upstream released v1.13.0 on 2026-09-03 and `main` moved four commits past
   the tag the same day. `make upstream-status` compares `UPSTREAM_REVIEWED_SHA`
@@ -5915,22 +5914,36 @@ v2 soon after, at two full drains.
   has moved at all. The tip is pinned. `UPSTREAM_REVIEWED_VERSION` keeps naming
   `v1.13.0`, the last release *contained in* the reviewed tree, because that is
   what the standing page dates itself by and what `check_progress`'s BASELINE
-  clause parses; the three-commit gap is disclosed in `UPSTREAM`'s own comment
-  and in the re-read rather than spelled into the version string, since
-  `PAGE_VERSION` reads `vN.N.N` and a `v1.13.0+4` would fail to match itself.
+  clause parses; the gap is disclosed in `UPSTREAM`'s own comment and in the
+  re-read rather than spelled into the version string, since `PAGE_VERSION`
+  reads `vN.N.N` and a `v1.13.0+4` would fail to match itself.
 
-  **What ratification would settle, and it is not the choice above.** It is what
-  the version key MEANS from now on. Under this convention the reviewed tree can
-  contain unreleased work — here, the #43 weight-precision selector, which
-  upstream files under `[Unreleased]` — while the page says "measured against
-  v1.13.0". A reader who fetches the v1.13.0 tag and looks for the dtype knob
-  will not find it. The alternative is to pin the tag and let `upstream-status`
-  carry a third state between QUIET and STALE ("moved, but not released"), which
-  is more honest and costs a change to a target that currently answers one bit.
+  This repository prepares work for upstream: `main` is the tree our PRs land
+  on and the tree the maintainer reads, so it is the tree a filing has to be
+  true of. A release tag is a lagging snapshot of that. Pinning `main` also
+  makes `upstream-status` coherent — the thing it watches and the thing this
+  repository claims to have reviewed are now the same object, which a tag pin
+  is not.
 
-  Nothing else in this re-baseline waits on the answer: the pin is where it is,
-  the standing was re-read against the tree that is pinned, and both are
-  reversible by moving three lines.
+  **The cost, ratified alongside the choice rather than discovered later.** The
+  reviewed tree can contain unreleased work — here, the #43 weight-precision
+  selector, which upstream files under `[Unreleased]` — while the page says
+  "measured against v1.13.0". A reader who fetches the v1.13.0 tag and looks for
+  the dtype knob will not find it. So **a verdict taken at this pin describes
+  `main`, not a release anyone can install**, and any claim about what a user
+  gets *today* — an R32-shaped "on a laptop-class machine" statement, not a
+  filing — must say so explicitly rather than cite the reviewed SHA as if it
+  named a release.
+
+  The adversarial review of PR #287 dissented and the dissent is kept rather
+  than discarded, because its cost is the one paragraph above: pinning wherever
+  was last read, rather than teaching `upstream-status` a third state between
+  QUIET and STALE ("moved, but not released"), retires the one signal that
+  would otherwise say "reviewed ahead of any installable release" — which is
+  exactly the situation this re-baseline is in. Recorded as the alternative this
+  ruling declines, not as an open question: the ruling stands, and a future
+  re-baseline that finds the disclosure insufficient can propose the third
+  state then, against a real second instance rather than a hypothetical one.
 
 - **Trigger (c) fired three times in one release, and two of the three were our
   own merged work (raised 2026-09-03, ticket 0618).** Recorded, not asked —

@@ -2,10 +2,12 @@
 Title: Re-baseline UPSTREAM to v1.13.0 and re-read every standing claim
 Created: 2026-09-03
 Author: claude
+Closed: PR #287 merged: re-baseline to v1.13.0 (main tip b0e0bc8), every standing claim re-read, three falsified (R23, R7, R12 -- two by our own upstream PRs #46/#47), R15 moved inferred to measured. Tag-vs-main pin question ratified 2026-09-03 (DECISIONS.md): pin main.
 
 --- log ---
 2026-09-03T11:56Z claude created
 2026-09-03T12:38Z claude note TRIGGER (c) FIRED, three times over, and this entry names which rows before the pin moved. R23 said 'no in-place upgrade ladder ever runs, since SCHEMA_MIGRATIONS is empty' -- upstream now ships a rung that migrates every index in the field. R7 said stock upstream 'hardcodes the English-tuned MiniLM construction' and that 'the English stopword list is still in place' -- ZOTEUS_EMBEDDING_MODEL now names the local model and the stopword list is deleted, both by merges this repository authored or specified. R12 reported the vector-salvage library seam as beyond the guard's reach -- #44, our own courtesy filing, built it. None of those is a dated verdict; each is a wrong one, which is exactly what the ratified trigger (c) names. The author also instructed this catch-up directly on 2026-09-03, which is authority above the trigger; the trigger is named because ticket 0520's exit criteria require it.
+2026-09-03T13:36Z Minh Ha-Duong closed — PR #287 merged: re-baseline to v1.13.0 (main tip b0e0bc8), every standing claim re-read, three falsified (R23, R7, R12 -- two by our own upstream PRs #46/#47), R15 moved inferred to measured. Tag-vs-main pin question ratified 2026-09-03 (DECISIONS.md): pin main.
 --- body ---
 ## Context
 
