@@ -100,7 +100,56 @@ The default model, the identity format, the prefix logic, the dtype logic.
 carries no weight in the embedder identity, in the same position
 `ZOTEUS_EMBEDDING_PREFIXES` occupies.
 
----
+## What is in the diff
 
-*Implementation detail, test evidence and diffstat are filled in from the built
-branch before this is sent.*
+`MODEL_POOLING` in `embeddings.ts`: 25 ids — the ONNX repository the pipeline
+loads and the source repository it mirrors, since either can be put in
+`ZOTEUS_EMBEDDING_MODEL` — each group commented with the repository its value was
+read from and when. `mean` rows are listed too, so a reader can tell "known to be
+mean" from "unlisted, so mean by default", which the code alone cannot. Then
+`poolingFor(model, mode)`, a `pooling` getter on the provider, and the pipeline
+call taking it.
+
+`ZOTEUS_EMBEDDING_POOLING` (`auto|mean|cls`) is plumbed the way
+`ZOTEUS_EMBEDDING_PREFIXES` is, down to warning and falling back on an
+unrecognised value rather than refusing — `refuse()` in this codebase is for
+settings where guessing is dangerous, and this one has a correct value to fall
+back to.
+
+```
+ .env.example                             |   8 +
+ CHANGELOG.md                             |  33 ++++
+ docs/configuration.md                    |   1 +
+ docs/semantic-search.md                  |  25 +++
+ src/config.ts                            |  35 ++++-
+ src/features/search/embeddings.ts        | 121 ++++++++++++++-
+ tests/features/embedding-pooling.test.ts | 243 +++++++++++++++++++++++++++++++
+```
+
+## Evidence
+
+- `npm test`: 107 files, 1062 passed, 7 skipped — the 7 are the live-credential
+  e2e tests, which skip without credentials on `main` too. `npm run typecheck`
+  and `npm run lint` clean.
+- **The default model's vectors do not move.** Four texts embedded in both roles
+  with `Xenova/all-MiniLM-L6-v2` at fp32 through the real
+  `@huggingface/transformers`, before the change and after: byte-identical,
+  sha256 `3cd53591486a8a25c2707a61b72e40041a419c85216d68e04b67454f609f7f70`.
+- **The tests fail against the old code.** Restoring the literal at the call site
+  reds exactly three of the sixteen, and only those three.
+
+## One thing to flag rather than bury
+
+An index built with one of the `cls` models between the release that let a model
+be named and this one holds mean-pooled vectors, and its queries become
+`cls`-pooled against them under an identity that did not change, so nothing warns.
+The CHANGELOG and the docs say so and say to rebuild once. Forcing it through the
+identity would declare every unaffected index stale to reach a handful that want
+rebuilding anyway — and that index is the degraded one this change exists to
+prevent, so the rebuild is the repair rather than its price.
+
+The override sits outside the identity for the same reason
+`ZOTEUS_EMBEDDING_PREFIXES` does, and inherits the same property: setting it
+against the table changes the vectors under an unchanged stamp. Happy to move
+both into the identity if you would rather, but that is a larger change than this
+defect needs and it would touch every existing index.
