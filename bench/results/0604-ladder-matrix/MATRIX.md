@@ -92,9 +92,9 @@ runnable form for this matrix; its twelve cells are unmeasured, not undecided.
 
 ---
 
-## Blocking analysis — 55 non-green cells, ranked by cause
+## Blocking analysis — 54 non-green cells, ranked by cause
 
-### 1. The target declares the verb absent — 24 cells (44%)
+### 1. The target declares the verb absent — 26 cells (48%)
 
 | Target | absent verbs these clauses need | cells |
 |---|---|---|
@@ -135,10 +135,20 @@ owner: the upstream-issue lane (ticket 0024 for the zoteus-side issues). Nothing
 on the roster owns a filing against #6012, ZotSeek or zotero-mcp — a gap in the
 ticket set, not in the matrix.
 
-### 2. Beaver is unbuilt — 12 cells (22%)
+### 2. Beaver predates `durability.py` — 7 cells (13%)
 
-**Unblock:** ticket 0586, in progress in another session. Untouched here by
-instruction.
+Beaver's adapter was in flight during assembly and its column was filled
+afterwards from `../0586-beaver/acceptance.json` (PR #237, verified in #269).
+Its five goal-1 clauses are measured — 1 pass, 2 fail, 2 not-offered, and its
+two reds are counted under cause 8. The seven goal-2 clauses read
+`not-measured`: `durability.py` landed after that run, so R3, R13 and R23 were
+never asserted against this target at all. That is not the harness declining to
+decide; it is a question never put.
+
+**Unblock:** re-run the layer against the Beaver adapter now that the goal-2
+registry exists. Cheaper than any other row here, since the adapter and its
+pinned artifact are committed. Owner: ticket 0586, still open on its credentials
+exit criterion.
 
 ### 3. No target reports `work.<stage>.<trigger>.<outcome>` counters — 8 cells (15%)
 
@@ -201,7 +211,7 @@ it, so no weights were exercised and nothing was decided about where they land.
 **Unblock:** none available under the contract — installing the extra by hand is
 a non-default option. **Unowned.**
 
-### 8. One real red — 1 cell (2%)
+### 8. Real reds — 3 cells (6%)
 
 **zoteus, R10-no-egress.** Four `connect` calls to the resolver at 127.0.0.53:53
 during a default-configuration run under `--unshare-net`; off-machine attempts
@@ -212,7 +222,13 @@ at resolution and leaves no off-machine connect at all, so a detector without it
 reports a false green. Both controls fired — the net-shared and isolated arms
 each recorded an off-machine attempt — so this is a finding, not a could-not-look.
 
-**Unblock:** not a blocker. It is the matrix's one result that needs carrying
+**Beaver, R10-no-egress and R15-uninstall-removes-declared-state.** Both
+folded in with its column and both read against controls of their own; the
+egress red in particular is stated as the +4 attributable to the plugin over a
+host-only baseline that already fails the clause, not as "Beaver fails R10".
+`../0586-beaver/` holds both arms.
+
+**Unblock:** not a blocker. These are the matrix's results that need carrying
 upstream, and **no ticket owns it.** Scope it honestly when filing: it says a
 default-configuration run performs name lookups, not that library text left the
 machine.
