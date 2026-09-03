@@ -81,6 +81,11 @@ PROSE = {
     # unguarded is silent. This one arrived 2026-08-29.
     "v30": ["verification/issue-30-thread.md"],
     "v0220": ["verification/DEVICE-AUTO-0220.md"],
+    # Ticket 0612's pooling ablation. Two documents carry one table: the repo report and
+    # the draft that goes upstream. The outward one is the reason these are declared -- a
+    # number leaving the repo is the case this guard was argued for.
+    "v0612": ["verification/POOLING-DEFECT-0612.md"],
+    "u0612": ["verification/UPSTREAM-ISSUE-POOLING-0612.md"],
     "v0267": ["verification/EMBEDDER-RECOMMENDATION-0267.md"],
     "vsmoke": ["verification/SMOKE-1.10.0.md"],
     "t0025": [
@@ -398,6 +403,33 @@ MINIMUM_PAIRS = 462
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
 #: legitimately live in several documents; it must be current in every one that claims it.
 FIGURES = [
+    # ---- 0612, what one hardcoded pooling mode costs. Every row of the table in both
+    # documents, so a regenerated SUMMARY that moves a number cannot leave either prose
+    # copy behind -- and the upstream copy is the one that matters.
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.correct.mrr", 4,
+     {"v0612": "| {} | 0,3842 |", "u0612": "| {} | 0,3842 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.forced.mrr", 4,
+     {"v0612": "| 0,5301 | {} | **", "u0612": "| 0,5301 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -34,6%", "u0612": "**{}%** | -34,6%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.1.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-27,5%** | {}% |", "u0612": "**-27,5%** | {}% |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.correct.mrr", 4,
+     {"v0612": "| {} | 0,6331 |", "u0612": "| {} | 0,6331 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.forced.mrr", 4,
+     {"v0612": "| 0,7255 | {} | **", "u0612": "| 0,7255 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -10,3%", "u0612": "**{}%** | -10,3%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.2.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-12,7%** | {}% |", "u0612": "**-12,7%** | {}% |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.correct.mrr", 4,
+     {"v0612": "| {} | 0,5887 |", "u0612": "| {} | 0,5887 |"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.forced.mrr", 4,
+     {"v0612": "| 0,6560 | {} | **", "u0612": "| 0,6560 | {} | **"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.mrr_relative_pct", 1,
+     {"v0612": "**{}%** | -14,7%", "u0612": "**{}%** | -14,7%"}),
+    ("0612-pooling-ablation/SUMMARY.json", "cells.0.delta.hit_at_1_relative_pct", 1,
+     {"v0612": "**-10,3%** | {}% |", "u0612": "**-10,3%** | {}% |"}),
     # ---- 0008, the real-vector measurement. The latency table is anchored: every stale
     # figure on this branch was a table cell whose value also appeared elsewhere.
     ("0008-real-vectors/real-93022.json", "corpus.vectors", 0,

@@ -32,7 +32,22 @@ four ticket 0504 read), and the smoke re-run against a fresh 1-item build
 over the cloud API (`bench/results/smoke-1.12.0/checks.json`) keeps R10
 and R23 at `measured` rather than letting the bump silently demote them.
 The reviewed baseline in `UPSTREAM` now names v1.12.0 and is current with
-`main`. The
+`main`; updated 2026-09-03 — **the whole 0091 series merged** (PRs #45, #46
+and #47, all at 07:58, no changes asked for), which empties every in-flight
+slot; one minute later the maintainer **closed issue #43 by building local
+model selection himself**, the same shape as the storage layer and as #33/#34.
+What he shipped, verified at `76bbb07`: `ZOTEUS_EMBEDDING_MODEL` reaches the
+local provider as a raw Hugging Face id, E5 prefixes are applied by a regex on
+that id with `ZOTEUS_EMBEDDING_PREFIXES` as override, and identity becomes
+`local:<model>`. Two vector-affecting properties stayed behind. `pooling:
+'mean'` is still hardcoded for every model the new knob can name, and `dtype`
+is absent from the file. Ticket 0612 measured the first and drafted a filing
+for both (`verification/POOLING-DEFECT-0612.md`). In the same
+thread, after the close, **Michael-Logies asked for a quantized entry** for
+ChromeOS-class machines and named dtype-in-identity as its precondition,
+which is the registry entry by another route. The `pr43-minilm-e5-registry`
+branch offered on #43 is now 14 ahead and 30 behind and touches the file he
+rewrote: it needs rebuilding onto his seam, not rebasing onto it. The
 superseded implementation is preserved at `bae82a7` on
 `archive/fts5-storage-2026-08-21`. `UPSTREAM` is the machine-readable review
 baseline.*

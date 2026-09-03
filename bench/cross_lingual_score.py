@@ -151,6 +151,19 @@ def score_cell(manifest, pool_meta, query_meta, pool_vecs, query_vecs, topk=10):
         dtype=manifest['dtype'],
         device=manifest['device'],
         pooling=manifest['pooling'],
+        # A forced-pooling cell measures the cost of the WRONG pooling, not the model.
+        # Without these two fields a score file reading `pooling: mean` for a `cls` model
+        # is indistinguishable from a cell whose registry declares mean, which is the
+        # same silent-mislabelling class the ablation exists to measure. Absent for
+        # ordinary cells, so nothing already committed changes shape.
+        **(
+            {
+                'declared_pooling': manifest['declared_pooling'],
+                'pooling_forced': manifest['pooling_forced'],
+            }
+            if manifest.get('pooling_forced')
+            else {}
+        ),
         template=manifest['template'],
         topk=topk,
         pool_size=len(pool_meta),

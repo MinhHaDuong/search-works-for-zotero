@@ -28,7 +28,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { cpus, hostname } from 'node:os';
-import { resolveModel } from './registry.mjs';
+import { loadRegistry, resolveModel } from './registry.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -40,12 +40,21 @@ const { values: opt } = parseArgs({
     dtype: { type: 'string' },
     device: { type: 'string' },
     batch: { type: 'string', default: '8' },
+    // MEASURES A DEFECT; NEVER USE FOR A FIDELITY OR RECALL CELL. Overrides the
+    // registry's declared pooling so the wrong arm can be run on purpose. It exists
+    // because upstream hardcodes one mode for every model at its pipeline call, and
+    // what that costs a model declaring another was a number nobody had measured --
+    // only asserted from the model's own 1_Pooling/config.json. A cell produced with
+    // this flag records `pooling_forced: true` in its manifest, so a downstream reader
+    // can never mistake an ablation arm for a measurement of the model. Ticket 0612.
+    'force-pooling': { type: 'string' },
   },
 });
 if (!opt['pkg-root'] || !opt.pool || !opt.queries || !opt['out-prefix']) {
   console.error(
     'usage: node bench/cross_lingual_probe.mjs --pkg-root <dir> --pool <pool.jsonl> ' +
-      '--queries <queries.jsonl> --out-prefix <path> [--model M] [--dtype q8] [--device cpu] [--batch 8]',
+      '--queries <queries.jsonl> --out-prefix <path> [--model M] [--dtype q8] [--device cpu] [--batch 8] ' +
+      '[--force-pooling <mode declared in the registry>  DEFECT ABLATION ONLY]',
   );
   process.exit(2);
 }
@@ -66,10 +75,32 @@ function readJsonl(path) {
 const pool = readJsonl(opt.pool);
 const queries = readJsonl(opt.queries);
 
-const { id: modelId, repo: modelRepo, template, pooling, normalize } = resolveModel(opt.model);
-if (!pooling) {
+const { id: modelId, repo: modelRepo, template, pooling: declaredPooling, normalize } =
+  resolveModel(opt.model);
+if (!declaredPooling) {
   throw new Error(
     `[pooling] ${opt.model} declares no pooling. Add it to models.json before measuring.`,
+  );
+}
+// The declared value is still required above even when it is about to be overridden: an
+// ablation is only readable against a model whose correct pooling is known and recorded.
+//
+// The modes an ablation may force are the ones the registry declares somewhere, read from
+// it rather than written here: a list in this file would be a second place for the set to
+// live, and drift is how the mode a driver accepts stops matching the mode a model wants.
+const POOLING_MODES = [
+  ...new Set(loadRegistry().models.map((entry) => entry.pooling).filter(Boolean)),
+].sort();
+if (opt['force-pooling'] && !POOLING_MODES.includes(opt['force-pooling'])) {
+  throw new Error(
+    `[pooling] --force-pooling ${opt['force-pooling']} is not one of ${POOLING_MODES.join(', ')}`,
+  );
+}
+const pooling = opt['force-pooling'] ?? declaredPooling;
+if (opt['force-pooling']) {
+  console.error(
+    `[ablation] ${modelId} declares pooling=${declaredPooling}; running ${pooling} on purpose. ` +
+      'This cell measures a defect, not the model.',
   );
 }
 if (!template) {
@@ -132,6 +163,8 @@ writeFileSync(
       dtype: opt.dtype ?? '(runtime default)',
       device: opt.device ?? '(runtime default)',
       pooling,
+      declared_pooling: declaredPooling,
+      pooling_forced: Boolean(opt['force-pooling']),
       template,
       dim: poolEmb.dim,
       pool_ids: pool.map((p) => p.pool_id),

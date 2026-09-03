@@ -1,0 +1,87 @@
+%erg 0.1
+Title: Measure what upstream's hardcoded mean pooling costs, and file the defect
+Created: 2026-09-03
+Author: Minh Ha-Duong
+
+--- log ---
+2026-09-03T11:03Z Minh Ha-Duong created
+
+2026-09-03T11:13Z claude note measured: forced-mean against the committed cls cells at fp32 on the 0266 cross-lingual set. granite-97m -27,5% MRR and -34,6% hit@1, gte-multilingual-base -12,7% and -10,3%, arctic-embed-m-v2 -10,3% and -14,7%. Positive control first: the patched driver re-ran gte's committed cls cell field-for-field identical, which is what licenses reusing the committed cells as control arms. For gte and granite the forced arm IS upstream's shipped configuration (empty template, no e5 segment in the id), so the number is not a hypothetical. Second finding, and the one that settles the remedy: 1_Pooling/config.json is absent from the four ONNX mirrors the docs point users at (Xenova/*, onnx-community/*) and present only on the two originals, so the correct pooling cannot be auto-detected from the repo the code loads -- it has to be curated, which is the registry entry. Report at verification/POOLING-DEFECT-0612.md, filing draft at verification/UPSTREAM-ISSUE-POOLING-0612.md, cells under bench/results/0612-pooling-ablation/
+--- body ---
+
+## Context
+
+Upstream closed issue #43 on 2026-09-03 by shipping local model selection:
+`ZOTEUS_EMBEDDING_MODEL` now reaches the local provider as a raw Hugging Face
+id, E5 prefixes are applied by a regex on that id, and the embedder identity
+becomes `local:<model>`. Verified at upstream HEAD `76bbb07`.
+
+Two vector-affecting properties did not travel with it. `embeddings.ts` still
+calls `extractor(input, { pooling: 'mean', normalize: true })` for every model,
+and `dtype` does not appear in the file at all. The maintainer named the second
+himself, as the precondition for the quantized build Michael-Logies asked for
+in the same thread: dtype must be in the embedder identity, "otherwise an index
+re-embedded at another precision is indistinguishable from one that was not."
+
+The same sentence is true of pooling one axis over, and pooling is worse than
+dtype in one respect: nothing about it is user-visible. In this repository's
+own measured registry, 11 of 23 entries declare a pooling other than `mean` —
+10 `cls`, one `last_token`. `mean` is correct for exactly the one model it was
+written for, the incumbent MiniLM, which is why nothing has noticed. The knob
+shipped today is what makes it reachable for the rest.
+
+Ticket 0421 established the class from the model cards. Nobody had measured
+what it costs, and a maintainer reading "your code applies the wrong pooling"
+is entitled to ask.
+
+## Relevant files
+
+- `bench/cross_lingual_probe.mjs` — the 0266 driver; gains `--force-pooling`
+- `bench/cross_lingual_score.py` — carries the ablation markers into the score
+- `bench/models.json` — the declared pooling and its per-model provenance
+- `verification/POOLING-DEFECT-0612.md` — the report this ticket produces
+- `~/data/projets/zoteus-bench/0266-pooling/` — the vectors and score cells
+
+## Actions
+
+1. Give the 0266 probe a `--force-pooling` arm that runs the wrong pooling on
+   purpose, marked in the manifest and the score so an ablation cell can never
+   be read as a measurement of the model.
+2. Re-run one committed cell unchanged as a positive control: the patched
+   driver must reproduce it exactly before any delta is believed.
+3. Measure the forced-`mean` arm at fp32 against the committed `cls` arm for
+   every `cls` candidate already cached.
+4. Establish whether the correct value is auto-detectable from the repository
+   the code loads, or whether it must be curated.
+5. Write the report and the upstream filing; the registry entry is the remedy,
+   and it is the same object that carries the dtype Michael needs.
+
+## Test
+
+- The positive control is the red-first step: the re-run of an untouched cell
+  must be field-for-field identical to the committed one. A driver that fails
+  this cannot support any conclusion drawn from the ablation arms.
+
+## Verification
+
+- [x] `--force-pooling` rejects a mode the drivers cannot pass
+- [x] An ablation cell records `declared_pooling` and `pooling_forced`
+- [x] The control re-run reproduces the committed cell exactly
+- [x] Each `cls` candidate measured at fp32, both arms
+- [x] The auto-detection question answered against the actual mirrors
+
+## Invariants
+
+- The two arms differ in pooling and nothing else — same driver, same corpus,
+  same dtype, same template, one flag.
+- No ablation cell is written where an ordinary cell is read from.
+- `bench/models.json` is unchanged: this ticket measures the defect, it does
+  not re-declare anything.
+
+## Exit criteria
+
+- The cost of upstream's hardcoded `mean` is a measured number on at least two
+  `cls` models, with the positive control recorded beside it.
+- The report says plainly whether pooling can be read from the loaded repo.
+- The upstream filing is drafted, shown to the author, and filed or deferred
+  with the reason recorded here.
