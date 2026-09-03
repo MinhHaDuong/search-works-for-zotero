@@ -1,0 +1,174 @@
+{
+  "probe": "smoke the reviewed upstream baseline against a real Zotero library, by requirement",
+  "not_a_test_suite": "each check exercises ONE clause of one requirement, once, against one library. It earns a README row the word 'measured' rather than 'code' — something ran — and nothing stronger.",
+  "upstream_version": "1.13.0",
+  "server_info": null,
+  "date": "2026-09-03",
+  "data_dir": "/tmp/smoke1130/data",
+  "checks": [
+    {
+      "check": "R10-local-embedder",
+      "requirement": "R10",
+      "clause": "the embedder is local by default",
+      "falsified_by": "effective embeddings resolving to a hosted provider, or an inactive local embedder",
+      "result": "pass",
+      "detail": {
+        "whoami_embeddings": {
+          "configured": "local",
+          "active": true,
+          "effective": "local"
+        },
+        "status_embedder": "local",
+        "embedderActive": true,
+        "model": "Xenova/all-MiniLM-L6-v2",
+        "cloud": false,
+        "localApi": true
+      }
+    },
+    {
+      "check": "R6-query-answers",
+      "requirement": "R6",
+      "clause": "a query returns something usable, warm, within the budget",
+      "falsified_by": "a query returning no hits on a populated index, or no run completing",
+      "result": "pass",
+      "detail": {
+        "runs": [
+          {
+            "q": "carbon tax and household energy spending",
+            "wall_ms": 11995.4,
+            "hits": 5,
+            "scores": [
+              0.01639344262295082,
+              0.016129032258064516,
+              0.015873015873015872,
+              0.015384615384615385,
+              0.015151515151515152
+            ],
+            "keys": [
+              "ZKRX27ZV",
+              "XPVRCKU8",
+              "CJVEWKK3",
+              "JBIVTK4H",
+              "6424DHF8"
+            ]
+          },
+          {
+            "q": "permafrost thaw feedback",
+            "wall_ms": 22.8,
+            "hits": 3,
+            "scores": [
+              0.01639344262295082,
+              0.014705882352941176,
+              0.013888888888888888
+            ],
+            "keys": [
+              "FK8J46GB",
+              "Z6Q7IMNJ",
+              "RN8Z26LY"
+            ]
+          },
+          {
+            "q": "integrated assessment model discount rate",
+            "wall_ms": 20.3,
+            "hits": 5,
+            "scores": [
+              0.01639344262295082,
+              0.016129032258064516,
+              0.015873015873015872,
+              0.015625,
+              0.015151515151515152
+            ],
+            "keys": [
+              "H5R3XXTM",
+              "UQG8B2QW",
+              "NGVECB7I",
+              "UT4FF28F",
+              "UEYCD3HH"
+            ]
+          }
+        ],
+        "warm_ms": [
+          22.8,
+          11995.4
+        ],
+        "queries_whose_scores_are_exactly_1_over_60_plus_rank": 0,
+        "score_note": "a score equal to 1/(60+rank) is reciprocal-rank fusion over a single list — a relabelled rank, carrying no similarity magnitude, so a caller cannot threshold it to mean 'nothing good was found'"
+      }
+    },
+    {
+      "check": "R15-model-in-data-dir",
+      "requirement": "R15",
+      "clause": "the model cache lives under the data directory",
+      "falsified_by": "a model cache created outside the data directory (a shared HF cache, or $HOME)",
+      "result": "pass",
+      "detail": {
+        "models_dir": "/tmp/smoke1130/data/models",
+        "exists_at_server_start": false,
+        "exists_after_queries": true,
+        "entries": [
+          "Xenova"
+        ],
+        "embedding_happened_this_run": true,
+        "note": "no model cache existed in this data dir at server start and one does after the queries — this run downloaded it, here"
+      }
+    },
+    {
+      "check": "R23-previous-schema-migrates-in-place",
+      "requirement": "R23",
+      "clause": "an index written under the previous schema version ends up served, in place, with its vectors preserved and nothing deleted by hand",
+      "falsified_by": "the previous-version index moved aside, emptied, re-embedded, or unable to answer a query after the upgrade",
+      "result": "pass",
+      "detail": {
+        "index_under_test": "/home/haduong/data/projets/zoteus-bench/issue30/codebuild/search-index.sqlite",
+        "schemaVersion_before": "1",
+        "schemaVersion_after": "2",
+        "served_from_original_path": true,
+        "files_moved_aside": [],
+        "passages_before": 93022,
+        "passages_served": 93022,
+        "passages_with_vector_before": 93022,
+        "passages_with_vector_after": 93022,
+        "vectors_served": 93022,
+        "embedderId_before": "local:Xenova/all-MiniLM-L6-v2",
+        "query": "carbon tax and household energy spending",
+        "hits": 5,
+        "storageNotice": "The search index at /tmp/zoteus-smoke-1chxxsc7/migrate/search-index.sqlite was upgraded in place from schema version 1 to 2 (keeps diacritics in the keyword index, answering unaccented queries by expansion). No vectors were re-computed.",
+        "note": "schema 1 → 2 at the original path; 93022 passage(s) and 93022 vector(s) before, 93022 passage(s) and 93022 vector(s) served after, 5 hit(s) on the probe query"
+      }
+    },
+    {
+      "check": "R23-foreign-schema-sidelined",
+      "requirement": "R23",
+      "clause": "an index this build must not write into is detected before anything writes to it",
+      "falsified_by": "the foreign index modified or deleted, or its rows served as if current",
+      "result": "pass",
+      "detail": {
+        "older_stamp": {
+          "original_schemaVersion": "1",
+          "restamped_to": "0",
+          "sidelined_file": "search-index.sqlite.incompatible-2026-09-03T12-10-12-924Z",
+          "sidelined_bytes_match_original": true,
+          "served_index_is_empty": true,
+          "build_schema_version": "2",
+          "storageNotice": "The search index at /tmp/zoteus-smoke-1chxxsc7/schema-0/search-index.sqlite is stamped schema version 0, which this build does not understand. It was moved aside to /tmp/zoteus-smoke-1chxxsc7/schema-0/search-index.sqlite.incompatible-2026-09-03T12-10-12-924Z (nothing was deleted) and a fresh index was created; rebuild it with zotero_index action:\"build\". That rebuild re-indexes 93022 passage(s), but not their vectors: 93022 of them were embedded by local:Xenova/all-MiniLM-L6-v2, which is what this server still uses, so every passage whose text is unchanged takes its vector from the moved-aside index instead of being embedded again. Only genuinely new or edited text costs embedding time."
+        },
+        "newer_stamp": {
+          "original_schemaVersion": "1",
+          "restamped_to": "9999",
+          "sidelined_file": "search-index.sqlite.incompatible-2026-09-03T12-10-14-349Z",
+          "sidelined_bytes_match_original": true,
+          "served_index_is_empty": true,
+          "build_schema_version": "2",
+          "storageNotice": "The search index at /tmp/zoteus-smoke-1chxxsc7/schema-9999/search-index.sqlite is stamped schema version 9999, which this build does not understand. It was moved aside to /tmp/zoteus-smoke-1chxxsc7/schema-9999/search-index.sqlite.incompatible-2026-09-03T12-10-14-349Z (nothing was deleted) and a fresh index was created; rebuild it with zotero_index action:\"build\". That rebuild re-indexes 93022 passage(s), but not their vectors: 93022 of them were embedded by local:Xenova/all-MiniLM-L6-v2, which is what this server still uses, so every passage whose text is unchanged takes its vector from the moved-aside index instead of being embedded again. Only genuinely new or edited text costs embedding time."
+        },
+        "treated_alike": true,
+        "what_each_stamp_exercises": "both stamps are foreign to this build, for different reasons: 0 is below its schema version (2) with no contiguous ladder up to it, 9999 is above it and the ladder is forwards-only. The ordinary one-version-behind case migrates instead — see R23-previous-schema-migrates-in-place"
+      }
+    }
+  ],
+  "summary": {
+    "pass": 5,
+    "fail": 0,
+    "observed": 0
+  }
+}

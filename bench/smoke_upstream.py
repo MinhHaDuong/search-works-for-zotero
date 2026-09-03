@@ -92,24 +92,173 @@ def check_local_by_default(s: Server) -> dict:
          "cloud": who.get("cloud"), "localApi": who.get("localApi")})
 
 
-def check_model_stays_in_data_dir(data_dir: Path) -> dict:
+def check_model_stays_in_data_dir(data_dir: Path, present_before: bool,
+                                  embedder_active: bool, runs: int) -> dict:
     """R15: the downloaded model does not escape the data directory (the uninstall clause).
 
     Filed against R28 originally; R28 merged into R15's uninstall clause on
     2026-08-31 (DECISIONS.md), "removal being complete at the item scale and
     the install scale" -- relabelled here rather than kept on a retired number.
+
+    ORDERING IS THE WHOLE CHECK, and it was wrong until 2026-09-03. The model is
+    fetched lazily, on the first text this process embeds. Run before any query and
+    a fresh data directory has no `models/` yet, so the check reported the absence
+    as "reused an existing cache … decides nothing" — an all-clear indistinguishable
+    from "I could not look", on precisely the run that was about to prove the clause.
+    It now runs AFTER the query check, and takes `present_before` (sampled at server
+    start) so the artifact distinguishes three different facts:
+
+      - a cache that did not exist before this run and does after → this run
+        downloaded it, under the data directory: `pass`, the positive control;
+      - a cache that was already there → `observed`, nothing was exercised;
+      - no cache after an embedding really happened → `fail`, the falsifier: the
+        weights went somewhere else.
     """
     models = data_dir / "models"
     present = models.is_dir()
     files = sorted(p.name for p in models.iterdir()) if present else []
+    embedded = embedder_active and runs > 0
+    if present and not present_before:
+        result, note = "pass", ("no model cache existed in this data dir at server start and one "
+                                "does after the queries — this run downloaded it, here")
+    elif present:
+        result, note = "observed", ("the cache was already in this data dir before the run, so this "
+                                    "check did not exercise a download and decides nothing")
+    elif embedded:
+        result, note = "fail", ("the embedder was active and queries ran, so weights were loaded, "
+                                "yet no model cache exists under the data dir — it went elsewhere")
+    else:
+        result, note = "observed", ("nothing embedded on this run (no active embedder, or no query "
+                                    "completed), so this check could not look")
     return check(
         "R15-model-in-data-dir", "R15", "the model cache lives under the data directory",
         "a model cache created outside the data directory (a shared HF cache, or $HOME)",
-        "pass" if present else "observed",
-        {"models_dir": str(models), "exists": present, "entries": files[:10],
-         "note": None if present else
-         "no model directory in this data dir — the run reused an existing cache, so this "
-         "check did not exercise a download and decides nothing"})
+        result,
+        {"models_dir": str(models), "exists_at_server_start": present_before,
+         "exists_after_queries": present, "entries": files[:10],
+         "embedding_happened_this_run": embedded, "note": note})
+
+
+def _index_facts(path: Path) -> dict:
+    """What an index file holds, read straight off the file with no server in the way.
+
+    The before/after pair of this is the only evidence in the script that does not come
+    from the thing under test describing itself. A migration notice is upstream's claim;
+    these row counts are the check's own.
+    """
+    facts: dict = {"bytes": path.stat().st_size if path.exists() else None}
+    if not path.exists():
+        return facts
+    con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        for name, sql in (
+            ("schemaVersion", "SELECT value FROM meta WHERE key='schemaVersion'"),
+            ("embedderId", "SELECT value FROM meta WHERE key='embedderId'"),
+            ("passages", "SELECT COUNT(*) FROM passages"),
+            ("passages_with_vector", "SELECT COUNT(*) FROM passages WHERE vector IS NOT NULL"),
+        ):
+            try:
+                row = con.execute(sql).fetchone()
+                facts[name] = row[0] if row else None
+            except sqlite3.Error:
+                facts[name] = None
+    finally:
+        con.close()
+    return facts
+
+
+def check_previous_schema_migrates_in_place(a: argparse.Namespace, scratch: Path,
+                                            queries: list[str], limit: int) -> dict:
+    """R23, older-stamp direction: an index written under the PREVIOUS schema ends up served.
+
+    This replaces `check_migration_absent`, whose premise upstream retired. That check
+    reported, in a string typed into the source, that "no in-place upgrade ladder runs
+    (SCHEMA_MIGRATIONS is empty)". At v1.13.0 `SCHEMA_VERSION` is 2 and the ladder carries
+    one real rung — it rebuilds `passages_fts` under a diacritic-preserving tokenizer and
+    re-embeds nothing — so the old check wrote a false sentence into the artifact on a run
+    where the ladder had just fired. A check whose verdict is typed in advance cannot be
+    falsified by the run; that, and not the version number, is what was wrong with it.
+
+    So every string this writes is read back off the run: the stamps come from the file
+    before and after, the row counts from the file, the served counts and the notice from
+    the running server, the hits from a real query. What it asserts is R23's promise in the
+    direction upstream now keeps:
+
+      - the file at the ORIGINAL path is the one being served (in place, not sidelined),
+      - nothing was moved aside and nothing deleted,
+      - every passage survived, and every vector with it — the expensive half,
+      - and the index answers a query afterwards, so "migrated" means "serving".
+
+    Where `--index` is already at this build's version there is nothing to migrate. That is
+    reported `observed` with the reason, never `pass`: a ladder that was not walked has not
+    been shown to work.
+    """
+    data_dir = scratch / "migrate"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    target = data_dir / "search-index.sqlite"
+    shutil.copyfile(a.index, target)
+    before = _index_facts(target)
+
+    s = start(a, data_dir)
+    st = payload(s.call("tools/call", {"name": "zotero_index", "arguments": {"action": "status"}}))
+    q = payload(s.call("tools/call", {"name": "zotero_semantic_search", "arguments": {
+        "q": queries[0], "mode": "semantic", "limit": limit, "auto_build": False}}))
+    s.p.terminate()
+
+    after = _index_facts(target)
+    sidelined = sorted(p.name for p in data_dir.glob("search-index.sqlite.incompatible-*")
+                       if not p.name.endswith(("-wal", "-shm")))
+    hits = len(q.get("hits") or [])
+    notice = st.get("storageNotice")
+    detail = {
+        "index_under_test": str(a.index),
+        "schemaVersion_before": before.get("schemaVersion"),
+        "schemaVersion_after": after.get("schemaVersion"),
+        "served_from_original_path": target.exists(),
+        "files_moved_aside": sidelined,
+        "passages_before": before.get("passages"),
+        "passages_served": st.get("passages"),
+        "passages_with_vector_before": before.get("passages_with_vector"),
+        "passages_with_vector_after": after.get("passages_with_vector"),
+        "vectors_served": st.get("vectors"),
+        "embedderId_before": before.get("embedderId"),
+        "query": queries[0],
+        "hits": hits,
+        "storageNotice": notice,
+    }
+    stamped = before.get("schemaVersion")
+    if stamped is None:
+        detail["note"] = ("the index carries no schemaVersion stamp, so there is no previous "
+                          "version to migrate FROM — this run could not look")
+        result = "observed"
+    elif stamped == after.get("schemaVersion"):
+        detail["note"] = (f"the index was already at schema version {stamped}, which is this "
+                          "build's own — the ladder was not walked, so nothing here is evidence "
+                          "that it works")
+        result = "observed"
+    else:
+        upgraded = (
+            target.exists()
+            and not sidelined
+            and st.get("passages") == before.get("passages")
+            and after.get("passages_with_vector") == before.get("passages_with_vector")
+            and hits > 0
+            and isinstance(notice, str)
+            and "upgraded in place" in notice
+        )
+        detail["note"] = (f"schema {stamped} → {after.get('schemaVersion')} at the original path; "
+                          f"{before.get('passages')} passage(s) and "
+                          f"{before.get('passages_with_vector')} vector(s) before, "
+                          f"{st.get('passages')} passage(s) and {st.get('vectors')} vector(s) "
+                          f"served after, {hits} hit(s) on the probe query")
+        result = "pass" if upgraded else "fail"
+    return check(
+        "R23-previous-schema-migrates-in-place", "R23",
+        "an index written under the previous schema version ends up served, in place, "
+        "with its vectors preserved and nothing deleted by hand",
+        "the previous-version index moved aside, emptied, re-embedded, or unable to answer "
+        "a query after the upgrade",
+        result, detail)
 
 
 def _restamp_and_open(a: argparse.Namespace, scratch: Path, stamp: str) -> dict:
@@ -138,6 +287,10 @@ def _restamp_and_open(a: argparse.Namespace, scratch: Path, stamp: str) -> dict:
         "sidelined_file": sidelined[0].name if sidelined else None,
         "sidelined_bytes_match_original": bool(sidelined) and sidelined[0].stat().st_size == before_bytes,
         "served_index_is_empty": (st.get("passages") or 0) == 0 and (st.get("documents") or 0) == 0,
+        # The stamp the build wrote into the fresh replacement it opened at the original
+        # path: this build's own SCHEMA_VERSION, read off disk rather than asserted here,
+        # so the artifact says what `0` and `9999` are above and below.
+        "build_schema_version": _index_facts(target).get("schemaVersion"),
         "storageNotice": st.get("storageNotice"),
     }
 
@@ -150,10 +303,24 @@ def check_foreign_schema_is_sidelined(a: argparse.Namespace, scratch: Path) -> d
     `.incompatible-` name AND the served index is a fresh empty one. A build that silently
     wrote into the foreign file, or deleted it, fails here.
 
-    BOTH DIRECTIONS are exercised, and the older one is the one that matters. A newer stamp
-    is the rare case — a user who downgraded. An OLDER stamp is what every user holds the
-    day the current build's `SCHEMA_VERSION` is incremented, so if the two are not treated
-    alike, the interesting half is the one a forward-only probe would miss.
+    BOTH DIRECTIONS are exercised, and WHAT each one now exercises changed at v1.13.0.
+    The docstring used to say that stamp `0` stood in for "what every user holds the day
+    the current build's SCHEMA_VERSION is incremented". That day has arrived — the build
+    is at 2 — and what every user holds is stamp 1, which is now MIGRATED in place, not
+    sidelined. So:
+
+      - `0` no longer stands for the ordinary older index. It exercises a ladder GAP:
+        `migrationPath(0)` looks for a rung `to: 1`, finds none, and refuses on the
+        contiguity rule rather than stepping over a version whose rows nothing claims to
+        understand. Still a real path, and still the sideline — but a different one.
+      - `9999` exercises the only-forwards refusal: a stamp at or above this build's is
+        never walked backwards, because a newer file may hold columns this build cannot
+        read at all. This is the half R23 does NOT keep as a migration, and it is why the
+        newer direction stays in the check rather than being dropped as the rare case.
+
+    The ordinary older-stamp case — an index one version behind, which now upgrades in
+    place — is `check_previous_schema_migrates_in_place` above, and it is where the
+    positive control for the ladder lives. Neither check subsumes the other.
     """
     older, newer = _restamp_and_open(a, scratch, "0"), _restamp_and_open(a, scratch, "9999")
     both = [older, newer]
@@ -164,41 +331,14 @@ def check_foreign_schema_is_sidelined(a: argparse.Namespace, scratch: Path) -> d
         "the foreign index modified or deleted, or its rows served as if current",
         "pass" if ok else "fail",
         {"older_stamp": older, "newer_stamp": newer,
-         "treated_alike": older["served_index_is_empty"] == newer["served_index_is_empty"]})
-
-
-def check_migration_absent(a: argparse.Namespace, scratch: Path, sideline: dict) -> dict:
-    """The other half of R23: 'serving in both directions is still design.'
-
-    The sideline check above proves the DAMAGE half. This one names what the same
-    evidence shows about the remaining half: a stamped older version is not read in
-    place (SCHEMA_MIGRATIONS is empty at v1.12.0, so no in-place upgrade ladder ever
-    runs), it is set aside and a fresh index opened. Reported as `observed`, since
-    one restamp cannot prove no code path anywhere migrates — it shows this one does
-    not read the old file in place.
-
-    v1.12.0 (#34, ticket 0504/0520) softened the cost of that, without closing the
-    row: `storageNotice` on the older-stamp open (recorded in `detail`, below)
-    documents that a rebuild against the sidelined file salvages vectors for
-    unchanged text via `vector-salvage.ts` rather than re-embedding everything, so
-    "abandoned" is true of what is SERVED (nothing, until a rebuild), not of what a
-    rebuild then costs. Read `detail.storageNotice` for what actually happens on
-    this run, rather than trusting the fixed consequence string below, which predates
-    salvage and overstates the cost on any passage whose text is unchanged.
-    """
-    d = sideline["detail"]
-    abandoned = sideline["result"] == "pass" and d["older_stamp"]["served_index_is_empty"]
-    return check(
-        "R23-no-migration-path", "R23",
-        "an index stamped with a different version is read in place rather than abandoned",
-        "a rebuilt index reading the old index's passages or vectors in place",
-        "observed",
-        {"index_was_abandoned_not_read_in_place": bool(abandoned),
-         "consequence": ("no in-place upgrade ladder runs (SCHEMA_MIGRATIONS is empty at v1.12.0), but a "
-                          "rebuild against the sidelined file may salvage vectors for unchanged text rather "
-                          "than re-embedding everything -- see detail.storageNotice for what this run found"),
-         "storageNotice": d["older_stamp"].get("storageNotice"),
-         "cost_reference": "bench/results/0025-x1-recall/embed-feasibility.json"})
+         "treated_alike": older["served_index_is_empty"] == newer["served_index_is_empty"],
+         "what_each_stamp_exercises": (
+             "both stamps are foreign to this build, for different reasons: "
+             f"{older['restamped_to']} is below its schema version "
+             f"({older.get('build_schema_version')}) with no contiguous ladder up to it, "
+             f"{newer['restamped_to']} is above it and the ladder is forwards-only. The "
+             "ordinary one-version-behind case migrates instead — see "
+             "R23-previous-schema-migrates-in-place")})
 
 
 def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
@@ -251,20 +391,31 @@ def main() -> None:
 
     data_dir = Path(a.data_dir)
     checks = []
+    # Sampled BEFORE the server starts, because the model cache check downstream needs to
+    # tell a cache this run created from one that was already sitting here.
+    models_present_before = (data_dir / "models").is_dir()
     s = start(a, data_dir)
     server_info = None
     try:
-        checks.append(check_local_by_default(s))
-        checks.append(check_model_stays_in_data_dir(data_dir))
-        checks.append(check_query_answers(s, a.queries, a.limit))
+        local = check_local_by_default(s)
+        checks.append(local)
+        # The query check runs BEFORE the model-cache check, and the order is the point:
+        # the weights are fetched on the first text this process embeds, so a check that
+        # looks earlier can only ever report that it could not look.
+        queried = check_query_answers(s, a.queries, a.limit)
+        checks.append(queried)
+        checks.append(check_model_stays_in_data_dir(
+            data_dir, models_present_before,
+            bool(local["detail"].get("embedderActive")),
+            len(queried["detail"].get("runs") or [])))
     finally:
         s.p.terminate()
 
     if a.index:
         with tempfile.TemporaryDirectory(prefix="zoteus-smoke-") as tmp:
-            sideline = check_foreign_schema_is_sidelined(a, Path(tmp))
-            checks.append(sideline)
-            checks.append(check_migration_absent(a, Path(tmp), sideline))
+            checks.append(check_previous_schema_migrates_in_place(
+                a, Path(tmp), a.queries, a.limit))
+            checks.append(check_foreign_schema_is_sidelined(a, Path(tmp)))
 
     version = subprocess.run(
         ["node", "-e", "console.log(require('./package.json').version)"],
