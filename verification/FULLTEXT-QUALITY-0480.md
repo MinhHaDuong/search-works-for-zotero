@@ -123,11 +123,15 @@ The form feed survives because it is *in the bytes*.
 - **"Is it a PDF?" is answered from the directory, not from the cache.** A
   Zotero attachment directory normally holds one file, so the co-located
   suffix is the extraction's source — but two shapes break that, and both are
-  counted rather than assumed away: **20** caches have no attachment file at
-  all (the source is gone, so nothing dates them) and **17** PDF directories
-  hold a non-PDF file beside the PDF (the cache text may have come from
-  either). Together 0,4 % of the PDF caches, and outside the 3,4 % ceiling
-  above, which covers only the single-page case.
+  counted rather than assumed away, in two different populations: **20**
+  caches have no attachment file at all (the source is gone, so nothing
+  dates them) — `is_pdf` is `False` by construction when no suffix is found,
+  so these fall inside `non_pdf_caches` (4776), never inside the PDF
+  population this report's percentages are scoped to — and **17** PDF
+  directories hold a non-PDF file beside the PDF (the cache text may have
+  come from either). These 17 genuinely are inside `pdf_caches` (8552), at
+  0,2 %, outside the 3,4 % ceiling above, which covers only the
+  single-page case.
 - **The walk reports what it could not read.** `unreadable_caches` is 0 here,
   and it is 0 for a reason the code can attest to: the census enumerates
   `storage/` itself rather than using `Path.glob`, which swallows a

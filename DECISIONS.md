@@ -4215,9 +4215,10 @@ hours are spent.
   false-flag ceiling of 3,4 % (282 short-but-real caches that could be
   genuinely single-page). **The population a policy acts on is 7872, not
   8211**: the larger figure is the dating result and includes caches with no
-  usable text layer, which need OCR rather than a better extractor. Two text-quality signals the classifier did not use
-  sort with the split: all 1009 caches carrying raw ligature glyphs are in the
-  old group and none in the new, and mojibake runs 9,2 % against 4,1 %.
+  usable text layer, which need OCR rather than a better extractor. Two
+  text-quality signals the classifier did not use sort with the split: all
+  1009 caches carrying raw ligature glyphs are in the old group and none in
+  the new, and mojibake runs 9,2 % against 4,1 %.
 
   Three findings bear on who could drain this. `fulltextItems` is **empty** on
   this machine, so upstream's `reindexTruncated` (the drain identified in
