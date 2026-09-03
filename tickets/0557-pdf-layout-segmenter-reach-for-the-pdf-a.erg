@@ -11,6 +11,8 @@ Blocked-by: 0028
 2026-09-02T06:58Z claude note the author's 2026-09-02 idea, drafted as an awaiting entry in DECISIONS.md and ticket 0572: Zotero's own structured-text pack (.zotero-sdt-cache), when present, is a structure signal ABOVE this ladder, tier 0 before 0560's outline and 0561's layout heuristic. Nothing here changes until that entry is ratified; if it is, child 0564's selection rule gains a first branch. Availability today is 2 packs on 13 630 caches (reader-only trigger, at source); #6012 would make it library-wide.
 2026-09-02T07:40Z claude note X5 now measures the PDF path's layout tier, not only seg/1 (DECISIONS.md 2026-09-02): the outline tier must be switchable off per document so the outline can serve as ground truth, and the scorer locates a cut's page through pdf.js. SPEC.md 5.2.2 carries a first paragraph on this path; the children here own whatever more the section needs
 2026-09-02T10:21Z claude note the segmenter interface this tracker's children plug into is ratified (DECISIONS.md 2026-09-02, SPEC.md 5.2.2): signals in, entries out with title / char range / optional page range / confidence / tier, seg/1 for the empty list. Child 0562 deferred by the same day's byline ruling. 0559's first criterion settled: indexedPages is on the local API's fulltext GET
+2026-09-03T09:38Z Minh Ha-Duong note the ladder is re-cut, ruled in session, and this tracker loses one child's function while keeping the child. 0606 (produce SDT-compatible packs ourselves) no longer blocks on this tracker: its size-ratio gate and its pack writer depend on nothing, and its shape decision now runs BEFORE the tier work so 0561 is built against the block schema rather than re-targeted afterwards. Consequences here, in order of how much they change: 0561's layout heading heuristic moves INSIDE 0606's producer and stops being a segmenter tier -- the segmenter sees one structured input on the PDF path, whoever produced it; 0560 does NOT move, because the pack format has no outline field and a PDF's embedded TOC is document metadata, not page content, so carrying it would need a field of ours that 0606's condition 2 forbids; and 0564's selection rule and 0606's action 4 are two tickets writing one dispatcher, which wants to be one place. seg/1 (0028) is unaffected and its priority is unchanged: it is the implementation for the empty signal list and the fall-through for every tier that comes up empty or low, which packs do not retire.
+
 --- body ---
 ## Context
 
@@ -64,7 +66,10 @@ select between.
 ## Exit criteria
 
 - [ ] 0028 closed
-- [ ] all seven children closed
+- [ ] every child closed or explicitly disposed of — 0562 is deferred by the
+      2026-09-02 byline ruling and 0561 is absorbed by 0606, so "all seven
+      closed" was unsatisfiable as written; each non-closed child needs a
+      recorded disposition, not a tick
 - [ ] integration review: re-read child diffs, run the full suite, verify
       the selection rule actually prefers the PDF path above the threshold
       and falls back to seg/1 correctly, before this tracker closes

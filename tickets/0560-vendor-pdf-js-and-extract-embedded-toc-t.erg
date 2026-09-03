@@ -7,6 +7,8 @@ Blocked-by: 0557
 --- log ---
 2026-09-01T13:31Z claude created
 
+2026-09-03T09:38Z claude note unaffected by the ladder re-cut, and deliberately so. The pack format has no outline field -- it is metadata + page catalog + typed blocks -- and a PDF's embedded table of contents is document metadata, not page content, so carrying it in a pack would need a field of ours that 0606's condition 2 forbids. This stays a segmenter tier and its TOC stays its own signal provenance, which is how the ratified interface already enumerates it. 0606's action 3 depends on this ticket for the vendored pdf.js geometry.
+
 --- body ---
 ## Context
 

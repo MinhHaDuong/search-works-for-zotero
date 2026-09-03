@@ -2,7 +2,6 @@
 Title: Produce SDT-compatible packs ourselves, in our own store, disposable when Zotero's arrive
 Created: 2026-09-03
 Author: claude
-Blocked-by: 0557
 Label: needs-human
 
 --- log ---
@@ -10,6 +9,8 @@ Label: needs-human
 2026-09-03T09:01Z claude note the author's idea and his ruling of the same session, filed at his instruction. Four shapes were put to him and he took option 1: same container and block schema, OUR store, our own extractor identity, their pack winning wherever it exists. Rejected in front of him and recorded so nobody re-proposes them: writing into storage/<KEY>/.zotero-sdt-cache (a platform write, silently clobbered, and their validator regenerates over it anyway), an internal format of our own (the consumer would then have to change on the day Zotero arrives, so nothing is throwable, which is his own argument against it), and waiting (6012 is a draft, and it will never reach the old extractor generation). Also settled in the same exchange, and NOT part of this ticket: a COW reflink clone of storage/ is close to free and is the right tool for the reindex-irreversibility problem -- snapshot before a re-extraction campaign, compare, drop -- but it belongs to the experimental protocol on the reference machine, not to the design, and it buys nothing for a store of packs we generate ourselves, since there are no shared blocks in bytes nobody has written yet
 
 2026-09-03T09:31Z claude note Action 1 measured, book scale included, in verification/SDT-CAPS-0483.md section 4. Pack-to-flat, same document each time: GMAP993G 1,92, BSMCQ6BM 2,79, EBWH8FNB 2,74, and the 2 913-page IPCC volume 2,24 (24 011 164 over 10 705 102, the flat side taken from the untruncated group copy since the user copy is capped at 100 pages). The ratio holds at book scale rather than blowing up with length. Neither near 1 nor near 3, so the shape is not re-opened on this evidence; the per-glyph textMap roughly doubles the artifact and no more. Corpus: 13 631 ft-caches total 874 609 144 B measured, projecting to about 1,96 GB of packs beside a 1,71 GB index, a projection that understates because 1 053 of those flat caches are themselves truncated.
+2026-09-03T09:38Z Minh Ha-Duong note re-cut of the blocker, ruled in session. Blocked-by 0557 is removed: it blocked on a tracker, which is what a blocker is never supposed to be, and it blocked two actions that depend on nothing. Action 1's size ratio is two `ls -l` on the reference machine and action 2's writer needs only the existing reader and the existing test fixture; neither touches pdf.js. The shape decision therefore runs BEFORE the ladder's tier work rather than after all seven children close, so 0561 is built against the block schema instead of built to an ad-hoc structure and re-targeted.
+2026-09-03T09:38Z claude note finding from the pack schema, read off `verification/probes/sdt_read.py`, and it splits the ladder differently than the first proposal of the same session. A pack is metadata + page catalog + typed blocks; a block carries `type`, `content` runs with `textMap` and `anchor.pageRects`. There is NO outline field -- a PDF's embedded table of contents is document metadata, not page content. So 0561 (layout heading heuristic on pdf.js text runs) moves INSIDE this ticket's producer, and 0560 (embedded TOC) does NOT: putting the TOC in the pack would need a field of ours, which condition 2 forbids. The TOC stays outside as its own signal provenance, which is how the ratified segmenter interface already lists it -- "the PDF's outline page targets" is enumerated apart from "pack blocks" (SPEC.md, the segmenter's interface).
 2026-09-03T09:47Z claude note Time cost of the pack route, beside the size ratio, in verification/EXTRACTION-ROUTES.md. Zotero SDT runs at 5,26 pages/s on the 2 913-page volume and 5-9 pages/s across a 100x size range, against 45,7 for the platform flat parse and 219 for pdftotext on the same document. Over the library's 464 599 pages in 8 576 attachments that projects to about 24,6 h, three times the whole 8 h 14 index build. So producing packs ourselves costs roughly 2,2x the bytes and 9x the time of the flat extraction it would replace.
 --- body ---
 ## Context
@@ -55,6 +56,47 @@ entries of the same day carry the surrounding argument (R1 owes the quality
 hole; supersession is total; the remedy is our own extraction) and this ticket
 narrows *what* that extraction produces.
 
+## What the re-cut of 2026-09-03 settles
+
+The author asked whether the segmenter discussion has to be re-read now that
+packs are to be available, and whether the flat-text segmenter is wasted work.
+The answers decide this ticket's dependencies, so they are recorded here.
+
+**seg/1 is not wasted, and it is not drain-only.** The ratified segmenter
+interface takes the extracted text plus a list of structure signals, *each with
+a provenance*, and returns entries carrying a title, a character range, an
+optional page range, a confidence and the tier that cut them. Pack blocks are
+**one provenance among six**. A pack reports that a block is a heading; it does
+not report that this heading opens a new proceedings paper while that one is a
+subsection of the previous. Validating a cut set against the document's own
+contents list as a declared answer key, chapter and section numbering, the
+confidence gate, the dictionary's median-gap rhythm — none of it is in a pack,
+and none of it could be. The spec already rules seg/1 the implementation for
+the empty signal list and the fall-through for every tier that comes up empty
+or low, and those cases outlive universal packs: an attachment with no PDF, a
+scanned book whose OCR layer yields no heading blocks, a single-work paper with
+no internal structure, a pack whose heading set is degenerate. seg/1 is the
+floor of the same function, not a rival path awaiting retirement.
+
+**What packs replace is the signal-extraction half, and that is a
+simplification.** The 0557 ladder welds two functions together: recovering
+structure from a PDF, and cutting entries from signals. A pack does the first,
+and does it better than a heuristic over pdf.js text runs. So under this
+ticket 0561 stops being a segmenter tier and becomes a producer internal, and
+on the PDF path the segmenter sees one structured input whoever produced it —
+less machinery in the consumer, which is what condition 2 exists to defend.
+
+**The outline does not follow it in.** The pack format has no outline field, so
+0560 stays outside as its own provenance (see the log entry of the same day).
+The seam between "inside the producer" and "outside it" is the schema's, not a
+preference.
+
+**What is proposed and not yet ruled:** this ticket now visibly holds two
+units — the shape gate plus the writer, which depend on nothing, and the
+producer that emits blocks, which needs 0560's vendored pdf.js for geometry.
+Splitting them into two tickets is the author's call, not the agent's, and is
+put to him rather than filed.
+
 ## Conditions, all of them the author's, and each one load-bearing
 
 1. **"Compatible" means same container and same block schema, in OUR store.**
@@ -93,10 +135,12 @@ narrows *what* that extraction produces.
 2. Promote `build_pack()` from test fixture to a real writer beside
    `verification/probes/sdt_read.py`, and pin it by round-tripping: every pack
    we write is read back by the existing reader and compared block for block.
-3. Re-target the 0557 ladder's output into blocks and page anchors: block
+3. Re-target the ladder's *layout* output into blocks and page anchors: block
    types drawn only from the taxonomy their bundle carries, page rects from
    pdf.js geometry, `source.hash` and a processor identity of ours in the
-   metadata.
+   metadata. This is the one action with a real prerequisite — 0560's
+   vendored pdf.js, for the geometry — and it absorbs 0561. Actions 1 and 2
+   above precede it and depend on nothing.
 4. Source selection in the extract shim, one rule: their pack if present and of
    a known version, else ours if present and current, else the flat path. Never
    a direct read of `.zotero-ft-cache`.
