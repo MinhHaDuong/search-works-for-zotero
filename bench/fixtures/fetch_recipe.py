@@ -174,7 +174,7 @@ FAOLEX_ADMITTED = frozenset({"LEX-FAOC179224"})
 REFUSED_HOSTS = ("minh.haduong.com", "zotero.org", "www.gov.uk", "chinhphu.vn", "vbpl.vn", "thuvienphapluat.vn")
 LEGACY_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "archive", "identifier", "bytes_url", "sha256", "license_basis")
 PARENT_REQUIRED = ("id", "title", "author", "year", "language", "tier", "facet", "item_type", "type_fidelity", "work_id", "work_relations", "structural_features", "attachments")
-ATTACHMENT_REQUIRED = ("id", "language", "role", "relation", "extraction_expectation", "archive", "identifier", "bytes_url", "sha256", "license_basis")
+ATTACHMENT_REQUIRED = ("id", "language", "role", "relation", "selection_expectation", "cap_expectations", "archive", "identifier", "bytes_url", "sha256", "license_basis")
 LANGUAGES = frozenset({"en", "fr", "de", "vi", "zh", "ar", "ru", "hi", "es", "la", "pt"})
 TIERS = frozenset({"MUST", "SHOULD"})
 FACETS = frozenset({"core", "notes", "group", "deep-body"})
@@ -183,6 +183,8 @@ ATTACHMENT_RELATIONS = frozenset({"primary", "same-text-different-format", "tran
 ATTACHMENT_ROLES = frozenset({"primary", "article", "presentation", "translation", "alternate-format"})
 WORK_RELATIONS = frozenset({"translation", "same-work", "near-duplicate-publication", "book-chapter", "metadata-conflicting-duplicate"})
 EXTRACTION_EXPECTATIONS = frozenset({"indexed", "skipped-first-with-text"})
+CAP_RESULTS = frozenset({"crosses", "does-not-cross"})
+COMBINED_CAP_RESULTS = frozenset({"both", "page-only", "char-only", "neither"})
 STRUCTURAL_FEATURES = frozenset({"table", "figure-caption", "annex", "appendix", "footnote", "endnote", "multi-column", "equation-heavy-prose"})
 STRUCTURAL_EXPECTATIONS = frozenset({"present", "absent"})
 HEX64 = frozenset("0123456789abcdef")
@@ -285,10 +287,30 @@ def validate(recipe: list[dict]) -> list[str]:
                 found.append(f"{label}: attachment relation {source.get('relation')!r} unknown")
             if not legacy and source.get("role") not in ATTACHMENT_ROLES:
                 found.append(f"{label}: attachment role {source.get('role')!r} unknown")
-            if not legacy and source.get("extraction_expectation") not in EXTRACTION_EXPECTATIONS:
-                found.append(f"{label}: extraction_expectation {source.get('extraction_expectation')!r} unknown")
-            if source.get("extraction_expectation") == "skipped-first-with-text" and not source.get("skip_reason"):
+            if not legacy and source.get("selection_expectation") not in EXTRACTION_EXPECTATIONS:
+                found.append(f"{label}: selection_expectation {source.get('selection_expectation')!r} unknown")
+            if source.get("selection_expectation") == "skipped-first-with-text" and not source.get("skip_reason"):
                 found.append(f"{label}: skipped attachment has no skip_reason")
+            if not legacy:
+                caps = source.get("cap_expectations")
+                if not isinstance(caps, dict) or set(caps) != {"pages", "chars", "combined", "locators"}:
+                    found.append(f"{label}: cap_expectations must contain pages, chars, combined, and locators")
+                else:
+                    if caps["pages"] not in CAP_RESULTS or caps["chars"] not in CAP_RESULTS or caps["combined"] not in COMBINED_CAP_RESULTS:
+                        found.append(f"{label}: cap crossing expectation unknown")
+                    expected_combined = {(False, False): "neither", (True, False): "page-only",
+                                         (False, True): "char-only", (True, True): "both"}.get(
+                        (caps["pages"] == "crosses", caps["chars"] == "crosses"))
+                    if caps["combined"] != expected_combined:
+                        found.append(f"{label}: combined cap expectation contradicts page/char expectations")
+                    locators = caps["locators"]
+                    if not isinstance(locators, dict):
+                        found.append(f"{label}: cap locators must be an object")
+                    else:
+                        for boundary, result in (("page", caps["pages"]), ("char", caps["chars"])):
+                            required = {f"before_{boundary}_cap", f"after_{boundary}_cap"} if result == "crosses" else set()
+                            if any(not isinstance(locators.get(key), str) or not locators[key].strip() for key in required):
+                                found.append(f"{label}: crossing {boundary} cap needs before/after locators")
             if source.get("bytes_format", "pdf") not in MAGIC:
                 found.append(f"{label}: bytes_format {source.get('bytes_format')!r} is not one of {sorted(MAGIC)}")
             if source.get("language", doc.get("language")) not in LANGUAGES:
@@ -300,7 +322,7 @@ def validate(recipe: list[dict]) -> list[str]:
                 if isinstance(source, dict):
                     by_language.setdefault(source.get("language"), []).append(source)
             for language, renderings in by_language.items():
-                indexed = [source for source in renderings if source.get("extraction_expectation") == "indexed"]
+                indexed = [source for source in renderings if source.get("selection_expectation") == "indexed"]
                 if len(indexed) != 1 or (indexed and indexed[0] is not renderings[0]):
                     found.append(f"{did}: language {language!r} must index exactly the first attachment with text")
     return found

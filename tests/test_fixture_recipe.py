@@ -61,8 +61,9 @@ def representative(**over) -> dict:
             {key: second[key] for key in fr.ATTACHMENT_REQUIRED if key in second} | {"bytes_format": "html"},
         ],
     }
-    doc["attachments"][0].update(role="primary", relation="same-text-different-format", extraction_expectation="indexed")
-    doc["attachments"][1].update(role="alternate-format", relation="same-text-different-format", extraction_expectation="skipped-first-with-text", skip_reason="same-language sibling suppressed by first-with-text")
+    caps = {"pages": "does-not-cross", "chars": "does-not-cross", "combined": "neither", "locators": {}}
+    doc["attachments"][0].update(role="primary", relation="same-text-different-format", selection_expectation="indexed", cap_expectations=caps)
+    doc["attachments"][1].update(role="alternate-format", relation="same-text-different-format", selection_expectation="skipped-first-with-text", cap_expectations=caps, skip_reason="same-language sibling suppressed by first-with-text")
     doc.update(over)
     return doc
 
@@ -179,6 +180,21 @@ def test_representative_schema_fails_closed_on_identity_type_and_attachment_sema
 def test_attachment_ids_are_global_so_export_markers_and_cache_paths_are_unambiguous():
     other = representative(id="other-work", work_id="other-work")
     assert any("globally unique" in offence for offence in fr.validate([representative(), other]))
+
+
+def test_cap_expectations_are_independent_consistent_and_located_across_boundaries():
+    crossing = representative()
+    crossing["attachments"][0]["cap_expectations"] = {
+        "pages": "crosses", "chars": "crosses", "combined": "both",
+        "locators": {"before_page_cap": "page-before-token", "after_page_cap": "page-after-token",
+                     "before_char_cap": "char-before-token", "after_char_cap": "char-after-token"},
+    }
+    assert fr.validate([crossing]) == []
+    crossing["attachments"][0]["cap_expectations"]["combined"] = "page-only"
+    crossing["attachments"][0]["cap_expectations"]["locators"].pop("after_char_cap")
+    offences = fr.validate([crossing])
+    assert any("contradicts" in offence for offence in offences)
+    assert any("before/after locators" in offence for offence in offences)
 
 
 def test_live_recipe_is_valid():

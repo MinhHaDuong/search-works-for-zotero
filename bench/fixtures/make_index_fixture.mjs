@@ -218,8 +218,9 @@ export function loadGoldenExport(directory, options = {}) {
       if (doc.attachments && (typeof source.language !== 'string' || !source.language ||
           typeof source.role !== 'string' || !source.role ||
           typeof source.relation !== 'string' || !source.relation ||
-          !['indexed', 'skipped-first-with-text'].includes(source.extraction_expectation) ||
-          (source.extraction_expectation === 'skipped-first-with-text' && !source.skip_reason))) {
+          !['indexed', 'skipped-first-with-text'].includes(source.selection_expectation) ||
+          !source.cap_expectations ||
+          (source.selection_expectation === 'skipped-first-with-text' && !source.skip_reason))) {
         throw new Error(`${source.id}: source recipe lacks attachment semantics`);
       }
       sourceById.set(source.id, { parent: doc, source });
@@ -280,7 +281,8 @@ export function loadGoldenExport(directory, options = {}) {
     const source = sourceEntry.source;
     if (doc.attachments && (row.role !== source.role || row.relation !== source.relation ||
         row.language !== source.language || row.bytes_format !== (source.bytes_format ?? 'pdf') ||
-        row.extraction_expectation !== source.extraction_expectation ||
+        row.selection_expectation !== source.selection_expectation ||
+        JSON.stringify(canonicalJson(row.cap_expectations)) !== JSON.stringify(canonicalJson(source.cap_expectations)) ||
         row.skip_reason !== (source.skip_reason ?? ''))) {
       throw new Error(`${attachmentId}: manifest attachment semantics do not match the recipe`);
     }
@@ -292,7 +294,7 @@ export function loadGoldenExport(directory, options = {}) {
     requireFields(data, {
       itemType: 'attachment', title: source.title ?? doc.title,
       contentType: CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
-      extra: `ticket-0029 source sha256: ${source.sha256}; role: ${source.role ?? 'primary'}; relation: ${source.relation ?? 'primary'}; language: ${source.language ?? ''}; extraction: ${source.extraction_expectation ?? 'indexed'}; skip reason: ${source.skip_reason ?? ''}; fulltext: reindexed`,
+      extra: `ticket-0029 source sha256: ${source.sha256}; role: ${source.role ?? 'primary'}; relation: ${source.relation ?? 'primary'}; language: ${source.language ?? ''}; selection: ${source.selection_expectation ?? 'indexed'}; skip reason: ${source.skip_reason ?? ''}; fulltext: reindexed`,
     }, source.id);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
@@ -309,6 +311,14 @@ export function loadGoldenExport(directory, options = {}) {
     }
     if (body.indexedPages < 0 || body.totalPages < 0 || body.indexedPages > body.totalPages) {
       throw new Error(`${recipeId}: invalid indexedPages/totalPages relation`);
+    }
+    for (const field of ['indexed_pages', 'total_pages']) {
+      if (row[field] !== body[field === 'indexed_pages' ? 'indexedPages' : 'totalPages']) {
+        throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
+      }
+    }
+    for (const [field, bodyField] of [['indexed_chars', 'indexedChars'], ['total_chars', 'totalChars']]) {
+      if (row[field] !== (body[bodyField] ?? null)) throw new Error(`${source.id}: manifest ${field} does not match fulltext`);
     }
     fulltext.set(key, { body, version: row.fulltext_version });
     consumedItemKeys.add(parent);

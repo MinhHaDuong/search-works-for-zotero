@@ -168,7 +168,7 @@ def _attachment_attestation(doc: dict, state: str) -> str:
         f"role: {doc.get('role', 'primary')}",
         f"relation: {doc.get('relation', 'primary')}",
         f"language: {doc.get('language', '')}",
-        f"extraction: {doc.get('extraction_expectation', 'indexed')}",
+        f"selection: {doc.get('selection_expectation', 'indexed')}",
         f"skip reason: {doc.get('skip_reason', '')}",
         f"fulltext: {state}",
     ])
@@ -389,8 +389,11 @@ def _snapshot_rows(
                 row.update(attachment_id=source["id"], role=source["role"],
                            relation=source["relation"], language=source["language"],
                            bytes_format=source.get("bytes_format", "pdf"),
-                           extraction_expectation=source["extraction_expectation"],
+                           selection_expectation=source["selection_expectation"],
+                           cap_expectations=source["cap_expectations"],
                            skip_reason=source.get("skip_reason", ""))
+            row.update(indexed_pages=indexed_pages, total_pages=total_pages,
+                       indexed_chars=fulltext.get("indexedChars"), total_chars=fulltext.get("totalChars"))
             attachments.append(row)
     # Version zero carries no change signal.  Re-read every such body only after all
     # first-pass bodies have been captured, so a later response cannot mutate an earlier

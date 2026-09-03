@@ -67,7 +67,9 @@ def representative_recipe(payloads: tuple[bytes, bytes]) -> list[dict]:
         sources.append({
             "id": name, "language": "en", "role": role,
             "relation": "same-text-different-format",
-            "extraction_expectation": "indexed" if role == "primary" else "skipped-first-with-text",
+            "selection_expectation": "indexed" if role == "primary" else "skipped-first-with-text",
+            "cap_expectations": {"pages": "does-not-cross", "chars": "does-not-cross",
+                                 "combined": "neither", "locators": {}},
             **({} if role == "primary" else {"skip_reason": "same-language sibling suppressed by first-with-text"}),
             "archive": "internet-archive",
             "identifier": "invented-control", "bytes_url": f"https://archive.org/download/invented-control/{name}.{fmt}",
@@ -419,7 +421,14 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
         "attachment_key": attachment,
         "fulltext_file": f"fulltext/{attachment}.json",
         "fulltext_version": 17,
+        "indexed_pages": 2,
+        "total_pages": 3,
+        "indexed_chars": None,
+        "total_chars": None,
     }]
+    assert manifest["parent_item_count"] == 1
+    assert manifest["attachment_count"] == 1
+    assert manifest["source_byte_count"] == len(b"%PDF-1.4\ncontrol\n")
     assert len(items) == 2
     assert fulltext["content"] == "offline golden control body"
     assert str(tmp_path) not in json.dumps(items)
