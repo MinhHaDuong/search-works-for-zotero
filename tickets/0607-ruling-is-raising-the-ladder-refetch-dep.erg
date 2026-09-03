@@ -1,0 +1,57 @@
+%erg 0.1
+Title: Ruling: is raising the ladder refetch depth an admitted candidate
+Created: 2026-09-03
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-03T09:45Z claude created
+
+2026-09-03T09:45Z claude note filed to give one of 0590's three awaiting entries a queue handle; DECISIONS.md keeps the argument, this ticket carries only the decision
+
+--- body ---
+
+## The decision
+
+`DECISIONS.md`, awaiting entry of 2026-09-03: *"Whether the keyword ladder's
+refetch depth is the answer to the scope give-up, rather than a new mechanism
+(raised 2026-09-03, reimagining ticket 0590)."* That entry owns the argument and
+the evidence; this ticket exists so the decision is visible in the queue rather
+than only in a 350 kB ledger.
+
+In one line: SPEC.md §5.2.6's refetch depth is a **constant**, not a measured
+bound. The 2026-09-02 ruling named two candidate replacements should partial
+answers prove common — an indexed temporary table, and filtering the ranked
+stream before truncation — and both are mechanisms. Raising the constant is
+neither, and it is cheaper than both.
+
+## What is being asked
+
+Not a number. Whether raising the depth is **admitted as a candidate** beside
+the two the ledger already names, so that 0590's depth sweep can be acted on
+when it lands.
+
+- **Admitted** — 0590's fill-rate-and-latency curve over depth is decisive on
+  its own, and a ruling on the constant can follow directly from it.
+- **Not admitted** — the sweep still runs (it prices the remainder either way),
+  but its evidence returns here for a second round before anything moves.
+
+Moving the constant is a SPEC.md change and stays a ruling whichever way this
+goes; 0590 prices it and does not make it.
+
+## Relevant files
+
+- `DECISIONS.md` — the awaiting entry. Read, not edited by this ticket.
+- `SPEC.md` §5.2.6 — where the constant lives and where any change lands.
+- `tickets/0590-measure-scoped-queries-that-fail-to-fill.erg` — the sweep.
+
+## Why 0590 is not `Blocked-by` this
+
+0590's sweep is defined to run at every depth up to the unconstrained ceiling
+regardless of the ruling, so a `Blocked-by` would make a schedulable
+measurement unschedulable to protect a decision the measurement does not need.
+
+## Exit criteria
+
+- [ ] Ruled in `DECISIONS.md`: the depth is, or is not, an admitted candidate.
+- [ ] If admitted, 0590 action 5's candidate list names it beside the other two.

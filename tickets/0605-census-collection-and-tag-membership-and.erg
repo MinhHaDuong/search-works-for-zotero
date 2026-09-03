@@ -10,6 +10,7 @@ Author: claude
 2026-09-03T08:33Z claude note second review trimmed 'a few hundred passages' from the at-risk region: the frontier moves with k and the refetch depth, so the magnitude is what this ticket measures rather than an illustration it can give in advance
 2026-09-03T08:43Z claude note substrate declared: actions 1 and 2 need the author's machine, everything after is arithmetic over the committed summary, and the harvest driver's own correctness is gated in-container by the roster-closure rule rather than by the real index
 2026-09-03T08:53Z claude note second review of PR #258 caught the roster criterion naming the wrong component: harvest_years.py opens no database and is in neither the roster nor EXCUSED, so a harvest driver modelled on it is not what the closure rule gates. Action 2's join is, as year_scope.mjs is. Criterion and substrate section corrected
+2026-09-03T09:45Z claude note sibling handles filed for the questions 0590's reimagining raised: 0607, 0608, 0609, all needs-human. None blocks this census.
 --- body ---
 ## Context
 
