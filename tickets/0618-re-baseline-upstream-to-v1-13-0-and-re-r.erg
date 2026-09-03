@@ -9,7 +9,7 @@ Author: claude
 --- body ---
 ## Context
 
-Upstream shipped v1.13.0 on 2026-09-03 and `main` has moved three commits past
+Upstream shipped v1.13.0 on 2026-09-03 and `main` has moved four commits past
 the tag. `UPSTREAM` declares v1.12.0 (`b05ed69`, reviewed 2026-09-01) and
 `make upstream-status` reports STALE.
 
@@ -49,16 +49,16 @@ above the trigger; the trigger is named because 0520's exit criteria require it.
 
 ## Which SHA is pinned, and why not the tag
 
-`v1.13.0` is `8f16efe`; `main` is `b0e0bc8`, three commits later (the #43 dtype
+`v1.13.0` is `8f16efe`; `main` is `b0e0bc8`, four commits later (the #43 dtype
 work, which `CHANGELOG.md` files under `[Unreleased]`, plus a registry
 description fix). **The tip is pinned, not the tag.** `make upstream-status`
 compares the reviewed SHA against `main`, so a tag pin leaves that target
 permanently red, and a permanently-red status target is a retired one.
 `UPSTREAM_REVIEWED_VERSION` keeps naming `v1.13.0` — the last release contained
 in the reviewed tree, which is what the standing page dates itself by — and the
-three-commit gap is disclosed in `UPSTREAM` and on the page rather than encoded
+four-commit gap is disclosed in `UPSTREAM` and on the page rather than encoded
 in the version string, because `check_progress.PAGE_VERSION` parses `vN.N.N`
-and a `v1.13.0+3` would fail to match itself.
+and a `v1.13.0+4` would fail to match itself.
 
 ## What is already known and must not be re-derived
 

@@ -6,18 +6,22 @@ re-baseline. Where anything here touches the design, the owning document in
 
 **Subject:** upstream `oscardvs/zoteus` at
 `b0e0bc872b5727d21ea83aba8bfe834293013264`, which is `main`'s tip. The tag
-`v1.13.0` is `8f16efeb61ecee87a785fd560c39be165d266af6`, three commits earlier;
-the three commits between them are the #43 weight-precision work, which
+`v1.13.0` is `8f16efeb61ecee87a785fd560c39be165d266af6`, four commits earlier;
+the four commits between them are the #43 weight-precision work in three, which
 upstream's own changelog files under `[Unreleased]`, plus a registry
-description fix. Every `file:line` below addresses the tip.
+description fix. The count is four and it was written as three in the first
+draft of every document this re-baseline touched — caught by
+`upstream_catchup.py --rebaseline`, which computes it, on the day that mode was
+written. A number counted by hand from a log that scrolled is exactly the kind
+this repository has a rule about. Every `file:line` below addresses the tip.
 
 **Why the tip and not the tag.** `make upstream-status` compares the reviewed
 SHA against `main`. Pinning the tag would leave that target red on the day it
 was written, and a status target that is permanently red is a status target
 nobody reads. `UPSTREAM_REVIEWED_VERSION` therefore names the last release
 *contained in* the reviewed tree — which is what the standing page dates itself
-by — and the three-commit gap is disclosed rather than encoded, because
-`check_progress.PAGE_VERSION` parses `vN.N.N` and a `v1.13.0+3` would fail to
+by — and the four-commit gap is disclosed rather than encoded, because
+`check_progress.PAGE_VERSION` parses `vN.N.N` and a `v1.13.0+4` would fail to
 match itself.
 
 **Substrate, in two parts.** The source read was done against the bare mirror
