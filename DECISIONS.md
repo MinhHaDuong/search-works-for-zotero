@@ -5901,3 +5901,57 @@ v2 soon after, at two full drains.
   ours, which 0606's second condition forbids outright. This is recorded as a
   consequence of the schema rather than a preference, and it is the one place
   where "compatible" bites: the format decides what our producer may say.
+
+- **The reviewed baseline pins `main`'s tip, not the release tag (raised
+  2026-09-03, ticket 0618).** Recorded as done rather than proposed, because it
+  was forced by an existing target rather than chosen, and asked here because it
+  becomes a standing convention the moment a second re-baseline follows it.
+
+  Upstream released v1.13.0 on 2026-09-03 and `main` moved four commits past
+  the tag the same day. `make upstream-status` compares `UPSTREAM_REVIEWED_SHA`
+  against `main`, so pinning the tag would have left that target red on the day
+  it was written — and a status target that is permanently red is one nobody
+  reads, which retires the only instrument that tells this repository upstream
+  has moved at all. The tip is pinned. `UPSTREAM_REVIEWED_VERSION` keeps naming
+  `v1.13.0`, the last release *contained in* the reviewed tree, because that is
+  what the standing page dates itself by and what `check_progress`'s BASELINE
+  clause parses; the three-commit gap is disclosed in `UPSTREAM`'s own comment
+  and in the re-read rather than spelled into the version string, since
+  `PAGE_VERSION` reads `vN.N.N` and a `v1.13.0+4` would fail to match itself.
+
+  **What ratification would settle, and it is not the choice above.** It is what
+  the version key MEANS from now on. Under this convention the reviewed tree can
+  contain unreleased work — here, the #43 weight-precision selector, which
+  upstream files under `[Unreleased]` — while the page says "measured against
+  v1.13.0". A reader who fetches the v1.13.0 tag and looks for the dtype knob
+  will not find it. The alternative is to pin the tag and let `upstream-status`
+  carry a third state between QUIET and STALE ("moved, but not released"), which
+  is more honest and costs a change to a target that currently answers one bit.
+
+  Nothing else in this re-baseline waits on the answer: the pin is where it is,
+  the standing was re-read against the tree that is pinned, and both are
+  reversible by moving three lines.
+
+- **Trigger (c) fired three times in one release, and two of the three were our
+  own merged work (raised 2026-09-03, ticket 0618).** Recorded, not asked —
+  the ruling of 2026-09-01 already settles that any one of them authorizes a
+  bump. What is worth a ledger line is the pattern, because it changes what the
+  trigger is likely to catch next.
+
+  The three rows whose `delivered` verdict was **wrong** rather than merely
+  dated: R23 ("no in-place upgrade ladder ever runs, since `SCHEMA_MIGRATIONS`
+  is empty" — upstream now migrates every index in the field, and the first rung
+  exists *because* our pull request #46 changed the tokenizer); R7 ("stock
+  upstream hardcodes the English-tuned MiniLM construction", and "the English
+  stopword list is still in place" — both false, the second because our pull
+  request #47 deleted it); and R12, whose one unguarded seam was closed by
+  upstream #44, this repository's own courtesy filing.
+
+  So the trigger's dominant source is no longer the maintainer shipping past us.
+  It is **our own filings landing**, which is a failure mode with a shorter
+  fuse: this repository knows the day it sends a pull request that a row will
+  become wrong if it merges, and nothing connects the two. Whether that warrants
+  a mechanism — a row naming the filing that would falsify it, checked when the
+  filing merges — or is simply what `SYNC.md` is for, is a question this entry
+  raises and does not answer. Ticket 0622 owns the catch-up's own mechanics and
+  is the natural home if the answer is a mechanism.

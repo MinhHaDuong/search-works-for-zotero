@@ -1,0 +1,46 @@
+%erg 0.1
+Title: smoke_upstream reports a cold run as warm and undercounts RRF scores
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:07Z claude created
+
+--- body ---
+
+## Context
+
+Found while re-running `bench/smoke_upstream.py` at the v1.13.0 baseline
+(ticket 0618). Two reporting defects, neither of which changes a verdict, and
+both of which put a wrong number in a committed artifact. Filed apart from the
+re-baseline because a measurement-reporting fix must not ride a pin move.
+
+**The warm figure keeps the cold run.** The script sorts the per-query wall
+times and drops the first element, which is the *minimum*, not the cold run.
+The first query pays the model download and the ONNX session start; on a fresh
+data directory that is the largest number in the set and it survives into a
+field labelled as if the cold run had been excluded, while the fastest warm
+query is the one thrown away.
+
+**The RRF counter reads zero where every score is exactly the RRF value.** The
+check compares the returned scores against a contiguous prefix of the
+rank-fusion series. Item-level deduplication in the query path leaves gaps in
+the ranks, so a query whose hits skip a rank fails strict prefix equality even
+though every individual score is exactly the fusion value for its own rank. At
+the previous baseline each query returned at most one hit, so contiguity held
+trivially and the counter read three; the number moved for a reason that is the
+check's, not the target's. The substantive claim the field supports — that the
+score is a relabelled rank carrying no similarity magnitude — is unaffected.
+
+## Actions
+
+1. Compare each score against the fusion value for *its own* rank, not against
+   a contiguous prefix. State in the artifact how many hits were compared.
+2. Report the cold run as its own field and compute the warm figure from what
+   remains, or say plainly that the field includes the first query.
+
+## Exit criteria
+- [ ] Both fields are computed from what the run observed and labelled with
+      what they include
+- [ ] A run on a fresh data directory and a run on a warm one produce fields a
+      reader can tell apart

@@ -5,7 +5,7 @@ Author: claude
 
 --- log ---
 2026-09-03T11:26Z claude created
-2026-09-03T11:30Z claude note found by the 0120 action-1 roar sweep for siblings of the defect that ticket hit: a driver that sleeps between status polls reports its own poll interval, not the job. build_index.py is the one sibling of nine sleeping bench scripts. Two others were checked and are clean, and both are precedents worth keeping: service_ceiling_rss.mjs states in its own artifact text that it records "a peak, never a rate: nothing here is an elapsed time divided by a count", and zotero_fulltext.py's quantum is disclosed in verification/EXTRACTION-ROUTES.md, which names the 250 ms poll and drove the run at --poll 0.25 for exactly that reason.
+2026-09-03T11:27Z claude note found by the 0120 action-1 roar sweep for siblings of the defect that ticket hit: a driver that sleeps between status polls reports its own poll interval, not the job. build_index.py is the one sibling of nine sleeping bench scripts. Two others were checked and are clean, and both are precedents worth keeping: service_ceiling_rss.mjs states in its own artifact text that it records "a peak, never a rate: nothing here is an elapsed time divided by a count", and zotero_fulltext.py's quantum is disclosed in verification/EXTRACTION-ROUTES.md, which names the 250 ms poll and drove the run at --poll 0.25 for exactly that reason.
 
 --- body ---
 ## Context

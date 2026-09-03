@@ -156,8 +156,18 @@ export function writeCurrent(path) {
       text,
       content='passages',
       content_rowid='pid',
-      tokenize='unicode61 remove_diacritics 2'
+      tokenize='unicode61 remove_diacritics 0'
     );
+    -- Schema 2's one new table (v1.13.0). The fixture carries it because the fixture
+    -- stamps schemaVersion 2, and a file stamped 2 whose shape is 1 is the exact lie
+    -- this generator exists to keep out of a driver's hands. Upstream derives it from
+    -- the FTS vocabulary; here it is written by hand, small, from the corpus below.
+    CREATE TABLE IF NOT EXISTS accent_variants (
+      folded TEXT NOT NULL,
+      term TEXT NOT NULL,
+      df INTEGER NOT NULL,
+      PRIMARY KEY (folded, term)
+    ) WITHOUT ROWID;
   `);
   const rows = corpus();
   const insItem = db.prepare('INSERT OR IGNORE INTO items(item_key, title) VALUES (?, ?)');
@@ -184,6 +194,13 @@ export function writeCurrent(path) {
   setMeta.run('itemsAvailable', '3');
   setMeta.run('droplist', 'index passage');
   setMeta.run('droplistPassages', String(rows.length));
+  // Schema 2's expansion map is derived state with a cadence, and its cadence marker is a
+  // meta row. `accent_variants` itself stays EMPTY here and that is faithful rather than
+  // lazy: the corpus is ASCII by the naming ruling, every term folds to itself, and
+  // upstream's derivation stores a row only where a folded form has an accented spelling
+  // to expand to. A fixture inventing accented rows the corpus does not contain would be
+  // the same class of lie as stamping 2 on a schema-1 shape.
+  setMeta.run('accentVariantsPassages', String(rows.length));
   db.close();
   return path;
 }

@@ -997,27 +997,34 @@ thresholds (§5.2.8), the experiment decision rules (§5.3), and the budgets
 superseded.
 
 Seven facts about upstream shaped the design below. They were read at v1.7.0
-(`c5d25aa`), where all seven were exact; four have since been repaired, three
+(`c5d25aa`), where all seven were exact; five have since been repaired, four
 of those by the maintainer acting on this repository's own filings. They are
-therefore stated against the reviewed baseline `b05ed69` (v1.12.0), because a
-reader takes a premise as current unless told otherwise.
+therefore stated against the reviewed baseline `b0e0bc8` (v1.13.0), because a
+reader takes a premise as current unless told otherwise. Every line number
+below was re-read there rather than carried: the v1.13.0 diff moved all but
+one of them without changing a single mechanism, which is the reason a
+citation is re-opened at each bump instead of retyped.
 
 Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
 (`fulltext-source.ts:11`) truncates the 44,9 MB living example roughly
-1 100-fold. Changing embedder drops every vector at open (`dropStaleVectors`
-→ `clearVectors()`, `index-manager.ts:544`). `clearStore()` sits in the build
-path (`index-manager.ts:668`).
+1 100-fold — the one citation the bump left where it was, in the one file the
+release did not touch. Changing embedder drops every vector at open
+(`dropStaleVectors` → `clearVectors()`, `index-manager.ts:638`).
+`clearStore()` sits in the build path (`index-manager.ts:800`).
 
 Repaired since. The query tokenizer folds Unicode — `normalizeForSearch` then
-`/[\p{L}\p{N}]+/gu` (`tokenize.ts:67`, `4f61b2a`, v1.7.2), the 29 English
-stopwords still in place. `busy_timeout` is set to 10 s on both the writable
-handle and the read-only probe (`sqlite-index.ts:124`, `80f8aa0`, v1.7.1).
-`SCHEMA_VERSION` is read before any DDL, through `reconcileSchema()`
-(`sqlite-index.ts:304`, `fd51659`, v1.9.0). Builds no longer crawl `top:true`
-alone: a second pass indexes child notes and annotations, on by default
-(`own-words-source.ts:157`, `d8266f7`, v1.11.0). What the design owes each of
-the four is unchanged; what has changed is that none of them is a live defect,
-so none may be cited as one.
+`/[\p{L}\p{N}]+/gu` (`tokenize.ts:221`, `4f61b2a`, v1.7.2). `busy_timeout` is
+set to 10 s on both the writable handle and the read-only probe
+(`sqlite-index.ts:499` and `:590`, `80f8aa0`, v1.7.1). `SCHEMA_VERSION` is read
+before any DDL, through `reconcileSchema()` (`sqlite-index.ts:585`, `fd51659`,
+v1.9.0). Builds no longer crawl `top:true` alone: a second pass indexes child
+notes and annotations, on by default (`own-words-source.ts:132`, `d8266f7`,
+v1.11.0). The fifth is this repository's own, merged as PR #46 and #47 in
+v1.13.0: the 29-word English stopword set is deleted, so no word is dropped
+from any document on either backend, and what a query prunes is a droplist
+derived from the library it is searching. What the design owes each of the
+five is unchanged; what has changed is that none of them is a live defect, so
+none may be cited as one.
 
 ---
 
@@ -1544,8 +1551,9 @@ reacting to degradation before an error, since the serving process is
 Zotero's own. Upstream's #39 answered the same pressure differently, and not
 with a fallback: it sets the crawl's concurrency from whichever API serves it,
 2 for the desktop app against 4 for the cloud, and backs off to one on
-degradation (`c859407`, `library-router.ts:75-78`). That is not adopted
-(ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
+degradation (`c859407`, and re-read at `b0e0bc8` where the rule has moved out
+of the router into `limits.ts:69` and `build.ts:617-620`, unchanged in
+substance). That is not adopted (ticket 0505). The stage keeps its key: `text_hash` (§5.2.1) is computed over the
 stream as it passes, so nothing has to hold the document to identify it.
 Three things per library.
 
@@ -2205,7 +2213,7 @@ survives even if it is built upstream instead.
 **R23 — upgrade and downgrade.** The open protocol: read
 `meta.schemaVersion` before any DDL or write (upstream's own rule since
 `fd51659`, v1.9.0: `reconcileSchema()` reads the stamp through a read-only
-probe at `sqlite-index.ts:304`, before the `INSERT OR REPLACE` in
+probe at `sqlite-index.ts:585`, before the `INSERT OR REPLACE` in
 `createSchema` can re-stamp a file written by a newer build. That ordering
 defect is fixed upstream; the protocol below is what the fix leaves open). A
 newer file → sideline (never delete), fresh build, notice. Only the
@@ -2219,9 +2227,14 @@ ping-pong-downgrade hybrid state carries its own tamper evidence:
 response is not "migrate" but reconcile-heal: mark derived stages stale,
 census-diff, let R1 re-earn. The retroactive limit is stated plainly:
 binaries that predate the protocol (every release through v1.8.0; v1.9.0
-ships the read-before-write + sideline slice via PR #25, but not the
-conductor rule or `min_reader_version`) are unreachable by it; the new
-filename (§5.1) is what actually protects against them.
+ships the read-before-write + sideline slice via PR #25, and v1.13.0 the
+older-file half — a contiguous `SCHEMA_MIGRATIONS` ladder whose first rung
+rebuilds the keyword index in place inside the transaction that stamps the
+new version, re-computing no vector — but neither ships the conductor rule or
+`min_reader_version`) are unreachable by it; the new filename (§5.1) is what
+actually protects against them. What the ladder does NOT answer is the newer
+file: `migrationPath` refuses to walk backwards, so the newer-stamp direction
+is still sidelined, which is where R23 stays open.
 
 **R15's uninstall clause.** The zoteus adapter declares its data directory as
 derived state and pins `env.cacheDir` under it before constructing the pipeline
@@ -2960,8 +2973,9 @@ the local one is unreachable, a rule that predates this design's review and is
 not gated on a per-call opt-in. It cannot fire without a cloud API key already
 configured. A keyless install fails such a read, but it fails *at the server*:
 there is no pre-flight refusal in the code, so the request is dispatched to
-`api.zotero.org` under user id 0 and rejected there (`library-router.ts:128`,
-`b05ed69`). No library content crosses, which is the substantive point; a
+`api.zotero.org` under user id 0 and rejected there (`library-router.ts:72`
+for the address and `:80-81` for the routing, re-read at `b0e0bc8`; the file
+moved to `src/router/` and the line numbers with it, the rule unchanged). No library content crosses, which is the substantive point; a
 request does reach `api.zotero.org`. Where a key is configured, the
 fallback is silent — nothing asks again at the moment it fires. It does not reach an index build: a build pins
 its transport once and fails rather than re-routing, so no passage or

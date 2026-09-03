@@ -1,0 +1,77 @@
+%erg 0.1
+Title: The adapter writes the work-counter nil down, so it cannot tell absent from never-looked
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:49Z claude created
+
+--- body ---
+
+## Context
+
+Found by re-running the acceptance layer at the v1.13.0 baseline (ticket 0618).
+Three assertions rest on this and two standing rows cite them: R3's two clauses
+and R13's duplicate-work clause all report `not-run` because "this target
+reports no `work.<stage>.<trigger>.<outcome>` counters".
+
+`bench/acceptance/adapters/zoteus.py` supplies that fact like this:
+
+```python
+# Explicitly None rather than absent. This target's status carries
+# coverage and phase but no `work.<stage>.<trigger>.<outcome>` counter
+# of any kind — measured on 2026-09-03, all 29 top-level keys read,
+# no `work` or `counters` object anywhere. ...
+"work": None,
+```
+
+The comment is honest about being a written-down measurement, and the
+measurement was right on the day. The defect is that **the adapter answers
+`None` whatever the target reports.** If upstream shipped a work counter
+tomorrow, `durability.work_counters` would still return `None`, the three
+assertions would still report `not-run`, and the two rows would still say the
+counters do not exist. A check whose all-clear is reachable by failing to look
+is not a check, and this is that shape in the instrument two `measured` rows
+lean on.
+
+The nil is *currently* true, and it was re-earned independently at the v1.13.0
+re-baseline rather than inherited: the target's index status was read live on a
+running server in the adapter's own default configuration, and it carries 28
+top-level scalar keys with nothing matching `work` or `counter`. But that read
+was done by hand, outside the adapter, and nothing in the tree repeats it.
+
+**With a positive control, because a nil nobody could have seen is not a
+finding.** Thirty of the seed's `passages.vector` blobs were nulled and the
+status re-read: `passagesWithoutVectors` **does** appear, as a 29th key, with
+the right value — and still no `work` or `counter` beside it. So the probe can
+see a key arrive. That is what makes the nil a finding rather than a silence.
+
+Two smaller things the same read establishes. The comment's "29 top-level keys"
+is right for one state and wrong for the other: the count is 28 unless the index
+has a vector shortfall. And `embedRate` is unreachable in any configuration the
+layer may run, because upstream gates it on the provider being one of two API
+providers and the default-configuration clause admits only the local embedder —
+a source reading plus a measured absence, not a manufactured run.
+
+## Actions
+
+1. Read the target's status and derive `work` from what came back, so the nil is
+   observed on every run rather than typed once.
+2. Keep the distinction the comment is right about: `None` for "looked, found
+   none" must stay distinguishable from a key the adapter forgot to populate.
+3. Correct the key count, or drop it — a number in a comment that is right in
+   one run state and wrong in another is the second copy this repository's own
+   figure guard exists to refuse.
+
+## Test
+
+Red first: hand the adapter a status payload carrying a `work` object and
+confirm the current code still answers `None`. That is the whole defect in one
+assertion, and it fails today.
+
+## Exit criteria
+- [ ] `work` is derived from the target's reply on every run
+- [ ] A target that reports counters makes R3's clauses decide instead of
+      reporting `not-run`, demonstrated against a fixture that reports some
+- [ ] The nil in `README.md`'s R3 and R13 rows rests on something that looks
+      each time, not on a comment

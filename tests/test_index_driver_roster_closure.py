@@ -325,10 +325,18 @@ EXCUSED: dict[str, Excuse] = {
         "exported constants — it is what the roster is held to, not a member of it"
     ),
     "bench/fixtures/make_index_fixture.mjs": Excuse(
-        frozenset({"index_meta", "items", "meta", "passage_meta", "passages", "passages_fts", "vector_codes"}),
+        frozenset({"accent_variants", "index_meta", "items", "meta", "passage_meta", "passages",
+                   "passages_fts", "vector_codes"}),
         "the fixture generator. It WRITES both generations rather than reading one, and it "
         "is the other file the vocabulary is derived from; a generation gate on the thing "
-        "that manufactures both generations would refuse its own output"
+        "that manufactures both generations would refuse its own output. "
+        "`accent_variants` arrived 2026-09-03 with upstream's SCHEMA_VERSION bump to 2, and "
+        "re-pinning it is the whole argument rather than a widening of it: the fixture "
+        "stamps the generation `UPSTREAM` declares, and a file stamped for a schema whose "
+        "shape it lacks is precisely the lie this generator exists to keep out of a "
+        "driver's hands. The table is created and left EMPTY, which is faithful and not "
+        "lazy — the corpus is ASCII by the naming ruling, so every term folds to itself and "
+        "upstream's own derivation would store no row either. Ticket 0618"
     ),
     "bench/upstream_catchup.py": Excuse(
         frozenset({"passages"}),
@@ -353,7 +361,7 @@ EXCUSED: dict[str, Excuse] = {
     # --- upstream's own code owns the check, in the same run ----------------------------
     "bench/derive_droplist.mjs": Excuse(frozenset({"meta"}), UPSTREAM_OWNS_IT),
     "bench/smoke_upstream.py": Excuse(
-        frozenset({"meta"}),
+        frozenset({"meta", "passages"}),
         "an acceptance smoke driver, and the only file in this inventory that READS "
         "`meta.schemaVersion` and reports the value it found. `_restamp_and_open` copies "
         "the index, records the original version into the artifact, then deliberately "
@@ -362,7 +370,17 @@ EXCUSED: dict[str, Excuse] = {
         "on the substrate instead of written down beside it, and it happens before any "
         "server starts — so a rename fails in seconds, naming the version it found, which "
         "is the cost the roster exists to avoid. The copy then goes to upstream's own "
-        "server, so upstream decides the same question a second time"
+        "server, so upstream decides the same question a second time. "
+        "`passages` arrived 2026-09-03 with `_index_facts`, and belongs to the same "
+        "argument rather than widening it: upstream bumped SCHEMA_VERSION to 2 and shipped "
+        "a rung that migrates a schema-1 index in place, so the older-stamp check now has "
+        "to assert that the migration PRESERVED the rows — `COUNT(*)` and "
+        "`COUNT(*) WHERE vector IS NOT NULL`, taken off the same copied file before and "
+        "after the server runs. Two counts, no column semantics beyond `vector IS NULL`, "
+        "and their whole purpose is to be compared against what the SERVER reports for the "
+        "same file, so a rename cannot be silently absorbed: the read raises, or the two "
+        "sides disagree and the check reds. This is the one number in the artifact that "
+        "upstream does not supply about itself, which is exactly why it is read raw"
     ),
     "bench/issue30_arms.py": Excuse(
         frozenset({"items", "meta", "passages"}),
