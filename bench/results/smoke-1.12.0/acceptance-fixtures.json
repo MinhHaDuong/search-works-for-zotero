@@ -5,10 +5,387 @@
   "states_reached": [
     "fail",
     "not-offered",
+    "not-run",
     "pass"
   ],
   "assertions_never_seen_red": [],
   "rows": [
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-abandons-foreign-stamp",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "fail",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "fail",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-churns-on-resync",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "fail",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-corrupts-on-company",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "fail",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-duplicates-work-on-company",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
     {
       "fixture": "stub-egress-ip",
       "check": "R10-local-by-default",
@@ -57,6 +434,51 @@
       "result": "pass",
       "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-egress-ip",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
     },
     {
       "fixture": "stub-egress-name",
@@ -108,6 +530,51 @@
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
     },
     {
+      "fixture": "stub-egress-name",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-egress-name",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
       "fixture": "stub-quiet",
       "check": "R10-local-by-default",
       "requirement": "R10",
@@ -155,6 +622,145 @@
       "result": "pass",
       "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-quiet",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "fail",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-recomputes-whole-library-on-edit",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
     },
     {
       "fixture": "stub-remote-embedder",
@@ -206,6 +812,51 @@
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
     },
     {
+      "fixture": "stub-remote-embedder",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "not-run",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "not-run",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "not-run",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-remote-embedder",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
       "fixture": "stub-strays",
       "check": "R10-local-by-default",
       "requirement": "R10",
@@ -255,6 +906,51 @@
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
     },
     {
+      "fixture": "stub-strays",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-strays",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
       "fixture": "stub-under-declares",
       "check": "R10-local-by-default",
       "requirement": "R10",
@@ -304,6 +1000,51 @@
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
     },
     {
+      "fixture": "stub-under-declares",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-under-declares",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
       "fixture": "stub-uninstall-leaves-residue",
       "check": "R10-local-by-default",
       "requirement": "R10",
@@ -351,6 +1092,51 @@
       "result": "fail",
       "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-uninstall-leaves-residue",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
     },
     {
       "fixture": "stub-verbless",
@@ -400,6 +1186,145 @@
       "result": "not-offered",
       "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
       "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "not-offered",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-verbless",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "not-offered",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "verb": "query",
+      "result": "pass",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 0
+      }
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "verb": "install",
+      "result": "pass",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "verb": "query",
+      "result": "pass",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "verb": "uninstall",
+      "result": "pass",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "pass",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "verb": "status",
+      "result": "fail",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "verb": "query",
+      "result": "pass",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "verb": "status",
+      "result": "pass",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled"
+    },
+    {
+      "fixture": "stub-verifies-nothing-on-resync",
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "verb": "query",
+      "result": "pass",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand"
     }
   ]
 }

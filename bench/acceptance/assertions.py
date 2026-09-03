@@ -47,6 +47,7 @@ from .interface import (
     not_offered,
     not_run,
 )
+from . import durability
 from .sandbox import choose, run_traced
 
 #: The three retrieval-mode names R33 uses, in the layer's vocabulary. An
@@ -545,10 +546,15 @@ _EGRESS_PROBE = (
 #: Every assertion this layer offers, by check id, in the order a run reports
 #: them. The driver derives its work from this rather than from a hand-kept
 #: list, so an assertion added here is run without a second edit.
+#:
+#: Goal 2's clauses live in `durability.py` and are folded in here rather than
+#: copied: one registry, so a reader asking what this layer asserts has one place
+#: to look and the target-neutrality guard has one package to walk.
 ALL = {
     "R10-local-by-default": check_local_by_default,
     "R10-no-egress": check_no_egress,
     "R15-residue-inventory": check_residue_inventory,
     "R15-model-cache-under-declared-roots": check_model_cache_under_declared_roots,
     "R15-uninstall-removes-declared-state": check_uninstall_removes_declared_state,
+    **durability.ALL,
 }
