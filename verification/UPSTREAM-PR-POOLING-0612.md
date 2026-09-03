@@ -24,9 +24,9 @@ arms of each row.
 
 | model | declares | MRR `cls` | MRR `mean` | MRR | hit@1 | hit@5 |
 |---|---|---|---|---|---|---|
-| `onnx-community/granite-embedding-97m-multilingual-r2-ONNX` | `cls` | 0,5301 | 0,3842 | **-27,5%** | -34,6% | -12,2% |
-| `onnx-community/gte-multilingual-base` | `cls` | 0,7255 | 0,6331 | **-12,7%** | -10,3% | -19,6% |
-| `Snowflake/snowflake-arctic-embed-m-v2.0` | `cls` | 0,6560 | 0,5887 | **-10,3%** | -14,7% | -11,3% |
+| `onnx-community/granite-embedding-97m-multilingual-r2-ONNX` | `cls` | 0.5301 | 0.3842 | **-27.5%** | -34.6% | -12.2% |
+| `onnx-community/gte-multilingual-base` | `cls` | 0.7255 | 0.6331 | **-12.7%** | -10.3% | -19.6% |
+| `Snowflake/snowflake-arctic-embed-m-v2.0` | `cls` | 0.6560 | 0.5887 | **-10.3%** | -14.7% | -11.3% |
 
 For the two `onnx-community` models neither id carries `e5` as a segment and
 neither wants a prefix, so the `mean` column is not a hypothetical configuration:
@@ -35,7 +35,9 @@ it is what Zoteus produces for those model ids today. The Snowflake row holds it
 row understates the loss.
 
 It is a different corpus from your German/English probe and a different task, so
-read it as a second opinion rather than as a replacement for one. The one thing I
+read it as a second opinion rather than as a replacement for one. I will post the
+driver and the corpus manifest to the #43 thread so the numbers are checkable
+rather than asserted, the way the probe in that thread is. The one thing I
 did guard against is the harness: before reading any delta I re-ran an untouched
 cell and confirmed it reproduced the previously recorded result field for field,
 so the instrument is not the source of the difference.
@@ -69,12 +71,6 @@ for. The only difference is the oracle. For prefixes the default layer is an
 inference from the id; for pooling an inference is impossible, so it is a curated
 table instead.
 
-Pooling also needs less than dtype needed on one point. Precision is chosen by
-the user and so had to enter the identity; pooling is a property of the model, the
-id determines it, and the identity already carries the id — so the table changes
-no identities, and the override sits exactly where `ZOTEUS_EMBEDDING_PREFIXES`
-sits.
-
 ## What this changes
 
 A curated map from model id to pooling mode, consulted at the pipeline call. An
@@ -106,16 +102,14 @@ mean" from "unlisted, so mean by default", which the code alone cannot. Then
 call taking it.
 
 `ZOTEUS_EMBEDDING_POOLING` (`auto|mean|cls`) is plumbed the way
-`ZOTEUS_EMBEDDING_PREFIXES` is, down to warning and falling back on an
-unrecognised value rather than refusing — `refuse()` in this codebase is for
-settings where guessing is dangerous, and this one has a correct value to fall
-back to.
+`ZOTEUS_EMBEDDING_PREFIXES` is, warning and falling back on an unrecognised
+value.
 
 ```
  .env.example                             |   8 +
- CHANGELOG.md                             |  33 ++++
+ CHANGELOG.md                             |  31 ++++
  docs/configuration.md                    |   1 +
- docs/semantic-search.md                  |  25 +++
+ docs/semantic-search.md                  |  24 +++
  src/config.ts                            |  35 ++++-
  src/features/search/embeddings.ts        | 121 ++++++++++++++-
  tests/features/embedding-pooling.test.ts | 243 +++++++++++++++++++++++++++++++
@@ -145,6 +139,12 @@ prevent, so the rebuild is the repair rather than its price.
 
 The override sits outside the identity for the same reason
 `ZOTEUS_EMBEDDING_PREFIXES` does, and inherits the same property: setting it
-against the table changes the vectors under an unchanged stamp. Happy to move
-both into the identity if you would rather, but that is a larger change than this
-defect needs and it would touch every existing index.
+against the table changes the vectors under an unchanged stamp.
+
+If you would rather the pooling were in the identity, the symmetric spelling is
+there and it costs no existing index — the same trick `fp32` gets. Suffix only
+when the resolved pooling differs from what the table would have chosen, so
+`local:<model>#cls` appears for exactly the models this change moves and nothing
+else is restamped. That is one commit on top if you want it; I left it out
+because it is a decision about your identity format rather than part of the
+defect.
