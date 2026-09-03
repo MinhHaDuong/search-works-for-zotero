@@ -2,7 +2,6 @@
 Title: Scoped issue B: entries and the segmenter
 Created: 2026-08-26
 Author: claude
-Blocked-by: 0028
 Blocked-by: 0032
 
 --- log ---
@@ -14,6 +13,7 @@ Blocked-by: 0032
 2026-08-29T14:07Z Minh Ha-Duong note blocker 0017 closed — Blocked-by removed.
 2026-08-30T17:04Z claude note #6012 CHECKPOINT READ 2026-08-30, at source (see 0028's entry of the same date for the full reading and the SHAs). VERDICT for this ticket's double gate: the checkpoint half is CLEAR -- the segmenter half of this issue is not obsolete and the data-model half is not reduced to an adapter question, because structured extraction does not reach the local API (sdt.js ships on main; server_localAPI.js has zero sdt/structured references; the only text surface is flat /fulltext). #6012 is still draft, unmerged, unmoved since 2026-08-29. The X5 half of the gate remains OPEN and is the binding one: X5 is unstarted, blocked on 0028. One finding that sharpens CONSTRAINTS C2's last bullet from prediction to verified mechanism: the PR adds a 'bestMatch' search CONDITION (searchConditions.js), and main's local API already serves /searches/:searchKey/items -- so on merge, a saved search carrying that condition becomes the first place platform semantic results reach the local API, with no new endpoint required. Nothing to re-draft here yet; do not treat the cleared half as permission to draft while X5 is open
 2026-08-31T14:53Z Claude note blocker 0016 closed — Blocked-by removed.
+2026-09-03T15:32Z MinhHaDuong note blocker 0028 closed — Blocked-by removed.
 --- body ---
 ## Context
 GOVERNANCE.md's increment train, item 6 (scoped issue B), per the ratified re-form (DECISIONS.md 2026-08-26).

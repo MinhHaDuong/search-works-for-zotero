@@ -2,7 +2,6 @@
 Title: Read Zotero's structured-text pack when one exists, fall back to the flat full-text cache
 Created: 2026-09-02
 Author: claude
-Blocked-by: 0028
 Label: deferred
 
 --- log ---
@@ -10,6 +9,7 @@ Label: deferred
 
 2026-09-02T07:13Z claude note ratified by the author 2026-09-02 as a mechanism under R24, not a new requirement (his words: an under-the-hood mechanism). SPEC.md R24, C1, C2, 5.2.4 and 5.2.2 edited in PR 170; the needs-human label comes off, Blocked-by 0028 stays
 2026-09-02T15:29Z codex note author made the pack reader permanent in design and deferred implementation until Zotero 6012 makes packs library-wide
+2026-09-03T15:32Z MinhHaDuong note blocker 0028 closed — Blocked-by removed.
 --- body ---
 ## Context
 

@@ -2,7 +2,6 @@
 Title: PDF-layout segmenter: reach for the PDF above the length threshold
 Created: 2026-09-01
 Author: claude
-Blocked-by: 0028
 
 --- log ---
 2026-09-01T13:31Z claude created
@@ -15,6 +14,7 @@ Blocked-by: 0028
 
 2026-09-03T09:48Z Minh Ha-Duong note THE LADDER WAS FILED WITHOUT READING THE FORK'S STATE, found by the author's two questions on the re-cut of the same day. Three of its premises are wrong. (1) 0028 is not pending: seg/1 is BUILT, on fork branch t0028-seg1 at f936102, 26 tests, fork suite 1 153 passing, run over real files 2026-09-02 -- the 45 MB dictionary gives 1 982 entries in 3,9 s. The ticket stays open on X5's verdict, not on the code. (2) 0560 is substantially already built as `extractPdfOutline` (2026-08-31, a day BEFORE this tracker was filed) and needs a closeout audit, not an implementation. (3) 0558 is likely the same, via the three-source file resolution in `annotate.ts` and upstream issue #29, closed COMPLETED 2026-08-29. pdf.js has been a declared fork dependency throughout. GENERAL CAUSE, worth more than the three corrections: these children were specified from SPEC.md and the field review, and the fork was never read. The fork is untracked, so a repository-side search returns nothing for work that exists, and 'not found here' was recorded as 'not built'. Before any child of this tracker is picked up, read the fork.
 
+2026-09-03T15:32Z MinhHaDuong note blocker 0028 closed — Blocked-by removed.
 --- body ---
 ## Context
 
