@@ -1,0 +1,195 @@
+%erg 0.1
+Title: make ladder-matrix: a generated acceptance matrix over the ladder roster
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T05:18Z claude created
+
+2026-09-03T05:23Z claude note Filed by the ripple lane against origin/main 5282918. The design in the body is the author's as he settled it on 2026-09-03, not this lane's proposal: rows driven from README.md's ladder roster rather than from the artifacts, grouped by goal then requirement, a KEPT? row per group per column under the fixed precedence fail > no-test > not-run > not-offered, four kinds of cell with no-test among them, interface-only so fold_sweep.mjs is out of the matrix, seats with no artifact named rather than omitted, and the whole thing generated with a regeneration check so a stale table is a red build. The starting data was re-measured here at 8a5ad06 rather than transcribed and every figure reproduced: zoteus 10 checks 4 pass 2 fail 1 not-offered 3 not-run, the other three artifacts 5 checks each, R10-no-egress fail on all four, goal-2 rows only for zoteus, and no committed acceptance.json anywhere for zotero-mcp.
+--- body ---
+
+## Context
+
+The ladder's standing report says how each requirement stands. It does not say,
+per target, what actually ran. That second picture exists only as four
+`acceptance.json` artifacts nobody reads side by side, and the one time it was
+assembled by hand — a prototype run on 2026-09-03 — it immediately showed
+things no page in this repo says: `R10-no-egress` fails on **all four** executed
+targets, goal 2 has rows for exactly one of them, and **zotero-mcp has no
+committed `acceptance.json` anywhere** although its adapter merged in pull
+request #219.
+
+A hand-written table of that would go stale the first time an artifact
+regenerated, and nothing would notice. So the deliverable is a **generated**
+matrix, committed, with a regeneration check in this repo's existing figure-guard
+pattern, so that a table which no longer matches the artifacts is a red build
+rather than a quiet lie.
+
+**The point of the whole thing is the holes.** A matrix built from the artifacts
+can only show assertions that exist, which makes a requirement nobody tests
+indistinguishable from a requirement nobody has. Rows therefore come from
+`README.md`'s ladder roster: every requirement on every rung gets a row,
+including goals 3, 4 and 5, whose rows will be almost entirely empty. That is
+the honest picture, not a defect in the report.
+
+R19 is the live example of why. On 2026-09-03 its clause was reworded into a
+promise about what a user sees, its standing row went to `none` / `inferred`,
+and no assertion of the new shape exists (ticket 0603). Under a matrix built
+from artifacts, R19 would simply be absent. Under this one it is a row of
+`no test` across every column, which is what a reader needs to see.
+
+## Relevant files
+
+- `README.md`, "## The goals ladder" — the row set. Five goals, each a roster
+  of requirements, one requirement per rung.
+- `bench/check_progress.py` — **reuse its parse, do not write a second one.**
+  `goal_split`, `goal_members` and `ruled_members` already read the roster and
+  already fail the build when a requirement sits on none or two rungs.
+- `bench/check_figures.py` — the pattern the regeneration check follows: a
+  committed artifact, a checker that recomputes and compares, and a ratchet
+  whose slack has to be argued (see finding F2 on ticket 0026).
+- `bench/acceptance/run.py`, `bench/acceptance/assertions.py`,
+  `bench/acceptance/interface.py` — the layer that produces the cells and the
+  ratified seven-verb interface that bounds them.
+- `bench/acceptance/adapters/` — five ratified targets: `zoteus`, `zotseek`,
+  `beaver`, `zotero_core_6012`, `zotero_mcp`.
+- The committed artifacts, measured at `8a5ad06`:
+  `bench/results/smoke-1.12.0/acceptance-zoteus.json`,
+  `bench/results/0586-beaver/acceptance.json`,
+  `bench/results/0584-zotseek/acceptance.json`,
+  `bench/results/0583-zotero-6012/acceptance.json`. There is no fifth.
+- `Makefile` — where `ladder-matrix` and its check are wired.
+
+## The design, as the author settled it
+
+**Rows.** Driven from `README.md`'s ladder roster through
+`check_progress.py`'s existing parse — never from the artifacts, and never by a
+second parser. Every requirement on every rung gets a row.
+
+**Grouping.** By goal, then by requirement.
+
+**Columns.** One per ratified target.
+
+**Cells.** Four kinds, and conflating any two destroys the artifact's value:
+
+| cell | means | a statement about |
+|---|---|---|
+| `pass` / `fail` | the assertion ran and decided | the target |
+| `not-offered` | the adapter declared the verb absent | the target |
+| `not-run` | the assertion ran and could not decide | the run |
+| `no test` | no assertion exists for this requirement | **us** |
+
+**A `KEPT?` row per group, per column.** `KEPT` only when every member of that
+rung passed for that target. Otherwise `NO:` followed by the worst blocker in
+the fixed precedence **fail > no-test > not-run > not-offered**. The precedence
+is load-bearing and is not a tie-break convenience: a column blocked by `fail`
+is a finding about the target, and a column blocked by `no-test` is a finding
+about us. Reporting the second where the first is true would let a target's
+failure hide behind our own missing assertion.
+
+**Interface-only.** Every cell is filled by driving the target through the seven
+ratified verbs, as a user would. A requirement decidable only by reading source
+does not get a cell — which is exactly the criterion the R19 ruling of
+2026-09-03 established, and the reason **`fold_sweep.mjs` is out of the
+matrix**. No fifth state for it, and no peer column for repo-side gates.
+
+**Seats with no artifact are named, not omitted.** Measured at `8a5ad06`: of
+five ratified targets, four have a committed `acceptance.json` and
+**zotero-mcp has none anywhere**, though its adapter merged in pull request
+#219. A matrix that silently showed four columns would report a roster of four.
+The tool must say that the fifth seat exists and never ran.
+
+## Starting data — re-measure it, do not transcribe it
+
+Reproduced in this filing at `8a5ad06`, so an implementer can tell a rebuild
+that works from one that does not:
+
+- `acceptance-zoteus.json`: **10** checks — 4 `pass`, 2 `fail`, 1
+  `not-offered`, 3 `not-run`.
+- `0586-beaver`, `0584-zotseek`, `0583-zotero-6012`: **5** checks each.
+- **`R10-no-egress` is `fail` on all four**, verb `query`.
+- Goal-2 rows (`R3-edit-recomputes-only-what-changed`,
+  `R3-identical-resync-recomputes-nothing`,
+  `R13-two-processes-both-answer`,
+  `R13-two-processes-do-not-duplicate-work`,
+  `R23-foreign-stamp-ends-up-serving`) exist **only** for zoteus, because
+  `durability.py` landed after the other three adapters ran.
+- Goal 1 is covered for only two of its four terms: R10 and R15 have checks;
+  R22 belongs to ticket 0033 and R31 to ticket 0488, neither in this layer. Both
+  are `no test` rows, and that is the correct reading.
+- Goals 3, 4 and 5: no checks at all.
+
+## Actions
+
+1. Write the generator. Rows from `check_progress.py`'s roster parse; cells from
+   the committed `acceptance.json` artifacts, keyed by requirement; `no test`
+   wherever the roster names a requirement no registered check has as its
+   subject.
+2. Emit the `KEPT?` row per group per column with the fixed precedence above.
+3. Name every ratified target as a column, including one with no artifact, and
+   make the absence legible as an absence rather than as a row of blanks that
+   could be read as `not-offered`.
+4. Commit the rendered table and add `make ladder-matrix`. Add the regeneration
+   check to `check` in the `check_figures.py` pattern: regenerate, compare,
+   fail on any difference.
+5. Leave a pointer where the next reader of the acceptance layer will meet it —
+   the matrix is the layer's report, and a reader arriving at
+   `assertions.py` should be told where the cross-target picture lives.
+
+## Test
+
+**Must be seen red before it is trusted.** A matrix that has never mis-reported
+has not been shown to report at all.
+
+- Remove one assertion from a **copy** of an artifact, regenerate, and confirm
+  the cell flips to the right state and that the committed-table check fails.
+  Both halves matter: a cell that flips while the check stays green means the
+  guard is not wired; a check that fails while the cell reads wrong means the
+  generator is not.
+- Drive the precedence directly: a group whose members include one `fail` and
+  one `no test` must report `NO: fail`, and the same group with the `fail`
+  removed must report `NO: no-test`. A single fixture cannot show a precedence;
+  two that differ in exactly one member can.
+- The missing-seat arm: with `zotero-mcp`'s column present and empty, confirm
+  its `KEPT?` reads as never-run and not as `KEPT`.
+
+## Verification
+
+- [ ] rows come from `README.md`'s roster via `check_progress.py`'s parse, and
+      no second roster parser was written
+- [ ] goals 3, 4 and 5 appear with their rows, empty
+- [ ] R19 appears as `no test` across every column
+- [ ] `fold_sweep.mjs` appears nowhere in the matrix
+- [ ] the removed-assertion arm was run and both the cell and the check moved
+- [ ] the two precedence fixtures give `NO: fail` and `NO: no-test`
+- [ ] `zotero-mcp` is a named column with no artifact
+- [ ] `make ladder-matrix` regenerates the committed table byte-identically on
+      an unchanged tree
+- [ ] `make check` green; `./tickets/erg check tickets/` green
+
+## Invariants
+
+- **The row set is the roster's, never the artifacts'.** The moment rows are
+  derived from what ran, the report loses the only thing it was built to show.
+- **One parse.** `check_progress.py` already owns the roster; a second parser is
+  a second thing to keep in sync and a second thing to be wrong.
+- **No number from `SPEC.md` is copied into the table or this ticket.**
+- **The four kinds of cell stay four.** Do not collapse `not-run` into `fail`,
+  and do not let `not-offered` stand in for a seat that never ran.
+- **Interface-only.** No cell is filled by reading a target's source, and no
+  repo-side gate gets a column.
+- The generator names no target in its logic; column identity comes from the
+  adapter roster, so `tests/test_acceptance_layer_is_target_neutral.py`'s spirit
+  holds here too.
+
+## Exit criteria
+
+- [ ] `make ladder-matrix` exists, generates the matrix, and the rendered table
+      is committed
+- [ ] a regeneration check runs in `check` and fails on a stale table
+- [ ] the matrix carries every requirement of every rung, grouped by goal then
+      requirement, with `KEPT?` per group per column under the fixed precedence
+- [ ] all four kinds of cell occur in the committed output, `no test` included
+- [ ] the fifth seat with no artifact is named
+- [ ] the removed-assertion red was run and recorded in this ticket's log

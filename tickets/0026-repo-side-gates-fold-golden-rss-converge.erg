@@ -26,6 +26,7 @@ Author: claude
 2026-09-02T10:56Z claude note DECOMPOSED BY LADDER RUNG (author's ruling, interactive session 2026-09-02). This ticket becomes the tracker and stays open; five children carry the work, each sized to one sign-off unit and each blocked by its real prerequisite, never by this tracker. Goal 1 to ticket 0578, goal 2 to ticket 0579, goal 3 to ticket 0580, the golden gate to ticket 0581, the RSS gate to ticket 0582. The two invariants every child inherits are stated once in the body above -- the MUST clause as the unit, and honest red/waiver states -- and are not restated in any child except as inherited. TWO PREMISES OF THIS BODY WERE STALE and are corrected in the children rather than argued here. The convergence harness does not need a mock Zotero local API to land with it: tranche 1 (ticket 0551, closed) built the record/replay fake and the synthetic library on the fork branch conductor-integration, which removes a dependency ticket 0580 would otherwise carry. And the two readings of R20's letter flagged here as awaiting ratification were BOTH ratified on 2026-08-29 -- the cadence into check-slow with a cheap mechanism fixture in the fast tier, and the synthetic surrogate conditional on X3a revalidation at each release -- with the awaiting entry deleted on 2026-08-31, having been answered twice. What actually gates the RSS gate now is SPEC.md 5.2.9's re-pin of three ceilings after the 2026-09-02 topology, plus the embedding service class that had none; ticket 0582 names that ruling as its own first exit criterion and carries the needs-human label until it lands. Stale coordinates in the body fixed in the same pass (DESIGN 2.8 to SPEC.md 5.2.8, spec/README.md to README.md); the log above is preserved verbatim and keeps the addresses it was written with.
 2026-09-02T11:16Z claude note VERIFY-GATE REROLL ROUND 1 answered on PR 182, and the bump lands here rather than in the round that earned it because that line would have fallen inside the conflict hunk the reroll was about. Three findings, all acted on. (i) PR 180 merged to main 38 seconds before the gate published, turning a merge-order note into a present conflict on this file; resolved as a union, its 10:48Z entry kept verbatim above, and its Context paragraph re-homed into ticket 0582 where the substance belongs rather than merely preserved here -- the conflicted half was the safe half, and the paragraph would have vanished silently under a clean auto-merge. Verified by grepping the merged tree for the 10:48Z stamp and for tickets 0575, 0577 and 0554, not by the merge's exit code. (ii) the R20 awaiting-entry deletion was dated 2026-09-01 in the 10:56Z entry above and in ticket 0582; DECISIONS.md heads that ruling 2026-08-31 and the ledger dates its own entries, so ticket 0582 is corrected and this note carries the correction for the log, which is not rewritten. (iii) the PR body called the sibling branch not yet pushed when it was already PR 180; the allocation conclusion was independently re-verified and holds -- 0578 through 0582 collide with nothing -- but the stated basis was false and is corrected in the body. Not changed, and recorded as a decision rather than an oversight: README's goal-1 cell for R15 still addresses ticket 0017, and the four standing-row and prose citations of this ticket still name the tracker, which is the honest address for the estate while the tracker is open.
 2026-09-02T20:55Z claude note AUDIT FINDINGS FILED FOR THE INTEGRATION REVIEW, four of them, from merged main at ceadf71, and they sit in the body under "## Findings for the integration review" rather than in new tickets because this tracker's last exit criterion is where they are decided and identifier allocation was collision-prone that night. F1: the provenance witness is asserted in driver source rather than observed by the run (warm: true is a literal at bench/extract_chunk_throughput.mjs:563 and at bench/service_ceiling_rss.mjs:401, where warming is a separate optional flag the run cannot observe), the committed 0500 artifact carries no warm_up key while the committed driver emits one, and tests/test_warm_before_timing.py cannot see either instance -- service_ceiling_rss.mjs is not in its inventory at all, and in the other file it matches only the tokenizer proxy at :504 because its RATE_KEY word boundary excludes extract_ms_per_passage_median, while its warm marker is satisfied by a comment. F2: MINIMUM_PAIRS is 462 against 496 pairs checked, so 34 declarations can be deleted from the ratchet in silence. F3: SPEC.md 5.2.8's 0,17 ms for the attachment-page walk implies a divisor near 474 000; 80,6 s over the design point's 567 829 passages is 0,142 ms and over 5.2.9's legacy 650k count 0,124 ms, and whoever fixes it must spell the divisor out inline because 0,142 already stands in that section as the extract median. F4: exit-criteria boxes carry no signal, ticket 0578 closing at 0 of 14 ticked and ticket 0585 at 0 of 5 against ticket 0500 at 4 of 4. TWO OF THE FOUR CORRECT THE AUDIT THAT PRODUCED THEM rather than repeating it: F1's driver/artifact mismatch IS recorded, in ticket 0500's body and in pull request #217, with the correction bounded at about 0,008 ms per passage, so what stands is that no consumer reads that record and not that it was concealed; and ticket 0585 closed with 0 of 5 boxes ticked rather than with none unticked, which makes 0578 the majority behaviour and not an outlier. No fix is enacted. F1's direction is to require the witness artifact-side, in check_figures.py's warm_verdict, rather than to add a third guard.
+2026-09-03T05:22Z claude note RIPPLE PASS ON THE 2026-09-03 R19 REWORD (origin/main 5282918). Two findings appended, F5 and F6, both deliberately below the ticket floor. F5 carries the fold gate's residues: SPEC.md 5.2.8 still says the gate runs green by right where a committed artifact says red, now an apparatus claim rather than a claim about a ratified requirement; and the sixteen Roman numerals U+2160-U+216F have their cause recorded in three places and an owner in none. F6 records that README.md's asterisked hand-maintained counts were found already stale by the reword lane, which is evidence about the 2026-09-01 ruling and explicitly not a proposal to guard them. The reword's own consequence that IS above the floor was filed as ticket 0603, the behavioural R19 assertion; the ladder acceptance matrix the author asked for is ticket 0604.
 --- body ---
 ## Context
 
@@ -158,6 +159,55 @@ closes on the pull request's `**Ticket:**` line whatever the boxes say, so the
 boxes record only what a lane chose to record. Either they are ticked at close
 or they should stop being written as checkboxes; a box nobody ticks is a
 verification claim nobody made, in the shape of one that was.
+
+**F5. The fold gate's two residues after the 2026-09-03 R19 reword. Filed here
+because this tracker is where the gate is wired, and because both are below the
+severity floor as their own tickets.** The reword (`origin/main` `5282918`) took
+the fold sweep out of R19's evidence and left it a gate serving no requirement,
+which `SPEC.md`'s glossary now states plainly. Two things it did not settle, and
+deliberately so:
+
+(a) **`SPEC.md` §5.2.8 still says the gate "runs green by right" against current
+upstream, and a committed artifact falsifies it.** `bench/results/0578-fold-sweep/
+codepoints.json` is red on 25 misses at the reviewed baseline. The reword kept
+the gate "exactly as it is, red and all", so the sentence survived untouched.
+What changed is what the contradiction is *about*: it is now an apparatus claim
+rather than a claim about a ratified requirement, so striking it is a
+correction rather than a ruling on R19. The three ways out are still enumerated
+in `DECISIONS.md` with no default proposed (strike it, scope it to the Latin
+tier the retired waiver concerned, or file the misses upstream as a defect), and
+the author has not ruled. **A reader of `SPEC.md` alone is currently misled**;
+the falsification is stated in `DECISIONS.md` and on `README.md`'s R19 row,
+which is why this is a finding and not a ticket.
+
+(b) **The sixteen Roman numerals U+2160–U+216F have no owner.** Their cause is
+recorded in three places — `DECISIONS.md` twice, ticket 0578's
+`2026-09-02T19:36Z` log line, and pull request #229's body — and all three name
+the same single settling experiment: the upstream diff between the two run
+dates, which nobody has read. What none of them carries is an owner: no open
+ticket claims that experiment. The nine Devanagari misses are accounted for
+(the sweep widened from eight blocks to nineteen); these sixteen are not, and
+the widened net is explicitly ruled out for them, since both runs sweep Number
+Forms and both return the same six tail codepoints as `narrows`. The stake fell
+with the reword — the gate now serves no requirement — which is why this is
+recorded rather than ticketed, but the divergence in our own tree is real and
+unexplained.
+
+**F6. A hand-maintained count on the standing report drifted, and the mechanism
+ruled to catch it did not.** `README.md`'s spelled-out evidence counts carry the
+asterisk the author ruled on 2026-09-01: a count no guard recomputes takes a
+commercial footnote mark, so "a session editing the sheet knows which ones to
+re-verify". He declined extending `check_progress.py` to tie them, on the
+guard-population argument, and that ruling stands — **this finding is not a
+proposal to add a guard.** What it records is that the mark's remedy has now
+been observed failing: the R19 lane found the counts already stale before it
+arrived and re-synced them to the machine tally in passing. So the drift was
+introduced by one session, survived every session between, and was caught only
+because an unrelated lane happened to be editing the same paragraph. One
+observation, not a rate. It belongs in front of the author because it is
+evidence about a mechanism he ruled on, and the honest reading is that the mark
+tells a reader which numbers are hand-maintained but does nothing to make a
+session re-verify them.
 
 ## Invariants
 
