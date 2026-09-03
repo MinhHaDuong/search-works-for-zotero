@@ -1,6 +1,6 @@
 {
  "probe": "instrument characterization for ticket 0629: how many resolver-port syscalls one getaddrinfo costs under the acceptance layer's own tracer and sandbox on this machine",
- "not_a_target_run": "no target process is started here, so the dedicated-account posture does not apply; this measures the C library's resolver and the tracer",
+ "not_a_target_run": "no target process is started here, so the dedicated-account posture does not apply; this measures glibc's resolver and the tracer",
  "mechanism": "podman-unshare",
  "detectors": {
   "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
