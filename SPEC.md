@@ -16,7 +16,7 @@ design is currently stated against and measured on.
 §2 defines the vocabulary the rest of this document uses. §3 states what any
 implementation promises its users, one testable requirement per row (R1 to R35).
 §4 states what the world — Zotero, the upstream project, the user's machine —
-imposes on any design that would keep those promises (C1 to C4). §5 is the
+imposes on any design that would keep those promises (C1 to C3). §5 is the
 design that answers both. §6 is where it can leak.
 
 Rulings are ratified in `DECISIONS.md` first, and this document is edited to
@@ -402,6 +402,13 @@ with their reason. Every stage MUST also report what it processed and which
 input triggered it, so one edited item shows up as one unit of work rather than
 as a wave. Status MUST name the execution device actually serving, on every
 machine, since a user who cannot see that cannot explain the speed they get.
+And it MUST stay fast enough to be asked: status is the only window into R1's
+coverage, agents poll it every few seconds forever, and it MUST answer while all
+three queues run at a cost that does not grow with the size of the library. The
+rate rather than a wall clock, for R32's reason — a flat millisecond figure
+silently fixes the library size, and the promise is that asking costs the same
+at 1k items and at 60k. What the band is, and what the time is spent on, is
+SPEC.md §5.2.9.
 
 **R32. Buildtime.** On a laptop-class machine with no GPU, a full build with
 the default configuration MUST index at 150 ms per passage or better, which for
@@ -706,8 +713,11 @@ checked against it.
 
 ### Intro
 
-This section lists the constraints, C1 to C4: facts about Zotero, the
+This section lists the constraints, C1 to C3: facts about Zotero, the
 upstream project, and the user's machine that the design must operate under.
+A retired constraint number is never reused, as for the requirements: C4 was
+dissolved on 2026-09-03 because it stated a mechanism rather than a fact, and
+its pieces are named in `DECISIONS.md`.
 
 ### C1 — everything the index stores is derived data
 
@@ -949,16 +959,6 @@ operating system, architecture and execution provider can turn the same entry
 into a working, degraded or unloadable one. A remote attestation can establish
 that another installation saw a shape; it cannot replace the local check on the
 machine that will create or query the index.
-
-### C4 — status answers from counters
-
-Status MUST answer in a few milliseconds while all three queues run, and
-never by scanning a table a stage is writing. Status is the only window
-into requirement R1, coverage and its newest-first order
-(SPEC.md), and agents poll it every few seconds, forever. The
-obvious implementation, a GROUP BY over the table the build is writing, was
-measured at 374 ms with a cold cache. R6 budgets the query path; C4 budgets
-the observation path.
 
 ### Politeness (network transports, from each provider's official docs)
 
@@ -2094,7 +2094,7 @@ either.
 disjoint sentences ("not indexed yet (0 of 947)", "partial: 812 of 947 —
 the miss may be coverage", "fully covered — nothing matches"), computed at
 query time from facet tables joined to ledger terminal states, deliberately
-*not* a materialized counter (C4 governs the status path; R6 governs this
+*not* a materialized counter (R17 governs the status path; R6 governs this
 one). Under a strict query, one relaxed soft-MATCH count offers the
 drop-the-quotes alternative.
 
@@ -2290,7 +2290,7 @@ sentence, status carries per-library rows, the pause line ("paused since
 <date>"), the custody string, the record/body coverage split, and the
 version-0 residue disclosure (§5.2.4).
 
-**Counters (C4).** `counters(name, value)`, updated in the same
+**Counters (R17).** `counters(name, value)`, updated in the same
 transaction as the ledger transition each one describes. Per stage:
 `covered / empty / partial / outOfBand / quarantined`. Work counters on two
 axes: `work.<stage>.<trigger>.<outcome>`, with trigger ∈ `{new, edit,
@@ -2627,6 +2627,25 @@ the server ceiling scopes per process is settled: it does, because that is the
 scope the gate can assert; the two-client whole-machine arithmetic above keeps
 the aggregate visible. Dual-embed no longer threatens
 the budget (the lazy-load rule, §5.2.7).
+
+**Status, the observation path**, which R17 promises and which is budgeted
+apart from the query path because it is polled rather than asked. Two figures
+are measured and one is not. The rejected implementation, a GROUP BY over the
+table a stage is writing, cost 374 ms with a cold cache and grows with the
+table; the maintained counters answer point reads sub-millisecond and do not
+(§5.2.8). What is NOT measured is the band under load — status while all three
+queues run, which is the condition R17 states and the only one a user meets.
+The convergence harness polls status at 1 Hz for the length of a build (§5.2.8)
+and touches nothing else, so the *occasions* to measure are already specified
+and need no run of their own — but the series does not exist yet, and saying it
+comes free would be wrong. A poller that sleeps between calls records the
+build's wall clock, not the latency of the call: measured 2026-09-03 on
+`bench/run_build.py`, whose elapsed is the true build time rounded up to the
+next poll boundary, so two distinct scale points both reported 140,3 s at
+`--poll 20` — the quantum, not the build. Recording the latency of each status
+round trip is therefore a driver change, and that change is the work this band
+waits on. Until the series exists no number is stated here, because a bound
+nobody measured is a bound nothing can fail.
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
 single-pass sidecar scan (X1) + fusion, which is where R6's two numbers go —
