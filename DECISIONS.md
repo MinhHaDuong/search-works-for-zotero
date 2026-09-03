@@ -3923,6 +3923,81 @@ verbs, which C4 never was: call status while the queues run and time it.
 
 C4 is never reused; §4 numbers C1 to C3 and the gap is the record.
 
+**2026-09-03 — a documented removal procedure is an uninstall surface, and the
+harness may execute it verbatim.** The author's, in session: asked whether "remove
+one directory and the executable" plus an `UNINSTALL.md` should count, he ruled
+that it should — *"I concur. Draft and retire."*
+
+**What the old rule made impossible.** The ratified interface says a target with
+no uninstall surface reports `not-offered`, and that the harness never simulates
+success by deleting files itself. That was aimed at a real abuse: a harness
+inventing a cleanup, running it, and calling the clean result a pass. But an
+external MCP server has no host uninstall lifecycle to hook — ZotSeek gets an
+`ADDON_UNINSTALL` because Zotero fires one; zoteus has nothing — so for that
+whole architecture class the only possible removal is a documented procedure the
+user follows. Under the old reading their R15 cell was permanently `not-offered`,
+and since a rung is a conjunction and `not-offered` is not a hold, **goal 1
+became unkeepable by construction for an entire class of target, for a reason no
+user would ever notice.** That is an instrument requirement leaking into a
+product requirement, which is the defect two other rulings of the same day
+removed from the other direction.
+
+**The carve-out, and it is deliberately narrow.** An adapter may declare the
+target's *published* removal procedure, and the harness may execute exactly those
+steps and then sweep. The prohibition stands everywhere else: the harness may
+still not invent a cleanup, and a target that documents no procedure still
+reports `not-offered`. The distinction that makes this honest is that running a
+target's own instructions tests the target, where inventing an `rm` tests
+nothing.
+
+Four conditions, each closing a way the carve-out could rot:
+
+1. **Transcribed, with its source cited.** The declaration names where the
+   procedure is published — file plus anchor — and a check asserts the
+   transcription still matches the published text, so a doc that changes under us
+   fails loudly instead of silently grading a superseded procedure.
+2. **Contained.** Every path a step touches must resolve inside the harness-owned
+   arena. A step reaching outside it makes the run `not-run` rather than
+   executing — which protects the operator's machine, and is itself a finding:
+   instructions that only work at a hardcoded absolute path are instructions that
+   do not work.
+3. **Swept over the arena, not over the declaration.** The residue inventory
+   already compares what appeared against what was declared rather than reading a
+   declaration back, and that is what must grade this: the failure being tested
+   is an *incomplete procedure*, so a sweep scoped to the declared roots would
+   grade itself.
+4. **The arena must be able to see the failure.** Measured 2026-09-03: only
+   `HOME` is redirected, and only in one adapter; nothing redirects `TMPDIR` or
+   the `XDG_*` roots. A target writing outside the redirected HOME would leave
+   traces the sweep cannot see, and the assertion would pass — an all-clear
+   indistinguishable from "I could not look". Redirecting them is a precondition
+   of the carve-out shipping, not a later refinement.
+
+**Rejected: a container.** It would see the whole filesystem, and it would change
+what is measured — no desktop session, no dbus, a different XDG layout — so "no
+traces" would be a pass for a configuration nobody runs. It also duplicates sweep
+semantics, giving the project two definitions of residue that drift. The arena is
+reused instead, which is the instrument that has already produced a real residue
+finding.
+
+**The carve-out ships only when demonstrated red.** `stub-uninstall-leaves-residue`
+and `stub-under-declares` must redden through the documented-steps path exactly as
+they do through the verb path. The strongest control is not a stub, though, and it
+is real history: **before upstream PR #27 the transformers model cache landed
+outside the data directory**, so an `UNINSTALL.md` saying "delete the data
+directory" would have been wrong, and this sweep would have caught it. Where
+pinning that revision is cheap, it is the positive control to use.
+
+**Consequences.** The upstream ask shrinks from *build an uninstall verb* —
+design-sized, an issue the maintainer builds — to *publish the removal
+procedure*, a contained documentation change of the form that has merged verbatim
+twice. Tracker 0613's R15 gap is re-stated accordingly, and the verb framing is
+retired rather than left beside the new one, so the tracker does not carry two
+incompatible readings of what its cell needs. `SPEC.md` §5.2.7's sentence that
+`purge` is maintenance and not a substitute is untouched and unaffected: purge is
+checkpoint plus VACUUM plus compaction, which keeps a living index rather than
+removing one, so it was never a candidate for this role.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database

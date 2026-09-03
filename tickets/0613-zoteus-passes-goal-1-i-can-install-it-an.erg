@@ -7,6 +7,7 @@ Author: claude
 2026-09-03T11:23Z claude created
 
 2026-09-03T11:29Z UPSTREAM #48 CLOSED 2026-09-03, and it touches this rung only indirectly. The four things the maintainer built are backoff on 429, resume-from-missing-vector, the batch dials in the docs, and rate math plus passagesWithoutVectors in status. None of them is an uninstall surface and none is a durable pause, so gaps B and C stand as written. Gap A stands too: nothing in that release changes ZOTEUS_UPDATE_CHECK's default. What does change is the evidence about how to get things built here, recorded because this tracker's Actions ask for a filing form: a third party reported a field failure, this repository supplied the scoping and the seam by file and line at v1.12.0, and all four asks landed in one pass. Contained changes go as pull requests -- #27 and #28 merged verbatim -- and design-sized ones as issues with the seam named and a measured case attached. Gap A is the first kind.
+2026-09-03T12:14Z GAP B'S VERB FRAMING IS RETIRED, per the author's ruling of 2026-09-03 (DECISIONS.md): a documented removal procedure IS an uninstall surface, and the harness may execute it verbatim and sweep. The earlier reading -- that zoteus must grow a callable uninstall verb before this cell can be green -- rested on R15's body sentence alone and did not survive the layer under it. The ratified interface's not-offered state exists for a target with no uninstall surface, and an external MCP server has no host uninstall lifecycle to hook, so under the old reading goal 1 was unkeepable BY CONSTRUCTION for that whole architecture class, for a reason no user would notice. That is an instrument requirement leaking into a product one. The body above is restated rather than annotated, because leaving both readings in a tracker is how a tracker stops being read. What the gap now asks for is a published removal procedure, which is a contained documentation change of the form that has merged upstream verbatim twice, rather than a design-sized issue the maintainer builds. Two conditions the ruling attaches, and they bind this ticket: the arena must redirect TMPDIR and the XDG roots before the clause can be graded at all -- measured today, only HOME is redirected and only in one adapter -- and the documented-steps path must be seen red against stub-uninstall-leaves-residue and stub-under-declares before any green is trusted.
 --- body ---
 ## Context
 
@@ -52,16 +53,22 @@ lookups. One arm settles it — the same assertion with `ZOTEUS_UPDATE_CHECK=fal
 — and it belongs beside the existing net-shared control, never as a graded
 configuration.
 
-**Gap B — there is no uninstall surface (R15).** The headline reads as a
-condition on state, satisfiable by any mechanism; the body does not: *"Every
-location in which they can exist is declared, the target's real uninstall
-surface removes them, and a residue inventory checks that the declaration is
-complete."* A user deleting the data directory by hand is not the target's
-surface, and R23 refuses that same move in as many words — "without anyone
-deleting files by hand". Upstream PR #27 (merged 2026-08-29) pinned the model
-cache under the data directory, which makes such a surface *writable* correctly;
-it is not the surface. §5.2.7's designed maintenance purge is a different verb
-and upstream has not built it either.
+**Gap B — nothing published says how to remove it (R15).** *Restated
+2026-09-03 after a ruling; the earlier reading, that zoteus must grow a callable
+uninstall verb, is retired — see the log.* R15's body requires that "the target's
+real uninstall surface removes them" and that a residue inventory check the
+declaration is complete. For an external MCP server with no host uninstall
+lifecycle to hook, that surface is a **published removal procedure**, and the
+ruling of 2026-09-03 lets the harness execute one verbatim and sweep. So what is
+missing is not a verb: it is documentation, and its absence is what makes the
+clause ungradeable.
+
+Upstream PR #27 (merged 2026-08-29) is what makes a correct procedure *writable*
+at all, by pinning the model cache under the data directory — before it, "delete
+the data directory" would have been wrong, which is exactly the failure the sweep
+exists to catch. §5.2.7's maintenance purge is not a candidate for this role and
+never was: it is checkpoint plus VACUUM plus compaction, which keeps a living
+index rather than removing one.
 
 **Gap C — R22's restart clause is untested in the configuration where it could
 fail.** The switch exists and is offered; the adapter's note is an argument
