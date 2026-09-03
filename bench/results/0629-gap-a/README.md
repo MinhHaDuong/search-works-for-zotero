@@ -57,15 +57,40 @@ through the acceptance layer's own tracer and sandbox
 The null arm is what makes four a signal rather than tracer noise; the numeric
 connect is the arm that could have come out the other way, and did not — a
 socket touched without a name resolved costs zero resolver connects. So the
-four are per-lookup, and they are glibc's, not the application's.
+four are per-lookup, and they are the C library's, not the application's.
 
 Both numbers match the v1130 artifact exactly, on both arms: subject
 `dns: 4` under isolation, net-shared control `dns: 3`. The artifact's own
 positive control (`_EGRESS_PROBE` in `bench/acceptance/assertions.py:993`,
 one `create_connection` to a numeric address plus one `getaddrinfo`) recorded
 `dns: 4` isolated and `dns: 3` shared in that same run — the same signature,
-from a program that makes exactly one lookup. Three independent readings of
-the same shape.
+from a program that makes exactly one lookup.
+
+**Two runs, not three, and on two different sandboxes.** The v1130 subject arm
+and its `_EGRESS_PROBE` control are one run and one apparatus, so they are two
+readings rather than two independent ones. And this probe did **not** run on
+that apparatus: `syscall-shape.json` records `"mechanism": "podman-unshare"`,
+where v1130 used `bwrap`. `sandbox.choose()` prefers `bwrap` and fell through
+because it cannot start inside this executor's own sandbox
+(`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted` — a nested
+namespace refusing to configure loopback), so the fallback mechanism was
+taken. That the two mechanisms produce identical counts is a stronger reading
+than a single-apparatus repeat, not a weaker one — but it is a fact about the
+evidence and belongs stated rather than discovered.
+
+**The 4-vs-3 split is explained, from the traces, not waved at.** With a route,
+the three connects each succeed and each is followed by a `sendmmsg` carrying
+an A and an AAAA query — for `example.invalid`, then `example.invalid.loc`,
+then `example.invalid.net…`: one connect per entry of this machine's
+`resolv.conf` search list. Without a route, all four connects fail
+`ENETUNREACH` and **no query is ever sent**, so the isolated arm is walking a
+failure-retry ladder rather than the search list; why that ladder stops at
+four exactly is not established here, and does not need to be. Two
+consequences worth carrying: the absolute count is a property of this
+machine's resolver configuration, not a constant, and the isolated and shared
+counts are not the same quantity — which is why the comparison that matters is
+subject-versus-control **within** an arm, exactly as the assertion already
+does it.
 
 **The hypothesis 0629 logged holds.** Four lookups need no second cause:
 zoteus's one `fetch()` accounts for all of them.
@@ -126,7 +151,11 @@ checked rather than assumed.
 
 - `syscall-shape.json` — the measurement, six arms, produced by
   `bench/probe_getaddrinfo_shape.py`.
-- `traces/` is not committed; re-run the probe to regenerate it.
+- `traces/` is git-ignored (`.gitignore`); re-run the probe to regenerate it.
 - `tests/test_probe_getaddrinfo_shape.py` fails if the artifact loses its null
   arm or its discriminating control, or if the getaddrinfo count stops
-  matching the subject arm it explains.
+  matching the subject arm it explains. It reads the **committed artifact** and
+  never re-invokes the probe, deliberately: the measurement needs a sandbox and
+  a tracer that a test tier cannot assume. So it guards the record against
+  being emptied or contradicted, and cannot detect the machine drifting
+  underneath it — the probe has to be re-run by hand for that.
