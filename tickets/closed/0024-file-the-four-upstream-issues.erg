@@ -2,6 +2,7 @@
 Title: File the upstream issues (I-1..I-3; I-4 folded into 0033)
 Created: 2026-08-26
 Author: claude
+Closed: autoclosed — PR #305
 
 --- log ---
 2026-08-26T15:43Z claude created
@@ -27,6 +28,7 @@ Author: claude
 2026-08-31T20:21Z claude note REDIRECT the line above: I-1's re-verification against v1.12.0 belongs with ticket 0520, not 0504. Ticket 0504 was re-scoped to four rows and does not re-baseline; 0520 carries the bump and the remaining twenty rows, held until the trigger in spec/DECISIONS.md is ratified. The reading itself is unchanged -- build.ts and index-manager.ts both moved substantially between v1.10.0 and v1.12.0, and verification/UPSTREAM-1.12.0-REREAD.md did not read the since/libraryVersion seam, so it is still unread
 
 2026-09-03T15:28Z Minh Ha-Duong note I-3 DROPPED, not filed — ticket closed. The reviewed, hardened draft at verification/ISSUE-DRAFT-0024.md stays on disk as a record but is not sent upstream: we will deal with the 40k truncation-cap problem when it arises rather than reporting it now. This is a withdrawal, same disposition as I-2, not a lapsed hold — the 2026-08-31 WITHHELD note is superseded by this closure
+2026-09-03T15:29Z MinhHaDuong closed — autoclosed — PR #305
 --- body ---
 ## Context
 GOVERNANCE.md's increment train, item 4. Form per SYNC.md's measured asymmetry: design-sized
