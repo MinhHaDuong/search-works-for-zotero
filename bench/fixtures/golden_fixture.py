@@ -222,6 +222,7 @@ def inject(
     wanted_ids = {doc["id"] for doc in recipe}
     if len(wanted_ids) != len(recipe):
         raise GoldenFixtureError("source recipe contains duplicate ids")
+    doc_by_id = {doc["id"]: doc for doc in recipe}
     parent_by_id = {}
     attachment_by_id = {}
     for item in parents:
@@ -241,7 +242,7 @@ def inject(
                 f"duplicate parent for managed marker {source_tag(recipe_id)}"
             )
         parent_by_id[recipe_id] = item
-        expected_attachment_ids = {source["id"] for source in _sources(next(doc for doc in recipe if doc["id"] == recipe_id))}
+        expected_attachment_ids = {source["id"] for source in _sources(doc_by_id[recipe_id])}
         for attachment in client.get_children(_key(item)):
             markers = _managed_markers(_data(attachment))
             if len(markers) != 1 or not markers[0].startswith(ATTACHMENT_TAG_PREFIX):

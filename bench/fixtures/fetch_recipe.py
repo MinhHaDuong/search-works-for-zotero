@@ -28,6 +28,7 @@ bytes look right.
 """
 
 import argparse
+import codecs
 import hashlib
 import json
 import logging
@@ -66,11 +67,14 @@ def validate_download_format(path: Path, fmt: str) -> str | None:
     a ZIP whose first, uncompressed member declares the EPUB media type.
     """
     if fmt in {"txt", "wikitext"}:
-        data = path.read_bytes()
-        if b"\x00" in data:
-            return "expected UTF-8 text, got NUL bytes"
+        decoder = codecs.getincrementaldecoder("utf-8-sig")()
         try:
-            data.decode("utf-8-sig")
+            with open(path, "rb") as fh:
+                for chunk in iter(lambda: fh.read(1 << 20), b""):
+                    if b"\x00" in chunk:
+                        return "expected UTF-8 text, got NUL bytes"
+                    decoder.decode(chunk)
+                decoder.decode(b"", final=True)
         except UnicodeDecodeError:
             return "expected UTF-8 text"
     elif fmt == "html":
