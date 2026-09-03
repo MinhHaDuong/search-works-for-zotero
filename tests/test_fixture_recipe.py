@@ -12,6 +12,7 @@ recipe is known to mean something.
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -147,6 +148,43 @@ def test_live_recipe_covers_the_must_tier_languages():
     recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
     must = {d["language"] for d in recipe if d["tier"] == "MUST"}
     assert {"en", "fr", "vi"} <= must, f"MUST tier languages present: {sorted(must)}"
+
+
+def test_live_recipe_tally_is_swept_into_its_documentation():
+    recipe = json.loads((FIXTURES / "recipe.json").read_text(encoding="utf-8"))
+    hashed = sum(bool(doc["sha256"]) for doc in recipe)
+    open_by_archive = {
+        archive: sum(doc["sha256"] is None and doc["archive"] == archive for doc in recipe)
+        for archive in {doc["archive"] for doc in recipe}
+        if any(doc["sha256"] is None and doc["archive"] == archive for doc in recipe)
+    }
+    assert (len(recipe), hashed, open_by_archive) == (
+        26,
+        17,
+        {"gallica": 4, "hal": 4, "internet-archive": 1},
+    )
+
+    readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
+    tally = re.search(
+        r"As of (\d{4}-\d{2}-\d{2}), the recipe holds (\d+) records: "
+        r"(\d+) with the bytes hashed and (\d+)",
+        readme,
+    )
+    assert tally, "README must carry a dated, machine-checkable recipe tally"
+    assert tuple(map(int, tally.groups()[1:])) == (len(recipe), hashed, len(recipe) - hashed)
+    challenge_split = re.search(
+        r"(\d+) of those\s+open records belong to the two represented archives.*?: "
+        r"(\d+) HAL\s+.*?and (\d+) Gallica",
+        readme,
+        re.DOTALL,
+    )
+    assert challenge_split, "README must account for the open hashes by source"
+    assert tuple(map(int, challenge_split.groups())) == (
+        open_by_archive["hal"] + open_by_archive["gallica"],
+        open_by_archive["hal"],
+        open_by_archive["gallica"],
+    )
+    assert "The ninth is the oversized Malynes scan" in readme
 
 
 def test_fetch_script_has_argparse_and_no_extraction():
