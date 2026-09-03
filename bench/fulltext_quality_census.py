@@ -48,6 +48,7 @@ import logging
 import os
 import platform
 import socket
+import stat
 import sys
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -92,20 +93,21 @@ def ftfy_version() -> str | None:
 
 
 def _attachment_suffixes(directory: Path) -> list[str]:
-    out = []
-    try:
-        for p in directory.iterdir():
-            if p.is_file() and not p.name.startswith("."):
-                out.append(p.suffix.lower())
-    except OSError:
-        pass
-    return out
+    """The suffixes of the directory's non-hidden files. Raises on an unlistable one.
+
+    It used to swallow `OSError` and return `[]`, which made an unreadable
+    attachment directory look like an attachment-less one — an unreadable cache
+    silently reclassified as a non-PDF rather than reported. The caller counts
+    the failure instead.
+    """
+    return [p.suffix.lower() for p in directory.iterdir() if p.is_file() and not p.name.startswith(".")]
 
 
 def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -> dict:
     """One cache's quality signals. Never raises on a bad file — it reports it."""
     directory = cache.parent
     suffixes = _attachment_suffixes(directory)
+    attachments = [s for s in suffixes if s]
     is_pdf = ".pdf" in suffixes
 
     raw = cache.read_bytes()
@@ -118,6 +120,13 @@ def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
         "key": directory.name,
         "is_pdf": is_pdf,
         "suffixes": sorted(set(suffixes)),
+        # Two ways the directory-scoped `is_pdf` can be wrong, each counted rather
+        # than assumed away: a cache with no co-located attachment at all (the
+        # extraction's source is gone, so nothing dates it), and a directory
+        # holding a PDF *and* something else, where the cache text may have come
+        # from either. Neither is inside the single-page false-flag ceiling.
+        "no_attachment": not attachments,
+        "mixed_attachments": is_pdf and any(s != ".pdf" for s in attachments),
         "bytes": len(raw),
         "words": words,
         "form_feeds": form_feeds,
@@ -136,14 +145,34 @@ def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
 
 
 def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -> dict:
-    """Walk `storage/*/.zotero-ft-cache` and aggregate. Read-only."""
+    """Walk `storage/*/.zotero-ft-cache` and aggregate. Read-only.
+
+    **The walk is explicit, and `Path.glob` is deliberately not used.** `glob`
+    swallows `PermissionError` while scanning subdirectories, inside its own
+    recursion, before any `try` here could see it: a directory the process cannot
+    enter is simply absent from the results, with no exception, no count and no
+    log line. That would make `unreadable_caches: 0` mean either "everything was
+    readable" or "the walker cannot see failures", which are the same output —
+    and it would mean it under the very count that decides the ticket's
+    population. Enumerating `storage.iterdir()` and probing each directory
+    ourselves puts every failure on the record.
+    """
     detail: list[dict] = []
     unreadable: list[dict] = []
-    for cache in sorted(Path(storage).glob("*/" + CACHE_NAME)):
+    root = Path(storage)
+    for entry in sorted(root.iterdir()):
         try:
-            detail.append(classify(cache, mojibake_fixer))
+            # `entry.is_dir()` / `cache.is_file()` would swallow the same
+            # PermissionError that `glob` does — a predicate returning False is
+            # not distinguishable from a predicate that could not look. `stat`
+            # and `listdir` raise, which is the point.
+            if not stat.S_ISDIR(entry.stat().st_mode):
+                continue
+            if CACHE_NAME not in os.listdir(entry):
+                continue
+            detail.append(classify(entry / CACHE_NAME, mojibake_fixer))
         except OSError as e:
-            unreadable.append({"key": cache.parent.name, "error": str(e)})
+            unreadable.append({"key": entry.name, "error": str(e)})
 
     pdfs = [c for c in detail if c["is_pdf"]]
     measured = [c for c in pdfs if c["mojibake"] is not None]
@@ -169,6 +198,14 @@ def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
         # a cache with literally no words is a PDF Zotero could not read at all,
         # which no re-extraction fixes and OCR might.
         "pdf_zero_words": sum(1 for c in pdfs if c["words"] == 0),
+        # The number a policy would act on: old-generation caches that hold real
+        # text and could be improved by re-extraction. The raw no-form-feed count
+        # includes near-empty caches, which need OCR and not a better extractor,
+        # so quoting it as the population would put an OCR population inside a
+        # re-extraction estimate.
+        "pdf_reextraction_population": sum(1 for c in no_ff if not c["near_empty"]),
+        "caches_with_no_attachment": sum(1 for c in detail if c["no_attachment"]),
+        "pdf_caches_mixed_attachments": sum(1 for c in pdfs if c["mixed_attachments"]),
         "pdf_mojibake": (sum(1 for c in measured if c["mojibake"]) if measured else None),
         "pdf_mojibake_measured": len(measured),
         "pdf_with_ligatures": sum(1 for c in pdfs if c["ligatures"] > 0),
@@ -242,7 +279,13 @@ def main() -> int:
 
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+        # Write-then-rename: a run interrupted partway through leaves the previous
+        # artifact intact rather than a truncated one that still parses as JSON
+        # only sometimes. Cheap here, and this script is proposed as standing
+        # background-campaign machinery.
+        tmp = args.output.with_suffix(args.output.suffix + ".tmp")
+        tmp.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+        tmp.replace(args.output)
         logging.info("wrote %s", args.output)
     return 0
 

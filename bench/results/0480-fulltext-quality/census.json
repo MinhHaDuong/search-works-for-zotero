@@ -4,11 +4,11 @@
   "ftfy_version": "6.3.1",
   "host": "padme",
   "loadavg": [
-   1.18603515625,
-   1.15576171875,
-   1.09716796875
+   1.0498046875,
+   0.8251953125,
+   0.8544921875
   ],
-  "measured_at": "2026-09-03T18:38:42+00:00",
+  "measured_at": "2026-09-03T18:54:42+00:00",
   "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
   "python": "3.12.3",
   "storage_realpath": "/home/haduong/data/Zotero-fresh/storage"
@@ -36,14 +36,17 @@
    }
   },
   "caches": 13328,
+  "caches_with_no_attachment": 20,
   "decode_error_caches": 181,
   "non_pdf_caches": 4776,
   "pdf_caches": 8552,
+  "pdf_caches_mixed_attachments": 17,
   "pdf_mojibake": 767,
   "pdf_mojibake_measured": 8552,
   "pdf_near_empty": 339,
   "pdf_no_form_feed": 8211,
   "pdf_no_form_feed_single_page_suspect": 282,
+  "pdf_reextraction_population": 7872,
   "pdf_with_form_feed": 341,
   "pdf_with_ligatures": 1009,
   "pdf_zero_words": 254,

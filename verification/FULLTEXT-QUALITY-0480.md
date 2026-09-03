@@ -78,6 +78,11 @@ cannot help. They are all in the no-form-feed group; the other group has none.
 A false "poor" flag costs one needless re-extraction. The floor for a false "fine"
 flag is already known, because it is the state the library is in today.
 
+**So the number a policy would act on is 7872, not 8211**: old-generation caches
+holding real text, which a better extractor could improve. The 8211 above is the
+dating result; this is the population. Both are in the artifact, under
+`pdf_no_form_feed` and `pdf_reextraction_population`.
+
 ## Two findings that fall out, both of which change who drains this
 
 **Zotero's own truncation ledger is empty on this machine.** `fulltextItems` in
@@ -115,6 +120,20 @@ The form feed survives because it is *in the bytes*.
   *corroborating* signal here, never as the classifier.
 - **181 caches contain undecodable bytes**, replaced on read. They are counted and
   not excluded; their word counts are approximate.
+- **"Is it a PDF?" is answered from the directory, not from the cache.** A
+  Zotero attachment directory normally holds one file, so the co-located
+  suffix is the extraction's source — but two shapes break that, and both are
+  counted rather than assumed away: **20** caches have no attachment file at
+  all (the source is gone, so nothing dates them) and **17** PDF directories
+  hold a non-PDF file beside the PDF (the cache text may have come from
+  either). Together 0,4 % of the PDF caches, and outside the 3,4 % ceiling
+  above, which covers only the single-page case.
+- **The walk reports what it could not read.** `unreadable_caches` is 0 here,
+  and it is 0 for a reason the code can attest to: the census enumerates
+  `storage/` itself rather than using `Path.glob`, which swallows a
+  permission error inside its own recursion and would have made that zero mean
+  either "all readable" or "cannot see failures". The distinction has a
+  positive control in the suite.
 - **The non-PDF 4776 are outside the question.** The form feed dates the PDF
   extractor and nothing else, so the census reports the signal as absent for them
   rather than false.
@@ -122,7 +141,8 @@ The form feed survives because it is *in the bytes*.
 ## What this hands the ruling
 
 Detection is cheap, structural, and reads no Zotero API: one byte scan of a cache
-already on disk, with a bounded false-flag ceiling of 3,4 %. The population is
-8211 attachments. What is *not* settled by measurement is whether zoteus should
-serve its own extraction in place of the platform's for those items — that is a
+already on disk, with a bounded false-flag ceiling of 3,4 %. The population a
+policy would act on is 7872 attachments. What is *not* settled by measurement is
+whether zoteus should serve its own extraction in place of the platform's for
+those items — that is a
 contract question, and it is filed in `DECISIONS.md` § Awaiting ratification.

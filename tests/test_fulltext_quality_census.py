@@ -13,6 +13,7 @@ it a control rather than a smoke test.
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -153,8 +154,13 @@ def test_census_does_not_mutate_the_library(library: Path):
     assert before == after, "the probe is read-only over the author's storage tree"
 
 
-def test_unreadable_cache_is_reported_not_swallowed(tmp_path: Path):
-    """A cache the probe cannot read is a third answer, never a silent 'fine'."""
+def test_undecodable_bytes_are_counted_not_swallowed(tmp_path: Path):
+    """Bytes that are not UTF-8 are counted rather than hidden by the replace read.
+
+    Named for what it exercises: this is the *decode* path, which never raises.
+    The `OSError` path has its own control above — an earlier version of this
+    file claimed both under this one name and reached neither.
+    """
     root = tmp_path / "storage"
     root.mkdir()
     cache = _write(root, "IIIIIIII", "i.pdf", PAGE)
@@ -163,6 +169,83 @@ def test_unreadable_cache_is_reported_not_swallowed(tmp_path: Path):
     detail = r["caches_detail"][0]
     assert detail["decode_errors"] > 0
     assert r["decode_error_caches"] == 1
+
+
+def test_a_directory_the_walker_cannot_enter_is_counted_not_skipped(library: Path):
+    """The blocker this file exists to keep fixed.
+
+    `Path.glob` swallows `PermissionError` inside its own recursion, so a
+    permission-denied attachment directory vanishes from the walk with no count
+    and no error — `unreadable_caches: 0` would then mean either "all readable"
+    or "cannot see failures", which is the all-clear indistinguishable from
+    could-not-look. This is the positive control: a directory made unreadable
+    must show up in the failure count, not in silence.
+    """
+    if os.geteuid() == 0:
+        pytest.skip("root ignores directory permissions, so the control cannot fire")
+    baseline = census.census(library)
+    denied = library / "BBBBBBBB"
+    denied.chmod(0o000)
+    try:
+        r = census.census(library)
+    finally:
+        denied.chmod(0o755)
+    assert r["unreadable_caches"] == 1
+    assert r["unreadable_detail"][0]["key"] == "BBBBBBBB"
+    # And it is genuinely absent from the counted population — the failure is
+    # reported *instead of* being folded in, not on top of it.
+    assert r["caches"] == baseline["caches"] - 1
+
+
+def test_orphaned_and_mixed_attachment_directories_are_counted(tmp_path: Path):
+    """Two ways the directory-scoped `is_pdf` can be wrong, each bounded rather than assumed away."""
+    root = tmp_path / "storage"
+    root.mkdir()
+    _write(root, "JJJJJJJJ", "j.pdf", PAGE)
+    (root / "JJJJJJJJ" / "j.pdf").unlink()  # cache survives its attachment
+    _write(root, "KKKKKKKK", "k.pdf", PAGE)
+    (root / "KKKKKKKK" / "k.html").write_bytes(b"<html></html>")  # PDF and not-PDF together
+    r = census.census(root)
+    assert r["caches_with_no_attachment"] == 1
+    assert r["pdf_caches_mixed_attachments"] == 1
+
+
+def test_the_actionable_population_excludes_what_reextraction_cannot_help(library: Path):
+    """The figure a policy acts on is not the raw no-form-feed count."""
+    r = census.census(library)
+    assert r["pdf_no_form_feed"] == 4
+    assert r["pdf_near_empty"] == 1
+    assert r["pdf_reextraction_population"] == 3
+
+
+def test_a_stub_fixer_exercises_the_mojibake_path_without_ftfy(library: Path):
+    """The cross-tabulation control must run in the gate, where ftfy is absent.
+
+    The real-ftfy test above skips without it, so the claim the report headlines —
+    that a text signal sorts with the form-feed split — would rest on one manual
+    run. A stub fixer keyed on a marker the fixture carries exercises the same
+    plumbing on every `make check`.
+    """
+    r = census.census(library, mojibake_fixer=lambda t: "Ã" in t)
+    assert {c["key"] for c in r["caches_detail"] if c["mojibake"]} == {"EEEEEEEE"}
+    assert r["by_form_feed"]["no_form_feed"]["mojibake"] == 1
+    assert r["by_form_feed"]["with_form_feed"]["mojibake"] == 0
+
+
+@pytest.mark.integration
+def test_cli_no_detail_writes_the_summary_alone(library: Path, tmp_path: Path):
+    """`--no-detail` produced the committed artifact, so it is the flag that needs a test."""
+    out = tmp_path / "census.json"
+    p = subprocess.run(
+        [sys.executable, str(REPO / "bench" / "fulltext_quality_census.py"),
+         "--storage", str(library), "--output", str(out), "--no-detail"],
+        capture_output=True, text=True,
+    )
+    assert p.returncode == 0, p.stderr
+    doc = json.loads(out.read_text())
+    assert doc["caches_detail"] == []
+    assert doc["summary"]["caches"] == 7, "the counts survive the row omission"
+    assert not list(out.parent.glob("*.tmp")), "the write-then-rename leaves no scratch file"
 
 
 @pytest.mark.integration

@@ -4213,7 +4213,9 @@ hours are spent.
   "the population is too small to justify the machinery", is closed by the
   data. Detection costs one byte scan of a file already on disk, with a
   false-flag ceiling of 3,4 % (282 short-but-real caches that could be
-  genuinely single-page). Two text-quality signals the classifier did not use
+  genuinely single-page). **The population a policy acts on is 7872, not
+  8211**: the larger figure is the dating result and includes caches with no
+  usable text layer, which need OCR rather than a better extractor. Two text-quality signals the classifier did not use
   sort with the split: all 1009 caches carrying raw ligature glyphs are in the
   old group and none in the new, and mojibake runs 9,2 % against 4,1 %.
 
@@ -4227,7 +4229,7 @@ hours are spent.
   one.
 
   The ruling the agent cannot make: serving our own extraction means the text
-  zoteus returns is no longer the text Zotero holds, for 8211 attachments.
+  zoteus returns is no longer the text Zotero holds, for 7872 attachments.
   Recommendation, the agent's — **opt-in, per library, with the divergence
   recorded in the ledger and surfaced in the count, and the extractor
   generation carried in the derivation key** so an upgrade regenerates cleanly
@@ -4235,7 +4237,7 @@ hours are spent.
   resolved budget, ticket 0140). Always-on is the wrong default at this scale
   precisely *because* the population is nearly the whole corpus: a silent
   divergence that large is the thing the ledger exists to prevent. Per-item
-  consent does not scale to 8211. If the author rules against serving our own
+  consent does not scale to 7872. If the author rules against serving our own
   text at all, the finding still stands as the measurement of what the
   platform is giving us, and the honest consequence is an upstream item in the
   0033 scoped-issue lane rather than a design edit here.
