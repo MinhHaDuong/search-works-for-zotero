@@ -109,7 +109,16 @@ a *smaller* library, where the fixed term dominates and the marginal term is nea
 ## Peak RSS sits at the C3 figure
 
 The full build's peak is not comfortably inside SPEC.md §4 C3's ~750 MB; it is level
-with it. Two things bound what that observation licenses. It is a *build* peak of the server
+with it. **It is a plateau, not a spike, and it belongs to one process.** The driver's
+own poll series says so: the run opens at 0,16 GB and holds it through the metadata
+pass and the 8 037-attachment walk, climbs once the full-text pass begins, reaches
+0,71 GB at 219 s and stays flat for the remaining 87 s. So the figure is steady-state
+indexing rather than a one-off cost of setting the crawl up, and it stops growing
+before the library does. As to scope, `run_build.py` reads `VmHWM` from
+`/proc/<server pid>/status`, which is per-process, and the built server spawns nothing
+— no `new Worker`, no `child_process`, no `spawn(` anywhere under `fork/dist` — so one
+process is also the whole tree here, with no embedding service beside it. Two things
+bound what that observation licenses. It is a *build* peak of the server
 process, where C3's rows name a server steady state and a pipeline-worker peak — which
 row owns a keyword build is not settled here and is not this action's to settle. And it
 is 30,3 % of the embedding build's 2 409,6 MiB, so on this axis too the embedder is the

@@ -108,6 +108,35 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+POLL_RE = re.compile(r"^\[\s*(\d+)s peak ([0-9.]+) GB\]")
+
+
+def peak_trajectory(path: Path) -> dict:
+    """When the peak arrived and whether it held — read off the driver's poll lines.
+
+    A single peak figure cannot say which of two very different things it is: a spike
+    during the one-off attachment-page walk, or the plateau of steady-state indexing.
+    They argue for different ceilings, so the distinction is reported rather than left
+    to the reader. The series is already in the log; nothing is re-run to get it.
+    """
+    points = [(int(m.group(1)), float(m.group(2)))
+              for line in path.read_text(errors="replace").splitlines()
+              if (m := POLL_RE.match(line))]
+    if not points:
+        raise RuntimeError(f"{path} carries no poll lines — the trajectory cannot be read")
+    top = max(v for _, v in points)
+    first_at_top = min(s for s, v in points if v == top)
+    last_s = points[-1][0]
+    return {
+        "polls": len(points),
+        "peak_gb_as_the_driver_printed_it": top,
+        "first_reached_at_s": first_at_top,
+        "held_for_s": last_s - first_at_top,
+        "opening_gb": points[0][1],
+        "series_s_gb": points,
+    }
+
+
 #: The FTS5 shadow tables: the keyword index proper, and the only part of our file the
 #: platform's own index could stand in for. Everything else — the `passages` table and
 #: its indexes — is stored text and its addressing, which contentless FTS5 does not hold.
@@ -231,6 +260,31 @@ def main():
             "note": "metadata and own words (notes, annotations) have no counterpart in "
                     "fulltext.sqlite at all",
         },
+    }
+
+    # What the peak figure is a peak OF. C3's budgets bind per process class, so a
+    # number that cannot say which class it measured cannot be checked against them.
+    traj = peak_trajectory(a.full)
+    derived["peak_rss_scope"] = {
+        "process_scope": "one process, and it is the whole tree: run_build.py reads VmHWM "
+                         "from /proc/<server pid>/status, which is per-process, and the "
+                         "built server spawns nothing — no `new Worker`, no `child_process`, "
+                         "no `spawn(` anywhere under fork/dist (checked 2026-09-03). With "
+                         "the embedder off there is no embedding service beside it either.",
+        "phase": "steady-state indexing, not the one-off crawl setup",
+        "evidence": "the driver's own poll series: the run opens at "
+                    f"{traj['opening_gb']} GB and holds it through the metadata pass and the "
+                    f"8 037-attachment walk, climbs once the full-text pass begins, reaches "
+                    f"{traj['peak_gb_as_the_driver_printed_it']} GB at "
+                    f"{traj['first_reached_at_s']} s and then stays flat for the remaining "
+                    f"{traj['held_for_s']} s of the build",
+        "so_it_is_a_plateau_not_a_spike": traj["held_for_s"] > 0,
+        "trajectory": traj,
+        "what_this_does_not_settle": "which C3 row a keyword build's server process answers "
+                                     "to. C3 names a server steady state and a pipeline-worker "
+                                     "peak; assigning this figure to one of them is a ruling, "
+                                     "not a measurement, and SPEC.md §5.2.9 records that "
+                                     "ceiling as awaiting a re-pin.",
     }
 
     if a.index_db and a.index_db.exists():

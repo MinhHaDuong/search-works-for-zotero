@@ -4,7 +4,7 @@
   "warm": true,
   "warm_basis": "no model load and no download inside any timed window — every arm ran with the embedder off, which the status object records as vectors 0 and an inactive embedder, and this assembler sets the flag from that rather than by hand. Each arm was also a re-run over caches an earlier identical run had already read, so the platform's own text was warm in the page cache. The one fixed cost that remains inside the window is the 8 037-attachment page walk, which is not amortizable — every build pays it whole — and it is reported as the fit's fixed term rather than smuggled into the per-passage rate.",
   "what": "wall time, peak RSS and disk of our own keyword-only index build on the real library, against zero for the platform FTS5 path",
-  "date": "2026-09-03T10:58:09Z",
+  "date": "2026-09-03T11:08:10Z",
   "machine": {
     "host": "doudou",
     "cpu": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
@@ -13,9 +13,9 @@
     "kernel": "7.0.0-30-generic",
     "node": "v22.23.1",
     "loadavg_at_summary": [
-      4.33,
-      3.5,
-      3.69
+      4.82,
+      4.65,
+      4.26
     ],
     "is_reference_machine": "yes — SPEC.md §5.2.8 names an Intel i5-8250U at 1,6 GHz, no GPU"
   },
@@ -147,6 +147,166 @@
       "metadata_and_own_words_passages": 15097,
       "metadata_and_own_words_share_pct": 4.2,
       "note": "metadata and own words (notes, annotations) have no counterpart in fulltext.sqlite at all"
+    },
+    "peak_rss_scope": {
+      "process_scope": "one process, and it is the whole tree: run_build.py reads VmHWM from /proc/<server pid>/status, which is per-process, and the built server spawns nothing — no `new Worker`, no `child_process`, no `spawn(` anywhere under fork/dist (checked 2026-09-03). With the embedder off there is no embedding service beside it either.",
+      "phase": "steady-state indexing, not the one-off crawl setup",
+      "evidence": "the driver's own poll series: the run opens at 0.16 GB and holds it through the metadata pass and the 8 037-attachment walk, climbs once the full-text pass begins, reaches 0.71 GB at 219 s and then stays flat for the remaining 87 s of the build",
+      "so_it_is_a_plateau_not_a_spike": true,
+      "trajectory": {
+        "polls": 36,
+        "peak_gb_as_the_driver_printed_it": 0.71,
+        "first_reached_at_s": 219,
+        "held_for_s": 87,
+        "opening_gb": 0.16,
+        "series_s_gb": [
+          [
+            5,
+            0.16
+          ],
+          [
+            10,
+            0.16
+          ],
+          [
+            15,
+            0.16
+          ],
+          [
+            20,
+            0.16
+          ],
+          [
+            130,
+            0.17
+          ],
+          [
+            140,
+            0.4
+          ],
+          [
+            145,
+            0.4
+          ],
+          [
+            151,
+            0.4
+          ],
+          [
+            157,
+            0.42
+          ],
+          [
+            163,
+            0.45
+          ],
+          [
+            168,
+            0.5
+          ],
+          [
+            173,
+            0.52
+          ],
+          [
+            178,
+            0.53
+          ],
+          [
+            186,
+            0.54
+          ],
+          [
+            193,
+            0.57
+          ],
+          [
+            198,
+            0.59
+          ],
+          [
+            203,
+            0.62
+          ],
+          [
+            208,
+            0.65
+          ],
+          [
+            213,
+            0.68
+          ],
+          [
+            219,
+            0.71
+          ],
+          [
+            224,
+            0.71
+          ],
+          [
+            230,
+            0.71
+          ],
+          [
+            235,
+            0.71
+          ],
+          [
+            241,
+            0.71
+          ],
+          [
+            246,
+            0.71
+          ],
+          [
+            251,
+            0.71
+          ],
+          [
+            258,
+            0.71
+          ],
+          [
+            264,
+            0.71
+          ],
+          [
+            270,
+            0.71
+          ],
+          [
+            275,
+            0.71
+          ],
+          [
+            280,
+            0.71
+          ],
+          [
+            285,
+            0.71
+          ],
+          [
+            290,
+            0.71
+          ],
+          [
+            296,
+            0.71
+          ],
+          [
+            301,
+            0.71
+          ],
+          [
+            306,
+            0.71
+          ]
+        ]
+      },
+      "what_this_does_not_settle": "which C3 row a keyword build's server process answers to. C3 names a server steady state and a pipeline-worker peak; assigning this figure to one of them is a ruling, not a measurement, and SPEC.md §5.2.9 records that ceiling as awaiting a re-pin."
     },
     "on_disk_decomposition": {
       "db": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-full/search-index.sqlite",
