@@ -5008,3 +5008,21 @@ Note that the same ratified entry already says, one paragraph on, "Starting and
 stopping the target process are adapter-declared harness setup, not indexing
 controls." Whether a port an instance binds is part of starting the process, or
 an option of it, is the hinge, and the gate does not presume it.
+
+**2026-09-03 — Local embedder validation accepts an L2-norm error of at most
+0,00001.** The author ratified this tolerance for R31's automatic compatibility
+fixture. The check is numerical compatibility, not retrieval quality: every
+returned vector must have a finite L2 norm and `|norm - 1| ≤ 0,00001`. The
+number lives in SPEC.md §5.2.6 with the other gate mechanics. It does not enter
+the embedder fingerprint; validation standing is explicitly outside vector
+identity, while the validation cache key carries the exact entry and runtime
+shape.
+
+**2026-09-03 — Drop HAL-04214661 from the golden-fixture recipe.** The author
+confirmed that the work is not his and ruled “Drop it.” Its HAL deposit rests
+on the repository's distribution authorisation rather than a reusable licence,
+and the fixture has no consent from Géraldine Le Nir, Juliette Laurent and
+Marie Lan Nguyen Leroy. The record is removed rather than left as a future
+fetch. This changes no language requirement: the remaining Vietnamese slice
+still contains ten records, including the other two versioned HAL works and
+the administrative, literary, dictionary and bilingual anchors.

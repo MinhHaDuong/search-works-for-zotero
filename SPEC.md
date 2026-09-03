@@ -2,7 +2,7 @@
 
 - **Status:** DRAFT
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-02
+- **Date:** 2026-09-03
 
 ## 1. Introduction
 
@@ -2066,7 +2066,8 @@ query and passage templates, determinism within the provider, and basic
 matched-over-unmatched discrimination. Its cached result is keyed by the full
 entry fingerprint plus engine version, runtime, operating system, architecture
 and execution provider. A remote result can inform the UI but never substitutes
-for this local gate.
+for this local gate. A vector passes the normalization arm when its L2 norm is
+finite and `|norm - 1| ≤ 0,00001`.
 
 Second, #6012-style library calibration (mean centering, noise floor = p99,9 of
 unrelated pairs, ceiling = median of matched pairs, reject bad models outright)
