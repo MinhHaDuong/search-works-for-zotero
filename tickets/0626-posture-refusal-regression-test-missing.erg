@@ -1,0 +1,55 @@
+%erg 0.1
+Title: Posture-refusal regression test missing for zotero_core_6012, zotseek, zoteus
+Created: 2026-09-03
+Author: Minh Ha-Duong
+
+--- log ---
+2026-09-03T14:59Z Minh Ha-Duong created
+
+--- body ---
+## Context
+
+Ticket 0625 (PR #295) wrapped every real adapter's process spawn with
+`Posture.wrap()` so no target runs under the operator's identity. Round-1
+review found one adapter (`zotero_mcp.py`) had an unwrapped live spawn
+(`install()`'s `pip install` step) despite `running()` being correctly
+wrapped — the class of defect this ticket exists to catch before it recurs.
+Only `beaver.py` and `zotero_mcp.py` got a dedicated
+`test_running_refuses_before_spawning_when_the_posture_is_unavailable`-style
+test (round-1 finding #6, round-2 finding #9 in PR #295's review). `zotseek.py`,
+`zotero_core_6012.py`, and `zoteus.py` were verified correct by code reading
+only — a future edit moving a `wrap()` call after its `Popen`/`Server` call in
+any of those three would go undetected by the suite.
+
+## Relevant files
+
+- `bench/acceptance/adapters/zotseek.py` — no posture-refusal test
+- `bench/acceptance/adapters/zotero_core_6012.py` — no posture-refusal test
+- `bench/acceptance/adapters/zoteus.py` — no adapter test file at all (pre-existing gap, not introduced by 0625)
+- `tests/test_acceptance_adapter_beaver.py` — the existing pattern to mirror
+- `tests/test_acceptance_adapter_zotero_mcp.py` — the existing pattern to mirror (covers the `Server`-shaped spawn)
+
+## Actions
+
+1. Add `test_running_refuses_before_spawning_when_the_posture_is_unavailable`
+   (or equivalent) for `zotseek.py` and `zotero_core_6012.py`, mirroring
+   `beaver.py`'s direct-`Popen` shape test.
+2. For `zoteus.py`: either add a minimal adapter test file mirroring
+   `zotero_mcp.py`'s `Server`-shaped test, or fold a posture-refusal case into
+   wherever `zoteus.py` first gets test coverage.
+
+## Test
+
+Each new test asserts that a refused `Posture` (account absent/non-working)
+causes `running()` to raise before any `Popen`/`Server` construction — same
+shape as the two existing tests.
+
+## Verification
+- [ ] all five real adapters have a posture-refusal test
+- [ ] `make check` green
+
+## Invariants
+- No change to `posture.py`'s mechanism — this is test coverage only.
+
+## Exit criteria
+- [ ] `zotseek`, `zotero_core_6012`, `zoteus` each covered by a posture-refusal test
