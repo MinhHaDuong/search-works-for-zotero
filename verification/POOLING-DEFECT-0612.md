@@ -109,9 +109,13 @@ that the docs point users at do not republish it. Probed against the Hub API on
 | `Alibaba-NLP/gte-multilingual-base` (the original) | present |
 | `Snowflake/snowflake-arctic-embed-m-v2.0` | present |
 
-Four of six absent, and the four are exactly the mirrors a transformers.js user
-loads. So the auto-detection route that upstream took for the `e5` prefixes —
-infer from the id — has nothing to read here. So a setting on its own would not
+Absent from every `Xenova/*` and `onnx-community/*` repository, which are the
+mirrors the pipeline loads for these models. Snowflake is the exception that keeps
+the claim honest: it publishes the ONNX graph and the pooling config in one
+repository, so "the mirrors never publish it" would be too broad. It changes
+nothing, because transformers.js does not read that file in any case — it pools
+however the caller says. So the auto-detection route upstream took for the `e5`
+prefixes — infer from the id — has nothing to read here. So a setting on its own would not
 repair the case it exists for: choosing wrong produces no error, only worse
 retrieval, and the user has no more access to the right value than the code does.
 Someone who picks `gte-multilingual-base` because the docs invited them to would

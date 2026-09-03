@@ -60,8 +60,10 @@ do not republish it:
 | `Alibaba-NLP/gte-multilingual-base` (the original) | present |
 | `Snowflake/snowflake-arctic-embed-m-v2.0` | present |
 
-So the id-inference that works for the E5 prefixes has nothing to read here: the
-mirrors people actually load publish no pooling config. A setting on its own
+The `Xenova/*` and `onnx-community/*` mirrors publish no pooling config, so the
+id-inference that works for the E5 prefixes has nothing to read. Snowflake ships
+both in one repository, which does not help: transformers.js never reads that
+file, it pools however the caller says. A setting on its own
 would therefore not repair anything for the user it is meant to help — someone
 who picks `gte-multilingual-base` because the docs invite them to has no way to
 learn it wants `cls`, and would keep the loss above.
