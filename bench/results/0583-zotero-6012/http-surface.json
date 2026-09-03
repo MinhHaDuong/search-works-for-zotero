@@ -21,7 +21,7 @@
       "method": "POST",
       "path": "/connector/ping",
       "status": 200,
-      "body": "{\"prefs\":{\"automaticSnapshots\":true,\"downloadAssociatedFiles\":true,\"supportsAttachmentUpload\":true,\"supportsTagsAutocomplete\":true,\"googleDocsAddNoteEnabled\":true,\"googleDocsAddAnnotationEnabled\":true,\"canUserAddNote\":true,\"googleDocsCitationExplorerEnabled\":false,\"translatorsHash\":\"650bc904634b076b693f5d91a915f772\",\"sortedTranslatorHash\":\"9d10225591b9771de9940ede79b13779\"}}"
+      "body": "{\"prefs\":{\"automaticSnapshots\":true,\"downloadAssociatedFiles\":true,\"supportsAttachmentUpload\":true,\"supportsTagsAutocomplete\":true,\"googleDocsAddNoteEnabled\":true,\"googleDocsAddAnnotationEnabled\":true,\"canUserAddNote\":true,\"googleDocsCitationExplorerEnabled\":false,\"translatorsHash\":\"72b07c8cef49a4570a3bfabd9014d01b\",\"sortedTranslatorHash\":\"9d10225591b9771de9940ede79b13779\"}}"
     },
     {
       "method": "GET",
@@ -81,10 +81,9 @@
     "// To change a preference value, you can either:",
     "// - modify it via the UI (e.g. via about:config in the browser); or",
     "// - set it within a user.js file in your profile.",
-    "user_pref(\"app.update.enabled\", false);",
     "user_pref(\"app.update.lastUpdateTime.xpi-signature-verification\", 0);",
     "user_pref(\"browser.dom.window.dump.enabled\", false);",
-    "user_pref(\"browser.laterrun.bookkeeping.profileCreationTime\", 1788392782);",
+    "user_pref(\"browser.laterrun.bookkeeping.profileCreationTime\", 1788394027);",
     "user_pref(\"browser.laterrun.bookkeeping.sessionCount\", 1);",
     "user_pref(\"browser.laterrun.enabled\", true);",
     "user_pref(\"browser.startup.homepage_override.buildID\", \"20260716160951\");",
@@ -119,5 +118,8 @@
     "user_pref(\"network.cookie.validation.lastEpoch\", 1);",
     "user_pref(\"privacy.bounceTrackingProtection.hasMigratedUserActivationData\", true);"
   ],
-  "profile_prefs_note": "the target writes none of its own preference keys — the toolkit omits any preference still at its built-in default, so the only line is the harness's own port"
+  "profile_preference_count": 36,
+  "profile_line_count": 45,
+  "profile_prefs_under_the_feature_under_test": [],
+  "profile_prefs_note": "the target writes no preference key for the feature under test — the toolkit omits any preference still at its built-in default, so the empty list above IS the evidence that the shipped values are the effective ones. The line count exceeds the preference count by the file's standard header comments; count `profile_preference_count`, not the array's length"
 }
