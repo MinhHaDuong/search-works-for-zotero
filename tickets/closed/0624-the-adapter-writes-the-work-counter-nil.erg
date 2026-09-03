@@ -2,10 +2,12 @@
 Title: The adapter writes the work-counter nil down, so it cannot tell absent from never-looked
 Created: 2026-09-03
 Author: claude
+Closed: autoclosed — PR #302
 
 --- log ---
 2026-09-03T12:49Z claude created
 
+2026-09-03T15:49Z MinhHaDuong closed — autoclosed — PR #302
 --- body ---
 
 ## Context
