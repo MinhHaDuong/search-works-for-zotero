@@ -9,6 +9,7 @@ Author: claude
 2026-09-03T11:29Z UPSTREAM MOVED UNDER THIS TRACKER THE MORNING IT WAS FILED. Issue #48 closed 2026-09-03T07:59Z with the maintainer implementing all four requests on main for the next release, and item 2 is gap 3's substance: a build whose embedder gave up is now unfinished, keeps its checkpoint and withholds the library version stamp so action:update falls back to the resuming build; and a resumed build asks the store for committed passages carrying no vector, 500 at a time, and buys exactly those. Items already crawled are not re-fetched, bodies already read are not re-read, passages already embedded are not re-embedded. That is the non-destructive resume this tracker records as required by R3 and R4, and it is the mechanism this repository proposed in its #48 comment of 2026-09-02 -- one query on the existing nullable passages.vector column. Item 4 adds passagesWithoutVectors and a measured embedRate to status, which is coverage honesty rather than the work.stage.trigger.outcome counters R3 and R13 read, so this rung's four counter-blocked cells are NOT unblocked by it. Nothing here is measured: main is not the reviewed SHA, every cell in the matrix was taken against b05ed69 (v1.12.0), and this entry records that the baseline moved, not that anything passes. Re-derive before arguing, as 0033 already says.
 2026-09-03T11:34Z GAP 3 IS CLOSED UPSTREAM, VERIFIED IN SOURCE RATHER THAN FROM THE MAINTAINER'S SUMMARY, and it shipped in v1.13.0 today rather than merely landing on main as the previous entry said. Three reads. sqlite-index.ts prepares unembedded as SELECT id, item_key, title, text, source FROM passages WHERE vector IS NULL ORDER BY pid LIMIT ? -- the exact mechanism this repository proposed in its #48 comment, one query on the existing nullable column. build.ts's unembeddedNotice tells the user that action:build RESUMES, embedding exactly those passages and re-fetching nothing, and warns against action:refresh which pays for every vector a second time. And StartBuildOptions carries fresh?: boolean with the comment that action:build deliberately does not set it, because throwing away work already committed and paid for is the complaint behind #24; resume is deliberately not keyed on the version stamp, since a stopped build has none by design. The release commit chore(release): 1.13.0 is newer than the issue-48 merge, so this is released code, not a branch. What is NOT established by that reading: whether a build stopped by the PAUSE verb resumes the same way. The machinery keys on committed passages carrying no vector plus the crawl checkpoint rather than on why the build stopped, which suggests it does, but the notice's re-fetching-nothing claim is written about the embedder-died case and nobody has driven the pause path. That is this tracker's remaining question on R3, and it needs the v1.13.0 re-baseline before it can be asked at all.
 2026-09-03T12:38Z claude note THE BASELINE MOVED, and the 2026-09-03 note's 'main is not the reviewed SHA' is no longer true: UPSTREAM names b0e0bc8 / v1.13.0 as of ticket 0618, so #48's work is now inside the reviewed tree and this rung's cells -- all taken against b05ed69 -- are stale in the direction of under-reporting. Two facts for the re-derivation. First, the resume is as this tracker described it and the description is now about the reviewed baseline rather than about main. Second, and this is the larger one for goal 2: upstream's SCHEMA_MIGRATIONS is no longer empty. It carries a rung 1 -> 2 that rebuilds the keyword index in place, inside the transaction that stamps the new version, re-computing no vector -- and it was driven in anger during the re-baseline, on a real 93 022-passage index stamped at the previous generation, which the server upgraded in place and logged by name. That is the first positive control this ladder has ever had. The four counter-blocked cells are still blocked: src/lib/metrics.ts is untouched by the range and there is no per-stage, per-trigger, per-outcome counter anywhere, so 'coverage honesty rather than work counters' stands as this tracker already recorded it.
+2026-09-03T18:02Z raid imagine+plan: SHA re-verified (UPSTREAM=b0e0bc8/v1.13.0, matches STATE.md, unchanged since last entry). Source read (index-tool.ts, index-manager.ts) confirms the docstring's own claim: requestStop() sets a cooperative cancelToken, buildIncremental's comment says explicitly 'a timeout, crash, or requestStop() never leaves a corrupt index', checkpoint is written via noteCheckpoint() whenever token.cancelled OR embedderError, with no branch distinguishing which. So the pause path is documented as sharing the crash/timeout path, not merely inferred -- but still undriven empirically. Refined Actions/Test/Verification below for a capped isolated build (b), sequenced after the running 0605 full index so neither contends for Zotero's local API.
 --- body ---
 ## Context
 
@@ -68,6 +69,123 @@ and neither is a small contained contribution of the kind `SYNC.md` records
 going upstream as a pull request. That argues for the issue form the maintainer
 builds himself, and it argues against scheduling gap 3 as though it were a
 sibling of the uninstall surface.
+
+## Driving the pause path — the one open question left on R3
+
+Source read (not just the tool docstring) confirms the pause path is meant to
+share the checkpoint mechanism with the crash/timeout path:
+`index-manager.ts`'s `buildIncremental` comment says "a timeout, crash, or
+`requestStop()` never leaves a corrupt index and whatever was saved stays
+queryable"; `requestStop()` (line 742) only flips a cooperative
+`cancelToken.cancelled`, and the checkpoint write (`noteCheckpoint()`, line
+1370) fires `if (token.cancelled || this.embedderError)` — one branch, no
+distinction between why the token was cancelled. That is strong design-level
+evidence, but nobody has driven it: no run exists where `action:"stop"` was
+issued mid-build and a following `action:"build"` was observed to resume
+rather than redo.
+
+### Relevant files
+- `bench/run_build.py` — existing one-shot driver (start → poll to terminal →
+  terminate). Reusable for phase 1 (start, watch progress) but has no path to
+  issue `action:"stop"` mid-poll or to run a second build against a
+  process it already terminated; needs a small new script alongside it rather
+  than a flag bent to fit, since the two-phase shape (interrupt, then a
+  *second* server process against the same data-dir) is a different control
+  flow, not a parametrization of the existing one.
+- `bench/mcp_drive.py` — the `Server` class (stdio JSON-RPC) is the piece to
+  reuse directly: two `Server(...)` instances against the same `--data-dir`,
+  the first killed mid-build, the second issuing `action:"build"` again.
+- `fork/src/tools/index-tool.ts` — `action:"stop"` handler (line 65) and the
+  tool docstring's own claims about `resumedFrom`.
+- `fork/src/features/search/index-manager.ts` — `requestStop()` (742),
+  `buildIncremental` resume logic (918-975), checkpoint save (1370).
+
+### Actions
+1. Wait for the running `bench/results/0605-padme-full-index/` build to reach
+   a terminal state (`done`/`error`) before starting anything below — same
+   live Zotero desktop, same local API, and a concurrent second crawl would
+   contend for it regardless of which build-sizing option is chosen.
+2. Write `bench/pause_resume_probe.py` (or similar), built on
+   `mcp_drive.Server`, not a hand-rolled JSON-RPC client:
+   - Phase 1: launch a server against a **fresh, isolated** data-dir
+     (`bench/results/0614-pause-resume/data-dir`, not padme's real one and
+     not 0605's), `ZOTEUS_INDEX_MAX_ITEMS` capped small (start at 300 —
+     large enough that metadata+fulltext crawl takes tens of seconds at
+     `--poll 1`, small enough to iterate fast and stay clear of the running
+     build's item scale), embeddings off (keyword+fulltext only — the
+     checkpoint mechanism under test is item/page-granular, not
+     vector-granular, and gap 3's own upstream fix already exercised the
+     vector side per the 12:38Z log entry). Issue `action:"build"`.
+   - Poll `action:"status"` every ~1s. Once `itemsFetched` is between ~40%
+     and ~80% of the cap (partial commit, crawl demonstrably in flight —
+     `fulltextItemsScanned` > 0 is an even stronger midpoint if the metadata
+     pass is too fast to catch), issue `action:"stop"`.
+   - Poll until `state` reaches a terminal value (cancellation is
+     cooperative, per `requestStop()`'s own comment: halts *after* the
+     current page/batch). Record: itemsFetched/items committed, passage
+     count, `resumedFrom` (must be absent — this is the interrupted run, not
+     a resume), wall-clock elapsed for phase 1.
+   - **Kill the phase-1 server process** (not just let the driver's own
+     `finally` clean it up — kill it explicitly and confirm exit) before
+     phase 2, rather than reusing the same process. Reading `action:"build"`
+     resume off a *second* process forces the checkpoint to survive a real
+     process boundary — read back from the sqlite meta row, not from an
+     in-memory field the first process happened to keep — which is the
+     stronger and more relevant test given R4's restart language, and it is
+     what actually distinguishes this from "the same running instance
+     remembered its own state," a much weaker claim than what R3 needs.
+   - Phase 2: launch a **new** server against the **same** data-dir, same
+     env. Issue `action:"build"` again (not `"refresh"` — refresh is
+     documented to always restart). Poll to terminal. Record: `resumedFrom`,
+     final itemsFetched/items/passage counts, wall-clock elapsed for phase 2.
+3. Compare phase 1 and phase 2 records against the discriminating control
+   below and write the verdict into this ticket's log, with the raw before/
+   after counts and elapsed times quoted (not just "resumed: yes/no").
+
+### Test / discriminating control
+The risk named by this raid's brief: a coincidence where phase 2 "looks like"
+a resume (finishes, index ends up complete) while actually having silently
+redone work — final counts converge to the same complete library either way,
+so final-state-only checks cannot tell resume from restart-from-scratch that
+happened to also finish. Two independent signals, not one, because either
+alone has a plausible innocent explanation:
+- **`resumedFrom` must be present and approximately equal to the item count
+  committed at the moment `action:"stop"` was issued in phase 1.** This is
+  the direct signal (`index-manager.ts:971`, `known.size` — items already in
+  the store when the resumed build starts) — not inferred from timing. Its
+  absence, or a value near 0, means phase 2 did not treat phase 1's work as
+  already done, regardless of how fast it finished.
+- **Phase 2 elapsed time must be substantially less than a full fresh build
+  of the same item cap** (a full crawl+fulltext pass over 300 items, timed
+  separately if phase 1's own elapsed time before the stop is not already a
+  usable proxy for "cost of the un-resumed remainder"). A resume that only
+  redoes the last in-flight page/batch should be a small fraction of a full
+  build's time; if phase 2 takes roughly as long as phase 1 took to reach
+  the same point, that is the tell of a silent full redo.
+Only both together clear the bar. `resumedFrom` alone could in principle be
+misreported without the underlying skip actually happening (the field is
+just a counter); elapsed time alone is noisy and could be fast by luck on a
+small cap. Neither risk survives both signals agreeing.
+
+### Verification
+- [ ] phase 1 stop is confirmed honored: status reaches a terminal state
+      after `action:"stop"`, and process CPU activity stops (goal-1's R22
+      tracker already establishes how to observe this — reuse it rather than
+      inventing a second method)
+- [ ] phase 2 `resumedFrom` recorded and compared to phase-1's committed
+      count at stop time
+- [ ] phase 2 elapsed time recorded and compared to a full-build reference
+- [ ] verdict (resumes / does not resume / inconclusive-and-why) logged on
+      this ticket with the raw numbers
+
+### Invariants
+- Never run this probe while `bench/results/0605-padme-full-index/` (or any
+  other build against the real padme library) is active — same Zotero
+  desktop local API, single process, contention risk stated in this raid's
+  brief.
+- The probe's data-dir is disposable and separate from every other bench
+  result directory; it must not touch padme's real Zotero data or the 0605
+  results.
 
 ## Depends on
 
