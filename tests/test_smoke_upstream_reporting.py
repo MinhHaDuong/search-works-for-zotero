@@ -38,7 +38,15 @@ smoke = load_smoke()
 
 
 def rrf(rank: int) -> float:
-    return round(1 / (60 + rank), 6)
+    """The fusion value a real run carries: the full double, not a rounded one.
+
+    Upstream computes `1/(60+rank)` and serializes the double; the six-place
+    rounding the old check applied is what let it accept almost any small float
+    once the series grew dense. So the fixtures use the exact value, and
+    `test_a_six_place_rounding_of_a_fusion_value_is_not_accepted` pins that a
+    rounded stand-in is refused.
+    """
+    return 1 / (60 + rank)
 
 
 # --------------------------------------------------------------------------
@@ -131,7 +139,7 @@ SIMILARITY_RUNS = [
 
 
 def test_gapped_ranks_are_still_rank_shaped():
-    agree = smoke.rank_fusion_agreement(GAPPED_RUNS)
+    agree = smoke.rank_fusion_agreement(GAPPED_RUNS, limit=5)
     assert agree["hits_compared"] == 5
     assert agree["hits_matching_own_rank"] == 5, (
         "each score is exactly 1/(60+rank) for ITS OWN rank; a contiguous-prefix "
@@ -142,7 +150,7 @@ def test_gapped_ranks_are_still_rank_shaped():
 
 def test_similarity_scores_are_not_counted_as_rank_shaped():
     """The discriminating control: this field must be able to come out the other way."""
-    agree = smoke.rank_fusion_agreement(SIMILARITY_RUNS)
+    agree = smoke.rank_fusion_agreement(SIMILARITY_RUNS, limit=5)
     assert agree["hits_compared"] == 2
     assert agree["hits_matching_own_rank"] == 0
     assert agree["queries_all_hits_rank_shaped"] == 0
@@ -152,7 +160,7 @@ def test_out_of_order_ranks_are_not_rank_shaped():
     """A fused list is ordered by score; ranks that go backwards are not a fusion."""
     runs = [{"q": "a", "wall_ms": 1.0, "hits": 2,
              "scores": [rrf(4), rrf(1)], "keys": ["A", "B"]}]
-    agree = smoke.rank_fusion_agreement(runs)
+    agree = smoke.rank_fusion_agreement(runs, limit=5)
     assert agree["hits_matching_own_rank"] == 2
     assert agree["queries_all_hits_rank_shaped"] == 0, (
         "every score matches some rank, but descending ranks are not a "
@@ -162,17 +170,57 @@ def test_out_of_order_ranks_are_not_rank_shaped():
 
 def test_hits_compared_is_stated():
     """Ticket action 1: the artifact states how many hits were compared."""
-    agree = smoke.rank_fusion_agreement(GAPPED_RUNS)
+    agree = smoke.rank_fusion_agreement(GAPPED_RUNS, limit=5)
     assert agree["hits_compared"] == sum(len(r["scores"]) for r in GAPPED_RUNS)
 
 
 def test_zero_hits_compare_to_nothing():
     runs = [{"q": "a", "wall_ms": 1.0, "hits": 0, "scores": [], "keys": []}]
-    agree = smoke.rank_fusion_agreement(runs)
+    agree = smoke.rank_fusion_agreement(runs, limit=5)
     assert agree["hits_compared"] == 0
     assert agree["queries_all_hits_rank_shaped"] == 0, (
         "a query that returned nothing has not demonstrated a rank-shaped score"
     )
+
+
+def test_a_small_float_far_down_the_series_is_not_accepted():
+    """Red team, round 1 of PR #304: the inversion must not say yes to anything.
+
+    The series thins out as the rank grows — past a few hundred, consecutive
+    `1/(60+rank)` values sit closer together than a six-place comparison can
+    separate, so `round(x, 6)` equality accepts 0.86 of arbitrary floats in
+    `[0.0005, 0.001)`. That is exactly the regime this field exists to police: a
+    raw similarity magnitude leaking through where a relabelled rank was
+    promised. `0.00091` inverts to rank 1039, which is neither a dedup gap nor
+    equal to `1/1099` at any honest tolerance.
+    """
+    runs = [{"q": "a", "wall_ms": 1.0, "hits": 1, "scores": [0.00091], "keys": ["A"]}]
+    agree = smoke.rank_fusion_agreement(runs, limit=5)
+    assert agree["hits_matching_own_rank"] == 0
+    assert agree["queries_all_hits_rank_shaped"] == 0
+
+
+def test_a_six_place_rounding_of_a_fusion_value_is_not_accepted():
+    """The tolerance is what does the work above, so pin it in isolation."""
+    assert smoke._rrf_rank_of(1 / 61, limit=5) == 1
+    assert smoke._rrf_rank_of(round(1 / 61, 6), limit=5) is None
+
+
+def test_a_rank_far_past_the_limit_is_not_a_dedup_gap():
+    """Dedup gaps are small; the cap is what says so."""
+    assert smoke._rrf_rank_of(1 / (60 + 12), limit=5) == 12
+    assert smoke._rrf_rank_of(1 / (60 + 200), limit=5) is None
+
+
+@pytest.mark.parametrize("score", [float("nan"), float("inf"), -0.5, 0.0, None, True, "0.016"])
+def test_a_score_that_is_not_a_positive_finite_number_is_refused(score):
+    """NaN escapes a `<= 0` guard under IEEE 754, and `round(1/nan)` raises.
+
+    That exception would propagate out of `check_query_answers` through `main`'s
+    bare `try/finally`, before the JSON is written — losing every check's result,
+    not just this field.
+    """
+    assert smoke._rrf_rank_of(score, limit=5) is None
 
 
 #: The run that produced both wrong numbers, read off the committed artifact
@@ -205,7 +253,7 @@ def test_real_v1_13_0_run_reports_the_download_as_cold():
 
 
 def test_real_v1_13_0_run_is_rank_shaped_throughout():
-    agree = smoke.rank_fusion_agreement(ARTIFACT_1_13_0_RUNS)
+    agree = smoke.rank_fusion_agreement(ARTIFACT_1_13_0_RUNS, limit=5)
     assert agree["hits_compared"] == 13
     assert agree["hits_matching_own_rank"] == 13
     assert agree["queries_all_hits_rank_shaped"] == 3, (

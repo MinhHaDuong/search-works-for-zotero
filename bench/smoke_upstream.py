@@ -21,6 +21,7 @@ to a COPY of an index, made by this script in a scratch directory.
 import argparse
 import json
 import logging
+import math
 import shutil
 import sqlite3
 import subprocess
@@ -374,24 +375,56 @@ def timing_fields(runs: list[dict]) -> dict:
     }
 
 
-def _rrf_rank_of(score: object, k: int = RRF_K) -> int | None:
+#: How far past the requested limit a rank may plausibly sit. Deduplication is
+#: the only thing that pushes a rank beyond the limit, and it removes duplicates
+#: of items already in the list — a real gap is small. An order of magnitude is
+#: generous for that and still bounds the tail this must not match; see
+#: `_rrf_rank_of`.
+RANK_SLACK = 10
+
+
+def _rrf_rank_of(score: object, limit: int, k: int = RRF_K) -> int | None:
     """The rank whose fusion value equals this score, or None if no rank does.
 
     Inverted rather than searched over `1..limit`, and the difference is not
     cosmetic: dedup happens AFTER fusion, so a list of `limit` hits can carry a
     rank above `limit` — the v1.13.0 artifact has a five-hit query whose last
-    score is `1/66`. A search bounded by the limit would call that a mismatch for
-    the same reason the prefix comparison did.
+    score is `1/66`. A search bounded by the limit calls that a mismatch for the
+    same reason the prefix comparison did.
+
+    Two guards keep the inversion from matching everything, and both are the
+    point of the field rather than defensive padding. This check exists to tell a
+    relabelled rank from a similarity magnitude, so a version of it that says yes
+    to arbitrary small floats reports the defect it was built to detect as
+    absent:
+
+      - **Equality is exact, not rounded to six places.** The series thins out as
+        the rank grows: past a few hundred, consecutive `1/(k+rank)` values are
+        closer together than 1e-6, so a six-place comparison accepts almost any
+        small float — 0.86 of them in `[0.0005, 0.001)`, 0.999 below 1e-4. The
+        scores are IEEE doubles of `1/(k+rank)` computed the same way upstream
+        computes them, so a relative tolerance of 1e-9 is loose enough for any
+        float formatting round-trip and far tighter than the series' spacing.
+      - **Rank is capped** at `RANK_SLACK` times the limit, which is what the
+        gap-tolerance above is actually asking for: dedup gaps, not an unbounded
+        tail where the series is dense.
+
+    NaN is rejected explicitly: it escapes `score <= 0` under IEEE 754, and
+    `round(1 / nan)` raises, which would take down the whole artifact from inside
+    `main`'s `try/finally` — every check lost, not just this field.
     """
-    if isinstance(score, bool) or not isinstance(score, (int, float)) or score <= 0:
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
         return None
-    rank = round(1 / float(score)) - k
-    if rank < 1:
+    value = float(score)
+    if not math.isfinite(value) or value <= 0:
         return None
-    return rank if round(float(score), 6) == round(1 / (k + rank), 6) else None
+    rank = round(1 / value) - k
+    if rank < 1 or rank > RANK_SLACK * limit:
+        return None
+    return rank if math.isclose(value, 1 / (k + rank), rel_tol=1e-9) else None
 
 
-def rank_fusion_agreement(runs: list[dict]) -> dict:
+def rank_fusion_agreement(runs: list[dict], limit: int) -> dict:
     """Match each score against the fusion value for ITS OWN rank, gaps allowed.
 
     The check this replaces compared the returned scores against a *contiguous
@@ -414,7 +447,7 @@ def rank_fusion_agreement(runs: list[dict]) -> dict:
     compared = matched = queries_ok = 0
     for r in runs:
         scores = r.get("scores") or []
-        ranks = [_rrf_rank_of(x) for x in scores]
+        ranks = [_rrf_rank_of(x, limit) for x in scores]
         compared += len(scores)
         matched += sum(1 for x in ranks if x is not None)
         ordered = all(a < b for a, b in zip(ranks, ranks[1:])) if None not in ranks else False
@@ -450,7 +483,7 @@ def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
     # RRF over one list gives 1/(60+rank) exactly; a similarity would not.
     detail = {"runs": runs}
     detail.update(timing_fields(runs))
-    detail.update(rank_fusion_agreement(runs))
+    detail.update(rank_fusion_agreement(runs, limit))
     return check(
         "R6-query-answers", "R6", "a query returns something usable, warm, within the budget",
         "a query returning no hits on a populated index, or no run completing",
