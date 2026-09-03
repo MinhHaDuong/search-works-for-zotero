@@ -58,14 +58,17 @@ committed in this repo, ready for that later hand-off.
    a short preamble (revision measured against, ruling citations, explicit
    "not sent — GOVERNANCE.md lane" note) followed by the literal content
    meant for the upstream file. That upstream file is `UNINSTALL.md` at the
-   fork's **repo root**, not under `docs/` — matching `CHANGELOG.md`,
-   `CONTRIBUTING.md`, `PRIVACY.md`, which sit at root while topic guides
-   (`configuration.md`, `semantic-search.md`, …) sit under `docs/`.
-   `docs/configuration.md` and `docs/semantic-search.md` are cited for
-   *voice and structure* (bold lead sentences, concrete paths in backticks,
-   e.g. `semantic-search.md`'s "Where the files are" — "removing the data
-   directory removes everything the index ever wrote"), not as the
-   destination directory.
+   fork's **repo root**, not under `docs/` — matching `fork/CHANGELOG.md`,
+   `fork/CONTRIBUTING.md`, `fork/PRIVACY.md`, which sit at root while topic
+   guides (`configuration.md`, `semantic-search.md`, …) sit under `fork/docs/`.
+   All of these paths are **inside the `fork/` checkout, not this repo** —
+   they don't exist until `make upstream-checkout` + `npm ci && npm run build`
+   has run (same recipe 0629 already documents; `fork/` is gitignored here and
+   absent on a fresh checkout). `fork/docs/configuration.md` and
+   `fork/docs/semantic-search.md` are cited for *voice and structure* (bold
+   lead sentences, concrete paths in backticks, e.g. `semantic-search.md`'s
+   "Where the files are" — "removing the data directory removes everything
+   the index ever wrote"), not as the destination directory.
 3. Include the pre-PR-#27 case as the worked example, sourced from the fork
    checkout's commit `5ae398a` / `998865e`
    (`fix(search): cache on-device model weights under the data directory`,
@@ -124,9 +127,10 @@ committed in this repo, ready for that later hand-off.
 - Positive control before trusting it: run the new test against a
   deliberately wrong draft first (e.g. one naming a second, invented root,
   or omitting the model-cache-is-under-the-root sentence) and confirm it
-  fails red, per this repo's own red-first-check discipline
-  (`rules/workflow.md` — a check whose all-clear is indistinguishable from
-  "could not look" is not a check).
+  fails red, per this repo's own red-first-check discipline (the "all-clear
+  indistinguishable from 'I could not look'" principle applied throughout
+  this repo's verification notes and DECISIONS.md, e.g. R20's surrogate
+  revalidation entry).
 
 ## Verification
 
