@@ -2,11 +2,16 @@
 Title: bench/build_index.py reports a poll-quantized elapsed and a ps-sampled peak
 Created: 2026-09-03
 Author: claude
+Closed: autoclosed — PR #300
 
 --- log ---
 2026-09-03T11:26Z claude created
 2026-09-03T11:27Z claude note found by the 0120 action-1 roar sweep for siblings of the defect that ticket hit: a driver that sleeps between status polls reports its own poll interval, not the job. build_index.py is the one sibling of nine sleeping bench scripts. Two others were checked and are clean, and both are precedents worth keeping: service_ceiling_rss.mjs states in its own artifact text that it records "a peak, never a rate: nothing here is an elapsed time divided by a count", and zotero_fulltext.py's quantum is disclosed in verification/EXTRACTION-ROUTES.md, which names the 250 ms poll and drove the run at --poll 0.25 for exactly that reason.
 
+2026-09-03T12:40Z claude note action 1 — DELETED, not repaired. Repo-wide grep for `build_index` (excluding .git and node_modules) returns seven files; six are `issue30_build_index.mjs` and the tickets/tests that name it, the seventh is this ticket. Nothing imports the module, no Makefile target drives it, no artifact under bench/results records it as its producer. The grep is not a vacuous all-clear: the same pattern hits `issue30_build_index` in bench/index_schema.mjs and tests/test_index_schema_fixtures.py, so it demonstrably reaches the tree. Its successor `bench/run_build.py` exists, reads VmHWM, and produced 0120's artifact. Repairing an unreferenced driver would leave two drivers for one job, the older one carrying a 20 s default poll — that is the loaded gun the ticket describes, reloaded rather than unloaded. Deleted.
+2026-09-03T12:41Z claude note action 3 — NO GUARD, per the ticket's own recommendation, and stated here rather than followed silently. An adherence test asserting that no bench driver derives an `elapsed` from a sleep loop without recording its poll interval would need to recognise "a sleep loop that times something" from source, which is a judgement a grep cannot make: it would either match every `time.sleep` in bench/ (nine files, seven of them false positives) or match a literal idiom that any rewording escapes. Against that cost, the base rate is one instance in nine candidates, and the two clean siblings (service_ceiling_rss.mjs, zotero_fulltext.py) plus 0120's `under_measurement.poll_quantum_s` field are a pattern to copy rather than a rule to enforce. The harness guard budget is net-negative by ruling; a guard whose precision is this poor would spend two retirements to catch a class that has produced no published error.
+
+2026-09-03T15:47Z MinhHaDuong closed — autoclosed — PR #300
 --- body ---
 ## Context
 
@@ -77,9 +82,11 @@ survives, which is what makes deletion safe.
 
 ## Verification
 
-- [ ] `bench/build_index.py` is deleted, or reads VmHWM and discloses its quantum
-- [ ] The decision names which, and why
-- [ ] `make check` passes
+- [x] `bench/build_index.py` is deleted, or reads VmHWM and discloses its quantum
+- [x] The decision names which, and why
+- [x] `make check` passes — green except two pre-existing environmental failures
+      in `tests/test_summarize_0120.py`, which shell out to a `sqlite3` binary
+      absent from this machine; neither test is reachable from this diff
 
 ## Invariants
 
