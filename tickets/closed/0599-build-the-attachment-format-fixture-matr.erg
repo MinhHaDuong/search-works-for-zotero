@@ -1,0 +1,138 @@
+%erg 0.1
+Title: Build the attachment-format fixture matrix and its content-detection controls
+Created: 2026-09-02
+Author: claude
+Closed: the eight-format fixture matrix and its content-capability classifier landed in merge request #233; legacy .doc is a declared gap carried into 0600, not a faked fixture
+
+--- log ---
+2026-09-02T21:58Z claude created
+
+2026-09-02T22:08Z claude note MATRIX AND CLASSIFIER BUILT. Eight faithful fixtures (PDF, EPUB, HTML, TXT, Markdown, DOCX, ODT, RTF) from bench/fixtures/make_attachment_fixtures.py, each carrying a unique ZZFMT token; bench/attachment_format.py decides format from bytes, reading the OCF/ODF mimetype member and the OOXML parts to separate the three ZIP-container formats. Legacy .doc is DECLARED AS A GAP rather than faked: the classifier answers ole-compound, the container family, and never doc, and the gap travels in the generator's GAPS table into ticket 0600. Markdown classifies as text, asserted explicitly, because Markdown carries no content signature; what a .md attachment is EXPOSED as remains ticket 0600's observation. 37 tests, fast tier, 0,49 s; independent confirmation from file(1) on all eight and pdftotext extracting the PDF token, neither of which is a dependency of the suite.
+2026-09-02T22:21Z claude note EXIT AND VERIFICATION BOXES TICKED, 11 of 12, against the reviewer's independent re-execution on PR 233 rather than against this lane's own report. The twelfth stays unticked and is named as mis-specified: whether ticket 0600 can run against this matrix is answered by 0600's first run, not by anything this ticket can execute, so ticking it would be a verification claim nobody made. Left standing rather than deleted so that run has somewhere to land. Taken as tracker 0026's finding F4 asks -- two of three tickets closed that night closed at 0 boxes of 14 and 0 of 5, which is how a checkbox stops carrying signal.
+2026-09-03T04:13Z Minh Ha-Duong closed — the eight-format fixture matrix and its content-capability classifier landed in merge request #233; legacy .doc is a declared gap carried into 0600, not a faked fixture
+--- body ---
+## Context
+
+Ticket 0593 was ruled a monster on 2026-09-02 and is now the tracker for the
+attachment-format estate. This is its first child and the only one that needs no
+machine: the fixture matrix its Action 1 calls for, plus the content-capability
+classifier that decides a file's format from its bytes rather than from its
+name.
+
+The matrix has to exist before anything can be measured, and it has to exist
+independently of Zotero, because what ticket 0600 measures is Zotero's behaviour
+against a substrate whose contents are already known. A fixture whose format is
+asserted rather than detected would make the measurement circular: Zotero would
+be graded against a claim about the file rather than against the file.
+
+Machine-free by construction. No Zotero, no converter, no network, no
+subprocess, so this runs in the fast tier of `make check`.
+
+## Relevant files
+
+- `bench/fixtures/make_attachment_fixtures.py` — the committed generator, one
+  writer per format, deterministic bytes.
+- `bench/attachment_format.py` — the content-capability classifier.
+- `tests/test_attachment_format_fixtures.py` — the controls.
+- `bench/fixtures/make_index_fixture.mjs` — the shape to follow: a committed
+  generator that writes a substrate a guard can be driven against in both
+  directions, deterministic, with the omissions stated rather than faked.
+
+## Actions
+
+1. Write a deterministic generator producing one minimal, valid file per format,
+   each carrying a unique body token so a later pass can separate real
+   extraction from a metadata-only match.
+2. Write a classifier that decides format from bytes alone: signatures for the
+   flat formats, and for the ZIP family the `mimetype` member and the entry
+   names that separate EPUB from DOCX from ODT.
+3. Assert each fixture carries its token, and that the classifier answers
+   correctly on each.
+4. Assert the discriminating control: a fixture renamed to a misleading
+   extension is still classified correctly by content, while a three-line
+   extension-only classifier written inside the test gets it wrong. That control
+   is the mechanical form of the tracker's invariant that the policy is
+   MIME/capability based and not an extension allow-list.
+5. Record every format that could not be produced faithfully as a named gap, in
+   this ticket and in the generator's docstring, and carry it into ticket 0600
+   as an open item.
+
+## Test
+
+- The misleading-extension control must be seen RED against the naive
+  extension-only classifier before it is trusted green against the content one.
+  A check that has never been seen red has not been shown to work.
+- The ZIP family needs its own control: EPUB, DOCX and ODT share the
+  `PK\x03\x04` signature, and a classifier answering `docx` for all three would
+  pass a one-sided test. Assert three different answers, not three successes.
+
+## The stated gap: legacy `.doc`
+
+Legacy `.doc` is an OLE2 compound binary whose `WordDocument` stream is a
+File Information Block with a byte layout no hand-written fixture reproduces,
+and ticket 0593 does not authorize a converter to produce one. It is therefore
+NOT in the matrix. Eight honest fixtures and one declared gap are worth more
+than nine of which one is fiction: a fake `.doc` that no real `.doc` resembles
+would make every `.doc` row of ticket 0600's measurement a statement about the
+fixture rather than about the format.
+
+The classifier still recognises the OLE2 compound-document signature and answers
+`ole-compound`, the container family `.doc` belongs to. It does not answer
+`doc`, because separating a Word binary from an Excel one needs stream
+inspection this has no fixture to exercise. Ticket 0600 carries the gap: either
+a real `.doc` is supplied from outside the repository, in which case the
+classifier gains the branch and its positive control together, or the `.doc` row
+of the policy is ruled on the format's documented behaviour with the absence
+recorded.
+
+Markdown is a second, milder case of the same honesty. Markdown has no content
+signature: it is text, and the classifier says `text`. That is not a defect to
+be patched with a heuristic, it is the finding ticket 0593 anticipated when it
+required Markdown to be probed separately, and it makes what ticket 0600
+observes the only answer available: whether Zotero exposes a `.md` attachment as
+`text/plain` is a fact about Zotero, not about the bytes.
+
+## Verification
+
+Every box below is ticked against `tests/test_attachment_format_fixtures.py` and
+the transcripts in pull request 233, and each was independently re-executed by
+that pull request's reviewer rather than read from its body.
+
+- [x] Each fixture's bytes are valid for its format: the ZIP members open, the
+      EPUB and ODT `mimetype` entries are first and stored, the PDF's cross
+      reference offsets point at its object headers.
+- [x] Each fixture carries its unique token.
+- [x] The classifier answers correctly on every fixture, by content.
+- [x] The misleading-extension control fails the naive classifier and passes the
+      content one, and the red half is recorded in the pull request.
+- [x] The three ZIP-container formats get three different answers.
+- [x] The generator is deterministic: two runs produce identical bytes.
+- [x] No new dependency: `requirements-check.txt` is unchanged and the
+      classifier is stdlib only.
+- [x] `make check` and `./tickets/erg check` pass.
+
+## Invariants
+
+See tracker 0593 §Invariants — inherited unchanged.
+
+Child-specific consequence, which is this ticket's own and not a restatement:
+nothing here decides policy. What a format's classification MEANS for
+eligibility is ticket 0600's ruling, and this ticket must not anticipate it in
+code or in prose.
+
+## Exit criteria
+
+- [x] The generator and the classifier are committed and run in the fast tier.
+- [x] Every format named by ticket 0593 is either a faithful fixture or a
+      declared, named gap with its reason.
+- [x] The misleading-extension control has been seen red.
+- [ ] Ticket 0600 can run against this matrix without producing a file.
+
+The last box stays unticked, and it is a criterion this ticket cannot decide
+about itself rather than work left undone. What is deliverable here is the
+capability: `--output-dir` writes the whole matrix from the committed generator,
+so ticket 0600 authors no file. Whether that is ENOUGH for ticket 0600 is
+answered by ticket 0600's first run and by nothing else, so ticking it here
+would be a verification claim nobody made. It was mis-specified as an exit
+criterion of this ticket; it is left standing rather than deleted so ticket
+0600's first run has somewhere to land.

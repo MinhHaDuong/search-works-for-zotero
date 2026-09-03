@@ -1,0 +1,99 @@
+{
+  "probe": "R10 on a plugin target: the same host application launched with and without the plugin, under the same isolation and the same tracer, differing in nothing else (ticket 0584)",
+  "not_a_verdict": "this driver scores nothing and subtracts nothing. It records the arms side by side so a reader can see how much of an R10 verdict on a plugin target belongs to the host application; subtracting one arm from the other in code would be the harness deciding a target's verdict.",
+  "date": "2026-09-03",
+  "detectors": "bench/acceptance/sandbox.py's, imported rather than restated, so these counts are comparable with the acceptance layer's own",
+  "instrument_works_here": true,
+  "instrument_control": {
+    "arm": "011909-shared-with",
+    "plugin_present": true,
+    "network_shared": true,
+    "dwell_s": 120.0,
+    "profile_state": "virgin: created fresh for this arm, never seeded, never cleared",
+    "mechanism": "podman-unshare",
+    "attempt_counts": {
+      "off_machine": 47,
+      "dns": 5
+    },
+    "returncode": 0,
+    "wall_s": 120.4,
+    "witnesses_present": {
+      "zotero.sqlite": true,
+      "zotseek.sqlite": true
+    }
+  },
+  "arms": [
+    {
+      "arm": "011909-isolated-without-1",
+      "plugin_present": false,
+      "network_shared": false,
+      "dwell_s": 120.0,
+      "profile_state": "virgin: created fresh for this arm, never seeded, never cleared",
+      "mechanism": "podman-unshare",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 56
+      },
+      "returncode": 0,
+      "wall_s": 120.3,
+      "witnesses_present": {
+        "zotero.sqlite": true,
+        "zotseek.sqlite": false
+      }
+    },
+    {
+      "arm": "011909-isolated-with-1",
+      "plugin_present": true,
+      "network_shared": false,
+      "dwell_s": 120.0,
+      "profile_state": "virgin: created fresh for this arm, never seeded, never cleared",
+      "mechanism": "podman-unshare",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 60
+      },
+      "returncode": 0,
+      "wall_s": 120.3,
+      "witnesses_present": {
+        "zotero.sqlite": true,
+        "zotseek.sqlite": true
+      }
+    },
+    {
+      "arm": "011909-isolated-without-2",
+      "plugin_present": false,
+      "network_shared": false,
+      "dwell_s": 120.0,
+      "profile_state": "virgin: created fresh for this arm, never seeded, never cleared",
+      "mechanism": "podman-unshare",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 56
+      },
+      "returncode": 0,
+      "wall_s": 120.3,
+      "witnesses_present": {
+        "zotero.sqlite": true,
+        "zotseek.sqlite": false
+      }
+    },
+    {
+      "arm": "011909-isolated-with-2",
+      "plugin_present": true,
+      "network_shared": false,
+      "dwell_s": 120.0,
+      "profile_state": "virgin: created fresh for this arm, never seeded, never cleared",
+      "mechanism": "podman-unshare",
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 60
+      },
+      "returncode": 0,
+      "wall_s": 120.4,
+      "witnesses_present": {
+        "zotero.sqlite": true,
+        "zotseek.sqlite": true
+      }
+    }
+  ]
+}

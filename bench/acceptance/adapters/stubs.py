@@ -32,12 +32,44 @@ both are required.
 `verbless` declares verbs absent on purpose, so that the third state has a
 fixture of its own rather than being inferred from a target that happens to lack
 a surface today.
+
+**Goal 2's five, added with the durability assertions.** Each is one cause, so a
+red names a defect rather than a region.
+
+`churns-on-resync` is the shipped 92,7 % defect in miniature: a resync of
+identical bytes that recomputes anyway. `verifies-nothing-on-resync` is its
+opposite and the reason that clause carries two detectors — it recomputes
+nothing because it never looked, which a `done`-only check reports as the same
+green as a correct target. `recomputes-whole-library-on-edit` re-embeds
+everything when one title changes, which is R3's proportionality clause failing
+at the other end.
+
+`corrupts-on-company` leaves the index unreadable *after* both processes have
+stopped, and it is written that way on purpose: a pair can answer perfectly
+while it is live and still wreck the file behind it, so the third-process
+detector is the only one that can see this class, and a fixture that failed
+during the pair phase would leave it unexercised. `duplicates-work-on-company`
+answers every query correctly and simply redoes the work — invisible in a reply,
+visible only in the counters, which is why R13 is two clauses and not one.
+
+**The ledger is a file, not an attribute**, and that is what makes the R13
+fixtures mean anything. Two adapter instances over one arena are two processes
+on one data directory; counters held in memory would be two independent ledgers
+and the duplicate-work fixture could not express its defect at all.
 """
 
+import json
 import socket
 from contextlib import contextmanager
 from pathlib import Path
 
+from ..durability import (
+    EDIT_ONE_ITEM,
+    RESET_TO_SEEDED_INDEX,
+    RESTAMP_NEWER,
+    RESTAMP_OLDER,
+    RESYNC_IDENTICAL_BYTES,
+)
 from ..interface import Declaration, UnsupportedVerb
 
 #: These are fixtures, not targets: they exist to drive the layer into each of
@@ -56,7 +88,19 @@ NAMES = (
     "stub-verbless",
     "stub-remote-embedder",
     "stub-uninstall-leaves-residue",
+    "stub-churns-on-resync",
+    "stub-verifies-nothing-on-resync",
+    "stub-recomputes-whole-library-on-edit",
+    "stub-corrupts-on-company",
+    "stub-duplicates-work-on-company",
+    "stub-abandons-foreign-stamp",
 )
+
+#: The fixture library: four items of three sections each. These are the
+#: fixture's own contents, not a design number — every assertion that needs the
+#: section count reads it out of the perturbation's event rather than knowing it.
+ITEMS = ("item-a", "item-b", "item-c", "item-d")
+SECTIONS = 3
 
 #: A literal address off this machine, and a name that cannot resolve. The
 #: address is a public resolver chosen because it is stable and uninteresting;
@@ -70,20 +114,109 @@ class _Stub:
     """A deterministic target. Every verb records what it did and touches disk only
     where the fixture's point requires it."""
 
+    #: This fixture's ledger is written synchronously, so the durability layer
+    #: need not wait a real target's polling interval to see it stationary.
+    #: Adapter-declared, like the lifecycle and the perturbation hook.
+    settle_poll_s = 0.01
+
     def __init__(self, name: str, arena: Path, declaration: Declaration):
         self.arena = arena
         self.declaration = declaration
         self._log: list[str] = []
         self._live = False
 
+    # -- the ledger, on disk because two processes must share one -------------
+
+    def _ledger(self) -> Path:
+        return self._data_dir() / "ledger.json"
+
+    def _counters(self) -> dict[str, int]:
+        path = self._ledger()
+        if not path.is_file():
+            return {}
+        try:
+            return {str(k): int(v) for k, v in json.loads(path.read_text()).items()}
+        except (ValueError, OSError):
+            return {}
+
+    def _bump(self, **counters: int) -> dict[str, int]:
+        """Move counters and persist them, the way a ledger transition would."""
+        current = self._counters()
+        for name, by in counters.items():
+            current[name.replace("__", ".")] = current.get(name.replace("__", "."), 0) + by
+        self._write(self._ledger(), json.dumps(current, indent=2))
+        return current
+
+    def _first_build(self) -> None:
+        """The work a first start does, recorded under the `new` trigger."""
+        if self._ledger().is_file():
+            return
+        self._bump(work__record__new__done=len(ITEMS),
+                   work__embed__new__done=len(ITEMS) * SECTIONS)
+
     @contextmanager
     def running(self):
         self._log.append("running")
         self._live = True
+        self._first_build()
+        self._on_start()
         try:
             yield
         finally:
             self._live = False
+            self._on_stop()
+
+    def _on_start(self) -> None:
+        """What this fixture does when its process starts. Nothing, here."""
+
+    def _on_stop(self) -> None:
+        """What this fixture leaves behind when its process ends. Nothing, here."""
+
+    # -- perturbation: adapter-declared harness setup, not an eighth verb -----
+
+    def perturb(self, what: str) -> dict:
+        if what == EDIT_ONE_ITEM:
+            return self._edit_one_item()
+        if what == RESYNC_IDENTICAL_BYTES:
+            return self._resync_identical_bytes()
+        if what in (RESTAMP_OLDER, RESTAMP_NEWER):
+            return self._restamp(what)
+        if what == RESET_TO_SEEDED_INDEX:
+            return self._reset_to_seeded_index()
+        raise NotImplementedError(f"this fixture cannot do {what!r}")
+
+    def _reset_to_seeded_index(self) -> dict:
+        """Put the index back to a settled one under the stamp this fixture writes.
+
+        R23's two directions are two experiments and each needs this state to
+        start from. Implemented on the base so every fixture inherits it: a
+        fixture earns its place by modelling one defect, and none of them models
+        an inability to be reset.
+        """
+        stamped = self._data_dir() / "stamp"
+        was = stamped.read_text() if stamped.is_file() else None
+        if stamped.is_file():
+            stamped.unlink()
+        restored = self._write(self._data_dir() / "index.db", "derived state\n")
+        return {"perturbation": RESET_TO_SEEDED_INDEX, "stamp_before_reset": was,
+                "index": restored.name, "file_deleted_by_hand": False}
+
+    def _edit_one_item(self) -> dict:
+        """One title changes: its record recomputes, and its sections re-embed."""
+        self._bump(work__record__edit__done=1, work__embed__edit__done=SECTIONS)
+        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
+
+    def _resync_identical_bytes(self) -> dict:
+        """Signals move, keys are verified, nothing is recomputed."""
+        self._bump(work__record__resync__noop=len(ITEMS),
+                   work__embed__resync__noop=len(ITEMS) * SECTIONS)
+        return {"perturbation": RESYNC_IDENTICAL_BYTES, "items": len(ITEMS),
+                "bytes_changed": 0}
+
+    def _restamp(self, direction: str) -> dict:
+        """The index is stamped under another schema version. This one keeps serving."""
+        self._write(self._data_dir() / "stamp", direction)
+        return {"perturbation": direction, "file_deleted_by_hand": False}
 
     def _require(self, verb: str) -> None:
         # The lifecycle guard, and it is here because its absence was a real
@@ -133,11 +266,18 @@ class _Stub:
 
     def query(self, q: str, mode: str, limit: int) -> dict:
         self._require("query")
-        return {"hits": [], "mode": mode, "limit": limit}
+        return {"hits": self._hits(limit), "mode": mode, "limit": limit}
+
+    def _hits(self, limit: int) -> list:
+        """What this fixture serves. One row per item it holds, capped at `limit`."""
+        return [{"item": key} for key in ITEMS][:limit]
 
     def status(self) -> dict:
         self._require("status")
-        return {"embedding": {"locality": "local", "active": True, "model": "a-local-model"}}
+        return {
+            "embedding": {"locality": "local", "active": True, "model": "a-local-model"},
+            "work": self._counters(),
+        }
 
     def pause(self) -> dict:
         self._require("pause")
@@ -216,6 +356,136 @@ class _UninstallLeavesResidueStub(_Stub):
         return {**outcome, "kept": str(kept)}
 
 
+class _ChurnsOnResyncStub(_Stub):
+    """R3's first red, and the shipped defect in miniature.
+
+    The bytes are identical and it re-embeds anyway. The counters say so under
+    the `done` outcome, which is the whole point: the defect this fixture models
+    ran in production for a long time precisely because nothing read them.
+    """
+
+    def _resync_identical_bytes(self) -> dict:
+        self._bump(work__record__resync__noop=len(ITEMS),
+                   work__embed__resync__done=len(ITEMS) * SECTIONS)
+        return {"perturbation": RESYNC_IDENTICAL_BYTES, "items": len(ITEMS),
+                "bytes_changed": 0, "and_re_embedded_anyway": True}
+
+
+class _VerifiesNothingOnResyncStub(_Stub):
+    """R3's second red, and the reason that clause needs two detectors.
+
+    It recomputes nothing — and it also verifies nothing, because its reconcile
+    tick never ran. A check reading only the `done` outcome reports this as the
+    same clean green a correct target earns, which is the failure mode this whole
+    harness exists to refuse: an all-clear indistinguishable from "I could not
+    look".
+    """
+
+    def _resync_identical_bytes(self) -> dict:
+        return {"perturbation": RESYNC_IDENTICAL_BYTES, "items": 0,
+                "bytes_changed": 0, "verification_ran": False}
+
+
+class _RecomputesWholeLibraryOnEditStub(_Stub):
+    """R3's third red: one title changes and the whole library re-embeds.
+
+    Proportionality failing at the size-of-the-library end, which is the clause's
+    own wording — the cost tracks the library rather than the change.
+    """
+
+    def _edit_one_item(self) -> dict:
+        self._bump(work__record__edit__done=1,
+                   work__embed__edit__done=len(ITEMS) * SECTIONS)
+        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
+
+
+class _CorruptsOnCompanyStub(_Stub):
+    """R13's first red, and it wrecks the index only once both processes are gone.
+
+    Written this way deliberately. A pair that fails while it is live is caught
+    by the clause's first detector; a pair that answers perfectly and leaves the
+    file unreadable is caught only by the third process, and that detector would
+    otherwise never be seen red. The marker is written when a second process
+    stops, so the first two answer normally and the third does not.
+    """
+
+    # Concurrency is the condition, not restart count. The first draft wrecked
+    # the index after any two process *stops*, which also made this fixture red
+    # on R23 — a clause it is not about. A fail-control must fail the clause it
+    # was built for and no other, or the artifact stops naming causes.
+    #
+    # Both counters live in the ledger rather than in files of their own, and are
+    # only touched while the ledger exists: a marker recreated after `uninstall`
+    # had emptied the declared root turned this fixture red on R15's uninstall
+    # clause as well. Neither is a `work.<stage>.<trigger>.<outcome>` name, so no
+    # durability clause reads them.
+    def _on_start(self) -> None:
+        if not self._ledger().is_file():
+            return
+        if self._bump(live=1).get("live", 0) >= 2:
+            self._bump(saw_company=1)
+
+    def _on_stop(self) -> None:
+        # The damage becomes visible only once BOTH processes have gone, which is
+        # the point of this fixture: a pair that answers perfectly while it is
+        # live and leaves the file unreadable behind it is seen by the third
+        # process or by nothing. Marking the index unreadable the moment a second
+        # process started put the red in the pair phase instead and left the
+        # third-process detector unproven.
+        if not self._ledger().is_file():
+            return
+        current = self._bump(live=-1)
+        if current.get("live", 0) <= 0 and current.get("saw_company", 0):
+            self._bump(corrupt=1)
+
+    def query(self, q: str, mode: str, limit: int) -> dict:
+        self._require("query")
+        if self._counters().get("corrupt", 0):
+            raise RuntimeError(
+                "the index cannot be read: two concurrent processes left it in a "
+                "state this fixture cannot open")
+        return super().query(q, mode, limit)
+
+
+class _DuplicatesWorkOnCompanyStub(_Stub):
+    """R13's second red: the second process redoes work the first had finished.
+
+    It answers every query correctly while doing it, which is the reason the
+    clause is read from the counters and not from the replies. Its ledger is
+    shared with the first process because it is a file in the data directory,
+    so the duplication is visible where a real one would be.
+    """
+
+    def _first_build(self) -> None:
+        self._bump(work__record__new__done=len(ITEMS),
+                   work__embed__new__done=len(ITEMS) * SECTIONS)
+
+
+class _AbandonsForeignStampStub(_Stub):
+    """R23's red: a foreign stamp is declined, a fresh empty index opened, nothing served.
+
+    No file is deleted — the original is set aside under another name, which is
+    what makes this the interesting failure rather than an obvious one. Every
+    damage-prevention assertion passes against this behaviour; only the serving
+    clause sees it.
+    """
+
+    def _restamp(self, direction: str) -> dict:
+        stamped = self._data_dir() / "stamp"
+        self._write(stamped, direction)
+        sidelined = self._data_dir() / f"index.db.incompatible-{direction}"
+        index = self._data_dir() / "index.db"
+        if index.is_file():
+            index.rename(sidelined)
+        return {"perturbation": direction, "file_deleted_by_hand": False,
+                "sidelined_as": sidelined.name}
+
+    def _hits(self, limit: int) -> list:
+        if (self._data_dir() / "stamp").is_file():
+            return []
+        return super()._hits(limit)
+
+
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
                  unsupported: dict[str, str] | None = None) -> Declaration:
     return Declaration(
@@ -258,6 +528,28 @@ def build(name: str, arena: Path, **_opts):
 
     if name == "stub-uninstall-leaves-residue":
         return _UninstallLeavesResidueStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-churns-on-resync":
+        return _ChurnsOnResyncStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-verifies-nothing-on-resync":
+        return _VerifiesNothingOnResyncStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-recomputes-whole-library-on-edit":
+        return _RecomputesWholeLibraryOnEditStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-corrupts-on-company":
+        return _CorruptsOnCompanyStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-duplicates-work-on-company":
+        return _DuplicatesWorkOnCompanyStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-abandons-foreign-stamp":
+        return _AbandonsForeignStampStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
 
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(

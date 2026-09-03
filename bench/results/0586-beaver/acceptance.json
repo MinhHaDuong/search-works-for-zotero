@@ -1,0 +1,736 @@
+{
+  "probe": "the target-neutral acceptance layer, run against one adapter (SPEC.md §5.2.8; DECISIONS.md, ratified 2026-09-02)",
+  "not_a_test_suite": "each check exercises ONE MUST clause of one requirement, once, against ONE named target. A green is a green for that target and for nothing else.",
+  "date": "2026-09-03",
+  "declaration": {
+    "target": "jlegewie/beaver-zotero",
+    "revision": "beaver-zotero 0.23.3 (repository jlegewie/beaver-zotero, tag v0.23.3, annotated tag object 5047008d810abbd93579a6fa2c6877a51791e90c, commit bec71e141413a1a6d6ab80697e398feed8d45f4d), installed from the release artifact beaver.xpi, 7107803 bytes, sha256 e4846067f1d1d400d19893a9fb821aa6ea41999e072e822f951125ce2974915d — the file this add-on's own update.json names in update_link, which is the documented user install path rather than a build of the harness's own. The plugin vendors its PDF runtime inside the artifact and downloads no model, so unlike the second target there is no resolved dependency closure to pin beside this string. What the string does not pin is the hosted backend the shipped build is compiled against: api.beaverapp.ai, xxvxklysvpobontwhwoz.supabase.co, read out of the artifact's own content/reactBundle.js.",
+    "derived_state_roots": [
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver.sqlite",
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver.sqlite-wal",
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver.sqlite-shm",
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver.sqlite-journal",
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver",
+      "/home/haduong/data/ladder/beaver/arena3/data/beaver-mcp-stdio.mjs",
+      "/home/haduong/data/ladder/beaver/arena3/profile/beaver"
+    ],
+    "query_transport": "none in the configuration under test, and the reason is a finding rather than an omission. Three surfaces exist and all three are shut. (a) A JSON-RPC MCP endpoint the plugin registers on the host's own HTTP server at /beaver/mcp (src/services/mcpService.ts:121, registered from react/hooks/useMcpServer.ts:1511) is never mounted, because registration returns early on a preference whose shipped default is false (useMcpServer.ts:1478). MEASURED on a running instance: /connector/ping answers 200 while /beaver, /beaver/mcp, /beaver/search, /beaver/status and /mcp all answer 404 to GET and POST — the 200 is what makes the 404s readable rather than a probe that could not look. (b) Roughly 120 /beaver/* HTTP endpoints exist in source but are compiled out of the shipped build (react/hooks/useHttpEndpoints.ts:1325); the string 'Not registering endpoints in production' is present in the artifact's own bundle and no /beaver/test path is. (c) The zotero://beaver protocol handler (src/services/protocolHandler.ts:126-140) is UI navigation only: it accepts thread, preferences and sidebar routes, dispatches a DOM event and returns noContent, carrying no query text and returning no answer. Beyond transport, retrieval itself is unavailable without an account: the query embedding is fetched from the backend (src/services/semanticSearchService.ts:71) and the local metadata search is fail-closed on an empty library scope until an authenticated profile loads (react/atoms/profile.ts:96-101, 116-119).",
+    "default_configuration": "the shipped artifact's own prefs.js, unmodified. The values that decide what can be asked of this target: userId is empty and there is no stored session, so every backend call throws at packages/agent-core/src/transport/apiService.ts:290 before reaching fetch; mcpServerEnabled is false, so the machine-reachable query surface is never mounted; backgroundExtractorEnabled is true, so a background worker starts unconditionally (src/hooks.ts:259-261) though its queue stays empty without an account; dataProviderEnabled is false; accessRemoteFiles is true; authMethod is otp. The build under test is compiled against api.beaverapp.ai and xxvxklysvpobontwhwoz.supabase.co. The product discloses remote processing in its own onboarding UI — 'Some metadata and chat content are processed on our servers to power Beaver features' (react/components/pages/FreeOnboardingPage.tsx:137-138) — which is the disclosed remote processing DECISIONS.md expects R10 to fail against. Installing the plugin also causes the HOST to poll the add-on's update_url at github.com on its own schedule (manifest.json update_url); that egress is performed by the host application, not by plugin code, and the host-only baseline this artifact cites is what separates them. No preference is changed by this adapter: the five it writes are harness setup and are listed under `process`.",
+    "process": "the target is an in-process plugin, so the process the harness starts is the HOST application's and the target has no process of its own. Start: the artifact is copied to <profile>/extensions/beaver@jlegewie.com.xpi — the sideload path an ordinary user reaches through the add-on manager's Install from file — then the host binary is run with -profile, -datadir and -no-remote, with HOME and DISPLAY set. Five preferences are written into the profile beforehand and none of them is a target preference: extensions.autoDisableScopes=0 and extensions.enabledScopes=15 are what make a sideloaded artifact active without a GUI click, the httpServer port and enabled pair exists only so two harness instances can coexist on one machine (and is declared because on a plugin target it also relocates any endpoint the plugin registers), and app.update.enabled=false stops the host updating itself mid-measurement. Readiness: the harness waits for the TARGET's own beaver.sqlite to appear in the data directory, which is the only signal that discriminates — the host creates its own database with or without any add-on, and this file was measured to appear with the artifact installed and not to appear on the identical launch without it. A readiness probe over the network would not do: inside a network namespace with no route, loopback is down too. Dwell: the harness then holds the process for a declared number of seconds before the verbs run, because this target's startup work is asynchronous and a session stopped the moment its calls return leaves less state and makes fewer attempts than one held a few seconds longer. Stop: terminate then kill, addressed to the host's PROCESS GROUP rather than to what was spawned — measured here, the host's launcher is a shell script that runs the real application as a child rather than exec'ing it, so signalling the process kills the script and orphans the application, and two instances survived their lifecycle on the first run. The lifecycle stopping the process itself is also why this adapter's traced run can exit 0, where a probe that has to kill the host cannot. HOME is set but is NOT this target's boundary: measured, everything that appears under it is the host's and the desktop's. The adapter refuses the operator's own HOME, profile or data directory, because the residue sweep reads this declaration and a run without a sandbox would point it at real state.",
+    "unsupported_verbs": [
+      "pause",
+      "query",
+      "resume",
+      "status"
+    ],
+    "unsupported": [
+      {
+        "verb": "pause",
+        "why": "this target has two background workers and no single control over them, so the verb SPEC.md §5.2.8 defines as the two transitions of one durable background-work control has no referent here. The document extractor, started unconditionally at src/hooks.ts:259-261, does have a real durable pause: the hidden preference backgroundExtractorEnabled, read per tick (src/services/backgroundExtractor.ts:401), re-armed by a preference observer (:216), releasing in-flight work rather than losing it (:250-295) against job state checkpointed in SQLite (src/services/database.ts:605-629). Embedding indexing has no pause at all: it stops only by losing authentication (react/hooks/useEmbeddingIndex.ts:530-532) and its only user control is a rebuild (react/atoms/embeddingIndex.ts:136-139), which is the destructive action the ruling says resume must never be. Rejected alternative: map pause onto the extractor's preference and report a durable background-work control. That would be true of one worker and false of the other, and `unsupported` is per verb, so the declaration has no way to say which — the finding is in the module docstring."
+      },
+      {
+        "verb": "query",
+        "why": "there is no query surface in the configuration under test, and the three that exist are shut in three different ways — a preference default, a production build flag, and a route that carries no query. See `query_transport` for the addresses and the measurement. Two distinctions matter and must not be collapsed: this is NOT the second target's case, where a verb is absent because the target has no such work; and it is NOT quite the sibling plugin's either, where an opt-in preference alone hides an otherwise complete surface. Here the preference hides one surface, a build flag removes a second, and even with both open the query would still fail, because the query embedding is computed by the hosted backend and the local search scope is fail-closed until an authenticated profile loads. So this is additionally a clause that no credentialled run of ours could decide either: with an account it would become answerable, and we have none. Rejected alternative: set mcpServerEnabled true and call the result the normal configuration. It is a non-default option, which the ratified contract forbids in as many words; it writes a file into the data directory; it opens a listening socket the default configuration does not open, changing R10's subject; and it would still refuse every tools/call with 'User is not logged into Beaver' (src/services/mcpService.ts:243-251), so it buys a surface and no capability."
+      },
+      {
+        "verb": "resume",
+        "why": "absent for pause's reason, and not for the second target's: there IS background work here to resume — one worker's is checkpointed and would resume, the other's has no control at all — so this is a missing control over real work, which is the architectural opposite of a target that has no such work"
+      },
+      {
+        "verb": "status",
+        "why": "no machine-readable status surface. What exists is either in-process or internal: getStatus() and getStats() are methods on the plugin's own objects (src/services/backgroundExtractor.ts:150-152, src/services/documentCache.ts:968-974) reachable only from privileged JavaScript inside the host process, the indexing progress a user sees is an in-memory atom that is never persisted (react/atoms/embeddingIndex.ts:18-43), and the plugin's public API object is empty (src/addon.ts:47). This is the opposite of the second target, which offers a status tool and answers it thinly. Rejected alternative: read the counters out of the target's own sidecar database, where embedding_index_state and background_jobs do carry them (src/services/database.ts:387-394, 605-629). Any user can open that file, but it is not a surface the target offers — reading a private schema is a workaround for a missing surface, which the contract forbids, and the model_id it would yield is a client-side label written beside vectors the backend computed (src/services/embeddingIndexer.ts:195), so reporting it as the embedder in effect would be the adapter scoring a result. Without an account those tables are empty in any case, so the alternative would have decided nothing."
+      }
+    ],
+    "not_derived_state": [
+      {
+        "path": "/home/haduong/data/ladder/beaver/arena3/profile/prefs.js",
+        "why": "target-created derived state that this declaration CANNOT express, recorded here as the admission the field's contract asks for rather than passed over. The target writes its preferences as extensions.zotero.beaver.* keys into the host application's own preferences file (src/utils/prefs.ts:39-44); measured after one launch with no account, installedVersion, onboardingWelcomeShown, onboardingWelcomeShownAt and deletionJobs are in it. Declaring the file as a derived-state root would claim the host's preferences are the target's and would make R15's uninstall clause demand their deletion; omitting it entirely would under-declare. The interface's unit is a path and this state is a set of keys inside somebody else's file, so neither field fits and the honest move is to say so."
+      },
+      {
+        "path": "/home/haduong/data/ladder/beaver/arena3/data",
+        "why": "the host application's data directory, which is also the user's library — zotero.sqlite, fulltext.sqlite, storage/, translators/, styles/, locate/ and the host's own temp directory. R15 excludes the user's own library from derived state, and everything else here is created by the host with or without this target installed. The cost of exempting it whole is exact and is finding 2 in the module docstring: the target's sidecar sits INSIDE this directory, so a prefix exemption cannot distinguish the host's files from a stray of the target's, and a stray written here would not be reported. The declared roots above are what a reader checks instead, and the adapter reports which of them materialised."
+      },
+      {
+        "path": "/home/haduong/data/ladder/beaver/arena3/profile",
+        "why": "the host application's profile directory: its extensions store, certificate and cookie databases, startup cache, crash reports and its own preferences file. Created by the host with or without this target, and externally supplied configuration in R15's sense. The same cost as the entry above — the target's own directory sits inside it — and the same compensation: <profile>/beaver is declared as a root."
+      },
+      {
+        "path": "/home/haduong/data/ladder/beaver/arena3/home",
+        "why": "the sandbox HOME. Measured on this machine: everything that appears under it — .cache/mozilla, .cache/fontconfig, .cache/nvidia, .cache/zotero, .mozilla/extensions, .config/pulse, .config/mozilla, .zotero and Downloads — is created by Gecko and by the host desktop, and none of it is the target's. It is set to a scratch directory so that the host's caches do not land in the operator's real state; it is a sandbox for the host application, not a boundary for this target, which is the reverse of the second target's arrangement."
+      }
+    ]
+  },
+  "checks": [
+    {
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running",
+      "result": "not-offered",
+      "target": "jlegewie/beaver-zotero",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "no machine-readable status surface. What exists is either in-process or internal: getStatus() and getStats() are methods on the plugin's own objects (src/services/backgroundExtractor.ts:150-152, src/services/documentCache.ts:968-974) reachable only from privileged JavaScript inside the host process, the indexing progress a user sees is an in-memory atom that is never persisted (react/atoms/embeddingIndex.ts:18-43), and the plugin's public API object is empty (src/addon.ts:47). This is the opposite of the second target, which offers a status tool and answers it thinly. Rejected alternative: read the counters out of the target's own sidecar database, where embedding_index_state and background_jobs do carry them (src/services/database.ts:387-394, 605-629). Any user can open that file, but it is not a surface the target offers — reading a private schema is a workaround for a missing surface, which the contract forbids, and the model_id it would yield is a client-side label written beside vectors the backend computed (src/services/embeddingIndexer.ts:195), so reporting it as the embedder in effect would be the adapter scoring a result. Without an account those tables are empty in any case, so the alternative would have decided nothing.",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status"
+        ]
+      }
+    },
+    {
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "result": "fail",
+      "target": "jlegewie/beaver-zotero",
+      "verb": "query",
+      "detail": {
+        "verbs_driven": [
+          "install",
+          "configure"
+        ],
+        "verbs_not_offered": [
+          "resume",
+          "query"
+        ],
+        "isolation_mechanism": {
+          "name": "podman-unshare",
+          "how": "podman unshare: the rootless user namespace, with a fresh empty network namespace inside it for the isolated arm. The host filesystem stays mounted, so the writable set is not enforced on this arm",
+          "writable_enforced": false
+        },
+        "subject": {
+          "mechanism": "podman-unshare",
+          "network_shared": false,
+          "returncode": 0,
+          "attempt_counts": {
+            "off_machine": 0,
+            "dns": 60
+          },
+          "attempts": [
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            }
+          ],
+          "stdout_tail": "le/beaver\": true}}, \"configure\": {\"verb\": \"configure\", \"applied\": null, \"channel\": \"the host's preference store; the configuration under test is the artifact's own shipped prefs.js, unmodified\", \"harness_prefs\": [\"user_pref(\\\"extensions.autoDisableScopes\\\", 0);\", \"user_pref(\\\"extensions.enabledScopes\\\", 15);\", \"user_pref(\\\"extensions.zotero.httpServer.enabled\\\", true);\", \"user_pref(\\\"extensions.zotero.httpServer.port\\\", 23319);\", \"user_pref(\\\"app.update.enabled\\\", false);\"], \"backend_hosts_compiled_in\": [\"api.beaverapp.ai\", \"xxvxklysvpobontwhwoz.supabase.co\"], \"default_configuration\": \"the shipped artifact's own prefs.js, unmodified. The values that decide what can be asked of this target: userId is empty and there is no stored session, so every backend call throws at packages/agent-core/src/transport/apiService.ts:290 before reaching fetch; mcpServerEnabled is false, so the machine-reachable query surface is never mounted; backgroundExtractorEnabled is true, so a background worker starts unconditionally (src/hooks.ts:259-261) though its queue stays empty without an account; dataProviderEnabled is false; accessRemoteFiles is true; authMethod is otp. The build under test is compiled against api.beaverapp.ai and xxvxklysvpobontwhwoz.supabase.co. The product discloses remote processing in its own onboarding UI — 'Some metadata and chat content are processed on our servers to power Beaver features' (react/components/pages/FreeOnboardingPage.tsx:137-138) — which is the disclosed remote processing DECISIONS.md expects R10 to fail against. Installing the plugin also causes the HOST to poll the add-on's update_url at github.com on its own schedule (manifest.json update_url); that egress is performed by the host application, not by plugin code, and the host-only baseline this artifact cites is what separates them. No preference is changed by this adapter: the five it writes are harness setup and are listed under `process`.\"}, \"resume\": \"not-offered\", \"query\": \"not-offered\"}\n",
+          "stderr_tail": ""
+        },
+        "control": {
+          "net_shared": {
+            "mechanism": "podman-unshare",
+            "network_shared": true,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 3
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "isolated": {
+            "mechanism": "podman-unshare",
+            "network_shared": false,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 4
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "why_both": "the shared arm proves the tracer sees attempts and the machine has a route; the isolated arm proves each detector still fires when nothing can leave. Without both, a zero from the subject arm is indistinguishable from an instrument that could not look."
+        },
+        "detectors": {
+          "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+          "dns": "a connect/sendto/sendmsg to a resolver port, loopback included: inside a no-route namespace a hostname attempt dies at resolution and leaves no off-machine connect at all, so a detector without this one reports a false green"
+        },
+        "run_completed": true
+      }
+    },
+    {
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state",
+      "result": "pass",
+      "target": "jlegewie/beaver-zotero",
+      "verb": "install",
+      "detail": {
+        "install_event": {
+          "verb": "install",
+          "artifact": "/home/haduong/data/ladder/beaver/beaver.xpi",
+          "artifact_sha256": "e4846067f1d1d400d19893a9fb821aa6ea41999e072e822f951125ce2974915d",
+          "artifact_bytes": 7107803,
+          "installed_at": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile/extensions/beaver@jlegewie.com.xpi",
+          "addon_id": "beaver@jlegewie.com",
+          "version": "0.23.3",
+          "commit": "bec71e141413a1a6d6ab80697e398feed8d45f4d",
+          "startup": {
+            "argv": [
+              "/home/haduong/.local/Zotero_linux-x86_64/zotero",
+              "-profile",
+              "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile",
+              "-datadir",
+              "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data",
+              "-no-remote"
+            ],
+            "harness_prefs": [
+              "user_pref(\"extensions.autoDisableScopes\", 0);",
+              "user_pref(\"extensions.enabledScopes\", 15);",
+              "user_pref(\"extensions.zotero.httpServer.enabled\", true);",
+              "user_pref(\"extensions.zotero.httpServer.port\", 23319);",
+              "user_pref(\"app.update.enabled\", false);"
+            ],
+            "host_database_after_s": 1.0,
+            "plugin_database_after_s": 2.0,
+            "plugin_loaded": true,
+            "startup_timeout_s": 180.0
+          },
+          "host_output_tail": [
+            "[1904067] Sandbox: CanCreateUserNamespace() unshare(CLONE_NEWPID): EPERM",
+            "Crash Annotation GraphicsCriticalError: |[0][GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device",
+            " (t=0.304949) [GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device",
+            "",
+            "Missing chrome or resource URL: chrome://zotero/skin/16/white/loading.svg",
+            "ERROR: Exception occurred: There is no such extension deployed: org.Zotero.integration.openoffice at ./desktop/source/deployment/manager/dp_manager.cxx:970",
+            "",
+            "ERROR: unopkg failed.",
+            ""
+          ],
+          "host_activated": {
+            "read": true,
+            "present": true,
+            "version": "0.23.3",
+            "active": true,
+            "location": "app-profile"
+          },
+          "declared_roots_present": {
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite": true,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-wal": true,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-shm": false,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-journal": false,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver": false,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver-mcp-stdio.mjs": false,
+            "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile/beaver": true
+          }
+        },
+        "arena": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory",
+        "created_count": 1143,
+        "declared_roots": [
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-wal",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-shm",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver.sqlite-journal",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data/beaver-mcp-stdio.mjs",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile/beaver"
+        ],
+        "not_derived_state": [
+          {
+            "path": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile/prefs.js",
+            "why": "target-created derived state that this declaration CANNOT express, recorded here as the admission the field's contract asks for rather than passed over. The target writes its preferences as extensions.zotero.beaver.* keys into the host application's own preferences file (src/utils/prefs.ts:39-44); measured after one launch with no account, installedVersion, onboardingWelcomeShown, onboardingWelcomeShownAt and deletionJobs are in it. Declaring the file as a derived-state root would claim the host's preferences are the target's and would make R15's uninstall clause demand their deletion; omitting it entirely would under-declare. The interface's unit is a path and this state is a set of keys inside somebody else's file, so neither field fits and the honest move is to say so."
+          },
+          {
+            "path": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/data",
+            "why": "the host application's data directory, which is also the user's library — zotero.sqlite, fulltext.sqlite, storage/, translators/, styles/, locate/ and the host's own temp directory. R15 excludes the user's own library from derived state, and everything else here is created by the host with or without this target installed. The cost of exempting it whole is exact and is finding 2 in the module docstring: the target's sidecar sits INSIDE this directory, so a prefix exemption cannot distinguish the host's files from a stray of the target's, and a stray written here would not be reported. The declared roots above are what a reader checks instead, and the adapter reports which of them materialised."
+          },
+          {
+            "path": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/profile",
+            "why": "the host application's profile directory: its extensions store, certificate and cookie databases, startup cache, crash reports and its own preferences file. Created by the host with or without this target, and externally supplied configuration in R15's sense. The same cost as the entry above — the target's own directory sits inside it — and the same compensation: <profile>/beaver is declared as a root."
+          },
+          {
+            "path": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-residue-inventory/home",
+            "why": "the sandbox HOME. Measured on this machine: everything that appears under it — .cache/mozilla, .cache/fontconfig, .cache/nvidia, .cache/zotero, .mozilla/extensions, .config/pulse, .config/mozilla, .zotero and Downloads — is created by Gecko and by the host desktop, and none of it is the target's. It is set to a scratch directory so that the host's caches do not land in the operator's real state; it is a sandbox for the host application, not a boundary for this target, which is the reverse of the second target's arrangement."
+          }
+        ],
+        "residue": [],
+        "residue_count": 0,
+        "reads": "the declaration is compared against what appeared in a harness-owned arena, never read back against itself"
+      }
+    },
+    {
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say",
+      "result": "not-offered",
+      "target": "jlegewie/beaver-zotero",
+      "verb": "query",
+      "detail": {
+        "verb": "query",
+        "why": "the adapter declares 'query' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "there is no query surface in the configuration under test, and the three that exist are shut in three different ways — a preference default, a production build flag, and a route that carries no query. See `query_transport` for the addresses and the measurement. Two distinctions matter and must not be collapsed: this is NOT the second target's case, where a verb is absent because the target has no such work; and it is NOT quite the sibling plugin's either, where an opt-in preference alone hides an otherwise complete surface. Here the preference hides one surface, a build flag removes a second, and even with both open the query would still fail, because the query embedding is computed by the hosted backend and the local search scope is fail-closed until an authenticated profile loads. So this is additionally a clause that no credentialled run of ours could decide either: with an account it would become answerable, and we have none. Rejected alternative: set mcpServerEnabled true and call the result the normal configuration. It is a non-default option, which the ratified contract forbids in as many words; it writes a file into the data directory; it opens a listening socket the default configuration does not open, changing R10's subject; and it would still refuse every tools/call with 'User is not logged into Beaver' (src/services/mcpService.ts:243-251), so it buys a surface and no capability.",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status"
+        ]
+      }
+    },
+    {
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall",
+      "result": "fail",
+      "target": "jlegewie/beaver-zotero",
+      "verb": "uninstall",
+      "detail": {
+        "uninstall_event": {
+          "verb": "uninstall",
+          "removed": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/profile/extensions/beaver@jlegewie.com.xpi",
+          "artifact_was_present": true,
+          "what_this_does_not_do": "no derived state is deleted by the harness. The target's own bootstrap uninstall hook is empty and its shutdown path deletes nothing, so whatever the sweep now finds under the declared roots survived a removal this target does not act on",
+          "host_activated": {
+            "read": true,
+            "present": true,
+            "version": "0.23.3",
+            "active": true,
+            "location": "app-profile"
+          }
+        },
+        "declared_roots": [
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite-wal",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite-shm",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite-journal",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver-mcp-stdio.mjs",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/profile/beaver"
+        ],
+        "survivors": [
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite",
+          "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state/data/beaver.sqlite-wal"
+        ],
+        "survivor_count": 2,
+        "arena": "/home/haduong/data/ladder/beaver/arena3/2026-09-03/005757-R15-uninstall-removes-declared-state"
+      }
+    }
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 2,
+    "not-offered": 2,
+    "not-run": 0
+  }
+}
