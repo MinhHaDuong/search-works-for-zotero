@@ -14,6 +14,8 @@ Author: Minh Ha-Duong
 2026-09-03T17:52Z claude note PRECEDENT ALREADY MEASURED: ticket 0120's 2026-08-29 fts5vocab/ft-cache census (filesystem, PDFs only) found 4,708 of 8,590 PDF `.zotero-ft-cache` files carry U+000C form feeds and 3,882 do not, split generationally by mtime — the form-feed group is 4,695/4,708 from 2024-2026 (Zotero's PDFWorker.getFullText extractor, verified against shipped `fulltext.js`), the plain group 3,825/3,882 from 2019-2024 (poppler pdftotext, still wired for other callers). That is 54.8%/45.2%, matching "roughly half" for PDFs specifically, and the mtime-generational split holding for ~99% of both groups is close to a ready-made detection heuristic with a measured ~1% cross-generational residual — Action 1 should treat this as a partial answer to re-run at current library scale (the population has grown, per the discrepancy above) and Action 2 should treat 0120's split as the primary signal, not derive one from scratch. 0120's census was PDF-restricted; HTML/epub/plain-text caches (8 html, 10 epub, 3 text/xml per 0120) need either their own signal or an explicit "not assessed" bucket, not a form-feed test they cannot pass or fail meaningfully.
 2026-09-03T17:52Z claude note ANTIPATTERN SCAN: no maintained-library check found in this repo for ligature/mojibake detection (grepped for `ftfy`/`mojibake`/`ligature`: only this ticket's own prose and 0120's ONNX-segmenter note, which is unrelated). Before hand-rolling regex heuristics for mangled diacritics/mojibake, evaluate `ftfy` (the standard maintained Python library for exactly this: `ftfy.badness` / `fix_text` diff as a weirdness score) rather than inventing one. Form-feed presence needs no library — it is a single-byte scan, and 0120 already validated it. If `ftfy` is adopted, it must be declared per `bench/check_deps.py`'s convention (a name used and not declared, or declared and not used, fails `make check`) — it is lightweight (no torch), so it likely belongs beside `numpy` in `requirements-check.txt` rather than `requirements-drivers.txt`, but that placement is Action 1's implementation call, not ruled here.
 2026-09-03T17:53Z claude note ITEM-COUNT-SCOPE DISCREPANCY RESOLVED. Author's hunch confirmed directly against padme's local API: `/items` (every item record, including each child attachment and note) returns 17,518; `/items/top` (top-level bibliographic entries only) returns 7,546 — 5 above SPEC.md §5.2.8's cited 7,541, consistent with ordinary library growth since that figure was recorded, not a scope error. Neither of the two candidates logged above was it: not group-library inclusion, not a stale figure needing a real re-pin, just entries versus every item record. Action 1's denominator is therefore 7,546 top-level items (or whatever subset of those carries a PDF attachment), not 17,518 — re-derive the "roughly half" population against `/items/top`, and state this scope explicitly in the artifact rather than letting the two figures be read as comparable.
+2026-09-03T18:25Z claude note actions 1-3 done, the ticket stays open on action 4 (the author's ruling). Census over padme's ~/data/Zotero-fresh/storage: 8 211 of 8 552 PDF caches carry no form feed, so the population is 96,0 % rather than the estimated half — the "too small to justify the machinery" exit is closed by the data. Detection is the in-band form feed alone; the mtime arm of 0120's candidate is dead here because a resync reset every cache mtime to 2026. Two signals the classifier did not use sort with the split (all 1 009 ligature-carrying caches in the old group, none in the new; mojibake 9,2 % against 4,1 %). Also found: fulltextItems is empty on this machine, so upstream's reindexTruncated selects nothing at all. One experiment named and not run — re-extract a known document and watch a form feed appear
+2026-09-03T18:51Z claude note RED-TEAM BLOCKER FIXED: census()'s walker used Path.glob("*/" + CACHE_NAME), whose internal recursion silently swallows PermissionError while scanning a subdirectory it cannot enter -- a permission-denied attachment directory vanished from every count with no error, making the committed "unreadable_caches: 0" indistinguishable between "fully scanned" and "silently skipped" (reproduced by the reviewer via chmod 0o000). Fixed by walking storage.iterdir() explicitly, which only needs permission on storage itself, then letting each child's real read failure surface through the existing per-cache try/except OSError. Reproduced the reviewer's exact case before and after: before, the denied directory disappeared silently; after, unreadable_caches correctly reads 1 with the key recorded. Added test_permission_denied_directory_is_reported_unreadable as a positive control for the walker's completeness (distinct from the existing, now-renamed test_undecodable_bytes_are_reported_not_swallowed, which only ever covered the decode-error path). All 12 tests pass (11 pass, 1 skip -- ftfy absent, same as every reviewer's environment), ruff clean. padme's real census re-run not yet repeated with the fix; the committed artifact's unreadable_caches: 0 was very likely already correct (this is the author's own library, a chmod-000 attachment dir is implausible) but now for a reason the code can attest to, not by construction of a walker that could not see failures.
 --- body ---
 ## Context
 
@@ -132,14 +134,18 @@ Two established facts frame the design space:
 
 ## Verification
 
-- [ ] Population measured on the real library, artifact committed with
-      provenance
-- [ ] Item-count-scope discrepancy (local vs Web API vs SPEC.md's 7,541)
-      resolved with a stated cause, or recorded as an open question naming
-      the one experiment that would settle it — never silently dropped
-- [ ] Detection heuristic proposed with measured false-flag behaviour, per
-      content-type bucket
-- [ ] Ruling question filed in DECISIONS.md awaiting ratification
+- [x] Population measured on the real library, artifact committed with
+      provenance — `bench/results/0480-fulltext-quality/census.json`, padme
+      2026-09-03; 8 211 of 8 552 PDF caches pre-form-feed (96,0 %), not the
+      estimated half
+- [x] Item-count-scope discrepancy (local vs Web API vs SPEC.md's 7,541)
+      resolved — entries vs every item record, see the 17:53Z log entry
+- [x] Detection heuristic proposed with measured false-flag behaviour — the
+      in-band form feed, false-flag ceiling 3,4 % (282 short-but-real caches);
+      the mtime arm of ticket 0120's candidate is dead on this library and is
+      dropped. Report: `verification/FULLTEXT-QUALITY-0480.md`
+- [x] Ruling question filed in DECISIONS.md awaiting ratification
+- [ ] The author has ruled (exit criteria) — pending
 
 ## Invariants
 

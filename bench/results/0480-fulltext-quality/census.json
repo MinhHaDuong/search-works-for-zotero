@@ -1,0 +1,54 @@
+{
+ "caches_detail": [],
+ "provenance": {
+  "ftfy_version": "6.3.1",
+  "host": "padme",
+  "loadavg": [
+   1.18603515625,
+   1.15576171875,
+   1.09716796875
+  ],
+  "measured_at": "2026-09-03T18:38:42+00:00",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "storage_realpath": "/home/haduong/data/Zotero-fresh/storage"
+ },
+ "storage": "/home/haduong/data/Zotero-fresh/storage",
+ "summary": {
+  "by_form_feed": {
+   "no_form_feed": {
+    "caches": 8211,
+    "median_words": 8194,
+    "mojibake": 753,
+    "mojibake_measured": 8211,
+    "near_empty": 339,
+    "with_ligatures": 1009,
+    "zero_words": 254
+   },
+   "with_form_feed": {
+    "caches": 341,
+    "median_words": 9214,
+    "mojibake": 14,
+    "mojibake_measured": 341,
+    "near_empty": 0,
+    "with_ligatures": 0,
+    "zero_words": 0
+   }
+  },
+  "caches": 13328,
+  "decode_error_caches": 181,
+  "non_pdf_caches": 4776,
+  "pdf_caches": 8552,
+  "pdf_mojibake": 767,
+  "pdf_mojibake_measured": 8552,
+  "pdf_near_empty": 339,
+  "pdf_no_form_feed": 8211,
+  "pdf_no_form_feed_single_page_suspect": 282,
+  "pdf_with_form_feed": 341,
+  "pdf_with_ligatures": 1009,
+  "pdf_zero_words": 254,
+  "unreadable_caches": 0,
+  "unreadable_detail": []
+ },
+ "ticket": "0480"
+}
