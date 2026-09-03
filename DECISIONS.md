@@ -5854,7 +5854,7 @@ v2 soon after, at two full drains.
   was forced by an existing target rather than chosen, and asked here because it
   becomes a standing convention the moment a second re-baseline follows it.
 
-  Upstream released v1.13.0 on 2026-09-03 and `main` moved three commits past
+  Upstream released v1.13.0 on 2026-09-03 and `main` moved four commits past
   the tag the same day. `make upstream-status` compares `UPSTREAM_REVIEWED_SHA`
   against `main`, so pinning the tag would have left that target red on the day
   it was written — and a status target that is permanently red is one nobody
@@ -5864,7 +5864,7 @@ v2 soon after, at two full drains.
   what the standing page dates itself by and what `check_progress`'s BASELINE
   clause parses; the three-commit gap is disclosed in `UPSTREAM`'s own comment
   and in the re-read rather than spelled into the version string, since
-  `PAGE_VERSION` reads `vN.N.N` and a `v1.13.0+3` would fail to match itself.
+  `PAGE_VERSION` reads `vN.N.N` and a `v1.13.0+4` would fail to match itself.
 
   **What ratification would settle, and it is not the choice above.** It is what
   the version key MEANS from now on. Under this convention the reviewed tree can
