@@ -567,12 +567,27 @@ class _ForgetsPauseOnRestartStub(_Stub):
 
 
 class _ConfiguresBlindStub(_Stub):
-    """R31's red: the configuration is accepted without being tried, and cannot serve.
+    """R31's red: the configuration is accepted without being tried, and is dead.
 
-    `configure` returns success and validates nothing; the query that first
-    invokes what was configured is where the failure surfaces. The order is the
-    whole fixture — the same target raising at `configure` would be green,
-    because failing loudly before use is R31's other branch.
+    `configure` returns success and validates nothing, and the target's own
+    `status` then reports that what it accepted is not in effect. The report is
+    the fixture's whole content, and it is a report rather than an exception on
+    purpose: the assertion cannot tell a target refusing a configuration from a
+    transport that died, so a fixture expressing its defect by raising would be
+    asking to be graded on something no target's verdict can rest on.
+
+    The query still fails, because a configuration that is not in effect cannot
+    serve — but nothing grades that failure, and the assertion reports `not-run`
+    if it reaches it. It is here so the fixture is coherent, not so it is scored.
+
+    **It reddens `R10-local-by-default` as well, and that red is kept.** One
+    fixture per cause is about a red naming a defect rather than a region, and
+    this is one cause reaching two clauses rather than two causes: R10's own
+    falsifier names "a local embedder that is configured but not running", which
+    is a literal description of the state this fixture reports. Suppressing it
+    would mean keying the fixture's behaviour on which assertion is looking,
+    which is a fixture built to dodge a clause. R10 has its own fail-control in
+    `remote-embedder`, so nothing rests on this one either way.
     """
 
     #: Whether this instance has been handed the configuration it never checked.
@@ -587,6 +602,13 @@ class _ConfiguresBlindStub(_Stub):
         self._configured = True
         return {"configuration": self.declaration.default_configuration,
                 "validated": False}
+
+    def status(self) -> dict:
+        reported = super().status()
+        if not self._configured:
+            return reported
+        return {**reported,
+                "embedding": {"locality": "local", "active": False, "model": None}}
 
     def query(self, q: str, mode: str, limit: int) -> dict:
         self._require("query")

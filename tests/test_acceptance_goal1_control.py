@@ -166,30 +166,46 @@ def test_a_queued_change_is_not_work_done(tmp_path):
 # --------------------------------------------------------------------------
 
 
-def test_a_configuration_accepted_and_then_unusable_is_red(tmp_path):
+def test_a_configuration_accepted_while_dead_is_red(tmp_path):
+    """The red is the target's own report, not an exception."""
     check = assertions.check_configure_proves_it_works_here(
         a_stub("stub-configures-blind", tmp_path))
     assert check.result == FAIL
     assert check.detail["configure_event"]["validated"] is False
-    assert "RuntimeError" in check.detail["query_failed_after_configure_returned"]
+    assert check.detail["embedder_active_after_configure"] is False
 
 
-def test_a_configuration_that_fails_loudly_is_green(tmp_path):
-    """The clause's other branch, and the reason this is not "any exception is red".
+@pytest.mark.parametrize("surface", ["configure", "query"])
+def test_a_surface_that_raises_is_not_run_rather_than_a_verdict(surface, tmp_path):
+    """Neither direction of the exception reading survives, and that is the point.
 
-    A target refusing at `configure` has done exactly what R31 asks: it proved
-    the configuration does not work here, before anything used it. The same
-    failure arriving one verb later is the red above.
+    The first version of this clause graded a raising `configure` green — it
+    "failed loudly" — and a raising `query` red — it "could not answer". The
+    layer cannot tell a target refusing a configuration from a transport that
+    died, so one reading manufactured a green out of a broken instrument and the
+    other manufactured a red out of the same event one verb later. Both are
+    `not-run`, and this test is parametrized over the pair so that reintroducing
+    either asymmetry fails here.
     """
-    target = a_stub("stub-quiet", tmp_path)
+    target = a_stub("stub-quiet", tmp_path, at=surface)
 
-    def refuses():
-        raise RuntimeError("this configuration cannot run on this machine")
+    def raises(*args, **kwargs):
+        raise RuntimeError("the transport to this target died")
 
-    target.configure = refuses
+    setattr(target, surface, raises)
     check = assertions.check_configure_proves_it_works_here(target)
-    assert check.result == PASS
-    assert "RuntimeError" in check.detail["configure_failed_loudly"]
+    assert check.result == NOT_RUN
+    assert "RuntimeError" in check.detail["why"]
+    assert "cannot tell" in check.detail["why"]
+
+
+def test_a_target_reporting_no_embedder_state_leaves_the_clause_undecided(tmp_path):
+    """Whether what was accepted is in effect cannot be read from silence."""
+    target = a_stub("stub-quiet", tmp_path)
+    target.status = lambda: {"embedding": {}, "work": {}}
+    check = assertions.check_configure_proves_it_works_here(target)
+    assert check.result == NOT_RUN
+    assert "no embedder state" in check.detail["why"]
 
 
 def test_an_empty_answer_is_an_answer(tmp_path):
@@ -213,6 +229,30 @@ def test_a_target_without_the_surface_is_not_offered_rather_than_red(assertion, 
     assert check.result == NOT_OFFERED
     assert check.verb in ("pause", "status", "configure", "query")
     assert check.detail["why_absent"], "an absent verb carries the reason it is absent"
+
+
+def test_a_raising_verb_does_not_take_the_egress_sweep_down_with_it(tmp_path):
+    """One fixture's broken verb must not score every target red on another clause.
+
+    `drive()` is what `--drive` runs under the tracer, and it grades nothing: the
+    egress clause is about what a default-configuration run touched, and a target
+    that raises at `query` has still either reached off this machine or not. An
+    exception escaping instead ends that subprocess non-zero, which
+    `check_no_egress` reads as its own failure — R10 red on a target for a defect
+    in R31's fixture. Reproduced against `stub-configures-blind` before the guard.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "acceptance_run", REPO / "bench" / "acceptance" / "run.py")
+    run = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(run)
+
+    done = run.drive(a_stub("stub-configures-blind", tmp_path))
+    assert "raised: RuntimeError" in done["query"], (
+        "a verb that raised must be recorded rather than propagated"
+    )
+    assert done["install"], "the verbs before it must still have been driven"
 
 
 class _Counterless:
@@ -247,6 +287,26 @@ def test_a_target_without_work_counters_is_not_run_rather_than_green(assertion, 
     check = assertion(_Counterless(tmp_path))
     assert check.result == NOT_RUN
     assert "work.<stage>.<trigger>.<outcome>" in check.detail["why"]
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_a_pause_surface_that_raises_is_not_run_rather_than_ending_the_run(
+        assertion, tmp_path):
+    """`assess` wraps no check in a try, so an unguarded verb loses the artifact.
+
+    Not a hypothetical: the model-cache clause in this same change had to be
+    guarded after a fixture's raising query ended a whole fail-control run with a
+    traceback, every assertion after it unrecorded.
+    """
+    target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
+
+    def raises():
+        raise RuntimeError("the transport to this target died")
+
+    target.pause = raises
+    check = assertion(target)
+    assert check.result == NOT_RUN
+    assert "pause surface raised" in check.detail["why"]
 
 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)

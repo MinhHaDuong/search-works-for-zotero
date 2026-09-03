@@ -561,6 +561,23 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
 # with no one asking it to carry on, so asking would erase the finding.
 
 
+def _pause_could_not_look(cid: str, req: str, clause: str, falsified: str,
+                          target: Target, why: BaseException) -> Check:
+    """The control was reached for and the reach itself failed.
+
+    Guarded rather than left to propagate, and the reason is one this commit
+    already had to fix once: `assess` wraps no check in a try, so a verb raising
+    on a real target's transport ends the whole run with a traceback — every
+    assertion after it unrecorded, and the artifact the gate reads never written.
+    An assertion that cannot look reports that it could not look.
+    """
+    return not_run(
+        cid, req, clause, falsified, target, "pause",
+        f"the target's pause surface raised ({type(why).__name__}: {why}), so the "
+        "control was never used and nothing here decides whether it stops the work",
+    )
+
+
 def _pause_verdict(cid: str, req: str, clause: str, falsified: str, target: Target,
                    before: dict[str, int], after: dict[str, int], detail: dict) -> Check:
     """The arithmetic both pause clauses share: did any `done` counter advance.
@@ -621,7 +638,12 @@ def check_pause_stops_background_work(target: Target) -> Check:
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "before the pause")
-        paused = target.pause()
+        try:
+            paused = target.pause()
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            return _pause_could_not_look(cid, req, clause, falsified, target, why)
         before, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
@@ -672,7 +694,12 @@ def check_pause_holds_across_restart(target: Target) -> Check:
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "before the pause")
-        paused = target.pause()
+        try:
+            paused = target.pause()
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            return _pause_could_not_look(cid, req, clause, falsified, target, why)
         before, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
@@ -703,22 +730,30 @@ def check_pause_holds_across_restart(target: Target) -> Check:
 
 
 def check_configure_proves_it_works_here(target: Target) -> Check:
-    """R31: a configuration is not accepted silently and then found unusable.
+    """R31: a configuration is not accepted silently while what it configured is dead.
 
-    The clause offers a target two ways to be right and one way to be wrong, and
-    the assertion is shaped as that disjunction rather than as a search for a
-    validation step. It cannot see whether a target validated anything — the
-    contract fixes seven verbs and says nothing about a configuration's contents,
-    and a harness that reached for the contents would be reading one product's
-    settings file. What it can see is the order of events: `configure` returned
-    without complaint, and then the path it accepted could not answer.
+    The red is read from the target's own report, not from an exception, and that
+    is the correction that shapes the whole assertion. The first version graded
+    exceptions: a `configure` that raised was green (it "failed loudly") and a
+    `query` that raised was red (it "could not answer"). Both readings were
+    wrong, and wrong in the same way — the layer cannot tell a target refusing a
+    configuration from a transport that died, so one reading manufactured a green
+    out of a broken instrument and the other manufactured a red out of the
+    identical event one verb later. An exception here decides nothing, and the
+    honest verdict for a harness that could not look is `not-run`.
 
-    - `configure` fails loudly: green. It refused before anything used it, which
-      is the clause's second branch in as many words.
-    - `configure` returns and a query is answered: green.
-    - `configure` returns and the query cannot be answered: red. This is the
-      shipped defect R31's row names — the failure fires reactively, when the
-      embedder is actually invoked, rather than upfront.
+    What can be read is the normalized status shape this module already declares
+    for R10. After `configure` returns, `embedding.active` is the target saying
+    whether what it just accepted is in effect. A configuration accepted without
+    complaint whose embedder is not active is exactly the shipped defect R31's row
+    names: nothing validates before an index is created or queried, and the
+    failure surfaces later, when the embedder is actually invoked.
+
+    - `configure` returns, the target reports its embedder active, and the query
+      is answered: green.
+    - `configure` returns and the target reports the embedder inactive: red.
+    - anything raises, or the target reports no embedder state, or it answers
+      without saying what it matched: `not-run`, naming what could not be read.
 
     **What this does not catch, stated because the row's evidence depends on it.**
     A target that validates nothing and happens to work on this machine is green
@@ -726,7 +761,13 @@ def check_configure_proves_it_works_here(target: Target) -> Check:
     validation ran needs a configuration known to be unusable, and offering one
     means naming a target's own configuration surface, which the contract puts in
     the adapter. Until an adapter offers that, this clause's green means "not
-    caught silently failing", and the sheet's evidence column stays where it is.
+    caught accepting a dead configuration", and the sheet's evidence column stays
+    where it is.
+
+    `install` runs first where it is offered, for the reason
+    `check_model_cache_under_declared_roots` runs it: a target whose retrieval
+    surface only exists after installation would otherwise be graded on a state
+    the harness withheld from it.
 
     An empty hit list is an answer, not a failure: a target may be configured
     correctly and hold nothing yet, and a clause about configuration must not
@@ -735,28 +776,52 @@ def check_configure_proves_it_works_here(target: Target) -> Check:
     cid, req = "R31-configure-proves-or-fails-loudly", "R31"
     clause = ("a configuration offered to me proves it works on this machine before it "
               "is used, or fails loudly here")
-    falsified = ("a configure that returns without complaint, followed by a query the "
-                 "configured path cannot answer")
+    falsified = ("a configure that returns without complaint while the target reports "
+                 "that what it configured is not in effect")
 
-    for verb in ("configure", "query"):
+    for verb in ("configure", "query", "status"):
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
+
+    def could_not_look(verb: str, why: BaseException) -> Check:
+        return not_run(
+            cid, req, clause, falsified, target, verb,
+            f"the target's {verb} surface raised ({type(why).__name__}: {why}). The "
+            "layer cannot tell a target refusing a configuration from an instrument "
+            "that broke, so this decides nothing either way — grading it green would "
+            "read a dead transport as a loud refusal, and grading it red would read "
+            "one as a defect.",
+        )
 
     q, limit = "a query the harness supplies once the configuration is accepted", 5
     with target.running():
         try:
+            if target.declaration.offers("install"):
+                target.install()
             accepted = target.configure()
+            reported = (target.status().get("embedding") or {}).get("active")
         except UnsupportedVerb:
             raise
-        except Exception as loud:
+        except Exception as why:
+            return could_not_look("configure", why)
+
+        if reported is None:
+            return not_run(
+                cid, req, clause, falsified, target, "status",
+                "the target reports no embedder state, so whether what it just accepted "
+                "is in effect has nothing here to be read from and the clause is not "
+                "decided",
+            )
+        if not reported:
             return Check(
                 check=cid, requirement=req, clause=clause, falsified_by=falsified,
-                result=PASS, target=target.declaration.name, verb="configure",
+                result=FAIL, target=target.declaration.name, verb="configure",
                 detail={
-                    "configure_failed_loudly": f"{type(loud).__name__}: {loud}",
-                    "reads": ("the clause's second branch: a configuration refused "
-                              "before anything used it is the outcome R31 asks for, "
-                              "and the harness does not second-guess the refusal"),
+                    "configure_event": accepted,
+                    "embedder_active_after_configure": False,
+                    "reads": ("the configuration was accepted without complaint and the "
+                              "target itself reports that what it configured is not in "
+                              "effect, which is the order the clause forbids"),
                 },
             )
         try:
@@ -764,18 +829,7 @@ def check_configure_proves_it_works_here(target: Target) -> Check:
         except UnsupportedVerb:
             raise
         except Exception as why:
-            return Check(
-                check=cid, requirement=req, clause=clause, falsified_by=falsified,
-                result=FAIL, target=target.declaration.name, verb="configure",
-                detail={
-                    "configure_event": accepted,
-                    "query_failed_after_configure_returned":
-                        f"{type(why).__name__}: {why}",
-                    "reads": ("the configuration was accepted without complaint and the "
-                              "path it accepted could not answer, which is the order the "
-                              "clause forbids"),
-                },
-            )
+            return could_not_look("query", why)
 
     hits = durability.hits_of(answer)
     if hits is None:
@@ -790,9 +844,11 @@ def check_configure_proves_it_works_here(target: Target) -> Check:
         result=PASS, target=target.declaration.name, verb="configure",
         detail={
             "configure_event": accepted,
+            "embedder_active_after_configure": True,
             "hits_after_configure": len(hits),
-            "reads": ("the configuration was accepted and the path it accepted "
-                      "answered; an empty hit list is an answer, not a failure"),
+            "reads": ("the configuration was accepted, the target reports what it "
+                      "configured is in effect, and the path answered; an empty hit "
+                      "list is an answer, not a failure"),
         },
     )
 

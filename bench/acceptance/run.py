@@ -71,6 +71,16 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
 
     Used by `--drive`, which the egress assertion runs under the tracer. A verb
     the adapter declares absent is skipped and named; it is not simulated.
+
+    **A verb that raises is recorded and the sweep carries on**, and that is not
+    leniency: this function grades nothing. Its whole job is to make a
+    default-configuration run happen while a tracer watches, and R10's clause is
+    about what that run touched — a target that raises at `query` has still
+    either reached off this machine or not, and the tracer has still seen it.
+    Letting the exception out instead ends this subprocess non-zero, which
+    `check_no_egress` reads as its own failure: one broken verb then scores the
+    target red on a clause about egress, which is a verdict about nothing. A
+    fixture built to fail R31 did exactly that.
     """
     done: dict[str, object] = {}
     with target.running():
@@ -85,6 +95,8 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
                     done[verb] = getattr(target, verb)()
             except UnsupportedVerb:
                 done[verb] = "not-offered"
+            except Exception as why:
+                done[verb] = f"raised: {type(why).__name__}: {why}"
     return done
 
 
