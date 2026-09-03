@@ -36,4 +36,18 @@ included (0577 closed, GPU arm measured). Merge authority is ruled — lanes han
 cadence is [`AGENTS.md`](AGENTS.md)'s. Still open: **is 0491 inside the codex fence**.
 
 **Open:** nothing. #232 and #235 merged after their one citation fix each (`0bb5304`,
-`9dd6fcd`); `main` green at 592/13, 167 tickets. `claude/resume-journee-taj5f8` undecided.
+`9dd6fcd`); `claude/resume-journee-taj5f8` undecided.
+
+**2026-09-03, the extract session (0120, 0483, 0606).** `main` green at 592/13, 169
+tickets. #256 merged (`b6d739a`) after `REROLL` then `ESCALATE` on its page; this branch
+merged on the author's explicit instruction with **no review verdict on its page**, which
+he waived and which is recorded there rather than inferred. What it leaves for the next
+session, in order: **two greps on this machine settle more than anything written today** —
+whether build `20260817151751` carries `reindexTruncated` (grep the extracted `omni.ja`),
+and whether the WASM document-worker caps pages (open `65F79PTJ`, 2 913 pages, in the
+reader; read the pack's page catalog with `verification/probes/sdt_read.py`). Then 0606's
+action 1, the pack-to-flat size ratio on the two real packs, which decides that ticket's
+shape before any code. Then 0120 action 1, the measured saving, still the only thing the
+ticket formally requires and still without a figure. Awaiting the author beyond
+`DECISIONS.md`'s standing list: three entries of 2026-09-03 — the refresh belonging to the
+R1 tick, supersession being total, and 0606's third extractor identity in C1 link 1.
