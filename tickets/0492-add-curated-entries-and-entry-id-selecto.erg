@@ -6,7 +6,7 @@ Blocked-by: 0490
 
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
-
+2026-09-03T04:24Z claude note post-merge verification of the fork's conductor-integration@d0a7660: all four exit criteria hold. Evidence in the body. Left open — closure waits on the upstream filing, not on the fork merge.
 --- body ---
 ## Scope
 
@@ -19,3 +19,27 @@ entry-id selector. This exposes candidates; it does not select a winner.
 - Each row is complete and pinned; no raw per-field user overrides exist.
 - Unknown or incomplete entries fail explicitly before index access.
 - Index coexistence and invalidation use the complete entry fingerprint.
+
+## Post-merge verification, 2026-09-03 (fork conductor-integration@d0a7660)
+
+All four criteria hold.
+
+- **Unset configuration resolves to the incumbent** — `selectEmbedderEntry()`
+  with no id returns `INCUMBENT_LOCAL_ENTRY`, asserted after the alternatives
+  are added.
+- **Rows complete and pinned; no raw per-field overrides** — `revision` must be
+  a 40-character commit SHA, `graphFile` must be the one `dtype` selects, and
+  every vector field must carry a `sources` note. The only user-facing knob is
+  `ZOTEUS_EMBEDDING_MODEL`, which takes a curated entry id; a raw model
+  repository is refused by design.
+- **Unknown or incomplete entries fail explicitly before index access** — rows
+  are parsed at module load, and `selectEmbedderEntry` throws on an unknown id
+  naming the available ones.
+- **Index coexistence and invalidation use the complete entry fingerprint** —
+  the index key is `local:registry-v<fingerprint>` for every entry but the
+  incumbent, which keeps its historic `local:<model>` key only while its live
+  fingerprint computes equal to the frozen legacy digest.
+
+One caveat inherited from 0490 and recorded there: a vector field added later
+can be declared authoritative and still be absent from the fingerprint, which
+would make two such entries share an index key.

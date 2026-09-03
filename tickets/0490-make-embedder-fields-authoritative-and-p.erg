@@ -7,6 +7,7 @@ Author: Minh Ha-Duong
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-09-02T11:58Z Minh Ha-Duong note blocker 0489 closed — Blocked-by removed.
+2026-09-03T04:24Z claude note post-merge verification of the fork's conductor-integration@d0a7660: criteria 2 and 3 hold; criterion 1 holds for the nine fields present but nothing holds it for a field that arrives later. Evidence and controls in the body.
 --- body ---
 ## Scope
 
@@ -20,3 +21,42 @@ preprocessing and vector identity. Keep the singleton MiniLM entry selected.
 - Display metadata and validation standing do not change the fingerprint.
 - The incumbent parity fixture remains identical and unknown fields fail schema
   validation.
+
+## Post-merge verification, 2026-09-03 (fork conductor-integration@d0a7660)
+
+Feature line `6aec04e → 04dc2d2 → d01e81a`, integrated at `3c95a30`.
+Suite at the integration head: 1163 passed, 8 skipped.
+
+- **Display metadata and validation standing do not change the fingerprint** —
+  holds. `id` and `sources` are excluded from `vectorShape` and the authority
+  test asserts it.
+- **Incumbent parity fixture identical; unknown fields fail schema validation**
+  — holds. `parseEmbedderEntry` throws on an unknown field, a missing field, an
+  unsupported pooling and an unpinned revision. The incumbent keeps its historic
+  index key only while its live fingerprint *computes* equal to
+  `LEGACY_INCUMBENT_FINGERPRINT`, so a moved chain forces a rebuild rather than
+  reusing old vectors.
+- **Tests perturb each field independently** — holds for the nine fields that
+  exist, and nothing holds it for a tenth. `entryFingerprint`'s `vectorShape` is
+  hand-written rather than derived from `APPLIED_FIELDS`, and the authority
+  test's `it.each` is a hand list of the same nine. The characterization test
+  guards *classification* — every entry key must be claimed as applied,
+  declared-only or metadata, and `APPLIED_FIELDS` is frozen to the exact nine —
+  so an *unclassified* field goes red. A field classified as **applied** and
+  omitted from the fingerprint goes green.
+
+Demonstrated rather than inferred. A tenth vector field (`casing`) wired through
+the interface, `VECTOR_FIELDS`, validation, the parse return, every row and its
+`sources` note, and the frozen `APPLIED_FIELDS` list — everything a diligent
+developer would touch — with `vectorShape` left alone: **708 passed, `tsc`
+clean**. Discriminating control: dropping the existing `pooling` from
+`vectorShape` turns **3 tests red**, so the suite does guard the nine it knows
+and the null above is a gap rather than a blind probe.
+
+Consequence is the one the module's own docstring names: two entries differing
+only in that field share an index key, so the vectors move silently and the
+index still loads. Remedy is small — drive `vectorShape` and the authority
+test's `it.each` from `APPLIED_FIELDS`, failing on any applied field with no
+perturbation defined. Not applied here: the fix is fork-side code, which this
+repo bundles into the upstream filing rather than shipping standalone, and
+`t0493-local-validation` is branched off this line.
