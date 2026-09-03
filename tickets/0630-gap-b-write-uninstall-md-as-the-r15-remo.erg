@@ -6,6 +6,8 @@ Author: claude
 --- log ---
 2026-09-03T16:47Z claude created
 
+2026-09-03T17:20Z claude planned Premise re-checked and holds: the fork checkout (base-b0e0bc8, matching STATE.md's reviewed baseline) has no UNINSTALL.md or docs/uninstall.md at that revision or at the checkout's current tip; upstream has not shipped this doc since the ruling. The Declaration in bench/acceptance/adapters/zoteus.py still declares exactly one derived-state root (self.data_dir); no drift there. Actions/Test/Verification refined in place with the exact Declaration fields, the verification/UNINSTALL-DRAFT-0630.md staging path (this repo's existing convention for a not-yet-sent upstream artifact, matching ISSUE-DRAFT-*.md and UPSTREAM-PR-*.md), the pre-#27 worked example sourced from fork commits 5ae398a/998865e, and a symbolic (not literal-path) parity test design so the harness's arena-relative test fixture path cannot leak into the published doc or make the check tautological. TMPDIR/XDG re-measured and is sharper than this tracker's log stated: zoteus.py's _env() redirects only ZOTEUS_* vars onto the full operator os.environ (line 372) -- not even HOME, unlike four sibling adapters. TMPDIR is redirected nowhere in bench/acceptance/; XDG_CACHE_HOME is touched only in zotero_mcp.py. Flagged, not treated as a blocker for drafting the doc.
+
 --- body ---
 ## Context
 
@@ -39,30 +41,109 @@ committed in this repo, ready for that later hand-off.
 
 ## Actions
 
-1. Read `bench/acceptance/adapters/zoteus.py`'s Declaration for the exact
-   derived-state roots (data dir path, model cache location relative to it).
-2. Draft `UNINSTALL.md` in this project's own docs style, listing concrete
-   removal steps (exact paths, in the order a user would follow them).
-3. Include the pre-PR-#27 case as a worked example (why "delete the data
-   directory alone" was wrong before the model cache moved under it).
-4. Note in the draft, or in this ticket's log, whether TMPDIR/XDG redirection
-   in the arena is confirmed complete — if not, flag it rather than silently
-   assuming the ruling's other precondition is satisfied.
+1. Read `bench/acceptance/adapters/zoteus.py`'s `Declaration`
+   (`derived_state_roots=(self.data_dir,)`, ~line 280): **exactly one**
+   declared root, `self.arena / "data"`, which maps onto `ZOTEUS_DATA_DIR` in
+   `_env()` (~line 314). That is arena-relative — a test fixture path, not
+   what a user sees. The real default is `defaultDataDir()` in the fork
+   checkout's `src/lib/paths.ts`: `$ZOTEUS_DATA_DIR` if set, else
+   `~/Library/Application Support/zoteus` (macOS), `%APPDATA%\zoteus`
+   (Windows), or `${XDG_DATA_HOME:-~/.local/share}/zoteus` (everything
+   else). The draft's removal step names *this* pair (env var / OS default),
+   never the arena path. The model cache has no separate declared root — it
+   is `<ZOTEUS_DATA_DIR>/models`, a subdirectory of the one root, per PR #27.
+2. Draft the content in `verification/UNINSTALL-DRAFT-0630.md` — this repo's
+   existing convention for a staged-but-unsent upstream artifact (see
+   `verification/ISSUE-DRAFT-0530.md`, `verification/UPSTREAM-PR-POOLING-0612.md`):
+   a short preamble (revision measured against, ruling citations, explicit
+   "not sent — GOVERNANCE.md lane" note) followed by the literal content
+   meant for the upstream file. That upstream file is `UNINSTALL.md` at the
+   fork's **repo root**, not under `docs/` — matching `CHANGELOG.md`,
+   `CONTRIBUTING.md`, `PRIVACY.md`, which sit at root while topic guides
+   (`configuration.md`, `semantic-search.md`, …) sit under `docs/`.
+   `docs/configuration.md` and `docs/semantic-search.md` are cited for
+   *voice and structure* (bold lead sentences, concrete paths in backticks,
+   e.g. `semantic-search.md`'s "Where the files are" — "removing the data
+   directory removes everything the index ever wrote"), not as the
+   destination directory.
+3. Include the pre-PR-#27 case as the worked example, sourced from the fork
+   checkout's commit `5ae398a` / `998865e`
+   (`fix(search): cache on-device model weights under the data directory`,
+   merged 2026-08-29): before it, `@huggingface/transformers`' default
+   `env.cacheDir` held the downloaded weights inside the package's own
+   install — and, for a bundled desktop install pointed at a global module
+   via `ZOTEUS_TRANSFORMERS_PATH`, in a global `node_modules` that outlives
+   even an extension uninstall — so "delete the data directory" alone left
+   the single largest artifact (~25 MB today, gigabytes for larger models)
+   behind. After the merge, `LocalEmbeddingProvider` pins `env.cacheDir` to
+   `<ZOTEUS_DATA_DIR>/models` before the pipeline is constructed.
+4. Record the TMPDIR/XDG finding precisely — **re-measured for this ticket,
+   and it is sharper than 0613's log's "only HOME, in one adapter"**: as of
+   this pass, `bench/acceptance/adapters/zoteus.py`'s `_env()` (lines
+   311-324) redirects only a handful of `ZOTEUS_*` variables, merged onto
+   the *full* operator environment
+   (`self._posture.wrap(cmd, {**os.environ, **env})`, line 372) — it
+   redirects nothing else, not even `HOME`. Four *other* adapters
+   (`beaver.py`, `zotero_core_6012.py`, `zotero_mcp.py`, `zotseek.py`)
+   redirect `HOME`; `zoteus.py` — the one this ticket's rung is about —
+   does not. `TMPDIR` is redirected nowhere in `bench/acceptance/`. `XDG_`
+   appears exactly once, `XDG_CACHE_HOME` in `zotero_mcp.py` only, blanked
+   so it falls under that adapter's redirected `HOME`. `sandbox.py` has no
+   `TMPDIR`/`XDG_`/`HOME` handling at all. Log this in this ticket's own
+   log as an open precondition gap — it does not block drafting the doc
+   (the doc's correctness is independent of it), but R15 cannot be graded
+   green for zoteus until it closes.
 5. Do NOT open an upstream PR from this ticket. Commit the draft in this
-   repo and reference the GOVERNANCE.md lane that owns the hand-off.
+   repo and reference the GOVERNANCE.md lane that owns the hand-off (`## The
+   bounds`, contained-PR form — a docs change of the shape that merged
+   verbatim twice, #27 and #28).
 
 ## Test
 
-- The draft's removal steps are checked against the adapter's own Declaration
-  programmatically where possible (e.g. a test asserting every path the draft
-  names appears in the Declaration, and vice versa) rather than eyeballed —
-  the exact class of drift PR #27 exists to prevent from recurring silently.
+- New file `tests/test_uninstall_doc.py` (offline, no process spawned — same
+  shape as `tests/test_acceptance_adapter_zoteus.py`'s construction-only
+  tests): builds a `Zoteus` adapter instance to read
+  `.declaration.derived_state_roots`, reads
+  `verification/UNINSTALL-DRAFT-0630.md`, and asserts a **symbolic**
+  correspondence, not a literal-path string match:
+  - exactly one root is declared (`len(derived_state_roots) == 1`);
+  - the draft's removal step names the symbol `ZOTEUS_DATA_DIR` (env var /
+    OS-default pair) as the thing to delete — never the harness's own
+    arena-relative path, which would make the test fixture leak into the
+    published doc;
+  - the draft states the model cache lives *under* that same root (a
+    substring match for `models` tied to the same step, not a second listed
+    location) — this is the exact clause PR #27 made true and a future
+    regression could make false again silently.
+  A literal-string match (asserting the resolved arena path like
+  `Path(tmp)/data` appears in the prose) would be tautological: that path is
+  a test fixture, never seen by a real user, so it can only catch a typo in
+  the test file itself, not drift in what the target actually declares or
+  writes. The check must go through the symbol both sides share
+  (`ZOTEUS_DATA_DIR`), matched structurally, not counted.
+- Positive control before trusting it: run the new test against a
+  deliberately wrong draft first (e.g. one naming a second, invented root,
+  or omitting the model-cache-is-under-the-root sentence) and confirm it
+  fails red, per this repo's own red-first-check discipline
+  (`rules/workflow.md` — a check whose all-clear is indistinguishable from
+  "could not look" is not a check).
 
 ## Verification
 
-- [ ] `UNINSTALL.md` drafted, paths sourced from the Declaration, not guessed
-- [ ] Pre-#27 worked example included
-- [ ] TMPDIR/XDG redirection status recorded (confirmed or flagged open)
+- [ ] `verification/UNINSTALL-DRAFT-0630.md` drafted, in
+      `docs/configuration.md`/`docs/semantic-search.md`'s voice, its one
+      removal step naming `ZOTEUS_DATA_DIR` (env var / OS default from
+      `paths.ts`'s `defaultDataDir()`), never the harness's arena path
+- [ ] Pre-#27 worked example included, sourced from fork commit `5ae398a` /
+      `998865e`
+- [ ] `tests/test_uninstall_doc.py` exists, is offline, and was seen failing
+      red against a deliberately wrong draft (positive control) before being
+      trusted green
+- [ ] TMPDIR/XDG redirection status recorded in this ticket's log: confirmed
+      incomplete, with the precise finding above (zoteus.py redirects
+      nothing but `ZOTEUS_*` vars, not even `HOME`; `TMPDIR` is redirected
+      nowhere in `bench/acceptance/`; only `zotero_mcp.py` touches
+      `XDG_CACHE_HOME`)
 - [ ] No upstream PR opened by this ticket
 
 ## Invariants
