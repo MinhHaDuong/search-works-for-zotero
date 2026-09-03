@@ -4088,6 +4088,59 @@ re-reading.
 Ticket 0625 carries the implementation, and it is a precondition of the uninstall
 clause shipping rather than a parallel improvement.
 
+**2026-09-03 — refinement: the requirement is the property, and CI already has
+it.** The author, on the entry above: *"CI are isolated by design, they don't need
+alt user."* Correct, and the entry above named a mechanism where it should have
+named a property — the defect two other rulings of the same day removed from the
+sheet, reappearing in a ruling written hours later.
+
+**The property.** No target process runs under an identity that can reach data
+the operator cares about. That is what the dedicated account buys on a shared
+workstation, and it is what a disposable CI container or a throwaway VM already
+is: there is no second identity there whose mail, keys and research are within
+reach, and the boundary is the environment itself. Demanding an account inside a
+container is ceremony with no threat behind it, and ceremony is how a safety rule
+becomes something people route around.
+
+**Two ways to satisfy it, and they are not ranked.** A dedicated account on a
+machine that also holds the operator's own data; or an environment that is itself
+the boundary and is discarded after the run. What is forbidden is the third case
+this ruling exists for: a target running as the operator on the operator's
+machine.
+
+**The escape hatch must be recorded, not merely permitted.** Whatever posture a
+run had, the artifact names it — as it already names its isolation mechanism, its
+target and its revision. A run taken without the account, in an environment
+claiming to be its own boundary, must be identifiable as such afterwards.
+Otherwise a green from an unprotected run is indistinguishable from a green from
+a protected one, which is the shape of defect this project keeps finding in its
+own instruments.
+
+**And the probe is not needed, because the posture is documented.** The author,
+in the same exchange: *"Asking benchmark users to run under `tester` is
+acceptable."* That closes what had just been recorded as an open question. The
+harness does not have to infer whether its environment is a boundary — it says
+what it requires, the operator provides it, and the artifact records which account
+a run belonged to. An inferred posture would have needed a predicate nobody has:
+a flag saying *I am in CI* is the thing set once on a workstation and forgotten,
+and a probe asking *can I write my own home* answers yes in most CI images too.
+A documented precondition needs neither.
+
+**What `tester` is, concretely, since asking for it is acceptable only if the ask
+is precise.** A dedicated account with **read** access to the Zotero library —
+which the benchmark genuinely needs, zoteus being read-only against it — and
+**write** access to nothing but the arena. That is the exposure honestly stated:
+a target can read the library it is being measured against, which is the point,
+and can write nothing the operator owns. In a disposable container the same
+posture holds by construction and no account is created.
+
+**The harness does not create the account.** *"They can create if necessary"* —
+so provisioning is the operator's, done once, with a copyable recipe in the
+documentation. Creating a system user needs root, and a benchmark able to create
+users is a benchmark holding privilege it never needs while running. Ticket 0625
+therefore owes the recipe and a harness that runs unprivileged and refuses when
+the account is absent, rather than a provisioning script it executes itself.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
