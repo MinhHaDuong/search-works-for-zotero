@@ -1,0 +1,123 @@
+{
+ "probe": "instrument characterization for ticket 0629: how many resolver-port syscalls one getaddrinfo costs under the acceptance layer's own tracer and sandbox on this machine",
+ "not_a_target_run": "no target process is started here, so the dedicated-account posture does not apply; this measures glibc's resolver and the tracer",
+ "mechanism": "podman-unshare",
+ "detectors": {
+  "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+  "dns": "a connect/sendto/sendmsg to a resolver port, loopback included"
+ },
+ "arms": {
+  "nothing/isolated": {
+   "program": "pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 0,
+    "dns": 0
+   },
+   "attempts": []
+  },
+  "nothing/net_shared": {
+   "program": "pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 0,
+    "dns": 0
+   },
+   "attempts": []
+  },
+  "numeric_connect_only/isolated": {
+   "program": "import socket\ntry:\n    socket.create_connection(('1.1.1.1', 443), timeout=2).close()\nexcept Exception:\n    pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 1,
+    "dns": 0
+   },
+   "attempts": [
+    {
+     "call": "connect",
+     "address": "1.1.1.1",
+     "port": 443,
+     "detector": "off_machine"
+    }
+   ]
+  },
+  "numeric_connect_only/net_shared": {
+   "program": "import socket\ntry:\n    socket.create_connection(('1.1.1.1', 443), timeout=2).close()\nexcept Exception:\n    pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 1,
+    "dns": 0
+   },
+   "attempts": [
+    {
+     "call": "connect",
+     "address": "1.1.1.1",
+     "port": 443,
+     "detector": "off_machine"
+    }
+   ]
+  },
+  "one_getaddrinfo/isolated": {
+   "program": "import socket\ntry:\n    socket.getaddrinfo('example.invalid', 443)\nexcept Exception:\n    pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 0,
+    "dns": 4
+   },
+   "attempts": [
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    },
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    },
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    },
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    }
+   ]
+  },
+  "one_getaddrinfo/net_shared": {
+   "program": "import socket\ntry:\n    socket.getaddrinfo('example.invalid', 443)\nexcept Exception:\n    pass\n",
+   "returncode": 0,
+   "counts": {
+    "off_machine": 0,
+    "dns": 3
+   },
+   "attempts": [
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    },
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    },
+    {
+     "call": "connect",
+     "address": "127.0.0.53",
+     "port": 53,
+     "detector": "dns"
+    }
+   ]
+  }
+ }
+}
