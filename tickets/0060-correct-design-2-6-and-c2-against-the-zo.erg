@@ -12,6 +12,7 @@ Author: claude
 2026-09-02T19:31Z claude note the mechanical half landed (PR pending). Checked first rather than assumed: the attribution criterion was already satisfied on main -- SPEC.md 5.2.6 already reads 'shipped Zotero 10's geometry, not the draft PR's', so that checkbox was stale, and C2's boundary sentence was already corrected on 2026-08-29. What was still missing and is now written: the divergence paragraph (Zotero routes CJK exclusively via getWordMatchClause at fulltext.js:2361 and returns null both for a single CJK character and for any mixed-script term, the two dead ends a fused third list answers), the C1 localUserKey corroboration, the trigram-CJK corroboration on the rejected-alternatives line, the 5.2.8 PROSE thousands separators outside the blockquote, and SYNC.md's drift signal on fulltext.js and resource/schema/userdata.sql on main. Every edit cites DECISIONS.md 2026-08-29 or the verification note, never the draft PR summary
 2026-09-02T19:31Z claude note stays OPEN, and here is exactly what it is waiting for. Two exit criteria are the author's, not this session's: the 211/666 inconsistency (whether the 'adopted verbatim' passage or the 250-300k estimate moves, since the estimate feeds budgets) and the blockquote i18n question in 5.2.8 (whether the shipped coverage sentence prints 7,541 or 7 541 -- that decides what the product emits, not what this document says, so the sample was left untouched while the prose around it was fixed). One more is blocked by construction: SPEC.md section 4 joins the figure-guard PROSE map only AFTER 0080's rework, per action 6 of this ticket, and 0080 has not run. Nothing else is outstanding
 2026-09-02T19:32Z claude note the blockquote i18n question is now on DECISIONS.md's awaiting list rather than only in a ticket log -- three named options with the trade stated and no default proposed, since what the status line prints is the author's call. That is the criterion's second half; the first, the prose separators outside the blockquote, is fixed
+2026-09-03T15:48Z claude note 211/666 checkbox was stale, checked first (2026-09-03): DECISIONS.md's 2026-08-29 ratified entry already settled which passage moves -- neither, by rescaling; 'adopted verbatim' is replaced and the 5.2.9 estimate is recomputed from 0140's measurement (567 829 passages, 498-token budget). Both landed on main 2026-09-01T10:02+02:00 (commit 91a88157), a day before this ticket's own 19:31Z entry called it still open on a stale checkout. Checked. The figure-guard PROSE-map anchor is the one real item left, now unblocked since 0080 closed today
 --- body ---
 ## Context
 A verification pass against the author's own Zotero installation (10.0,
@@ -142,8 +143,22 @@ is a released Zotero version or a read commit, never a draft PR summary.
 - [x] §2.6's attribution names shipped Zotero 10
 - [x] §2.6 states our divergence from exclusive routing
 - [x] C2's boundary sentence is corrected
-- [ ] The 211 / 666 inconsistency is resolved
-- [ ] SPEC.md §4 is in the figure-guard PROSE map (after 0080)
+- [x] The 211 / 666 inconsistency is resolved — checked first rather than
+      assumed (2026-09-03): stale, not open. DECISIONS.md's 2026-08-29 ratified
+      entry ("the chunk budget is min(500, modelMax) − specialTokens − prefix")
+      already answers which passage moves: neither by rescaling — "adopted
+      verbatim" is REPLACED (SPEC.md's Chunking section now states the
+      construction is the platform's, the ceiling is ours, deliberately 500
+      not 768), and the §5.2.9 estimate is RECOMPUTED FROM A MEASUREMENT
+      (567 829 passages at a resolved 498-token budget, bench/results/
+      0140-passage-census/census.json) rather than rescaled arithmetic. Both
+      landed on main in commit 91a88157 (2026-09-01T10:02+02:00, confirmed
+      ancestor of origin/main), a full day before this ticket's own
+      2026-09-02T19:31Z log entry called it still open — that entry was
+      reading a stale local checkout, not main
+- [ ] SPEC.md §4 is in the figure-guard PROSE map (after 0080) — 0080 closed
+      2026-09-03, so this is now unblocked; still real work (add the anchor,
+      seed a stale figure to prove the guard opens the file), not done here
 - [x] SPEC.md's §5.2.8 prose separators fixed; the blockquote i18n question put to
       the author, not decided here
 - [x] SYNC.md watches fulltext.js and userdata.sql on main
