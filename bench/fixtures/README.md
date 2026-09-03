@@ -1,3 +1,21 @@
+# bench/fixtures/
+
+Two unrelated fixtures share this directory, and they answer different questions.
+`make_index_fixture.mjs` writes a tiny SEARCH INDEX of a named schema generation, so the
+guard in `bench/index_schema.mjs` can be seen to fire in both directions (ticket 0101):
+
+```bash
+node bench/fixtures/make_index_fixture.mjs --both /tmp/fx     # both generations, ~0,2 s
+```
+
+600 synthetic passages, deterministic, about 250 KB each, written to a path you name —
+`bench/*.sqlite` is git-ignored, and the standing test writes them to a pytest tmpdir. The
+`current` fixture is upstream's `createSchema()` DDL verbatim; `prerename` is transcribed
+from an index the pre-split fork generation actually built. `tests/test_index_schema_fixtures.py`
+drives every real-index bench driver against both.
+
+The rest of this file is about something else entirely.
+
 # The golden fixture corpus — source recipe
 
 Ticket 0029. This directory holds the first of the fixture's three layers, the
@@ -104,7 +122,6 @@ hand; `fetch_recipe.py` reports them as `unfetched` until then.
 | tran-trong-kim-1920-viet-nam-su-luoc-wikisource | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-vi | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-en | en | MUST | core | wikisource | — | sha256 |
-| hal-04214661-o-nhiem-khong-khi | vi | MUST | core | hal | — | not yet |
 | hal-04332519-economies-of-scale | vi | MUST | core | hal | — | not yet |
 | hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | — | not yet |
 | des-michels-1883-luc-van-tien | vi | MUST | core | gallica | 454 | not yet |
@@ -132,17 +149,19 @@ hand; `fetch_recipe.py` reports them as `unfetched` until then.
   a provenance, and whether FAOLEX holds the Vietnamese text beside the English
   translation could not be read, its record page being closed to scripts. The
   English translation is in.
+- **HAL-04214661, Ô nhiễm không khí.** The HAL deposit authorises distribution
+  through HAL but carries no reusable licence, and the fixture has no consent
+  from its authors. Dropped by the author's 2026-09-03 ruling rather than left
+  as an unfetched candidate.
 - **The Malynes excerpt and the Ramsey "Electronic Edition".** Private scans;
   both replaced by the full first editions on the Internet Archive.
 
 ## Licence flags carried inside the recipe
 
-Two entries rest on a basis weaker than the rest and say so in their record:
-the Einstein–Minkowski volume is the 1920 University of Calcutta translation
-by Saha and Bose, public domain in the United States by its date and under
-life+70 only from 2045, since Bose died in 1974; and
-one HAL book (hal-04214661) is deposited under HAL's own authorisation rather
-than a Creative Commons licence, so its reuse waits on the authors' consent.
+One entry rests on a basis weaker than the rest and says so in its record: the
+Einstein–Minkowski volume is the 1920 University of Calcutta translation by
+Saha and Bose, public domain in the United States by its date and under life+70
+only from 2045, since Bose died in 1974.
 
 ## Fields of a recipe record
 

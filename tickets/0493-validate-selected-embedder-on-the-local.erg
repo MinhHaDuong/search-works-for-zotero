@@ -7,6 +7,7 @@ Blocked-by: 0492
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
+2026-09-03T03:44Z Minh Ha-Duong ruled normalization tolerance 0,00001; DECISIONS.md and SPEC.md §5.2.6 updated before implementation
 --- body ---
 ## Scope
 

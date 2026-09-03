@@ -1,0 +1,44 @@
+{
+  "probe": "R10 destinations for one argv, on both arms. An OBSERVATION carried beside the acceptance layer's verdict, never a verdict: SPEC.md §3 R10 is asserted in bench/acceptance/, which never runs its subject with a route. This does, because inside a no-route namespace every name resolves to the same stub resolver and a destination has no name.",
+  "label": "with-plugin-isolated-setsid",
+  "conditions": "discriminator: identical to the with-plugin isolated cell except the host runs in a session of its own, as the adapter lifecycle starts it",
+  "date": "2026-09-03",
+  "mechanism": "podman-unshare",
+  "argv": [
+    "setsid",
+    "timeout",
+    "90",
+    "/home/haduong/.local/Zotero_linux-x86_64/zotero",
+    "-profile",
+    "/home/haduong/data/ladder/beaver/ab/AS/profile",
+    "-datadir",
+    "/home/haduong/data/ladder/beaver/ab/AS/data",
+    "-no-remote"
+  ],
+  "env_overrides": [
+    "DISPLAY",
+    "HOME"
+  ],
+  "instrument_works_here": null,
+  "cells": {
+    "isolated": {
+      "network_shared": false,
+      "returncode": 124,
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 430
+      },
+      "destinations": [
+        {
+          "detector": "dns",
+          "address": "127.0.0.53",
+          "port": 53,
+          "attempts": 430,
+          "reverse_name": null,
+          "destination": "127.0.0.53:53/dns"
+        }
+      ],
+      "stderr_tail": "Missing chrome or resource URL: chrome://zotero/skin/16/white/loading.svg\nERROR: Cannot run unopkg as root without --shared or --bundled option.\n\nERROR: Cannot run unopkg as root without --shared or --bundled option.\n\ndpkg-query: aucun paquet ne correspond à openoffice\\.org-writer\n"
+    }
+  }
+}

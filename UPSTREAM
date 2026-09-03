@@ -5,3 +5,10 @@ UPSTREAM_BRANCH=main
 UPSTREAM_REVIEWED_SHA=b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c
 UPSTREAM_REVIEWED_VERSION=v1.12.0
 UPSTREAM_REVIEWED_DATE=2026-09-01
+# The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in
+# `src/features/search/sqlite-index.ts`, mirrored in `bench/index_schema.mjs` and stamped
+# into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It has
+# been 1 since v1.7.0 and is still 1 at the reviewed SHA, so this line is a place for a
+# future bump to land rather than a record of a past one — and it is not decoration,
+# because `tests/test_index_schema_fixtures.py` asserts all three agree.
+UPSTREAM_INDEX_SCHEMA_VERSION=1

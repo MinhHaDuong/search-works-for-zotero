@@ -47,6 +47,7 @@ from .interface import (
     not_offered,
     not_run,
 )
+from . import durability
 from .sandbox import choose, run_traced
 
 #: The three retrieval-mode names R33 uses, in the layer's vocabulary. An
@@ -68,7 +69,30 @@ EGRESS_VERBS = ("install", "configure", "resume", "query")
 
 @dataclass(frozen=True)
 class Snapshot:
-    """Every regular file under a root, by path. The sweep's unit of comparison."""
+    """Every regular file under a root, by path. The sweep's unit of comparison.
+
+    **A root may itself be a file, and `os.walk` yields nothing for one.** A
+    declared derived-state root is a directory whenever the target owns a
+    directory, which was true of the first two targets and is not true of a
+    target embedded in a host application: such a target keeps its sidecar
+    database beside the host's own, inside a directory belonging to the host, so
+    the only thing it can declare is the file. Without the first branch below,
+    `os.walk` is handed a regular file, finds nothing, and the uninstall
+    survivor check reports zero survivors — green — while the state sits on
+    disk. That is a false green of exactly the class this layer exists to catch,
+    so it is fixed here rather than worked around in one adapter.
+
+    **Measured against a real target rather than argued** (ticket 0586). The
+    same run, driven twice against the same product, once with this branch and
+    once without: with it, `fail`, two survivors named. Without it, `pass`,
+    `survivor_count` zero — and a 32 KB database and a 2.3 MB write-ahead log
+    sitting in the directory the check had just swept. Both artifacts are
+    committed under that ticket's results directory, as `acceptance.json` and
+    `acceptance-prefix-control.json`, because a fix whose defect was only
+    reasoned about is a fix nobody can check. (This paragraph named the target's
+    results path on its first draft and the neutrality guard refused it, which
+    is the guard working: a layer module may cite a ticket, never a product.)
+    """
 
     root: Path
     files: frozenset[Path]
@@ -76,6 +100,8 @@ class Snapshot:
     @classmethod
     def of(cls, root: Path) -> "Snapshot":
         found: set[Path] = set()
+        if root.is_file():
+            found.add(root)
         for base, _dirs, names in os.walk(root):
             for name in names:
                 found.add(Path(base) / name)
@@ -520,10 +546,15 @@ _EGRESS_PROBE = (
 #: Every assertion this layer offers, by check id, in the order a run reports
 #: them. The driver derives its work from this rather than from a hand-kept
 #: list, so an assertion added here is run without a second edit.
+#:
+#: Goal 2's clauses live in `durability.py` and are folded in here rather than
+#: copied: one registry, so a reader asking what this layer asserts has one place
+#: to look and the target-neutrality guard has one package to walk.
 ALL = {
     "R10-local-by-default": check_local_by_default,
     "R10-no-egress": check_no_egress,
     "R15-residue-inventory": check_residue_inventory,
     "R15-model-cache-under-declared-roots": check_model_cache_under_declared_roots,
     "R15-uninstall-removes-declared-state": check_uninstall_removes_declared_state,
+    **durability.ALL,
 }

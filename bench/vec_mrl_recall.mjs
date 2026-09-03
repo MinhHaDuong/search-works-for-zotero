@@ -33,6 +33,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { openSync, readSync, fstatSync, closeSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { cpus, hostname, loadavg, totalmem } from 'node:os';
+import { assertPreRenameSchema } from './index_schema.mjs';
 
 const { values: opt } = parseArgs({
   options: {
@@ -89,6 +90,10 @@ let source;
 
 if (opt.db) {
   const db = new DatabaseSync(opt.db, { allowExtension: true });
+  // Before the extension load (ticket 0101). The `--db` path of this driver reads the
+  // sqlite-vec `passage_vectors` table of the PRE-RENAME generation, which the current
+  // schema has no equivalent of; the `--f32` path below reads a flat slab and is schema-free.
+  assertPreRenameSchema(db, opt.db);
   const { createRequire } = await import('node:module');
   const require = createRequire(`${opt.fork}package.json`);
   db.enableLoadExtension(true);

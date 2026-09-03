@@ -2,6 +2,7 @@
 Title: Standing guard: every bench driver that opens a real index is exercised against a current-schema fixture
 Created: 2026-08-29
 Author: claude
+Closed: all four exit criteria met: eight real-index bench drivers declare their schema generation and a committed-generator fixture of both generations holds each to it, seen red then green per driver
 
 --- log ---
 2026-08-29T10:15Z claude created
@@ -11,6 +12,10 @@ Author: claude
 2026-08-31T15:26Z claude note Blocked-by 0504 REMOVED, and the schema-generation criterion is recommended for deletion -- both on the same evidence, which contradicts this morning's note. SCHEMA_VERSION has been 1 since eee1000 (v1.7.0) and is STILL 1 at v1.12.0, and the passages DDL is byte-identical between v1.10.0 and main: source TEXT already existed, which is why own-words needed no schema change. So v1.11.0's ladder is machinery built BEFORE the first bump, not a bump. Recording the generation in UPSTREAM therefore records a constant that has never moved, guarding a break that has never happened, and the ladder makes that break cheaper when it comes rather than more likely. The criterion is left in place rather than deleted unilaterally -- it is not this session's to cut -- but it should go at the next touch. This ticket's real content, drivers exercised against a current-schema fixture, is untouched by any of it and still stands
 2026-09-02T19:16Z claude note unblocked by 0100's merge, and its scope is wider than 0100 assumed: vec_real_measure.mjs, vec_mrl_recall.mjs and issue30_build_index.mjs also open a real index against the pre-rename schema, so the fixture suite covers five drivers. bench/index_schema.mjs (landed with 0100) gives the guard its assertion and its loud-failure message; what 0101 still owes is the two committed fixtures and the standing test
 2026-09-02T19:18Z Minh Ha-Duong note blocker 0100 closed — Blocked-by removed.
+2026-09-02T20:24Z the class is eight drivers, not five, and three of them cannot be migrated: vec_real_measure/vec_mrl_recall/issue30_build_index target the PRE-RENAME generation on purpose — their substrate is sqlite-vec passage_vectors, which the current schema has no equivalent of (grep of fork/src at the reviewed SHA: passage_vectors, passage_meta, index_meta all absent). Migrating them would replace a measurement, not repair a driver, and would invalidate the 0008 artifacts. So each driver DECLARES its generation and assertPreRenameSchema mirrors assertIndexSchema; year_scope, query_arms, query_arms_multi gained the current-schema gate
+2026-09-02T20:24Z criterion 4 implemented rather than deleted, per the ruling this session: UPSTREAM_INDEX_SCHEMA_VERSION=1 is written with teeth, not as decoration. The fixture generator stamps meta.schemaVersion from the mirror in index_schema.mjs, and the test asserts declaration == stamp, plus a third leg reading upstream's own const SCHEMA_VERSION when a fork checkout is present (verified positive against fork/src: 'const SCHEMA_VERSION = 1'). The 2026-08-31 argument for deletion stands on its own terms — the constant has never moved — but the generator gives it a consumer it did not have then
+2026-09-02T20:24Z seen red before it was seen green: with the fixtures present and the gates absent, 6 of the 8 refusal cases failed — year_scope died on 'no such table: items', query_arms on 'no such table: meta', and query_arms_multi / issue30 / both vec drivers never reached the index at all (missing dist, missing sqlite-vec), so none of the six named a schema generation. The two 0100-repaired drivers were already green in both directions, which is what says the suite discriminates rather than failing everything
+2026-09-02T21:38Z Minh Ha-Duong closed — all four exit criteria met: eight real-index bench drivers declare their schema generation and a committed-generator fixture of both generations holds each to it, seen red then green per driver
 --- body ---
 ## Context
 The /roar sweep after X2 found two bench drivers pinned to the pre-rename
@@ -58,10 +63,15 @@ Verify by checking out a driver at its current SHA and confirming the new
 test goes red; a guard never seen to fail is not a guard.
 
 ## Verification
-- [ ] the old-schema fixture makes the pre-0100 drivers go red
-- [ ] the current-schema fixture makes the repaired drivers go green
-- [ ] fixtures are small enough that `make check` stays under its budget
-- [ ] `UPSTREAM` names the expected schema generation
+- [x] the old-schema fixture makes the pre-0100 drivers go red — and six more
+      besides: with the fixtures present and the gates not yet written, six of
+      the eight refusal cases failed, none of them naming a schema generation
+- [x] the current-schema fixture makes the repaired drivers go green, and two of
+      the eight run end to end on it and emit their artifact
+- [x] fixtures are small enough that `make check` stays under its budget: 0,2 s
+      to generate, ~250 KB each, and the whole new module runs in 2,7 s
+- [x] `UPSTREAM` names the expected schema generation, and the test gives the
+      declaration teeth rather than leaving it decorative
 
 ## Invariants
 - The fast tier stays pure Python: these tests are `integration`, per the

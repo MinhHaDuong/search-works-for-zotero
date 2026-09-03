@@ -2,11 +2,14 @@
 Title: Unbounded string aggregation hits V8's string-length ceiling twice
 Created: 2026-08-30
 Author: claude
+Closed: all three exit criteria met: findings re-verified at v1.12.0 and accepted as accurate; upstream-filing decision and issue-link moot per the 2026-08-30 ruling
 
 --- log ---
 2026-08-30T08:08Z claude created
 2026-08-30T08:19Z Minh Ha-Duong note the upstream-filing question is SETTLED by the same ruling that withdrew the measurement issue (spec/DECISIONS.md 2026-08-30): nothing is filed for finding #1 — the sqlite path is the sufficient upstream response. Exit criterion 2 checked, criterion 3 moot; criterion 1 (re-verification of the cited lines at a current SHA) is what keeps this ticket open
 
+2026-09-02T20:16Z claude note re-verified all 23 cited sites at b05ed69 (v1.12.0) by reading blobs at that SHA — both findings hold, no bound added; finding #1 worse: ZOTEUS_INDEX_OWN_WORDS is new in v1.12.0 and defaults true, feeding a third passage source into the same JSON.stringify; finding #2 test-caller count moved 10 to 11, production callers still zero
+2026-09-02T20:17Z Minh Ha-Duong closed — all three exit criteria met: findings re-verified at v1.12.0 and accepted as accurate; upstream-filing decision and issue-link moot per the 2026-08-30 ruling
 --- body ---
 ## Context
 
@@ -148,6 +151,101 @@ back on pre-22.13 Node.
   outside this ticket's class as scoped, noted for completeness rather than
   counted as a finding.
 
+## Re-verification at v1.12.0 (2026-09-02)
+
+Every site cited above was re-read at this repo's current reviewed baseline,
+`b05ed69a88e3a0c1ef874f57f97a0e11ddf7ec3c` (v1.12.0, released 2026-08-31; see
+`UPSTREAM`). The `fork/` working tree stands on a local branch
+(`droplist-df-pruning`, 879b75b), not on the reviewed commit, so the blobs were
+read by SHA rather than from the working tree.
+
+**Verdict: both findings hold at v1.12.0.** Nothing upstream bounded either
+site between v1.10.0 and v1.12.0. One finding got measurably worse, one count
+moved, and most line numbers drifted.
+
+### Per-site resolution
+
+| Site (as cited at v1.10.0) | At v1.12.0 | Verdict |
+|---|---|---|
+| `persistence.ts:27` `writeFile(tmp, JSON.stringify(index.toJSON()))` | `:27`, file unchanged | confirmed, no drift |
+| `persistence.ts:18-21` (ceiling doc-comment) | `:18-21`, verbatim | confirmed, no drift |
+| `index-manager.ts:1676-1699` `toJSON()` | `:2104-2129` | confirmed; body identical plus one new field (`if (this.library) snapshot.library = ...`, `:2127`). Still `chunks: [...this.chunks.values()]` and `vectors: this.vectors.toJSON()` in one object |
+| `index-manager.ts:572` `SearchIndexBase.build()` unbatched `embed` | `:718` | confirmed unbatched: `await this.opts.embedder.embed(records.map((r) => r.text))`, no cap, no batch |
+| `backend.ts:5-10` (StorageBackend V8-ceiling comment) | `:21-28` | confirmed, text verbatim; moved because `canonicalLibraryToken` was added above it |
+| `backend.ts:249-250` (`embedBatchSize` option) | `:356-357` | confirmed, verbatim |
+| `backend.ts:436` (`build()` on the public interface) | `:572` | confirmed, verbatim |
+| `build.ts:116-121` (`persistNotice`) | `:131-137` | confirmed, text verbatim |
+| `factory.ts:52-56` (`auto` prefers SQLite) | `:52-56`, file unchanged | confirmed, no drift |
+| `sqlite-index.ts:32` `MAX_MIGRATION_BYTES` | `:33` | confirmed, still `200 * 1024 * 1024`; v1.12.0 adds a test-only override `opts.maxMigrationBytes` (`:131`, `:285`) — a seam, not a weakening |
+| `sqlite-index.ts:566-579` `importJson` guard | `:892-917` | confirmed; guard now reads `bytes > this.maxMigrationBytes` (`:899`), same refusal and same `storeNotice` |
+| `fulltext-source.ts:10` `DEFAULT_FULLTEXT_MAX_CHARS = 40_000` | `:11`, file unchanged | confirmed (citation was off by one at v1.10.0 too; `:10` is the closing `*/`) |
+| `fulltext-source.ts` `textFor()` ~166-192 | `:167-194`, file unchanged | confirmed, per-item cap intact (`:173`, `:189`) |
+| `embeddings.ts:200-217` `LocalEmbeddingProvider.embed` | `:251-268` | confirmed bounded, `batchSize ?? LocalEmbeddingProvider.BATCH_SIZE` |
+| `embeddings.ts:230-284` `ApiEmbeddingProvider` | `:281-334` | confirmed; the mechanism finding #2 depends on is intact: `const size = Math.max(1, this.opts.batchSize ?? texts.length)` (`:296`) — no configured batch size still means one call carrying everything |
+| `embeddings.ts:260` (OpenAI single stringify) | `:311` | confirmed, `JSON.stringify({ model: this.model, input: texts })` |
+| `embeddings.ts:275-277` (Gemini `requests: texts.map`) | `:326-327` | confirmed, verbatim |
+| `index-manager.ts:1399` (`embedPending`'s batched embed) | `:1745` | confirmed bounded, same `while (pending.length >= ...)` splice loop |
+| `index-manager.ts:1146` / `:1150` (`buildIncremental`'s drain calls) | `:1052` / `:1066` | confirmed bounded; now routed through a local `embedPending(force)` closure (`:977-978`) over `embedBatchSize = opts.embedBatchSize ?? DEFAULT_EMBED_BATCH_SIZE` (`:852`) |
+| `auth/store.ts:189` | `:189`, file unchanged | confirmed, single credential record |
+| `lib/cimd.ts:116` | `:116`, file unchanged | confirmed, still streamed under `maxBytes` (the SSRF/size-cap comment is lines 5-11, not 4-10) |
+| `tools/tag-audit.ts` `listAllTags` / `listItems` | `:23` / `:39`, file unchanged | confirmed, arrays not strings, report bounded by `limit` (`:70`, `:97`) |
+| `fulltext/epub.ts`, `pdf-pages.ts`, `pdf-locate.ts` | `epub.ts:71` `sections.join('\n\n')`; the other two unchanged | confirmed per-document, never across documents |
+
+### What changed between v1.10.0 and v1.12.0
+
+1. **No bound was added on the JSON write side.** Grepping `src/` at v1.12.0
+   for `Invalid string length`, `maxIndexBytes`, `MAX_PERSIST`, `estimateSize`
+   and `string length` returns exactly one hit — the doc-comment at
+   `backend.ts:26`. `saveIndex` still has no analogue of `importJson`'s
+   `MAX_MIGRATION_BYTES` check. `limits.ts` gained 48 lines at v1.12.0, all of
+   them full-text crawl concurrency (`DEFAULT_FULLTEXT_CONCURRENCY_LOCAL` /
+   `_CLOUD`, `SATURATED_FULLTEXT_CONCURRENCY`), nothing on the persist path.
+
+2. **Finding #1 is strictly worse at v1.12.0, by default.** v1.12.0 adds a
+   third passage source: `own-words-source.ts` (+286 lines), child notes and
+   PDF annotations. `ZOTEUS_INDEX_OWN_WORDS` is absent from `config.ts` at
+   v1.10.0 and present at `config.ts:185` at v1.12.0 as `bool(true)` — **on by
+   default**. `addOwnWords` (`index-manager.ts:1821-1837`) chunks each entry
+   and calls `this.putPassage(rec)`, i.e. feeds the same `this.chunks` map that
+   `toJSON()` materializes. So a stock v1.12.0 JSON-backend build now pushes
+   metadata passages, full-text passages *and* own-words passages through the
+   one `JSON.stringify`, and reaches the V8 ceiling at fewer items than the
+   2026-08-21 and 2026-08-30 runs recorded. Not re-measured here — a build is
+   a multi-hour job and the machine was busy; what is established is the
+   mechanism and the default, both read at the SHA.
+
+3. **Finding #2's reachability caveat holds; its count moved 10 → 11.** Test
+   files calling `.build(`: 10 at v1.10.0, 11 at v1.12.0 (new:
+   `tests/features/search-schema-migration.test.ts`). Production callers in
+   `src/`: still **zero** — `git grep -F '.build(' <sha> -- src/` returns
+   nothing, while the same grep for `.buildIncremental(` returns
+   `src/features/search/build.ts:328`. The live tool path is unchanged.
+
+4. **`build()` gained a dedup, not a bound.** v1.12.0 inserts
+   `if (this.hasEmbedder && this.adoptVector(rec)) continue;`
+   (`index-manager.ts:712`), the vector-salvage skip from #34. It can shrink
+   `records` when a sidelined index already holds the same vector for the same
+   text, but a first build adopts nothing and the embed call at `:718` is
+   exactly as unbatched as at v1.10.0. `vector-salvage.ts` is SQLite-only and
+   does not touch the JSON persist path.
+
+5. **Citation nits, all pre-existing** (the files are unchanged, so these were
+   already off at v1.10.0): `DEFAULT_FULLTEXT_MAX_CHARS` is at
+   `fulltext-source.ts:11`; `textFor` is `:167-194`; `cimd.ts`'s SSRF comment
+   block is `:5-11`. No mechanism is affected.
+
+### Method
+
+Blobs were read at both SHAs with `git show <sha>:<path>` from a read-only
+`--shared` clone of the `fork/` object store; nothing under `fork/` was
+written, built or run. Every negative result here carries a positive control
+that came out the other way: the empty diffstat used to assert "file unchanged"
+was run against `backend.ts` first, which returned `148 insertions(+), 4
+deletions(-)`; the empty `.build(` grep over `src/` was paired with the same
+grep for `.buildIncremental(`, which returned a hit; the absent
+`ZOTEUS_INDEX_OWN_WORDS` at v1.10.0 was paired with `ZOTEUS_INDEX_BACKEND`,
+which was present at `config.ts:175`.
+
 ## What an upstream fix would look like in shape
 
 Not deciding for upstream — the design is his call — but the shape any fix
@@ -178,9 +276,14 @@ takes is constrained by what the measurements show:
 
 ## Exit criteria
 
-- [ ] Findings #1 and #2 above are either accepted as accurate (no further
+- [x] Findings #1 and #2 above are either accepted as accurate (no further
       investigation needed) or corrected, by a maintainer or a later session
-      re-reading the cited lines at a current SHA.
+      re-reading the cited lines at a current SHA: ACCEPTED AS ACCURATE.
+      Re-read 2026-09-02 at b05ed69 (v1.12.0) — see "Re-verification at
+      v1.12.0" above. Both findings hold, no bound was added on either site,
+      and finding #1 got worse: own-words indexing is new in v1.12.0 and on by
+      default, feeding a third passage source into the same unbounded
+      JSON.stringify.
 - [x] A decision is recorded on whether this repo files an upstream issue for
       finding #1: NOT filed — ruling 2026-08-30 (DECISIONS.md); the
       existing sqlite path is the sufficient upstream response.

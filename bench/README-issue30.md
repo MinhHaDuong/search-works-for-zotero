@@ -9,6 +9,8 @@ here carries a scratch directory in its source:
 |---|---|---|
 | `ISSUE30_ROOT` | holds `v190/dist`, `v1100/dist`, `embed/` (a bare npm project with `@huggingface/transformers`) | `~/.claude/jobs/upstream30-latency` |
 | `ISSUE30_MASTER` | the one index both versions open | `…/zoteus-bench/issue30/master/search-index.sqlite` |
+| `ISSUE30_SRC` | the PRE-RENAME index the passages come from (`--db`) | `…/zoteus-bench/vec-real/search-index.sqlite` |
+| `ISSUE30_SLAB` | the raw float32 vector slab, in the source's row order (`--slab`) | `…/zoteus-bench/mrl/minilm384.f32` |
 | `ISSUE30_ARMS_DIR` | where the per-arm **copies** are made | `…/zoteus-bench/issue30` |
 | `ISSUE30_TRANSFORMERS` | directory `ZOTEUS_TRANSFORMERS_PATH` points at | `$ISSUE30_ROOT/embed` | <!-- model-id-literal: a filesystem path, not a model -->
 
@@ -27,7 +29,10 @@ here carries a scratch directory in its source:
    `putVector` / `save`), so the schema, the FTS5 external-content protocol and
    the meta keys are exactly what a real build writes. `protected` is
    compile-time only in TypeScript, which is what makes this possible from JS.
-   20 s for 93 022 passages.
+   20 s for 93 022 passages. Its source index (`--db`) is of the PRE-RENAME
+   generation and is asserted to be, before the dist is loaded — see
+   `bench/index_schema.mjs` and ticket 0101. The source and the vector slab are
+   flags rather than the absolute paths this used to hardcode.
 
 3. **`issue30_arms.py`** — the measurement. Three arms (v1.9.0, v1.10.0 with
    `ZOTEUS_INDEX_ANN=false`, v1.10.0 stock), each on its own **copy** of the
@@ -54,7 +59,8 @@ here carries a scratch directory in its source:
 ```bash
 export ISSUE30_ROOT=…                                    # checkouts
 node issue30_slab_provenance.mjs                         # control first
-node issue30_build_index.mjs "$ISSUE30_MASTER" "$ISSUE30_ROOT/v190/dist"
+node issue30_build_index.mjs --db "$ISSUE30_SRC" --slab "$ISSUE30_SLAB" \
+  --output "$ISSUE30_MASTER" --dist "$ISSUE30_ROOT/v190/dist"
 python3 issue30_arms.py --mode semantic --repeat 5 --out results-semantic.json
 python3 issue30_arms.py --mode auto     --repeat 5 --out results-auto.json
 python3 issue30_codebuild_agreement.py --out results-codebuild-agreement.json

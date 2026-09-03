@@ -10,6 +10,9 @@ Author: claude
 2026-08-31T12:00Z claude note carries one caveat from tracker 0400 on its dissolution, 2026-08-31: R26 is the one R-item with NO RFC 2119 keyword at all — the normative pass left it declarative because rewriting rejected text as contract would have been worse — so the rewrite this ticket owns must give it a force, not only a new promise. bench/check_normative.py counts it as the single unforced item and will keep saying so until then
 2026-08-31T12:24Z claude note R26 IS RETIRED, NOT REWRITTEN (spec/DECISIONS.md 2026-08-31). This ticket owned the rewrite of a requirement that has now left the sheet: R26 described this repository's convergence harness, and apparatus is not a promise. The requirement half of the job is therefore closed by deletion, and check_normative's exemption table is empty for the first time. What remains here is the real half and it is unchanged: tier priority replaces the two-band frontier in DESIGN 2.3, the convergence harness asserts records-before-body rather than a positional prefix, and R1's newest-first clause — which absorbed R2 in the same pass — is the text that now carries the ordering promise
 2026-08-31T15:32Z DESIGN 2.3 and 2.8 corrected to the 2026-08-29 veto, which had never been executed: the strict-prefix paragraph is gone, 2.3 opens on the author's three priority classes (metadata, notes and annotations, body text; newer first inside each; discovery latency stated separately in 2.4), and the convergence harness asserts the class order per item instead of prefix arithmetic. This ticket's open half is untouched — the band cap still holds the body tier against a monster, its counter arithmetic in 2.8 is marked yours to rework or retire, and whether the body tier needs its own anti-monopoly rule is still the question here
+2026-09-02T20:18Z claude note THE BODY TIER GETS NO NEW MECHANISM, and the band cap keeps its job. Three facts carry it, all recorded in SPEC 5.2.3: the class order already gives every item its record and own words before any body passage, so a monster delays no item's discoverability; K sits at the median attachment's own passage count (bench/results/0140-passage-census/census.json), so band 1 holds the tails of longer-than-median documents rather than ordinary items queued behind a monster; and the ratified fresh-against-backfill interleave (r=3, DECISIONS.md 2026-09-01) already leaves each lane its share, so what stays unbounded is one long document's tail against another's inside ONE lane. Both alternatives were weighed and cost more: a recurring band (band n = passages [nK,(n+1)K), this cap generalized, stateless) finishes no long document early and re-seeks each slab once per round; a per-item round robin is either that same shape under another name or it holds a rotation cursor over a set that changes while the build runs -- the shape vetoed 2026-08-29 and declined again by the interleave, which holds no counter for that reason. No DECISIONS.md entry filed: a no-new-rule conclusion is a design position, not a ruling, and the author can overrule it cheaply. Reconciled against 0555 (its Action 2 and its monster property are unchanged by this) and 0554 (the ~1 s micro-batch quantum is a TIME quantum for yield, a different quantity from K -- said so rather than left to be conflated)
+2026-09-02T20:18Z claude note THE OTHER THREE ACTIONS. (3) 5.2.8's boundary identity is RETIRED, not reworked: covered == |{(dateAdded,lib,itemKey) >= boundary}| - partial - quarantined + outOfBand has its left side defined by the boundary's position, so it restates the vetoed prefix claim in arithmetic and would read the library's churn as a coverage fault. What replaces it was already in the paragraph above it -- idle reconciliation recomputes the counters with real COUNTs and the harness fails on drift, which holds them to the ledger and not to a position. outOfBand survives the identity it was introduced to balance, on its own R4 ground. (5) C2/#6012: the rejection of smallest-first STANDS and its stated ground does not. The old ground -- neither ordering is asserted as an invariant over a moving set -- was a defence of the retired prefix observable and settles nothing now nobody asserts one. Re-argued on what actually separates them: smallest-first buys anti-monopoly by ordering the body queue on document length, so the newest long book waits behind every short one; the band cap buys the same property blind to length, so recency survives here and cannot survive there. (4) The convergence gate's SPEC text asserts the class order and nothing positional, but the gate has NO code in this repo and no Makefile target -- 0026 owns building it, 0555 the scheduler-side property suite -- so that exit criterion stays open and this PR is a Ticket-ref
+2026-09-02T20:19Z claude note POSITIVE CONTROL, red then green. The class-order assertion has no implementation to break, so it was exhibited falsifiable against a synthetic dispatch log instead: three items, one the 15 000-page monster, the same 15 events ordered body-first and then class-ordered. Body-first: 6 violations, exit 1. Class-ordered: 0 violations, exit 0. Transcripts in the PR body. The probe is scratch and deliberately NOT committed -- a permanent test of a predicate no producer feeds is apparatus without a subject, and the guard budget in this repo is net-negative
 --- body ---
 ## Context
 The author rejected R26 as written on 2026-08-29. The requirement asserted
@@ -74,12 +77,17 @@ index built body-text-first — a positive control, because an assertion that
 has never failed has not been shown to be able to.
 
 ## Verification
-- [ ] R26's new text promises only what can be checked without a library
+- [x] R26's new text promises only what can be checked without a library
+      snapshot — discharged by retirement (2026-08-31): the promise moved to
+      R1's class-order clause, which is a per-item property and needs no
       snapshot
-- [ ] No orphan machinery left in §2.3 — anything that existed only to serve
-      the band observable is gone or re-justified
-- [ ] The C2 smallest-first comparison still holds under the new standard
-- [ ] `make check` green, figure-guard anchors updated
+- [x] No orphan machinery left in §2.3 — the bands are re-justified as the
+      body tier's whole fairness rule, and §2.8's boundary identity, which
+      existed only to check the vetoed prefix, is retired
+- [x] The C2 smallest-first comparison still holds under the new standard —
+      the rejection stands, its stated ground replaced
+- [x] `make check` green. Figure-guard anchors: none moved by this change;
+      the §5.2 concentration re-anchor is a sibling lane's, by its request
 
 ## Invariants
 - The 2026-08-26 record-tier ruling stands, as amended 2026-08-29 to place
@@ -90,9 +98,14 @@ has never failed has not been shown to be able to.
   observable must not become a reason to report less.
 
 ## Exit criteria
-- [ ] R26 rewritten and consistent with R2 and R4
-- [ ] The intra-body-tier monopoly question answered, ratified if it needs a
-      rule
-- [ ] SPEC.md §5.2.3 reworked with no orphan machinery
-- [ ] The convergence gate asserts the tier ordering
-- [ ] `make check` passes
+- [x] R26 rewritten and consistent with R2 and R4 — retired instead
+      (2026-08-31); R1 carries the class order and R2 is merged into it
+- [x] The intra-body-tier monopoly question answered: no new mechanism, so
+      no ratification. The argument is in §5.2.3 and the author can overrule
+      it cheaply
+- [x] SPEC.md §5.2.3 reworked with no orphan machinery
+- [ ] The convergence gate asserts the tier ordering — SPEC.md §5.2.8 now
+      states it and nothing else, but the gate has no code in this repo and
+      no Makefile target; building it is ticket 0026's, and 0555 owns the
+      scheduler-side property suite. Stays open
+- [x] `make check` passes
