@@ -84,12 +84,22 @@ table cannot speak for. Unset, the table decides. Set, the user decides — and 
 docs say plainly that a wrong value degrades retrieval silently, the same warning
 the dtype hint gives about a repository that does not publish the file it names.
 
+A pooling that is not the default joins the embedder identity, on the same terms
+the precision does: `local:<model>#cls`. Adversarial review found the omission
+reachable as a corrupt index rather than as a missing notice, and the prefixes
+precedent does not cover it. Set the override against the table, then run
+`zotero_index action:"update"`: the blocker compares identity, sees no change, and
+appends vectors pooled the other way into the index. One index, two vector spaces,
+one stamp, and no path that can detect it, because mean and cls share a dimension
+and the width check cannot tell them apart. Measured on MiniLM the two readings of
+one text sit at cosine 0.53, where a prefix mismatch on a non-E5 model costs
+nothing.
+
 ## What this does not change
 
-The default model, the identity format, the prefix logic, the dtype logic.
-`ZOTEUS_EMBEDDING_MODEL` keeps its spelling and its meaning, and the new override
-carries no weight in the embedder identity, in the same position
-`ZOTEUS_EMBEDDING_PREFIXES` occupies.
+The default model, the prefix logic, the dtype logic, and the identity of every
+model pooled the default way, which is every model that could reach the pipeline
+before this change. `ZOTEUS_EMBEDDING_MODEL` keeps its spelling and its meaning.
 
 ## What is in the diff
 
@@ -141,10 +151,6 @@ The override sits outside the identity for the same reason
 `ZOTEUS_EMBEDDING_PREFIXES` does, and inherits the same property: setting it
 against the table changes the vectors under an unchanged stamp.
 
-If you would rather the pooling were in the identity, the symmetric spelling is
-there and it costs no existing index — the same trick `fp32` gets. Suffix only
-when the resolved pooling differs from what the table would have chosen, so
-`local:<model>#cls` appears for exactly the models this change moves and nothing
-else is restamped. That is one commit on top if you want it; I left it out
-because it is a decision about your identity format rather than part of the
-defect.
+The one judgement call I made rather than leaving to you is that suffix, and I
+made it the compatible way on purpose: `fp32`'s rule, applied unchanged. If you
+would rather pooling stayed out of the identity, it is one commit to remove.
