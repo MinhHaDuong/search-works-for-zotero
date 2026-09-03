@@ -33,9 +33,12 @@ or the network.
 """
 
 import json
+import os
 import re
 import shutil
 import subprocess
+import sys
+import warnings
 from pathlib import Path
 
 import pytest
@@ -293,16 +296,245 @@ def test_the_declared_generation_is_what_the_current_fixture_stamps(fixtures):
     assert int(stamped[0]) == declared
 
 
-def test_the_mirror_matches_upstreams_own_constant_when_a_fork_is_checked_out():
-    """The third leg, present only when a fork checkout is.
+SCHEMA_TS = "src/features/search/sqlite-index.ts"
 
-    `fork/` is gitignored and absent on a fresh clone, so this is the one comparison that
-    cannot be a standing assertion. Where it can run it is the strongest of the three: it
-    reads upstream's own `const SCHEMA_VERSION` rather than anything this repo wrote down.
+#: Upstream's own declaration, as a pattern. A miss here is a finding, not a not-run: it
+#: means the constant was renamed or moved and the mirror in `bench/index_schema.mjs` is
+#: stale in a way no version comparison would notice.
+SCHEMA_CONST = re.compile(r"^const SCHEMA_VERSION\s*=\s*(\d+)\s*;", re.M)
+
+
+#: Set by `make schema-gate` (and by anything else that has arranged for a source to be
+#: reachable). Inside `make check` the not-run outcome may not redden — a fresh clone has
+#: neither mirror nor checkout, and a gate a fresh clone cannot satisfy gets waived, which
+#: is a green meaning "we decided not to look". But a *warning* collapses to exit 0 just as
+#: a skip does, so on its own it leaves the automated gate unable to tell "leg 3 checked the
+#: declaration" from "leg 3 never looked" — the literal condition ticket 0620 is about. This
+#: is the second channel, and it is the convention the Makefile already records for
+#: `fold-gate`: a target that has made the source reachable exits non-zero when it was not.
+STRICT_ENV = "SCHEMA_LEG_STRICT"
+
+
+class SchemaLegNotRun(UserWarning):
+    """Emitted when leg 3 could not reach upstream's constant at all.
+
+    A skip and a pass are the same colour in a suite summary — that is the whole of ticket
+    0620 — so the not-run outcome is also raised as a warning, which pytest prints in its
+    warnings summary on every run, with or without `-rs`. Not-run is loud and it is not
+    green; it is still not red, because a fresh clone has neither mirror nor checkout and a
+    gate that a fresh clone cannot satisfy gets waived, which is a green meaning "we decided
+    not to look" (the reasoning the Makefile records for `fold-gate`).
     """
-    source = REPO / "fork" / "src" / "features" / "search" / "sqlite-index.ts"
-    if not source.exists():
-        pytest.skip("no fork checkout — run `make upstream-checkout` to enable this leg")
-    found = re.search(r"^const SCHEMA_VERSION\s*=\s*(\d+)\s*;", source.read_text(), re.M)
-    assert found, "upstream no longer declares `const SCHEMA_VERSION` — the mirror is stale"
-    assert int(found.group(1)) == int(upstream_declarations()["UPSTREAM_INDEX_SCHEMA_VERSION"])
+
+
+def candidate_roots():
+    """`REPO`, plus the main checkout when this one is a linked worktree.
+
+    `upstream.git/` and `fork/` are git-ignored, so a `git worktree add` tree never carries
+    either — the leg would go not-run in every worktree while the mirror sat one directory
+    away. `.git` is a *file* in a linked worktree, naming `<main>/.git/worktrees/<name>`.
+    """
+    roots = [REPO]
+    dotgit = REPO / ".git"
+    if dotgit.is_file():
+        pointer = dotgit.read_text().strip()
+        if pointer.startswith("gitdir:"):
+            gitdir = Path(pointer.split(":", 1)[1].strip())
+            main = gitdir.parent.parent.parent  # <main>/.git/worktrees/<name> -> <main>
+            if main.is_dir() and main not in roots:
+                roots.append(main)
+    return roots
+
+
+def read_upstream_schema_version(roots, sha):
+    """upstream's `SCHEMA_VERSION`, from the first source that can answer.
+
+    Returns `(version, provenance, reasons)`. `version` is None when nothing could be read,
+    and `reasons` then says of each candidate why not — a not-run must name what it could
+    not look at, or it is indistinguishable from a check that never existed.
+
+    Every source is a git repository and every read is `git show <reviewed sha>:<path>`,
+    never the file lying in a working tree. That is the correction ticket 0620 asked for and
+    it is worth stating why, because the weaker version of this fix was written first and
+    went red on a correct declaration: the author's `fork/` was checked out at v1.12.0 while
+    `UPSTREAM` correctly declared v1.13.0's generation, so reading the working file compared
+    the declaration against the wrong commit. A checkout answers for whatever it happens to
+    be at; only the pinned SHA answers the question this repository pins.
+
+    The bare mirror comes first because `make upstream-catchup` maintains it with nothing
+    built, so it is the source a fresh machine can have. A `fork/` clone is tried after it,
+    as a repository rather than a directory of files — it fetches upstream too, so it often
+    holds the reviewed object whether or not it is checked out there.
+    """
+    reasons = []
+    for root in roots:
+        for name, fix in (("upstream.git", "upstream-catchup"), ("fork", "upstream-checkout")):
+            repo = root / name
+            if not (repo / "HEAD").exists() and not (repo / ".git").exists():
+                reasons.append(f"no repository at {repo} (run `make {fix}`)")
+                continue
+            try:
+                done = subprocess.run(
+                    ["git", "-C", str(repo), "show", f"{sha}:{SCHEMA_TS}"],
+                    capture_output=True, text=True, timeout=60,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                # The one path that could still raise past the not-run contract: a hung git
+                # under lock contention, or no git binary at all. Both are "could not look",
+                # and a not-run that names what stopped it is the whole point of the leg.
+                reasons.append(f"could not read {repo}: {type(exc).__name__}: {exc}")
+                continue
+            if done.returncode != 0:
+                reasons.append(
+                    f"{repo} does not hold {sha[:12]}:{SCHEMA_TS} — run `make {fix}`"
+                )
+                continue
+            return _parse(done.stdout), f"{repo} at {sha[:12]}", reasons
+    return None, None, reasons
+
+
+def _parse(text):
+    found = SCHEMA_CONST.search(text)
+    assert found, (
+        f"upstream no longer declares `const SCHEMA_VERSION` in {SCHEMA_TS} — the mirror in "
+        "bench/index_schema.mjs is stale in a way no version comparison can see"
+    )
+    return int(found.group(1))
+
+
+def check_declaration_against_upstream(roots, declared):
+    """Leg 3's whole body, taken out of the test so a control can drive it.
+
+    A leg that can only ever be observed passing is what ticket 0620 is about; this is what
+    lets `test_leg_three_goes_red_...` below run the real comparison against a tree built to
+    disagree. Raises `AssertionError` on a mismatch, returns the not-run message when nothing
+    could be read, and returns None when the declaration is right.
+    """
+    version, provenance, reasons = read_upstream_schema_version(
+        roots, declared["UPSTREAM_REVIEWED_SHA"].strip()
+    )
+    if version is None:
+        return "NOT-RUN: leg 3 could not read upstream's SCHEMA_VERSION — " + "; ".join(reasons)
+    assert version == int(declared["UPSTREAM_INDEX_SCHEMA_VERSION"]), (
+        f"UPSTREAM_INDEX_SCHEMA_VERSION={declared['UPSTREAM_INDEX_SCHEMA_VERSION']} but "
+        f"upstream declares SCHEMA_VERSION = {version} ({provenance}) — re-baseline"
+    )
+    return None
+
+
+def test_the_declaration_matches_upstreams_own_constant():
+    """The third leg, and the only one that reads anything upstream wrote.
+
+    Legs 1 and 2 are satisfied by a tree that agrees with itself: the fixture is stamped
+    *from* the mirror, so they hold whether or not either is right. This one compares the
+    declaration against upstream's own constant at the reviewed SHA. On 2026-09-03 upstream
+    moved `SCHEMA_VERSION` 1 -> 2 for the first time since v1.7.0 and this leg said nothing,
+    because it read a git-ignored `fork/` checkout that was not there. It reads the bare
+    mirror now, which `make upstream-catchup` maintains and which needs nothing built.
+    """
+    not_run = check_declaration_against_upstream(candidate_roots(), upstream_declarations())
+    if not_run:
+        warnings.warn(not_run, SchemaLegNotRun, stacklevel=2)
+        if os.environ.get(STRICT_ENV):
+            pytest.fail(not_run)
+        pytest.skip(not_run)
+
+
+# --- and the third leg's own controls -----------------------------------------------
+#
+# The leg above is a check; these two are what earn it. Ticket 0620 was filed because the
+# leg looked green on a tree it disagreed with, so a version of it that can only be seen
+# passing is worth nothing. Both cases run the real reader against a synthetic tree.
+
+
+def _mirror_of(tmp_path, ts_body):
+    """A bare mirror holding one commit that carries `sqlite-index.ts` — no fork/ anywhere."""
+    work = tmp_path / "work"
+    (work / Path(SCHEMA_TS).parent).mkdir(parents=True)
+    (work / SCHEMA_TS).write_text(ts_body)
+    env = {
+        "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t",
+        "PATH": "/usr/bin:/bin", "HOME": str(tmp_path),
+        # `HOME` keeps `~/.gitconfig` out; this keeps `/etc/gitconfig` out too, so a host
+        # that enforces commit signing system-wide cannot break the synthetic mirror.
+        "GIT_CONFIG_NOSYSTEM": "1",
+    }
+    def git(*argv, cwd):
+        done = subprocess.run(["git", *argv], cwd=cwd, env=env,
+                              capture_output=True, text=True, timeout=60)
+        assert done.returncode == 0, done.stderr
+        return done.stdout
+    git("init", "--quiet", "-b", "main", cwd=work)
+    git("add", "-A", cwd=work)
+    git("commit", "--quiet", "-m", "upstream", cwd=work)
+    sha = git("rev-parse", "HEAD", cwd=work).strip()
+    root = tmp_path / "root"
+    root.mkdir()
+    git("clone", "--bare", "--quiet", str(work), str(root / "upstream.git"), cwd=tmp_path)
+    return root, sha
+
+
+def test_leg_three_goes_red_against_a_wrong_declaration_with_only_a_mirror(tmp_path):
+    """The red the repaired leg owes, in exactly the shape the tree was in on 2026-09-03: a
+    declaration naming a generation upstream does not declare, no `fork/` anywhere, and only
+    the bare mirror to look at. The old leg skipped here, and the skip was the defect."""
+    root, sha = _mirror_of(tmp_path, "const SCHEMA_VERSION = 2;\n")
+    assert not (root / "fork").exists(), "the point of the case is that there is no checkout"
+    wrong = {"UPSTREAM_REVIEWED_SHA": sha, "UPSTREAM_INDEX_SCHEMA_VERSION": "99"}
+    with pytest.raises(AssertionError, match="upstream declares SCHEMA_VERSION = 2"):
+        check_declaration_against_upstream([root], wrong)
+
+
+def test_leg_three_is_green_on_the_same_mirror_when_the_declaration_is_right(tmp_path):
+    """The other side of the control: the red above must come from the disagreement and not
+    from the synthetic tree being unreadable. Same mirror, same absent checkout, correct
+    declaration — and the leg passes rather than reporting not-run."""
+    root, sha = _mirror_of(tmp_path, "const SCHEMA_VERSION = 2;\n")
+    right = {"UPSTREAM_REVIEWED_SHA": sha, "UPSTREAM_INDEX_SCHEMA_VERSION": "2"}
+    assert check_declaration_against_upstream([root], right) is None, "must not report not-run"
+
+
+def _blind_leg(monkeypatch, tmp_path):
+    """Point the collected leg at a directory holding neither source."""
+    empty = tmp_path / "bare-clone"
+    empty.mkdir()
+    monkeypatch.setattr(sys.modules[__name__], "candidate_roots", lambda: [empty])
+
+
+def test_the_collected_leg_skips_and_warns_when_it_cannot_look(monkeypatch, tmp_path):
+    """The four lines of wiring inside the collected test, which the helper-level controls
+    do not reach: a not-run must WARN as well as skip, or `-q` hides it entirely."""
+    _blind_leg(monkeypatch, tmp_path)
+    monkeypatch.delenv(STRICT_ENV, raising=False)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with pytest.raises(pytest.skip.Exception, match="NOT-RUN"):
+            test_the_declaration_matches_upstreams_own_constant()
+    assert any(issubclass(w.category, SchemaLegNotRun) for w in caught), (
+        "a not-run that only skips is invisible under -q — it must warn too"
+    )
+
+
+def test_the_collected_leg_fails_rather_than_skips_under_the_strict_gate(monkeypatch, tmp_path):
+    """The second channel, and the one an exit code can see. A skip and a warning both leave
+    pytest at exit 0, so inside `make check` nothing scripted can tell a verified declaration
+    from an unlooked-at one. `make schema-gate` has made a source reachable before it runs,
+    so there a not-run is a failure — the `fold-gate` convention, one file over."""
+    _blind_leg(monkeypatch, tmp_path)
+    monkeypatch.setenv(STRICT_ENV, "1")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(pytest.fail.Exception, match="NOT-RUN"):
+            test_the_declaration_matches_upstreams_own_constant()
+
+
+def test_leg_three_reports_not_run_when_neither_mirror_nor_checkout_is_present(tmp_path):
+    """The other half: with nothing to read, the reader returns no version and says of each
+    candidate why — never a version, and never silence."""
+    empty = tmp_path / "bare-clone"
+    empty.mkdir()
+    version, provenance, reasons = read_upstream_schema_version([empty], "0" * 40)
+    assert version is None and provenance is None
+    assert any("upstream-catchup" in r for r in reasons)
+    assert any("upstream-checkout" in r for r in reasons)

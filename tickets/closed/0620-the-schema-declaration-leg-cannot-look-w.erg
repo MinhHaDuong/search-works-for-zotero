@@ -2,10 +2,13 @@
 Title: The schema-declaration leg cannot look without a fork checkout, and skips
 Created: 2026-09-03
 Author: claude
+Closed: autoclosed — PR #303
 
 --- log ---
 2026-09-03T12:07Z claude created
+2026-09-03T15:20Z claude note Leg 3 reads the reviewed SHA out of upstream.git (or a fork clone), never a working tree; not-run warns as well as skips; red, green and not-run controls landed
 
+2026-09-03T15:47Z MinhHaDuong closed — autoclosed — PR #303
 --- body ---
 
 ## Context
@@ -62,7 +65,7 @@ not declare, with no `fork/` present, and confirm the repaired leg fails where
 the current one skips.
 
 ## Exit criteria
-- [ ] Leg 3 runs against the bare mirror at the reviewed SHA, with no `fork/`
-- [ ] With neither source present it reports not-run, distinguishably from pass
-- [ ] Demonstrated red against a deliberately wrong declaration, with no
+- [x] Leg 3 runs against the bare mirror at the reviewed SHA, with no `fork/`
+- [x] With neither source present it reports not-run, distinguishably from pass
+- [x] Demonstrated red against a deliberately wrong declaration, with no
       checkout, before the fix is trusted
