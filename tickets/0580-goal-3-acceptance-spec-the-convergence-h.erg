@@ -10,6 +10,7 @@ Blocked-by: 0566
 2026-09-02T11:57Z claude note This rung's assertions inherit the target interface once the 2026-09-02 ruling is ratified (DECISIONS.md, awaiting): phrased over the interface verbs and an adapter-declared surface, never a tool's file layout. Nothing here changes before that.
 2026-09-02T14:38Z codex note The ratified target interface now governs this rung: shared assertions use adapter-declared surfaces, and convergence is observed after fixture changes rather than commanded or nudged.
 2026-09-03T05:21Z claude note R19 LEFT THIS TICKET. The clause was reworded and merged 2026-09-03 (origin/main 5282918, commit 8ad8cb3): it is now a promise that an equivalent-form query still finds the document in semantic and hybrid search, lexical search exempt, decidable through the query verb with no build and no source access. Action 8 and its exit criterion quoted the retired wording verbatim and are corrected here; the assertion is ticket 0603, blocked on ticket 0029's corpus rather than on this rung's conductor (0566), whose chain terminates in experiment X5. Six terms remain this ticket's, not seven. README.md's goal-3 roster still names 0580 beside 0029 for R19 and is left alone: 0603 adds its address once the check exists.
+2026-09-03T10:50Z R17 CITATION CORRECTED, not a scope change to this ticket. The Relevant files list addressed SPEC.md 5.2.8's counters as 'Counters (C4)'; C4 was dissolved on 2026-09-03 (DECISIONS.md) and that paragraph now carries R17's number, since the account of work done was always R17's property and the counters are one design's way of meeting it. Nothing this ticket asserts changes: R17's assertions still read the same paragraph. Caught by the review of PR 270, which found this the one live handoff pointer the dissolution's sweep missed -- the acceptance layer's own two citations were left deliberately and are named in that PR.
 --- body ---
 
 ## Context
@@ -51,7 +52,7 @@ process to drive until 0566 lands.
   gate) and the service clause beside it.
 - `SPEC.md` §5.2.8, "**R32, the build-time gate**" — the reference machine, the
   rate, and why the bound is on the pipeline rather than on one stage.
-- `SPEC.md` §5.2.8, "**Counters (C4)**" and "**The coverage sentence**" — what
+- `SPEC.md` §5.2.8, "**Counters (R17)**" and "**The coverage sentence**" — what
   R17's assertions read.
 - `SPEC.md` §5.2.9 — the census the wall-clock figures are derived through.
 - Fork `tests/fixtures/local-api-replay.ts` and `synthetic-library.ts` — tranche

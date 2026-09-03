@@ -3874,10 +3874,17 @@ Zotero, the upstream project, and the user's machine that the design must
 operate under". C1, C2 and C3 each name a fact in their title; C4's title named
 a mechanism — *status answers from counters* — and its body forbade an
 alternative, "never by scanning a table a stage is writing". A section of facts
-does not get to choose an implementation. Two lesser tells came with it: C4 used
-MUST, which §3 scopes to the R-items alone, and its one testable clause said "a
-few milliseconds", which is not a threshold, so the only thing a user could
-check was the only thing nothing could fail.
+does not get to choose an implementation. A second tell came with it: C4's one testable
+clause said "a few milliseconds", which is not a threshold, so the only thing a
+user could check was the only thing nothing could fail.
+
+A third tell was drafted and withdrawn under review, and it is recorded because
+the withdrawal is the useful part. C4 said MUST, which §3 scopes to the R-items
+alone — but C1 carries an unscoped MUST of its own ("stored state MUST therefore
+be partitioned by server ID", SPEC.md §4), so that argument proves too much: it
+would convict a constraint nobody proposes to dissolve. What actually
+distinguishes C4 is the title naming a mechanism and the body forbidding an
+alternative, and that stands on its own.
 
 **The author's cut: the user-observable and testable thing is speed.** Applying
 it splits C4 into three pieces, two of which were already correctly housed
