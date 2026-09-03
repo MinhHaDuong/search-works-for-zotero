@@ -2635,10 +2635,16 @@ table a stage is writing, cost 374 ms with a cold cache and grows with the
 table; the maintained counters answer point reads sub-millisecond and do not
 (§5.2.8). What is NOT measured is the band under load — status while all three
 queues run, which is the condition R17 states and the only one a user meets.
-The convergence harness already polls status at 1 Hz for the length of a build
-(§5.2.8) and touches nothing else, so timing those polls yields the
-distribution at no additional cost; the band is pinned from that run and is
-open until it is. No number is stated here in the meantime, because a bound
+The convergence harness polls status at 1 Hz for the length of a build (§5.2.8)
+and touches nothing else, so the *occasions* to measure are already specified
+and need no run of their own — but the series does not exist yet, and saying it
+comes free would be wrong. A poller that sleeps between calls records the
+build's wall clock, not the latency of the call: measured 2026-09-03 on
+`bench/run_build.py`, whose elapsed is the true build time rounded up to the
+next poll boundary, so two distinct scale points both reported 140,3 s at
+`--poll 20` — the quantum, not the build. Recording the latency of each status
+round trip is therefore a driver change, and that change is the work this band
+waits on. Until the series exists no number is stated here, because a bound
 nobody measured is a bound nothing can fail.
 
 **Warm query**: probe 0–1 request + embed 20–50 ms + FTS tens of ms + a
