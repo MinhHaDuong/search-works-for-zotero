@@ -3780,6 +3780,31 @@ then the labelled character-count estimate. A lower bound above the threshold
 proves long; values below it never prove short. An unresolved length takes the
 long-document-safe path and reports the signal and certainty that selected it.
 
+**2026-09-03 — a lane does not press merge; the coordinator does. Ratified, and
+the mechanics deliberately left to `AGENTS.md`.** The author, on being shown two
+merge requests that the lane holding them had corrected, re-gated and then merged
+itself: *un sous-agent ne fusionne pas ; il remonte une PR ouverte au
+coordinateur* — and, on the cadence: *le superviseur merge au fur et à mesure et
+prévient les autres lanes de rebaser.* That answers the 2026-09-02 question on
+that entry's second option, a second party presses merge, and names the second
+party: the coordinator the lane reports to, not an arbitrary other lane.
+
+What the ledger keeps is that answer. **What it does not keep is the procedure**,
+which is harness — who polls what, when a lane is handed up, how a moved base is
+announced and re-measured — and lives in `AGENTS.md`, where it can be retuned as
+the orchestration changes without spending a ratification. The rule the author
+stated is stable; the machinery around it is not, and the two documents are split
+on exactly that line.
+
+The occasion, recorded as the breach it was rather than as the reason: on the
+morning of 2026-09-03 the lane holding #232 and #235 corrected the citation
+defect each was bounced on, re-measured both at base `1ff51ed`, took both out of
+draft **and merged both itself** (`0bb5304`, `9dd6fcd`), on an instruction given
+inside its own session. The changes were gated and `main` is green; the procedure
+was wrong under this ruling. Nothing here reverts them: whether those two merges
+stand is the author's, and this entry is written from the correction rather than
+from the merge.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
@@ -5087,52 +5112,10 @@ for a class of true reds it would stop seeing tomorrow. The last is the one to
 be most careful with: the assertion's value is that it counts attempts rather
 than judging payloads.
 
-**2026-09-02 — may a lane merge its own pull request? Not ratified: the
-governance half of the merge-authority rule is the author's.** `AGENTS.md` now
-carries what is not in dispute: no merge before a review verdict is recorded on
-the pull request itself, a verdict quoted as received, an unreported reviewer
-leaving the branch BLOCKED rather than inferred, no finding attributed to a
-reviewer who did not make it, the reviewer posting its own verdict to the page
-with a waiting lead polling it, and no lane merging a pull request another lane
-is gating. What it deliberately does not say is who presses the button once a
-verdict exists.
-
-The occasion is measurable rather than argued. Of the five pull requests merged
-on 2026-09-02 — #215, #216, #217, #219, #220 — **none carries a review or a
-comment on its own page**, against #218 of the same evening, which carries a
-`/verify-gate` verdict and a gate lead's bounce. The channel worked; it was not
-used. Whether a verdict was reached in a session and never posted, or never
-reached, is unrecoverable from here, and that unrecoverability is the cost.
-
-Three ways it could go, and no default is proposed.
-
-Lanes self-merge on a recorded verdict. Cheapest, keeps a lane's throughput
-independent of anyone else's availability, and it is what the repository has
-been doing. Its weakness is precisely tonight's failure mode: the same session
-that would have to fabricate a verdict is the session that presses merge, so
-nothing external ever has to agree.
-
-A second party presses merge. Strongest separation, and it is the only variant
-where an invented verdict has to survive someone else reading it. It costs a
-serialization point: with several lanes live overnight and no second party
-awake, branches queue until morning, which converts a review problem into a
-scheduling one.
-
-Self-merge allowed, but only where the verdict came from a seat the lane did not
-drive. This is the middle, and it needs one thing the repository does not have:
-a mechanical statement of what counts as a seat the lane did not drive. Without
-that it is the first option with more words. The reviewer-posts-its-own-verdict
-clause now in `AGENTS.md` moves part of the burden: the verdict's existence and
-its timing become page facts rather than lane claims, so the option no longer
-has to establish those. It supplies nothing about the seat, since one forge
-account signs every artifact, and that mechanical statement remains what this
-option turns on.
-
-There is a fourth consideration that belongs to the author rather than to the
-rule: this repository has **no continuous integration** — `make check` is the
-gate and it runs where a lane runs it. So the pull-request page is not merely
-the polite place to record a verdict; it is the only durable place a verdict can
-exist at all.
+**2026-09-02 — may a lane merge its own pull request? RATIFIED 2026-09-03: it
+may not.** The question, its measured occasion and the three ways it could go
+are kept in the ledger entry above, which rules on it: a lane hands the open
+pull request up, and the coordinator merges. The procedure is `AGENTS.md`'s.
 
 **2026-09-03 — Does "no non-default option" reach a harness-setup preference?
 The adapter roster's `httpServer.port` move, put as a question and not
