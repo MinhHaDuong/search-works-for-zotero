@@ -1,0 +1,120 @@
+%erg 0.1
+Title: Measure the attachment-format matrix through Zotero and rule the policy
+Created: 2026-09-02
+Author: claude
+Label: needs-human
+
+--- log ---
+2026-09-02T21:58Z claude created
+
+2026-09-02T21:59Z Minh Ha-Duong label needs-human
+2026-09-03T04:13Z Minh Ha-Duong note blocker 0599 closed — Blocked-by removed.
+--- body ---
+## Context
+
+Ticket 0593 was ruled a monster on 2026-09-02 and is now the tracker for the
+attachment-format estate. This is its measurement child: it drives ticket 0599's
+matrix through a real Zotero, records what Zotero does with each format, and
+puts the candidate policy to the author with every observed exception.
+
+It is the sign-off unit of the estate. Everything before it is authorship and
+everything after it implements a ruling, so nothing here may be inferred: what
+Zotero exposes for a `.md` attachment, whether RTF reaches `/fulltext` at all,
+and what terminal state an unsupported body reports are facts to be observed,
+one row at a time.
+
+## This requires a live, idle Zotero, and must not be run beside a build
+
+The local API is single-tenant in practice: a full-library build owns it for the
+duration, and the page-cap lift of 2026-09-02 was itself scheduled around one.
+Do not start this while any build, census or extraction run holds Zotero's local
+API, and do not run it against a Zotero the author is using. The measurement
+imports nine records and reindexes them; on a busy instance the reindex queue
+alone makes the terminal states unreadable.
+
+The plugin and client are `bench/zotero-fulltext-plugin/` and
+`bench/zotero_fulltext.py`; group-library items answer only under the group path
+and the plugin resolves keys across libraries.
+
+## The candidate policy, verbatim from ticket 0593
+
+This is the thing being tested. It is stated once, here, and the tracker points
+at it rather than repeating it.
+
+- Eligibility follows detected MIME/content capability, never filename
+  extension alone.
+- PDF uses Zotero text plus the ruled pdf.js structure/page path.
+- EPUB and HTML initially use Zotero-extracted flat text; source-aware structure
+  is separate measured work.
+- Plain text enters directly. TXT and Markdown are probed separately because a
+  `.md` attachment need not be exposed as `text/plain`.
+- DOC, DOCX, ODT and RTF remain metadata-searchable when Zotero supplies no body
+  text, with the stored reason `unsupported-format` rather than an unexplained
+  absence or a false indexed state.
+- A future local converter needs a separate ruling over security, resource
+  budgets, fidelity and derivation identity. Remote conversion is never an
+  implicit fallback under R10.
+
+Primary platform reference:
+`https://www.zotero.org/support/preferences/search`.
+
+## Actions
+
+1. Import each fixture of ticket 0599's matrix through normal Zotero with
+   ordinary record metadata, and record the attachment content type Zotero
+   reports.
+2. Ask Zotero to reindex each, and probe `/fulltext` plus the full-text control
+   plugin's state.
+3. Record for each fixture: extension, reported MIME type, whether Zotero
+   exposes body text, whether the unique token survives, and the observed
+   terminal state. Commit the raw responses and the fixture hashes as evidence
+   under `bench/results/`.
+4. Put the candidate policy to the author with every observed exception, and
+   land the ruling in `DECISIONS.md`. Nothing is written to `SPEC.md` here.
+   The `.doc` settlement below is one of the things put to him, not a choice
+   this estate makes on his behalf: ticket 0599 declared the gap, it did not
+   decide what the policy says about the format.
+
+## The open item inherited from ticket 0599
+
+There is no `.doc` fixture. Legacy `.doc` is an OLE2 compound binary that cannot
+be synthesized faithfully from bytes, and ticket 0593 authorizes no converter to
+produce one. The row must be settled one of two ways, and which one is a
+decision to put to the author with the rest:
+
+- a real `.doc` is supplied from outside the repository, and the row is measured
+  like every other; or
+- the row is ruled on the format's documented behaviour, with the absence of a
+  measurement recorded beside the ruling rather than left to look like one.
+
+Report a state that could not be produced as not-produced, never as a negative
+observation.
+
+## Verification
+
+- [ ] The raw Zotero responses and the fixture hashes are committed as evidence.
+- [ ] Markdown and RTF are classified by observation, not assumption.
+- [ ] Every row records the reported MIME type beside ticket 0599's
+      content-derived classification, and every disagreement between the two is
+      named. A disagreement is the interesting result, not an error.
+- [ ] The `.doc` row states which of the two settlements above it took.
+- [ ] `make check` and `./tickets/erg check` pass.
+
+## Invariants
+
+See tracker 0593 §Invariants — inherited unchanged.
+
+Child-specific consequence, which is this ticket's own and not a restatement:
+this is the only child that touches a machine, so the converter invariant binds
+an INSTALLATION here and not merely a code path. Nothing is installed on the
+measuring machine, and nothing is reached over the network, to make a row come
+out supported.
+
+## Exit criteria
+
+- [ ] The nine-format matrix is measured, one row per format, with the `.doc`
+      row settled explicitly.
+- [ ] The author ratifies the attachment-format policy in `DECISIONS.md`,
+      including every exception the measurement found.
+- [ ] The ruled vocabulary for the extraction route and the unsupported reason
+      is fixed by that entry, so ticket 0601 has names to implement.
