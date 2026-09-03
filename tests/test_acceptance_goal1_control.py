@@ -324,11 +324,12 @@ def test_a_target_without_work_counters_is_not_run_rather_than_green(assertion, 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_pause_surface_that_raises_is_not_run_rather_than_ending_the_run(
         assertion, tmp_path):
-    """`assess` wraps no check in a try, so an unguarded verb loses the artifact.
+    """The clause names the control that failed, rather than only that one did.
 
-    Not a hypothetical: the model-cache clause in this same change had to be
-    guarded after a fixture's raising query ended a whole fail-control run with a
-    traceback, every assertion after it unrecorded.
+    `record()` in the driver catches this too and is not made redundant by it:
+    that guard is the last line and can say only "the assertion raised". This one
+    knows which surface was reached for, so a reader gets a verdict about the
+    pause instead of about the harness. Neither is safe to delete for the other.
     """
     target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
 
@@ -440,7 +441,7 @@ def test_a_control_sharing_a_root_is_refused_rather_than_measured(assertion, tmp
     check = assertion(stubs.build("stub-quiet", where),
                       control=stubs.build("stub-quiet", where))
     assert check.result == NOT_RUN
-    assert "share a declared path" in check.detail["why"]
+    assert "lies at or inside" in check.detail["why"]
 
 
 def test_an_assertion_that_raises_is_recorded_rather_than_ending_the_run(tmp_path):
@@ -496,7 +497,7 @@ def test_a_control_sharing_only_the_library_is_refused(tmp_path):
     check = assertions.check_pause_stops_background_work(
         instance("graded"), control=instance("control"))
     assert check.result == NOT_RUN
-    assert "share a declared path" in check.detail["why"]
+    assert "lies at or inside" in check.detail["why"]
 
 
 def test_a_lifecycle_that_never_starts_is_incomplete_rather_than_egress(tmp_path):
@@ -528,3 +529,89 @@ def test_a_lifecycle_that_never_starts_is_incomplete_rather_than_egress(tmp_path
     target.running = never_starts
     with pytest.raises(RuntimeError):
         run_module.drive(target)
+
+
+def test_a_nested_control_root_is_refused_too(tmp_path):
+    """Exact path comparison calls a control inside the graded target independent."""
+    outer = tmp_path / "outer"
+    (outer / "inner").mkdir(parents=True)
+
+    def instance(root: Path, at: str):
+        target = a_stub("stub-quiet", tmp_path, at=at)
+        target.declaration = Declaration(
+            name="nested", revision="fixture", derived_state_roots=(root,),
+            query_transport="in process", default_configuration="the only one",
+            process="none")
+        return target
+
+    check = assertions.check_pause_stops_background_work(
+        instance(outer, "graded-nested"), control=instance(outer / "inner", "c-nested"))
+    assert check.result == NOT_RUN
+    assert "lies at or inside" in check.detail["why"]
+
+
+def test_the_control_s_own_failure_is_reported_as_the_control_s(tmp_path):
+    """A verdict about the graded target must not state a falsehood about it.
+
+    The graded target here reports counters perfectly; it is the control that
+    does not. Handing that to the shared not-run helper publishes "this target
+    reports no work counters" about the wrong instance.
+    """
+    control = a_stub("stub-quiet", tmp_path, at="mute-control")
+    control.status = lambda: {"embedding": {"locality": "local", "active": True}}
+    check = assertions.check_pause_stops_background_work(
+        a_stub("stub-quiet", tmp_path, at="graded"), control=control)
+    assert check.result == NOT_RUN
+    assert "the positive control" in check.detail["why"]
+    assert "a second, never-stopped instance" in check.detail["why"]
+
+
+@pytest.mark.parametrize("broken,expected", [
+    ("lifecycle", "the lifecycle guard: running() raises before the verb loop"),
+    ("verb", "the raised-verb guard: one verb raises inside the loop"),
+])
+def test_drive_mode_exits_drive_incomplete(broken, expected, tmp_path, monkeypatch):
+    """The exit contract itself, through `main()` and a real subprocess.
+
+    Both guards could be deleted with the rest of the suite green: the other
+    subprocess test asserts a clean drive returns 0, and the lifecycle test
+    exercises `drive()` rather than the exit code `check_no_egress` reads.
+    """
+    import subprocess
+    import textwrap
+
+    shim = tmp_path / "shim.py"
+    shim.write_text(textwrap.dedent(f'''
+        import sys
+        sys.path.insert(0, {str(REPO / "bench")!r})
+        from acceptance.adapters import stubs
+        from contextlib import contextmanager
+
+        original = stubs.build
+
+        def broken(name, arena, **opts):
+            target = original(name, arena, **opts)
+            if {broken!r} == "lifecycle":
+                @contextmanager
+                def never_starts():
+                    raise RuntimeError("this target's process did not start")
+                    yield
+                target.running = never_starts
+            else:
+                def raises(*a, **k):
+                    raise RuntimeError("this verb is broken")
+                target.query = raises
+            return target
+
+        stubs.build = broken
+        sys.argv = ["run.py", "--adapter", "stub-quiet",
+                    "--arena", {str(tmp_path / "arena")!r}, "--drive"]
+        exec(open({str(REPO / "bench" / "acceptance" / "run.py")!r}).read(),
+             {{"__name__": "__main__", "__file__": {str(REPO / "bench" / "acceptance" / "run.py")!r}}})
+    '''))
+    done = subprocess.run([sys.executable, str(shim)], capture_output=True, text=True,
+                          timeout=120, cwd=REPO)
+    from acceptance.interface import DRIVE_INCOMPLETE
+    assert done.returncode == DRIVE_INCOMPLETE, (
+        f"{expected} must exit DRIVE_INCOMPLETE, got {done.returncode}: {done.stderr[-2000:]}"
+    )

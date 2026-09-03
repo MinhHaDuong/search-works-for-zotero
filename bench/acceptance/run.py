@@ -72,9 +72,8 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
     Used by `--drive`, which the egress assertion runs under the tracer. A verb
     the adapter declares absent is skipped and named; it is not simulated.
 
-    **One verb that raises is recorded and the sweep carries on; all of them
-    raising is not survivable, and the asymmetry is the whole of it.** This
-    function grades nothing — its job is to make a default-configuration run
+    **A verb that raises is recorded and the sweep carries on, however many of
+    them do.** This function grades nothing — its job is to make a default-configuration run
     happen while a tracer watches, and a target that raised at `query` after
     installing and configuring has still either reached off this machine or not,
     with the tracer watching throughout. Letting that one exception out instead

@@ -594,11 +594,12 @@ def _pause_could_not_look(cid: str, req: str, clause: str, falsified: str,
                           target: Target, why: BaseException) -> Check:
     """The control was reached for and the reach itself failed.
 
-    Guarded rather than left to propagate, and the reason is one this commit
-    already had to fix once: `assess` wraps no check in a try, so a verb raising
-    on a real target's transport ends the whole run with a traceback — every
-    assertion after it unrecorded, and the artifact the gate reads never written.
-    An assertion that cannot look reports that it could not look.
+    The driver's own `record()` would catch this too, and this is not redundant
+    with it. That guard is the last line — it says only "the assertion raised",
+    with no idea which surface or what the clause needed. This one names the
+    control, and the verdict a reader gets is about the pause rather than about
+    the harness. Neither is safe to delete for the other: without this one the
+    diagnosis is lost, and without `record()` the loss is the whole run.
     """
     return not_run(
         cid, req, clause, falsified, target, "pause",
@@ -677,33 +678,65 @@ def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
         declared = who.declaration
         return set(declared.derived_state_roots) | {p for p, _why in declared.not_derived_state}
 
-    shared = paths(target) & paths(control)
-    if shared or not (paths(target) and paths(control)):
+    def overlaps(a: set, b: set) -> bool:
+        # Containment, not equality: a control whose root sits INSIDE the graded
+        # target's is not independent of it, and exact comparison calls it so.
+        for one in a:
+            for other in b:
+                if one == other or _under(one, (other,)) or _under(other, (one,)):
+                    return True
+        return False
+
+    if overlaps(paths(target), paths(control)) or not (paths(target) and paths(control)):
         return None, not_run(
             cid, req, clause, falsified, target, "status",
             "the positive control and the graded target do not demonstrably resolve "
-            "separate state: they share a declared path, or one of them declares none "
-            "at all and independence cannot be established from the declarations. The "
-            "control's own work would land in the counters this clause reads, or its "
-            "change would consume the graded target's, so this run is not decided.",
+            "separate state: a declared path of one lies at or inside a declared path "
+            "of the other, or one of them declares none at all and independence cannot "
+            "be established from the declarations. The control's own work would land in "
+            "the counters this clause reads, or its change would consume the graded "
+            "target's, so this run is not decided. A target whose control cannot be "
+            "given a library of its own reaches this state for a real reason and not a "
+            "harness defect: ticket 0033 carries what it would take.",
         )
+    def control_failed(why: str) -> Check:
+        """Everything below is the CONTROL's failure, said as the control's.
+
+        The verdict is still about the graded target — that is whose clause this
+        is — but the reason must name which instance could not be read. Handing
+        these to the shared not-run helpers instead publishes "this target
+        reports no counters" about a target that reports them perfectly.
+        """
+        return not_run(cid, req, clause, falsified, target, "status",
+                       f"the positive control — a second, never-stopped instance of "
+                       f"this target — {why}, so the harness could not show that the "
+                       "change it makes creates work at all, and this clause is not "
+                       "decided")
+
     with control.running():
         if durability.work_counters(control) is None:
-            return None, durability.no_counters(cid, req, clause, falsified, target)
-        undecided = _installed(cid, req, clause, falsified, control)
-        if undecided:
-            return None, undecided
+            return None, control_failed(
+                "reports no work.<stage>.<trigger>.<outcome> counters "
+                "(SPEC.md §5.2.8, Counters (C4))")
+        if control.declaration.offers("install"):
+            try:
+                control.install()
+            except UnsupportedVerb:
+                raise
+            except Exception as why:
+                return None, control_failed(
+                    f"raised at install ({type(why).__name__}: {why})")
         before, settled = durability.settle(control)
         if not settled:
-            return None, durability.unsettled(cid, req, clause, falsified, target,
-                                              "before the positive control")
+            return None, control_failed("had work counters still moving before the "
+                                        "change, so the harness ran out of patience")
         event, why = durability.perturb(control, durability.EDIT_ONE_ITEM)
         if why:
-            return None, not_run(cid, req, clause, falsified, target, "status", why)
+            return None, control_failed(f"could not be perturbed ({why})")
         after, settled = durability.settle(control)
         if not settled:
-            return None, durability.unsettled(cid, req, clause, falsified, target,
-                                              "after the positive control")
+            return None, control_failed("had work counters still moving after the "
+                                        "change, so the harness ran out of patience")
 
     created = {k: v for k, v in durability.delta(before, after).items()
                if durability.outcome_of(k) == durability.DONE and v > 0}
@@ -799,7 +832,11 @@ def check_pause_stops_background_work(target: Target, *, control: Target) -> Che
                                         "after the pause")
         change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
         if why:
-            return not_run(cid, req, clause, falsified, target, "pause", why)
+            # `status`, as `durability.py` records it for the same failure: the
+            # harness could not make the change happen, and `pause` was called
+            # and answered. Blaming the verb that worked is a wrong fact in the
+            # artifact for a target whose adapter simply cannot be perturbed.
+            return not_run(cid, req, clause, falsified, target, "status", why)
         after, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
@@ -876,13 +913,24 @@ def check_pause_holds_across_restart(target: Target, *, control: Target) -> Chec
         # having failed, on a target whose pause held perfectly. The clause is
         # about a CHANGE made after the restart, and this is where that window
         # opens.
+        #
+        # Whether the target still reports counters is asked again rather than
+        # inherited from before the restart: one that stops reporting them would
+        # otherwise be published as "the counters were still moving", which is a
+        # statement about counters that are not there.
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
         before, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "after the restart")
         change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
         if why:
-            return not_run(cid, req, clause, falsified, target, "pause", why)
+            # `status`, as `durability.py` records it for the same failure: the
+            # harness could not make the change happen, and `pause` was called
+            # and answered. Blaming the verb that worked is a wrong fact in the
+            # artifact for a target whose adapter simply cannot be perturbed.
+            return not_run(cid, req, clause, falsified, target, "status", why)
         after, settled = durability.settle(target)
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
