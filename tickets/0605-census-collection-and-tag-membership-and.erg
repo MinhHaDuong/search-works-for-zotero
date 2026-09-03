@@ -45,10 +45,10 @@ one whose passage count is small relative to the pool. A scope that small can be
 scored directly, without any ranked stream: X4 killed `json_each` as a *MATCH
 constraint*, measured at a thousand and at five thousand rowids, and it says
 nothing about scoring a few hundred passages the index can enumerate. So a third
-candidate stands beside the ruling's two — score a small scope exhaustively — and
-whether it covers the whole failure region is a census question, answered here,
-before anyone prices a new index structure. This ticket names the candidate and measures the region; it
-designs nothing.
+candidate stands beside the ruling's two — score a small scope exhaustively —
+and whether it covers the whole failure region is a census question, answered
+here, before anyone prices a new index structure. This ticket names the
+candidate and measures the region; it designs nothing.
 
 ## Actions
 
