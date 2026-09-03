@@ -46,3 +46,8 @@ saving, still without a figure.
 **is 0491 inside the codex fence**, and the two questions the 2026-09-03 ladder re-cut
 raised — whether to split 0606, and which ticket owns the dispatcher 0564 and 0606
 action 4 both describe. The re-cut itself is in the tickets (0606, 0557, 0560/0561/0564).
+
+**The 0557 ladder was specified without reading the fork, and three of its premises are wrong**
+(logged on 0557). seg/1 is built (fork `t0028-seg1` at `f936102`, 26 tests); 0560 is substantially
+built as `extractPdfOutline`, dated a day before the tracker was filed; 0558 likely the same via
+`annotate.ts` and upstream #29. Read the fork before picking up any child of 0557.

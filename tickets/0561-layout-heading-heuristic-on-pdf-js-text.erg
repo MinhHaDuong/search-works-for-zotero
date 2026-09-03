@@ -9,6 +9,8 @@ Blocked-by: 0557
 
 2026-09-03T09:38Z Minh Ha-Duong note absorbed into 0606's pack producer by the same day's ladder re-cut. This stops being a segmenter tier: its output is pack blocks with `anchor.pageRects`, not boundary candidates handed to the segmenter, so the segmenter sees one structured input on the PDF path whoever produced it. The heuristic itself is unchanged; what changes is where its result lands and who consumes it. Sequencing follows: 0606's size-ratio gate decides the block schema's viability before this is written, because a ratio near 3 reopens 0606 and would change what this child is supposed to emit.
 
+2026-09-03T09:48Z claude note the substrate already exists, so this child starts further along than the tracker assumed. `fork/src/features/fulltext/pdf-locate.ts` (2026-08-31, shipped upstream in v1.9.0 as `87e06c0`) already drives `pdfjs-dist` over a document's text runs and reads font ascent and descent from `textContent.styles` -- the font-size and position signal this ticket's heuristic is specified over. What is missing is the heuristic itself, not the access to the data it reads.
+
 --- body ---
 ## Context
 

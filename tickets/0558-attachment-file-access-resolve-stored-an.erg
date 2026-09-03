@@ -7,6 +7,8 @@ Blocked-by: 0557
 --- log ---
 2026-09-01T13:31Z claude created
 
+2026-09-03T09:48Z claude note likely substantially already built, found while correcting the same day's ladder re-cut. `fork/src/tools/annotate.ts` resolves an attachment's bytes from three sources in preference order -- the running desktop app reading its own disk, the storage folder when the app is not running but shares the machine, and a download when hosted -- and sorts `linked_file`/`linked_url` explicitly, which is this ticket's actions 1 to 4. Upstream issue #29 closed COMPLETED 2026-08-29 as `f1d93cf` describing exactly those three sources (SYNC.md). NOT VERIFIED here: whether that path is reachable as a reusable helper rather than annotate-internal, and whether the `file/view/url` redirect route this ticket specifies is the one it takes. Audit before implementing; the risk is rebuilding what ships.
+
 --- body ---
 ## Context
 

@@ -12,6 +12,7 @@ Label: needs-human
 2026-09-03T09:38Z Minh Ha-Duong note re-cut of the blocker, ruled in session. Blocked-by 0557 is removed: it blocked on a tracker, which is what a blocker is never supposed to be, and it blocked two actions that depend on nothing. Action 1's size ratio is two `ls -l` on the reference machine and action 2's writer needs only the existing reader and the existing test fixture; neither touches pdf.js. The shape decision therefore runs BEFORE the ladder's tier work rather than after all seven children close, so 0561 is built against the block schema instead of built to an ad-hoc structure and re-targeted.
 2026-09-03T09:38Z claude note finding from the pack schema, read off `verification/probes/sdt_read.py`, and it splits the ladder differently than the first proposal of the same session. A pack is metadata + page catalog + typed blocks; a block carries `type`, `content` runs with `textMap` and `anchor.pageRects`. There is NO outline field -- a PDF's embedded table of contents is document metadata, not page content. So 0561 (layout heading heuristic on pdf.js text runs) moves INSIDE this ticket's producer, and 0560 (embedded TOC) does NOT: putting the TOC in the pack would need a field of ours, which condition 2 forbids. The TOC stays outside as its own signal provenance, which is how the ratified segmenter interface already lists it -- "the PDF's outline page targets" is enumerated apart from "pack blocks" (SPEC.md, the segmenter's interface).
 2026-09-03T09:47Z claude note Time cost of the pack route, beside the size ratio, in verification/EXTRACTION-ROUTES.md. Zotero SDT runs at 5,26 pages/s on the 2 913-page volume and 5-9 pages/s across a 100x size range, against 45,7 for the platform flat parse and 219 for pdftotext on the same document. Over the library's 464 599 pages in 8 576 attachments that projects to about 24,6 h, three times the whole 8 h 14 index build. So producing packs ourselves costs roughly 2,2x the bytes and 9x the time of the flat extraction it would replace.
+2026-09-03T09:48Z claude note correction to this ticket's own re-cut of the same day, and to the session that wrote it. The re-cut said action 3 waits on 0560 for vendored pdf.js. It does not: `pdfjs-dist` ^5.6.205 is already a declared fork dependency, in use at `src/features/fulltext/pdf-pages.ts` and `pdf-locate.ts` since 2026-08-31, and shipped upstream in v1.9.0 (`87e06c0`). The error was a repo-side grep reported as absence: the implementation lives in the untracked `fork/` checkout, so nothing in this repository could have shown it. Two claims made from that grep were wrong -- that seg/1 was uncoded (it is built, on fork branch t0028-seg1 at f936102, 26 tests) and that pdf.js was unvendored. The shape of this ticket is unchanged; only its dependency claim is.
 --- body ---
 ## Context
 
@@ -138,9 +139,11 @@ put to him rather than filed.
 3. Re-target the ladder's *layout* output into blocks and page anchors: block
    types drawn only from the taxonomy their bundle carries, page rects from
    pdf.js geometry, `source.hash` and a processor identity of ours in the
-   metadata. This is the one action with a real prerequisite — 0560's
-   vendored pdf.js, for the geometry — and it absorbs 0561. Actions 1 and 2
-   above precede it and depend on nothing.
+   metadata. It absorbs 0561, and its prerequisite is **already satisfied**:
+   `pdfjs-dist` is a declared fork dependency and `pdf-locate.ts` already
+   reports text-run geometry with font ascent and descent from
+   `textContent.styles`, which is the primitive the layout heuristic needs.
+   Actions 1 and 2 above precede it and depend on nothing.
 4. Source selection in the extract shim, one rule: their pack if present and of
    a known version, else ours if present and current, else the flat path. Never
    a direct read of `.zotero-ft-cache`.
