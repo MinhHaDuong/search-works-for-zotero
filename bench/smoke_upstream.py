@@ -341,6 +341,97 @@ def check_foreign_schema_is_sidelined(a: argparse.Namespace, scratch: Path) -> d
              "R23-previous-schema-migrates-in-place")})
 
 
+#: Reciprocal-rank fusion's smoothing constant, upstream's value.
+RRF_K = 60
+
+
+def timing_fields(runs: list[dict]) -> dict:
+    """Split the per-query wall times by EXECUTION ORDER, never by magnitude.
+
+    The field this replaces was `sorted(wall_ms)[1:]` — the sorted list minus its
+    *minimum*. On a fresh data directory the first query pays the model download
+    and the ONNX session start, so it is the largest number in the set: it
+    survived into a field labelled warm, while the fastest warm query was the one
+    thrown away. Sorting cannot recover which query ran first; only the order the
+    runs were appended in can, and that is what this reads.
+
+    Both fields are labelled with what they include, so a run on a fresh data
+    directory and a run on a warm one are distinguishable in the artifact: the
+    cold figure carries the download on the first, and does not on the second.
+    """
+    cold = runs[0]["wall_ms"] if runs else None
+    warm = [r["wall_ms"] for r in runs[1:]]
+    return {
+        "cold_ms": cold,
+        "warm_ms": warm,
+        "timing_note": (
+            "cold_ms is the FIRST query in execution order — it carries whatever "
+            "one-time cost this process paid on it (model download on a fresh data "
+            "directory, ONNX session start always). warm_ms is every query after "
+            "the first, in execution order, nothing dropped. Neither field is "
+            "sorted: the fastest run is not the warm one, and the slowest is not "
+            "necessarily the cold one."),
+    }
+
+
+def _rrf_rank_of(score: object, k: int = RRF_K) -> int | None:
+    """The rank whose fusion value equals this score, or None if no rank does.
+
+    Inverted rather than searched over `1..limit`, and the difference is not
+    cosmetic: dedup happens AFTER fusion, so a list of `limit` hits can carry a
+    rank above `limit` — the v1.13.0 artifact has a five-hit query whose last
+    score is `1/66`. A search bounded by the limit would call that a mismatch for
+    the same reason the prefix comparison did.
+    """
+    if isinstance(score, bool) or not isinstance(score, (int, float)) or score <= 0:
+        return None
+    rank = round(1 / float(score)) - k
+    if rank < 1:
+        return None
+    return rank if round(float(score), 6) == round(1 / (k + rank), 6) else None
+
+
+def rank_fusion_agreement(runs: list[dict]) -> dict:
+    """Match each score against the fusion value for ITS OWN rank, gaps allowed.
+
+    The check this replaces compared the returned scores against a *contiguous
+    prefix* of the series `1/(60+rank)`. Item-level deduplication in the query
+    path leaves gaps in the ranks, so a query whose hits skip a rank failed strict
+    prefix equality even though every individual score is exactly the fusion value
+    for its own rank — the counter read zero for a reason that was the check's,
+    not the target's.
+
+    A hit matches when some rank fuses to its score — any rank, not one bounded
+    by the query's limit, for the reason `_rrf_rank_of` gives. A *query* counts
+    only when every one of its hits matches AND the ranks ascend, since a fused
+    list is ordered by score; a descending or repeated rank is not a fusion
+    ordering. A query that returned nothing demonstrates nothing and is not
+    counted.
+
+    Reports how many hits were compared, so the artifact says what the count is
+    out of rather than leaving a bare number the reader cannot size.
+    """
+    compared = matched = queries_ok = 0
+    for r in runs:
+        scores = r.get("scores") or []
+        ranks = [_rrf_rank_of(x) for x in scores]
+        compared += len(scores)
+        matched += sum(1 for x in ranks if x is not None)
+        ordered = all(a < b for a, b in zip(ranks, ranks[1:])) if None not in ranks else False
+        if scores and None not in ranks and ordered:
+            queries_ok += 1
+    return {
+        "hits_compared": compared,
+        "hits_matching_own_rank": matched,
+        "queries_all_hits_rank_shaped": queries_ok,
+        "rank_fusion_note": (
+            f"each score is compared against 1/({RRF_K}+rank) for its own rank, not "
+            "against a contiguous prefix of the series: item-level deduplication "
+            "leaves gaps in the ranks, and a gap is not a mismatch. A query counts "
+            "only when every hit matches and the ranks ascend."),
+    }
+
+
 def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
     """R6/R7: a query answers, in what time, and whether the score carries magnitude."""
     runs = []
@@ -357,16 +448,14 @@ def check_query_answers(s: Server, queries: list[str], limit: int) -> dict:
                      "keys": [h.get("itemKey") or h.get("key") for h in hits]})
     answered = [r for r in runs if r["hits"] > 0]
     # RRF over one list gives 1/(60+rank) exactly; a similarity would not.
-    rrf = [round(1 / (60 + i), 6) for i in range(1, limit + 1)]
-    rank_shaped = sum(1 for r in runs
-                      if [round(x, 6) for x in r["scores"]] == rrf[:len(r["scores"])])
+    detail = {"runs": runs}
+    detail.update(timing_fields(runs))
+    detail.update(rank_fusion_agreement(runs))
     return check(
         "R6-query-answers", "R6", "a query returns something usable, warm, within the budget",
         "a query returning no hits on a populated index, or no run completing",
         "pass" if len(answered) == len(runs) and runs else "fail",
-        {"runs": runs,
-         "warm_ms": sorted(r["wall_ms"] for r in runs)[1:],
-         "queries_whose_scores_are_exactly_1_over_60_plus_rank": rank_shaped,
+        {**detail,
          "score_note": ("a score equal to 1/(60+rank) is reciprocal-rank fusion over a single "
                         "list — a relabelled rank, carrying no similarity magnitude, so a caller "
                         "cannot threshold it to mean 'nothing good was found'")})

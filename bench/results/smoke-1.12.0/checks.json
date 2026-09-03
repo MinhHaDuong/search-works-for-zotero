@@ -74,12 +74,18 @@
             ]
           }
         ],
+        "cold_ms": 335.8,
         "warm_ms": [
           7.7,
-          335.8
+          4.4
         ],
-        "queries_whose_scores_are_exactly_1_over_60_plus_rank": 3,
-        "score_note": "a score equal to 1/(60+rank) is reciprocal-rank fusion over a single list — a relabelled rank, carrying no similarity magnitude, so a caller cannot threshold it to mean 'nothing good was found'"
+        "timing_note": "cold_ms is the FIRST query in execution order — it carries whatever one-time cost this process paid on it (model download on a fresh data directory, ONNX session start always). warm_ms is every query after the first, in execution order, nothing dropped. Neither field is sorted: the fastest run is not the warm one, and the slowest is not necessarily the cold one.",
+        "hits_compared": 1,
+        "hits_matching_own_rank": 1,
+        "queries_all_hits_rank_shaped": 1,
+        "rank_fusion_note": "each score is compared against 1/(60+rank) for its own rank, not against a contiguous prefix of the series: item-level deduplication leaves gaps in the ranks, and a gap is not a mismatch. A query counts only when every hit matches and the ranks ascend.",
+        "score_note": "a score equal to 1/(60+rank) is reciprocal-rank fusion over a single list — a relabelled rank, carrying no similarity magnitude, so a caller cannot threshold it to mean 'nothing good was found'",
+        "recomputed_note": "cold_ms, warm_ms and the rank-fusion counts were RECOMPUTED on 2026-09-03 (ticket 0621) from this run's own per-query records above; nothing was re-measured. What they replace: a warm figure that was the sorted times minus their minimum, so it kept the cold run and dropped the fastest warm query, and a counter that compared the scores against a contiguous prefix of the fusion series, which item-level deduplication breaks."
       }
     },
     {
