@@ -87,19 +87,19 @@ always means *holds on stock upstream*, never *we wrote it*.
 
 **Delivered** — the promise holds on stock upstream today.
 
-`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○` &nbsp; 3 shipped · 16 partial · 5 not yet
+`●●●◐◐◐◐◐◐◐◐◐◐◐◐◐◐◐○○○○○○` &nbsp; 3 shipped · 15 partial · 6 not yet
 
 `●` shipped &nbsp;·&nbsp; `◐` partial &nbsp;·&nbsp; `○` not yet
 
 **How each verdict was established**, since a verdict is only worth its
 evidence:
 
-12 measured · 9 read in the source · 3 inferred
+11 measured · 9 read in the source · 4 inferred
 
 **The requirements are objectively testable; these verdicts are not yet
 tests.** Every requirement is a set of MUST clauses a harness could check, so
 where a row is soft the fault is this repository's and never the sheet's. Of
-the twenty-four\*, ten\* rest on an experiment or a test that ran, ten\* on
+the twenty-four\*, eleven\* rest on an experiment or a test that ran, nine\* on
 opening the upstream source at the reviewed baseline, and four\* on nothing
 executed at all — merged pull requests, design documents, reasoning. The
 `evidence` column says which, per row, so a reader can tell a verdict that
@@ -148,7 +148,7 @@ upstream, and on what terms, is [`SYNC.md`](SYNC.md) and
 | Embedding configurations | `●` | `○` |
 | Custody and lifecycle | `●●●●` | `●◐◐○` |
 | Multi-library and multi-process | `●●` | `●◐` |
-| Normalization | `●` | `◐` |
+| Normalization | `●` | `○` |
 
 ---
 
@@ -224,7 +224,7 @@ index answers while it is still filling, the query path waits for no freshness
 work, the two normalizers agree, and it says how much is behind an answer and
 which emptiness an empty one is.
 
-`◐◐◐◐◐◐○` &nbsp; 7 in the bundle · 3 rest on something that ran
+`◐◐◐◐◐○○` &nbsp; 7 in the bundle · 2 rest on something that ran
 
 | | the clause goal 3 binds | decided at | where its test would live |
 |---|---|---|---|
@@ -233,7 +233,7 @@ which emptiness an empty one is.
 | R6 | the query path waits for no freshness work | both | ticket 0580 |
 | R17 | how much is searchable, per stage, in one sentence, naming the device serving | both | ticket 0580 |
 | R18 | an empty answer says which it is: nothing matched, or this scope is not indexed yet | both | ticket 0580 |
-| R19 | every token the query normalizer makes, the index normalizer can make too | both | ticket 0578, ticket 0580 |
+| R19 | a document and a query writing the same word in equivalent forms still find each other, lexical search excepted | both | ticket 0029, ticket 0580 |
 | R32 | records searchable today and the body behind them, on the reference machine | both | ticket 0580 |
 
 ## Goal 4 — it finds the right thing, in my languages, and I can open it
@@ -273,7 +273,7 @@ one: this is the word *all* in the promise.
 
 ## What the ladder does not say
 
-Three terms bind a clause rather than an item. R19 is in by its property alone:
+Three terms bind a clause rather than an item. R19 is in by its matching clause alone:
 its cadence — that the sweep runs on every check — is not a promise to anyone
 and left the sheet on 2026-08-31, on the criterion that what verifies a promise
 is not itself a promise, so it belongs to the gates in SPEC.md §5.2.8. R24 is in
@@ -382,7 +382,7 @@ demonstrated. They are not the same kind of statement.
 
 | | promise | designed | delivered | evidence | standing |
 |---|---|---|---|---|---|
-| R19 | Every token the query side produces MUST be one the index side can also produce | ratified | partial | measured | The property does not hold. The fold did merge upstream, which is why this row stays `partial`; the sweep re-run against stock at the reviewed baseline comes back red on twenty-five misses, twenty-four at codepoint level and one at word level (`bench/results/0578-fold-sweep/codepoints.json`, verdict red). Those misses have two causes and this row does not blur them. Nine of them, eight codepoints and one word, are precomposed Devanagari nukta forms whose base-plus-nukta spelling agrees, so that finding is about the precomposed spelling and not about the script; the old sweep covered eight Unicode blocks and none of them was Devanagari, the run behind the red covers nineteen, and that widened net accounts for all nine. The other sixteen are the Roman numerals, where the widened net accounts for nothing: both runs sweep the block Number Forms, sixty-four codepoints in each, and both return the same six tail codepoints of that block as `narrows`, and the sixteen numerals are absent from the old divergence list entirely, having agreed. Today the index side holds `ⅰ` where the query side produces `Ⅰ`. Something changed between the two runs and this evidence does not say what: upstream's `normalizeForSearch` moving, or the fork tree differing, both stay open, while the sweep's own reclassification is ruled out, since the old classifier called a divergence `narrows` only where the query side produced no tokens and would have called `['Ⅰ']` against `['ⅰ']` a miss exactly as the new one does. Settling the sixteen needs the upstream diff between the two run dates, which nobody has read (pull request #216, ticket 0578; the codepoint ranges are in DECISIONS.md). The green this row used to claim rested on `bench/results/0009-fold-sweep/codepoints.json`, whose miss list is empty because that same old classifier put every one of its divergences in `narrows`; separately, the script wrote its artifact before computing its warning and returned zero whatever the count, so no gate reading its exit status could have failed on it either. `measured` because a red is a measurement. The cadence clause — that the sweep runs on every check — left the sheet on 2026-08-31, because what verifies a promise is not itself a promise. It is a gate in SPEC.md §5.2.8, whose sentence that the gate runs green by right against current upstream the same run falsifies; that falsification is put to the author in DECISIONS.md, and ticket 0026 wires the gate. |
+| R19 | In semantic and hybrid search, when a document and a query write the same word in different but equivalent forms, the query MUST still find the document. Lexical search is exempt: there the user has asked for the string as typed, and matching it literally is the promise | ratified | none | inferred | No test, and the row says so. The clause was reworded on 2026-09-03 (DECISIONS.md) from an agreement between two normalizers — a property of our own source, decidable only by reading it — into a promise about what a user sees, decidable through the query verb alone against any target. Nothing of that shape has been executed, so this verdict rests on reasoning and on nothing that ran. The character-folding sweep is not this row's evidence under this wording and cannot become it: it reads a normalizer's source, and a promise is kept or broken where a user can see it. The sweep survives as a gate in SPEC.md §5.2.8, red against stock at the reviewed baseline on twenty-five misses (`bench/results/0578-fold-sweep/codepoints.json`, verdict red); what that red establishes is that our own two sides disagree, never that a user's query came back empty. Which forms count as equivalent is now a property of the fixture corpus, per script class, so a pair nobody pins is a pair nobody checks — the narrowing the ruling accepts, and the same trade R34 already makes. The corpus is ticket 0029; the rung's assertion is ticket 0580. |
 
 ---
 

@@ -5230,6 +5230,79 @@ dependency clears. R31's optional `MAY` remains unchanged: later work may revive
 aggregation after its operator, consumer and privacy design are explicitly
 authorised.
 
+**2026-09-03 — R19 is reworded from an agreement between two normalizers into a
+promise about what a user sees.** The author ratified the wording and instructed
+the merge. The clause now reads: in semantic and hybrid search, when a document
+and a query write the same word in different but equivalent forms, the query
+MUST still find the document; lexical search is exempt, because there the user
+has asked for the string as typed and matching it literally is the promise.
+
+**Why the old clause could not stay.** "Every token the query side produces MUST
+be one the index side can also produce" is a statement over two normalizers'
+token sets. Nothing but the source tree decides it, so a requirement written as
+a user-facing promise was in fact an internal property, and the only instrument
+that could report on it was a sweep reading our own code. The new clause is
+decidable through the `query` verb alone, against any target, with no access to
+its source — which is what a requirement in this sheet is supposed to be.
+
+**What made the question live.** The fold sweep is red against stock at the
+reviewed baseline, on twenty-five misses
+(`bench/results/0578-fold-sweep/codepoints.json`). Nine of them — eight
+codepoints and one word — are precomposed Devanagari nukta forms whose
+base-plus-nukta spelling agrees, and their cause is established: the old sweep
+covered eight Unicode blocks and none was Devanagari, the run behind this red
+covers nineteen, and that widened net accounts for all nine. The other sixteen
+are the Roman numerals U+2160 to U+216F, and they are genuinely unexplained:
+both runs sweep Number Forms, both return the same six tail codepoints as
+`narrows`, and the sixteen numerals are absent from the old divergence list
+entirely, having agreed. The one experiment that would settle them is the
+upstream diff between the two run dates, which nobody has read.
+
+**The lexical exemption's ground, and it is the direction of travel rather than
+today's machinery.** Upstream PR #46 (`pr2-expansion`, "Keep diacritics in the
+keyword index; expand unaccented queries instead"), filed with PR #45 and PR
+#47 as the ticket 0091 series, is ours. On the keyword path it stops folding
+diacritics away systematically and keeps the true form, reaching an unaccented
+query by an explicit gated expansion instead. That is precisely the property the
+old clause required, broken on purpose: with the index holding the accented form
+and the query side producing the unaccented one, the two token sets no longer
+agree, and the bridge is built at query time rather than by the two normalizers
+meeting in the middle. Under the old wording our own upstream filing would have
+put us in violation of our own ratified requirement. So this reword is
+consistency work and not only a clearer promise: it aligns the sheet with a
+change already sent upstream. On the keyword path matching what the user typed
+is the promise, and reaching equivalent forms is an option the user turns on;
+R19's behavioural promise therefore attaches exactly where no such option
+mediates, which is semantic and hybrid.
+
+**The narrowing, which is a real cost and is accepted as one.** The old clause
+covered every token the query side can produce — unbounded, and checkable only
+by reading source. The new one covers the pairs the fixture corpus pins, per
+script class. Coverage becomes a property of the corpus, so a form nobody pinned
+is a form nobody checks, and widening the promise now means widening the corpus.
+This is the same trade R34 already makes, and it is preferred here for the same
+reason: a promise a user can see broken is worth more than a property only a
+reader of our source can confirm.
+
+**What the ruling does to the gate.** The character-folding sweep stays exactly
+as it is, red and all, as a gate in SPEC.md §5.2.8 — but it is no longer R19's
+evidence and cannot become it, because it reads a normalizer's source and this
+promise is kept or broken in what a query returns. It now serves no requirement
+of its own, joining the RAM and golden gates, which have been in that position
+since 2026-08-31. SPEC.md's glossary is corrected on both counts: the four-gates
+entry, and the `unicode61` entry, which pointed at R19 as the agreement check
+and now points at the gate.
+
+**And what it does to the status page.** README.md's R19 row goes from `partial`
+/ `measured` to `none` / `inferred`. That is a downgrade and the honest
+direction: the old verdict rested on a source read that the reworded clause no
+longer admits, and no behavioural assertion of the new shape has been written,
+let alone run. One figure loses its only prose home in the same edit — ticket
+0009's `codepoints_swept`, which the old R19 quoted live as "over 1 301
+codepoints"; its declaration comes out of `bench/check_figures.py` rather than
+being re-quoted somewhere it is not needed, and the artifact and its ticket stay
+authoritative for the number.
+
 **2026-09-03 — the GPU host does not rescue the service ceiling, and the shipped
 runtime never touches a GPU. Supersedes the "not run" paragraph of the
 2026-09-02 service-ceiling entry; it changes no ruling and asks for none.** The

@@ -687,8 +687,15 @@ FIGURES = [
     ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None}),
     # ---- 0005, the migration ----
     # ---- 0009, the fold sweep ----
-    ("0009-fold-sweep/codepoints.json", "codepoints_swept", 0,
-     {"requirements": "over {} codepoints"}),
+    # `codepoints_swept` had one prose home and lost it on 2026-09-03: R19's reword
+    # (DECISIONS.md) took the sweep out of the requirement entirely, so the sentence
+    # that quoted "over 1 301 codepoints" no longer exists. Declaring it against a
+    # document that cannot carry it would be a permanent red, and re-quoting the
+    # figure somewhere else to keep the pair alive would plant a number no reader
+    # needs — the coverage this guard protects is prose that makes a claim, not prose
+    # written to be guarded. The artifact stays under bench/results/ and ticket 0009
+    # stays authoritative for it. Coverage falls by one pair, well clear of the
+    # MINIMUM_PAIRS floor, which is therefore left where it is.
     # ---- 0012, the two version sequences ----
     # SPEC.md's C1 quotes three of this artifact's scalars in one sentence — "measured:
     # 410 versus 0..25 036" — plus the entries-total in the since=0 scoping bullet. Anchored,
