@@ -34,15 +34,296 @@
  *   node bench/fixtures/make_index_fixture.mjs --generation current   --output f.sqlite
  *   node bench/fixtures/make_index_fixture.mjs --generation prerename --output f.sqlite
  *   node bench/fixtures/make_index_fixture.mjs --both <dir>     # writes both, named
+ *   node bench/fixtures/make_index_fixture.mjs --replay-export <snapshot> --recipe <json>
+ *        --server <dist/index.js> --data-dir <dir> --embeddings local
  */
 import { DatabaseSync } from 'node:sqlite';
-import { existsSync, unlinkSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, unlinkSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
 import { SCHEMA_VERSION } from '../index_schema.mjs';
 
 export const GENERATIONS = ['current', 'prerename'];
+
+/**
+ * Read and prove the shape of a ticket-0029 Zotero export before serving a byte.
+ *
+ * There is deliberately no built-in export.  The committed snapshot does not exist yet;
+ * tests make an invented one in a temporary directory, while a real run points this at
+ * the output of `golden_fixture.py export`.  That separation prevents a synthetic body
+ * from quietly acquiring the standing of Zotero's extraction.
+ */
+export function loadGoldenExport(directory, options = {}) {
+  const root = resolve(directory);
+  const readJson = (relative, label) => {
+    const path = resolve(root, relative);
+    if (!path.startsWith(`${root}/`)) throw new Error(`${label} escapes the export directory`);
+    if (!existsSync(path)) throw new Error(`missing ${label}: ${relative}`);
+    try {
+      return JSON.parse(readFileSync(path, 'utf8'));
+    } catch (error) {
+      throw new Error(`malformed ${label} ${relative}: ${error.message}`);
+    }
+  };
+  const manifest = readJson('manifest.json', 'manifest');
+  if (manifest.schema_version !== 1) throw new Error(`unsupported golden export schema ${manifest.schema_version}`);
+  if (!/^[0-9a-f]{64}$/.test(manifest.recipe_sha256 ?? '')) throw new Error('manifest has no recipe sha256');
+  if (!['user', 'group'].includes(manifest.library?.type) ||
+      !Number.isInteger(manifest.library?.id) || manifest.library.id <= 0) {
+    throw new Error('manifest must identify the public Zotero library');
+  }
+  if (!manifest.library.collection_key) throw new Error('manifest has no collection key');
+  if (!manifest.zotero?.client_version ||
+      !Number.isInteger(manifest.zotero?.['fulltext.pdfMaxPages']) ||
+      !Number.isInteger(manifest.zotero?.['fulltext.textMaxLength'])) {
+    throw new Error('manifest lacks the Zotero version or extraction preferences');
+  }
+  if (!Number.isInteger(manifest.index_fulltext_max_chars) || manifest.index_fulltext_max_chars <= 0) {
+    throw new Error('manifest lacks a positive index_fulltext_max_chars');
+  }
+  if (manifest.items_file !== 'items.json') throw new Error('manifest items_file must be items.json');
+  if (!manifest.normalizations?.linked_file_path || !manifest.normalizations?.linked_file_enclosure) {
+    throw new Error('manifest does not declare linked-file path normalization');
+  }
+  const items = readJson(manifest.items_file, 'items');
+  if (!Array.isArray(items)) throw new Error('items export is not an array');
+  const itemByKey = new Map();
+  for (const item of items) {
+    const data = item?.data ?? item;
+    const key = item?.key ?? data?.key;
+    if (!key) throw new Error('items export contains an item without a key');
+    if (itemByKey.has(key)) throw new Error(`items export contains duplicate key ${key}`);
+    itemByKey.set(key, item);
+  }
+  if (!Array.isArray(manifest.attachments) || manifest.attachments.length === 0) {
+    throw new Error('manifest has no attachment exports');
+  }
+  const recipeIds = new Set();
+  const fulltext = new Map();
+  for (const row of manifest.attachments) {
+    const { recipe_id: recipeId, parent_key: parent, attachment_key: key } = row;
+    if (!recipeId || recipeIds.has(recipeId)) throw new Error(`duplicate or empty recipe id ${recipeId ?? ''}`);
+    recipeIds.add(recipeId);
+    if (!itemByKey.has(parent)) throw new Error(`${recipeId}: missing parent item ${parent}`);
+    const attachment = itemByKey.get(key);
+    if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
+    const data = attachment.data ?? attachment;
+    if (data.parentItem !== parent || data.linkMode !== 'linked_file') {
+      throw new Error(`${recipeId}: ${key} is not the declared linked child of ${parent}`);
+    }
+    if (typeof data.path === 'string' && !/^attachments:[^/\\]+$/.test(data.path)) {
+      throw new Error(`${recipeId}: linked-file path is not portable`);
+    }
+    if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
+      throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);
+    }
+    const expectedFile = `fulltext/${key}.json`;
+    if (row.fulltext_file !== expectedFile) throw new Error(`${recipeId}: fulltext locator must be ${expectedFile}`);
+    if (!Number.isInteger(row.fulltext_version) || row.fulltext_version < 0) {
+      throw new Error(`${recipeId}: invalid fulltext version`);
+    }
+    const body = readJson(row.fulltext_file, `fulltext for ${key}`);
+    if (typeof body?.content !== 'string' || !Number.isInteger(body.indexedPages) ||
+        !Number.isInteger(body.totalPages)) {
+      throw new Error(`${recipeId}: malformed fulltext for ${key}`);
+    }
+    fulltext.set(key, { body, version: row.fulltext_version });
+  }
+  if (items.length !== manifest.attachments.length * 2) {
+    throw new Error(`items export has ${items.length} rows for ${manifest.attachments.length} recipe records`);
+  }
+  if (options.recipePath) {
+    const recipe = JSON.parse(readFileSync(options.recipePath, 'utf8'));
+    const canonical = JSON.stringify(canonicalJson(recipe));
+    const actual = createHash('sha256').update(canonical).digest('hex');
+    if (actual !== manifest.recipe_sha256) {
+      throw new Error(`snapshot recipe sha256 ${manifest.recipe_sha256} does not match ${options.recipePath} (${actual})`);
+    }
+  }
+  return { root, manifest, items, itemByKey, fulltext };
+}
+
+/** Sort object keys recursively to match `golden_fixture.py`'s canonical recipe hash. */
+function canonicalJson(value) {
+  if (Array.isArray(value)) return value.map(canonicalJson);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalJson(value[key])]));
+  }
+  return value;
+}
+
+function itemData(item) {
+  return item.data ?? item;
+}
+
+function itemKey(item) {
+  return item.key ?? itemData(item).key;
+}
+
+function itemVersion(item) {
+  return Number(item.version ?? itemData(item).version ?? 0);
+}
+
+function sendJson(response, status, body, headers = {}) {
+  const encoded = Buffer.from(JSON.stringify(body));
+  response.writeHead(status, {
+    'content-type': 'application/json',
+    'content-length': String(encoded.length),
+    ...headers,
+  });
+  response.end(encoded);
+}
+
+/** Resolve one request without a socket; also the replay server's only route table. */
+export function goldenReplayResponse(fixture, method, rawUrl) {
+  const library = fixture.manifest.library;
+  const prefix = library.type === 'group' ? `/api/groups/${library.id}` : '/api/users/0';
+  const url = new URL(rawUrl, 'http://127.0.0.1');
+  const commonHeaders = {
+    'last-modified-version': String(fixture.manifest.library_version ?? 0),
+    'zotero-server-id': 'ticket-0029-offline-replay',
+  };
+  const answer = (status, body, headers = commonHeaders) => ({ status, body, headers });
+  // Capability discovery is always rooted at users/0, including when the build target is
+  // a group.  Without these two routes Zoteus sees a dead desktop, or sees no local
+  // groups, and silently routes the corpus to the cloud instead of this replay.
+  if (method === 'GET' && library.type === 'group' && url.pathname === '/api/users/0/items') {
+    return answer(200, [], { ...commonHeaders, 'total-results': '0' });
+  }
+  if (method === 'GET' && library.type === 'group' && url.pathname === '/api/users/0/groups') {
+    const start = Math.max(0, Number(url.searchParams.get('start') ?? 0));
+    const groups = start === 0 ? [{ id: library.id, data: { id: library.id } }] : [];
+    return answer(200, groups, { ...commonHeaders, 'total-results': '1' });
+  }
+  if (method !== 'GET' || !url.pathname.startsWith(prefix)) {
+    return answer(404, { error: 'golden replay: route not captured' }, {});
+  }
+  const route = url.pathname.slice(prefix.length);
+  if (route === '/fulltext') {
+    const since = Number(url.searchParams.get('since') ?? 0);
+    const body = {};
+    for (const [key, value] of fixture.fulltext) {
+      if (since === 0 || value.version > since) body[key] = value.version;
+    }
+    return answer(200, body);
+  }
+  const fulltextMatch = route.match(/^\/items\/([^/]+)\/fulltext$/);
+  if (fulltextMatch) {
+    const found = fixture.fulltext.get(decodeURIComponent(fulltextMatch[1]));
+    return found ? answer(200, found.body) : answer(404, { error: 'no full text' });
+  }
+  const childrenMatch = route.match(/^\/items\/([^/]+)\/children$/);
+  if (childrenMatch) {
+    const parent = decodeURIComponent(childrenMatch[1]);
+    const children = fixture.items.filter((item) => itemData(item).parentItem === parent);
+    return answer(200, children, { ...commonHeaders, 'total-results': String(children.length) });
+  }
+  const oneItemMatch = route.match(/^\/items\/(?!top$)([^/]+)$/);
+  if (oneItemMatch) {
+    const found = fixture.itemByKey.get(decodeURIComponent(oneItemMatch[1]));
+    return found ? answer(200, found) : answer(404, { error: 'no such item' });
+  }
+  const collection = library.collection_key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const listMatch = route.match(new RegExp(`^(?:/collections/${collection})?/items(/top)?$`));
+  if (listMatch) {
+    let rows = [...fixture.items];
+    if (listMatch[1]) rows = rows.filter((item) => !itemData(item).parentItem);
+    const itemType = url.searchParams.get('itemType');
+    if (itemType) rows = rows.filter((item) => itemData(item).itemType === itemType);
+    const since = Number(url.searchParams.get('since') ?? 0);
+    if (since > 0) rows = rows.filter((item) => itemVersion(item) > since);
+    const sort = url.searchParams.get('sort');
+    if (sort) {
+      rows.sort((a, b) => String(itemData(a)[sort] ?? '').localeCompare(String(itemData(b)[sort] ?? '')));
+      if (url.searchParams.get('direction') === 'desc') rows.reverse();
+    }
+    const total = rows.length;
+    const headers = { ...commonHeaders, 'total-results': String(total) };
+    if (url.searchParams.get('format') === 'versions') {
+      return answer(200, Object.fromEntries(rows.map((item) => [itemKey(item), itemVersion(item)])), headers);
+    }
+    const start = Math.max(0, Number(url.searchParams.get('start') ?? 0));
+    const limit = Math.max(0, Number(url.searchParams.get('limit') ?? 100));
+    return answer(200, rows.slice(start, start + limit), headers);
+  }
+  return answer(404, { error: 'golden replay: route not captured' });
+}
+
+/**
+ * Serve the captured export as Zotero's read-only local API on an ephemeral port.
+ * Unknown routes are 404 and recorded, so the caller cannot mistake an incomplete fake
+ * for an empty Zotero result.
+ */
+export async function startGoldenReplay(fixture, options = {}) {
+  const requests = [];
+  const server = createServer((request, response) => {
+    const url = new URL(request.url, 'http://127.0.0.1');
+    requests.push(`${request.method ?? 'GET'} ${url.pathname}${url.search}`);
+    const result = goldenReplayResponse(fixture, request.method ?? 'GET', request.url);
+    sendJson(response, result.status, result.body, result.headers);
+  });
+  await new Promise((resolveListen, reject) => {
+    server.once('error', reject);
+    server.listen(options.port ?? 0, '127.0.0.1', resolveListen);
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('golden replay did not obtain a TCP port');
+  return {
+    port: address.port,
+    requests,
+    close: () => new Promise((resolveClose, reject) => server.close((error) => error ? reject(error) : resolveClose())),
+  };
+}
+
+/** Run the real MCP build driver against the replay, never a hand-written indexer. */
+export async function runGoldenBuild(fixture, options) {
+  const replay = await startGoldenReplay(fixture);
+  const topItems = fixture.items.filter((item) => !itemData(item).parentItem).length;
+  const args = [
+    'bench/run_build.py',
+    '--server', options.server,
+    '--data-dir', options.dataDir,
+    '--backend', 'sqlite',
+    '--poll', String(options.poll ?? 0.2),
+    '--max-wait', String(options.maxWait ?? 3600),
+    '--max-items', String(topItems),
+    '--max-chars', String(fixture.manifest.index_fulltext_max_chars),
+    '--embeddings', options.embeddings,
+    '--build',
+  ];
+  if (options.transformersPath) args.push('--transformers-path', options.transformersPath);
+  const env = {
+    ...process.env,
+    ZOTERO_LOCAL_PORT: String(replay.port),
+    ZOTEUS_LOCAL: 'on',
+    ZOTERO_LIBRARY_TYPE: fixture.manifest.library.type,
+    ZOTERO_LIBRARY_ID: String(fixture.manifest.library.id),
+  };
+  try {
+    const exitCode = await new Promise((resolveExit, reject) => {
+      const child = spawn(process.env.PYTHON ?? 'python3', args, {
+        cwd: resolve(import.meta.dirname, '..', '..'), env, stdio: 'inherit',
+      });
+      child.once('error', reject);
+      child.once('exit', (code, signal) => resolveExit(code ?? (signal ? 128 : 1)));
+    });
+    const result = {
+      exit_code: exitCode,
+      recipe_sha256: fixture.manifest.recipe_sha256,
+      replay_requests: replay.requests,
+    };
+    if (options.report) writeFileSync(options.report, `${JSON.stringify(result, null, 2)}\n`);
+    if (exitCode !== 0) throw new Error(`golden replay build exited ${exitCode}`);
+    return result;
+  } finally {
+    await replay.close();
+  }
+}
+
 
 /**
  * How many passages a fixture carries.
@@ -259,9 +540,36 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       generation: { type: 'string' },
       output: { type: 'string' },
       both: { type: 'string' },
+      'replay-export': { type: 'string' },
+      recipe: { type: 'string' },
+      server: { type: 'string' },
+      'data-dir': { type: 'string' },
+      embeddings: { type: 'string' },
+      'transformers-path': { type: 'string' },
+      report: { type: 'string' },
+      'max-wait': { type: 'string' },
     },
   });
-  if (opt.both) {
+  if (opt['replay-export']) {
+    const missing = ['recipe', 'server', 'data-dir', 'embeddings'].filter((key) => !opt[key]);
+    if (missing.length) {
+      console.error(`golden replay requires ${missing.map((key) => `--${key}`).join(', ')}`);
+      process.exit(2);
+    }
+    if (!['off', 'local', 'openai', 'gemini'].includes(opt.embeddings)) {
+      console.error('--embeddings must be off, local, openai, or gemini');
+      process.exit(2);
+    }
+    const fixture = loadGoldenExport(opt['replay-export'], { recipePath: opt.recipe });
+    await runGoldenBuild(fixture, {
+      server: opt.server,
+      dataDir: opt['data-dir'],
+      embeddings: opt.embeddings,
+      transformersPath: opt['transformers-path'],
+      report: opt.report,
+      maxWait: opt['max-wait'] ? Number(opt['max-wait']) : undefined,
+    });
+  } else if (opt.both) {
     console.log(JSON.stringify(writeBoth(opt.both), null, 2));
   } else if (opt.generation && opt.output) {
     if (!WRITERS[opt.generation]) {
@@ -276,7 +584,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(
       'usage: node bench/fixtures/make_index_fixture.mjs --generation current|prerename ' +
         '--output <f.sqlite>\n' +
-        '   or: node bench/fixtures/make_index_fixture.mjs --both <dir>',
+        '   or: node bench/fixtures/make_index_fixture.mjs --both <dir>\n' +
+        '   or: node bench/fixtures/make_index_fixture.mjs --replay-export <snapshot> ' +
+        '--recipe <recipe.json> --server <dist/index.js> --data-dir <dir> --embeddings local|off',
     );
     process.exit(2);
   }
