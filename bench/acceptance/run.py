@@ -88,12 +88,16 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
     then means "this path never executed" rather than "this path stayed home" —
     the same number, opposite readings. `--drive` therefore exits
     `DRIVE_INCOMPLETE` whenever this dictionary carries a `raised:`, and
-    `check_no_egress` turns that into `not-run`. A target whose four verbs all
-    raise is the extreme of the same case, and re-raising it keeps the caller's
-    reading of a process that died intact.
+    `check_no_egress` turns that into `not-run` unless the tracer saw an attempt
+    anyway, which stands whatever else went wrong.
+
+    A target whose every verb raises is the same case and not a worse one. An
+    earlier version re-raised there, which made the subprocess exit on a code the
+    egress clause grades as a red — scoring a target that is not installed, or
+    whose transport is down, red on a clause about egress. An instrument failure
+    is never a red.
     """
     done: dict[str, object] = {}
-    raised: list[BaseException] = []
     with target.running():
         for verb in verbs:
             if not target.declaration.offers(verb):
@@ -108,12 +112,6 @@ def drive(target, verbs: tuple[str, ...] = EGRESS_VERBS) -> dict:
                 done[verb] = "not-offered"
             except Exception as why:
                 done[verb] = f"raised: {type(why).__name__}: {why}"
-                raised.append(why)
-    exercised = [v for v, outcome in done.items()
-                 if not (isinstance(outcome, str)
-                         and outcome.startswith(("raised:", "not-offered")))]
-    if raised and not exercised:
-        raise raised[0]
     return done
 
 
@@ -170,6 +168,14 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
         """
         try:
             run.checks.append(produce())
+        except UnsupportedVerb:
+            # Deliberately not caught. `interface.py` documents this as the loud
+            # signal that an assertion called a verb without checking
+            # `Declaration.offers`, and every assertion re-raises it for that
+            # reason. Swallowed here it becomes a generic `not-run` carrying no
+            # `why_absent`, the run exits 0, and a harness bug reads as a target
+            # that could not be looked at.
+            raise
         except Exception as why:
             log.info("%-38s raised: %s: %s", check_id, type(why).__name__, why)
             run.checks.append(Check(
@@ -222,13 +228,21 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
     # Goal 1's remaining rung members. Each takes one target in an arena of its
     # own like the rest; the pause clauses need no second target and no tracer,
     # which is the sense in which this rung is the cheapest to assert.
+    # The pause clauses take a SECOND target, and unlike R13's pair it must NOT
+    # share a root: it is the never-stopped instance the positive control makes
+    # its change on, so a shared root would put its work in the counters the
+    # clause reads. Hence an arena of its own.
     where = arena_for("R22-pause-stops-background-work")
+    control = arena_for("R22-pause-stops-background-work-control")
     record("R22-pause-stops-background-work", "R22",
-           lambda w=where: check_pause_stops_background_work(make_target(w)))
+           lambda w=where, c=control: check_pause_stops_background_work(
+               make_target(w), control=make_target(c)))
 
     where = arena_for("R22-pause-holds-across-restart")
+    control = arena_for("R22-pause-holds-across-restart-control")
     record("R22-pause-holds-across-restart", "R22",
-           lambda w=where: check_pause_holds_across_restart(make_target(w)))
+           lambda w=where, c=control: check_pause_holds_across_restart(
+               make_target(w), control=make_target(c)))
 
     # Goal 2. The two R13 clauses take a SECOND target built over the same arena:
     # two adapter instances resolving one declared derived-state root is what

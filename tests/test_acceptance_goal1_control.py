@@ -25,9 +25,12 @@ would make the fixture impossible to write at all.
 
 **A finding with no positive control.** Both clauses find that a counter did not
 move, and a counter that would not have moved anyway produces that finding on a
-target whose control does nothing. So the same change is made once with the
-target running, and a change that creates no work then leaves the clause
-undecided rather than green.
+target whose control does nothing. So the same change is made on a second,
+never-stopped instance in an arena of its own, and a change that creates no work
+there leaves the clause undecided rather than green. The instance is separate for
+two reasons that each rule out the alternatives: a control run first on the
+graded target consumes the change, and one run after it needs `resume`, which a
+target may lack by a documented ruling.
 
 **A fail-control that fails a clause it is not about.** The pause was first
 honoured in `_edit_one_item`, which three fixtures override, so two of goal 2's
@@ -75,6 +78,18 @@ def a_stub(name: str, tmp_path: Path, at: str = ""):
     return stubs.build(name, where)
 
 
+def graded(assertion, name: str, tmp_path: Path, at: str = "", target=None):
+    """Run one pause clause against `name`, with a never-stopped control beside it.
+
+    The control is a second instance in an arena of its own, which is what the
+    clause needs and the opposite of R13's pair: independence, so the control's
+    own work cannot land in the counters the clause reads.
+    """
+    at = at or f"{name}-{assertion.__name__}"
+    return assertion(target if target is not None else a_stub(name, tmp_path, at=at),
+                     control=a_stub(name, tmp_path, at=f"{at}-control"))
+
+
 # --------------------------------------------------------------------------
 # The registry, and the sheet.
 # --------------------------------------------------------------------------
@@ -90,14 +105,14 @@ def test_every_pause_clause_is_in_the_registry():
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_the_registry_maps_each_id_to_the_function_that_produces_it(assertion, tmp_path):
     """The id a check reports is the key it is registered under."""
-    produced = assertion(a_stub("stub-quiet", tmp_path, at=assertion.__name__))
+    produced = graded(assertion, "stub-quiet", tmp_path)
     assert assertions.ALL[produced.check] is assertion
 
 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_quiet_target_is_green(assertion, tmp_path):
     """An assertion that has only ever failed is as uninformative as one that never has."""
-    check = assertion(a_stub("stub-quiet", tmp_path, at=assertion.__name__))
+    check = graded(assertion, "stub-quiet", tmp_path)
     assert check.result == PASS
 
 
@@ -108,8 +123,8 @@ def test_a_quiet_target_is_green(assertion, tmp_path):
 
 def test_a_control_that_answers_and_keeps_working_is_red(tmp_path):
     """The reply is honest and nothing stopped. Only the counters can tell."""
-    check = assertions.check_pause_stops_background_work(
-        a_stub("stub-ignores-pause", tmp_path))
+    check = graded(assertions.check_pause_stops_background_work,
+                   "stub-ignores-pause", tmp_path)
     assert check.result == FAIL
     assert check.detail["pause_event"] == {"paused": True}, (
         "the fixture must answer its pause surface correctly, or the red proves "
@@ -127,14 +142,14 @@ def test_a_pause_that_holds_only_while_the_process_lives_is_red(tmp_path):
     shows the two clauses are not one clause written twice — a merged assertion
     would report a single red here and lose which half failed.
     """
-    stopped = assertions.check_pause_stops_background_work(
-        a_stub("stub-forgets-pause-on-restart", tmp_path, at="stopped"))
-    across = assertions.check_pause_holds_across_restart(
-        a_stub("stub-forgets-pause-on-restart", tmp_path, at="across"))
+    stopped = graded(assertions.check_pause_stops_background_work,
+                     "stub-forgets-pause-on-restart", tmp_path, at="stopped")
+    across = graded(assertions.check_pause_holds_across_restart,
+                    "stub-forgets-pause-on-restart", tmp_path, at="across")
     assert stopped.result == PASS
     assert across.result == FAIL
     assert across.detail["restarted"] is True
-    assert across.detail["resume_called"] is False, (
+    assert across.detail["resume_never_called"] is True, (
         "a harness that asked the target to carry on would be measuring its own request"
     )
 
@@ -163,7 +178,8 @@ def test_a_queued_change_is_not_work_done(tmp_path):
         return event
 
     target._edit_one_item = queues_while_stopped
-    check = assertions.check_pause_stops_background_work(target)
+    check = graded(assertions.check_pause_stops_background_work, "stub-quiet",
+                   tmp_path, at="queues", target=target)
     assert check.result == PASS
     assert check.detail["done_deltas_while_stopped"] == {}
     assert check.detail["all_deltas_while_stopped"] == {"work.record.edit.queued": 1}, (
@@ -180,7 +196,7 @@ def test_a_queued_change_is_not_work_done(tmp_path):
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_target_without_the_surface_is_not_offered_rather_than_red(assertion, tmp_path):
     """R22 is verified absent upstream, so this is the state a real run reports."""
-    check = assertion(a_stub("stub-verbless", tmp_path, at=assertion.__name__))
+    check = graded(assertion, "stub-verbless", tmp_path)
     assert check.result == NOT_OFFERED
     assert check.verb in ("pause", "status", "configure", "query")
     assert check.detail["why_absent"], "an absent verb carries the reason it is absent"
@@ -218,19 +234,20 @@ def test_one_raising_verb_does_not_take_the_egress_sweep_down_with_it(tmp_path):
     assert done["install"], "the verbs before it must still have been driven"
 
 
-def test_every_verb_raising_is_not_survivable(tmp_path):
-    """The other half, and it is the one that would be a false green.
+def test_every_verb_raising_is_recorded_and_never_a_red(tmp_path):
+    """A target that exercised nothing is undecided on egress, not red on it.
 
-    `check_no_egress` grades `returncode == 0` plus zero traced attempts. A
-    target whose every verb raised exercised nothing at all, so swallowing them
-    would return it green on a clause about what it touched — worse than the
-    crash the guard replaced. That case re-raises.
+    An earlier version re-raised here, which made the subprocess exit on a code
+    `check_no_egress` grades as a failure — scoring a target that is not
+    installed, or whose transport is down, red on a clause about egress. An
+    instrument failure is never a red, and the incomplete run reaches the verdict
+    as `DRIVE_INCOMPLETE` instead.
     """
     target = a_stub("stub-quiet", tmp_path, at="all-broken")
     for verb in ("install", "configure", "resume", "query"):
         setattr(target, verb, _raises)
-    with pytest.raises(RuntimeError):
-        _run_module().drive(target)
+    done = _run_module().drive(target)
+    assert all("raised: RuntimeError" in v for v in done.values())
 
 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
@@ -242,10 +259,11 @@ def test_a_change_that_creates_no_work_leaves_the_clause_undecided(assertion, tm
     the change is made once while running and the clause is only decided if it
     created work then.
     """
-    target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
-    target._edit_one_item = lambda: {
+    control = a_stub("stub-quiet", tmp_path, at=f"{assertion.__name__}-control")
+    control._edit_one_item = lambda: {
         "perturbation": assertions.durability.EDIT_ONE_ITEM, "sections": 0}
-    check = assertion(target)
+    check = assertion(a_stub("stub-quiet", tmp_path, at=assertion.__name__),
+                      control=control)
     assert check.result == NOT_RUN
     assert "created no work" in check.detail["why"]
 
@@ -263,7 +281,7 @@ def test_another_goal_s_fail_control_is_not_red_here(fixture, assertion, tmp_pat
     a first build the second is not idempotent about. The gate is now in `_bump`,
     where doing the work happens and no subclass can route around it.
     """
-    check = assertion(a_stub(fixture, tmp_path, at=f"{fixture}-{assertion.__name__}"))
+    check = graded(assertion, fixture, tmp_path)
     assert check.result == PASS
 
 
@@ -296,7 +314,8 @@ class _Counterless:
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
 def test_a_target_without_work_counters_is_not_run_rather_than_green(assertion, tmp_path):
     """Whether the work stopped cannot be read from a target that counts nothing."""
-    check = assertion(_Counterless(tmp_path))
+    check = assertion(_Counterless(tmp_path / assertion.__name__),
+                      control=_Counterless(tmp_path / f"{assertion.__name__}-control"))
     assert check.result == NOT_RUN
     assert "work.<stage>.<trigger>.<outcome>" in check.detail["why"]
 
@@ -316,7 +335,8 @@ def test_a_pause_surface_that_raises_is_not_run_rather_than_ending_the_run(
         raise RuntimeError("the transport to this target died")
 
     target.pause = raises
-    check = assertion(target)
+    check = graded(assertion, "stub-quiet", tmp_path, at=f"{assertion.__name__}-raises",
+                   target=target)
     assert check.result == NOT_RUN
     assert "pause surface raised" in check.detail["why"]
 
@@ -330,7 +350,8 @@ def test_a_target_that_cannot_be_perturbed_is_not_run_rather_than_green(assertio
             return {"embedding": {"locality": "local", "active": True},
                     "work": {"work.record.new.done": 1}}
 
-    check = assertion(_NoPerturbation(tmp_path))
+    check = assertion(_NoPerturbation(tmp_path / assertion.__name__),
+                      control=_NoPerturbation(tmp_path / f"{assertion.__name__}-c"))
     assert check.result == NOT_RUN
 
 
@@ -363,20 +384,22 @@ def test_startup_work_after_a_restart_is_not_graded_as_the_pause_failing(tmp_pat
         target._write(target._ledger(), json.dumps(counters))
 
     target._on_start = works_on_start
-    check = assertions.check_pause_holds_across_restart(target)
+    check = graded(assertions.check_pause_holds_across_restart, "stub-quiet",
+                   tmp_path, at="startup-work", target=target)
     assert started["n"] >= 2, "the clause must actually have restarted the target"
     assert check.result == PASS
     assert check.detail["done_deltas_while_stopped"] == {}
 
 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
-def test_the_positive_control_runs_after_the_graded_window(assertion, tmp_path):
-    """A control placed first turns "the harness consumed the change" into a pass.
+def test_the_control_does_not_consume_the_graded_target_s_change(assertion, tmp_path):
+    """A control that is a second phase of the same target eats the change.
 
-    On a target where making the same change twice is a no-op the second time,
-    a control that runs first leaves the graded phase with no work to find for
-    reasons that have nothing to do with the pause. Run last, the same target
-    reports `not-run`. This fixture makes the change exactly once, ever.
+    Where making the same change twice is a no-op the second time, a control run
+    first on the graded target leaves the graded phase with nothing to find —
+    for reasons that have nothing to do with the pause — and that lands as a
+    pass. This target makes the change exactly once, ever, and the clause must
+    still decide it, because the control happened somewhere else entirely.
     """
     target = a_stub("stub-quiet", tmp_path, at=assertion.__name__)
     original = target._edit_one_item
@@ -389,35 +412,27 @@ def test_the_positive_control_runs_after_the_graded_window(assertion, tmp_path):
         return original()
 
     target._edit_one_item = only_once
-    check = assertion(target)
-    assert check.result == NOT_RUN
-    assert "created no work" in check.detail["why"]
+    check = graded(assertion, "stub-quiet", tmp_path, at=assertion.__name__,
+                   target=target)
+    assert check.result == PASS
+    assert check.detail["positive_control"]["done_deltas_on_a_never_stopped_instance"]
 
 
 @pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
-def test_a_target_that_cannot_be_let_go_leaves_the_clause_undecided(assertion, tmp_path):
-    """No resume, no positive control, and therefore no verdict."""
+def test_a_control_sharing_a_root_is_refused_rather_than_measured(assertion, tmp_path):
+    """The opposite of R13's pair, and for the opposite reason.
 
-    class _NoResume(_Counterless):
-        def __init__(self, arena):
-            super().__init__(arena)
-            self.declaration = Declaration(
-                name="no-resume", revision="fixture", derived_state_roots=(arena,),
-                query_transport="in process", default_configuration="the only one",
-                process="none",
-                unsupported={"resume": "declared absent for this fixture's purpose"},
-            )
-
-        def status(self):
-            return {"embedding": {"locality": "local", "active": True},
-                    "work": {"work.record.new.done": 1}}
-
-        def perturb(self, what):
-            return {"perturbation": what, "sections": 1}
-
-    check = assertion(_NoResume(tmp_path / assertion.__name__))
+    R13's two instances must resolve one data directory, because the clause is
+    about two processes on one. Here they must not: a control sharing a root does
+    its work into the very counters this clause reads, so the finding "no work
+    happened while stopped" would be read off a ledger the control was writing.
+    """
+    where = tmp_path / assertion.__name__
+    where.mkdir(parents=True, exist_ok=True)
+    check = assertion(stubs.build("stub-quiet", where),
+                      control=stubs.build("stub-quiet", where))
     assert check.result == NOT_RUN
-    assert "let it work again" in check.detail["why"]
+    assert "also resolves" in check.detail["why"]
 
 
 def test_an_assertion_that_raises_is_recorded_rather_than_ending_the_run(tmp_path):

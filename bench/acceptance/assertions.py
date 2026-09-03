@@ -246,19 +246,25 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
         writable=(arena, *target.declaration.derived_state_roots),
     )
     counts = subject.counts()
-    if subject.returncode == DRIVE_INCOMPLETE:
-        # The driven run reported that a verb raised inside it. Zero attempts
-        # then means "this path never executed", not "this path stayed home", and
-        # the two are the same number. Reported as not decided rather than as a
-        # red: the target has not failed a clause about egress by having a broken
-        # verb, and it has not passed one either.
+    clean = counts["off_machine"] == 0 and counts["dns"] == 0
+    if subject.returncode == DRIVE_INCOMPLETE and clean:
+        # The driven run reported that a verb raised inside it AND the tracer saw
+        # nothing. Zero attempts then means "this path never executed", not "this
+        # path stayed home", and the two are the same number. Reported as not
+        # decided rather than as a red: the target has not failed a clause about
+        # egress by having a broken verb, and it has not passed one either.
+        #
+        # The `clean` conjunct is not belt and braces. Under a no-route namespace
+        # the verb that reaches off this machine is usually the very verb that
+        # then raises, so testing the return code alone would downgrade the exact
+        # target this clause exists to catch — an attempt the tracer recorded is
+        # a finding whatever else went wrong afterwards, and it stands.
         return not_run(
             cid, req, clause, falsified, target, "query",
             "a verb raised inside the driven run, so part of the default-configuration "
             "path never executed and the attempt counts are read off an incomplete "
             "sweep; this clause is not decided",
         )
-    clean = counts["off_machine"] == 0 and counts["dns"] == 0
     return Check(
         check=cid, requirement=req, clause=clause, falsified_by=falsified,
         result=PASS if clean and subject.returncode == 0 else FAIL,
@@ -621,59 +627,58 @@ def _pause_verdict(cid: str, req: str, clause: str, falsified: str, target: Targ
     )
 
 
-def _the_change_would_have_created_work(cid: str, req: str, clause: str, falsified: str,
-                                        target: Target) -> tuple[dict | None, Check | None]:
-    """The positive control, and it runs AFTER the graded window, not before.
+def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
+                             target: Target,
+                             control: Target) -> tuple[dict | None, Check | None]:
+    """The positive control: the same change, on a second target that was never stopped.
 
     Without a control at all, both clauses are a green that means "could not
     look": their whole finding is that a counter did not move, and a counter that
     would not have moved anyway produces that finding on a target whose control
     does nothing.
 
-    **The order is the correction.** Run first, the control makes the very change
-    the graded phase then makes again — and on a target where editing the same
-    item twice is a no-op the second time, the graded phase creates no work for
-    reasons that have nothing to do with the pause. That is a false green, and it
-    is the direction that matters: a control placed first turns "the harness
-    consumed the change" into a pass, while a control placed last turns it into
-    `not-run`. So the target is let go with `resume` once the graded window has
-    closed, the same change is made again, and the clause is decided only if
-    *that* created work.
+    **The control is a second target rather than a second phase**, and both
+    alternatives were tried and are worse. Making the change on the graded target
+    *before* pausing it consumes it: where editing the same item twice is a no-op
+    the second time, the graded phase then finds no work for reasons that have
+    nothing to do with the pause, and that lands as a pass. Making it *after*,
+    by letting the target go again, needs `resume` — and a target may offer the
+    control while having nothing that maps onto resuming, by a documented ruling
+    rather than an oversight, which would leave both clauses permanently
+    undecided for it. A second instance in an arena of its own is neither: it is
+    never paused, so nothing is consumed and nothing is asked of a verb the
+    target may not have.
 
-    It costs the clauses a dependency on `resume`, and the dependency is honest
-    rather than incidental: the contract calls pause and resume the two
-    transitions of one control, and a harness with no way to let a target work
-    again has no way to show that the target would have.
+    Independence is the point, so the two must not share a root — the opposite of
+    R13's clauses, which are about two processes on ONE data directory and refuse
+    to run when the roots differ. Here a shared root would let the control's own
+    work land in the graded target's counters.
 
     Returns `(control, None)` when work was created, and `(None, check)` carrying
     the `not-run` when it was not.
     """
-    if not target.declaration.offers("resume"):
+    graded = set(target.declaration.derived_state_roots)
+    if graded & set(control.declaration.derived_state_roots):
         return None, not_run(
-            cid, req, clause, falsified, target, "resume",
-            "this target offers no way to let it work again, so the harness cannot show "
-            "that the change it made would have created work at all. Without that, a "
-            "stopped target creating none proves nothing and the clause is not decided.",
+            cid, req, clause, falsified, target, "status",
+            "the positive control resolves a derived-state root the graded target also "
+            "resolves, so the work it does would land in the counters this clause reads; "
+            "the two must be independent and this run is not decided",
         )
-    with target.running():
-        try:
-            target.resume()
-        except UnsupportedVerb:
-            raise
-        except Exception as why:
-            return None, not_run(
-                cid, req, clause, falsified, target, "resume",
-                f"the target's resume surface raised ({type(why).__name__}: {why}), so "
-                "the harness could not let it work again and the control is unavailable",
-            )
-        before, settled = durability.settle(target)
+    with control.running():
+        if durability.work_counters(control) is None:
+            return None, durability.no_counters(cid, req, clause, falsified, target)
+        undecided = _installed(cid, req, clause, falsified, control)
+        if undecided:
+            return None, undecided
+        before, settled = durability.settle(control)
         if not settled:
             return None, durability.unsettled(cid, req, clause, falsified, target,
                                               "before the positive control")
-        event, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        event, why = durability.perturb(control, durability.EDIT_ONE_ITEM)
         if why:
-            return None, not_run(cid, req, clause, falsified, target, "resume", why)
-        after, settled = durability.settle(target)
+            return None, not_run(cid, req, clause, falsified, target, "status", why)
+        after, settled = durability.settle(control)
         if not settled:
             return None, durability.unsettled(cid, req, clause, falsified, target,
                                               "after the positive control")
@@ -682,15 +687,15 @@ def _the_change_would_have_created_work(cid: str, req: str, clause: str, falsifi
                if durability.outcome_of(k) == durability.DONE and v > 0}
     if not created:
         return None, not_run(
-            cid, req, clause, falsified, target, "resume",
-            "the change the harness makes created no work on this target even after it "
-            "was let go, so a stopped target creating none proves nothing about the "
-            "control. Reported as not decided rather than as a green: a clause whose "
-            "finding is that a counter did not move needs the counter to have been "
-            "able to move.",
+            cid, req, clause, falsified, target, "status",
+            "the change the harness makes created no work on a second, never-stopped "
+            "instance of this target, so a stopped one creating none proves nothing "
+            "about the control. Reported as not decided rather than as a green: a "
+            "clause whose finding is that a counter did not move needs the counter to "
+            "have been able to move.",
         )
     return {"perturbation": durability.EDIT_ONE_ITEM, "event": event,
-            "done_deltas_once_resumed": created}, None
+            "done_deltas_on_a_never_stopped_instance": created}, None
 
 
 def _installed(cid: str, req: str, clause: str, falsified: str,
@@ -716,7 +721,7 @@ def _installed(cid: str, req: str, clause: str, falsified: str,
     return None
 
 
-def check_pause_stops_background_work(target: Target) -> Check:
+def check_pause_stops_background_work(target: Target, *, control: Target) -> Check:
     """R22: after the control is used, a change that would create work creates none.
 
     The falsifier is a control that answers and does nothing, and that is the
@@ -725,9 +730,9 @@ def check_pause_stops_background_work(target: Target) -> Check:
     reads the reply, whatever its workers then go on to do; §5.2.8's counters are
     the only thing here that distinguishes the two.
 
-    The positive control runs first, because the counters have to be shown
-    capable of moving before their not moving means anything — see
-    `_the_change_creates_work`.
+    The positive control runs first, on a second never-stopped instance, because
+    the counters have to be shown capable of moving before their not moving means
+    anything — see `_the_change_creates_work`.
 
     A target with no such surface reports `not-offered`, and that is a different
     finding rather than a softer one: R22's own status on the sheet is *verified
@@ -744,6 +749,11 @@ def check_pause_stops_background_work(target: Target) -> Check:
     for verb in ("pause", "status"):
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
+
+    control, undecided = _the_change_creates_work(
+        cid, req, clause, falsified, target, control)
+    if undecided:
+        return undecided
 
     with target.running():
         if durability.work_counters(target) is None:
@@ -773,11 +783,6 @@ def check_pause_stops_background_work(target: Target) -> Check:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "after the change made while stopped")
 
-    control, undecided = _the_change_would_have_created_work(
-        cid, req, clause, falsified, target)
-    if undecided:
-        return undecided
-
     return _pause_verdict(cid, req, clause, falsified, target, before, after, {
         "pause_event": paused,
         "positive_control": control,
@@ -786,7 +791,7 @@ def check_pause_stops_background_work(target: Target) -> Check:
     })
 
 
-def check_pause_holds_across_restart(target: Target) -> Check:
+def check_pause_holds_across_restart(target: Target, *, control: Target) -> Check:
     """R22: the control survives the process it was used in.
 
     The restart is the whole clause. A pause held in a running process stops the
@@ -800,8 +805,8 @@ def check_pause_holds_across_restart(target: Target) -> Check:
     `resume` is never called, which is why the clause can be read at all: a
     harness that asked the target to carry on would be measuring its own request.
 
-    The positive control runs first here too, and the restart makes it matter
-    more rather than less: a target that stops doing work simply because it was
+    The positive control runs here too, and the restart makes it matter more
+    rather than less: a target that stops doing work simply because it was
     restarted would otherwise be indistinguishable from one whose control held.
     """
     cid, req = "R22-pause-holds-across-restart", "R22"
@@ -813,6 +818,11 @@ def check_pause_holds_across_restart(target: Target) -> Check:
     for verb in ("pause", "status"):
         if not target.declaration.offers(verb):
             return not_offered(cid, req, clause, falsified, target, verb)
+
+    control, undecided = _the_change_creates_work(
+        cid, req, clause, falsified, target, control)
+    if undecided:
+        return undecided
 
     with target.running():
         if durability.work_counters(target) is None:
@@ -856,17 +866,12 @@ def check_pause_holds_across_restart(target: Target) -> Check:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "after the change made while stopped")
 
-    control, undecided = _the_change_would_have_created_work(
-        cid, req, clause, falsified, target)
-    if undecided:
-        return undecided
-
     return _pause_verdict(cid, req, clause, falsified, target, before, after, {
         "pause_event": paused,
         "positive_control": control,
         "change_made_while_stopped": change,
         "restarted": True,
-        "resume_called": False,
+        "resume_never_called": True,
     })
 
 
