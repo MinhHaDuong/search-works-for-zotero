@@ -267,15 +267,18 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     assert tally, "README must carry a dated, machine-checkable recipe tally"
     assert tuple(map(int, tally.groups()[1:])) == (len(recipe), hashed, len(recipe) - hashed)
     challenge_split = re.search(
-        r"(\d+) of those\s+open records belong to Gallica",
+        r"(\d+) of those\s+open records belong to the two represented archives.*?: "
+        r"(\d+) HAL\s+.*?and (\d+) Gallica",
         readme,
         re.DOTALL,
     )
     assert challenge_split, "README must account for the open hashes by source"
     assert tuple(map(int, challenge_split.groups())) == (
+        open_by_archive["hal"] + open_by_archive["gallica"],
+        open_by_archive["hal"],
         open_by_archive["gallica"],
     )
-    assert "The fifth is the oversized Malynes scan" in readme
+    assert "The ninth is the oversized Malynes scan" in readme
 
 
 def test_fetch_script_has_argparse_and_no_extraction():

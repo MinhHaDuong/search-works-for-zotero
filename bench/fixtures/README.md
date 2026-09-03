@@ -96,15 +96,13 @@ excerpts, not whole reports.
 ## What the recipe holds
 
 As of 2026-09-03, the recipe holds 26 records: 17 with the bytes hashed and 9
-with an identifier and a stated reason the hash is still open. 4 of those
-open records belong to Gallica, whose document endpoints answer scripted clients
-with an ALTCHA challenge page instead of the file. Those files are fetched once in
-a browser, hashed, and pinned by hand. The fifth is the oversized Malynes scan,
+with an identifier and a stated reason the hash is still open. 8 of those
+open records belong to the two represented archives whose document endpoints
+answer scripted clients with a challenge page instead of the file: 4 HAL
+(Anubis proof-of-work) and 4 Gallica (ALTCHA). Those files are fetched once in
+a browser, hashed, and pinned by hand. The ninth is the oversized Malynes scan,
 whose Internet Archive md5 and sha1 remain a cross-check until its first full
-fetch. The remaining four are HAL deposits: HAL serves scripted clients an
-Anubis proof-of-work challenge (HTTP 200, but a challenge page rather than the
-PDF), so they wait on the same browser-fetch-and-pin step as Gallica's.
-`fetch_recipe.py` reports a challenged request as `blocked` and an
+fetch. `fetch_recipe.py` reports a challenged request as `blocked` and an
 unhashed successful fetch as `unpinned`.
 
 | id | language | tier | facet | archive | pages | bytes pinned |
@@ -116,8 +114,8 @@ unhashed successful fetch as `unpinned`.
 | malynes-1622-lex-mercatoria | en | MUST | deep-body | internet-archive | 515 | archive md5/sha1 |
 | ramsey-1931-foundations-of-mathematics | en | MUST | core | internet-archive | 340 | sha256 |
 | depitre-1908-oeuvres-cournot | fr | MUST | core | gallica | — | not yet |
-| ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | core | hal | 180 | sha256 |
-| ha-duong-1998-irreversibilite-these | fr | MUST | deep-body | hal | 256 | sha256 |
+| ha-duong-2005-modeles-de-precaution-hdr | fr | MUST | core | hal | 180 | not yet |
+| ha-duong-1998-irreversibilite-these | fr | MUST | deep-body | hal | — | not yet |
 | johnson-1785-dictionary | en | MUST | deep-body | internet-archive | 1 104 | sha256 |
 | baudelaire-1857-fleurs-du-mal | fr | MUST | core | internet-archive | 262 | sha256 |
 | stein-1925-making-of-americans | en | MUST | deep-body | internet-archive | 940 | sha256 |
@@ -128,8 +126,8 @@ unhashed successful fetch as `unpinned`.
 | tran-trong-kim-1920-viet-nam-su-luoc-wikisource | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-vi | vi | MUST | core | wikisource | — | sha256 |
 | vn-constitution-1992-en | en | MUST | core | wikisource | — | sha256 |
-| hal-04332519-economies-of-scale | vi | MUST | core | hal | 7 | sha256 |
-| hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | 2 | sha256 |
+| hal-04332519-economies-of-scale | vi | MUST | core | hal | — | not yet |
+| hal-04826774-lich-su-sach-nam-ky | vi | MUST | core | hal | — | not yet |
 | des-michels-1883-luc-van-tien | vi | MUST | core | gallica | 454 | not yet |
 | des-michels-1884-kim-van-kieu-t2p1 | vi | MUST | core | gallica | 309 | not yet |
 | bonet-1899-dictionnaire-annamite-francais-t1 | vi | MUST | core | internet-archive | 488 | sha256 |
