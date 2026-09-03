@@ -32,9 +32,10 @@ for nothing else.
 (`../0586-beaver/acceptance.json`, same day; adapter merged in PR #237 and
 verified in #269). Its five goal-1 clauses are measured; the seven goal-2
 clauses read `not-measured` because `durability.py` landed after that run, not
-because anything was undecided. That fold changed the totals; the narrative
-sections were brought into line with it only in the later amendment above, which
-is why their arithmetic now reads 53 non-green cells rather than 55.
+because anything was undecided. That fold changed the totals and left the prose
+underneath stale, which a separate recount then repaired (PR #275). The
+four-cell amendment above moves the same arithmetic once more: 55 non-green
+cells at assembly, 54 after the recount, 53 now.
 
 **Instrument health:** healthy — `assertions_never_seen_red` is empty in
 `acceptance-fixtures.json` (16 fixtures × 12 assertions, 2026-09-03), and every one of
@@ -82,8 +83,8 @@ positive controls those runs produced.
 Seven cells of sixty are green. No cell is blank and no cell is inferred: each
 traces to a `result` field in a named artifact. Beaver's column was folded in
 from its own committed artifact after assembly and its adapter was not touched
-here; the narrative sections below were written before that fold and count 53
-non-green cells on the table as it now stands.
+here. The blocking analysis below counts the 53 non-green cells this table now
+carries.
 
 ---
 
@@ -131,10 +132,10 @@ it — its five goal-1 cells are measured and folded in above.
 
 ## Blocking analysis — 53 non-green cells by cause
 
-The section order is the one this analysis was assembled in, not a re-sort:
+The order below is the one this analysis was assembled in rather than a re-sort:
 sections 5 and 8 changed size when the four host-bound cells were decided, and
-section 1 gained Beaver's two. The counts below sum to 53, which is 60 minus
-the seven greens.
+the ranking no longer descends. The counts sum to 53, which is 60 minus the
+seven greens.
 
 ### 1. The target declares the verb absent — 26 cells (49%)
 
@@ -180,13 +181,20 @@ owner: the upstream-issue lane (ticket 0024 for the zoteus-side issues). Nothing
 on the roster owns a filing against #6012, ZotSeek or zotero-mcp — a gap in the
 ticket set, not in the matrix.
 
-### 2. Beaver's goal-2 clauses had no assertions when it ran — 7 cells (13%)
+### 2. Beaver predates `durability.py` — 7 cells (13%)
 
-Its five goal-1 cells are measured and folded into the table above. The other
-seven read `not-measured` because `durability.py` landed after that run, not
-because anything about the target was undecided. **Unblock:** re-run the layer
-against the Beaver adapter, which now has all twelve. Ticket 0586's lane owns
-it; untouched here by instruction.
+Beaver's adapter was in flight during assembly and its column was filled
+afterwards from `../0586-beaver/acceptance.json` (PR #237, verified in #269).
+Its five goal-1 clauses are measured — 1 pass, 2 fail, 2 not-offered, and its
+two reds are counted under cause 8. The seven goal-2 clauses read
+`not-measured`: `durability.py` landed after that run, so R3, R13 and R23 were
+never asserted against this target at all. That is not the harness declining to
+decide; it is a question never put.
+
+**Unblock:** re-run the layer against the Beaver adapter now that the goal-2
+registry exists. Cheaper than any other row here, since the adapter and its
+pinned artifact are committed. Owner: ticket 0586, still open on its credentials
+exit criterion.
 
 ### 3. No target reports `work.<stage>.<trigger>.<outcome>` counters — 8 cells (15%)
 
@@ -251,12 +259,16 @@ it, so no weights were exercised and nothing was decided about where they land.
 **Unblock:** none available under the contract — installing the extra by hand is
 a non-default option. **Unowned.**
 
-### 8. The reds — 6 cells (11%)
+### 8. Real reds — 6 cells (11%)
 
 **Four of the five targets attempt name lookups in a default-configuration
 run.** Lookups to the local stub resolver at 127.0.0.53:53, and nothing else on
-either detector: zoteus 4, Beaver 60, ZotSeek 94, #6012 98 — off-machine
-attempts zero on all four. The clause's `falsified_by` names "any connection
+either detector: zoteus 4, Beaver 60, ZotSeek 94, #6012 98 in each assertion's
+own subject arm — **counts that are not comparable across targets**, because
+each arm runs its own adapter's lifecycle and those windows differ in length. A
+larger number over a longer window is not more egress. What is comparable within
+a target is a controlled A/B, which only Beaver's lane has run. Off-machine
+attempts are zero on all four. The clause's `falsified_by` names "any connection
 attempted to an address off this machine, **or any name lookup**", and the
 detector note explains why the second detector must exist: inside a no-route
 namespace a hostname attempt dies at resolution and leaves no off-machine
@@ -289,13 +301,17 @@ swept on `padme` when written and this run is on `doudou`, where gvfs is active
 — a declaration is complete only with respect to the machines it has been swept
 on.
 
-**Beaver, R15-uninstall-removes-declared-state**, from its own artifact and not
-re-examined here.
+**Beaver, R10-no-egress and R15-uninstall-removes-declared-state.** Both folded
+in with its column and both read against controls of their own; the egress red
+in particular is stated as the **+4** attributable to the plugin over a
+host-only baseline that already fails the clause — 430 lookups against 426 over
+a matched 90-second window — not as "Beaver fails R10". `../0586-beaver/` holds
+both arms, and that A/B is the shape the other three egress reds do not have.
 
-**Unblock:** none of these is a blocker. They are the results that need carrying
-upstream, and **no ticket owns any of them.** Scope the egress family honestly
-when filing: it says a default-configuration run performs name lookups, not that
-library text left the machine.
+**Unblock:** none of these is a blocker. They are the matrix's results that need
+carrying upstream, and **no ticket owns any of them.** Scope the egress family
+honestly when filing: it says a default-configuration run performs name lookups,
+not that library text left the machine.
 
 ---
 
