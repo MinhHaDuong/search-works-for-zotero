@@ -10,7 +10,7 @@ number, the reason it is a table, and the pointer.
 
 ---
 
-The pooling fix is up: #NN.
+The pooling fix is up: #NN, tracked as #51.
 
 What it costs, since the thread has the defect but not a size for it. Measured on
 a 257-passage, 68-query cross-lingual set (English, French, German, Vietnamese
@@ -28,7 +28,7 @@ So the id-inference that works for the E5 prefixes has nothing to look at, and a
 setting on its own would leave anyone who does not already know the answer
 exactly where they are. `ZOTEUS_EMBEDDING_POOLING` is there as the escape hatch
 for a mirrored or renamed checkpoint the table cannot speak for, in the position
-`ZOTEUS_EMBEDDING_PREFIXES` occupies. Every one of the 24 rows was read from the
+`ZOTEUS_EMBEDDING_PREFIXES` occupies. Every one of the 30 rows was read from the
 model's own config and says which repository it came from.
 
 @Michael-Logies — if you do run the from-source route, this is the branch worth

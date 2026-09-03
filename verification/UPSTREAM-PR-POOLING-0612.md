@@ -64,8 +64,8 @@ row understates the loss.
 
 It is a different corpus from your German/English probe and a different task, so
 read it as a second opinion rather than as a replacement for one. I will post the
-driver and the corpus manifest to the #43 thread so the numbers are checkable
-rather than asserted, the way the probe in that thread is. The one thing I
+driver and the corpus manifest here so the numbers are checkable rather than
+asserted, the way the probe on #43 is. The one thing I
 did guard against is the harness: before reading any delta I re-ran an untouched
 cell and confirmed it reproduced the previously recorded result field for field,
 so the instrument is not the source of the difference.
@@ -180,7 +180,7 @@ before this change. `ZOTEUS_EMBEDDING_MODEL` keeps its spelling and its meaning.
 
 ## What is in the diff
 
-`MODEL_POOLING` in `embeddings.ts`: 24 ids — the ONNX repository the pipeline
+`MODEL_POOLING` in `embeddings.ts`: 30 ids — the ONNX repository the pipeline
 loads and the source repository it mirrors, since either can be put in
 `ZOTEUS_EMBEDDING_MODEL` — each group commented with the repository its value was
 read from and when. `mean` rows are listed too, so a reader can tell "known to be
@@ -193,18 +193,23 @@ call taking it.
 value.
 
 ```
- .env.example                             |   8 +
- CHANGELOG.md                             |  31 ++++
+ CHANGELOG.md                             |  37 ++++
  docs/configuration.md                    |   1 +
- docs/semantic-search.md                  |  24 +++
- src/config.ts                            |  35 ++++-
- src/features/search/embeddings.ts        | 121 ++++++++++++++-
- tests/features/embedding-pooling.test.ts | 243 +++++++++++++++++++++++++++++++
+ docs/semantic-search.md                  |  44 +++-
+ src/config.ts                            |  27 ++-
+ src/features/search/embeddings.ts        | 168 ++++++++++++++-
+ src/features/search/index-manager.ts     |   5 +-
+ tests/features/embedding-pooling.test.ts | 359 +++++++++++++++++++++++++++++++
+ 7 files changed, 633 insertions(+), 8 deletions(-)
 ```
+
+(`.env.example` carries no change: the override follows `ZOTEUS_EMBEDDING_PREFIXES`
+into the docs and the config schema, not into that file, since `ZOTEUS_EMBEDDING_DTYPE`
+is not there either and the two should stay consistent with each other.)
 
 ## Evidence
 
-- `npm test`: 107 files, 1062 passed, 7 skipped — the 7 are the live-credential
+- `npm test`: 107 files, 1067 passed, 7 skipped — the 7 are the live-credential
   e2e tests, which skip without credentials on `main` too. `npm run typecheck`
   and `npm run lint` clean.
 - **The default model's vectors do not move.** Four texts embedded in both roles
@@ -212,7 +217,10 @@ value.
   `@huggingface/transformers`, before the change and after: byte-identical,
   sha256 `3cd53591486a8a25c2707a61b72e40041a419c85216d68e04b67454f609f7f70`.
 - **The tests fail against the old code.** Restoring the literal at the call site
-  reds exactly three of the sixteen, and only those three.
+  reds exactly three of the twenty-one, and only those three. A second control —
+  reverting the identity to drop the pooling suffix — reds four more, the ones an
+  adversarial review round asked for once the identity omission was found reachable
+  as a corrupt index.
 
 ## One thing to flag rather than bury
 
