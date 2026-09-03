@@ -94,7 +94,7 @@ excerpts, not whole reports.
 
 ## What the recipe holds
 
-Twenty-seven records on 2026-09-02: 17 with the bytes hashed, 10 with an
+Twenty-six records on 2026-09-03: 17 with the bytes hashed, 9 with an
 identifier and a stated reason the hash is still open. Three archives answer
 scripted clients with a challenge page instead of the file: HAL (Anubis
 proof-of-work), Gallica (ALTCHA), and the UK Government Web Archive (a WAF
