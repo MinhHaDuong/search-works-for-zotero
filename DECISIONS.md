@@ -3864,6 +3864,58 @@ children build. R31 is never reused; the gap is the record.
 
 Goal 1 binds: R10, R15, R22.
 
+**2026-09-03 — C4 is dissolved; the speed of status is R17's, and the counters
+stay in the design.** Ruled by the author the same afternoon as R31's
+retirement, and it is the mirror image of it: R31 was a requirement that turned
+out to be apparatus, and C4 was apparatus with a requirement hidden inside it.
+
+**What made it wrong is §4's own definition.** That section holds "facts about
+Zotero, the upstream project, and the user's machine that the design must
+operate under". C1, C2 and C3 each name a fact in their title; C4's title named
+a mechanism — *status answers from counters* — and its body forbade an
+alternative, "never by scanning a table a stage is writing". A section of facts
+does not get to choose an implementation. Two lesser tells came with it: C4 used
+MUST, which §3 scopes to the R-items alone, and its one testable clause said "a
+few milliseconds", which is not a threshold, so the only thing a user could
+check was the only thing nothing could fail.
+
+**The author's cut: the user-observable and testable thing is speed.** Applying
+it splits C4 into three pieces, two of which were already correctly housed
+elsewhere and neither of which needed writing:
+
+1. *The account of work done* is R17's, and was already stated there
+   mechanism-free — "Every stage MUST also report what it processed and which
+   input triggered it, so one edited item shows up as one unit of work rather
+   than as a wave." Nothing about counters. This is what the acceptance layer
+   actually needs in order to decide R22, R3 and R13.
+2. *The counters* — `work.<stage>.<trigger>.<outcome>`, the same-transaction
+   update, the surfaced `drift` — are §5.2.8's, in full, and are one design's way
+   of meeting (1). They keep their paragraph and lose C4's address for R17's.
+3. *The speed* is the residue, and it is a promise: R17 gains it as a clause.
+
+**The clause is stated as a rate, not a wall clock, for R32's reason.** A flat
+millisecond figure silently fixes the library size; what is promised is that
+asking costs the same at 1k items and at 60k, while all three queues run. The
+band itself is deliberately unstated: 374 ms is the cost of the *rejected*
+implementation and sub-millisecond is the point read, so neither is a promise
+anyone made. §5.2.9 records that the band is open and names its measurer — the
+convergence harness already polls status at 1 Hz for the length of a build and
+touches nothing else, so timing those polls yields the distribution at no extra
+cost. A bound nobody measured is a bound nothing can fail, which is the defect
+this entry exists to remove rather than relocate.
+
+**What this buys the harness.** As written, C4 made the acceptance layer demand
+a mechanism: `assertions.py` and `durability.py` both report a clause `not-run`
+because a target "reports no work.<stage>.<trigger>.<outcome> counters
+(SPEC.md §5.2.8, Counters (C4))". Seven of zoteus's twelve cells on 2026-09-03
+turned on that phrasing. The property is R17's and a target meeting it another
+way — an event log, a status field — would be judged identically today, wrongly.
+Correcting those two citations is follow-on work and is not in this entry's
+change. As a speed clause the residue also becomes assertable over the seven
+verbs, which C4 never was: call status while the queues run and time it.
+
+C4 is never reused; §4 numbers C1 to C3 and the gap is the record.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
