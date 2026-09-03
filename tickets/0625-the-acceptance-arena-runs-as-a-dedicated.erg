@@ -1,0 +1,86 @@
+%erg 0.1
+Title: The acceptance arena runs as a dedicated user, never as the operator
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:51Z claude created
+
+--- body ---
+## Context
+
+Ruled by the author 2026-09-03 (`DECISIONS.md`): *"The alt user is not
+optional."* The acceptance harness must run its arena as a dedicated account,
+never as the operator, and this binds every assertion rather than only the
+uninstall clause that provoked it.
+
+The harness installs software it does not control, runs it against a library and
+sweeps a filesystem afterwards — all of it, so far, under the operator's own
+identity, where a target can read his mail, his keys and his research and a
+harness bug can delete them. `sandbox.py`'s namespace is not a substitute: it is
+bound to the R10 egress arm, the residue and durability assertions run outside
+it, and it is probed rather than guaranteed, being unusable rootless on the
+second machine. The account is the floor and the namespace is the ceiling.
+
+## Relevant files
+
+- `bench/acceptance/adapters/*.py` — every adapter starts a target process; that
+  spawn is what has to cross a user boundary.
+- `bench/acceptance/interface.py` — `Declaration.process`, which is where an
+  adapter says how its target starts and stops.
+- `bench/acceptance/sandbox.py` — the namespace mechanism, which composes with
+  this and does not replace it.
+- `Makefile` — `ACCEPTANCE_ARENA`, today `$(HOME)/data/acceptance-arena`.
+- `bench/acceptance/run.py` — `--arena`, and where a missing account must turn
+  into `not-run` rather than a fallback.
+
+## Actions
+
+1. Decide the mechanism before writing any of it, because it sets everything
+   else: the harness re-executing itself as the account, versus each adapter
+   spawning its target under it. The first gives one boundary and one place to
+   get wrong; the second leaves the harness's own file writes as the operator,
+   which is where the artifacts have to land anyway. Argue it; do not pick by
+   convenience.
+2. Provision the account reproducibly, as a script in the repository rather than
+   a step in someone's memory, and on both machines. Name what privilege the
+   provisioning needs and what the run itself needs, which should be less.
+3. Make the arena and its contents belong to that account, and say in the
+   artifact which account owned a run — a preserved arena an operator can no
+   longer read is a surprise worth documenting rather than discovering.
+4. Make absence honest: no account, no run. `run.py` reports `not-run` with the
+   reason, and never falls back to the operator.
+
+## Test
+
+The control is the one that matters and it is cheap: a fixture target that writes
+to a path owned by the operator and outside the arena must **fail to write it**
+under the new posture, where today it would succeed. Run it against the current
+tree first to see it succeed — that is the red — then under the account.
+
+A second, weaker check: the artifact records the running account, and a run
+started as the operator is refused rather than recorded.
+
+## Verification
+
+- [ ] a target process cannot write to an operator-owned path outside the arena,
+      demonstrated by a fixture that succeeds before the change
+- [ ] a machine without the account reports `not-run`, with the reason, for every
+      assertion that needs one
+- [ ] the artifact names the account a run belonged to
+
+## Invariants
+
+- No fallback to the operator, ever, for any reason including "the account is
+  missing" and "this is only a fixture run".
+- The namespace mechanism is not weakened or made conditional on this: they
+  compose, and R10's egress arm keeps its own isolation.
+- Existing artifacts are not rewritten. A measurement already taken stands as
+  what it measured; carrying it forward is a re-run, not a re-reading.
+
+## Exit criteria
+- [ ] every assertion runs under the dedicated account on both machines, or
+      reports `not-run` where it does not exist
+- [ ] the uninstall clause's other preconditions — `TMPDIR` and `XDG_*`
+      redirection — are satisfied or explicitly still open
+- [ ] `make check` green; `./tickets/erg check tickets/` green

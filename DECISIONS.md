@@ -3923,6 +3923,171 @@ verbs, which C4 never was: call status while the queues run and time it.
 
 C4 is never reused; §4 numbers C1 to C3 and the gap is the record.
 
+**2026-09-03 — a documented removal procedure is an uninstall surface, and the
+harness may execute it verbatim.** The author's, in session: asked whether "remove
+one directory and the executable" plus an `UNINSTALL.md` should count, he ruled
+that it should — *"I concur. Draft and retire."*
+
+**What the old rule made impossible.** The ratified interface says a target with
+no uninstall surface reports `not-offered`, and that the harness never simulates
+success by deleting files itself. That was aimed at a real abuse: a harness
+inventing a cleanup, running it, and calling the clean result a pass. But an
+external MCP server has no host uninstall lifecycle to hook — ZotSeek gets an
+`ADDON_UNINSTALL` because Zotero fires one; zoteus has nothing — so for that
+whole architecture class the only possible removal is a documented procedure the
+user follows. Under the old reading their R15 cell was permanently `not-offered`,
+and since a rung is a conjunction and `not-offered` is not a hold, **goal 1
+became unkeepable by construction for an entire class of target, for a reason no
+user would ever notice.** That is an instrument requirement leaking into a
+product requirement, which is the defect two other rulings of the same day
+removed from the other direction.
+
+**The carve-out, and it is deliberately narrow.** An adapter may declare the
+target's *published* removal procedure, and the harness may execute exactly those
+steps and then sweep. The prohibition stands everywhere else: the harness may
+still not invent a cleanup, and a target that documents no procedure still
+reports `not-offered`. The distinction that makes this honest is that running a
+target's own instructions tests the target, where inventing an `rm` tests
+nothing.
+
+Four conditions, each closing a way the carve-out could rot:
+
+1. **Transcribed, with its source cited.** The declaration names where the
+   procedure is published — file plus anchor — and a check asserts the
+   transcription still matches the published text, so a doc that changes under us
+   fails loudly instead of silently grading a superseded procedure.
+2. **Contained.** Every path a step touches must resolve inside the harness-owned
+   arena. A step reaching outside it makes the run `not-run` rather than
+   executing — which protects the operator's machine, and is itself a finding:
+   instructions that only work at a hardcoded absolute path are instructions that
+   do not work.
+3. **Swept over the arena, not over the declaration.** The residue inventory
+   already compares what appeared against what was declared rather than reading a
+   declaration back, and that is what must grade this: the failure being tested
+   is an *incomplete procedure*, so a sweep scoped to the declared roots would
+   grade itself.
+4. **The arena must be able to see the failure.** Measured 2026-09-03: only
+   `HOME` is redirected, and only in one adapter; nothing redirects `TMPDIR` or
+   the `XDG_*` roots. A target writing outside the redirected HOME would leave
+   traces the sweep cannot see, and the assertion would pass — an all-clear
+   indistinguishable from "I could not look". Redirecting them is a precondition
+   of the carve-out shipping, not a later refinement.
+
+**Rejected: a container.** It would see the whole filesystem, and it would change
+what is measured — no desktop session, no dbus, a different XDG layout — so "no
+traces" would be a pass for a configuration nobody runs. It also duplicates sweep
+semantics, giving the project two definitions of residue that drift. The arena is
+reused instead, which is the instrument that has already produced a real residue
+finding.
+
+**The carve-out ships only when demonstrated red.** `stub-uninstall-leaves-residue`
+and `stub-under-declares` must redden through the documented-steps path exactly as
+they do through the verb path. The strongest control is not a stub, though, and it
+is real history: **before upstream PR #27 the transformers model cache landed
+outside the data directory**, so an `UNINSTALL.md` saying "delete the data
+directory" would have been wrong, and this sweep would have caught it. Where
+pinning that revision is cheap, it is the positive control to use.
+
+**Consequences.** The upstream ask shrinks from *build an uninstall verb* —
+design-sized, an issue the maintainer builds — to *publish the removal
+procedure*, a contained documentation change of the form that has merged verbatim
+twice. Tracker 0613's R15 gap is re-stated accordingly, and the verb framing is
+retired rather than left beside the new one, so the tracker does not carry two
+incompatible readings of what its cell needs. `SPEC.md` §5.2.7's sentence that
+`purge` is maintenance and not a substitute is untouched and unaffected: purge is
+checkpoint plus VACUUM plus compaction, which keeps a living index rather than
+removing one, so it was never a candidate for this role.
+
+**2026-09-03 — correction to the entry above: the harness transcribes paths, and
+executes nothing.** The author, on reading it: *"I am not comfortable taking the
+risk with 'follow the rm given in that file from the internet'. At least the arena
+should be a new user, not my home; even better isolation should be considered."*
+He is right and the entry above was wrong in its second condition.
+
+**Why the containment condition was not enough.** It said every path a step
+touches must resolve inside the arena. That is a code check standing between an
+externally-authored command line and the operator's home directory, and its
+failure modes are ordinary: a symlink inside the arena pointing out, `$HOME`
+expanded late, a relative path after a `cd`, a glob. Any one of them and the
+harness runs `rm -rf` as the operator, on a string from a repository we do not
+control. A guard whose failure mode is the operator's home directory is not a
+guard; it is a wager.
+
+**The replacement removes the risk instead of fencing it, and loses nothing.**
+R15 grades *derived state*, so the only thing the harness ever needs from a
+published procedure is **the list of locations it tells the user to delete**. The
+adapter transcribes those **paths, not commands**. The harness removes exactly
+those paths itself, with no shell, no glob expansion, and no externally-authored
+string evaluated anywhere. A documented step that is not a path — `npm uninstall
+-g …`, removing a desktop extension through its host — is outside R15's subject
+and is recorded rather than performed: an installed package is not target-created
+derived state.
+
+This deliberately re-enters the prohibition on the harness deleting files itself,
+and that is the point rather than an oversight: what makes it legitimate is not
+*who* deletes but *what the deletion is derived from*. The paths come from the
+target's own published documentation, the transcription is checked against that
+text, and the residue sweep grades completeness. A doc that names the wrong
+directory is transcribed wrong and the sweep still reds — which is the failure
+being hunted, and exactly what the pre-#27 model cache would have produced.
+
+**Isolation, which the author raised and which stands on its own.** The episode —
+install, real work, removal, sweep — runs inside `sandbox.py`'s pluggable
+namespace with only the declared roots bound read-write, so a harness bug reaches
+only what was bound. The mechanism is already in the tree for R10's egress arm and
+stays probed at runtime rather than pinned: bwrap is unusable rootless on the
+second machine, where podman-unshare is the fallback. Where a dedicated account is
+available it should own the arena. Today the arena sits under the operator's home
+with only `HOME` redirected — that is the weakest point in the current setup, and
+it is a precondition of this clause shipping, alongside the `TMPDIR` and `XDG_*`
+redirection the entry above already requires.
+
+Everything else in the entry above stands: the transcription cites its source and
+is checked against it, a target documenting nothing still reports `not-offered`,
+the sweep runs over the arena rather than the declaration, and the clause ships
+only once demonstrated red.
+
+**2026-09-03 — the acceptance arena runs as a dedicated user. Not optional.**
+The author, ruling on the correction above: *"The alt user is not optional."* The
+previous entry had it as a preference — *where a dedicated account is available it
+should own the arena* — and that is now wrong. It is a requirement of the harness,
+and it binds every assertion rather than only the uninstall clause.
+
+**Why it binds everything, not just the clause that provoked it.** The harness
+installs software it does not control, runs it against a library, and sweeps a
+filesystem afterwards. Every one of those steps has been running as the operator,
+under whose identity a target can read his mail, his keys and his research, and
+under whose identity a harness bug deletes them. The uninstall clause made the
+exposure vivid because it ends in a deletion, but nothing about the exposure was
+created by that clause: it has been the standing posture of every measurement
+taken so far.
+
+**Namespace isolation is not a substitute and never was.** `sandbox.py`'s
+mechanism is bound to the R10 egress arm; the residue and durability assertions
+run outside it, and the mechanism itself is probed rather than guaranteed —
+bwrap is unusable rootless on the second machine. A protection that is absent
+from most assertions and unavailable on some machines cannot be the thing
+standing between an untrusted target and the operator's home. The two compose:
+the account is the floor, the namespace is the ceiling.
+
+**What it costs, stated rather than discovered later.** The account must exist on
+every machine that runs the harness, including the second machine and any
+container a CI would use. The adapters start target processes, so process spawning
+has to cross a user boundary, and the arena's files come to belong to that account
+rather than to the operator, which changes how an operator inspects a preserved
+arena after a run. Where the account does not exist, the affected assertions
+report `not-run` — never a pass, and never a run as the operator "just this once".
+
+**What it does not do.** It does not invalidate a measurement already taken. A
+residue sweep in a harness-owned arena measured what appeared against what was
+declared, and that reading stands whoever owned the files. What changes is that
+those runs are not repeatable under the posture this entry requires until the
+account exists, so a re-run is the way to carry them forward rather than a
+re-reading.
+
+Ticket 0625 carries the implementation, and it is a precondition of the uninstall
+clause shipping rather than a parallel improvement.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
