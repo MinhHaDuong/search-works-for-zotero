@@ -2,11 +2,14 @@
 Title: Make embedder fields authoritative and prove parity
 Created: 2026-08-30
 Author: Minh Ha-Duong
+Closed: Authoritative embedder fields and parity are implemented and verified in author-fork PR #9 (merge 5e8abb9).
 
 --- log ---
 2026-08-30T14:50Z Minh Ha-Duong created
 
 2026-09-02T11:58Z Minh Ha-Duong note blocker 0489 closed — Blocked-by removed.
+2026-09-03T05:18Z Implemented on the author fork and integrated in 3c95a30; Claude retrospective findings repaired through PR #9 merge 5e8abb9. Every applied vector field drives construction or fingerprint identity, the incumbent fingerprint/legacy identity is preserved, and record-schema evolution is separate from vector identity.
+2026-09-03T05:18Z Minh Ha-Duong closed — Authoritative embedder fields and parity are implemented and verified in author-fork PR #9 (merge 5e8abb9).
 --- body ---
 ## Scope
 

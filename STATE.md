@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-02.*
+*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-03.*
 
 One page of live operational handoff, and it owns nothing: every line is a
 pointer to the document that does own the fact, and anything longer than a
@@ -19,21 +19,21 @@ is [`README.md`](README.md)'s.
 | Where each requirement stands | [`README.md`](README.md) |
 | What we will and will not send upstream | [`GOVERNANCE.md`](GOVERNANCE.md) |
 | How agents work here | [`AGENTS.md`](AGENTS.md) |
+| The 2026-09-02/03 overnight run: result, corrections, machine state | `~/data/projets/zoteus-bench/overnight-2026-09-02/LOOP-STATE.md` |
 
 ## Handoff
 
-**Twelve rulings landed 2026-09-02** and the awaiting list is much shorter;
-`DECISIONS.md` is the record and the only place that says what is still open.
-Two of them moved documents: the goals ladder left `SPEC.md` for `README.md`,
-and the document map moved to `AGENTS.md`, which is now the agent instruction
-filename.
+**The full-library build finished** — 8 h 14, 363 613 passages, a 1,71 GB index,
+and the first populated current-schema data dir that serves. It unblocks 0590,
+0120 and 0503's measurement half, all deferred all night for want of it;
+0594/0595/0596 need no machine; `make ladder-matrix` is asked for and unfiled.
 
-**Next:** 0578 and 0585 landed 2026-09-02; 0583, 0584 and 0586 own the
-remaining adapters. X5 still gates 0028 and eleven tickets under it. `erg
-ready` owns the rest of the queue, branch and worktree included.
+**Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028, and 0581
+waits on 0029, which codex holds. No lane work reaches either.
 
-**Awaiting the author:** `DECISIONS.md`; ticket 0582 records its README call.
-Tracker 0550 owns the stale two-process topology in `SPEC.md` §4 and §5.1.
-`origin/claude/resume-journee-taj5f8` holds an unmerged remote-container
-harness loader, undecided. The PR-2 diacritics record is ticket 0091's log;
-the previously named `t0091-pr2-expansion` branch never reached origin.
+**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list, the service
+ceiling included (0577 closed, GPU arm measured). Also: may a lane merge its own
+PR, and **is 0491 inside the codex fence** — the two handoff documents disagree.
+
+**Open:** #232 and #235 are DRAFT, each blocked on one named one-edit fix in its
+last comment; #250 is another lane's. `claude/resume-journee-taj5f8` stays undecided.

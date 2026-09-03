@@ -117,9 +117,10 @@ the entry points at the question rather than settling it.
 - **the four gates** — the standing checks that hold the promises the design
   cannot prove by reading: the fold gate, the RSS gate, the golden gate and the
   soak gate. Authoritative: SPEC.md §5.2.8, which owns every threshold; the
-  requirements they serve are R13 and R19; the RAM and golden gates serve no
-  requirement of their own since 2026-08-31, a gate being apparatus rather than
-  a promise.
+  only requirement they serve is R13; the fold, RAM and golden gates serve no
+  requirement of their own — the fold gate since 2026-09-03, when R19 became a
+  promise about what a user sees that a source-reading sweep cannot decide, the
+  other two since 2026-08-31 — a gate being apparatus rather than a promise.
 - **fraction-RRF** — fraction-weighted reciprocal-rank fusion, the rule that
   merges the keyword and semantic ranked lists into one. Authoritative:
   SPEC.md §5.2.6, which owns the constant, the seam invariant and the ship
@@ -300,7 +301,7 @@ document relies on it.
 - **`unicode61`** — the tokenizer the full-text index uses, configurable for
   diacritic folding; the query and index normalizers must agree on it or a term
   can never match. SQLite's; the configuration is SPEC.md §5.2.2 and the
-  agreement check is SPEC.md R19.
+  agreement check is the fold gate in SPEC.md §5.2.8.
 - **WAL** — write-ahead logging, the journal mode under which readers answer
   while a writer commits, which is what makes several servers on one file
   possible. SQLite's; the connection settings are SPEC.md §5.2.2.
@@ -633,13 +634,19 @@ per client application — so the index has to expect company.
 
 #### Normalization
 
-**R19. Normalization.** Every token the query side produces MUST be one the
-index side can also produce.
+**R19. Normalization.** In semantic and hybrid search, when a document and a
+query write the same word in different but equivalent forms, the query MUST
+still find the document. Lexical search is exempt: there the user has asked for
+the string as typed, and matching it literally is the promise.
 
 Otherwise that query term can never match anything, in any language, and the
 failure is invisible: the search returns nothing and looks like an honest miss.
-The character-folding sweep that checks the agreement over 1 301 codepoints is a
-gate rather than a promise, and SPEC.md §5.2.8 owns it with every other gate.
+Which forms count as equivalent is pinned by the fixture corpus, per script
+class, and R7 names the classes; this clause does not enumerate them.
+
+The character-folding sweep is a gate over our own tree, not evidence for this
+requirement: it reads a normalizer's source, and a promise is kept or broken
+where a user can see it. SPEC.md §5.2.8 owns it with every other gate.
 
 ### The resolved decisions
 
@@ -2370,8 +2377,12 @@ the two outcomes apart.
 **The gates** (Makefile: `check: lint figures fold-gate golden check-fast`;
 `check-slow: check rss-gate convergence soak`):
 
-- **R19, the fold gate.** `fold_sweep.mjs`, repointed at the tree under
-  test. The query side falls back to `tokenize`-only when
+- **The fold gate.** `fold_sweep.mjs`, repointed at the tree under
+  test. It compares the two shipped normalizers against each other on that
+  tree, which makes it apparatus over our own source rather than evidence for
+  R19: since 2026-09-03 that requirement is a promise about what a user sees,
+  and a promise is kept or broken where a user can see it. The query side falls
+  back to `tokenize`-only when
   `normalizeForSearch` is absent, so against a pre-fold tree the gate is red
   *by classification* (a recorded miss count), not red by crash. The waiver
   keyed to PR #19's URL retired with its merge (2026-08-27): stock ≥v1.7.2
