@@ -82,6 +82,7 @@ PROSE = {
     "v30": ["verification/issue-30-thread.md"],
     "v0220": ["verification/DEVICE-AUTO-0220.md"],
     "v0267": ["verification/EMBEDDER-RECOMMENDATION-0267.md"],
+    "v0120": ["verification/KEYWORD-BUILD-COST-0120.md"],
     "vsmoke": ["verification/SMOKE-1.10.0.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -135,6 +136,10 @@ PROSE = {
     "t0500": [
         "tickets/0500-measure-extract-and-chunk-throughput-on.erg",
         "tickets/closed/0500-measure-extract-and-chunk-throughput-on.erg",
+    ],
+    "t0120": [
+        "tickets/0120-can-the-platform-fts5-index-serve-our-ke.erg",
+        "tickets/closed/0120-can-the-platform-fts5-index-serve-our-ke.erg",
     ],
     "t0266": [
         "tickets/0266-cross-lingual-probe-on-the-multilingual.erg",
@@ -391,7 +396,23 @@ def display(value, places: int, pct: bool = False) -> str:
 #: reader checks first), the fixed per-build term the per-passage rate hides, the parse
 #: path's median and both ends of its per-passage range, the passage-length distribution
 #: the rate ran on, and the census tokenizer's wall clock. No coverage was removed.
-MINIMUM_PAIRS = 462
+#: RAISED to 625 on 2026-09-03 by ticket 0120 action 1, the measured cost of our own
+#: keyword build. Forty-four of the gain are its own declarations: the headline triple
+#: (wall, peak RSS, index bytes) in both prose homes, the population they ran on, the
+#: embedding-build arm they are set against, the dbstat split of the index into a keyword
+#: half and a stored-text half — which is the figure the ticket's recommendation turns on
+#: — the platform file they would depend on instead, and the two scale points with the
+#: fixed/marginal fit they support, its prediction and its error. The remaining slack was
+#: already on main: the floor had been left at 462 while the tree carried 581, so this
+#: also re-tightens it, which is the safe direction and the one the 2026-08-31 note above
+#: took after a merge. No coverage was removed.
+#:
+#: RAISED to 629 the same day, in review: the memory trajectory's four figures — the
+#: opening reading, the peak, when it was first reached and how long it held — were
+#: quoted in the note and declared nowhere, which is the drift this file exists to stop.
+#: They are the whole of what the note claims about memory, so an undeclared copy of
+#: them was the most load-bearing gap on the branch.
+MINIMUM_PAIRS = 629
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -1763,6 +1784,119 @@ FIGURES = [
     ("0500-extract-chunk/extract-chunk-throughput.json",
      "tokenizer_cost_proxy.tokens_per_passage", 1,
      {"t0500": "**{}**\ntokens per passage"}),
+    # ---- 0120 action 1: what our own keyword build costs, against zero for the platform
+    # path. The headline triple is quoted in two homes and twice inside the note, once in
+    # the comparison table and once in the scale table, so every one of them is anchored.
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.elapsed_s", 1,
+     {"v0120": "| wall | **{} s** |", "t0120": "wall **{} s**"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.peak_rss_mib", 1,
+     {"v0120": "| peak RSS | **{} MiB** |", "t0120": "peak RSS **{} MiB**"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.sqlite_mib", 1,
+     {"v0120": "| index on disk | **{} MiB** |", "t0120": "index **{} MiB** on disk"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.passages", 0,
+     {"v0120": "| passages | {} | 363 613 |", "t0120": "over {} passages"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.wal_mib", 1,
+     {"v0120": "left {} MiB of WAL"}),
+    # The population the figures ran on. A rate does not transfer across one, and the
+    # parity with the embedding build is what makes the two rows comparable at all.
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.items_indexed", 0,
+     {"v0120": "{} items, 5 562 of them"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.fulltext_items", 0,
+     {"v0120": "items, {} of them with body text"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.fulltext_passages", 0,
+     {"v0120": "body text, {} full-text passages"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.metadata_passages", 0,
+     {"v0120": "passages, {} metadata passages"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.full_library.own_words_passages", 0,
+     {"v0120": "passages, {} own-words passages"}),
+    # The comparison arm. Its own figures are quoted here, so they rot here too.
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.elapsed_s", 1,
+     {"v0120": "{} s (8 h 14)", "t0120": "against {} s"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.peak_rss_mib", 1, {"v0120": "| {} MiB | 30,3 % |"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.sqlite_mib", 1, {"v0120": "| {} MiB | 43,6 % |"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.keyword_share_of_wall_pct", 2,
+     {"v0120": "(8 h 14) | **{} %** |", "t0120": "**{} %** of that build's wall"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.keyword_share_of_peak_rss_pct", 1,
+     {"v0120": "| 2 409,6 MiB | {} % |"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.against_the_embedding_build.keyword_share_of_disk_pct", 1,
+     {"v0120": "| 1 627,0 MiB | {} % |"}),
+    # The split the recommendation turns on: how much of our file the platform index
+    # could stand in for at all.
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.on_disk_decomposition.keyword_index_mib", 1,
+     {"v0120": "keyword index proper) | **{} MiB**",
+      "t0120": "keyword index proper of **{} MiB**"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.on_disk_decomposition.keyword_index_share_pct", 1,
+     {"v0120": "| **175,9 MiB** | **{} %** |"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.on_disk_decomposition.stored_text_and_addressing_mib", 1,
+     {"v0120": "(stored text) | {} MiB", "t0120": "into {} MiB of stored passage text"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.on_disk_decomposition.stored_text_share_pct", 1,
+     {"v0120": "| 534,0 MiB | {} % |"}),
+    # What the platform holds and what it cannot hold.
+    ("0120-keyword-build/keyword-build-cost.json", "platform.file_on_disk_mib", 1,
+     {"v0120": "the file is {} MiB on this machine", "t0120": "a {} MiB file"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.displaceable_upper_bound.metadata_and_own_words_passages", 0,
+     {"v0120": "— {} passages, 4,2 %"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.displaceable_upper_bound.metadata_and_own_words_share_pct", 1,
+     {"v0120": "passages, {} % of ours"}),
+    # The fixed/marginal split, and the error the fit makes — declared because a fit
+    # whose error goes unquoted is read as a measurement.
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.two_point_fit.marginal_ms_per_passage", 3,
+     {"v0120": "Marginal cost **{} ms per passage**",
+      "t0120": "marginal **{} ms** per passage"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.two_point_fit.fixed_s_per_build", 1,
+     {"v0120": "fixed cost **{} s per build**", "t0120": "fixed **{} s** per build"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.two_point_fit.predicted_full_library_s", 1,
+     {"v0120": "predicts {} s for the full library"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.two_point_fit.prediction_error_pct", 1, {"v0120": "an error\nof **{} %**"}),
+    # The two scale points, which are the fit's whole basis.
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_300.passages", 0,
+     {"v0120": "| 300 | {} |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_300.elapsed_s", 1,
+     {"v0120": "| 19 966 | {} s |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_300.peak_rss_mib", 1,
+     {"v0120": "| 140,4 s | {} MiB |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_300.sqlite_mib", 1,
+     {"v0120": "| 406,9 MiB | {} MiB |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_1200.passages", 0,
+     {"v0120": "| 1 200 | {} |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_1200.elapsed_s", 1,
+     {"v0120": "| 64 459 | {} s |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_1200.peak_rss_mib", 1,
+     {"v0120": "| 156,6 s | {} MiB |"}),
+    ("0120-keyword-build/keyword-build-cost.json", "ours.scale_1200.sqlite_mib", 1,
+     {"v0120": "| 454,2 MiB | {} MiB |"}),
+    # The memory trajectory. These four say the peak is a plateau of steady-state
+    # indexing rather than a spike while the crawl is set up, which is the whole of what
+    # the note claims about memory — and they were quoted unanchored until a review
+    # noticed. 219 + 87 must keep summing to the build, so a regeneration that moves
+    # either has to move the prose too.
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.opening_gb", 2, {"v0120": "run opens at {} GB"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.peak_gb_as_the_driver_printed_it", 2,
+     {"v0120": "reaches\n{} GB at 219 s"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.first_reached_at_s", 0,
+     {"v0120": "0,71 GB at {} s and stays flat"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.held_for_s", 0,
+     {"v0120": "flat for the remaining {} s"}),
 
 ]
 

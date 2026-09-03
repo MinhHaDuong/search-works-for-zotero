@@ -1,0 +1,372 @@
+{
+  "ticket": "0120",
+  "action": 1,
+  "warm": true,
+  "warm_basis": "no model load and no download inside any timed window — every arm ran with the embedder off, which the status object records as vectors 0 and an inactive embedder, and this assembler sets the flag from that rather than by hand. Each arm was also a re-run over caches an earlier identical run had already read, so the platform's own text was warm in the page cache. The one fixed cost that remains inside the window is the 8 037-attachment page walk, which is not amortizable — every build pays it whole — and it is reported as the fit's fixed term rather than smuggled into the per-passage rate.",
+  "what": "wall time, peak RSS and disk of our own keyword-only index build on the real library, against zero for the platform FTS5 path",
+  "date": "2026-09-03T11:21:09Z",
+  "machine": {
+    "host": "doudou",
+    "cpu": "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz",
+    "cores": 8,
+    "mem_gb": 23.4,
+    "kernel": "7.0.0-30-generic",
+    "node": "v22.23.1",
+    "loadavg_at_summary": [
+      0.81,
+      1.77,
+      2.97
+    ],
+    "is_reference_machine": "yes — SPEC.md §5.2.8 names an Intel i5-8250U at 1,6 GHz, no GPU"
+  },
+  "under_measurement": {
+    "server": "/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js",
+    "server_sha256": "d2842399f4dc48019c31074cf4a6b822e3842f5f6c7d0b8f04bcd17de77fb34b",
+    "driver": "bench/run_build.py",
+    "env": {
+      "ZOTEUS_EMBEDDINGS": "off",
+      "ZOTEUS_INDEX_BACKEND": "sqlite",
+      "ZOTEUS_INDEX_FULLTEXT": "1",
+      "ZOTEUS_INDEX_MAX_ITEMS": "1000000 (full run), 300, 1200",
+      "ZOTEUS_INDEX_FULLTEXT_MAX_CHARS": "200000",
+      "ZOTEUS_INDEX_AUTO_REFRESH": "false"
+    },
+    "peak_rss_method": "kernel VmHWM high-water mark, not a sampler",
+    "poll_quantum_s": 5.0,
+    "what_the_quantum_does": "run_build.py sleeps --poll between status calls and breaks on the first poll that sees `done`, so every elapsed_s is the true build time rounded UP to the next poll boundary. At --poll 20 the 300- and 1200-item runs both reported 140,3 s — the quantum, not the build — which is why these arms were re-driven at a finer one."
+  },
+  "ours": {
+    "full_library": {
+      "log": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-full.log",
+      "items_indexed": 7541,
+      "items_available": 7541,
+      "passages": 363613,
+      "fulltext_passages": 348516,
+      "own_words_passages": 2695,
+      "metadata_passages": 12402,
+      "fulltext_items": 5562,
+      "vectors": 0,
+      "embedder": "none (keyword-only)",
+      "elapsed_s": 305.9,
+      "peak_rss_kb": 748168,
+      "peak_rss_mib": 730.6,
+      "disk": {
+        "sqlite_bytes": 744390656,
+        "wal_bytes": 147953352,
+        "shm_bytes": 294912,
+        "total_bytes": 892638920
+      },
+      "sqlite_mib": 709.9,
+      "wal_mib": 141.1,
+      "state": "done",
+      "local_api_degraded_at": null
+    },
+    "scale_300": {
+      "log": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-300.log",
+      "items_indexed": 300,
+      "items_available": 7541,
+      "passages": 19966,
+      "fulltext_passages": 19571,
+      "own_words_passages": 36,
+      "metadata_passages": 359,
+      "fulltext_items": 258,
+      "vectors": 0,
+      "embedder": "none (keyword-only)",
+      "elapsed_s": 140.4,
+      "peak_rss_kb": 416668,
+      "peak_rss_mib": 406.9,
+      "disk": {
+        "sqlite_bytes": 42975232,
+        "wal_bytes": 32964152,
+        "shm_bytes": 65536,
+        "total_bytes": 76004920
+      },
+      "sqlite_mib": 41.0,
+      "wal_mib": 31.4,
+      "state": "done",
+      "local_api_degraded_at": null
+    },
+    "scale_1200": {
+      "log": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-1200.log",
+      "items_indexed": 1200,
+      "items_available": 7541,
+      "passages": 64459,
+      "fulltext_passages": 62059,
+      "own_words_passages": 500,
+      "metadata_passages": 1900,
+      "fulltext_items": 997,
+      "vectors": 0,
+      "embedder": "none (keyword-only)",
+      "elapsed_s": 156.6,
+      "peak_rss_kb": 465088,
+      "peak_rss_mib": 454.2,
+      "disk": {
+        "sqlite_bytes": 132755456,
+        "wal_bytes": 74732712,
+        "shm_bytes": 163840,
+        "total_bytes": 207652008
+      },
+      "sqlite_mib": 126.6,
+      "wal_mib": 71.3,
+      "state": "done",
+      "local_api_degraded_at": null
+    }
+  },
+  "platform": {
+    "build_wall_s": 0.0,
+    "build_peak_rss_kb": 0,
+    "incremental_disk_bytes": 0,
+    "why_zero": "Zotero builds and maintains fulltext.sqlite whether or not we read it; adopting it adds no build pass, no extraction, no memory and no bytes of ours",
+    "file_on_disk_bytes": 309133312,
+    "file_on_disk_mib": 294.8,
+    "file": "/home/haduong/data/Zotero/fulltext.sqlite",
+    "what_that_zero_does_not_include": [
+      "the query-time cost of using it, which this action does not measure",
+      "metadata and own-words passages, which it does not hold at any price",
+      "reproducing Zotero's tokenizer to turn a token offset into an entry span (action 4)",
+      "availability under a writer's exclusive lock (action 3)"
+    ]
+  },
+  "derived": {
+    "two_point_fit": {
+      "basis": "the 300- and 1200-item runs, by difference",
+      "marginal_ms_per_passage": 0.364,
+      "fixed_s_per_build": 133.1,
+      "marginal_bytes_per_passage": 2017.9,
+      "predicted_full_library_s": 265.5,
+      "measured_full_library_s": 305.9,
+      "prediction_error_pct": -13.2
+    },
+    "full_library_rates": {
+      "ms_per_passage": 0.841,
+      "bytes_per_passage": 2047.2,
+      "passages_per_s": 1188.7
+    },
+    "displaceable_upper_bound": {
+      "fulltext_passage_share_pct": 95.8,
+      "metadata_and_own_words_passages": 15097,
+      "metadata_and_own_words_share_pct": 4.2,
+      "note": "metadata and own words (notes, annotations) have no counterpart in fulltext.sqlite at all"
+    },
+    "peak_rss_scope": {
+      "process_scope": "one process, and it is the whole tree: run_build.py reads VmHWM from /proc/<server pid>/status, which is per-process, and the built server spawns nothing — no `new Worker`, no `child_process`, no `spawn(` anywhere under fork/dist (checked 2026-09-03). With the embedder off there is no embedding service beside it either.",
+      "phase": "steady-state indexing, not the one-off crawl setup",
+      "evidence": "the driver's own poll series: the run opens at 0.16 GB and holds it through the metadata pass and the 8 037-attachment walk, climbs once the full-text pass begins, reaches 0.71 GB at 219 s and then stays flat for the remaining 87 s of the build",
+      "so_it_is_a_plateau_not_a_spike": true,
+      "trajectory": {
+        "polls": 36,
+        "peak_gb_as_the_driver_printed_it": 0.71,
+        "first_reached_at_s": 219,
+        "held_for_s": 87,
+        "opening_gb": 0.16,
+        "series_s_gb": [
+          [
+            5,
+            0.16
+          ],
+          [
+            10,
+            0.16
+          ],
+          [
+            15,
+            0.16
+          ],
+          [
+            20,
+            0.16
+          ],
+          [
+            130,
+            0.17
+          ],
+          [
+            140,
+            0.4
+          ],
+          [
+            145,
+            0.4
+          ],
+          [
+            151,
+            0.4
+          ],
+          [
+            157,
+            0.42
+          ],
+          [
+            163,
+            0.45
+          ],
+          [
+            168,
+            0.5
+          ],
+          [
+            173,
+            0.52
+          ],
+          [
+            178,
+            0.53
+          ],
+          [
+            186,
+            0.54
+          ],
+          [
+            193,
+            0.57
+          ],
+          [
+            198,
+            0.59
+          ],
+          [
+            203,
+            0.62
+          ],
+          [
+            208,
+            0.65
+          ],
+          [
+            213,
+            0.68
+          ],
+          [
+            219,
+            0.71
+          ],
+          [
+            224,
+            0.71
+          ],
+          [
+            230,
+            0.71
+          ],
+          [
+            235,
+            0.71
+          ],
+          [
+            241,
+            0.71
+          ],
+          [
+            246,
+            0.71
+          ],
+          [
+            251,
+            0.71
+          ],
+          [
+            258,
+            0.71
+          ],
+          [
+            264,
+            0.71
+          ],
+          [
+            270,
+            0.71
+          ],
+          [
+            275,
+            0.71
+          ],
+          [
+            280,
+            0.71
+          ],
+          [
+            285,
+            0.71
+          ],
+          [
+            290,
+            0.71
+          ],
+          [
+            296,
+            0.71
+          ],
+          [
+            301,
+            0.71
+          ],
+          [
+            306,
+            0.71
+          ]
+        ]
+      },
+      "no_c3_row_applies": "C3's two ~750 MB rows — server steady-state RSS and pipeline-worker peak — both describe SPEC.md §5.2.5's topology: a conductor and query servers holding no model beside one embedding service that does, with §5.2.9's P0 idling near 100 MB. The measured binary is stock upstream v1.12.0 and implements neither side of that split, which the process_scope grep is what establishes. So reading this figure as level with the ceiling compares a single-process build against a budget written for a topology it does not implement. Both figures are annotated as awaiting a re-pin besides.",
+      "what_it_does_support": "C3's PROPERTY rather than its number: the RAM ceiling is independent of library and document size because extraction and chunking stream. Flat through the metadata pass and the whole attachment walk, climbing only with full text, then flat again while the crawl works through thousands more items, is the shape that property predicts.",
+      "the_measurement_that_would_settle_it": "the same run against our own topology — a P0 that should idle near 100 MB, weighed against the server row. Nobody has that number and this run is not it.",
+      "and_the_plateau_is_bounded_too": "flat for the last 87 s of a 305,9 s build, on one library and one machine. That is what a working-set ceiling looks like, and it is not proof of one: a plateau held over 87 s says nothing about a build that runs for hours, and the 2026-09-02 embedding build reached 2 409,6 MiB on the same library."
+    },
+    "on_disk_decomposition": {
+      "db": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-full/search-index.sqlite",
+      "bytes_by_object": {
+        "passages": 535474176,
+        "passages_fts_data": 180068352,
+        "sqlite_autoindex_passages_1": 9293824,
+        "passages_item": 7356416,
+        "passages_source": 6909952,
+        "passages_fts_docsize": 3989504,
+        "items": 716800,
+        "passages_fts_idx": 421888,
+        "sqlite_autoindex_items_1": 139264,
+        "meta": 4096,
+        "passages_fts_config": 4096,
+        "sqlite_autoindex_meta_1": 4096,
+        "sqlite_schema": 4096,
+        "vector_codes": 4096
+      },
+      "keyword_index_bytes": 184483840,
+      "keyword_index_mib": 175.9,
+      "stored_text_and_addressing_bytes": 559906816,
+      "stored_text_and_addressing_mib": 534.0,
+      "total_bytes": 744390656,
+      "keyword_index_share_pct": 24.8,
+      "stored_text_share_pct": 75.2,
+      "what_the_platform_could_displace": "the keyword half only — the stored text has to stay whatever indexes it, because fulltext.sqlite is contentless and cannot print a passage back"
+    },
+    "against_the_embedding_build": {
+      "log": "/home/haduong/data/projets/zoteus-bench/overnight-2026-09-02/full-build/build.log",
+      "elapsed_s": 29643.9,
+      "peak_rss_kb": 2467464,
+      "peak_rss_mib": 2409.6,
+      "disk": {
+        "sqlite_bytes": 1706061824,
+        "wal_bytes": 65882952,
+        "shm_bytes": 131072,
+        "total_bytes": 1772075848
+      },
+      "sqlite_mib": 1627.0,
+      "keyword_share_of_wall_pct": 1.03,
+      "keyword_share_of_disk_pct": 43.6,
+      "keyword_share_of_peak_rss_pct": 30.3,
+      "note": "same library, same flags, same server; the only difference is ZOTEUS_EMBEDDINGS"
+    }
+  },
+  "caveats": [
+    "Every elapsed_s is an upper bound within the 5 s poll quantum: the driver breaks on the first poll that sees the build done, so the full-library figure overstates by at most 5 s (1.6 % of it).",
+    "One machine, no GPU, and other lanes were active — the loadavg is recorded rather than controlled, so the wall figures are upper bounds on an idle machine.",
+    "Both Zotero full-text caps are raised on this install (pdfMaxPages 999999, textMaxLength 999999999), so the body text read here is longer than a default install would hold, and the passage counts with it.",
+    "--max-chars 200000 matches the 2026-09-02 embedding build; the shipped default is 40 000 and would index far less body text per item.",
+    "The WAL is reported beside the main file rather than folded into it; a checkpoint moves those bytes without changing the total the build needed.",
+    "The scale points cap items, not attachments: the attachment-page walk covers all 8 037 extracted attachments in every run, which is why the fixed term is large."
+  ],
+  "sources": {
+    "full_library": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-full.log",
+    "scale_300": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-300.log",
+    "scale_1200": "/home/haduong/data/projets/zoteus-bench/0120-keyword/q5-1200.log"
+  }
+}
