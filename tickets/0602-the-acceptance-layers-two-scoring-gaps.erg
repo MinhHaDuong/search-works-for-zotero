@@ -4,7 +4,8 @@ Created: 2026-09-03
 Author: claude
 
 --- log ---
-2026-09-03T01:12Z claude created Filed by gate lead #5 at the wrap-up of the adapter batch (#234, #236, #237, #238 merged; origin/main 804e9a4). Both gaps were found and driven red during that batch, and both are currently recorded ONLY inside tickets that are now closed -- 0583's log and 0584's exit-criterion note -- where whoever writes the sixth assertion will not find them. That is the reason this ticket exists: the findings are sound and their resting place is wrong.
+2026-09-03T01:12Z claude created Filed by gate lead #5 at the wrap-up of the adapter batch (#234, #236, #237, #238 merged; origin/main 804e9a4). Both gaps were found and driven red during that batch, and both currently rest where the next assertion author will not look -- 0583's log, 0584's exit-criterion note, and (gap 1 only) the module docstring of one adapter, `zotero_core_6012.py:22-45`. That is the reason this ticket exists: the findings are sound and their resting place is wrong.
+2026-09-03T01:21Z claude note REVIEW ROUND 1 corrected the live-target claim, which was wrong in the one section arguing urgency. The ticket had named zotero-mcp as the target that makes gap 1 live because it offers status and so reaches check_local_by_default. Reaching the check is not tripping the gap: zotero_mcp.status() returns no embedding key at all, so locality is None and the check takes the not-run branch -- it is on the IGNORANT side of the very asymmetry this ticket draws. The live target is zoteus, whose zoteus.py:237 maps a falsy effective onto the string "none". Both shapes were executed against the real assertion, not reasoned: zotero_mcp-shaped status gives not-run, zoteus-shaped status with no embedder gives fail. Also corrected: the ALL registry is at :548 not :539, and gap 1 is not recorded ONLY in closed tickets -- it is written out at length in zotero_core_6012.py:22-45, a live tracked file, which does not defeat the ticket (an adapter docstring is not where the next assertion author looks, which is what Action 4 asks to fix) but does defeat the word only.
 
 --- body ---
 ## Context
@@ -16,8 +17,10 @@ that was the right call at the time: repairing the layer from inside an adapter
 merge request is exactly the coupling the lane spent the night avoiding, and
 neither gap changed a single verdict on the roster as it stands.
 
-Neither stays harmless. Gap 1 fires the moment a target that offers `status`
-is run, and one such target is already on the roster with no committed run.
+Neither stays harmless. Gap 1 fires the moment a target emits
+`locality == "none"` -- which is narrower than "offers `status`", and the
+difference is this ticket's own subject. One such target is already on the
+roster with no committed run.
 
 ### Gap 1 — a target that honestly reports "no embedder" is scored `fail`
 
@@ -72,15 +75,26 @@ verbs, or the criterion is reworded to what it can mean.
 ## Relevant files
 
 - `bench/acceptance/assertions.py` -- both gaps; `:23`, `:294`, `:300` for
-  gap 1, the `ALL` registry near `:539` for gap 2
+  gap 1, the `ALL` registry at `:548` for gap 2
 - `bench/acceptance/interface.py` -- the ratified seven-verb interface; owned
   by `SPEC.md` §5.2.8 and the `DECISIONS.md` entry ratified 2026-09-02
 - `tests/test_acceptance_adapter_zotero_core_6012.py:498,520` -- gap 1 already
   driven red with a discriminating control arm; do not rewrite these, make
   them the regression test
-- `bench/acceptance/adapters/zotero_mcp.py` -- the target that makes gap 1
-  live: it declares only `pause`, `resume`, `uninstall` absent, so it OFFERS
-  `status` and `query` and will reach `check_local_by_default`
+- `bench/acceptance/adapters/zoteus.py:237` -- **the target that makes gap 1
+  live.** It declares only `uninstall` and `resume` absent, emits the
+  normalized shape, and maps a falsy `effective` straight onto the string
+  `"none"`: `{"local": "local"}.get(effective, "remote" if effective else
+  "none")`. That is the exact FAIL input. Its own docstring records that
+  without a model-runtime path the target falls back to keyword-only
+  silently, so `effective` goes falsy and the row flips to `fail` on a
+  machine that is merely unprovisioned
+- `bench/acceptance/adapters/zotero_mcp.py:572-596` -- the OTHER half of the
+  same asymmetry, and not the live one. It offers `status` and reaches
+  `check_local_by_default`, but its `status()` returns no `"embedding"` key
+  at all, so `locality` is `None` and the check takes the not-run branch at
+  `:294`. It sits on the ignorant side: it says "I do not know", not "I have
+  no embedder"
 - `tickets/closed/0583-...erg`, `tickets/closed/0584-...erg` -- where both
   findings currently rest
 
@@ -120,8 +134,10 @@ against a wrong-shaped registry.
 
 - [ ] `check_local_by_default` on a target reporting `"none"` yields the
       ruled-on state, and the `"local"`/`"remote"` control arm is unmoved
-- [ ] `zotero-mcp`, which offers `status`, produces a defensible
-      `R10-local-by-default` row -- this is the target that made gap 1 live
+- [ ] `zoteus`, whose `status()` can emit `"none"`, produces a defensible
+      `R10-local-by-default` row -- this is the target that makes gap 1 live,
+      and `zotero-mcp` is the control beside it, since its row must stay
+      not-run for the different, correct reason
 - [ ] the seven-verb coverage test fails against today's `ALL` before it passes
 - [ ] `make check` and `erg check tickets/` pass
 
