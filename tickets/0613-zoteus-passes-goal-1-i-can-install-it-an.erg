@@ -1,0 +1,115 @@
+%erg 0.1
+Title: Zoteus passes goal 1 — I can install it and take it off again
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T11:23Z claude created
+
+--- body ---
+## Context
+
+Goal 1 of the ladder (`README.md`): *nothing leaves this machine unasked, one
+obvious switch stops the work, and uninstall removes every declared piece of
+derived state and leaves no undeclared residue.* Three terms since 2026-09-03,
+when R31 was retired: **R10, R15, R22**. It is the lowest rung because its
+assertions need no corpus, no build and no library.
+
+This tracker holds one question: **is goal 1 kept for zoteus?** Today it is not,
+and the reasons are below. The assertions all exist — seven checks in
+`bench/acceptance/assertions.py`, each with a fail-control — so what is missing
+is the target's side, not the instrument's.
+
+## Where the rung stands for zoteus
+
+From `bench/results/0604-ladder-matrix/MATRIX.md`, run 2026-09-03 against
+revision 1.12.0:
+
+| clause | state | why |
+|---|---|---|
+| `R10-local-by-default` | **pass** | local embedder, active |
+| `R10-no-egress` | **FAIL** | gap A below |
+| `R15-residue-inventory` | **pass** | 0 residue outside 1 declared root |
+| `R15-model-cache-under-declared-roots` | **pass** | upstream PR #27's doing |
+| `R15-uninstall-removes-declared-state` | not-offered | gap B below |
+| `R22-pause-stops-background-work` | not-run | gap C below |
+| `R22-pause-holds-across-restart` | not-run | gap C below |
+
+Three of seven green. The rung is a conjunction, so that is not partial credit.
+
+## The gaps, each with the sentence that establishes it
+
+**Gap A — the default configuration phones home (R10).** `ZOTEUS_UPDATE_CHECK`
+defaults to true in the reviewed build (`fork/dist/config.js`), and the server
+logged "Update available: Zoteus 1.13.0 (running 1.12.0)" during the run. R10:
+*"Without an explicit opt-in, my library text and my queries MUST NOT leave this
+machine"*, with the one-time model-weight download named as the sole exception.
+Caught only by the DNS detector — the off-machine count was 0, because inside a
+no-route namespace a hostname attempt dies at resolution and leaves no connect
+at all. **Not yet established:** whether the update check accounts for all four
+lookups. One arm settles it — the same assertion with `ZOTEUS_UPDATE_CHECK=false`
+— and it belongs beside the existing net-shared control, never as a graded
+configuration.
+
+**Gap B — there is no uninstall surface (R15).** The headline reads as a
+condition on state, satisfiable by any mechanism; the body does not: *"Every
+location in which they can exist is declared, the target's real uninstall
+surface removes them, and a residue inventory checks that the declaration is
+complete."* A user deleting the data directory by hand is not the target's
+surface, and R23 refuses that same move in as many words — "without anyone
+deleting files by hand". Upstream PR #27 (merged 2026-08-29) pinned the model
+cache under the data directory, which makes such a surface *writable* correctly;
+it is not the surface. §5.2.7's designed maintenance purge is a different verb
+and upstream has not built it either.
+
+**Gap C — R22's restart clause is untested in the configuration where it could
+fail.** The switch exists and is offered; the adapter's note is an argument
+rather than a measurement — the cancel flag is *in memory*, and the clause holds
+only because nothing auto-resumes. The acceptance run sets
+`ZOTEUS_INDEX_AUTO_REFRESH=false`, so the arm that could falsify *"it MUST hold
+across restarts"* is disabled in the run that did not falsify it. An in-memory
+flag plus auto-refresh on is precisely R22's own gloss of failure: "background
+work that resumes on its own after a reboot was never stopped, only
+interrupted." Both clauses additionally report `not-run` because no work counters
+exist to read (ticket 0033), so gap C cannot be settled before that or an agreed
+observable substitute.
+
+## Actions
+
+1. Settle gap C's measurement, since it is the only gap whose answer is unknown
+   rather than merely unbuilt. Blocked on 0033 or on an observable agreed with it.
+2. Run gap A's discriminating arm and attribute the four lookups.
+3. Decide the upstream form of gaps A and B against `GOVERNANCE.md` and
+   `SYNC.md`'s measured asymmetry, and file.
+
+## Exit criteria
+- [ ] all seven goal-1 clauses green for zoteus, each resting on a run
+- [ ] no clause green by waiver, and none green where its falsifying arm was
+      disabled in the run that passed it
+
+## Why one tracker per rung, per target
+
+The ladder's rungs are conjunctions: a rung is kept when every one of its members
+holds, and at no state before that. Nothing in the repository asserted that
+conjunction *for a named target* — `README.md` reports each requirement's
+standing across the project, and `bench/results/0604-ladder-matrix/MATRIX.md`
+reports each clause against each target, but neither answers "is this rung kept
+for zoteus". These three trackers answer exactly that, one each, and they close
+only when their rung's every clause is green for zoteus.
+
+zoteus is the named target because *works for me* is the acceptance standard and
+this is the tool the author runs. A green here is a green for zoteus and for
+nothing else; the other four roster targets are measured by the same layer and
+are not this tracker's business.
+
+## Children
+
+Children are filed when their work starts, not up front. The gaps below are
+enumerated with the requirement sentence each rests on, which is what a child
+ticket would carry anyway; filing four stubs today would inflate the queue
+without advancing anything (severity floor, `rules/workflow.md`). This tracker is
+edited to list each child as it is created.
+
+| child | scope | state |
+|---|---|---|
+| — | none filed yet | see the gaps above |
