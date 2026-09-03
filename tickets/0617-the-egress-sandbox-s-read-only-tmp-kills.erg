@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-03T11:45Z claude created
 
+2026-09-03T12:00Z CORRECTION TO THIS TICKET'S OWN CONTEXT, from the review of PR 278: the SIGSEGV claim is established for ONE target, not two, and I wrote it as two. Zotero core 6012's drive raised RuntimeError: the target exited with 139 before zotero.sqlite appeared, and 139 is 128+11, so that host was killed by SIGSEGV. ZotSeek's raised ProcessLookupError: [Errno 3] No such process, which is consistent with an early death and is evidence of neither SIGSEGV nor the icon-loader path. Neither artifact records timestamps, so 'about seven seconds' is not in the committed record for either. And on the target where the signal IS established, the read-only /tmp bind remains the leading hypothesis rather than a demonstrated cause -- no core dump, signal handler or host log was read. What survives unchanged: both drives exited DRIVE_INCOMPLETE before any verb ran, both cells are red on attempts the tracer actually recorded, and the defect this ticket exists for -- that a desktop-host target cannot currently get past startup under the sandbox -- is unaffected by which signal killed which host. What changes is action 1, which must now establish the cause on each target rather than assume one mechanism from one exit code. This is the hold-the-cause-until-isolated trap from the harness's own diagnosis discipline, and I walked into it while filing a ticket about someone else's measurement.
 --- body ---
 ## Context
 

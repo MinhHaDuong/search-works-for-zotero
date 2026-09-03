@@ -51,7 +51,7 @@ operator's own resident Zotero 10.0.1 throughout, which is simply what a running
 Zotero desktop does, and it did not matter, because no adapter on this roster
 uses that port — #6012 listens on 23519 and ZotSeek on 23219. What had blocked
 the cells was a policy against launching a host, and it is the policy that
-lifted. **Both egress runs crashed about seven seconds in**: the egress sandbox
+lifted. **Both egress runs died before their verbs ran**: the egress sandbox
 mounts `/tmp` read-only, GTK's icon loader cannot write its temporary file
 there, and the host aborts — so those two reds are read off runs that never
 reached the retrieval path. The assertion decides that case itself and both

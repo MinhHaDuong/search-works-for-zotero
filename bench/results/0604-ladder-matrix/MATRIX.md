@@ -278,8 +278,9 @@ recorded an off-machine attempt — so these are findings, not could-not-looks.
 
 Read the two new ones with their limit attached, which their artifacts state
 first: **on both host-bound targets the driven run did not complete.** Inside
-the egress sandbox `/tmp` is read-only, GTK's icon loader needs to write a
-temporary file there, and the host aborts about seven seconds into startup. The
+the egress sandbox `/tmp` is read-only, which GTK's icon loader must write to.
+Both hosts died before their verbs ran; only #6012's exit code (139, i.e. SIGSEGV)
+says how, and no run establishes the `/tmp` bind as the cause. The
 assertion decides this case itself — `DRIVE_INCOMPLETE` with a *zero* count is
 `not-run`, an attempt the tracer recorded stands anyway — so the lookups counted
 are the ones the run got as far as making, and the target's own retrieval path
@@ -322,7 +323,7 @@ is thin.** `bench/acceptance/run.py` has been run end to end against every
 column. On #6012 and ZotSeek that run reached exactly two clauses: ten of their
 twelve are `not-offered` at the declaration gate, so the only *runtime*
 behaviour this sheet has ever observed on either is one residue sweep and one
-egress sweep each — and the egress sweep on both crashed seven seconds in. Two
+egress sweep each — and the egress sweep on both died before its verbs ran. Two
 cells apiece is not a picture of how a target behaves.
 
 **The two new egress reds rest on runs that did not finish.** Stated in the
