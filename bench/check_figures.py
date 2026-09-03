@@ -406,7 +406,13 @@ def display(value, places: int, pct: bool = False) -> str:
 #: already on main: the floor had been left at 462 while the tree carried 581, so this
 #: also re-tightens it, which is the safe direction and the one the 2026-08-31 note above
 #: took after a merge. No coverage was removed.
-MINIMUM_PAIRS = 625
+#:
+#: RAISED to 629 the same day, in review: the memory trajectory's four figures — the
+#: opening reading, the peak, when it was first reached and how long it held — were
+#: quoted in the note and declared nowhere, which is the drift this file exists to stop.
+#: They are the whole of what the note claims about memory, so an undeclared copy of
+#: them was the most load-bearing gap on the branch.
+MINIMUM_PAIRS = 629
 
 #: A figure is (artifact, key path, places, {prose key: anchor-or-None}), optionally with
 #: "pct" when the prose writes the fraction as a percentage. An anchor is a snippet with
@@ -1875,6 +1881,22 @@ FIGURES = [
      {"v0120": "| 156,6 s | {} MiB |"}),
     ("0120-keyword-build/keyword-build-cost.json", "ours.scale_1200.sqlite_mib", 1,
      {"v0120": "| 454,2 MiB | {} MiB |"}),
+    # The memory trajectory. These four say the peak is a plateau of steady-state
+    # indexing rather than a spike while the crawl is set up, which is the whole of what
+    # the note claims about memory — and they were quoted unanchored until a review
+    # noticed. 219 + 87 must keep summing to the build, so a regeneration that moves
+    # either has to move the prose too.
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.opening_gb", 2, {"v0120": "run opens at {} GB"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.peak_gb_as_the_driver_printed_it", 2,
+     {"v0120": "reaches\n{} GB at 219 s"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.first_reached_at_s", 0,
+     {"v0120": "0,71 GB at {} s and stays flat"}),
+    ("0120-keyword-build/keyword-build-cost.json",
+     "derived.peak_rss_scope.trajectory.held_for_s", 0,
+     {"v0120": "flat for the remaining {} s"}),
 
 ]
 

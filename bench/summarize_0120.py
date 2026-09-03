@@ -202,6 +202,33 @@ def machine() -> dict:
     }
 
 
+def two_point_fit(lo: dict, hi: dict, full: dict) -> dict:
+    """Split a build into a fixed per-build term and a marginal per-passage one.
+
+    Lives here rather than inline in main() so it can be tested against fixtures. The
+    arithmetic is trivial and that is exactly why it needs a test: an artifact whose
+    derived block is only ever checked by "does the prose quote it" is guarded against
+    a stale copy and not against a wrong original.
+    """
+    d_passages = hi["passages"] - lo["passages"]
+    if d_passages <= 0:
+        raise RuntimeError("the two scale points carry no passage difference to fit on")
+    marginal_ms = (hi["elapsed_s"] - lo["elapsed_s"]) * 1000 / d_passages
+    fixed_s = lo["elapsed_s"] - lo["passages"] * marginal_ms / 1000
+    marginal_bytes = (hi["disk"]["sqlite_bytes"] - lo["disk"]["sqlite_bytes"]) / d_passages
+    predicted_s = fixed_s + full["passages"] * marginal_ms / 1000
+    return {
+        "basis": "the 300- and 1200-item runs, by difference",
+        "marginal_ms_per_passage": round(marginal_ms, 3),
+        "fixed_s_per_build": round(fixed_s, 1),
+        "marginal_bytes_per_passage": round(marginal_bytes, 1),
+        "predicted_full_library_s": round(predicted_s, 1),
+        "measured_full_library_s": full["elapsed_s"],
+        "prediction_error_pct": round(
+            100 * (predicted_s - full["elapsed_s"]) / full["elapsed_s"], 1),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--full", required=True, type=Path)
@@ -223,27 +250,9 @@ def main():
 
     arms = {"full_library": arm(a.full), "scale_300": arm(a.small), "scale_1200": arm(a.mid)}
 
-    lo, hi = arms["scale_300"], arms["scale_1200"]
-    d_passages = hi["passages"] - lo["passages"]
-    d_s = hi["elapsed_s"] - lo["elapsed_s"]
-    d_bytes = hi["disk"]["sqlite_bytes"] - lo["disk"]["sqlite_bytes"]
-    marginal_ms = d_s * 1000 / d_passages
-    fixed_s = lo["elapsed_s"] - lo["passages"] * marginal_ms / 1000
-    marginal_bytes = d_bytes / d_passages
-
     full = arms["full_library"]
-    predicted_s = fixed_s + full["passages"] * marginal_ms / 1000
     derived = {
-        "two_point_fit": {
-            "basis": "the 300- and 1200-item runs, by difference",
-            "marginal_ms_per_passage": round(marginal_ms, 3),
-            "fixed_s_per_build": round(fixed_s, 1),
-            "marginal_bytes_per_passage": round(marginal_bytes, 1),
-            "predicted_full_library_s": round(predicted_s, 1),
-            "measured_full_library_s": full["elapsed_s"],
-            "prediction_error_pct": round(
-                100 * (predicted_s - full["elapsed_s"]) / full["elapsed_s"], 1),
-        },
+        "two_point_fit": two_point_fit(arms["scale_300"], arms["scale_1200"], full),
         "full_library_rates": {
             "ms_per_passage": round(full["elapsed_s"] * 1000 / full["passages"], 3),
             "bytes_per_passage": round(full["disk"]["sqlite_bytes"] / full["passages"], 1),
