@@ -48,3 +48,8 @@ corpus-cache/
 
 # Built Zotero plugin package, regenerable by bench/zotero-fulltext-plugin/build.sh
 *.xpi
+
+# Raw strace output from the egress drivers (bench/probe_getaddrinfo_shape.py and
+# its siblings). Regenerable by re-running the probe, and a trace holds this
+# machine's paths and pids, which bench/results/** must not carry.
+bench/results/**/traces/
