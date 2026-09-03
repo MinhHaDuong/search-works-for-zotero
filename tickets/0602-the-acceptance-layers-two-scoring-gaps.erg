@@ -1,0 +1,148 @@
+%erg 0.1
+Title: The acceptance layer's two scoring gaps: an honest "no embedder" reds, and three verbs are the subject of no assertion
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T01:12Z claude created Filed by gate lead #5 at the wrap-up of the adapter batch (#234, #236, #237, #238 merged; origin/main 804e9a4). Both gaps were found and driven red during that batch, and both are currently recorded ONLY inside tickets that are now closed -- 0583's log and 0584's exit-criterion note -- where whoever writes the sixth assertion will not find them. That is the reason this ticket exists: the findings are sound and their resting place is wrong.
+
+--- body ---
+## Context
+
+Three adapters landed on 2026-09-02/03, taking the roster from two seats to
+five. Between them they surfaced two defects in `bench/acceptance/assertions.py`
+that are the layer's, not any adapter's. Neither was repaired in the batch, and
+that was the right call at the time: repairing the layer from inside an adapter
+merge request is exactly the coupling the lane spent the night avoiding, and
+neither gap changed a single verdict on the roster as it stands.
+
+Neither stays harmless. Gap 1 fires the moment a target that offers `status`
+is run, and one such target is already on the roster with no committed run.
+
+### Gap 1 — a target that honestly reports "no embedder" is scored `fail`
+
+`assertions.py:23` declares the shape as
+`"locality": "local" | "remote" | "none"`. `assertions.py:300`, inside
+`check_local_by_default`, computes:
+
+    result=PASS if locality == "local" and active is True else FAIL,
+
+Three declared values, a two-way comparison. A target that reports the string
+`"none"` is scored **fail against a clause reading "the embedder is local"**.
+It is not failing to be local; it has no embedder.
+
+The sharpest form of it is the asymmetry one line above. `assertions.py:294`
+returns **not-run** when `locality is None` -- the adapter cannot answer. So a
+target that says "I do not know" is scored not-run, while a target that says
+"I have no embedder" is scored fail. The honest answer is punished harder than
+the ignorant one, which inverts what the layer is for.
+
+Zotero core #6012's shipped default is precisely this case:
+`embeddings.model` ships `""` (`build/defaults/preferences/zotero.js:120-125`
+at the pinned commit) and `isEnabled()` returns false
+(`xpcom/embeddings.js:179-181`).
+
+### Gap 2 — three of the seven ratified verbs are the subject of no assertion
+
+The ratified interface is `install`, `uninstall`, `configure`, `query`,
+`status`, `pause`, `resume`. The five checks registered in `assertions.py`'s
+`ALL` carry four distinct verbs between them as their subject: `status`
+(`R10-local-by-default`), `query` (`R10-no-egress`), `install`
+(`R15-residue-inventory`), `query` (`R15-model-cache-under-declared-roots`),
+`uninstall` (`R15-uninstall-removes-declared-state`).
+
+So `configure`, `pause` and `resume` can yield no check state at all, however
+a target is written. `pause` is the decisive one: it occurs **zero times** in
+the whole of `assertions.py`, so no reading of the file rescues it.
+
+Be careful with the wording, because a loose version of this was written and
+corrected during the batch: `configure` and `resume` ARE named in
+`assertions.py` -- in `EGRESS_VERBS` and in `check_local_by_default`'s
+precondition loop -- and a target not offering `configure` gets a
+`not-offered` Check carrying `verb="configure"`. What is true is that only
+four verbs are ever a check's **subject**, and that `pause` is named nowhere.
+
+The consequence is a ticket-level one: every adapter ticket carries the exit
+criterion "every interface verb yields pass, fail, not-offered or not-run",
+and that criterion is **unsatisfiable by any adapter under the current
+layer**. 0584 closed with the reading recorded; 0583 closed with the same
+criterion ticked bare. Either the layer grows assertions naming the missing
+verbs, or the criterion is reworded to what it can mean.
+
+## Relevant files
+
+- `bench/acceptance/assertions.py` -- both gaps; `:23`, `:294`, `:300` for
+  gap 1, the `ALL` registry near `:539` for gap 2
+- `bench/acceptance/interface.py` -- the ratified seven-verb interface; owned
+  by `SPEC.md` §5.2.8 and the `DECISIONS.md` entry ratified 2026-09-02
+- `tests/test_acceptance_adapter_zotero_core_6012.py:498,520` -- gap 1 already
+  driven red with a discriminating control arm; do not rewrite these, make
+  them the regression test
+- `bench/acceptance/adapters/zotero_mcp.py` -- the target that makes gap 1
+  live: it declares only `pause`, `resume`, `uninstall` absent, so it OFFERS
+  `status` and `query` and will reach `check_local_by_default`
+- `tickets/closed/0583-...erg`, `tickets/closed/0584-...erg` -- where both
+  findings currently rest
+
+## Actions
+
+1. Rule on gap 1's remedy before coding it. The obvious repair -- score
+   `"none"` as `not-offered` or as its own state -- is a change to what a
+   ratified clause MEANS, not a bug fix, so it may be the author's call
+   rather than the lane's. State the options and their costs in the ticket
+   before editing.
+2. Apply the chosen remedy in `assertions.py`, touching nothing else.
+3. Rule on gap 2: grow the layer with assertions whose subject is
+   `configure`, `pause` or `resume`, or reword the adapter-ticket exit
+   criterion. These are different amounts of work and the second is not a
+   climb-down -- an interface verb that no requirement constrains may
+   legitimately have no assertion.
+4. Whichever way gap 2 goes, leave a pointer where the next assertion author
+   will meet it: a comment in `assertions.py` beside `ALL`, not only a
+   ticket.
+
+## Test
+
+Red first, and gap 1's red already exists:
+`test_a_target_with_no_embedder_is_scored_fail_by_the_local_by_default_clause`
+drives a fake reporting `"none"` through the real `check_local_by_default` and
+asserts FAIL, carrying the message "if this passes, the layer has been changed
+and this finding is stale". Its control arm asserts `("local") == PASS` and
+`("remote") == FAIL`. Both are green today. The remedy inverts the first, and
+the control must stay green -- if both move, the fix is too wide.
+
+For gap 2, the test is a registry-coverage assertion: for each of the seven
+ratified verbs, either some registered check names it as its subject, or the
+verb appears in an explicit, argued exemption list. A bare count would pass
+against a wrong-shaped registry.
+
+## Verification
+
+- [ ] `check_local_by_default` on a target reporting `"none"` yields the
+      ruled-on state, and the `"local"`/`"remote"` control arm is unmoved
+- [ ] `zotero-mcp`, which offers `status`, produces a defensible
+      `R10-local-by-default` row -- this is the target that made gap 1 live
+- [ ] the seven-verb coverage test fails against today's `ALL` before it passes
+- [ ] `make check` and `erg check tickets/` pass
+
+## Invariants
+
+- The layer names no target. `tests/test_acceptance_layer_is_target_neutral.py`
+  must stay green; do not fix gap 1 by special-casing a target.
+- No committed verdict is silently revised. If a remedy changes what an
+  existing artifact's row should read, regenerate the artifact from the edited
+  code and say so -- an artifact whose provenance is "the code before the last
+  edit" is the defect this repo keeps paying for.
+- `RATIFIED_TARGETS`'s comment in the neutrality test still reads "Four have
+  no adapter yet"; that was true when written and is now stale, all five
+  having adapters. Correct it if you are in the file; it is not this ticket's
+  subject.
+
+## Exit criteria
+
+- [ ] gap 1 ruled on and applied, with the control arm demonstrably unmoved
+- [ ] gap 2 ruled on: either the layer covers the missing verbs, or the
+      adapter-ticket exit criterion is reworded to what it can mean
+- [ ] a pointer to whichever gap remains open sits in `assertions.py`, not
+      only in a closed ticket
+- [ ] `make check` and `erg check tickets/` pass
