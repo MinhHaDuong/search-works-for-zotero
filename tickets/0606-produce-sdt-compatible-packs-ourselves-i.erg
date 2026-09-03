@@ -16,6 +16,8 @@ Label: needs-human
 
 2026-09-03T10:15Z Minh Ha-Duong note THE PRICE IS MEASURED, THE BENEFIT IS NOT, AND THE BENEFIT SHRANK when the fork's real state was read. The two notes above price the pack route at roughly 2,2x the bytes and 9x the time of the flat extraction it would replace. What nothing here has measured is what those buy, and the author put the question directly: are packs needed at all, or does flat text suffice? The flat path reaches further than this ticket assumed, all of it already built: seg/1 cuts entries at 0,996 and 0,988 confidence on a FR thesis and an EN book; `extractPdfOutline` gives the document's own outline; `extractPdfPages` gives REAL page ranges, so R24's page is met without an estimate and without a pack; and `pdf-locate.ts` already recovers a rectangle on the page by matching passage text against pdf.js text runs. The locator was this ticket's stated reason to want packs, and it is largely already served. WHAT REMAINS UNIQUE TO A PACK, narrower than the body above claims: a rect reliable by construction rather than by a text match that refuses on a doubtful case; block typing (math, list, image) that flat text has none of; and text from a different extractor, free of the running-header and glued-paragraph artefacts -- two of seg/1's three fixes of 2026-09-02 are workarounds for exactly those, which is evidence FOR the pack that this ticket had not counted. AGAINST: two packs are a probe and not a benchmark (heading recall 7 of 7 on one document and 4 on the other, and they disagree, SYNC.md), and packs hold less text than the flat cache. CONSEQUENCE: the exit criterion comparing our blocks to theirs is no longer a late gate but the FIRST question, and it needs a third arm -- the flat path as it actually stands, not as this ticket imagined it. A benefit that does not beat seg/1 plus pdf.js does not earn 2,2x the bytes and 24,6 h.
 
+2026-09-03T10:22Z Minh Ha-Duong note the author asked whether this ticket needs a third arm. Strictly it already had one, and that is the defect: the flat path was named only as a FLOOR -- 'a result worse than Zotero's current path stops the ticket' -- and a floor is not an arm. A floor passes anything one percent better, which at the measured 2,2x bytes and 24,6 h is not a decision rule at all. The criterion is rewritten to three named arms, (a) the flat path as it actually stands, (b) Zotero's own packs, (c) ours, with (a) as the incumbent and the arm to beat, and with the threshold stated as a MARGIN fixed before the run rather than as a sign. A second criterion is added for the metric, which the old text never named: scoring segmentation against a document's contents list is circular for arm (a), which consumes that list, and not for (b) or (c), which do not -- so a shared rubric built on it would silently penalise the pack arms and deliver a verdict shaped by the rubric. Locator precision, block typing and text fidelity are three questions with three verdicts; the criterion now requires naming which one decides.
+
 --- body ---
 ## Context
 
@@ -199,8 +201,22 @@ put to him rather than filed.
       extractor identity
 - [ ] The size ratio is in `bench/results/` and the shape decision cites it
 - [ ] The writer ships beside the reader, round-tripped in `make check`
-- [ ] The quality arm is run before any pack of ours is indexed: our blocks
-      against theirs on the two real packs, and against X5's eleven uncapped
-      attachments; a result worse than Zotero's current path stops the ticket
+- [ ] The quality comparison is run before any pack of ours is indexed, over
+      three named arms and not two: **(a)** the flat path as it actually stands
+      — Zotero's flat extraction, seg/1, `extractPdfOutline`, `extractPdfPages`
+      and `pdf-locate.ts` — **(b)** Zotero's own packs, on the two real ones,
+      and **(c)** ours, on those two and on X5's eleven uncapped attachments.
+      Arm (a) is the incumbent and the arm to beat; it was previously named only
+      as a floor ("worse than Zotero's current path stops the ticket"), which
+      licenses shipping a result one percent better for 2,2x the bytes and
+      24,6 h. The threshold is therefore a **margin**, not a sign: state before
+      running what margin over arm (a) would earn that cost, and stop the ticket
+      when the measured margin misses it
+- [ ] The comparison names its metric before it runs, and the metric is not
+      self-referential. Scoring segmentation against a document's contents list
+      is circular for arm (a), which consumes that list, and not for (b) or (c),
+      which do not — so a shared rubric that uses it silently penalises the pack
+      arms. Locator precision, block typing and text fidelity are three
+      different questions with three different verdicts; name which one decides
 - [ ] The disposal path is written down: what is deleted, what drains, and what
       the user sees while it does
