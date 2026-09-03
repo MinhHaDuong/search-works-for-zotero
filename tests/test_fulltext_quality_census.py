@@ -106,6 +106,11 @@ def test_empty_cache_is_its_own_class_not_an_old_extractor(library: Path):
     d = next(c for c in r_detail(library) if c["key"] == "DDDDDDDD")
     assert d["near_empty"] is False
     assert r_detail(library) and census.census(library)["pdf_near_empty"] == 1
+    # A cache with literally no words is its own sub-class: the prose separates
+    # "too little text" from "no text at all", so the artifact has to as well.
+    assert census.census(library)["pdf_zero_words"] == 1
+    assert census.census(library)["by_form_feed"]["no_form_feed"]["zero_words"] == 1
+    assert census.census(library)["by_form_feed"]["with_form_feed"]["zero_words"] == 0
 
 
 def test_mojibake_is_detected_only_where_it_is(library: Path):

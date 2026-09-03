@@ -2038,7 +2038,15 @@ FIGURES = [
      {"v0480": "two pages of body: **{}** of 8211",
       "decisions": "({} short-but-real caches"}),
     ("0480-fulltext-quality/census.json", "summary.pdf_near_empty", 0,
-     {"v0480": "**{}** PDFs in the no-form-feed group hold under 50 words"}),
+     {"v0480": "**{}** PDFs in the no-form-feed group hold under 50 words",
+      "decisions": "And {} of the old-group caches hold under 50 words"}),
+    # The zero-word sub-count. Declared because both documents quote it and the first
+    # version of the artifact did not carry it: the prose said 254 and the committed JSON
+    # could not be asked. A figure a reader cannot re-derive from the artifact beside it
+    # is exactly the case this guard exists for.
+    ("0480-fulltext-quality/census.json", "summary.by_form_feed.no_form_feed.zero_words", 0,
+     {"v0480": "and **{}** hold none at all",
+      "decisions": "{} of them none at all"}),
     ("0480-fulltext-quality/census.json", "summary.pdf_with_ligatures", 0,
      {"v0480": "Every one of the {} caches carrying",
       "decisions": "all {} caches carrying raw ligature glyphs"}),

@@ -165,6 +165,10 @@ def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
             1 for c in no_ff if not c["near_empty"] and c["words"] < 700
         ),
         "pdf_near_empty": sum(1 for c in pdfs if c["near_empty"]),
+        # Reported separately from near-empty because the prose distinguishes them:
+        # a cache with literally no words is a PDF Zotero could not read at all,
+        # which no re-extraction fixes and OCR might.
+        "pdf_zero_words": sum(1 for c in pdfs if c["words"] == 0),
         "pdf_mojibake": (sum(1 for c in measured if c["mojibake"]) if measured else None),
         "pdf_mojibake_measured": len(measured),
         "pdf_with_ligatures": sum(1 for c in pdfs if c["ligatures"] > 0),
@@ -191,6 +195,7 @@ def _group_stats(group: list[dict]) -> dict:
         "mojibake_measured": len(measured),
         "with_ligatures": sum(1 for c in group if c["ligatures"] > 0),
         "near_empty": sum(1 for c in group if c["near_empty"]),
+        "zero_words": sum(1 for c in group if c["words"] == 0),
     }
 
 
