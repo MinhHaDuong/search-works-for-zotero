@@ -35,5 +35,5 @@ waits on 0029, which codex holds. No lane work reaches either.
 ceiling included (0577 closed, GPU arm measured). Also: may a lane merge its own
 PR, and **is 0491 inside the codex fence** — the two handoff documents disagree.
 
-**Open:** #232 and #235 are DRAFT, each blocked on one named one-edit fix in its
-last comment; #250 is another lane's. `claude/resume-journee-taj5f8` stays undecided.
+**Open:** nothing. #232 and #235 merged after their one citation fix each (`0bb5304`,
+`9dd6fcd`); `main` green at 592/13, 167 tickets. `claude/resume-journee-taj5f8` undecided.
