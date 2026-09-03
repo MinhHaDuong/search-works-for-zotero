@@ -1,0 +1,81 @@
+%erg 0.1
+Title: The fold sweep and the keyword drivers measure a tokenizer upstream no longer ships
+Created: 2026-09-03
+Author: claude
+
+--- log ---
+2026-09-03T12:07Z claude created
+
+--- body ---
+
+## Context
+
+Filed by the v1.13.0 re-baseline (ticket 0618), which found it rather than
+looked for it.
+
+Upstream's keyword substrate moved in v1.13.0. `passages_fts` used to be
+declared `unicode61 remove_diacritics 2`, which folded accents on the way in;
+it is now `remove_diacritics 0`, which keeps them, and the unaccented spelling
+is reached query-side by expanding a term into the accented spellings the
+index actually holds — but only when their summed document frequency exceeds
+the typed spelling's own, and only in that one direction. An accented query
+never expands. That change is this repository's own pull request #46.
+
+Seven places in this tree still declare `remove_diacritics 2`, and each of them
+either produced a committed artifact or would produce the next one:
+
+- `bench/fold_sweep.mjs` — the R19 gate of SPEC.md §5.2.8, in four places
+  including the probe table it builds and the tokenizer string it stamps into
+  its own artifact.
+- `bench/fts5_keyword_arm.mjs`, `bench/constrained_match.mjs`,
+  `bench/fts5_bench.mjs` — keyword measurement drivers that build their own
+  synthetic corpora.
+- `verification/probes/droplist-adapts-to-corpus.mjs`,
+  `keeping-diacritics-cost.mjs`, `folding-cost-and-benefit.mjs`,
+  `diacritic-collision-cost.mjs` — probes whose findings are cited in prose.
+
+## Why this is a re-measurement and not an edit
+
+Changing the declaration would change what these drivers measure, so it cannot
+ride a re-baseline: a re-baseline moves a pin and re-reads claims, it does not
+silently replace a number. `bench/results/0578-fold-sweep/codepoints.json` is a
+dated record of a red verdict against a tokenizer upstream shipped at the time,
+and it stays. What must change is that nothing may cite it as a fact about
+*current* upstream until the sweep has been re-run against the tokenizer
+upstream now ships. `README.md`'s R19 row already says so.
+
+The two-sided asymmetry is the substance, not the flag value. The old gate
+asked one question — do our two normalizers agree — because both sides folded.
+The new arrangement has no symmetric question to ask: the index side folds
+nothing, the query side folds only to look up variants, and whether a user's
+query finds the document is decided by the dominance gate and the variant cap.
+A sweep re-run with the flag flipped and the same probe table would answer a
+question nobody has.
+
+## Relevant files
+
+- `bench/fold_sweep.mjs` — the gate; `make fold-gate`; exit codes 0/1/2/3.
+- `bench/results/0578-fold-sweep/codepoints.json` — the dated red. Do not rewrite.
+- `SPEC.md` §5.2.8 — the gate's contract, which says the gate runs green by
+  right against current upstream; `DECISIONS.md` already carries an unratified
+  entry saying that sentence and the measured red cannot both stand, and the
+  substrate change makes that entry's subject a third thing again.
+- `bench/index_schema.mjs` — the header now records the consequence for drivers.
+
+## Actions
+
+1. Decide what the gate asks now, given the asymmetry. That is a design
+   question and it comes before any code.
+2. Re-run whatever the answer is against a built checkout at the reviewed
+   baseline, into a NEW artifact directory.
+3. Re-state SPEC.md §5.2.8 and the R19 row from what the new run found.
+4. Sweep the four measurement drivers and the four probes: for each, either
+   re-measure or record in its own header that its artifact is history.
+
+## Exit criteria
+- [ ] No file in `bench/` or `verification/probes/` declares the old tokenizer
+      without a line saying why it is measuring history
+- [ ] `README.md`'s R19 row cites an artifact measured against the tokenizer
+      upstream ships at the reviewed baseline, or says plainly that none exists
+- [ ] The `DECISIONS.md` entry on the gate's colour is answerable against one
+      substrate rather than two
