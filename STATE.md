@@ -1,11 +1,9 @@
 # STATE — Search Works for Zotero
 
-*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-03.*
+*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-03T16:10Z.*
 
-One page of live operational handoff, and it owns nothing: every line is a
-pointer to the document that does own the fact, and anything longer than a
-pointer has drifted. What this repository is, and what each document is for,
-is [`README.md`](README.md)'s.
+One page of live operational handoff, and it owns nothing: every line points
+to the document that owns the fact. What this repository is is [`README.md`](README.md)'s.
 
 ## Where the live state lives
 
@@ -19,21 +17,24 @@ is [`README.md`](README.md)'s.
 | Where each requirement stands | [`README.md`](README.md) |
 | What we will and will not send upstream | [`GOVERNANCE.md`](GOVERNANCE.md) |
 | How agents work here | [`AGENTS.md`](AGENTS.md) |
-| The 2026-09-02/03 overnight run: result, corrections, machine state | `~/data/projets/zoteus-bench/overnight-2026-09-02/LOOP-STATE.md` |
 
 ## Handoff
 
 **Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
 
-**0625 merged (PR #295): target processes run under a dedicated account,
-never the operator.** `tester` provisioned and verified on doudou and padme
-(Makefile). 0626 is open, filed as the test-coverage follow-up.
+**0613/0614/0615: does zoteus pass goal 1/2/3?** Goal 1's account precondition
+met on both machines. Gap A awaits a fresh `fork/` rebuild; Gap B (uninstall)
+blocked on `UNINSTALL.md`; Gap C and goal 2 wait on 0033; goal 3 unasserted. Matrix: `bench/results/0604-ladder-matrix/`.
 
-**0613/0614/0615: does zoteus pass goal 1/2/3?** Goal 1's account
-precondition is met on both machines. Gap A (egress control-arm,
-`ZOTEUS_UPDATE_CHECK=false`) runs once `fork/` is rebuilt at the reviewed SHA
-(this checkout is stale). Gap B (uninstall) stays blocked on a published
-`UNINSTALL.md`, deferred. Gap C and goal 2 wait on 0033; goal 3 has no
-assertions (0580's). Matrix: `bench/results/0604-ladder-matrix/`.
+**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — 0491's codex-fence question, the ladder re-cut's two.
 
-**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list; open here: whether 0491 is inside the codex fence, and the ladder re-cut's two questions.
+## Status
+<!-- generated 2026-09-03T16:03Z · as of 0ec66e8 -->
+
+**Tickets:** 40 ready · 36 blocked · 6 awaiting author — `erg ready tickets/` for full list
+  next: 0025 Experiments X1-X7, each before its dependent, e… · 0026 Repo-side gates: fold, golden, RSS, convergence…
+**In flight:** no open PRs
+**Recent (first-parent):**
+  0ec66e8 wip: STATE refresh in progress
+  95e26ca Merge pull request #311 from MinhHaDuong/t0628-posture-witness-sweep
+  8344a85 Merge pull request #310 from MinhHaDuong/t0029-recover-simplify
