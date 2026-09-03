@@ -3998,6 +3998,55 @@ incompatible readings of what its cell needs. `SPEC.md` §5.2.7's sentence that
 checkpoint plus VACUUM plus compaction, which keeps a living index rather than
 removing one, so it was never a candidate for this role.
 
+**2026-09-03 — correction to the entry above: the harness transcribes paths, and
+executes nothing.** The author, on reading it: *"I am not comfortable taking the
+risk with 'follow the rm given in that file from the internet'. At least the arena
+should be a new user, not my home; even better isolation should be considered."*
+He is right and the entry above was wrong in its second condition.
+
+**Why the containment condition was not enough.** It said every path a step
+touches must resolve inside the arena. That is a code check standing between an
+externally-authored command line and the operator's home directory, and its
+failure modes are ordinary: a symlink inside the arena pointing out, `$HOME`
+expanded late, a relative path after a `cd`, a glob. Any one of them and the
+harness runs `rm -rf` as the operator, on a string from a repository we do not
+control. A guard whose failure mode is the operator's home directory is not a
+guard; it is a wager.
+
+**The replacement removes the risk instead of fencing it, and loses nothing.**
+R15 grades *derived state*, so the only thing the harness ever needs from a
+published procedure is **the list of locations it tells the user to delete**. The
+adapter transcribes those **paths, not commands**. The harness removes exactly
+those paths itself, with no shell, no glob expansion, and no externally-authored
+string evaluated anywhere. A documented step that is not a path — `npm uninstall
+-g …`, removing a desktop extension through its host — is outside R15's subject
+and is recorded rather than performed: an installed package is not target-created
+derived state.
+
+This deliberately re-enters the prohibition on the harness deleting files itself,
+and that is the point rather than an oversight: what makes it legitimate is not
+*who* deletes but *what the deletion is derived from*. The paths come from the
+target's own published documentation, the transcription is checked against that
+text, and the residue sweep grades completeness. A doc that names the wrong
+directory is transcribed wrong and the sweep still reds — which is the failure
+being hunted, and exactly what the pre-#27 model cache would have produced.
+
+**Isolation, which the author raised and which stands on its own.** The episode —
+install, real work, removal, sweep — runs inside `sandbox.py`'s pluggable
+namespace with only the declared roots bound read-write, so a harness bug reaches
+only what was bound. The mechanism is already in the tree for R10's egress arm and
+stays probed at runtime rather than pinned: bwrap is unusable rootless on the
+second machine, where podman-unshare is the fallback. Where a dedicated account is
+available it should own the arena. Today the arena sits under the operator's home
+with only `HOME` redirected — that is the weakest point in the current setup, and
+it is a precondition of this clause shipping, alongside the `TMPDIR` and `XDG_*`
+redirection the entry above already requires.
+
+Everything else in the entry above stands: the transcription cites its source and
+is checked against it, a target documenting nothing still reports `not-offered`,
+the sweep runs over the arena rather than the declaration, and the clause ships
+only once demonstrated red.
+
 ## Awaiting ratification
 
 - **Whether FAOLEX, and the Ministry of Justice's national legal database
