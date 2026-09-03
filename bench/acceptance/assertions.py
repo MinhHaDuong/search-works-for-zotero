@@ -1,8 +1,17 @@
 """The assertion layer. One clause per assertion, phrased over the seven verbs.
 
-`SPEC.md` §3 owns R10 and R15; `SPEC.md` §5.2.8 owns this harness;
-`DECISIONS.md`'s ratified entry of 2026-09-02 owns the ruling. None is restated
-here — this module cites addresses and asserts clauses.
+`SPEC.md` §3 owns R10, R15, R22 and R31 — goal 1's whole rung, per README.md's
+goals ladder; `SPEC.md` §5.2.8 owns this harness; `DECISIONS.md`'s ratified entry
+of 2026-09-02 owns the ruling. None is restated here — this module cites
+addresses and asserts clauses.
+
+**The ladder's method is tests first, bottom-up**: until a rung's assertions
+exist, its rows can only be `code` or `inferred`, a claim about nobody. R22's two
+clauses were the last members of the lowest rung with no assertion at all, and
+they read the work counters `durability.py` already defines rather than a second
+set of their own. R31 is the rung's one clause this layer cannot decide, and the
+section below says why rather than leaving its absence to be read as an
+oversight.
 
 **What this file may not contain**, and the reason it is checked rather than
 promised: no target's name, no tool name, no path literal, no data-directory
@@ -40,10 +49,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .interface import (
+    DRIVE_INCOMPLETE,
     FAIL,
     PASS,
     Check,
     Target,
+    UnsupportedVerb,
     not_offered,
     not_run,
 )
@@ -236,6 +247,32 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
     )
     counts = subject.counts()
     clean = counts["off_machine"] == 0 and counts["dns"] == 0
+    if subject.returncode == DRIVE_INCOMPLETE and clean:
+        # The driven run reported that a verb raised inside it AND the tracer saw
+        # nothing. Zero attempts then means "this path never executed", not "this
+        # path stayed home", and the two are the same number. Reported as not
+        # decided rather than as a red: the target has not failed a clause about
+        # egress by having a broken verb, and it has not passed one either.
+        #
+        # The `clean` conjunct is not belt and braces. Under a no-route namespace
+        # the verb that reaches off this machine is usually the very verb that
+        # then raises, so testing the return code alone would downgrade the exact
+        # target this clause exists to catch — an attempt the tracer recorded is
+        # a finding whatever else went wrong afterwards, and it stands.
+        undecided = not_run(
+            cid, req, clause, falsified, target, "query",
+            "a verb raised inside the driven run, so part of the default-configuration "
+            "path never executed and the attempt counts are read off an incomplete "
+            "sweep; this clause is not decided",
+        )
+        # The measurement rides along with the reason. `run_fixtures` reads
+        # `detail["subject"]` for this check, and a not-run carrying only prose
+        # publishes `attempt_counts: null` — which makes a zero that was measured
+        # on an incomplete run indistinguishable from one nobody looked for.
+        undecided.detail = {**undecided.detail, "subject": subject.as_json(),
+                            "control": control, "verbs_driven": driven,
+                            "verbs_not_offered": skipped}
+        return undecided
     return Check(
         check=cid, requirement=req, clause=clause, falsified_by=falsified,
         result=PASS if clean and subject.returncode == 0 else FAIL,
@@ -480,7 +517,23 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
     with target.running():
         target.install()
         target.configure()
-        answered = target.query("a query that exercises the retrieval surface", MEANING, 5)
+        try:
+            answered = target.query(
+                "a query that exercises the retrieval surface", MEANING, 5)
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            # A target whose retrieval surface raises has exercised no weights, so
+            # this clause is undecided — and saying so is not tidiness. Before this
+            # was guarded, one such target ended the whole run mid-fixture with a
+            # traceback: every assertion after it went unrecorded, and the artifact
+            # the gate reads was never written. An assertion that cannot look must
+            # report that it could not look, not take the driver down with it.
+            return not_run(
+                cid, req, clause, falsified, target, "query",
+                f"the target's retrieval surface raised ({type(why).__name__}: {why}), "
+                "so no weights were exercised and nothing here decides where they land",
+            )
         # Read inside the lifecycle: `status` is a verb, and a verb reaches the
         # target through its process. Read after the block and a target with a
         # real lifecycle raises instead of answering.
@@ -515,6 +568,414 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
             "arena": str(arena),
         },
     )
+
+
+# --------------------------------------------------------------------------
+# R22 — one obvious way to stop all background work, holding across restarts.
+# --------------------------------------------------------------------------
+#
+# Two clauses, so two assertions, per the layer's unit rule. The requirement's
+# own wording joins them with an "and it MUST", and they fail differently: a
+# target that never stops is a missing control, a target that stops until it is
+# next started is a control that does not hold. One verdict covering both would
+# report the same red for either.
+#
+# **Both grade the `done` half of the counters and nothing else.** A stopped
+# target may still notice a change and record that there is work to do later;
+# recording it is not doing it, and a clause that reddened on a queue would be
+# asking for amnesia rather than for a pause. Every delta lands in the detail so
+# a reader can see what was not graded.
+#
+# **Neither calls `resume`.** The restart clause is about what a target does
+# with no one asking it to carry on, so asking would erase the finding.
+
+
+def _pause_could_not_look(cid: str, req: str, clause: str, falsified: str,
+                          target: Target, why: BaseException) -> Check:
+    """The control was reached for and the reach itself failed.
+
+    The driver's own `record()` would catch this too, and this is not redundant
+    with it. That guard is the last line — it says only "the assertion raised",
+    with no idea which surface or what the clause needed. This one names the
+    control, and the verdict a reader gets is about the pause rather than about
+    the harness. Neither is safe to delete for the other: without this one the
+    diagnosis is lost, and without `record()` the loss is the whole run.
+    """
+    return not_run(
+        cid, req, clause, falsified, target, "pause",
+        f"the target's pause surface raised ({type(why).__name__}: {why}), so the "
+        "control was never used and nothing here decides whether it stops the work",
+    )
+
+
+def _pause_verdict(cid: str, req: str, clause: str, falsified: str, target: Target,
+                   before: dict[str, int], after: dict[str, int], detail: dict) -> Check:
+    """The arithmetic both pause clauses share: did any `done` counter advance.
+
+    Written once because the two clauses differ in what happens between the two
+    reads — a change made while stopped, or a restart and then the change — and
+    not at all in how the reads are graded.
+    """
+    moved = durability.delta(before, after)
+    worked = {k: v for k, v in moved.items()
+              if durability.outcome_of(k) == durability.DONE and v > 0}
+    return Check(
+        check=cid, requirement=req, clause=clause, falsified_by=falsified,
+        result=PASS if not worked else FAIL,
+        target=target.declaration.name, verb="pause",
+        detail={
+            **detail,
+            "done_deltas_while_stopped": worked,
+            "all_deltas_while_stopped": moved,
+            "grades": (
+                "the `done` half of work.<stage>.<trigger>.<outcome> alone: a stopped "
+                "target may record that there is work to do later, and recording it is "
+                "not doing it"
+            ),
+        },
+    )
+
+
+def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
+                             target: Target,
+                             control: Target) -> tuple[dict | None, Check | None]:
+    """The positive control: the same change, on a second target that was never stopped.
+
+    Without a control at all, both clauses are a green that means "could not
+    look": their whole finding is that a counter did not move, and a counter that
+    would not have moved anyway produces that finding on a target whose control
+    does nothing.
+
+    **The control is a second target rather than a second phase**, and both
+    alternatives were tried and are worse. Making the change on the graded target
+    *before* pausing it consumes it: where editing the same item twice is a no-op
+    the second time, the graded phase then finds no work for reasons that have
+    nothing to do with the pause, and that lands as a pass. Making it *after*,
+    by letting the target go again, needs `resume` — and a target may offer the
+    control while having nothing that maps onto resuming, by a documented ruling
+    rather than an oversight, which would leave both clauses permanently
+    undecided for it. A second instance in an arena of its own is neither: it is
+    never paused, so nothing is consumed and nothing is asked of a verb the
+    target may not have.
+
+    Independence is the point, so the two must not share a root — the opposite of
+    R13's clauses, which are about two processes on ONE data directory and refuse
+    to run when the roots differ. Here a shared root would let the control's own
+    work land in the graded target's counters.
+
+    Returns `(control, None)` when work was created, and `(None, check)` carrying
+    the `not-run` when it was not.
+    """
+    def paths(who: Target) -> set:
+        # Both halves, because the change and the work land in different places.
+        # The declared derived-state roots are where the work is recorded; what
+        # the adapter argued is NOT derived state is where the change is made —
+        # a target's source library is declared there, and two instances given
+        # the same adapter options resolve the same one. A guard reading only the
+        # first would pass a control that edits the very library the graded
+        # target is about to edit, consuming the change and turning the clause
+        # into the false pass it exists to prevent.
+        declared = who.declaration
+        return set(declared.derived_state_roots) | {p for p, _why in declared.not_derived_state}
+
+    def overlaps(a: set, b: set) -> bool:
+        # Containment, not equality: a control whose root sits INSIDE the graded
+        # target's is not independent of it, and exact comparison calls it so.
+        for one in a:
+            for other in b:
+                if one == other or _under(one, (other,)) or _under(other, (one,)):
+                    return True
+        return False
+
+    if overlaps(paths(target), paths(control)) or not (paths(target) and paths(control)):
+        return None, not_run(
+            cid, req, clause, falsified, target, "status",
+            "the positive control and the graded target do not demonstrably resolve "
+            "separate state: a declared path of one lies at or inside a declared path "
+            "of the other, or one of them declares none at all and independence cannot "
+            "be established from the declarations. The control's own work would land in "
+            "the counters this clause reads, or its change would consume the graded "
+            "target's, so this run is not decided. A target whose control cannot be "
+            "given a library of its own reaches this state for a real reason and not a "
+            "harness defect: ticket 0033 carries what it would take.",
+        )
+    def control_failed(why: str) -> Check:
+        """Everything below is the CONTROL's failure, said as the control's.
+
+        The verdict is still about the graded target — that is whose clause this
+        is — but the reason must name which instance could not be read. Handing
+        these to the shared not-run helpers instead publishes "this target
+        reports no counters" about a target that reports them perfectly.
+        """
+        return not_run(cid, req, clause, falsified, target, "status",
+                       f"the positive control — a second, never-stopped instance of "
+                       f"this target — {why}, so the harness could not show that the "
+                       "change it makes creates work at all, and this clause is not "
+                       "decided")
+
+    with control.running():
+        if durability.work_counters(control) is None:
+            return None, control_failed(
+                "reports no work.<stage>.<trigger>.<outcome> counters "
+                "(SPEC.md §5.2.8, Counters (C4))")
+        if control.declaration.offers("install"):
+            try:
+                control.install()
+            except UnsupportedVerb:
+                raise
+            except Exception as why:
+                return None, control_failed(
+                    f"raised at install ({type(why).__name__}: {why})")
+        before, settled = durability.settle(control)
+        if not settled:
+            return None, control_failed("had work counters still moving before the "
+                                        "change, so the harness ran out of patience")
+        event, why = durability.perturb(control, durability.EDIT_ONE_ITEM)
+        if why:
+            return None, control_failed(f"could not be perturbed ({why})")
+        after, settled = durability.settle(control)
+        if not settled:
+            return None, control_failed("had work counters still moving after the "
+                                        "change, so the harness ran out of patience")
+
+    created = {k: v for k, v in durability.delta(before, after).items()
+               if durability.outcome_of(k) == durability.DONE and v > 0}
+    if not created:
+        return None, not_run(
+            cid, req, clause, falsified, target, "status",
+            "the change the harness makes created no work on a second, never-stopped "
+            "instance of this target, so a stopped one creating none proves nothing "
+            "about the control. Reported as not decided rather than as a green: a "
+            "clause whose finding is that a counter did not move needs the counter to "
+            "have been able to move.",
+        )
+    return {"perturbation": durability.EDIT_ONE_ITEM, "event": event,
+            "done_deltas_on_a_never_stopped_instance": created}, None
+
+
+def _installed(cid: str, req: str, clause: str, falsified: str,
+               target: Target) -> Check | None:
+    """Install where it is offered, or the `not-run` saying why the clause cannot run.
+
+    Run for the reason `check_model_cache_under_declared_roots` runs it: a target
+    whose work only exists after installation would otherwise be graded on a
+    state the harness withheld from it.
+    """
+    if not target.declaration.offers("install"):
+        return None
+    try:
+        target.install()
+    except UnsupportedVerb:
+        raise
+    except Exception as why:
+        return not_run(
+            cid, req, clause, falsified, target, "install",
+            f"the target's install surface raised ({type(why).__name__}: {why}), so no "
+            "state exists for a change to create work against",
+        )
+    return None
+
+
+def check_pause_stops_background_work(target: Target, *, control: Target) -> Check:
+    """R22: after the control is used, a change that would create work creates none.
+
+    The falsifier is a control that answers and does nothing, and that is the
+    reason this is phrased over counters rather than over the verb's reply. A
+    target returning `paused` from its pause surface satisfies any check that
+    reads the reply, whatever its workers then go on to do; §5.2.8's counters are
+    the only thing here that distinguishes the two.
+
+    The positive control runs first, on a second never-stopped instance, because
+    the counters have to be shown capable of moving before their not moving means
+    anything — see `_the_change_creates_work`.
+
+    A target with no such surface reports `not-offered`, and that is a different
+    finding rather than a softer one: R22's own status on the sheet is *verified
+    absent*, so the state this assertion reaches against stock upstream is the
+    third one, and it must not be scored as a failure at a control the target
+    never claimed to have.
+    """
+    cid, req = "R22-pause-stops-background-work", "R22"
+    clause = ("there is one obvious way to stop all background work, and after it is "
+              "used a change that would create work creates none")
+    falsified = ("any work.*.*.done counter advancing against a change made while the "
+                 "target is stopped")
+
+    for verb in ("pause", "status"):
+        if not target.declaration.offers(verb):
+            return not_offered(cid, req, clause, falsified, target, verb)
+
+    control, undecided = _the_change_creates_work(
+        cid, req, clause, falsified, target, control)
+    if undecided:
+        return undecided
+
+    with target.running():
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
+        undecided = _installed(cid, req, clause, falsified, target)
+        if undecided:
+            return undecided
+        _, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "before the pause")
+        try:
+            paused = target.pause()
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            return _pause_could_not_look(cid, req, clause, falsified, target, why)
+        before, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the pause")
+        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        if why:
+            # `status`, as `durability.py` records it for the same failure: the
+            # harness could not make the change happen, and `pause` was called
+            # and answered. Blaming the verb that worked is a wrong fact in the
+            # artifact for a target whose adapter simply cannot be perturbed.
+            return not_run(cid, req, clause, falsified, target, "status", why)
+        after, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the change made while stopped")
+
+    return _pause_verdict(cid, req, clause, falsified, target, before, after, {
+        "pause_event": paused,
+        "positive_control": control,
+        "change_made_while_stopped": change,
+        "restarted": False,
+    })
+
+
+def check_pause_holds_across_restart(target: Target, *, control: Target) -> Check:
+    """R22: the control survives the process it was used in.
+
+    The restart is the whole clause. A pause held in a running process stops the
+    work for exactly as long as nothing goes wrong, which is the opposite of what
+    someone reaches for the control to obtain — the machine is closed, the plugin
+    host is restarted, and the work everyone thought was stopped resumes
+    unattended. Here the target's process is stopped and started again through
+    the adapter's own lifecycle, the same one every other assertion uses, and the
+    change is made after the restart.
+
+    `resume` is never called, which is why the clause can be read at all: a
+    harness that asked the target to carry on would be measuring its own request.
+
+    The positive control runs here too, and the restart makes it matter more
+    rather than less: a target that stops doing work simply because it was
+    restarted would otherwise be indistinguishable from one whose control held.
+    """
+    cid, req = "R22-pause-holds-across-restart", "R22"
+    clause = ("the control that stops all background work holds across a restart, with "
+              "no one asking for it again")
+    falsified = ("any work.*.*.done counter advancing against a change made after the "
+                 "process is restarted, with no resume in between")
+
+    for verb in ("pause", "status"):
+        if not target.declaration.offers(verb):
+            return not_offered(cid, req, clause, falsified, target, verb)
+
+    control, undecided = _the_change_creates_work(
+        cid, req, clause, falsified, target, control)
+    if undecided:
+        return undecided
+
+    with target.running():
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
+        undecided = _installed(cid, req, clause, falsified, target)
+        if undecided:
+            return undecided
+        _, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "before the pause")
+        try:
+            paused = target.pause()
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            return _pause_could_not_look(cid, req, clause, falsified, target, why)
+        _, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the pause")
+
+    # The restart the clause is about: the lifecycle closed above, and opens again
+    # here. Nothing asks the target to carry on in between.
+    with target.running():
+        # The baseline is read AFTER the restart has settled, not before it. Read
+        # across the restart, any work a target does on start — a scan, a
+        # reconciliation — lands inside the window and is graded as the pause
+        # having failed, on a target whose pause held perfectly. The clause is
+        # about a CHANGE made after the restart, and this is where that window
+        # opens.
+        #
+        # Whether the target still reports counters is asked again rather than
+        # inherited from before the restart: one that stops reporting them would
+        # otherwise be published as "the counters were still moving", which is a
+        # statement about counters that are not there.
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
+        before, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the restart")
+        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        if why:
+            # `status`, as `durability.py` records it for the same failure: the
+            # harness could not make the change happen, and `pause` was called
+            # and answered. Blaming the verb that worked is a wrong fact in the
+            # artifact for a target whose adapter simply cannot be perturbed.
+            return not_run(cid, req, clause, falsified, target, "status", why)
+        after, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the change made while stopped")
+
+    return _pause_verdict(cid, req, clause, falsified, target, before, after, {
+        "pause_event": paused,
+        "positive_control": control,
+        "change_made_while_stopped": change,
+        "restarted": True,
+        "resume_never_called": True,
+    })
+
+
+# --------------------------------------------------------------------------
+# R31 — why this layer does not assert it, and what would let it.
+# --------------------------------------------------------------------------
+#
+# R31 asks that a configuration offered to me prove it works on my machine
+# BEFORE it is used, or fail loudly there. The load-bearing word is "before":
+# the clause is about when validation happens, not about whether the target
+# ends up working.
+#
+# An assertion was written for it and withdrawn under review, and the reason is
+# worth keeping because it is not a bug that a rewrite fixes. Everything the
+# layer can observe through the seven verbs after `configure` returns — the
+# embedder's reported locality, whether it is active, whether a query answers —
+# is a fact about the target's CURRENT state, and `check_local_by_default`
+# already grades that state, over a strictly wider condition. So the assertion
+# reddened exactly where R10 already reddened and nowhere else: it had no
+# discriminating power, and a check that cannot fail where its own requirement
+# fails is a green about nobody wearing a requirement's number.
+#
+# Reading exceptions does not rescue it either, and that was the first attempt:
+# a `configure` that raises was graded green ("it failed loudly") and a `query`
+# that raises red ("it could not answer"), when the layer cannot tell either one
+# from a transport that died.
+#
+# What would make the clause decidable is a way to offer a configuration KNOWN to
+# be unusable here and watch when the target notices. `configure` takes no
+# argument (`interface.py`, VERBS; SPEC.md §5.2.8), so the harness cannot offer
+# one, and inventing the configuration itself would mean naming a target's own
+# settings surface in this layer — which the ratified contract puts in the
+# adapter. Extending the contract is the author's, not this layer's: ticket 0488
+# carries it.
 
 
 # --------------------------------------------------------------------------
@@ -556,5 +1017,7 @@ ALL = {
     "R15-residue-inventory": check_residue_inventory,
     "R15-model-cache-under-declared-roots": check_model_cache_under_declared_roots,
     "R15-uninstall-removes-declared-state": check_uninstall_removes_declared_state,
+    "R22-pause-stops-background-work": check_pause_stops_background_work,
+    "R22-pause-holds-across-restart": check_pause_holds_across_restart,
     **durability.ALL,
 }

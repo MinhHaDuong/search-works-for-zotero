@@ -56,6 +56,21 @@ visible only in the counters, which is why R13 is two clauses and not one.
 fixtures mean anything. Two adapter instances over one arena are two processes
 on one data directory; counters held in memory would be two independent ledgers
 and the duplicate-work fixture could not express its defect at all.
+
+**Goal 1's remaining two, added with the pause assertions.**
+
+`ignores-pause` offers the control, answers success from it, and keeps working.
+The finding it models is not a missing switch — a missing switch is
+`not-offered`, which `verbless` already covers, and it is a different finding
+rather than a milder one. `forgets-pause-on-restart` is the same control done
+almost right: the work does stop, and the stopping is kept where a restart loses
+it, which is the state R22's clause names restarts to exclude.
+
+**The pause marker is a file for the same reason the ledger is.** A pause held in
+an adapter attribute survives a `running()` block by accident of the process, so
+the restart clause could not be failed by any fixture and could not be passed by
+any target — the assertion would be reading the harness. `forgets-pause-on-restart`
+is exactly the fixture that would then be impossible to write.
 """
 
 import json
@@ -94,6 +109,8 @@ NAMES = (
     "stub-corrupts-on-company",
     "stub-duplicates-work-on-company",
     "stub-abandons-foreign-stamp",
+    "stub-ignores-pause",
+    "stub-forgets-pause-on-restart",
 )
 
 #: The fixture library: four items of three sections each. These are the
@@ -140,7 +157,21 @@ class _Stub:
             return {}
 
     def _bump(self, **counters: int) -> dict[str, int]:
-        """Move counters and persist them, the way a ledger transition would."""
+        """Move counters and persist them, the way a ledger transition would.
+
+        **A stopped fixture moves nothing**, and the gate lives here rather than
+        in the perturbation for a reason found by review rather than by design.
+        It was first written into `_edit_one_item`, which three fixtures override
+        — so `recomputes-whole-library-on-edit` kept working while stopped and
+        went red on both R22 clauses, a fail-control built for R3 failing two
+        clauses it is not about, and `duplicates-work-on-company` did the same
+        through its non-idempotent first build. A pause honoured in one method
+        that subclasses replace is a pause every future fixture can forget.
+        Doing the work is bumping a counter, so this is the one place it can be
+        stopped once for all of them.
+        """
+        if self._is_paused():
+            return self._counters()
         current = self._counters()
         for name, by in counters.items():
             current[name.replace("__", ".")] = current.get(name.replace("__", "."), 0) + by
@@ -202,9 +233,15 @@ class _Stub:
                 "index": restored.name, "file_deleted_by_hand": False}
 
     def _edit_one_item(self) -> dict:
-        """One title changes: its record recomputes, and its sections re-embed."""
+        """One title changes: its record recomputes, and its sections re-embed.
+
+        The change is noticed whether or not this fixture has been stopped; what
+        a stopped fixture does not do is the work, and `_bump` is where that is
+        enforced for every subclass at once.
+        """
         self._bump(work__record__edit__done=1, work__embed__edit__done=SECTIONS)
-        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
+        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS,
+                "work_done": not self._is_paused()}
 
     def _resync_identical_bytes(self) -> dict:
         """Signals move, keys are verified, nothing is recomputed."""
@@ -279,12 +316,32 @@ class _Stub:
             "work": self._counters(),
         }
 
+    # -- the durable pause -----------------------------------------------------
+
+    def _pause_marker(self) -> Path:
+        """Where this fixture keeps the fact that it was stopped.
+
+        On disk and under the data directory, so it is derived state like
+        everything else here: uninstall removes it with the rest, and a restart
+        finds it. An attribute would survive a `running()` block for reasons that
+        have nothing to do with the target, which is the one thing R22's restart
+        clause must not be allowed to read.
+        """
+        return self._data_dir() / "paused"
+
+    def _is_paused(self) -> bool:
+        return self._pause_marker().is_file()
+
     def pause(self) -> dict:
         self._require("pause")
+        self._write(self._pause_marker(), "background work is stopped\n")
         return {"paused": True}
 
     def resume(self) -> dict:
         self._require("resume")
+        marker = self._pause_marker()
+        if marker.is_file():
+            marker.unlink()
         return {"resumed": True}
 
 
@@ -486,6 +543,35 @@ class _AbandonsForeignStampStub(_Stub):
         return super()._hits(limit)
 
 
+class _IgnoresPauseStub(_Stub):
+    """R22's first red: the control is offered, it answers, and the work goes on.
+
+    It writes the marker like any other fixture and then declines to read it, so
+    the defect is exactly the one an outcome-blind check cannot see: `pause`
+    returns `{"paused": True}`, the reply is honest about having been called, and
+    nothing stopped. A check reading the verb's reply grades this green.
+    """
+
+    def _is_paused(self) -> bool:
+        return False
+
+
+class _ForgetsPauseOnRestartStub(_Stub):
+    """R22's second red: the control holds while the process lives, and no longer.
+
+    The pause is real — a change made in the same process creates no work — and
+    the fact of it is dropped the next time the process starts. That is the
+    common shape of the defect rather than an invented one: a switch kept in a
+    running engine's state costs nothing to implement and looks correct in every
+    test that does not restart anything.
+    """
+
+    def _on_start(self) -> None:
+        marker = self._pause_marker()
+        if marker.is_file():
+            marker.unlink()
+
+
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
                  unsupported: dict[str, str] | None = None) -> Declaration:
     return Declaration(
@@ -551,6 +637,13 @@ def build(name: str, arena: Path, **_opts):
         return _AbandonsForeignStampStub(
             name, arena, _declaration(name, arena, roots=(data,)))
 
+    if name == "stub-ignores-pause":
+        return _IgnoresPauseStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-forgets-pause-on-restart":
+        return _ForgetsPauseOnRestartStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
+
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(
             name, arena, roots=(data,),
@@ -560,6 +653,14 @@ def build(name: str, arena: Path, **_opts):
                              "target that happens to lack a surface today",
                 "query": "declared absent on purpose, as above",
                 "resume": "declared absent on purpose, as above",
+                # Goal 1's two later clauses need the third state as much as the
+                # earlier ones do, and for the sharper reason: R22 is *verified
+                # absent* upstream, so not-offered is the state the layer will
+                # actually report against a real target, and a state no fixture
+                # produces is a state nobody has checked survives the artifact.
+                "pause": "declared absent on purpose, as above; a target with no such "
+                         "control is a different finding from one whose control does "
+                         "nothing, and both must be reachable",
             },
         ))
 

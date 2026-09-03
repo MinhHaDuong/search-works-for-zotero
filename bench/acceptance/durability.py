@@ -212,7 +212,12 @@ def perturb(target: Target, what: str) -> tuple[dict | None, str | None]:
         )
 
 
-def _no_counters(cid: str, req: str, clause: str, falsified: str, target: Target) -> Check:
+#: The two not-run sentences every counter-reading clause needs, and they are
+#: public because goal 1's pause clauses read the same counters from
+#: `assertions.py`. Written once rather than twice: an "I could not look" that is
+#: worded differently in two modules is read as two different findings, and the
+#: wording is the whole content of the state.
+def no_counters(cid: str, req: str, clause: str, falsified: str, target: Target) -> Check:
     return not_run(
         cid, req, clause, falsified, target, "status",
         "this target reports no work.<stage>.<trigger>.<outcome> counters "
@@ -221,8 +226,8 @@ def _no_counters(cid: str, req: str, clause: str, falsified: str, target: Target
     )
 
 
-def _unsettled(cid: str, req: str, clause: str, falsified: str, target: Target,
-               when: str) -> Check:
+def unsettled(cid: str, req: str, clause: str, falsified: str, target: Target,
+              when: str) -> Check:
     return not_run(
         cid, req, clause, falsified, target, "status",
         f"the work counters were still moving {when} when the harness ran out of "
@@ -263,16 +268,16 @@ def check_edit_recomputes_only_what_changed(target: Target) -> Check:
 
     with target.running():
         if work_counters(target) is None:
-            return _no_counters(cid, req, clause, falsified, target)
+            return no_counters(cid, req, clause, falsified, target)
         before, settled = settle(target)
         if not settled:
-            return _unsettled(cid, req, clause, falsified, target, "before the edit")
+            return unsettled(cid, req, clause, falsified, target, "before the edit")
         event, why = perturb(target, EDIT_ONE_ITEM)
         if why:
             return not_run(cid, req, clause, falsified, target, "status", why)
         after, settled = settle(target)
         if not settled:
-            return _unsettled(cid, req, clause, falsified, target, "after the edit")
+            return unsettled(cid, req, clause, falsified, target, "after the edit")
 
     sections = event.get("sections")
     if not isinstance(sections, int):
@@ -331,16 +336,16 @@ def check_identical_resync_recomputes_nothing(target: Target) -> Check:
 
     with target.running():
         if work_counters(target) is None:
-            return _no_counters(cid, req, clause, falsified, target)
+            return no_counters(cid, req, clause, falsified, target)
         before, settled = settle(target)
         if not settled:
-            return _unsettled(cid, req, clause, falsified, target, "before the resync")
+            return unsettled(cid, req, clause, falsified, target, "before the resync")
         event, why = perturb(target, RESYNC_IDENTICAL_BYTES)
         if why:
             return not_run(cid, req, clause, falsified, target, "status", why)
         after, settled = settle(target)
         if not settled:
-            return _unsettled(cid, req, clause, falsified, target, "after the resync")
+            return unsettled(cid, req, clause, falsified, target, "after the resync")
 
     moved = delta(before, after)
     recomputed = {k: v for k, v in moved.items() if outcome_of(k) == DONE and v}
@@ -508,17 +513,17 @@ def check_two_processes_do_not_duplicate_work(target: Target, *, second: Target)
 
     with target.running():
         if work_counters(target) is None:
-            return _no_counters(cid, req, clause, falsified, target)
+            return no_counters(cid, req, clause, falsified, target)
         before, settled = settle(target)
         if not settled:
-            return _unsettled(cid, req, clause, falsified, target,
+            return unsettled(cid, req, clause, falsified, target,
                               "before the second process joined")
         with second.running():
             joined, second_settled = settle(second)
         after = work_counters(target)
 
     if not second_settled:
-        return _unsettled(cid, req, clause, falsified, target,
+        return unsettled(cid, req, clause, falsified, target,
                           "in the second process")
     moved = delta(before, after)
     recomputed = {k: v for k, v in moved.items() if outcome_of(k) == DONE and v}
