@@ -5229,3 +5229,44 @@ collector. Ticket 0494 therefore closes without an endpoint after its 0493
 dependency clears. R31's optional `MAY` remains unchanged: later work may revive
 aggregation after its operator, consumer and privacy design are explicitly
 authorised.
+
+**2026-09-03 — the GPU host does not rescue the service ceiling, and the shipped
+runtime never touches a GPU. Supersedes the "not run" paragraph of the
+2026-09-02 service-ceiling entry; it changes no ruling and asks for none.** The
+author stopped padme's resident judge driver, so ticket 0577's
+second-configuration arm finally had a device. SPEC.md §5.2.8 admits a GPU host
+only as a configuration reported beside the reference machine, so nothing below
+displaces the four cells: the binding arm is still doudou.
+
+**The shipped runtime does not use a GPU**, measured rather than read off the
+source. In one run on a host with two working cards and a loadable CUDA
+provider, the shipped call — `pipeline()` with no device key, as
+`embeddings.ts` makes it — holds **301,0 MB** of host RSS and no device memory
+at all, while the cell differing from it only by `device: 'cuda'` holds
+**547,7 MB** and **318 MB** of VRAM. Both arms of the detector fired in the same
+session, which is what makes the null a measurement. Reaching the device also
+took more than an option: onnxruntime-node ships the CUDA provider library but
+not its cuDNN, so the arm needed cuDNN 9 on `LD_LIBRARY_PATH`.
+
+**A GPU host raises the host ceiling rather than relieving it.** Cell 4 is
+**1 336,7 MB** there against 1 002,5 MB on the reference machine, plus **842 MB**
+of VRAM — 78 % over C3's ~750 MB where the reference machine is 34 % over. The CUDA
+context alone costs about 247 MB of host memory before any batch — 547,7 MB at
+rest against **300,5 MB** for the same model on that machine's CPU. And the rung C3
+recommends gains nothing from the device: `multilingual-e5-base` at q8 derives
+the same batch of **8** under CUDA (**880,5 ms**) as on that machine's CPU
+(**824,8 ms**), while the incumbent at fp32 takes **1 178,1 ms** for a batch of
+**64** on that CPU and **247,1 ms** under CUDA. So "run the service on a GPU host"
+is not among the remedies the pending ruling is choosing between.
+
+One observation the ruling may want, put as an observation and not a proposal:
+**a ceiling in bytes is not portable while the batch size is derived from a time
+quantum.** The at-rest cells agree across the two machines to within 1 %, so
+residency is a property of the models; what moves is the derived batch — 16
+passages on the reference machine, **64** on the GPU host's CPU, **128** under
+CUDA — and cell 2 moves with it, 464,7 / **1 073,6** / **950,9** MB. A faster device earns a
+larger batch out of the ratified ~1 s quantum and holds more memory for it, so
+the reference machine's figure is the fleet's floor rather than its bound; the
+worst case measured anywhere is **1 860,1 MB**. Artifacts:
+`bench/results/0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json` and
+`…-gpu-host-cpu.json`.

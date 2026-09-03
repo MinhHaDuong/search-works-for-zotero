@@ -496,6 +496,143 @@ FIGURES = [
      {"t0577": "for the incumbent ({} ms)"}),
     ("0577-service-ceiling/service-ceiling-rss.json", "batch_size_derivation.b.wall_ms", 1,
      {"t0577": "at q8 ({} ms)"}),
+    # ---- 0577's second configuration, measured 2026-09-03 on the GPU host once the
+    # author stopped the resident judge driver. Two artifacts, because the arm is only
+    # readable against a control: the CUDA run, and the SAME machine's CPU run, which is
+    # what separates the machine from the device. SPEC.md 5.2.8 binds the ceiling to the
+    # reference machine, so none of these figures is a ceiling -- they are the disclosed
+    # comparison reported beside it, and the prose says so in both homes.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1.peak_rss_mb", 1,
+     {"t0577": "| cuda-1 | incumbent | \u2014 | **{} MB**",
+      "decisions": "by `device: 'cuda'` holds **{} MB** and"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2.peak_rss_mb", 1,
+     {"t0577": "| cuda-2 | incumbent | batch of 128 | **{} MB**",
+      "decisions": "464,7 / **1 073,6** / **{}** MB"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.3.peak_rss_mb", 1,
+     {"t0577": "| cuda-3 | incumbent + candidate q8 | \u2014 | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4.peak_rss_mb", 1,
+     {"t0577": "| cuda-4 | incumbent + candidate q8 | batch of 8 on the candidate | **{} MB**",
+      "decisions": "Cell 4 is **{} MB** there against"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4b.peak_rss_mb", 1,
+     {"t0577": "| cuda-4b | incumbent + candidate q8 | a batch on each at once | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1b.peak_rss_mb", 1,
+     {"t0577": "| cuda-1b | candidate q8 alone | \u2014 | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2b.peak_rss_mb", 1,
+     {"t0577": "| cuda-2b | candidate q8 alone | batch of 8 | **{} MB**"}),
+    # Device memory, anchored on the host-RSS cell that precedes it in the row. The two
+    # are DIFFERENT quantities -- host RSS no longer covers weights that moved to the
+    # card -- so the prose never adds them and never compares them across devices.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1.vram_peak_mb", 0,
+     {"t0577": "| cuda-1 | incumbent | \u2014 | **547,7 MB** | **{} MB**",
+      "decisions": "**547,7 MB** and **{} MB** of VRAM"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2.vram_peak_mb", 0,
+     {"t0577": "| cuda-2 | incumbent | batch of 128 | **950,9 MB** | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.3.vram_peak_mb", 0,
+     {"t0577": "| cuda-3 | incumbent + candidate q8 | \u2014 | **1 031,4 MB** | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4.vram_peak_mb", 0,
+     {"t0577": "batch of 8 on the candidate | **1 336,7 MB** | **{} MB**",
+      "decisions": "reference machine, plus **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4b.vram_peak_mb", 0,
+     {"t0577": "a batch on each at once | **1 472,2 MB** | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1b.vram_peak_mb", 0,
+     {"t0577": "| cuda-1b | candidate q8 alone | \u2014 | **1 025,7 MB** | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2b.vram_peak_mb", 0,
+     {"t0577": "| cuda-2b | candidate q8 alone | batch of 8 | **1 315,3 MB** | **{} MB**"}),
+    # The two device controls. They are the whole warrant for "the shipped runtime does
+    # not use a GPU": `vram_peak_mb: null` is what this instrument reports both when a
+    # process held no device memory and when nvidia-smi could not be read, so the claim
+    # rests on the SAME detector answering both ways in one run. Presence-only would not
+    # do here -- the value must sit in the sentence that makes the claim.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "device_controls.shipped_call_no_device_key.peak_rss_mb", 1,
+     {"t0577": "report **{} MB** of host RSS with no device memory",
+      "decisions": "holds **{} MB** of host RSS and no device memory"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "device_controls.explicit_cpu.peak_rss_mb", 1,
+     {"t0577": "and **{} MB**, again with none,"}),
+    # The zero-settle control arm on both devices. Without it the settled cells are a
+    # number with no account of how it was read, which is the mistake the first
+    # reference-machine run made and corrected.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "controls_no_settle.1.peak_rss_mb", 1,
+     {"t0577": "the controls read: cuda-1 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "controls_no_settle.2.peak_rss_mb", 1,
+     {"t0577": "cuda-2 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "controls_no_settle.3.peak_rss_mb", 1,
+     {"t0577": "cuda-3 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "controls_no_settle.4.peak_rss_mb", 1,
+     {"t0577": "cuda-4 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "controls_no_settle.1.peak_rss_mb", 1,
+     {"t0577": "CPU: cpu-1 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "controls_no_settle.2.peak_rss_mb", 1,
+     {"t0577": "cpu-2 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "controls_no_settle.3.peak_rss_mb", 1,
+     {"t0577": "cpu-3 **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "controls_no_settle.4.peak_rss_mb", 1,
+     {"t0577": "cpu-4 **{} MB**"}),
+    # The host control arm: the same machine on its CPU, running the shipped call.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.1.peak_rss_mb", 1,
+     {"t0577": "| cpu-1 | incumbent | \u2014 | **{} MB**",
+      "decisions": "rest against **{} MB** for the same model"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.2.peak_rss_mb", 1,
+     {"t0577": "| cpu-2 | incumbent | batch of 64 | **{} MB**",
+      "decisions": "with it, 464,7 / **{}** /"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.3.peak_rss_mb", 1,
+     {"t0577": "| cpu-3 | incumbent + candidate q8 | \u2014 | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.4.peak_rss_mb", 1,
+     {"t0577": "| cpu-4 | incumbent + candidate q8 | batch of 8 on the candidate | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.4b.peak_rss_mb", 1,
+     {"t0577": "| cpu-4b | incumbent + candidate q8 | a batch on each at once | **{} MB**",
+      "decisions": "measured anywhere is **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.1b.peak_rss_mb", 1,
+     {"t0577": "| cpu-1b | candidate q8 alone | \u2014 | **{} MB**"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.2b.peak_rss_mb", 1,
+     {"t0577": "| cpu-2b | candidate q8 alone | batch of 8 | **{} MB**"}),
+    # Per-cell spreads on both arms, presence-only: each sits in a table cell beside the
+    # median it qualifies, so an anchor for one would carry the other's value inside it.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.3.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.4b.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.1b.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "cells.2b.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.1.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.2.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.3.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.4.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.4b.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.1b.peak_rss_mb_spread", 1, {"t0577": None}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "cells.2b.peak_rss_mb_spread", 1, {"t0577": None}),
+    # The batch sizes, derived per DEVICE from the ratified ~1 s quantum. They are the
+    # load-bearing figures of the portability observation: the at-rest cells agree across
+    # machines and the live-batch cells do not, because the quantum buys a bigger batch on
+    # a faster device.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "batch_size_derivation.a.size", 0,
+     {"t0577": "**{}** and **8** passages under CUDA",
+      "decisions": "the GPU host's CPU, **{}** under"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "batch_size_derivation.b.size", 0,
+     {"t0577": "and **{}** passages under CUDA",
+      "decisions": "the same batch of **{}** under CUDA"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "batch_size_derivation.a.size", 0,
+     {"t0577": "**{}** and **8** on this machine's CPU",
+      "decisions": "for a batch of **{}** on that CPU"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "batch_size_derivation.b.size", 0,
+     {"t0577": "and **{}** on this machine's CPU"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "batch_size_derivation.a.wall_ms", 1,
+     {"t0577": "({} ms and 880,5 ms)"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "batch_size_derivation.b.wall_ms", 1,
+     {"t0577": "(594,7 ms and {} ms)",
+      "decisions": "under CUDA (**{} ms**) as on"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "batch_size_derivation.a.wall_ms", 1,
+     {"t0577": "batch of 64 takes {} ms on that CPU",
+      "decisions": "at fp32 takes **{} ms** for a batch"}),
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cpu.json", "batch_size_derivation.b.wall_ms", 1,
+     {"t0577": "(1 178,1 ms and {} ms)",
+      "decisions": "machine's CPU (**{} ms**), while"}),
+    # The one trail entry the prose quotes: the incumbent's batch of 64 timed on the
+    # device, which is what makes "the candidate gains nothing" a comparison rather than
+    # an assertion -- the same driver on the same host DOES accelerate the other model.
+    ("0577-service-ceiling/service-ceiling-rss-gpu-host-cuda.json", "batch_size_derivation.a.trail.6.wall_ms", 1,
+     {"t0577": "and {} ms under CUDA, near five",
+      "decisions": "that CPU and **{} ms** under CUDA"}),
     # The zero-settle control arm, which is what makes the settle legible instead of
     # invisible. Without it the cells are a number with no account of how it was read.
     ("0577-service-ceiling/service-ceiling-rss.json", "controls_no_settle.1.peak_rss_mb", 1,

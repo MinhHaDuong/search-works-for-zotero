@@ -1,0 +1,429 @@
+{
+  "ticket": "0577",
+  "warm": true,
+  "warm_basis": "weights pre-downloaded by a separate --warm pass, so no cell window holds a download; the model load is intrinsic to residency and is disclosed as the gap between peak_rss_mb and steady_rss_mb rather than hidden",
+  "what": "peak RSS of one embedding-service process, four cells, one process per cell",
+  "date": "2026-09-03T04:25:39Z",
+  "machine": {
+    "host": "padme",
+    "cpu": "AMD Ryzen Threadripper PRO 3945WX 12-Cores",
+    "cores": 24,
+    "mem_gb": 125.6,
+    "node": "v22.23.1",
+    "loadavg": [
+      2.8,
+      2.33,
+      1.5
+    ],
+    "arm": "second configuration (host control) -- padme, the GPU host, on its CPU with no device key: the shipped call, so the machine effect can be read apart from the device effect. NOT the reference machine.",
+    "device_requested": "(none — the shipped provider passes no device key)",
+    "gpu": [
+      "0, NVIDIA RTX A4000, 16376 MiB, 580.159.04",
+      "1, NVIDIA GeForce RTX 3060, 12288 MiB, 580.159.04"
+    ],
+    "onnxruntime_node": "1.24.3",
+    "transformers_js": "4.2.0",
+    "ld_library_path": null,
+    "cuda_visible_devices": null
+  },
+  "corpus": {
+    "path": "/home/haduong/data/t0577-gpu/corpus.json",
+    "sha256": "e77b4c6f669522157a3e8597266331e27ca76c40eae4ff6fc571c4759991abc9",
+    "n": 256,
+    "chars_min": 163,
+    "chars_median": 1197,
+    "chars_max": 1200,
+    "provenance": "drawn from the live library by this script's --make-corpus mode, striding the full-text sequence so it is not one document repeated"
+  },
+  "generations": {
+    "a": {
+      "repo": "Xenova/all-MiniLM-L6-v2",
+      "dtype": "(package default, as the shipped provider loads it)",
+      "device": "(no device key, as the shipped provider loads it)"
+    },
+    "b": {
+      "repo": "Xenova/multilingual-e5-base",
+      "dtype": "q8",
+      "device": "cpu (explicit, as the shipped provider does beside a dtype)"
+    }
+  },
+  "batch_size_derivation": {
+    "quantum_ms": 1000,
+    "a": {
+      "size": 64,
+      "wall_ms": 1178.1,
+      "trail": [
+        {
+          "size": 1,
+          "wall_ms": 30.7
+        },
+        {
+          "size": 2,
+          "wall_ms": 45.2
+        },
+        {
+          "size": 4,
+          "wall_ms": 74.2
+        },
+        {
+          "size": 8,
+          "wall_ms": 152.3
+        },
+        {
+          "size": 16,
+          "wall_ms": 280.6
+        },
+        {
+          "size": 32,
+          "wall_ms": 591.2
+        },
+        {
+          "size": 64,
+          "wall_ms": 1178.1
+        }
+      ]
+    },
+    "b": {
+      "size": 8,
+      "wall_ms": 824.8,
+      "trail": [
+        {
+          "size": 1,
+          "wall_ms": 107.6
+        },
+        {
+          "size": 2,
+          "wall_ms": 187.3
+        },
+        {
+          "size": 4,
+          "wall_ms": 362.1
+        },
+        {
+          "size": 8,
+          "wall_ms": 824.8
+        },
+        {
+          "size": 16,
+          "wall_ms": 1606.2
+        }
+      ]
+    }
+  },
+  "cells": {
+    "1": {
+      "cell": "1",
+      "reps": 5,
+      "peak_rss_mb": 300.5,
+      "peak_rss_mb_min": 299.8,
+      "peak_rss_mb_max": 301.1,
+      "peak_rss_mb_spread": 1.3,
+      "peak_rss_mb_reps": [
+        299.8,
+        300.5,
+        300.5,
+        301.1,
+        300.9
+      ],
+      "steady_rss_mb": 300.5,
+      "steady_rss_mb_reps": [
+        299.8,
+        300.5,
+        300.5,
+        301.1,
+        300.9
+      ],
+      "batch": null,
+      "model_a": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "dtype": "(package default)",
+        "load_ms": 219
+      },
+      "model_b": null,
+      "wall_s": 2.4
+    },
+    "2": {
+      "cell": "2",
+      "reps": 5,
+      "peak_rss_mb": 1073.6,
+      "peak_rss_mb_min": 1070.4,
+      "peak_rss_mb_max": 1074.1,
+      "peak_rss_mb_spread": 3.7,
+      "peak_rss_mb_reps": [
+        1074.1,
+        1070.6,
+        1074.1,
+        1073.6,
+        1070.4
+      ],
+      "steady_rss_mb": 1073.6,
+      "steady_rss_mb_reps": [
+        1074.1,
+        1070.6,
+        1074.1,
+        1073.6,
+        1070.4
+      ],
+      "batch": {
+        "size_a": 64,
+        "size_b": null,
+        "runs": [
+          {
+            "on": "a",
+            "size": 64,
+            "wall_ms": 1222.614889,
+            "dim": 384
+          }
+        ]
+      },
+      "model_a": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "dtype": "(package default)",
+        "load_ms": 223.8
+      },
+      "model_b": null,
+      "wall_s": 3.7
+    },
+    "3": {
+      "cell": "3",
+      "reps": 5,
+      "peak_rss_mb": 956.6,
+      "peak_rss_mb_min": 955.7,
+      "peak_rss_mb_max": 972.5,
+      "peak_rss_mb_spread": 16.8,
+      "peak_rss_mb_reps": [
+        957.1,
+        955.7,
+        956.5,
+        972.5,
+        956.6
+      ],
+      "steady_rss_mb": 956.6,
+      "steady_rss_mb_reps": [
+        957.1,
+        955.7,
+        956.5,
+        972.5,
+        956.6
+      ],
+      "batch": null,
+      "model_a": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "dtype": "(package default)",
+        "load_ms": 224
+      },
+      "model_b": {
+        "repo": "Xenova/multilingual-e5-base",
+        "dtype": "q8",
+        "load_ms": 1090.2
+      },
+      "wall_s": 3.5
+    },
+    "4": {
+      "cell": "4",
+      "reps": 5,
+      "peak_rss_mb": 1112.2,
+      "peak_rss_mb_min": 1102.9,
+      "peak_rss_mb_max": 1116.8,
+      "peak_rss_mb_spread": 13.9,
+      "peak_rss_mb_reps": [
+        1115.3,
+        1102.9,
+        1108.5,
+        1112.2,
+        1116.8
+      ],
+      "steady_rss_mb": 1112.2,
+      "steady_rss_mb_reps": [
+        1115.3,
+        1102.9,
+        1108.5,
+        1112.2,
+        1116.8
+      ],
+      "batch": {
+        "size_a": 64,
+        "size_b": 8,
+        "runs": [
+          {
+            "on": "b",
+            "size": 8,
+            "wall_ms": 888.489984,
+            "dim": 768
+          }
+        ]
+      },
+      "model_a": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "dtype": "(package default)",
+        "load_ms": 232.9
+      },
+      "model_b": {
+        "repo": "Xenova/multilingual-e5-base",
+        "dtype": "q8",
+        "load_ms": 1091.3
+      },
+      "wall_s": 4.4
+    },
+    "4b": {
+      "cell": "4b",
+      "reps": 5,
+      "peak_rss_mb": 1860.1,
+      "peak_rss_mb_min": 1857.5,
+      "peak_rss_mb_max": 1861.1,
+      "peak_rss_mb_spread": 3.6,
+      "peak_rss_mb_reps": [
+        1859.9,
+        1857.5,
+        1861.1,
+        1860.1,
+        1860.5
+      ],
+      "steady_rss_mb": 1860.1,
+      "steady_rss_mb_reps": [
+        1859.9,
+        1857.5,
+        1861.1,
+        1860.1,
+        1860.5
+      ],
+      "batch": {
+        "size_a": 64,
+        "size_b": 8,
+        "runs": [
+          {
+            "on": "a",
+            "size": 64,
+            "wall_ms": 1020.284313,
+            "dim": 384
+          },
+          {
+            "on": "b",
+            "size": 8,
+            "wall_ms": 1789.228125,
+            "dim": 768
+          }
+        ]
+      },
+      "model_a": {
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "dtype": "(package default)",
+        "load_ms": 231.2
+      },
+      "model_b": {
+        "repo": "Xenova/multilingual-e5-base",
+        "dtype": "q8",
+        "load_ms": 1069
+      },
+      "wall_s": 5.4
+    },
+    "1b": {
+      "cell": "1b",
+      "what": "the multilingual candidate alone, at rest",
+      "reps": 5,
+      "peak_rss_mb": 864.4,
+      "peak_rss_mb_min": 861.8,
+      "peak_rss_mb_max": 865.7,
+      "peak_rss_mb_spread": 3.9,
+      "peak_rss_mb_reps": [
+        862,
+        861.8,
+        864.4,
+        865.7,
+        864.8
+      ],
+      "batch": null,
+      "model_a": {
+        "repo": "Xenova/multilingual-e5-base",
+        "dtype": "q8",
+        "load_ms": 1140.7
+      }
+    },
+    "2b": {
+      "cell": "2b",
+      "what": "the multilingual candidate alone, live batch in flight",
+      "reps": 5,
+      "peak_rss_mb": 1003.4,
+      "peak_rss_mb_min": 999.9,
+      "peak_rss_mb_max": 1004.6,
+      "peak_rss_mb_spread": 4.7,
+      "peak_rss_mb_reps": [
+        999.9,
+        1003.4,
+        1004.6,
+        1004.3,
+        1001
+      ],
+      "batch": {
+        "size_a": 8,
+        "size_b": null,
+        "runs": [
+          {
+            "on": "a",
+            "size": 8,
+            "wall_ms": 872.134979,
+            "dim": 768
+          }
+        ]
+      },
+      "model_a": {
+        "repo": "Xenova/multilingual-e5-base",
+        "dtype": "q8",
+        "load_ms": 1162.7
+      }
+    }
+  },
+  "settle_ms": 2000,
+  "controls_no_settle": {
+    "1": {
+      "reps": 3,
+      "peak_rss_mb": 247.9,
+      "peak_rss_mb_reps": [
+        247.9,
+        247.9,
+        244.4
+      ]
+    },
+    "2": {
+      "reps": 3,
+      "peak_rss_mb": 1027.8,
+      "peak_rss_mb_reps": [
+        1027.8,
+        1025.5,
+        1028.2
+      ]
+    },
+    "3": {
+      "reps": 3,
+      "peak_rss_mb": 720.9,
+      "peak_rss_mb_reps": [
+        724,
+        720.9,
+        720.8
+      ]
+    },
+    "4": {
+      "reps": 3,
+      "peak_rss_mb": 874.2,
+      "peak_rss_mb_reps": [
+        869.1,
+        909.3,
+        874.2
+      ]
+    }
+  },
+  "device_controls": {},
+  "deltas_mb": {
+    "live_batch_one_generation": 773.1,
+    "second_generation_at_rest": 656.1,
+    "live_batch_two_generations": 155.6,
+    "dual_embed_window_price": 38.6,
+    "both_batches_in_flight": 903.5,
+    "live_batch_candidate_alone": 139
+  },
+  "ceiling_candidate_mb": 1112.2,
+  "reps_per_cell": 5,
+  "spread_caveat": "every delta below must be read against the per-cell spread in the same table: a delta smaller than the spread of the cells it subtracts is not a measured delta. One rep per cell put cell 4 BELOW cell 3 and made the live-batch term negative, which is what the reps are here to prevent.",
+  "c3_reference_mb": 750,
+  "why_one_process_per_cell": "VmHWM is monotone, so cells measured in sequence in one process would each inherit the previous cell peak and the 3->4 delta would be unreadable."
+}
