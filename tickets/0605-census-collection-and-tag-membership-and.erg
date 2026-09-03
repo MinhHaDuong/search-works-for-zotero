@@ -8,6 +8,8 @@ Author: claude
 
 2026-09-03T07:45Z claude note split out of 0590 at the author's direction. Holds the query-free half: harvest membership, distribute f, derive the frontier, and bound the at-risk region against the refetch depth
 2026-09-03T08:33Z claude note second review trimmed 'a few hundred passages' from the at-risk region: the frontier moves with k and the refetch depth, so the magnitude is what this ticket measures rather than an illustration it can give in advance
+2026-09-03T08:43Z claude note substrate declared: actions 1 and 2 need the author's machine, everything after is arithmetic over the committed summary, and the harvest driver's own correctness is gated in-container by the roster-closure rule rather than by the real index
+2026-09-03T08:53Z claude note second review of PR #258 caught the roster criterion naming the wrong component: harvest_years.py opens no database and is in neither the roster nor EXCUSED, so a harvest driver modelled on it is not what the closure rule gates. Action 2's join is, as year_scope.mjs is. Criterion and substrate section corrected
 --- body ---
 ## Context
 
@@ -71,6 +73,18 @@ nothing.
 5. Report the passage-count quantiles of the at-risk scopes against the refetch
    depth, which is what says whether exhaustive scoring covers the failure region.
 
+## Substrate
+
+Actions 1 and 2 need the author's machine — the library and the current-schema
+index are both there — in the pattern 0025's substrate map uses for a private
+substrate. Everything after them is arithmetic over the committed summary.
+
+Action 2's join opens the index, so it belongs on the roster in
+`tests/test_index_schema_fixtures.py` or is excused there, and meets a fixture
+of both schema generations before it meets the real one. Action 1's harvest
+reads the local API and opens nothing, as `bench/harvest_years.py` does not.
+Neither half waits on 0029.
+
 ## Decision rule
 
 Descriptive. It commissions nothing and proposes no mechanism. If no scope in
@@ -97,5 +111,7 @@ the correlation between scope and query becomes the whole of its question.
 - [ ] The frontier is stated as a formula over SPEC.md §5.2.6's constants, and no
       new number is pinned here.
 - [ ] At-risk scope passage counts are reported against the refetch depth.
+- [ ] The index-opening half — action 2's join, not action 1's harvest — is on
+      `tests/test_index_schema_fixtures.py`'s roster or excused there.
 - [ ] No mechanism is designed and no threshold is invented.
 - [ ] `make check` and `./tickets/erg check` pass.
