@@ -5345,9 +5345,10 @@ worst case measured anywhere is **1 860,8 MB**. Artifacts:
 `…-gpu-host-cpu.json`.
 
 
-**2026-09-03 — Bringing the old-generation full texts up to date: copy first,
-re-extract over the copy, and never inside the R1 tick (awaiting
-ratification).** Raised by the author 2026-09-03 in the session that re-read
+**2026-09-03 — Bringing the old-generation full texts up to date: we re-extract,
+and R1 owns it (awaiting ratification; the "maintenance verb, never inside the
+R1 tick" half below was corrected by the author the same day and is struck —
+read the amendment at the end of this entry first).** Raised by the author 2026-09-03 in the session that re-read
 ticket 0120; the facts it rests on are that ticket's log and 0483's. Filed here
 because 0120's exit criterion requires a design change to reach `DECISIONS.md`
 before the ticket records a recommendation.
@@ -5397,3 +5398,49 @@ uncapped copy a third channel, or a variant of the flat channel carrying its
 own extractor identity? The recommendation here is the second — one flat path
 whose identity says which extractor produced it — so the number of source paths
 does not grow.
+
+**Amendment, same day, the author's.** The entry as filed put the refresh
+outside R1 as an invoked maintenance verb. That fails R1's *second* clause,
+which the filing did not weigh: the system MUST NOT need a manual rebuild,
+whatever state it is in. An operator invoking a refresh over 3 882
+old-generation caches is that manual rebuild. A capped or old-generation
+extraction is therefore a **quality hole R1 promises to fill**, and the refresh
+belongs to the tick.
+
+Two consequences, both using machinery that already exists. R1's own ladder row
+already carries *superseded work draining to the latest chain unattended*: a
+body extracted under a superseded **extraction contract** — the extractor
+identity and the caps in force, C1 link 1 — is superseded work, and drains
+newest-first like any other. That contract is also the bound that keeps the
+widening finite: R1 re-earns a body when the contract changes, not because
+better text is obtainable somewhere, or the requirement becomes a treadmill
+driven by our own extractor version rather than by library change.
+
+And since neither Zotero's database nor its filesystem is ours to write —
+lifting a cap writes `prefs.js`, and the re-extraction it enables rewrites
+`.zotero-ft-cache` — **the remedy is our own extraction**. That inference is
+carried by the no-write rule, not by a fact about Zotero:
+`bench/zotero-fulltext-plugin` performs exactly that write today (X5). So the
+rule is what is being ratified here, with that consequence attached.
+
+The marginal cost is lower than a standalone extract stage suggests: `pdf.js`
+is already vendored for tier 1 (ticket 0560, Apache-2.0), the bytes are already
+reachable through the local API's `/file/view/url` redirect without touching the
+filesystem (tracker 0557), and C1 link 1 already enumerates extractor
+identities — ours becomes a third one in a slot that exists. What it is not is
+free: **text we extracted ourselves cannot be asked back from Zotero, so it
+must be stored**, and our store becomes authoritative for text rather than
+derived-and-discardable, against C3's streaming shape today.
+
+**Still open, and ranked — this amendment settles who extracts, not whether to
+start.** (1) The quality gate, the blocker: a third extractor generation
+asserted to beat Zotero's current PDFWorker path, unmeasured; re-extracting
+3 882 old caches with something worse is a regression dressed as a fix. X5's
+eleven attachments are a ready-made uncapped control corpus. (2) It is a **PDF**
+answer: 4 758 `text/html`, 10 EPUB, 3 `text/plain` and 268 orphan caches stay
+Zotero-sourced, so mixed provenance is permanent and R17's sentence must carry
+it. (3) Sequencing against #6012, whose `cb27b75` runs all SDT extraction to
+completion before embedding — the mechanism that would make packs library-wide,
+superseding a flat re-extraction for exactly these documents. (4) The
+granularity widening moves what counts as covered, hence the denominator the
+convergence harness measures (tickets 0026, 0580).
