@@ -2,24 +2,17 @@
 
 *Draft PR body, ticket 0612. Not sent. Written against upstream `b0e0bc8`.*
 
-Since #43 the local provider loads any transformers.js feature-extraction model
-the user names, and the docs invite exactly that. Two of the three properties a
-named model brings with it now follow it: input prefixes are inferred from the
-id, and `ZOTEUS_EMBEDDING_DTYPE` selects the precision and carries it into the
-identity. Pooling does not. There is one occurrence in the whole `src` tree,
+This is the correctness fix you named on #43 — `{ pooling: 'mean', normalize:
+true }` applied whatever model is loaded. It is deliberately only that. I had
+said on that thread I would re-propose the whole curated registry; the dtype
+release answered the part of it that was urgent, so what is left of the registry
+is separable and can follow on its own merits. This PR is the part that blocks a
+release, and nothing else.
 
-```ts
-const tensor = await extractor(input, { pooling: 'mean', normalize: true });
-```
-
-and it applies to every model. `mean` is right for `all-MiniLM-L6-v2` and for
-`multilingual-e5-small`, which is why nothing has shown up: those were the models
-that could reach it. Of 23 sentence-embedding models I have pooling for, read
-from each model's own `1_Pooling/config.json`, 10 want `cls` and one
-`last_token`.
-
-A wrong pooling mode does not fail. It loads, embeds, returns the right shape and
-retrieves worse, so it reads to the user as the model being bad.
+`mean` is right for `all-MiniLM-L6-v2` and for `multilingual-e5-small`, which is
+why it has cost nothing so far: those were the models that could reach the call.
+Across the sentence-embedding models whose `1_Pooling/config.json` I have read,
+`cls` is about half the multilingual field.
 
 ## What it costs
 
@@ -41,9 +34,11 @@ it is what Zoteus produces for those model ids today. The Snowflake row holds it
 `query: ` prefix constant across both arms, which Zoteus would not apply, so that
 row understates the loss.
 
-Before reading any of those deltas I re-ran one untouched cell through the
-patched harness and confirmed it reproduced the previously committed result field
-for field, so the harness change is not the source of the difference.
+It is a different corpus from your German/English probe and a different task, so
+read it as a second opinion rather than as a replacement for one. The one thing I
+did guard against is the harness: before reading any delta I re-ran an untouched
+cell and confirmed it reproduced the previously recorded result field for field,
+so the instrument is not the source of the difference.
 
 ## Why this is a table under a setting, not a setting alone
 
@@ -102,7 +97,7 @@ carries no weight in the embedder identity, in the same position
 
 ## What is in the diff
 
-`MODEL_POOLING` in `embeddings.ts`: 25 ids — the ONNX repository the pipeline
+`MODEL_POOLING` in `embeddings.ts`: 24 ids — the ONNX repository the pipeline
 loads and the source repository it mirrors, since either can be put in
 `ZOTEUS_EMBEDDING_MODEL` — each group commented with the repository its value was
 read from and when. `mean` rows are listed too, so a reader can tell "known to be
