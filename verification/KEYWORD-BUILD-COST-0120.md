@@ -116,6 +116,41 @@ is 30,3 % of the embedding build's 2 409,6 MiB, so on this axis too the embedder
 consumer. What can be said flatly: the keyword half alone very nearly fills the budget,
 so a plan that assumes it is cheap in memory because it is cheap in time is wrong.
 
+## What the 305,9 s actually indexed, which is not the library
+
+The build reads Zotero's extracted text and never parses, so it inherits whatever
+state that text is in — and on this machine the text is in a poor one. Two defects,
+measured by ticket 0483 on 2026-09-03 and recorded with their evidence in
+`verification/SDT-CAPS-0483.md` §3, both of which this build read straight into the
+index:
+
+- **1 053 attachments are truncated**, every one stopped at exactly 100 pages, the
+  stock `pdfMaxPages` default. Both caps are raised on this install, which did not
+  help them: `reindexTruncated` fires on a live preference change and nothing has
+  fired it since, so a population can sit truncated indefinitely under a raised limit.
+  The worst loses 100 of 3 949 pages. One document held in both libraries shows the
+  size of it — the group copy's cache is 10 705 102 B against 303 749 B for the user
+  copy of the same volume.
+- **3 882 PDF caches are pre-form-feed**, written by the extractor generation before
+  2024. A cache extracted in full under the old extractor has `indexedPages ==
+  totalPages`, so `reindexTruncated`'s query never selects it and no upstream
+  mechanism will ever reach it.
+
+So the honest reading of the headline is: **305,9 s is what it costs to index the
+library as Zotero has extracted it, which is a floor rather than the price of
+indexing the library.** A build over complete, current bodies would carry more
+passages, more bytes and more seconds, in proportion to the pages missing today.
+Nothing here measures that build, and the projection is not attempted because the
+missing text's chunk yield is not known.
+
+This sharpens the ticket's question rather than softening it. The platform FTS5 index
+is built from **the same** extracted text, so adopting it inherits both defects
+exactly, and inherits them with less recourse: we can point our chunker at a better
+source — the SDT pack (action 6), or our own extraction — while keeping everything
+downstream, where a contentless index we do not own leaves us the text quality we are
+given and no signal when it changes. The build cost was never the argument; the text
+is.
+
 ## Caveats, each bounding a figure above
 
 - **Every wall figure is an upper bound within a 5 s poll quantum.** `run_build.py`
@@ -125,8 +160,10 @@ so a plan that assumes it is cheap in memory because it is cheap in time is wron
   and an earlier full-library run at `--poll 30` read 332,9 s against the 305,9 s here.
   That 332,9 s is a superseded number and should not be quoted.
 - **Both Zotero full-text caps are raised on this install** (`pdfMaxPages` 999999,
-  `textMaxLength` 999999999), so the body text read here is longer than a default
-  install holds, and the passage counts with it. Nothing here describes a stock machine.
+  `textMaxLength` 999999999), so for everything extracted since they were raised the
+  body text read here is longer than a default install holds, and the passage counts
+  with it. Nothing here describes a stock machine — in either direction, since the
+  raised caps did not reach the 1 053 attachments already truncated under the old ones.
 - **`--max-chars 200000`** matches the 2026-09-02 build; the shipped default is 40 000
   and would index far less body text per item.
 - **The comparison build's crawl was degraded and this one's was not.**
