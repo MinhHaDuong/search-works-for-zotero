@@ -31,16 +31,16 @@ unfiled.
 **Blocked:** goal 3 (0580) terminates in X5 through 0566 → 0565 → 0028; 0581 waits on
 0029, which codex holds. No lane work reaches either.
 
-**Open:** #255, its base nine merges stale and needing a re-merge;
+**Open:** #255, its base long stale and needing a re-merge;
 `claude/resume-journee-taj5f8` undecided.
 
-**Next session, in order.** Two greps on this machine settle more than anything written
-on 2026-09-03: whether build `20260817151751` carries `reindexTruncated` (grep the
-extracted `omni.ja`), and whether the WASM document-worker caps pages (open `65F79PTJ`,
-2 913 pages, in the reader; read the page catalog with
-`verification/probes/sdt_read.py`). Then 0606 action 1, the pack-to-flat size ratio,
-which decides that ticket's shape before any code. Then 0120 action 1, the measured
-saving, still without a figure.
+**Next session.** The three probes this line used to order are answered and merged
+(`28a5685`, `8c261ba`): `reindexTruncated` ships but fires only on a live preference
+change, so **1 053 attachments sit truncated at 100 pages** under a raised cap; the WASM
+worker is **uncapped** (2 913 of 2 913); 0606's ratio is **2,24** at book scale, and that
+route runs at 5,26 pages/s — about 24,6 h to pack the library. What remains is **0120
+action 1**, the measured saving, still the only thing that ticket formally requires and
+still without a figure.
 
 **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list. Still open here:
 **is 0491 inside the codex fence**, and the two questions the 2026-09-03 ladder re-cut
