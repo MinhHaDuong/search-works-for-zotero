@@ -419,6 +419,25 @@ MINIMUM_PAIRS = 462
 #: `{}` marking the slot; None falls back to the weaker presence check. A figure may
 #: legitimately live in several documents; it must be current in every one that claims it.
 FIGURES = [
+    # ---- 0612, the same-item task metric: does the pooling correction hold outside a
+    # cross-lingual set? Declared against the two raw vec_task_recall.mjs outputs, dot
+    # convention because the reader meets these in the upstream PR body.
+    ("0612-task-pooling/minilm-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "MRR 2.9% ({}\u21920.8230"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8880\u2192{}, 0.9559"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "0.8230, {}\u21920.9285)"}, "dot"),
+    ("0612-task-pooling/minilm-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9559\u2192{})"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.0.at.0.recall_at_topk", 4,
+     {"u0612": "positive ({}\u21920.8696"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.1.at.0.recall_at_topk", 4,
+     {"u0612": "0.8620\u2192{}, 0.9444"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.0.at.0.mrr", 4,
+     {"u0612": "0.8696, {}\u21920.9452)"}, "dot"),
+    ("0612-task-pooling/bge-task-recall.json", "models.1.at.0.mrr", 4,
+     {"u0612": "0.9444\u2192{})"}, "dot"),
     # ---- 0612, what one hardcoded pooling mode costs. Declared twice on purpose: the
     # repository writes a decimal comma, and the document that goes to the forge is read
     # beside its own code samples and writes a decimal point. One artifact, two renderings,

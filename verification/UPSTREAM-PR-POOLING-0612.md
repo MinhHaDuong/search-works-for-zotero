@@ -1,18 +1,46 @@
-# Pooling follows the model, the way prefixes and dtype now do
+# Pooling follows the model, from a curated table
 
-*Draft PR body, ticket 0612. Not sent. Written against upstream `b0e0bc8`.*
+*Draft PR body, ticket 0612. Not sent. Written against upstream `b0e0bc8`, after
+issue #51.*
 
-This is the correctness fix you named on #43 — `{ pooling: 'mean', normalize:
-true }` applied whatever model is loaded. It is deliberately only that. I had
-said on that thread I would re-propose the whole curated registry; the dtype
-release answered the part of it that was urgent, so what is left of the registry
-is separable and can follow on its own merits. This PR is the part that blocks a
-release, and nothing else.
+Fixes #51.
+
+Your issue reaches the conclusion this branch was built on, from the other side
+and independently: the pooling has to be curated, because the file that declares
+it is not in the repository the weights are loaded from and the mirror-to-source
+mapping is not derivable across organisations. The branch was written before #51
+was filed, so read it as a second arrival at the same place rather than as a
+response to it, and it follows the identity rule your issue specifies for step 2
+exactly: `mean` stays unsuffixed, so no existing index is declared stale by the
+arrival of the field.
+
+On the ordering, one observation rather than an argument. Step 1 as you describe
+it — keep `mean`, name the assumption — needs a known-pooling set to decide what
+to warn about, and that set is the same curated object as step 2 minus its
+values. Once the list exists, carrying `cls` beside a name costs nothing more
+than carrying the name.
 
 `mean` is right for `all-MiniLM-L6-v2` and for `multilingual-e5-small`, which is
 why it has cost nothing so far: those were the models that could reach the call.
 Across the sentence-embedding models whose `1_Pooling/config.json` I have read,
 `cls` is about half the multilingual field.
+
+**One correction to #51's sampling, and it is the reason a family name cannot
+stand in for a lookup.** The proposed known-pooling set lists `gte` among the
+mean-pooled families. The family is split:
+
+| repository | `1_Pooling/config.json` |
+|---|---|
+| `thenlper/gte-small` | `mean` |
+| `thenlper/gte-base` | `mean` |
+| `Alibaba-NLP/gte-multilingual-base` | **`cls`** |
+
+Read on each repository on 2026-09-03. A known-good set keyed on the family would
+therefore assert `mean` confidently for `gte-multilingual-base`, which is the one
+gte model measured below and the one that loses most. The table in this PR is
+keyed on the full model id for that reason, and lists both the `mean` and the
+`cls` rows so a reader can tell a value that was read from one that was
+defaulted.
 
 ## What it costs
 
@@ -94,6 +122,36 @@ one stamp, and no path that can detect it, because mean and cls share a dimensio
 and the width check cannot tell them apart. Measured on MiniLM the two readings of
 one text sit at cosine 0.53, where a prefix mismatch on a non-E5 model costs
 nothing.
+
+## The four models #51's own sample names
+
+`BAAI/bge-small-en-v1.5`, `BAAI/bge-base-en-v1.5`, `mixedbread-ai/mxbai-embed-large-v1`
+and `Snowflake/snowflake-arctic-embed-s` are in the table, each read against its
+own source repository today. `mxbai` and `arctic-embed-s` publish their own ONNX
+graph, the way the arctic-m/l checkpoints do, so each is one id rather than a
+`Xenova/` mirror pair.
+
+**One honest result before you read this as "the fix helps every model in the
+table."** The cross-lingual figures above are real and reproduced, but the
+adversarial review that found them also found the sign inverts on a monolingual
+English probe — so I checked what forcing the wrong pooling costs on this
+project's own task-comparable metric (0265: a passage is a query whose relevant
+set is the other passages of its own Zotero item, gap-excluded so the chunker's
+own overlap cannot answer it) rather than trust either corpus alone. Two English
+models, four arms: `all-MiniLM-L6-v2` forced from its trained `mean` to `cls`
+drops recall@30 7.3% and MRR 2.9% (0.8880→0.8230, 0.9559→0.9285) — the expected
+direction, confirming the harness. `bge-small-en-v1.5` forced from its trained
+`cls` to `mean` costs **nothing measurable** on the same metric — recall@30 and
+MRR both move fractionally positive (0.8620→0.8696, 0.9444→0.9452).
+
+So this is not a claim that fixing pooling improves retrieval for BGE, mxbai or
+arctic-embed-s specifically — on this metric it may not, for reasons the review
+already surfaced and I have not chased further. The table's job is a correctness
+record of what each model was trained with, independent of whether the retrieval
+consequence is large on any one task; that is the position the docs already
+state ("a record of what each model was trained with, not a list of models this
+project recommends") and this result is the reason that sentence has to be taken
+literally rather than as a hedge.
 
 ## What this does not change
 
