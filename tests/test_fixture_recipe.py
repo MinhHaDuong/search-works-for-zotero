@@ -254,8 +254,8 @@ def test_live_recipe_tally_is_swept_into_its_documentation():
     }
     assert (len(recipe), hashed, open_by_archive) == (
         26,
-        21,
-        {"gallica": 4, "internet-archive": 1},
+        17,
+        {"gallica": 4, "internet-archive": 1, "hal": 4},
     )
 
     readme = (FIXTURES / "README.md").read_text(encoding="utf-8")
