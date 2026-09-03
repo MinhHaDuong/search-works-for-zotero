@@ -8,7 +8,9 @@ Author: claude
 
 2026-09-02T10:43Z claude note filed by the 0550 topology reconciliation: second of the two probes DECISIONS.md 2026-09-02 demands before 0566 commits the boundary. SPEC.md §5.2.9 says the service has no ceiling at all and that live-batch residency is unmeasured -- this probe's cell 4 is both gaps at once
 2026-09-02T19:52Z four cells measured on doudou, the reference machine, five fresh processes per cell; artifact bench/results/0577-service-ceiling/service-ceiling-rss.json. Cell 4 is 1002,5 MB against C3's ~750, so the decision rule's second branch fires and the remedy goes to DECISIONS.md as the author's. GPU second configuration NOT RUN: padme's two GPUs fully held by a resident llama-server that must not be stopped
-2026-09-03T04:27Z claude note GPU second configuration measured on padme once the author stopped llama-server: seven cells under an explicit CUDA provider with the same machine's CPU run as host control. The shipped runtime does not use a GPU -- measured, with both arms of the detector firing in one run: the shipped call holds 301,0 MB RSS and no device memory while cell 1 under device cuda holds 547,7 MB and 318 MB VRAM. A GPU host raises the host ceiling rather than relieving it (cell 4 at 1 336,7 MB against 1 002,5 on the reference machine) and the C3 rung gains nothing from the device. Reported beside the reference machine, never as a substitute
+2026-09-03T04:27Z claude note GPU second configuration measured on padme once the author stopped llama-server: seven cells under an explicit CUDA provider with the same machine's CPU run as host control. The shipped runtime does not use a GPU -- measured, with both arms of the detector firing in one run: the shipped call holds no device memory at all while the cell beside it under device cuda holds 318 MB VRAM. A GPU host raises the host ceiling rather than relieving it, and the C3 rung gains nothing from the device. Reported beside the reference machine, never as a substitute
+
+2026-09-03T04:53Z claude note re-ran both arms under the author's warm directive: the driver's warm: true was a literal beside an optional flag the run could not observe, so the drive now warms itself in a process of its own and emits warm_witness -- the loads it performed, the batches it discarded, and the model-cache byte total before warming, after warming and after every cell, all three equal at 386 831 709 so nothing downloaded inside a cell. A run whose warm child fails writes no artifact, verified against a missing runtime. Fixed and marginal terms are now separate keys rather than folded into a cell, and the cells are reconciled against the completed full-library build: 2 410 MB peak for ONE generation in a process also holding a 1,7 GB index, so it prices no dual-embed window and does not contradict cell 4
 
 --- body ---
 
@@ -173,12 +175,12 @@ an NVIDIA RTX A4000 with 16 376 MiB, driver 580.159.04, under onnxruntime-node
 
 **The shipped runtime does not use a GPU.** Measured, not read off
 `embeddings.ts`. In the same run whose cells hold device memory, two control
-cells differing from cell 1 only in the device argument report **301,0 MB** of
+cells differing from cell 1 only in the device argument report **300,4 MB** of
 host RSS with no device memory at all — the process never appears in
 `nvidia-smi`'s compute-app list — for the shipped call (`pipeline()` with no
 device key, which is how `fork/src/features/search/embeddings.ts` loads a model),
-and **300,9 MB**, again with none, for an explicit `device: 'cpu'`. The cell
-beside them, differing only by `device: 'cuda'`, holds 547,7 MB of host RSS and
+and **301,0 MB**, again with none, for an explicit `device: 'cpu'`. The cell
+beside them, differing only by `device: 'cuda'`, holds 548,2 MB of host RSS and
 318 MB of VRAM. Both arms of the detector fired in one session on one host, so
 the null is a measurement rather than a probe that could not look.
 
@@ -195,6 +197,28 @@ author's own `~/opt/cudnn/lib`, which the artifact records beside every number.
 The second configuration is therefore a host configuration and not a flag, and it
 is disclosed as one.
 
+### The warm pass is witnessed, not asserted
+
+Both artifacts carry `warm: true`, and in this driver that value is now produced
+by the code path that ran rather than written as a literal beside an optional
+flag the run could not observe. The drive warms itself, in a process of its own
+before any cell, and records what warming did in `warm_witness`: the two loads it
+performed, the two batches it threw away, and the model cache's byte total before
+warming, after warming, and after every cell. All three read **386 831 709
+bytes** in both arms, so the warm pass downloaded **0 bytes** and no cell window
+held a download either. A run whose warm child fails writes no artifact at all —
+verified by pointing the driver at a missing runtime, which aborted with *the
+warm pass failed, so no cell below could be called warm* and produced no output
+file.
+
+What warming removes and what it cannot are different things, and only the first
+is a measurement artefact. It removes the weight download, paid once per machine.
+It does not remove the per-process model load or the first-batch graph
+initialisation: every cell is a **fresh process** by construction, so both are
+paid in every cell — they are part of what a resident service costs, not noise in
+the instrument, and they are legible as `baseline_rss_mb` and as the gap between
+the peak and the steady reading.
+
 ### The cells
 
 Same corpus as the reference-machine run (sha256 `e77b4c6f…`, 256 passages),
@@ -204,13 +228,13 @@ two-second settle, and a zero-settle control arm beside it. Artifact
 
 | cell | resident | in flight | peak host RSS | peak VRAM | spread |
 |---|---|---|---|---|---|
-| cuda-1 | incumbent | — | **547,7 MB** | **318 MB** | 1,1 |
-| cuda-2 | incumbent | batch of 128 | **950,9 MB** | **2 758 MB** | 22,0 |
-| cuda-3 | incumbent + candidate q8 | — | **1 031,4 MB** | **572 MB** | 10,1 |
-| cuda-4 | incumbent + candidate q8 | batch of 8 on the candidate | **1 336,7 MB** | **842 MB** | 18,9 |
-| cuda-4b | incumbent + candidate q8 | a batch on each at once | **1 472,2 MB** | **3 288 MB** | 3,6 |
-| cuda-1b | candidate q8 alone | — | **1 025,7 MB** | **686 MB** | 17,1 |
-| cuda-2b | candidate q8 alone | batch of 8 | **1 315,3 MB** | **696 MB** | 9,8 |
+| cuda-1 | incumbent | — | **548,2 MB** | **318 MB** | 0,8 |
+| cuda-2 | incumbent | batch of 128 | **964,2 MB** | **2 774 MB** | 15,4 |
+| cuda-3 | incumbent + candidate q8 | — | **1 038,0 MB** | **824 MB** | 9,7 |
+| cuda-4 | incumbent + candidate q8 | batch of 8 on the candidate | **1 331,9 MB** | **836 MB** | 9,2 |
+| cuda-4b | incumbent + candidate q8 | a batch on each at once | **1 479,8 MB** | **3 280 MB** | 15,2 |
+| cuda-1b | candidate q8 alone | — | **1 026,5 MB** | **686 MB** | 8,9 |
+| cuda-2b | candidate q8 alone | batch of 8 | **1 315,6 MB** | **698 MB** | 8,0 |
 
 Host RSS and VRAM are different quantities, not two readings of one. Under a GPU
 provider the weights and the activations sit in device memory, which the host
@@ -218,74 +242,117 @@ high-water mark no longer covers, so the two columns are never added and never
 compared across devices. The VRAM column is the peak this process alone held,
 read from `nvidia-smi`'s per-process accounting so that whatever else sits on the
 card cannot enter it; the sampler polls at 0,2 s, and in the at-rest cells the
-reps come back bimodal — cuda-3 reads 570 MB three times and 824 MB twice — so
-that column carries less resolution than the RSS one and should not be read to
-the megabyte.
+reps come back bimodal — cuda-3 reads 570 MB once and 824 MB in the other four,
+cuda-1b 432 MB twice and 686 MB three times — so that column carries less
+resolution than the RSS one and should not be read to the megabyte.
 
 The same machine's CPU, running the shipped call, is the host control: it is what
 separates the machine from the device. Artifact `…-gpu-host-cpu.json`.
 
 | cell | resident | in flight | peak host RSS | spread |
 |---|---|---|---|---|
-| cpu-1 | incumbent | — | **300,5 MB** | 1,3 |
-| cpu-2 | incumbent | batch of 64 | **1 073,6 MB** | 3,7 |
-| cpu-3 | incumbent + candidate q8 | — | **956,6 MB** | 16,8 |
-| cpu-4 | incumbent + candidate q8 | batch of 8 on the candidate | **1 112,2 MB** | 13,9 |
-| cpu-4b | incumbent + candidate q8 | a batch on each at once | **1 860,1 MB** | 3,6 |
-| cpu-1b | candidate q8 alone | — | **864,4 MB** | 3,9 |
-| cpu-2b | candidate q8 alone | batch of 8 | **1 003,4 MB** | 4,7 |
+| cpu-1 | incumbent | — | **300,5 MB** | 3,9 |
+| cpu-2 | incumbent | batch of 64 | **1 073,8 MB** | 1,2 |
+| cpu-3 | incumbent + candidate q8 | — | **956,3 MB** | 17,0 |
+| cpu-4 | incumbent + candidate q8 | batch of 8 on the candidate | **1 111,5 MB** | 12,7 |
+| cpu-4b | incumbent + candidate q8 | a batch on each at once | **1 860,8 MB** | 1,1 |
+| cpu-1b | candidate q8 alone | — | **862,8 MB** | 2,3 |
+| cpu-2b | candidate q8 alone | batch of 8 | **1 003,1 MB** | 2,4 |
 
 The batch sizes are derived per device from the ratified ~1 s quantum, as on the
 reference machine and for the same reason: **128** and **8** passages under CUDA
-(594,7 ms and 880,5 ms), **64** and **8** on this machine's CPU (1 178,1 ms and
-824,8 ms), against 16 and 4 on the reference machine.
+(585,6 ms and 850,6 ms), **64** and **8** on this machine's CPU (1 183,1 ms and
+831,3 ms), against 16 and 4 on the reference machine.
+
+**The fixed term and the marginal term, kept apart.** A cell is not one number.
+The process floor before a single weight is loaded is **52,1 MB**. One generation
+resident brings the CUDA arm to 548,2 MB and this machine's CPU to 300,5 MB — a
+fixed term, paid whether or not anything is embedding. The second generation adds
+**489,8 MB** under CUDA and **655,8 MB** on the CPU, again fixed for as long as
+the dual-embed window lasts. Only what sits above those is marginal to a batch:
+**416,0 MB** for one generation under CUDA against **773,3 MB** on the CPU, and
+**293,9 MB** against **155,2 MB** with two resident. Every one of these is a
+peak, never an elapsed time divided by a count, so none of them amortises; but
+each marginal term belongs to *this run's derived batch size* and must be read
+beside it rather than alone.
 
 ### What the second configuration says
 
 **A GPU host raises the host ceiling; it does not relieve it.** Cell 4 is
-1 336,7 MB of host RSS here against 1 002,5 MB on the reference machine, and it
-holds 842 MB of VRAM the reference machine does not need. The CUDA context alone
-costs about 247 MB of host memory before any batch — 547,7 MB at rest against
-300,5 MB for the same model on the same machine's CPU. Against C3's ~750 MB the
-reference machine's cell 4 is 34 % over and this one is 78 % over. The decision
-rule's second branch fires harder on a GPU host, not softer, so "put the service
-on a GPU host" is not among the remedies the author is choosing between.
+1 331,9 MB of host RSS here against 1 002,5 MB on the reference machine, and it
+holds 836 MB of VRAM the reference machine does not need. The CUDA context alone
+costs about 248 MB of host memory before any batch — 548,2 MB at rest against
+300,5 MB for the same model on the same machine's CPU, a difference derived by
+subtraction from those two cells. Against C3's ~750 MB the reference machine's
+cell 4 is 34 % over and this one is 78 % over. The decision rule's second branch
+fires harder on a GPU host, not softer, so "put the service on a GPU host" is not
+among the remedies the author is choosing between.
 
 **The rung C3 recommends gains nothing from the device.**
 `multilingual-e5-base` at q8 derives the same batch of 8 under CUDA as on this
-machine's CPU, and a batch takes 880,5 ms there against 824,8 ms on the CPU —
+machine's CPU, and a batch takes 850,6 ms there against 831,3 ms on the CPU —
 slower, not faster. The incumbent at fp32 does accelerate: a batch of 64 takes
-1 178,1 ms on that CPU and 247,1 ms under CUDA, near five times faster. The
-candidate is on the device — cuda-1b holds 686 MB of VRAM — and simply gains
-nothing there. Per-node fallback on the quantized graph fits the shape of that;
-nothing here establishes it, and it is left as a question rather than a cause.
+1 183,1 ms on that CPU and 245,5 ms under CUDA, near five times faster by
+division of the two. The candidate is on the device — cuda-1b holds 686 MB of
+VRAM — and simply gains nothing there. Per-node fallback on the quantized graph
+fits the shape of that; nothing here establishes it, and it is left as a question
+rather than a cause.
 
 **A ceiling in bytes is not portable while the batch size is derived from a time
-quantum.** The at-rest cells agree across the two machines to within 1 % —
-300,5 MB against the reference machine's 301,1, 956,6 against 958,4, 864,4
-against 861,8 — so residency at rest is a property of the models and not of the
-machine. What moves is the derived batch: 16 passages on the reference machine,
-64 on this machine's CPU, 128 under CUDA, and the live-batch cell moves with it,
-464,7 then 1 073,6 then 950,9 MB. A faster device earns a larger batch out of the
-ratified ~1 s quantum and holds more memory for it, so **the reference machine's
-figure is the fleet's floor rather than its bound**: the worst case measured
-anywhere is cpu-4b at 1 860,1 MB, two and a half times C3. That is a consequence
-of the 2026-09-01 quantum ruling meeting a ceiling expressed in bytes, and it is
-put here as an observation, not a proposal.
+quantum.** The at-rest cells agree across the two machines to within a fifth of a
+percent — 300,5 MB against the reference machine's 301,1, 956,3 against 958,4,
+862,8 against 861,8 — so residency at rest is a property of the models and not of
+the machine. What moves is the derived batch: 16 passages on the reference
+machine, 64 on this machine's CPU, 128 under CUDA, and the live-batch cell moves
+with it, 464,7 then 1 073,8 then 964,2 MB. A faster device earns a larger batch
+out of the ratified ~1 s quantum and holds more memory for it, so **the reference
+machine's figure is the fleet's floor rather than its bound**: the worst case
+measured anywhere is cpu-4b at 1 860,8 MB, two and a half times C3. That is a
+consequence of the 2026-09-01 quantum ruling meeting a ceiling expressed in
+bytes, and it is put here as an observation, not a proposal.
 
 **The post-load growth is reproduced and still unexplained.** Every cell above is
 read after a uniform two-second settle, with the zero-settle control arm beside
-it. Under CUDA the controls read: cuda-1 **538,5 MB**, cuda-2 **904,1 MB**,
-cuda-3 **917,5 MB**, cuda-4 **1 134,9 MB**. On the same machine's CPU: cpu-1
-**247,9 MB**, cpu-2 **1 027,8 MB**, cpu-3 **720,9 MB**, cpu-4 **874,2 MB**. So
-the two-generation cells sit 236 and 238 MB above their controls on this
+it. Under CUDA the controls read: cuda-1 **538,9 MB**, cuda-2 **889,5 MB**,
+cuda-3 **918,3 MB**, cuda-4 **1 104,5 MB**. On the same machine's CPU: cpu-1
+**247,4 MB**, cpu-2 **1 027,5 MB**, cpu-3 **720,7 MB**, cpu-4 **874,7 MB**. So
+the two-generation cells sit 236 and 237 MB above their controls on this
 machine's CPU, against 248 and 235 MB on the reference machine — the same effect,
 on a different machine and a different CPU vendor, at the same magnitude. It is
 not an artifact of the reference machine. Under CUDA it nearly vanishes at rest
-with one generation, 547,7 against 538,5, while the two-generation cells keep
+with one generation, 548,2 against 538,9, while the two-generation cells keep
 most of it; and those are the cells holding the candidate, whose graph the same
 run shows gaining nothing from the device. That narrows where to look. **It names
 no cause, and none is proposed here.**
+
+### Reconciled against the full-library build
+
+The full-library build finished on the reference machine while these cells were
+being measured, and it is the only full-scale anchor this probe can be checked
+against. Its `RESULT` line reports `peak_rss_kb: 2467464` — about 2 410 MB — over
+363 613 passages in 29 643,9 s, with `embedderModel: Xenova/all-MiniLM-L6-v2`.
+Those figures are read from that lane's `full-build/build.log`, which is not a
+committed artifact of this repository, so they are cited here and not declared in
+the figure guard.
+
+The build's peak is 2,4 times cell 4 and does not contradict it, because it is a
+different process holding different things: one process doing the crawl, the
+extraction, the chunking and the embedding, with a 1,7 GB SQLite index and its
+66 MB write-ahead log open beside them. Two consequences, in both directions.
+The embedder is a **minority term** of a build's peak rather than its bulk — cell
+2, one generation with a live batch, is 464,7 MB on that machine. And the build
+held exactly **one** generation, so it prices no dual-embed window at all, which
+is the gap this ticket exists to fill: nothing in that 2 410 MB says what cell 3
+or cell 4 costs.
+
+One property of the build worth carrying, because it is the reason the warm
+witness above exists. Its own data directory holds the 90 MB `model.onnx` the
+first run downloaded — the one-time cost that, divided over a small sample,
+inflates a per-passage rate and, sitting inside a cell window, would inflate a
+residency reading. At 363 613 passages such fixed terms are a rounding error;
+over a few thousand they are not. Nothing in this ticket is a per-unit rate, so
+none of it amortises — but that is why the batch cells are reported beside the
+batch size that produced them and never as a cost per passage.
 
 ### A control that could not come out the other way, and how it was caught
 

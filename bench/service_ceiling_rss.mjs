@@ -238,6 +238,22 @@ if (opt.cell) {
   const a = await loadModel(opt['model-a'], opt['dtype-a'], cacheDir);
   out.model_a = { repo: a.repo, dtype: opt['dtype-a'] || '(package default)', load_ms: Number(a.load_ms.toFixed(1)) };
 
+  if (cell === 'warm') {
+    // The warm pass, run BY the drive rather than trusted to have happened. It loads
+    // every generation and throws one batch at each, and reports what that cost. The
+    // timings are discarded — they exist to be witnessed, not to be quoted.
+    const b0 = await loadModel(opt['model-b'], opt['dtype-b'], cacheDir);
+    out.model_b = { repo: b0.repo, dtype: opt['dtype-b'], load_ms: Number(b0.load_ms.toFixed(1)) };
+    const texts = Array.from({ length: 4 }, (_, k) => corpus[k % corpus.length]);
+    out.discarded_batches = [
+      { on: 'a', size: 4, ...(await embedBatch(a, texts)) },
+      { on: 'b', size: 4, ...(await embedBatch(b0, texts)) },
+    ];
+    closeSampler();
+    process.stdout.write('CELLJSON ' + JSON.stringify(out) + '\n');
+    process.exit(0);
+  }
+
   if (cell === 'derive') {
     // Derivation runs in a process of its own. It sweeps batch sizes upward, so its
     // own high-water mark is higher than the chosen size's — leaving it inside a
@@ -395,6 +411,42 @@ function runCell(c, extra = []) {
   return row;
 }
 
+/** Bytes on disk under a directory, or null when there is nothing to look at. */
+function treeBytes(dir) {
+  if (!dir) return null;
+  try {
+    return Number(execFileSync('du', ['-sb', dir], { encoding: 'utf8' }).split(/\s+/)[0]);
+  } catch {
+    return null;
+  }
+}
+
+// The warm pass, performed HERE and witnessed, rather than asserted.
+//
+// `warm: true` used to be a literal in the summary below while warming was a separate
+// optional flag on a separate invocation — so the artifact claimed a property of a run
+// it had no way to observe, and deleting the flag from the command line changed nothing
+// it said. That is worse than not knowing, because ticket 0260's whole point is that an
+// artifact which cannot say is as bad as one that lies.
+//
+// So the drive warms, in a process of its own, and records what warming actually did:
+// the load it performed, the discarded batches it threw away, and the bytes the model
+// cache held before and after. `warm` below is set from whether that child succeeded,
+// and a reader can check the claim against the witness instead of taking it.
+//
+// What the warm pass removes, and what it cannot. It removes the WEIGHT DOWNLOAD, which
+// is paid once per machine and would otherwise sit inside whichever cell ran first.
+// It does not remove the per-process model load or the first-batch graph initialisation:
+// every cell is a fresh process by construction, so those are paid in every cell, and
+// they are part of what a resident service costs rather than an artefact of the
+// measurement. The peak/steady split and `rss_baseline_mb` are what keep them legible.
+const cacheBytesBefore = treeBytes(opt['cache-dir']);
+const warmRow = runCell('warm');
+if (warmRow.failed) {
+  throw new Error(`the warm pass failed, so no cell below could be called warm: ${warmRow.stderr}`);
+}
+const cacheBytesAfterWarm = treeBytes(opt['cache-dir']);
+
 const derived = opt['batch-a'] && opt['batch-b']
   ? { derived: { quantum_ms: Number(opt['quantum-ms']), a: { size: Number(opt['batch-a']) }, b: { size: Number(opt['batch-b']) }, source: 'pinned on the command line' } }
   : runCell('derive');
@@ -456,6 +508,10 @@ for (const c of cells) {
     model_a: runs[0].model_a,
     model_b: runs[0].model_b ?? null,
     wall_s: runs[0].wall_s,
+    // The FIXED term, reported as its own number rather than folded into the cell: the
+    // node process before a single weight is loaded. Everything above it is the model
+    // plus, in the batch cells, the batch.
+    baseline_rss_mb: median(runs.map((r) => r.rss_baseline_mb)),
     ...vramOf(runs),
   };
   console.log(
@@ -527,6 +583,7 @@ for (const [name, base] of [['1b', '1'], ['2b', '2']]) {
     peak_rss_mb_reps: peaks,
     batch: runs[0].batch ?? null,
     model_a: runs[0].model_a,
+    baseline_rss_mb: median(runs.map((r) => r.rss_baseline_mb)),
     ...vramOf(runs),
   };
   console.log(`cell ${name}: peak median ${results[name].peak_rss_mb} MB (spread ${results[name].peak_rss_mb_spread})`);
@@ -543,11 +600,36 @@ const summary = {
   // the quantity being measured and a service that has not loaded its model is not
   // resident; the peak/steady split below is what lets a reader separate the load
   // transient from the settled figure.
-  warm: true,
-  warm_basis:
-    'weights pre-downloaded by a separate --warm pass, so no cell window holds a ' +
-    'download; the model load is intrinsic to residency and is disclosed as the ' +
-    'gap between peak_rss_mb and steady_rss_mb rather than hidden',
+  // Set from the code path that ran, not written as a literal: `warm` is true exactly
+  // when this drive's own warm child succeeded, and the witness beside it is what a
+  // reader checks the claim against.
+  warm: !warmRow.failed && Array.isArray(warmRow.discarded_batches) && warmRow.discarded_batches.length === 2,
+  warm_witness: {
+    what:
+      'the warm pass this drive performed before any measured cell, in a process of its ' +
+      'own: both generations loaded and one batch thrown at each. Its timings are ' +
+      'DISCARDED and recorded only as evidence that the warming happened.',
+    loads: [
+      { on: 'a', repo: warmRow.model_a?.repo ?? null, load_ms: warmRow.model_a?.load_ms ?? null },
+      { on: 'b', repo: warmRow.model_b?.repo ?? null, load_ms: warmRow.model_b?.load_ms ?? null },
+    ],
+    discarded_batches: warmRow.discarded_batches ?? null,
+    cache_dir: opt['cache-dir'] || null,
+    cache_bytes_before: cacheBytesBefore,
+    cache_bytes_after_warm: cacheBytesAfterWarm,
+    cache_bytes_downloaded_by_warm:
+      cacheBytesBefore != null && cacheBytesAfterWarm != null ? cacheBytesAfterWarm - cacheBytesBefore : null,
+    cache_bytes_after_cells: treeBytes(opt['cache-dir']),
+    removes:
+      'the weight download, which is paid once per machine and would otherwise sit inside ' +
+      'whichever cell ran first. cache_bytes_after_cells equal to cache_bytes_after_warm is ' +
+      'the witness that no cell window held one.',
+    does_not_remove:
+      'the per-process model load and the first-batch graph initialisation. Every cell is a ' +
+      'FRESH process by construction, so both are paid in every cell -- they are part of what ' +
+      'a resident service costs, not an artefact of the measurement, and the peak/steady split ' +
+      'plus rss_baseline_mb are what keep them legible.',
+  },
   what: 'peak RSS of one embedding-service process, four cells, one process per cell',
   date: new Date().toISOString().slice(0, 19) + 'Z',
   machine: {
@@ -636,6 +718,21 @@ const summary = {
     dual_embed_window_price: delta('4', '2'),
     both_batches_in_flight: delta('4b', '3'),
     live_batch_candidate_alone: delta('2b', '1b'),
+  },
+  // Fixed against marginal, kept apart on purpose. A peak RSS is not a per-unit rate, so
+  // the amortisation error that inflates a rate measured on a small denominator does not
+  // reach these figures — but the same discipline does: the terms a cell is MADE of are
+  // named here rather than left for a reader to infer from one number.
+  terms_mb: {
+    fixed_process_baseline: results['1']?.baseline_rss_mb ?? null,
+    fixed_one_generation_resident: peak('1'),
+    fixed_second_generation_resident: delta('3', '1'),
+    marginal_live_batch_one_generation: delta('2', '1'),
+    marginal_live_batch_two_generations: delta('4', '3'),
+    note:
+      'a peak, never a rate: nothing here is an elapsed time divided by a count. The batch ' +
+      'terms are marginal at THIS run\'s derived batch size, which is a property of the ' +
+      'device and not of the models -- read them beside batch_size_derivation, never alone.',
   },
   ceiling_candidate_mb: peak('4'),
   reps_per_cell: REPS,

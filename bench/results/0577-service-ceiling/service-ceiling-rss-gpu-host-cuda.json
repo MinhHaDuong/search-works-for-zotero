@@ -1,9 +1,44 @@
 {
   "ticket": "0577",
   "warm": true,
-  "warm_basis": "weights pre-downloaded by a separate --warm pass, so no cell window holds a download; the model load is intrinsic to residency and is disclosed as the gap between peak_rss_mb and steady_rss_mb rather than hidden",
+  "warm_witness": {
+    "what": "the warm pass this drive performed before any measured cell, in a process of its own: both generations loaded and one batch thrown at each. Its timings are DISCARDED and recorded only as evidence that the warming happened.",
+    "loads": [
+      {
+        "on": "a",
+        "repo": "Xenova/all-MiniLM-L6-v2",
+        "load_ms": 626
+      },
+      {
+        "on": "b",
+        "repo": "Xenova/multilingual-e5-base",
+        "load_ms": 1217.6
+      }
+    ],
+    "discarded_batches": [
+      {
+        "on": "a",
+        "size": 4,
+        "wall_ms": 160.623413,
+        "dim": 384
+      },
+      {
+        "on": "b",
+        "size": 4,
+        "wall_ms": 267.167097,
+        "dim": 768
+      }
+    ],
+    "cache_dir": "/home/haduong/data/t0577-gpu/cache",
+    "cache_bytes_before": 386831709,
+    "cache_bytes_after_warm": 386831709,
+    "cache_bytes_downloaded_by_warm": 0,
+    "cache_bytes_after_cells": 386831709,
+    "removes": "the weight download, which is paid once per machine and would otherwise sit inside whichever cell ran first. cache_bytes_after_cells equal to cache_bytes_after_warm is the witness that no cell window held one.",
+    "does_not_remove": "the per-process model load and the first-batch graph initialisation. Every cell is a FRESH process by construction, so both are paid in every cell -- they are part of what a resident service costs, not an artefact of the measurement, and the peak/steady split plus rss_baseline_mb are what keep them legible."
+  },
   "what": "peak RSS of one embedding-service process, four cells, one process per cell",
-  "date": "2026-09-03T04:22:39Z",
+  "date": "2026-09-03T04:48:11Z",
   "machine": {
     "host": "padme",
     "cpu": "AMD Ryzen Threadripper PRO 3945WX 12-Cores",
@@ -11,9 +46,9 @@
     "mem_gb": 125.6,
     "node": "v22.23.1",
     "loadavg": [
-      1.6,
-      1.55,
-      1.11
+      1.29,
+      1.93,
+      1.56
     ],
     "arm": "second configuration -- the disclosed GPU host of SPEC.md 5.2.8, reported BESIDE the reference machine and never as a substitute for it. NOT the shipped configuration: the shipped provider passes no device key and runs on the CPU, which the device_controls block measures on this same host.",
     "device_requested": "cuda",
@@ -51,69 +86,69 @@
     "quantum_ms": 1000,
     "a": {
       "size": 128,
-      "wall_ms": 594.7,
+      "wall_ms": 585.6,
       "trail": [
         {
           "size": 1,
-          "wall_ms": 136.2
+          "wall_ms": 133.6
         },
         {
           "size": 2,
-          "wall_ms": 16.5
+          "wall_ms": 17.9
         },
         {
           "size": 4,
-          "wall_ms": 22.2
+          "wall_ms": 25.3
         },
         {
           "size": 8,
-          "wall_ms": 33.2
+          "wall_ms": 33.5
         },
         {
           "size": 16,
-          "wall_ms": 64.5
+          "wall_ms": 60.9
         },
         {
           "size": 32,
-          "wall_ms": 126.2
+          "wall_ms": 130.7
         },
         {
           "size": 64,
-          "wall_ms": 247.1
+          "wall_ms": 245.5
         },
         {
           "size": 128,
-          "wall_ms": 594.7
+          "wall_ms": 585.6
         },
         {
           "size": 256,
-          "wall_ms": 1711
+          "wall_ms": 1665.1
         }
       ]
     },
     "b": {
       "size": 8,
-      "wall_ms": 880.5,
+      "wall_ms": 850.6,
       "trail": [
         {
           "size": 1,
-          "wall_ms": 117
+          "wall_ms": 86
         },
         {
           "size": 2,
-          "wall_ms": 209.2
+          "wall_ms": 135.2
         },
         {
           "size": 4,
-          "wall_ms": 431.5
+          "wall_ms": 376.9
         },
         {
           "size": 8,
-          "wall_ms": 880.5
+          "wall_ms": 850.6
         },
         {
           "size": 16,
-          "wall_ms": 1607.1
+          "wall_ms": 1654
         }
       ]
     }
@@ -122,64 +157,65 @@
     "1": {
       "cell": "1",
       "reps": 5,
-      "peak_rss_mb": 547.7,
-      "peak_rss_mb_min": 547.1,
-      "peak_rss_mb_max": 548.2,
-      "peak_rss_mb_spread": 1.1,
+      "peak_rss_mb": 548.2,
+      "peak_rss_mb_min": 547.8,
+      "peak_rss_mb_max": 548.6,
+      "peak_rss_mb_spread": 0.8,
       "peak_rss_mb_reps": [
-        547.7,
         548.2,
-        547.1,
-        547.2,
+        547.8,
+        548.6,
+        548.2,
         547.8
       ],
-      "steady_rss_mb": 547.7,
+      "steady_rss_mb": 548.2,
       "steady_rss_mb_reps": [
-        547.7,
         548.2,
-        547.1,
-        547.2,
+        547.8,
+        548.6,
+        548.2,
         547.8
       ],
       "batch": null,
       "model_a": {
         "repo": "Xenova/all-MiniLM-L6-v2",
         "dtype": "(package default)",
-        "load_ms": 535.5
+        "load_ms": 515.9
       },
       "model_b": null,
       "wall_s": 2.8,
+      "baseline_rss_mb": 52.1,
       "vram_peak_mb": 318,
       "vram_peak_mb_reps": [
         318,
+        316,
         334,
-        300,
-        302,
-        332
+        332,
+        316
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     },
     "2": {
       "cell": "2",
       "reps": 5,
-      "peak_rss_mb": 950.9,
-      "peak_rss_mb_min": 949.2,
-      "peak_rss_mb_max": 971.2,
-      "peak_rss_mb_spread": 22,
+      "peak_rss_mb": 964.2,
+      "peak_rss_mb_min": 950.1,
+      "peak_rss_mb_max": 965.5,
+      "peak_rss_mb_spread": 15.4,
       "peak_rss_mb_reps": [
-        965.3,
-        971.2,
-        949.2,
-        950.9,
-        949.9
+        965,
+        950.1,
+        964.2,
+        965.5,
+        951.1
       ],
-      "steady_rss_mb": 901.8,
+      "steady_rss_mb": 916.1,
       "steady_rss_mb_reps": [
-        916.7,
-        922.3,
-        901.1,
-        901.8,
-        901.5
+        916.1,
+        902.2,
+        917.3,
+        916.5,
+        902.2
       ],
       "batch": {
         "size_a": 128,
@@ -188,7 +224,7 @@
           {
             "on": "a",
             "size": 128,
-            "wall_ms": 772.007165,
+            "wall_ms": 752.701676,
             "dim": 384
           }
         ]
@@ -196,85 +232,87 @@
       "model_a": {
         "repo": "Xenova/all-MiniLM-L6-v2",
         "dtype": "(package default)",
-        "load_ms": 515.4
+        "load_ms": 508.7
       },
       "model_b": null,
       "wall_s": 3.6,
-      "vram_peak_mb": 2758,
+      "baseline_rss_mb": 52.8,
+      "vram_peak_mb": 2774,
       "vram_peak_mb_reps": [
-        2774,
         2744,
-        2742,
+        2774,
+        2760,
         2776,
-        2758
+        2776
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     },
     "3": {
       "cell": "3",
       "reps": 5,
-      "peak_rss_mb": 1031.4,
-      "peak_rss_mb_min": 1030.1,
-      "peak_rss_mb_max": 1040.2,
-      "peak_rss_mb_spread": 10.1,
+      "peak_rss_mb": 1038,
+      "peak_rss_mb_min": 1029.6,
+      "peak_rss_mb_max": 1039.3,
+      "peak_rss_mb_spread": 9.7,
       "peak_rss_mb_reps": [
-        1030.6,
-        1030.1,
-        1040.2,
-        1037.4,
-        1031.4
+        1029.6,
+        1038.1,
+        1038,
+        1037.6,
+        1039.3
       ],
-      "steady_rss_mb": 1031.4,
+      "steady_rss_mb": 1038,
       "steady_rss_mb_reps": [
-        1030.6,
-        1030.1,
-        1040.2,
-        1037.4,
-        1031.4
+        1029.6,
+        1038.1,
+        1038,
+        1037.6,
+        1039.3
       ],
       "batch": null,
       "model_a": {
         "repo": "Xenova/all-MiniLM-L6-v2",
         "dtype": "(package default)",
-        "load_ms": 514.1
+        "load_ms": 514.5
       },
       "model_b": {
         "repo": "Xenova/multilingual-e5-base",
         "dtype": "q8",
-        "load_ms": 1248.8
+        "load_ms": 1231.3
       },
       "wall_s": 4.1,
-      "vram_peak_mb": 572,
+      "baseline_rss_mb": 52.7,
+      "vram_peak_mb": 824,
       "vram_peak_mb_reps": [
         570,
-        570,
-        834,
         824,
-        572
+        824,
+        824,
+        824
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     },
     "4": {
       "cell": "4",
       "reps": 5,
-      "peak_rss_mb": 1336.7,
-      "peak_rss_mb_min": 1325.5,
-      "peak_rss_mb_max": 1344.4,
-      "peak_rss_mb_spread": 18.9,
+      "peak_rss_mb": 1331.9,
+      "peak_rss_mb_min": 1327.1,
+      "peak_rss_mb_max": 1336.3,
+      "peak_rss_mb_spread": 9.2,
       "peak_rss_mb_reps": [
-        1336.7,
-        1344.4,
-        1326.8,
-        1336.7,
-        1325.5
+        1331.9,
+        1336.3,
+        1329.7,
+        1333,
+        1327.1
       ],
-      "steady_rss_mb": 1336.7,
+      "steady_rss_mb": 1331.9,
       "steady_rss_mb_reps": [
-        1336.7,
-        1344.4,
-        1326.8,
-        1336.7,
-        1325.5
+        1331.9,
+        1336.3,
+        1329.7,
+        1333,
+        1327.1
       ],
       "batch": {
         "size_a": 128,
@@ -283,7 +321,7 @@
           {
             "on": "b",
             "size": 8,
-            "wall_ms": 1006.477534,
+            "wall_ms": 1010.317854,
             "dim": 768
           }
         ]
@@ -291,45 +329,46 @@
       "model_a": {
         "repo": "Xenova/all-MiniLM-L6-v2",
         "dtype": "(package default)",
-        "load_ms": 517.2
+        "load_ms": 514.3
       },
       "model_b": {
         "repo": "Xenova/multilingual-e5-base",
         "dtype": "q8",
-        "load_ms": 1221.1
+        "load_ms": 1205.7
       },
       "wall_s": 5.1,
-      "vram_peak_mb": 842,
+      "baseline_rss_mb": 52.1,
+      "vram_peak_mb": 836,
       "vram_peak_mb_reps": [
-        852,
-        850,
-        842,
-        838,
-        834
+        836,
+        836,
+        834,
+        834,
+        850
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     },
     "4b": {
       "cell": "4b",
       "reps": 5,
-      "peak_rss_mb": 1472.2,
-      "peak_rss_mb_min": 1470.8,
-      "peak_rss_mb_max": 1474.4,
-      "peak_rss_mb_spread": 3.6,
+      "peak_rss_mb": 1479.8,
+      "peak_rss_mb_min": 1471.9,
+      "peak_rss_mb_max": 1487.1,
+      "peak_rss_mb_spread": 15.2,
       "peak_rss_mb_reps": [
-        1472.2,
-        1470.8,
-        1473.8,
-        1474.4,
-        1472.2
+        1478.4,
+        1483.5,
+        1479.8,
+        1487.1,
+        1471.9
       ],
-      "steady_rss_mb": 1472.2,
+      "steady_rss_mb": 1479.8,
       "steady_rss_mb_reps": [
-        1472.2,
-        1470.8,
-        1473.8,
-        1474.4,
-        1472.2
+        1478.4,
+        1483.5,
+        1479.8,
+        1487.1,
+        1471.9
       ],
       "batch": {
         "size_a": 128,
@@ -338,13 +377,13 @@
           {
             "on": "a",
             "size": 128,
-            "wall_ms": 828.881444,
+            "wall_ms": 825.117242,
             "dim": 384
           },
           {
             "on": "b",
             "size": 8,
-            "wall_ms": 1629.50934,
+            "wall_ms": 1589.013,
             "dim": 768
           }
         ]
@@ -352,21 +391,22 @@
       "model_a": {
         "repo": "Xenova/all-MiniLM-L6-v2",
         "dtype": "(package default)",
-        "load_ms": 515.4
+        "load_ms": 522.5
       },
       "model_b": {
         "repo": "Xenova/multilingual-e5-base",
         "dtype": "q8",
-        "load_ms": 1202.8
+        "load_ms": 1211.2
       },
       "wall_s": 5.8,
-      "vram_peak_mb": 3288,
+      "baseline_rss_mb": 52.7,
+      "vram_peak_mb": 3280,
       "vram_peak_mb_reps": [
         3280,
-        3298,
         3294,
+        3278,
         3280,
-        3288
+        3310
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     },
@@ -374,29 +414,30 @@
       "cell": "1b",
       "what": "the multilingual candidate alone, at rest",
       "reps": 5,
-      "peak_rss_mb": 1025.7,
-      "peak_rss_mb_min": 1009.7,
-      "peak_rss_mb_max": 1026.8,
-      "peak_rss_mb_spread": 17.1,
+      "peak_rss_mb": 1026.5,
+      "peak_rss_mb_min": 1018.6,
+      "peak_rss_mb_max": 1027.5,
+      "peak_rss_mb_spread": 8.9,
       "peak_rss_mb_reps": [
-        1025.7,
-        1026.8,
-        1009.7,
-        1026.8,
-        1018.1
+        1026.5,
+        1026.7,
+        1027.5,
+        1018.6,
+        1019.3
       ],
       "batch": null,
       "model_a": {
         "repo": "Xenova/multilingual-e5-base",
         "dtype": "q8",
-        "load_ms": 1543.1
+        "load_ms": 1601.5
       },
+      "baseline_rss_mb": 52.7,
       "vram_peak_mb": 686,
       "vram_peak_mb_reps": [
         686,
         686,
         686,
-        686,
+        432,
         432
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
@@ -405,16 +446,16 @@
       "cell": "2b",
       "what": "the multilingual candidate alone, live batch in flight",
       "reps": 5,
-      "peak_rss_mb": 1315.3,
-      "peak_rss_mb_min": 1308.6,
-      "peak_rss_mb_max": 1318.4,
-      "peak_rss_mb_spread": 9.8,
+      "peak_rss_mb": 1315.6,
+      "peak_rss_mb_min": 1308.3,
+      "peak_rss_mb_max": 1316.3,
+      "peak_rss_mb_spread": 8,
       "peak_rss_mb_reps": [
-        1316.4,
-        1308.6,
-        1318.4,
-        1309.1,
-        1315.3
+        1308.5,
+        1316.3,
+        1315.6,
+        1308.3,
+        1316.1
       ],
       "batch": {
         "size_a": 8,
@@ -423,7 +464,7 @@
           {
             "on": "a",
             "size": 8,
-            "wall_ms": 1011.513988,
+            "wall_ms": 1007.977992,
             "dim": 768
           }
         ]
@@ -431,15 +472,16 @@
       "model_a": {
         "repo": "Xenova/multilingual-e5-base",
         "dtype": "q8",
-        "load_ms": 1658.4
+        "load_ms": 1558.1
       },
-      "vram_peak_mb": 696,
+      "baseline_rss_mb": 52.7,
+      "vram_peak_mb": 698,
       "vram_peak_mb_reps": [
+        696,
+        698,
         698,
         696,
-        696,
-        696,
-        696
+        698
       ],
       "vram_note": "device memory held by THIS process, peak over the cell; not comparable with the host RSS above, which no longer covers weights that moved to the device"
     }
@@ -448,64 +490,72 @@
   "controls_no_settle": {
     "1": {
       "reps": 3,
-      "peak_rss_mb": 538.5,
+      "peak_rss_mb": 538.9,
       "peak_rss_mb_reps": [
-        539.1,
-        536.8,
-        538.5
+        538.9,
+        538.7,
+        539.3
       ]
     },
     "2": {
       "reps": 3,
-      "peak_rss_mb": 904.1,
+      "peak_rss_mb": 889.5,
       "peak_rss_mb_reps": [
         888.8,
-        904.4,
-        904.1
+        902.1,
+        889.5
       ]
     },
     "3": {
       "reps": 3,
-      "peak_rss_mb": 917.5,
+      "peak_rss_mb": 918.3,
       "peak_rss_mb_reps": [
-        917.5,
-        917,
-        918.5
+        918.3,
+        918.4,
+        916.4
       ]
     },
     "4": {
       "reps": 3,
-      "peak_rss_mb": 1134.9,
+      "peak_rss_mb": 1104.5,
       "peak_rss_mb_reps": [
-        1101.7,
-        1138.6,
-        1134.9
+        1104.5,
+        1100,
+        1138.5
       ]
     }
   },
   "device_controls": {
     "shipped_call_no_device_key": {
       "what": "the shipped call: pipeline() with no device key, as fork/src/features/search/embeddings.ts makes it",
-      "peak_rss_mb": 301,
+      "peak_rss_mb": 300.4,
       "vram_peak_mb": null,
       "device": "(shipped default)"
     },
     "explicit_cpu": {
       "what": "an explicit device: cpu, as the shipped provider passes beside a dtype",
-      "peak_rss_mb": 300.9,
+      "peak_rss_mb": 301,
       "vram_peak_mb": null,
       "device": "cpu"
     }
   },
   "deltas_mb": {
-    "live_batch_one_generation": 403.2,
-    "second_generation_at_rest": 483.7,
-    "live_batch_two_generations": 305.3,
-    "dual_embed_window_price": 385.8,
-    "both_batches_in_flight": 440.8,
-    "live_batch_candidate_alone": 289.6
+    "live_batch_one_generation": 416,
+    "second_generation_at_rest": 489.8,
+    "live_batch_two_generations": 293.9,
+    "dual_embed_window_price": 367.7,
+    "both_batches_in_flight": 441.8,
+    "live_batch_candidate_alone": 289.1
   },
-  "ceiling_candidate_mb": 1336.7,
+  "terms_mb": {
+    "fixed_process_baseline": 52.1,
+    "fixed_one_generation_resident": 548.2,
+    "fixed_second_generation_resident": 489.8,
+    "marginal_live_batch_one_generation": 416,
+    "marginal_live_batch_two_generations": 293.9,
+    "note": "a peak, never a rate: nothing here is an elapsed time divided by a count. The batch terms are marginal at THIS run's derived batch size, which is a property of the device and not of the models -- read them beside batch_size_derivation, never alone."
+  },
+  "ceiling_candidate_mb": 1331.9,
   "reps_per_cell": 5,
   "spread_caveat": "every delta below must be read against the per-cell spread in the same table: a delta smaller than the spread of the cells it subtracts is not a measured delta. One rep per cell put cell 4 BELOW cell 3 and made the live-batch term negative, which is what the reps are here to prevent.",
   "c3_reference_mb": 750,
