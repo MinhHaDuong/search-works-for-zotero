@@ -43,6 +43,7 @@ if str(REPO) not in sys.path:
 interface = importlib.import_module("bench.acceptance.interface")
 assertions = importlib.import_module("bench.acceptance.assertions")
 adapter = importlib.import_module("bench.acceptance.adapters.zotseek")
+posture = importlib.import_module("bench.acceptance.posture")
 
 
 def artifact_at(tmp_path: Path, content: bytes = b"") -> Path:
@@ -406,3 +407,50 @@ def test_the_log_exemption_is_one_file_and_not_the_arena(tmp_path):
     target = build(tmp_path)
     stray = target.arena / "something-else"
     assert assertions.residue(frozenset({stray}), target) == [stray]
+
+
+# --- 6. the identity boundary (tickets 0625, 0626) --------------------------
+
+
+def test_running_refuses_before_spawning_when_the_posture_is_unavailable(
+        tmp_path, monkeypatch):
+    """A refused posture must stop the lifecycle before any process starts.
+
+    Ticket 0626: `running()` was verified by code reading alone when the
+    posture was introduced, and a later edit moving `wrap()` below the
+    `Popen` would leave the suite green while every run of this target went
+    back to the operator's own identity.
+
+    `launcher` points at a file that does not exist, so if `running()` ever
+    reached the spawn this would fail with the wrong exception rather than
+    pass by accident. The artifact, by contrast, must be real and must match
+    the pin: `_place_artifact()` runs before the posture check and refuses a
+    missing one, so a stand-in with a patched digest is what lets the test
+    reach the boundary it is about.
+    """
+    import hashlib
+
+    payload = b"not the real add-on, only a file with a known digest\n"
+    artifact = artifact_at(tmp_path, payload)
+    monkeypatch.setattr(adapter, "ARTIFACT_SHA256", hashlib.sha256(payload).hexdigest())
+
+    refused = posture.Posture(
+        posture.ACCOUNT_POSTURE, account=None,
+        refused="synthetic refusal for this test",
+    )
+    target = adapter.ZotSeek(
+        tmp_path / "arena",
+        launcher=tmp_path / "nowhere" / "launcher",
+        artifact=artifact,
+        posture=refused,
+    )
+    with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
+        with target.running():
+            pytest.fail("the lifecycle yielded despite a refused posture")
+    # Not redundant with the raise: a `wrap()` moved BELOW the `Popen` would
+    # still raise, one line late and with a process already started. Here the
+    # nonexistent launcher happens to red that mutation on its own, but the
+    # sibling adapter's launcher does exist -- so the witness that actually
+    # discriminates is asserted in both, rather than left to a coincidence of
+    # the fixture (review of PR #301).
+    assert target._process is None, "a process was started despite the refusal"

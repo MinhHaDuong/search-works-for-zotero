@@ -42,7 +42,7 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "bench"))
 
-from acceptance import adapters  # noqa: E402
+from acceptance import adapters, posture  # noqa: E402
 from acceptance.adapters import zotero_core_6012 as adapter  # noqa: E402
 from acceptance.assertions import (  # noqa: E402
     check_local_by_default,
@@ -540,3 +540,37 @@ def test_the_loader_refuses_a_run_with_no_build_named(tmp_path):
     """A guessed launcher is how a run measures a Zotero nobody pinned."""
     with pytest.raises(SystemExit, match="launcher of a build"):
         adapters.load("zotero-core-6012", tmp_path)
+
+
+# --- 8. the identity boundary (tickets 0625, 0626) --------------------------
+
+
+def test_running_refuses_before_spawning_when_the_posture_is_unavailable(tmp_path):
+    """A refused posture must stop the lifecycle before any process starts.
+
+    Ticket 0626: this adapter's wrapping was verified by code reading alone
+    when the posture was introduced, and a later edit moving `wrap()` below
+    the `Popen` would leave the suite green while every run of this target
+    started a desktop application under the operator's own identity.
+
+    The build has to be real -- `running()` refuses a missing launcher before
+    it ever looks at the posture -- so `a_build` supplies one whose stamp
+    matches the pin. That is exactly why the trailing `_process` assertion is
+    load-bearing here and not decoration: because this launcher *does* exist
+    and *does* execute, `pytest.raises` alone stays green under the defect the
+    ticket describes -- a `wrap()` moved BELOW the `Popen` still raises, one
+    line late, with a real process already started under the operator's own
+    identity. `_process` is `None` at construction and assigned only at the
+    spawn, so it is the one witness that distinguishes a refusal from a
+    too-late refusal. Verified by running that mutation (review of PR #301).
+    """
+    refused = posture.Posture(
+        posture.ACCOUNT_POSTURE, account=None,
+        refused="synthetic refusal for this test",
+    )
+    target = adapter.ZoteroCore6012(
+        tmp_path / "arena", application=a_build(tmp_path), posture=refused)
+    with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
+        with target.running():
+            pytest.fail("the lifecycle yielded despite a refused posture")
+    assert target._process is None, "a process was started despite the refusal"
