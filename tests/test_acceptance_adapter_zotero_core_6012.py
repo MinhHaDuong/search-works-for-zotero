@@ -145,6 +145,36 @@ def test_the_install_event_records_the_build_s_stamp_and_not_its_location(tmp_pa
     assert str(build_at.parent) not in repr(event)
 
 
+def test_a_launcher_with_no_readable_stamp_is_refused(tmp_path):
+    """The pin must not degrade to unchecked without saying so.
+
+    An earlier version folded this case into the stamp comparison, where an
+    empty dict is falsy and the whole check silently passed: a build with no
+    discoverable `application.ini` constructed cleanly and ran unpinned, while
+    the module's prose promised a refusal. A pin that quietly stops checking is
+    worse than no pin, because the artifact then records a revision nobody
+    verified. Found by an independent reviewer on this PR, reproduced live.
+    """
+    unstamped = tmp_path / "unstamped" / "zotero"
+    unstamped.parent.mkdir(parents=True)
+    unstamped.write_text("#!/bin/sh\nexit 0\n")
+    with pytest.raises(ValueError, match="no readable application.ini"):
+        an_adapter(tmp_path, application=unstamped)
+
+
+def test_a_launcher_that_is_not_on_disk_at_all_still_constructs(tmp_path):
+    """The control for the refusal above, and it decides which case is which.
+
+    Nothing built is not the same as built and unpinnable. The declaration must
+    stay readable on a machine with no build, so a launcher that does not exist
+    is not refused here — it is refused at `running()`, where a run would
+    otherwise start nothing and report it as a target defect.
+    """
+    target = an_adapter(tmp_path)  # the path does not exist
+    assert target.build == {}
+    assert target.declaration.name == "zotero/zotero#6012"
+
+
 def test_the_build_id_is_recorded_and_not_enforced(tmp_path):
     """A faithful rebuild of the same commit produces a different BuildID.
 
@@ -249,6 +279,26 @@ def test_no_harness_preference_touches_the_feature_under_test(tmp_path):
     assert not [k for k in written if k.startswith(adapter.TARGET_PREF_PREFIXES)]
     assert "extensions.zotero.httpServer.port" in written
     assert written["extensions.zotero.httpServer.port"] == str(target.port)
+
+
+def test_the_update_check_is_not_suppressed(tmp_path):
+    """R10's subject on this seat IS the target, so its own update check is in scope.
+
+    An earlier version wrote `app.update.enabled=false` for the harness's own
+    convenience. On a plugin seat the host's update traffic is not the target's;
+    here there is no such distinction, and suppressing it would remove egress a
+    default-configuration user's process attempts before the trace ever runs —
+    biasing R10-no-egress in the direction of a green. Every other preference
+    this adapter writes is justified by a citation to its shipped default; this
+    one could not be, which is what identified it. Found by an independent
+    reviewer on this PR.
+    """
+    target = an_adapter(tmp_path, application=a_build(tmp_path))
+    written = dict(target.harness_prefs())
+    assert "app.update.enabled" not in written
+    assert not [k for k in written if k.startswith("app.update")]
+    assert set(written) == {"extensions.zotero.httpServer.port",
+                            "extensions.zotero.httpServer.enabled"}
 
 
 def test_the_declared_defaults_are_the_shipped_ones(tmp_path):
@@ -356,10 +406,33 @@ def test_the_desktop_exemptions_are_argued_and_narrow(tmp_path):
     exempt = {path for path, _why in declared.not_derived_state}
     assert all(why.strip() for _p, why in declared.not_derived_state)
     home = tmp_path / "arena" / "home"
-    assert home / ".cache" in exempt and home / ".config" in exempt
     for root in (home / ".cache" / "mozilla", home / ".config" / "mozilla",
                  home / ".cache" / "zotero", home / ".config" / "zotero"):
         assert root in declared.derived_state_roots
+    # `.config` is NOT exempt as a whole: its two desktop entries are named, so
+    # a new directory appearing there is still residue. An earlier version
+    # exempted the root and hid 108 files behind an argument that applied to two
+    # entries; a reviewer was right that it left the sweep no reach there.
+    assert home / ".config" not in exempt
+    assert home / ".config" / "pulse" in exempt
+    assert home / ".config" / "libreoffice" in exempt
+    # `.cache` stays wholesale for one file whose name embeds the machine's id.
+    # That is the single place this sweep gives up reach, and it is declared.
+    assert home / ".cache" in exempt
+
+
+def test_a_stray_under_the_config_root_is_still_residue(tmp_path):
+    """The red that proves narrowing `.config` bought something.
+
+    Under the earlier wholesale exemption this file was invisible and the sweep
+    reported green. It is the reviewer's point 3 turned into a check.
+    """
+    arena = tmp_path / "arena"
+    arena.mkdir()
+    target = _Fake(arena, (arena / "home" / ".config" / "somewhere" / "strayed.bin",))
+    verdict = check_residue_inventory(target, arena=arena)
+    assert verdict.result == FAIL
+    assert verdict.detail["residue_count"] == 1
 
 
 def test_the_harness_log_is_declared_as_the_harness_instrument(tmp_path):

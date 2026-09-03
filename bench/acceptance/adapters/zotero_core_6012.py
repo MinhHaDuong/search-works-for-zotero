@@ -201,20 +201,29 @@ TARGET_PREF_PREFIXES = (
 )
 
 #: The preferences the harness writes into the profile before the target starts.
-#: Every one is harness setup, declared under `process`, and none touches the
-#: feature under test.
+#: Both are harness setup, declared under `process`, and neither touches the
+#: feature under test. `httpServer.enabled` is written AT ITS SHIPPED DEFAULT
+#: (`true`, `build/defaults/preferences/zotero.js:171`) so the profile states
+#: what was measured rather than leaving it implicit — disclosure of the
+#: default, not a change to it. The port is written by `harness_prefs()` because
+#: it varies; its argument is under `process`.
 #:
-#: The port move exists only so this instance can coexist with the operator's
-#: own and with the other lanes' — and on this target it must be declared for a
-#: second reason: it relocates the target's own HTTP server, which is the
-#: surface `query` and `status` were assessed against. `httpServer.enabled` is
-#: written at its shipped default (`true`, same file:171) so the profile says
-#: what was measured rather than leaving it implicit; `app.update.enabled` is
-#: false because an update that replaced the binary mid-run would silence the
-#: pin check.
+#: **`app.update.enabled` is deliberately NOT here, and its removal is a
+#: correction.** An earlier version of this adapter wrote it false so that an
+#: update could not replace the binary mid-run and silence the pin check. That
+#: reasoning was about the harness's convenience and not about the target, and
+#: on THIS seat it is a non-default option in the contract's plain sense: the
+#: target is the application, so the application's own update check is inside
+#: R10's clause rather than beside it, and suppressing it removes egress a
+#: default-configuration user's process would attempt before the trace ever
+#: runs. Every other preference here is justified by a citation to its shipped
+#: default; that one could not be, which is the tell. It is dropped rather than
+#: argued, and the pin is protected the way it should have been from the start —
+#: by reading `application.ini` from disk at construction. The distinction is
+#: sharper here than on a plugin seat, where the host's update check is not the
+#: target's; it is a place where the platform-native seat is strictly stricter.
 HARNESS_PREFS = (
     ("extensions.zotero.httpServer.enabled", "true"),
-    ("app.update.enabled", "false"),
 )
 
 #: Where this adapter captures the target's own output. Harness instrument, not
@@ -359,10 +368,13 @@ def declaration(arena: Path, *, port: int = 23519) -> Declaration:
             "no embeddings.sqlite is created, measured.\n\n"
             "MEASURED READ-BACK, not transcribed from the shipped defaults, because the "
             "ZotSeek lane found the two can differ. After a full start and a clean "
-            "shutdown the profile carries 46 preference lines — the toolkit's own "
-            "first-run bookkeeping, the application's pane-open state, its "
-            "word-processor-integration record, and the harness's own port — and NOT "
-            "ONE key under extensions.zotero.embeddings. or search.bestMatch. The three "
+            "shutdown the profile carries 37 preferences in 46 lines — the file's nine "
+            "standard header comments make up the difference, and a reviewer was right "
+            "to catch an earlier version of this sentence calling all 46 preferences. "
+            "They are the toolkit's own first-run bookkeeping, the application's "
+            "pane-open state, its word-processor-integration record, and the harness's "
+            "own port — and NOT ONE key under "
+            "extensions.zotero.embeddings. or search.bestMatch. The three "
             "preferences the pull request declares are therefore in effect at their "
             "shipped values, and the ABSENCE is the evidence: the toolkit omits a "
             "preference still sitting at its built-in default. (Contrast ZotSeek, which "
@@ -392,8 +404,23 @@ def declaration(arena: Path, *, port: int = 23519) -> Declaration:
             "which is the whole of what makes this seat different from the plugin ones. "
             "Start: the build's launcher with -profile, -datadir and -no-remote, under "
             "HOME set to a scratch directory inside the arena and DISPLAY pointed at an "
-            "existing X server, with the profile carrying three harness preferences and "
+            "existing X server, with the profile carrying TWO harness preferences and "
             "nothing else. There is no headless mode.\n\n"
+            "Both are named because a preference written by the harness is the easiest "
+            "place for a non-default option to hide as setup. httpServer.enabled is "
+            "written at its shipped default (build/defaults/preferences/zotero.js:171), "
+            "so it discloses rather than changes. The PORT is a real deviation from the "
+            "shipped 23119, and its argument is coexistence and nothing else: several "
+            "instances share this machine, the shipped port is held by a resident one, "
+            "and a collision makes the target fail to start — which the layer would "
+            "read as a defect of the target. It is the same move the ZotSeek adapter "
+            "makes and declares for the same reason. What it cannot change is any "
+            "verdict here: the local API answers 403 at whatever port it listens on, "
+            "measured, so `query` and `status` are absent for a reason the port does "
+            "not touch. A THIRD preference, app.update.enabled=false, was written by an "
+            "earlier version of this adapter and has been REMOVED as a genuine "
+            "non-default option — see the note on HARNESS_PREFS; on this seat the "
+            "application's own update check is inside R10's clause, not beside it.\n\n"
             "Readiness is the appearance of data/zotero.sqlite, measured at 2 s. On a "
             "plugin target that file is the host's and proves nothing about the target, "
             "so ZotSeek has to wait on a file the plugin itself writes; here the two "
@@ -558,34 +585,46 @@ def declaration(arena: Path, *, port: int = 23519) -> Declaration:
             ),
             (
                 home / ".cache",
-                "the DESKTOP's shared cache root, and the exemption is deliberately "
-                "narrower than it looks: the two subtrees under it that are the "
-                "target's — .cache/mozilla and .cache/zotero — are declared as "
-                "derived-state ROOTS above, so they are accounted for by declaration "
-                "rather than by this exemption. What is exempted is the rest: the font "
-                "configuration library's cache, the GL driver's shader cache, and the "
-                "sound server's client cache, all written by libraries the toolkit "
-                "links rather than by the target's own code, and all shared desktop "
-                "state a user already has. Measured: their contents are the whole of the "
-                "nondeterminism between two runs of this adapter (1742 files against "
-                "1498). Read the limit for what it is — the sweep is blind inside "
-                "this directory outside the two declared subtrees",
+                "the DESKTOP's shared cache root, and this is the ONE wholesale "
+                "exemption in this declaration. What it actually covers, enumerated and "
+                "counted on a real run (1070 files created, of which 953 fall under a "
+                "declared root and 1 is the log below): .cache/fontconfig, 3 files, the "
+                "font library's cache; .cache/nvidia, 4 files, the GL driver's shader "
+                "cache; and ONE file directly under .cache — the sound server's client "
+                "cache, whose name embeds this machine's own id. EIGHT FILES. The two "
+                "subtrees here that are the target's, .cache/mozilla (100 files) and "
+                ".cache/zotero, are declared derived-state ROOTS above and are accounted "
+                "for by declaration rather than by this exemption. It stays wholesale "
+                "for the single file, which cannot be named portably; the cost is that "
+                "a NEW entry appearing under .cache would be invisible to the sweep, "
+                "and that is the honest statement of this check's reach. Measured: the "
+                "contents of these three are also the whole of the nondeterminism "
+                "between two runs of this adapter, 1742 files against 1498",
             ),
             (
-                home / ".config",
-                "the DESKTOP's shared configuration root, exempted on the same terms "
-                "and with the same two-declared-subtrees structure: .config/mozilla and "
-                ".config/zotero are declared roots above. What is exempted is the sound "
-                "server's configuration and — the entry that is an admission rather than "
-                "a formality — the office suite's, at .config/libreoffice/. That "
-                "directory exists because the target registers its word-processor "
-                "integration on first run and the office suite's own installer writes "
-                "it (measured; the run's log carries unopkg's output). It is therefore "
-                "state the TARGET CAUSES inside a THIRD program's configuration store, "
-                "and derived_state_roots — a tuple of paths — has no way to say that. "
-                "Declaring the directory a root would claim another program's "
-                "configuration for this target; omitting it silently would hide state "
-                "the target causes. This entry is the admission, not the resolution",
+                home / ".config" / "pulse",
+                "the sound server's own client configuration, 1 file. Named rather than "
+                "covered by a wholesale .config exemption, which an earlier version of "
+                "this declaration used: exempting the whole of .config hid 108 files "
+                "behind an argument that only ever applied to two named entries, and a "
+                "reviewer was right that it left the residue sweep with no reach over "
+                "that root at all",
+            ),
+            (
+                home / ".config" / "libreoffice",
+                "the office suite's own configuration store, 107 files — by far the "
+                "largest exemption here and the one that is an admission rather than a "
+                "formality. It exists because the target registers its word-processor "
+                "integration on first run and the office suite's OWN installer writes "
+                "it (measured; the run's log carries unopkg's output, and the profile "
+                "carries the target's zoteroOpenOfficeIntegration bookkeeping). So it "
+                "is state the TARGET CAUSES inside a THIRD program's configuration "
+                "store, and derived_state_roots — a tuple of paths — has no way to say "
+                "that. Declaring it a root would claim another program's configuration "
+                "for this target; omitting it silently would hide state the target "
+                "causes. This entry is the admission, not the resolution. With it and "
+                "the entry above named, .config is no longer exempt as a whole: a new "
+                "directory appearing there IS residue",
             ),
         ),
     )
@@ -620,6 +659,25 @@ class ZoteroCore6012:
         self.startup_timeout = float(startup_timeout)
         self.settle = float(settle)
         self.build = read_application_ini(self.application)
+        # The launcher's existence is what decides whether the pin CAN be
+        # checked, and it is checked separately from the stamp because the two
+        # failures are different. No launcher on disk means the declaration is
+        # being read on a machine with nothing built, which must keep working.
+        # A launcher WITH no readable application.ini means a build is about to
+        # run unpinned — and an earlier version of this check folded that case
+        # into the stamp comparison, where an empty dict is falsy and the whole
+        # check silently passed. A pin that degrades to unchecked without saying
+        # so is worse than no pin, because the artifact then records a revision
+        # nobody verified while the module's prose promises a refusal.
+        if self.application.is_file() and not self.build:
+            raise ValueError(
+                f"no readable application.ini beside {self.application}. The pin is the "
+                f"Version stamp that build writes, so a launcher without one cannot be "
+                f"checked against {VERSION!r} at all — and an unpinned run is exactly "
+                "what this refusal exists to prevent. Looked beside the launcher and in "
+                "its app/ subdirectory, which is where the tree's own packaging script "
+                "puts it."
+            )
         if self.build and self.build.get("Version") != VERSION:
             raise ValueError(
                 f"{self.application} is not a build of the pinned revision: "
