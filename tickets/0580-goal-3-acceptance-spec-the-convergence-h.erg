@@ -9,6 +9,7 @@ Blocked-by: 0566
 
 2026-09-02T11:57Z claude note This rung's assertions inherit the target interface once the 2026-09-02 ruling is ratified (DECISIONS.md, awaiting): phrased over the interface verbs and an adapter-declared surface, never a tool's file layout. Nothing here changes before that.
 2026-09-02T14:38Z codex note The ratified target interface now governs this rung: shared assertions use adapter-declared surfaces, and convergence is observed after fixture changes rather than commanded or nudged.
+2026-09-03T05:21Z claude note R19 LEFT THIS TICKET. The clause was reworded and merged 2026-09-03 (origin/main 5282918, commit 8ad8cb3): it is now a promise that an equivalent-form query still finds the document in semantic and hybrid search, lexical search exempt, decidable through the query verb with no build and no source access. Action 8 and its exit criterion quoted the retired wording verbatim and are corrected here; the assertion is ticket 0603, blocked on ticket 0029's corpus rather than on this rung's conductor (0566), whose chain terminates in experiment X5. Six terms remain this ticket's, not seven. README.md's goal-3 roster still names 0580 beside 0029 for R19 and is left alone: 0603 adds its address once the check exists.
 --- body ---
 
 ## Context
@@ -16,10 +17,11 @@ Blocked-by: 0566
 Ticket 0026 was ruled a monster on 2026-09-02 and decomposed by ladder rung;
 this is rung 3 of five children, and 0026 is the tracker. Goal 3 is "it answers,
 and it is honest about what it has" (README.md, "## The goals ladder"), and it
-is the widest rung: seven terms, all seven this ticket's. R1 coverage
-converging unattended, R4 the index answering while it is still filling, R6 the
-query path waiting for no freshness work, R17 the coverage sentence, R18 which
-emptiness an empty answer is, R19 at index time, and R32 the build-time bounds.
+is the widest rung: seven terms, six of them this ticket's since the 2026-09-03
+reword moved R19 to ticket 0603. R1 coverage converging unattended, R4 the index
+answering while it is still filling, R6 the query path waiting for no freshness
+work, R17 the coverage sentence, R18 which emptiness an empty answer is, R19's
+promise, and R32 the build-time bounds.
 The instruments are the convergence harness and the soak, specified in SPEC.md
 §5.2.8; every threshold and every bound is that section's, cited here and never
 copied.
@@ -90,10 +92,16 @@ process to drive until 0566 lands.
    with its reason. The clause count is a floor and this one is written as four.
    The device clause — status names the execution device actually serving — is
    the disclosure gate's and gates on every machine.
-8. R19 at index time: every token the query normalizer makes, the index
-   normalizer can make too, asserted against a built index. The codepoint sweep
-   that decides the same property without a build is ticket 0578's; this is the
-   half that needs one.
+8. R19 is **not this ticket's** any more, and this action records why rather
+   than carrying it. It read "every token the query normalizer makes, the index
+   normalizer can make too, asserted against a built index", with the codepoint
+   sweep named as the half that needs no build. The clause was reworded and
+   merged on 2026-09-03 (`DECISIONS.md`; `SPEC.md` R19): it is now a promise
+   that an equivalent-form query still finds the document, in semantic and
+   hybrid search, lexical search exempt — decidable through the `query` verb
+   against any target, with no build of ours and no access to source. The sweep
+   is explicitly ruled out as its evidence. The assertion is **ticket 0603**,
+   blocked on ticket 0029's corpus and not on this rung's conductor.
 9. R32, the build-time gate: assert the pipeline rate on every run and the wall
    clock whenever a full build is available, reporting each stage separately so a
    regression names its stage, and reporting the machine it ran on. Extract and
@@ -160,7 +168,7 @@ matched nothing, and require the two to differ.
       metadata-only counted with reason
 - [ ] R18 asserted: the two emptinesses distinguishable, each against its own
       discriminating state
-- [ ] R19 at index time asserted against a built index
+- [ ] R19 is ticket 0603's after the 2026-09-03 reword; nothing is owed here
 - [ ] R32 asserted: the pipeline rate on every run, the wall clock on a full
       build, per-stage reporting, the machine named
 - [ ] the soak's assertions written, the conductor-latency clause recorded as a
