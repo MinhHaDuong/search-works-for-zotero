@@ -44,8 +44,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from acceptance import adapters  # noqa: E402
 from acceptance.assertions import EGRESS_VERBS, MEANING, check_no_egress  # noqa: E402
 from acceptance.assertions import (  # noqa: E402
+    check_configure_proves_it_works_here,
     check_local_by_default,
     check_model_cache_under_declared_roots,
+    check_pause_holds_across_restart,
+    check_pause_stops_background_work,
     check_residue_inventory,
     check_uninstall_removes_declared_state,
 )
@@ -147,6 +150,18 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
 
     where = arena_for("R15-uninstall-removes-declared-state")
     run.checks.append(check_uninstall_removes_declared_state(make_target(where), arena=where))
+
+    # Goal 1's remaining rung members. Each takes one target in an arena of its
+    # own like the rest; the pause clauses need no second target and no tracer,
+    # which is the sense in which this rung is the cheapest to assert.
+    where = arena_for("R22-pause-stops-background-work")
+    run.checks.append(check_pause_stops_background_work(make_target(where)))
+
+    where = arena_for("R22-pause-holds-across-restart")
+    run.checks.append(check_pause_holds_across_restart(make_target(where)))
+
+    where = arena_for("R31-configure-proves-or-fails-loudly")
+    run.checks.append(check_configure_proves_it_works_here(make_target(where)))
 
     # Goal 2. The two R13 clauses take a SECOND target built over the same arena:
     # two adapter instances resolving one declared derived-state root is what

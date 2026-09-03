@@ -56,6 +56,26 @@ visible only in the counters, which is why R13 is two clauses and not one.
 fixtures mean anything. Two adapter instances over one arena are two processes
 on one data directory; counters held in memory would be two independent ledgers
 and the duplicate-work fixture could not express its defect at all.
+
+**Goal 1's remaining three, added with the pause and configure assertions.**
+
+`ignores-pause` offers the control, answers success from it, and keeps working.
+The finding it models is not a missing switch — a missing switch is
+`not-offered`, which `verbless` already covers, and it is a different finding
+rather than a milder one. `forgets-pause-on-restart` is the same control done
+almost right: the work does stop, and the stopping is kept where a restart loses
+it, which is the state R22's clause names restarts to exclude.
+
+`configures-blind` accepts a configuration without trying it and fails at the
+query that first invokes it. The order is its entire content: the same target
+failing at `configure` would be green, because failing loudly before use is what
+R31 asks for.
+
+**The pause marker is a file for the same reason the ledger is.** A pause held in
+an adapter attribute survives a `running()` block by accident of the process, so
+the restart clause could not be failed by any fixture and could not be passed by
+any target — the assertion would be reading the harness. `forgets-pause-on-restart`
+is exactly the fixture that would then be impossible to write.
 """
 
 import json
@@ -94,6 +114,9 @@ NAMES = (
     "stub-corrupts-on-company",
     "stub-duplicates-work-on-company",
     "stub-abandons-foreign-stamp",
+    "stub-ignores-pause",
+    "stub-forgets-pause-on-restart",
+    "stub-configures-blind",
 )
 
 #: The fixture library: four items of three sections each. These are the
@@ -202,9 +225,17 @@ class _Stub:
                 "index": restored.name, "file_deleted_by_hand": False}
 
     def _edit_one_item(self) -> dict:
-        """One title changes: its record recomputes, and its sections re-embed."""
+        """One title changes: its record recomputes, and its sections re-embed.
+
+        Unless this fixture has been stopped, in which case the change is noticed
+        and no work is done — which is what R22 asks of a target, and what makes
+        `stub-quiet` the green baseline for the pause clauses as well.
+        """
+        event = {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
+        if self._is_paused():
+            return {**event, "work_done_while_stopped": False}
         self._bump(work__record__edit__done=1, work__embed__edit__done=SECTIONS)
-        return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS}
+        return event
 
     def _resync_identical_bytes(self) -> dict:
         """Signals move, keys are verified, nothing is recomputed."""
@@ -279,12 +310,32 @@ class _Stub:
             "work": self._counters(),
         }
 
+    # -- the durable pause -----------------------------------------------------
+
+    def _pause_marker(self) -> Path:
+        """Where this fixture keeps the fact that it was stopped.
+
+        On disk and under the data directory, so it is derived state like
+        everything else here: uninstall removes it with the rest, and a restart
+        finds it. An attribute would survive a `running()` block for reasons that
+        have nothing to do with the target, which is the one thing R22's restart
+        clause must not be allowed to read.
+        """
+        return self._data_dir() / "paused"
+
+    def _is_paused(self) -> bool:
+        return self._pause_marker().is_file()
+
     def pause(self) -> dict:
         self._require("pause")
+        self._write(self._pause_marker(), "background work is stopped\n")
         return {"paused": True}
 
     def resume(self) -> dict:
         self._require("resume")
+        marker = self._pause_marker()
+        if marker.is_file():
+            marker.unlink()
         return {"resumed": True}
 
 
@@ -486,6 +537,67 @@ class _AbandonsForeignStampStub(_Stub):
         return super()._hits(limit)
 
 
+class _IgnoresPauseStub(_Stub):
+    """R22's first red: the control is offered, it answers, and the work goes on.
+
+    It writes the marker like any other fixture and then declines to read it, so
+    the defect is exactly the one an outcome-blind check cannot see: `pause`
+    returns `{"paused": True}`, the reply is honest about having been called, and
+    nothing stopped. A check reading the verb's reply grades this green.
+    """
+
+    def _is_paused(self) -> bool:
+        return False
+
+
+class _ForgetsPauseOnRestartStub(_Stub):
+    """R22's second red: the control holds while the process lives, and no longer.
+
+    The pause is real — a change made in the same process creates no work — and
+    the fact of it is dropped the next time the process starts. That is the
+    common shape of the defect rather than an invented one: a switch kept in a
+    running engine's state costs nothing to implement and looks correct in every
+    test that does not restart anything.
+    """
+
+    def _on_start(self) -> None:
+        marker = self._pause_marker()
+        if marker.is_file():
+            marker.unlink()
+
+
+class _ConfiguresBlindStub(_Stub):
+    """R31's red: the configuration is accepted without being tried, and cannot serve.
+
+    `configure` returns success and validates nothing; the query that first
+    invokes what was configured is where the failure surfaces. The order is the
+    whole fixture — the same target raising at `configure` would be green,
+    because failing loudly before use is R31's other branch.
+    """
+
+    #: Whether this instance has been handed the configuration it never checked.
+    #: The failure is bounded to that, and the bound is what keeps the fixture to
+    #: one cause: a stub whose query raised unconditionally also failed R13's
+    #: both-answer clause, which is a true verdict about the stub and a false lead
+    #: about the defect — a red naming a region instead of a cause.
+    _configured = False
+
+    def configure(self) -> dict:
+        self._require("configure")
+        self._configured = True
+        return {"configuration": self.declaration.default_configuration,
+                "validated": False}
+
+    def query(self, q: str, mode: str, limit: int) -> dict:
+        self._require("query")
+        if not self._configured:
+            return super().query(q, mode, limit)
+        raise RuntimeError(
+            "the configured embedder could not be loaded on this machine, reported "
+            "when the query invoked it — which is after the configuration was accepted"
+        )
+
+
 def _declaration(name: str, arena: Path, *, roots: tuple[Path, ...],
                  unsupported: dict[str, str] | None = None) -> Declaration:
     return Declaration(
@@ -551,6 +663,16 @@ def build(name: str, arena: Path, **_opts):
         return _AbandonsForeignStampStub(
             name, arena, _declaration(name, arena, roots=(data,)))
 
+    if name == "stub-ignores-pause":
+        return _IgnoresPauseStub(name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-forgets-pause-on-restart":
+        return _ForgetsPauseOnRestartStub(
+            name, arena, _declaration(name, arena, roots=(data,)))
+
+    if name == "stub-configures-blind":
+        return _ConfiguresBlindStub(name, arena, _declaration(name, arena, roots=(data,)))
+
     if name == "stub-verbless":
         return _Stub(name, arena, _declaration(
             name, arena, roots=(data,),
@@ -560,6 +682,15 @@ def build(name: str, arena: Path, **_opts):
                              "target that happens to lack a surface today",
                 "query": "declared absent on purpose, as above",
                 "resume": "declared absent on purpose, as above",
+                # Goal 1's two later clauses need the third state as much as the
+                # earlier ones do, and for the sharper reason: R22 is *verified
+                # absent* upstream, so not-offered is the state the layer will
+                # actually report against a real target, and a state no fixture
+                # produces is a state nobody has checked survives the artifact.
+                "pause": "declared absent on purpose, as above; a target with no such "
+                         "control is a different finding from one whose control does "
+                         "nothing, and both must be reachable",
+                "configure": "declared absent on purpose, as above",
             },
         ))
 

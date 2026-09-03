@@ -1,8 +1,15 @@
 """The assertion layer. One clause per assertion, phrased over the seven verbs.
 
-`SPEC.md` §3 owns R10 and R15; `SPEC.md` §5.2.8 owns this harness;
-`DECISIONS.md`'s ratified entry of 2026-09-02 owns the ruling. None is restated
-here — this module cites addresses and asserts clauses.
+`SPEC.md` §3 owns R10, R15, R22 and R31 — goal 1's whole rung, per README.md's
+goals ladder; `SPEC.md` §5.2.8 owns this harness; `DECISIONS.md`'s ratified entry
+of 2026-09-02 owns the ruling. None is restated here — this module cites
+addresses and asserts clauses.
+
+**Why goal 1 is complete here and goal 2 is not.** The ladder's method is tests
+first, bottom-up: until a rung's assertions exist, its rows can only be `code` or
+`inferred`, a claim about nobody. R22 and R31 were the two members of the lowest
+rung with no assertion at all, and the pause clauses read the work counters
+`durability.py` already defines rather than a second set of their own.
 
 **What this file may not contain**, and the reason it is checked rather than
 promised: no target's name, no tool name, no path literal, no data-directory
@@ -44,6 +51,7 @@ from .interface import (
     PASS,
     Check,
     Target,
+    UnsupportedVerb,
     not_offered,
     not_run,
 )
@@ -480,7 +488,23 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
     with target.running():
         target.install()
         target.configure()
-        answered = target.query("a query that exercises the retrieval surface", MEANING, 5)
+        try:
+            answered = target.query(
+                "a query that exercises the retrieval surface", MEANING, 5)
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            # A target whose retrieval surface raises has exercised no weights, so
+            # this clause is undecided — and saying so is not tidiness. Before this
+            # was guarded, one such target ended the whole run mid-fixture with a
+            # traceback: every assertion after it went unrecorded, and the artifact
+            # the gate reads was never written. An assertion that cannot look must
+            # report that it could not look, not take the driver down with it.
+            return not_run(
+                cid, req, clause, falsified, target, "query",
+                f"the target's retrieval surface raised ({type(why).__name__}: {why}), "
+                "so no weights were exercised and nothing here decides where they land",
+            )
         # Read inside the lifecycle: `status` is a verb, and a verb reaches the
         # target through its process. Read after the block and a target with a
         # real lifecycle raises instead of answering.
@@ -513,6 +537,262 @@ def check_model_cache_under_declared_roots(target: Target, *, arena: Path) -> Ch
             "declared_roots": [str(p) for p in target.declaration.derived_state_roots],
             "query_answered": bool(answered),
             "arena": str(arena),
+        },
+    )
+
+
+# --------------------------------------------------------------------------
+# R22 — one obvious way to stop all background work, holding across restarts.
+# --------------------------------------------------------------------------
+#
+# Two clauses, so two assertions, per the layer's unit rule. The requirement's
+# own wording joins them with an "and it MUST", and they fail differently: a
+# target that never stops is a missing control, a target that stops until it is
+# next started is a control that does not hold. One verdict covering both would
+# report the same red for either.
+#
+# **Both grade the `done` half of the counters and nothing else.** A stopped
+# target may still notice a change and record that there is work to do later;
+# recording it is not doing it, and a clause that reddened on a queue would be
+# asking for amnesia rather than for a pause. Every delta lands in the detail so
+# a reader can see what was not graded.
+#
+# **Neither calls `resume`.** The restart clause is about what a target does
+# with no one asking it to carry on, so asking would erase the finding.
+
+
+def _pause_verdict(cid: str, req: str, clause: str, falsified: str, target: Target,
+                   before: dict[str, int], after: dict[str, int], detail: dict) -> Check:
+    """The arithmetic both pause clauses share: did any `done` counter advance.
+
+    Written once because the two clauses differ in what happens between the two
+    reads — a change made while stopped, or a restart and then the change — and
+    not at all in how the reads are graded.
+    """
+    moved = durability.delta(before, after)
+    worked = {k: v for k, v in moved.items()
+              if durability.outcome_of(k) == durability.DONE and v > 0}
+    return Check(
+        check=cid, requirement=req, clause=clause, falsified_by=falsified,
+        result=PASS if not worked else FAIL,
+        target=target.declaration.name, verb="pause",
+        detail={
+            **detail,
+            "done_deltas_while_stopped": worked,
+            "all_deltas_while_stopped": moved,
+            "grades": (
+                "the `done` half of work.<stage>.<trigger>.<outcome> alone: a stopped "
+                "target may record that there is work to do later, and recording it is "
+                "not doing it"
+            ),
+        },
+    )
+
+
+def check_pause_stops_background_work(target: Target) -> Check:
+    """R22: after the control is used, a change that would create work creates none.
+
+    The falsifier is a control that answers and does nothing, and that is the
+    reason this is phrased over counters rather than over the verb's reply. A
+    target returning `paused` from its pause surface satisfies any check that
+    reads the reply, whatever its workers then go on to do; §5.2.8's counters are
+    the only thing here that distinguishes the two.
+
+    A target with no such surface reports `not-offered`, and that is a different
+    finding rather than a softer one: R22's own status on the sheet is *verified
+    absent*, so the state this assertion reaches against stock upstream is the
+    third one, and it must not be scored as a failure at a control the target
+    never claimed to have.
+    """
+    cid, req = "R22-pause-stops-background-work", "R22"
+    clause = ("there is one obvious way to stop all background work, and after it is "
+              "used a change that would create work creates none")
+    falsified = ("any work.*.*.done counter advancing against a change made while the "
+                 "target is stopped")
+
+    for verb in ("pause", "status"):
+        if not target.declaration.offers(verb):
+            return not_offered(cid, req, clause, falsified, target, verb)
+
+    with target.running():
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
+        _, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "before the pause")
+        paused = target.pause()
+        before, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the pause")
+        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        if why:
+            return not_run(cid, req, clause, falsified, target, "pause", why)
+        after, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the change made while stopped")
+
+    return _pause_verdict(cid, req, clause, falsified, target, before, after, {
+        "pause_event": paused,
+        "change_made_while_stopped": change,
+        "restarted": False,
+    })
+
+
+def check_pause_holds_across_restart(target: Target) -> Check:
+    """R22: the control survives the process it was used in.
+
+    The restart is the whole clause. A pause held in a running process stops the
+    work for exactly as long as nothing goes wrong, which is the opposite of what
+    someone reaches for the control to obtain — the machine is closed, the plugin
+    host is restarted, and the work everyone thought was stopped resumes
+    unattended. Here the target's process is stopped and started again through
+    the adapter's own lifecycle, the same one every other assertion uses, and the
+    change is made after the restart.
+
+    `resume` is never called, which is why the clause can be read at all: a
+    harness that asked the target to carry on would be measuring its own request.
+    """
+    cid, req = "R22-pause-holds-across-restart", "R22"
+    clause = ("the control that stops all background work holds across a restart, with "
+              "no one asking for it again")
+    falsified = ("any work.*.*.done counter advancing against a change made after the "
+                 "process is restarted, with no resume in between")
+
+    for verb in ("pause", "status"):
+        if not target.declaration.offers(verb):
+            return not_offered(cid, req, clause, falsified, target, verb)
+
+    with target.running():
+        if durability.work_counters(target) is None:
+            return durability.no_counters(cid, req, clause, falsified, target)
+        _, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "before the pause")
+        paused = target.pause()
+        before, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the pause")
+
+    # The restart the clause is about: the lifecycle closed above, and opens again
+    # here. Nothing asks the target to carry on in between.
+    with target.running():
+        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        if why:
+            return not_run(cid, req, clause, falsified, target, "pause", why)
+        after, settled = durability.settle(target)
+        if not settled:
+            return durability.unsettled(cid, req, clause, falsified, target,
+                                        "after the restart")
+
+    return _pause_verdict(cid, req, clause, falsified, target, before, after, {
+        "pause_event": paused,
+        "change_made_while_stopped": change,
+        "restarted": True,
+        "resume_called": False,
+    })
+
+
+# --------------------------------------------------------------------------
+# R31 — a configuration proves it works here, or fails loudly here.
+# --------------------------------------------------------------------------
+
+
+def check_configure_proves_it_works_here(target: Target) -> Check:
+    """R31: a configuration is not accepted silently and then found unusable.
+
+    The clause offers a target two ways to be right and one way to be wrong, and
+    the assertion is shaped as that disjunction rather than as a search for a
+    validation step. It cannot see whether a target validated anything — the
+    contract fixes seven verbs and says nothing about a configuration's contents,
+    and a harness that reached for the contents would be reading one product's
+    settings file. What it can see is the order of events: `configure` returned
+    without complaint, and then the path it accepted could not answer.
+
+    - `configure` fails loudly: green. It refused before anything used it, which
+      is the clause's second branch in as many words.
+    - `configure` returns and a query is answered: green.
+    - `configure` returns and the query cannot be answered: red. This is the
+      shipped defect R31's row names — the failure fires reactively, when the
+      embedder is actually invoked, rather than upfront.
+
+    **What this does not catch, stated because the row's evidence depends on it.**
+    A target that validates nothing and happens to work on this machine is green
+    here. That is not a hole to be plugged from the harness side: proving that a
+    validation ran needs a configuration known to be unusable, and offering one
+    means naming a target's own configuration surface, which the contract puts in
+    the adapter. Until an adapter offers that, this clause's green means "not
+    caught silently failing", and the sheet's evidence column stays where it is.
+
+    An empty hit list is an answer, not a failure: a target may be configured
+    correctly and hold nothing yet, and a clause about configuration must not
+    redden on an empty corpus.
+    """
+    cid, req = "R31-configure-proves-or-fails-loudly", "R31"
+    clause = ("a configuration offered to me proves it works on this machine before it "
+              "is used, or fails loudly here")
+    falsified = ("a configure that returns without complaint, followed by a query the "
+                 "configured path cannot answer")
+
+    for verb in ("configure", "query"):
+        if not target.declaration.offers(verb):
+            return not_offered(cid, req, clause, falsified, target, verb)
+
+    q, limit = "a query the harness supplies once the configuration is accepted", 5
+    with target.running():
+        try:
+            accepted = target.configure()
+        except UnsupportedVerb:
+            raise
+        except Exception as loud:
+            return Check(
+                check=cid, requirement=req, clause=clause, falsified_by=falsified,
+                result=PASS, target=target.declaration.name, verb="configure",
+                detail={
+                    "configure_failed_loudly": f"{type(loud).__name__}: {loud}",
+                    "reads": ("the clause's second branch: a configuration refused "
+                              "before anything used it is the outcome R31 asks for, "
+                              "and the harness does not second-guess the refusal"),
+                },
+            )
+        try:
+            answer = target.query(q, MEANING, limit)
+        except UnsupportedVerb:
+            raise
+        except Exception as why:
+            return Check(
+                check=cid, requirement=req, clause=clause, falsified_by=falsified,
+                result=FAIL, target=target.declaration.name, verb="configure",
+                detail={
+                    "configure_event": accepted,
+                    "query_failed_after_configure_returned":
+                        f"{type(why).__name__}: {why}",
+                    "reads": ("the configuration was accepted without complaint and the "
+                              "path it accepted could not answer, which is the order the "
+                              "clause forbids"),
+                },
+            )
+
+    hits = durability.hits_of(answer)
+    if hits is None:
+        return not_run(
+            cid, req, clause, falsified, target, "query",
+            "this target answers without reporting what it matched, so whether the "
+            "configured path can serve has nothing here to be read from and the clause "
+            "is not decided",
+        )
+    return Check(
+        check=cid, requirement=req, clause=clause, falsified_by=falsified,
+        result=PASS, target=target.declaration.name, verb="configure",
+        detail={
+            "configure_event": accepted,
+            "hits_after_configure": len(hits),
+            "reads": ("the configuration was accepted and the path it accepted "
+                      "answered; an empty hit list is an answer, not a failure"),
         },
     )
 
@@ -556,5 +836,8 @@ ALL = {
     "R15-residue-inventory": check_residue_inventory,
     "R15-model-cache-under-declared-roots": check_model_cache_under_declared_roots,
     "R15-uninstall-removes-declared-state": check_uninstall_removes_declared_state,
+    "R22-pause-stops-background-work": check_pause_stops_background_work,
+    "R22-pause-holds-across-restart": check_pause_holds_across_restart,
+    "R31-configure-proves-or-fails-loudly": check_configure_proves_it_works_here,
     **durability.ALL,
 }

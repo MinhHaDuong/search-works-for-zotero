@@ -194,12 +194,21 @@ build and no library: they are decidable the moment the system is installed.
 
 `●◐○○` &nbsp; 4 in the bundle · 1 rest on something that ran
 
-| | the clause goal 1 binds | decided at | where its test would live |
+**The rung's assertions all exist**, which is what the method asks for before
+anything on it is made to work: eight checks in
+[`bench/acceptance/assertions.py`](bench/acceptance/assertions.py), each driven
+red against a fail-control of its own before it was believed
+(`make acceptance-fixtures`). That is not the rung being kept, and the evidence
+column below says so: an assertion no target has been run through decides
+nothing about a target. What it ends is the state where a row could not be
+anything but a claim about nobody.
+
+| | the clause goal 1 binds | decided at | where its test lives |
 |---|---|---|---|
-| R10 | my library text and my queries stay on this machine without an opt-in | both | [`bench/smoke_upstream.py`](bench/smoke_upstream.py) |
-| R15 | uninstall removes every declared piece of derived state and leaves no undeclared residue | both | ticket 0578 |
-| R22 | one obvious way to stop all background work, holding across restarts | both | ticket 0033 |
-| R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | ticket 0488 |
+| R10 | my library text and my queries stay on this machine without an opt-in | both | `R10-local-by-default`, `R10-no-egress` |
+| R15 | uninstall removes every declared piece of derived state and leaves no undeclared residue | both | `R15-residue-inventory`, `R15-model-cache-under-declared-roots`, `R15-uninstall-removes-declared-state` |
+| R22 | one obvious way to stop all background work, holding across restarts | both | `R22-pause-stops-background-work`, `R22-pause-holds-across-restart`; the implementation is ticket 0033 |
+| R31 | a configuration offered to me proves it works on my machine, or fails loudly there | both | `R31-configure-proves-or-fails-loudly`; the implementation is ticket 0488 |
 
 ## Goal 2 — it does not lose or corrupt what it built
 

@@ -8,6 +8,7 @@ Author: Minh Ha-Duong
 
 2026-08-31T06:00Z claude note the 2026-08-31 ruling on the swap's motivation (spec/DECISIONS.md) lands on child 0495 only: R7 conformance is the first filter in the ship gate, not one score among several. Stages 0489-0494 are unaffected -- the invariant-first order and the parity proofs do not depend on why the swap happens
 2026-09-02T11:07Z claude note first child 0489 done on fork branch t0489-minilm-singleton-entry (8d2893c, 4b2e32e): the incumbent chain is one registry entry, vectors and vector key byte-identical; three fields authoritative, seven declared for 0490
+2026-09-03T08:01Z R31 is now asserted: R31-configure-proves-or-fails-loudly in bench/acceptance/assertions.py. It grades the order rather than an exception — a configure that returns without complaint followed by a query the configured path cannot answer is the red; a configure that fails loudly is the clause's other branch and is green. Fail-control is stub-configures-blind, whose query raises only once configure has been called, so the red names one cause instead of also failing R13's both-answer clause. Stated limit, carried in the docstring: a target that validates nothing and happens to work here is green, because offering a configuration known to be unusable means naming a target's own configuration surface, which the contract puts in the adapter. The invariant-first implementation is still this ticket's.
 --- body ---
 ## This is a tracking ticket
 
