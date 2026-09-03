@@ -4,11 +4,11 @@
   "ftfy_version": "6.3.1",
   "host": "padme",
   "loadavg": [
-   1.0498046875,
-   0.8251953125,
-   0.8544921875
+   1.01953125,
+   0.86474609375,
+   0.85546875
   ],
-  "measured_at": "2026-09-03T18:54:42+00:00",
+  "measured_at": "2026-09-03T19:02:34+00:00",
   "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
   "python": "3.12.3",
   "storage_realpath": "/home/haduong/data/Zotero-fresh/storage"

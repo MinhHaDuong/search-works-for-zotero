@@ -154,12 +154,12 @@ def test_census_does_not_mutate_the_library(library: Path):
     assert before == after, "the probe is read-only over the author's storage tree"
 
 
-def test_undecodable_bytes_are_counted_not_swallowed(tmp_path: Path):
-    """Bytes that are not UTF-8 are counted rather than hidden by the replace read.
+def test_undecodable_bytes_are_reported_not_swallowed(tmp_path: Path):
+    """A cache with undecodable bytes is a third answer, never a silent 'fine'.
 
-    Named for what it exercises: this is the *decode* path, which never raises.
-    The `OSError` path has its own control above — an earlier version of this
-    file claimed both under this one name and reached neither.
+    This is the decode-error path (readable file, invalid UTF-8) -- see
+    test_permission_denied_directory_is_reported_unreadable below for the
+    genuinely unreadable path (OSError), which is a different code branch.
     """
     root = tmp_path / "storage"
     root.mkdir()
@@ -171,30 +171,32 @@ def test_undecodable_bytes_are_counted_not_swallowed(tmp_path: Path):
     assert r["decode_error_caches"] == 1
 
 
-def test_a_directory_the_walker_cannot_enter_is_counted_not_skipped(library: Path):
-    """The blocker this file exists to keep fixed.
+def test_permission_denied_directory_is_reported_unreadable(tmp_path: Path):
+    """A directory the walker cannot enter is counted, not silently dropped.
 
-    `Path.glob` swallows `PermissionError` inside its own recursion, so a
-    permission-denied attachment directory vanishes from the walk with no count
-    and no error — `unreadable_caches: 0` would then mean either "all readable"
-    or "cannot see failures", which is the all-clear indistinguishable from
-    could-not-look. This is the positive control: a directory made unreadable
-    must show up in the failure count, not in silence.
+    Positive control for the walker's completeness, not just per-cache
+    classification: Path.glob("*/CACHE_NAME") swallows PermissionError while
+    scanning a subdirectory it cannot enter, so a naive walker never even
+    reaches the per-cache try/except -- the directory just vanishes from every
+    count, and "unreadable_caches: 0" becomes indistinguishable between "fully
+    scanned" and "silently skipped". This asserts the walker itself surfaces
+    that failure.
     """
-    if os.geteuid() == 0:
-        pytest.skip("root ignores directory permissions, so the control cannot fire")
-    baseline = census.census(library)
-    denied = library / "BBBBBBBB"
-    denied.chmod(0o000)
+    root = tmp_path / "storage"
+    root.mkdir()
+    _write(root, "AAAAAAAA", "a.pdf", PAGE)
+    denied = root / "BBBBBBBB"
+    denied.mkdir()
+    (denied / "b.pdf").write_text("x")
+    (denied / ".zotero-ft-cache").write_text("secret")
+    os.chmod(denied, 0o000)
     try:
-        r = census.census(library)
+        r = census.census(root)
     finally:
-        denied.chmod(0o755)
-    assert r["unreadable_caches"] == 1
+        os.chmod(denied, 0o755)  # restore so pytest's own cleanup can remove it
+    assert r["caches"] == 1, "the readable cache must still be counted"
+    assert r["unreadable_caches"] == 1, "the denied directory must not vanish silently"
     assert r["unreadable_detail"][0]["key"] == "BBBBBBBB"
-    # And it is genuinely absent from the counted population — the failure is
-    # reported *instead of* being folded in, not on top of it.
-    assert r["caches"] == baseline["caches"] - 1
 
 
 def test_orphaned_and_mixed_attachment_directories_are_counted(tmp_path: Path):
@@ -202,7 +204,7 @@ def test_orphaned_and_mixed_attachment_directories_are_counted(tmp_path: Path):
     root = tmp_path / "storage"
     root.mkdir()
     _write(root, "JJJJJJJJ", "j.pdf", PAGE)
-    (root / "JJJJJJJJ" / "j.pdf").unlink()  # cache survives its attachment
+    (root / "JJJJJJJJ" / "j.pdf").unlink()  # the cache outlives its attachment
     _write(root, "KKKKKKKK", "k.pdf", PAGE)
     (root / "KKKKKKKK" / "k.html").write_bytes(b"<html></html>")  # PDF and not-PDF together
     r = census.census(root)
@@ -221,10 +223,11 @@ def test_the_actionable_population_excludes_what_reextraction_cannot_help(librar
 def test_a_stub_fixer_exercises_the_mojibake_path_without_ftfy(library: Path):
     """The cross-tabulation control must run in the gate, where ftfy is absent.
 
-    The real-ftfy test above skips without it, so the claim the report headlines —
-    that a text signal sorts with the form-feed split — would rest on one manual
-    run. A stub fixer keyed on a marker the fixture carries exercises the same
-    plumbing on every `make check`.
+    `test_mojibake_is_detected_only_where_it_is` skips without ftfy, which is a
+    driver dependency — so the claim the report headlines, that a text signal
+    sorts with the form-feed split, rested on one manual run. A stub fixer keyed
+    on a marker the fixture carries exercises the same plumbing on every
+    `make check`, and the real-ftfy test stays beside it for the detector itself.
     """
     r = census.census(library, mojibake_fixer=lambda t: "Ã" in t)
     assert {c["key"] for c in r["caches_detail"] if c["mojibake"]} == {"EEEEEEEE"}

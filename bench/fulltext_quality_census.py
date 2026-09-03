@@ -48,7 +48,6 @@ import logging
 import os
 import platform
 import socket
-import stat
 import sys
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -95,10 +94,11 @@ def ftfy_version() -> str | None:
 def _attachment_suffixes(directory: Path) -> list[str]:
     """The suffixes of the directory's non-hidden files. Raises on an unlistable one.
 
-    It used to swallow `OSError` and return `[]`, which made an unreadable
-    attachment directory look like an attachment-less one — an unreadable cache
-    silently reclassified as a non-PDF rather than reported. The caller counts
-    the failure instead.
+    It used to swallow `OSError` and return `[]`, which turned a directory that
+    became unreadable mid-walk into an attachment-less one — an unreadable cache
+    silently reclassified as a non-PDF rather than counted as a failure. The
+    walker's `try/except OSError` records it instead, which is the same rule the
+    walk itself now follows.
     """
     return [p.suffix.lower() for p in directory.iterdir() if p.is_file() and not p.name.startswith(".")]
 
@@ -145,32 +145,29 @@ def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
 
 
 def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -> dict:
-    """Walk `storage/*/.zotero-ft-cache` and aggregate. Read-only.
-
-    **The walk is explicit, and `Path.glob` is deliberately not used.** `glob`
-    swallows `PermissionError` while scanning subdirectories, inside its own
-    recursion, before any `try` here could see it: a directory the process cannot
-    enter is simply absent from the results, with no exception, no count and no
-    log line. That would make `unreadable_caches: 0` mean either "everything was
-    readable" or "the walker cannot see failures", which are the same output —
-    and it would mean it under the very count that decides the ticket's
-    population. Enumerating `storage.iterdir()` and probing each directory
-    ourselves puts every failure on the record.
-    """
+    """Walk `storage/*/.zotero-ft-cache` and aggregate. Read-only."""
     detail: list[dict] = []
     unreadable: list[dict] = []
-    root = Path(storage)
-    for entry in sorted(root.iterdir()):
+    # Path.glob("*/" + CACHE_NAME) is not used here: its internal recursion
+    # silently drops a subdirectory it cannot scandir/stat (permission denied),
+    # which made "unreadable_caches" indistinguishable between "fully scanned"
+    # and "silently skipped" -- a real defect found and reproduced by review.
+    # iterdir() on `storage` itself only needs permission on `storage`, so
+    # every immediate child directory is enumerated regardless of its own
+    # permissions; each child's actual read failure then surfaces through the
+    # existing per-cache try/except OSError below, where it belongs.
+    for entry in sorted(Path(storage).iterdir()):
         try:
-            # `entry.is_dir()` / `cache.is_file()` would swallow the same
-            # PermissionError that `glob` does — a predicate returning False is
-            # not distinguishable from a predicate that could not look. `stat`
-            # and `listdir` raise, which is the point.
-            if not stat.S_ISDIR(entry.stat().st_mode):
+            if not entry.is_dir():
                 continue
-            if CACHE_NAME not in os.listdir(entry):
+        except OSError as e:
+            unreadable.append({"key": entry.name, "error": str(e)})
+            continue
+        cache = entry / CACHE_NAME
+        try:
+            if not cache.exists():
                 continue
-            detail.append(classify(entry / CACHE_NAME, mojibake_fixer))
+            detail.append(classify(cache, mojibake_fixer))
         except OSError as e:
             unreadable.append({"key": entry.name, "error": str(e)})
 
@@ -280,9 +277,9 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         # Write-then-rename: a run interrupted partway through leaves the previous
-        # artifact intact rather than a truncated one that still parses as JSON
-        # only sometimes. Cheap here, and this script is proposed as standing
-        # background-campaign machinery.
+        # artifact intact rather than a truncated one that parses as JSON only
+        # sometimes. Cheap, and this script is proposed as standing campaign
+        # machinery rather than a one-off.
         tmp = args.output.with_suffix(args.output.suffix + ".tmp")
         tmp.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
         tmp.replace(args.output)
