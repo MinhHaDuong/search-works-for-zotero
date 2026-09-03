@@ -1,0 +1,705 @@
+{
+  "probe": "the target-neutral acceptance layer, run against one adapter (SPEC.md §5.2.8; DECISIONS.md, ratified 2026-09-02)",
+  "not_a_test_suite": "each check exercises ONE MUST clause of one requirement, once, against ONE named target. A green is a green for that target and for nothing else.",
+  "date": "2026-09-03",
+  "declaration": {
+    "target": "introfini/ZotSeek",
+    "revision": "ZotSeek 1.21.2, commit f442f8258d48e3e73458d74f428ded7086c740f5 (origin/main and tag-level head on 2026-09-03; the repository's only tag, v1.0.0, is nine major versions behind the manifest, so the commit is the pin). The artifact under test is zotseek-1.21.2.xpi, 103284735 bytes, sha256 7daaf964b1f11da274f201a1671dc82560add264f4b56f0b602c31b067ce2e69, fetched through update.json's update_link — the documented user install path. The digest is verified at construction, not assumed. Licence: package.json declares \"MIT\" and the tree carries no LICENSE file, which is why this adapter cites source addresses and reproduces no code.",
+    "derived_state_roots": [
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite",
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite-wal",
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite-shm",
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite-journal",
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite.v7.bak",
+      "/var/tmp/zs-0584/acceptance-final/data/zotseek.sqlite.v8.bak",
+      "/var/tmp/zs-0584/acceptance-final/profile/zotseek-models"
+    ],
+    "query_transport": "none in the default configuration, and that is a measurement rather than an omission. This target's query surfaces are dialogs inside the host application's window (content/searchDialog.xhtml, content/similarDocumentsDialog.xhtml) and a set of REST/MCP endpoints on the host's own HTTP server. The endpoints are registered only when `zotseek.mcpServer.enabled` is true, and the shipped preference file sets it false with the comment \"Opt-in\" (src/server/server-manager.ts:23, 30-40, 71-75). Measured on the running instance at 127.0.0.1:23219: POST to /zotseek/search, /zotseek/stats, /zotseek/mcp and /zotseek/similar all answer 404, in the with-plugin arm and in the host-only arm alike. Turning the preference on is a non-default option, which the ratified contract forbids in as many words, and it would also change R10's subject by opening a listening socket the default configuration does not open.\n\nWhat this field cannot say, and it is the sharper half: there is no wire here at all. This target reaches the library through the host's own in-process data layer — Zotero.Items.getAsync, Zotero.Search, Zotero.Libraries, Zotero.Fulltext.getPages, attachment.attachmentText (src/utils/zotero-api.ts:203-241, 376-421, 474; src/core/hybrid-search.ts:344, 385-386) — and ATTACHes its own sidecar database to the host's live SQLite connection (src/core/vector-store-sqlite.ts:267-293). It never reads the library over the local HTTP API. That port occurs three times in its source and none of them is an outbound call: a comment showing a user how to point an MCP client at it (src/server/mcp-endpoint.ts:10), a fallback default when the plugin builds a URL to its OWN endpoint (src/server/http-tools.ts:164), and a comparison plus a display string in the preference pane's setup instructions (src/ui/preferences.ts:1133, 1136). An external server has a transport to declare; a plugin has the host's data layer in hand, and the field is shaped for the first.",
+    "default_configuration": "the release artifact zotseek-1.21.2.xpi sideloaded into the profile's extensions/ directory — the file-level form of the host's own Tools > Add-ons > Install from file — with no preference of the target's own set by the harness, against an empty library. What that resolves to was READ BACK from the profile after a run rather than transcribed from the shipped defaults, and the two differ: the XPI's prefs.js declares maxTokens 800 and indexingMode \"abstract\", while the effective set carries 2000 and \"full\", plus autoCompact, excludeTag, serverModels and webgpu.enabled, which the shipped file does not contain at all. Sixteen keys under the target's prefix are present after a first run and none in the host-only arm. The ones that decide what this target can be asked: autoIndex false, so no unattended indexing runs; mcpServer.enabled false, so no machine-reachable endpoint exists; embeddingModel nomic-embed-text-v1.5, which is the one model bundled inside the XPI (content/models/Xenova/nomic-embed-text-v1.5/onnx/model_quantized.onnx, 137,3 MB, beside 32,7 MB of onnxruntime wasm), so in the default configuration NOTHING IS DOWNLOADED and R15's model-cache clause has no download to be about. Where a model is not bundled the target fetches it from huggingface.co (src/core/model-download.ts:20, 231) into the profile path declared above. The one remote-processing path the target offers is a local inference server, and its URL is gated to 127.0.0.1, localhost and [::1] at request time with no override preference (src/core/loopback-url.ts:9, 17-37) — an observation about the target's own design, not a verdict, since this adapter measures no egress of its own.",
+    "process": "the harness starts the HOST APPLICATION and the host loads the target; this is the whole of what makes this seat different from the other two adapters. Start: the host's launcher with -profile, -datadir and -no-remote, under HOME set to a scratch directory inside the arena and DISPLAY pointed at an existing X server, with the profile carrying 5 harness preferences and the pinned XPI in its extensions/ directory. Readiness is the appearance of the target's own sidecar database, never the host's: the host coming up says nothing about whether the plugin loaded. Stop: signal the whole process GROUP, twice on SIGTERM and then on SIGKILL — the launcher is a shell script, and the application starts the desktop browser and the office suite's registration helper, so signalling the direct child alone leaves those reparented and alive, and the egress tracer follows descendants and waits for them.\n\nHOME is the sandbox and it is the only one, as on the other adapters — but here most of what appears under it is not the target's. Measured, padme 2026-09-03: a run creates .zotero/, .cache/{zotero,mozilla,fontconfig,nvidia}/, .mozilla/extensions/, .config/{pulse,libreoffice,mozilla}/ and Downloads/ under it, and the host additionally opens its first-run start page in the DESKTOP BROWSER and stages its word-processor integration, both of which inherit this HOME and both of which name their directories with a fresh random string every run. That is why the exemptions below are directory-wide for home/ and profile/.\n\nR10's subject on this architecture is the host's process tree, and on an in-process plugin it is literally the host's process. Two control measurements are recorded here so a reader can price the verdict, and neither is subtracted in code.\n\n(a) The host alone, no plugin, same isolation, same tracer: ZERO off-machine connection attempts and 426 name lookups on a virgin profile, 60 on that profile's second run, against 456 and 80 with the route intact — the lane lead's measurement on padme, 2026-09-03, driver bench/r10_host_baseline.py, artifact bench/results/r10-host-baseline/hostbase.json.\n\n(b) A matched pair run for this adapter, differing in NOTHING but whether the XPI is in the profile — same launcher, same profile shape, the same five harness preferences, the same mechanism and tracer, and a FIXED 120 s dwell in both arms, because a readiness-driven dwell is not the same length in the two and a control that differs in duration is not a control. Without the plugin: 0 off-machine, 56 lookups. With it: 0 off-machine, 60 lookups. Each reproduced to the digit across two independent replicates, against 47 off-machine and 5 lookups with the route intact, which is what says the instrument works here. Measured on padme, 2026-09-03; driver bench/r10_plugin_pair.py, artifact bench/results/0584-zotseek/r10-plugin-pair.json, which also records for each arm whether the plugin's own sidecar appeared — so a reader can tell the with-plugin arms really loaded the plugin rather than merely carrying the file.\n\nThe arena state moves the host's own figure sevenfold, so it is stated plainly: this adapter runs against a VIRGIN profile and data directory, created fresh inside the arena on every construction, never seeded and never cleared afterwards. And the trace cannot attribute the four-lookup difference: every lookup in both arms issues from a single pid, the host's main process, which is where this target's JavaScript runs. A process tracer has no finer resolution than a process, and an in-process plugin has no process of its own — so what makes those four is not established, and this declaration does not guess.",
+    "unsupported_verbs": [
+      "pause",
+      "query",
+      "resume",
+      "status",
+      "uninstall"
+    ],
+    "unsupported": [
+      {
+        "verb": "pause",
+        "why": "a third distinct reason again, and both halves of it are findings. This target HAS unattended background machinery — an auto-index manager on the host's notifier (src/core/auto-index-manager.ts:22-45) — and it is off by default: autoIndex is false in the shipped preferences and false in the effective set measured after a run. So in the default configuration there is no background work to pause. It also HAS a real pause control, and that control is a button in a progress window (src/utils/stable-progress.ts:602-615, read by src/index.ts:1433 waitIfPaused()), over a run the user starts from the GUI. Neither the work nor the control is reachable by a machine here. That is not zotero-mcp's 'there is no such work at all', and it is not zoteus's 'the only action that would serve it also rebuilds'"
+      },
+      {
+        "verb": "query",
+        "why": "the target HAS the surface and does not expose it to a machine by default, which is the opposite finding from an adapter that reports no such work. Its query paths are GUI dialogs inside the host's window, plus REST and MCP endpoints registered only when `zotseek.mcpServer.enabled` is true; the shipped preference file sets it false and comments it \"Opt-in\" (src/server/server-manager.ts:23, 30-40, 71-75). Measured: those endpoints answer 404 on the running default instance. Enabling the preference is a non-default option, which the contract forbids, and it would change R10's subject by opening a listening socket the default configuration does not open. The developer self-test harness behind `zotseek.devMode` is out of bounds for the same reason twice over: a non-default option and a workaround"
+      },
+      {
+        "verb": "resume",
+        "why": "absent for pause's reason and by the same control: resume is the other state of the one progress-window button (src/utils/stable-progress.ts:608-615), so it is exactly as unreachable and exactly as real"
+      },
+      {
+        "verb": "status",
+        "why": "for query's reason, and it was measured rather than assumed. The machine-readable status is the /zotseek/stats endpoint, behind the same opt-in preference; the other report is a GUI dialog. The sidecar database is readable without any opt-in and does NOT carry one: its metadata table holds a single row, schema_version, and the model in effect is not in the database at all but in a host preference read at pipeline init (src/core/model-registry.ts:103-115). Reading a preference file would answer from configuration, and this clause is about a running process — a target that defaults to local and a process that fell back to something else are the same file and different facts. Constructing a status the target does not publish is a workaround, so nothing is constructed"
+      },
+      {
+        "verb": "uninstall",
+        "why": "the surface exists, does real work, and has no trigger a machine can reach — which is a third kind of absence, distinct from both other adapters'. bootstrap.js:90-141 implements a true-uninstall cleanup: it deletes the sidecar database and its journal, wal and shm siblings and deleteBranch()es the whole of the target's preference branch, and it does so only for reason 6, ADDON_UNINSTALL. The only thing that produces that reason in the default configuration is the host's Add-ons manager Remove button, a GUI control. MEASURED, padme 2026-09-03, with a control arm: deleting the sideloaded XPI from the profile while the application was stopped and restarting it does NOT fire the hook — the plugin's own bootstrap lines still appear in the restarted session's debug output, the sidecar database survives, all sixteen preference keys survive, and the string 'uninstall' does not occur once in 1 691 lines of that output. The control arm, an identical restart with the XPI left in place, is indistinguishable. The harness will not delete the declared state on the target's behalf: R15's uninstall clause forbids manufacturing a clean result that way"
+      }
+    ],
+    "not_derived_state": [
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/home",
+        "why": "the sandbox HOME, and the whole of it is the host application's and the desktop's. Measured against a host-only control arm — the identical launch with no plugin installed — 311 files existed only in that arm and 317 only in the with-plugin arm, and every one of those differences is the host's own churn: it opens its first-run start page in the desktop browser and stages its word-processor integration, both inheriting this HOME, both naming their directories with a fresh random string per run. Nothing the target creates was observed here. The exemption is directory-wide because at path granularity the host's baseline is not subtractable, which is finding 2 in this module's docstring and not a convenience"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/profile",
+        "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says, and the statement is narrower than a reader might assume: a green residue verdict on this target means nothing appeared in the data directory OUTSIDE the host's own named entries. It says nothing about the profile, nothing about the sandbox HOME, and nothing about the interiors of the host's own data-directory subdirectories, five of which are exempted with their whole contents (see the entries below). A file strayed into any of those is invisible to this sweep"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/profile/prefs.js",
+        "why": "listed a second time, and separately, because the first exemption would otherwise bury a finding. This file carries state the TARGET creates: sixteen keys under its own preference prefix after a first run, none of them present in the host-only arm. derived_state_roots is a tuple of paths, so the interface cannot express it — the unit here would have to be a key inside a file the host owns and rewrites. Declaring the file a root would claim the host's entire preference store for the target; omitting it would hide state the target creates. This entry is the admission, not the resolution"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/host.log",
+        "why": "the HARNESS's own instrument, not the target's state, and it is listed here because the first real run of this adapter reported it as residue — the only residue in 931 created files. The arena is documented as harness-owned, but the sweep counts every file in it as the target's, so an adapter cannot instrument inside its own arena without declaring the instrument. It is not avoidable by piping instead: this target's host is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict. Neither other adapter meets this, because neither has a process whose output has to survive the run"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite-wal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite-shm",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite-journal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite.bak",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/zotero.sqlite.tmp-wal",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/fulltext.sqlite",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/translators",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/styles",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/locate",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/storage",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/cache",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/logs",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/pipes",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      },
+      {
+        "path": "/var/tmp/zs-0584/acceptance-final/data/tmp",
+        "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running",
+      "result": "not-offered",
+      "target": "introfini/ZotSeek",
+      "verb": "status",
+      "detail": {
+        "verb": "status",
+        "why": "the adapter declares 'status' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "for query's reason, and it was measured rather than assumed. The machine-readable status is the /zotseek/stats endpoint, behind the same opt-in preference; the other report is a GUI dialog. The sidecar database is readable without any opt-in and does NOT carry one: its metadata table holds a single row, schema_version, and the model in effect is not in the database at all but in a host preference read at pipeline init (src/core/model-registry.ts:103-115). Reading a preference file would answer from configuration, and this clause is about a running process — a target that defaults to local and a process that fell back to something else are the same file and different facts. Constructing a status the target does not publish is a workaround, so nothing is constructed",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "result": "fail",
+      "target": "introfini/ZotSeek",
+      "verb": "query",
+      "detail": {
+        "verbs_driven": [
+          "install",
+          "configure"
+        ],
+        "verbs_not_offered": [
+          "resume",
+          "query"
+        ],
+        "isolation_mechanism": {
+          "name": "podman-unshare",
+          "how": "podman unshare: the rootless user namespace, with a fresh empty network namespace inside it for the isolated arm. The host filesystem stays mounted, so the writable set is not enforced on this arm",
+          "writable_enforced": false
+        },
+        "subject": {
+          "mechanism": "podman-unshare",
+          "network_shared": false,
+          "returncode": 0,
+          "attempt_counts": {
+            "off_machine": 0,
+            "dns": 40
+          },
+          "attempts": [
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            }
+          ],
+          "stdout_tail": "ss/data/zotseek.sqlite.v8.bak\": null, \"/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R10-no-egress/profile/zotseek-models\": \"directory\"}, \"target_preference_keys\": [\"zotseek.autoCompact\", \"zotseek.autoIndex\", \"zotseek.autoIndexDelay\", \"zotseek.embeddingModel\", \"zotseek.excludeBooks\", \"zotseek.excludeTag\", \"zotseek.indexScope\", \"zotseek.indexStatusColumn.firstShown\", \"zotseek.indexingMode\", \"zotseek.maxChunksPerPaper\", \"zotseek.maxTokens\", \"zotseek.mcpServer.enabled\", \"zotseek.minSimilarityPercent\", \"zotseek.serverModels\", \"zotseek.topK\", \"zotseek.webgpu.enabled\"]}, \"configure\": {\"verb\": \"configure\", \"applied_at\": \"process start\", \"channel\": \"the host application's preference store, via the profile\", \"harness_preferences\": {\"extensions.zotero.httpServer.port\": \"23219\", \"extensions.autoDisableScopes\": \"0\", \"extensions.enabledScopes\": \"15\", \"extensions.zotero.httpServer.enabled\": \"true\", \"app.update.enabled\": \"false\"}, \"target_preferences_set_by_the_harness\": {}, \"target_preferences_observed\": {\"zotseek.autoCompact\": \"true\", \"zotseek.autoIndex\": \"false\", \"zotseek.autoIndexDelay\": \"10\", \"zotseek.embeddingModel\": \"\\\"nomic-embed-text-v1.5\\\"\", \"zotseek.excludeBooks\": \"true\", \"zotseek.excludeTag\": \"\\\"zotseek-exclude\\\"\", \"zotseek.indexScope\": \"\\\"user\\\"\", \"zotseek.indexStatusColumn.firstShown\": \"true\", \"zotseek.indexingMode\": \"\\\"full\\\"\", \"zotseek.maxChunksPerPaper\": \"100\", \"zotseek.maxTokens\": \"2000\", \"zotseek.mcpServer.enabled\": \"false\", \"zotseek.minSimilarityPercent\": \"30\", \"zotseek.serverModels\": \"\\\"[]\\\"\", \"zotseek.topK\": \"20\", \"zotseek.webgpu.enabled\": \"false\"}, \"observed_count\": 16, \"caveat\": \"the host flushes its preference file asynchronously and on shutdown, so a call made early in a first run sees fewer keys than the same call later. The measured full set is recorded in the declaration's default_configuration; this field is what the profile carries at the moment of the call, and the two are allowed to differ.\"}, \"resume\": \"not-offered\", \"query\": \"not-offered\"}\n",
+          "stderr_tail": ""
+        },
+        "control": {
+          "net_shared": {
+            "mechanism": "podman-unshare",
+            "network_shared": true,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 3
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "isolated": {
+            "mechanism": "podman-unshare",
+            "network_shared": false,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 4
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "why_both": "the shared arm proves the tracer sees attempts and the machine has a route; the isolated arm proves each detector still fires when nothing can leave. Without both, a zero from the subject arm is indistinguishable from an instrument that could not look."
+        },
+        "detectors": {
+          "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+          "dns": "a connect/sendto/sendmsg to a resolver port, loopback included: inside a no-route namespace a hostname attempt dies at resolution and leaves no off-machine connect at all, so a detector without this one reports a false green"
+        },
+        "run_completed": true
+      }
+    },
+    {
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state",
+      "result": "pass",
+      "target": "introfini/ZotSeek",
+      "verb": "install",
+      "detail": {
+        "install_event": {
+          "verb": "install",
+          "channel": "the pinned XPI placed in the profile's extensions/ directory, which is the file-level form of the host's Add-ons > Install from file; made active without a GUI click by the two scope preferences declared under `process`",
+          "artifact": "zotseek-1.21.2.xpi",
+          "artifact_sha256": "7daaf964b1f11da274f201a1671dc82560add264f4b56f0b602c31b067ce2e69",
+          "artifact_bytes": 103284735,
+          "addon_id": "zotseek@zotero.org",
+          "installed_at": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/profile/extensions/zotseek@zotero.org.xpi",
+          "version": "1.21.2",
+          "commit": "f442f8258d48e3e73458d74f428ded7086c740f5",
+          "materialized": {
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite": 557056,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-wal": null,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-shm": null,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-journal": null,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite.v7.bak": null,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite.v8.bak": null,
+            "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/profile/zotseek-models": "directory"
+          },
+          "target_preference_keys": [
+            "zotseek.autoCompact",
+            "zotseek.autoIndex",
+            "zotseek.autoIndexDelay",
+            "zotseek.embeddingModel",
+            "zotseek.excludeBooks",
+            "zotseek.excludeTag",
+            "zotseek.indexScope",
+            "zotseek.indexStatusColumn.firstShown",
+            "zotseek.indexingMode",
+            "zotseek.maxChunksPerPaper",
+            "zotseek.maxTokens",
+            "zotseek.mcpServer.enabled",
+            "zotseek.minSimilarityPercent",
+            "zotseek.serverModels",
+            "zotseek.topK",
+            "zotseek.webgpu.enabled"
+          ]
+        },
+        "arena": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory",
+        "created_count": 1073,
+        "declared_roots": [
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-wal",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-shm",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite-journal",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite.v7.bak",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotseek.sqlite.v8.bak",
+          "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/profile/zotseek-models"
+        ],
+        "not_derived_state": [
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/home",
+            "why": "the sandbox HOME, and the whole of it is the host application's and the desktop's. Measured against a host-only control arm — the identical launch with no plugin installed — 311 files existed only in that arm and 317 only in the with-plugin arm, and every one of those differences is the host's own churn: it opens its first-run start page in the desktop browser and stages its word-processor integration, both inheriting this HOME, both naming their directories with a fresh random string per run. Nothing the target creates was observed here. The exemption is directory-wide because at path granularity the host's baseline is not subtractable, which is finding 2 in this module's docstring and not a convenience"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/profile",
+            "why": "the host application's profile directory: its preference store, its add-on registry, its startup cache, its certificate and cookie stores. R15 excludes externally supplied configuration from derived state and this is the host's, not the target's. The one thing inside it that IS the target's — zotseek-models/ — is declared a derived-state root above, so it is accounted for by declaration rather than by exemption. Read the exemption for exactly what it says, and the statement is narrower than a reader might assume: a green residue verdict on this target means nothing appeared in the data directory OUTSIDE the host's own named entries. It says nothing about the profile, nothing about the sandbox HOME, and nothing about the interiors of the host's own data-directory subdirectories, five of which are exempted with their whole contents (see the entries below). A file strayed into any of those is invisible to this sweep"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/profile/prefs.js",
+            "why": "listed a second time, and separately, because the first exemption would otherwise bury a finding. This file carries state the TARGET creates: sixteen keys under its own preference prefix after a first run, none of them present in the host-only arm. derived_state_roots is a tuple of paths, so the interface cannot express it — the unit here would have to be a key inside a file the host owns and rewrites. Declaring the file a root would claim the host's entire preference store for the target; omitting it would hide state the target creates. This entry is the admission, not the resolution"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/host.log",
+            "why": "the HARNESS's own instrument, not the target's state, and it is listed here because the first real run of this adapter reported it as residue — the only residue in 931 created files. The arena is documented as harness-owned, but the sweep counts every file in it as the target's, so an adapter cannot instrument inside its own arena without declaring the instrument. It is not avoidable by piping instead: this target's host is a desktop application whose stdout is the only diagnostic when it fails to come up, and an in-memory capture would be gone by the time anyone read the verdict. Neither other adapter meets this, because neither has a process whose output has to survive the run"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite-wal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite-shm",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite-journal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite.bak",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/zotero.sqlite.tmp-wal",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/fulltext.sqlite",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/translators",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/styles",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/locate",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/storage",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/cache",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/logs",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/pipes",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          },
+          {
+            "path": "/var/tmp/zs-0584/acceptance-final/2026-09-03/012953-R15-residue-inventory/data/tmp",
+            "why": "the host application's own file in its data directory, measured in a host-only control arm (identical launch, no plugin installed) on padme, 2026-09-03. Exempted entry by entry rather than by exempting the data directory, so that the sweep stays able to see a file the target strays into the one directory it does write to. Where the entry is itself a directory — translators, styles, locate, storage, cache, logs, pipes, tmp — the whole of its contents is exempted with it, and the sweep is blind inside them. That is a real limit and not a formality: storage/ is the attachment store, so derived state written there would not be seen"
+          }
+        ],
+        "residue": [],
+        "residue_count": 0,
+        "reads": "the declaration is compared against what appeared in a harness-owned arena, never read back against itself"
+      }
+    },
+    {
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say",
+      "result": "not-offered",
+      "target": "introfini/ZotSeek",
+      "verb": "query",
+      "detail": {
+        "verb": "query",
+        "why": "the adapter declares 'query' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the target HAS the surface and does not expose it to a machine by default, which is the opposite finding from an adapter that reports no such work. Its query paths are GUI dialogs inside the host's window, plus REST and MCP endpoints registered only when `zotseek.mcpServer.enabled` is true; the shipped preference file sets it false and comments it \"Opt-in\" (src/server/server-manager.ts:23, 30-40, 71-75). Measured: those endpoints answer 404 on the running default instance. Enabling the preference is a non-default option, which the contract forbids, and it would change R10's subject by opening a listening socket the default configuration does not open. The developer self-test harness behind `zotseek.devMode` is out of bounds for the same reason twice over: a non-default option and a workaround",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall",
+      "result": "not-offered",
+      "target": "introfini/ZotSeek",
+      "verb": "uninstall",
+      "detail": {
+        "verb": "uninstall",
+        "why": "the adapter declares 'uninstall' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "the surface exists, does real work, and has no trigger a machine can reach — which is a third kind of absence, distinct from both other adapters'. bootstrap.js:90-141 implements a true-uninstall cleanup: it deletes the sidecar database and its journal, wal and shm siblings and deleteBranch()es the whole of the target's preference branch, and it does so only for reason 6, ADDON_UNINSTALL. The only thing that produces that reason in the default configuration is the host's Add-ons manager Remove button, a GUI control. MEASURED, padme 2026-09-03, with a control arm: deleting the sideloaded XPI from the profile while the application was stopped and restarting it does NOT fire the hook — the plugin's own bootstrap lines still appear in the restarted session's debug output, the sidecar database survives, all sixteen preference keys survive, and the string 'uninstall' does not occur once in 1 691 lines of that output. The control arm, an identical restart with the XPI left in place, is indistinguishable. The harness will not delete the declared state on the target's behalf: R15's uninstall clause forbids manufacturing a clean result that way",
+        "unsupported_verbs": [
+          "pause",
+          "query",
+          "resume",
+          "status",
+          "uninstall"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 1,
+    "not-offered": 3,
+    "not-run": 0
+  }
+}

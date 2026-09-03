@@ -1,0 +1,51 @@
+{
+  "probe": "R10 destinations for one argv, on both arms. An OBSERVATION carried beside the acceptance layer's verdict, never a verdict: SPEC.md §3 R10 is asserted in bench/acceptance/, which never runs its subject with a route. This does, because inside a no-route namespace every name resolves to the same stub resolver and a destination has no name.",
+  "label": "with-plugin-isolated-via-drive",
+  "conditions": "the acceptance layer subject argv exactly, on a fresh arena, to see whether the drive path reproduces its own count",
+  "date": "2026-09-03",
+  "mechanism": "podman-unshare",
+  "argv": [
+    "python3",
+    "/home/haduong/data/ladder/beaver/harness/bench/acceptance/run.py",
+    "--adapter",
+    "beaver",
+    "--arena",
+    "/home/haduong/data/ladder/beaver/ab/drive1",
+    "--drive",
+    "--adapter-option",
+    "zotero=/home/haduong/.local/Zotero_linux-x86_64/zotero",
+    "--adapter-option",
+    "xpi=/home/haduong/data/ladder/beaver/beaver.xpi",
+    "--adapter-option",
+    "display=:1",
+    "--adapter-option",
+    "port=23319",
+    "--adapter-option",
+    "dwell=75"
+  ],
+  "env_overrides": [
+    "DISPLAY"
+  ],
+  "instrument_works_here": null,
+  "cells": {
+    "isolated": {
+      "network_shared": false,
+      "returncode": 0,
+      "attempt_counts": {
+        "off_machine": 0,
+        "dns": 60
+      },
+      "destinations": [
+        {
+          "detector": "dns",
+          "address": "127.0.0.53",
+          "port": 53,
+          "attempts": 60,
+          "reverse_name": null,
+          "destination": "127.0.0.53:53/dns"
+        }
+      ],
+      "stderr_tail": ""
+    }
+  }
+}
