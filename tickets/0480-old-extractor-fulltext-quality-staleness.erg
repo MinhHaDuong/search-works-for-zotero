@@ -8,6 +8,12 @@ Author: Minh Ha-Duong
 2026-08-30T09:20Z claude note filed at the author's request, same session as the presence-probe ruling (spec/DECISIONS.md 2026-08-30) — this is that ruling's sibling: cache-lost is availability staleness, this ticket is quality staleness. The author's estimate for his library: roughly half the full-text cache was produced by the old extractor and could be improved
 
 2026-08-31T14:54Z claude note upstream v1.12.0 (2026-08-31) bears on the staleness class here: #39 makes a full-text crawl throttle itself and back off when the desktop local API degrades, and #37 refuses the pass entirely under Electron. A build that refuses or throttles leaves older extractor output in place for longer, which is this ticket's class rather than cache loss. Re-derive against v1.12.0
+2026-09-03T18:00Z claude note IMAGINE+PLAN pass, re-derived against the reviewed baseline v1.13.0 (`b0e0bc8`, ticket 0618). Both facts framing the design space survive the re-baseline: ticket 0618's own re-read states `fulltext-source.ts` is untouched v1.12.0..v1.13.0, so upstream PR #29's local-extraction-when-absent path stands unmoved; no delta note in 0618 or 0033's 2026-09-03 re-derivation names a reindex/reextract endpoint landing, so X6's "no re-extraction API" fact is not contradicted by anything found — reported as "not contradicted", not as a fresh negative measurement, since no line-by-line read of the v1.13.0 API surface was done here. One qualifier: this repo's own `bench/zotero-fulltext-plugin/` (used by X6's 2026-09-02 live positive control, `bench/zotero_fulltext.py reindex`) DOES force real re-extraction headlessly — but it is a custom Zotero plugin this repo built for measurement, absent from README.md/SPEC.md/GOVERNANCE.md, not a Zotero-platform API. X6's fact is about the platform; it still holds. The plugin is useful for building this ticket's Test fixture (a controlled positive control that forces one attachment into each generation) but is not a route the design should lean on for production healing — GOVERNANCE.md's scoped-issue lane, not a side-channel, is what Action 4 still targets.
+2026-09-03T18:00Z claude note TWO LIVE SOURCES for Action 1, and a THIRD better than both. (1) Zotero Web API `https://api.zotero.org/users/95318/fulltext` — confirmed live, ~17,453-entry `{itemKey: version}` map, per-item content via `.../items/{key}/fulltext` returning `{content, indexedPages, totalPages}`. No sidecar/mtime fields. (2) padme's local API `http://127.0.0.1:23119/api/users/0/` — NOT reachable when checked this session (`connect to 127.0.0.1 port 23119 ... Connexion refusée`; Zotero desktop was not running at the time of this check, cause not established — a prior session's sync having finished does not mean the process is still up). (3) padme's Zotero storage directory itself, `/home/haduong/data/Zotero-fresh/storage/` — readable with NO live process required: 13,327 of 15,636 storage subdirectories already carry a `.zotero-ft-cache` sidecar file, confirming Zotero's own local text extraction is substantially complete on disk right now, independent of whether the local API answers. This is the same route ticket 0120's PDF census used (direct filesystem read, not the local API), and it is the one source carrying the mtime and sidecar-content fields Action 1's heuristics need. RECOMMENDATION: Action 1's primary source is the filesystem census (3), cross-checked for item-count scope against the Web API map (1); source (2) is a nice-to-have when the local API happens to be up, not a dependency — designing Action 1 around a live local-API dependency would make it non-reproducible from one run to the next on this same machine.
+2026-09-03T18:00Z claude note ITEM-COUNT-SCOPE DISCREPANCY, flagged rather than resolved. padme's fresh sync: 17,518 items (per the task briefing) / 15,636 storage subdirectories (measured here). Web API fulltext map: ~17,453 entries. SPEC.md §5.2.8's illustrative coverage sentence cites 7,541 items as "the real library" — but that figure's provenance (per ticket 0060's log) is a specific earlier bench build's example output, not a live re-count, and nothing found here re-measures it against the current library. Two candidate explanations, neither confirmed: (a) the local sync scope includes group libraries the Web API's user-scoped endpoint excludes (DMTFBDWK, the group-library key in X6's 2026-09-02 positive control, is consistent with this); (b) the library has simply grown since the 7,541 figure was set and that figure is stale. This is exactly the kind of scope question Action 1 must record as an explicit early finding — the "roughly half" estimate is meaningless until the denominator's own scope is stated and justified, not silently inherited from whichever source answers first.
+2026-09-03T18:00Z claude note PRECEDENT ALREADY MEASURED: ticket 0120's 2026-08-29 fts5vocab/ft-cache census (filesystem, PDFs only) found 4,708 of 8,590 PDF `.zotero-ft-cache` files carry U+000C form feeds and 3,882 do not, split generationally by mtime — the form-feed group is 4,695/4,708 from 2024-2026 (Zotero's PDFWorker.getFullText extractor, verified against shipped `fulltext.js`), the plain group 3,825/3,882 from 2019-2024 (poppler pdftotext, still wired for other callers). That is 54.8%/45.2%, matching "roughly half" for PDFs specifically, and the mtime-generational split holding for ~99% of both groups is close to a ready-made detection heuristic with a measured ~1% cross-generational residual — Action 1 should treat this as a partial answer to re-run at current library scale (the population has grown, per the discrepancy above) and Action 2 should treat 0120's split as the primary signal, not derive one from scratch. 0120's census was PDF-restricted; HTML/epub/plain-text caches (8 html, 10 epub, 3 text/xml per 0120) need either their own signal or an explicit "not assessed" bucket, not a form-feed test they cannot pass or fail meaningfully.
+2026-09-03T18:00Z claude note ANTIPATTERN SCAN: no maintained-library check found in this repo for ligature/mojibake detection (grepped for `ftfy`/`mojibake`/`ligature`: only this ticket's own prose and 0120's ONNX-segmenter note, which is unrelated). Before hand-rolling regex heuristics for mangled diacritics/mojibake, evaluate `ftfy` (the standard maintained Python library for exactly this: `ftfy.badness` / `fix_text` diff as a weirdness score) rather than inventing one. Form-feed presence needs no library — it is a single-byte scan, and 0120 already validated it. If `ftfy` is adopted, it must be declared per `bench/check_deps.py`'s convention (a name used and not declared, or declared and not used, fails `make check`) — it is lightweight (no torch), so it likely belongs beside `numpy` in `requirements-check.txt` rather than `requirements-drivers.txt`, but that placement is Action 1's implementation call, not ruled here.
+2026-09-03T17:53Z claude note ITEM-COUNT-SCOPE DISCREPANCY RESOLVED. Author's hunch confirmed directly against padme's local API: `/items` (every item record, including each child attachment and note) returns 17,518; `/items/top` (top-level bibliographic entries only) returns 7,546 — 5 above SPEC.md §5.2.8's cited 7,541, consistent with ordinary library growth since that figure was recorded, not a scope error. Neither of the two candidates logged above was it: not group-library inclusion, not a stale figure needing a real re-pin, just entries versus every item record. Action 1's denominator is therefore 7,546 top-level items (or whatever subset of those carries a PDF attachment), not 17,518 — re-derive the "roughly half" population against `/items/top`, and state this scope explicitly in the artifact rather than letting the two figures be read as comparable.
 --- body ---
 ## Context
 
@@ -70,30 +76,69 @@ Two established facts frame the design space:
 
 ## Actions
 
-1. Measure the population: a probe over the real library classifying each
-   cached extraction (sidecar fields, mtimes, quality heuristics), testing
-   the "roughly half" estimate. Artifact to `bench/results/`, no library
-   mutation.
+1. Measure the population: a probe reading `.zotero-ft-cache` sidecars
+   directly from the local Zotero storage directory (the filesystem route
+   0120 already used, not the local API — it needs no live Zotero process
+   and carries the mtime field the heuristic depends on). Classify each
+   cache: content-type bucket (PDF vs HTML/epub/plain-text/other, per 0120's
+   split), form-feed presence for the PDF bucket, mtime generation
+   (pre/post 2024, per 0120), and, if adopted, an `ftfy`-based weirdness
+   score for a mojibake/ligature signal. Cross-check item-count scope
+   against the Web API's `.../fulltext` version-map and record the
+   discrepancy (17,518 local items / ~17,453 Web API entries / 7,541 in
+   SPEC.md §5.2.8 — see log) as an explicit early finding with a stated
+   cause or an honest "not established", never silently resolved by picking
+   whichever denominator is convenient. Artifact to `bench/results/`, no
+   library mutation.
 2. From the measurement, propose the detection heuristic and its false-flag
-   rate — a wrong "poor" flag re-extracts needlessly (cost), a wrong "fine"
-   flag leaves bad text served (the current state, so the floor is known).
+   rate. 0120's mtime-generational split is the starting candidate (measured
+   ~99% clean separation on PDFs at 2026-08-29 scale, ~1% cross-generational
+   residual) — re-measure it at current library scale rather than assume it
+   still holds, since the population has grown (finding above). State the
+   false-flag rate separately per bucket: a wrong "poor" flag re-extracts
+   needlessly (cost), a wrong "fine" flag leaves bad text served (the
+   current state, so that is the floor, not a new failure). Non-PDF buckets
+   get their own signal or an explicit not-assessed classification, never a
+   form-feed test they cannot meaningfully pass.
 3. Draft the ruling question for the author: preference policy and its
    contract wording (DECISIONS.md, awaiting ratification).
 4. If ratified: design edit (derivation key gains extractor identity; the
    background campaign's budget) and the upstream-facing text via the
-   scoped-issue lane.
+   scoped-issue lane (GOVERNANCE.md bounds) — never via
+   `bench/zotero-fulltext-plugin`'s side-channel, which is measurement
+   instrumentation, not a shippable healing path.
 
 ## Test
 
-- The population probe runs against a fixture directory with a known mix of
-  old-style and current-style caches and classifies both correctly before it
-  touches the real library (positive control first).
+- A fixture directory with a known, hand-labelled mix, built before the
+  probe touches real data (positive control first): at minimum (a) PDF
+  caches with form feeds and a post-2024 mtime (current-style, label
+  "current"), (b) PDF caches with no form feeds and a pre-2024 mtime
+  (old-style, label "old"), (c) a genuinely ambiguous pair — a form-feed
+  cache with a pre-2024 mtime AND a no-form-feed cache with a post-2024
+  mtime — so the heuristic is exercised on the case it is expected to get
+  wrong sometimes, not only the case it is built to get right, and (d) one
+  each of the non-PDF content types (HTML, epub, plain text) that must
+  classify as not-assessed rather than as old or current. The probe must
+  classify (a)/(b) correctly, (c) as the heuristic's own false-flag budget
+  predicts rather than either always-right or always-wrong, and (d) as
+  not-assessed, before it runs against the real library.
+- Antipattern check on the fixture itself: (c) exists precisely so the test
+  is not tautological — a fixture built only from cases where form-feed
+  presence and mtime already agree would pass by construction, since that
+  is the same rule generating both the fixture labels and the heuristic's
+  prediction, and would prove nothing about the heuristic's actual
+  false-flag rate.
 
 ## Verification
 
 - [ ] Population measured on the real library, artifact committed with
       provenance
-- [ ] Detection heuristic proposed with measured false-flag behaviour
+- [ ] Item-count-scope discrepancy (local vs Web API vs SPEC.md's 7,541)
+      resolved with a stated cause, or recorded as an open question naming
+      the one experiment that would settle it — never silently dropped
+- [ ] Detection heuristic proposed with measured false-flag behaviour, per
+      content-type bucket
 - [ ] Ruling question filed in DECISIONS.md awaiting ratification
 
 ## Invariants
