@@ -91,22 +91,45 @@ def ftfy_version() -> str | None:
     return getattr(ftfy, "__version__", "unknown")
 
 
-def _attachment_suffixes(directory: Path) -> list[str]:
-    out = []
+def _attachment_files(directory: Path) -> list[Path]:
+    """The directory's non-hidden files. Raises on an unlistable one.
+
+    It used to swallow `OSError` and return `[]`, which turned a directory that
+    became unreadable mid-walk into an attachment-less one — an unreadable cache
+    silently reclassified as a non-PDF rather than counted as a failure. The
+    walker's `try/except OSError` records it instead, which is the same rule the
+    walk itself now follows.
+    """
+    return [p for p in directory.iterdir() if p.is_file() and not p.name.startswith(".")]
+
+
+def _is_pdf_file(path: Path) -> bool:
+    """Suffix first; an extensionless file is sniffed for the `%PDF` magic bytes
+    rather than assumed non-PDF. Confirmed against the real library: all 20 of
+    this census's "no attachment" directories in an earlier pass held one file
+    each with no suffix at all, and every one of them opened with `%PDF` --
+    Zotero's storage occasionally drops the extension from a downloaded
+    filename, the file underneath is unchanged. Reading four bytes is cheap
+    next to decoding the cache text this function already pays for.
+    """
+    if path.suffix.lower() == ".pdf":
+        return True
+    if path.suffix:
+        return False
     try:
-        for p in directory.iterdir():
-            if p.is_file() and not p.name.startswith("."):
-                out.append(p.suffix.lower())
+        with path.open("rb") as f:
+            return f.read(4) == b"%PDF"
     except OSError:
-        pass
-    return out
+        return False
 
 
 def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -> dict:
     """One cache's quality signals. Never raises on a bad file — it reports it."""
     directory = cache.parent
-    suffixes = _attachment_suffixes(directory)
-    is_pdf = ".pdf" in suffixes
+    files = _attachment_files(directory)
+    suffixes = [p.suffix.lower() for p in files]
+    pdf_files = [p for p in files if _is_pdf_file(p)]
+    is_pdf = bool(pdf_files)
 
     raw = cache.read_bytes()
     text = raw.decode("utf-8", errors="replace")
@@ -118,6 +141,17 @@ def classify(cache: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
         "key": directory.name,
         "is_pdf": is_pdf,
         "suffixes": sorted(set(suffixes)),
+        # Two ways the directory-scoped `is_pdf` can be wrong, each counted rather
+        # than assumed away: a cache with no co-located attachment at all (the
+        # extraction's source is gone, so nothing dates it), and a directory
+        # holding a PDF *and* something else, where the cache text may have come
+        # from either. Neither is inside the single-page false-flag ceiling.
+        # Both checks are file-presence-based (via `files`/`pdf_files`), not
+        # suffix-based -- an extensionless real PDF (confirmed on the real
+        # library: every one of this census's "no attachment" hits, before
+        # this fix, was actually one of these) must not read as absent.
+        "no_attachment": not files,
+        "mixed_attachments": is_pdf and len(files) > len(pdf_files),
         "bytes": len(raw),
         "words": words,
         "form_feeds": form_feeds,
@@ -186,6 +220,14 @@ def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
         # a cache with literally no words is a PDF Zotero could not read at all,
         # which no re-extraction fixes and OCR might.
         "pdf_zero_words": sum(1 for c in pdfs if c["words"] == 0),
+        # The number a policy would act on: old-generation caches that hold real
+        # text and could be improved by re-extraction. The raw no-form-feed count
+        # includes near-empty caches, which need OCR and not a better extractor,
+        # so quoting it as the population would put an OCR population inside a
+        # re-extraction estimate.
+        "pdf_reextraction_population": sum(1 for c in no_ff if not c["near_empty"]),
+        "caches_with_no_attachment": sum(1 for c in detail if c["no_attachment"]),
+        "pdf_caches_mixed_attachments": sum(1 for c in pdfs if c["mixed_attachments"]),
         "pdf_mojibake": (sum(1 for c in measured if c["mojibake"]) if measured else None),
         "pdf_mojibake_measured": len(measured),
         "pdf_with_ligatures": sum(1 for c in pdfs if c["ligatures"] > 0),
@@ -259,7 +301,13 @@ def main() -> int:
 
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+        # Write-then-rename: a run interrupted partway through leaves the previous
+        # artifact intact rather than a truncated one that parses as JSON only
+        # sometimes. Cheap, and this script is proposed as standing campaign
+        # machinery rather than a one-off.
+        tmp = args.output.with_suffix(args.output.suffix + ".tmp")
+        tmp.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+        tmp.replace(args.output)
         logging.info("wrote %s", args.output)
     return 0
 

@@ -199,6 +199,89 @@ def test_permission_denied_directory_is_reported_unreadable(tmp_path: Path):
     assert r["unreadable_detail"][0]["key"] == "BBBBBBBB"
 
 
+def test_orphaned_and_mixed_attachment_directories_are_counted(tmp_path: Path):
+    """Two ways the directory-scoped `is_pdf` can be wrong, each bounded rather than assumed away."""
+    root = tmp_path / "storage"
+    root.mkdir()
+    _write(root, "JJJJJJJJ", "j.pdf", PAGE)
+    (root / "JJJJJJJJ" / "j.pdf").unlink()  # the cache outlives its attachment
+    _write(root, "KKKKKKKK", "k.pdf", PAGE)
+    (root / "KKKKKKKK" / "k.html").write_bytes(b"<html></html>")  # PDF and not-PDF together
+    r = census.census(root)
+    assert r["caches_with_no_attachment"] == 1
+    assert r["pdf_caches_mixed_attachments"] == 1
+
+
+def test_an_extensionless_pdf_is_sniffed_not_assumed_absent(tmp_path: Path):
+    """A red-team finding on the real library: every 'no attachment' hit before
+    this test existed was actually a real PDF whose filename lost its
+    extension (Zotero occasionally truncates a long download name). Suffix
+    alone must not read that as the source being gone."""
+    root = tmp_path / "storage"
+    root.mkdir()
+    d = root / "LLLLLLLL"
+    d.mkdir()
+    # No suffix at all -- exactly the shape found on the real library.
+    (d / "2018 - a truncated download name with no exten").write_bytes(b"%PDF-1.7 stub")
+    (d / ".zotero-ft-cache").write_bytes(PAGE.encode("utf-8"))
+    r = census.census(root)
+    assert r["caches_with_no_attachment"] == 0, "a real PDF must not read as absent"
+    assert r["pdf_caches"] == 1
+    detail = r["caches_detail"][0]
+    assert detail["is_pdf"] is True
+    assert detail["no_attachment"] is False
+
+    # A non-PDF extensionless file must NOT be sniffed as a PDF -- the magic
+    # bytes are the discriminator, not merely "has no suffix".
+    d2 = root / "MMMMMMMM"
+    d2.mkdir()
+    (d2 / "not-actually-a-pdf").write_bytes(b"just some plain bytes, no magic header")
+    (d2 / ".zotero-ft-cache").write_bytes(PAGE.encode("utf-8"))
+    r2 = census.census(root)
+    detail2 = next(c for c in r2["caches_detail"] if c["key"] == "MMMMMMMM")
+    assert detail2["is_pdf"] is False
+    assert detail2["no_attachment"] is False, "a file is present, just not a PDF"
+
+
+def test_the_actionable_population_excludes_what_reextraction_cannot_help(library: Path):
+    """The figure a policy acts on is not the raw no-form-feed count."""
+    r = census.census(library)
+    assert r["pdf_no_form_feed"] == 4
+    assert r["pdf_near_empty"] == 1
+    assert r["pdf_reextraction_population"] == 3
+
+
+def test_a_stub_fixer_exercises_the_mojibake_path_without_ftfy(library: Path):
+    """The cross-tabulation control must run in the gate, where ftfy is absent.
+
+    `test_mojibake_is_detected_only_where_it_is` skips without ftfy, which is a
+    driver dependency — so the claim the report headlines, that a text signal
+    sorts with the form-feed split, rested on one manual run. A stub fixer keyed
+    on a marker the fixture carries exercises the same plumbing on every
+    `make check`, and the real-ftfy test stays beside it for the detector itself.
+    """
+    r = census.census(library, mojibake_fixer=lambda t: "Ã" in t)
+    assert {c["key"] for c in r["caches_detail"] if c["mojibake"]} == {"EEEEEEEE"}
+    assert r["by_form_feed"]["no_form_feed"]["mojibake"] == 1
+    assert r["by_form_feed"]["with_form_feed"]["mojibake"] == 0
+
+
+@pytest.mark.integration
+def test_cli_no_detail_writes_the_summary_alone(library: Path, tmp_path: Path):
+    """`--no-detail` produced the committed artifact, so it is the flag that needs a test."""
+    out = tmp_path / "census.json"
+    p = subprocess.run(
+        [sys.executable, str(REPO / "bench" / "fulltext_quality_census.py"),
+         "--storage", str(library), "--output", str(out), "--no-detail"],
+        capture_output=True, text=True,
+    )
+    assert p.returncode == 0, p.stderr
+    doc = json.loads(out.read_text())
+    assert doc["caches_detail"] == []
+    assert doc["summary"]["caches"] == 7, "the counts survive the row omission"
+    assert not list(out.parent.glob("*.tmp")), "the write-then-rename leaves no scratch file"
+
+
 @pytest.mark.integration
 def test_cli_writes_a_provenanced_artifact(library: Path, tmp_path: Path):
     out = tmp_path / "census.json"

@@ -2035,8 +2035,27 @@ FIGURES = [
      {"v0480": "carrying **none** | **{}** |",
       "decisions": "**{} carry no form feed**"}),
     ("0480-fulltext-quality/census.json", "summary.pdf_no_form_feed_single_page_suspect", 0,
-     {"v0480": "two pages of body: **{}** of 8211",
+     # The tail stops before the neighbouring figure on purpose: an anchor that
+     # hardcodes another declared value couples the two, so moving either breaks
+     # the other's entry rather than its own.
+     {"v0480": "roughly two pages of body: **{}** of",
       "decisions": "({} short-but-real caches"}),
+    # The actionable population, and the one the author rules on — declared in every
+    # place either document restates it. The first version anchored only the dating
+    # figure, so five free-text restatements could drift while the guard stayed green;
+    # a review sabotage-checked exactly that.
+    ("0480-fulltext-quality/census.json", "summary.pdf_reextraction_population", 0,
+     {"v0480": "policy would act on is {}, not",
+      "decisions": "policy acts on is {}, not"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_reextraction_population", 0,
+     {"v0480": "policy would act on is {} attachments",
+      "decisions": "Zotero holds, for {} attachments"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_reextraction_population", 0,
+     {"decisions": "does not scale to {}. If the author"}),
+    ("0480-fulltext-quality/census.json", "summary.caches_with_no_attachment", 0,
+     {"v0480": "**{}** caches have no attachment file"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_caches_mixed_attachments", 0,
+     {"v0480": "and **{}** PDF directories"}),
     ("0480-fulltext-quality/census.json", "summary.pdf_near_empty", 0,
      {"v0480": "**{}** PDFs in the no-form-feed group hold under 50 words",
       "decisions": "And {} of the old-group caches hold under 50 words"}),
@@ -2054,7 +2073,7 @@ FIGURES = [
     # rather than merely dating something. Its zero is the load-bearing cell: an even
     # spread would have refuted the signal.
     ("0480-fulltext-quality/census.json", "summary.by_form_feed.with_form_feed.with_ligatures", 0,
-     {"v0480": "ligature glyphs (ﬁ ﬂ ﬀ) | **{}** | **1009** |"}),
+     {"v0480": "ligature glyphs (ﬁ ﬂ ﬀ) | **{}** | **1011** |"}),
     ("0480-fulltext-quality/census.json", "summary.by_form_feed.no_form_feed.mojibake", 0,
      {"v0480": "`ftfy.badness.is_bad` | 14 | {} |"}),
 
