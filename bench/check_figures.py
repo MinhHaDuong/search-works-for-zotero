@@ -87,6 +87,10 @@ PROSE = {
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
         "tickets/closed/0025-experiments-x1-x7-each-before-its-depend.erg",
     ],
+    "t0590": [
+        "tickets/0590-measure-scoped-queries-that-fail-to-fill.erg",
+        "tickets/closed/0590-measure-scoped-queries-that-fail-to-fill.erg",
+    ],
     "t0026": [
         "tickets/0026-repo-side-gates-fold-golden-rss-converge.erg",
         "tickets/closed/0026-repo-side-gates-fold-golden-rss-converge.erg",
@@ -223,7 +227,15 @@ def despace(text: str) -> str:
 #: reference machine; the corpora are not in this repository, so none of it can be
 #: discharged from here. Lower this line when a campaign discharges some of it, and
 #: never raise it without saying which prose gained an unwarmed rate and why.
-MAXIMUM_CANNOT_SAY = 93
+#:
+#: Raised to 94 on 2026-09-03. Ticket 0590's depth-sweep paragraph quotes X4's
+#: unconstrained p95 (362,4 ms) beside its median, and the real-corpus arm predates
+#: 0260 and cannot say its window was warm. The p95 is where a one-time cost lands,
+#: so this is the shape the ceiling exists to notice — it is declared rather than
+#: dropped because the median alone is the misleading half of a latency pair, and the
+#: ticket now says in its own text that the arm cannot claim warmth and that its sweep
+#: re-measures on its own index. That re-measurement is what discharges this one.
+MAXIMUM_CANNOT_SAY = 94
 
 
 #: A figure whose value is a per-unit rate or a resident-memory reading — the two
@@ -1321,6 +1333,16 @@ FIGURES = [
      {"decisions": "unconstrained costs **{} ms** median"}),
     ("0025-x4-constrained-match/real-477k.json", "rows.1.median_ms", 1,
      {"decisions": "thousand rowids costs **{} ms**"}),
+    # Ticket 0590 quotes the unconstrained arm as the evidence that a deeper refetch is
+    # affordable, and its p95 had no declaration anywhere until it did. The ticket's whole
+    # argument is that one constant may answer the question a mechanism was proposed for,
+    # so the number that prices the constant is exactly the one that must not drift.
+    ("0025-x4-constrained-match/real-477k.json", "rows.0.median_ms", 1,
+     {"t0590": "unconstrained for {} ms median"}),
+    ("0025-x4-constrained-match/real-477k.json", "rows.0.p95_ms", 1,
+     {"t0590": "median and {} ms p95"}),
+    ("0025-x4-constrained-match/real-477k.json", "passages", 0,
+     {"t0590": "whole {}-passage corpus"}),
     # ---- the year-scope follow-up. The table's two columns are the whole argument: the
     # same work, two mechanisms, and a reader who checks one cell checks the claim.
     ("0025-year-scope/year-vs-json-each.json", "scopes.0.predicate.median_ms", 1,

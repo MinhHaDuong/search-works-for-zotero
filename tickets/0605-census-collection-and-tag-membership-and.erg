@@ -7,6 +7,7 @@ Author: claude
 2026-09-03T07:44Z claude created
 
 2026-09-03T07:45Z claude note split out of 0590 at the author's direction. Holds the query-free half: harvest membership, distribute f, derive the frontier, and bound the at-risk region against the refetch depth
+2026-09-03T08:33Z claude note second review trimmed 'a few hundred passages' from the at-risk region: the frontier moves with k and the refetch depth, so the magnitude is what this ticket measures rather than an illustration it can give in advance
 --- body ---
 ## Context
 
@@ -44,11 +45,13 @@ change the candidate list.** A scope at risk of not filling k is by construction
 one whose passage count is small relative to the pool. A scope that small can be
 scored directly, without any ranked stream: X4 killed `json_each` as a *MATCH
 constraint*, measured at a thousand and at five thousand rowids, and it says
-nothing about scoring a few hundred passages the index can enumerate. So a third
-candidate stands beside the ruling's two — score a small scope exhaustively —
-and whether it covers the whole failure region is a census question, answered
-here, before anyone prices a new index structure. This ticket names the
-candidate and measures the region; it designs nothing.
+nothing about scoring the small explicit set an at-risk scope amounts to — whose
+size this ticket measures rather than guesses, since the frontier moves with k
+and with the refetch depth. So a third candidate stands beside the ruling's two
+— score a small scope exhaustively — and whether it covers the whole failure
+region is a census question, answered here, before anyone prices a new index
+structure. This ticket names the candidate and measures the region; it designs
+nothing.
 
 ## Actions
 

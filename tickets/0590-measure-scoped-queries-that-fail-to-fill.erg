@@ -9,6 +9,7 @@ Blocked-by: 0605
 
 2026-09-03T07:45Z claude note reimagined and split: the census half is 0605, which this now waits on. Four corrections to the count as framed -- it is defined post-fusion rather than on the keyword list, since the vector scan's bitmap pushdown means only the keyword arm starves; congruent and library-general query arms are separate, because the (scope, query) joint sets the answer; the refetch depth is swept rather than fixed, since one constant is a candidate answer and X4 priced its ceiling; and a budget-exhausted answer has no honest sentence today, which is filed for the author rather than invented here
 2026-09-03T08:19Z claude note review pass before merge found two more of my own: the unconstrained 73,6 ms was written as the price of the deepest refetch, where it prices the search half only and a deeper refetch also materializes its candidates; and the latency ceiling sentence ran past the margin
+2026-09-03T08:33Z claude note second review (a different model, verdict on PR #254) found the branch quoted X4's unconstrained pair without declaring it in bench/check_figures.py, where ~15 comparable tickets are declared: the guard does not scan prose for undeclared numbers, so make check passing gave no cover. Declared median, p95 and the passage count against this file, which raised the pre-0260 warm ceiling by one for the p95 -- justified in the guard, and the ticket now says the arm cannot claim warmth and that the sweep re-measures warm
 --- body ---
 ## Context
 
@@ -50,9 +51,12 @@ function of it, and the far end is not expensive on the evidence there is: X4's
 run ranked its whole 477 512-passage corpus unconstrained for 73,6 ms median and
 362,4 ms p95. That prices the search half only — it returned a top-k, where a
 deeper refetch also materializes its candidates — so the sweep measures the
-remainder rather than assuming it away. Reporting the frequency at the shipped
-depth alone would hand the author a number while hiding the cheapest candidate
-answer to it, which is one constant rather than a mechanism. Fill rate and
+remainder rather than assuming it away. That arm also predates 0260 and cannot
+say its window was warm, which is where the p95 in particular is vulnerable, so
+the sweep re-measures warm on its own index rather than inheriting the pair.
+Reporting the frequency at the shipped depth alone would hand the author a
+number while hiding the cheapest candidate answer to it, which is one constant
+rather than a mechanism. Fill rate and
 latency are therefore reported as a curve over the depth, up to the
 unconstrained ceiling.
 Moving the constant is a SPEC.md change and stays a ruling; this ticket prices
