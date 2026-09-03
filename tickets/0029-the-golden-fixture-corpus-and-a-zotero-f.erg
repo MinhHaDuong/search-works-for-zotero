@@ -25,6 +25,8 @@ Author: claude
 2026-09-03T03:44Z Minh Ha-Duong ruled drop HAL-04214661: not his work, no reusable licence and no authors' consent; recipe retains ten Vietnamese records
 2026-09-03T05:24Z codex note CORPUS SWEEP 2026-09-03: after the ruled HAL-04214661 drop, the live recipe is 26 records / 17 hashes / 9 open, including 10 Vietnamese records and two Vietnamese HAL records (ART, COMM). A fresh conservative probe fetched no bytes to the recipe: all four small HAL PDFs advertised application/pdf to HEAD but returned an HTML challenge to GET and were classified blocked; a representative Gallica HEAD returned HTTP 429; the 352 593 392-byte Malynes scan was not downloaded. Remaining pins are four HAL browser fetches, four Gallica browser fetches, and one full Malynes fetch.
 2026-09-03T17:03Z Minh Ha-Duong ruled REFRAME (DECISIONS.md): one adversarial library plus a derived question bank, replacing the 25-bullet checklist as the operational shape (the checklist stays as a coverage ledger). Question count derived from a per-dimension sub-case tally, ≈97, landing near the author's own "about 100" instinct as corroboration rather than proof. Reuse across documents bounded at 4 per question, per the author's follow-up, to stop the tally being satisfied by loading a handful of flexible documents. Tracker structure added; the harness triplet is the first child to file, unblocked by the 9 browser-only sourcing fetches.
+2026-09-03T18:20Z Minh Ha-Duong ruled REVISED TALLY: exactly 200 questions (up from ≈97), each dimension row restated as what it tests plus a worked example rather than a bare label, and the reuse bound moved to a floor of at least 5 questions per document, no ceiling, replacing PR #315's ceiling of at most 4 documents per question. That floor reverses PR #315's anti-gaming rationale on purpose: with 200 questions and a >=5-reuse floor the fixture needs at most ~40 distinct documents (200/5) under the common-case assumption of one document per question, concentrating cost in question-authoring against already-sourced hard cases rather than in further sourcing. The growth to 200 crosses two axes the author named concretely (structural marks, extraction-cap boundaries) against the 3 MUST-tier languages (EN/FR/VI) already committed for sourcing, not the full 9-language roster -- SHOULD-tier documents carrying tables/footnotes/captions specifically would be a materially larger sourcing lift than this ticket's SHOULD-language row already commits to, per this ticket's own sourcing-difficulty log. Both the count and the reuse floor stay first-pass/adjustable, same standing as the ≈97 table they replace
+2026-09-03T18:47Z claude note OPUS REVIEW (decorrelated, PR #322) returned REQUEST-CHANGES, three blocking: (1) the old bound was documents-per-question, not questions-per-document, so calling the new floor an "inversion" of the same axis was wrong -- corrected to a replacement on the other axis in the ticket, log, and DECISIONS.md; (2) the Intersections row was self-describing as a language dimension (monster x script, scale x multilingual) yet carried languages=2 with a non-MUST-tier worked example (Arabic) -- fixed to languages=1 with two added combos (cap-crossing x script, structural x scale) that keep the row's subtotal at 8 and the total at exactly 200, verified by script; (3) the ~40-max-documents claim assumed one document per question, unstated -- now stated explicitly, with the multi-document case shown to loosen rather than break the bound. Also fixed on the review's non-blocking list: annotation row's "~12" firmed to 12, Group-library's sub-case/q-per-subcase columns filled in (was "--|--"), Gutenberg's languages=1 vs extraction-cap's languages=2 justified (one fixed English work vs a document-agnostic dimension), the harness canary given a one-line rationale so it doesn't read as a rounding fudge, and work-identity's worked example extended to cover the duplicate-pair half of its own "tests" description. erg check and validate re-run clean after the fix
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -63,34 +65,74 @@ plus a question bank sized to what the library's hard cases demand.
 spec.** Each bullet is satisfied by naming which question(s) exercise it; a
 bullet with no citing question is a surfaced gap, not a silent drop.
 
-**The tally that derived ≈97, and lands the question bank near "about 100":**
+**The tally, revised 2026-09-03 to exactly 200.** Each row now states what it
+tests and a worked example, not a bare label; a `languages` column makes the
+multilingual cross-cut explicit rather than folding it silently into
+q/sub-case. `languages = 1` marks a row where a further multiply would
+double-count — either because the row is already inherently about language
+(SHOULD-language articles, cross-lingual anchor pairs), because its sub-cases
+already name a specific script internally (Intersections), or because the row
+is pinned to one already-chosen, single-language artifact (the Gutenberg
+work — one specific English public-domain ebook, not a document-agnostic
+dimension). `2` or `3` cross a document-agnostic row against that many
+MUST-tier languages (EN/FR/VI) where the failure mode is plausibly script- or
+locale-sensitive; on that test, extraction-cap-crossing's char-offset
+arithmetic (multibyte UTF-8 diverges byte-count from char-count) earns its
+`2` the same way structural marks and R33's probes do.
 
-| dimension | sub-cases | q/sub-case | subtotal |
-|---|---|---|---|
-| SHOULD-language articles | 6 languages | 1 | 6 |
-| Source format coverage | 9 formats | 1 | 9 |
-| Work-identity relations | 4 types | 2 | 8 |
-| Multi-attachment parent shapes | 3 shapes | 2 | 6 |
-| Failure controls | 7 controls | 1 | 7 |
-| Structural marks | 6 marks | 2 | 12 |
-| Annotation provenance/shape/edge cases | ~12 combos | 1 | 12 |
-| Gutenberg cap-crossing pair | 1 work | 3 | 3 |
-| Extraction-cap-crossing conditions | 3 conditions | 2 | 6 |
-| R33 probe shapes | 3 shapes | 4 | 12 |
-| Intersections (monster × script, scale × multilingual) | 2 combos | 2 | 4 |
-| Cross-lingual anchor pairs | 4 pairs | 2 | 8 |
-| Group-library slice | — | — | 4 |
-| **total** | | | **≈97** |
+| dimension | tests | worked example | sub-cases | q/sub-case | languages | subtotal |
+|---|---|---|---|---|---|---|
+| SHOULD-language articles | SHOULD-tier language extraction/ranking without full commitment | "Find passage in an Arabic article" | 6 | 1 | 1 | 6 |
+| Source format coverage | extraction survives authentic containers without conversion | "Find passage in EPUB" (EN and VI) | 9 | 1 | 2 | 18 |
+| Work-identity relations | translation/duplicate pairs distinguished or related correctly | "Does the correct-language twin of a translation pair answer the query"; "Is a metadata-conflicting duplicate not silently merged with its twin" | 4 | 2 | 1 | 8 |
+| Multi-attachment parent shapes | deterministic attachment selection among multiple candidates | "Find passage in the correct-language sibling attachment" | 3 | 2 | 1 | 6 |
+| Failure controls | visible, not silent, degradation | "Query touches a bad PDF — does it fail loudly" (EN and VI) | 7 | 1 | 2 | 14 |
+| Structural marks | a hit locates to the exact sub-unit | "Find passage in a table cell", "Find passage in a caption" (EN/FR/VI) | 6 | 2 | 3 | 36 |
+| Annotation provenance/shape/edge cases | annotation attribution and edge cases | "Find a note surviving after its source was deleted" (EN/FR/VI) | 12 | 1 | 3 | 36 |
+| Gutenberg cap-crossing pair | cap logic on a non-paginated plain-text work | "Find passage after char 600000" | 1 | 3 | 1 | 3 |
+| Extraction-cap-crossing conditions | correctness on both sides of the stock caps | "Find passage at page 1000", "…after char 40000 / 200000" (EN and VI) | 3 | 2 | 2 | 12 |
+| R33 probe shapes | ranking survives adversarial geometry | "Find passage via a rare exact string" / paraphrase / agreement case (EN/FR/VI) | 3 | 4 | 3 | 36 |
+| Intersections (monster × script, scale × multilingual, cap-crossing × script, structural × scale) | compounding failure modes, each combo already naming its own script/scale so no further language multiply applies | "A monster document in Arabic script still resolves"; "The char-offset cap lands at the same passage in a multibyte script as in English" | 4 | 2 | 1 | 8 |
+| Cross-lingual anchor pairs | EN/FR query surfaces untranslated VN content (R29) | "Find passage in VN content from an EN query" | 4 | 2 | 1 | 8 |
+| Group-library slice | closed group behaves like the personal library | "Find passage in a closed-group-library item" (EN and VI) | 4 | 1 | 2 | 8 |
+| Harness canary — a deliberate 15th row, not a rounding fudge: it tests the replay harness itself rather than any corpus dimension, so a failure here means "distrust every other row," not "the corpus has a gap" | the replay harness is wired correctly, independent of adversarial content | "Find a known trivial passage" | 1 | 1 | 1 | 1 |
+| **total** | | | | | | **200** |
 
 Item-type fidelity is corpus-composition bookkeeping (recorded per injected
 item, not a dedicated question) and isn't in this table. This is a first-pass
 estimate — refine per-row as real documents are chosen; a document satisfying
-several dimensions at once may let the authored count run lower.
+several dimensions at once may let the authored count run lower. The
+`languages` cross was deliberately stopped at the 3 MUST-tier languages
+(EN/FR/VI): running structural marks or boundary probes against the full
+9-language roster would require sourcing table/footnote/caption-bearing
+documents in Arabic, Russian, Chinese, German, Hindi and Spanish specifically
+— a materially larger sourcing lift than the SHOULD-language row above
+commits to, and this ticket's own log already flags SHOULD-tier sourcing as
+the hard, sometimes-infeasible part. Raise a specific row's `languages` value
+later, per SHOULD language, as that language's corpus gets built out.
 
-**Reuse is bounded.** A question anchors to at most 4 documents before a
-distinct source is required — natural multi-dimension reuse (one document
-serving two ratified dimensions at once) stays inside that bound; stacking
-unrelated dimensions onto one flexible document to hit the tally does not.
+**Reuse moves from a per-question ceiling to a per-document floor — a
+replacement, not a strict inversion, since the two bounds constrain
+different sides of the question↔document relation.** PR #315's ratified
+bound was documents-per-question: "a question anchors to at most 4 documents
+before a distinct source is required." This ruling retracts that and puts
+the bound on the other axis instead: a document must anchor at least 5
+questions before it's "spent," no upper bound on how many. Assuming each
+question anchors to one primary document — the common case, though not
+universal, since a question can still legitimately draw supporting context
+from more than one — 200 questions at a ≥5-reuse floor need at most ~40
+distinct documents (200/5); a question that anchors several documents at
+once loosens this bound rather than breaking it, since it only adds
+incidences without adding distinct documents. The practical effect is the
+same direction either way: concentrating effort in authoring adversarial
+questions against already-sourced hard cases rather than in further
+sourcing. PR #315's anti-gaming rationale — stop a handful of flexible
+documents from satisfying the tally by stacking unrelated dimensions onto
+them — is explicitly retracted by this ruling, not overlooked; if reuse
+concentration turns out to blunt the adversarial value of a document (the
+same passage answering unrelated questions rather than genuinely different
+hard cases), that is a fresh call for whoever authors the
+question bank, not a violation of this bound.
 
 **Sequencing is unchanged.** The harness triplet (injection script, export
 snapshot, Zotero-free replay harness) goes first, against the 17
@@ -190,10 +232,11 @@ hours are spent.
       Vietnamese entries, gated separately from the monolingual queries so a
       regression names which of R7 and R29 it broke (R29 ratified 2026-08-31;
       SPEC.md §5.2.8 owns the thresholds, this ticket pins them)
-- [ ] ≈97 queries with pinned answer sets (the reframe's derived tally above,
-      superseding the earlier ~40 figure), each labelled by facet, language
-      lane and carrying signal (exact string / paraphrase / agreement); no
-      difficulty tiers; a question anchors to at most 4 documents
+- [ ] 200 queries with pinned answer sets (the revised tally above,
+      superseding the earlier ~40 and ≈97 figures), each labelled by facet,
+      language lane and carrying signal (exact string / paraphrase /
+      agreement); no difficulty tiers; each document anchors at least 5
+      questions, no ceiling
 - [ ] 0026's golden gate consumes it in make check
 - [ ] R33's three probe shapes present: a rare exact string, a paraphrase sharing
       no content word with its answer, and an agreement case
