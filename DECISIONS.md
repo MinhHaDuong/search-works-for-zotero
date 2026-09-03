@@ -4198,28 +4198,37 @@ the question-bank design be tested against a real replay before more sourcing
 hours are spent.
 
 **2026-09-03 — RATIFIED: the tally revised to exactly 200, each row restated
-as what it tests, and the reuse bound inverted from a ceiling to a floor.**
-Two follow-on corrections to the same-day reframe above. First, legibility:
-the ≈97 table's dimension names ("Structural marks", "R33 probe shapes")
-didn't say what each row actually probes; every row now carries a plain
-statement of what it tests plus a worked example ("Find passage in a table
-cell", "Find passage after char 600000", "Find passage in VN content from an
-EN query"). Second, coverage: naming concrete examples surfaced real
-sub-cases the abstract labels had compressed away, so the count grows to
-200 — but not by crossing every dimension against the full nine-language
-roster, since sourcing structural-mark-bearing (table/footnote/caption)
-documents specifically in Arabic, Russian, Chinese, German, Hindi and
-Spanish would be a materially larger lift than the SHOULD-language row
-already commits to, and this ticket's own sourcing log already flags that
-tier as the hard, sometimes-infeasible part. The cross-cut stops at the 3
-MUST-tier languages (EN/FR/VI) already committed for sourcing; a `languages`
-column on the tally table makes this multiplier explicit per row instead of
-folding it silently into q/sub-case.
+as what it tests, and the per-question reuse ceiling replaced with a
+per-document reuse floor.** Two follow-on corrections to the same-day
+reframe above. First, legibility: the ≈97 table's dimension names
+("Structural marks", "R33 probe shapes") didn't say what each row actually
+probes; every row now carries a plain statement of what it tests plus a
+worked example ("Find passage in a table cell", "Find passage after char
+600000", "Find passage in VN content from an EN query"). Second, coverage:
+naming concrete examples surfaced real sub-cases the abstract labels had
+compressed away, so the count grows to 200 — but not by crossing every
+dimension against the full nine-language roster, since sourcing
+structural-mark-bearing (table/footnote/caption) documents specifically in
+Arabic, Russian, Chinese, German, Hindi and Spanish would be a materially
+larger lift than the SHOULD-language row already commits to, and this
+ticket's own sourcing log already flags that tier as the hard,
+sometimes-infeasible part. The cross-cut stops at the 3 MUST-tier languages
+(EN/FR/VI) already committed for sourcing; a `languages` column on the tally
+table makes this multiplier explicit per row instead of folding it silently
+into q/sub-case — and one row (Intersections) is inherently about script
+already, so its own sub-cases name a script directly and the multiplier
+stays at 1 rather than double-counting.
 
-The reuse bound above (at most 4 documents before a distinct source is
-required) is retracted and replaced with its inverse: at least 5 questions
-per document, no ceiling. At 200 questions this bounds the fixture to at
-most ~40 distinct documents, deliberately concentrating cost in
+The reuse bound above (a question anchors to at most 4 documents before a
+distinct source is required) is retracted, and the new bound lands on the
+other axis, not its inverse: a document must anchor at least 5 questions
+before it's "spent," no ceiling on how many. These constrain different sides
+of the question↔document relation, so this is a replacement, not a strict
+inversion. Assuming each question anchors to one primary document — the
+common case, not universal — 200 questions at a ≥5-reuse floor need at most
+~40 distinct documents (200/5); a question anchoring several documents at
+once only adds incidences, so it loosens this bound rather than breaking it.
+Either way the practical effect is the one intended: concentrating cost in
 question-authoring against already-sourced hard cases over further sourcing
 — the opposite trade-off from the ceiling's anti-gaming rationale, which is
 retracted on purpose, not overlooked. Both the count and the reuse floor
