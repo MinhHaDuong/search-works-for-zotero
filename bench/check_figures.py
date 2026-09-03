@@ -88,6 +88,7 @@ PROSE = {
     "u0612": ["verification/UPSTREAM-PR-POOLING-0612.md"],
     "v0267": ["verification/EMBEDDER-RECOMMENDATION-0267.md"],
     "v0120": ["verification/KEYWORD-BUILD-COST-0120.md"],
+    "v0480": ["verification/FULLTEXT-QUALITY-0480.md"],
     "vsmoke": ["verification/SMOKE-1.10.0.md"],
     "t0025": [
         "tickets/0025-experiments-x1-x7-each-before-its-depend.erg",
@@ -2014,6 +2015,40 @@ FIGURES = [
     ("0120-keyword-build/keyword-build-cost.json",
      "derived.peak_rss_scope.trajectory.held_for_s", 0,
      {"v0120": "flat for the remaining {} s"}),
+
+    # ---- 0480, the full-text quality census. Declared in both documents at once: the
+    # report argues the finding and the ratification ledger quotes it while the ruling is
+    # pending, and a pending entry is the worst place for a stale number because a
+    # ratified one is never edited again. The population figure is the load-bearing one —
+    # it is what closes the ticket's "too small to justify the machinery" exit.
+    ("0480-fulltext-quality/census.json", "summary.caches", 0,
+     {"v0480": "under `storage/` | **{}** |"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_caches", 0,
+     {"v0480": "attachment is a PDF | **{}** |",
+      "decisions": "of {} PDF full-text caches"}),
+    ("0480-fulltext-quality/census.json", "summary.non_pdf_caches", 0,
+     {"v0480": "plain text) | **{}** |"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_with_form_feed", 0,
+     {"v0480": "at least one form feed | **{}** |",
+      "decisions": "against {} that do"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_no_form_feed", 0,
+     {"v0480": "carrying **none** | **{}** |",
+      "decisions": "**{} carry no form feed**"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_no_form_feed_single_page_suspect", 0,
+     {"v0480": "two pages of body: **{}** of 8211",
+      "decisions": "({} short-but-real caches"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_near_empty", 0,
+     {"v0480": "**{}** PDFs in the no-form-feed group hold under 50 words"}),
+    ("0480-fulltext-quality/census.json", "summary.pdf_with_ligatures", 0,
+     {"v0480": "Every one of the {} caches carrying",
+      "decisions": "all {} caches carrying raw ligature glyphs"}),
+    # The cross-tabulation is the control that says the split predicts text quality
+    # rather than merely dating something. Its zero is the load-bearing cell: an even
+    # spread would have refuted the signal.
+    ("0480-fulltext-quality/census.json", "summary.by_form_feed.with_form_feed.with_ligatures", 0,
+     {"v0480": "ligature glyphs (ﬁ ﬂ ﬀ) | **{}** | **1009** |"}),
+    ("0480-fulltext-quality/census.json", "summary.by_form_feed.no_form_feed.mojibake", 0,
+     {"v0480": "`ftfy.badness.is_bad` | 14 | {} |"}),
 
 ]
 

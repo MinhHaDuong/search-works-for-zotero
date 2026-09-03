@@ -13,3 +13,10 @@
 
 sentence-transformers
 torch
+
+# Mojibake detection for the ticket-0480 full-text quality census. Optional at
+# runtime — `bench/fulltext_quality_census.py` reports the column as null rather
+# than as clean when it is absent, and the suite skips the assertions that need
+# it — but declared here because the committed artifact was measured with it and
+# a re-run without it is not the same measurement.
+ftfy

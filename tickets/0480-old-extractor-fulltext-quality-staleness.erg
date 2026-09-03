@@ -8,6 +8,8 @@ Author: Minh Ha-Duong
 2026-08-30T09:20Z claude note filed at the author's request, same session as the presence-probe ruling (spec/DECISIONS.md 2026-08-30) — this is that ruling's sibling: cache-lost is availability staleness, this ticket is quality staleness. The author's estimate for his library: roughly half the full-text cache was produced by the old extractor and could be improved
 
 2026-08-31T14:54Z claude note upstream v1.12.0 (2026-08-31) bears on the staleness class here: #39 makes a full-text crawl throttle itself and back off when the desktop local API degrades, and #37 refuses the pass entirely under Electron. A build that refuses or throttles leaves older extractor output in place for longer, which is this ticket's class rather than cache loss. Re-derive against v1.12.0
+
+2026-09-03T18:25Z claude note actions 1-3 done, the ticket stays open on action 4 (the author's ruling). Census over padme's ~/data/Zotero-fresh/storage: 8 211 of 8 552 PDF caches carry no form feed, so the population is 96,0 % rather than the estimated half — the "too small to justify the machinery" exit is closed by the data. Detection is the in-band form feed alone; the mtime arm of 0120's candidate is dead here because a resync reset every cache mtime to 2026. Two signals the classifier did not use sort with the split (all 1 009 ligature-carrying caches in the old group, none in the new; mojibake 9,2 % against 4,1 %). Also found: fulltextItems is empty on this machine, so upstream's reindexTruncated selects nothing at all. One experiment named and not run — re-extract a known document and watch a form feed appear
 --- body ---
 ## Context
 
@@ -91,10 +93,16 @@ Two established facts frame the design space:
 
 ## Verification
 
-- [ ] Population measured on the real library, artifact committed with
-      provenance
-- [ ] Detection heuristic proposed with measured false-flag behaviour
-- [ ] Ruling question filed in DECISIONS.md awaiting ratification
+- [x] Population measured on the real library, artifact committed with
+      provenance — `bench/results/0480-fulltext-quality/census.json`, padme
+      2026-09-03; 8 211 of 8 552 PDF caches pre-form-feed (96,0 %), not the
+      estimated half
+- [x] Detection heuristic proposed with measured false-flag behaviour — the
+      in-band form feed, false-flag ceiling 3,4 % (282 short-but-real caches);
+      the mtime arm of ticket 0120's candidate is dead on this library and is
+      dropped. Report: `verification/FULLTEXT-QUALITY-0480.md`
+- [x] Ruling question filed in DECISIONS.md awaiting ratification
+- [ ] The author has ruled (exit criteria) — pending
 
 ## Invariants
 
