@@ -72,6 +72,12 @@ def driver(name, generation, argv):
 #: server — which owns that check; a second gate in front of it would assert upstream's
 #: invariant on upstream's behalf.
 #:
+#: This roster is hand-maintained, which makes it asymmetric: it covers a driver being
+#: REMOVED and covered nothing when one ARRIVED. `tests/test_index_driver_roster_closure.py`
+#: (ticket 0598) closes that side — it derives the inventory of index-opening drivers from
+#: the tree and refuses any that is neither listed here nor excused there with a written
+#: reason. Three files had already arrived uncovered when it was written.
+#:
 #: `argv` is a callable so the fixture path and a scratch directory can be filled in.
 DRIVERS = [
     driver(

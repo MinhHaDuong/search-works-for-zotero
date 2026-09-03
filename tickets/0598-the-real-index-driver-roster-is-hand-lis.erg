@@ -1,0 +1,269 @@
+%erg 0.1
+Title: The real-index driver roster is hand-listed, so a driver that arrives is ungated
+Created: 2026-09-02
+Author: Claude Opus 5
+
+--- log ---
+2026-09-02T22:05Z Claude Opus 5 created
+
+2026-09-02T22:23Z Claude-Opus-5 note Recorded the verification/probes/ gap (16 files in the class, out of scope); search root is now a named constant with three tests on it
+2026-09-03T04:34Z Claude-Opus-5 note REROLL fix: merged origin/main in; bench/acceptance/adapters/zoteus.py arrived in d81584c and the guard named it unprompted, recorded as an unplanned live positive control; classified excused on smoke_upstream's substrate reason; the structural Python-vs-.mjs argument retracted as measurably false; each EXCUSED entry now pins its table set so an excuse cannot outlive its file
+2026-09-03T06:05Z Claude-Opus-5 note Correction to the 2026-09-03T04:34Z entry above: the commit that took bench/acceptance/adapters/zoteus.py across the class boundary is 97d1490 (0->4 sqlite3, 0->2 FROM meta, +143/-2), not d81584c, which added a further +43/-2 and took sqlite3 to 5; 184 lines is the 5d2514d..8a5ad06 range total. Neither is an ancestor of the branch base, so the arrived-from-another-lane finding stands unchanged. Also recorded: mutant D1 measured past the module boundary leaves 591 of 592 tests green, not 22 of 23 — the drift was invisible to the whole repository
+
+--- body ---
+## Context
+
+Ticket 0101 landed `tests/test_index_schema_fixtures.py`, which drives every bench
+driver that opens a zoteus-built index against a fixture of each schema generation and
+holds it to the generation it declares. Its roster, the `DRIVERS` list, is
+hand-maintained.
+
+That makes the guard asymmetric in the direction nobody notices. It covers a driver
+being REMOVED from coverage — delete a rostered file and the fixture cases die loudly.
+It covers nothing when a driver ARRIVES: a new bench driver that opens an index joins
+the repo uncovered and silent, and is discovered the way 0100's defect was, an hour into
+a measurement session on `no such table`.
+
+The hole is not hypothetical. Three files already on `main` open a zoteus-built index
+and are in neither `DRIVERS` nor 0101's docstring list of deliberately-absent drivers:
+
+- `bench/smoke_upstream.py` — copies the index, `sqlite3.connect(target)`, then reads
+  and writes `meta.schemaVersion`.
+- `bench/issue30_arms.py` — `sqlite3.connect(f"file:{db}?mode=ro", uri=True)`, then
+  `SELECT COUNT(*) FROM passages`, `FROM items`, and `SELECT value FROM meta WHERE
+  key='embedderId'`.
+- `bench/issue30_codebuild_agreement.py` — `sqlite3.connect(f"file:{d /
+  'search-index.sqlite'}?mode=ro", uri=True)`, then `SELECT COUNT(*), SUM(length(code))
+  FROM vector_codes`.
+
+## Why an earlier probe found only two of the three
+
+The earlier probe looked for drivers that take an index path on the command line —
+`--db`, `--index` — and reported `issue30_codebuild_agreement.py` as "not reproduced".
+It takes no index argument at all: it derives `search-index.sqlite` from a data
+directory. An argv-shaped probe cannot see that file however carefully it is written,
+because the property it tests is not the property that matters. The class to scan for is
+**opens a SQLite database and names a zoteus index table in SQL**, which is what "pinned
+to a schema generation upstream may rename" actually means.
+
+## The second finding — RETRACTED, and superseded below
+
+> This section is the argument as it was filed. It does not hold. The retraction and the
+> measurement that killed it are under "The structural Python argument is retracted"
+> further down; this text is kept so the retraction has a subject, not as live reasoning.
+
+All three uncovered files are Python; `bench/index_schema.mjs` — the gate a rostered
+driver calls before its first query — is a JavaScript module, and `DRIVERS` is entirely
+`.mjs`. The roster's hole is therefore not only hand-maintenance: a Python driver is
+structurally outside the gate, and putting one inside means a second Python mirror of
+the schema constants, which is the duplicated-fact defect `AGENTS.md` names as this
+repo's most expensive. Each of the three is classified on a reason of its own rather
+than gated by a duplicated mirror; the port stays a separate decision, not something
+smuggled in behind a roster entry.
+
+## Relevant files
+
+- `tests/test_index_driver_roster_closure.py` — the new guard (added by this ticket)
+- `tests/test_index_schema_fixtures.py` — 0101's roster and its curated exclusions
+- `bench/index_schema.mjs` — the gate; one of the two vocabulary sources
+- `bench/fixtures/make_index_fixture.mjs` — the other vocabulary source
+- `tests/test_guard_completeness.py` — the house pattern: derive the inventory from the
+  tree, assert closure, carry positive controls built in `tmp_path`
+- `tests/test_acceptance_unsupported_reason.py` — the house precedent for refusing a
+  blank reason
+
+## Actions
+
+1. Derive the index-table vocabulary from `bench/index_schema.mjs` and
+   `bench/fixtures/make_index_fixture.mjs` rather than transcribing it a third time.
+2. Scan `bench/` (all source suffixes) for files that mention sqlite and name a
+   vocabulary table in SQL keyword position inside a string literal.
+3. Assert every file found is either in `DRIVERS` or in an `EXCUSED` mapping carrying a
+   written reason; refuse a blank or absent reason, and refuse a stale excuse for a file
+   the scan no longer names.
+4. Classify the three files above, with the reasoning written into the docstring.
+5. Put the check in its own module, in the fast tier — `test_index_schema_fixtures.py`
+   carries a module-level `integration` mark and a skipif on `node`, and a closure check
+   that skips where node is absent is a green that means "could not look".
+
+## Test
+
+Red first, against `origin/main`'s tree, before anything is classified: the scan must
+name all three files. If it names fewer than three the scan is too narrow — fix the
+scan, not the expectation.
+
+## Verification
+
+- [x] The scan run against `origin/main`'s tree, with only the exclusions 0101 had
+      already ruled on, names exactly `bench/smoke_upstream.py`,
+      `bench/issue30_arms.py`, `bench/issue30_codebuild_agreement.py`.
+- [x] The guard staged into `origin/main`'s tree with those three unclassified fails
+      `test_every_index_opening_driver_is_rostered_or_excused`, naming all three.
+- [x] Mutant M1 (vocabulary test removed, so the scan names everything) turns
+      `test_a_driver_that_builds_its_own_corpus_is_not_named` red.
+- [x] Mutant M2 (scan narrowed to the argv shape the earlier probe used) turns
+      `test_a_driver_with_no_index_path_on_argv_is_still_named` red.
+- [x] Mutant M3 (literal restriction removed) turns
+      `test_a_file_that_only_mentions_a_table_in_prose_is_not_named` red.
+- [x] Mutant M4a (a live excuse emptied) turns `test_no_excused_entry_lacks_a_reason`
+      red; mutant M4b (the refusal widened instead of implemented) turns
+      `test_a_blank_excuse_reason_is_refused` red for all three blank forms.
+- [x] `make check` green.
+- [x] Reviewer re-executed mutants M2 and M4a byte-for-byte and reproduced both, ran a
+      vocabulary-vacuity mutant of its own, and independently confirmed 428 -> 444.
+- [x] Mutant M5 (search root widened to the repository) reds
+      `test_the_search_root_is_the_one_the_module_documents`,
+      `test_the_inventory_stays_inside_the_search_root` and
+      `test_a_matching_file_outside_the_search_root_is_not_named` by name.
+- [ ] The sixteen `verification/probes/` files are classified. NOT delivered here — see
+      "Out of scope" above; the scan does not reach them and does not claim to.
+
+## Out of scope, named and counted: `verification/probes/`
+
+The scan's search root is `bench/` alone. `verification/probes/` holds **sixteen** files
+in exactly this class — they open a real index and run raw SQL against `meta`,
+`passages`, `passages_fts`:
+
+    corpus-language-mix.mjs          keeping-diacritics-real-cost.mjs
+    degenerate-real-index.mjs        lang_census.py
+    diacritic-collision-cost.mjs     migrate-real-index.mjs
+    droplist-adapts-to-corpus.mjs    scan-shape-v190-vs-fused.mjs
+    expansion-penalties-probe.mjs    snippet-droplist-probe.mjs
+    expansion-reach-probe.mjs        stoplist-cross-language.mjs
+    folding-cost-and-benefit.mjs     vocab-scan-cost.mjs
+    keeping-diacritics-cost.mjs      x4_probe_vocabulary.py
+
+Counted, not estimated: the same predicates run over that root, with the identical run
+over `bench/` as the positive control (it returns the 22-file inventory the merge request
+records — 21 at filing, plus `bench/acceptance/adapters/zoteus.py` on arrival — the four
+newly-classified files included). A review of PR #232 reported fifteen;
+the run above returns sixteen, and the list is what the number is.
+
+Deferred rather than done, deliberately. Several of these are one-off instruments pinned
+to the pre-rename generation the way `bench/vec_real_measure.mjs` is, so classifying them
+is 0101's per-driver judgement made sixteen more times — its own exercise. Sixteen reasons
+written in a hurry to keep a suite green would be sixteen bare names with a longer type,
+which is precisely what `EXCUSED` exists against. `verification/probes/` is in the repo's
+lint gate for the reason the Makefile states — a probe that produced a committed figure is
+code we depend on — so extending the root is the right eventual move, taken as a decision
+rather than as a rider.
+
+No new ticket: ID allocation was collision-prone this session (`erg new` offered 0602 with
+0599-0601 already on an open merge request), and this sits below the severity floor as
+filed. Recording it here keeps it findable without minting an ID.
+
+The scope claim is machine-checked meanwhile. `SEARCH_ROOT` and `UNSEARCHED_ROOT` are
+module constants; `test_the_search_root_is_the_one_the_module_documents` fails if either
+moves without the docstring, `test_the_inventory_stays_inside_the_search_root` fails if the
+walk escapes, and `test_a_matching_file_outside_the_search_root_is_not_named` puts the same
+driver byte-for-byte inside and outside the root and asserts only one is named. A widening
+therefore reds three tests by name instead of silently changing what the module claims.
+
+## The guard fired on real traffic before it merged — an unplanned positive control
+
+Recorded here because it is stronger evidence than anything staged in this ticket, and
+because it happened by accident rather than by design.
+
+While this merge request was open, `97d1490` ("Ticket 0579: goal 2's gates, asserted
+over the same seven verbs") landed on `main` and took
+`bench/acceptance/adapters/zoteus.py` across the class boundary: +143/-2 lines, and that
+file from 0 occurrences of `sqlite3` and 0 of `FROM meta` to 4 and 2. `d81584c` ("Arm
+R23's two directions…") then added a further +43/-2, taking `sqlite3` to 5 and leaving
+`FROM meta` unchanged; over the whole range `5d2514d..8a5ad06` the file gained 184 lines,
+0 -> 5 and 0 -> 2. Neither commit is an ancestor of this branch's base `5d2514d`.
+
+An earlier round of this ticket, of the guard module and of the merge request attributed
+the whole crossing to `d81584c` alone, with the range's numbers. That was wrong, and it
+propagated through every reader of the thread before one ran `git show --stat d81584c`.
+The finding is untouched by the correction — only the SHA and three numbers were — but
+the correction is recorded here rather than quietly applied, because a load-bearing claim
+nobody executed is the defect this repository keeps re-finding, and this one shipped
+inside the machinery written against it.
+
+So a genuine index-opening driver ARRIVED in
+the repository, from another lane, with nobody staging it for this guard — which is
+precisely the event the ticket was filed against, in precisely the manner the ticket
+predicted (silently, in a file the roster had never heard of).
+
+The branch was green on its own base and red the moment current `main` was merged in:
+
+```
+AssertionError: bench files that open a zoteus-built index and are in neither
+DRIVERS (tests/test_index_schema_fixtures.py) nor EXCUSED:
+{'bench/acceptance/adapters/zoteus.py': ['meta']}
+```
+
+Two things follow, and the second is the reason this is written down.
+
+**The guard works on traffic, not only on fixtures.** Every other control in this ticket
+is synthetic: a driver written into a `tmp_path` tree by the same hand that wrote the
+scan, which proves the scan is capable of naming an arrival but not that a real arrival
+looks like the fixture. This one was authored by a different lane for a different
+purpose and named on the first run. A synthetic control shows the probe can fire; only
+this shows it fires on the thing it was built for.
+
+**It also exposed the gap this ticket had left open.** The guard caught a file ENTERING
+the class. It would not have caught the identical change made INSIDE `EXCUSED` — an
+already-excused file quietly starting to read a table its written reason was never about
+— because `test_no_excused_entry_is_stale` fires only when a file LEAVES the class. That
+asymmetry is the same shape as the one this ticket exists to fix, one level down. It is
+closed here: each `EXCUSED` entry now pins the table set its reason was written against
+(`Excuse.tables`), and `test_no_excused_entry_drifts_from_its_pinned_tables` reds by name
+when a pin and the tree disagree, with `tmp_path` controls for a gained table, a lost
+table, and the file-is-gone case that belongs to the staleness check instead.
+
+`bench/acceptance/adapters/zoteus.py` is classified excused, on the substrate reason that
+excuses `bench/smoke_upstream.py` — it is that file's `_restamp_and_open` moved into an
+acceptance adapter, and its whole SQL surface is three statements on `meta.schemaVersion`
+whose point is to write a version upstream must refuse. It is NOT excused for being
+Python; see the retraction below.
+
+## The structural Python argument is retracted
+
+An earlier draft of the module argued that a Python driver is structurally outside a
+`.mjs` gate, so rostering one would force a second Python mirror of the schema constants.
+The premise was measured and is false: all four Python drivers in the inventory already
+spawn `node` themselves (`Server(["node", …])`), so reaching the gate needs a subprocess
+shim, not a mirror. The real obstacle is a hardcoded `["node", …]` in
+`test_index_schema_fixtures.py::run_driver` — a suffix dispatch, a few lines.
+
+It is retracted explicitly rather than dropped quietly because the fourth file is also
+Python. Had that argument been load-bearing, every Python driver that ever arrives would
+be excusable by the same sentence, and the excused class would be empty of judgement —
+closed by construction rather than by measurement, which is the failure this ticket was
+filed against. None of the four excuses rests on it.
+
+For the record, since a harsher framing of this ticket circulated: the guard did not
+declare its own class empty. The inventory is 22 files — 8 rostered and driven against
+both fixture generations, 14 excused, and 11 of those 14 are ticket 0101's pre-existing
+rulings restated as reasons. Four files were newly excused across the life of this
+ticket, three at filing and the fourth on arrival.
+
+## Invariants
+
+- No bench driver is modified: this ticket adds a guard and classifies, it does not
+  change a measurement.
+- 0101's curated exclusions survive as reasons rather than being discarded.
+- The check stays pure Python — no `node`, no subprocess, no database — so it cannot
+  skip.
+- The derivation is not allowed to go vacuous: an empty vocabulary or an unparsed roster
+  fails loudly rather than passing on nothing.
+- The search root cannot widen silently: it is a constant with tests on it, so reaching
+  `verification/probes/` is a deliberate edit that reds three named tests.
+
+## Exit criteria
+
+- [x] A derived-inventory scan names every bench file that opens a zoteus-built index.
+- [x] Every file it names is rostered in `DRIVERS` or excused with a non-blank written
+      reason; blank, absent and stale entries are each refused, each with a control.
+- [x] The three files above are classified, with the reasoning in the docstring — and so
+      is the fourth, `bench/acceptance/adapters/zoteus.py`, which arrived on `main` while
+      this merge request was open and was named by the guard itself.
+- [x] An excuse cannot outlive the file it describes: each `EXCUSED` entry pins the table
+      set its reason was written against, and a drift in either direction reds by name.
+- [x] The red controls above are captured as terminal transcripts in the merge request,
+      not paraphrased.
+- [x] `make check` green and `./tickets/erg check tickets/` passes against
+      `origin/main`'s ticket set.
+- [x] The search root is a named constant, documented, and asserted — so the module
+      cannot be read wider than it is.
