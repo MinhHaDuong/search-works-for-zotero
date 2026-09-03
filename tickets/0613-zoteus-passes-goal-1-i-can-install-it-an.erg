@@ -6,6 +6,7 @@ Author: claude
 --- log ---
 2026-09-03T11:23Z claude created
 
+2026-09-03T11:29Z UPSTREAM #48 CLOSED 2026-09-03, and it touches this rung only indirectly. The four things the maintainer built are backoff on 429, resume-from-missing-vector, the batch dials in the docs, and rate math plus passagesWithoutVectors in status. None of them is an uninstall surface and none is a durable pause, so gaps B and C stand as written. Gap A stands too: nothing in that release changes ZOTEUS_UPDATE_CHECK's default. What does change is the evidence about how to get things built here, recorded because this tracker's Actions ask for a filing form: a third party reported a field failure, this repository supplied the scoping and the seam by file and line at v1.12.0, and all four asks landed in one pass. Contained changes go as pull requests -- #27 and #28 merged verbatim -- and design-sized ones as issues with the seam named and a measured case attached. Gap A is the first kind.
 --- body ---
 ## Context
 
