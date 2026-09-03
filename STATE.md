@@ -23,17 +23,17 @@ is [`README.md`](README.md)'s.
 
 ## Handoff
 
-**Upstream shipped v1.13.0 today; the reviewed baseline is still v1.12.0.** #48 is in it,
-verified in source: a resumed build reads `passages WHERE vector IS NULL` and re-fetches
-nothing. **Re-baselining precedes everything** — 0033's remaining scope is what 1.13.0
-moved, and 0504 is the pattern.
+**Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
 
-**0613, 0614, 0615 ask whether zoteus passes goal 1, 2, 3.** Goal 1 is 3 of 7 clauses
-green: the update-check egress default (ours, a pull request), no uninstall surface,
-R22's pair unreadable for want of counters. Goal 2 waits on 0033; goal 3 has no
-assertions, which is 0580's. The matrix is `bench/results/0604-ladder-matrix/`.
+**0625 merged (PR #295): target processes run under a dedicated account,
+never the operator.** `tester` provisioned and verified on doudou and padme
+(Makefile). 0626 is open, filed as the test-coverage follow-up.
 
-**Open:** #278 decides the four host-bound cells; its caveat is that the egress sandbox's
-read-only `/tmp` kills both desktop hosts ~7 s in, so `R10-no-egress` there measures
-startup only. #276 is another lane's. **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list; still open here is
-**whether 0491 is inside the codex fence**, and the ladder re-cut's two questions.
+**0613/0614/0615: does zoteus pass goal 1/2/3?** Goal 1's account
+precondition is met on both machines. Gap A (egress control-arm,
+`ZOTEUS_UPDATE_CHECK=false`) runs once `fork/` is rebuilt at the reviewed SHA
+(this checkout is stale). Gap B (uninstall) stays blocked on a published
+`UNINSTALL.md`, deferred. Gap C and goal 2 wait on 0033; goal 3 has no
+assertions (0580's). Matrix: `bench/results/0604-ladder-matrix/`.
+
+**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list; open here: whether 0491 is inside the codex fence, and the ladder re-cut's two questions.
