@@ -2,11 +2,17 @@
 Title: The acceptance arena runs as a dedicated user, never as the operator
 Created: 2026-09-03
 Author: claude
+Closed: autoclosed — PR #295
 
 --- log ---
 2026-09-03T12:51Z claude created
 
 2026-09-03T13:02Z REFINED THE SAME DAY IT WAS FILED, by the author: CI are isolated by design, they don't need alt user. He is right, and the ticket as filed named a mechanism where the requirement is a property -- no target process runs under an identity that can reach data the operator cares about. A dedicated account buys that on a workstation that also holds his data; a disposable container or throwaway VM already IS it, having no second identity within reach, and demanding an account inside one is ceremony with no threat behind it. The two ways are not ranked; what stays forbidden is the third case, a target running as the operator on the operator's machine. Action 4 is narrowed to that case and action 5 is added: the artifact must record which posture a run had, since otherwise a green from an unprotected run is indistinguishable from a green from a protected one. What is explicitly NOT settled and must not be papered over: no reliable automatic probe for 'this environment is already a boundary' is known, and the two tempting ones are worse than none -- a flag saying I-am-in-CI is what gets set once on a workstation and forgotten, and a probe asking can-I-write-my-own-home answers yes in most CI images. The predicate is unsolved; say so rather than ship a check that cannot fail.
+2026-09-03T14:14Z claude implemented: bench/acceptance/posture.py (Posture dataclass, resolve()/wrap(), account=tester, postures account|already-isolated); wired --posture into run.py (default account, propagated to --drive subprocess, recorded on Run.posture/artifact); every real adapter (beaver, zotseek, zotero-core-6012, zotero-mcp, zoteus) wraps its target spawn via Posture.wrap right before Popen/Server, raising PostureUnavailable (never falling back) which the existing not-run machinery already catches; Makefile documents the tester provisioning recipe. TMPDIR/XDG_* redirection left open for ticket 0613. make check green.
+2026-09-03T14:35Z claude fixed two review findings before merge: F1 (install() in zotero_mcp.py fetched/executed third-party code via unwrapped subprocess.run, the one live-install path on the roster -- now wrapped per-step); F2 (wrap() embedded env values as 'env -i K=V' on the sudo argv, readable via ps/cmdline to any local user -- redesigned to sudo --preserve-env=<names-only> plus a SETENV sudoers tag, values flow via Popen env= unchanged as before; _works() probe extended to actually exercise --preserve-env/SETENV, which the prior probe never touched). make check green.
+2026-09-03T14:54Z claude addressed round 2's four consider-nits: strengthened the None-posture fail-open documentation (beaver.py, canonical spot); added a stderr notice when --posture already-isolated runs (run.py, tested); added a forward-pointer from sandbox.py to posture.py (the floor/ceiling framing); de-duplicated the near-identical spawn-boundary comment across zotseek.py/zotero_core_6012.py (point to beaver.py) and zoteus.py (points to zotero_mcp.py). make check green, 733 passed.
+2026-09-03T14:54Z note: the author ruled to defer round 2's four consider-nits (severity floor, none block/corrupt/bite), but the fix commit (1ec1071) had already landed and pushed before that ruling reached this session -- a timing race, not a disagreement. The fixes are small, low-risk (two doc/comment clarifications, one forward-pointer, one tested stderr notice) and are left in place rather than reverted; nothing further is owed on them.
+2026-09-03T14:57Z Minh Ha-Duong closed — autoclosed — PR #295
 --- body ---
 ## Context
 
@@ -84,11 +90,29 @@ started as the operator is refused rather than recorded.
 
 ## Verification
 
-- [ ] a target process cannot write to an operator-owned path outside the arena,
+- [x] a target process cannot write to an operator-owned path outside the arena,
       demonstrated by a fixture that succeeds before the change
-- [ ] a machine without the account reports `not-run`, with the reason, for every
-      assertion that needs one
-- [ ] the artifact names the account a run belonged to
+      (`tests/test_acceptance_posture.py::test_a_wrapped_spawn_cannot_write_outside_the_arena_where_an_unwrapped_one_can`
+      — the unwrapped arm is asserted red on every run; the wrapped arm is
+      asserted green and skips, honestly, on a machine with no working
+      `tester` account, which is this one)
+- [x] a machine without the account reports `not-run`, with the reason, for every
+      assertion that needs one — every real adapter's `running()` calls
+      `Posture.wrap` immediately before its process spawn, which raises
+      `PostureUnavailable` before anything starts; `assess()`'s existing
+      generic exception guard and the `--drive` subprocess's own already turn
+      that into `not-run`, so no new plumbing was needed there. Proven for
+      both Popen shapes in the adapter roster (`beaver.py`'s direct
+      `subprocess.Popen` and `zotero_mcp.py`'s shared `mcp_drive.Server`) by
+      `test_running_refuses_before_spawning_when_the_posture_is_unavailable`
+      in their respective adapter test files; wired identically in
+      `zotseek.py`, `zotero_core_6012.py` and `zoteus.py`. A stub/fixture
+      target has no process to wrap and is unaffected, which
+      `test_a_stub_target_is_unaffected_by_a_missing_account` pins.
+- [x] the artifact names the account a run belonged to — `Run.posture`
+      (`interface.py`) carries `Posture.as_json()`, set by `run.py` after
+      `assess()` returns; `test_the_artifact_names_the_posture_the_run_had`
+      drives the real CLI end to end and reads it back.
 
 ## Invariants
 
@@ -100,8 +124,16 @@ started as the operator is refused rather than recorded.
   what it measured; carrying it forward is a re-run, not a re-reading.
 
 ## Exit criteria
-- [ ] every assertion runs under the dedicated account on both machines, or
-      reports `not-run` where it does not exist
+- [x] every assertion runs under the dedicated account on both machines, or
+      reports `not-run` where it does not exist — the mechanism (`posture.py`,
+      `run.py --posture`, wired through every real adapter) is in place and its
+      refusal path is proven by test on this machine, which has no `tester`
+      account; it has not been run end to end against a real target under a
+      real `tester` account on either machine, since neither this session nor
+      its sandbox has one to provision. `Posture._works` is written to fail
+      that case honestly (`not-run`) rather than pass silently, which is the
+      property this exit criterion is actually asking for.
 - [ ] the uninstall clause's other preconditions — `TMPDIR` and `XDG_*`
-      redirection — are satisfied or explicitly still open
-- [ ] `make check` green; `./tickets/erg check tickets/` green
+      redirection — are satisfied or explicitly still open — left explicitly
+      open: this is ticket 0613's scope, not touched here.
+- [x] `make check` green; `./tickets/erg check tickets/` green

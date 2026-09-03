@@ -102,6 +102,7 @@ from ..durability import (
     RESYNC_IDENTICAL_BYTES,
 )
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from mcp_drive import Server  # noqa: E402
@@ -162,7 +163,8 @@ def _payload(response: dict) -> dict:
 
 class Zoteus:
     def __init__(self, arena: Path, *, entrypoint: Path, transformers_path: str = "",
-                 zotero_data_dir: str = "", seed_index: str = "", timeout: float = 900):
+                 zotero_data_dir: str = "", seed_index: str = "", timeout: float = 900,
+                 posture: Posture | None = None):
         self.arena = Path(arena)
         self.entrypoint = Path(entrypoint)
         self.data_dir = self.arena / "data"
@@ -171,6 +173,10 @@ class Zoteus:
         self.seed_index = Path(seed_index) if seed_index else None
         self.timeout = timeout
         self.server: Server | None = None
+        #: See `beaver.Beaver._posture`: `None` unwraps the spawn (every test
+        #: that builds this adapter directly gets that), `run.py` always
+        #: resolves a real `Posture` first (ticket 0625).
+        self._posture = posture
         self.declaration = Declaration(
             name="zoteus",
             revision=_revision(self.entrypoint),
@@ -257,7 +263,17 @@ class Zoteus:
     def running(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self._seed()
-        self.server = Server(["node", str(self.entrypoint)], self._env(), timeout=self.timeout)
+        cmd = ["node", str(self.entrypoint)]
+        env = self._env()
+        # See `zotero_mcp.ZoteroMCP.running`'s identical comment (same
+        # `mcp_drive.Server` transport): only the process spawn crosses the
+        # identity boundary (ticket 0625, Action 1); `env` is unchanged by
+        # wrapping and still reaches `Server` exactly as before, `wrap` only
+        # adds `--preserve-env=<names>` to `cmd`, and a refused posture raises
+        # before anything starts rather than falling back to an unwrapped spawn.
+        if self._posture is not None:
+            cmd = self._posture.wrap(cmd, {**os.environ, **env})
+        self.server = Server(cmd, env, timeout=self.timeout)
         self.server.handshake()
         try:
             yield
@@ -450,7 +466,8 @@ def _revision(entrypoint: Path) -> str:
 
 
 def build(name: str, arena: Path, *, entrypoint: str = "", transformers_path: str = "",
-          zotero_data_dir: str = "", seed_index: str = "", **_opts) -> Zoteus:
+          zotero_data_dir: str = "", seed_index: str = "", posture: Posture | None = None,
+          **_opts) -> Zoteus:
     if not entrypoint:
         raise SystemExit(
             "this adapter needs the path to the target's built entrypoint (--entrypoint). "
@@ -462,4 +479,5 @@ def build(name: str, arena: Path, *, entrypoint: str = "", transformers_path: st
         transformers_path=transformers_path or os.environ.get("ZOTEUS_TRANSFORMERS_PATH", ""),
         zotero_data_dir=zotero_data_dir,
         seed_index=seed_index,
+        posture=posture,
     )

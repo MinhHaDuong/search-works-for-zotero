@@ -110,6 +110,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 #: The distribution name on PyPI, which is NOT the repository's name.
 DISTRIBUTION = "zotero-mcp-server"
@@ -340,7 +341,7 @@ class ZoteroMCP:
     """
 
     def __init__(self, home: Path, venv: Path, timeout: float = 180.0,
-                 config: dict | None = None) -> None:
+                 config: dict | None = None, posture: Posture | None = None) -> None:
         home = Path(home).resolve()
         if home == Path.home().resolve():
             raise ValueError(
@@ -355,6 +356,10 @@ class ZoteroMCP:
         self.config = DEFAULT_CONFIG if config is None else config
         self.declaration = declaration(home)
         self._server = None
+        #: See `beaver.Beaver._posture`: `None` unwraps the spawn (every test
+        #: in this file builds directly and gets that), `run.py` always
+        #: resolves a real `Posture` first (ticket 0625).
+        self._posture = posture
 
     # ---- transport -------------------------------------------------------
 
@@ -392,8 +397,26 @@ class ZoteroMCP:
         """Start the server, yield, stop it. Harness setup, not an interface verb."""
         drive = _load_mcp_drive()
         cmd = [str(self.executable), "serve", "--transport", "stdio"]
+        env = self.environment()
+        # Only the process spawn crosses the identity boundary (ticket 0625,
+        # Action 1). `env` itself is UNCHANGED by wrapping and still reaches
+        # `Server` below exactly as it always did — `mcp_drive.Server` merges
+        # it over `os.environ` and hands the result to `subprocess.Popen`,
+        # which is the environment the wrapping `sudo` process itself
+        # receives (never on any argv; see `Posture.wrap`'s own docstring for
+        # why a value must never ride on a command line). `wrap` only adds
+        # `--preserve-env=<names>` to `cmd`, naming — never valuing — which of
+        # that merged environment's keys `sudo` forwards on to `tester`, which
+        # is why it is handed the full merged view rather than this adapter's
+        # own partial `env`: a name absent from `os.environ` here (say,
+        # `OPENAI_API_KEY`, blanked by `environment()` on purpose) still needs
+        # naming, or the blank never reaches the target either. `wrap` raises
+        # `PostureUnavailable` before anything is started if the posture is
+        # refused; never caught here to fall back to an unwrapped spawn.
+        if self._posture is not None:
+            cmd = self._posture.wrap(cmd, {**os.environ, **env})
         self.home.mkdir(parents=True, exist_ok=True)
-        server = drive.Server(cmd, self.environment(), self.timeout)
+        server = drive.Server(cmd, env, self.timeout)
         self._server = server
         try:
             self._bounded(server, "initialize", handshake=True)
@@ -466,6 +489,16 @@ class ZoteroMCP:
         record says which ran. A non-zero return code is reported, not raised:
         the caller's assertion decides what a failed install means, and an
         exception escaping here would be scored as a crash of the harness.
+
+        This is the one verb in this adapter that fetches and executes
+        third-party code with network access — exactly the exposure ticket
+        0625 exists to keep off the operator's own identity, and unlike
+        `running()`'s server spawn it is not a background process the
+        lifecycle wraps once: each step below is its own spawn, so each is
+        wrapped on its own. The other four adapters on this roster treat
+        "acquiring the build" as a pre-provisioned precondition with no live
+        install spawn; this one is the exception, which is why it needs its
+        own `wrap` call rather than inheriting `running()`'s.
         """
         self.home.mkdir(parents=True, exist_ok=True)
         uv = shutil.which("uv")
@@ -479,7 +512,8 @@ class ZoteroMCP:
         env = {**os.environ, **self.environment()}
         ran = []
         for step in steps:
-            done = subprocess.run(step, capture_output=True, text=True, env=env,
+            argv = self._posture.wrap(step, env) if self._posture is not None else step
+            done = subprocess.run(argv, capture_output=True, text=True, env=env,
                                   check=False)
             ran.append({"argv": step, "returncode": done.returncode,
                         "stderr": done.stderr[-2000:]})
@@ -622,7 +656,8 @@ NAMES = ("zotero-mcp",)
 
 
 def build(name: str, arena: Path, *, home: str = "", venv: str = "",
-          timeout: str | float = 180.0, **_opts) -> ZoteroMCP:
+          timeout: str | float = 180.0, posture: Posture | None = None,
+          **_opts) -> ZoteroMCP:
     """Construct the adapter from the driver's opaque `--adapter-option` pairs.
 
     Neither `home` nor `venv` is defaulted, and the refusal is the point rather
@@ -645,4 +680,5 @@ def build(name: str, arena: Path, *, home: str = "", venv: str = "",
             "(--adapter-option venv=<dir>). It is not defaulted: a guessed prefix is how "
             "a run measures an installation nobody chose."
         )
-    return ZoteroMCP(home=Path(home), venv=Path(venv), timeout=float(timeout))
+    return ZoteroMCP(home=Path(home), venv=Path(venv), timeout=float(timeout),
+                     posture=posture)

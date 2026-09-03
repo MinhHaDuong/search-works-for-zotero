@@ -152,6 +152,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from ..interface import Declaration, UnsupportedVerb
+from ..posture import Posture
 
 #: The release under test and the artifact that carries it. `TAG_OBJECT` is the
 #: annotated tag; `COMMIT` is what it dereferences to. Both are recorded because
@@ -509,7 +510,7 @@ class Beaver:
 
     def __init__(self, arena: Path, *, zotero: Path, xpi: Path, display: str = ":1",
                  port: int = 23319, dwell: float = 75.0, startup_timeout: float = 180.0,
-                 stop_grace: float = 20.0) -> None:
+                 stop_grace: float = 20.0, posture: Posture | None = None) -> None:
         self.arena = Path(arena).resolve()
         self.zotero = Path(zotero)
         self.xpi = Path(xpi).resolve()
@@ -518,6 +519,27 @@ class Beaver:
         self.dwell = float(dwell)
         self.startup_timeout = float(startup_timeout)
         self.stop_grace = float(stop_grace)
+        #: The identity boundary this run's spawn crosses, or `None` to spawn
+        #: unwrapped — the default a caller outside `run.py` gets, so building
+        #: this adapter directly (every test in this file does) keeps working.
+        #: `run.py` never passes `None`: it always resolves a `Posture` first,
+        #: ratified 2026-09-03 (DECISIONS.md; ticket 0625).
+        #:
+        #: This default is a deliberate, narrow fail-OPEN and worth naming as
+        #: one: any caller that constructs an adapter directly — bypassing
+        #: `run.py` entirely — gets an unwrapped spawn with no notice, silently,
+        #: rather than a refusal. Accepted because the only such callers are
+        #: this file's own tests (offline, no real target, no real library in
+        #: reach) and any future one-off script built the same way; the actual
+        #: measurement path — `run.py`'s `make_target`, every real invocation —
+        #: never omits `posture`, so the footgun has no trigger there. A script
+        #: that constructs an adapter directly against a REAL target and a REAL
+        #: library, outside `run.py`, is the one shape that would fire it, and
+        #: nothing here can distinguish that case from a test's fake one; the
+        #: mitigation is that no such script exists in this tree today, not a
+        #: runtime check — a check here would have no honest way to tell a
+        #: harmless test fixture from an unsafe production script apart.
+        self._posture = posture
 
         self.home = self.arena / "home"
         self.profile = self.arena / "profile"
@@ -681,6 +703,14 @@ class Beaver:
             str(self.zotero), "-profile", str(self.profile),
             "-datadir", str(self.data), "-no-remote",
         ]
+        # The identity boundary crosses here and nowhere earlier: the mkdirs
+        # and the sideload above are the harness's own setup, always the
+        # operator's — ticket 0625's Action 1 is that only the process spawn
+        # itself has to cross a user boundary. `wrap` raises `PostureUnavailable`
+        # before this Popen if the posture could not be established; it is
+        # never caught to fall back to spawning `argv` as the operator.
+        if self._posture is not None:
+            argv = self._posture.wrap(argv, self.environment())
         # `start_new_session` puts the host in a process group of its own, and
         # stopping it signals that GROUP rather than the process. This is not
         # tidiness: the host's launcher is a shell script that runs the real
@@ -919,7 +949,8 @@ NAMES = ("beaver",)
 
 def build(name: str, arena: Path, *, zotero: str = "", xpi: str = "",
           display: str = ":1", port: str | int = 23319, dwell: str | float = 75.0,
-          startup_timeout: str | float = 180.0, **_opts) -> Beaver:
+          startup_timeout: str | float = 180.0, posture: Posture | None = None,
+          **_opts) -> Beaver:
     """Construct the adapter from the driver's opaque `--adapter-option` pairs.
 
     Neither the host binary nor the artifact is defaulted, and both refusals are
@@ -944,4 +975,5 @@ def build(name: str, arena: Path, *, zotero: str = "", xpi: str = "",
     return Beaver(
         Path(arena), zotero=Path(zotero), xpi=Path(xpi), display=display,
         port=int(port), dwell=float(dwell), startup_timeout=float(startup_timeout),
+        posture=posture,
     )

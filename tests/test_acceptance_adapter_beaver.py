@@ -50,6 +50,7 @@ if str(REPO) not in sys.path:
 interface = importlib.import_module("bench.acceptance.interface")
 assertions = importlib.import_module("bench.acceptance.assertions")
 adapter = importlib.import_module("bench.acceptance.adapters.beaver")
+posture = importlib.import_module("bench.acceptance.posture")
 
 
 @pytest.fixture
@@ -528,3 +529,54 @@ def test_stopping_the_lifecycle_leaves_no_orphan_of_the_hosts_own_child(
             f"the host's child {child} survived the lifecycle: stopping signalled the "
             "process rather than its group, so the application was orphaned"
         )
+
+
+# --- 10. the identity boundary (ticket 0625) ---------------------------------
+
+
+def test_running_refuses_before_spawning_when_the_posture_is_unavailable(
+        tmp_path, artifact):
+    """A refused posture must stop the lifecycle before any process starts.
+
+    `zotero` points at a binary that does not exist: if `running()` reached
+    the point of trying to start it, this test would fail for the wrong
+    reason. The posture check must come first, which is what this asserts by
+    construction rather than by inspecting internals.
+    """
+    refused = posture.Posture(
+        posture.ACCOUNT_POSTURE, account=None,
+        refused="synthetic refusal for this test",
+    )
+    target = build(tmp_path, artifact, posture=refused)
+    with pytest.raises(posture.PostureUnavailable, match="synthetic refusal"):
+        with target.running():
+            pytest.fail("the lifecycle yielded despite a refused posture")
+
+
+@pytest.mark.integration
+def test_running_under_the_already_isolated_posture_spawns_normally(
+        tmp_path, artifact):
+    """A no-op posture must not change today's behaviour.
+
+    Same fake host as the orphan-descendant test above, run with an explicit
+    `already-isolated` posture. It must start exactly as it would with no
+    posture at all -- this is the regression check for every adapter this
+    ticket touches: passing a posture object must never, by itself, change
+    what gets spawned when that posture does not require wrapping.
+    """
+    host = tmp_path / "fake-host"
+    host.write_text(
+        "#!/bin/sh\n"
+        'while [ "$1" != "-datadir" ]; do shift; done\n'
+        'mkdir -p "$2"; : > "$2/zotero.sqlite"; : > "$2/beaver.sqlite"\n'
+        "sleep 5 &\n"
+        "wait\n"
+    )
+    host.chmod(0o755)
+
+    isolated = posture.Posture(posture.ISOLATED_POSTURE, account=None)
+    target = adapter.Beaver(tmp_path / "arena", zotero=host, xpi=artifact,
+                            dwell=0.0, startup_timeout=30.0, stop_grace=5.0,
+                            posture=isolated)
+    with target.running():
+        pass  # reaching here at all is the assertion: startup completed
