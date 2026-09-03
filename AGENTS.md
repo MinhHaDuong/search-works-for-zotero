@@ -207,6 +207,16 @@ reading of the maintainer into upstream text. The repo is public and he reads
 it. No guard enforces the separation, and nothing ever enforced it on the text
 you send — so read what you send, as sent.
 
+Before filing a ticket that specifies new code, read the fork's `src/` and
+`SYNC.md`'s upstream rows: the implementation may already exist. The code lives
+in the fork, a separate repository, so no search of *this* repository can see
+it, and a null here reads exactly like a real absence. Ratified 2026-09-03,
+after tracker 0557's ladder was specified against three such nulls — seg/1 was
+already built and tested on a fork branch, and 0560's embedded-TOC extraction
+already shipped upstream as `extractPdfOutline` a day before the ticket asking
+for it was filed. `SYNC.md` had recorded that release two days earlier. Both
+misses were preventable by reading something that already existed.
+
 ## Environment notes
 
 - `UPSTREAM` owns the reviewed upstream SHA and the repository URLs.
