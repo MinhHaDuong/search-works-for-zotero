@@ -12,7 +12,7 @@
 
 include UPSTREAM
 
-.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup fold-gate
+.PHONY: check check-fast deps lint figures models names progress tickets ticket-logs acceptance-fixtures help upstream-status upstream-checkout upstream-catchup upstream-rebaseline fold-gate
 
 # Where the acceptance layer's arenas live: outside the repository, because the
 # residue sweep fills them with a target's derived state and bench/ is scanned
@@ -35,6 +35,7 @@ help:
 	@echo "make upstream-status   — compare the reviewed SHA with upstream main"
 	@echo "make upstream-checkout — recreate fork/ at the reviewed SHA (only if absent)"
 	@echo "make upstream-catchup  — QUIET or TOUCHED: did upstream move anything of ours"
+	@echo "make upstream-rebaseline — the UPSTREAM block for the current tip, computed, and the recipe"
 
 check: deps lint figures models names progress tickets ticket-logs check-fast
 
@@ -153,8 +154,32 @@ upstream-status:
 
 # The other half of upstream-status: not THAT it moved, but what moved. Every
 # step it prints was done by hand on 2026-08-31 and none of it was a judgement.
+#
+# Its verdict is computed from a path list, so the only way to know it can still
+# say TOUCHED is to point it at a range where it must. The recorded positive
+# control is a real upstream release in which the watched surface as it stood
+# before 2026-09-03 was entirely empty while eighteen files changed outside it:
+#
+#     python3 bench/upstream_catchup.py --base v1.7.2 --head v1.7.3
+#
+# Run that before trusting a QUIET. Ticket 0622.
 upstream-catchup:
 	python3 bench/upstream_catchup.py
+
+# The mechanical half of a re-baseline, which was hand work all three times it
+# was done: the UPSTREAM block for the current tip with the SHA, the last
+# release contained in the tree, the date and the index schema generation all
+# READ rather than typed, the tag gap if the tip is past a release, and the list
+# of everything else a re-baseline must touch.
+#
+# It is a recipe and not a gate, and it says so in its own output. What it
+# cannot do is check that a row was re-read; the only thing that does is
+# `check_progress`, which fails until the page names the release UPSTREAM does.
+#
+# It earned its place the day it was written: it computed a tag gap of four
+# where the hand-written figure in four documents said three.
+upstream-rebaseline:
+	python3 bench/upstream_catchup.py --rebaseline
 
 upstream-checkout:
 	@test ! -e fork || { echo "Refusing to overwrite existing fork/" >&2; exit 1; }
