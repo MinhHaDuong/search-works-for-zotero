@@ -434,6 +434,15 @@ def main() -> int:
             "crosses no second boundary (ticket 0637; posture.inherited)"
         ),
     )
+    ap.add_argument(
+        "--spawned-under-unverifiable", action="store_true",
+        help=(
+            "inner mode only, written by the outer driver's egress check and never "
+            "by hand: the sandbox mechanism around this process remaps identity "
+            "(podman-unshare), so USER is a remapped view rather than evidence and "
+            "--spawned-under's claim cannot be checked against it (ticket 0638)"
+        ),
+    )
     a = ap.parse_args()
     options = adapter_options(a.adapter_option)
     if a.spawned_under and not a.drive:
@@ -444,9 +453,13 @@ def main() -> int:
         ap.error("--spawned-under is for the --drive re-invocation alone")
     if a.spawned_under and a.posture != posture_mod.ACCOUNT_POSTURE:
         ap.error("--spawned-under names an account and so needs --posture account")
+    if a.spawned_under_unverifiable and not a.spawned_under:
+        # It waives a check on a claim; with no claim there is nothing to waive,
+        # and accepting it alone would leave a flag that reads as if it had.
+        ap.error("--spawned-under-unverifiable qualifies --spawned-under and needs it")
     resolved_posture = (
-        posture_mod.inherited(a.spawned_under) if a.spawned_under
-        else posture_mod.resolve(a.posture)
+        posture_mod.inherited(a.spawned_under, verify=not a.spawned_under_unverifiable)
+        if a.spawned_under else posture_mod.resolve(a.posture)
     )
 
     if a.list_adapters:

@@ -165,6 +165,15 @@ class Mechanism:
     name: str
     note: str
     writable_enforced: bool = True
+    #: True where this mechanism remaps the invoking identity, so what a process
+    #: inside it reads about who it is (`getuid()`, and the identity-bound
+    #: environment names with it) is a remapped view rather than evidence.
+    #: `assertions.check_no_egress` passes this on to the `--drive` process,
+    #: which then skips `posture.inherited`'s `USER` check — see that docstring
+    #: for why the check is worth having everywhere else (ticket 0638). Default
+    #: False so a mechanism added later is checked rather than exempted by
+    #: silence.
+    remaps_uid: bool = False
 
     def isolated(self, argv: list[str], writable: tuple[Path, ...]) -> list[str]:
         raise NotImplementedError
@@ -248,6 +257,7 @@ class PodmanUnshare(Mechanism):
         "so the writable set is not enforced on this arm"
     )
     writable_enforced: bool = False
+    remaps_uid: bool = True
 
     def isolated(self, argv: list[str], writable: tuple[Path, ...]) -> list[str]:
         return ["podman", "unshare", "unshare", "-n", *argv]

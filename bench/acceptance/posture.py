@@ -272,19 +272,41 @@ def forwardable(env) -> dict[str, str]:
     return {name: value for name, value in dict(env).items() if name not in IDENTITY_BOUND}
 
 
-def inherited(account: str) -> Posture:
+def inherited(account: str, *, verify: bool = True) -> Posture:
     """The posture of a process the outer driver has already placed under `account`.
 
     Handed to a `--drive` process via `--spawned-under` (`run.py`), never
     resolved by probing: inside the enclosing switch — and inside the tracer
     and mechanism around it — `_works`'s `sudo` probe is refused for the module
     docstring's reasons, so probing there would turn every isolated run into a
-    guaranteed `not-run`. Like `already-isolated`, this is a claim the process
-    cannot verify from where it stands (inside a rootless user namespace the
-    invoking uid reads as 0, so even `getuid()` does not say "tester"); unlike
-    `already-isolated`, the claim is made by the harness about its own child,
+    guaranteed `not-run`. The claim is made by the harness about its own child,
     on an argv the harness built one process up.
+
+    What the process CAN see is `USER`. `forwardable()` strips every
+    `IDENTITY_BOUND` name from what the re-invocation carries across, so `sudo`
+    writes the account's own value there and a switch that genuinely happened
+    reads `tester`; an operator hand-typing `--spawned-under` reads their own
+    name instead, and that is the case this refuses. No uid check: `getuid()`
+    is the read that does not survive the namespace.
+
+    `verify=False` turns the check off, and exactly one caller sets it —
+    `assertions.check_no_egress`, from `mechanism.remaps_uid`, true today only
+    for `podman-unshare`. Inside its rootless user namespace the invoking uid
+    reads as 0 and the identity-bound names are a remapped view rather than
+    evidence, so a check there would refuse a genuine switch. `Bubblewrap`
+    remaps no identity (it unshares no user namespace), and a direct or
+    mechanism-less call has no remapping around it at all, so both keep the
+    check: this is the module's "verify, don't trust" discipline (`_works`)
+    applied wherever it can still tell the two cases apart.
     """
+    if verify:
+        actual = os.environ.get("USER")
+        if actual != account:
+            raise PostureUnavailable(
+                f"--spawned-under claims this process runs as {account!r}, but USER "
+                f"reads {actual!r}; the account switch this claim describes did not "
+                "happen here"
+            )
     return Posture(ACCOUNT_POSTURE, account=account, inherited=True)
 
 

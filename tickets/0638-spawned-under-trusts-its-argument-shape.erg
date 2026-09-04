@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-04T06:03Z MinhHaDuong created
+2026-09-04T07:02Z claude planned Refined Actions/Test from raid Imagine+Plan investigation against current source.
 
 --- body ---
 ## Context
@@ -70,27 +71,75 @@ runs a probe rather than trusting passwd existence).
 
 ## Actions
 
-1. Add a cheap identity sanity check to `inherited()` (or wherever
-   `--spawned-under` is consumed): compare `os.environ.get("USER")` (or
-   equivalent) against the claimed account name, and refuse/raise if they
-   disagree — mirroring the "verify, don't trust" pattern `_works()` already
-   uses elsewhere in this module.
-2. Skip the check specifically under mechanisms known to remap uid/identity
-   reads unreliably (`podman-unshare` today); keep it active under
-   `Bubblewrap` and any future mechanism that doesn't remap identity.
-3. Document, in `inherited()`'s docstring, exactly which mechanisms the check
-   is skipped for and why — so a future reader doesn't have to re-derive the
-   uid-remapping reasoning from scratch.
+Plan phase confirmed the wiring gap directly against current source: `run.py`'s
+`--drive` re-invocation calls `posture_mod.inherited(a.spawned_under)`
+(`run.py:448`) at argparse-resolution time, but the sandbox mechanism is only
+chosen later, inside `check_no_egress` (`assertions.py:215`, `mechanism, why =
+choose()`) — the caller that builds `drive_argv` (`run.py`'s `drive_argv_for`
+lambda, via `drive_argv()` at `run.py:290-314`) has no mechanism to key off at
+build time. So the skip/apply decision must be made inside `check_no_egress`,
+after the mechanism is chosen and before `drive_argv` is handed to
+`run_traced` (`assertions.py:249-257`), by appending a flag to a *copy* of the
+list — never mutating the caller's list in place.
+
+1. `bench/acceptance/sandbox.py`: add `remaps_uid: bool = False` to the
+   `Mechanism` base dataclass (alongside `writable_enforced`, `sandbox.py:167`).
+   Override `remaps_uid: bool = True` on `PodmanUnshare` only
+   (alongside its `writable_enforced: bool = False` override, `sandbox.py:250`)
+   — `Bubblewrap` keeps the base `False`.
+2. `bench/acceptance/assertions.py::check_no_egress`: after
+   `mechanism, why = choose()` (line 215) and before building `subject`
+   (line 249), when `mechanism.remaps_uid` is true, pass
+   `[*drive_argv, "--spawned-under-unverifiable"]` to `run_traced` instead of
+   the bare `drive_argv` — otherwise pass `drive_argv` unchanged.
+3. `bench/acceptance/run.py`: add a `--spawned-under-unverifiable`
+   store_true flag next to `--spawned-under` (near line 429), documented as
+   inner-mode-only, written by `check_no_egress` and never by hand — refuse
+   it (`ap.error`) if `--spawned-under` is not also set, mirroring the
+   existing `--spawned-under`-needs-`--drive` guard at line 439-444. Change
+   line 448 to
+   `posture_mod.inherited(a.spawned_under, verify=not a.spawned_under_unverifiable)`.
+4. `bench/acceptance/posture.py::inherited`: add a keyword-only
+   `verify: bool = True` parameter. When `verify` is true, check
+   `os.environ.get("USER") != account` and raise `PostureUnavailable` with a
+   message naming the claimed account and the actual `USER` value — mirroring
+   the "verify, don't trust" idiom `_works()` already uses (`posture.py:309-331`).
+   Update the docstring to name exactly which mechanism sets `verify=False`
+   today (`podman-unshare`, because `os.getuid()` reads 0 inside its
+   namespace) and why `Bubblewrap` and a mechanism-less/direct call keep the
+   check active (their `USER` env, after `forwardable()`'s exclusion of
+   `IDENTITY_BOUND` names, genuinely reflects the switch — `posture.py:263-272`).
 
 ## Test
 
-Red-first: a test that invokes the re-invocation path with `--spawned-under
-tester` while NOT actually running as `tester` (i.e. `USER` still reads the
-operator), under a mechanism where the check should apply (`Bubblewrap` or a
-mechanism-less/direct call) — must fail loudly rather than silently proceed
-as if the switch had happened. A second test confirms the check is
-correctly skipped (not merely always-pass) under `podman-unshare`, where
-`USER` cannot be trusted.
+Existing suite: `tests/test_acceptance_posture_isolation_order.py` (ticket
+0637's file). Its `_Recorded` `Mechanism` subclass (line 54) inherits the new
+`remaps_uid` field at its `False` default with no change needed.
+
+Red-first:
+1. A test invoking `inherited(account, verify=True)` (or the `--drive`
+   re-invocation path end-to-end) with a claimed account that does not match
+   `os.environ["USER"]` must raise `PostureUnavailable` — this is the new
+   behavior; today `inherited()` accepts any string uncritically. Nearest
+   home: alongside
+   `test_drive_mode_spawned_under_the_account_does_not_probe_for_a_second_switch`
+   (line 217).
+2. A test confirms the check is genuinely skipped, not merely always-pass,
+   under `PodmanUnshare`/`remaps_uid=True`: same mismatched-`USER` setup, but
+   with `verify=False` (or via a mechanism whose `remaps_uid` is `True`) must
+   NOT raise. Nearest home: alongside
+   `test_assess_hands_the_outer_wrap_to_the_egress_check_and_nothing_else`
+   (line 262).
+3. Ticket 0629's confirming arm is NOT an automated pytest test — it is a
+   manual live run against a real `tester` account and real `podman-unshare`,
+   documented in `bench/results/0629-gap-a/README.md` §3 and in tickets 0629/
+   0613/closed-0633/closed-0637's logs. The closest automated analog,
+   `test_identity_switch_outside_the_namespace_runs_where_the_reverse_is_refused`
+   (line 289-345, `@pytest.mark.integration`), skips without real infra and
+   `make check` alone cannot re-confirm the "still PASS/FAIL, not a new
+   NOT-RUN" verification checkbox — that one needs a live re-run on a machine
+   with the `tester` account and `podman-unshare` provisioned. Note this
+   limitation explicitly rather than silently skipping the checkbox.
 
 ## Verification
 
