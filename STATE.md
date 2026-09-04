@@ -33,7 +33,7 @@ owns the executable queue.
 ## Status
 <!-- generated 2026-09-04T12:34Z · as of 2091c06 -->
 
-**Tickets:** 56 ready · 31 blocked · 6 awaiting author — `erg ready tickets/` for full list
+**Tickets:** 56 ready · 31 blocked · 7 awaiting author — `erg ready tickets/` for full list
   next: 0025 Experiments X1-X7, each before its dependent, e… · 0026 Repo-side gates: fold, golden, RSS, convergence…
 **In flight:** 1 open PR — #327 (0632, golden-fixture harness verify)
 **Recent (first-parent):**
