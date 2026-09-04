@@ -22,19 +22,19 @@ to the document that owns the fact. What this repository is is [`README.md`](REA
 
 **Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
 
-**0613/0614/0615: does zoteus pass goal 1/2/3?** Gap A's #54 was built by the
-maintainer and shipped in v1.14.0, then closed; R10 awaits the v1.14 baseline
-reread and remeasurement. Gap B is PR #55. Gap C was sent as #56 and waits.
+**Through the September 21 checkpoint:** focus on correctness, packaging,
+privacy, and their unfinished tests. Keep #56 as a contained contribution;
+defer the separate indexer/worker rewrite, oversized-document segmenter, and
+other feature work. [`SYNC.md`](SYNC.md) owns #56's live state; `erg ready`
+owns the executable queue.
 
 **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — 0491's codex-fence question, the ladder re-cut's two.
 
 ## Status
-<!-- generated 2026-09-04T09:04Z · as of e12c4ca -->
+<!-- generated 2026-09-04T12:34Z · as of 2091c06 -->
 
-**Tickets:** 43 ready · 31 blocked · 6 awaiting author — `erg ready tickets/` for full list
+**Tickets:** 56 ready · 31 blocked · 6 awaiting author — `erg ready tickets/` for full list
   next: 0025 Experiments X1-X7, each before its dependent, e… · 0026 Repo-side gates: fold, golden, RSS, convergence…
 **In flight:** 1 open PR — #327 (0632, golden-fixture harness verify)
 **Recent (first-parent):**
-  e12c4ca Merge pull request #349 from MinhHaDuong/housekeeping-20260904
-  fb90b42 Merge pull request #348 from MinhHaDuong/worktree-t0656-pause-issue
-  ec6f52f Merge pull request #347 from MinhHaDuong/t0643-validate
+  2091c06 Merge pull request #355 from MinhHaDuong/fix/v114-count-correction
