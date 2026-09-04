@@ -166,11 +166,12 @@ def test_check_no_egress_switches_identity_on_the_subject_arm_only(monkeypatch, 
     )
 
 
-def test_inherited_posture_names_the_account_and_wraps_nothing():
+def test_inherited_posture_names_the_account_and_wraps_nothing(monkeypatch):
     """What the `--drive` process holds once the outer driver has already put
     the whole of it under the account: a second `sudo` from inside would be
     refused (module docstring), and is not needed -- the boundary was crossed
     once, by the parent, which is still one crossing at one seam."""
+    monkeypatch.setenv("USER", "tester")  # the switch this posture describes, as it reads
     inherited = posture.inherited("tester")
     assert inherited.name == posture.ACCOUNT_POSTURE
     assert inherited.account == "tester"
@@ -235,6 +236,7 @@ def test_drive_mode_spawned_under_the_account_does_not_probe_for_a_second_switch
 
     monkeypatch.setattr(run.posture_mod, "resolve", must_not_resolve)
     monkeypatch.setattr(run.adapters, "load", fake_load)
+    monkeypatch.setenv("USER", "tester")
     monkeypatch.setattr(sys, "argv", [
         "run.py", "--adapter", "stub-quiet", "--arena", str(tmp_path / "arena"),
         "--drive", "--spawned-under", "tester",
@@ -242,6 +244,82 @@ def test_drive_mode_spawned_under_the_account_does_not_probe_for_a_second_switch
     assert run.main() == 0
     assert handed and handed[0].account == "tester" and handed[0].refused is None
     assert handed[0].wrap(["node"], {"X": "1"}) == ["node"]
+
+
+# --------------------------------------------------------------------------
+# Ticket 0638: the claim is checked against what the process can actually see.
+# --------------------------------------------------------------------------
+
+
+def test_inherited_refuses_a_claim_the_environment_contradicts(monkeypatch):
+    """`--spawned-under tester` says a parent crossed the boundary. Where the
+    mechanism does not remap identity, `USER` is evidence about that claim:
+    `forwardable()` strips `USER` from what the re-invocation carries across,
+    so `sudo` writes the account's own value and a genuine switch reads
+    `tester`. An operator hand-typing the flag reads their own name, and this
+    is where that stops -- the same "run a probe rather than trust a shape"
+    discipline `_works()` follows.
+
+    Refused rather than raised, the shape `resolve()` uses: this is decided at
+    argparse time, before the driver's `record()` exists to turn a raise into a
+    verdict. And fail-closed -- the refusal reaches the spawn, where `wrap`
+    raises rather than returning an argv, so nothing runs unwrapped."""
+    monkeypatch.setenv("USER", "operator")
+    refused = posture.inherited("tester")
+    assert refused.refused is not None
+    assert "tester" in refused.refused and "operator" in refused.refused
+    with pytest.raises(posture.PostureUnavailable):
+        refused.wrap(["node"], {"X": "1"})
+
+
+def test_inherited_accepts_the_claim_the_environment_corroborates(monkeypatch):
+    """The contrast arm for the refusal above: same call, `USER` agreeing.
+    Without it the refusal test would pass against an `inherited()` that
+    refused everything."""
+    monkeypatch.setenv("USER", "tester")
+    granted = posture.inherited("tester")
+    assert granted.account == "tester" and granted.refused is None
+    assert granted.wrap(["node"], {"X": "1"}) == ["node"]
+
+
+def test_check_still_applies_under_the_uid_remapping_mechanism(monkeypatch):
+    """`getuid()` reads 0 inside `podman-unshare`'s rootless user namespace, but
+    `USER` is plain `execve` environment inheritance -- orthogonal to
+    namespacing, and unaffected by it. Measured live on this project's own
+    reference machine (ticket 0638, red-team finding): `podman unshare
+    unshare -n -- env` still reports `USER=tester`. So this check needs no
+    mechanism-aware skip; the refusal/acceptance pair above already covers
+    every mechanism there is."""
+    monkeypatch.setenv("USER", "operator")
+    refused = posture.inherited("tester")
+    assert refused.refused is not None
+    with pytest.raises(posture.PostureUnavailable):
+        refused.wrap(["node"], {"X": "1"})
+
+
+def test_egress_check_hands_drive_argv_through_unmodified(monkeypatch, tmp_path):
+    """`check_no_egress` holds the chosen mechanism but must not use it to vary
+    what it hands the `--drive` subprocess -- `posture.inherited`'s own check
+    already covers every mechanism, so there is nothing here for the egress
+    check to augment or skip on the child's behalf."""
+    seen: dict[str, list[str]] = {}
+
+    def fake_run_traced(argv, *, mechanism, network_shared, log_dir, tag, **kwargs):
+        if tag == "subject":
+            seen["subject"] = list(argv)
+        make = _tripping if tag.startswith("control") else _quiet
+        return make(argv, mechanism, network_shared)
+
+    monkeypatch.setattr(assertions, "run_traced", fake_run_traced)
+    for mechanism in (sandbox.PodmanUnshare(), sandbox.Bubblewrap()):
+        monkeypatch.setattr(assertions, "choose", lambda m=mechanism: (m, None))
+        arena = tmp_path / mechanism.name
+        arena.mkdir(parents=True, exist_ok=True)
+        handed = ["python3", "run.py", "--drive", "--spawned-under", "tester"]
+        assertions.check_no_egress(
+            stubs.build("stub-quiet", arena), arena=arena, log_dir=tmp_path / "log",
+            drive_argv=handed, under=None)
+        assert seen["subject"] == handed
 
 
 def test_spawned_under_is_refused_outside_drive_mode(monkeypatch, tmp_path):

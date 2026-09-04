@@ -279,12 +279,41 @@ def inherited(account: str) -> Posture:
     resolved by probing: inside the enclosing switch — and inside the tracer
     and mechanism around it — `_works`'s `sudo` probe is refused for the module
     docstring's reasons, so probing there would turn every isolated run into a
-    guaranteed `not-run`. Like `already-isolated`, this is a claim the process
-    cannot verify from where it stands (inside a rootless user namespace the
-    invoking uid reads as 0, so even `getuid()` does not say "tester"); unlike
-    `already-isolated`, the claim is made by the harness about its own child,
+    guaranteed `not-run`. The claim is made by the harness about its own child,
     on an argv the harness built one process up.
+
+    What the process CAN see is `USER`. `forwardable()` strips every
+    `IDENTITY_BOUND` name from what the re-invocation carries across, so `sudo`
+    writes the account's own value there and a switch that genuinely happened
+    reads `tester`; an operator hand-typing `--spawned-under` reads their own
+    name instead, and that is the case this refuses. No uid check: `getuid()`
+    is the read that does not survive the namespace — but this checks `USER`,
+    not uid, and `USER` does. Measured live on this project's own reference
+    machine (ticket 0638): `podman unshare unshare -n -- env` still reports
+    `USER=tester` under the rootless user namespace that makes `getuid()` read
+    0 there. `unshare`/`podman unshare` remap the process's uid, mount, and
+    network namespaces; they never touch `envp` — environment survives plain
+    `execve` inheritance, orthogonal to namespacing. So this check applies
+    unconditionally, under every `Mechanism` `sandbox.py` knows about today:
+    the module's "verify, don't trust" discipline (`_works`) applied to the
+    one case it previously exempted itself from without measuring it.
+
+    Refused, not raised, and that is the shape `resolve()` uses for the same
+    reason: this runs at argparse time, before `record()` — the one place in
+    the driver that turns a raise into a verdict — so raising here would exit
+    the `--drive` child with a traceback and land as a red the artifact cannot
+    explain. A refused posture instead reaches the spawn, where `wrap` raises
+    inside `record` and the artifact says `not-run` carrying the sentence
+    naming both the claimed account and what `USER` actually read. Fail-closed
+    either way: `wrap` tests `refused` before every other branch, so nothing
+    spawns unwrapped on this path.
     """
+    actual = os.environ.get("USER")
+    if actual != account:
+        return Posture(ACCOUNT_POSTURE, account=account, inherited=True, refused=(
+            f"--spawned-under claims this process runs as {account!r}, but USER reads "
+            f"{actual!r}; the account switch this claim describes did not happen here"
+        ))
     return Posture(ACCOUNT_POSTURE, account=account, inherited=True)
 
 

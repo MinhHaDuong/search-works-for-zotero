@@ -445,8 +445,8 @@ def main() -> int:
     if a.spawned_under and a.posture != posture_mod.ACCOUNT_POSTURE:
         ap.error("--spawned-under names an account and so needs --posture account")
     resolved_posture = (
-        posture_mod.inherited(a.spawned_under) if a.spawned_under
-        else posture_mod.resolve(a.posture)
+        posture_mod.inherited(a.spawned_under)
+        if a.spawned_under else posture_mod.resolve(a.posture)
     )
 
     if a.list_adapters:
