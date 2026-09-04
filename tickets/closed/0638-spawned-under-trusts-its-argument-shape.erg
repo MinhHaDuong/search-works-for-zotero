@@ -2,6 +2,7 @@
 Title: spawned-under trusts its argument shape, not that the caller actually is the account it claims
 Created: 2026-09-04
 Author: MinhHaDuong
+Closed: autoclosed — PR #344
 
 --- log ---
 2026-09-04T06:03Z MinhHaDuong created
@@ -13,6 +14,7 @@ Author: MinhHaDuong
 
 2026-09-04T07:21Z claude executed Red-team review on PR #344 falsified this ticket's own premise, live, on this project's reference machine: `sudo -n -u tester -- podman unshare unshare -n -- env` reports USER=tester even though `id` in the same namespace reports uid=0. podman-unshare remaps the process's uid/mount/net namespaces; it never touches envp -- environment survives plain execve inheritance, orthogonal to namespacing. So the remaps_uid/--spawned-under-unverifiable skip this ticket built rested on an unverified assumption (that identity-bound env names are untrustworthy wherever getuid() is) that turned out false for the one mechanism it was written for, and the resulting waiver was a confirmed, unauthenticated, hand-typeable bypass with no legitimate caller once the premise fell. Independently re-confirmed the same two commands directly in this session before acting on the finding. Removed the skip entirely rather than patching it further: `posture.inherited()` now checks USER unconditionally (no `verify` parameter, no `remaps_uid` on `Mechanism`, no `--spawned-under-unverifiable` on run.py, check_no_egress hands drive_argv straight through) -- but kept the prior entry's refused-not-raised pattern, now unconditional too, since it is orthogonal to the skip and still fail-closed. This still satisfies the ticket's own exit criteria more completely than the original Actions did: "verified... wherever that's possible" turns out to mean "everywhere", not "everywhere except podman-unshare". Actions/Test sections and Verification item 2 revised below to match; Context section left as the original PR #334 review's framing, which is superseded by this finding but stands as the historical record of what was asked for. Full test suite re-run (234 passed in the posture/sandbox/assertions/acceptance selection), ruff clean. The independently-verified fact from the stood-down execute agent's own investigation is carried forward too: the two make check-fast failures (tests/test_summarize_0120.py, missing sqlite3 binary) reproduce identically against a detached origin/main worktree and are not this branch's.
 
+2026-09-04T07:32Z MinhHaDuong closed — autoclosed — PR #344
 --- body ---
 ## Context
 
