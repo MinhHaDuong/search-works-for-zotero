@@ -23,7 +23,8 @@ Author: claude
 2026-09-04T05:39Z note TMPDIR/HOME/XDG precondition CLOSED (ticket 0635): bench/acceptance/adapters/zoteus.py's _env() now redirects HOME/TMPDIR into arena-scoped directories (self.home = arena/"home", self.tmp = arena/"tmp", mirroring the four sibling adapters exactly) and blanks XDG_CACHE_HOME/XDG_CONFIG_HOME/XDG_DATA_HOME/XDG_STATE_HOME. Footprint investigated against a freshly built reviewed SHA b0e0bc8 (v1.13.0): HOME has a real source hit (defaultZoteroDataDir()'s homedir()+/Zotero fallback, reached whenever zotero_data_dir is not supplied to the adapter), TMPDIR has zero source hits and is redirected defensively (no direct dependency of fork/ calls os.tmpdir(); warranted for Node/npm and any native addon a standalone transformers.js install pulls in), XDG_DATA_HOME has a hit but is not load-bearing (ZOTEUS_DATA_DIR is always set and checked first). Actually spawned the real built server with a substitute operator HOME/TMPDIR (never the real ones): nothing landed under either substitute directory in this target's default configuration, before or after the fix -- zoteus's footprint outside its declared data directory measures empty, recorded as a finding rather than assumed. Mechanism-level control confirms the residue sweep (Snapshot.of(arena)) is structurally blind to a marker file placed outside the arena regardless. Generalization check: check_residue_inventory against the patched adapter with a realistically cluttered outer ambient HOME (dotfiles, fake .cache/, fake .npm/, fake Zotero/zotero.sqlite) still reports pass/0 residue and leaves the clutter untouched. R15-uninstall-removes-declared-state's TMPDIR/XDG precondition is now met; gap C (R22) remains open and untouched by this ticket.
 2026-09-04T05:40Z GAP B'S DRAFT NOW HAS A RED-THEN-GREEN, and its placement is revised (ticket 0630's log carries the full account). bench/probe_uninstall_procedure.py drove a real fork/ build under --posture account, downloaded a real model, built a real 1-item index against this operator's real library, then deleted the declared root via shutil.rmtree/Path.unlink (never a shell) -- a deliberately incomplete pass first (withholding the model cache) caught by the same survivor sweep the ratified check uses, then the real deletion clearing to zero survivors and zero arena-wide residue. bench/results/0630-gap-b/. Still an ungraded diagnostic like 0629's: R15-uninstall-removes-declared-state stays not-offered, uninstall() still raises UnsupportedVerb, untouched. The draft's placement changed: not a new root UNINSTALL.md, but a short README.md ## Uninstall section (pairing ## Install, the pattern this project already uses for Semantic search/Vector ranking) plus the full procedure at docs/uninstall.md -- fork/ has no llms.txt and no machine-readable manifest an uninstall procedure could target (mcpb/manifest.json is Claude Desktop's own install-time schema, not extensible, and its one consumer already removes the .mcpb bundle by itself). Format stays .md. verification/UNINSTALL-DRAFT-0630.md revised in place, still staged, still not sent; tests/test_uninstall_doc.py unchanged and still green (4/4).
 2026-09-04T06:15Z claude note GAP A'S ISSUE SENT, on the author's explicit go-ahead: oscardvs/zoteus#54 (https://github.com/oscardvs/zoteus/issues/54), title and body posted verbatim from verification/ISSUE-DRAFT-0634.md (the staging preamble excluded, per the draft's own boundary). Ticket 0634 closed. This does not move R10-no-egress -- the matrix cell stays FAIL, unchanged, since nothing in zoteus itself changed; only the upstream maintainer building a fix or the harness re-measuring after one would move it. SYNC.md's #-indexed table carries the filing as its own row, matching how third-party issues on this tracker (#24, #29/#30, #48) are recorded.
-2026-09-04T06:35Z claude note GAP B'S PR SENT, on the author's explicit go-ahead: oscardvs/zoteus#55 (https://github.com/oscardvs/zoteus/pull/55), the two content blocks (README.md ## Uninstall section, new docs/uninstall.md) applied verbatim from verification/UNINSTALL-DRAFT-0630.md against a fresh clone at live upstream/main tip, not the stale reviewed-baseline fork/ checkout. Ticket 0630 closed. Like gap A, this does not move R15-uninstall-removes-declared-state -- unchanged, still not-offered; the maintainer has to merge it (and the TMPDIR/XDG precondition, already closed via 0635, still needs the arena's own posture to actually run before this clause can be graded). SYNC.md's tracker table carries the filing.
+2026-09-04T06:26Z claude note GAP B'S PR SENT, on the author's explicit go-ahead: oscardvs/zoteus#55 (https://github.com/oscardvs/zoteus/pull/55), the two content blocks (README.md ## Uninstall section, new docs/uninstall.md) applied verbatim from verification/UNINSTALL-DRAFT-0630.md against a fresh clone at live upstream/main tip, not the stale reviewed-baseline fork/ checkout. Ticket 0630 closed. Like gap A, this does not move R15-uninstall-removes-declared-state -- unchanged, still not-offered; the maintainer has to merge it (and the TMPDIR/XDG precondition, already closed via 0635, still needs the arena's own posture to actually run before this clause can be graded). SYNC.md's tracker table carries the filing.
+2026-09-04T06:34Z claude note 0633 RESOLVED, BY A DIFFERENT TICKET -- this entry corrects the T05:35Z/T05:39Z entries above rather than editing them, since the log is append-only. A parallel session diagnosed the identical root cause independently within minutes of this ticket's own 0633 filing and carried the actual fix as ticket 0637 (PR #334, merged): the account-posture sudo wrap now switches identity to `tester` BEFORE either the tracer or the podman-unshare namespace is entered, via a new `--spawned-under ACCOUNT` flag on the `--drive` re-invocation, rather than after (where sudo cannot function inside a rootless namespace by construction, regardless of sudoers config -- confirmed the same way in both tickets). 0633 is closed as a duplicate; 0637 owns the fix. What this actually changes for gap A: 0629's confirming arm RAN, live, on this machine -- default config `dns 4` (FAIL, unchanged), `ZOTEUS_UPDATE_CHECK=false` `dns 0` (PASS), both controls firing in both artifacts (`bench/results/0629-gap-a/acceptance-zoteus-default.json`, `acceptance-zoteus-update-check-false.json`). Gap A's attribution is now a direct measurement, not only a source-plus-syscall-shape argument. 0629's two previously-blocked verification checkboxes are ticked; its own exit criteria are now fully met (0613's log records the finding -- this entry), so it closes alongside this one. What this does NOT change: R13, R22, R3, R23 all stop reporting not-run FOR THE POSTURE REASON, but keep reporting not-run for the target-side reasons 0636 already named (no work.<...> counters, EDIT_ONE_ITEM refused on an R15 principle, no seeded hit list) -- gap C is untouched, still blocked exactly as 0636 describes, and the matrix's R10-no-egress cell for the DEFAULT configuration is likewise unchanged (still FAIL) since 0637 fixed the harness's ability to run the check, not zoteus's own behavior. Two follow-ups from 0637's own review, both open and out of this tracker's scope: 0638 (the new --spawned-under flag is trusted by argument shape alone, not verified against reality -- low severity, real gap, needs a hand-typed internal command to exploit) and 0640 (unrelated: main's ticket-log timestamp gate is currently red, from a stamp/commit-time mismatch in 0635's own PR #331 log entry -- checked, not introduced by this tracker's own close of 0635 earlier today, whose stamp matches its commit).
 --- body ---
 ## Context
 
@@ -57,17 +58,20 @@ Three of seven green. The rung is a conjunction, so that is not partial credit.
 
 ## The gaps, each with the sentence that establishes it
 
-**Gap A — the default configuration phones home (R10).** `ZOTEUS_UPDATE_CHECK`
-defaults to true in the reviewed build (`fork/dist/config.js`), and the server
-logged "Update available: Zoteus 1.13.0 (running 1.12.0)" during the run. R10:
-*"Without an explicit opt-in, my library text and my queries MUST NOT leave this
-machine"*, with the one-time model-weight download named as the sole exception.
-Caught only by the DNS detector — the off-machine count was 0, because inside a
-no-route namespace a hostname attempt dies at resolution and leaves no connect
-at all. **Not yet established:** whether the update check accounts for all four
-lookups. One arm settles it — the same assertion with `ZOTEUS_UPDATE_CHECK=false`
-— and it belongs beside the existing net-shared control, never as a graded
-configuration.
+**Gap A — the default configuration phones home (R10). Closed out; sent
+upstream as oscardvs/zoteus#54.** *Restated 2026-09-04 after the confirming
+arm actually ran (ticket 0637 fixed the harness bug that blocked it) — the
+prior reading is preserved in the log rather than silently corrected.*
+`ZOTEUS_UPDATE_CHECK` defaults to true in the reviewed build, and the server
+logged "Update available" during the run. R10: *"Without an explicit opt-in,
+my library text and my queries MUST NOT leave this machine"*, with the
+one-time model-weight download named as the sole exception. **Now directly
+measured, not only argued:** the confirming arm (`ZOTEUS_UPDATE_CHECK=false`)
+ran live and read `dns 0`, against the default configuration's `dns 4` in the
+same session — one `fetch()` in `update-check.ts` fully explains the failure,
+with no second cause. The graded `R10-no-egress` verdict for the default
+configuration is unchanged (still **FAIL**) since nothing in zoteus itself
+moved; only an upstream fix or a harness re-measure after one would move it.
 
 **Gap B — nothing published says how to remove it (R15).** *Restated
 2026-09-03 after a ruling; the earlier reading, that zoteus must grow a callable
@@ -120,7 +124,9 @@ from. Filed as child ticket 0636, deliberately independent of 0033/0032.
 1. Settle gap C's measurement. Re-derived 2026-09-04: not resolvable through
    the current assertions regardless of 0033; needs 0636 (a new R22-only check)
    or a change to the shared goal-2 perturbation vocabulary.
-2. Run gap A's discriminating arm and attribute the four lookups.
+2. Run gap A's discriminating arm and attribute the four lookups. Done
+   2026-09-04: ran live once 0637 fixed the posture/namespace ordering,
+   `dns 4` default vs `dns 0` disabled — see log.
 3. Decide the upstream form of gaps A and B against `GOVERNANCE.md` and
    `SYNC.md`'s measured asymmetry, and file.
 
@@ -154,7 +160,7 @@ edited to list each child as it is created.
 
 | child | scope | state |
 |---|---|---|
-| 0629 | gap A — attribute the four network lookups under `ZOTEUS_UPDATE_CHECK=false` | filed 2026-09-03, findings complete; confirming arm still not-run (structural reason, tracked by 0633) |
+| 0629 | gap A — attribute the four network lookups under `ZOTEUS_UPDATE_CHECK=false` | filed 2026-09-03, closed 2026-09-04: confirming arm ran (dns 4 default / dns 0 disabled) once ticket 0637 fixed the posture/namespace ordering; findings now directly measured |
 | 0630 | gap B — draft `UNINSTALL.md` as the R15 removal procedure | filed 2026-09-03, closed 2026-09-04: red-then-green proven, placement revised to README + `docs/uninstall.md`, sent as oscardvs/zoteus#55 |
 | 0633 | not a gap-A/B/C child — a harness finding surfaced while running 0629's confirming arm: account posture cannot compose with the podman-unshare sandbox fallback | filed 2026-09-04, open |
 | 0634 | gap A's Action 3 (issue-drafting half) — draft the upstream issue for the default-on update check | filed 2026-09-04, closed same day: sent as oscardvs/zoteus#54 |
