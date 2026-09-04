@@ -27,6 +27,8 @@ Author: claude
 2026-09-03T17:03Z Minh Ha-Duong ruled REFRAME (DECISIONS.md): one adversarial library plus a derived question bank, replacing the 25-bullet checklist as the operational shape (the checklist stays as a coverage ledger). Question count derived from a per-dimension sub-case tally, ≈97, landing near the author's own "about 100" instinct as corroboration rather than proof. Reuse across documents bounded at 4 per question, per the author's follow-up, to stop the tally being satisfied by loading a handful of flexible documents. Tracker structure added; the harness triplet is the first child to file, unblocked by the 9 browser-only sourcing fetches.
 2026-09-03T18:20Z Minh Ha-Duong ruled REVISED TALLY: exactly 200 questions (up from ≈97), each dimension row restated as what it tests plus a worked example rather than a bare label, and the reuse bound moved to a floor of at least 5 questions per document, no ceiling, replacing PR #315's ceiling of at most 4 documents per question. That floor reverses PR #315's anti-gaming rationale on purpose: with 200 questions and a >=5-reuse floor the fixture needs at most ~40 distinct documents (200/5) under the common-case assumption of one document per question, concentrating cost in question-authoring against already-sourced hard cases rather than in further sourcing. The growth to 200 crosses two axes the author named concretely (structural marks, extraction-cap boundaries) against the 3 MUST-tier languages (EN/FR/VI) already committed for sourcing, not the full 9-language roster -- SHOULD-tier documents carrying tables/footnotes/captions specifically would be a materially larger sourcing lift than this ticket's SHOULD-language row already commits to, per this ticket's own sourcing-difficulty log. Both the count and the reuse floor stay first-pass/adjustable, same standing as the ≈97 table they replace
 2026-09-03T18:47Z claude note OPUS REVIEW (decorrelated, PR #322) returned REQUEST-CHANGES, three blocking: (1) the old bound was documents-per-question, not questions-per-document, so calling the new floor an "inversion" of the same axis was wrong -- corrected to a replacement on the other axis in the ticket, log, and DECISIONS.md; (2) the Intersections row was self-describing as a language dimension (monster x script, scale x multilingual) yet carried languages=2 with a non-MUST-tier worked example (Arabic) -- fixed to languages=1 with two added combos (cap-crossing x script, structural x scale) that keep the row's subtotal at 8 and the total at exactly 200, verified by script; (3) the ~40-max-documents claim assumed one document per question, unstated -- now stated explicitly, with the multi-document case shown to loosen rather than break the bound. Also fixed on the review's non-blocking list: annotation row's "~12" firmed to 12, Group-library's sub-case/q-per-subcase columns filled in (was "--|--"), Gutenberg's languages=1 vs extraction-cap's languages=2 justified (one fixed English work vs a document-agnostic dimension), the harness canary given a one-line rationale so it doesn't read as a rounding fudge, and work-identity's worked example extended to cover the duplicate-pair half of its own "tests" description. erg check and validate re-run clean after the fix
+2026-09-04T05:23Z Minh Ha-Duong ruled child 2's bound is the 200-question tally, not the nine stuck records: closing the 4 HAL + 1 Malynes browser-only fetches is necessary but not sufficient. Gallica dropped as an admitted archive (every fetch answers a scripted client with a challenge, not just the four still unhashed) -- its four current records lose their source, the FR-VN cross-lingual anchor pair (des Michels) among them. Mix rebalances toward articles, no ratio pinned. Gutenberg and arXiv open for broader use; the Wikipedia constellation newly admitted. EconLit raised, not ruled -- likely an abstracting index with no hosted full text, so it probably fails the admitted-archive definition; open question. Full ruling in DECISIONS.md, 2026-09-04; ticket body gains a "Child 2's scope widened" section
+2026-09-04T07:32Z Minh Ha-Duong ruled archive admission is a standing five-part test from now on (DECISIONS.md, 2026-09-04), replacing a bespoke ruling per archive: robot-open (with the Gallica-vs-HAL nuance already ruled), licence-open, reputable, byte-exact identifier, ten years old or more. Closes the EconLit/CORE open question with a test rather than a verdict: EconLit still fails structurally (no hosted full text to evaluate), CORE and RePEc/EconStor plausibly pass all five legs on documentation alone but still need the same one-fetch robot-open probe every other archive got before either is treated as admitted. FAOLEX and HAL stay as pre-existing, narrowly scoped exceptions, not reopened by the general test; Gallica's drop and the test agree on leg 1
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -141,12 +143,64 @@ browser-only challenge pages (4 HAL, 4 Gallica, 1 Malynes), and it lets the
 question-bank design be tested against a real replay before more sourcing
 hours are spent.
 
+## Child 2's scope widened (ruling 2026-09-04)
+
+Ratified 2026-09-04 (DECISIONS.md). Child 2 is bounded by what the
+200-question tally needs present in the library, not by PR #151's stalled
+re-sourcing table: closing the 4 HAL + 1 Malynes browser-only fetches is
+necessary but not sufficient. Three further moves:
+
+- **Gallica dropped as an admitted archive.** Every Gallica fetch attempted
+  for this fixture answered a scripted client with an ALTCHA challenge — the
+  archive's standing behaviour, not a transient block. Its four current
+  records — cournot-1838-recherches, depitre-1908-oeuvres-cournot,
+  des-michels-1883-luc-van-tien, des-michels-1884-kim-van-kieu-t2p1 — lose
+  their source. The des Michels pair is the FR–VN cross-lingual anchor
+  ruling 5 (2026-09-02) built for R29; losing it without a replacement
+  removes that anchor shape, not just two records.
+- **The mix rebalances toward articles**, fewer books relative to standalone
+  articles. No ratio pinned — first-pass, adjustable, the posture already
+  carried by the 200-count and the reuse floor.
+- **Gutenberg (admitted 2026-09-03) and arXiv (admitted by ruling 3,
+  2026-09-02, unused in the recipe so far) open for broader use; the
+  Wikipedia constellation is newly admitted** — the article namespace
+  itself, beside the already-admitted Wikisource and Commons, each article
+  pinned by permanent revision id the same way a Wikisource entry already
+  is. Archives are drawn on only as the tally's dimensions need them.
+
+**Open, not ruled: EconLit.** Raised with the author's own hedge. To this
+session's knowledge EconLit is an abstracting and indexing database —
+bibliographic records and abstracts, not hosted full text — so it does not
+obviously meet the admitted-archive definition (a public, third-party-hosted,
+persistent identifier naming one fixed set of bytes). Carried open rather
+than dropped: the author may mean a specific EconLit-linked full-text
+source, not EconLit itself as a byte host.
+
+bench/fixtures/README.md's admitted-archive table and per-record table gain
+the Wikipedia row and the replaced Cournot/Depitre/des-Michels sourcing when
+child 2 actually executes; not edited in this pass, which records scope
+only — no new document is sourced here.
+
+### Archive admission is now a standing test, not a per-archive ruling
+
+Ratified the same day (DECISIONS.md, 2026-09-04): an archive is admitted
+when it is robot-open (with the Gallica-vs-HAL nuance the drop above already
+established — a challenge solved once and durable passes, one that blocks
+every fetch does not), licence-open, reputable, names byte-exact identifiers,
+and has existed ten years or more. This closes the EconLit question from
+earlier: EconLit itself still fails structurally (no hosted full text), but
+CORE and RePEc/EconStor plausibly pass all five legs on documentation and
+are candidates for child 2 to probe (leg 1, robot-openness, still needs a
+real fetch, not a documentation read) rather than sourcing candidates
+requiring their own ruling first. FAOLEX and HAL remain pre-existing,
+document-specific exceptions, not reopened by this test.
+
 ## Re-sourcing PR #151's 19 documents (ruling 2)
 | status | documents | action |
 |---|---|---|
 | compliant | Johnson, Baudelaire, Stein, Curie, Einstein-Minkowski (archive.org) | keep; record identifier + hash |
-| archive named, fetched by key | Cournot (Gallica), Walras, Porte, Minkowski (Internet Archive), Decision 11/2017 (FAOLEX `LEX-FAOC179224`, admitted 2026-09-02: docs/pdf URL, hash, LEX id, Wayback date) | record identifier, re-fetch from the archive, compare hash |
-| library-only or non-archive host | Malynes, Ramsey (full first editions on archive.org), Depitre (Gallica), Neurath (dropped: no admitted archive holds it); Circulars 25/2016, 41/2010, 42/2010 (dropped: Wikisource holds no circular as text; the 1992 constitution, vi + en, is the administrative register); Habilitation (HAL, versioned); Highway Code (dropped: no dated UK Government Web Archive snapshot could be confirmed) | re-source or drop |
+| archive named, fetched by key | Cournot (Gallica — **dropped 2026-09-04 with Gallica itself, needs a different archive**), Walras, Porte, Minkowski (Internet Archive), Decision 11/2017 (FAOLEX `LEX-FAOC179224`, admitted 2026-09-02: docs/pdf URL, hash, LEX id, Wayback date) | record identifier, re-fetch from the archive, compare hash |
+| library-only or non-archive host | Malynes, Ramsey (full first editions on archive.org), Depitre (Gallica — **dropped 2026-09-04 with Gallica itself**), Neurath (dropped: no admitted archive holds it); Circulars 25/2016, 41/2010, 42/2010 (dropped: Wikisource holds no circular as text; the 1992 constitution, vi + en, is the administrative register); Habilitation (HAL, versioned); Highway Code (dropped: no dated UK Government Web Archive snapshot could be confirmed) | re-source or drop |
 
 ## Vietnamese slice, rebuilt (ruling 5)
 - Administrative register: the 1992 constitution on vi.wikisource, pinned by
@@ -154,9 +208,11 @@ hours are spent.
 - Scientific register: 2 HAL records in Vietnamese (ART, COMM), versioned;
   HAL serves a challenge page to scripts, so their bytes are pinned by hand.
 - Cross-lingual anchors for R29: des Michels' Lục Vân Tiên and Kim Vân Kiều
-  (Gallica, FR–VN in one scan); a constitution in vi.wikisource and its
-  English text in en.wikisource (EN–VN); Bonet 1899 (Internet Archive, VN–FR
-  dictionary, pairs with Johnson); Decision 11/2017 with its official English
+  (Gallica, FR–VN in one scan — **dropped 2026-09-04 with Gallica itself;
+  this anchor needs a substitute FR–VN parallel text or a different anchor
+  shape, open**); a constitution in vi.wikisource and its English text in
+  en.wikisource (EN–VN); Bonet 1899 (Internet Archive, VN–FR dictionary,
+  pairs with Johnson); Decision 11/2017 with its official English
   translation, from FAOLEX (admitted 2026-09-02, vbpl.vn not).
 - Same work in two shapes: Việt Nam sử lược as a Commons scan and as a
   Wikisource transcription.
@@ -258,5 +314,5 @@ created.
 | child | scope | state |
 |---|---|---|
 | — | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | not yet filed |
-| — | the 9 browser-only sourcing fetches (4 HAL, 4 Gallica, 1 Malynes) | human-hands work, not a raid candidate |
+| — | re-sourcing bounded by the 200-question tally (ruling, 2026-09-04): close the 4 HAL + 1 Malynes browser-only fetches, replace the 4 dropped Gallica records including the FR-VN cross-lingual anchor pair, rebalance the mix toward articles, draw on Gutenberg/arXiv/the Wikipedia constellation as the tally needs them | browser-only fetches are human-hands work; the rest is open research, not a raid candidate as a whole |
 | — | question-bank authoring per the tally above | not yet filed; blocked on the harness child existing to test against |
