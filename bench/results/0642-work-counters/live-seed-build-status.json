@@ -1,0 +1,44 @@
+{
+  "documents": 1,
+  "vectors": 1,
+  "items": 1,
+  "storage": "sqlite",
+  "embedder": "local",
+  "embedderConfigured": "local",
+  "embedderActive": true,
+  "fulltextEnabled": false,
+  "fulltextItems": 0,
+  "fulltextPassages": 0,
+  "ownWordsEnabled": false,
+  "ownWordsItems": 0,
+  "ownWordsPassages": 0,
+  "builtFromVersion": 1,
+  "libraryVersion": 26482,
+  "fulltextVersion": 0,
+  "libraryBackend": "local",
+  "library": "user",
+  "embedderModel": "Xenova/all-MiniLM-L6-v2",
+  "work": {
+    "embed": {
+      "build": {
+        "done": 1
+      }
+    }
+  },
+  "passages": 1,
+  "state": "done",
+  "operation": "build",
+  "itemsFetched": 1,
+  "itemsRemoved": 0,
+  "itemsTotal": 1,
+  "itemsAvailable": 7546,
+  "phase": "metadata",
+  "fulltextItemsScanned": 0,
+  "fulltextItemsTotal": 0,
+  "_provenance": {
+    "what": "action:\"status\" reply from a real zoteus process (the work-counters-0642 patch), built with node /tmp/zoteus-0642/dist/index.js, after a real limit:1 build against this operator's own resident Zotero library (7546 items available) over the local API, own_words:false fulltext:false, ZOTEUS_EMBEDDINGS=local, on-device Xenova/all-MiniLM-L6-v2",
+    "when": "2026-09-04",
+    "confirms": "the work field this ticket adds is not a unit-test artifact: a real build against a real library reports work.embed.build.done, and re-reading the resulting search-index.sqlite file from a completely separate, freshly-opened sqlite3 connection (no zoteus process at all) returned the same row: [('embed', 'build', 'done', 1)]",
+    "not_a_grading_run": "this is not an acceptance-harness Check; it is a preliminary manual verification that led to building bench/results/0642-work-counters/acceptance-zoteus-r22-seeded.json's seed index"
+  }
+}
