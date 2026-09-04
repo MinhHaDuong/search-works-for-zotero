@@ -65,7 +65,7 @@
       "requirement": "R10",
       "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
       "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
-      "result": "pass",
+      "result": "fail",
       "target": "zoteus",
       "verb": "query",
       "detail": {
@@ -88,11 +88,36 @@
           "returncode": 0,
           "attempt_counts": {
             "off_machine": 0,
-            "dns": 0
+            "dns": 4
           },
-          "attempts": [],
-          "stdout_tail": "{\"install\": {\"entrypoint\": \"/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js\", \"data_dir\": \"/home/haduong/data/acceptance-arena/2026-09-04/075044-R10-no-egress/data\", \"materialized\": []}, \"configure\": {\"applied_at\": \"process start\", \"environment_keys\": [\"ZOTEUS_DATA_DIR\", \"ZOTEUS_EMBEDDINGS\", \"ZOTEUS_INDEX_AUTO_REFRESH\", \"ZOTEUS_INDEX_BACKEND\", \"ZOTEUS_INDEX_FULLTEXT\", \"ZOTEUS_READ_ONLY\", \"ZOTEUS_TRANSFORMERS_PATH\"]}, \"resume\": \"not-offered\", \"query\": {\"documents\": 0, \"vectors\": 0, \"items\": 0, \"storage\": \"sqlite\", \"embedder\": \"local\", \"embedderConfigured\": \"local\", \"embedderActive\": true, \"fulltextEnabled\": false, \"fulltextItems\": 0, \"fulltextPassages\": 0, \"ownWordsEnabled\": false, \"ownWordsItems\": 0, \"ownWordsPassages\": 0, \"builtFromVersion\": 0, \"libraryVersion\": 0, \"fulltextVersion\": 0, \"embedderModel\": \"Xenova/all-MiniLM-L6-v2\", \"passages\": 0, \"state\": \"idle\", \"operation\": \"build\", \"itemsFetched\": 0, \"itemsRemoved\": 0, \"itemsTotal\": 0, \"itemsAvailable\": 0, \"phase\": \"metadata\", \"fulltextItemsScanned\": 0, \"fulltextItemsTotal\": 0}}\n",
-          "stderr_tail": "time=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\n[server] [zoteus] INFO Zoteus MCP server started on stdio.\n[server] [zoteus] INFO Read-only mode: exposing 18/30 tools.\n[server] [zoteus] INFO Capabilities: cloud=none, localApi=false, localGroups=0\n[server] (node:2831680) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n[server] (Use `node --trace-warnings ...` to show where the warning was created)\n"
+          "attempts": [
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            },
+            {
+              "call": "connect",
+              "address": "127.0.0.53",
+              "port": 53,
+              "detector": "dns"
+            }
+          ],
+          "stdout_tail": "{\"install\": {\"entrypoint\": \"/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js\", \"data_dir\": \"/home/haduong/data/acceptance-arena/2026-09-04/075033-R10-no-egress/data\", \"materialized\": []}, \"configure\": {\"applied_at\": \"process start\", \"environment_keys\": [\"ZOTEUS_DATA_DIR\", \"ZOTEUS_EMBEDDINGS\", \"ZOTEUS_INDEX_AUTO_REFRESH\", \"ZOTEUS_INDEX_BACKEND\", \"ZOTEUS_INDEX_FULLTEXT\", \"ZOTEUS_READ_ONLY\", \"ZOTEUS_TRANSFORMERS_PATH\"]}, \"resume\": \"not-offered\", \"query\": {\"documents\": 0, \"vectors\": 0, \"items\": 0, \"storage\": \"sqlite\", \"embedder\": \"local\", \"embedderConfigured\": \"local\", \"embedderActive\": true, \"fulltextEnabled\": false, \"fulltextItems\": 0, \"fulltextPassages\": 0, \"ownWordsEnabled\": false, \"ownWordsItems\": 0, \"ownWordsPassages\": 0, \"builtFromVersion\": 0, \"libraryVersion\": 0, \"fulltextVersion\": 0, \"embedderModel\": \"Xenova/all-MiniLM-L6-v2\", \"passages\": 0, \"state\": \"idle\", \"operation\": \"build\", \"itemsFetched\": 0, \"itemsRemoved\": 0, \"itemsTotal\": 0, \"itemsAvailable\": 0, \"phase\": \"metadata\", \"fulltextItemsScanned\": 0, \"fulltextItemsTotal\": 0}}\n",
+          "stderr_tail": "time=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:34+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\n[server] [zoteus] INFO Zoteus MCP server started on stdio.\n[server] [zoteus] INFO Read-only mode: exposing 18/30 tools.\n[server] [zoteus] INFO Capabilities: cloud=none, localApi=false, localGroups=0\n[server] (node:2831411) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n[server] (Use `node --trace-warnings ...` to show where the warning was created)\n"
         },
         "control": {
           "net_shared": {
@@ -195,13 +220,13 @@
       "detail": {
         "install_event": {
           "entrypoint": "/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js",
-          "data_dir": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory/data",
+          "data_dir": "/home/haduong/data/acceptance-arena/2026-09-04/075033-R15-residue-inventory/data",
           "materialized": []
         },
-        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory",
+        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075033-R15-residue-inventory",
         "created_count": 0,
         "declared_roots": [
-          "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory/data"
+          "/home/haduong/data/acceptance-arena/2026-09-04/075033-R15-residue-inventory/data"
         ],
         "not_derived_state": [],
         "residue": [],
@@ -223,10 +248,10 @@
         "residue": [],
         "residue_count": 0,
         "declared_roots": [
-          "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-model-cache-under-declared-roots/data"
+          "/home/haduong/data/acceptance-arena/2026-09-04/075033-R15-model-cache-under-declared-roots/data"
         ],
         "query_answered": true,
-        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-model-cache-under-declared-roots"
+        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075033-R15-model-cache-under-declared-roots"
       }
     },
     {
@@ -333,8 +358,8 @@
     }
   ],
   "summary": {
-    "pass": 4,
-    "fail": 0,
+    "pass": 3,
+    "fail": 1,
     "not-offered": 1,
     "not-run": 7
   }

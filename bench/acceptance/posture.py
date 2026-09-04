@@ -41,7 +41,8 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
     sudo setfacl -m u:tester:x /home/<operator>                      # PARENT traverse first
     sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/library
     sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/library
-    sudo install -d -o tester -g tester /path/to/the/acceptance/arena
+    install -d /path/to/the/acceptance/arena                          # OPERATOR-owned …
+    setfacl -m u:tester:rwx -m d:u:tester:rwx /path/to/the/acceptance/arena  # … tester writes inside
     # then let the operator drive the harness without a password as tester,
     # AND forward the named environment variables wrap() lists on --preserve-env
     # (SETENV) rather than sudo silently dropping them (see wrap()'s own docstring):
@@ -84,6 +85,32 @@ already a boundary" is known, and the two tempting ones are worse than none:
 So this module writes neither. `already-isolated` is a posture the operator
 states on the command line, once, for a run whose environment is itself the
 boundary; the harness does not verify the claim, because it has no way to.
+
+**One crossing, and it happens before any other apparatus, not after (ticket
+0637).** R10's egress arm re-invokes this driver in `--drive` mode under a
+tracer and an isolation mechanism (`sandbox.py`), and the adapter inside that
+re-invocation then reaches `wrap()` from within both. `sudo` cannot run from
+there, for three separate reasons, each measured on padme (2026-09-04): inside
+a rootless user namespace the files it must trust literally (`/etc/sudo.conf`,
+`/etc/sudoers`) appear owned by the unmapped uid and it refuses on principle
+(`podman unshare unshare -n -- sudo -n -u tester -- true` → "owned by uid 65534,
+should be 0"); under an unprivileged tracer a setuid exec is neutralised by the
+kernel and it refuses again (`strace -f sudo -n -u tester -- true` → "effective
+uid is not 0"), with no namespace anywhere in sight; and `bwrap` sets
+no-new-privs on everything inside it, which is the same refusal by a third
+route. None of these is a misconfiguration; each is `sudo` declining to trust
+an environment it cannot verify, and the fix works with that rather than around
+it. So on that one arm the crossing moves OUTERMOST — the identity switch
+encloses the tracer, which encloses the mechanism, which encloses the
+re-invoked driver (`sandbox.run_traced`'s `under`; `run.py` composes it) — and
+the re-invoked process spawns its target unwrapped, holding `inherited()`
+below, because it already IS the account. That is still one crossing at one
+seam: the parent crossed it, once, for the whole of a subprocess that does
+nothing but seed a data directory, spawn the target and drive its verbs — all
+of it target-owned derived state under the arena, none of it the harness's own
+work. The outer driver, which writes the arena directories and the artifact,
+never moves. Ticket 0625's argument against a full re-exec (above) is about
+THAT process and stands untouched.
 
 **What the artifact must be able to show.** A run taken without the account,
 in an environment claiming to be its own boundary, must be identifiable as
@@ -138,6 +165,11 @@ class Posture:
     name: str
     account: str | None
     refused: str | None = None
+    #: True in a process the outer driver has ALREADY placed under `account`
+    #: (`inherited()`): the boundary was crossed once, by the parent, and
+    #: `wrap` returns `argv` unchanged rather than attempting a second `sudo`
+    #: from a place where it is refused (module docstring, ticket 0637).
+    inherited: bool = False
 
     def wrap(self, argv: list[str], env: dict[str, str]) -> list[str]:
         """The argv a target's spawn actually runs, under this posture.
@@ -150,7 +182,8 @@ class Posture:
 
         `already-isolated` returns `argv` unchanged: there is no second
         identity on this machine to cross into, by the operator's own
-        declaration.
+        declaration. An `inherited` account posture returns it unchanged too,
+        for the opposite reason: this process is already the account.
 
         `account` prepends the switch, and this is the one place a first
         version of this module got the boundary itself wrong, corrected in
@@ -189,7 +222,7 @@ class Posture:
         """
         if self.refused is not None:
             raise PostureUnavailable(self.refused)
-        if self.account is None:
+        if self.account is None or self.inherited:
             return list(argv)
         names = ",".join(sorted(env))
         preserve = [f"--preserve-env={names}"] if names else []
@@ -210,6 +243,49 @@ class Posture:
             "account": self.account,
             "refused": self.refused,
         }
+
+
+#: Environment names that describe WHO is running rather than WHAT is being run.
+#: `forwardable()` strips them from what the re-invoked `--drive` process
+#: inherits across the account switch: a rootless container engine started as
+#: `tester` with the operator's `HOME` or runtime directory looks for its own
+#: state under a home it cannot write, and fails for a reason that has nothing
+#: to do with egress. `sudo` sets the account's own values for these. This
+#: list is NOT applied by `wrap()` itself: several adapters set `HOME` on
+#: purpose, to an arena-owned directory their target must treat as home, and
+#: that is exactly the kind of name a target's spawn must keep.
+IDENTITY_BOUND: frozenset[str] = frozenset({
+    "HOME", "USER", "LOGNAME", "USERNAME", "SHELL", "MAIL",
+    "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS",
+})
+
+
+def forwardable(env) -> dict[str, str]:
+    """The names in `env` a whole re-invoked driver may carry across the switch.
+
+    Everything the run itself needs stays — `PATH`, and any variable the
+    operator exported for the target to see (`Server` merges `os.environ`
+    into the target's environment, so an export in the invoking shell reaches
+    the target exactly as it did before the switch). Only `IDENTITY_BOUND`
+    goes; see its comment.
+    """
+    return {name: value for name, value in dict(env).items() if name not in IDENTITY_BOUND}
+
+
+def inherited(account: str) -> Posture:
+    """The posture of a process the outer driver has already placed under `account`.
+
+    Handed to a `--drive` process via `--spawned-under` (`run.py`), never
+    resolved by probing: inside the enclosing switch — and inside the tracer
+    and mechanism around it — `_works`'s `sudo` probe is refused for the module
+    docstring's reasons, so probing there would turn every isolated run into a
+    guaranteed `not-run`. Like `already-isolated`, this is a claim the process
+    cannot verify from where it stands (inside a rootless user namespace the
+    invoking uid reads as 0, so even `getuid()` does not say "tester"); unlike
+    `already-isolated`, the claim is made by the harness about its own child,
+    on an argv the harness built one process up.
+    """
+    return Posture(ACCOUNT_POSTURE, account=account, inherited=True)
 
 
 def _account_exists(account: str) -> bool:
@@ -258,10 +334,11 @@ def _works(account: str) -> bool:
 def resolve(posture_name: str, account: str = ACCOUNT) -> Posture:
     """The posture a run has, or a `Posture` whose `wrap` refuses and says why.
 
-    Called once per process — the outer driver, and separately each `--drive`
-    subprocess, since a resolved posture cannot be handed across a process
-    boundary and re-resolving costs one passwd lookup or one trivial `sudo`
-    invocation. Never falls back: on any refusal the returned `Posture` still
+    Called once per process that has a boundary to establish: the outer driver,
+    and a `--drive` subprocess under `already-isolated`. A `--drive` subprocess
+    the outer driver has placed under the account holds `inherited()` instead
+    and never probes — from inside the switch the probe cannot succeed (module
+    docstring, ticket 0637). Never falls back: on any refusal the returned `Posture` still
     describes what was asked for, and its `wrap` raises rather than a caller
     silently spawning a target as the operator.
     """

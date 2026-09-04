@@ -2,11 +2,13 @@
 Title: Account posture cannot compose with the podman-unshare sandbox fallback
 Created: 2026-09-04
 Author: claude
+Closed: duplicate-resolved: same root cause independently diagnosed here as ticket 0637, which carries the fix (PR #334) — sudo cannot run inside podman unshare's rootless namespace (or inside strace under ptrace), identity switch now composes outermost
 
 --- log ---
 2026-09-04T05:31Z claude created
 
 2026-09-04T05:33Z Filed while running 0629's Action 2 confirming arm after /etc/sudoers.d/acceptance-tester was provisioned today: the sudoers fix did not unblock R10-no-egress. Reproduced the exact composed failure directly (podman unshare unshare -n sudo -n -u tester -- true -> sudo: /etc/sudo.conf is owned by uid 65534, should be 0; exit 1). Diagnosis, not yet fixed here -- out of gap A's own scope (0629's invariants: this arm never overrides R10-no-egress's graded verdict, and deciding/filing upstream form is 0613's Action 3, not this). Left open for Actions 1-3.
+2026-09-04T06:08Z MinhHaDuong closed — duplicate-resolved: same root cause independently diagnosed here as ticket 0637, which carries the fix (PR #334) — sudo cannot run inside podman unshare's rootless namespace (or inside strace under ptrace), identity switch now composes outermost
 --- body ---
 
 ## Context

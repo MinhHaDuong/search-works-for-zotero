@@ -29,7 +29,10 @@ rather than a property of the run.
 sandbox. It constructs the adapter and calls the verbs it offers, printing what
 happened; the outer process traces it. The seam matters: the adapter never
 learns it is being sandboxed, or the layer's isolation concern would have leaked
-into a target's declaration.
+into a target's declaration. Under the account posture the outer process also
+places the whole re-invocation under the account, from outside the tracer, and
+tells it so with `--spawned-under` — the switch cannot run from inside the
+tracer or the namespace (ticket 0637; `posture.py`'s module docstring).
 
 **`--posture`, ratified 2026-09-03 (DECISIONS.md; ticket 0625).** A target
 process never runs as the operator. The default, `account`, needs a dedicated
@@ -45,6 +48,7 @@ had.
 import argparse
 import json
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -134,7 +138,8 @@ def _started() -> str:
     return _STARTED
 
 
-def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> Run:
+def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for,
+           under=None) -> Run:
     """Every assertion the layer offers, each against a fresh target in a clean arena.
 
     **Why one arena per assertion and not one per run.** The first version of
@@ -221,7 +226,8 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
 
     where = arena_for("R10-no-egress")
     record("R10-no-egress", "R10", lambda w=where: check_no_egress(
-        make_target(w), arena=w, log_dir=log_dir, drive_argv=drive_argv_for(w)))
+        make_target(w), arena=w, log_dir=log_dir, drive_argv=drive_argv_for(w),
+        under=under))
 
     where = arena_for("R15-residue-inventory")
     record("R15-residue-inventory", "R15",
@@ -279,6 +285,33 @@ def assess(make_target, *, base_arena: Path, log_dir: Path, drive_argv_for) -> R
     record("R23-foreign-stamp-ends-up-serving", "R23",
            lambda w=where: check_foreign_stamp_ends_up_serving(make_target(w)))
     return run
+
+
+def drive_argv(adapter: str, where: Path, posture_name: str, options: dict[str, str],
+               *, spawned_under: str | None) -> list[str]:
+    """The `--drive` re-invocation the egress assertion runs under the tracer.
+
+    `--posture` rides along rather than being left to its default, because the
+    `--drive` subprocess must describe the SAME posture this outer process was
+    asked for, not silently fall back to the default if the caller asked for
+    `already-isolated`.
+
+    `spawned_under`, when set, is the account the outer process is about to
+    place this whole re-invocation under (`check_no_egress`'s `under`), and it
+    reaches the child as `--spawned-under`: the child then holds
+    `posture.inherited()` and spawns its target unwrapped instead of probing
+    for a second `sudo` from inside the tracer and the namespace, where the
+    probe is refused and would make every isolated run `not-run` (ticket 0637).
+    """
+    passthrough: list[str] = []
+    for key, value in options.items():
+        passthrough += ["--adapter-option", f"{key}={value}"]
+    inherited = ["--spawned-under", spawned_under] if spawned_under else []
+    return [
+        sys.executable or "python3", str(Path(__file__).resolve()),
+        "--adapter", adapter, "--arena", str(where), "--drive",
+        "--posture", posture_name, *inherited, *passthrough,
+    ]
 
 
 def adapter_options(pairs: list[str]) -> dict[str, str]:
@@ -392,9 +425,29 @@ def main() -> int:
             "probe for this, it is a documented precondition the operator states"
         ),
     )
+    ap.add_argument(
+        "--spawned-under", metavar="ACCOUNT", default=None,
+        help=(
+            "inner mode only, written by the outer driver onto its own --drive "
+            "re-invocation and never by hand: the outer process has already placed "
+            "this whole process under the dedicated account, so the target's spawn "
+            "crosses no second boundary (ticket 0637; posture.inherited)"
+        ),
+    )
     a = ap.parse_args()
     options = adapter_options(a.adapter_option)
-    resolved_posture = posture_mod.resolve(a.posture)
+    if a.spawned_under and not a.drive:
+        # The flag claims a parent already crossed the boundary. The outer
+        # driver has no such parent, so accepting it here would let a run
+        # assert a boundary nothing established; `--posture already-isolated`
+        # is the posture for a claim that is the operator's to make.
+        ap.error("--spawned-under is for the --drive re-invocation alone")
+    if a.spawned_under and a.posture != posture_mod.ACCOUNT_POSTURE:
+        ap.error("--spawned-under names an account and so needs --posture account")
+    resolved_posture = (
+        posture_mod.inherited(a.spawned_under) if a.spawned_under
+        else posture_mod.resolve(a.posture)
+    )
 
     if a.list_adapters:
         for name in adapters.available():
@@ -457,23 +510,25 @@ def main() -> int:
     log_dir = Path(a.log_dir).resolve() if a.log_dir else arena / "trace"
 
     def drive_argv_for(where: Path) -> list[str]:
-        # `--posture` rides along rather than being left to its default,
-        # because the `--drive` subprocess resolves its own posture fresh (a
-        # resolved account cannot be handed across a process boundary, per
-        # `posture.resolve`'s own docstring) and it must resolve the SAME one
-        # this outer process was asked for, not silently fall back to the
-        # default if the caller asked for `already-isolated`.
-        passthrough: list[str] = []
-        for key, value in options.items():
-            passthrough += ["--adapter-option", f"{key}={value}"]
-        return [
-            sys.executable or "python3", str(Path(__file__).resolve()),
-            "--adapter", a.adapter, "--arena", str(where), "--drive",
-            "--posture", a.posture, *passthrough,
-        ]
+        return drive_argv(a.adapter, where, a.posture, options,
+                          spawned_under=resolved_posture.account)
+
+    # The identity switch around the egress assertion's subject arm — the
+    # whole re-invocation, tracer included, because `sudo` is refused from
+    # inside either (`posture.py`'s module docstring, ticket 0637). What
+    # crosses with it is the operator's environment minus the names that say
+    # WHO is running (`posture.forwardable`): the account's own HOME and
+    # runtime directory are what a rootless container engine started as the
+    # account needs, and `sudo` supplies them. A refused posture raises here,
+    # inside `record`, and lands as `not-run` naming the reason, exactly as an
+    # adapter's own `wrap` does.
+    forwarded = posture_mod.forwardable(os.environ)
+
+    def under(command: list[str]) -> list[str]:
+        return resolved_posture.wrap(command, forwarded)
 
     run = assess(make_target, base_arena=arena, log_dir=log_dir,
-                 drive_argv_for=drive_argv_for)
+                 drive_argv_for=drive_argv_for, under=under)
     run.posture = resolved_posture.as_json()
     run.write(Path(a.output))
 

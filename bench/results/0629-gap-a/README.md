@@ -115,83 +115,100 @@ that has no reason to hold it.
 **The hypothesis 0629 logged holds.** Four lookups need no second cause:
 zoteus's one `fetch()` accounts for all of them.
 
-## 3. The confirming arm still did not run — and the reason changed
+## 3. The confirming arm — ran on 2026-09-04
 
-The ticket's Action 2 (`ZOTEUS_UPDATE_CHECK=false`, expected `dns: 0`) is the
-direct confirmation. **2026-09-04 update:** `/etc/sudoers.d/acceptance-tester`
-now exists — the remedy this section originally asked for — and
-`posture._works('tester')` genuinely succeeds when called directly. The
-confirming arm was re-run twice (once alongside a same-session default-config
-comparison, per the ticket's own Test discipline) and still reports
-`R10-no-egress` as `not-run`, both artifacts committed:
-`acceptance-zoteus-update-check-default-comparison.json` and
-`acceptance-zoteus-update-check-false.json`.
+The ticket's Action 2 (`ZOTEUS_UPDATE_CHECK=false`, expected `dns: 0`) ran on
+padme once ticket 0637 landed, as a pair in one session, default arm first,
+same build, same machine, both under `--posture account` (`tester`) and the
+`podman-unshare` mechanism:
 
-**The blocker moved, from a missing file to a structural composition
-conflict, diagnosed and filed as ticket 0633.** `check_no_egress` runs the
-posture-wrapped spawn (`sudo -n -u tester …`) *inside* the sandbox's
-`podman-unshare` namespace, not outside it. Reproduced directly:
+| arm | artifact | `R10-no-egress` | subject `attempt_counts` |
+|---|---|---|---|
+| default | `acceptance-zoteus-default.json` | **fail** | `off_machine 0, dns 4` |
+| `ZOTEUS_UPDATE_CHECK=false` | `acceptance-zoteus-update-check-false.json` | **pass** | `off_machine 0, dns 0` |
+
+Both controls fired in both runs — net-shared `off_machine 1, dns 3`,
+isolated `off_machine 1, dns 4`, the §2 signature — so the two zeros in the
+second row were measured, not unlooked-for. The four lookups go to zero when
+the one `fetch()` is switched off and nothing else moves: that is the reading
+"from the other direction" the paragraph at the end of this section asked
+for. The verdict on the default configuration is unchanged and now rests on a
+same-session pair rather than on the v1130 artifact alone.
+
+Every other assertion needing a target process (R3, R13, R22, R23) now reports
+`not-run` for a target-side reason — no `work.<...>` counters, no hit list, no
+seeded index — rather than for the posture; those reasons are 0613's business,
+not this ticket's.
+
+The recipe is unchanged from the one below, with the arena at
+`$HOME/data/acceptance-arena` (operator-owned, default ACL for `tester` — see
+the `Makefile`'s provisioning block) and the entrypoint given as an absolute
+path. What follows is the record of why it could not run on 2026-09-03, kept
+because the same two blockers will meet the next machine.
+
+### 3.1 Why it did not run on 2026-09-03 — machine, not code
+
+Every assertion that starts a target process reported `not-run`:
+
+> `PostureUnavailable: 'tester' exists but a run under it did not succeed here
+> (checked by running a trivial command under it, not by looking the account
+> up). The sudoers rule the recipe asks for is likely missing or
+> misconfigured.`
+
+That is correct behaviour, not a harness defect: the account posture ratified
+in `DECISIONS.md` on 2026-09-03 (ticket 0625) refuses to run a target as the
+operator. `/etc/sudoers.d/acceptance-tester` does not exist here; what
+`sudo -l` shows is a `(tester) NOPASSWD: ALL` line **without** the `SETENV`
+tag `bench/acceptance/posture.py:48` requires, and shadowed by a later
+`(ALL : ALL) ALL`, so `sudo -n -u tester /bin/true` asks for a password. The
+v1130 artifact predates the gate — its commit `d3b299c` is 15:44, the posture
+commit `f89a2bc` is 16:15 the same day — which is why that run decided a
+clause this one cannot.
+
+The remedy is one line, and needs root:
 
 ```bash
-$ podman unshare unshare -n sudo -n -u tester -- true
-sudo: /etc/sudo.conf is owned by uid 65534, should be 0
-sudo: ouverture de /etc/sudoers impossible: Permission non accordée
-$ echo $?
-1
+echo "haduong ALL=(tester) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
 ```
 
-Inside a rootless user namespace the invoking user maps to uid 0 *only within
-that namespace*; a file really owned by host root — `/etc/sudo.conf`,
-`/etc/sudoers` — appears owned by the overflow uid (65534) from inside it, so
-`sudo`, a setuid-root binary, refuses to run. This is a property of how
-unprivileged user namespaces work, not a sudoers misconfiguration, and it
-fires identically on the net-shared control invocation (not specific to
-`--unshare-net`). It also explains a second observation: even the
-**default-configuration** comparison run now reads `R10-no-egress` as
-`not-run` rather than the `fail` the 2026-09-03 matrix recorded — the matrix's
-`acceptance-zoteus-v1130.json` predates ticket 0625's account-posture gate
-entirely (commit `d3b299c` at 15:44 versus the posture commit `f89a2bc` at
-16:15 the same day), so nothing before today exercised this exact
-composition. Full argument and next steps: ticket 0633.
+With that in place, the arm the ticket specifies runs unchanged:
 
-Both controls fire correctly in both new artifacts — `off_machine`/`dns`
-counts present, matching the shape `syscall-shape.json` already established —
-so the tracer and the sandbox mechanism are not in question; only the
-account-posture spawn inside that mechanism is.
+```bash
+ZOTEUS_UPDATE_CHECK=false python3 bench/acceptance/run.py \
+  --adapter zoteus --arena "$ARENA" \
+  --adapter-option entrypoint=fork/dist/index.js \
+  --adapter-option transformers_path="$ZOTEUS_TRANSFORMERS_PATH" \
+  --output bench/results/0629-gap-a/acceptance-zoteus-update-check-false.json
+```
 
-**What this changes about the finding: still less than it looks, for the same
-reason as before, plus one more data point in the same direction.** The
-attribution in §1–§2 rests on the source read and the discriminating
-syscall-shape measurement, neither of which the confirming arm was ever going
-to add to — it was always going to *corroborate*, not establish, the
-attribution. It still has not run to completion, so it corroborates nothing
-new; what it does add is that the account-posture layer itself (not gap A's
-subject) is what is blocked now, which is a finding about the harness's own
-composition, not about zoteus.
+`bench/acceptance/adapters/zoteus.py::Zoteus._env()` never sets or strips
+`ZOTEUS_UPDATE_CHECK` and `bench/mcp_drive.py::Server.__init__` merges
+`{**os.environ, **env}`, so exporting it in the invoking shell is sufficient —
+including under `--posture account`, whose `--preserve-env=` list is built
+from that merged dict.
 
-**Source re-verification, 2026-09-04:** `fork/` rebuilt at
-`UPSTREAM_REVIEWED_SHA` `b0e0bc8` (`UPSTREAM`, unmoved since this ticket
-closed its first pass). Every file:line citation in §1 was re-read from that
-real build and matches exactly, with one two-line drift: the desktop-probe
-loop in `src/router/capabilities.ts` starts at `:53`, not `:55-56` as
-originally logged — non-load-bearing (still three attempts against an IP
-literal, no name resolution). `src/lib/update-check.ts:5`/`:93`,
-`src/config.ts:237`/`:408`, and `src/server.ts:184-190` all confirmed
-unchanged.
+With the sudoers line in place, a second blocker appeared that was code, not
+machine: the account switch fired from inside the tracer and the rootless
+namespace, where `sudo` is refused (`/etc/sudo.conf is owned by uid 65534`).
+A separate session hit this same composition bug independently within
+minutes and filed it as ticket 0633 (diagnosis only); this ticket's own
+filing is 0637, which carries the fix and moved the switch outermost — the
+pair in the table above is the first run after it. 0633 is closed as
+duplicate-resolved.
+
+**What the arm changed about the finding: less than it looks.** The attribution
+above rests on a measurement that was made here, with a null arm and a
+discriminating control, and on a source read of the reviewed tree. What the
+arm added is the fourth reading of the same shape from the other direction —
+`dns` falling to 0 when the one lookup is switched off — and it came back as
+predicted.
 
 ## Files
 
 - `syscall-shape.json` — the measurement, six arms, produced by
   `bench/probe_getaddrinfo_shape.py`.
-- `acceptance-zoteus-update-check-default-comparison.json` —
-  same-session, same-machine, same-build companion to the `false` arm below;
-  default configuration (`ZOTEUS_UPDATE_CHECK` unset), taken 2026-09-04.
-  `R10-no-egress` reads `not-run` (see §3), both controls fire.
-- `acceptance-zoteus-update-check-false.json` — the ticket's Action 2 arm,
-  `ZOTEUS_UPDATE_CHECK=false`, taken immediately after the comparison run
-  above. `R10-no-egress` reads `not-run` for the same reason (see §3), both
-  controls fire; this is not the `dns: 0` confirmation the ticket asked for —
-  ticket 0633 tracks why not.
+- `acceptance-zoteus-default.json`, `acceptance-zoteus-update-check-false.json`
+  — the §3 pair, 2026-09-04, same session in that order.
 - `traces/` is git-ignored (`.gitignore`); re-run the probe to regenerate it.
 - `tests/test_probe_getaddrinfo_shape.py` fails if the artifact loses its null
   arm or its discriminating control, or if the getaddrinfo count stops

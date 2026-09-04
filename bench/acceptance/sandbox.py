@@ -73,6 +73,22 @@ its own log (`strace: Can't fopen ...: Read-only file system`). `strace -f`
 outside follows the sandbox's children, which is what a target's own forks need,
 and it has been confirmed to see through both mechanisms.
 
+**Why an identity switch goes outside the tracer too, and so outside every
+mechanism (ticket 0637).** `posture.py`'s account switch is `sudo`, and `sudo`
+is refused from inside anything this module builds: inside `bwrap`, which sets
+no-new-privs on its whole subtree; inside `podman unshare`, whose uid
+remapping makes `/etc/sudoers` appear owned by nobody so `sudo` will not trust
+it; and — the one with no namespace in it at all — under an unprivileged
+`strace`, because the kernel neutralises a setuid exec under ptrace ("effective
+uid is not 0"). All three measured on padme, 2026-09-04. So `run_traced` takes
+an optional `under`, an outermost wrapper applied around the tracer and the
+mechanism together, and knows nothing about what it is — this module still
+imports no posture and no account name. A tracer running as the account traces
+the account's own children, which is the same thing it did before as the
+operator's, and it writes its log with the account's identity, which is why the
+log directory has to be one the account can write (the arena is, by the
+provisioning recipe in the `Makefile`).
+
 **Why the writable set is the caller's to name.** Under `bwrap`'s read-only bind
 the target cannot write anywhere, so a run that needs to create derived state
 fails for a reason that has nothing to do with egress — a false red of the
@@ -97,6 +113,7 @@ an adapter. It takes an argv and a list of paths.
 
 import re
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -387,18 +404,25 @@ def run_traced(
     timeout: float = 900,
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
+    under: Callable[[list[str]], list[str]] | None = None,
 ) -> TraceResult:
     """Run `argv` under the tracer, inside the mechanism, and classify what it named.
 
     `network_shared=True` is the control arm: same mechanism, same tracer, route
     intact. It is what distinguishes "nothing tried to leave" from "the sandbox
     or the tracer was not working", which is the whole reason it exists.
+
+    `under`, when given, encloses the WHOLE command — tracer, mechanism and
+    `argv` — and is the only place an identity switch can go (module docstring,
+    ticket 0637). It receives the traced command and returns what to run.
     """
     log_dir.mkdir(parents=True, exist_ok=True)
     log = log_dir / f"{tag}.strace"
     wrap = mechanism.shared if network_shared else mechanism.isolated
     command = [STRACE, "-f", "-e", "trace=network", "-o", str(log),
                *wrap(list(argv), tuple(writable))]
+    if under is not None:
+        command = under(command)
     done = subprocess.run(
         command, capture_output=True, text=True, timeout=timeout, cwd=cwd, env=env
     )
