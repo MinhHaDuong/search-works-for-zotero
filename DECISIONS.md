@@ -6343,6 +6343,7 @@ arena, entered at the target-process seam or around R10's target-driving inner
 subprocess. Existing ticket logs, decisions and measurement artifacts retain
 `tester` because they record what the account was called when those events and
 runs happened.
+
 **2026-09-04 — RULED (formalized from the same-day finding below): ruling 6's
 "attachments as linked files, so no storage quota is spent" premise was
 wrong for group libraries, not merely incomplete.** A group injection

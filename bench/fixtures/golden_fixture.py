@@ -18,6 +18,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -231,6 +232,9 @@ def inject(
     A group library needs its attachment bytes uploaded (client.upload_file) before
     reindex_fulltext has anything to extract from -- a user-library linked_file
     attachment needs no such step, since its bytes are already reachable by path.
+    Group uploads are deliberately repeated even when item metadata already matches:
+    Zotero commits the attachment item before its three-phase file upload, so metadata
+    cannot attest that a previous upload completed or that its bytes match the recipe.
     """
     source_paths = verify_source_bytes(recipe, cache_dir)
     parents = client.list_top_items()
@@ -301,10 +305,15 @@ def inject(
                 attachment = client.write_items([_update_payload(attachment, attach_want)])[0]
                 counts["updated_attachments"] += 1
                 changed = True
-            if changed:
-                if library_type == "group":
-                    content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
-                    client.upload_file(_key(attachment), source_path, content_type)
+            if library_type == "group":
+                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+                previous_md5 = _data(attachment).get("md5")
+                client.upload_file(
+                    _key(attachment), source_path, content_type,
+                    previous_md5=previous_md5 if isinstance(previous_md5, str) else None,
+                )
+                pending_reindex.append(_key(attachment))
+            elif changed:
                 pending_reindex.append(_key(attachment))
     if pending_reindex:
         client.reindex_fulltext(pending_reindex)
@@ -755,7 +764,9 @@ class ZoteroLocalClient:
             out.append({"key": result["key"], "version": result.get("version", 0), "data": data})
         return out
 
-    def upload_file(self, key: str, path: Path, content_type: str) -> None:
+    def upload_file(
+        self, key: str, path: Path, content_type: str, *, previous_md5: str | None = None,
+    ) -> None:
         """Store a file on a stored (imported_file) attachment: the local API's own
         3-phase upload flow -- authorize, POST bytes, register. A group library has no
         other way to receive attachment bytes (verified 2026-09-04: linked_file is
@@ -773,9 +784,11 @@ class ZoteroLocalClient:
         md5 = digest.hexdigest()
         key_quoted = urllib.parse.quote(key, safe="")
         item_url = f"{self.prefix}/items/{key_quoted}/file"
+        if previous_md5 is not None and not re.fullmatch(r"[0-9a-f]{32}", previous_md5):
+            raise GoldenFixtureError(f"{key}: existing attachment has an invalid md5")
         common_headers = dict(API_HEADERS)
         common_headers.update({
-            "If-None-Match": "*",
+            "If-Match" if previous_md5 else "If-None-Match": previous_md5 or "*",
             "Zotero-API-Key": self.api_key,
             "Zotero-Server-ID": self.server_id,
         })

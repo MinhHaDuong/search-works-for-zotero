@@ -280,8 +280,9 @@ document-specific exceptions, not reopened by this test.
       deliberately capped large file)
 - [ ] the Vietnamese MUST tier rebuilt from admitted archives per the slice
       above, with no self-deposit (rulings 4, 5)
-- [ ] injection script: collection in a public library, linked-file
-      attachments, client version and the two indexing preferences recorded
+- [x] injection script: collection in a public library, stored attachments
+      uploaded against the group owner's Zotero storage plan, client version
+      and the two indexing preferences recorded; 17/17 pinned records injected
 - [ ] export snapshot committed (items JSON + `/fulltext` JSON per attachment),
       with the re-pin procedure documented as re-export, diff as review artifact
 - [ ] Zotero-free index-build harness in bench/ replaying the export through
@@ -315,6 +316,6 @@ created.
 
 | child | scope | state |
 |---|---|---|
-| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | group/plugin blockers cleared and re-verified; the real injection found that group libraries reject linked files — blocked pending the attachment-storage ruling recorded by this child |
+| 0632 | harness triplet (injection script, export snapshot, Zotero-free replay), against the 17 already-hashed documents | stored-attachment ruling implemented and 17/17 injected; export now blocked on representing genuinely unindexable failure controls without accepting vanished full text; Ramsey's disposition and the proposed RDF/full-text split remain open in 0632 |
 | — | re-sourcing bounded by the 200-question tally (ruling, 2026-09-04): close the 4 HAL + 1 Malynes browser-only fetches, replace the 4 dropped Gallica records including the FR-VN cross-lingual anchor pair, rebalance the mix toward articles, draw on Gutenberg/arXiv/the Wikipedia constellation as the tally needs them | browser-only fetches are human-hands work; the rest is open research, not a raid candidate as a whole |
 | — | question-bank authoring per the tally above | not yet filed; blocked on the harness child existing to test against |

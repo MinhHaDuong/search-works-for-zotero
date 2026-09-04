@@ -125,8 +125,9 @@ class MemoryZotero:
     def reindex_fulltext(self, keys):
         self.reindexes.append(list(keys))
 
-    def upload_file(self, key, path, content_type):
-        self.uploads.append((key, path, content_type))
+    def upload_file(self, key, path, content_type, *, previous_md5=None):
+        self.uploads.append((key, path, content_type, previous_md5))
+        self.items[key]["data"]["md5"] = hashlib.md5(path.read_bytes()).hexdigest()
 
 
 def test_injection_is_idempotent_and_recipe_owned(tmp_path):
@@ -182,14 +183,15 @@ def test_group_injection_uploads_bytes_instead_of_linking(tmp_path):
     assert attachment["filename"] == "invented-1900-control.pdf"
     assert "path" not in attachment
     assert len(zotero.uploads) == 1
-    uploaded_key, uploaded_path, uploaded_content_type = zotero.uploads[0]
+    uploaded_key, uploaded_path, uploaded_content_type, previous_md5 = zotero.uploads[0]
     assert uploaded_path == (cache / "invented-1900-control.pdf").resolve()
     assert uploaded_content_type == "application/pdf"
+    assert previous_md5 is None
     # The upload must precede reindexing: extraction needs the bytes to already be there.
     assert zotero.reindexes == [[uploaded_key]]
 
 
-def test_group_injection_skips_upload_when_attachment_is_unchanged(tmp_path):
+def test_group_injection_reuploads_when_attachment_metadata_is_unchanged(tmp_path):
     payload = b"%PDF-1.4\ninvented control\n"
     recipe = recipe_for(payload)
     cache = tmp_path / "cache"
@@ -199,9 +201,44 @@ def test_group_injection_skips_upload_when_attachment_is_unchanged(tmp_path):
 
     gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     uploads_after_first = len(zotero.uploads)
+    reindexes_after_first = len(zotero.reindexes)
     gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
 
-    assert len(zotero.uploads) == uploads_after_first
+    assert len(zotero.uploads) == uploads_after_first + 1
+    assert len(zotero.reindexes) == reindexes_after_first + 1
+    assert zotero.uploads[-1][3] == hashlib.md5(payload).hexdigest()
+
+
+def test_group_injection_retries_upload_after_metadata_creation_succeeds(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    attempts = 0
+    original_upload = zotero.upload_file
+
+    def fail_first_upload(key, path, content_type, *, previous_md5=None):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise gf.GoldenFixtureError("upload control failure")
+        original_upload(key, path, content_type, previous_md5=previous_md5)
+
+    zotero.upload_file = fail_first_upload
+    with pytest.raises(gf.GoldenFixtureError, match="upload control failure"):
+        gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    # The item write committed before the failed upload. A retry must not mistake
+    # matching metadata for proof that the attachment bytes are already present.
+    attachment_writes = len(zotero.writes)
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    assert counts == {"created_parents": 0, "updated_parents": 0,
+                      "created_attachments": 0, "updated_attachments": 0}
+    assert len(zotero.writes) == attachment_writes
+    assert len(zotero.uploads) == 1
+    assert len(zotero.reindexes) == 1
 
 
 def test_representative_parent_reconciles_multiple_attachments_independently(tmp_path):
@@ -296,7 +333,7 @@ def test_injection_refuses_an_unmarked_item_in_the_target_collection(tmp_path):
     assert zotero.writes == []
 
 
-def test_a_repin_with_no_local_hash_mismatch_is_not_yet_redetected(tmp_path):
+def test_a_user_library_repin_with_no_local_hash_mismatch_is_not_yet_redetected(tmp_path):
     """Known gap, ticketed (0641, filed 2026-09-04): a correct re-pin -- the source
     file AND recipe[0]["sha256"] updated together, so verify_source_bytes sees no
     mismatch -- is not detected as attachment drift, and does not force a re-upload
@@ -316,24 +353,23 @@ def test_a_repin_with_no_local_hash_mismatch_is_not_yet_redetected(tmp_path):
     source = cache / "invented-1900-control.pdf"
     source.write_bytes(original)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
         "content": "old extraction", "indexedPages": 1, "totalPages": 1, "version": 1,
     }
-    uploads_after_first = len(zotero.uploads)
+    reindexes_after_first = len(zotero.reindexes)
 
     source.write_bytes(changed)
     recipe[0]["sha256"] = hashlib.sha256(changed).hexdigest()
-    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
 
     # This is the gap, pinned down rather than asserted-away: a correct re-pin is
     # currently invisible to inject()'s reconciliation.
     assert counts == {"created_parents": 0, "updated_parents": 0,
                       "created_attachments": 0, "updated_attachments": 0}
-    assert len(zotero.uploads) == uploads_after_first
-    export_again(recipe, zotero, cache, tmp_path / "current")
+    assert len(zotero.reindexes) == reindexes_after_first
 
 
 def test_export_forces_fresh_extraction_when_hash_and_metadata_are_unchanged(tmp_path):
@@ -407,6 +443,44 @@ def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
     ]
     monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
     client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+
+
+@pytest.mark.parametrize("previous_md5, header, value", [
+    (None, "If-none-match", "*"),
+    ("0123456789abcdef0123456789abcdef", "If-match", "0123456789abcdef0123456789abcdef"),
+])
+def test_local_upload_uses_the_correct_file_precondition(
+    tmp_path, monkeypatch, previous_md5, header, value,
+):
+    source = tmp_path / "control.pdf"
+    source.write_bytes(b"%PDF-1.4\ncontrol\n")
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1", api_key="test-key"
+    )
+    client.server_id = "test-server"
+    requests = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"exists":1}'
+
+    def urlopen(request, **_kwargs):
+        requests.append(request)
+        return Response()
+
+    monkeypatch.setattr(gf.urllib.request, "urlopen", urlopen)
+    client.upload_file("ATTACH01", source, "application/pdf", previous_md5=previous_md5)
+
+    assert len(requests) == 1
+    assert requests[0].get_header(header) == value
+    opposite = "If-match" if header == "If-none-match" else "If-none-match"
+    assert requests[0].get_header(opposite) is None
 
 
 def test_reindex_accepts_a_genuinely_settled_unindexed_state(monkeypatch):
