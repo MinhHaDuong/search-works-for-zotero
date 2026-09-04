@@ -36,6 +36,8 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #   sudo usermod --login untrusted-runner tester
 #   sudo groupmod --new-name untrusted-runner tester
 #   sudo usermod --home /home/untrusted-runner --move-home untrusted-runner
+#   sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subuid
+#   sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subgid
 #   sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
 #   sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
 #   sudo chown root:root /etc/sudoers.d/untrusted-runner
@@ -99,6 +101,8 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 # After either path, verify the actual boundary and each required grant:
 #
 #   sudo -n -u untrusted-runner -- true
+#   grep '^untrusted-runner:' /etc/subuid /etc/subgid
+#   sudo -n -u untrusted-runner -- podman unshare true  # when using Podman isolation
 #   getfacl /home/<operator>
 #   getfacl /home/<operator>/path/to/your/Zotero/library
 #   getfacl /path/to/the/acceptance/arena

@@ -41,6 +41,8 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
     sudo usermod --login untrusted-runner tester
     sudo groupmod --new-name untrusted-runner tester
     sudo usermod --home /path/to/untrusted-runner-home --move-home untrusted-runner
+    sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subuid
+    sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subgid
     sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
     sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
 
@@ -61,6 +63,8 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
     sudo chmod 0440 /etc/sudoers.d/untrusted-runner
     sudo visudo -c
     sudo -n -u untrusted-runner -- true
+    grep '^untrusted-runner:' /etc/subuid /etc/subgid
+    sudo -n -u untrusted-runner -- podman unshare true  # when using Podman isolation
 
 The parent-traverse line is not decoration: verified on a second machine
 ("padme", 2026-09) where `$HOME` is `0750` under Ubuntu's private-group-per-
