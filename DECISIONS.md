@@ -6327,3 +6327,19 @@ that name fixed bytes — but leg 1 needs the same one-fetch probe every other
 archive got before being trusted, not a documentation read. Not run here;
 whoever executes child 2's sourcing runs it before treating either as
 admitted.
+
+**2026-09-04 — RATIFIED: the dedicated identity that runs a target is named
+`untrusted-runner`, not `tester`.** The operator still runs the repository
+tests, the outer acceptance driver and the artifact writer. Normally only the
+external application under test crosses this account boundary. R10's egress
+arm is the deliberate exception: its one outermost switch encloses the tracer,
+network-isolation mechanism and inner `run.py --drive` process as well as the
+target, because neither `sudo` nor the tracer can establish that switch from
+inside the isolation stack. `tester` suggested the converse — that the account
+runs pytest and the whole harness — and caused exactly that operational
+mistake. The mechanism does not change: one non-login account, read access to
+the target checkout and fixture library, write access only to the acceptance
+arena, entered at the target-process seam or around R10's target-driving inner
+subprocess. Existing ticket logs, decisions and measurement artifacts retain
+`tester` because they record what the account was called when those events and
+runs happened.

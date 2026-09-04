@@ -406,7 +406,7 @@ class ZoteroMCP:
         # receives (never on any argv; see `Posture.wrap`'s own docstring for
         # why a value must never ride on a command line). `wrap` only adds
         # `--preserve-env=<names>` to `cmd`, naming — never valuing — which of
-        # that merged environment's keys `sudo` forwards on to `tester`, which
+        # that merged environment's keys `sudo` forwards on to `untrusted-runner`, which
         # is why it is handed the full merged view rather than this adapter's
         # own partial `env`: a name absent from `os.environ` here (say,
         # `OPENAI_API_KEY`, blanked by `environment()` on purpose) still needs

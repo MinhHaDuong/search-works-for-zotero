@@ -1,0 +1,44 @@
+%erg 0.1
+Title: Rename the dedicated target identity to untrusted-runner
+Created: 2026-09-04
+Author: codex
+Closed: implemented and verified; target identity is untrusted-runner and live guidance is migrated
+
+--- log ---
+2026-09-04T10:29Z codex created
+
+2026-09-04T10:50Z codex verified renamed identity controls and full make check: 871 passed, 17 skipped
+2026-09-04T10:50Z Minh Ha-Duong closed — implemented and verified; target identity is untrusted-runner and live guidance is migrated
+--- body ---
+
+## Context
+
+The author selected `untrusted-runner` for the dedicated Unix identity used at
+the target boundary. Normally it runs only the external target process. R10's
+egress arm places its tracer, isolation mechanism and inner target-driving
+`run.py --drive` process under the same identity because the switch must enclose
+that stack; the outer driver and artifact writer remain the operator's. The old
+name `tester` was ambiguous enough to make the whole repository suite look as
+though it should run under that account. `DECISIONS.md` records the ruling first.
+
+This is a naming migration, not a security-model change. Historical decisions,
+ticket logs and measurement artifacts remain verbatim.
+
+## Actions
+
+- Change the single default account constant and every live provisioning or
+  diagnostic reference to `untrusted-runner`.
+- Make current tests use the new name when testing the default role.
+- State explicitly that the operator runs `make check`, pytest, the outer
+  harness and artifact writer; name R10's inner-driver/tracer exception.
+- Give separate fresh-host and UID-preserving existing-account procedures, then
+  re-verify ACLs and sudoers; the harness never creates or renames accounts.
+
+## Exit criteria
+
+- [ ] No live code or fresh-host instruction calls the account `tester`; the
+      UID-preserving migration names it only as the source identity.
+- [ ] Historical records remain unchanged.
+- [ ] Identity inheritance, refusal and isolation-order controls pass under the
+      new name.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.
