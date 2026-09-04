@@ -11,6 +11,7 @@ Closed: Local-runtime compatibility validation is implemented, panel-approved an
 2026-09-03T05:18Z Minh Ha-Duong note blocker 0492 closed — Blocked-by removed.
 2026-09-03T05:18Z Merged author-fork PR #9 as 5e8abb9 after unanimous three-seat review. Full suite 1 195 passed, 10 skipped; real MiniLM and multilingual-e5-small-q8 fixtures passed; typecheck, lint, build and diff checks passed. Evidence includes exact cache/runtime/provider keys, stale-attestation rejection and explicit keyword-only failure.
 2026-09-03T05:18Z Minh Ha-Duong closed — Local-runtime compatibility validation is implemented, panel-approved and merged in author-fork PR #9 (merge 5e8abb9).
+2026-09-04T13:03Z codex note Oscar explicitly endorsed the stage-4 runtime compatibility fixture more or less as implemented and would take it first; deferred ticket 0669 owns extracting it onto upstream while preserving open ids and legacy vector identities
 --- body ---
 ## Scope
 

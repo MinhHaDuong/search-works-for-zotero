@@ -1,0 +1,67 @@
+%erg 0.1
+Title: Re-propose stage-4 runtime validation without withdrawing open model IDs
+Created: 2026-09-04
+Author: codex
+Label: deferred
+
+--- log ---
+2026-09-04T13:02Z codex created
+
+--- body ---
+
+## Context
+
+Upstream issue #43 shipped an open
+`ZOTEUS_EMBEDDING_MODEL=<transformers.js id>` surface before this repository's
+curated-registry branch was proposed. Oscar's 2026-09-04 correction on that
+thread accepts the registry mechanism and the stage-4 runtime compatibility
+fixture, but rejects withdrawing that public escape hatch: a known id may
+resolve to a complete curated record; an unknown id remains loadable on the
+current assumptions and is identified explicitly as unvalidated.
+
+This supersedes the upstream-facing part of closed ticket 0492's “unknown ids
+fail before index access” shape. It does not rewrite that ticket: 0492 records
+the author-fork implementation that was built and reviewed. Closed ticket 0493
+likewise proves stage 4 exists on that fork; this ticket owns extracting and
+adapting it to the interface upstream actually shipped.
+
+Oscar also made identity stability a binding compatibility constraint for the
+proposal: a registry refactor that changes no vector MUST NOT charge an
+existing user for re-embedding. Curated fields join the persisted identity only
+where their effective vector computation differs from the legacy path.
+
+## Scope
+
+- Rebase or extract the 0493 runtime fixture onto the then-current upstream
+  implementation, independently of the larger worker/indexer and segmenter
+  work.
+- Validate a newly selected curated entry on first use for load success,
+  output dimension and shape, finite values, normalization, template
+  application and discrimination, with cache invalidation bound to the actual
+  runtime shape.
+- Preserve raw unknown model ids as an explicitly unvalidated compatibility
+  path; do not silently claim registry guarantees for them and do not reject
+  them merely for being uncurated.
+- Preserve every legacy embedder identity whose effective vector computation
+  is unchanged. Prove this with the existing parity fixture before proposing
+  the change.
+- Re-run the upstream suite and the real MiniLM and E5 controls already owned
+  by 0493, then prepare one contained contribution for review.
+
+## Exit criteria
+
+- [ ] Stage 4 is isolated from the author-fork registry policy that refuses
+      unknown ids.
+- [ ] Known curated entries fail closed on an incompatible runtime; unknown raw
+      ids remain usable and are surfaced as unvalidated.
+- [ ] No identity-only refactor invalidates vectors or requires a rebuild.
+- [ ] The first-use cache key covers the entry fingerprint and runtime/provider
+      shape, and a stale result is rejected.
+- [ ] Focused red controls, real-model controls, typecheck, lint, build and the
+      full upstream test suite pass before any proposal is sent.
+
+## Relationship
+
+Master: 0488. Historical implementation: 0492 and 0493. This follow-up is
+deferred under the September 21 focus acknowledged on upstream issue #43; it
+is not in the ready queue until that direction changes.
