@@ -1,0 +1,46 @@
+%erg 0.1
+Title: 0635's log stamp postdates the commit that wrote it -- fails check_ticket_logs.py on main
+Created: 2026-09-04
+Author: claude
+Closed: autoclosed — PR #340
+
+--- log ---
+2026-09-04T06:13Z claude created
+
+2026-09-04T06:37Z claude executed Re-ran check_ticket_logs.py against current origin/main and found scope had grown from 1 to 3 drifted stamps — commit 7d0d1351 ("chore(0630): record the sent upstream PR") landed after this ticket was filed and introduced the same defect class in tickets/0613-...erg:26 and tickets/closed/0630-...erg:15. Fixed all three one-line stamps to the timestamp of the commit that actually wrote each line (58dcbaeb for 0635, 7d0d1351 for 0613 and 0630, confirmed via git log --format='%H %aI %s' -1 <sha>). check_ticket_logs.py now reports OK: 1232 log entries across 202 tickets, none stamped after the commit that wrote it.
+
+2026-09-04T07:00Z MinhHaDuong closed — autoclosed — PR #340
+--- body ---
+## Context
+Found incidentally while running `make check` on an unrelated branch
+(ticket 0639, 2026-09-04): `bench/check_ticket_logs.py` fails on `origin/main`
+as of `a947e71` (the commit that closed and archived 0635):
+
+    FAIL: tickets/closed/0635-tmpdir-xdg-home-redirection-for-zoteus-s.erg:10:
+    stamped 2026-09-04T06:10Z, written 2026-09-04T05:40Z
+    1 log entry is stamped after the commit that wrote it.
+
+This is pre-existing on `main`, not introduced by this ticket's own work, and
+blocks `make check`/`make lint`'s `ticket-logs` target for every branch until
+fixed. By the time this raid picked the ticket up, two more commits had
+landed and grown the count to 3 (see log entry above) — same defect class,
+same check, still a one-line-per-file fix each.
+
+## Relevant files
+- `tickets/closed/0635-tmpdir-xdg-home-redirection-for-zoteus-s.erg:10` — drifted stamp, corrected
+- `tickets/0613-zoteus-passes-goal-1-i-can-install-it-an.erg:26` — drifted stamp, corrected
+- `tickets/closed/0630-gap-b-write-uninstall-md-as-the-r15-remo.erg:15` — drifted stamp, corrected
+- `bench/check_ticket_logs.py` — the gate that caught all three
+
+## Actions
+1. Find the commit that actually introduced each drifted line
+   (`git log -L N,N:path` or equivalent) and read its real timestamp.
+2. Correct the stamp on that line to the time the commit evidences, per
+   `rules/workflow.md`'s general instruction: "Correct the stamp to a time
+   the record evidences … never the other way round."
+
+## Verification
+- [x] `python3 bench/check_ticket_logs.py` passes on `main` after the fix
+
+## Exit criteria
+- [x] `make check`'s `ticket-logs` target is green on `main`
