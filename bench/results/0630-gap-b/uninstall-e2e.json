@@ -1,0 +1,147 @@
+{
+  "posture": {
+    "posture": "account",
+    "account": "tester",
+    "refused": null
+  },
+  "declaration": {
+    "revision": "1.13.0",
+    "derived_state_roots": [
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data"
+    ]
+  },
+  "install_event": {
+    "entrypoint": "/home/haduong/CNRS/code/search-works-for-zotero/.claude/worktrees/t0630-uninstall-e2e/fork/dist/index.js",
+    "data_dir": "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data",
+    "materialized": []
+  },
+  "configure_event": {
+    "applied_at": "process start",
+    "environment_keys": [
+      "ZOTEUS_DATA_DIR",
+      "ZOTEUS_EMBEDDINGS",
+      "ZOTEUS_INDEX_AUTO_REFRESH",
+      "ZOTEUS_INDEX_BACKEND",
+      "ZOTEUS_INDEX_FULLTEXT",
+      "ZOTEUS_READ_ONLY",
+      "ZOTEUS_TRANSFORMERS_PATH"
+    ]
+  },
+  "index_build": {
+    "kickoff": {
+      "documents": 0,
+      "vectors": 0,
+      "items": 0,
+      "storage": "sqlite",
+      "embedder": "local",
+      "embedderConfigured": "local",
+      "embedderActive": true,
+      "fulltextEnabled": false,
+      "fulltextItems": 0,
+      "fulltextPassages": 0,
+      "ownWordsEnabled": false,
+      "ownWordsItems": 0,
+      "ownWordsPassages": 0,
+      "builtFromVersion": 0,
+      "libraryVersion": 0,
+      "fulltextVersion": 0,
+      "library": "user",
+      "embedderModel": "Xenova/all-MiniLM-L6-v2",
+      "passages": 0,
+      "state": "building",
+      "operation": "build",
+      "itemsFetched": 0,
+      "itemsRemoved": 0,
+      "itemsTotal": 0,
+      "itemsAvailable": 0,
+      "phase": "metadata",
+      "fulltextItemsScanned": 0,
+      "fulltextItemsTotal": 0
+    },
+    "final_status": {
+      "documents": 1,
+      "vectors": 1,
+      "items": 1,
+      "storage": "sqlite",
+      "embedder": "local",
+      "embedderConfigured": "local",
+      "embedderActive": true,
+      "fulltextEnabled": false,
+      "fulltextItems": 0,
+      "fulltextPassages": 0,
+      "ownWordsEnabled": false,
+      "ownWordsItems": 0,
+      "ownWordsPassages": 0,
+      "builtFromVersion": 1,
+      "libraryVersion": 26458,
+      "fulltextVersion": 0,
+      "libraryBackend": "local",
+      "library": "user",
+      "embedderModel": "Xenova/all-MiniLM-L6-v2",
+      "passages": 1,
+      "state": "done",
+      "operation": "build",
+      "itemsFetched": 1,
+      "itemsRemoved": 0,
+      "itemsTotal": 1,
+      "itemsAvailable": 7546,
+      "phase": "metadata",
+      "fulltextItemsScanned": 0,
+      "fulltextItemsTotal": 0
+    }
+  },
+  "materialized_by_the_real_run": [
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/config.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/onnx/model.onnx",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer_config.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-shm",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-wal",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/update-check.json"
+  ],
+  "materialized_count": 8,
+  "survivors_after_install": [
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/config.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/onnx/model.onnx",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer_config.json",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-shm",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-wal",
+    "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/update-check.json"
+  ],
+  "negative_control": {
+    "description": "deleted every top-level entry under the declared root EXCEPT 'models' once, then re-swept -- this is the pre-#27 failure mode the draft's worked example describes, reproduced deliberately",
+    "withheld": [
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models"
+    ],
+    "deleted": [
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-shm",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/search-index.sqlite-wal",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/update-check.json"
+    ],
+    "survivors_after_partial_delete": [
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/config.json",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/onnx/model.onnx",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer.json",
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data/models/Xenova/all-MiniLM-L6-v2/tokenizer_config.json"
+    ],
+    "caught_the_incomplete_delete": true
+  },
+  "real_procedure": {
+    "description": "deleted exactly target.declaration.derived_state_roots -- the same paths the draft's step 3 names -- via shutil.rmtree/Path.unlink, never a shell, never the draft's own prose",
+    "deleted": [
+      "/home/haduong/data/acceptance-arena/t0630-uninstall-e2e/committed-run/data"
+    ],
+    "survivors_after_full_delete": [],
+    "arena_residue_after_full_delete": []
+  },
+  "verdict": {
+    "positive_control_fired": true,
+    "residue_after_real_procedure": 0,
+    "pass": true
+  },
+  "date": "2026-09-04T05:34:09+00:00"
+}
