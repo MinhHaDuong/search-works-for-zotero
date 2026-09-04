@@ -6284,3 +6284,46 @@ admitted-archive table and per-record table gain the Wikipedia row and the
 replaced Cournot/Depitre/des-Michels sourcing when child 2 actually executes —
 not edited in this pass, which records scope only; no new document is sourced
 here.
+
+**2026-09-04 — RATIFIED: archive admission is a five-part test from now on,
+not a bespoke ruling per archive.** Every admission so far — Internet Archive,
+Gallica (later dropped), Wikimedia Commons, Wikisource, HAL, arXiv, Zenodo,
+FAOLEX, the UK Government Web Archive, Project Gutenberg, Wikipedia — reached
+DECISIONS.md as its own paragraph. The author replaced that with one standing
+test. An archive is admitted when it is:
+
+1. **Robot-open.** A scripted client can retrieve the bytes reliably. This
+   reads with the nuance the Gallica ruling above already established, not a
+   naive pass/fail: a challenge solved once and durable across a re-pin (HAL's
+   Anubis) passes; a challenge that blocks every fetch attempt (Gallica's
+   ALTCHA) does not.
+2. **Licence-open.** The bytes are redistributable on one of the four bases
+   bench/fixtures/README.md already names — age, statutory exclusion, open
+   licence, author-owned.
+3. **Reputable.** A recognised institution or community runs it, not a
+   personal site or a live publisher page.
+4. **Byte-exact identifier.** A public, third-party-hosted, persistent
+   identifier names one fixed set of bytes — the definition this ticket has
+   used throughout, now named as one leg of the test rather than restated
+   per archive.
+5. **Ten years old or more.** A track record long enough to bet a fixture's
+   re-pin stability on.
+
+An archive meeting all five is admitted without a further ruling. This does
+not reopen FAOLEX or HAL: both are pre-existing, narrowly scoped exceptions
+tied to one irreplaceable document each (Decision 11/2017's bilingual pair;
+HAL's Vietnamese-language and habilitation records), ratified on their own
+terms before this test existed, and the test is not applied retroactively to
+unwind them. Gallica fails leg 1 outright, which is why it was dropped rather
+than grandfathered — the general test and that specific ruling agree.
+
+This closes the EconLit/CORE question raised the same day, by replacing it
+with a test rather than a verdict. EconLit itself still fails structurally —
+it is an abstracting index with no hosted full text, so there is no byte host
+to evaluate at all. CORE (core.ac.uk) and RePEc/EconStor both plausibly pass
+all five legs on their public documentation — reputable, long-standing (CORE
+since 2011, EconStor since 2006), open-licensed by construction, identifiers
+that name fixed bytes — but leg 1 needs the same one-fetch probe every other
+archive got before being trusted, not a documentation read. Not run here;
+whoever executes child 2's sourcing runs it before treating either as
+admitted.

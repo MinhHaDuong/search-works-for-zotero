@@ -28,6 +28,7 @@ Author: claude
 2026-09-03T18:20Z Minh Ha-Duong ruled REVISED TALLY: exactly 200 questions (up from ≈97), each dimension row restated as what it tests plus a worked example rather than a bare label, and the reuse bound moved to a floor of at least 5 questions per document, no ceiling, replacing PR #315's ceiling of at most 4 documents per question. That floor reverses PR #315's anti-gaming rationale on purpose: with 200 questions and a >=5-reuse floor the fixture needs at most ~40 distinct documents (200/5) under the common-case assumption of one document per question, concentrating cost in question-authoring against already-sourced hard cases rather than in further sourcing. The growth to 200 crosses two axes the author named concretely (structural marks, extraction-cap boundaries) against the 3 MUST-tier languages (EN/FR/VI) already committed for sourcing, not the full 9-language roster -- SHOULD-tier documents carrying tables/footnotes/captions specifically would be a materially larger sourcing lift than this ticket's SHOULD-language row already commits to, per this ticket's own sourcing-difficulty log. Both the count and the reuse floor stay first-pass/adjustable, same standing as the ≈97 table they replace
 2026-09-03T18:47Z claude note OPUS REVIEW (decorrelated, PR #322) returned REQUEST-CHANGES, three blocking: (1) the old bound was documents-per-question, not questions-per-document, so calling the new floor an "inversion" of the same axis was wrong -- corrected to a replacement on the other axis in the ticket, log, and DECISIONS.md; (2) the Intersections row was self-describing as a language dimension (monster x script, scale x multilingual) yet carried languages=2 with a non-MUST-tier worked example (Arabic) -- fixed to languages=1 with two added combos (cap-crossing x script, structural x scale) that keep the row's subtotal at 8 and the total at exactly 200, verified by script; (3) the ~40-max-documents claim assumed one document per question, unstated -- now stated explicitly, with the multi-document case shown to loosen rather than break the bound. Also fixed on the review's non-blocking list: annotation row's "~12" firmed to 12, Group-library's sub-case/q-per-subcase columns filled in (was "--|--"), Gutenberg's languages=1 vs extraction-cap's languages=2 justified (one fixed English work vs a document-agnostic dimension), the harness canary given a one-line rationale so it doesn't read as a rounding fudge, and work-identity's worked example extended to cover the duplicate-pair half of its own "tests" description. erg check and validate re-run clean after the fix
 2026-09-04T05:23Z Minh Ha-Duong ruled child 2's bound is the 200-question tally, not the nine stuck records: closing the 4 HAL + 1 Malynes browser-only fetches is necessary but not sufficient. Gallica dropped as an admitted archive (every fetch answers a scripted client with a challenge, not just the four still unhashed) -- its four current records lose their source, the FR-VN cross-lingual anchor pair (des Michels) among them. Mix rebalances toward articles, no ratio pinned. Gutenberg and arXiv open for broader use; the Wikipedia constellation newly admitted. EconLit raised, not ruled -- likely an abstracting index with no hosted full text, so it probably fails the admitted-archive definition; open question. Full ruling in DECISIONS.md, 2026-09-04; ticket body gains a "Child 2's scope widened" section
+2026-09-04T07:32Z Minh Ha-Duong ruled archive admission is a standing five-part test from now on (DECISIONS.md, 2026-09-04), replacing a bespoke ruling per archive: robot-open (with the Gallica-vs-HAL nuance already ruled), licence-open, reputable, byte-exact identifier, ten years old or more. Closes the EconLit/CORE open question with a test rather than a verdict: EconLit still fails structurally (no hosted full text to evaluate), CORE and RePEc/EconStor plausibly pass all five legs on documentation alone but still need the same one-fetch robot-open probe every other archive got before either is treated as admitted. FAOLEX and HAL stay as pre-existing, narrowly scoped exceptions, not reopened by the general test; Gallica's drop and the test agree on leg 1
 --- body ---
 ## Context
 Unticketed prerequisite of 0026's golden gate (review-implementation.md §3,
@@ -179,6 +180,20 @@ bench/fixtures/README.md's admitted-archive table and per-record table gain
 the Wikipedia row and the replaced Cournot/Depitre/des-Michels sourcing when
 child 2 actually executes; not edited in this pass, which records scope
 only — no new document is sourced here.
+
+### Archive admission is now a standing test, not a per-archive ruling
+
+Ratified the same day (DECISIONS.md, 2026-09-04): an archive is admitted
+when it is robot-open (with the Gallica-vs-HAL nuance the drop above already
+established — a challenge solved once and durable passes, one that blocks
+every fetch does not), licence-open, reputable, names byte-exact identifiers,
+and has existed ten years or more. This closes the EconLit question from
+earlier: EconLit itself still fails structurally (no hosted full text), but
+CORE and RePEc/EconStor plausibly pass all five legs on documentation and
+are candidates for child 2 to probe (leg 1, robot-openness, still needs a
+real fetch, not a documentation read) rather than sourcing candidates
+requiring their own ruling first. FAOLEX and HAL remain pre-existing,
+document-specific exceptions, not reopened by this test.
 
 ## Re-sourcing PR #151's 19 documents (ruling 2)
 | status | documents | action |
