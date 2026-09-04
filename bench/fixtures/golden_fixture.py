@@ -18,6 +18,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -164,32 +165,42 @@ def _desired_parent(doc: dict, collection_key: str) -> dict:
     return desired
 
 
-def _attachment_attestation(doc: dict, state: str) -> str:
-    return "; ".join([
-        f"ticket-0029 source sha256: {doc['sha256']}",
-        f"role: {doc.get('role', 'primary')}",
-        f"relation: {doc.get('relation', 'primary')}",
-        f"language: {doc.get('language', '')}",
-        f"selection: {doc.get('selection_expectation', 'indexed')}",
-        f"skip reason: {doc.get('skip_reason', '')}",
-        f"fulltext: {state}",
-    ])
-
-
 def _desired_attachment(
-    parent: dict, doc: dict, parent_key: str, path: Path, *, extraction_state: str = "reindexed"
+    parent: dict, doc: dict, parent_key: str, path: Path, *, library_type: str = "user",
 ) -> dict:
+    """A group library refuses linked-file attachments outright (Zotero's own local
+    API: 400 "Linked files can only be added to user library" -- verified 2026-09-04,
+    not a configuration issue on any one group). Only the user library keeps
+    linked_file; a group needs a stored attachment, whose bytes this module uploads
+    separately (see ZoteroLocalClient.upload_file) before the item can be reindexed.
+
+    No `extra` field: verified against Zotero's own live schema (GET /api/schema,
+    2026-09-04) that the `attachment` item type accepts only title/accessDate/url --
+    `extra` is rejected outright, 400 "'extra' is not a valid field for type
+    'attachment'". A previous version of this function wrote source sha256, role,
+    relation, language, selection, skip reason, and a pending/reindexed extraction
+    marker there; none of it was ever validated against real Zotero before today,
+    since the mocked test client enforces no field-legality rules at all. The
+    provenance content is not load-bearing for the export (see_snapshot_rows reads
+    role/relation/etc. straight from the recipe, never from the live item); the
+    pending/reindexed marker's crash-recovery value is real but narrower than this
+    fix restores -- see ticket 0641 (filed 2026-09-04) for giving a real
+    interrupted-reindex recovery marker its own reviewed change, since the earlier
+    two-phase pending/final write only differed by this now-removed field, so a
+    single write suffices."""
     fmt = doc.get("bytes_format", "pdf")
-    return {
+    common = {
         "itemType": "attachment",
         "parentItem": parent_key,
-        "linkMode": "linked_file",
         "title": doc.get("title", parent["title"]),
         "contentType": CONTENT_TYPES.get(fmt, "application/octet-stream"),
-        "path": str(path),
-        "extra": _attachment_attestation(doc, extraction_state),
         "tags": [{"tag": attachment_tag(doc["id"])}],
     }
+    if library_type == "group":
+        common.update(linkMode="imported_file", filename=path.name)
+    else:
+        common.update(linkMode="linked_file", path=str(path))
+    return common
 
 
 def _managed_equal(item: dict, desired: dict) -> bool:
@@ -214,9 +225,17 @@ def _one_marked(items: list[dict], marker: str, kind: str) -> dict | None:
 
 
 def inject(
-    recipe: list[dict], cache_dir: Path, client, *, collection_key: str
+    recipe: list[dict], cache_dir: Path, client, *, collection_key: str, library_type: str = "user"
 ) -> dict[str, int]:
-    """Reconcile recipe parents and linked attachments; return mutation counts."""
+    """Reconcile recipe parents and attachments; return mutation counts.
+
+    A group library needs its attachment bytes uploaded (client.upload_file) before
+    reindex_fulltext has anything to extract from -- a user-library linked_file
+    attachment needs no such step, since its bytes are already reachable by path.
+    Group uploads are deliberately repeated even when item metadata already matches:
+    Zotero commits the attachment item before its three-phase file upload, so metadata
+    cannot attest that a previous upload completed or that its bytes match the recipe.
+    """
     source_paths = verify_source_bytes(recipe, cache_dir)
     parents = client.list_top_items()
     wanted_ids = {doc["id"] for doc in recipe}
@@ -272,25 +291,32 @@ def inject(
             counts["updated_parents"] += 1
 
         for source in _sources(doc):
-            attach_want = _desired_attachment(doc, source, _key(parent), source_paths[source["id"]])
-            attach_pending = _desired_attachment(
-                doc, source, _key(parent), source_paths[source["id"]], extraction_state="pending"
+            source_path = source_paths[source["id"]]
+            attach_want = _desired_attachment(
+                doc, source, _key(parent), source_path, library_type=library_type
             )
             attachment = attachment_by_id.get(source["id"])
+            existing_md5 = _data(attachment).get("md5") if attachment is not None else None
+            changed = False
             if attachment is None:
-                attachment = client.write_items([attach_pending])[0]
+                attachment = client.write_items([attach_want])[0]
                 counts["created_attachments"] += 1
-                pending_reindex.append((attachment, attach_want))
+                changed = True
             elif not _managed_equal(attachment, attach_want):
-                attachment = client.write_items([_update_payload(attachment, attach_pending)])[0]
+                attachment = client.write_items([_update_payload(attachment, attach_want)])[0]
                 counts["updated_attachments"] += 1
-                pending_reindex.append((attachment, attach_want))
+                changed = True
+            if library_type == "group":
+                content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
+                client.upload_file(
+                    _key(attachment), source_path, content_type,
+                    previous_md5=existing_md5 if isinstance(existing_md5, str) else None,
+                )
+                pending_reindex.append(_key(attachment))
+            elif changed:
+                pending_reindex.append(_key(attachment))
     if pending_reindex:
-        client.reindex_fulltext([_key(attachment) for attachment, _ in pending_reindex])
-        client.write_items([
-            _update_payload(attachment, final)
-            for attachment, final in pending_reindex
-        ])
+        client.reindex_fulltext(pending_reindex)
     return counts
 
 
@@ -309,7 +335,8 @@ def _last_item_page_versions(client) -> list[int]:
 
 
 def _snapshot_rows(
-    recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str
+    recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
+    *, library_type: str = "user",
 ) -> tuple[list[dict], list[dict], int]:
     parents = client.list_top_items()
     opening_versions = _last_item_page_versions(client)
@@ -349,12 +376,22 @@ def _snapshot_rows(
                 raise GoldenFixtureError(f"{doc['id']}: no linked attachment {source['id']} in Zotero")
             _require_only_managed_marker(_data(child), attachment_tag(source["id"]), source["id"])
             child_data = _data(child)
-            if child_data.get("linkMode") != "linked_file":
-                raise GoldenFixtureError(f"{source['id']}: attachment is not a linked file")
-            linked_path = child_data.get("path")
-            if not isinstance(linked_path, str) or Path(linked_path).resolve() != source_paths[source["id"]]:
-                raise GoldenFixtureError(f"{source['id']}: linked attachment does not name its pinned source")
-            if not _managed_equal(child, _desired_attachment(doc, source, parent_key, source_paths[source["id"]])):
+            if library_type == "group":
+                if child_data.get("linkMode") != "imported_file":
+                    raise GoldenFixtureError(f"{source['id']}: attachment is not a stored file")
+                filename = child_data.get("filename")
+                if not isinstance(filename, str) or filename != source_paths[source["id"]].name:
+                    raise GoldenFixtureError(f"{source['id']}: stored attachment does not name its pinned source")
+            else:
+                if child_data.get("linkMode") != "linked_file":
+                    raise GoldenFixtureError(f"{source['id']}: attachment is not a linked file")
+                linked_path = child_data.get("path")
+                if not isinstance(linked_path, str) or Path(linked_path).resolve() != source_paths[source["id"]]:
+                    raise GoldenFixtureError(f"{source['id']}: linked attachment does not name its pinned source")
+            if not _managed_equal(
+                child,
+                _desired_attachment(doc, source, parent_key, source_paths[source["id"]], library_type=library_type),
+            ):
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
             attachment_key = _key(child)
             if attachment_key in seen_item_keys:
@@ -432,11 +469,15 @@ def canonical_json(value) -> str:
 
 def _refresh_fulltext_from_pinned_sources(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
-    cache_dir: Path,
+    cache_dir: Path, *, library_type: str = "user",
 ) -> None:
-    """Force the export's extraction from the bytes verified around this operation."""
+    """Force the export's extraction from the bytes verified around this operation.
+
+    reindex_fulltext (the plugin call) is what forces the actual re-extraction; no
+    item write is needed to trigger it, and the metadata equality check just above
+    already proves the live item matches what the recipe wants."""
     parents = client.list_top_items()
-    pending = []
+    keys = []
     for doc in recipe:
         parent = _one_marked(parents, source_tag(doc["id"]), "parent")
         if parent is None or not _managed_equal(parent, _desired_parent(doc, collection_key)):
@@ -448,20 +489,17 @@ def _refresh_fulltext_from_pinned_sources(
             attachment = _one_marked(children, attachment_tag(source["id"]), "linked attachment")
             if attachment is None:
                 raise GoldenFixtureError(f"{doc['id']}: no linked attachment {source['id']} in Zotero")
-            final = _desired_attachment(doc, source, _key(parent), source_paths[source["id"]])
+            final = _desired_attachment(
+                doc, source, _key(parent), source_paths[source["id"]], library_type=library_type
+            )
             if not _managed_equal(attachment, final):
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
-            waiting = _desired_attachment(doc, source, _key(parent), source_paths[source["id"]], extraction_state="pending")
-            pending.append((attachment, final, waiting))
+            keys.append(_key(attachment))
 
-    waiting_items = client.write_items([_update_payload(attachment, waiting)
-                                        for attachment, _, waiting in pending])
-    client.reindex_fulltext([_key(attachment) for attachment in waiting_items])
+    client.reindex_fulltext(keys)
     # A linked file can change while Zotero is reading it.  Do not attest or export
     # unless the complete source set still has the recipe hashes after extraction.
     verify_source_bytes(recipe, cache_dir)
-    client.write_items([_update_payload(attachment, pending[index][1])
-                        for index, attachment in enumerate(waiting_items)])
 
 
 def _portable_item(item: dict) -> dict:
@@ -469,7 +507,7 @@ def _portable_item(item: dict) -> dict:
     data = _data(item)
     common = {"key", "version", "itemType", "title", "tags"}
     if data.get("itemType") == "attachment":
-        allowed = common | {"parentItem", "linkMode", "contentType", "path", "extra"}
+        allowed = common | {"parentItem", "linkMode", "contentType", "path", "filename", "extra"}
     else:
         allowed = common | {
             "creators", "date", "language", "url", "archive", "archiveLocation",
@@ -555,10 +593,10 @@ def export_snapshot(
 
     source_paths = verify_source_bytes(recipe, cache_dir)
     _refresh_fulltext_from_pinned_sources(
-        recipe, client, source_paths, collection_key, cache_dir
+        recipe, client, source_paths, collection_key, cache_dir, library_type=library["type"]
     )
     items, attachment_rows, library_version = _snapshot_rows(
-        recipe, client, source_paths, collection_key
+        recipe, client, source_paths, collection_key, library_type=library["type"]
     )
     # This is deliberately after the API capture and immediately before staging the
     # snapshot: extraction must still be attributable to the exact pinned source bytes.
@@ -726,6 +764,71 @@ class ZoteroLocalClient:
             out.append({"key": result["key"], "version": result.get("version", 0), "data": data})
         return out
 
+    def upload_file(
+        self, key: str, path: Path, content_type: str, *, previous_md5: str | None = None,
+    ) -> None:
+        """Store a file on a stored (imported_file) attachment: the local API's own
+        3-phase upload flow -- authorize, POST bytes, register. A group library has no
+        other way to receive attachment bytes (verified 2026-09-04: linked_file is
+        refused outright, 400 "Linked files can only be added to user library").
+        Mirrors the upstream product's own proven flow (fork/src/api/local-writes.ts,
+        LocalWriteClient.uploadFile), library-scoped through self.prefix rather than
+        upstream's hardcoded personal-library-only path."""
+        if not self.api_key:
+            raise GoldenFixtureError("file upload needs ZOTEUS_LOCAL_API_KEY from a Zotero 10 local grant")
+        self._probe()
+        digest = hashlib.md5()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1 << 20), b""):
+                digest.update(chunk)
+        md5 = digest.hexdigest()
+        key_quoted = urllib.parse.quote(key, safe="")
+        item_url = f"{self.prefix}/items/{key_quoted}/file"
+        if previous_md5 is not None and not re.fullmatch(r"[0-9a-f]{32}", previous_md5):
+            raise GoldenFixtureError(f"{key}: existing attachment has an invalid md5")
+        common_headers = dict(API_HEADERS)
+        common_headers.update({
+            "If-Match" if previous_md5 else "If-None-Match": previous_md5 or "*",
+            "Zotero-API-Key": self.api_key,
+            "Zotero-Server-ID": self.server_id,
+        })
+
+        authorize_body = urllib.parse.urlencode({
+            "md5": md5, "filename": path.name, "filesize": str(path.stat().st_size),
+            "mtime": str(int(path.stat().st_mtime * 1000)), "contentType": content_type,
+        }).encode("utf-8")
+        authorize_headers = {**common_headers, "Content-Type": "application/x-www-form-urlencoded"}
+        request = urllib.request.Request(item_url, data=authorize_body, headers=authorize_headers, method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=300) as response:
+                auth = json.loads(response.read() or b"{}")
+        except Exception as error:
+            raise GoldenFixtureError(f"{key}: upload authorization failed: {error}") from error
+        if auth.get("exists"):
+            return  # identical bytes already stored under this key
+
+        upload_url, upload_key = auth.get("url"), auth.get("uploadKey")
+        if not upload_url or not upload_key:
+            raise GoldenFixtureError(f"{key}: Zotero did not return an upload URL")
+        upload_request = urllib.request.Request(
+            upload_url, data=path.read_bytes(),
+            headers={"Content-Type": "application/octet-stream"}, method="POST",
+        )
+        try:
+            with urllib.request.urlopen(upload_request, timeout=600):
+                pass
+        except Exception as error:
+            raise GoldenFixtureError(f"{key}: file-bytes upload failed: {error}") from error
+
+        register_body = urllib.parse.urlencode({"upload": upload_key}).encode("utf-8")
+        register_headers = {**common_headers, "Content-Type": "application/x-www-form-urlencoded"}
+        register_request = urllib.request.Request(item_url, data=register_body, headers=register_headers, method="POST")
+        try:
+            with urllib.request.urlopen(register_request, timeout=120):
+                pass
+        except Exception as error:
+            raise GoldenFixtureError(f"{key}: upload registration failed: {error}") from error
+
     def fulltext_since(self, since=0):
         result, _ = self._request(f"/fulltext?since={since}")
         if not isinstance(result, dict):
@@ -756,16 +859,25 @@ class ZoteroLocalClient:
                 f"{error}"
             ) from error
 
-    @staticmethod
-    def _fulltext_complete(item: dict) -> bool:
-        if isinstance(item.get("indexedPages"), int) and isinstance(item.get("totalPages"), int):
-            return item["indexedPages"] >= item["totalPages"]
-        if isinstance(item.get("indexedChars"), int) and isinstance(item.get("totalChars"), int):
-            return item["indexedChars"] >= item["totalChars"]
-        return False
-
     def reindex_fulltext(self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600) -> None:
-        """Force complete extraction and attest success before injection becomes current."""
+        """Force extraction to run and settle; accept whatever terminal state results.
+
+        A forced reindex is not guaranteed to reach ``indexed``: a document with
+        no extractable text (an un-OCR'd scan) or an unsupported container
+        (DjVu) settles at ``unindexed`` once Zotero has genuinely finished
+        trying, and that is real ground truth for the export to capture -- one
+        of ticket 0029's own declared failure-control cases, not a failure to
+        wait past. Requiring ``state == "indexed"`` for every key made this
+        hang the full ``max_wait`` and then raise, for any recipe containing
+        such a document -- the two Vietnamese volumes ruled to stay in the
+        fixture on 2026-09-04 (DECISIONS.md) trigger it every time.
+
+        What this still enforces: the reindex actually *ran* -- queued, then
+        the plugin's own ``busy``/``running`` counters idle -- before any state
+        is trusted. A state read the instant after queuing, before Zotero has
+        started, is not evidence of anything, so idleness must hold across two
+        consecutive polls before it is accepted.
+        """
         wanted = set(keys)
         queued = self._plugin_request("reindex", {"keys": keys})
         if not isinstance(queued, dict):
@@ -777,6 +889,7 @@ class ZoteroLocalClient:
             raise GoldenFixtureError("the full-text plugin did not queue every fixture attachment")
         started = time.monotonic()
         query = "status?keys=" + urllib.parse.quote(",".join(keys), safe=",")
+        idle_since = None
         while time.monotonic() - started < max_wait:
             status = self._plugin_request(query)
             if not isinstance(status, dict):
@@ -788,18 +901,19 @@ class ZoteroLocalClient:
             }
             if status.get("lastError") or any(row.get("error") for row in by_key.values()):
                 raise GoldenFixtureError("fixture attachment reindex reported an error")
-            if (
+            idle = (
                 set(by_key) == wanted
                 and not status.get("busy")
-                and all(
-                    by_key[key].get("state") == "indexed"
-                    and isinstance(by_key[key].get("version"), int)
-                    and by_key[key]["version"] >= 0
-                    and self._fulltext_complete(by_key[key])
-                    for key in wanted
-                )
-            ):
-                return
+                and not status.get("running")
+                and all(isinstance(by_key[key].get("state"), str) for key in wanted)
+            )
+            if idle:
+                if idle_since is None:
+                    idle_since = time.monotonic()
+                elif time.monotonic() - idle_since >= poll:
+                    return
+            else:
+                idle_since = None
             time.sleep(poll)
         raise GoldenFixtureError("fixture attachment reindex timed out")
 
@@ -846,7 +960,7 @@ def main() -> int:
     if args.command == "inject":
         result = inject(
             recipe, args.cache_dir, _client(args, writes=True),
-            collection_key=args.collection_key,
+            collection_key=args.collection_key, library_type=args.library_type,
         )
     else:
         result = {

@@ -92,6 +92,7 @@ class MemoryZotero:
         self.next_key = 1
         self.library_version = 0
         self.reindexes = []
+        self.uploads = []
 
     def list_top_items(self):
         return [item for item in self.items.values() if not item["data"].get("parentItem")]
@@ -124,6 +125,10 @@ class MemoryZotero:
     def reindex_fulltext(self, keys):
         self.reindexes.append(list(keys))
 
+    def upload_file(self, key, path, content_type, *, previous_md5=None):
+        self.uploads.append((key, path, content_type, previous_md5))
+        self.items[key]["data"]["md5"] = hashlib.md5(path.read_bytes()).hexdigest()
+
 
 def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     payload = b"%PDF-1.4\ninvented control\n"
@@ -149,12 +154,109 @@ def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     assert parent["collections"] == ["COLLECT1"]
     assert attachment["linkMode"] == "linked_file"
     assert Path(attachment["path"]) == (cache / "invented-1900-control.pdf").resolve()
-    assert recipe[0]["sha256"] in attachment["extra"]
-    assert attachment["extra"].endswith("fulltext: reindexed")
+    assert "extra" not in attachment  # Zotero's own schema rejects extra on attachment items
     assert zotero.reindexes == [[next(
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
     )]]
+
+
+def test_group_injection_uploads_bytes_instead_of_linking(tmp_path):
+    """Zotero refuses linked-file attachments in any group library outright (400
+    "Linked files can only be added to user library", verified 2026-09-04 against
+    the real local API -- a permanent Zotero limitation, not a config issue). A
+    group injection must instead upload the bytes and write an imported_file
+    attachment carrying no machine path at all."""
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert counts == {"created_parents": 1, "updated_parents": 0,
+                      "created_attachments": 1, "updated_attachments": 0}
+    attachment = next(item["data"] for item in zotero.items.values() if item["data"]["itemType"] == "attachment")
+    assert attachment["linkMode"] == "imported_file"
+    assert attachment["filename"] == "invented-1900-control.pdf"
+    assert "path" not in attachment
+    assert len(zotero.uploads) == 1
+    uploaded_key, uploaded_path, uploaded_content_type, previous_md5 = zotero.uploads[0]
+    assert uploaded_path == (cache / "invented-1900-control.pdf").resolve()
+    assert uploaded_content_type == "application/pdf"
+    assert previous_md5 is None
+    # The upload must precede reindexing: extraction needs the bytes to already be there.
+    assert zotero.reindexes == [[uploaded_key]]
+
+
+def test_group_injection_reuploads_when_attachment_metadata_is_unchanged(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    uploads_after_first = len(zotero.uploads)
+    reindexes_after_first = len(zotero.reindexes)
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert len(zotero.uploads) == uploads_after_first + 1
+    assert len(zotero.reindexes) == reindexes_after_first + 1
+    assert zotero.uploads[-1][3] == hashlib.md5(payload).hexdigest()
+
+
+def test_group_injection_retries_upload_after_metadata_creation_succeeds(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    attempts = 0
+    original_upload = zotero.upload_file
+
+    def fail_first_upload(key, path, content_type, *, previous_md5=None):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise gf.GoldenFixtureError("upload control failure")
+        original_upload(key, path, content_type, previous_md5=previous_md5)
+
+    zotero.upload_file = fail_first_upload
+    with pytest.raises(gf.GoldenFixtureError, match="upload control failure"):
+        gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    # The item write committed before the failed upload. A retry must not mistake
+    # matching metadata for proof that the attachment bytes are already present.
+    attachment_writes = len(zotero.writes)
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    assert counts == {"created_parents": 0, "updated_parents": 0,
+                      "created_attachments": 0, "updated_attachments": 0}
+    assert len(zotero.writes) == attachment_writes
+    assert len(zotero.uploads) == 1
+    assert len(zotero.reindexes) == 1
+
+
+def test_group_metadata_update_preserves_previous_md5_for_file_replacement(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    previous_md5 = hashlib.md5(payload).hexdigest()
+
+    recipe[0]["title"] = "Corrected fixture title"
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert counts["updated_parents"] == 1
+    assert counts["updated_attachments"] == 1
+    assert zotero.uploads[-1][3] == previous_md5
 
 
 def test_representative_parent_reconciles_multiple_attachments_independently(tmp_path):
@@ -249,7 +351,18 @@ def test_injection_refuses_an_unmarked_item_in_the_target_collection(tmp_path):
     assert zotero.writes == []
 
 
-def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path):
+def test_a_user_library_repin_with_no_local_hash_mismatch_is_not_yet_redetected(tmp_path):
+    """Known gap, ticketed (0641, filed 2026-09-04): a correct re-pin -- the source
+    file AND recipe[0]["sha256"] updated together, so verify_source_bytes sees no
+    mismatch -- is not detected as attachment drift, and does not force a re-upload
+    or re-extraction, because nothing in _desired_attachment's payload depends on
+    the pinned hash any more. It used to: the sha256 lived in the attachment's
+    `extra` field, which real Zotero rejects outright for the `attachment` item
+    type (verified against its live schema, 2026-09-04) -- ticket 0632's log has
+    the full story. verify_source_bytes still catches an actual mismatch between
+    the recipe and the file on disk (test_injection_refuses_unpinned_or_changed_
+    source_bytes_before_writing); what it cannot yet catch is a CORRECT re-pin
+    silently not propagating to a stale live attachment."""
     original = b"%PDF-1.4\nfirst\n"
     changed = b"%PDF-1.4\nsecond\n"
     recipe = recipe_for(original)
@@ -264,16 +377,17 @@ def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path
     zotero.fulltexts[attachment] = {
         "content": "old extraction", "indexedPages": 1, "totalPages": 1, "version": 1,
     }
+    reindexes_after_first = len(zotero.reindexes)
+
     source.write_bytes(changed)
     recipe[0]["sha256"] = hashlib.sha256(changed).hexdigest()
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
 
-    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
-        export_again(recipe, zotero, cache, tmp_path / "stale")
-
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
-    assert zotero.reindexes[-1] == [attachment]
-    assert recipe[0]["sha256"] in zotero.items[attachment]["data"]["extra"]
-    export_again(recipe, zotero, cache, tmp_path / "current")
+    # This is the gap, pinned down rather than asserted-away: a correct re-pin is
+    # currently invisible to inject()'s reconciliation.
+    assert counts == {"created_parents": 0, "updated_parents": 0,
+                      "created_attachments": 0, "updated_attachments": 0}
+    assert len(zotero.reindexes) == reindexes_after_first
 
 
 def test_export_forces_fresh_extraction_when_hash_and_metadata_are_unchanged(tmp_path):
@@ -283,7 +397,7 @@ def test_export_forces_fresh_extraction_when_hash_and_metadata_are_unchanged(tmp
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
@@ -322,50 +436,148 @@ def test_failed_reindex_leaves_attachment_pending_and_unexportable(tmp_path):
     zotero.reindex_fulltext = fail_reindex
     with pytest.raises(gf.GoldenFixtureError, match="reindex control failure"):
         gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
-    attachment = next(item["data"] for item in zotero.items.values()
-                      if item["data"]["itemType"] == "attachment")
-    assert attachment["extra"].endswith("fulltext: pending")
-    attachment_key = attachment["key"]
-    zotero.fulltexts[attachment_key] = {
-        "content": "possibly stale", "indexedPages": 1, "totalPages": 1, "version": 1,
-    }
-    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
-        export_again(recipe, zotero, cache, tmp_path / "must-not-export")
+    # inject() still fails loud on a reindex error (unchanged) -- the operator knows
+    # the run did not complete. What this test used to also prove is now a known,
+    # ticketed gap (0641, filed 2026-09-04): the attachment item's own fields no
+    # longer carry a "pending" marker (extra was the only place it lived, and real
+    # Zotero rejects extra on attachment items -- verified against its live schema),
+    # so a SEPARATE export attempt against this same half-failed state would no
+    # longer be caught by _managed_equal the way it was before. Not exercised or
+    # asserted here on purpose, rather than leaving a false-passing assertion.
 
 
 def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
     client = gf.ZoteroLocalClient(
         library_type="group", library_id=4321, collection_key="COLLECT1"
     )
+    idle_indexed = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
+        "totalPages": 2, "version": 9,
+    }]}
     responses = [
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
-        {"busy": False, "lastError": None, "items": [{
-            "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
-            "totalPages": 2, "version": 9,
-        }]},
+        idle_indexed,
+        idle_indexed,
     ]
     monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
     client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
 
-    responses.extend([
-        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
-        {"busy": False, "lastError": None, "items": [{
-            "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
-            "totalPages": 0, "version": 9,
-        }]},
-    ])
 
-    def incomplete(*_args, **_kwargs):
+@pytest.mark.parametrize("previous_md5, header, value", [
+    (None, "If-none-match", "*"),
+    ("0123456789abcdef0123456789abcdef", "If-match", "0123456789abcdef0123456789abcdef"),
+])
+def test_local_upload_uses_the_correct_file_precondition(
+    tmp_path, monkeypatch, previous_md5, header, value,
+):
+    source = tmp_path / "control.pdf"
+    source.write_bytes(b"%PDF-1.4\ncontrol\n")
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1", api_key="test-key"
+    )
+    client.server_id = "test-server"
+    requests = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"exists":1}'
+
+    def urlopen(request, **_kwargs):
+        requests.append(request)
+        return Response()
+
+    monkeypatch.setattr(gf.urllib.request, "urlopen", urlopen)
+    client.upload_file("ATTACH01", source, "application/pdf", previous_md5=previous_md5)
+
+    assert len(requests) == 1
+    assert requests[0].get_header(header) == value
+    opposite = "If-match" if header == "If-none-match" else "If-none-match"
+    assert requests[0].get_header(opposite) is None
+
+
+def test_reindex_accepts_a_genuinely_settled_unindexed_state(monkeypatch):
+    """A document with no extractable text (an un-OCR'd scan, an unsupported
+    container) never reaches 'indexed' -- and that is real ground truth for
+    the export to capture, one of ticket 0029's declared failure-control
+    cases, not a timeout. Once Zotero has genuinely finished trying (idle
+    across two consecutive polls), reindex_fulltext must return rather than
+    burn the full max_wait waiting for a state that will never arrive."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    idle_unindexed = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+        "totalPages": 0, "version": 9,
+    }]}
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+        idle_unindexed,
+        idle_unindexed,
+    ]
+    monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
+    client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+
+
+def test_reindex_still_times_out_when_genuinely_never_idle(monkeypatch):
+    """The idle-settle relaxation must not become a blank check: a plugin that
+    never stops reporting busy (a real hang, not a settled failure-control
+    case) still exhausts max_wait and raises."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+    ]
+
+    def still_busy(*_args, **_kwargs):
         return responses.pop(0) if responses else {
-            "busy": False, "lastError": None, "items": [{
-                "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
-                "totalPages": 0, "version": 9,
+            "busy": True, "running": 1, "lastError": None, "items": [{
+                "key": "ATTACH01", "state": "queued", "indexedPages": 0,
+                "totalPages": 0, "version": None,
             }],
         }
 
-    monkeypatch.setattr(client, "_plugin_request", incomplete)
+    monkeypatch.setattr(client, "_plugin_request", still_busy)
     with pytest.raises(gf.GoldenFixtureError, match="timed out"):
-        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.001)
+        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.05)
+
+
+def test_reindex_idle_must_hold_across_two_polls_not_one(monkeypatch):
+    """A single idle-looking read the instant after queuing is not evidence
+    Zotero has started, let alone finished -- idleness must be observed on
+    two consecutive polls before it is trusted. A response sequence that
+    flips busy/idle every poll must never satisfy that and must time out."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    busy = {"busy": True, "running": 1, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "queued", "indexedPages": 0,
+        "totalPages": 0, "version": None,
+    }]}
+    idle = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+        "totalPages": 0, "version": 9,
+    }]}
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+    ]
+    status_calls = [0]
+
+    def flipping(*_args, **_kwargs):
+        if responses:
+            return responses.pop(0)
+        status_calls[0] += 1
+        return idle if status_calls[0] % 2 else busy
+
+    monkeypatch.setattr(client, "_plugin_request", flipping)
+    with pytest.raises(gf.GoldenFixtureError, match="timed out"):
+        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.05)
 
 
 def exported_snapshot(tmp_path):
@@ -375,7 +587,7 @@ def exported_snapshot(tmp_path):
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
@@ -433,7 +645,12 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
     assert fulltext["content"] == "offline golden control body"
     assert str(tmp_path) not in json.dumps(items)
     linked = next(item["data"] for item in items if item["data"]["itemType"] == "attachment")
-    assert linked["path"] == "attachments:invented-1900-control.pdf"
+    # A stored (imported_file) group attachment carries no path at all -- Zotero owns the
+    # bytes under its own storage directory, so there is nothing machine-specific to leak
+    # or normalize, unlike a user-library linked_file attachment's absolute local path.
+    assert linked["linkMode"] == "imported_file"
+    assert linked["filename"] == "invented-1900-control.pdf"
+    assert "path" not in linked
     assert manifest["normalizations"]["linked_file_path"].startswith("absolute API path")
     assert json.loads((dest / gf.EXPORT_SENTINEL).read_text()) == {
         "schema": gf.EXPORT_SENTINEL_SCHEMA,
@@ -460,7 +677,7 @@ def test_representative_export_binds_two_attachments_and_their_semantics(tmp_pat
     (cache / "invented-pdf.pdf").write_bytes(payloads[0])
     (cache / "invented-html.html").write_bytes(payloads[1])
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     for key, item in zotero.items.items():
         if item["data"]["itemType"] == "attachment":
             zotero.fulltexts[key] = {"content": f"body {key}", "indexedPages": 1,
@@ -512,7 +729,7 @@ def test_export_public_allowlists_drop_nested_zotero_private_fields(tmp_path):
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     for item in zotero.items.values():
         item["private"] = {"token": "TOP-SECRET"}
         item["data"]["relations"] = {"private-path": "/home/person/library"}
@@ -726,7 +943,7 @@ def test_export_rereads_all_zero_version_bodies_after_the_complete_first_pass(tm
     for doc in recipe:
         (cache / f"{doc['id']}.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachments = [
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
@@ -770,6 +987,10 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
             export_again(recipe, zotero, cache, snapshot)
 
 
+#: A "source_attestation" mutation case (a stale sha256 forged into an attachment's
+#: `extra` field) lived here and was dropped 2026-09-04: real Zotero rejects `extra`
+#: on attachment items outright, so no export ever carries one to tamper with any
+#: more, and there is nothing left for the loader to catch on this axis (ticket 0641).
 @pytest.mark.parametrize("mutation, message", [
     ("recipe_id", "not present in the source recipe"),
     ("parent_marker", "expected only managed marker"),
@@ -777,7 +998,6 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
     ("duplicate_parent_marker", "expected only managed marker"),
     ("parent_cross_role_marker", "expected only managed marker"),
     ("attachment_cross_role_marker", "expected only managed marker"),
-    ("source_attestation", "extra does not match"),
     ("metadata", "title does not match"),
     ("orphan_item", "not consumed"),
     ("empty_content", "malformed fulltext"),
@@ -804,8 +1024,6 @@ def test_loader_rejects_binding_and_fulltext_mutants(tmp_path, mutation, message
         parent["data"]["tags"].append({"tag": "zoteus-golden-attachment:invented-1900-control"})
     elif mutation == "attachment_cross_role_marker":
         child["data"]["tags"].append({"tag": "zoteus-golden-source:invented-1900-control"})
-    elif mutation == "source_attestation":
-        child["data"]["extra"] = "ticket-0029 source sha256: stale; fulltext: reindexed"
     elif mutation == "metadata":
         parent["data"]["title"] = "tampered"
     elif mutation == "orphan_item":

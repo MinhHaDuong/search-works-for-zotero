@@ -268,8 +268,12 @@ export function loadGoldenExport(directory, options = {}) {
     const attachment = itemByKey.get(key);
     if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
     const data = attachment.data ?? attachment;
-    if (data.parentItem !== parent || data.linkMode !== 'linked_file') {
-      throw new Error(`${recipeId}: ${key} is not the declared linked child of ${parent}`);
+    // A group library refuses linked-file attachments outright (Zotero's own local API:
+    // 400 "Linked files can only be added to user library", verified 2026-09-04), so a
+    // group export's attachments are stored (imported_file) instead.
+    const expectedLinkMode = manifest.library.type === 'group' ? 'imported_file' : 'linked_file';
+    if (data.parentItem !== parent || data.linkMode !== expectedLinkMode) {
+      throw new Error(`${recipeId}: ${key} is not the declared ${expectedLinkMode} child of ${parent}`);
     }
     const doc = recipeById.get(recipeId);
     const attachmentId = doc.attachments ? row.attachment_id : doc.id;
@@ -287,15 +291,29 @@ export function loadGoldenExport(directory, options = {}) {
         row.skip_reason !== (source.skip_reason ?? ''))) {
       throw new Error(`${attachmentId}: manifest attachment semantics do not match the recipe`);
     }
-    const expectedPath = `attachments:${source.id}.${source.bytes_format ?? 'pdf'}`;
-    if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
-      throw new Error(`${recipeId}: linked-file path is not portable`);
+    if (expectedLinkMode === 'linked_file') {
+      const expectedPath = `attachments:${source.id}.${source.bytes_format ?? 'pdf'}`;
+      if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
+        throw new Error(`${recipeId}: linked-file path is not portable`);
+      }
+    } else {
+      // A stored attachment carries no machine path at all -- Zotero manages the bytes
+      // under its own storage directory, keyed by attachment key, not by client host.
+      const expectedFilename = `${source.id}.${source.bytes_format ?? 'pdf'}`;
+      if (data.filename !== expectedFilename) {
+        throw new Error(`${recipeId}: stored attachment filename does not match its pinned source`);
+      }
     }
     requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${source.id}`, source.id);
+    // No `extra` here: Zotero's own live schema (GET /api/schema, verified 2026-09-04)
+    // accepts only title/accessDate/url on an `attachment` item -- `extra` is rejected
+    // outright (400 "'extra' is not a valid field for type 'attachment'"). The
+    // provenance this used to carry (source sha256, role, relation, language,
+    // selection, skip reason) is not load-bearing here: every field below this row
+    // reads it from the recipe (`source`), never from the live Zotero item.
     requireFields(data, {
       itemType: 'attachment', title: source.title ?? doc.title,
       contentType: CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
-      extra: `ticket-0029 source sha256: ${source.sha256}; role: ${source.role ?? 'primary'}; relation: ${source.relation ?? 'primary'}; language: ${source.language ?? ''}; selection: ${source.selection_expectation ?? 'indexed'}; skip reason: ${source.skip_reason ?? ''}; fulltext: reindexed`,
     }, source.id);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);

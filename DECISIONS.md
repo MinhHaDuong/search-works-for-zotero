@@ -6343,3 +6343,68 @@ arena, entered at the target-process seam or around R10's target-driving inner
 subprocess. Existing ticket logs, decisions and measurement artifacts retain
 `tester` because they record what the account was called when those events and
 runs happened.
+
+**2026-09-04 — RULED (formalized from the same-day finding below): ruling 6's
+"attachments as linked files, so no storage quota is spent" premise was
+wrong for group libraries, not merely incomplete.** A group injection
+uses a stored attachment (`imported_file`, bytes uploaded through the local
+API) against the group owner's own Zotero Storage plan; the author chose
+this over WebDAV (confirmed unavailable for any group, any configuration —
+Zotero's own docs/forums: group file sync is personal-library-only) or a
+reduced footprint. "No storage quota is spent" stays true only for a
+`user`-library injection, which this fixture does not use for its main
+corpus. Implemented in `golden_fixture.py` (`_desired_attachment` branches
+on `library_type`; `ZoteroLocalClient.upload_file` runs the real 3-phase
+upload) and `make_index_fixture.mjs` (`loadGoldenExport` validates the
+matching per-library-type shape). The finding as originally recorded
+follows, unedited, as the record of how this was discovered and reasoned
+through before the author's decision landed.
+
+**2026-09-04 — FINDING, not a ruling: ruling 6's "attachments as linked files"
+premise for the group injection is factually wrong; the author's decision is
+needed on how to proceed.** Ticket 0632's real injection attempt (group
+6659303, a real Public/Closed group created for this fixture) failed on the
+first attachment with a 400 from Zotero's own local API: `"Linked files can
+only be added to user library"`. Independently corroborated by web search
+against Zotero's own forums and documentation, not taken on the error string
+alone: linked-file attachments are unsupported in ANY group library, of any
+visibility or membership type — "a fundamental limitation of Zotero's
+design," requested as a feature for years and never implemented. `golden_
+fixture.py`'s `_desired_attachment()` hardcodes `linkMode: "linked_file"`
+unconditionally, so this is not a configuration slip; every attachment write
+into a group is refused by construction, and no invented one-item test caught
+it because the mocked `MemoryZotero` test double enforces none of Zotero's
+real server-side business rules — the machinery was proven generic over
+recipe shape, never proven compatible with a live group library, and those
+are different axes.
+
+What is and is not affected: the "user" library type (the account's own
+personal library, `/api/users/0/...`) does accept linked files — ruling 2's
+prohibition on sourcing bytes from a personal library is about document
+*provenance*, unrelated to this — but injecting into any account's personal
+library as the fixture target would still collide with ruling 2's spirit (a
+personal library is not a fixture home) and, on this host, would mean
+writing synthetic fixture data into the author's own real 7 546-item working
+library. Not attempted, not proposed.
+
+The live options, each with a real cost this ticket does not have standing
+to accept alone: (a) switch group attachments to a Zotero-*stored* attachment
+(uploaded bytes, `imported_file`/`imported_url`), which group libraries do
+support once file editing is enabled (exactly why ruling 6's own closed-
+group requirement already holds) — but group storage draws from the group
+owner's own Zotero storage plan (verified via zotero.org's own storage
+documentation, 2026-09-04), the 17-document set is 478 MB, Zotero's free
+tier is 300 MB, and the local API's simple item-write endpoint was not
+verified to even support the multi-step stored-attachment upload flow, which
+is unexplored surface, not existing code; (b) use Zotero WebDAV storage
+instead of Zotero's own cloud storage for this group, if the author already
+has or is willing to set one up (no such configuration exists in the
+injecting client's own preferences, checked directly); (c) reduce the
+injected set's byte footprint (e.g. defer the largest scans) to fit the free
+tier as an interim proof of mechanism, still consuming real quota without
+having asked; (d) something else the author would rather do. **The author
+chose (a)**, same day: use his existing Zotero Storage plan. A parent item
+for `walras-1900-elements` was created in group 6659303 before the failure
+(tagged, no attachment) and was left as-is rather than manually cleaned up:
+`inject()`'s own reconciliation is idempotent and picks it up on the next
+successful run, uploading its attachment like any other.
