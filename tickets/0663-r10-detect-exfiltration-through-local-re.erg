@@ -1,0 +1,46 @@
+%erg 0.1
+Title: R10 detect exfiltration through local relays
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0660. The syscall classifier ignores non-resolver
+loopback connections and Unix-domain sockets. That is correct for ordinary
+in-machine cooperation but creates a custody false green: a target may send
+library text or a query to an already-running local relay which forwards it
+off-machine outside the traced process tree. This child owns the end-to-end
+relay detector, not general lifecycle coverage (0662).
+
+## Actions
+
+- Build harness-owned TCP-loopback and Unix-socket relays whose forwarding
+  attempts are observable independently of the target process trace.
+- Use distinctive synthetic library and query payload markers; never use the
+  author's library content.
+- Correlate receipt and attempted forwarding so ordinary local IPC remains
+  allowed while data handed to a forwarding boundary is red.
+- State the residual boundary for relays the harness cannot observe; do not
+  describe direct-connect coverage as end-to-end coverage.
+
+## Test
+
+- [ ] Direct remote, hostname, TCP-relay and Unix-relay controls each fail
+      through their intended detector.
+- [ ] Benign loopback IPC that neither receives R10 data nor forwards stays
+      green.
+- [ ] A relay that never starts, never receives the marker, or never attempts
+      forwarding makes its arm `not-run` rather than PASS.
+- [ ] The control relay is outside the target's process tree, matching the hole.
+
+## Exit criteria
+
+- [ ] Both local relay classes are covered with one-purpose controls.
+- [ ] Artifacts distinguish direct attempts, relay receipt and relay forwarding.
+- [ ] Residual end-to-end limits are disclosed beside the verdict.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

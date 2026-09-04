@@ -1,0 +1,95 @@
+%erg 0.1
+Title: Make the R23 acceptance test use authentic cross-version indexes and prove continuity
+Created: 2026-09-04
+Author: codex
+Blocked-by: 0623
+
+--- log ---
+2026-09-04T10:05Z codex created
+
+--- body ---
+
+## Context
+
+Child of goal-2 tracker `0614`. R23 requires an index actually written under a
+different schema version to end up serving in both directions, without manual
+file deletion. The current target-neutral check edits only
+`meta.schemaVersion` on a current-format database, reopens it with the same
+binary, and calls any non-empty hit list success. That is neither an authentic
+upgrade nor an authentic rollback, and it can pass after partial loss, fallback
+service, or a silent same-path rebuild — the last of which R23 explicitly calls
+a failure.
+
+Ticket `0623` owns three prerequisite defects already measured at the reviewed
+baseline: restoring a main SQLite file while stale WAL/SHM companions survive,
+using schema 0 rather than the reachable predecessor rung, and dropping partial
+arm evidence from `not-run`. This ticket does not duplicate them. It starts from
+their correction and owns whether the resulting experiment actually measures
+R23.
+
+## Required experiment
+
+Use authentic, immutable cross-version fixtures. The upgrade fixture is
+produced by the immediately preceding supported writer and consumed by the
+current binary. The downgrade fixture is produced by the current writer and
+consumed by the predecessor binary that represents a real rollback. Record the
+producer and consumer revisions, schema stamps, fixture hashes, and complete
+SQLite snapshot membership. A label edited onto a current schema is a negative
+control, not an acceptance fixture.
+
+Seed discriminating content whose stable item identities, passage identities,
+text hashes, vector presence and library partition can be compared before and
+after. The post-transition query must return the seeded identities through the
+index under test and identify the backend/generation that answered. A count or
+an arbitrary non-empty result is insufficient.
+
+Prove continuity rather than availability: preserve the fixture's required
+rows and payloads, show no fresh crawl/rebuild supplied the answer, and detect
+truncation, overwrite or atomic replacement under the same filename. Legitimate
+target-managed SQLite transitions — checkpointing WAL, removing SHM, renaming a
+migration temporary file — are not "manual deletion"; operator/harness actions
+must be recorded directly instead of inferred from a disappearing path.
+
+If migration is asynchronous, wait on a target-owned terminal observable under
+a bound owned by `SPEC.md`; do not grade one immediate query as the eventual
+state. Bind the damage-prevention and serving halves in the same artifact by
+fixture hash, arm, producer, consumer and target revision.
+
+## Red-first controls
+
+- a current-layout database carrying only a forged foreign stamp is refused as
+  an authentic fixture
+- an in-place truncate-and-rebuild under the same filename fails
+- a fresh-index or live-Zotero fallback returning non-empty hits fails
+- a migration returning one seeded hit while losing other seeded rows fails
+- an answer from the wrong library partition fails
+- a target-managed WAL checkpoint or temporary-file cleanup does not fail as
+  manual deletion
+- an authentic predecessor migration that preserves and serves the seed passes
+- an authentic rollback path passes only when it preserves service; a typed
+  incompatibility response is useful diagnostic evidence but is a non-pass for
+  R23 unless a ruling recorded in `DECISIONS.md` first changes that reading; the
+  arm is never simulated by the current binary meeting stamp 9999
+
+## Exit criteria
+
+- [ ] 0623's coherent reset, reachable predecessor and `not-run` evidence fixes
+      are present
+- [ ] both arms use immutable fixtures written by the stated producer binaries
+- [ ] the downgrade arm executes the stated older consumer binary
+- [ ] fixture hashes and complete SQLite snapshot membership reach the artifact
+- [ ] stable seeded identities and required payload preservation are compared,
+      not only hit counts
+- [ ] the artifact proves the answer came from the transitioned index and not a
+      fallback or fresh rebuild
+- [ ] same-path overwrite, truncation and silent rebuild are detected
+- [ ] manual harness intervention is recorded directly; legitimate target file
+      transitions do not manufacture a red
+- [ ] asynchronous completion is observed through a target-owned terminal state
+- [ ] damage prevention and serving continuity are bound to the same arms and
+      revisions
+- [ ] every red-first control above is exercised by the normal gate or by a
+      named integration gate that cannot silently disappear
+- [ ] a real zoteus run produces an honest verdict for both directions
+- [ ] tracker 0614 and README record only the resulting measured standing
+- [ ] `make check` passes

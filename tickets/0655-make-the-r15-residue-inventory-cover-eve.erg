@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Make the R15 residue inventory cover every lifecycle surface and filesystem escape
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. `R15-residue-inventory` watches regular files created
+inside its arena during `install`. It can pass when state is created outside the
+arena, when an empty directory or other owned filesystem entry survives, or
+when an offered later lifecycle surface creates the undeclared state.
+
+## Exit criteria
+
+- [ ] define the complete set of lifecycle surfaces the inventory must exercise
+- [ ] prevent or observe writes outside the arena so an invisible escape cannot
+      produce `pass`
+- [ ] account for owned directories, symlinks and other applicable filesystem
+      entries, not regular files alone
+- [ ] preserve explicit, narrow handling of user data and external configuration
+- [ ] red controls independently cover an outside-arena escape, a non-file
+      residue, and state created after install
+- [ ] `make check` passes

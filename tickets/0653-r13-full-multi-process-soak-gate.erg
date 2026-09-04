@@ -1,0 +1,49 @@
+%erg 0.1
+Title: R13 full multi-process soak gate
+Created: 2026-09-04
+Author: codex
+Blocked-by: 0651
+Blocked-by: 0652
+
+--- log ---
+2026-09-04T09:59Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0650. This child owns the single slow/integration
+instrument specified by the `R13, the soak gate` bullet in `SPEC.md` §5.2.8.
+It consumes 0651's answer-survival assertion and 0652's commit/work accounting;
+it must not grow substitute versions of either. Ticket 0035 owns obtaining the
+real multi-process implementation, not this harness.
+
+## Actions
+
+- Implement the exact workload, topology, fault schedule, metrics and service
+  cases named in `SPEC.md` §5.2.8, reading or citing its numbers rather than
+  copying them into another authority.
+- Capture raw latency, SQLite-error, WAL, lease-transition, commit, work-counter,
+  fault and process-lifetime evidence sufficient to recompute every verdict.
+- Prove each injected kill and freeze occurred. An unfired fault is `not-run`.
+- Keep deterministic mechanism fixtures in the fast suite and expose the real
+  machine/corpus run as an explicit slow gate. Missing substrate is never PASS.
+
+## Test
+
+- [ ] Each metric detector has a focused red control.
+- [ ] Kill, freeze and cold-service controls prove their preconditions fired.
+- [ ] A reduced mechanism fixture is labeled as such and cannot be emitted as
+      the full soak verdict.
+- [ ] The complete run consumes 0651 and 0652's checks without duplicating them.
+
+## Exit criteria
+
+- [ ] The complete §5.2.8 R13 soak runs against an eligible real target.
+- [ ] Every specified metric and service clause receives an evidence-backed
+      verdict in a committed `bench/results/` artifact.
+- [ ] The slow-gate command, machine disclosure and reproduction procedure are
+      documented next to the driver.
+- [ ] Generated acceptance reporting includes the soak without confusing it
+      with fixture coverage.
+- [ ] `make check`, the soak gate and `./tickets/erg check tickets/` pass.

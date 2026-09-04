@@ -1,0 +1,27 @@
+%erg 0.1
+Title: Require materialized state and complete removal in the R15 uninstall check
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. `R15-uninstall-removes-declared-state` can pass when
+install materialized no state and uninstall removed nothing. Its survivor scan
+counts regular files, so an empty owned directory can remain after uninstall
+without falsifying "none of that state may remain".
+
+## Exit criteria
+
+- [ ] prove target-created derived state materialized before uninstall or report
+      `not-run`
+- [ ] state which declared roots or owned entries must disappear versus become
+      empty, based on the target's real uninstall surface
+- [ ] detect surviving directories, symlinks and other applicable owned entries
+- [ ] retain event-then-state ordering and never perform cleanup for the target
+- [ ] red controls cover no-op install/uninstall and empty-directory residue
+- [ ] `make check` passes

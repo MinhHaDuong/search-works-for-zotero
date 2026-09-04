@@ -1,0 +1,30 @@
+%erg 0.1
+Title: Bind each acceptance fail-control to its intended assertion in the normal gate
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. The fixture gate currently asks only whether every
+assertion was red against any fixture. An unrelated failure can therefore keep
+an assertion "covered" after its intended observation has broken. The fixture
+gate is also outside `make check`, while the ordinary tests do not directly
+exercise all advertised R15 controls.
+
+## Exit criteria
+
+- [ ] declare the intended assertion-to-fail-control mapping in executable form
+- [ ] fail when the designated control does not produce `fail`, even if another
+      fixture makes that assertion red
+- [ ] assert that each control fails for its intended evidence, not merely its
+      verdict token
+- [ ] cover the R15 under-declaration and uninstall-residue controls in the
+      normal offline gate
+- [ ] keep integration-only tracer work outside the fast gate where necessary
+      without dropping the R15 logic controls
+- [ ] `make check` passes
