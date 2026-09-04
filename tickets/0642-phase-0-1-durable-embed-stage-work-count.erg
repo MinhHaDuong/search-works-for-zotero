@@ -1,0 +1,209 @@
+%erg 0.1
+Title: Phase 0+1: durable embed-stage work counters, the goal-1 slice of scoped issue A
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T07:00Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Child of tracker 0613 (goal 1), successor to the dropped 0636. `Ticket-ref:
+tickets/0613`, `Ticket-ref: tickets/0033` — neither closes; 0033 keeps its own
+wider scope (ledger, freshness, pause, serve-stale, custody, query semantics),
+this ticket is one phased slice of its counters part, scoped to what goal 1's
+R22 needs and nothing past it.
+
+**What SPEC.md §5.2.8 actually asks, distilled to what R22 needs.** The full
+counter design is `work.<stage>.<trigger>.<outcome>`, stage ∈
+`{record, extract, chunk, embed}` (§5.2.1), trigger ∈ `{new, edit, re-extract,
+resync, key-bump, prefix-stale, retry, delete}`, outcome ∈ `{noop, done}`,
+"updated in the same transaction as the ledger transition each one
+describes." But `_pause_verdict` (`bench/acceptance/assertions.py` ~611-636,
+the function that actually grades R22) only asks whether **any** `done`
+counter advanced — it needs no trigger classification, which is why R22 can
+be settled without the freshness half of the design (R3's counter-churn
+clause is the one that needs the trigger axis, and R3 is goal 2). This ticket
+exploits exactly that gap: implement enough of the real, durable counter
+mechanism to answer "did embedding work happen" truthfully and persistently,
+skip everything the freshness/custody/query-semantics parts of scoped issue A
+would also need.
+
+**What NOT to build here, and why it's out of scope even though SPEC.md
+describes it.** §5.2.1/§5.2.2's `entries`/`slabs`/`passages`/`origins`/
+`libraries` schema is this repository's own broader storage-redesign
+vision — multi-table, content-addressed, built for a search-index-v2 this
+project has reasoned about but never asked the maintainer to adopt wholesale
+(0033's own log: "the maintainer picks the verbs," GOVERNANCE.md's asymmetry
+rule). Zoteus's REAL schema today (verify fresh — see Actions) is far
+smaller: a `passages` table with vector/text columns and a `meta` key-value
+table already carrying a JSON `checkpoint` row (`sqlite-index.ts`
+~928-1092). This ticket adds counters to that real, existing schema — it
+does not redesign it.
+
+**Why in-memory (last session's "Tier 1", `src/lib/metrics.ts`) is the
+wrong tool despite being cheaper.** `metrics.ts`'s `createMetrics()`
+registry (added upstream in `c2d83da`, unwired to the indexing pipeline) is
+process-local and resets on restart. SPEC.md's own ask is durability
+("the same transaction as the ledger transition"), and R22's second clause
+is literally "holds across restart" — an in-memory counter can only ever
+prove the FIRST clause (pause stops work) by accident of timing, never the
+second with any rigor, since "the counter reset to 0 and stayed 0" is
+indistinguishable from "the counter was never wired." The real fix has to
+live in sqlite, committed atomically with whatever it counts.
+
+## The phased design (Tier 2, in full)
+
+Phase 0 and 1 are this ticket's own scope. Phases 2-4 are named so the shape
+those add doesn't get invented twice, and so nothing here accidentally
+forecloses them — they are NOT actions of this ticket.
+
+**Phase 0 — the counters table and the transactional bump helper.**
+A new sqlite table, e.g. `work_counters(stage TEXT, trigger TEXT, outcome
+TEXT, count INTEGER, PRIMARY KEY(stage, trigger, outcome))`, added via the
+existing migration-ladder mechanism (ticket #34's precedent,
+`sqlite-index.ts`'s schema-version bump path — reuse it, don't invent a
+second one). One helper, `bumpWorkCounter(db, stage, trigger, outcome, by=1)`,
+an `INSERT ... ON CONFLICT DO UPDATE SET count = count + ?`, called from
+*inside* the same transaction as the write it describes — never as a
+separate commit, which is exactly the drift SPEC.md's own `drift` counter
+exists to catch (out of scope here; Phase 3).
+
+**Phase 1 — embed-stage `done`, wired, exposed. This is the goal-1 slice.**
+Call `bumpWorkCounter(db, 'embed', <trigger>, 'done', n)` at the point
+`backfillVectors()`/`buildIncremental()` actually commits `n` newly-computed
+vectors — re-verify the exact call site against live `upstream/main` (Action
+1), but per the last reading it is inside the same `persistNow()`/`save()`
+transaction the checkpoint already writes to (`index-manager.ts`
+~1370-1381, ~1010-1012). Trigger can be a single, honest, coarse value for
+this phase (e.g. always `"build"`) rather than the full 8-value vocabulary —
+nothing downstream reads the trigger dimension yet, and a fabricated fine
+classification would be worse than an honest coarse one. Expose the total
+via `action:"status"`'s response as one new field, e.g. `workDone: {embed:
+N}` or reuse the `metrics`-style shape SPEC.md's naming suggests — whichever
+reads more naturally beside the fields `action:"status"`'s doc-comment
+already documents (`index-tool.ts`).
+
+**Phase 2 — record/extract/chunk stages, the real trigger vocabulary
+(needed for R3, goal 2 — not this ticket).** Requires per-item key
+comparison (§5.2.1's `record_hash`/`text_hash`/`(text_hash, segmenter,
+chunker)` keys) to distinguish `resync.noop` from `*.done` — the actual
+mechanism that would prove "an identical resync recomputes nothing." Zoteus's
+real freshness check today is version-stamp/delta-based (`?since=`), not a
+per-item content-hash comparison; building this phase means adding that
+comparison, not just a counter.
+
+**Phase 3 — drift detection and idle reconciliation.** Periodic recompute of
+each counter from a real `COUNT(*)`, a `drift` counter the harness fails on
+when it moves. Needed for R1's convergence harness and for the counters to
+be self-defending against silent corruption; not needed for R22's two
+clauses, which only ever read a fresh value.
+
+**Phase 4 — custody, query semantics, outOfBand, the boundary cursor.** The
+remainder of 0033's scoped issue A. Unrelated to the counter mechanism
+mechanically; bundled historically because one upstream issue carries all of
+it.
+
+## Relevant files (upstream, zoteus fork — verify against live upstream/main,
+which was 8 commits ahead of this repo's UPSTREAM_REVIEWED_SHA as of
+2026-09-04 and moves fast; re-derive line numbers, don't trust these)
+
+- `src/features/search/sqlite-index.ts` — the migration-ladder mechanism
+  (ticket #34's `d26f090`, +344/-28 there, the closest precedent for adding
+  a table), the `meta` table and its `checkpoint` JSON row (~1092), the
+  `passages` table.
+- `src/features/search/index-manager.ts` — `buildIncremental` (~917),
+  `backfillVectors` (the #48-era resume path), the cancellation/commit exit
+  (~1370-1381), `persistNow`/`save` (~1010-1012, "commits its open
+  transaction here").
+- `src/tools/index-tool.ts` — the `action:"status"` handler (~61-63) and its
+  doc-comment (the tool description string), where a new field needs to be
+  both returned and documented.
+- `src/lib/metrics.ts` — read, not reused: the in-process registry this
+  ticket deliberately does not build on, for the durability reason above.
+- This repo's side: `bench/acceptance/adapters/zoteus.py` (`_index()`/
+  `_stamp()`, the adapter's existing direct-sqlite-read precedent — reading,
+  not writing, the same discipline this ticket's own counters read should
+  follow if the harness ever needs to cross-check `action:"status"`'s
+  reported total against the table directly), `bench/acceptance/
+  assertions.py` (`_pause_verdict` ~611-636, `check_pause_stops_background_
+  work`/`check_pause_holds_across_restart` ~779/~853 — the checks this
+  ticket's artifact should finally turn from `not-run` to a real verdict),
+  `bench/acceptance/durability.py` (`work_counters()` ~112 — the harness-side
+  reader this phase's new field should satisfy).
+
+## Actions
+
+1. Re-verify every file:line citation above against a fresh `upstream/main`
+   checkout (`git clone` + `git fetch upstream`, not `fork/` on this
+   machine, which drifts — this session found it 8 commits behind).
+2. Implement Phase 0 (table + migration + bump helper) and Phase 1 (embed
+   `done` wiring + `status()` field) as a real patch on a branch of
+   `MinhHaDuong/zoteus`, with upstream's own test conventions
+   (`tests/features/*.test.ts`, Vitest — see `embedding-backoff.test.ts`/
+   `search-schema-migration.test.ts` for shape).
+3. Build `fork/` (or a scratch clone) from that branch and run
+   `bench/acceptance`'s R22 checks against it — `--posture account`
+   composes correctly now (ticket 0637 fixed the podman-unshare ordering).
+   Commit the artifact under `bench/results/` in the same
+   ungraded-diagnostic-until-upstream-merges shape 0629/0630 already used
+   (this is a local patch, not yet zoteus's shipped behavior — the graded
+   ladder verdict does not move until the maintainer merges it or a fork
+   this repo controls is what's reviewed).
+4. Draft (do not send) the upstream PR at `verification/UPSTREAM-PR-
+   WORK-COUNTERS-0642.md`, matching this repo's contained-PR convention —
+   this phase's diff should be small enough (see the Tier-1 estimate this
+   ticket refines, ~40-150 LOC once done durably rather than in-memory) to
+   plausibly qualify as a contained PR under GOVERNANCE.md rather than
+   needing to go as an issue, but that call belongs to whoever reviews the
+   real diff, not to this ticket in advance.
+5. Append the finding to 0613's log and to 0033's log (append-only, both).
+
+## Test
+
+Red-first, mirroring 0033's own PR #255 discipline: a positive control that
+shows the counter CAN move (a never-stopped instance finishing an embed
+pass) before trusting that it does not move on the graded, stopped instance.
+Zoteus's own test suite additionally needs: the counter surviving a process
+restart (open a fresh connection, read the table, confirm the prior total is
+there — this is Vitest against a real sqlite file, not a stub), and the
+counter NOT moving when `resync` finds nothing to embed (a coarse check even
+before Phase 2's full noop/done split exists — at minimum, don't double-count
+an item already embedded).
+
+## Verification
+
+- [ ] `work_counters` table exists, migrated in via the existing ladder, and
+      a real embed pass increments it inside the same transaction as the
+      vector commit (not a separate write — check by killing the process
+      between the two and confirming neither or both landed, never one)
+- [ ] The counter is visible in `action:"status"`'s response, documented in
+      its tool description
+- [ ] `bench/acceptance/durability.work_counters()` reads a non-`None` value
+      against the patched build
+- [ ] `R10-no-egress`'s sibling checks aside, `check_pause_stops_background_
+      work` and `check_pause_holds_across_restart` report PASS or FAIL (not
+      `not-run`) against the patched build, artifact committed
+- [ ] Upstream PR drafted, not sent
+- [ ] 0613's and 0033's logs record the outcome
+
+## Invariants
+
+- No fabricated trigger classification: Phase 1's coarse single-trigger
+  value is disclosed as coarse, not dressed up as the full vocabulary.
+- The counter write is genuinely transactional with the ledger write it
+  describes — a bump that could land without its corresponding commit (or
+  vice versa) defeats the entire point of durability over `metrics.ts`.
+- Phases 2-4 are not started here and this ticket does not block on them;
+  0033 keeps them.
+- Existing R3/R13/R23 checks, which need the trigger axis Phase 1 does not
+  build, are not claimed as satisfied by this ticket's artifact.
+
+## Exit criteria
+
+Both R22 clauses report PASS or FAIL (not `not-run`) for a patched zoteus
+build, resting on a durable, transaction-committed counter — not an
+in-memory one — with the upstream PR drafted and staged for the author's
+own send decision, same convention as gaps A and B.
