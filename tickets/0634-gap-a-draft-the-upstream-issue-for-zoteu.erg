@@ -1,0 +1,89 @@
+%erg 0.1
+Title: Gap A: draft the upstream issue for zoteus's default-on update check
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T05:31Z claude created
+
+2026-09-04T05:33Z Draft written at verification/ISSUE-DRAFT-0634.md, staged not sent (author's own per-action authorization required to file it). Form argued against GOVERNANCE.md: design-sized, issue not PR. Every file:line citation re-derived from a real fork/ built at the reviewed SHA b0e0bc8; one two-line drift from 0629's own citations found and named in the draft (capabilities.ts desktop-probe loop at :53, not :55-56 -- non-load-bearing, same three attempts against an IP literal). No GitHub issue opened.
+--- body ---
+
+## Context
+
+Child of tracker 0613 (goal 1), gap A. `Ticket-ref: tickets/0613`. Sibling of
+0630 (gap B's `UNINSTALL.md` draft), same pattern: 0629 attributed the four
+network lookups and established that all four trace to one cause — the
+default-`true` update check's single `fetch()` — and explicitly left "no new
+upstream filing here" as out of its own scope, naming 0613's Action 3
+("decide the upstream form of gaps A and B") as the ticket that owns it. This
+ticket is that decision and the resulting draft, for gap A only.
+
+**Form, argued against `GOVERNANCE.md`'s "Form follows the measured
+asymmetry"**: contained defect with a failing test → PR (two precedents,
+#27/#28, merged verbatim); design-sized → issue the author files himself. The
+update check is not a defect — `server.ts:186-187`'s comment gives a real
+reason for it (manual installs have no other update channel) — it is a
+default the maintainer chose deliberately. Changing a deliberate default is a
+product decision, not a one-line fix with an obviously-correct answer, so
+this is design-sized: **issue, not PR.**
+
+## Relevant files
+
+- `verification/ISSUE-DRAFT-0634.md` — the drafted issue, staged not sent.
+- `bench/results/0629-gap-a/README.md` and `syscall-shape.json` — the
+  measurement the draft cites.
+- `fork/src/lib/update-check.ts`, `fork/src/config.ts`, `fork/src/server.ts`
+  — the reviewed-SHA source the draft's file:line citations point at
+  (`fork/` itself is gitignored and regenerated per `UPSTREAM`).
+
+## Actions
+
+1. Draft the issue at `verification/ISSUE-DRAFT-0634.md`, matching the
+   format and voice of `verification/ISSUE-DRAFT-0530.md` (the one prior
+   filed-from-measurement draft in this repo): a short "staged, not sent"
+   preamble arguing form, then `## Title` / `## Body` verbatim-ready content.
+2. Cite evidence by file:line from a real built `fork/` at the reviewed SHA,
+   not from memory or a fetched copy — re-derived in this session (see
+   0613/0629 log entries 2026-09-04) and cross-checked against 0629's own
+   citations; one two-line drift found (`capabilities.ts` desktop-probe loop
+   at `:53`, not `:55-56`), named in the draft itself rather than silently
+   corrected.
+3. Propose a fix shape (default off, or first-run consent) without demanding
+   either — the maintainer decides, per this repo's own upstream posture.
+4. Do **not** open the real GitHub issue. This repo's convention (SYNC.md,
+   GOVERNANCE.md, and every prior design-sized item) is that the harness
+   prepares the record; the author sends it, on his own authorization, per
+   action.
+
+## Test
+
+No code changes; nothing here is unit-testable. The check this ticket
+actually needs is a read-through: does every file:line citation in the draft
+resolve, in a real `fork/` checkout at `UPSTREAM_REVIEWED_SHA`, to what the
+draft says is there? Verified during Action 2 above (see the ticket log).
+
+## Verification
+
+- [x] Draft exists at `verification/ISSUE-DRAFT-0634.md`
+- [x] Every file:line citation re-checked against a real built `fork/` at
+      the reviewed SHA (not a fetched copy, not memory)
+- [x] Form (issue vs PR) argued against `GOVERNANCE.md`, not asserted
+- [x] A concrete, non-demanding ask stated (two shapes, a stated preference,
+      an offer to send a PR for either)
+- [ ] Sent — deliberately not done here; the author sends it on his own
+      authorization
+
+## Invariants
+
+- No GitHub issue is opened by this ticket or its PR. The draft is the
+  deliverable.
+- The draft's evidence rests on measurement already committed under
+  `bench/results/0629-gap-a/`, not on new claims invented for the issue.
+
+## Exit criteria
+
+- The issue is drafted, evidence-cited against a real checkout, staged at
+  `verification/ISSUE-DRAFT-0634.md`, and 0613's log records that gap A's
+  Action 3 is done for the issue-drafting half (0630 already covers gap B's
+  half in its own child ticket).
