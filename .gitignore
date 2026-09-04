@@ -38,4 +38,3 @@ __pycache__/
 # by someone later putting a value in it.
 .env
 *.log.txt
-node_modules/
