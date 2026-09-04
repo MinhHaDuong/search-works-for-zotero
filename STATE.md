@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-03T16:10Z.*
+*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-04T09:04Z.*
 
 One page of live operational handoff, and it owns nothing: every line points
 to the document that owns the fact. What this repository is is [`README.md`](README.md)'s.
@@ -22,19 +22,19 @@ to the document that owns the fact. What this repository is is [`README.md`](REA
 
 **Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
 
-**0613/0614/0615: does zoteus pass goal 1/2/3?** Goal 1's account precondition
-met on both machines. Gap A awaits a fresh `fork/` rebuild; Gap B (uninstall)
-blocked on `UNINSTALL.md`; Gap C and goal 2 wait on 0033; goal 3 unasserted. Matrix: `bench/results/0604-ladder-matrix/`.
+**0613/0614/0615: does zoteus pass goal 1/2/3?** Gaps A/B closed, sent
+upstream (#54, #55). Gap C (R22) now decided **FAIL** not `not-run` (0642+0643):
+`stop` doesn't gate a later `build` — sent as #56, waiting on the maintainer.
 
 **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — 0491's codex-fence question, the ladder re-cut's two.
 
 ## Status
-<!-- generated 2026-09-03T16:03Z · as of 0ec66e8 -->
+<!-- generated 2026-09-04T09:04Z · as of e12c4ca -->
 
-**Tickets:** 40 ready · 36 blocked · 6 awaiting author — `erg ready tickets/` for full list
+**Tickets:** 43 ready · 31 blocked · 6 awaiting author — `erg ready tickets/` for full list
   next: 0025 Experiments X1-X7, each before its dependent, e… · 0026 Repo-side gates: fold, golden, RSS, convergence…
-**In flight:** no open PRs
+**In flight:** 1 open PR — #327 (0632, golden-fixture harness verify)
 **Recent (first-parent):**
-  0ec66e8 wip: STATE refresh in progress
-  95e26ca Merge pull request #311 from MinhHaDuong/t0628-posture-witness-sweep
-  8344a85 Merge pull request #310 from MinhHaDuong/t0029-recover-simplify
+  e12c4ca Merge pull request #349 from MinhHaDuong/housekeeping-20260904
+  fb90b42 Merge pull request #348 from MinhHaDuong/worktree-t0656-pause-issue
+  ec6f52f Merge pull request #347 from MinhHaDuong/t0643-validate
