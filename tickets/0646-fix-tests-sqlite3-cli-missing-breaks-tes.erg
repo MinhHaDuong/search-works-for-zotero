@@ -1,0 +1,35 @@
+%erg 0.1
+Title: fix-tests: sqlite3 CLI missing breaks test_summarize_0120.py
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T08:59Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Found during `/lair` housekeeping (2026-09-04): `make check-fast` reports 2
+failures, both pre-existing and unrelated to any work landed today —
+
+```
+FAILED tests/test_summarize_0120.py::test_decompose_splits_the_keyword_half_from_the_store - FileNotFoundError: [Errno 2] No such file or directory: 'sqlite3'
+FAILED tests/test_summarize_0120.py::test_decompose_counts_every_fts_shadow_table_it_declares - FileNotFoundError: [Errno 2] No such file or directory: 'sqlite3'
+```
+
+The `sqlite3` CLI binary is missing on this machine (padme); the tests shell
+out to it rather than using Python's `sqlite3` module. Referenced in
+passing across several artifacts this session (`bench/results/0642-work-counters/README.md`,
+`bench/results/0643-resume-embedding-perturbation/`) but never tracked.
+
+## Actions
+
+Either install `sqlite3` on this machine, or rewrite the two tests to use
+Python's stdlib `sqlite3` module instead of shelling out — the latter is
+probably the more portable fix long-term.
+
+## Exit criteria
+- `make check-fast` green on this machine without installing anything
+  machine-specific, or the missing-binary case is documented as an
+  accepted skip with a reason.
