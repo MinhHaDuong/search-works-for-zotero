@@ -1,0 +1,38 @@
+%erg 0.1
+Title: 0635's log stamp postdates the commit that wrote it -- fails check_ticket_logs.py on main
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T06:13Z claude created
+
+--- body ---
+## Context
+Found incidentally while running `make check` on an unrelated branch
+(ticket 0639, 2026-09-04): `bench/check_ticket_logs.py` fails on `origin/main`
+as of `a947e71` (the commit that closed and archived 0635):
+
+    FAIL: tickets/closed/0635-tmpdir-xdg-home-redirection-for-zoteus-s.erg:10:
+    stamped 2026-09-04T06:10Z, written 2026-09-04T05:40Z
+    1 log entry is stamped after the commit that wrote it.
+
+This is pre-existing on `main`, not introduced by this ticket's own work, and
+blocks `make check`/`make lint`'s `ticket-logs` target for every branch until
+fixed.
+
+## Relevant files
+- `tickets/closed/0635-tmpdir-xdg-home-redirection-for-zoteus-s.erg:10` — the
+  drifted stamp
+- `bench/check_ticket_logs.py` — the gate that caught it
+
+## Actions
+1. Find the commit that actually introduced line 10 (`git log -L 10,10:tickets/closed/0635-...erg` or equivalent) and read its real timestamp.
+2. Correct the stamp on that line to the time the commit evidences, per
+   `rules/workflow.md`'s general instruction: "Correct the stamp to a time
+   the record evidences … never the other way round."
+
+## Verification
+- [ ] `python3 bench/check_ticket_logs.py` passes on `main` after the fix
+
+## Exit criteria
+- [ ] `make check`'s `ticket-logs` target is green on `main`

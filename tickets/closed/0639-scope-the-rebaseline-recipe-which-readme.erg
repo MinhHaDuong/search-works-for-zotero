@@ -1,0 +1,85 @@
+%erg 0.1
+Title: Scope the rebaseline recipe: which README rows, SPEC citations, and tickets a span actually touches
+Created: 2026-09-04
+Author: claude
+Closed: autoclosed — PR #335
+
+--- log ---
+2026-09-04T06:12Z claude created
+
+2026-09-04T06:23Z MinhHaDuong closed — autoclosed — PR #335
+--- body ---
+## Context
+`make upstream-rebaseline` (`bench/upstream_catchup.py --rebaseline`) prints a
+fixed checklist (`REBASELINE_TOUCHES`): "every standing row" of README.md,
+"every premise stamped to a SHA" and "every file:line citation" in SPEC.md,
+"a log entry on every open ticket" in tickets/. That blanket phrasing is
+truthful but wasteful whenever a span's actual diff is narrow — checked
+against upstream v1.13.0..main (2026-09-04, 12 commits: mostly the author's own
+pooling-per-model PR #52 plus an unrelated ops/usage-log feature), where the
+"counters" slice ticket 0033 is carrying was untouched but the checklist gave
+no way to say so short of re-reading the whole page.
+
+`WATCHED` already carries, as code comments, which requirement rows each
+watched path backs. That mapping was legible to a human reading the source but
+invisible to the script itself.
+
+## Actions
+1. `WATCHED_ROWS: dict[str, list[str]]` restates the `WATCHED` comments as
+   data; `affected_rows(touched)` splits every row into affected/unaffected
+   given the `WATCHED` paths a span actually changed.
+2. `CITATION`/`citations_in`/`resolve_path`/`cited_lines`/`citation_drift`
+   parse every backtick-fenced `file.ext:N[-M]` citation SPEC.md makes,
+   resolve the bare filename against the zoteus mirror, and diff the cited
+   lines' content at the reviewed SHA against the new tip — DRIFTED when the
+   text differs, unresolved when the path does not resolve uniquely (chiefly
+   Zotero-core citations from #6012, which this mirror does not carry) or is
+   absent at the baseline.
+3. `FILE_REF`/`open_ticket_paths`/`tickets_to_rederive` grep every open
+   ticket (`tickets/*.erg`, not `tickets/closed/`) for the bare filenames its
+   log entries name, and narrow to the ones whose named file the span
+   actually touched.
+4. `rebaseline()` now takes `base` (previously computed but not passed) and
+   prints all three narrowings inline under the corresponding
+   `REBASELINE_TOUCHES` entry.
+
+## Test
+`tests/test_upstream_catchup.py` — pure-logic tests for `affected_rows`,
+`citations_in`, `tickets_to_rederive` (no network, following the module's own
+"the git walking is deliberately not mocked" convention: the git-calling
+halves — `touched_watched_paths`, `resolve_path`, `cited_lines`,
+`citation_drift`, `open_ticket_paths`'s filesystem read — stay exercised only
+by a live run, same as `residue()` already was). `open_ticket_paths` is tested
+against the real `tickets/` directory (ticket 0033 names `metrics.ts`, which
+is the exact file this session's manual catch-up had just found orthogonal to
+it, so the fixture and the question line up).
+
+## Verification
+- [x] `python3 -m pytest tests/test_upstream_catchup.py -q` — 28 passed
+- [x] `ruff check bench/upstream_catchup.py tests/test_upstream_catchup.py` —
+      clean
+- [x] Live run against the real mirror (v1.13.0..main, 2026-09-04, 12 commits):
+      correctly narrowed README to 15 affected / 4 untouched rows, found one
+      genuine SPEC.md drift (`index-manager.ts:800` — `clearStore()` shifted
+      to `:801` when a line was inserted above it, hand-verified with `git
+      show` at both SHAs), correctly flagged the 7 Zotero-core citations as
+      unresolved, and correctly shortlisted 15 open tickets whose named file
+      the span touched (0033 among them, naming `metrics.ts` and
+      `index-manager.ts`, both true).
+
+## Invariants
+- `WATCHED`, `RELEASE`, `ITEM`, `SCHEMA_VERSION`, `PASSAGES_DDL` and the
+  existing report path (no `--rebaseline`) are unchanged.
+- `REBASELINE_TOUCHES`'s existing entries and reasons are unchanged; the three
+  narrowings are additive prints, not replacements of the blanket phrasing —
+  the checklist stays the honest "recipe, not a check" it already documents
+  itself as.
+
+## Exit criteria
+- [x] `affected_rows` scopes README's checklist line to the rows a span's
+      `WATCHED` diff can move
+- [x] `citation_drift` scopes SPEC.md's checklist line to citations whose
+      cited lines actually changed content
+- [x] `tickets_to_rederive` scopes tickets/'s checklist line to open tickets
+      naming a file the span touched
+- [x] `make check-fast` and `ruff check` pass on the new code
