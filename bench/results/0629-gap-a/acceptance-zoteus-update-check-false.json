@@ -1,0 +1,341 @@
+{
+  "probe": "the target-neutral acceptance layer, run against one adapter (SPEC.md §5.2.8; DECISIONS.md, ratified 2026-09-02)",
+  "not_a_test_suite": "each check exercises ONE MUST clause of one requirement, once, against ONE named target. A green is a green for that target and for nothing else.",
+  "date": "2026-09-04",
+  "declaration": {
+    "target": "zoteus",
+    "revision": "1.12.0",
+    "derived_state_roots": [
+      "/home/haduong/data/acceptance-arena/data"
+    ],
+    "query_transport": "an MCP server over stdio JSON-RPC; the semantic-search tool is called with the mode the harness asked for, mapped onto this target's mode names",
+    "default_configuration": "the local on-device embedder, the SQLite index backend, no automatic refresh, full text on, read-only against the library. The one input that is not a default is the path to the on-device model runtime, which the built checkout does not vendor: it is passed in, and recorded here, as /home/haduong/.zoteus-deps/node_modules",
+    "process": "node runs the built entrypoint as a child process, spoken to over stdio; it is started before the verbs and terminated after them; the data directory starts empty, so any clause about an index already in service has nothing to read",
+    "unsupported_verbs": [
+      "resume",
+      "uninstall"
+    ],
+    "unsupported": [
+      {
+        "verb": "resume",
+        "why": "nothing maps onto it. The only action that continues an interrupted build is also the full rebuild and the repair — on a damaged index it deletes the unreadable file first — so mapping resume onto it would smuggle a destructive rebuild into the one verb the ruling says never rebuilds, invisibly, because on a healthy checkpointed index it really does just resume"
+      },
+      {
+        "verb": "uninstall",
+        "why": "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words that its maintenance purge is not a stand-in the harness may call to manufacture a clean result, so nothing is substituted for it"
+      }
+    ],
+    "not_derived_state": []
+  },
+  "posture": {
+    "posture": "account",
+    "account": "tester",
+    "refused": null
+  },
+  "checks": [
+    {
+      "check": "R10-local-by-default",
+      "requirement": "R10",
+      "clause": "the embedder is local in the target's default configuration",
+      "falsified_by": "a default configuration whose effective embedder is a hosted provider, or a local embedder that is configured but not running",
+      "result": "pass",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "locality": "local",
+        "active": true,
+        "model": "Xenova/all-MiniLM-L6-v2",
+        "default_configuration": "the local on-device embedder, the SQLite index backend, no automatic refresh, full text on, read-only against the library. The one input that is not a default is the path to the on-device model runtime, which the built checkout does not vendor: it is passed in, and recorded here, as /home/haduong/.zoteus-deps/node_modules",
+        "configure_returned": {
+          "applied_at": "process start",
+          "environment_keys": [
+            "ZOTEUS_DATA_DIR",
+            "ZOTEUS_EMBEDDINGS",
+            "ZOTEUS_INDEX_AUTO_REFRESH",
+            "ZOTEUS_INDEX_BACKEND",
+            "ZOTEUS_INDEX_FULLTEXT",
+            "ZOTEUS_READ_ONLY",
+            "ZOTEUS_TRANSFORMERS_PATH"
+          ]
+        }
+      }
+    },
+    {
+      "check": "R10-no-egress",
+      "requirement": "R10",
+      "clause": "without an explicit opt-in, library text and queries do not leave this machine, and no connection to a destination off it is attempted",
+      "falsified_by": "any connection attempted to an address off this machine, or any name lookup, during a default-configuration run",
+      "result": "pass",
+      "target": "zoteus",
+      "verb": "query",
+      "detail": {
+        "verbs_driven": [
+          "install",
+          "configure",
+          "query"
+        ],
+        "verbs_not_offered": [
+          "resume"
+        ],
+        "isolation_mechanism": {
+          "name": "podman-unshare",
+          "how": "podman unshare: the rootless user namespace, with a fresh empty network namespace inside it for the isolated arm. The host filesystem stays mounted, so the writable set is not enforced on this arm",
+          "writable_enforced": false
+        },
+        "subject": {
+          "mechanism": "podman-unshare",
+          "network_shared": false,
+          "returncode": 0,
+          "attempt_counts": {
+            "off_machine": 0,
+            "dns": 0
+          },
+          "attempts": [],
+          "stdout_tail": "{\"install\": {\"entrypoint\": \"/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js\", \"data_dir\": \"/home/haduong/data/acceptance-arena/2026-09-04/075044-R10-no-egress/data\", \"materialized\": []}, \"configure\": {\"applied_at\": \"process start\", \"environment_keys\": [\"ZOTEUS_DATA_DIR\", \"ZOTEUS_EMBEDDINGS\", \"ZOTEUS_INDEX_AUTO_REFRESH\", \"ZOTEUS_INDEX_BACKEND\", \"ZOTEUS_INDEX_FULLTEXT\", \"ZOTEUS_READ_ONLY\", \"ZOTEUS_TRANSFORMERS_PATH\"]}, \"resume\": \"not-offered\", \"query\": {\"documents\": 0, \"vectors\": 0, \"items\": 0, \"storage\": \"sqlite\", \"embedder\": \"local\", \"embedderConfigured\": \"local\", \"embedderActive\": true, \"fulltextEnabled\": false, \"fulltextItems\": 0, \"fulltextPassages\": 0, \"ownWordsEnabled\": false, \"ownWordsItems\": 0, \"ownWordsPassages\": 0, \"builtFromVersion\": 0, \"libraryVersion\": 0, \"fulltextVersion\": 0, \"embedderModel\": \"Xenova/all-MiniLM-L6-v2\", \"passages\": 0, \"state\": \"idle\", \"operation\": \"build\", \"itemsFetched\": 0, \"itemsRemoved\": 0, \"itemsTotal\": 0, \"itemsAvailable\": 0, \"phase\": \"metadata\", \"fulltextItemsScanned\": 0, \"fulltextItemsTotal\": 0}}\n",
+          "stderr_tail": "time=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"The cgroupv2 manager is set to systemd but there is no systemd user session available\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"For using systemd, you may need to log in using a user session\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Alternatively, you can enable lingering with: `loginctl enable-linger 1001` (possibly as root)\"\ntime=\"2026-09-04T07:50:45+02:00\" level=warning msg=\"Falling back to --cgroup-manager=cgroupfs\"\n[server] [zoteus] INFO Zoteus MCP server started on stdio.\n[server] [zoteus] INFO Read-only mode: exposing 18/30 tools.\n[server] [zoteus] INFO Capabilities: cloud=none, localApi=false, localGroups=0\n[server] (node:2831680) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n[server] (Use `node --trace-warnings ...` to show where the warning was created)\n"
+        },
+        "control": {
+          "net_shared": {
+            "mechanism": "podman-unshare",
+            "network_shared": true,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 3
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "isolated": {
+            "mechanism": "podman-unshare",
+            "network_shared": false,
+            "returncode": 0,
+            "attempt_counts": {
+              "off_machine": 1,
+              "dns": 4
+            },
+            "attempts": [
+              {
+                "call": "connect",
+                "address": "1.1.1.1",
+                "port": 443,
+                "detector": "off_machine"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              },
+              {
+                "call": "connect",
+                "address": "127.0.0.53",
+                "port": 53,
+                "detector": "dns"
+              }
+            ],
+            "stdout_tail": "",
+            "stderr_tail": ""
+          },
+          "why_both": "the shared arm proves the tracer sees attempts and the machine has a route; the isolated arm proves each detector still fires when nothing can leave. Without both, a zero from the subject arm is indistinguishable from an instrument that could not look."
+        },
+        "detectors": {
+          "off_machine": "a connect/sendto/sendmsg naming a non-loopback address",
+          "dns": "a connect/sendto/sendmsg to a resolver port, loopback included: inside a no-route namespace a hostname attempt dies at resolution and leaves no off-machine connect at all, so a detector without this one reports a false green"
+        },
+        "run_completed": true
+      }
+    },
+    {
+      "check": "R15-residue-inventory",
+      "requirement": "R15",
+      "clause": "no target-created derived state exists outside the declaration",
+      "falsified_by": "any file created by the run that lies outside every declared derived-state root and is not argued to be non-derived state",
+      "result": "pass",
+      "target": "zoteus",
+      "verb": "install",
+      "detail": {
+        "install_event": {
+          "entrypoint": "/home/haduong/CNRS/code/search-works-for-zotero/fork/dist/index.js",
+          "data_dir": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory/data",
+          "materialized": []
+        },
+        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory",
+        "created_count": 0,
+        "declared_roots": [
+          "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-residue-inventory/data"
+        ],
+        "not_derived_state": [],
+        "residue": [],
+        "residue_count": 0,
+        "reads": "the declaration is compared against what appeared in a harness-owned arena, never read back against itself"
+      }
+    },
+    {
+      "check": "R15-model-cache-under-declared-roots",
+      "requirement": "R15",
+      "clause": "downloaded model weights are derived state and live under a declared root",
+      "falsified_by": "a model cache created outside every declared derived-state root — a shared cache in the home directory, say",
+      "result": "pass",
+      "target": "zoteus",
+      "verb": "query",
+      "detail": {
+        "model_in_effect": "Xenova/all-MiniLM-L6-v2",
+        "created_count": 3,
+        "residue": [],
+        "residue_count": 0,
+        "declared_roots": [
+          "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-model-cache-under-declared-roots/data"
+        ],
+        "query_answered": true,
+        "arena": "/home/haduong/data/acceptance-arena/2026-09-04/075044-R15-model-cache-under-declared-roots"
+      }
+    },
+    {
+      "check": "R15-uninstall-removes-declared-state",
+      "requirement": "R15",
+      "clause": "the target declares every location in which it creates derived state, and after uninstall none of that state remains",
+      "falsified_by": "any file surviving under a declared derived-state root after uninstall",
+      "result": "not-offered",
+      "target": "zoteus",
+      "verb": "uninstall",
+      "detail": {
+        "verb": "uninstall",
+        "why": "the adapter declares 'uninstall' absent, so this clause has no surface to assert against on this target. Not a failure: the harness does not simulate a verb's effect to manufacture a verdict.",
+        "why_absent": "this target has no uninstall surface. SPEC.md §5.2.7 says in as many words that its maintenance purge is not a stand-in the harness may call to manufacture a clean result, so nothing is substituted for it",
+        "unsupported_verbs": [
+          "resume",
+          "uninstall"
+        ]
+      }
+    },
+    {
+      "check": "R22-pause-stops-background-work",
+      "requirement": "R22",
+      "clause": "there is one obvious way to stop all background work, and after it is used a change that would create work creates none",
+      "falsified_by": "any work.*.*.done counter advancing against a change made while the target is stopped",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "why": "the positive control — a second, never-stopped instance of this target — reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so the harness could not show that the change it makes creates work at all, and this clause is not decided"
+      }
+    },
+    {
+      "check": "R22-pause-holds-across-restart",
+      "requirement": "R22",
+      "clause": "the control that stops all background work holds across a restart, with no one asking for it again",
+      "falsified_by": "any work.*.*.done counter advancing against a change made after the process is restarted, with no resume in between",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "why": "the positive control — a second, never-stopped instance of this target — reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so the harness could not show that the change it makes creates work at all, and this clause is not decided"
+      }
+    },
+    {
+      "check": "R3-edit-recomputes-only-what-changed",
+      "requirement": "R3",
+      "clause": "the cost of staying current is proportional to what changed: an edit to one item recomputes that item's record and its sections, and nothing else",
+      "falsified_by": "any work.*.*.done delta outside the edited item's record and embed stages, or a record-stage delta other than one",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R3-identical-resync-recomputes-nothing",
+      "requirement": "R3",
+      "clause": "a resync that moves signals without changing bytes runs its verification and recomputes nothing downstream of it",
+      "falsified_by": "any work.*.*.done delta after an identical-bytes resync, or a resync that moves no work.*.resync.noop counter at all — the second being a run that verified nothing rather than one that recomputed nothing",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R13-two-processes-both-answer",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory both answer queries without corrupting the index",
+      "falsified_by": "either process failing to answer while the other is live, or an index that a third process cannot read after both have stopped",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "query",
+      "detail": {
+        "why": "no process reported a hit list, so whether they answered cannot be read from what this target returns; the clause is not decided"
+      }
+    },
+    {
+      "check": "R13-two-processes-do-not-duplicate-work",
+      "requirement": "R13",
+      "clause": "two server processes on one data directory do not do the same work twice",
+      "falsified_by": "any work.*.*.done counter moving when a second process joins a data directory whose work had already settled",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "status",
+      "detail": {
+        "why": "this target reports no work.<stage>.<trigger>.<outcome> counters (SPEC.md §5.2.8, Counters (C4)), so there is nothing here to read and this clause is not decided. A green would mean the harness could not look."
+      }
+    },
+    {
+      "check": "R23-foreign-stamp-ends-up-serving",
+      "requirement": "R23",
+      "clause": "an index written under a different schema version ends up serving, in either direction, without anyone deleting files by hand",
+      "falsified_by": "a foreign-stamped index that answers nothing after a restart, or one that only comes back after a file is removed by hand",
+      "result": "not-run",
+      "target": "zoteus",
+      "verb": "query",
+      "detail": {
+        "why": "this target answers without reporting what it matched, so 'ends up serving' has nothing to be read from; the clause is not decided rather than assumed either way"
+      }
+    }
+  ],
+  "summary": {
+    "pass": 4,
+    "fail": 0,
+    "not-offered": 1,
+    "not-run": 7
+  }
+}

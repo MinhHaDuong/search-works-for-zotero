@@ -115,11 +115,40 @@ that has no reason to hold it.
 **The hypothesis 0629 logged holds.** Four lookups need no second cause:
 zoteus's one `fetch()` accounts for all of them.
 
-## 3. The confirming arm did not run — machine, not code
+## 3. The confirming arm — ran on 2026-09-04
 
-The ticket's Action 2 (`ZOTEUS_UPDATE_CHECK=false`, expected `dns: 0`) is the
-direct confirmation and is **not** in this directory. Every assertion that
-starts a target process reported `not-run` on this machine:
+The ticket's Action 2 (`ZOTEUS_UPDATE_CHECK=false`, expected `dns: 0`) ran on
+padme once ticket 0637 landed, as a pair in one session, default arm first,
+same build, same machine, both under `--posture account` (`tester`) and the
+`podman-unshare` mechanism:
+
+| arm | artifact | `R10-no-egress` | subject `attempt_counts` |
+|---|---|---|---|
+| default | `acceptance-zoteus-default.json` | **fail** | `off_machine 0, dns 4` |
+| `ZOTEUS_UPDATE_CHECK=false` | `acceptance-zoteus-update-check-false.json` | **pass** | `off_machine 0, dns 0` |
+
+Both controls fired in both runs — net-shared `off_machine 1, dns 3`,
+isolated `off_machine 1, dns 4`, the §2 signature — so the two zeros in the
+second row were measured, not unlooked-for. The four lookups go to zero when
+the one `fetch()` is switched off and nothing else moves: that is the reading
+"from the other direction" the paragraph at the end of this section asked
+for. The verdict on the default configuration is unchanged and now rests on a
+same-session pair rather than on the v1130 artifact alone.
+
+Every other assertion needing a target process (R3, R13, R22, R23) now reports
+`not-run` for a target-side reason — no `work.<...>` counters, no hit list, no
+seeded index — rather than for the posture; those reasons are 0613's business,
+not this ticket's.
+
+The recipe is unchanged from the one below, with the arena at
+`$HOME/data/acceptance-arena` (operator-owned, default ACL for `tester` — see
+the `Makefile`'s provisioning block) and the entrypoint given as an absolute
+path. What follows is the record of why it could not run on 2026-09-03, kept
+because the same two blockers will meet the next machine.
+
+### 3.1 Why it did not run on 2026-09-03 — machine, not code
+
+Every assertion that starts a target process reported `not-run`:
 
 > `PostureUnavailable: 'tester' exists but a run under it did not succeed here
 > (checked by running a trivial command under it, not by looking the account
@@ -158,19 +187,25 @@ ZOTEUS_UPDATE_CHECK=false python3 bench/acceptance/run.py \
 including under `--posture account`, whose `--preserve-env=` list is built
 from that merged dict.
 
-**What this changes about the finding: less than it looks.** The attribution
+With the sudoers line in place, a second blocker appeared that was code, not
+machine: the account switch fired from inside the tracer and the rootless
+namespace, where `sudo` is refused (`/etc/sudo.conf is owned by uid 65534`).
+Ticket 0637 moved the switch outermost; the pair in the table above is the
+first run after it.
+
+**What the arm changed about the finding: less than it looks.** The attribution
 above rests on a measurement that was made here, with a null arm and a
-discriminating control, and on a source read of the reviewed tree — not on the
-missing arm. What the missing arm would add is a fourth reading of the same
-shape from the other direction: `dns` falling to 0 when the one lookup is
-switched off. Nothing in §1 or §2 depends on it, and it should still be run
-when the machine allows, because a prediction that cheap deserves to be
-checked rather than assumed.
+discriminating control, and on a source read of the reviewed tree. What the
+arm added is the fourth reading of the same shape from the other direction —
+`dns` falling to 0 when the one lookup is switched off — and it came back as
+predicted.
 
 ## Files
 
 - `syscall-shape.json` — the measurement, six arms, produced by
   `bench/probe_getaddrinfo_shape.py`.
+- `acceptance-zoteus-default.json`, `acceptance-zoteus-update-check-false.json`
+  — the §3 pair, 2026-09-04, same session in that order.
 - `traces/` is git-ignored (`.gitignore`); re-run the probe to regenerate it.
 - `tests/test_probe_getaddrinfo_shape.py` fails if the artifact loses its null
   arm or its discriminating control, or if the getaddrinfo count stops

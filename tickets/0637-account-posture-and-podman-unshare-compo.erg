@@ -5,6 +5,7 @@ Author: MinhHaDuong
 
 --- log ---
 2026-09-04T05:34Z MinhHaDuong created
+2026-09-04T05:53Z claude note EXECUTED. Action 1 held, with one sharpening the ticket did not have: sudo is refused not only inside the rootless namespace but under an unprivileged strace at all (setuid neutralised under ptrace, measured: "effective uid is not 0"), and inside bwrap by no-new-privs — so the switch goes outside the TRACER, not merely outside the mechanism. The --drive re-invocation touches only arena-owned state (seed, spawn, verbs); the outer driver still writes the arena dirs and the artifact as the operator. Fix: sandbox.run_traced(under=) encloses tracer+mechanism; run.py composes it from the resolved posture with posture.forwardable(os.environ) (drops HOME/USER/XDG_RUNTIME_DIR etc., which rootless podman needs to be tester's own) and hands the child --spawned-under tester, which holds posture.inherited() and spawns unwrapped rather than probing sudo where it cannot succeed. Mechanism-agnostic, so Bubblewrap is covered by the same seam. Makefile/posture.py recipe corrected: arena is operator-owned with a default ACL for tester, not tester-owned (the operator's mkdir needs it; the tracer now writes its log as tester). Tests: 9 deterministic + 1 integration that runs both orders for real and skips where a machine cannot discriminate. Live: 0629's pair ran, dns 4 -> dns 0, both controls firing.
 
 --- body ---
 ## Context
@@ -146,14 +147,20 @@ faking success.
 
 ## Verification
 
-- [ ] `R10-no-egress` on `zoteus` with `ZOTEUS_UPDATE_CHECK=false` returns
-      PASS or FAIL, not NOT-RUN, on this machine.
-- [ ] `R13`, `R22`, `R3`, `R23` (the other checks needing a target spawn under
-      isolation) also stop reporting NOT-RUN for this same reason.
-- [ ] `make check` passes.
-- [ ] Ticket 0629's two blocked verification checkboxes are ticked, or the
-      ticket records why they still cannot be, with a different reason than
-      today's.
+- [x] `R10-no-egress` on `zoteus` with `ZOTEUS_UPDATE_CHECK=false` returns
+      PASS or FAIL, not NOT-RUN, on this machine — PASS, `dns 0`, and the
+      default arm FAIL at `dns 4` in the same session
+      (`bench/results/0629-gap-a/`, 2026-09-04).
+- [x] `R13`, `R22`, `R3`, `R23` (the other checks needing a target spawn under
+      isolation) also stop reporting NOT-RUN for this same reason — they still
+      report `not-run`, now for target-side reasons (no work counters, no hit
+      list, no seeded index), so the target spawned and answered under the
+      account.
+- [x] `make check` passes — 830 passed, 14 skipped; the 2 failures are
+      `tests/test_summarize_0120.py` needing a `sqlite3` CLI this machine does
+      not have, untouched by this branch and failing identically on `main`.
+- [x] Ticket 0629's two blocked verification checkboxes are ticked, with the
+      pair of artifacts committed and README § 3 rewritten around them.
 
 ## Invariants
 
