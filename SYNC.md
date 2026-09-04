@@ -75,7 +75,7 @@ have a reachable choice. The maintainer confirmed the issue's source reading in
 full; the author then closed it as completed. It removes the measured cause of
 goal 1's
 `R10-no-egress` failure, but the acceptance verdict and README standing do not
-move on a source read: v1.14.0 changed fifteen watched files since the reviewed
+move on a source read: v1.14.0 changed four watched files since the reviewed
 baseline, so ticket 0613 awaits a v1.14 baseline reread and remeasurement.
 
 In the same window, on `b0e0bc8` (v1.13.0 plus four commits), the maintainer
