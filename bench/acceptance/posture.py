@@ -298,6 +298,16 @@ def inherited(account: str, *, verify: bool = True) -> Posture:
     mechanism-less call has no remapping around it at all, so both keep the
     check: this is the module's "verify, don't trust" discipline (`_works`)
     applied wherever it can still tell the two cases apart.
+
+    "Exactly one caller" describes the harness, not a guarantee: like
+    `--spawned-under` itself, `--spawned-under-unverifiable` is an ordinary
+    argparse flag an operator can type. That buys an attacker nothing they did
+    not already have, which is why it is left as it is — anyone who can hand-type
+    the `--drive` re-invocation can also export `USER=tester` in their own shell
+    first and defeat the check with no waiver at all. This closes the gap where
+    a claim is trusted BY SHAPE on the paths the harness itself drives; the
+    ticket's Context accepts the deliberate hand-typed workaround as the
+    operator working around their own invariant on purpose.
     """
     actual = os.environ.get("USER")
     if verify and actual != account:
