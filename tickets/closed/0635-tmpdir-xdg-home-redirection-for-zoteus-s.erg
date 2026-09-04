@@ -2,12 +2,14 @@
 Title: TMPDIR/XDG/HOME redirection for zoteus's arena
 Created: 2026-09-04
 Author: claude
+Closed: TMPDIR/HOME/XDG redirection implemented and verified in zoteus.py's _env(), PR #331 merged
 
 --- log ---
 2026-09-04T05:32Z claude created
 
 2026-09-04T06:10Z claude executed Fixed. `bench/acceptance/adapters/zoteus.py`'s `_env()` now redirects `HOME` and `TMPDIR` into arena-scoped directories (`self.home = arena / "home"`, `self.tmp = arena / "tmp"`, mirroring the sibling convention exactly) and blanks `XDG_CACHE_HOME`/`XDG_CONFIG_HOME`/`XDG_DATA_HOME`/`XDG_STATE_HOME`. `running()` creates both directories alongside the existing `data_dir.mkdir`. Diff is additive: no existing key in `_env()` changed. Footprint, tests, and red/green controls below; full detail in this ticket's body.
 
+2026-09-04T05:53Z MinhHaDuong closed — TMPDIR/HOME/XDG redirection implemented and verified in zoteus.py's _env(), PR #331 merged
 --- body ---
 ## Context
 
