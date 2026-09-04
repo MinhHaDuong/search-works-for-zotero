@@ -153,7 +153,7 @@ def test_compact_deliverables_pass(tmp_path):
 | deliverable | status | authority |
 |---|---|---|
 | Formal specification | **Complete** | SPEC.md |
-| [Multilingual Menagerie](fixture) | **In progress** | ticket 0080 |
+| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0080 |
 | Verification and scoring bench | **In progress** | bench/ |
 
 ### Multilingual Menagerie
@@ -179,7 +179,7 @@ def test_compact_deliverables_missing_one_fails(tmp_path):
 | deliverable | status | authority |
 |---|---|---|
 | Formal specification | **Complete** | SPEC.md |
-| [Multilingual Menagerie](fixture) | **In progress** | ticket 0080 |
+| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0080 |
 """
     assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 1
 

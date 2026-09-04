@@ -750,7 +750,7 @@ def run(repo: Path) -> int:
     if "## Deliverables" in text:
         required = (
             "| Formal specification | **Complete** |",
-            "| [Multilingual Menagerie]",
+            "| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** |",
             "| Verification and scoring bench | **In progress** |",
         )
         missing = [row for row in required if row not in text]
@@ -764,6 +764,21 @@ def run(repo: Path) -> int:
         ]
         if len(public_rows) != 3:
             missing.append("exactly three public deliverable rows")
+        for heading, following in (
+            ("### Multilingual Menagerie", "### Verification and scoring bench"),
+            ("### Verification and scoring bench", None),
+        ):
+            if heading not in text:
+                continue
+            detail = text.split(heading, 1)[1]
+            if following:
+                detail = detail.split(following, 1)[0]
+            detail_rows = [
+                line for line in detail.splitlines()
+                if line.startswith("|") and not line.startswith("|---") and "object |" not in line
+            ]
+            if not detail_rows:
+                missing.append(f"non-empty {heading} table")
         spec_text = sheet.read_text(encoding="utf-8")
         if "| Formal specification | **Complete** |" in text and "- **Status:** COMPLETE" not in spec_text:
             missing.append("SPEC.md status COMPLETE")
