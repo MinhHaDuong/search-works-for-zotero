@@ -6234,3 +6234,53 @@ records total and indexed pages and characters independently, and the golden
 queries include answer-bearing text on each side of each truncation boundary.
 SPEC.md §5.2.8 owns the cap values; the recipe and export own which attachments
 demonstrate them.
+
+**2026-09-04 — RATIFIED: ticket 0029's child 2 is bounded by the 200-question
+tally, not by the nine records PR #151's re-sourcing table left stuck; Gallica
+is dropped as an admitted archive; the Wikipedia constellation is admitted
+beside Gutenberg and arXiv.** The 2026-09-03 reframe named child 2 as "the 9
+browser-only sourcing fetches (4 HAL, 4 Gallica, 1 Malynes)"; the author
+corrected this the next day. Closing those nine is necessary but not
+sufficient — the real bound is what the tally's 200 questions need present in
+the library, which can exceed what PR #151's original document set ever named.
+
+Three moves ratified together:
+
+1. **Gallica is dropped, not deferred.** Every Gallica fetch attempted for
+   this fixture answered a scripted client with an ALTCHA challenge — the
+   archive's standing behaviour toward scripts, not a transient failure, and
+   unlike HAL's Anubis challenge it cannot be solved once and cached across a
+   re-pin. Its four current records — cournot-1838-recherches,
+   depitre-1908-oeuvres-cournot, des-michels-1883-luc-van-tien,
+   des-michels-1884-kim-van-kieu-t2p1 — lose their source and need either a
+   replacement from an admitted archive or a drop with a stated reason, the
+   treatment already given Neurath, the Highway Code and the three circulars.
+   The des Michels pair is the FR–VN cross-lingual anchor ruling 5
+   (2026-09-02) built for R29; losing it without a replacement removes that
+   anchor shape, not just two records.
+2. **The mix rebalances toward articles.** The recipe is book- and
+   monograph-heavy today; the corpus needs more standalone articles relative
+   to books. No ratio is pinned — first-pass and adjustable, the same posture
+   already carried by the 200-count and the reuse floor (ruling, 2026-09-03).
+3. **New archives, drawn on as the tally needs them.** Project Gutenberg
+   (admitted 2026-09-03, above) and arXiv (admitted by ruling 3, 2026-09-02,
+   unused in the recipe so far) open for broader use. The Wikipedia
+   constellation is newly admitted: the article namespace itself, beside the
+   already-admitted Wikisource and Commons, each article pinned by permanent
+   revision id the same way a Wikisource entry already is.
+
+**Open, not ruled: EconLit.** Raised by the author with his own hedge
+("?EconLit?"). To this session's knowledge EconLit (the AEA's Journal of
+Economic Literature index) is an abstracting and indexing database —
+bibliographic records and abstracts, not hosted full text — so it does not
+obviously meet the admitted-archive definition (a public, third-party-hosted,
+persistent identifier naming one fixed set of bytes). Carried as an open
+question rather than dropped or admitted: the author may mean a specific
+EconLit-linked full-text source rather than EconLit itself as a byte host.
+
+What this changes: ticket 0029's "Children" table, the re-sourcing table and
+the Vietnamese slice section carry the consequences. bench/fixtures/README.md's
+admitted-archive table and per-record table gain the Wikipedia row and the
+replaced Cournot/Depitre/des-Michels sourcing when child 2 actually executes —
+not edited in this pass, which records scope only; no new document is sourced
+here.
