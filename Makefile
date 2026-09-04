@@ -25,20 +25,38 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 # (DECISIONS.md, ratified 2026-09-03; ticket 0625). `bench/acceptance/run.py`
 # defaults `--posture account` and refuses (`not-run`, never a fallback) when
 # the account below is absent or its sudoers rule does not work — it does not
-# create the account itself. A short, copyable recipe, once per machine:
+# create the account itself. The operator runs `make check`, pytest, the outer
+# harness and artifact writer. Normally only the adapter-spawned target runs as
+# `untrusted-runner`; R10's egress arm necessarily puts its tracer, isolation
+# mechanism and inner target-driving `run.py --drive` process under that account
+# too, while the outer driver remains the operator.
 #
-#   sudo useradd --create-home --shell /usr/sbin/nologin tester
+# Existing host, preserving the UID, owned files and named ACL entries:
+#
+#   sudo usermod --login untrusted-runner tester
+#   sudo groupmod --new-name untrusted-runner tester
+#   sudo usermod --home /home/untrusted-runner --move-home untrusted-runner
+#   sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
+#   sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
+#   sudo chown root:root /etc/sudoers.d/untrusted-runner
+#   sudo chmod 0440 /etc/sudoers.d/untrusted-runner
+#   sudo visudo -c
+#
+# Fresh host:
+#
+#   sudo useradd --create-home --shell /usr/sbin/nologin untrusted-runner
 #
 #   # Traverse-only on the PARENT first. Verified end to end on a second
 #   # machine ("padme", 2026-09), where $HOME uses Ubuntu's private-group-per-
-#   # user scheme (0750, group = that one user) — without this grant `tester`
+#   # user scheme (0750, group = that one user) — without this grant
+#   # `untrusted-runner`
 #   # cannot even step INTO the directory that holds the library, so the
 #   # recursive ACL on the library alone is unreachable and every read fails
 #   # closed. This is the step that looks unnecessary until you hit exactly
 #   # that layout, so it stays first and explicit rather than folded away:
-#   sudo setfacl -m u:tester:x /home/<operator>
-#   sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/Zotero/library
-#   sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/Zotero/library
+#   sudo setfacl -m u:untrusted-runner:x /home/<operator>
+#   sudo setfacl -R -m u:untrusted-runner:rX /home/<operator>/path/to/your/Zotero/library
+#   sudo setfacl -R -d -m u:untrusted-runner:rX /home/<operator>/path/to/your/Zotero/library
 #
 #   # The SAME two grants — parent traverse, then recursive rX — are needed on
 #   # every built target checkout an adapter is pointed at via
@@ -46,29 +64,30 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #   # only on the library. `wrap()` (bench/acceptance/posture.py) crosses the
 #   # account boundary at the target's process spawn ALONE — the harness stays
 #   # running as the operator throughout (ticket 0625's Action 1), so nothing
-#   # is re-checked out or re-executed under tester's own home. `tester` just
+#   # is re-checked out or re-executed under untrusted-runner's own home. The
+#   # `untrusted-runner` account just
 #   # needs to read and execute the SAME checkout the operator already built,
 #   # in place — which, under a private-group $HOME, needs the parent-traverse
 #   # grant exactly like the library does, all the way down from $HOME to the
 #   # binary each --adapter-option names.
 #
-#   # The arena is OPERATOR-owned with a default ACL for tester, not tester-
+#   # The arena is OPERATOR-owned with a default ACL for untrusted-runner, not runner-
 #   # owned: the outer driver (running as the operator) creates a directory
 #   # per assertion under it, and under the account posture the target — and,
 #   # on R10's egress arm, the tracer too (ticket 0637) — then writes inside
-#   # those as tester. A tester-owned arena (an earlier form of this line)
+#   # those as untrusted-runner. A runner-owned arena (an earlier form of this line)
 #   # stops the operator's mkdir instead. Verified on padme, 2026-09-04:
 #   install -d "$(ACCEPTANCE_ARENA)"
-#   setfacl -m u:tester:rwx -m d:u:tester:rwx "$(ACCEPTANCE_ARENA)"
+#   setfacl -m u:untrusted-runner:rwx -m d:u:untrusted-runner:rwx "$(ACCEPTANCE_ARENA)"
 #
 #   # NOPASSWD so the operator can drive the harness unattended, and SETENV so
 #   # sudo forwards the named environment variables wrap() lists on
 #   # --preserve-env instead of refusing the whole invocation outright — see
 #   # Posture.wrap's own docstring in bench/acceptance/posture.py for why
 #   # values never ride on this or any other argv, only names do:
-#   echo "operator ALL=(tester) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
+#   echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/untrusted-runner
 #
-# `tester` gets READ on the library and on the target checkouts (every target
+# `untrusted-runner` gets READ on the library and on the target checkouts (every target
 # here is read-only against the library, and its own binary need only be
 # executed, never written to) and WRITE on nothing but the arena. Where the
 # run's own environment is itself the boundary instead — a disposable
@@ -76,6 +95,13 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 # `--posture already-isolated`; the harness does not probe for this, the
 # operator states it (see `bench/acceptance/posture.py`'s module docstring for
 # why no probe is safe).
+#
+# After either path, verify the actual boundary and each required grant:
+#
+#   sudo -n -u untrusted-runner -- true
+#   getfacl /home/<operator>
+#   getfacl /home/<operator>/path/to/your/Zotero/library
+#   getfacl /path/to/the/acceptance/arena
 
 help:
 	@echo "make check       — everything: lint, figures, tests"

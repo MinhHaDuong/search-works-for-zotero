@@ -171,10 +171,10 @@ def test_inherited_posture_names_the_account_and_wraps_nothing(monkeypatch):
     the whole of it under the account: a second `sudo` from inside would be
     refused (module docstring), and is not needed -- the boundary was crossed
     once, by the parent, which is still one crossing at one seam."""
-    monkeypatch.setenv("USER", "tester")  # the switch this posture describes, as it reads
-    inherited = posture.inherited("tester")
+    monkeypatch.setenv("USER", "untrusted-runner")  # the switch this posture describes
+    inherited = posture.inherited("untrusted-runner")
     assert inherited.name == posture.ACCOUNT_POSTURE
-    assert inherited.account == "tester"
+    assert inherited.account == "untrusted-runner"
     assert inherited.refused is None
     argv = ["node", "server.js"]
     assert inherited.wrap(argv, {"X": "1"}) == argv
@@ -203,9 +203,9 @@ def test_drive_argv_carries_the_inherited_account_only_under_the_account_posture
     run = _run_module()
     options = {"entrypoint": "dist/index.js"}
     under_account = run.drive_argv("zoteus", Path("/arena"), posture.ACCOUNT_POSTURE,
-                                   options, spawned_under="tester")
+                                   options, spawned_under="untrusted-runner")
     assert "--drive" in under_account
-    assert under_account[under_account.index("--spawned-under") + 1] == "tester"
+    assert under_account[under_account.index("--spawned-under") + 1] == "untrusted-runner"
     assert under_account[under_account.index("--posture") + 1] == posture.ACCOUNT_POSTURE
     assert "--adapter-option" in under_account and "entrypoint=dist/index.js" in under_account
 
@@ -236,13 +236,13 @@ def test_drive_mode_spawned_under_the_account_does_not_probe_for_a_second_switch
 
     monkeypatch.setattr(run.posture_mod, "resolve", must_not_resolve)
     monkeypatch.setattr(run.adapters, "load", fake_load)
-    monkeypatch.setenv("USER", "tester")
+    monkeypatch.setenv("USER", "untrusted-runner")
     monkeypatch.setattr(sys, "argv", [
         "run.py", "--adapter", "stub-quiet", "--arena", str(tmp_path / "arena"),
-        "--drive", "--spawned-under", "tester",
+        "--drive", "--spawned-under", "untrusted-runner",
     ])
     assert run.main() == 0
-    assert handed and handed[0].account == "tester" and handed[0].refused is None
+    assert handed and handed[0].account == "untrusted-runner" and handed[0].refused is None
     assert handed[0].wrap(["node"], {"X": "1"}) == ["node"]
 
 
@@ -252,11 +252,11 @@ def test_drive_mode_spawned_under_the_account_does_not_probe_for_a_second_switch
 
 
 def test_inherited_refuses_a_claim_the_environment_contradicts(monkeypatch):
-    """`--spawned-under tester` says a parent crossed the boundary. Where the
+    """`--spawned-under untrusted-runner` says a parent crossed the boundary. Where the
     mechanism does not remap identity, `USER` is evidence about that claim:
     `forwardable()` strips `USER` from what the re-invocation carries across,
     so `sudo` writes the account's own value and a genuine switch reads
-    `tester`. An operator hand-typing the flag reads their own name, and this
+    `untrusted-runner`. An operator hand-typing the flag reads their own name, and this
     is where that stops -- the same "run a probe rather than trust a shape"
     discipline `_works()` follows.
 
@@ -265,9 +265,9 @@ def test_inherited_refuses_a_claim_the_environment_contradicts(monkeypatch):
     verdict. And fail-closed -- the refusal reaches the spawn, where `wrap`
     raises rather than returning an argv, so nothing runs unwrapped."""
     monkeypatch.setenv("USER", "operator")
-    refused = posture.inherited("tester")
+    refused = posture.inherited("untrusted-runner")
     assert refused.refused is not None
-    assert "tester" in refused.refused and "operator" in refused.refused
+    assert "untrusted-runner" in refused.refused and "operator" in refused.refused
     with pytest.raises(posture.PostureUnavailable):
         refused.wrap(["node"], {"X": "1"})
 
@@ -276,9 +276,9 @@ def test_inherited_accepts_the_claim_the_environment_corroborates(monkeypatch):
     """The contrast arm for the refusal above: same call, `USER` agreeing.
     Without it the refusal test would pass against an `inherited()` that
     refused everything."""
-    monkeypatch.setenv("USER", "tester")
-    granted = posture.inherited("tester")
-    assert granted.account == "tester" and granted.refused is None
+    monkeypatch.setenv("USER", "untrusted-runner")
+    granted = posture.inherited("untrusted-runner")
+    assert granted.account == "untrusted-runner" and granted.refused is None
     assert granted.wrap(["node"], {"X": "1"}) == ["node"]
 
 
@@ -287,11 +287,11 @@ def test_check_still_applies_under_the_uid_remapping_mechanism(monkeypatch):
     `USER` is plain `execve` environment inheritance -- orthogonal to
     namespacing, and unaffected by it. Measured live on this project's own
     reference machine (ticket 0638, red-team finding): `podman unshare
-    unshare -n -- env` still reports `USER=tester`. So this check needs no
+    unshare -n -- env` still reports `USER=untrusted-runner`. So this check needs no
     mechanism-aware skip; the refusal/acceptance pair above already covers
     every mechanism there is."""
     monkeypatch.setenv("USER", "operator")
-    refused = posture.inherited("tester")
+    refused = posture.inherited("untrusted-runner")
     assert refused.refused is not None
     with pytest.raises(posture.PostureUnavailable):
         refused.wrap(["node"], {"X": "1"})
@@ -315,7 +315,7 @@ def test_egress_check_hands_drive_argv_through_unmodified(monkeypatch, tmp_path)
         monkeypatch.setattr(assertions, "choose", lambda m=mechanism: (m, None))
         arena = tmp_path / mechanism.name
         arena.mkdir(parents=True, exist_ok=True)
-        handed = ["python3", "run.py", "--drive", "--spawned-under", "tester"]
+        handed = ["python3", "run.py", "--drive", "--spawned-under", "untrusted-runner"]
         assertions.check_no_egress(
             stubs.build("stub-quiet", arena), arena=arena, log_dir=tmp_path / "log",
             drive_argv=handed, under=None)
@@ -330,7 +330,7 @@ def test_spawned_under_is_refused_outside_drive_mode(monkeypatch, tmp_path):
     run = _run_module()
     monkeypatch.setattr(sys, "argv", [
         "run.py", "--adapter", "stub-quiet", "--arena", str(tmp_path / "arena"),
-        "--output", str(tmp_path / "out.json"), "--spawned-under", "tester",
+        "--output", str(tmp_path / "out.json"), "--spawned-under", "untrusted-runner",
     ])
     with pytest.raises(SystemExit) as stop:
         run.main()

@@ -21,46 +21,62 @@ What a full re-exec would also have done, and does not need to, is force the
 harness's OWN work across the account boundary too — the arena directories it
 creates before a target ever runs, and the JSON artifact under
 `bench/results/**` it writes after, which is committed as the operator's own
-work and has no business belonging to `tester`. Re-executing the whole harness
+work and has no business belonging to `untrusted-runner`. Re-executing the whole harness
 would have to hand that writeback problem to every caller; spawning only the
 target's own process avoids inventing it. `Declaration.process` already frames
 the target's process as adapter-declared harness setup rather than the
 harness's own concern (`interface.py`), so this module keeps the boundary at
 the same seam that distinction already draws.
 
-**Do NOT create accounts from here, ever.** Creating a system user needs root,
+**Do NOT create or rename accounts from here, ever.** Either operation needs root,
 and a benchmark that can create users is a benchmark holding privilege it never
-needs at run time. `tester` is provisioned once, out of band, by whoever runs
+needs at run time. `untrusted-runner` is provisioned once, out of band, by whoever runs
 this harness: a dedicated account with **read** access to the Zotero library —
 which the benchmark genuinely needs, since every target here is read-only
 against it — and **write** access to nothing but the arena. The full recipe,
 with the private-group-`$HOME` trap it was corrected against, lives beside
 `ACCEPTANCE_ARENA` in the `Makefile`; the shape of it:
 
-    sudo useradd --create-home --shell /usr/sbin/nologin tester
-    sudo setfacl -m u:tester:x /home/<operator>                      # PARENT traverse first
-    sudo setfacl -R -m u:tester:rX /home/<operator>/path/to/your/library
-    sudo setfacl -R -d -m u:tester:rX /home/<operator>/path/to/your/library
+    # Existing host: preserve the UID, owned files and named ACL entries.
+    sudo usermod --login untrusted-runner tester
+    sudo groupmod --new-name untrusted-runner tester
+    sudo usermod --home /path/to/untrusted-runner-home --move-home untrusted-runner
+    sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
+    sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
+
+    # Fresh host instead:
+    sudo useradd --create-home --shell /usr/sbin/nologin untrusted-runner
+
+    # Both paths:
+    sudo setfacl -m u:untrusted-runner:x /home/<operator>           # PARENT traverse first
+    sudo setfacl -R -m u:untrusted-runner:rX /home/<operator>/path/to/your/library
+    sudo setfacl -R -d -m u:untrusted-runner:rX /home/<operator>/path/to/your/library
     install -d /path/to/the/acceptance/arena                          # OPERATOR-owned …
-    setfacl -m u:tester:rwx -m d:u:tester:rwx /path/to/the/acceptance/arena  # … tester writes inside
-    # then let the operator drive the harness without a password as tester,
+    setfacl -m u:untrusted-runner:rwx -m d:u:untrusted-runner:rwx /path/to/the/acceptance/arena
+    # then let the operator drive the target without a password as untrusted-runner,
     # AND forward the named environment variables wrap() lists on --preserve-env
     # (SETENV) rather than sudo silently dropping them (see wrap()'s own docstring):
-    echo "operator ALL=(tester) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-tester
+    echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/untrusted-runner
+    sudo chown root:root /etc/sudoers.d/untrusted-runner
+    sudo chmod 0440 /etc/sudoers.d/untrusted-runner
+    sudo visudo -c
+    sudo -n -u untrusted-runner -- true
 
 The parent-traverse line is not decoration: verified on a second machine
 ("padme", 2026-09) where `$HOME` is `0750` under Ubuntu's private-group-per-
-user scheme, `tester` could not step INTO the directory holding the library at
+user scheme, `untrusted-runner` could not step INTO the directory holding the library at
 all without it, so the recursive grant on the library alone was unreachable.
 The same two grants — parent traverse, then recursive `rX` — apply to every
 built target checkout an adapter is pointed at via `--adapter-option`
 (`application=`/`launcher=`/`zotero=`/`entrypoint=`/`venv=`), not only to the
 library: `wrap()` below crosses the account boundary at the process spawn
-alone, so `tester` reads the SAME checkout the operator already built, in
-place, rather than a copy re-cloned under its own home — nothing here re-
-executes the harness itself under `tester`, only the target's own process.
+alone, so `untrusted-runner` reads the SAME checkout the operator already built, in
+place, rather than a copy re-cloned under its own home. The outer harness and
+artifact writer never move; normally only the target process does. R10's
+egress arm also encloses its tracer, isolation mechanism and inner target-driving
+re-invocation, as the one-crossing explanation below specifies.
 
-The sudoers line is the one `_works()` below actually exercises — a `tester`
+The sudoers line is the one `_works()` below actually exercises — an `untrusted-runner`
 account that exists but has no such sudoers rule is exactly the case it is
 written to catch, distinctly from an absent account.
 
@@ -93,9 +109,9 @@ re-invocation then reaches `wrap()` from within both. `sudo` cannot run from
 there, for three separate reasons, each measured on padme (2026-09-04): inside
 a rootless user namespace the files it must trust literally (`/etc/sudo.conf`,
 `/etc/sudoers`) appear owned by the unmapped uid and it refuses on principle
-(`podman unshare unshare -n -- sudo -n -u tester -- true` → "owned by uid 65534,
+(`podman unshare unshare -n -- sudo -n -u untrusted-runner -- true` → "owned by uid 65534,
 should be 0"); under an unprivileged tracer a setuid exec is neutralised by the
-kernel and it refuses again (`strace -f sudo -n -u tester -- true` → "effective
+kernel and it refuses again (`strace -f sudo -n -u untrusted-runner -- true` → "effective
 uid is not 0"), with no namespace anywhere in sight; and `bwrap` sets
 no-new-privs on everything inside it, which is the same refusal by a third
 route. None of these is a misconfiguration; each is `sudo` declining to trust
@@ -132,7 +148,7 @@ from dataclasses import dataclass
 #: command line on purpose: a harness that let the account name vary invites a
 #: run against whichever account happens to be handy, which is the account
 #: that was never granted the recipe's precise, and deliberately narrow, access.
-ACCOUNT = "tester"
+ACCOUNT = "untrusted-runner"
 
 ACCOUNT_POSTURE = "account"
 ISOLATED_POSTURE = "already-isolated"
@@ -209,7 +225,7 @@ class Posture:
         the account-switched child via `execve`'s `envp`, the same channel
         `Popen`'s `env=` always used and the same visibility rule as before —
         readable via `/proc/<child-pid>/environ` by the child's own uid (now
-        `tester`) or root, never by an arbitrary local account. This needs the
+        `untrusted-runner`) or root, never by an arbitrary local account. This needs the
         `SETENV` sudoers tag (the recipe below carries it): without it `sudo`
         ignores `--preserve-env` outright rather than silently ignoring only
         the listed names, so a misconfigured sudoers rule fails the `_works`
@@ -248,7 +264,7 @@ class Posture:
 #: Environment names that describe WHO is running rather than WHAT is being run.
 #: `forwardable()` strips them from what the re-invoked `--drive` process
 #: inherits across the account switch: a rootless container engine started as
-#: `tester` with the operator's `HOME` or runtime directory looks for its own
+#: `untrusted-runner` with the operator's `HOME` or runtime directory looks for its own
 #: state under a home it cannot write, and fails for a reason that has nothing
 #: to do with egress. `sudo` sets the account's own values for these. This
 #: list is NOT applied by `wrap()` itself: several adapters set `HOME` on
@@ -285,12 +301,12 @@ def inherited(account: str) -> Posture:
     What the process CAN see is `USER`. `forwardable()` strips every
     `IDENTITY_BOUND` name from what the re-invocation carries across, so `sudo`
     writes the account's own value there and a switch that genuinely happened
-    reads `tester`; an operator hand-typing `--spawned-under` reads their own
+    reads `untrusted-runner`; an operator hand-typing `--spawned-under` reads their own
     name instead, and that is the case this refuses. No uid check: `getuid()`
     is the read that does not survive the namespace — but this checks `USER`,
     not uid, and `USER` does. Measured live on this project's own reference
     machine (ticket 0638): `podman unshare unshare -n -- env` still reports
-    `USER=tester` under the rootless user namespace that makes `getuid()` read
+    `USER=untrusted-runner` under the rootless user namespace that makes `getuid()` read
     0 there. `unshare`/`podman unshare` remap the process's uid, mount, and
     network namespaces; they never touch `envp` — environment survives plain
     `execve` inheritance, orthogonal to namespacing. So this check applies

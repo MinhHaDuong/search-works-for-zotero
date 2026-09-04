@@ -9,7 +9,7 @@ today's posture, before this ticket -- succeeds. Both arms run here, on the
 same machine, in the same test: this is not "trust the mechanism argued in
 the module docstring", it is the actual write attempt observed twice. The
 wrapped arm is skipped, honestly, when this machine carries no working
-`tester` account -- a skip is not a pass, and `test_acceptance_states.py`'s
+    `untrusted-runner` account -- a skip is not a pass, and `test_acceptance_states.py`'s
 own convention (`pytest.mark.integration` for anything that spawns a real
 subprocess) is followed here for the same reason.
 
@@ -19,7 +19,7 @@ work, and `Posture.wrap` must raise on a refused posture rather than return an
 argv a caller could spawn unwrapped. These do not need any real account and
 are pinned with the account/`_works` probes patched, so they hold on any
 machine this suite runs on -- including the one this ticket was written on,
-which has no `tester` account at all.
+    which has no `untrusted-runner` account at all.
 """
 
 import subprocess
@@ -49,7 +49,7 @@ def test_a_wrapped_spawn_cannot_write_outside_the_arena_where_an_unwrapped_one_c
     way every adapter spawned one before this change, writes to a path outside
     the arena that the operator owns -- and succeeds. Arm 2 is the same write,
     from the same argv, wrapped under the account posture: it must fail. If
-    this machine has no working `tester` account the second arm cannot be
+    this machine has no working `untrusted-runner` account the second arm cannot be
     observed and the test says so rather than reporting a green that measured
     nothing.
     """
@@ -112,7 +112,7 @@ def test_resolve_refuses_when_the_account_exists_but_sudo_does_not_work(monkeypa
     """
     monkeypatch.setattr(posture, "_account_exists", lambda account: True)
     monkeypatch.setattr(posture, "_works", lambda account: False)
-    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="untrusted-runner")
     assert resolved.refused is not None
     assert "did not succeed" in resolved.refused
     with pytest.raises(posture.PostureUnavailable):
@@ -122,12 +122,12 @@ def test_resolve_refuses_when_the_account_exists_but_sudo_does_not_work(monkeypa
 def test_resolve_accepts_when_the_account_exists_and_works(monkeypatch):
     monkeypatch.setattr(posture, "_account_exists", lambda account: True)
     monkeypatch.setattr(posture, "_works", lambda account: True)
-    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="untrusted-runner")
     assert resolved.refused is None
-    assert resolved.account == "tester"
+    assert resolved.account == "untrusted-runner"
     wrapped = resolved.wrap(["node", "server.js"], {"HOME": "/arena/home"})
     assert wrapped == [
-        "sudo", "-n", "-u", "tester", "--preserve-env=HOME", "--",
+        "sudo", "-n", "-u", "untrusted-runner", "--preserve-env=HOME", "--",
         "node", "server.js",
     ]
 
@@ -144,7 +144,7 @@ def test_wrap_never_puts_an_environment_value_on_the_argv(monkeypatch):
     """
     monkeypatch.setattr(posture, "_account_exists", lambda account: True)
     monkeypatch.setattr(posture, "_works", lambda account: True)
-    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="untrusted-runner")
     secret = "sk-not-a-real-secret-but-shaped-like-one-9f3c7b"
     wrapped = resolved.wrap(["node", "server.js"], {
         "HOME": "/arena/home", "OPENAI_API_KEY": secret,
@@ -162,9 +162,9 @@ def test_wrap_omits_preserve_env_entirely_for_an_empty_environment(monkeypatch):
     """`--preserve-env=` with an empty value is not a flag to hand `sudo`."""
     monkeypatch.setattr(posture, "_account_exists", lambda account: True)
     monkeypatch.setattr(posture, "_works", lambda account: True)
-    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="untrusted-runner")
     wrapped = resolved.wrap(["true"], {})
-    assert wrapped == ["sudo", "-n", "-u", "tester", "--", "true"]
+    assert wrapped == ["sudo", "-n", "-u", "untrusted-runner", "--", "true"]
     assert not any(part.startswith("--preserve-env") for part in wrapped)
 
 
@@ -199,9 +199,9 @@ def test_as_json_names_what_was_asked_for_even_when_refused():
 def test_as_json_names_the_account_on_a_working_posture(monkeypatch):
     monkeypatch.setattr(posture, "_account_exists", lambda account: True)
     monkeypatch.setattr(posture, "_works", lambda account: True)
-    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="tester")
+    resolved = posture.resolve(posture.ACCOUNT_POSTURE, account="untrusted-runner")
     payload = resolved.as_json()
-    assert payload == {"posture": "account", "account": "tester", "refused": None}
+    assert payload == {"posture": "account", "account": "untrusted-runner", "refused": None}
 
 
 # --------------------------------------------------------------------------
@@ -261,7 +261,7 @@ def test_already_isolated_prints_a_notice_that_no_account_is_checked(tmp_path):
 def test_a_stub_target_is_unaffected_by_a_missing_account(tmp_path):
     """The account requirement binds a target's own process spawn, and a stub
     fixture has none -- `stubs.py` simulates every verb in-process. Driving
-    one with the default `account` posture on a machine with no `tester`
+    one with the default `account` posture on a machine with no `untrusted-runner`
     account must still reach ordinary verdicts: the posture that could not be
     established is recorded on the run, but it never reaches a target that
     never had a process to wrap in the first place.
