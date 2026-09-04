@@ -6,6 +6,8 @@ Author: claude
 --- log ---
 2026-09-04T05:33Z claude created
 
+2026-09-04T05:39Z Blocked-by 0633 added: the gap-A lead (running 0629's confirming arm today) found that on this machine --posture account (mandatory per 0613's 2026-09-03T12:52Z dedicated-account ruling) does not compose with the podman-unshare sandbox fallback -- bwrap fails to start here, sudo cannot function inside any rootless user namespace, and the composed spawn raises PostureUnavailable regardless of sudoers config. This session's own gap-C work never spawned zoteus (source-reading only, against a built fork/ checkout), so it was not itself blocked -- but every Action here that needs a live run (2, 3's implementation, 4, 5) will hit the same wall until 0633 is fixed. Not yet independently reproduced from this session; relayed as reported.
+2026-09-04T05:40Z Blocked-by header reverted: 0633 (the posture/podman-unshare composition ticket) lives only on the not-yet-merged origin/t0613-gapA-verify branch, so a structured Blocked-by fails erg validate/check here (unknown ticket ID -- this branch has no such file). The dependency stands as prose in Relevant files and the entry above instead; add the structured header once 0633 lands on main, in a follow-up rather than by carrying a foreign ticket's file across branches.
 --- body ---
 ## Context
 
@@ -116,6 +118,17 @@ the `meta` row keyed `'checkpoint'` (`sqlite-index.ts` ~1092, JSON via
   existing seeded index is built; producing one with `passagesWithoutVectors
   > 0` on purpose (e.g. by stopping a build mid-embed against a fixture
   library) is itself an Action below, not assumed done.
+- `tickets/0633` — on this machine, `--posture account` (the DEDICATED
+  ACCOUNT precondition ticket 0625 made mandatory, cited in 0613's log
+  2026-09-03T12:52Z) currently fails to compose with the `podman-unshare`
+  sandbox fallback (`bwrap` does not start here): the account posture wrap
+  is applied *inside* the unshared namespace, and `sudo` cannot function
+  inside any rootless user namespace by construction, so any target-process
+  spawn under this posture reports `PostureUnavailable` regardless of
+  sudoers config. Everything in this ticket that requires actually spawning
+  zoteus — Actions 2, 3's implementation, 4, 5 — is blocked on 0633's fix,
+  not merely inconvenienced by it. Action 1's re-verification and the design
+  decision in Action 3 are source-reading and can proceed without it.
 
 ## Actions
 
