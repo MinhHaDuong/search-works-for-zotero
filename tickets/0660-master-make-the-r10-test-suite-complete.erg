@@ -1,0 +1,60 @@
+%erg 0.1
+Title: Master: make the R10 test suite complete and faithful
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+--- body ---
+
+## Context
+
+R10's present suite has a sound direct-network-attempt instrument but does not
+faithfully or completely decide the promise. It rejects the expressly permitted
+one-time model download, never drives a populated build carrying library text,
+ignores non-resolver loopback relays, and reports `local-by-default` from a run
+whose adapter discloses a non-default preinstalled runtime. The local-embedder
+check also fails a target with no embedder, although absence alone does not make
+text leave the machine.
+
+This is the suite-orchestration ticket, not an implementation ticket. It owns
+the child roster, sequencing, coverage reconciliation and final handoff. It owns
+no ruling, assertion, adapter, sandbox mechanism, fixture or result artifact.
+`SPEC.md` remains the authority for R10 and its named exception; the unresolved
+choice already recorded in `DECISIONS.md` must be ruled before a child changes
+what a red means.
+
+## Children
+
+- **0661 — reconcile egress grading with the permitted model download.** Obtain
+  the pending ruling and make the executable clause match it without weakening
+  coverage by accident.
+- **0662 — trace populated build and the complete lifecycle.** Put real library
+  text on every relevant default path and guard the path roster against omission.
+- **0663 — detect exfiltration through local relays.** Close the loopback and
+  Unix-socket forwarding false green with an end-to-end control.
+- **0664 — measure the genuine default configuration.** Remove or separately
+  classify harness-supplied runtime state and put the local-embedder mechanism
+  check under the promise it actually establishes.
+
+Children carry their own implementation, tests, evidence and machine-readable
+dependencies. Work that is independent of the ruling in 0661 proceeds without
+waiting for it.
+
+## Exit criteria
+
+- [x] Children 0661–0664 exist and partition the missing suite.
+- [ ] Each child closes with its own gates and evidence satisfied.
+- [ ] The generated acceptance roster contains each resulting R10 check once
+      and proves every relevant lifecycle path is assigned.
+- [ ] README, SPEC.md, DECISIONS.md and committed real-target artifacts agree on
+      which promise each check decides and on R10's standing.
+- [ ] `make check` and `./tickets/erg check tickets/` pass at master close.
+
+## Invariants
+
+- This ticket coordinates; children implement.
+- One independently reviewable instrument or ruling consequence per child.
+- A permitted call is not a red, an unfired detector is not a pass, and a local
+  mechanism is not by itself proof of end-to-end custody.

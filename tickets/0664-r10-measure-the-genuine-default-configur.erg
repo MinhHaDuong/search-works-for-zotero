@@ -1,0 +1,47 @@
+%erg 0.1
+Title: R10 measure the genuine default configuration
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0660. Current zoteus artifacts call the configuration
+default while disclosing a harness-supplied `ZOTEUS_TRANSFORMERS_PATH` pointing
+at a preinstalled runtime. That changes cold-start behavior. Separately,
+`R10-local-by-default` fails a target reporting no embedder even though no
+embedder alone cannot cause text to leave the machine. This child owns faithful
+default setup and accurate placement of the local-embedder mechanism check.
+
+## Actions
+
+- Define the ordinary-user default from shipped configuration and installation
+  behavior, with every harness input compared against it.
+- Run the cold default without a preinstalled runtime override, plus a disclosed
+  warm repeat; prove whether acquisition, fallback and status disclosure occur.
+- Refuse the label `default` when any non-default input affects the behavior
+  under test. A necessary harness deviation gets its own configuration class.
+- Re-home or rename the local-active-embedder check so it states the mechanism
+  it proves. Do not score `locality: none` as R10 exfiltration absent a ruling
+  that changes the promise.
+
+## Test
+
+- [ ] A planted runtime override makes the default-premise guard fail.
+- [ ] Cold and warm controls prove cache state rather than trusting a path.
+- [ ] Local, remote, absent and undisclosed locality states remain distinct.
+- [ ] A local embedder beside an independent exfiltrator cannot make R10 green.
+
+## Exit criteria
+
+- [ ] Real-target R10 evidence is taken under a verified ordinary-user default,
+      or labeled as a distinct non-default configuration.
+- [ ] The local-embedder check no longer claims more than its observation.
+- [ ] Default-premise and locality-state controls have been seen red/green as
+      appropriate.
+- [ ] README standing cites only evidence taken under the configuration it names.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

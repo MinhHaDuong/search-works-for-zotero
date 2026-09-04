@@ -1,0 +1,62 @@
+%erg 0.1
+Title: R15 acceptance completeness and fidelity tracker
+Created: 2026-09-04
+Author: codex
+Blocked-by: 0654
+Blocked-by: 0655
+Blocked-by: 0656
+Blocked-by: 0657
+Blocked-by: 0658
+Blocked-by: 0659
+
+--- log ---
+2026-09-04T09:50Z codex created
+
+2026-09-04T10:01Z codex note converted to orchestration tracker; children 0654-0659 own item deletion, residue reach, uninstall proof, model-download proof, fail-control enforcement, and the final public coverage correction
+--- body ---
+
+## Context
+
+Orchestration child of tracker `0613`. This ticket is the conjunction over the
+R15 acceptance audit performed 2026-09-04. It owns no implementation itself:
+each independently reviewable defect is a child below, and this tracker closes
+only after all children close and their resulting assertions have been run
+against zoteus.
+
+R15 has two scales. The item scale requires trashing an item to remove its text
+from every store and queue. The install scale requires a complete declaration,
+model-cache containment, and removal of all declared state after uninstall. The
+current harness omits the item scale entirely and has false-green paths in each
+install-scale assertion: an arena-bounded/install-only residue sweep, uninstall
+without materialized-state proof and with file-only survivor accounting, model
+placement without proof of a download, and fail-controls accepted when any
+unrelated fixture happens to make an assertion red. README then claims coverage
+that does not exist.
+
+## Work
+
+Coordinate children 0654-0659. Merge order is unconstrained among the five
+harness children; 0659 follows them because public coverage must be read from
+the resulting assertions and real artifact, never computed in advance. When a
+child lands, rebase/re-measure the remaining live lanes under the repository's
+merge-authority rules.
+
+## Exit criteria
+
+- [ ] children 0654-0659 are closed with their own exit criteria met
+- [ ] every R15 MUST clause maps to a registered assertion with a discriminating
+      red control
+- [ ] a real zoteus run records an honest verdict for every R15 assertion
+- [ ] tracker 0613 records every R15 clause and its measured verdict
+- [ ] `make check` passes
+
+## Children
+
+| child | scope |
+|---|---|
+| 0654 | trash-time item deletion through every store and queue |
+| 0655 | residue inventory reach across lifecycle surfaces and filesystem escapes |
+| 0656 | uninstall materialization precondition and complete survivor accounting |
+| 0657 | evidence that a model download occurred before cache placement is graded |
+| 0658 | assertion-specific fail-controls enforced by the normal gate |
+| 0659 | README and tracker coverage map corrected from the completed harness |

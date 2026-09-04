@@ -2,6 +2,9 @@
 Title: Zoteus passes goal 1 — I can install it and take it off again
 Created: 2026-09-03
 Author: claude
+Blocked-by: 0648
+Blocked-by: 0660
+Blocked-by: 0665
 
 --- log ---
 2026-09-03T11:23Z claude created
@@ -31,6 +34,10 @@ Author: claude
 2026-09-04T07:49Z claude note AUTHOR RULING: A CLEAN TEST SUITE IS NOT VALIDATION. Asked whether wiring the missing perturbation would both close gap C locally and validate the staged upstream counters PR for sending, the author corrected the framing: 0642's counters PR passing its own full test suite (1097 tests, lint/build/typecheck clean) proves the patch is CORRECT, not that it solves the problem it was built for. The bar for sending anything upstream is higher -- prove it actually unblocks the downstream need first. Filed as tickets/0643 (Ticket-ref this ticket, 0642, 0033 -- closes none): wire the build-triggered perturbation, get a real local PASS/FAIL on both R22 clauses against the 0642-patched build, and only THEN is the upstream PR considered validated -- the send decision still waits on the author regardless of outcome. This is now the standing bar for any prepared artifact this project sends outward: green tests are necessary, not sufficient; run the check it exists to unblock before proposing to send it.
 2026-09-04T08:37Z claude note GAP C: R22 NOW DECIDED, BOTH CLAUSES FAIL (not not-run), via ticket 0643's new RESUME_EMBEDDING perturbation against the 0642-patched build. Real fixture (359 passages, 7 without a vector, a genuinely interrupted build), real positive control (work.embed.build.done +109 on a never-stopped instance), both check_pause_stops_background_work and check_pause_holds_across_restart reach a decided verdict for the first time. The verdict is red for a reason gap C's own tracking already flagged as an open question rather than a new one: zoteus's stop cancels the currently-running job durably (checkpoint survives, nothing auto-resumes on restart, resume_never_called:true) but does not gate a SUBSEQUENT EXPLICIT request the way R22's ratified pause/resume model assumes, and zoteus declares resume UnsupportedVerb by a principled ground with no obvious fix. Gap C's own three-way split (counters missing / no working perturbation / target's own pause shape) is now fully resolved to the third: this tracker's rung for zoteus stays not-kept, but for a different, now-measured reason than before -- see ticket 0643's own log for the full derivation and 0643's Design note on the adapter's already-flagged pause/resume tension. Exit criteria unmoved (still needs all seven clauses green; R10-no-egress still FAILs, unrelated).
 2026-09-04T08:50Z claude note GAP C'S CAUSE SENT UPSTREAM, on the author's explicit go-ahead, framed as a soft proposal (not a demand -- current behavior is reasonable for the common case and may be intentional) matching #54's shape: oscardvs/zoteus#56 (https://github.com/oscardvs/zoteus/issues/56), "Stopping a build doesn't keep it paused." Two shapes offered, neither demanded: a persisted paused flag build/update check against, or a distinct resume action separate from build's resume/rebuild/repair overload. Ticket 0644 (filed and closed same action). This does not move R22 -- stays FAIL, correctly, until the maintainer ships something and it is re-measured against a real build carrying both 0642's counters and whatever he builds (the author's own directed next step, once there is something to re-measure against). verification/UPSTREAM-PR-WORK-COUNTERS-0642.md stays unsent. SYNC.md's tracker table carries the filing.
+2026-09-04T10:12Z codex note BLOCKED-BY 0648 ADDED: R15 item deletion was absent from the acceptance registry and from this tracker's seven-clause matrix; install/uninstall coverage does not assert trash-time removal from every store and queue
+2026-09-04T10:12Z codex note BLOCKED-BY 0665 ADDED, author directive after global R22 audit. The current checks pause only after work settles, exclude automatic startup work from the restart window, and the 0643 zoteus FAILs invoke explicit action:build despite SPEC.md saying explicit build while paused asks; 0665 owns the acceptance repair and faithful re-verdict.
+2026-09-04T10:17Z codex note CORRECTION TO 08:37Z AND 08:50Z: artifact 0643 does not decide R22. It proves only that the staged counters and build-triggered perturbation execute; its FAIL comes from explicit action:build after pause while SPEC.md says explicit build while paused asks, and the restart arm excludes automatic startup work. R22 is UNDECIDED pending master 0665's faithful repair and remeasurement.
+2026-09-04T12:10Z codex note BLOCKED-BY 0660 ADDED from Terra review on PR 353: goal 1 includes R10, so the rung cannot close while the R10 acceptance-fidelity master remains open
 --- body ---
 ## Context
 
@@ -96,40 +103,25 @@ exists to catch. §5.2.7's maintenance purge is not a candidate for this role an
 never was: it is checkpoint plus VACUUM plus compaction, which keeps a living
 index rather than removing one.
 
-**Gap C — R22's restart clause has no path to green through the current
-assertions, and one of the two reasons this ticket gave for that is retired.**
-*Restated 2026-09-04 after source verification against the reviewed baseline
-(b0e0bc8/v1.13.0); the earlier reading is preserved in the log rather than
-silently corrected.* The adapter's three claims about `stop`/`build` — the
-cancel flag is in-memory, the checkpoint reaches disk regardless, and nothing
-auto-resumes — are now confirmed by reading `index-manager.ts`/`build.ts`/
-`sqlite-index.ts` directly rather than taken from the adapter's own argument.
-`ZOTEUS_INDEX_AUTO_REFRESH`, the variable this ticket previously named as the
-reason the restart clause's falsifying arm was disabled, does not exist
-anywhere in the reviewed source (`config.ts`'s ~50-key env schema has no such
-key, and it is silently ignored by design, like every unknown `ZOTEUS_*`
-variable) — so that arm was never actually neutered by it, on this baseline.
-What genuinely blocks both clauses is worse than "no work counters exist"
-(ticket 0033): `check_pause_stops_background_work` and
-`check_pause_holds_across_restart` (`bench/acceptance/assertions.py`) each
-gate on the counters *and* on the harness's only wired perturbation,
-`EDIT_ONE_ITEM`, which zoteus's adapter refuses on a principled R15 ground
-(a write to the user's own library) that 0033's ledger work does not touch.
-0033 shipping counters alone would not unblock gap C. See the log for the full
-derivation, file:line evidence, and a concrete (unimplemented) sketch of an
-R22-only check that sidesteps both: a new adapter-mediated perturbation
-("resume embedding a seeded, incompletely-embedded index" via `action:build`)
-and a direct read of the sqlite index file's own passage/vector counts and
-`checkpoint` meta row — the same technique the adapter already uses for the
-schema-version check — rather than the `work.<stage>.<trigger>.<outcome>`
-vocabulary, which gap C's own perturbation needs no trigger classification
-from. Filed as child ticket 0636, deliberately independent of 0033/0032.
+**Gap C — R22 is undecided pending the acceptance repair in master ticket
+0665.** *Restated 2026-09-04 after the global R22 audit; the earlier readings
+and the 0643 diagnostic remain in the append-only log.* Ticket 0643 proved that
+the staged work counters and build-triggered perturbation execute end to end,
+but its two FAILs are not faithful R22 verdicts. The checks pause only after
+work settles, discard work that resumes during restart before taking their
+baseline, and the zoteus fallback explicitly calls `action:build` after pause
+although `SPEC.md §5.2.7` says an explicit build while paused asks. The harness
+observes no ask or consent boundary. Master 0665 owns active-work stopping,
+startup-inclusive restart measurement, all work classes, resume semantics,
+required-live deletion/query paths and an honest real-target re-verdict. Until
+that closes, this tracker records R22 as undecided; 0643 is retained only as
+evidence that the counter and perturbation mechanisms can run.
 
 ## Actions
 
-1. Settle gap C's measurement. Re-derived 2026-09-04: not resolvable through
-   the current assertions regardless of 0033; needs 0636 (a new R22-only check)
-   or a change to the shared goal-2 perturbation vocabulary.
+1. Settle gap C's measurement through master 0665. The 0643 diagnostic is not a
+   current R22 verdict; remeasure only after the acceptance semantics are
+   faithful to the specification.
 2. Run gap A's discriminating arm and attribute the four lookups. Done
    2026-09-04: ran live once 0637 fixed the posture/namespace ordering,
    `dns 4` default vs `dns 0` disabled — see log.
@@ -172,5 +164,6 @@ edited to list each child as it is created.
 | 0634 | gap A's Action 3 (issue-drafting half) — draft the upstream issue for the default-on update check | filed 2026-09-04, closed same day: sent as oscardvs/zoteus#54 |
 | 0636 | gap C — an R22-only check via a new perturbation and a direct sqlite read, independent of 0033/0032 | filed 2026-09-04, closed same day: author declined (high road) — see log |
 | 0642 | gap C — phased Tier-2 counters design; Phase 0+1 (durable embed-stage counter) is the goal-1 slice, phases 2-4 stay 0033's | filed 2026-09-04, Phase 0+1 implemented and merged (PR #345) — real, durable, tests green, but R22 still not-run: counters were necessary, not sufficient, see 0643 |
-| 0643 | gap C — wire a build-triggered perturbation into durability.py, the missing half of R22; also the author-directed validation gate the upstream counters PR must clear before it can be considered for sending | filed 2026-09-04, closed same day (PR #347): both R22 clauses now report a real, decided FAIL — cause identified, not a harness defect, see 0644 |
-| 0644 | gap C — file the durable-pause issue upstream, the measured cause of R22's FAIL | filed and closed 2026-09-04: sent as oscardvs/zoteus#56 |
+| 0643 | gap C — wire a build-triggered perturbation into durability.py, the missing half of R22; also the author-directed validation gate the upstream counters PR must clear before it can be considered for sending | filed 2026-09-04, closed same day (PR #347): counter/perturbation execution proven; its explicit-build FAILs reclassified as non-verdict evidence by the 0665 audit |
+| 0644 | gap C — file the pause-shape observation upstream | filed and closed 2026-09-04: sent as oscardvs/zoteus#56; the filing stands as an observation, not a faithful R22 verdict |
+| 0665 | master — make the R22 acceptance suite complete and faithful, then remeasure | filed 2026-09-04, open; this tracker is blocked on it |

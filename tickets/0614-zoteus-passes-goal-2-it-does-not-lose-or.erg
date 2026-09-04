@@ -3,6 +3,9 @@ Title: Zoteus passes goal 2 — it does not lose or corrupt what it built
 Created: 2026-09-03
 Author: claude
 Blocked-by: 0613
+Blocked-by: 0649
+Blocked-by: 0650
+Blocked-by: 0666
 
 --- log ---
 2026-09-03T11:23Z claude created
@@ -12,6 +15,9 @@ Blocked-by: 0613
 2026-09-03T12:38Z claude note THE BASELINE MOVED, and the 2026-09-03 note's 'main is not the reviewed SHA' is no longer true: UPSTREAM names b0e0bc8 / v1.13.0 as of ticket 0618, so #48's work is now inside the reviewed tree and this rung's cells -- all taken against b05ed69 -- are stale in the direction of under-reporting. Two facts for the re-derivation. First, the resume is as this tracker described it and the description is now about the reviewed baseline rather than about main. Second, and this is the larger one for goal 2: upstream's SCHEMA_MIGRATIONS is no longer empty. It carries a rung 1 -> 2 that rebuilds the keyword index in place, inside the transaction that stamps the new version, re-computing no vector -- and it was driven in anger during the re-baseline, on a real 93 022-passage index stamped at the previous generation, which the server upgraded in place and logged by name. That is the first positive control this ladder has ever had. The four counter-blocked cells are still blocked: src/lib/metrics.ts is untouched by the range and there is no per-stage, per-trigger, per-outcome counter anywhere, so 'coverage honesty rather than work counters' stands as this tracker already recorded it.
 2026-09-03T18:02Z raid imagine+plan: SHA re-verified (UPSTREAM=b0e0bc8/v1.13.0, matches STATE.md, unchanged since last entry). Source read (index-tool.ts, index-manager.ts) confirms the docstring's own claim: requestStop() sets a cooperative cancelToken, buildIncremental's comment says explicitly 'a timeout, crash, or requestStop() never leaves a corrupt index', checkpoint is written via noteCheckpoint() whenever token.cancelled OR embedderError, with no branch distinguishing which. So the pause path is documented as sharing the crash/timeout path, not merely inferred -- but still undriven empirically. Refined Actions/Test/Verification below for a capped isolated build (b), sequenced after the running 0605 full index so neither contends for Zotero's local API.
 2026-09-04T06:24Z claude note BLOCKED-BY 0613 ADDED, author directive. Reverses this ticket's own 12:xxZ-era reading in Depends on ("not a blocker in the erg sense"): goal 2 work on this tracker does not start until goal 1 (0613) passes for zoteus. Nothing else here changes -- the gap analysis, the pause/resume probe design, and the Actions all stand as written; this only gates when the tracker's own work is picked up.
+2026-09-04T10:12Z codex note BLOCKED-BY 0649 ADDED, author directive. The current R3 arms prove local reported recomputation at one fixture size but do not compare fixed changes across library sizes or account for library-sized verification/scanning outside *.done counters; 0649 owns the scaled acceptance arm and target result.
+2026-09-04T10:12Z codex note BLOCKED-BY 0666 ADDED: the R23 assertion currently uses forged stamps on current-layout databases and accepts any nonempty hits, so it cannot distinguish authentic cross-version continuity from fallback, partial loss, or silent same-path rebuild
+2026-09-04T12:10Z codex note BLOCKED-BY 0650 ADDED from Terra review on PR 353: goal 2 includes R13, so the rung cannot close while the R13 acceptance-fidelity master remains open
 --- body ---
 ## Context
 

@@ -1,0 +1,31 @@
+%erg 0.1
+Title: Correct the public R15 coverage map after the harness is complete
+Created: 2026-09-04
+Author: codex
+Blocked-by: 0654
+Blocked-by: 0655
+Blocked-by: 0656
+Blocked-by: 0657
+Blocked-by: 0658
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. README's goal-1 table reduces R15 to install/uninstall
+coverage, while a later paragraph says item deletion is asserted by goal 2.
+There is presently no such assertion. Public standing is read from reviewed
+evidence, so this child waits for the harness children and the real run.
+
+## Exit criteria
+
+- [ ] map every R15 MUST clause to the assertion that actually tests it
+- [ ] remove the unsupported claim that goal 2 already asserts item deletion
+- [ ] update 0613's clause matrix and child table from measured artifacts
+- [ ] preserve README as status and pointers only, with no duplicated design
+      numbers or independently computed verdicts
+- [ ] declare any new quoted measurement in the figure guard
+- [ ] `make check` passes

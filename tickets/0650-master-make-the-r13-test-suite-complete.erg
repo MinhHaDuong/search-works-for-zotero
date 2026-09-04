@@ -1,0 +1,54 @@
+%erg 0.1
+Title: Master: make the R13 test suite complete and faithful
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T09:56Z codex created
+
+--- body ---
+
+## Context
+
+R13 has three missing test-suite instruments: answer survival can pass on empty
+or divergent results; the duplicate-work arm observes only a settled reader
+joining, not commit uniqueness and bounded failover compute; and the full soak
+specified in `SPEC.md` §5.2.8 does not exist. This is their orchestration ticket,
+not their implementation ticket.
+
+It owns the child roster, sequencing, coverage reconciliation and final handoff.
+It owns no assertion, driver, fixture, threshold or evidence artifact. Ticket
+0035 continues to own the upstream multi-process issue, ticket 0579 the original
+goal-2 acceptance work, and ticket 0026 the gate estate.
+
+## Children
+
+- **0651 — R13 answer survival rejects empty or divergent results.** Repairs the
+  query/corruption acceptance arm and its focused fail-controls.
+- **0652 — R13 failover proves unique commits and bounded duplicate compute.**
+  Replaces the overclaim around the settled-company regression with direct
+  overlapping-work and failover evidence.
+- **0653 — R13 full multi-process soak gate.** Builds and runs the complete
+  `SPEC.md` §5.2.8 instrument, consuming 0651 and 0652's observables rather than
+  implementing parallel versions of them.
+
+Children carry their own scope, tests, evidence and real `Blocked-by` edges.
+Work that can proceed against fixtures is not blocked merely because the real
+target lacks the topology.
+
+## Exit criteria
+
+- [x] Children 0651, 0652 and 0653 exist and partition the missing suite.
+- [ ] Each child closes with its own gates and evidence satisfied.
+- [ ] The generated acceptance roster contains every resulting R13 check once.
+- [ ] README, tickets 0035/0579/0026 and the child artifacts agree on what has
+      run, what passed and what remains unavailable.
+- [ ] No child copied a design number outside its owner in `SPEC.md`.
+- [ ] `make check` and `./tickets/erg check tickets/` pass at master close.
+
+## Invariants
+
+- This ticket coordinates; children implement.
+- One independently reviewable instrument per child.
+- `SPEC.md` owns all design numbers.
+- Fixture success proves a detector can fire, never that a real target keeps R13.

@@ -1,0 +1,47 @@
+%erg 0.1
+Title: R10 trace populated build and the complete lifecycle
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0660. The current egress sweep drives install,
+configure, resume and a query against an empty index. It does not drive a
+populated build, so it cannot observe a path that exfiltrates library text only
+while indexing. It also hand-lists fewer than the interface's seven verbs with
+no coverage guard. This child owns path coverage, not the permitted-call ruling
+(0661), relay detection (0663), or default-runtime setup (0664).
+
+## Actions
+
+- Provide a target-neutral way to populate a fixture with distinctive,
+  non-secret library text and drive the target's real default build/update path.
+- Trace startup, each offered public verb, background idle work and shutdown;
+  explicitly classify paths that cannot carry R10 data rather than omitting
+  them silently.
+- Send a distinctive query and prove both query-bearing and library-text-bearing
+  controls reach the detector.
+- Generate or guard the lifecycle roster so a new verb/path cannot arrive
+  untraced.
+
+## Test
+
+- [ ] A build-only text exfiltrator is red while a local build is green.
+- [ ] A query-only exfiltrator is independently red.
+- [ ] Empty or unbuilt premises report `not-run`, never PASS.
+- [ ] Background and shutdown egress controls prove their observation windows.
+- [ ] Removing a relevant path from the roster fails a fast guard.
+
+## Exit criteria
+
+- [ ] Both R10 data classes are present and distinctive in the exercised run.
+- [ ] Every relevant lifecycle path is traced or explicitly excluded with a
+      checked reason.
+- [ ] Focused fail-controls have been seen red before green.
+- [ ] Real-target evidence is committed under `bench/results/`.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

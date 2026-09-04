@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Assert R15 trash-time deletion through every store and queue
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. No current acceptance assertion drives R15's primary
+event: an indexed item moving into Zotero's trash. README says goal 2 asserts
+this, but no bench or test source performs the event.
+
+## Exit criteria
+
+- [ ] add the smallest target-neutral trash-item fixture mutation
+- [ ] seed a unique sentinel and prove it searchable before trashing
+- [ ] trashing, not empty-trash or maintenance, starts the assertion
+- [ ] wait under R35's owned bound and inspect query results plus every
+      applicable store and queue named in `SPEC.md §5.2.7`
+- [ ] decompress compressed slabs before byte-level inspection
+- [ ] prove pause cannot gate removal and queued work cannot resurrect text
+- [ ] red controls cover query-only removal, queue survival and slab survival
+- [ ] register the assertion and produce a real zoteus verdict
+- [ ] `make check` passes

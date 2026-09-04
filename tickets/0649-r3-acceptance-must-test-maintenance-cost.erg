@@ -1,0 +1,169 @@
+%erg 0.1
+Title: R3 acceptance must test maintenance cost across library sizes
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T09:50Z codex created
+
+2026-09-04T09:52Z codex note Scope expanded by author direction from title-edit and identical-resync to the full staying-current matrix: item/note/annotation/attachment add-edit-delete, D6 reselection, extraction-state transitions, every declared trigger, resume/retry/batches, and the deletion-census conflict with R3's literal library-size independence.
+2026-09-04T09:59Z codex note Recast by author direction as the R3 acceptance master: owns inventory, decomposition, dependency accounting and final integrated verdict; implementation moves to bounded children spun off only when actionable, with no placeholder ticket batch.
+--- body ---
+## Context
+
+R3 promises that the cost of staying current is proportional to what changed,
+"never to the size of the library" (`SPEC.md` R3). The current acceptance
+layer proves a narrower statement:
+
+- `R3-edit-recomputes-only-what-changed` drives one edit in one fixture and
+  accepts exactly one record-stage `done` plus that record's section count at
+  the embed stage;
+- `R3-identical-resync-recomputes-nothing` rejects downstream `done` work but
+  accepts any positive amount of `work.*.resync.noop` verification;
+- the red fixture `stub-recomputes-whole-library-on-edit` proves the first
+  detector notices reported whole-library embedding at that fixture's one
+  size.
+
+None repeats the same fixed-size change against different library sizes. None
+bounds verification, scanning, or other maintenance work that is absent from
+the `*.done` counters. No elapsed-cost or operation-count observable closes
+that escape hatch. A target can therefore pass while doing library-sized work
+outside downstream recomputation; the identical-resync check in particular
+passes when its positive `resync.noop` count grows with the whole library.
+
+This is an acceptance gap, not a finding about zoteus's implementation.
+Ticket 0614 cannot conclude that goal 2 keeps R3 until the gap is closed and
+the resulting check is run against the target.
+
+## Master-ticket role
+
+This is the master ticket for the R3 acceptance repair. It owns the coverage
+inventory, decomposition, dependency accounting, and final integrated verdict.
+It does not itself implement the entire matrix below. Executable work goes into
+bounded child tickets, created on demand when that work is ready to start.
+
+The master keeps four work packages distinct:
+
+1. the target-neutral cost observable, including verification/scanning work
+   rather than only downstream `done` outcomes;
+2. the scaled fixture mechanism and its library-sized-work hostile controls;
+3. bounded perturbation families drawn from the change matrix; and
+4. real-target integration, committed evidence, and the resulting R3 verdict
+   in ticket 0614.
+
+Any numeric decision rule belongs in `SPEC.md` first. Any reinterpretation of
+R3, including a carve-out for unavoidable discovery scans, is a ruling in
+`DECISIONS.md` first. A child must not settle either locally.
+
+## Decomposition rule
+
+Create a child before implementation, sized to one independently reviewable
+instrument or perturbation family. A child names 0649 as its master in its body,
+carries only its real `Blocked-by` edges, and owns its code, red controls,
+tests, real-target run where applicable, and evidence. Work that can run against
+fixtures now is not blocked merely because zoteus cannot yet expose or drive the
+same event.
+
+Do not file placeholder children for the whole inventory. Spin them off as the
+next work becomes actionable, add them to the table below, and leave uncovered
+rows visibly unallocated here. Closely related matrix rows may share one child
+only when they use one observable and form one reviewable sign-off unit; the
+master must not become their implementation ticket.
+
+## Change matrix
+
+Every row is exercised at more than one untouched-library size. The changed
+item, its attachment bytes and its section/passage counts stay identical
+between scale points. The expected work may grow with the changed object (for
+example, deleting one long attachment costs more than deleting one short
+attachment); it must not grow with unrelated items.
+
+### Items and record-derived sources
+
+- add an item, both metadata-only and with body-bearing children;
+- edit each indexed record input, including title, abstract, creators, date,
+  tags and collection membership, distinguishing fields that affect only the
+  record from fields that legitimately change downstream keys;
+- delete an item and prove every derived copy disappears without visiting or
+  rewriting unrelated items; restore/undelete it as a distinct event;
+- add, edit and delete a child note;
+- add, edit and delete an annotation, including its locator/page metadata;
+- move an item into or out of the indexed perimeter, including a library or
+  group being added, removed, or becoming unavailable where the target offers
+  those events.
+
+### Attachments and extraction
+
+- add an attachment to an item with none;
+- add a same-language sibling that D6 skips, and add a different-language
+  sibling that D6 selects;
+- delete the selected attachment, forcing the deterministic sibling (if any)
+  to take its place; delete a skipped attachment and require no unrelated
+  recomputation;
+- replace attachment bytes under the same key, and edit attachment metadata
+  without changing its bytes; relink or move a linked file, make it
+  unavailable, and make it available again;
+- reparent an attachment between items and remove/restore the attachment
+  object without deleting/restoring its parent item;
+- change the detected language or deterministic attachment order so the D6
+  choice changes;
+- make full text appear, change, disappear, become truncated, or become
+  extractable only through the alternate pack/flat route;
+- transition among extracted, metadata-only, skipped and quarantined states,
+  including retry after the input changes.
+
+### Tool, key and reconciliation changes
+
+- identical-bytes resync after a version signal advances;
+- extractor upgrade/re-extract with unchanged bytes;
+- segmenter or chunk-geometry key bump;
+- embedder identity/dtype change and prefix-stale repair;
+- interrupted-work resume, proving already-committed records, extraction,
+  chunks and vectors are not bought again;
+- retry of a failed stage, bounded to that item and the stages downstream of
+  the failure;
+- a batch containing several changes, checked against the union of their
+  dependency cones rather than against the library size.
+
+The trigger roster in `SPEC.md §5.2.8` (`new`, `edit`, `re-extract`, `resync`,
+`key-bump`, `prefix-stale`, `retry`, `delete`) is the minimum coverage index:
+each trigger needs a positive arm, a local-red control, and a
+library-sized-work red control. Rows above may share an arm only when the
+artifact separately reports the work attributable to each event.
+
+Deletion discovery needs explicit treatment. `SPEC.md` currently routes it
+through census subtraction because Zotero exposes no local `/deleted`
+endpoint. If that necessarily performs library-sized scanning, the harness
+must expose the conflict with R3's literal "never to the size of the library"
+instead of silently excluding discovery cost. Resolving that conflict or
+carving discovery out of R3 is a design ruling: record it in `DECISIONS.md`
+first and update `SPEC.md` before encoding a different acceptance rule.
+
+## Exit criteria
+
+- [ ] Every applicable matrix row and every `SPEC.md §5.2.8` trigger is assigned
+      to a bounded child, or explicitly ruled out at the owning authority.
+- [ ] Every child is closed with its own red controls and evidence; unsupported
+      real-target rows report not-run with the missing capability named.
+- [ ] The integrated suite exercises each fixed change at more than one library
+      size and accounts for verification/scanning cost as well as `*.done`
+      recomputation.
+- [ ] Existing R3 clean and churn controls remain discriminating after the
+      child suites are integrated.
+- [ ] The complete suite runs against zoteus; its raw evidence and the resulting
+      PASS, FAIL, or honest not-run are recorded and linked from 0614.
+- [ ] `make check` and `./tickets/erg check` pass.
+
+## Children
+
+Children are filed when their work starts, not in a speculative batch. Update
+this table whenever one is created.
+
+| child | scope | state |
+|---|---|---|
+| — | none filed yet | coverage inventory awaits decomposition on demand |
+
+## Depends on
+
+None. This master ticket blocks tracker 0614; its children carry their own real
+prerequisites rather than inheriting that edge mechanically.

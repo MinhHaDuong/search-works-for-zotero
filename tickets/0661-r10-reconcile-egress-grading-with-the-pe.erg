@@ -1,0 +1,46 @@
+%erg 0.1
+Title: R10 reconcile egress grading with the permitted model download
+Created: 2026-09-04
+Author: codex
+Label: needs-human
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0660. R10 permits one disclosed, one-time model-weight
+download, while `R10-no-egress` currently fails on every DNS lookup or
+off-machine connection. The committed cold-cache evidence therefore counts the
+permitted model host as part of a red. `DECISIONS.md` already records the open
+choice among changing the specification, changing the product, or changing the
+assertion. This child must not make that choice itself.
+
+## Actions
+
+- Obtain and record the author's ruling in `DECISIONS.md` first.
+- Propagate only that ruling's consequences into SPEC.md, the assertion,
+  fail-controls, README standing and affected tickets.
+- If the exception remains, identify it positively and prove its disclosure and
+  one-time character; do not whitelist all traffic sharing an address, process
+  or time window.
+- If the zero-call clause remains, separate its verdict from the narrower
+  library-text/query custody promise so one red is not reported as the other.
+
+## Test
+
+- [ ] A permitted model acquisition reaches the ruling's intended state.
+- [ ] Telemetry, update checks and data-bearing calls to the same infrastructure
+      remain independently red where the ruling requires it.
+- [ ] Missing destination or payload attribution cannot become PASS.
+- [ ] Warm and cold cache arms prove which path actually ran.
+
+## Exit criteria
+
+- [ ] The ruling is recorded before normative or scoring changes.
+- [ ] Every affected prose and executable clause uses the same boundary.
+- [ ] Each classification has a one-purpose red or positive control.
+- [ ] Real-target warm/cold evidence is committed.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

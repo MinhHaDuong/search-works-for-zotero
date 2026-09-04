@@ -1,0 +1,45 @@
+%erg 0.1
+Title: R13 failover proves unique commits and bounded duplicate compute
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T09:59Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0650. The existing duplicate-work arm proves only that a
+second reader joining a settled index does not restart completed work. R13's
+honest restatement instead requires unique passage commits and bounds duplicate
+compute during failover. This child owns those observables and assertions; it
+does not own query survival (0651) or the full soak workload (0653).
+
+## Actions
+
+- Keep and accurately rename/document the settled-company regression.
+- Drive overlapping work on one shared data directory and force conductor
+  handover at controlled embed-batch and document-work points.
+- Observe passage commit identity and fail on a duplicate commit.
+- Measure the two categories of duplicate compute against the bound owned by
+  `SPEC.md`; do not restate its numbers here.
+- Add focused controls for double commit, excess embed work, excess document
+  work, and observability that is absent, reset or process-local.
+
+## Test
+
+- [ ] Correct overlapping work and each bounded failover pass.
+- [ ] Each one-purpose over-bound or double-commit fixture fails independently.
+- [ ] An unfired fault or inadequate observability cannot produce PASS.
+- [ ] The settled-company regression remains green and makes no broader claim.
+
+## Exit criteria
+
+- [ ] Unique commits and both duplicate-compute categories have distinct checks
+      and `falsified_by` descriptions.
+- [ ] Every detector has been seen red before green.
+- [ ] Targeted unit tests and acceptance fixtures pass.
+- [ ] Real-target evidence is committed or the missing target capability is
+      reported as a non-pass state.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

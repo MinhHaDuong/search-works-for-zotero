@@ -1,0 +1,42 @@
+%erg 0.1
+Title: R13 answer survival rejects empty or divergent results
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T09:59Z codex created
+
+--- body ---
+
+## Context
+
+Child of master ticket 0650. `check_two_processes_both_answer` currently grades
+only that three query calls return hit lists without raising. It records result
+identity but does not require it, and a real seeded run passed with three empty
+lists. This child owns that acceptance arm only; failover accounting is 0652
+and the full soak is 0653.
+
+## Actions
+
+- Establish a non-empty expected item-key projection before company arrives;
+  report `not-run` when the target cannot establish that premise.
+- Require both concurrently live processes and the post-pair process to preserve
+  that projection. Empty, missing or divergent projections are failures.
+- Record only privacy-safe projections and comparison facts, not full replies.
+- Add focused readable-corruption controls alongside the existing unreadable
+  post-pair control.
+
+## Test
+
+- [ ] Quiet shared-root fixture passes with a known hit.
+- [ ] Empty, changed, live-divergent and post-pair-divergent controls each fail.
+- [ ] Different roots and an unprovable baseline report `not-run`.
+- [ ] Each fail-control is red only on its intended check.
+
+## Exit criteria
+
+- [ ] The assertion cannot pass merely because a query returned.
+- [ ] Targeted unit tests and acceptance fixtures pass.
+- [ ] Real-target evidence is committed or its unavailable premise is reported
+      as a non-pass state.
+- [ ] `make check` and `./tickets/erg check tickets/` pass.

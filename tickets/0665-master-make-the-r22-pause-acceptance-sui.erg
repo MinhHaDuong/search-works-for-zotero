@@ -1,0 +1,164 @@
+%erg 0.1
+Title: Master: make the R22 pause acceptance suite complete and faithful
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:02Z codex created
+
+2026-09-04T10:03Z codex note Filed as the R22 acceptance master: preserves the existing defensive controls, delegates bounded repair families on demand, and blocks 0613 until active-work stopping, startup persistence, all work classes, resume, exclusions and explicit-verb consent are faithfully tested.
+--- body ---
+## Context
+
+R22 promises one obvious way to stop all background work, holding across
+restarts (`SPEC.md` R22). The acceptance layer registers two checks:
+`R22-pause-stops-background-work` and
+`R22-pause-holds-across-restart`. Their defensive machinery is valuable: they
+do not trust the pause reply, require a never-paused positive control, separate
+the graded and control state, distinguish immediate from restart persistence,
+and report absent counters or perturbations as non-verdicts.
+
+The checks nevertheless do not faithfully decide the full requirement:
+
+1. Both wait for stationary counters before calling `pause`, then create work.
+   They test future scheduling, not whether active workers drain or stop.
+2. The restart arm deliberately opens its graded window only after the restarted
+   target settles. Work that resumes automatically during startup is excluded,
+   although R22's own rationale names that as the falsifier.
+3. The zoteus-only fallback implements `RESUME_EMBEDDING` by explicitly calling
+   `action:"build"` after pause. `SPEC.md §5.2.7` says pause does not gate
+   explicit verbs (`build` while paused asks). The harness observes neither an
+   ask nor consent and currently treats any resulting work as red. The two FAILs
+   in `bench/results/0643-resume-embedding-perturbation/` therefore do not settle
+   R22 as written; that artifact remains useful evidence that the counters and
+   perturbation path execute.
+4. One selected perturbation stands in for "all background work". A target can
+   stop edits while continuing build, extraction, embedding, retries,
+   reconciliation or upgrades and still pass.
+5. Only positive `*.done` deltas are graded. Fetching, scanning, hashing,
+   extraction, embedding before commit, retries, rollback loops, CPU, I/O and
+   network activity can continue invisibly.
+6. The restart arm covers a normal target-process cycle only: not crash,
+   `kill -9`, host/plugin restart, reboot-equivalent cold start, upgrade, or the
+   sideline/fresh-file path the design says carries the pause row.
+7. The normalized adapter supplies one `pause` method, so uniqueness and
+   obviousness of the real user control are never observed.
+8. `resume` is never tested: clearing pause, idempotence, queued-work release,
+   and the prohibition on forcing rebuild/refresh/repair/sync are uncovered.
+9. Required exclusions are uncovered: pause must leave queries, probes and
+   deletion propagation live. Since the verdict rejects every positive `done`
+   delta regardless of trigger, coincident required deletion work can also
+   manufacture a false red.
+10. Control independence checks paths but not identical target identity,
+    revision, configuration, fixture contents, enabled stages or checkpoint.
+
+This is an acceptance-instrument finding, not a finding about whether current
+zoteus keeps R22. Until the instrument is repaired and re-run, ticket 0613 must
+not use the 0643 FAILs as its final R22 verdict.
+
+## Master-ticket role
+
+This ticket owns the R22 coverage inventory, decomposition, dependency
+accounting, reconciliation of the 0643 evidence, and final integrated verdict.
+It is not the implementation ticket for every missing arm. Create bounded child
+tickets on demand, before implementation, and list them below.
+
+## Work packages
+
+### 1. Stop work already in flight
+
+- Start each independently scheduled work class and prove it active before
+  invoking pause: crawl/build, extraction, chunking, embedding, retry,
+  reconciliation and key/prefix upgrade where the target offers them.
+- Observe dispatch stopping, the specified drain/cancel boundary, zero workers,
+  and the absence of post-boundary resource activity and commits.
+- Use independent observables for activity that does not reach a `done`
+  counter. Missing observability is not-run, never PASS.
+- Give each independently falsifiable work class its own result; one supported
+  candidate cannot stand for "all".
+
+### 2. Prove durable pause across every relevant restart
+
+- Grade work from the beginning of startup. An automatic resume before the
+  first stationary status is a failure, not discarded warm-up.
+- Exercise normal restart, abrupt death, a fresh process identity, host/plugin
+  restart where available, upgrade/reopen, and the sideline/fresh-file path.
+- Plant positive controls proving each lifecycle transition occurred and would
+  resume work without the durable marker.
+- Separate unavailable lifecycle substrates from green verdicts.
+
+### 3. Test the control contract and its boundaries
+
+- Establish how the real user discovers and invokes the single control; detect
+  multiple independent switches or an adapter-normalized control users cannot
+  find.
+- Test `resume`: it clears pause, is idempotent, releases queued work, preserves
+  committed progress, and never forces rebuild, refresh, repair or sync.
+- While paused, prove queries and probes still answer and deletion propagation
+  still runs. Attribute counters by trigger so required removal cannot be
+  mistaken for forbidden derivation.
+- Test explicit work verbs according to the specification's "asks" rule. The
+  harness must observe the confirmation/consent boundary rather than equating
+  an explicit request with unattended background scheduling.
+- Require the positive control and graded target to match in target identity,
+  revision, configuration, source fixture, enabled stages and initial state in
+  addition to having disjoint paths.
+
+### 4. Integrate and correct the evidence record
+
+- Retain the existing reply-independent, positive-control, queued-work and
+  not-run protections and their focused fail-controls.
+- Replace the regression that blesses startup work with a control that drives
+  automatic startup resume red.
+- Reclassify the 0643 result honestly: preserve its raw evidence, but do not
+  cite its explicit-build FAIL as an R22 verdict until a faithful arm reaches
+  the same conclusion.
+- Run the complete suite against zoteus at the reviewed baseline or a clearly
+  labeled patch, commit raw evidence under `bench/results/`, and record PASS,
+  FAIL or honest not-run in ticket 0613 and the public standing owner.
+
+## Decomposition rule
+
+Create children only as work becomes actionable. Each child owns one reviewable
+instrument family, names 0665 as its master, carries its real `Blocked-by`
+edges, and closes with red-first controls plus evidence. Machine-free fixture
+work must not wait merely because a real target lacks a surface; machine- or
+target-dependent arms carry that dependency themselves. Do not file a batch of
+placeholder children and do not implement the work packages in this master.
+
+## Children
+
+| child | scope | state |
+|---|---|---|
+| — | none filed yet | spin off on demand |
+
+## Exit criteria
+
+- [ ] Every work package is allocated to bounded children or explicitly ruled
+      out at the owning authority, and every child is closed.
+- [ ] Pause is invoked during proven active work and all offered background-work
+      classes receive independent verdicts.
+- [ ] Startup work is inside the restart window, and every offered restart,
+      crash, upgrade and sideline path is exercised with a positive control.
+- [ ] Uniqueness/obviousness, resume semantics, required-live operations and
+      explicit-verb consent have behavioral checks and red controls.
+- [ ] Non-commit activity cannot hide behind flat `*.done` counters.
+- [ ] The 0643 artifact is no longer represented as a faithful R22 verdict
+      unless a corrected check supports it.
+- [ ] A complete real-target artifact is committed and ticket 0613 records the
+      integrated result without collapsing unsupported arms into green.
+- [ ] `make check` and `./tickets/erg check tickets/` pass at master close.
+
+## Depends on
+
+None. This master blocks tracker 0613; its children carry only their own real
+prerequisites.
+
+## Invariants
+
+- This ticket coordinates; children implement.
+- One independently reviewable instrument family per child.
+- `SPEC.md` owns every design number and `DECISIONS.md` precedes any changed
+  interpretation.
+- Fixture success proves the detector can fire, never that a real target keeps
+  R22.

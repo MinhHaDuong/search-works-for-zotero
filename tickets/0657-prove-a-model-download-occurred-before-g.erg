@@ -1,0 +1,29 @@
+%erg 0.1
+Title: Prove a model download occurred before grading R15 cache placement
+Created: 2026-09-04
+Author: codex
+
+--- log ---
+2026-09-04T10:00Z codex created
+
+--- body ---
+
+## Context
+
+Child of tracker `0648`. `R15-model-cache-under-declared-roots` infers that
+weights were exercised from a non-null model reported by status. It can pass
+without proving query success, a download during this run, or that the files it
+observed are model weights. Its current red is a generic install-time stray,
+not a misplaced model download.
+
+## Exit criteria
+
+- [ ] establish a cold-cache precondition
+- [ ] prove the retrieval request succeeded and triggered a model download
+- [ ] identify the newly materialized weights without target vocabulary leaking
+      into the assertion layer
+- [ ] return `not-run` or an explicit non-applicable state when no download was
+      observed, never `pass`
+- [ ] add a discriminating control that downloads weights outside every declared
+      root while creating no unrelated residue
+- [ ] `make check` passes
