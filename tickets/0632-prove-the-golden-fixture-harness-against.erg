@@ -1,0 +1,213 @@
+%erg 0.1
+Title: Prove the golden-fixture harness against a real multi-document, multi-language injection
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T05:18Z claude created
+
+--- body ---
+## Context
+
+Ticket 0029's tracker (its "## Children" table, and the "Sequencing is
+unchanged" paragraph above it) names this as the first child to file: "the
+harness triplet (injection script, export snapshot, Zotero-free replay),
+against the 17 already-hashed documents" — unblocked, since it does not wait
+on the 9 records still stuck behind browser-only challenge pages (4 HAL,
+4 Gallica, 1 Malynes).
+
+Most of the harness code already exists, built before the tracker/child-ticket
+convention landed on 0029. It shipped in PR #294 ("0029: build the golden
+fixture injection and offline replay harness", merged 2026-09-03,
+`54525bb`), not PR #298 as an earlier note on this work mistakenly said —
+`gh pr view 298` is a stranded-branch recovery PR unrelated to this code;
+`f84b523` and its follow-ups (`b2cc16e`, `9c1823a`, `0305116`, `c47555d`,
+`a8bfcb6`, then the `/gaze` simplify pass `c04674f`) are the real history and
+all land inside #294. That PR's own body says plainly what it does not do:
+"This does not close 0029. The nine remaining source hashes, live public-
+library injection/export, reviewed query and answer set, passage distribution,
+and 0581 gate wiring remain open."
+
+So what is actually still missing, verified directly rather than assumed
+(rules/workflow.md § Diagnosis discipline): a *real* injection + export has
+never been run. `bench/fixtures/golden_fixture.py inject`/`export` need a
+public Zotero library to write into — `--library-type` defaults to `group`
+and `--library-id` is required; there is no default and no fallback to the
+personal library, by design (ruling 2, DECISIONS.md 2026-09-02: "a personal
+library is not a provenance"). Probed directly against the local Zotero 10
+client on this host (port 23119, `Zotero is running`, confirmed live): the
+account belongs to exactly one group, id `305258`, "ASEAN research
+collaborative on environment and development", 13 560 real items — a live
+shared research library, not a fixture target. `curl .../api/users/0/groups`
+returns only that one row. Nothing here is a dedicated fixture group.
+
+Zotero has no group-creation API. Verified independently (web search against
+zotero.org's own API docs and forum threads, not taken on the earlier note's
+word): group creation is zotero.org-website-only; the API only reads/writes
+*inside* an existing group. A further check settles the group's required
+*type*: DECISIONS.md's 2026-09-02 ruling 6 already says "a group-library slice
+needs a closed group, since public open groups cannot hold files" for the
+tally's separate group-library-slice dimension (child 3's scope, not this
+one) — and an independent web search confirms the underlying Zotero
+constraint generalizes: "Public, Open Membership" groups cannot have File
+Editing enabled at all (neither stored nor linked attachments), only
+"Private" or "Public, Closed Membership" groups can. Since this child's
+corpus injection also writes linked-file attachments, the *same* constraint
+applies to the primary corpus's library, not only to the group-library-slice
+dimension — a detail the ticket 0029 body's "public Zotero library" wording
+does not spell out.
+
+## What is proven versus what is exercised only on invented data
+
+`bench/fixtures/golden_fixture.py` (876 lines) and
+`bench/fixtures/make_index_fixture.mjs`'s `loadGoldenExport`/
+`goldenReplayResponse` (906 lines total) are written generically: both loop
+over an arbitrary-length recipe array (`for doc in recipe`, `recipe.flatMap`,
+`recipeById.size` bijection checks against the manifest), so nothing in the
+code is hardcoded to one document, one language, or one archive shape.
+Verified by reading both files in full.
+
+`tests/test_golden_fixture_harness.py` (1210 lines, 79 passed / 1 skipped,
+re-run clean at HEAD here) is honest about its own scope in its module
+docstring: "The tests use invented one-item API responses. They prove the
+machinery without pretending those responses are ticket 0029's still-
+unavailable live export." Verified directly: every test recipe in the file
+(`recipe_for`, `representative_recipe`) is English, `internet-archive`, and
+at most one parent document with at most two attachments (a PDF/HTML pair
+exercising `test_representative_parent_reconciles_multiple_attachments_
+independently` and `test_representative_export_binds_two_attachments_and_
+their_semantics`). No test recipe has more than one top-level parent item,
+none uses Gallica/HAL/Wikisource/FAOLEX/Wikimedia-Commons archive shapes,
+`djvu`/`epub`/`wikitext` bytes formats, or a non-English `language` field. So
+the *mechanism* for multi-document, multi-language, mixed-attachment-format
+injection is written and structurally sound by inspection, but has never been
+*exercised* against the real 17-document, 4-language (en/fr/vi/de),
+5-archive-type shape of `bench/fixtures/recipe.json`. That gap can only close
+with a real injection + export run — this ticket's blocked half.
+
+## What this ticket did without a live public group
+
+- Re-verified `pytest tests/test_fixture_recipe.py tests/test_golden_fixture_
+  harness.py -q`: 79 passed, 1 skipped (matches PR #294's own verification).
+- Confirmed `bench/fixtures/recipe.json`'s live state: 26 records, 17 hashed,
+  9 open (`cournot-1838-recherches`, `malynes-1622-lex-mercatoria`,
+  `depitre-1908-oeuvres-cournot`, `ha-duong-2005-modeles-de-precaution-hdr`,
+  `ha-duong-1998-irreversibilite-these`, `hal-04332519-economies-of-scale`,
+  `hal-04826774-lich-su-sach-nam-ky`, `des-michels-1883-luc-van-tien`,
+  `des-michels-1884-kim-van-kieu-t2p1`) — matches `bench/fixtures/README.md`'s
+  own table.
+- Read `bench/fixtures/golden_fixture.py` and the replay half of
+  `bench/fixtures/make_index_fixture.mjs` in full against the real recipe
+  shape (see above): no defect found; the residual risk is untested breadth,
+  not a code bug.
+- Pinned the `index_fulltext_max_chars` discrepancy the 2026-09-02/03
+  scoping brief flagged (0029 log, 22:41Z entry) and traced it to source:
+  `SPEC.md:1008`, `DEFAULT_FULLTEXT_MAX_CHARS = 40_000` at
+  `fulltext-source.ts:11`, is zoteus's own shipped cap on how much of
+  Zotero's `/fulltext` response it indexes per item — separate from Zotero's
+  own extraction limits (100 pages / 500 000 characters, SPEC.md:2455,
+  `fulltext.pdfMaxPages`/`fulltext.textMaxLength`). `bench/run_build.py:72`'s
+  `--max-chars` CLI default is `"200000"`, a bench-harness convenience value
+  five times larger, with no comment tying it to the shipped default.
+  **Ruling for this export: `--index-max-chars 40000`, matching the shipped
+  product default**, not `run_build.py`'s bench-convenience 200000 — a golden
+  fixture is supposed to prove the harness against what a real install does,
+  and 200000 would silently let five times more per-document content through
+  the index than any user of the shipped extension gets, exactly the kind of
+  per-axis silent-default drift this repo's own defect history warns about.
+  If a future change moves the shipped default, this export's pin moves with
+  it and is re-exported, not left stale.
+- Staged, not yet run (needs the library from the open question below):
+
+  ```
+  ZOTEUS_LOCAL_API_KEY=<from a Zotero 10 local grant> \
+  python3 bench/fixtures/golden_fixture.py \
+    --library-type group --library-id <NEW_GROUP_ID> \
+    --collection-key <NEW_COLLECTION_KEY> \
+    inject --cache-dir <fetch_recipe.py's cache dir>
+
+  ZOTEUS_LOCAL_API_KEY=<same> \
+  python3 bench/fixtures/golden_fixture.py \
+    --library-type group --library-id <NEW_GROUP_ID> \
+    --collection-key <NEW_COLLECTION_KEY> \
+    export --cache-dir <same> \
+    --destination bench/fixtures/export \
+    --zotero-client-version "<read from Help > About Zotero at run time>" \
+    --pdf-max-pages 100 --text-max-length 500000 \
+    --index-max-chars 40000
+  ```
+
+  `--pdf-max-pages 100`/`--text-max-length 500000` are Zotero's documented
+  stock defaults (SPEC.md:2455); confirm they still read that way in the
+  injecting client's Settings > Advanced before running, since the tool
+  requires them as explicit input specifically so a customized profile can't
+  silently masquerade as the stock one. `fetch_recipe.py`'s cache directory
+  and the client version string are read at run time, not guessed here.
+
+## Open question for the author — the one blocker
+
+Ticket 0029's body says the corpus goes into "a collection of a public Zotero
+library," and this repo's only reachable Zotero account belongs to exactly
+one group (305258, the live ASEAN research library) — not a fixture target,
+and never to be touched by this tool. Zotero groups cannot be created via
+API (verified above), so this is squarely one decision for the author, not a
+default to invent:
+
+**Please create a new, dedicated Zotero group for ticket 0029's golden-
+fixture corpus, separate from group 305258.** Per DECISIONS.md's own ruling
+("public open groups cannot hold files") and the independent confirmation
+above, it must be **"Public, Closed Membership"** (not "Public, Open
+Membership" — that type cannot have File Editing enabled at all, so the
+linked-file attachments this harness writes would be rejected; not "Private"
+either, since the ticket's own ruling calls for a *public* library). Once it
+exists: share its numeric group id, and grant local-API write access to
+whichever Zotero 10 desktop client will run the injection (the client must
+join the group, then issue a `ZOTEUS_LOCAL_API_KEY` local grant for it —
+see `bench/fixtures/golden_fixture.py`'s `_client()`/`ZoteroLocalClient`).
+A name/description is the author's call; "zoteus golden fixture (ticket
+0029)" or similar is a reasonable default if none is specified.
+
+This blocks only the injection/export run and the exit criteria that depend
+on it. Everything else in this ticket is done and shipped independent of it.
+
+## Relevant files
+- `bench/fixtures/golden_fixture.py` — injection/export CLI (PR #294, pre-
+  existing, re-verified here)
+- `bench/fixtures/make_index_fixture.mjs` — `loadGoldenExport`/
+  `goldenReplayResponse`, the Zotero-free replay side (PR #294, pre-existing,
+  re-verified here)
+- `bench/fixtures/recipe.json`, `bench/fixtures/README.md` — the source
+  recipe and its documentation (26 records, 17 hashed)
+- `bench/fixtures/fetch_recipe.py` — re-fetches and verifies source bytes
+  against the recipe's pinned hashes
+- `bench/golden_gate.py` — downstream consumer, deliberately agnostic to how
+  its input JSON was produced (out of this ticket's scope; consumes whatever
+  export eventually lands)
+- `bench/run_build.py:72` — the `--max-chars` default this ticket found
+  inconsistent with the shipped product default; not changed here (that
+  default serves other bench call sites too; changing it is a separate call)
+- `tests/test_golden_fixture_harness.py` — proves the machinery on invented
+  one-item data; does not exercise the real multi-document/multi-language
+  shape (see "What is proven" above)
+- `SPEC.md:1008`, `SPEC.md:2455` — the two extraction-cap citations this
+  ticket traced and pinned
+
+## Exit criteria
+- [x] the existing injection-script/export-snapshot/Zotero-free-replay
+      mechanism is read and verified generically correct against the real
+      17-document, multi-language, multi-archive recipe shape (by code
+      inspection; no live run possible without the group below)
+- [x] the `index_fulltext_max_chars` discrepancy flagged in 0029's log
+      (2026-09-02 22:41Z scoping brief) is pinned with a stated reason
+      (40000, matching the shipped `DEFAULT_FULLTEXT_MAX_CHARS`)
+- [x] the exact injection/export commands are staged, with every required
+      input identified and its source stated (client version and both
+      extraction preferences read from the live client at run time, per the
+      tool's own no-silent-defaults design)
+- [ ] a real injection into a dedicated public Zotero group, and a real
+      export snapshot committed under `bench/fixtures/`, replayed through
+      the offline harness and `bench/golden_gate.py` end-to-end — blocked on
+      the author providing the dedicated group (see "Open question" above)
+- [ ] ticket 0029's own "injection script"/"export snapshot committed"/
+      "Zotero-free index-build harness" exit-criteria bullets ticked, once
+      the above is real
