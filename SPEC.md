@@ -1,6 +1,6 @@
 # SPEC — search-works-for-zotero
 
-- **Status:** DRAFT
+- **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
 - **Date:** 2026-09-04
 
@@ -20,8 +20,8 @@ imposes on any design that would keep those promises (C1 to C3). §5 is the
 design that answers both. §6 is where it can leak.
 
 Rulings are ratified in `DECISIONS.md` first, and this document is edited to
-match. Where each promise stands today, against the reviewed upstream
-baseline, is `README.md`'s.
+match. Implementation evidence belongs to `verification/` and the tickets;
+`README.md` tracks the three public deliverables rather than each promise.
 
 ## 2. Terminology
 

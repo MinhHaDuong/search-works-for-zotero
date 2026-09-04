@@ -153,10 +153,22 @@ def test_compact_deliverables_pass(tmp_path):
 | deliverable | status | authority |
 |---|---|---|
 | Formal specification | **Complete** | SPEC.md |
-| [Multilingual Menagerie](fixture) | **In progress** | ticket 0029 |
+| [Multilingual Menagerie](fixture) | **In progress** | ticket 0080 |
 | Verification and scoring bench | **In progress** | bench/ |
+
+### Multilingual Menagerie
+
+| object | state | work owner |
+|---|---|---|
+| corpus | In progress | 0080 |
+
+### Verification and scoring bench
+
+| object | state | work owner |
+|---|---|---|
+| assertions | In progress | 0080 |
 """
-    assert cp.run(build(tmp_path, page=page)) == 0
+    assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 0
 
 
 def test_compact_deliverables_missing_one_fails(tmp_path):
@@ -167,9 +179,9 @@ def test_compact_deliverables_missing_one_fails(tmp_path):
 | deliverable | status | authority |
 |---|---|---|
 | Formal specification | **Complete** | SPEC.md |
-| [Multilingual Menagerie](fixture) | **In progress** | ticket 0029 |
+| [Multilingual Menagerie](fixture) | **In progress** | ticket 0080 |
 """
-    assert cp.run(build(tmp_path, page=page)) == 1
+    assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 1
 
 
 def test_missing_page_is_loud(tmp_path):

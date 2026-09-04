@@ -89,7 +89,7 @@ Numbers in the **work owner** columns are local issues tracked in
 |---|---|---|
 | Fixture runner, scoring and fail-controls | In progress | 0602, 0604, 0658 |
 | Schema migration and proportional maintenance | In progress | 0623, 0649 |
-| Privacy and free-default operation | In progress | 0660–0664, R36 |
+| Privacy and free-default operation | In progress | 0660–0664, 0671 (R36) |
 | Deletion, residue and uninstall | In progress | 0654–0657 |
 | Concurrent serving and bounded duplicate work | In progress | 0650–0652 |
 | Durable pause | In progress | 0643, 0665; upstream #56 / PR #57 |

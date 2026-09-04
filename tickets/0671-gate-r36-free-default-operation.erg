@@ -1,0 +1,20 @@
+%erg 0.1
+Title: Gate R36 free default operation
+Created: 2026-09-04
+Author: Codex
+
+--- log ---
+2026-09-04T15:35Z Codex created
+
+--- body ---
+## Objective
+
+Make R36 mechanically decidable for an implementation's genuine default path.
+
+## Exit criteria
+
+- [ ] Start with no paid account, subscription, API credential or metered provider.
+- [ ] Permit only the declared model acquisition, then block all other external traffic.
+- [ ] Build and query the committed fixture successfully through effective local providers.
+- [ ] Pin and check runtime/model acquisition and licence metadata when artifacts change.
+- [ ] Add fail-controls for a required API credential and a metered provider.

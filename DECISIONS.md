@@ -6440,3 +6440,7 @@ completed `designed` axis, goal-ladder procedure, guard explanation, historical
 prototype argument and bench command catalogue are deleted rather than archived
 in the tree. Their authorities remain `SPEC.md`, this ledger, `AGENTS.md`, the
 tickets, `verification/` and git history.
+
+The author's statement that the design is done is the declaration AGENTS.md
+requires to move `SPEC.md` from DRAFT to COMPLETE. Complete describes the
+specification deliverable, not implementation of all its requirements.

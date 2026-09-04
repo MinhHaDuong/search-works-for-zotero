@@ -754,6 +754,23 @@ def run(repo: Path) -> int:
             "| Verification and scoring bench | **In progress** |",
         )
         missing = [row for row in required if row not in text]
+        for heading in ("### Multilingual Menagerie", "### Verification and scoring bench"):
+            if heading not in text:
+                missing.append(heading)
+        public = text.split("## Deliverables", 1)[1].split("### Multilingual Menagerie", 1)[0]
+        public_rows = [
+            line for line in public.splitlines()
+            if line.startswith("|") and not line.startswith("|---") and "deliverable |" not in line
+        ]
+        if len(public_rows) != 3:
+            missing.append("exactly three public deliverable rows")
+        spec_text = sheet.read_text(encoding="utf-8")
+        if "| Formal specification | **Complete** |" in text and "- **Status:** COMPLETE" not in spec_text:
+            missing.append("SPEC.md status COMPLETE")
+        deliverables = text.split("## Deliverables", 1)[1]
+        for ticket in sorted(set(re.findall(r"\b0\d{3}\b", deliverables))):
+            if not list((repo / "tickets").glob(f"**/{ticket}-*.erg")):
+                missing.append(f"ticket {ticket}")
         if missing:
             for item in missing:
                 log.error("DELIVERABLES: missing %s", item)
