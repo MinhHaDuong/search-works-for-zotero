@@ -2,12 +2,14 @@
 Title: Gap C: an R22-only check via a build-triggered perturbation and a direct sqlite read
 Created: 2026-09-04
 Author: claude
+Closed: author decision 2026-09-04 (high road): rely on 0033's real work counters upstream rather than a zoteus-private-sqlite-schema workaround. The adapter stays a thin translator of a declared contract, not a parser of undeclared internal storage; a private-schema check would also be zoteus-only and never generalize to the other four roster targets. Estimate for 0033's actual coding cost appended to 0033's own log.
 
 --- log ---
 2026-09-04T05:33Z claude created
 
 2026-09-04T05:39Z Blocked-by 0633 added: the gap-A lead (running 0629's confirming arm today) found that on this machine --posture account (mandatory per 0613's 2026-09-03T12:52Z dedicated-account ruling) does not compose with the podman-unshare sandbox fallback -- bwrap fails to start here, sudo cannot function inside any rootless user namespace, and the composed spawn raises PostureUnavailable regardless of sudoers config. This session's own gap-C work never spawned zoteus (source-reading only, against a built fork/ checkout), so it was not itself blocked -- but every Action here that needs a live run (2, 3's implementation, 4, 5) will hit the same wall until 0633 is fixed. Not yet independently reproduced from this session; relayed as reported.
 2026-09-04T05:40Z Blocked-by header reverted: 0633 (the posture/podman-unshare composition ticket) lives only on the not-yet-merged origin/t0613-gapA-verify branch, so a structured Blocked-by fails erg validate/check here (unknown ticket ID -- this branch has no such file). The dependency stands as prose in Relevant files and the entry above instead; add the structured header once 0633 lands on main, in a follow-up rather than by carrying a foreign ticket's file across branches.
+2026-09-04T06:53Z MinhHaDuong closed — author decision 2026-09-04 (high road): rely on 0033's real work counters upstream rather than a zoteus-private-sqlite-schema workaround. The adapter stays a thin translator of a declared contract, not a parser of undeclared internal storage; a private-schema check would also be zoteus-only and never generalize to the other four roster targets. Estimate for 0033's actual coding cost appended to 0033's own log.
 --- body ---
 ## Context
 
