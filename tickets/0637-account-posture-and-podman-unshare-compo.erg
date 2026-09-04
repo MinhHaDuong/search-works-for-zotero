@@ -1,0 +1,176 @@
+%erg 0.1
+Title: account posture and podman-unshare compose in the wrong order: sudo fails inside the rootless namespace
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T05:34Z MinhHaDuong created
+
+--- body ---
+## Context
+
+Ticket 0625 ratified (DECISIONS.md, 2026-09-03) that no target process may run
+as the operator: `bench/acceptance/posture.py`'s `Posture.wrap()` prepends
+`sudo -n -u tester --preserve-env=<names> -- <argv>` at exactly one seam, each
+adapter's own target-process spawn (`zoteus.py::running()` and its siblings).
+Separately, `bench/acceptance/sandbox.py`'s `PodmanUnshare` mechanism gives
+`R10-no-egress` its network isolation by wrapping a re-invocation of the whole
+driver in `--drive` mode: `podman unshare unshare -n -- python3 run.py
+--adapter zoteus --arena <a> --drive` (`assertions.py::check_no_egress`'s
+`subject = run_traced(drive_argv, mechanism=mechanism, network_shared=False,
+...)`, `sandbox.py::run_traced`, `PodmanUnshare.isolated()`).
+
+These two wraps compose in the wrong order for this one check. The account
+switch happens INSIDE the already-entered podman rootless user namespace
+(the adapter's `_posture.wrap()` call fires from within the re-invoked
+`--drive` process), and `sudo` cannot run there — reproduced directly on this
+machine (padme, 2026-09-04):
+
+    $ podman unshare unshare -n -- sudo -n -u tester --preserve-env=X -- true
+    sudo: /etc/sudo.conf is owned by uid 65534, should be 0
+    sudo: ouverture de /etc/sudoers impossible: Permission non accordée
+
+Inside `podman unshare`, the invoking user is remapped to fake-root within the
+namespace (`podman unshare whoami` → `root`), but the REAL host files
+`sudo` checks (`/etc/sudo.conf`, `/etc/sudoers`, both really owned by host
+uid 0) appear owned by uid 65534 (`nogroup`) from inside the namespace's uid
+mapping. `sudo` refuses on principle rather than trusting that. This is not a
+missing sudoers line, ACL, or PATH issue — those were all real, separate
+blockers on this same run and are already fixed (see 0629's log): the
+sudoers `SETENV` rule, a `node` binary unreachable under `tester` (user-local
+install, fixed with a system-wide copy outside any home directory), and the
+acceptance arena needing to be both operator-creatable and tester-writable
+(fixed with a default ACL: `setfacl -d -m u:tester:rwx` on
+`~/data/acceptance-arena`, which is now the working `ACCEPTANCE_ARENA`).
+With every one of those fixed, this is the one remaining, structural gap.
+
+**The reordering fixes it — verified directly, this machine:**
+
+    $ sudo -n -u tester --preserve-env=X -- podman unshare unshare -n -- true
+    (warnings about no systemd user session, falls back to cgroupfs; harmless)
+    $ echo $?
+    0
+
+`tester` already has subuid/subgid ranges (`/etc/subuid`, `/etc/subgid`:
+`tester:165536:65536`), confirmed by `sudo -u tester podman unshare whoami`
+→ `root` succeeding cleanly. So switching identity FIRST, then entering the
+network namespace AS `tester`, works end to end on this machine's setup.
+
+## The design question this raises
+
+Ticket 0625 deliberately chose "each adapter spawns its target under the
+account while the harness itself keeps running as the operator" over "the
+harness re-executes itself under the account" — `posture.py`'s own module
+docstring gives the reason: a full re-exec would force the harness's OWN work
+(arena directories, the committed JSON artifact) across the account boundary
+too, which has no business belonging to `tester`.
+
+The `--drive` re-invocation this ticket is about is NOT that full re-exec: it
+is already a narrower re-invocation that exists only to run under the
+tracer+mechanism for `R10-no-egress`'s subject arm. The top-level process
+(the one writing the arena directories and the committed artifact) stays
+running as the operator throughout, outside this `--drive` subprocess
+entirely (`assertions.py::check_no_egress` calls `run_traced` and only reads
+back the RESULT). So making the WHOLE `--drive` subprocess run as `tester` —
+by composing the wrap as `mechanism.isolated(posture.wrap(drive_argv, env),
+...)` instead of the current `mechanism.isolated(drive_argv, ...)` with the
+posture wrap applied later, deep inside, only to the final `node` spawn — does
+not appear to reverse 0625's actual ruling. Everything the `--drive`
+subprocess itself does (seed the data dir, spawn the target, drive verbs) is
+target-owned derived state that `tester` is supposed to own anyway ("write
+access to nothing but the arena").
+
+This reasoning is offered as a starting hypothesis, not a decision — it needs
+verification against what `--drive` mode actually does end to end (does
+anything in that path read/write something only the operator should touch?),
+and the same question applies to `Bubblewrap`, the other `Mechanism` in
+`sandbox.MECHANISMS` (currently unusable in this executor per prior notes —
+"bwrap cannot start inside the executor" — but should be checked for the same
+ordering trap so a future machine where bubblewrap DOES work doesn't hit
+this again).
+
+## Relevant files
+
+- `bench/acceptance/posture.py` — `Posture.wrap()` (~line 142), `_works()`
+  (~line 233), `resolve()` (~line 258): the account-switch seam and its
+  probe, resolved fresh per process.
+- `bench/acceptance/sandbox.py` — `PodmanUnshare.isolated()`/`.shared()`
+  (~line 235), `Bubblewrap` (the other mechanism, ~line 152/180),
+  `run_traced()` (~line 379): where a mechanism wraps an argv.
+- `bench/acceptance/assertions.py` — `check_no_egress()` (~line 180): the one
+  caller that re-invokes the driver itself as `drive_argv` under a mechanism,
+  rather than wrapping a target's own spawn directly.
+- `bench/acceptance/run.py` — `drive_argv_for()` (~line 459): builds the
+  `--drive` re-invocation argv that gets mechanism-wrapped.
+- `bench/acceptance/adapters/zoteus.py` — `running()` (~line 358): where
+  `self._posture.wrap(cmd, ...)` currently fires, from inside the already-
+  entered namespace when reached via `--drive` under `PodmanUnshare`.
+- `bench/results/0629-gap-a/` — the ticket blocked on this (0629's Action 2,
+  `ZOTEUS_UPDATE_CHECK=false` expecting `dns: 0`); its own attribution does
+  NOT depend on this fix (three other measurements already confirm it
+  independently), so this is not urgent for 0629's own sake, but it also
+  blocks every other check needing a target spawn under isolation (`R13`,
+  `R22`, `R3`, `R23` all showed `NOT-RUN` in the same run, same root cause).
+
+## Actions
+
+1. Confirm (read `--drive` mode's actual code path, `run.py` + the adapter's
+   `install`/`configure`/`query` verbs as driven for `zoteus`) that nothing in
+   it needs operator identity — i.e. the design-question hypothesis above
+   actually holds. If something does, the fix needs a narrower seam instead
+   (e.g., a mechanism-aware `Posture` that knows to switch identity before a
+   specific mechanism enters its namespace, rather than reordering the whole
+   `--drive` subprocess).
+2. Implement the reordering (or the narrower alternative if Action 1 finds a
+   reason to prefer it) so `R10-no-egress`'s subject arm composes as
+   identity-switch-then-namespace, not the reverse.
+3. Check `Bubblewrap` for the same trap, even though it's not usable on this
+   machine today — a future machine where it works should not silently hit
+   this again.
+4. Re-run ticket 0629's confirming arm
+   (`bench/results/0629-gap-a/README.md` § 3's recipe, arena now at
+   `~/data/acceptance-arena`) and tick its two blocked verification boxes
+   once `R10-no-egress` actually runs (not `not-run`) against this machine.
+
+## Test
+
+Red-first: a test that drives `PodmanUnshare.isolated()` (or the composed
+wrap) against a trivial command needing BOTH the namespace and a real account
+switch, asserting it succeeds — this should fail against the current
+(wrong-order) composition and pass after the fix. If the fix is source-level
+reorder rather than something unit-testable without a real `tester` account
+and podman on the test machine, mark it `@pytest.mark.integration` and skip
+cleanly (not silently pass) where the account/mechanism preconditions aren't
+met, mirroring how `posture.resolve()` itself reports refusal rather than
+faking success.
+
+## Verification
+
+- [ ] `R10-no-egress` on `zoteus` with `ZOTEUS_UPDATE_CHECK=false` returns
+      PASS or FAIL, not NOT-RUN, on this machine.
+- [ ] `R13`, `R22`, `R3`, `R23` (the other checks needing a target spawn under
+      isolation) also stop reporting NOT-RUN for this same reason.
+- [ ] `make check` passes.
+- [ ] Ticket 0629's two blocked verification checkboxes are ticked, or the
+      ticket records why they still cannot be, with a different reason than
+      today's.
+
+## Invariants
+
+- Ticket 0625's actual ruling holds: no target process runs as the operator,
+  ever, on any code path — this fix must not weaken that, only fix the
+  ordering of two isolations that both already exist.
+- `sudo`'s own security check (refusing when it can't verify real uid-0
+  ownership of its config) stays untouched — the fix works WITH it, not
+  around it (no `--preserve-env`-style workaround that would reopen the
+  channel ticket 0625's Action 1 closed).
+- The operator-owned arena directories and the committed JSON artifact keep
+  being written as the operator, exactly as today.
+
+## Exit criteria
+
+`R10-no-egress`'s subject arm (and the other checks sharing this composition)
+actually run — pass or fail on their own merits — under the `podman-unshare`
+mechanism combined with the `account` posture on this machine, with the
+account-posture invariant from ticket 0625 intact and a test that would have
+caught the wrong-order regression.
