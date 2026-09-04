@@ -68,6 +68,17 @@ verbatim, nineteen minutes after filing, no review comments** — the thirteenth
 of thirteen PRs from this fork, none rejected, none rebuilt. #51 closed with it.
 Ticket 0612's own close is still ours to do.
 
+Updated 2026-09-04 from Oscar's correction on issue #43: the pooling table is
+the registry's necessary first piece, not a separable alternative, because the
+recommended quantized mirrors do not publish the upstream pooling metadata.
+For what follows he wants complete curated records for known ids while keeping
+the shipped raw transformers.js id as an explicitly unvalidated escape hatch;
+an identity-only refactor must not bill an unchanged vector space for a
+re-embed. He would take the stage-4 first-use runtime compatibility fixture
+first, more or less in the form already implemented on the fork. Ticket 0669
+owns that upstream adaptation and is deferred under the September 21 focus;
+closed tickets 0492 and 0493 retain what the fork actually implemented.
+
 Updated 2026-09-04 — **issue #54 was taken and shipped by the maintainer in
 v1.14.0**. Commit `489b24b` defaults `ZOTEUS_UPDATE_CHECK` off and also exposes
 the opt-in switch in the desktop bundle, so manual and `.mcpb` installs both

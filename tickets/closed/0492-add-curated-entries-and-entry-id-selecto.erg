@@ -10,6 +10,7 @@ Closed: Curated entry selection and complete fingerprint coexistence are impleme
 2026-09-03T05:18Z Minh Ha-Duong note blocker 0490 closed — Blocked-by removed.
 2026-09-03T05:18Z Curated complete entries and entry-id selection integrated in 3c95a30 and hardened in PR #9: unknown ids fail explicitly to labeled keyword-only before index access, fingerprints have one field authority, and all measured rows carry immutable field-specific provenance.
 2026-09-03T05:18Z Minh Ha-Duong closed — Curated entry selection and complete fingerprint coexistence are implemented and verified in author-fork PR #9 (merge 5e8abb9).
+2026-09-04T13:03Z codex note upstream issue 43 supersedes this closed fork implementation's refusal policy for any re-proposal: Oscar wants known ids curated but unknown transformers.js ids preserved and named unvalidated; historical closure remains accurate for the fork artifact
 --- body ---
 ## Scope
 
