@@ -1,0 +1,567 @@
+{
+  "machine": "padme",
+  "upstream_sha": "b0e0bc872b5727d21ea83aba8bfe834293013264",
+  "env": {
+    "ZOTEUS_EMBEDDINGS": "off",
+    "ZOTEUS_DATA_DIR": "/home/haduong/data/t0503-discovery",
+    "ZOTEUS_INDEX_BACKEND": "sqlite",
+    "ZOTEUS_INDEX_FULLTEXT": "1",
+    "ZOTEUS_READ_ONLY": "true",
+    "ZOTEUS_UPDATE_CHECK": "0",
+    "ZOTERO_DATA_DIR": "/home/haduong/data/Zotero-fresh"
+  },
+  "search_tool": "zotero_semantic_search",
+  "initial_build": {
+    "action": "build",
+    "elapsed_s": 77.703,
+    "label": "rebuild",
+    "labels_seen": [
+      "rebuild"
+    ],
+    "polls": [
+      {
+        "t": 0.0,
+        "operation": "build",
+        "state": "building"
+      },
+      {
+        "t": 1.078,
+        "operation": "build",
+        "state": "building",
+        "phase": "metadata"
+      },
+      {
+        "t": 2.108,
+        "operation": "build",
+        "state": "building",
+        "phase": "metadata"
+      },
+      {
+        "t": 3.109,
+        "operation": "build",
+        "state": "building",
+        "phase": "metadata"
+      },
+      {
+        "t": 4.11,
+        "operation": "build",
+        "state": "building",
+        "phase": "metadata"
+      },
+      {
+        "t": 5.111,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 6.112,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 7.113,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 8.114,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 9.115,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 10.116,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 11.117,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 12.117,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 13.118,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 14.119,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 15.12,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 16.121,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 17.121,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 18.123,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 19.123,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 20.124,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 21.125,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 22.126,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 23.126,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 24.127,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 25.128,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 26.129,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 27.13,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 28.131,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 29.132,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 30.133,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 31.134,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 32.135,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 33.135,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 34.136,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 35.137,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 36.138,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 37.139,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 38.139,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 39.14,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 40.141,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 41.142,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 42.143,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 43.143,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 44.145,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 45.145,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 46.146,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 47.147,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 48.148,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 49.149,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 50.15,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 51.151,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 52.203,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 53.409,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 54.41,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 55.41,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 56.411,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 57.412,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 58.412,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 59.413,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 60.468,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 61.716,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 62.791,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 63.886,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 65.385,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 66.624,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 67.625,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 69.039,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 70.039,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 71.04,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 72.408,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 73.409,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 74.875,
+        "operation": "build",
+        "state": "building",
+        "phase": "fulltext"
+      },
+      {
+        "t": 77.703,
+        "operation": "build",
+        "state": "done",
+        "phase": "fulltext"
+      }
+    ],
+    "status": {
+      "documents": 108211,
+      "vectors": 0,
+      "items": 5000,
+      "storage": "sqlite",
+      "embedder": "none (keyword-only)",
+      "embedderConfigured": "off",
+      "embedderActive": false,
+      "fulltextEnabled": true,
+      "fulltextItems": 3763,
+      "fulltextPassages": 97742,
+      "ownWordsEnabled": true,
+      "ownWordsItems": 530,
+      "ownWordsPassages": 2588,
+      "builtFromVersion": 5000,
+      "libraryVersion": 26460,
+      "fulltextVersion": 25076,
+      "libraryBackend": "local",
+      "library": "user",
+      "passages": 108211,
+      "state": "done",
+      "operation": "build",
+      "itemsFetched": 5000,
+      "itemsRemoved": 0,
+      "itemsTotal": 5000,
+      "itemsAvailable": 7546,
+      "phase": "fulltext",
+      "fulltextItemsScanned": 4090,
+      "fulltextItemsTotal": 4090
+    }
+  },
+  "library_scope": {
+    "endpoint": "/items/top",
+    "items_indexed": 5000,
+    "libraryVersion": 26460
+  },
+  "item_census": {
+    "since": {
+      "elapsed_s": 0.036,
+      "keys": 0,
+      "bytes": 0
+    },
+    "full_keyset": {
+      "elapsed_s": 0.038,
+      "keys": 7546,
+      "bytes": 67913
+    }
+  },
+  "positive_control": {
+    "action": "update",
+    "elapsed_s": 1.006,
+    "label": "delta",
+    "labels_seen": [
+      "delta"
+    ],
+    "polls": [
+      {
+        "t": 0.0,
+        "operation": "update",
+        "state": "building"
+      },
+      {
+        "t": 1.006,
+        "operation": "update",
+        "state": "done",
+        "phase": "metadata"
+      }
+    ],
+    "status": {
+      "documents": 108211,
+      "vectors": 0,
+      "items": 5000,
+      "storage": "sqlite",
+      "embedder": "none (keyword-only)",
+      "embedderConfigured": "off",
+      "embedderActive": false,
+      "fulltextEnabled": true,
+      "fulltextItems": 3763,
+      "fulltextPassages": 97742,
+      "ownWordsEnabled": true,
+      "ownWordsItems": 530,
+      "ownWordsPassages": 2588,
+      "builtFromVersion": 5000,
+      "libraryVersion": 26460,
+      "fulltextVersion": 25076,
+      "libraryBackend": "local",
+      "library": "user",
+      "passages": 108211,
+      "state": "done",
+      "operation": "update",
+      "itemsFetched": 0,
+      "itemsRemoved": 0,
+      "itemsTotal": 5000,
+      "itemsAvailable": 7546,
+      "phase": "metadata",
+      "fulltextItemsScanned": 0,
+      "fulltextItemsTotal": 0,
+      "updateNotice": "Updated 0 changed and removed 0 deleted items since local library version 26460. An update maintains only the subset this index already holds: the items the cap left out stay unindexed until a full action:\"build\" covers them."
+    },
+    "verdict": "FAILED"
+  }
+}
