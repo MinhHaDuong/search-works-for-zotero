@@ -268,8 +268,12 @@ export function loadGoldenExport(directory, options = {}) {
     const attachment = itemByKey.get(key);
     if (!attachment) throw new Error(`${recipeId}: missing attachment item ${key}`);
     const data = attachment.data ?? attachment;
-    if (data.parentItem !== parent || data.linkMode !== 'linked_file') {
-      throw new Error(`${recipeId}: ${key} is not the declared linked child of ${parent}`);
+    // A group library refuses linked-file attachments outright (Zotero's own local API:
+    // 400 "Linked files can only be added to user library", verified 2026-09-04), so a
+    // group export's attachments are stored (imported_file) instead.
+    const expectedLinkMode = manifest.library.type === 'group' ? 'imported_file' : 'linked_file';
+    if (data.parentItem !== parent || data.linkMode !== expectedLinkMode) {
+      throw new Error(`${recipeId}: ${key} is not the declared ${expectedLinkMode} child of ${parent}`);
     }
     const doc = recipeById.get(recipeId);
     const attachmentId = doc.attachments ? row.attachment_id : doc.id;
@@ -287,9 +291,18 @@ export function loadGoldenExport(directory, options = {}) {
         row.skip_reason !== (source.skip_reason ?? ''))) {
       throw new Error(`${attachmentId}: manifest attachment semantics do not match the recipe`);
     }
-    const expectedPath = `attachments:${source.id}.${source.bytes_format ?? 'pdf'}`;
-    if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
-      throw new Error(`${recipeId}: linked-file path is not portable`);
+    if (expectedLinkMode === 'linked_file') {
+      const expectedPath = `attachments:${source.id}.${source.bytes_format ?? 'pdf'}`;
+      if (data.path !== expectedPath || !/^attachments:[^/\\]+$/.test(data.path)) {
+        throw new Error(`${recipeId}: linked-file path is not portable`);
+      }
+    } else {
+      // A stored attachment carries no machine path at all -- Zotero manages the bytes
+      // under its own storage directory, keyed by attachment key, not by client host.
+      const expectedFilename = `${source.id}.${source.bytes_format ?? 'pdf'}`;
+      if (data.filename !== expectedFilename) {
+        throw new Error(`${recipeId}: stored attachment filename does not match its pinned source`);
+      }
     }
     requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${source.id}`, source.id);
     requireFields(data, {

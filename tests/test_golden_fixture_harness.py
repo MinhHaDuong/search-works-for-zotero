@@ -92,6 +92,7 @@ class MemoryZotero:
         self.next_key = 1
         self.library_version = 0
         self.reindexes = []
+        self.uploads = []
 
     def list_top_items(self):
         return [item for item in self.items.values() if not item["data"].get("parentItem")]
@@ -124,6 +125,9 @@ class MemoryZotero:
     def reindex_fulltext(self, keys):
         self.reindexes.append(list(keys))
 
+    def upload_file(self, key, path, content_type):
+        self.uploads.append((key, path, content_type))
+
 
 def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     payload = b"%PDF-1.4\ninvented control\n"
@@ -155,6 +159,50 @@ def test_injection_is_idempotent_and_recipe_owned(tmp_path):
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
     )]]
+
+
+def test_group_injection_uploads_bytes_instead_of_linking(tmp_path):
+    """Zotero refuses linked-file attachments in any group library outright (400
+    "Linked files can only be added to user library", verified 2026-09-04 against
+    the real local API -- a permanent Zotero limitation, not a config issue). A
+    group injection must instead upload the bytes and write an imported_file
+    attachment carrying no machine path at all."""
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert counts == {"created_parents": 1, "updated_parents": 0,
+                      "created_attachments": 1, "updated_attachments": 0}
+    attachment = next(item["data"] for item in zotero.items.values() if item["data"]["itemType"] == "attachment")
+    assert attachment["linkMode"] == "imported_file"
+    assert attachment["filename"] == "invented-1900-control.pdf"
+    assert "path" not in attachment
+    assert len(zotero.uploads) == 1
+    uploaded_key, uploaded_path, uploaded_content_type = zotero.uploads[0]
+    assert uploaded_path == (cache / "invented-1900-control.pdf").resolve()
+    assert uploaded_content_type == "application/pdf"
+    # The upload must precede reindexing: extraction needs the bytes to already be there.
+    assert zotero.reindexes == [[uploaded_key]]
+
+
+def test_group_injection_skips_upload_when_attachment_is_unchanged(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    uploads_after_first = len(zotero.uploads)
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert len(zotero.uploads) == uploads_after_first
 
 
 def test_representative_parent_reconciles_multiple_attachments_independently(tmp_path):
@@ -258,7 +306,7 @@ def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path
     source = cache / "invented-1900-control.pdf"
     source.write_bytes(original)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
@@ -270,7 +318,7 @@ def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path
     with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
         export_again(recipe, zotero, cache, tmp_path / "stale")
 
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     assert zotero.reindexes[-1] == [attachment]
     assert recipe[0]["sha256"] in zotero.items[attachment]["data"]["extra"]
     export_again(recipe, zotero, cache, tmp_path / "current")
@@ -283,7 +331,7 @@ def test_export_forces_fresh_extraction_when_hash_and_metadata_are_unchanged(tmp
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
@@ -375,7 +423,7 @@ def exported_snapshot(tmp_path):
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachment = next(key for key, item in zotero.items.items()
                       if item["data"]["itemType"] == "attachment")
     zotero.fulltexts[attachment] = {
@@ -433,7 +481,12 @@ def test_export_is_raw_complete_atomic_and_bound_to_recipe(tmp_path):
     assert fulltext["content"] == "offline golden control body"
     assert str(tmp_path) not in json.dumps(items)
     linked = next(item["data"] for item in items if item["data"]["itemType"] == "attachment")
-    assert linked["path"] == "attachments:invented-1900-control.pdf"
+    # A stored (imported_file) group attachment carries no path at all -- Zotero owns the
+    # bytes under its own storage directory, so there is nothing machine-specific to leak
+    # or normalize, unlike a user-library linked_file attachment's absolute local path.
+    assert linked["linkMode"] == "imported_file"
+    assert linked["filename"] == "invented-1900-control.pdf"
+    assert "path" not in linked
     assert manifest["normalizations"]["linked_file_path"].startswith("absolute API path")
     assert json.loads((dest / gf.EXPORT_SENTINEL).read_text()) == {
         "schema": gf.EXPORT_SENTINEL_SCHEMA,
@@ -460,7 +513,7 @@ def test_representative_export_binds_two_attachments_and_their_semantics(tmp_pat
     (cache / "invented-pdf.pdf").write_bytes(payloads[0])
     (cache / "invented-html.html").write_bytes(payloads[1])
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     for key, item in zotero.items.items():
         if item["data"]["itemType"] == "attachment":
             zotero.fulltexts[key] = {"content": f"body {key}", "indexedPages": 1,
@@ -512,7 +565,7 @@ def test_export_public_allowlists_drop_nested_zotero_private_fields(tmp_path):
     cache.mkdir()
     (cache / "invented-1900-control.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     for item in zotero.items.values():
         item["private"] = {"token": "TOP-SECRET"}
         item["data"]["relations"] = {"private-path": "/home/person/library"}
@@ -726,7 +779,7 @@ def test_export_rereads_all_zero_version_bodies_after_the_complete_first_pass(tm
     for doc in recipe:
         (cache / f"{doc['id']}.pdf").write_bytes(payload)
     zotero = MemoryZotero()
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
     attachments = [
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
