@@ -7,6 +7,7 @@ Author: claude
 2026-09-04T05:18Z claude created
 
 2026-09-04T05:48Z claude note GROUP BLOCKER CLEARED (author, 2026-09-04): group 6659303 'Semantic search challenge fixture' created, type PublicClosed, libraryReading all, fileEditing members -- confirmed independently via the public web API and the local client's own group listing, exactly the shape asked for. Collection 3AY48MA5 'golden fixture' created inside it, confirmed empty. ZOTEUS_LOCAL_API_KEY granted via the real /api/local/authorize handshake, stored at ~/.config/keys/zoteus-golden-fixture-local.env mode 600 (never displayed). Prepped and verified independently: all 17 hashed documents fetched fresh from their archives and sha256-matched (fetch_recipe.py --only, all 'match'); fork/ checked out at the exact UPSTREAM_REVIEWED_SHA and built (npm install + tsc), producing dist/index.js; the live client's own real values read directly rather than assumed -- Zotero 10.0.1 BuildID 20260824184709 (application.ini), fulltext.pdfMaxPages/textMaxLength both absent from the live profile's prefs.js, meaning both sit at their shipped defaults 100/500000 (confirmed against defaults/preferences/zotero.js inside omni.ja, not just inferred). Wrote select_hashed.py to derive the 17-record pinned-only recipe subset mechanically (tested, committed) since verify_source_bytes refuses a recipe with any unpinned record. NEW BLOCKER FOUND, not anticipated by the group fix: injection needs bench/zotero-fulltext-plugin installed on the SAME Zotero client holding the API-key grant, to force deterministic full extraction on 17 fresh attachments (reindex_fulltext calls it). Probed directly -- GET /search-works/fulltext/status on this client returns 404 'No endpoint found', confirming it is not installed. Built the xpi (bench/zotero-fulltext-plugin/build.sh) to /tmp/fulltext-control.xpi. Per the plugin's own manifest it installs live, no restart: Tools -> Plugins -> gear -> Install Plugin From File. This needs the same hands that granted the API key; not something reachable by API or safe to force via profile-file surgery on a live session holding the author's real libraries. Everything else is staged and ready to run the instant this lands
+2026-09-04T06:11Z claude note REAL INJECTION ATTEMPTED, FAILED ON A DESIGN DEFECT NEITHER BLOCKER PREDICTED: both prior blockers (group, plugin) were genuinely cleared -- re-verified independently (plugin: direct 200 on GET /search-works/fulltext/status, was 404). Ran the real inject against the 17-document pinned subset. It failed on the FIRST attachment write: Zotero's own local API returned 400 'Linked files can only be added to user library'. Corroborated independently (web search, Zotero's own forums/docs): linked-file attachments are unsupported in ANY group library, any visibility/membership type, a permanent Zotero design limitation, not a config issue. golden_fixture.py's _desired_attachment() hardcodes linkMode=linked_file unconditionally -- every group attachment write fails by construction. No invented one-item test caught this: MemoryZotero enforces none of Zotero's real server-side rules, so 'generic over recipe shape' (proven) and 'compatible with a live group library' (never proven, now disproven) were different axes conflated in this ticket's earlier code-inspection pass. Full finding and options recorded in DECISIONS.md, 2026-09-04, 'FINDING, not a ruling'. One orphaned parent item (walras-1900-elements) exists in group 6659303, tagged, no attachment -- inert, inject()'s own idempotent reconciliation will complete it once an attachment mode is chosen, no manual cleanup needed. This is now a real design decision with a cost the author needs to make (group storage plan vs WebDAV vs reduced footprint vs other), not something to route around unilaterally -- stopping here for the injection/export step, as instructed for exactly this class of blocker
 --- body ---
 ## Context
 
@@ -145,7 +146,29 @@ with a real injection + export run — this ticket's blocked half.
   silently masquerade as the stock one. `fetch_recipe.py`'s cache directory
   and the client version string are read at run time, not guessed here.
 
-## Open question for the author — the one blocker
+## Open question for the author — RESOLVED (group and plugin), a NEW question follows
+
+The group and plugin blocker described below were both real and are both
+now cleared (author, 2026-09-04) and independently re-verified: group
+6659303, collection 3AY48MA5, `ZOTEUS_LOCAL_API_KEY`, and
+`bench/zotero-fulltext-plugin` all confirmed live. Kept below for the
+record of what was asked and why it was right to ask it.
+
+**The new question, found only by the real injection attempt itself:**
+Zotero's local API refuses every linked-file attachment write into a group
+library — `400 "Linked files can only be added to user library"` — a
+permanent Zotero design limitation (independently corroborated), not a
+configuration issue on this group. `golden_fixture.py` hardcodes
+`linkMode: "linked_file"` for every attachment; full finding and the live
+options in DECISIONS.md, 2026-09-04, "FINDING, not a ruling." The options
+(stored attachment against the group owner's storage quota — the 17-document
+set is 478 MB against a 300 MB free Zotero tier; WebDAV storage; a reduced
+interim footprint; something else) each cost something real on the author's
+own account, so this needs the author's decision before the injection can
+proceed — not a default to invent. **Please say which approach to take** (or
+propose another); everything is staged to run the moment that's decided.
+
+---
 
 Ticket 0029's body says the corpus goes into "a collection of a public Zotero
 library," and this repo's only reachable Zotero account belongs to exactly
@@ -197,18 +220,36 @@ on it. Everything else in this ticket is done and shipped independent of it.
 - [x] the existing injection-script/export-snapshot/Zotero-free-replay
       mechanism is read and verified generically correct against the real
       17-document, multi-language, multi-archive recipe shape (by code
-      inspection; no live run possible without the group below)
+      inspection; no live run possible without the group below) —
+      **narrower than it reads**: this proved genericity over document
+      count/language/format, never compatibility with a live group
+      library, and those turned out to be different axes (see the
+      2026-09-04 log entry: the real run failed on a hardcoded
+      `linkMode: "linked_file"` group libraries categorically refuse,
+      which no code-reading pass caught and no invented test could have,
+      since the mocked client enforces none of Zotero's real business
+      rules)
 - [x] the `index_fulltext_max_chars` discrepancy flagged in 0029's log
       (2026-09-02 22:41Z scoping brief) is pinned with a stated reason
       (40000, matching the shipped `DEFAULT_FULLTEXT_MAX_CHARS`)
 - [x] the exact injection/export commands are staged, with every required
       input identified and its source stated (client version and both
       extraction preferences read from the live client at run time, per the
-      tool's own no-silent-defaults design)
-- [ ] a real injection into a dedicated public Zotero group, and a real
+      tool's own no-silent-defaults design) — staged correctly; running
+      them surfaced the linked-file defect below, which is a defect in
+      what the commands ask Zotero to do, not in the staging
+- [x] the group and local-API blockers are cleared (author, 2026-09-04) and
+      independently re-verified: group 6659303 PublicClosed, collection
+      3AY48MA5, `ZOTEUS_LOCAL_API_KEY` granted, `bench/zotero-fulltext-plugin`
+      installed and responding
+- [ ] a real injection into the dedicated public Zotero group, and a real
       export snapshot committed under `bench/fixtures/`, replayed through
-      the offline harness and `bench/golden_gate.py` end-to-end — blocked on
-      the author providing the dedicated group (see "Open question" above)
+      the offline harness and `bench/golden_gate.py` end-to-end — **blocked
+      on a new finding, not the group**: Zotero refuses linked-file
+      attachments in any group library (DECISIONS.md, 2026-09-04 finding).
+      Needs an author decision on how to hold the bytes (stored attachment
+      against the group owner's storage quota, WebDAV, a reduced interim
+      footprint, or another approach) before this can proceed
 - [ ] ticket 0029's own "injection script"/"export snapshot committed"/
       "Zotero-free index-build harness" exit-criteria bullets ticked, once
       the above is real
