@@ -1,0 +1,33 @@
+%erg 0.1
+Title: Review salvaged post-close WIP on t556 and t0583 branches
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T08:54Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Found by `worktree-gc` during `/lair` housekeeping (2026-09-04): two
+worktrees skipped GC for uncommitted changes, both post-dating their
+ticket's own close. Preserved as WIP commits, not discarded, per molt's
+orphaned-WIP rule — content not reviewed, may be stale or superseded.
+
+## Actions
+
+1. `t556-v2-content-schema` (commit `b0969e4`): re-opens ticket 0556 (closed
+   via PR #160) and edits 0554/0565. Review whether this is real leftover
+   work or a stale/confused branch — the un-close in particular needs a
+   human read before trusting it. Also carries a stray vitest cache file
+   (`node_modules/.vite/...`) that contradicts its own `.gitignore` edit —
+   clean that up regardless of the rest.
+2. `t0583-zotero-6012-adapter` (commit `778478a`): a modified acceptance
+   artifact and a new `bench/r10_host_baseline.py` script, after ticket 0583
+   closed via PR #239. Likely legitimate follow-up measurement — review and
+   either land it (new PR) or fold findings into a fresh ticket.
+
+## Exit criteria
+- Both branches reviewed; each either lands via its own PR or is explicitly
+  dropped with a reason recorded here.
