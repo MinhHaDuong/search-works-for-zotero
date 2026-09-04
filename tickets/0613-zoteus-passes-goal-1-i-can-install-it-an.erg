@@ -39,6 +39,7 @@ Blocked-by: 0665
 2026-09-04T10:17Z codex note CORRECTION TO 08:37Z AND 08:50Z: artifact 0643 does not decide R22. It proves only that the staged counters and build-triggered perturbation execute; its FAIL comes from explicit action:build after pause while SPEC.md says explicit build while paused asks, and the restart arm excludes automatic startup work. R22 is UNDECIDED pending master 0665's faithful repair and remeasurement.
 2026-09-04T12:10Z codex note BLOCKED-BY 0660 ADDED from Terra review on PR 353: goal 1 includes R10, so the rung cannot close while the R10 acceptance-fidelity master remains open
 2026-09-04T12:16Z Codex note issue #54 closed COMPLETED after the maintainer built the accepted shape in 489b24b and shipped it in v1.14.0: ZOTEUS_UPDATE_CHECK now defaults false, and the desktop bundle exposes the same opt-in switch. The maintainer confirmed the filed source reading in full. This removes R10-no-egress's measured cause in source, but does not move the acceptance verdict or README standing before the required v1.14 baseline reread and remeasurement; make upstream-catchup reports 15 watched files changed since b0e0bc8.
+2026-09-04T12:27Z codex correction the 12:16Z entry overcounted the v1.14.0 catch-up range: b0e0bc8..v1.14.0 changes four watched files, not fifteen; the rebaseline and remeasurement requirement is unchanged
 --- body ---
 ## Context
 
