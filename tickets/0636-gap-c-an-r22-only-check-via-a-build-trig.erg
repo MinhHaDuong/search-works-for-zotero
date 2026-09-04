@@ -1,0 +1,210 @@
+%erg 0.1
+Title: Gap C: an R22-only check via a build-triggered perturbation and a direct sqlite read
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T05:33Z claude created
+
+2026-09-04T05:39Z Blocked-by 0633 added: the gap-A lead (running 0629's confirming arm today) found that on this machine --posture account (mandatory per 0613's 2026-09-03T12:52Z dedicated-account ruling) does not compose with the podman-unshare sandbox fallback -- bwrap fails to start here, sudo cannot function inside any rootless user namespace, and the composed spawn raises PostureUnavailable regardless of sudoers config. This session's own gap-C work never spawned zoteus (source-reading only, against a built fork/ checkout), so it was not itself blocked -- but every Action here that needs a live run (2, 3's implementation, 4, 5) will hit the same wall until 0633 is fixed. Not yet independently reproduced from this session; relayed as reported.
+2026-09-04T05:40Z Blocked-by header reverted: 0633 (the posture/podman-unshare composition ticket) lives only on the not-yet-merged origin/t0613-gapA-verify branch, so a structured Blocked-by fails erg validate/check here (unknown ticket ID -- this branch has no such file). The dependency stands as prose in Relevant files and the entry above instead; add the structured header once 0633 lands on main, in a follow-up rather than by carrying a foreign ticket's file across branches.
+--- body ---
+## Context
+
+Child of tracker 0613 (goal 1 of the ladder), gap C. `Ticket-ref: tickets/0613`
+— this ticket does not close the tracker; other gaps remain open there.
+
+`bench/results/0604-ladder-matrix/MATRIX.md` marks `R22-pause-stops-background-work`
+and `R22-pause-holds-across-restart` both `not-run` for zoteus. 0613's log
+(2026-09-04, gap-C re-derivation) traced why in source, at the reviewed
+baseline (`UPSTREAM_REVIEWED_SHA` — re-read it, don't hardcode; a `fork/`
+checkout at that SHA, built with `make upstream-checkout && cd fork && npm ci
+&& npm run build`, is required to verify any of this before acting on it):
+
+1. `zoteus`'s adapter (`bench/acceptance/adapters/zoteus.py`) maps `pause`
+   onto `zotero_index action:"stop"`, and the mapping is real: `stop`
+   (`index-manager.ts` `requestStop()`) sets an in-memory cancel flag, but the
+   build loop's cancellation exit (`index-manager.ts` around line 1370-1381)
+   unconditionally records a checkpoint and commits it to the sqlite file
+   before returning — this is genuinely durable, not merely argued.
+2. Nothing in the reviewed source auto-resumes a stopped build on restart:
+   `startIndexBuild`/`startIndexUpdate` are called only from the explicit
+   `zotero_index` tool handler and from `zotero_semantic_search`'s
+   `auto_build` fallback, which the adapter's own `query()` disables
+   (`auto_build: False`). `ZOTEUS_INDEX_AUTO_REFRESH`, the variable this
+   project's own harness scripts have set to `false` since before this
+   ticket, does not exist in the reviewed `config.ts` schema at all — it is a
+   harness-side no-op, not a real toggle. (Re-verify this is still true at
+   whatever SHA is reviewed when this ticket is picked up; it could change.)
+3. What actually blocks both R22 clauses is `bench/acceptance/assertions.py`'s
+   `check_pause_stops_background_work` / `check_pause_holds_across_restart`,
+   via `bench/acceptance/durability.py`, gating on TWO things in sequence:
+   - `durability.work_counters(target)` must be non-`None` — a
+     `work`/`counters` object shaped `work.<stage>.<trigger>.<outcome>`
+     (SPEC.md §5.2.8). zoteus's `status()` never reports one (confirmed on
+     every run measured), so both clauses currently die here first.
+   - Even past that, both clauses' only perturbation is hardcoded
+     `durability.EDIT_ONE_ITEM` (`assertions.py` lines ~733, ~833, ~927) —
+     "edit one item in the library" — which zoteus's `perturb()`
+     (`zoteus.py` ~475-480) already refuses, on principle: it would write to
+     the user's own Zotero library, which R15 excludes from derived state.
+     Ticket 0033's ledger/counters scope does not touch this refusal and
+     would not lift it.
+
+So ticket 0033 (blocked on 0032) shipping real counters is **necessary but
+not sufficient**: it closes the first gate and immediately opens the second,
+on a target that has never been able to run `EDIT_ONE_ITEM` and, by design,
+never will. This ticket is deliberately **not** `Blocked-by` 0033/0032 — its
+whole premise is that R22 can be settled without them, for zoteus specifically
+(and plausibly for any target whose "background work" is an index-build/embed
+job rather than a per-item edit), by not routing through the shared goal-2
+counters machinery at all.
+
+**The honest alternative, sketched but not built.** zoteus's `status()`
+already reports genuine (not fabricated) `documents`/`vectors`/
+`passagesWithoutVectors` as flat top-level fields (`index-manager.ts`
+~722-725: `documents - vectors` when an embedder is configured and vectors
+are not stale). These are real target-reported counts, but they carry no
+`trigger` classification (`new`/`edit`/`resync`/…), so packaging them as fake
+`work.<stage>.<trigger>.<outcome>` rows to satisfy `durability.work_counters()`
+would be exactly the dishonest-counter trap `durability.py`'s own `perturb()`
+docstring warns against — a harness asserting something about a target it
+did not actually observe. The fix is not to fake the shared vocabulary; it is
+to not need it. R22's own arithmetic (`_pause_verdict`, `assertions.py`
+~611-636) only asks whether *any* `done`-outcome counter advanced — it needs
+no trigger axis, unlike R3/R13/R23, which genuinely do (proportionality:
+did a resync recompute what it should not have).
+
+The sqlite file these counts live in is already opened directly by this
+adapter, read-only, for the schema-version check
+(`zoteus.py::Zoteus._index()`/`_stamp()`, ~lines 337-357, 483-490) — bypassing
+`status()` entirely, which is accepted practice here (the adapter reading its
+own target's storage, not the harness reaching past the adapter to *write*
+it — `durability.perturb()`'s warning is about the latter). The same
+technique can read `SELECT COUNT(*) FROM passages`, `SELECT COUNT(*) FROM
+passages WHERE vector IS NOT NULL` (schema: `sqlite-index.ts` ~930-938) and
+the `meta` row keyed `'checkpoint'` (`sqlite-index.ts` ~1092, JSON via
+`parseCheckpoint`).
+
+## Relevant files
+
+- `bench/acceptance/assertions.py` — `check_pause_stops_background_work`
+  (~779), `check_pause_holds_across_restart` (~853), `_pause_verdict` (~611),
+  `_the_change_creates_work` (~639, the control-instance gate). A new R22-only
+  check would live near these, not replace them — they stay correct for any
+  target that *does* ship real counters and *can* take `EDIT_ONE_ITEM`.
+- `bench/acceptance/durability.py` — `work_counters()` (~112), `settle()`
+  (~151), `perturb()` (~192), the `PERTURBATIONS` tuple and `EDIT_ONE_ITEM`
+  constant (~68-77). Adding a new perturbation kind here (e.g.
+  `RESUME_EMBEDDING` or similar) is the generalizable half of this work, if
+  more than one target ever needs it; a zoteus-only escape hatch that reads
+  its own sqlite file without going through `durability.py` at all is the
+  narrower, lower-risk alternative and should be tried first.
+- `bench/acceptance/adapters/zoteus.py` — `perturb()` (~464-481, where
+  `EDIT_ONE_ITEM`/`RESYNC_IDENTICAL_BYTES` are declined), `_index()`/`_stamp()`
+  (the existing direct-sqlite-read precedent), `seed_index` (the existing
+  prebuilt-index-injection mechanism a partially-embedded fixture would reuse).
+- `bench/acceptance/interface.py` — `Declaration`, `VERBS`, `Check`; read
+  before touching anything here, since `durability.py`'s own docstring says a
+  perturbation is deliberately *not* a verb and argues why.
+- Upstream, reviewed baseline: `src/tools/index-tool.ts` (the `action:"build"`
+  handler and its `passagesWithoutVectors`-driven resumability, described at
+  length in its own tool description string), `src/features/search/
+  index-manager.ts` (`requestStop`, `resumeFrom`, `buildIncremental`'s
+  cancellation exit), `src/features/search/sqlite-index.ts` (the `passages`/
+  `meta` schema).
+- A partially-embedded fixture does not exist yet. `bench/fixtures/` and
+  `bench/results/*/serve_result*.json` are the places to look for how an
+  existing seeded index is built; producing one with `passagesWithoutVectors
+  > 0` on purpose (e.g. by stopping a build mid-embed against a fixture
+  library) is itself an Action below, not assumed done.
+- `tickets/0633` — on this machine, `--posture account` (the DEDICATED
+  ACCOUNT precondition ticket 0625 made mandatory, cited in 0613's log
+  2026-09-03T12:52Z) currently fails to compose with the `podman-unshare`
+  sandbox fallback (`bwrap` does not start here): the account posture wrap
+  is applied *inside* the unshared namespace, and `sudo` cannot function
+  inside any rootless user namespace by construction, so any target-process
+  spawn under this posture reports `PostureUnavailable` regardless of
+  sudoers config. Everything in this ticket that requires actually spawning
+  zoteus — Actions 2, 3's implementation, 4, 5 — is blocked on 0633's fix,
+  not merely inconvenienced by it. Action 1's re-verification and the design
+  decision in Action 3 are source-reading and can proceed without it.
+
+## Actions
+
+1. Re-verify this ticket's Context against whatever `UPSTREAM_REVIEWED_SHA`
+   is current when picked up — the three numbered claims and the two-gate
+   diagnosis all rest on a real `fork/` build, not a cached reading.
+2. Build a fixture: seed an index with `passagesWithoutVectors > 0` (a build
+   stopped mid-embed against a small fixture library is the natural way;
+   confirm via a direct sqlite read that the fixture genuinely has both rows
+   with and without vectors before using it).
+3. Decide the perturbation's shape: either (a) add a new constant to
+   `durability.PERTURBATIONS` (e.g. `RESUME_EMBEDDING`) and implement it in
+   `zoteus.py::perturb()` as `action:"build"` against the fixture from Action
+   2, or (b) skip `durability.py` entirely for this one clause and write a
+   zoteus-specific (or target-generic-by-duck-typing) check that calls a new,
+   narrower adapter method directly. Prefer (a) if a second target with the
+   same shape (build/embed background work, no per-item edit trigger) is
+   plausible soon; prefer (b) if this stays zoteus-only for now — smaller
+   blast radius, easier to review, matches this ticket's "lower-risk
+   alternative" framing in Context.
+4. Write the two R22-only checks (stop-then-no-more-embedding,
+   stop-then-restart-then-still-no-more-embedding), grading on the sqlite
+   passage/vector counts and the `checkpoint` meta row read directly, not on
+   `work.<stage>.<trigger>.<outcome>`. Both need a positive control, same
+   discipline as the existing R22 checks: show the counts CAN move (e.g. by
+   letting a never-stopped second instance finish embedding the same fixture)
+   before trusting that they did not move on the graded, stopped instance.
+5. Wire into `bench/acceptance/run.py`'s driver and the ladder matrix
+   generator (ticket 0604) so a real run reports these, not just a design.
+6. Append the finding to 0613's log (which of the two clauses this settles,
+   with the artifact path) so the tracker's exit criteria can be re-checked.
+
+## Test
+
+Red step: run the new checks against a stub adapter that ignores `stop` (or
+one of the existing `stub-ignores-pause`/`stub-forgets-pause-on-restart`
+fixtures ticket 0033's PR #255 already built, if they still exist and are
+target-generic enough to reuse) and confirm each new check reports FAIL, not
+`not-run` — a check that reports `not-run` against a target that visibly kept
+embedding after `stop` was called has not been wired correctly.
+
+## Verification
+
+- [ ] A fixture with `passagesWithoutVectors > 0` exists and is committed
+      (or its generation script is), with a direct-sqlite-read proof it has
+      the intended shape
+- [ ] The new perturbation (via `durability.py` or a zoteus-local method) is
+      implemented and its positive control demonstrably moves the counts on
+      a never-stopped instance
+- [ ] Both new R22-only checks run against a real `fork/` build at the
+      reviewed SHA and report PASS or FAIL, not `not-run`, with an artifact
+      committed under `bench/results/`
+- [ ] `bench/results/0604-ladder-matrix/MATRIX.md` regenerated and both
+      `R22-*` rows for zoteus move off `not-run`
+- [ ] 0613's log carries the finding
+
+## Invariants
+
+- The existing `check_pause_stops_background_work`/
+  `check_pause_holds_across_restart` (counters + `EDIT_ONE_ITEM`) are not
+  removed or weakened — they stay correct and available for a target that
+  ships real counters and tolerates the edit perturbation. This ticket adds
+  a parallel path, it does not replace the existing one.
+- No fabricated `work.<stage>.<trigger>.<outcome>` counters are ever
+  reported by the adapter for a value the target did not itself report in
+  that shape — the whole point of this ticket's design is to avoid that trap
+  (see Context), not relocate it.
+- `durability.perturb()`'s rule against reaching past an adapter to *write*
+  a target's storage is respected: any new perturbation goes through the
+  adapter's own `perturb()`/target verbs, never a harness-side sqlite write.
+  Reading the sqlite file directly (as `_index()`/`_stamp()` already do) is
+  fine; writing to it to manufacture "work" is not.
+
+## Exit criteria
+- [ ] both `R22-pause-stops-background-work` and
+      `R22-pause-holds-across-restart` report PASS or FAIL (not `not-run`)
+      for zoteus, each resting on a real run with a positive control
+- [ ] 0613's own exit criteria for gap C can be checked against this ticket's
+      artifact

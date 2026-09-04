@@ -190,8 +190,11 @@ from that merged dict.
 With the sudoers line in place, a second blocker appeared that was code, not
 machine: the account switch fired from inside the tracer and the rootless
 namespace, where `sudo` is refused (`/etc/sudo.conf is owned by uid 65534`).
-Ticket 0637 moved the switch outermost; the pair in the table above is the
-first run after it.
+A separate session hit this same composition bug independently within
+minutes and filed it as ticket 0633 (diagnosis only); this ticket's own
+filing is 0637, which carries the fix and moved the switch outermost — the
+pair in the table above is the first run after it. 0633 is closed as
+duplicate-resolved.
 
 **What the arm changed about the finding: less than it looks.** The attribution
 above rests on a measurement that was made here, with a null arm and a

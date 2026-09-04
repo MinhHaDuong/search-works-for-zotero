@@ -265,6 +265,31 @@ class Zoteus:
         self.arena = Path(arena)
         self.entrypoint = Path(entrypoint)
         self.data_dir = self.arena / "data"
+        #: `HOME` and `TMPDIR` for the spawned process. Sibling adapters
+        #: (`beaver.py`, `zotero_core_6012.py`, `zotero_mcp.py`, `zotseek.py`)
+        #: all redirect `HOME` into an arena-scoped directory before spawning;
+        #: this target was the one adapter of the five that did not (ticket
+        #: 0635). `HOME` has a real source hit here, not just the sibling
+        #: convention: `defaultZoteroDataDir()` in the reviewed checkout's
+        #: `src/lib/paths.ts` falls back to `homedir() + "/Zotero"` whenever
+        #: `zotero_data_dir` is not supplied (its env var, `ZOTERO_DATA_DIR`,
+        #: is set below only when `self.zotero_data_dir` is truthy) — an
+        #: unredirected `HOME` there resolves to the operator's own home
+        #: directory, entirely outside `self.arena` and invisible to the
+        #: residue sweep (`Snapshot.of(arena)` in `assertions.py` never looks
+        #: outside it). `TMPDIR` has no equivalent hit in `fork/src/` or in
+        #: this target's six runtime npm dependencies (checked: none of
+        #: `@modelcontextprotocol/sdk`, `citeproc`, `cors`, `express`,
+        #: `express-rate-limit`, `zod` call `os.tmpdir()`) — it is redirected
+        #: defensively, the way the ticket's own reasoning asks for: Node,
+        #: npm, and any native addon a dependency pulls in commonly consult
+        #: `TMPDIR`, and a standalone `@huggingface/transformers` install
+        #: reached through `ZOTEUS_TRANSFORMERS_PATH` (never a direct
+        #: dependency of `fork/`, per this project's own live-smoke-recipe
+        #: memory) is exactly the kind of dependency whose temp-file
+        #: behaviour is unaudited from this repo's side.
+        self.home = self.arena / "home"
+        self.tmp = self.arena / "tmp"
         self.transformers_path = transformers_path
         self.zotero_data_dir = zotero_data_dir
         self.seed_index = Path(seed_index) if seed_index else None
@@ -316,6 +341,24 @@ class Zoteus:
             "ZOTEUS_INDEX_AUTO_REFRESH": "false",
             "ZOTEUS_INDEX_FULLTEXT": "1",
             "ZOTEUS_READ_ONLY": "true",
+            # `running()` merges this dict over the full operator `os.environ`
+            # with no delete, so an omitted key is not "unset" — it is
+            # whatever the operator's shell has. `HOME` and `TMPDIR` are
+            # redirected into arena-scoped directories (see `__init__` for
+            # why each is warranted); the `XDG_*` roots are blanked, mirroring
+            # `zotero_mcp.py`'s treatment of `XDG_CACHE_HOME`, so any fallback
+            # that consults them resolves under the now-redirected `HOME`
+            # rather than passing an ambient operator override through.
+            # `XDG_DATA_HOME` has a direct source hit — `defaultDataDir()` in
+            # the reviewed checkout falls back to it — though it is not
+            # load-bearing for this adapter today, since `ZOTEUS_DATA_DIR`
+            # above is always set and checked first.
+            "HOME": str(self.home),
+            "TMPDIR": str(self.tmp),
+            "XDG_CACHE_HOME": "",
+            "XDG_CONFIG_HOME": "",
+            "XDG_DATA_HOME": "",
+            "XDG_STATE_HOME": "",
         }
         if self.transformers_path:
             env["ZOTEUS_TRANSFORMERS_PATH"] = self.transformers_path
@@ -359,6 +402,8 @@ class Zoteus:
     @contextmanager
     def running(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.home.mkdir(parents=True, exist_ok=True)
+        self.tmp.mkdir(parents=True, exist_ok=True)
         self._seed()
         cmd = ["node", str(self.entrypoint)]
         env = self._env()
