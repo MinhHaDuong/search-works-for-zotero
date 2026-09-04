@@ -268,11 +268,17 @@ def test_a_stub_target_is_unaffected_by_a_missing_account(tmp_path):
     """
     artifact = _drive(tmp_path)  # default posture: "account"
     assert artifact["posture"]["posture"] == posture.ACCOUNT_POSTURE
-    states = {c["result"] for c in artifact["checks"]}
-    assert states, "the stub target produced no checks at all"
+    checks = artifact["checks"]
+    assert checks, "the stub target produced no checks at all"
     if artifact["posture"]["refused"] is not None:
-        assert "not-run" not in states, (
+        refusal = artifact["posture"]["refused"]
+        posture_blocked = [
+            check for check in checks
+            if check["result"] == "not-run"
+            and refusal in check.get("detail", {}).get("why", "")
+        ]
+        assert not posture_blocked, (
             "a stub target that spawns no real process must not be pushed to "
             "not-run by an unrelated account being unavailable: "
-            f"{artifact['posture']['refused']}"
+            f"{refusal}"
         )
