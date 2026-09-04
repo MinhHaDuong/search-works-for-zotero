@@ -246,21 +246,8 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
                        "the isolated control did not trip both detectors, so an attempt "
                        "made under isolation would not be seen; this clause is not decided")
 
-    # This is the one place holding both the chosen mechanism and the `--drive`
-    # argv, so it is where the two meet: under a mechanism that remaps identity,
-    # the child cannot check `--spawned-under` against its own `USER` and is told
-    # so (ticket 0638; `posture.inherited`). Only when `--spawned-under` is
-    # actually present — `already-isolated` never adds it (`run.py`), and the
-    # qualifier flag needs it or `run.py`'s own guard refuses the argv outright.
-    # A copy, never in place — the caller reuses its list.
-    driven_argv = (
-        [*drive_argv, "--spawned-under-unverifiable"]
-        if mechanism.remaps_uid and "--spawned-under" in drive_argv
-        else drive_argv
-    )
-
     subject = run_traced(
-        driven_argv,
+        drive_argv,
         mechanism=mechanism,
         network_shared=False,
         log_dir=log_dir,

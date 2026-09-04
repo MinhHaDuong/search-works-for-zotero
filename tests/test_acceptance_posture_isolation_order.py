@@ -282,34 +282,26 @@ def test_inherited_accepts_the_claim_the_environment_corroborates(monkeypatch):
     assert granted.wrap(["node"], {"X": "1"}) == ["node"]
 
 
-def test_the_check_is_skipped_where_identity_reads_are_untrustworthy(monkeypatch):
-    """Inside a rootless user namespace the invoking uid reads as 0 and the
-    identity-bound names cannot be taken at face value, so under a mechanism
-    that remaps them the check is not merely satisfied -- it does not run.
-    `verify=False` is the only thing that turns it off, and only
-    `check_no_egress` sets it, from `mechanism.remaps_uid`."""
+def test_check_still_applies_under_the_uid_remapping_mechanism(monkeypatch):
+    """`getuid()` reads 0 inside `podman-unshare`'s rootless user namespace, but
+    `USER` is plain `execve` environment inheritance -- orthogonal to
+    namespacing, and unaffected by it. Measured live on this project's own
+    reference machine (ticket 0638, red-team finding): `podman unshare
+    unshare -n -- env` still reports `USER=tester`. So this check needs no
+    mechanism-aware skip; the refusal/acceptance pair above already covers
+    every mechanism there is."""
     monkeypatch.setenv("USER", "operator")
-    waived = posture.inherited("tester", verify=False)
-    assert waived.account == "tester" and waived.refused is None
-    assert waived.wrap(["node"], {"X": "1"}) == ["node"]
+    refused = posture.inherited("tester")
+    assert refused.refused is not None
+    with pytest.raises(posture.PostureUnavailable):
+        refused.wrap(["node"], {"X": "1"})
 
 
-def test_only_the_uid_remapping_mechanism_declares_its_identity_reads_untrustworthy():
-    """The flag that decides the skip above rides on the mechanism, so a
-    mechanism added later gets the check by default rather than silently
-    inheriting an exemption written for `podman-unshare`."""
-    by_name = {m.name: m for m in sandbox.MECHANISMS}
-    assert by_name["podman-unshare"].remaps_uid is True
-    assert by_name["bwrap"].remaps_uid is False
-    assert sandbox.Mechanism(name="x", note="y").remaps_uid is False
-
-
-def test_egress_check_marks_the_claim_unverifiable_only_under_a_remapping_mechanism(
-    monkeypatch, tmp_path
-):
-    """`check_no_egress` is the one place holding both the mechanism and the
-    `--drive` argv, so it is where the two meet. It must append the flag to a
-    copy: the caller's list is reused across arms."""
+def test_egress_check_hands_drive_argv_through_unmodified(monkeypatch, tmp_path):
+    """`check_no_egress` holds the chosen mechanism but must not use it to vary
+    what it hands the `--drive` subprocess -- `posture.inherited`'s own check
+    already covers every mechanism, so there is nothing here for the egress
+    check to augment or skip on the child's behalf."""
     seen: dict[str, list[str]] = {}
 
     def fake_run_traced(argv, *, mechanism, network_shared, log_dir, tag, **kwargs):
@@ -319,7 +311,7 @@ def test_egress_check_marks_the_claim_unverifiable_only_under_a_remapping_mechan
         return make(argv, mechanism, network_shared)
 
     monkeypatch.setattr(assertions, "run_traced", fake_run_traced)
-    for mechanism, expected in ((sandbox.PodmanUnshare(), True), (sandbox.Bubblewrap(), False)):
+    for mechanism in (sandbox.PodmanUnshare(), sandbox.Bubblewrap()):
         monkeypatch.setattr(assertions, "choose", lambda m=mechanism: (m, None))
         arena = tmp_path / mechanism.name
         arena.mkdir(parents=True, exist_ok=True)
@@ -327,38 +319,7 @@ def test_egress_check_marks_the_claim_unverifiable_only_under_a_remapping_mechan
         assertions.check_no_egress(
             stubs.build("stub-quiet", arena), arena=arena, log_dir=tmp_path / "log",
             drive_argv=handed, under=None)
-        assert ("--spawned-under-unverifiable" in seen["subject"]) is expected
-        assert "--spawned-under-unverifiable" not in handed
-
-
-def test_egress_check_does_not_qualify_an_argv_that_never_carried_spawned_under(
-    monkeypatch, tmp_path
-):
-    """`--posture already-isolated` builds `drive_argv` with no `--spawned-under`
-    at all (`run.py`), independent of which mechanism the machine resolves to.
-    A `remaps_uid` mechanism alone must not be enough to append the qualifier
-    flag: `run.py`'s own guard refuses `--spawned-under-unverifiable` without
-    a paired `--spawned-under`, so appending it unconditionally would turn an
-    ordinary already-isolated run under `podman-unshare` into a hard argparse
-    failure instead of the check it was meant to run."""
-    seen: dict[str, list[str]] = {}
-
-    def fake_run_traced(argv, *, mechanism, network_shared, log_dir, tag, **kwargs):
-        if tag == "subject":
-            seen["subject"] = list(argv)
-        make = _tripping if tag.startswith("control") else _quiet
-        return make(argv, mechanism, network_shared)
-
-    monkeypatch.setattr(assertions, "run_traced", fake_run_traced)
-    monkeypatch.setattr(assertions, "choose", lambda: (sandbox.PodmanUnshare(), None))
-    arena = tmp_path / "already-isolated"
-    arena.mkdir(parents=True, exist_ok=True)
-    handed = ["python3", "run.py", "--drive"]
-    assertions.check_no_egress(
-        stubs.build("stub-quiet", arena), arena=arena, log_dir=tmp_path / "log",
-        drive_argv=handed, under=None)
-    assert "--spawned-under-unverifiable" not in seen["subject"]
-    assert seen["subject"] == handed
+        assert seen["subject"] == handed
 
 
 def test_spawned_under_is_refused_outside_drive_mode(monkeypatch, tmp_path):

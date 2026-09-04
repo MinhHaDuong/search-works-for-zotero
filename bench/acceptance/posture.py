@@ -272,7 +272,7 @@ def forwardable(env) -> dict[str, str]:
     return {name: value for name, value in dict(env).items() if name not in IDENTITY_BOUND}
 
 
-def inherited(account: str, *, verify: bool = True) -> Posture:
+def inherited(account: str) -> Posture:
     """The posture of a process the outer driver has already placed under `account`.
 
     Handed to a `--drive` process via `--spawned-under` (`run.py`), never
@@ -287,39 +287,29 @@ def inherited(account: str, *, verify: bool = True) -> Posture:
     writes the account's own value there and a switch that genuinely happened
     reads `tester`; an operator hand-typing `--spawned-under` reads their own
     name instead, and that is the case this refuses. No uid check: `getuid()`
-    is the read that does not survive the namespace.
+    is the read that does not survive the namespace — but this checks `USER`,
+    not uid, and `USER` does. Measured live on this project's own reference
+    machine (ticket 0638): `podman unshare unshare -n -- env` still reports
+    `USER=tester` under the rootless user namespace that makes `getuid()` read
+    0 there. `unshare`/`podman unshare` remap the process's uid, mount, and
+    network namespaces; they never touch `envp` — environment survives plain
+    `execve` inheritance, orthogonal to namespacing. So this check applies
+    unconditionally, under every `Mechanism` `sandbox.py` knows about today:
+    the module's "verify, don't trust" discipline (`_works`) applied to the
+    one case it previously exempted itself from without measuring it.
 
-    `verify=False` turns the check off, and exactly one caller sets it —
-    `assertions.check_no_egress`, from `mechanism.remaps_uid`, true today only
-    for `podman-unshare`. Inside its rootless user namespace the invoking uid
-    reads as 0 and the identity-bound names are a remapped view rather than
-    evidence, so a check there would refuse a genuine switch. `Bubblewrap`
-    remaps no identity (it unshares no user namespace), and a direct or
-    mechanism-less call has no remapping around it at all, so both keep the
-    check: this is the module's "verify, don't trust" discipline (`_works`)
-    applied wherever it can still tell the two cases apart.
-
-    "Exactly one caller" describes the harness, not a guarantee: like
-    `--spawned-under` itself, `--spawned-under-unverifiable` is an ordinary
-    argparse flag an operator can type. That buys an attacker nothing they did
-    not already have, which is why it is left as it is — anyone who can hand-type
-    the `--drive` re-invocation can also export `USER=tester` in their own shell
-    first and defeat the check with no waiver at all. This closes the gap where
-    a claim is trusted BY SHAPE on the paths the harness itself drives; the
-    ticket's Context accepts the deliberate hand-typed workaround as the
-    operator working around their own invariant on purpose.
+    Refused, not raised, and that is the shape `resolve()` uses for the same
+    reason: this runs at argparse time, before `record()` — the one place in
+    the driver that turns a raise into a verdict — so raising here would exit
+    the `--drive` child with a traceback and land as a red the artifact cannot
+    explain. A refused posture instead reaches the spawn, where `wrap` raises
+    inside `record` and the artifact says `not-run` carrying the sentence
+    naming both the claimed account and what `USER` actually read. Fail-closed
+    either way: `wrap` tests `refused` before every other branch, so nothing
+    spawns unwrapped on this path.
     """
     actual = os.environ.get("USER")
-    if verify and actual != account:
-        # Refused, not raised, and that is the shape `resolve()` uses for the
-        # same reason: this runs at argparse time, before `record()` — the one
-        # place in the driver that turns a raise into a verdict — so raising
-        # here would exit the `--drive` child with a traceback and land as a
-        # red the artifact cannot explain. A refused posture instead reaches
-        # the spawn, where `wrap` raises inside `record` and the artifact says
-        # `not-run` carrying this sentence. Fail-closed either way: `wrap`
-        # tests `refused` before every other branch, so nothing spawns
-        # unwrapped on this path.
+    if actual != account:
         return Posture(ACCOUNT_POSTURE, account=account, inherited=True, refused=(
             f"--spawned-under claims this process runs as {account!r}, but USER reads "
             f"{actual!r}; the account switch this claim describes did not happen here"
