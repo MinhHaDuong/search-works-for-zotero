@@ -76,7 +76,8 @@ the shipped raw transformers.js id as an explicitly unvalidated escape hatch;
 an identity-only refactor must not bill an unchanged vector space for a
 re-embed. He would take the stage-4 first-use runtime compatibility fixture
 first, more or less in the form already implemented on the fork. Ticket 0669
-owns that upstream adaptation and is deferred under the September 21 focus;
+owns that upstream adaptation and is deferred in this repository under the
+September 21 focus acknowledged on issue #43;
 closed tickets 0492 and 0493 retain what the fork actually implemented.
 
 Updated 2026-09-04 — **issue #54 was taken and shipped by the maintainer in

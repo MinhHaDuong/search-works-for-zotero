@@ -63,5 +63,5 @@ where their effective vector computation differs from the legacy path.
 ## Relationship
 
 Master: 0488. Historical implementation: 0492 and 0493. This follow-up is
-deferred under the September 21 focus recorded in `STATE.md`; it is not in the
-ready queue until that direction changes.
+deferred under the September 21 focus acknowledged on upstream issue #43; it
+is not in the ready queue until that direction changes.
