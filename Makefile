@@ -52,7 +52,14 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #   # grant exactly like the library does, all the way down from $HOME to the
 #   # binary each --adapter-option names.
 #
-#   sudo install -d -o tester -g tester "$(ACCEPTANCE_ARENA)"
+#   # The arena is OPERATOR-owned with a default ACL for tester, not tester-
+#   # owned: the outer driver (running as the operator) creates a directory
+#   # per assertion under it, and under the account posture the target — and,
+#   # on R10's egress arm, the tracer too (ticket 0637) — then writes inside
+#   # those as tester. A tester-owned arena (an earlier form of this line)
+#   # stops the operator's mkdir instead. Verified on padme, 2026-09-04:
+#   install -d "$(ACCEPTANCE_ARENA)"
+#   setfacl -m u:tester:rwx -m d:u:tester:rwx "$(ACCEPTANCE_ARENA)"
 #
 #   # NOPASSWD so the operator can drive the harness unattended, and SETENV so
 #   # sudo forwards the named environment variables wrap() lists on

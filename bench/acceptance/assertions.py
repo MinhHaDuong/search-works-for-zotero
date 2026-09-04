@@ -178,7 +178,7 @@ def residue(created: frozenset[Path], target: Target) -> list[Path]:
 
 
 def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
-                    drive_argv: list[str]) -> Check:
+                    drive_argv: list[str], under=None) -> Check:
     """R10: nothing leaves this machine, and nothing tries to.
 
     Three arms, because two of them are what make the third readable.
@@ -196,6 +196,15 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
 
     Observing no egress on a machine that HAS a route asserts the default rather
     than the clause, which is why arm 3 never runs net-shared.
+
+    `under` is the identity switch the account posture needs around arm 3 and
+    ONLY arm 3 (`sandbox.run_traced`'s parameter of the same name; `run.py`
+    supplies it from the resolved posture). The two controls drive the
+    harness's own probe, which is the harness's own process and stays as the
+    operator like every other part of it; the subject arm re-invokes the driver
+    around a target, and that whole re-invocation crosses the account boundary
+    once, from outside the tracer — the switch cannot run from inside it
+    (ticket 0637; `posture.py`'s module docstring).
     """
     cid, req = "R10-no-egress", "R10"
     clause = ("without an explicit opt-in, library text and queries do not leave this "
@@ -244,6 +253,7 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
         log_dir=log_dir,
         tag="subject",
         writable=(arena, *target.declaration.derived_state_roots),
+        under=under,
     )
     counts = subject.counts()
     clean = counts["off_machine"] == 0 and counts["dns"] == 0
