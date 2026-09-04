@@ -258,11 +258,18 @@ def test_inherited_refuses_a_claim_the_environment_contradicts(monkeypatch):
     so `sudo` writes the account's own value and a genuine switch reads
     `tester`. An operator hand-typing the flag reads their own name, and this
     is where that stops -- the same "run a probe rather than trust a shape"
-    discipline `_works()` follows."""
+    discipline `_works()` follows.
+
+    Refused rather than raised, the shape `resolve()` uses: this is decided at
+    argparse time, before the driver's `record()` exists to turn a raise into a
+    verdict. And fail-closed -- the refusal reaches the spawn, where `wrap`
+    raises rather than returning an argv, so nothing runs unwrapped."""
     monkeypatch.setenv("USER", "operator")
-    with pytest.raises(posture.PostureUnavailable) as refusal:
-        posture.inherited("tester")
-    assert "tester" in str(refusal.value) and "operator" in str(refusal.value)
+    refused = posture.inherited("tester")
+    assert refused.refused is not None
+    assert "tester" in refused.refused and "operator" in refused.refused
+    with pytest.raises(posture.PostureUnavailable):
+        refused.wrap(["node"], {"X": "1"})
 
 
 def test_inherited_accepts_the_claim_the_environment_corroborates(monkeypatch):
@@ -270,7 +277,9 @@ def test_inherited_accepts_the_claim_the_environment_corroborates(monkeypatch):
     Without it the refusal test would pass against an `inherited()` that
     refused everything."""
     monkeypatch.setenv("USER", "tester")
-    assert posture.inherited("tester").account == "tester"
+    granted = posture.inherited("tester")
+    assert granted.account == "tester" and granted.refused is None
+    assert granted.wrap(["node"], {"X": "1"}) == ["node"]
 
 
 def test_the_check_is_skipped_where_identity_reads_are_untrustworthy(monkeypatch):
@@ -280,7 +289,9 @@ def test_the_check_is_skipped_where_identity_reads_are_untrustworthy(monkeypatch
     `verify=False` is the only thing that turns it off, and only
     `check_no_egress` sets it, from `mechanism.remaps_uid`."""
     monkeypatch.setenv("USER", "operator")
-    assert posture.inherited("tester", verify=False).account == "tester"
+    waived = posture.inherited("tester", verify=False)
+    assert waived.account == "tester" and waived.refused is None
+    assert waived.wrap(["node"], {"X": "1"}) == ["node"]
 
 
 def test_only_the_uid_remapping_mechanism_declares_its_identity_reads_untrustworthy():

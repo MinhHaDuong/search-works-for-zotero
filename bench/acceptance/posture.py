@@ -299,14 +299,21 @@ def inherited(account: str, *, verify: bool = True) -> Posture:
     check: this is the module's "verify, don't trust" discipline (`_works`)
     applied wherever it can still tell the two cases apart.
     """
-    if verify:
-        actual = os.environ.get("USER")
-        if actual != account:
-            raise PostureUnavailable(
-                f"--spawned-under claims this process runs as {account!r}, but USER "
-                f"reads {actual!r}; the account switch this claim describes did not "
-                "happen here"
-            )
+    actual = os.environ.get("USER")
+    if verify and actual != account:
+        # Refused, not raised, and that is the shape `resolve()` uses for the
+        # same reason: this runs at argparse time, before `record()` — the one
+        # place in the driver that turns a raise into a verdict — so raising
+        # here would exit the `--drive` child with a traceback and land as a
+        # red the artifact cannot explain. A refused posture instead reaches
+        # the spawn, where `wrap` raises inside `record` and the artifact says
+        # `not-run` carrying this sentence. Fail-closed either way: `wrap`
+        # tests `refused` before every other branch, so nothing spawns
+        # unwrapped on this path.
+        return Posture(ACCOUNT_POSTURE, account=account, inherited=True, refused=(
+            f"--spawned-under claims this process runs as {account!r}, but USER reads "
+            f"{actual!r}; the account switch this claim describes did not happen here"
+        ))
     return Posture(ACCOUNT_POSTURE, account=account, inherited=True)
 
 
