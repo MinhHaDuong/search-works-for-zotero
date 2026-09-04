@@ -8,6 +8,7 @@ Author: claude
 2026-09-03T16:55Z claude note IMAGINE+PLAN pass: drift guard passed (premise still holds), found a leading hypothesis for Action 3 (single getaddrinfo may explain all four dns hits), confirmed the env var needs no adapter code change to propagate — see Context for detail and evidence.
 2026-09-03T18:18Z claude note EXECUTED, hypothesis CONFIRMED, one arm blocked on machine configuration. fork/ built at UPSTREAM_REVIEWED_SHA b0e0bc8 (re-read from UPSTREAM, unmoved since the ticket was filed). Action 1: exactly one network-shaped call is reachable from server startup in the acceptance configuration -- src/lib/update-check.ts:93 (URL at :5), wired at src/server.ts:184-190, gated on ZOTEUS_UPDATE_CHECK (src/config.ts:237, :408). The cloud-key probe (src/router/capabilities.ts:40) is guarded by web.hasKey and the run logged cloud=none; the desktop probe (:55-56, three attempts) targets an IP literal; the transformers runtime left no residual. Action 3: the logged hypothesis holds and is now measured rather than inferred -- bench/probe_getaddrinfo_shape.py, six arms, gives one getaddrinfo = dns 4 isolated / dns 3 net-shared, against a null arm at 0/0 and a numeric-address connect at off_machine 1, dns 0. All four lookups are that one fetch(). Action 2 (the ZOTEUS_UPDATE_CHECK=false arm) did NOT run: every target-process assertion reports not-run because /etc/sudoers.d/acceptance-tester is absent on this machine, so 0625's posture correctly refuses to run a target as the operator. That gate landed at 16:15 today, after the v1130 artifact was taken at 15:44, which is why that run could decide a clause this one cannot. Needs one root-owned line; the remedy and the verbatim re-run command are in bench/results/0629-gap-a/README.md sect. 3. Action 5 done: 0613's log carries the finding.
 
+2026-09-04T05:34Z CONFIRMING ARM RE-RUN after /etc/sudoers.d/acceptance-tester was provisioned (2026-09-04): sudoers fix insufficient. posture._works('tester') succeeds standalone, but check_no_egress's subject arm still raises PostureUnavailable, because it composes the account-posture sudo wrap INSIDE the podman-unshare sandbox namespace, and sudo cannot establish itself inside any rootless user namespace (verified: podman unshare unshare -n sudo -n -u tester -- true -> sudo: /etc/sudo.conf is owned by uid 65534; exit 1). Both controls fire correctly in both new artifacts (bench/results/0629-gap-a/acceptance-zoteus-update-check-default-comparison.json, acceptance-zoteus-update-check-false.json); only the subject spawn cannot start, in EITHER config -- even the default-config run now reads R10-no-egress not-run rather than the v1130 matrix's fail, since v1130 predates 0625's posture gate. Filed ticket 0633 for the structural finding (out of gap A's scope). Source re-verification separately confirmed: fork/ rebuilt at UPSTREAM_REVIEWED_SHA b0e0bc8 (unmoved), update-check.ts:5/:93, config.ts:237/:408, server.ts:184-190 all match README.md's citations exactly; capabilities.ts desktop-probe loop is at :53 not :55-56 (2-line drift, non-load-bearing). Gap A's finding (one fetch(), all four lookups, no second cause) stands unchanged; the confirming arm's own zero still did not run, now for an environment reason rather than a missing-file reason.
 --- body ---
 ## Context
 
@@ -166,15 +167,29 @@ positive-control discipline exists to close).
 
 - [x] Four lookups named by file:line, read from a real built `fork/` at the
       reviewed SHA (not the provisional log-entry numbers)
-- [ ] A same-session default-config comparison run captured immediately
+- [x] A same-session default-config comparison run captured immediately
       before the `ZOTEUS_UPDATE_CHECK=false` run, both under identical
-      machine/build/posture — BLOCKED, see below
+      machine/build/posture — done 2026-09-04, both committed under
+      `bench/results/0629-gap-a/`; both still report `R10-no-egress` as
+      `not-run`, for a reason unrelated to same-session adjacency (see below).
 - [ ] `ZOTEUS_UPDATE_CHECK=false` arm run, artifact committed under
-      `bench/results/0629-gap-a/`, both controls firing in it — BLOCKED: both
-      arms report `not-run` on this machine, because `/etc/sudoers.d/`
-      `acceptance-tester` is absent and 0625's posture refuses to run a target
-      as the operator. One root-owned line fixes it; the remedy and the
-      verbatim re-run command are in `bench/results/0629-gap-a/README.md` § 3.
+      `bench/results/0629-gap-a/`, both controls firing in it — RUN, still
+      `not-run`, STILL BLOCKED but for a different, sharper reason than
+      before. The sudoers line landed 2026-09-04 and the account posture now
+      genuinely works stand-alone (`posture._works('tester')` returns
+      `True`, verified directly). But `check_no_egress`'s subject arm still
+      raises `PostureUnavailable`, because it runs the posture-wrapped spawn
+      *inside* the `podman-unshare` sandbox namespace, and `sudo` cannot
+      establish itself inside any rootless user namespace by construction
+      (verified directly: `podman unshare unshare -n sudo -n -u tester --
+      true` → `sudo: /etc/sudo.conf is owned by uid 65534, should be 0`,
+      exit 1). Both controls DO fire in both artifacts (`off_machine`/`dns`
+      counts present and match the shape `syscall-shape.json` already
+      established); it is only the subject spawn that cannot start. Full
+      diagnosis filed as ticket 0633 — a genuine gap in how the account
+      posture (0625) composes with the sandbox mechanism (this session's own
+      `sandbox.py`), not specific to gap A and out of this ticket's scope to
+      fix.
 - [x] Each lookup attributed, with evidence — including whether the "one
       `getaddrinfo` call looks like 4 resolver-port syscalls" hypothesis held
       (it held: measured, with a null arm and a discriminating control, in
