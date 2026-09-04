@@ -84,6 +84,45 @@ WATCHED = [
     "src/lib/update-check.ts",
 ]
 
+#: The same judgement as the comments above `WATCHED`, in a form a script can
+#: read: which requirement rows each watched path backs. Kept in sync by hand
+#: with those comments -- this is the same judgement stated twice, not a
+#: computation, and `test_watched_rows_agrees_with_the_watched_comments` is the
+#: guard against the two drifting apart silently.
+WATCHED_ROWS: dict[str, list[str]] = {
+    "src/features/": [
+        "R1", "R3", "R4", "R8", "R16", "R17", "R19", "R23", "R24", "R32", "R33", "R35",
+    ],
+    "src/tools/": ["R4", "R5", "R17", "R18", "R22"],
+    "src/config.ts": ["R7", "R8", "R10", "R15"],
+    "src/router/": ["R12"],
+    "src/lib/update-check.ts": ["R10"],
+}
+
+
+def affected_rows(touched: set[str]) -> tuple[list[str], list[str]]:
+    """Split every row `WATCHED_ROWS` names into affected and untouched, given
+    the subset of `WATCHED` a span actually changed.
+
+    Pure on purpose, unlike the git-calling half that decides `touched` (see
+    `touched_watched_paths`): the split itself is a set operation and a test
+    can hold it without a mirror. A row backed by more than one path is
+    affected if ANY of them moved -- a row's premise can rest on either.
+    """
+    affected = {row for path in touched for row in WATCHED_ROWS.get(path, [])}
+    every_row = {row for rows in WATCHED_ROWS.values() for row in rows}
+    key = lambda row: int(row[1:])  # noqa: E731
+    return sorted(affected, key=key), sorted(every_row - affected, key=key)
+
+
+def touched_watched_paths(span: str) -> set[str]:
+    """Which entries of `WATCHED` actually changed over `span`."""
+    return {
+        path
+        for path in WATCHED
+        if git("diff", "--shortstat", span, "--", path, cwd=MIRROR).strip()
+    }
+
 #: The two facts that break this repo's own drivers without breaking upstream:
 #: the index schema's version, and the shape of the table the drivers open.
 #: Ticket 0100 exists because a driver was pinned to a schema that had moved.
@@ -173,6 +212,87 @@ def schema_at(rev: str) -> tuple[str | None, str | None]:
     )
 
 
+#: `file.ext:123` or `file.ext:123-456`, the citation form SPEC.md uses to stamp
+#: a premise to a source line. `.js` is here for Zotero-core citations (the
+#: platform this repo also cites, via #6012) even though `WATCHED` and the
+#: mirror below only ever resolve the zoteus ones -- see `citation_drift`.
+CITATION = re.compile(r"`([A-Za-z0-9_.-]+\.(?:ts|tsx|mjs|js)):(\d+)(?:-(\d+))?`")
+
+
+def citations_in(text: str) -> list[tuple[str, int, int]]:
+    """Every citation `text` makes, deduplicated, as `(basename, start, end)`.
+
+    Pure parsing, unlike `citation_drift` below which resolves each one against
+    the mirror -- kept separate so the regex has a test that needs no network.
+    """
+    seen: dict[tuple[str, int, int], None] = {}
+    for name, start, end in CITATION.findall(text):
+        key = (name, int(start), int(end) if end else int(start))
+        seen[key] = None
+    return list(seen)
+
+
+def resolve_path(basename: str, rev: str) -> str | None:
+    """The repo-relative path `basename` names at `rev`, or `None`.
+
+    A citation names a bare filename because that reads naturally in a
+    sentence; `git show` needs the full path. `None` covers two different
+    facts a caller must not confuse: no file in the zoteus tree has this name
+    (likely a Zotero-core citation, out of this mirror's reach), or more than
+    one does, where guessing which one a citation meant would be worse than
+    saying so.
+    """
+    names = git("ls-tree", "-r", "--name-only", rev, cwd=MIRROR).splitlines()
+    matches = [n for n in names if n.rsplit("/", 1)[-1] == basename]
+    return matches[0] if len(matches) == 1 else None
+
+
+def cited_lines(rev: str, path: str, start: int, end: int) -> str | None:
+    """The exact text lines `start`..`end` hold at `rev`, or `None` if the file
+    or the line range does not exist there."""
+    try:
+        src = git("show", f"{rev}:{path}", cwd=MIRROR)
+    except RuntimeError:
+        return None
+    lines = src.splitlines()
+    if start < 1 or end > len(lines):
+        return None
+    return "\n".join(lines[start - 1 : end])
+
+
+def citation_drift(base: str, head: str) -> list[tuple[str, int, int, str]]:
+    """Every SPEC.md citation, and whether the lines it names still read what
+    they read at `base`.
+
+    A `file:line` citation is a promise that the mechanism it backs is at that
+    exact spot; nothing enforces it, so it silently rots the moment upstream
+    reflows the file around it -- the same failure class a stale README row is,
+    stamped to a line instead of a verdict. This does not fix a drifted
+    citation, and it does not try to relocate the text elsewhere in the file:
+    it names which of SPEC.md's citations a human still has to re-point, so a
+    re-baseline stops re-grepping all of them to find the few that moved.
+    """
+    spec = (REPO / "SPEC.md").read_text(encoding="utf-8")
+    results = []
+    for name, start, end in citations_in(spec):
+        path = resolve_path(name, head)
+        if path is None:
+            results.append(
+                (name, start, end, "unresolved — not a unique path in the zoteus "
+                                    "mirror (Zotero-core citation, or renamed)")
+            )
+            continue
+        was = cited_lines(base, path, start, end)
+        now = cited_lines(head, path, start, end)
+        if was is None:
+            results.append((name, start, end, f"unresolved — absent at the reviewed baseline ({path})"))
+        elif was == now:
+            results.append((name, start, end, "unchanged"))
+        else:
+            results.append((name, start, end, f"DRIFTED — {path} reads differently now"))
+    return results
+
+
 #: How many of the residue's files to name. Enough to recognise a release about
 #: the configuration surface; short enough that a docs pass stays one line.
 RESIDUE_NAMED = 6
@@ -214,6 +334,47 @@ def report_residue(outside: tuple[str, list[str]]) -> None:
         print(f"                 {path}")
 
 
+#: A bare filename with a source extension, the form a ticket log entry uses
+#: when it names a seam ("`sqlite-index.ts`", "`index-manager.ts:1745-1753`") --
+#: no line number required, unlike `CITATION`, because most ticket references
+#: don't carry one.
+FILE_REF = re.compile(r"\b([A-Za-z0-9_.-]+\.(?:ts|tsx|mjs|js))\b")
+
+
+def open_ticket_paths() -> dict[Path, set[str]]:
+    """Every open ticket, and the upstream file basenames its text names.
+
+    Open only (`tickets/*.erg`, not `tickets/closed/`): a closed ticket's file
+    references are history, and re-deriving history is not what a re-baseline
+    is for. The match is on basename, matching `FILE_REF` -- a ticket log entry
+    writes `sqlite-index.ts`, not `src/features/search/sqlite-index.ts`, and
+    the two name the same file.
+    """
+    out = {}
+    for path in sorted((REPO / "tickets").glob("*.erg")):
+        names = set(FILE_REF.findall(path.read_text(encoding="utf-8")))
+        if names:
+            out[path] = names
+    return out
+
+
+def tickets_to_rederive(touched_basenames: set[str]) -> dict[Path, set[str]]:
+    """Open tickets whose text names a file this span actually touched.
+
+    Pure given its input, unlike `open_ticket_paths` and the `git diff
+    --name-only` call that produces `touched_basenames` -- the split is a set
+    intersection per ticket, testable without a mirror or a tickets/ fixture.
+    A ticket naming a file the span never touched stays silent: printing it
+    would be the blanket cost `WATCHED` itself exists to avoid, applied to
+    `tickets/` instead of `README.md`.
+    """
+    return {
+        path: matched
+        for path, names in open_ticket_paths().items()
+        if (matched := names & touched_basenames)
+    }
+
+
 #: Everything a re-baseline has to touch beyond `UPSTREAM` itself, with why.
 #: Hand-maintained, and that is the honest form: it is a recipe, not a check. It
 #: exists because three re-baselines rediscovered the same list, twice from a
@@ -249,14 +410,19 @@ REBASELINE_TOUCHES = [
 ]
 
 
-def rebaseline(cfg: dict[str, str], head: str, head_ref: str) -> int:
+def rebaseline(cfg: dict[str, str], base: str, head: str, head_ref: str) -> int:
     """Print the `UPSTREAM` block a re-baseline would write, and the rest of the recipe.
 
     Every value here is read out of the mirror rather than typed, which is the
     half of a re-baseline that is mechanical. What follows it is a checklist,
     and it is labelled as one: nothing in this function verifies that a re-read
     happened, and a printed list that looked like a verdict would be worse than
-    no list at all.
+    no list at all. Three of its lines ARE narrowed mechanically -- README's
+    rows, SPEC's citations, and the ticket shortlist -- because those three are
+    computed from the same span everything else here is silent about, and
+    printing "every standing row" to someone this script could tell "these
+    seven, not those thirty" wastes exactly the read the narrowing exists to
+    save.
     """
     tag = released(head)
     contained = tag
@@ -294,10 +460,40 @@ def rebaseline(cfg: dict[str, str], head: str, head_ref: str) -> int:
             f"number."
         )
 
+    span = f"{base}..{head}"
+    touched = touched_watched_paths(span)
+    affected, unaffected = affected_rows(touched)
+    drift = citation_drift(base, head)
+    drifted = [c for c in drift if c[3].startswith("DRIFTED")]
+    unresolved = [c for c in drift if c[3].startswith("unresolved")]
+    all_changed = {
+        Path(p).name for p in git("diff", "--name-only", span, cwd=MIRROR).splitlines()
+    }
+    rederive = tickets_to_rederive(all_changed)
+
     print("\nWhat a re-baseline must touch besides UPSTREAM:\n")
     for path, why in REBASELINE_TOUCHES:
         print(f"  {path}")
         print(f"      {why}")
+        if path == "README.md":
+            if affected:
+                print(f"      likely affected by this span: {', '.join(affected)} — re-read these")
+            if unaffected:
+                print(f"      not touched by this span: {', '.join(unaffected)} — skip")
+        elif path == "SPEC.md":
+            print(f"      {len(drift) - len(drifted) - len(unresolved)}/{len(drift)} citations unchanged")
+            for name, start, end, verdict in drifted:
+                loc = f"{name}:{start}" if start == end else f"{name}:{start}-{end}"
+                print(f"      {loc} — {verdict}")
+            for name, start, end, verdict in unresolved:
+                loc = f"{name}:{start}" if start == end else f"{name}:{start}-{end}"
+                print(f"      {loc} — {verdict}")
+        elif path == "tickets/":
+            if rederive:
+                for tpath, matched in sorted(rederive.items()):
+                    print(f"      {tpath.name} — names {', '.join(sorted(matched))}")
+            else:
+                print("      no open ticket names a file this span touched")
 
     print(
         "\nThis is a recipe and not a verdict. Nothing here checks that a row was "
@@ -357,7 +553,7 @@ def main() -> int:
     print(f"upstream  {head[:7]}  {released(head) or '(untagged)'}  ({head_ref})")
 
     if args.rebaseline:
-        return rebaseline(cfg, head, head_ref)
+        return rebaseline(cfg, base, head, head_ref)
 
     if head == base:
         print("\nQUIET: the reviewed baseline is current. Nothing to catch up on.")
