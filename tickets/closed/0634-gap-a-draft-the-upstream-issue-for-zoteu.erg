@@ -2,11 +2,13 @@
 Title: Gap A: draft the upstream issue for zoteus's default-on update check
 Created: 2026-09-04
 Author: claude
+Closed: issue sent to oscardvs/zoteus#54 on author's explicit go-ahead, 2026-09-04
 
 --- log ---
 2026-09-04T05:31Z claude created
 
 2026-09-04T05:33Z Draft written at verification/ISSUE-DRAFT-0634.md, staged not sent (author's own per-action authorization required to file it). Form argued against GOVERNANCE.md: design-sized, issue not PR. Every file:line citation re-derived from a real fork/ built at the reviewed SHA b0e0bc8; one two-line drift from 0629's own citations found and named in the draft (capabilities.ts desktop-probe loop at :53, not :55-56 -- non-load-bearing, same three attempts against an IP literal). No GitHub issue opened.
+2026-09-04T06:16Z MinhHaDuong closed — issue sent to oscardvs/zoteus#54 on author's explicit go-ahead, 2026-09-04
 --- body ---
 
 ## Context
@@ -71,8 +73,10 @@ draft says is there? Verified during Action 2 above (see the ticket log).
 - [x] Form (issue vs PR) argued against `GOVERNANCE.md`, not asserted
 - [x] A concrete, non-demanding ask stated (two shapes, a stated preference,
       an offer to send a PR for either)
-- [ ] Sent — deliberately not done here; the author sends it on his own
-      authorization
+- [x] Sent — 2026-09-04, on the author's explicit go-ahead, as
+      [oscardvs/zoteus#54](https://github.com/oscardvs/zoteus/issues/54),
+      verbatim from the staged draft (title, body extracted from
+      `## Body` down, preamble excluded)
 
 ## Invariants
 
