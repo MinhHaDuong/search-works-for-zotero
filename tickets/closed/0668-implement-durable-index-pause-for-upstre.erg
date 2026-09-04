@@ -1,0 +1,29 @@
+%erg 0.1
+Title: Implement durable index pause for upstream issue 56
+Created: 2026-09-04
+Author: Codex
+Closed: PR #57 open and ready at 973adbb; exact-head panel approvals and all gates green; not merged
+
+--- log ---
+2026-09-04T12:38Z Codex created
+
+2026-09-04T12:40Z Codex note phase 1 read v1.14.0 at 7a5622f; focused baseline 58/58, typecheck and lint green
+2026-09-04T12:40Z Codex note phase 2 opened draft oscardvs/zoteus#57 at 2261dca; full gate 1113 passed, 7 skipped; typecheck lint build diff-check green
+2026-09-04T13:03Z Codex note phase 3 PR #57 ready at 973adbb; 1 121 passed, 7 skipped; Node 20/22 CI green; API, persistence, and lifecycle panels APPROVED exact head
+2026-09-04T13:03Z Minh Ha-Duong closed — PR #57 open and ready at 973adbb; exact-head panel approvals and all gates green; not merged
+--- body ---
+## Context
+
+Oscar accepted and deferred issue #56, then explicitly offered to take option 1 as a PR.
+Implement it on upstream v1.14.0: a persisted paused flag, not a second build verb. The
+existing `stop` remains a one-shot cancellation; `pause` sets the durable hold and
+`resume` clears it without starting work.
+
+## Exit criteria
+
+- [x] Branch starts from current upstream `main` and the intervening release is read.
+- [x] Pause persists through both SQLite and legacy JSON stores, including when idle.
+- [x] Build, refresh, update, and semantic search auto-build create no work while paused.
+- [x] Existing queries remain usable, and resume clears the hold without starting work.
+- [x] Full upstream test suite, typecheck, lint, build, and diff check pass.
+- [x] A PR is opened against `oscardvs/zoteus`, then panel-reviewed on the PR page.
