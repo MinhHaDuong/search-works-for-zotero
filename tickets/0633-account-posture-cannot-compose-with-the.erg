@@ -1,0 +1,141 @@
+%erg 0.1
+Title: Account posture cannot compose with the podman-unshare sandbox fallback
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T05:31Z claude created
+
+2026-09-04T05:33Z Filed while running 0629's Action 2 confirming arm after /etc/sudoers.d/acceptance-tester was provisioned today: the sudoers fix did not unblock R10-no-egress. Reproduced the exact composed failure directly (podman unshare unshare -n sudo -n -u tester -- true -> sudo: /etc/sudo.conf is owned by uid 65534, should be 0; exit 1). Diagnosis, not yet fixed here -- out of gap A's own scope (0629's invariants: this arm never overrides R10-no-egress's graded verdict, and deciding/filing upstream form is 0613's Action 3, not this). Left open for Actions 1-3.
+--- body ---
+
+## Context
+
+Ticket-ref: tickets/0613, tickets/0629, tickets/0625. Found while running
+0629's Action 2 (`ZOTEUS_UPDATE_CHECK=false`, the confirming arm for gap A) on
+this machine, after `/etc/sudoers.d/acceptance-tester` was provisioned
+today (2026-09-04), which was the one thing 0629's README named as blocking
+that arm.
+
+**The sudoers fix did not unblock it.** `R10-no-egress` still reports
+`not-run`, for a different, sharper reason than before: `posture._works
+('tester')` called directly from this shell returns `True` — the account
+posture itself is fine — but `check_no_egress`'s subject arm still raises
+`PostureUnavailable` from inside its `podman-unshare` sandbox. Confirmed by
+running the exact composed invocation directly:
+
+```
+$ podman unshare unshare -n sudo -n -u tester -- true
+sudo: /etc/sudo.conf is owned by uid 65534, should be 0
+sudo: ouverture de /etc/sudoers impossible: Permission non accordée
+sudo: error initializing audit plugin sudoers_audit
+$ echo $?
+1
+```
+
+(Same result with `podman unshare sudo -n -u tester -- true`, i.e. the
+net-shared control arm — the failure is not specific to `--unshare-net`.)
+
+**Why, precisely.** `podman unshare` enters a rootless user namespace in
+which the invoking user maps to uid 0 *inside the namespace only* — real host
+root does not map into it (`sandbox.py`'s own `PodmanUnshare` docstring
+already says as much: "the invoking user maps to uid 0 and host uids are
+shifted"). A file really owned by host root — `/etc/sudo.conf`, `/etc/
+sudoers` — is therefore seen from inside the namespace as owned by the
+overflow uid (65534, "nobody"), not uid 0. `sudo` is a setuid-root binary
+that refuses to run unless it and its config are genuinely root-owned, so it
+cannot function inside *any* rootless user namespace, on any machine, as a
+property of how unprivileged user namespaces work — not a sudoers
+misconfiguration and not fixable by a sudoers line. `bwrap` (the mechanism
+`sandbox.choose()` prefers) has the same rootless-namespace nature and would
+hit the same wall, but it never gets that far on this machine — it already
+fails to start (`bwrap: loopback: Failed RTM_NEWADDR: Operation not
+permitted`, recorded in ticket 0629 / `bench/results/0629-gap-a/README.md`
+§2), which is why `podman-unshare` is the fallback in play here at all.
+
+**Scope of the consequence.** `check_no_egress` (`bench/acceptance/
+assertions.py`) composes the two isolation layers ticket 0625 and this
+session's own sandboxing both added: `posture.wrap()` (account posture,
+sudo-based) wraps the argv that then runs *inside* `sandbox.py`'s namespace
+mechanism, not outside it. Wherever the chosen mechanism is a rootless user
+namespace (`PodmanUnshare`, and `Bubblewrap` if it ever does start
+rootless), the composition is unsatisfiable by construction: the account
+posture can never establish itself in there, so `R10-no-egress`'s subject
+arm can never leave `not-run` under `--posture account`, regardless of
+sudoers configuration. Measured today: even the **default-configuration**
+run (`ZOTEUS_UPDATE_CHECK` unset, same subject as the 0604 matrix's `FAIL`)
+now reports `R10-no-egress` as `not-run` rather than the `fail` the matrix
+recorded on 2026-09-03 — the matrix's `acceptance-zoteus-v1130.json` run
+predates ticket 0625's account-posture gate entirely (its commit `d3b299c`
+is 15:44, the posture commit `f89a2bc` is 16:15 the same day), so nothing
+before today exercised this composition.
+
+Whether this reproduces on the machine `bwrap` actually starts on (where
+`sandbox.choose()` would pick `Bubblewrap` first, itself rootless in the same
+way) is not established here — this ticket's evidence is all from the one
+machine where `podman-unshare` is the fallback in use.
+
+## Relevant files
+
+- `bench/acceptance/posture.py` — `Posture.wrap()` builds the `sudo -n -u
+  tester …` prefix; nothing here is wrong, `_works()` genuinely succeeds
+  standalone.
+- `bench/acceptance/sandbox.py` — `PodmanUnshare.isolated`/`.shared`
+  (~line 227) build the `podman unshare [unshare -n]` prefix that the
+  posture-wrapped argv then runs inside.
+- `bench/acceptance/assertions.py` — `check_no_egress` (~line 180) is where
+  the two wraps compose: the argv order determines that posture is *inside*
+  the namespace, not outside it.
+
+## Actions
+
+1. Decide, and argue, which composition order the two boundaries should
+   have — posture-outside-sandbox (spawn under `tester` first, then the
+   no-route namespace, so `sudo` runs as the operator and never crosses a
+   rootless user-namespace boundary) is one candidate; it changes who the
+   namespace itself belongs to and needs checking against DECISIONS.md's
+   ruling that no *target* process runs as the operator (the reorder must
+   not let the target itself execute outside the account boundary while
+   only the namespace wrapper does).
+2. If reordering does not resolve it (e.g. `sudo` also refuses across a
+   *shared* mount namespace for some other reason not yet measured), find
+   whether a namespace mechanism exists that does not itself require
+   rootless-user-namespace entry, or document the composition as
+   structurally unautomatable under `--posture account` and let
+   `already-isolated` be the documented answer for a nested-sandbox
+   environment such as this one.
+3. Either way, `check_no_egress`'s `why` message ("a verb raised inside the
+   driven run…") should distinguish this cause from an actually-missing or
+   misconfigured sudoers rule — today both report the same generic
+   `PostureUnavailable` text, which is what made this look like the
+   already-diagnosed 0629 blocker until traced by hand.
+
+## Test
+
+Red step: the reproduction command above (`podman unshare unshare -n sudo -n
+-u tester -- true`, exit 1) is already red on the current code — this is a
+diagnostic ticket, not yet a fix, so there is no code change to make green
+against it yet. Whatever Action 1/2 lands should make that exact command (or
+its replacement composition) exit 0, and `R10-no-egress` should stop
+reporting `not-run` for this reason on this machine.
+
+## Invariants
+
+- No target process runs as the operator (DECISIONS.md, 2026-09-03) — any
+  reordering must preserve this, not merely move the failure.
+- `R10-no-egress`'s graded verdict for the *default* configuration is
+  unaffected by this ticket; it already reads `not-run` here today and
+  nothing in gap A's own tickets changes that verdict — only whether it can
+  ever be exercised again from this kind of environment.
+
+## Exit criteria
+
+- [ ] The composition order (or its documented impossibility) is decided and
+      argued against DECISIONS.md's account-posture ruling.
+- [ ] `R10-no-egress` can be graded (pass or fail, not `not-run` for this
+      reason) on at least one machine where the sandbox mechanism is a
+      rootless user namespace and the account posture is configured.
+- [ ] The `not-run` reason text distinguishes "posture unavailable because
+      nested inside a rootless namespace" from "posture unavailable because
+      the account/sudoers rule is missing".
+
