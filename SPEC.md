@@ -1,6 +1,6 @@
 # SPEC — search-works-for-zotero
 
-- **Status:** DRAFT
+- **Status:** COMPLETE
 - **Author:** Minh Ha-Duong (CNRS)
 - **Date:** 2026-09-04
 
@@ -14,14 +14,14 @@ homes; zoteus, an MCP server over the local library, is the vehicle the
 design is currently stated against and measured on.
 
 §2 defines the vocabulary the rest of this document uses. §3 states what any
-implementation promises its users, one testable requirement per row (R1 to R35).
+implementation promises its users, one testable requirement per row (R1 to R36).
 §4 states what the world — Zotero, the upstream project, the user's machine —
 imposes on any design that would keep those promises (C1 to C3). §5 is the
 design that answers both. §6 is where it can leak.
 
 Rulings are ratified in `DECISIONS.md` first, and this document is edited to
-match. Where each promise stands today, against the reviewed upstream
-baseline, is `README.md`'s.
+match. Implementation evidence belongs to `verification/` and the tickets;
+`README.md` tracks the three public deliverables rather than each promise.
 
 ## 2. Terminology
 
@@ -310,7 +310,7 @@ document relies on it.
 
 ### Intro
 
-This section lists the user requirements, numbered R1 to R35\* with gaps — a
+This section lists the user requirements, numbered R1 to R36\* with gaps — a
 retired number is never reused. Each is written as a testable property:
 something the test harness, or a careful reader, can check. A "stage" below
 is one step of the indexing pipeline: record, extract, chunk, embed.
@@ -577,6 +577,18 @@ The default build and query path make zero external calls. The one-time
 model-weight download is the sole exception, and it is named rather than
 discovered: an exception a user has to find out about is not an exception, it is
 a surprise.
+
+**R36. Free.** The default path MUST require no paid service, subscription,
+API account, or usage-based charge.
+
+The default installation MUST build and query the fixture with no paid account,
+credential, or metered provider configured. Its one declared model acquisition
+MAY use the network; after that acquisition the working path MUST succeed with
+all other external traffic blocked and its effective providers local. This is
+not R10 restated: a local runtime can still be paywalled, and a free hosted API
+can still violate locality. Runtime and model acquisition and licence metadata
+are pinned and reviewed when those artifacts change. Hardware ownership and
+electricity are outside this promise; resource feasibility is R32 and §5.2.9.
 
 **R15. Deletion.** Deleting an item MUST remove its text everywhere. The target MUST declare every location in which it creates derived state. After uninstall, none of that state may remain, and no target-created derived state may exist outside the declaration.
 

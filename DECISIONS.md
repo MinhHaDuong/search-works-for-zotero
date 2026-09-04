@@ -6424,3 +6424,23 @@ dedicated account could not execute the operator's private Node installation,
 and permissions were not widened merely to preserve a grade. R3 and R13
 therefore fall from `measured` to `code`; no requirement's delivered verdict
 moves.
+
+**2026-09-04 — Free operation is a separate requirement, and the README stops
+tracking completed design work.** The author rules that the default path MUST
+require no paid service, subscription, API account, or usage-based charge.
+Locality does not imply this: where computation runs and whether it costs money
+are separate promises. The mechanical test starts without credentials or paid
+accounts, permits only the declared model acquisition, blocks other egress,
+and must build and query the fixture through effective local providers. Pinned
+runtime and model acquisition/licence metadata are reviewed when they change.
+This becomes R36 and joins goal 1 beside R10, R15 and R22.
+
+The public README keeps the proposition and a compact three-deliverable snapshot. Its
+completed `designed` axis, goal-ladder procedure, guard explanation, historical
+prototype argument and bench command catalogue are deleted rather than archived
+in the tree. Their authorities remain `SPEC.md`, this ledger, `AGENTS.md`, the
+tickets, `verification/` and git history.
+
+The author's statement that the design is done is the declaration AGENTS.md
+requires to move `SPEC.md` from DRAFT to COMPLETE. Complete describes the
+specification deliverable, not implementation of all its requirements.

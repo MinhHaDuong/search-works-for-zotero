@@ -1,8 +1,9 @@
 """The assertion layer. One clause per assertion, phrased over the seven verbs.
 
-`SPEC.md` §3 owns R10, R15 and R22 — goal 1's whole rung, per README.md's
-goals ladder; `SPEC.md` §5.2.8 owns this harness; `DECISIONS.md`'s ratified entry
-of 2026-09-02 owns the ruling. None is restated here — this module cites
+`SPEC.md` §3 owns the clauses asserted here; `SPEC.md` §5.2.8 owns this harness;
+`DECISIONS.md` owns the ladder. R36 joined goal 1 on 2026-09-04 and its not-yet-
+built assertion is ticket 0671, so R10, R15 and R22 are this module's current
+coverage rather than the whole rung. None is restated here — this module cites
 addresses and asserts clauses.
 
 **The ladder's method is tests first, bottom-up**: until a rung's assertions

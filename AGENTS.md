@@ -17,7 +17,7 @@ each.
 | [`AGENTS.md`](AGENTS.md) | Instructions and workflow conventions for agents; owns no project state |
 | [`SPEC.md`](SPEC.md) | What the system promises, what the world imposes, how it answers both, the shared vocabulary, and where it can leak |
 | [`DECISIONS.md`](DECISIONS.md) | Append-only record of ratified choices and later vetoes |
-| [`README.md`](README.md) | The public landing page: the proposition, and where each promise stands at the reviewed baseline |
+| [`README.md`](README.md) | Public landing page: proposition and the three deliverables' compact status |
 | [`verification/FIELD-REVIEW.md`](verification/FIELD-REVIEW.md) | Survey of prior art: what others have built, and what is borrowable — a dated snapshot, not a live tracker |
 | [`GOVERNANCE.md`](GOVERNANCE.md) | How this repository conducts itself upstream: the bounds on our own conduct |
 | [`SYNC.md`](SYNC.md) | Live account of Zotero and zoteus upstream movement |
@@ -52,13 +52,14 @@ once, in `SPEC.md` §1. Read it there rather than here.
   `Status: DRAFT` until the author himself declares otherwise. SPEC.md speaks
   only of the system: ruling provenance, ticket tracking and process narration
   belong in `DECISIONS.md`, the tickets, and this file. Handles are
-  position-independent and outlive a section's renumbering — R1–R35
+  position-independent and outlive a section's renumbering — R1–R36
   requirements, C1–C4 constraints, D1–D11 resolved decisions, X1–X8
   experiments. Cite a handle on its own; cite a section as `SPEC.md §N.M`.
-- **`README.md`'s standing is read, never computed.** It owns no threshold and
-  no design number, its verdicts come from the upstream source, and
-  `bench/check_progress.py` fails the build when the reviewed baseline moves
-  past it. It is durable public status, not a live session handoff.
+- **`README.md` tracks deliverables, not the completed design process.** The
+  specification owns requirements; README names the formal specification, the
+  Multilingual Menagerie and the verification bench, expanding only the two
+  unfinished deliverables. It carries no workflow procedure, design ledger,
+  threshold, measurement history or per-requirement implementation board.
 - **`STATE.md` stays under forty lines and stays pointer-only.** It owns no
   requirement, measurement, verdict, or history.
 - **`verification/` is evidence, not authority.** A report is cited by path

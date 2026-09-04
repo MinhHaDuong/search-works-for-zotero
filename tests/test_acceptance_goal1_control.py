@@ -1,9 +1,9 @@
 """R22's two clauses decide, and say so when they cannot decide.
 
-README.md's goals ladder puts R10, R15 and R22 on the lowest rung and rules
-the method: the assertions for a rung are built before anything on it is made to
-work, because until they exist a row can only be `code` or `inferred` — a claim
-about nobody. R10 and R15 arrived with the acceptance layer; R22's two are these.
+DECISIONS.md puts R10, R15, R22 and R36 on the lowest rung and rules the method:
+the assertions for a rung are built before anything on it is made to work. R10
+and R15 arrived with the acceptance layer; R22's two are these, while R36's
+not-yet-built assertion is ticket 0671.
 The rung carried a fourth term, R31, until this layer's three failed attempts at
 it retired it (`DECISIONS.md`, 2026-09-03); `assertions.py` keeps that finding
 where its assertion would have gone.

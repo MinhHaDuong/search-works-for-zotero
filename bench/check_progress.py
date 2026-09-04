@@ -747,6 +747,54 @@ def run(repo: Path) -> int:
     # every check below reads the half it was written for.
     outside, goals = goal_split(text)
     declared = sheet_requirements(sheet.read_text(encoding="utf-8"))
+    if "## Deliverables" in text:
+        required = (
+            "| Formal specification | **Complete** |",
+            "| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** |",
+            "| Verification and scoring bench | **In progress** |",
+        )
+        missing = [row for row in required if row not in text]
+        for heading in ("### Multilingual Menagerie", "### Verification and scoring bench"):
+            if heading not in text:
+                missing.append(heading)
+        public = text.split("## Deliverables", 1)[1].split("### Multilingual Menagerie", 1)[0]
+        public_rows = [
+            line for line in public.splitlines()
+            if line.startswith("|") and not line.startswith("|---") and "deliverable |" not in line
+        ]
+        if len(public_rows) != 3:
+            missing.append("exactly three public deliverable rows")
+        for heading, following in (
+            ("### Multilingual Menagerie", "### Verification and scoring bench"),
+            ("### Verification and scoring bench", None),
+        ):
+            if heading not in text:
+                continue
+            detail = text.split(heading, 1)[1]
+            if following:
+                detail = detail.split(following, 1)[0]
+            detail_rows = [
+                line for line in detail.splitlines()
+                if line.startswith("|") and not line.startswith("|---") and "object |" not in line
+            ]
+            if not detail_rows:
+                missing.append(f"non-empty {heading} table")
+        spec_text = sheet.read_text(encoding="utf-8")
+        if "| Formal specification | **Complete** |" in text and "- **Status:** COMPLETE" not in spec_text:
+            missing.append("SPEC.md status COMPLETE")
+        deliverables = text.split("## Deliverables", 1)[1]
+        for ticket in sorted(set(re.findall(r"\b0\d{3}\b", deliverables))):
+            if not list((repo / "tickets").glob(f"**/{ticket}-*.erg")):
+                missing.append(f"ticket {ticket}")
+        if missing:
+            for item in missing:
+                log.error("DELIVERABLES: missing %s", item)
+            return 1
+        log.info(
+            "PROGRESS: three public deliverables present; %d requirements remain in SPEC.md, 0 findings",
+            len(declared),
+        )
+        return 0
     rows = page_rows(outside)
     promises = page_promises(outside)
 

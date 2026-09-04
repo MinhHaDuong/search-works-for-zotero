@@ -145,6 +145,45 @@ def test_clean_fixture_passes(tmp_path):
     assert cp.run(build(tmp_path)) == 0
 
 
+def test_compact_deliverables_pass(tmp_path):
+    page = """# Landing
+
+## Deliverables
+
+| deliverable | status | authority |
+|---|---|---|
+| Formal specification | **Complete** | SPEC.md |
+| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0080 |
+| Verification and scoring bench | **In progress** | bench/ |
+
+### Multilingual Menagerie
+
+| object | state | work owner |
+|---|---|---|
+| corpus | In progress | 0080 |
+
+### Verification and scoring bench
+
+| object | state | work owner |
+|---|---|---|
+| assertions | In progress | 0080 |
+"""
+    assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 0
+
+
+def test_compact_deliverables_missing_one_fails(tmp_path):
+    page = """# Landing
+
+## Deliverables
+
+| deliverable | status | authority |
+|---|---|---|
+| Formal specification | **Complete** | SPEC.md |
+| [Multilingual Menagerie](https://www.zotero.org/groups/6659303/semantic_search_challenge_fixture) | **In progress** | ticket 0080 |
+"""
+    assert cp.run(build(tmp_path, page=page, sheet="- **Status:** COMPLETE\n" + SHEET)) == 1
+
+
 def test_missing_page_is_loud(tmp_path):
     """Absent, the page must fail — never "0 rows, 0 findings"."""
     assert cp.run(build(tmp_path, page=None)) == 1

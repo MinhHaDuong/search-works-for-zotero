@@ -34,6 +34,6 @@ Start with correctness/privacy acceptance gaps: R10 (0660–0664), R13
 ## Basic state
 
 Reviewed upstream: **v1.14.0** at `34d6c26` (ticket 0670, closed).
-Requirements: **23 ratified — 3 shipped, 15 partial, 5 not yet** ([README.md](README.md)).
-Tickets: **58 ready, 31 blocked, 7 awaiting author** (`erg ready tickets/`).
+Requirements: **24 ratified** ([SPEC.md](SPEC.md)).
+Tickets: **59 ready, 31 blocked, 7 awaiting author** (`erg ready tickets/`).
 In flight: **none**.
