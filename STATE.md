@@ -20,7 +20,7 @@ to the document that owns the fact. What this repository is is [`README.md`](REA
 
 ## Handoff
 
-**Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
+**Reviewed baseline: v1.14.0** (`34d6c26`, ticket 0670, main's tip two documentation commits past the tag).
 
 **Through the September 21 checkpoint:** focus on correctness, packaging,
 privacy, and their unfinished tests. Keep #56 as a contained contribution;
