@@ -1,0 +1,25 @@
+%erg 0.1
+Title: Re-baseline upstream to v1.14.0 and current main
+Created: 2026-09-04
+Author: Codex
+
+--- log ---
+2026-09-04T13:49Z Codex created
+
+2026-09-04T14:07Z Codex completed source reread, smoke, standing reconciliation and green gates
+--- body ---
+## Context
+
+Move the reviewed upstream baseline from v1.13.0-era `b0e0bc8` to current
+`main` at `34d6c26`, which contains v1.14.0 plus two documentation commits.
+This is a source reread and evidence refresh, not a version-label substitution.
+
+## Exit criteria
+
+- [x] Read all 18 intervening commits and every affected standing requirement row.
+- [x] Record the reread under `verification/` and append its consequences to `DECISIONS.md`.
+- [x] Update `UPSTREAM`, `SYNC.md`, `STATE.md`, and every affected `README.md` row.
+- [x] Re-run or explicitly downgrade every measurement tied to the old executable baseline.
+- [x] Reconcile affected open-ticket logs against what v1.14.0 actually shipped.
+- [x] `make upstream-status`, `make check`, and `git diff --check` pass.
+- [ ] Open a reviewed PR; do not merge it from the implementation lane.

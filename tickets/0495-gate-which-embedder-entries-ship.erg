@@ -13,6 +13,7 @@ Blocked-by: 0029
 2026-08-31T14:05Z claude note THE ELIGIBILITY TEST IS NOW A NUMBER, not a comparison (spec/DESIGN.md 2.8, 2026-08-31). R32's build bound is pinned at MUST-inside-24-hours on a disclosed laptop-class machine, with 12 hours as the SHOULD. On the CPU evidence already in hand that separates the two small multilingual candidates, which land in the SHOULD band, from the four base-sized ones, which clear neither. An entry the default cannot meet the build bound with is not eligible to be the default, and the bound is now concrete enough for this ticket to apply without re-deriving it
 2026-09-03T05:18Z Minh Ha-Duong note blocker 0493 closed — Blocked-by removed.
 2026-09-03T13:00Z claude note author directive 2026-09-03: an entry discloses measured space, speed and recall together, never size alone. Ground: a precision is chosen to buy space, so the entry must say what that space costs elsewhere -- 0612 measured a case where q8 leaves the pooling correction almost inert on granite-97m (cosine 0,999 between the two readings, against 0,53 for MiniLM at either precision), which a size column alone would never surface. Exit criteria amended
+2026-09-04T14:05Z Codex reread v1.14.0: curated pooling and identity shipped; multilingual default choice remains
 --- body ---
 ## Scope
 

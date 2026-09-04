@@ -2,18 +2,17 @@
 UPSTREAM_REPOSITORY=https://github.com/oscardvs/zoteus.git
 FORK_REPOSITORY=https://github.com/MinhHaDuong/zoteus.git
 UPSTREAM_BRANCH=main
-# The reviewed SHA is `main`'s TIP, not the v1.13.0 tag (`8f16efe`), which sits four
-# commits earlier — the #43 dtype work in three commits, filed under `[Unreleased]` in
-# upstream's own changelog, plus a registry-description fix. The tip is pinned because `upstream-status`
+# The reviewed SHA is `main`'s TIP, not the v1.14.0 tag (`7a5622f`), which sits two
+# documentation commits earlier. The tip is pinned because `upstream-status`
 # compares the reviewed SHA against `main`: a tag pin leaves that target red on the day it
 # is written, and a permanently-red status target is a retired one. The VERSION below
 # therefore names the last release CONTAINED in the reviewed tree, which is what the
 # standing page dates itself by — the gap is disclosed here and on the page rather than
 # spelled into the version string, because `check_progress.PAGE_VERSION` parses `vN.N.N`
-# and a `v1.13.0+4` would not match itself. Ticket 0618.
-UPSTREAM_REVIEWED_SHA=b0e0bc872b5727d21ea83aba8bfe834293013264
-UPSTREAM_REVIEWED_VERSION=v1.13.0
-UPSTREAM_REVIEWED_DATE=2026-09-03
+# and a `v1.14.0+2` would not match itself. Ticket 0618; re-baseline ticket 0670.
+UPSTREAM_REVIEWED_SHA=34d6c2681b1452aeaa2f8e8e90abe6e6b0f8df41
+UPSTREAM_REVIEWED_VERSION=v1.14.0
+UPSTREAM_REVIEWED_DATE=2026-09-04
 # The index schema generation the bench drivers target: upstream's `SCHEMA_VERSION` in
 # `src/features/search/sqlite-index.ts`, mirrored in `bench/index_schema.mjs` and stamped
 # into the current-generation fixture by `bench/fixtures/make_index_fixture.mjs`. It was 1

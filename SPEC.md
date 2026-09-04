@@ -2,7 +2,7 @@
 
 - **Status:** DRAFT
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-03
+- **Date:** 2026-09-04
 
 ## 1. Introduction
 
@@ -999,10 +999,10 @@ superseded.
 Seven facts about upstream shaped the design below. They were read at v1.7.0
 (`c5d25aa`), where all seven were exact; five have since been repaired, four
 of those by the maintainer acting on this repository's own filings. They are
-therefore stated against the reviewed baseline `b0e0bc8` (v1.13.0), because a
+therefore stated against the reviewed baseline `34d6c26` (v1.14.0), because a
 reader takes a premise as current unless told otherwise. Every line number
-below was re-read there rather than carried: the v1.13.0 diff moved all but
-one of them without changing a single mechanism, which is the reason a
+below was re-read there rather than carried: successive diffs moved most of
+them, which is the reason a
 citation is re-opened at each bump instead of retyped.
 
 Still true there. `DEFAULT_FULLTEXT_MAX_CHARS = 40_000`
@@ -1022,9 +1022,10 @@ notes and annotations, on by default (`own-words-source.ts:132`, `d8266f7`,
 v1.11.0). The fifth is this repository's own, merged as PR #46 and #47 in
 v1.13.0: the 29-word English stopword set is deleted, so no word is dropped
 from any document on either backend, and what a query prunes is a droplist
-derived from the library it is searching. What the design owes each of the
-five is unchanged; what has changed is that none of them is a live defect, so
-none may be cited as one.
+derived from the library it is searching. v1.14.0 also corrects the selectable
+local-model seam: known model ids carry curated pooling, an explicit override
+is available, and pooling enters the embedder identity. What the design owes
+each repaired premise is unchanged; none may be cited as a live defect.
 
 ---
 

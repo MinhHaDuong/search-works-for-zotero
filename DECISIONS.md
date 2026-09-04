@@ -6408,3 +6408,19 @@ for `walras-1900-elements` was created in group 6659303 before the failure
 (tagged, no attachment) and was left as-is rather than manually cleaned up:
 `inject()`'s own reconciliation is idempotent and picks it up on the next
 successful run, uploading its attachment like any other.
+
+**2026-09-04 — FACTUAL BASELINE UPDATE: the reviewed upstream moves to
+`34d6c26`, containing v1.14.0 plus two documentation commits; no delivered
+verdict changes.** Ticket 0670 read all eighteen intervening commits and every
+affected standing row (`verification/UPSTREAM-1.14.0-REREAD.md`). The index
+schema remains generation 2. R10's previous unsolicited release-check finding
+is repaired in code: the check now defaults off. Curated model pooling repairs
+silent semantic degradation for configured non-mean models without changing
+the English MiniLM default. Caller-path confinement, non-root containers,
+git-install packaging and opt-in local usage accounting improve custody and
+operations without completing any remaining requirement. The v1.14 smoke is
+committed; the target-neutral acceptance rerun was inadmissible because the
+dedicated account could not execute the operator's private Node installation,
+and permissions were not widened merely to preserve a grade. R3 and R13
+therefore fall from `measured` to `code`; no requirement's delivered verdict
+moves.
