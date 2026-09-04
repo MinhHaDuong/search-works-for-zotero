@@ -508,10 +508,15 @@ def main() -> int:
         ap.error("--output is required unless --drive is given")
 
     log_dir = Path(a.log_dir).resolve() if a.log_dir else arena / "trace"
+    fixture = a.adapter in adapters.fixtures()
 
     def drive_argv_for(where: Path) -> list[str]:
         return drive_argv(a.adapter, where, a.posture, options,
-                          spawned_under=resolved_posture.account)
+                          # Fixtures execute in the harness process and have no
+                          # target process across which to inherit an account
+                          # switch. Claiming one here would tell --drive it was
+                          # wrapped when no wrapper ran.
+                          spawned_under=None if fixture else resolved_posture.account)
 
     # The identity switch around the egress assertion's subject arm — the
     # whole re-invocation, tracer included, because `sudo` is refused from
@@ -528,7 +533,7 @@ def main() -> int:
         return resolved_posture.wrap(command, forwarded)
 
     run = assess(make_target, base_arena=arena, log_dir=log_dir,
-                 drive_argv_for=drive_argv_for, under=under)
+                 drive_argv_for=drive_argv_for, under=None if fixture else under)
     run.posture = resolved_posture.as_json()
     run.write(Path(a.output))
 

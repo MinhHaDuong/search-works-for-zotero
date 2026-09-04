@@ -190,8 +190,18 @@ def census(storage: Path, mojibake_fixer: Callable[[str], bool] | None = None) -
             continue
         cache = entry / CACHE_NAME
         try:
-            if not cache.exists():
-                continue
+            # Path.exists() reports every OSError as False on current Python,
+            # collapsing an unreadable cache into an absent one before the
+            # per-cache error accounting below can see it. stat() preserves
+            # that distinction: absence is outside the census; every other
+            # read failure is evidence the census could not inspect a cache.
+            cache.stat()
+        except FileNotFoundError:
+            continue
+        except OSError as e:
+            unreadable.append({"key": entry.name, "error": str(e)})
+            continue
+        try:
             detail.append(classify(cache, mojibake_fixer))
         except OSError as e:
             unreadable.append({"key": entry.name, "error": str(e)})
