@@ -821,20 +821,14 @@ FIGURES = [
     # ---- 0001, the like-for-like comparison ----
     # SYNC.md's §5 slots were removed 2026-08-30 with the I-2 withdrawal
     # (DECISIONS.md): the §5 prose that quoted these figures is gone.
-    ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0,
-     {"t0001": None, "readme": "one corpus of {} passages"}),
+    ("0001-old-vs-new/SUMMARY.json", "corpus.passages", 0, {"t0001": None}),
     ("0001-old-vs-new/SUMMARY.json", "startup_s.json", 2,
-     {"t0001": "| startup to first answer | {} s |",
-      "readme": "**{} s\nagainst"}),
-    ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2,
-     {"t0001": None, "readme": None}),
+     {"t0001": "| startup to first answer | {} s |"}),
+    ("0001-old-vs-new/SUMMARY.json", "startup_s.sqlite", 2, {"t0001": None}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.json_after_16_queries", 1,
-     {"t0001": "| resident after 16 queries | {} MiB |",
-      "readme": "**{} MiB against"}),
+     {"t0001": "| resident after 16 queries | {} MiB |"}),
     ("0001-old-vs-new/SUMMARY.json", "resident_mib.sqlite_after_16_queries", 1,
-     {"t0001": None, "readme": None}),
-    ("0001-old-vs-new/SUMMARY.json", "memory_caveat.conservative_ratio", 1,
-     {"readme": "win is {}x rather"}),
+     {"t0001": None}),
     ("0001-old-vs-new/uncapped_stock_node.json", "status.documents", 0, {"t0001": None}),
     # ---- 0005, the migration ----
     # ---- 0009, the fold sweep ----

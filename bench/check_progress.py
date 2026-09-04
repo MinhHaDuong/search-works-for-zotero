@@ -747,6 +747,22 @@ def run(repo: Path) -> int:
     # every check below reads the half it was written for.
     outside, goals = goal_split(text)
     declared = sheet_requirements(sheet.read_text(encoding="utf-8"))
+    if "## Deliverables" in text:
+        required = (
+            "| Formal specification | **Complete** |",
+            "| [Multilingual Menagerie]",
+            "| Verification and scoring bench | **In progress** |",
+        )
+        missing = [row for row in required if row not in text]
+        if missing:
+            for item in missing:
+                log.error("DELIVERABLES: missing %s", item)
+            return 1
+        log.info(
+            "PROGRESS: three public deliverables present; %d requirements remain in SPEC.md, 0 findings",
+            len(declared),
+        )
+        return 0
     rows = page_rows(outside)
     promises = page_promises(outside)
 

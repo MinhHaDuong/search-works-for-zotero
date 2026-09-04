@@ -145,6 +145,33 @@ def test_clean_fixture_passes(tmp_path):
     assert cp.run(build(tmp_path)) == 0
 
 
+def test_compact_deliverables_pass(tmp_path):
+    page = """# Landing
+
+## Deliverables
+
+| deliverable | status | authority |
+|---|---|---|
+| Formal specification | **Complete** | SPEC.md |
+| [Multilingual Menagerie](fixture) | **In progress** | ticket 0029 |
+| Verification and scoring bench | **In progress** | bench/ |
+"""
+    assert cp.run(build(tmp_path, page=page)) == 0
+
+
+def test_compact_deliverables_missing_one_fails(tmp_path):
+    page = """# Landing
+
+## Deliverables
+
+| deliverable | status | authority |
+|---|---|---|
+| Formal specification | **Complete** | SPEC.md |
+| [Multilingual Menagerie](fixture) | **In progress** | ticket 0029 |
+"""
+    assert cp.run(build(tmp_path, page=page)) == 1
+
+
 def test_missing_page_is_loud(tmp_path):
     """Absent, the page must fail — never "0 rows, 0 findings"."""
     assert cp.run(build(tmp_path, page=None)) == 1
