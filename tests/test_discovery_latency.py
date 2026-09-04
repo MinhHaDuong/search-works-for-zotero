@@ -143,6 +143,57 @@ def test_an_ordinary_result_still_comes_back_unwrapped():
                                                                 "operation": "update"}
 
 
+# --- a rep that raises still deletes its throwaway ----------------------------------
+
+class SpyWrites:
+    """Records creates and deletes so a leak is visible to the test."""
+
+    def __init__(self):
+        self.created = []
+        self.deleted = []
+
+    def create(self, title):
+        key = f"KEY{len(self.created)}"
+        self.created.append(key)
+        return key
+
+    def delete(self, key):
+        self.deleted.append(key)
+
+
+class ExplodingServer:
+    """Fails the way a real run fails: on the status poll inside the update."""
+
+    def call(self, method, params=None):
+        raise TimeoutError("update did not finish")
+
+
+def test_an_add_rep_that_raises_still_deletes_its_throwaway():
+    # The item is in the author's real library, so cleanup cannot be left to the
+    # next invocation's startup sweep. Without the try/finally this leaks KEY0.
+    w = SpyWrites()
+    try:
+        dl.one_rep(ExplodingServer(), w, "zotero_semantic_search", "add", 1,
+                   poll_s=0.01, timeout_s=0.1, settle_s=0.1)
+    except Exception:
+        pass
+    assert w.created == ["KEY0"]
+    assert w.deleted == ["KEY0"], "the throwaway item was left in the library"
+
+
+def test_a_delete_rep_that_raises_still_deletes_its_seed_item():
+    # The delete rep creates a seed item before it can time anything, and that
+    # seed is the one most likely to be stranded: it exists before the first
+    # call that can raise.
+    w = SpyWrites()
+    try:
+        dl.one_rep(ExplodingServer(), w, "zotero_semantic_search", "delete", 1,
+                   poll_s=0.01, timeout_s=0.1, settle_s=0.1)
+    except Exception:
+        pass
+    assert w.deleted == ["KEY0"], "the seed item was left in the library"
+
+
 # --- the probe tag is what protects the author's library ----------------------------
 
 def test_throwaway_items_are_identified_by_a_dedicated_tag():

@@ -53,12 +53,23 @@ rebuild on six conditions (`index-manager.ts:1409-1437`), and
 control, a harness that always said "delta" would pass silently on every rep.
 
 **It caught a real defect on the first attempt.** The procedure sketched in the
-ticket — `action:"refresh"`, then `action:"update"` — polls the refresh to
-completion, and refresh *rebuilds* the index, so by the time the update was
-issued the index was no longer empty and the tick was a genuine 1.0 s delta. The
-control reported the forced rebuild as a delta and **aborted the run before any
-rep was reported**. That first record is kept beside this one as
+ticket — `action:"build"`, then `action:"refresh"`, then `action:"update"` —
+polls the refresh to completion, and refresh *rebuilds* the index, so by the time
+the update was issued the index was no longer empty and the tick was a genuine
+1.0 s delta. The control reported the forced rebuild as a delta and **aborted the
+run before any rep was reported**. That first record is kept beside this one as
 `control-failure-first-attempt.json`.
+
+**What that preserved record does and does not show.** It holds the
+`action:"build"` as `initial_build` (77.7 s) and the `action:"update"` as
+`positive_control` (1.006 s, labelled `delta`, verdict `FAILED`) — and no
+`refresh` between them, because that earlier draft of the harness discarded the
+refresh run's result instead of storing it. The refresh did run; the aborted
+run's console log carries the line `positive control: refresh, then update`. It
+simply left no trace in the JSON, so a reader who takes the file as a complete
+transcript will see `build` where the account above says `refresh`. The final
+committed script does neither: it wipes the data dir and issues one
+`action:"update"`.
 
 The fix is to issue the first `action:"update"` against a **wiped data dir**,
 which is what actually meets condition 3 — and which establishes the delta-path
@@ -153,7 +164,10 @@ never delegated to §5.2.4's numbers, and nothing here bears on it.
 - `discovery-latency.json` — the recorded run: every poll's `operation` and
   `phase`, per-rep latencies and labels, the census arms, and the control.
 - `control-failure-first-attempt.json` — the aborted run whose positive control
-  failed. Kept because a control that has never fired is not known to work.
+  failed. Kept because a control that has never fired is not known to work. It
+  records the `build` and the `update` but not the `refresh` between them; see
+  "What that preserved record does and does not show" above before reading it as
+  a full transcript.
 - `bench/discovery_latency.py` — the harness; `tests/test_discovery_latency.py`
   covers the classifier and the summarizer.
 

@@ -22,14 +22,22 @@ classifier is broken and the run aborts -- without this control a harness that
 always reported "delta" would pass silently on every rep.
 
 The control has to be issued against an index that is empty AT THE MOMENT OF THE
-CALL, which is subtler than it looks. A first attempt ran `action:"refresh"` and
-polled it to `done` before calling `action:"update"`, per this ticket's own
-sketch -- but `refresh` rebuilds the index, so by the time the update was issued
-condition 3 no longer held and that tick was a genuine 1.0 s delta. The control
-caught it and aborted the run, which is exactly why it runs before the reps
-rather than after. Starting from a wiped data dir is what actually forces the
-fallback, and it establishes the delta-path precondition in the same run instead
-of paying for two rebuilds.
+CALL, which is subtler than it looks. A first attempt ran `action:"build"`, then
+`action:"refresh"` polled to `done`, then `action:"update"`, per this ticket's
+own sketch -- but `refresh` rebuilds the index, so by the time the update was
+issued condition 3 no longer held and that tick was a genuine 1.0 s delta. The
+control caught it and aborted the run, which is exactly why it runs before the
+reps rather than after. Starting from a wiped data dir is what actually forces
+the fallback, and it establishes the delta-path precondition in the same run
+instead of paying for two rebuilds.
+
+Reading `control-failure-first-attempt.json` against that account: it records
+the `action:"build"` as `initial_build` and the `action:"update"` as
+`positive_control`, and NOT the `refresh` between them, because that earlier
+draft discarded the refresh run's result instead of storing it. So the artifact
+shows build then update with no refresh in it. The refresh did run -- the aborted
+run's console log carries `positive control: refresh, then update` -- it simply
+left no trace in the record.
 
 Writes go straight to Zotero's local API, never through the server (which runs
 read-only). Every item written is a throwaway created for the measurement and
@@ -270,46 +278,59 @@ def one_rep(s: Server, w: LocalWrites, search_tool: str, kind: str, n: int,
 
     `t0` is the mutation, not the `action:"update"` call, so the figure includes
     everything a caller would wait through.
+
+    The whole body sits in a `try/finally` because this rep writes to the
+    author's real Zotero library. Anything between creating the throwaway and
+    deleting it can raise -- `run_to_done` on its timeout, and `visible` by
+    design, since a failed tool call now raises rather than reading as "not
+    visible yet". Without the `finally` such a rep would return the item to
+    nobody and leave it for the NEXT invocation's startup sweep, which is
+    best-effort cleanup of the one thing this harness must not get wrong. The
+    sweep stays as a backstop; it is not the mechanism.
     """
     title = f"{TITLE_PREFIX} {kind} {n} {int(time.time())}"
     key = None
-    if kind == "delete":
-        # The item has to be in the index before its removal can be timed.
-        key = w.create(title)
-        run_to_done(s, "update", poll_s, timeout_s)
-        if not visible(s, search_tool, title):
-            return {"kind": kind, "n": n, "result": "skipped",
-                    "why": "seed item never became visible; nothing to time its removal against"}
+    try:
+        if kind == "delete":
+            # The item has to be in the index before its removal can be timed.
+            key = w.create(title)
+            run_to_done(s, "update", poll_s, timeout_s)
+            if not visible(s, search_tool, title):
+                return {"kind": kind, "n": n, "result": "skipped",
+                        "why": "seed item never became visible; nothing to time its removal against"}
 
-    t0 = time.monotonic()
-    if kind == "add":
-        key = w.create(title)
-    else:
-        w.delete(key)
-        key = None
+        t0 = time.monotonic()
+        if kind == "add":
+            key = w.create(title)
+        else:
+            w.delete(key)
+            key = None
 
-    run = run_to_done(s, "update", poll_s, timeout_s)
-    want = (kind == "add")
-    t_settled = None
-    # Bounded separately from the build timeout: once the update run has
-    # finished, the item either is served or is not, and a long spin here means a
-    # broken check rather than a slow index.
-    while time.monotonic() - t0 < settle_s:
-        if visible(s, search_tool, title) == want:
-            t_settled = time.monotonic() - t0
-            break
-        time.sleep(poll_s)
+        run = run_to_done(s, "update", poll_s, timeout_s)
+        want = (kind == "add")
+        t_settled = None
+        # Bounded separately from the build timeout: once the update run has
+        # finished, the item either is served or is not, and a long spin here means a
+        # broken check rather than a slow index.
+        while time.monotonic() - t0 < settle_s:
+            if visible(s, search_tool, title) == want:
+                t_settled = time.monotonic() - t0
+                break
+            time.sleep(poll_s)
 
-    if key is not None:
-        w.delete(key)
-    return {
-        "kind": kind,
-        "n": n,
-        "result": "ok" if t_settled is not None else "not-settled",
-        "latency_s": round(t_settled, 3) if t_settled is not None else None,
-        "update_run": run,
-        "label": run["label"],
-    }
+        return {
+            "kind": kind,
+            "n": n,
+            "result": "ok" if t_settled is not None else "not-settled",
+            "latency_s": round(t_settled, 3) if t_settled is not None else None,
+            "update_run": run,
+            "label": run["label"],
+        }
+    finally:
+        # `key` is None once the item is already gone -- the delete-rep's own
+        # timed deletion sets it, so a successful delete rep is not deleted twice.
+        if key is not None:
+            w.delete(key)
 
 
 def summarize(reps: list[dict]) -> dict:
