@@ -2,11 +2,13 @@
 Title: account posture and podman-unshare compose in the wrong order: sudo fails inside the rootless namespace
 Created: 2026-09-04
 Author: MinhHaDuong
+Closed: autoclosed — PR #334
 
 --- log ---
 2026-09-04T05:34Z MinhHaDuong created
 2026-09-04T05:53Z claude note EXECUTED. Action 1 held, with one sharpening the ticket did not have: sudo is refused not only inside the rootless namespace but under an unprivileged strace at all (setuid neutralised under ptrace, measured: "effective uid is not 0"), and inside bwrap by no-new-privs — so the switch goes outside the TRACER, not merely outside the mechanism. The --drive re-invocation touches only arena-owned state (seed, spawn, verbs); the outer driver still writes the arena dirs and the artifact as the operator. Fix: sandbox.run_traced(under=) encloses tracer+mechanism; run.py composes it from the resolved posture with posture.forwardable(os.environ) (drops HOME/USER/XDG_RUNTIME_DIR etc., which rootless podman needs to be tester's own) and hands the child --spawned-under tester, which holds posture.inherited() and spawns unwrapped rather than probing sudo where it cannot succeed. Mechanism-agnostic, so Bubblewrap is covered by the same seam. Makefile/posture.py recipe corrected: arena is operator-owned with a default ACL for tester, not tester-owned (the operator's mkdir needs it; the tracer now writes its log as tester). Tests: 9 deterministic + 1 integration that runs both orders for real and skips where a machine cannot discriminate. Live: 0629's pair ran, dns 4 -> dns 0, both controls firing.
 
+2026-09-04T06:10Z MinhHaDuong closed — autoclosed — PR #334
 --- body ---
 ## Context
 
