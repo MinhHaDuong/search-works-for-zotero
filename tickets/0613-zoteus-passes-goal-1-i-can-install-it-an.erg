@@ -3,6 +3,7 @@ Title: Zoteus passes goal 1 — I can install it and take it off again
 Created: 2026-09-03
 Author: claude
 Blocked-by: 0648
+Blocked-by: 0660
 Blocked-by: 0665
 
 --- log ---
@@ -36,6 +37,7 @@ Blocked-by: 0665
 2026-09-04T10:12Z codex note BLOCKED-BY 0648 ADDED: R15 item deletion was absent from the acceptance registry and from this tracker's seven-clause matrix; install/uninstall coverage does not assert trash-time removal from every store and queue
 2026-09-04T10:12Z codex note BLOCKED-BY 0665 ADDED, author directive after global R22 audit. The current checks pause only after work settles, exclude automatic startup work from the restart window, and the 0643 zoteus FAILs invoke explicit action:build despite SPEC.md saying explicit build while paused asks; 0665 owns the acceptance repair and faithful re-verdict.
 2026-09-04T10:17Z codex note CORRECTION TO 08:37Z AND 08:50Z: artifact 0643 does not decide R22. It proves only that the staged counters and build-triggered perturbation execute; its FAIL comes from explicit action:build after pause while SPEC.md says explicit build while paused asks, and the restart arm excludes automatic startup work. R22 is UNDECIDED pending master 0665's faithful repair and remeasurement.
+2026-09-04T12:10Z codex note BLOCKED-BY 0660 ADDED from Terra review on PR 353: goal 1 includes R10, so the rung cannot close while the R10 acceptance-fidelity master remains open
 --- body ---
 ## Context
 

@@ -4,6 +4,7 @@ Created: 2026-09-03
 Author: claude
 Blocked-by: 0613
 Blocked-by: 0649
+Blocked-by: 0650
 Blocked-by: 0666
 
 --- log ---
@@ -16,6 +17,7 @@ Blocked-by: 0666
 2026-09-04T06:24Z claude note BLOCKED-BY 0613 ADDED, author directive. Reverses this ticket's own 12:xxZ-era reading in Depends on ("not a blocker in the erg sense"): goal 2 work on this tracker does not start until goal 1 (0613) passes for zoteus. Nothing else here changes -- the gap analysis, the pause/resume probe design, and the Actions all stand as written; this only gates when the tracker's own work is picked up.
 2026-09-04T10:12Z codex note BLOCKED-BY 0649 ADDED, author directive. The current R3 arms prove local reported recomputation at one fixture size but do not compare fixed changes across library sizes or account for library-sized verification/scanning outside *.done counters; 0649 owns the scaled acceptance arm and target result.
 2026-09-04T10:12Z codex note BLOCKED-BY 0666 ADDED: the R23 assertion currently uses forged stamps on current-layout databases and accepts any nonempty hits, so it cannot distinguish authentic cross-version continuity from fallback, partial loss, or silent same-path rebuild
+2026-09-04T12:10Z codex note BLOCKED-BY 0650 ADDED from Terra review on PR 353: goal 2 includes R13, so the rung cannot close while the R13 acceptance-fidelity master remains open
 --- body ---
 ## Context
 
