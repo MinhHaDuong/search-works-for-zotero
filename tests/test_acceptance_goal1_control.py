@@ -137,6 +137,92 @@ def test_a_control_that_answers_and_keeps_working_is_red(tmp_path):
     )
 
 
+# --------------------------------------------------------------------------
+# R22 with EDIT_ONE_ITEM refused — ticket 0643's own machinery.
+#
+# zoteus refuses EDIT_ONE_ITEM on an R15 ground (a write to the user's own
+# library) unrelated to whether its pause holds. Both clauses must still be
+# decidable for a target shaped that way, by falling back to
+# `RESUME_EMBEDDING` — this is the red-first proof that the fallback itself
+# reaches a real FAIL, not `not-run`, matching PR #255's own discipline.
+# --------------------------------------------------------------------------
+
+
+def _refuse_edit_one_item(target) -> None:
+    """Make `target` decline `EDIT_ONE_ITEM` the way zoteus's real adapter does:
+    a refusal raised before anything happens, so trying it costs nothing."""
+    def refuses():
+        raise NotImplementedError(
+            "this fixture models a target that declines EDIT_ONE_ITEM on principle")
+    target._edit_one_item = refuses
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_edit_one_item_refused_falls_back_to_resume_embedding(assertion, tmp_path):
+    """A target shaped like zoteus is still decided, on the candidate it does accept.
+
+    `stub-ignores-pause` is R22's first red with `EDIT_ONE_ITEM`
+    (`test_a_control_that_answers_and_keeps_working_is_red` above); this is the
+    same defect, same fixture, reached through the fallback candidate instead —
+    proof that `RESUME_EMBEDDING` is not a second, untested code path that
+    happens to share a name with the first.
+    """
+    at = f"{assertion.__name__}-fallback"
+    target = a_stub("stub-ignores-pause", tmp_path, at=at)
+    control = a_stub("stub-ignores-pause", tmp_path, at=f"{at}-control")
+    _refuse_edit_one_item(target)
+    _refuse_edit_one_item(control)
+
+    check = assertion(target, control=control)
+
+    assert check.result == FAIL, check.detail
+    assert check.detail["positive_control"]["perturbation"] == (
+        assertions.durability.RESUME_EMBEDDING), (
+        "the control must record which candidate it actually demonstrated, not "
+        "the constant this clause used to hardcode"
+    )
+    assert check.detail["change_made_while_stopped"]["perturbation"] == (
+        assertions.durability.RESUME_EMBEDDING), (
+        "the graded phase must reuse the SAME candidate the control demonstrated "
+        "— 'the same change', not a different one that happens to also work"
+    )
+    assert check.detail["done_deltas_while_stopped"], (
+        "a red must still name the work that was done while the target was stopped"
+    )
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_a_target_that_only_accepts_edit_one_item_is_unaffected(assertion, tmp_path):
+    """Every target this layer graded before `RESUME_EMBEDDING` existed is
+    graded exactly as it always was: the candidate list tries `EDIT_ONE_ITEM`
+    first, and a target that accepts it is never asked about the second."""
+    check = graded(assertion, "stub-quiet", tmp_path)
+    assert check.result == PASS
+    assert check.detail["positive_control"]["perturbation"] == (
+        assertions.durability.EDIT_ONE_ITEM)
+
+
+@pytest.mark.parametrize("assertion", PAUSE_CLAUSES)
+def test_a_target_that_accepts_neither_candidate_is_not_run_naming_both(
+        assertion, tmp_path):
+    """Every candidate refused must be not-run, and the reason must name each one
+    that was tried — not only the last, or a reader cannot tell a target that
+    tried and failed twice from one this layer only ever asked once."""
+    at = f"{assertion.__name__}-neither"
+    control = a_stub("stub-quiet", tmp_path, at=f"{at}-control")
+    _refuse_edit_one_item(control)
+
+    def refuses_resume():
+        raise NotImplementedError("this fixture models a target with no build/embed job")
+
+    control._resume_embedding = refuses_resume
+
+    check = assertion(a_stub("stub-quiet", tmp_path, at=at), control=control)
+    assert check.result == NOT_RUN
+    assert "'edit-one-item'" in check.detail["why"]
+    assert "'resume-embedding'" in check.detail["why"]
+
+
 def test_a_pause_that_holds_only_while_the_process_lives_is_red(tmp_path):
     """Green on the clause that does not restart, red on the clause that does.
 

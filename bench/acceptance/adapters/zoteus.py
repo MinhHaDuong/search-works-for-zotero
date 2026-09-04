@@ -65,7 +65,7 @@ contract forbids: no flag is passed to the target, no behaviour is changed, and
 the state it produces — a data directory that already holds an index — is the
 ordinary one for every user after their first day.
 
-**Two of the four perturbations are declined, and the reasons differ.** The
+**Two of the perturbations are declined, and the reasons differ.** The
 restamps are done here, in sqlite, exactly as `bench/smoke_upstream.py`'s
 `_restamp_and_open` does them, because the stamp is this target's own storage
 and only this adapter may know where it lives. Editing one item and resyncing
@@ -76,6 +76,19 @@ rather than about the counters: every build measured so far also reports no work
 counters for those clauses to read, but the adapter now derives that on each run
 (`_work_counters`) instead of asserting it, so the refusal below says only what
 stays true whatever the status reply carries.
+
+**A fifth perturbation, `RESUME_EMBEDDING`, is R22's own fallback for exactly
+that refusal (ticket 0643).** `EDIT_ONE_ITEM` and `RESYNC_IDENTICAL_BYTES` model
+an external change a target notices and reprocesses — a shape this target
+cannot express without writing to state R15 excludes, and by design never will.
+This target's actual background work is a build-and-embed job, started explicitly
+and continuing in the background until it finishes, is stopped, or is told to
+resume: exactly the shape `action:"build"` already has against a checkpoint
+this same target left behind (§#48's resume contract, upstream). Driven only
+against a data directory `seed_index` put a partial checkpoint into before the
+process started — never a fresh crawl this adapter would have to pay for or a
+harness-side write to the index file, which stays this file's one deliberate
+exception (`_restamp`) and no more.
 
 **The model runtime path is a declared, overridable input, and it is the sharpest
 environmental trap here.** The built checkout does not vendor the on-device model
@@ -89,6 +102,7 @@ environment, and the artifact records what was passed so a reader can tell which
 they are looking at.
 """
 
+import json
 import os
 import shutil
 import sqlite3
@@ -101,6 +115,7 @@ from ..durability import (
     RESET_TO_SEEDED_INDEX,
     RESTAMP_NEWER,
     RESTAMP_OLDER,
+    RESUME_EMBEDDING,
     RESYNC_IDENTICAL_BYTES,
 )
 from ..interface import Declaration, UnsupportedVerb
@@ -244,7 +259,6 @@ def _work_counters(*payloads: dict) -> dict[str, int] | None:
 
 def _payload(response: dict) -> dict:
     """The structured body of a tool reply, whichever way this transport carries it."""
-    import json
 
     result = response.get("result", response)
     if "structuredContent" in result:
@@ -259,6 +273,27 @@ def _payload(response: dict) -> dict:
 
 
 class Zoteus:
+    #: How often `durability.settle()` re-reads this target's counters before
+    #: declaring them stationary (`settle`'s own docstring: adapter-declared,
+    #: like the lifecycle and the perturbation hook — "a fixture whose ledger
+    #: is updated synchronously would otherwise pay a real target's polling
+    #: cost for nothing", and the reverse trap is the one this ticket found:
+    #: a real target polled too FAST reads a false rest). Ticket 0643,
+    #: measured directly rather than assumed: `RESUME_EMBEDDING` against a
+    #: real, seeded, incompletely-embedded index reported `settled` after one
+    #: second with the counter unmoved, while the build was genuinely still
+    #: running in the background — `settle`'s default `poll_s` (1.0s) is
+    #: faster than this target's own commit cadence, so two consecutive polls
+    #: land inside the SAME unflushed window and read numerically equal
+    #: counters from an active job. The build persists — and bumps its work
+    #: counters in the same transaction (`sqlite-index.ts`'s `flush`, called
+    #: from `buildIncremental`) — at most every 10 real seconds while
+    #: actively building, never on every passage (`persistEveryMs`,
+    #: `index-manager.ts`). Set comfortably past that cadence so two
+    #: consecutive reads straddle at least one flush whenever work is
+    #: genuinely ongoing, and only read equal when it has actually stopped.
+    settle_poll_s = 15.0
+
     def __init__(self, arena: Path, *, entrypoint: Path, transformers_path: str = "",
                  zotero_data_dir: str = "", seed_index: str = "", timeout: float = 900,
                  posture: Posture | None = None):
@@ -509,14 +544,19 @@ class Zoteus:
     def perturb(self, what: str) -> dict:
         """Make something happen to this target that no verb can express.
 
-        Called with the process stopped: the restamp writes to the index file,
-        and writing to a database another process holds open is a different
-        experiment from the one R23 asks for.
+        The restamp and reset branches are called with the process stopped: they
+        write to the index file directly, and writing to a database another
+        process holds open is a different experiment from the one R23 asks for.
+        `RESUME_EMBEDDING` is the opposite — it is this target's own MCP call, so
+        it needs the process `running()` already has alive, which is where R22's
+        checks call `perturb`.
         """
         if what in FOREIGN_STAMPS:
             return self._restamp(what)
         if what == RESET_TO_SEEDED_INDEX:
             return self._reset_to_seeded_index()
+        if what == RESUME_EMBEDDING:
+            return self._resume_embedding()
         if what in (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES):
             raise NotImplementedError(
                 "this would write to the user's own Zotero library, which this target is "
@@ -524,6 +564,83 @@ class Zoteus:
                 "so the harness declines to drive it and the clause is not decided here"
             )
         raise NotImplementedError(f"this adapter has no way to do {what!r}")
+
+    def _resume_embedding(self) -> dict:
+        """Continue an embed pass this target's own checkpoint says is unfinished.
+
+        `action:"build"` against a data directory whose index already holds
+        passages with no vector is documented, upstream, as a resume: only the
+        passages the checkpoint has yet to embed are worked on, and nothing
+        already committed is re-fetched or re-embedded (`index-manager.ts`'s
+        `resumeFrom`/`backfillVectors`, upstream issue #48). Refused on the same
+        ground `_reset_to_seeded_index` refuses on: without a `seed_index` this
+        call would be a full crawl of the real library from empty rather than a
+        resume, a different and unbounded experiment that would measure nothing
+        about R22.
+
+        **Bounded to the checkpoint's own scope, measured rather than assumed.**
+        `limit`/`own_words`/`fulltext` are NOT inherited from the checkpoint by
+        this target when a caller omits them: `maxItems` and the `fulltext`/
+        `ownWords` options are recomputed from THIS call's own arguments against
+        the server's configured defaults, never read back off `resumeFrom`'s
+        state (`index-tool.ts`'s handler; confirmed by measurement, ticket 0643
+        — an unbounded call here resumed straight past the fixture's own
+        400-item, no-own-words scope into a full, own-words-and-fulltext crawl
+        of the real library, which is both a real cost and a correctness risk:
+        a job that size does not settle inside the harness's patience
+        (`SETTLE_DEADLINE_S`), and `durability.settle` would time out rather
+        than decide anything). So the checkpoint's own `maxItems` — the one
+        thing that DOES survive on disk — is read back directly, the same
+        read-only precedent `_stamp` sets, and resupplied explicitly, along
+        with `own_words`/`fulltext` fixed to what this ticket's own fixtures
+        build with. This is not this adapter inventing the original build's
+        options; it is refusing to let an omitted argument silently widen scope.
+        """
+        if self.seed_index is None:
+            raise NotImplementedError(
+                "this target was given no prebuilt, partially-embedded index to resume "
+                "(no --seed-index), so the harness cannot make 'this job has more of its "
+                "own work to do' happen without crawling the real library from empty; the "
+                "clause is not decided here"
+            )
+        args: dict[str, object] = {"action": "build", "own_words": False, "fulltext": False}
+        max_items = self._checkpoint_max_items()
+        if max_items is not None:
+            args["limit"] = max_items
+        return {
+            "perturbation": RESUME_EMBEDDING,
+            "build_started": self._call("zotero_index", args),
+        }
+
+    def _checkpoint_max_items(self) -> int | None:
+        """The crawl bound this target's own interrupted build left behind, or None.
+
+        Read directly off the index file — the same read-only technique
+        `_stamp` uses for the schema version, applied to the adjacent `meta`
+        row this target's checkpoint already carries (`sqlite-index.ts`'s
+        `checkpoint` key; `BuildCheckpoint.maxItems`). A concurrent read while
+        the process is live is safe under SQLite's own MVCC; a locked or
+        unreadable file, or a checkpoint that carries no `maxItems`, is not
+        this method's failure to report — `_resume_embedding` calls `action:
+        "build"` uncapped rather than raising, since an uncapped-but-genuinely
+        -triggered resume is still an honest attempt, only a more expensive one.
+        """
+        index = self._index()
+        if index is None:
+            return None
+        con = sqlite3.connect(f"file:{index}?mode=ro", uri=True)
+        try:
+            row = con.execute(
+                "SELECT value FROM meta WHERE key='checkpoint'").fetchone()
+        finally:
+            con.close()
+        if row is None:
+            return None
+        try:
+            max_items = json.loads(row[0]).get("maxItems")
+        except (ValueError, TypeError, AttributeError):
+            return None
+        return max_items if isinstance(max_items, int) else None
 
     def _stamp(self, index: Path) -> str | None:
         """The schema version this index file currently carries, or None."""

@@ -83,6 +83,7 @@ from ..durability import (
     RESET_TO_SEEDED_INDEX,
     RESTAMP_NEWER,
     RESTAMP_OLDER,
+    RESUME_EMBEDDING,
     RESYNC_IDENTICAL_BYTES,
 )
 from ..interface import Declaration, UnsupportedVerb
@@ -214,6 +215,8 @@ class _Stub:
             return self._restamp(what)
         if what == RESET_TO_SEEDED_INDEX:
             return self._reset_to_seeded_index()
+        if what == RESUME_EMBEDDING:
+            return self._resume_embedding()
         raise NotImplementedError(f"this fixture cannot do {what!r}")
 
     def _reset_to_seeded_index(self) -> dict:
@@ -241,6 +244,20 @@ class _Stub:
         """
         self._bump(work__record__edit__done=1, work__embed__edit__done=SECTIONS)
         return {"perturbation": EDIT_ONE_ITEM, "item": ITEMS[0], "sections": SECTIONS,
+                "work_done": not self._is_paused()}
+
+    def _resume_embedding(self) -> dict:
+        """A background job with more of its own work to do: R22's other shape.
+
+        Gated by `_bump` like every other perturbation here, so a fixture that
+        overrides pause-honouring in `_bump` (all of them) or in `_is_paused`
+        (`stub-ignores-pause`) behaves identically under this candidate as under
+        `_edit_one_item` — the two are meant to be interchangeable from the
+        checks' side, and a fixture that only overrode one would leave that
+        interchangeability unproven.
+        """
+        self._bump(work__embed__build__done=SECTIONS)
+        return {"perturbation": RESUME_EMBEDDING, "sections": SECTIONS,
                 "work_done": not self._is_paused()}
 
     def _resync_identical_bytes(self) -> dict:

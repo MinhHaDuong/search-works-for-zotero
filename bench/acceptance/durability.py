@@ -81,8 +81,28 @@ RESTAMP_NEWER = "restamp-newer"
 #: constant exists to close.
 RESET_TO_SEEDED_INDEX = "reset-to-seeded-index"
 
+#: R22's own case: a background job — a build-and-embed pass — already has more of
+#: its own work to do, because a checkpoint it left behind still names passages
+#: nothing has embedded. `EDIT_ONE_ITEM` and `RESYNC_IDENTICAL_BYTES` model an
+#: external change that a target notices and reprocesses; this models a job
+#: already in flight when the target was told to stop, which is what R22's own
+#: goal — a pause stops ALL background work — is actually about for a target
+#: whose only notion of background work is one long job rather than a per-item
+#: edit. An adapter maps it onto whatever verb continues its target's own
+#: interrupted job against a fixture holding such a checkpoint.
+RESUME_EMBEDDING = "resume-embedding"
+
 PERTURBATIONS = (EDIT_ONE_ITEM, RESYNC_IDENTICAL_BYTES, RESTAMP_OLDER, RESTAMP_NEWER,
-                 RESET_TO_SEEDED_INDEX)
+                 RESET_TO_SEEDED_INDEX, RESUME_EMBEDDING)
+
+#: R22's own candidates, tried in this fixed order by `perturb_background_work`
+#: below. `EDIT_ONE_ITEM` first, so a target that already accepts it — every
+#: target this layer graded before `RESUME_EMBEDDING` existed — is graded
+#: exactly as it always was; `RESUME_EMBEDDING` is the fallback for a target
+#: whose background work is a build-and-embed job rather than a per-item edit, and
+#: which therefore declines the first on a principled ground rather than a
+#: missing feature.
+BACKGROUND_WORK_PERTURBATIONS = (EDIT_ONE_ITEM, RESUME_EMBEDDING)
 
 #: How long the harness waits for work counters to stop moving, and how often it
 #: looks. This is the harness's patience, not a bound any requirement states: no
@@ -210,6 +230,37 @@ def perturb(target: Target, what: str) -> tuple[dict | None, str | None]:
             f"this adapter cannot drive the perturbation {what!r} against its target "
             f"({why}); the clause is not decided here"
         )
+
+
+def perturb_background_work(target: Target) -> tuple[str | None, dict | None, str | None]:
+    """Try `BACKGROUND_WORK_PERTURBATIONS` in order; use the first this target accepts.
+
+    Returns `(which, event, None)` on success and `(None, None, why)` when every
+    candidate was refused — `why` composes each candidate's own reason, so a
+    reader sees everything that was tried rather than only the last attempt.
+
+    **Generic over the candidate, not over the target.** R22's two clauses need
+    one perturbation applied consistently to both the positive control and the
+    graded target within a single check — "the same change", their own
+    docstrings' own phrase — so a caller determines the candidate once, by its
+    first call (on the control), and reuses that same string explicitly on its
+    second call (on the graded target) rather than calling this function again
+    and risking a different answer. Candidates are tried in a fixed order for
+    the same reason: a choice that could shift between two calls, or between two
+    runs of the same target, would make counters recorded under one candidate
+    incomparable with counters recorded under another.
+
+    A refusal costs nothing to try: every adapter's `perturb()` in this package
+    raises its refusal before doing anything, so a target that only accepts the
+    second candidate pays nothing for being asked about the first.
+    """
+    tried: list[str] = []
+    for candidate in BACKGROUND_WORK_PERTURBATIONS:
+        event, why = perturb(target, candidate)
+        if why is None:
+            return candidate, event, None
+        tried.append(f"{candidate!r} ({why})")
+    return None, None, "; ".join(tried)
 
 
 #: The two not-run sentences every counter-reading clause needs, and they are

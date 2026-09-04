@@ -673,6 +673,17 @@ def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
     to run when the roots differ. Here a shared root would let the control's own
     work land in the graded target's counters.
 
+    **The change itself is not fixed to one perturbation.** A target may refuse
+    `EDIT_ONE_ITEM` on a principled ground unrelated to R22 — it would write to
+    state the target does not own — and still have real background work of its
+    own to be paused mid-flight. `durability.perturb_background_work` tries
+    `EDIT_ONE_ITEM` first, so every target this clause graded before a second
+    candidate existed is graded exactly as before, and falls back to
+    `RESUME_EMBEDDING` for one that declines the first. Whichever the control
+    demonstrates, the returned dict names it under `"perturbation"` so the
+    caller's later, graded-target call uses the identical candidate — "the same
+    change" stays true of the actual string, not only of the constant name.
+
     Returns `(control, None)` when work was created, and `(None, check)` carrying
     the `not-run` when it was not.
     """
@@ -740,7 +751,7 @@ def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
         if not settled:
             return None, control_failed("had work counters still moving before the "
                                         "change, so the harness ran out of patience")
-        event, why = durability.perturb(control, durability.EDIT_ONE_ITEM)
+        which, event, why = durability.perturb_background_work(control)
         if why:
             return None, control_failed(f"could not be perturbed ({why})")
         after, settled = durability.settle(control)
@@ -759,7 +770,7 @@ def _the_change_creates_work(cid: str, req: str, clause: str, falsified: str,
             "clause whose finding is that a counter did not move needs the counter to "
             "have been able to move.",
         )
-    return {"perturbation": durability.EDIT_ONE_ITEM, "event": event,
+    return {"perturbation": which, "event": event,
             "done_deltas_on_a_never_stopped_instance": created}, None
 
 
@@ -840,7 +851,11 @@ def check_pause_stops_background_work(target: Target, *, control: Target) -> Che
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "after the pause")
-        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        # The identical candidate the positive control just demonstrated —
+        # `_the_change_creates_work` may have fallen back past `EDIT_ONE_ITEM`
+        # to `RESUME_EMBEDDING`, and "the same change" means the same string,
+        # not only the same constant this clause used to hardcode.
+        change, why = durability.perturb(target, control["perturbation"])
         if why:
             # `status`, as `durability.py` records it for the same failure: the
             # harness could not make the change happen, and `pause` was called
@@ -934,7 +949,11 @@ def check_pause_holds_across_restart(target: Target, *, control: Target) -> Chec
         if not settled:
             return durability.unsettled(cid, req, clause, falsified, target,
                                         "after the restart")
-        change, why = durability.perturb(target, durability.EDIT_ONE_ITEM)
+        # The identical candidate the positive control just demonstrated —
+        # `_the_change_creates_work` may have fallen back past `EDIT_ONE_ITEM`
+        # to `RESUME_EMBEDDING`, and "the same change" means the same string,
+        # not only the same constant this clause used to hardcode.
+        change, why = durability.perturb(target, control["perturbation"])
         if why:
             # `status`, as `durability.py` records it for the same failure: the
             # harness could not make the change happen, and `pause` was called
