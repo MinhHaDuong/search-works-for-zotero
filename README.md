@@ -16,7 +16,7 @@ Files directory and instructions: see [`AGENTS.md`](AGENTS.md)
 
 ## The theory of change
 
-This workshops aims to define what a professional-grade RAG is, and influence the Zotero ecosystem in that direction.
+This workshops aims to define what professional-grade semantic retrieval is, and influence the Zotero ecosystem in that direction.
 The definition of success is not in the code we ship, it is the availability of semantic search in Zotero that works "Really Well".
 That can be implemented in more than one way. Three work surfaces therefore have equal standing:
 
@@ -45,7 +45,7 @@ In the near term, I aim to deliver:
 - Collections accrete thousands of entries. Missing/malformed files, legacy formats, misclassifications, duplicates... expect pathologies to be present.
 - One bibliographic entry (a Zotero item) may contain many article-sized documents. A book has many chapters, a proceedings many talks, a dictionary many entries. It is wrong to assume that all items are less than 40 pages.
 - In good prose, one paragraph is one idea. Chunking is paragraph-sized, we retrieve ideas not data snippets.
-- While OCR would be good to have, it is beyond current hardware.
+- While OCR would be good to have, it is out for now.
 
 As with all programs, the system that work well must converge without manual rebuilds, expose
 honest coverage, avoid recomputing unchanged content, filter before truncating
@@ -56,7 +56,8 @@ Document [`SPEC.md`](SPEC.md) details the vision. It is organized in RFC section
 (Introduction, Terminology, Requirements, Constraints, Design, Security
 Considerations).  It translates the vision into testable requirements.
 
-Contents below the bar is machine-generated, to track progress.
+Contents below the bar tracks progress. Its standing prose is maintained by
+review, while repository guards check its structure, baseline and arithmetic.
 
 ---
 
