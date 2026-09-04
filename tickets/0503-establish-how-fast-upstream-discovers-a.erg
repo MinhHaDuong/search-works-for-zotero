@@ -18,6 +18,8 @@ Author: Claude
 2026-09-03T17:52Z claude note PADME SET UP AS A SECOND QUIET REFERENCE MACHINE for the deferred half: live Zotero desktop synced (17 518 items, local API idle, datadir /home/haduong/data/Zotero-fresh), no build in flight -- the condition doudou could not offer this session (17h full-library build in progress there). ITEM-COUNT SCOPE FLAG: 17 518 is ~2.3x the 7 541 SPEC.md's own worked example and the prior live-smoke recipe (memory project-live-smoke-recipe, ticket 0520) used for "the real library". R12 puts group libraries in scope and each subscribed library gets its own per-library tick (SPEC.md 5.2.4), so the likely explanation is padme's account has group libraries synced that the 7 541 measurement scoped out -- not established, only plausible. Phase 5 must state which scope (personal-only vs personal+groups) it actually measured rather than assume the two figures describe the same population; a per-tick item-census cost measured on the aggregate is not comparable to SPEC.md's personal-library worked example without saying so
 2026-09-03T17:52Z claude note REFINED Actions/Test/Verification below with the concrete recipe: build fork/ at the current SHA, drive it over stdio with bench/mcp_drive.py (reused, not hand-rolled -- the same harness the ticket 0520 live-smoke recipe used), establish the delta-path precondition (one completed same-backend same-embedder SQLite build) before measuring, force and correctly classify one full rebuild as a positive control before trusting the classifier on real reps, then run N>=5 add/delete reps recording status.operation on every poll and reporting delta vs rebuild distributions apart per the 21:04Z finding
 2026-09-03T17:53Z claude note ITEM-COUNT-SCOPE DISCREPANCY RESOLVED, not the group-library candidate this ticket's own 18:00Z entry guessed. `/items` (every item record incl. each child attachment/note) is 17,518; `/items/top` (top-level bibliographic entries) is 7,546 -- 5 above SPEC.md's cited 7,541, within ordinary library growth since that figure was set. So Phase 5's own instruction stands but for a different reason than guessed: state the scope measured, and that scope is `/items/top` (7,546), matching SPEC.md's population -- not a personal-vs-group split, which was plausible but wrong.
+2026-09-04T06:51Z claude note MEASUREMENT HALF DONE on padme, artifact bench/results/0503-discovery-latency/. THE POSITIVE CONTROL FIRED AND CAUGHT THIS TICKET'S OWN SKETCH: refresh-then-update does NOT force the fallback, because polling the refresh to done rebuilds the index, so the update that follows meets no updateBlocker condition and is a genuine 1.0s delta. The harness reported that forced rebuild as a delta and ABORTED before any rep -- record kept beside the results as control-failure-first-attempt.json, because a control that has never fired is not known to work. Forcing it correctly means issuing the first update against a WIPED data dir (condition 3), which also establishes the delta precondition in the same run; it then classified rebuild at 91.8s and 91.3s across two runs. A second defect of the same shape one level down: visible() sent the query under key query where semantic-search.ts:22 names it q, so every call was a schema error swallowed by a bare except and read as not-visible-yet; a failed tool call now raises. Also raised ZOTEUS_INDEX_MAX_ITEMS -- the 5000 default silently indexed 5000 of 7546 items, and the harness now asserts items==itemsAvailable
+2026-09-04T06:51Z claude note NUMBERS AND VERDICT. Scope /items/top = 7546 items on padme, keyword-only, SQLite, fulltext on. Delta ticks reported apart from the forced rebuild and never averaged: new item searchable median 47.1s (n=5, 44.1-98.1); deleted item no longer served 1.052s (n=5) -- that one is AT THE POLL FLOOR, the update finished inside the harness's first 1s status poll, so it is an upper bound quantized by the poll and not a measured cost. Forced full-rebuild tick 91.3s. All ten reps ran the delta path; no rep fell back, so the rebuild bucket holds only the control. ITEM CENSUS, the number 5.2.4 itself calls unmeasured: 45ms for the full 7546-key set (68KB) by deletion-by-subtraction, 36ms for the since arm. Full-text census confirmed at 8037 attachments over 5999 items, matching 5.2.4's figure. VERDICT: 5.2.4's 60s stands as written, no DECISIONS ruling. The update RUN does not fit (68s and 98s on two of five adds, 91s every rebuild) but action:update is not the tick 5.2.4 specifies -- 5.2.4 says no document fetch happens inside the tick, the worker fetches, and upstream's update is tick and worker in one call. The tick as specified is the census, and the census is 45ms. What this adds is evidence the tick/worker split is load-bearing rather than tidy. Add-tick cost sits wholly in phase metadata while the server reports 1 changed item re-indexed; CAUSE NOT ISOLATED and recorded as an observation, with the settling experiment named in the artifact
 --- body ---
 ## Context
 R35 entered the sheet on 2026-08-31 with an `inferred` standing row, which is
@@ -40,14 +42,14 @@ chosen as design, before any requirement pointed at them.
 ## Exit criteria
 - [x] the upstream trigger and cadence read at source at the reviewed SHA, with
       the file and line recorded here
-- [ ] deletion latency and new-item latency measured on the reference machine,
+- [x] deletion latency and new-item latency measured on the reference machine,
       artifact committed under `bench/results/`, with each tick's `operation`
       recorded and the delta and full-rebuild distributions reported apart —
       `action:"update"` falls back to a full rebuild on six conditions
       (`src/features/search/build.ts:380-388` @ `b05ed69`), so a single mean
       over an unrecorded mix is not a measurement
 - [x] R35's row moves off `inferred`, or says why it cannot
-- [ ] the §2.4 values are confirmed as the bound or re-pinned from the
+- [x] the §2.4 values are confirmed as the bound or re-pinned from the
       measurement, with the ruling in DECISIONS.md if they move
 
 ## Actions
@@ -119,19 +121,19 @@ harness's operation-reading correctly labels it "Full index rebuild", not
 it a harness that always reports "delta" would pass silently on every rep.
 
 ## Verification
-- [ ] fork built at the CURRENT `UPSTREAM_REVIEWED_SHA`, re-read from
+- [x] fork built at the CURRENT `UPSTREAM_REVIEWED_SHA`, re-read from
       `UPSTREAM` at run time, not copied from this ticket's log
-- [ ] padme's local API confirmed idle before the run (no build in flight)
-- [ ] local-API write grant obtained (one-time interactive step, recorded
+- [x] padme's local API confirmed idle before the run (no build in flight)
+- [x] local-API write grant obtained (one-time interactive step, recorded
       in the artifact's README)
-- [ ] positive control (forced full rebuild) correctly classified before
+- [x] positive control (forced full rebuild) correctly classified before
       the real reps are trusted
-- [ ] every rep's `operation` field recorded; delta and full-rebuild reps
+- [x] every rep's `operation` field recorded; delta and full-rebuild reps
       reported as separate distributions, never averaged into one mean
-- [ ] item-count scope (personal-only vs personal+groups) stated in the
+- [x] item-count scope (personal-only vs personal+groups) stated in the
       artifact
-- [ ] artifact committed under `bench/results/`
-- [ ] SPEC.md §5.2.4's bound confirmed or re-pinned, with a DECISIONS.md
+- [x] artifact committed under `bench/results/`
+- [x] SPEC.md §5.2.4's bound confirmed or re-pinned, with a DECISIONS.md
       ruling only if it moves
 
 ## Invariants
