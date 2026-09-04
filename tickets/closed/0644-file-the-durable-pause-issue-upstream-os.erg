@@ -1,0 +1,53 @@
+%erg 0.1
+Title: File the durable-pause issue upstream (oscardvs/zoteus#56), gap C's actual blocker
+Created: 2026-09-04
+Author: MinhHaDuong
+Closed: sent as oscardvs/zoteus#56
+
+--- log ---
+2026-09-04T08:49Z MinhHaDuong created
+
+2026-09-04T08:49Z MinhHaDuong closed — sent as oscardvs/zoteus#56
+--- body ---
+
+## Context
+
+Child of tracker 0613 (goal 1), gap C. `Ticket-ref: tickets/0613`,
+`Ticket-ref: tickets/0643`, `Ticket-ref: tickets/0033` — none close.
+
+Ticket 0643's real, measured R22 run found the actual cause of gap C's
+remaining `FAIL`: zoteus's `action:"stop"` durably cancels the currently
+running job (checkpoint intact, nothing auto-resumes on its own) but does
+not gate a subsequent EXPLICIT `action:"build"` call — call `build` again
+right after `stop` and it happily resumes. `R22-pause-stops-background-work`'s
+own wording ("after [stop] is used, a change that would create work creates
+none") reads that as a fail, and the measurement backs it: `stop` → idle,
+checkpoint intact (`passagesWithoutVectors:7`) → `build` again → resumes,
+`work.embed.build.done` advances by 109 (`bench/results/
+0643-resume-embedding-perturbation/acceptance-zoteus-r22-seeded.json`).
+
+Author decision (2026-09-04): ask upstream, as a soft, non-demanding
+proposal — same shape as issue #54 — rather than a bug report, since the
+current behavior is reasonable for the common case and may be intentional.
+
+## Action
+
+Sent as [oscardvs/zoteus#56](https://github.com/oscardvs/zoteus/issues/56):
+"Stopping a build doesn't keep it paused — `action:\"build\"` happily
+resumes right after." Two shapes proposed, neither demanded: a persisted
+`paused` flag `build`/`update` check and refuse against until cleared, or a
+distinct `resume` action separate from `build`'s current resume/rebuild/repair
+overload.
+
+## What this does NOT do
+
+Does not move `R22`'s graded verdict — it stays `FAIL`, correctly, until the
+maintainer ships something and it is re-measured against a real build (see
+0643's own "reverify after the fix merges" plan, author-directed). Does not
+touch the staged, still-unsent `verification/UPSTREAM-PR-WORK-COUNTERS-0642.md`.
+
+## Exit criteria
+
+Issue sent, recorded in `SYNC.md` and `0613`'s log. Response tracking is
+0613's business going forward, same as every other upstream item on this
+tracker (#54, #55).
