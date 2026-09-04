@@ -33,15 +33,25 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #
 # Existing host, preserving the UID, owned files and named ACL entries:
 #
+#   # usermod refuses a live account. Deleted worktrees or containers can
+#   # leave an orphaned catatonit, so identify every process before renaming:
+#   pgrep -a -u tester
+#   sudo ps -o pid,ppid,user,group,lstart,cmd -p <pid>
+#   sudo readlink -f /proc/<pid>/exe
+#   sudo readlink -f /proc/<pid>/cwd
+#   # Stop only a process established to be stale; then require no output:
+#   sudo kill -TERM <stale-pid>
+#   pgrep -a -u tester
+#
 #   sudo usermod --login untrusted-runner tester
 #   sudo groupmod --new-name untrusted-runner tester
-#   sudo usermod --home /home/untrusted-runner --move-home untrusted-runner
+#   sudo usermod --home /home/untrusted-runner --move-home --shell /usr/sbin/nologin untrusted-runner
 #   sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subuid
 #   sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subgid
 #   sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
-#   sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
-#   sudo chown root:root /etc/sudoers.d/untrusted-runner
-#   sudo chmod 0440 /etc/sudoers.d/untrusted-runner
+#   sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/acceptance-untrusted-runner
+#   sudo chown root:root /etc/sudoers.d/acceptance-untrusted-runner
+#   sudo chmod 0440 /etc/sudoers.d/acceptance-untrusted-runner
 #   sudo visudo -c
 #
 # Fresh host:
@@ -87,7 +97,10 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #   # --preserve-env instead of refusing the whole invocation outright — see
 #   # Posture.wrap's own docstring in bench/acceptance/posture.py for why
 #   # values never ride on this or any other argv, only names do:
-#   echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/untrusted-runner
+#   echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-untrusted-runner
+#   sudo chown root:root /etc/sudoers.d/acceptance-untrusted-runner
+#   sudo chmod 0440 /etc/sudoers.d/acceptance-untrusted-runner
+#   sudo visudo -c
 #
 # `untrusted-runner` gets READ on the library and on the target checkouts (every target
 # here is read-only against the library, and its own binary need only be
@@ -100,6 +113,9 @@ ACCEPTANCE_ARENA ?= $(HOME)/data/acceptance-arena
 #
 # After either path, verify the actual boundary and each required grant:
 #
+#   getent passwd untrusted-runner
+#   id untrusted-runner
+#   ! getent passwd tester
 #   sudo -n -u untrusted-runner -- true
 #   grep '^untrusted-runner:' /etc/subuid /etc/subgid
 #   sudo -n -u untrusted-runner -- podman unshare true  # when using Podman isolation

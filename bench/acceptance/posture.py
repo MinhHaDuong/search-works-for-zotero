@@ -38,13 +38,25 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
 `ACCEPTANCE_ARENA` in the `Makefile`; the shape of it:
 
     # Existing host: preserve the UID, owned files and named ACL entries.
+    # usermod refuses a live account. Deleted worktrees or containers can
+    # leave an orphaned catatonit, so identify every process before renaming:
+    pgrep -a -u tester
+    sudo ps -o pid,ppid,user,group,lstart,cmd -p <pid>
+    sudo readlink -f /proc/<pid>/exe
+    sudo readlink -f /proc/<pid>/cwd
+    # Stop only a process established to be stale; pgrep must then be empty.
+    sudo kill -TERM <stale-pid>
+    pgrep -a -u tester
     sudo usermod --login untrusted-runner tester
     sudo groupmod --new-name untrusted-runner tester
-    sudo usermod --home /path/to/untrusted-runner-home --move-home untrusted-runner
+    sudo usermod --home /path/to/untrusted-runner-home --move-home --shell /usr/sbin/nologin untrusted-runner
     sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subuid
     sudo sed -i 's/^tester:/untrusted-runner:/' /etc/subgid
     sudo visudo -f /etc/sudoers.d/acceptance-tester  # replace tester in the rule
-    sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/untrusted-runner
+    sudo mv /etc/sudoers.d/acceptance-tester /etc/sudoers.d/acceptance-untrusted-runner
+    sudo chown root:root /etc/sudoers.d/acceptance-untrusted-runner
+    sudo chmod 0440 /etc/sudoers.d/acceptance-untrusted-runner
+    sudo visudo -c
 
     # Fresh host instead:
     sudo useradd --create-home --shell /usr/sbin/nologin untrusted-runner
@@ -58,11 +70,14 @@ with the private-group-`$HOME` trap it was corrected against, lives beside
     # then let the operator drive the target without a password as untrusted-runner,
     # AND forward the named environment variables wrap() lists on --preserve-env
     # (SETENV) rather than sudo silently dropping them (see wrap()'s own docstring):
-    echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/untrusted-runner
-    sudo chown root:root /etc/sudoers.d/untrusted-runner
-    sudo chmod 0440 /etc/sudoers.d/untrusted-runner
+    echo "operator ALL=(untrusted-runner) NOPASSWD:SETENV: ALL" | sudo tee /etc/sudoers.d/acceptance-untrusted-runner
+    sudo chown root:root /etc/sudoers.d/acceptance-untrusted-runner
+    sudo chmod 0440 /etc/sudoers.d/acceptance-untrusted-runner
     sudo visudo -c
     sudo -n -u untrusted-runner -- true
+    getent passwd untrusted-runner
+    id untrusted-runner
+    ! getent passwd tester
     grep '^untrusted-runner:' /etc/subuid /etc/subgid
     sudo -n -u untrusted-runner -- podman unshare true  # when using Podman isolation
 

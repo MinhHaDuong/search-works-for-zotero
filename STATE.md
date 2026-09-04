@@ -1,6 +1,6 @@
 # STATE — Search Works for Zotero
 
-*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-04T09:04Z.*
+*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-04.*
 
 One page of live operational handoff, and it owns nothing: every line points
 to the document that owns the fact. What this repository is is [`README.md`](README.md)'s.
@@ -22,9 +22,9 @@ to the document that owns the fact. What this repository is is [`README.md`](REA
 
 **Reviewed baseline: v1.13.0** (`b0e0bc8`, ticket 0618, main's tip not the tag).
 
-**0613/0614/0615: does zoteus pass goal 1/2/3?** Gaps A/B closed, sent
-upstream (#54, #55). Gap C (R22) now decided **FAIL** not `not-run` (0642+0643):
-`stop` doesn't gate a later `build` — sent as #56, waiting on the maintainer.
+**0613/0614/0615: does zoteus pass goal 1/2/3?** Gap A's #54 was built by the
+maintainer and shipped in v1.14.0, then closed; R10 awaits the v1.14 baseline
+reread and remeasurement. Gap B is PR #55. Gap C was sent as #56 and waits.
 
 **Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — 0491's codex-fence question, the ladder re-cut's two.
 
