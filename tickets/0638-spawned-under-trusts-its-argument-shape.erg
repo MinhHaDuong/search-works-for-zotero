@@ -1,0 +1,117 @@
+%erg 0.1
+Title: spawned-under trusts its argument shape, not that the caller actually is the account it claims
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T06:03Z MinhHaDuong created
+
+--- body ---
+## Context
+
+PR #334 (ticket 0637) fixed the account-posture / `podman-unshare` ordering
+bug by switching identity to `tester` OUTSIDE both the tracer and the
+namespace, then re-invoking `run.py --drive` with a new flag,
+`--spawned-under ACCOUNT`, so the re-invoked process knows it is already
+running as `tester` and should not re-probe/re-invoke `sudo` itself (which
+would fail anyway, since by that point it's already inside the namespace).
+
+The security review that cleared PR #334 for merge found this flag is
+trusted by **argument shape alone**: `run.py`'s guard checks "is `--drive`
+set" and "is `--posture account`", but never verifies the process actually
+IS running as the claimed account. `posture.py`'s `inherited()` docstring
+acknowledges this directly — "a claim the process cannot verify from where
+it stands" — and gives a real reason: `os.getuid()` reads as 0 inside a
+`podman-unshare` namespace (the namespace's own uid remapping), so a uid
+check would be actively wrong there, not just unavailable.
+
+That reasoning holds for `podman-unshare` specifically, but the reviewer
+found it's incomplete as a blanket justification for no check at all:
+
+- `Bubblewrap` (the other `Mechanism` in `sandbox.MECHANISMS`) does not
+  remap uid (no `--unshare-user`), so `os.getuid()` would read correctly
+  there.
+- More generally: `sudo`'s default env-reset behavior sets `USER`/`LOGNAME`/
+  `HOME` to the target account's values in the child's environment, unless
+  those names are preserved — and `posture.forwardable()` (also added in
+  PR #334) deliberately excludes identity-bound names like these from
+  `--preserve-env`. So if the switch genuinely happened, `USER` in the
+  re-invoked process's own environment would genuinely read `tester`. A
+  cheap `os.environ.get("USER") == spawned_under` sanity check — skipped
+  only under mechanisms known to remap uid/identity-reads unreliably — would
+  close most of this gap without needing anything uid-based.
+
+In practice this is low severity, not urgent: `--drive`/`--spawned-under`
+are documented as internal-only ("written by the outer driver... and never
+by hand"), the normal pipeline never passes them without a genuine `sudo`
+switch already having happened, and exploiting the gap requires someone to
+hand-type the exact re-invocation command as the operator, working around
+the account-posture invariant on purpose. It is, however, the one place in
+ticket 0637's fix where a flag can cause a target to spawn unwrapped based
+on an unverified claim — a real weakening of the "verify, don't trust"
+pattern the rest of `posture.py` follows rigorously (`_works()` actually
+runs a probe rather than trusting passwd existence).
+
+## Relevant files
+
+- `bench/acceptance/posture.py` — `inherited()` (added in PR #334): the
+  function that trusts `--spawned-under`'s claim without verification; its
+  own docstring already names the reason no uid check exists.
+- `bench/acceptance/run.py` (~lines 494-503, PR #334) — the `--spawned-under`
+  argument guard: refuses outside `--drive` and under any posture other than
+  `account`, but does not check the claim against reality.
+- `bench/acceptance/posture.py` — `forwardable()` (added in PR #334): confirms
+  `USER`/`LOGNAME`/`HOME` are excluded from forwarded env names, which is
+  exactly what makes the sanity check above meaningful (if the switch really
+  happened, these read the target account's real values, not carried-over
+  operator values).
+- `bench/acceptance/sandbox.py` — `MECHANISMS` (`Bubblewrap`, `PodmanUnshare`):
+  which mechanisms remap uid (skip the check) vs which don't (check safely).
+
+## Actions
+
+1. Add a cheap identity sanity check to `inherited()` (or wherever
+   `--spawned-under` is consumed): compare `os.environ.get("USER")` (or
+   equivalent) against the claimed account name, and refuse/raise if they
+   disagree — mirroring the "verify, don't trust" pattern `_works()` already
+   uses elsewhere in this module.
+2. Skip the check specifically under mechanisms known to remap uid/identity
+   reads unreliably (`podman-unshare` today); keep it active under
+   `Bubblewrap` and any future mechanism that doesn't remap identity.
+3. Document, in `inherited()`'s docstring, exactly which mechanisms the check
+   is skipped for and why — so a future reader doesn't have to re-derive the
+   uid-remapping reasoning from scratch.
+
+## Test
+
+Red-first: a test that invokes the re-invocation path with `--spawned-under
+tester` while NOT actually running as `tester` (i.e. `USER` still reads the
+operator), under a mechanism where the check should apply (`Bubblewrap` or a
+mechanism-less/direct call) — must fail loudly rather than silently proceed
+as if the switch had happened. A second test confirms the check is
+correctly skipped (not merely always-pass) under `podman-unshare`, where
+`USER` cannot be trusted.
+
+## Verification
+
+- [ ] `--spawned-under` invoked without a genuine account switch is refused
+      under any mechanism that doesn't remap identity.
+- [ ] `--spawned-under` under `podman-unshare` is unaffected (the check is
+      skipped there, not silently satisfied) — ticket 0629's confirming arm
+      (PR #334) still runs and reports PASS/FAIL, not a new NOT-RUN.
+- [ ] `make check` passes.
+
+## Invariants
+
+- Ticket 0625's ruling stays intact: no target process runs as the operator,
+  on any code path, under any posture or mechanism.
+- The fix does not reintroduce a uid-based check under `podman-unshare`,
+  where `os.getuid()` is known to read incorrectly (0) inside the namespace.
+
+## Exit criteria
+
+`--spawned-under`'s claim is verified against observable reality wherever
+that's possible (every mechanism that doesn't remap identity), not merely
+accepted by argument shape — closing the one remaining "trust, don't verify"
+gap the ticket 0637 review found, without regressing the `podman-unshare`
+case ticket 0637 fixed.
