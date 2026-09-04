@@ -320,6 +320,36 @@ def test_egress_check_marks_the_claim_unverifiable_only_under_a_remapping_mechan
         assert "--spawned-under-unverifiable" not in handed
 
 
+def test_egress_check_does_not_qualify_an_argv_that_never_carried_spawned_under(
+    monkeypatch, tmp_path
+):
+    """`--posture already-isolated` builds `drive_argv` with no `--spawned-under`
+    at all (`run.py`), independent of which mechanism the machine resolves to.
+    A `remaps_uid` mechanism alone must not be enough to append the qualifier
+    flag: `run.py`'s own guard refuses `--spawned-under-unverifiable` without
+    a paired `--spawned-under`, so appending it unconditionally would turn an
+    ordinary already-isolated run under `podman-unshare` into a hard argparse
+    failure instead of the check it was meant to run."""
+    seen: dict[str, list[str]] = {}
+
+    def fake_run_traced(argv, *, mechanism, network_shared, log_dir, tag, **kwargs):
+        if tag == "subject":
+            seen["subject"] = list(argv)
+        make = _tripping if tag.startswith("control") else _quiet
+        return make(argv, mechanism, network_shared)
+
+    monkeypatch.setattr(assertions, "run_traced", fake_run_traced)
+    monkeypatch.setattr(assertions, "choose", lambda: (sandbox.PodmanUnshare(), None))
+    arena = tmp_path / "already-isolated"
+    arena.mkdir(parents=True, exist_ok=True)
+    handed = ["python3", "run.py", "--drive"]
+    assertions.check_no_egress(
+        stubs.build("stub-quiet", arena), arena=arena, log_dir=tmp_path / "log",
+        drive_argv=handed, under=None)
+    assert "--spawned-under-unverifiable" not in seen["subject"]
+    assert seen["subject"] == handed
+
+
 def test_spawned_under_is_refused_outside_drive_mode(monkeypatch, tmp_path):
     """The flag says "my parent already put me under the account". The outer
     driver has no parent that did, so accepting it there would let a run

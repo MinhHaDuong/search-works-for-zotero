@@ -249,10 +249,13 @@ def check_no_egress(target: Target, *, arena: Path, log_dir: Path,
     # This is the one place holding both the chosen mechanism and the `--drive`
     # argv, so it is where the two meet: under a mechanism that remaps identity,
     # the child cannot check `--spawned-under` against its own `USER` and is told
-    # so (ticket 0638; `posture.inherited`). A copy, never in place — the caller
-    # reuses its list.
+    # so (ticket 0638; `posture.inherited`). Only when `--spawned-under` is
+    # actually present — `already-isolated` never adds it (`run.py`), and the
+    # qualifier flag needs it or `run.py`'s own guard refuses the argv outright.
+    # A copy, never in place — the caller reuses its list.
     driven_argv = (
-        [*drive_argv, "--spawned-under-unverifiable"] if mechanism.remaps_uid
+        [*drive_argv, "--spawned-under-unverifiable"]
+        if mechanism.remaps_uid and "--spawned-under" in drive_argv
         else drive_argv
     )
 
