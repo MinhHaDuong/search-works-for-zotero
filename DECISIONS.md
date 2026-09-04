@@ -6343,6 +6343,22 @@ arena, entered at the target-process seam or around R10's target-driving inner
 subprocess. Existing ticket logs, decisions and measurement artifacts retain
 `tester` because they record what the account was called when those events and
 runs happened.
+**2026-09-04 — RULED (formalized from the same-day finding below): ruling 6's
+"attachments as linked files, so no storage quota is spent" premise was
+wrong for group libraries, not merely incomplete.** A group injection
+uses a stored attachment (`imported_file`, bytes uploaded through the local
+API) against the group owner's own Zotero Storage plan; the author chose
+this over WebDAV (confirmed unavailable for any group, any configuration —
+Zotero's own docs/forums: group file sync is personal-library-only) or a
+reduced footprint. "No storage quota is spent" stays true only for a
+`user`-library injection, which this fixture does not use for its main
+corpus. Implemented in `golden_fixture.py` (`_desired_attachment` branches
+on `library_type`; `ZoteroLocalClient.upload_file` runs the real 3-phase
+upload) and `make_index_fixture.mjs` (`loadGoldenExport` validates the
+matching per-library-type shape). The finding as originally recorded
+follows, unedited, as the record of how this was discovered and reasoned
+through before the author's decision landed.
+
 **2026-09-04 — FINDING, not a ruling: ruling 6's "attachments as linked files"
 premise for the group injection is factually wrong; the author's decision is
 needed on how to proceed.** Ticket 0632's real injection attempt (group
@@ -6385,8 +6401,9 @@ has or is willing to set one up (no such configuration exists in the
 injecting client's own preferences, checked directly); (c) reduce the
 injected set's byte footprint (e.g. defer the largest scans) to fit the free
 tier as an interim proof of mechanism, still consuming real quota without
-having asked; (d) something else the author would rather do. None is chosen
-here. A parent item for `walras-1900-elements` was created in group 6659303
-before the failure (tagged, no attachment) and is left as-is: `inject()`'s
-own reconciliation is idempotent and will complete it on a future successful
-run, whichever attachment mode is chosen.
+having asked; (d) something else the author would rather do. **The author
+chose (a)**, same day: use his existing Zotero Storage plan. A parent item
+for `walras-1900-elements` was created in group 6659303 before the failure
+(tagged, no attachment) and was left as-is rather than manually cleaned up:
+`inject()`'s own reconciliation is idempotent and picks it up on the next
+successful run, uploading its attachment like any other.
