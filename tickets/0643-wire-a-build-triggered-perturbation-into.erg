@@ -1,0 +1,178 @@
+%erg 0.1
+Title: Wire a build-triggered perturbation into durability.py, the missing half of R22 for zoteus
+Created: 2026-09-04
+Author: MinhHaDuong
+
+--- log ---
+2026-09-04T07:47Z MinhHaDuong created
+
+--- body ---
+
+## Context
+
+Child of tracker 0613 (goal 1), successor to 0642. `Ticket-ref: tickets/0613`,
+`Ticket-ref: tickets/0642`, `Ticket-ref: tickets/0033` — none close.
+
+**Why this ticket exists, precisely — read this before the mechanics.** Ticket
+0642 landed durable, transaction-committed work counters on a branch of the
+zoteus fork (`work-counters-0642`, `MinhHaDuong/zoteus`), proven correct: full
+upstream test suite green (1097 tests), lint/build/typecheck clean, a live
+build against a real 7,546-item library, durability proven by a forced-
+rollback test. A draft upstream PR sits staged at
+`verification/UPSTREAM-PR-WORK-COUNTERS-0642.md`, **not sent**.
+
+The author's ruling (2026-09-04): passing tests proves the patch is
+*correct*; it does not prove the patch *solves the problem it was built
+for*. Running R22 against it did exactly that check, honestly: both
+`R22-pause-stops-background-work` and `R22-pause-holds-across-restart`
+**still report `not-run`**, because `bench/acceptance/durability.py`'s
+`PERTURBATIONS` tuple has exactly one member, `EDIT_ONE_ITEM`, and zoteus's
+adapter correctly refuses it (a write to the user's own Zotero library, R15-
+excluded from derived state) — so `_the_change_creates_work`'s positive
+control never fires for zoteus and both clauses die before grading. This
+ticket's whole point is to close that gap and get a REAL local verdict —
+**not** to write more code and call it done. The upstream PR stays unsent
+until this ticket either proves it (a genuine PASS/FAIL, not a `not-run`
+that quietly stayed) or reports honestly that it does not.
+
+**Scope is entirely this repo's own harness — no more zoteus code needed.**
+`durability.py`'s perturbation vocabulary and `zoteus.py`'s adapter are both
+in `bench/acceptance/`, this repo. The perturbation itself is
+`action:"build"` against a seeded, incompletely-embedded index — a verb
+zoteus already has, wired through the adapter's own `perturb()` hook, never
+a harness-side write to the target's storage (the same rule 0636's abandoned
+sqlite-read design respected and this one must too).
+
+**Respect the six review rounds already spent hardening `durability.py`'s
+existing checks (ticket 0033's PR #255) — do not re-introduce a bug those
+rounds already fixed.** Read `bench/acceptance/durability.py` and the R22
+clauses in `bench/acceptance/assertions.py` in full before writing anything.
+Load-bearing invariants from that history, all of which a new perturbation
+must also satisfy: the positive control runs via a SEPARATE, never-stopped
+target instance in its own arena (never a second use of the graded
+instance — a shared root is refused, not measured); the restart clause's
+graded window opens only after the restart settles (not across it); a
+perturbation that cannot be driven is recorded against the verb that
+failed, not silently folded into a false pass; `assess()` guards every
+check call so a raised exception reaches the artifact as `not-run`, not a
+crashed run with no artifact at all.
+
+## Design
+
+**The perturbation.** A new constant in `durability.PERTURBATIONS` — name it
+for what it does, not for zoteus (`RESUME_EMBEDDING` or similar; the ticket
+0636 sketched leaned this way too), since a build/embed-triggered background
+job is a shape other targets could plausibly share later, even though only
+zoteus implements it today. `zoteus.py::perturb()` currently refuses
+`EDIT_ONE_ITEM`/`RESYNC_IDENTICAL_BYTES` (~lines 464-481, re-verify against
+live source) — add a case that calls `action:"build"` against the seeded
+fixture below.
+
+**The fixture.** An index with `passagesWithoutVectors > 0` — a build
+stopped mid-embed against a small fixture library. Confirm its shape by a
+direct sqlite read (the adapter's existing `_index()`/`_stamp()` precedent
+for reading, not writing) before trusting it in any check. This is real
+work, not a stub: building it needs a real `fork/` (or the 0642 patch
+branch checkout, since the fixture must be built against a binary that
+reports the counter this ticket is trying to grade) and a real embed pass
+long enough that `stop` can meaningfully interrupt it mid-flight — too fast
+a fixture makes the perturbation race the embed pass to completion and the
+test proves nothing.
+
+**The checks.** `check_pause_stops_background_work` and
+`check_pause_holds_across_restart` already read `durability.work_counters()`
+and already run the positive-control-then-graded-phase machinery generically
+— they should not need restructuring, only a target that can now supply
+both a non-`None` counter object (0642) and a perturbation it accepts
+(this ticket). If they DO need a change to accept the new perturbation kind
+generically, make it generic (any target declaring support for this
+perturbation), not zoteus-specific.
+
+## Relevant files
+
+- `bench/acceptance/durability.py` — `PERTURBATIONS`, `EDIT_ONE_ITEM`
+  (~68-77), `work_counters()` (~112), `perturb()`'s docstring (~192, the
+  "never reach past an adapter to write" rule).
+- `bench/acceptance/assertions.py` — `check_pause_stops_background_work`
+  (~779), `check_pause_holds_across_restart` (~853), `_pause_verdict`
+  (~611-636), `_the_change_creates_work` (~639).
+- `bench/acceptance/adapters/zoteus.py` — `perturb()` (~464-481, where the
+  refusals live), `_index()`/`_stamp()` (the direct-read precedent),
+  `seed_index` (the existing prebuilt-index-injection mechanism — the
+  fixture below should reuse this, not invent a second seeding path).
+- The 0642 patch branch (`work-counters-0642` on `MinhHaDuong/zoteus`) —
+  this ticket's runs must build FROM this branch, not stock upstream, since
+  the counter this ticket grades against does not exist on stock zoteus yet.
+- `bench/results/0642-work-counters/` — the artifact this ticket's own
+  result should sit beside, in the same ungraded-diagnostic shape (a real
+  measured JSON + README, not yet the graded ladder verdict, since stock
+  zoteus doesn't have the patch).
+- `verification/UPSTREAM-PR-WORK-COUNTERS-0642.md` — the staged, unsent PR
+  this ticket's result validates or does not; do not send it, whatever this
+  ticket finds, without the author's own explicit go-ahead.
+
+## Actions
+
+1. Re-verify design against live source (both `upstream/main` for anything
+   zoteus-side and the 0642 patch branch specifically for the counter's
+   real shape) before writing code.
+2. Build the fixture: seed an index with `passagesWithoutVectors > 0`
+   against the 0642 patch branch, confirm via direct sqlite read.
+3. Add the new perturbation constant and implement it in
+   `zoteus.py::perturb()`.
+4. Run `check_pause_stops_background_work` and
+   `check_pause_holds_across_restart` against the patched, seeded build.
+   `--posture account` should compose correctly (ticket 0637 fixed the
+   podman-unshare ordering) — if it doesn't, that's a new finding to report,
+   not something to route around.
+5. Whatever the result — commit the artifact, honestly. If both clauses
+   reach PASS or FAIL: that is the validation the author asked for, and this
+   ticket's own log should say in as many words that the upstream PR is now
+   confirmed to solve the goal-1 need, still pending the author's own send
+   decision. If either clause still can't be graded, or grades in a way
+   that reveals a further gap: report that plainly, do not force a green.
+6. Append findings to 0613's, 0642's and 0033's logs (append-only).
+
+## Test
+
+Red-first, matching PR #255's own discipline: run the new checks against a
+stub adapter that ignores `stop` (or reuses the existing
+`stub-ignores-pause`/`stub-forgets-pause-on-restart` fixtures if they still
+fit) and confirm FAIL, not `not-run` — a check reporting `not-run` against a
+target that visibly kept working after `stop` was called is wired wrong. A
+second positive control: the fixture's counter demonstrably CAN move (a
+never-stopped second instance finishing the same fixture's embed pass)
+before trusting that it did not move on the graded, stopped instance.
+
+## Verification
+
+- [ ] Fixture built and shape-confirmed by direct sqlite read
+- [ ] New perturbation wired through `zoteus.py::perturb()`, no harness-side
+      write to the target's storage
+- [ ] Positive control demonstrated (counter moves on a never-stopped
+      instance) before any graded result is trusted
+- [ ] `check_pause_stops_background_work` and
+      `check_pause_holds_across_restart` report PASS or FAIL (not `not-run`)
+      against the patched, seeded build — artifact committed
+- [ ] An explicit statement, in this ticket's own log, of whether the
+      upstream counters PR is now validated as solving goal 1's need
+- [ ] Upstream PR still NOT sent by this ticket, regardless of outcome
+
+## Invariants
+
+- No harness-side write to the target's storage, ever — the perturbation
+  goes through `perturb()`/the target's own verbs.
+- The existing `EDIT_ONE_ITEM`-based checks and their six-review-round
+  hardening (independence guard, restart-window timing, guarded `assess()`)
+  are not weakened or removed for other targets that DO support
+  `EDIT_ONE_ITEM` — this adds a parallel path, it does not replace the
+  existing one.
+- The upstream PR is not sent by this ticket under any outcome; that
+  decision belongs to the author.
+
+## Exit criteria
+
+Both R22 clauses report PASS or FAIL for zoteus against the 0642-patched
+build, resting on a real run with a positive control, and this ticket's log
+states plainly whether that constitutes the validation the author asked
+for before the upstream PR can be considered for sending.
