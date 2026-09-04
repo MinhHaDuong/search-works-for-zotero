@@ -1,0 +1,231 @@
+%erg 0.1
+Title: TMPDIR/XDG/HOME redirection for zoteus's arena
+Created: 2026-09-04
+Author: claude
+Closed: TMPDIR/HOME/XDG redirection implemented and verified in zoteus.py's _env(), PR #331 merged
+
+--- log ---
+2026-09-04T05:32Z claude created
+
+2026-09-04T06:10Z claude executed Fixed. `bench/acceptance/adapters/zoteus.py`'s `_env()` now redirects `HOME` and `TMPDIR` into arena-scoped directories (`self.home = arena / "home"`, `self.tmp = arena / "tmp"`, mirroring the sibling convention exactly) and blanks `XDG_CACHE_HOME`/`XDG_CONFIG_HOME`/`XDG_DATA_HOME`/`XDG_STATE_HOME`. `running()` creates both directories alongside the existing `data_dir.mkdir`. Diff is additive: no existing key in `_env()` changed. Footprint, tests, and red/green controls below; full detail in this ticket's body.
+
+2026-09-04T05:53Z MinhHaDuong closed — TMPDIR/HOME/XDG redirection implemented and verified in zoteus.py's _env(), PR #331 merged
+--- body ---
+## Context
+
+Precondition ticket, not a fourth ladder gap. Filed against tracker 0613
+(goal 1 of the ladder, zoteus target), whose child 0630 (drafting
+`UNINSTALL.md` as the R15 removal procedure) re-measured and flagged this
+exact gap as an open precondition on 2026-09-03: `R15-uninstall-removes-declared-state`
+cannot be graded green for zoteus until the arena redirects `TMPDIR` and the
+`XDG_*` roots, per the 2026-09-03 ruling recorded in 0613's own log
+(2026-09-03T12:14Z entry: "the arena must redirect TMPDIR and the XDG roots
+before the clause can be graded at all").
+
+This is framed as a **precondition**, not a lettered gap, because it is not
+itself one of the three requirement clauses (R10, R15, R22) the tracker's
+matrix grades — it is a measurement-integrity condition the R15 uninstall
+clause depends on, the same way the dedicated-account precondition (ticket
+0625) was. 0613's own tracker table lists three gaps (A/B/C); this closes
+neither A nor C and is not inserted as a fourth row for the same reason 0625
+was not.
+
+**The mechanical defect, independent of zoteus's specific footprint.**
+`bench/acceptance/assertions.py`'s `Snapshot.of(root)` (`os.walk(root)`) only
+ever looks under the harness-owned arena. `check_residue_inventory` diffs two
+snapshots of `arena`. A write outside `arena` — under an unredirected `HOME`
+or `TMPDIR` — is not merely uncounted, it is structurally unreachable by the
+sweep: confirmed by placing a marker file directly under a substitute
+operator-home and showing `Snapshot.of(arena)` reports zero new files before
+and after, even though the marker exists (see Verification, mechanism-level
+control).
+
+Before this ticket, `bench/acceptance/adapters/zoteus.py`'s `_env()` declared
+only `ZOTEUS_*` variables and `running()` merged them onto the *full*
+operator `os.environ` unchanged (`{**os.environ, **env}`) — the one adapter
+of the acceptance layer's five that redirected nothing, not even `HOME`.
+Four siblings (`beaver.py`, `zotero_core_6012.py`, `zotero_mcp.py`,
+`zotseek.py`) already redirect `HOME` into `arena / "home"`; none of the five
+redirected `TMPDIR`; only `zotero_mcp.py` touched any `XDG_*` var
+(`XDG_CACHE_HOME`, blanked).
+
+## Footprint investigated (not assumed) — SHA `b0e0bc8` (v1.13.0, `UPSTREAM`'s
+pinned reviewed SHA; `fork/` was rebuilt clean at this SHA for this ticket,
+`npm ci && npm run build`, both succeeded)
+
+1. **`HOME` has a real, if narrow, source hit — not just the sibling
+   convention.** `fork/src/lib/paths.ts`:
+   - `defaultDataDir()` falls back to `env.XDG_DATA_HOME ?? homedir()+'/.local/share'`
+     only when `ZOTEUS_DATA_DIR` is unset — never true for this adapter,
+     since `_env()` always sets it and it is checked first in
+     `config.ts:401`. Not load-bearing today, but the same shape as 0630's
+     earlier finding about `XDG_DATA_HOME`, so blanked for consistency.
+   - `defaultZoteroDataDir()` falls back to `homedir() + '/Zotero'` whenever
+     `ZOTERO_DATA_DIR` is unset — and the adapter's own `_env()` only sets
+     `ZOTERO_DATA_DIR` when `self.zotero_data_dir` was supplied to the
+     constructor (an optional argument, default `""`; see
+     `zoteus.py`'s `_env()`, `if self.zotero_data_dir: env["ZOTERO_DATA_DIR"] = ...`).
+     **This is the load-bearing hit**: any run that does not pass
+     `zotero_data_dir` — e.g. a cloud-API-only configuration, per this
+     project's own `project_live_smoke_recipe` memory ("no desktop Zotero →
+     force cloud transport") — resolves this path against whatever `HOME`
+     the process was given. Unredirected, that is the operator's real home
+     directory's `Zotero` folder, entirely outside the arena.
+2. **`TMPDIR` has zero source hits**, in `fork/src/` and in the six actual
+   runtime npm dependencies (`@modelcontextprotocol/sdk`, `citeproc`,
+   `cors`, `express`, `express-rate-limit`, `zod` — grepped `package.json`;
+   `@huggingface/transformers` is confirmed **not** a direct dependency,
+   `grep -n transformers fork/package.json` returns nothing). Grepped the
+   built dependency tree for `os.tmpdir` and found it only in
+   **devDependencies** (`prettier`, `@types/node`), which never run in the
+   spawned server process. Redirected **defensively**: no source hit to
+   cite, warranted because (a) Node/npm and any native addon a dependency
+   pulls in commonly consult it, and (b) a standalone
+   `@huggingface/transformers` install reached through
+   `ZOTEUS_TRANSFORMERS_PATH` (per the live-smoke-recipe memory, installed
+   at `~/.zoteus-deps/node_modules`, never inside `fork/node_modules`) is a
+   real code path this adapter drives in real runs, and its native
+   `onnxruntime` addon's temp-file behaviour is unaudited from this repo's
+   side. The model cache itself is not the concern — `env.cacheDir` is
+   already pinned under `<ZOTEUS_DATA_DIR>/models` (ticket 0630's finding,
+   confirmed still true at this SHA) — what is unaudited is everything else
+   such a runtime, or npm/Node itself, might touch.
+3. **`XDG_CACHE_HOME`/`XDG_CONFIG_HOME`/`XDG_STATE_HOME` have zero source
+   hits** in `fork/src/`. Blanked for consistency with `zotero_mcp.py`'s
+   treatment of `XDG_CACHE_HOME` and because `_env()`'s dict is merged over
+   `os.environ` with **no delete** (`mcp_drive.Server`/`running()` both do
+   `{**os.environ, **env}`) — an *absent* key passes the operator's real
+   ambient value through unchanged; only a blank key closes it.
+4. **Actually spawned the real built server** (behavioral control, not just
+   source reading) with a substitute-operator `HOME`/`TMPDIR` (never the
+   real ones) and both the unpatched and patched `_env()`: in this target's
+   default configuration (no `zotero_data_dir` supplied, so the real
+   `defaultZoteroDataDir()` fallback above is reached but only *read*, never
+   written to), **nothing landed under either substitute directory in
+   either arm** — see Verification. This is the finding ticket 0630
+   anticipated ("if literally nothing lands there for zoteus specifically —
+   that itself is a finding to record precisely"): zoteus's actual runtime
+   footprint outside its declared data directory is empty, measured, not
+   assumed. The fix still closes the mechanical gap (item 1's `HOME` hit is
+   real, even though it manifests as an out-of-arena *read* rather than a
+   *write* in the configuration tested) and matches the other four
+   adapters' standing convention.
+
+## Relevant files
+
+- `bench/acceptance/adapters/zoteus.py` — `__init__` (added `self.home`,
+  `self.tmp`), `_env()` (added `HOME`, `TMPDIR`, four blanked `XDG_*` keys),
+  `running()` (added the two `mkdir`s). Diff is additive; no existing key
+  changed.
+- `tests/test_acceptance_adapter_zoteus.py` — four new offline tests exercise
+  `_env()` directly (no process spawned): redirection, XDG blanking,
+  regression guard on the pre-existing keys, and a positive control that
+  reproduces `running()`'s own merge (`{**os.environ, **env}`) against a
+  deliberately different ambient value and asserts the declared dict wins.
+- `bench/acceptance/assertions.py` — read only, not modified:
+  `Snapshot.of`/`check_residue_inventory` (~lines 108-172, 394-457), cited
+  above for the mechanism.
+
+## Actions
+
+1. Add `self.home`/`self.tmp` to `Zoteus.__init__`, `HOME`/`TMPDIR`/four
+   blanked `XDG_*` keys to `_env()`, and the two `mkdir`s to `running()`.
+   Additive only — `ZOTEUS_DATA_DIR` and every other existing key untouched.
+2. Add offline tests to `tests/test_acceptance_adapter_zoteus.py` mirroring
+   `test_acceptance_adapter_zotero_mcp.py`'s
+   `test_the_environment_blanks_every_variable_the_target_reads`.
+3. Prove red-before-green: run the new tests against the unpatched `_env()`
+   (a git-blob copy of the pre-fix file) and confirm the redirection/blanking/
+   override-precedence tests fail red; confirm they pass green against the
+   fix.
+4. Actually spawn the built server (behavioral control) with a substitute
+   operator `HOME`/`TMPDIR`, unpatched vs. patched, and record what lands
+   where.
+5. Mechanism-level control: show `Snapshot.of(arena)` cannot see a marker
+   file placed outside `arena`, independent of zoteus's specific footprint.
+6. Generalization check: run `check_residue_inventory` against the patched
+   adapter with the *outer* ambient `$HOME` pre-populated with realistic
+   clutter (dotfiles, fake `.cache/`, fake `.npm/`, a fake `Zotero/zotero.sqlite`)
+   and confirm the sweep still reports `pass`/0 residue, and the clutter is
+   untouched — proof the redirected `HOME` **replaces** the ambient value
+   rather than merging into it.
+
+## Test
+
+`tests/test_acceptance_adapter_zoteus.py`, four new tests (offline, no
+process spawned, mirrors the zotero_mcp adapter's own environment test):
+- `test_the_environment_redirects_home_and_tmpdir_into_the_arena`
+- `test_the_environment_blanks_the_xdg_roots`
+- `test_the_environment_leaves_the_existing_keys_unchanged` (regression
+  guard: additive-only constraint)
+- `test_the_declared_environment_overrides_an_ambient_override` (positive
+  control: reproduces `running()`'s merge against a deliberately different
+  ambient value)
+
+## Verification
+
+- [x] `_env()` sets `HOME`/`TMPDIR` inside the arena and blanks the four
+      `XDG_*` roots; `ZOTEUS_DATA_DIR` and every other existing key
+      unchanged (diffed against `git show HEAD:...` before this ticket)
+- [x] Red control: the four new tests run against a git-blob copy of the
+      unpatched `_env()` — 3 of 4 fail red (`test_the_environment_redirects_home_and_tmpdir_into_the_arena`:
+      `KeyError: 'HOME'`; `test_the_environment_blanks_the_xdg_roots`:
+      `XDG_CACHE_HOME` absent, not blanked; `test_the_declared_environment_overrides_an_ambient_override`:
+      ambient value survives the merge). Only the additive-keys-unchanged
+      test passes unpatched, correctly — it asserts nothing about the new
+      keys.
+- [x] Green control: all 5 tests in the file (the 4 new + the pre-existing
+      posture test) pass against the fix.
+- [x] Behavioral control: the real built server (SHA `b0e0bc8`) actually
+      spawned with a substitute-operator `HOME`/`TMPDIR` (never the real
+      ones), unpatched vs. patched — in this target's default configuration
+      (no `zotero_data_dir` supplied), nothing landed under either
+      substitute directory in either arm. Recorded as a measured finding
+      about zoteus's narrow footprint, not assumed; the mechanical gap (a
+      write, had one occurred, would have been invisible to the sweep) is
+      still closed by the fix and matches the sibling convention.
+- [x] Mechanism-level control: a marker file placed directly under a
+      substitute operator-home is invisible to `Snapshot.of(arena)` before
+      and after — `created` comes back empty even though the marker exists.
+      Demonstrates the invisibility claim independent of what zoteus
+      specifically writes.
+- [x] Generalization check: `check_residue_inventory` run against the
+      patched adapter with a realistically cluttered outer ambient `$HOME`
+      (dotfiles, fake `.cache/`, fake `.npm/_cacache/`, a fake
+      `Zotero/zotero.sqlite`) — `result: pass`, `residue_count: 0`,
+      `created_count: 0`, and the clutter file's content unchanged
+      afterward, confirming the redirect replaces rather than merges.
+- [x] `python3 -m pytest tests/test_acceptance_adapter_zoteus.py -v` — 5
+      passed. Full suite `python3 -m pytest tests/ -q` — 824 passed, 14
+      skipped, 2 pre-existing unrelated failures
+      (`tests/test_summarize_0120.py`, `FileNotFoundError: sqlite3` — the
+      `sqlite3` CLI binary is absent from this machine's `PATH`, unrelated
+      to this change; confirmed with `which sqlite3` exiting 1).
+- [x] `ruff check --select E4,E7,E9,F bench/acceptance/adapters/zoteus.py
+      tests/test_acceptance_adapter_zoteus.py` — all checks passed.
+
+## Invariants
+
+- `ZOTEUS_DATA_DIR` and every pre-existing `_env()` key unchanged — this is
+  additive to `_env()`, not a restructuring, per the task brief's explicit
+  constraint (other parallel work in this repo reads this file).
+- No non-default target option introduced; `HOME`/`TMPDIR`/`XDG_*` are
+  process-level sandboxing, the same category the four sibling adapters
+  already treat this way, never a flag passed to the target.
+- 0613's tracker is not closed by this ticket (gap C, R22, remains open and
+  is out of scope); referenced with `Ticket-ref:`, not closed.
+
+## Exit criteria
+
+- [x] `bench/acceptance/adapters/zoteus.py` redirects `HOME`/`TMPDIR` into
+      arena-scoped directories and blanks the four `XDG_*` roots, additive
+      to the existing `_env()`.
+- [x] Footprint investigated against a freshly built reviewed-SHA checkout,
+      not copied from the sibling adapters or assumed; each redirected var
+      states whether it has a direct source hit or is defensive, and why.
+- [x] Red-before-green demonstrated on the unit tests, plus an actual
+      spawn of the real server as a behavioral control, plus a
+      mechanism-level control independent of zoteus's specific footprint,
+      plus the generalization check with a populated outer `$HOME`.
+- [x] 0613's own log records this finding closed (append-only; the
+      TMPDIR/XDG precondition entries from 2026-09-03 stand as history).
