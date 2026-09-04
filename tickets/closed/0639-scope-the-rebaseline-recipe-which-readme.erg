@@ -2,10 +2,12 @@
 Title: Scope the rebaseline recipe: which README rows, SPEC citations, and tickets a span actually touches
 Created: 2026-09-04
 Author: claude
+Closed: autoclosed — PR #335
 
 --- log ---
 2026-09-04T06:12Z claude created
 
+2026-09-04T06:23Z MinhHaDuong closed — autoclosed — PR #335
 --- body ---
 ## Context
 `make upstream-rebaseline` (`bench/upstream_catchup.py --rebaseline`) prints a
