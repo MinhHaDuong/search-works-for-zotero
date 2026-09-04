@@ -2,11 +2,13 @@
 Title: Re-baseline upstream to v1.14.0 and current main
 Created: 2026-09-04
 Author: Codex
+Closed: merged as PR 359 under the author explicit review derogation
 
 --- log ---
 2026-09-04T13:49Z Codex created
 
 2026-09-04T14:07Z Codex completed source reread, smoke, standing reconciliation and green gates
+2026-09-04T14:20Z Minh Ha-Duong closed — merged as PR 359 under the author explicit review derogation
 --- body ---
 ## Context
 

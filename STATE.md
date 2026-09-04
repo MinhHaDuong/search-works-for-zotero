@@ -1,40 +1,39 @@
 # STATE — Search Works for Zotero
 
-*Held under forty lines by ruling of 2026-08-31. Last updated 2026-09-04.*
+*Live handoff, under forty lines. Updated 2026-09-04. Ownership: [AGENTS.md](AGENTS.md).*
 
-One page of live operational handoff, and it owns nothing: every line points
-to the document that owns the fact. What this repository is is [`README.md`](README.md)'s.
+## North Star
 
-## Where the live state lives
+Search should work across a whole scholarly library — records, notes,
+annotations and full text, in every language present — while remaining local
+by default, current, bounded and honest about coverage. [README.md](README.md)
+owns the proposition; [SPEC.md](SPEC.md) owns the promises and design.
 
-| | |
-|---|---|
-| Upstream: what is filed, merged, in flight | [`SYNC.md`](SYNC.md) |
-| The reviewed baseline SHA, machine-readable | `UPSTREAM`; `make upstream-status` detects movement, `make upstream-catchup` reads it |
-| The work queue and every item's state | `./tickets/erg ready` |
-| The spec: promises, constraints, design, every design number | [`SPEC.md`](SPEC.md) |
-| Rulings, and what awaits one | [`DECISIONS.md`](DECISIONS.md) |
-| Where each requirement stands | [`README.md`](README.md) |
-| What we will and will not send upstream | [`GOVERNANCE.md`](GOVERNANCE.md) |
-| How agents work here | [`AGENTS.md`](AGENTS.md) |
+## Now through September 21
+
+Feature freeze. Deliver the checkpoint by concentrating on **correctness,
+packaging and privacy**, and write the unfinished QA tests for those dimensions,
+as promised on the upstream issue tracker. Keep durable pause (#56 / upstream
+PR #57) contained. Hold the separate indexer/worker rewrite, oversized-document
+segmenter and all other feature work. [SYNC.md](SYNC.md) owns upstream state.
+
+## Recent outcomes
+
+- **PR #327:** verified the golden-fixture harness against live Zotero and made
+  the group-library linked-file limitation explicit.
+- **PR #359:** re-baselined every standing row on zoteus v1.14.0, including the
+  default-off update check, model pooling and caller-path safety.
+- **PR #360:** limited re-baselines to measurements affected by the source delta.
 
 ## Handoff
 
-**Reviewed baseline: v1.14.0** (`34d6c26`, ticket 0670, main's tip two documentation commits past the tag).
+Start with correctness/privacy acceptance gaps: R10 (0660–0664), R13
+(0650–0652), R15 (0654–0657), R22 (0643, 0665), and fixture controls 0602,
+0623 and 0658. [DECISIONS.md](DECISIONS.md) owns questions awaiting the author.
 
-**Through the September 21 checkpoint:** focus on correctness, packaging,
-privacy, and their unfinished tests. Keep #56 as a contained contribution;
-defer the separate indexer/worker rewrite, oversized-document segmenter, and
-other feature work. [`SYNC.md`](SYNC.md) owns #56's live state; `erg ready`
-owns the executable queue.
+## Basic state
 
-**Awaiting the author:** [`DECISIONS.md`](DECISIONS.md) owns the list — 0491's codex-fence question, the ladder re-cut's two.
-
-## Status
-<!-- generated 2026-09-04T12:34Z · as of 2091c06 -->
-
-**Tickets:** 56 ready · 31 blocked · 7 awaiting author — `erg ready tickets/` for full list
-  next: 0025 Experiments X1-X7, each before its dependent, e… · 0026 Repo-side gates: fold, golden, RSS, convergence…
-**In flight:** 1 open PR — #327 (0632, golden-fixture harness verify)
-**Recent (first-parent):**
-  2091c06 Merge pull request #355 from MinhHaDuong/fix/v114-count-correction
+Reviewed upstream: **v1.14.0** at `34d6c26` (ticket 0670, closed).
+Requirements: **23 ratified — 3 shipped, 15 partial, 5 not yet** ([README.md](README.md)).
+Tickets: **58 ready, 31 blocked, 7 awaiting author** (`erg ready tickets/`).
+In flight: **none**.
