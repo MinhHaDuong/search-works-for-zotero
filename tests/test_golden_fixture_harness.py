@@ -153,8 +153,7 @@ def test_injection_is_idempotent_and_recipe_owned(tmp_path):
     assert parent["collections"] == ["COLLECT1"]
     assert attachment["linkMode"] == "linked_file"
     assert Path(attachment["path"]) == (cache / "invented-1900-control.pdf").resolve()
-    assert recipe[0]["sha256"] in attachment["extra"]
-    assert attachment["extra"].endswith("fulltext: reindexed")
+    assert "extra" not in attachment  # Zotero's own schema rejects extra on attachment items
     assert zotero.reindexes == [[next(
         key for key, item in zotero.items.items()
         if item["data"]["itemType"] == "attachment"
@@ -297,7 +296,18 @@ def test_injection_refuses_an_unmarked_item_in_the_target_collection(tmp_path):
     assert zotero.writes == []
 
 
-def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path):
+def test_a_repin_with_no_local_hash_mismatch_is_not_yet_redetected(tmp_path):
+    """Known gap, ticketed (0641, filed 2026-09-04): a correct re-pin -- the source
+    file AND recipe[0]["sha256"] updated together, so verify_source_bytes sees no
+    mismatch -- is not detected as attachment drift, and does not force a re-upload
+    or re-extraction, because nothing in _desired_attachment's payload depends on
+    the pinned hash any more. It used to: the sha256 lived in the attachment's
+    `extra` field, which real Zotero rejects outright for the `attachment` item
+    type (verified against its live schema, 2026-09-04) -- ticket 0632's log has
+    the full story. verify_source_bytes still catches an actual mismatch between
+    the recipe and the file on disk (test_injection_refuses_unpinned_or_changed_
+    source_bytes_before_writing); what it cannot yet catch is a CORRECT re-pin
+    silently not propagating to a stale live attachment."""
     original = b"%PDF-1.4\nfirst\n"
     changed = b"%PDF-1.4\nsecond\n"
     recipe = recipe_for(original)
@@ -312,15 +322,17 @@ def test_changed_pinned_bytes_require_reindex_attestation_before_export(tmp_path
     zotero.fulltexts[attachment] = {
         "content": "old extraction", "indexedPages": 1, "totalPages": 1, "version": 1,
     }
+    uploads_after_first = len(zotero.uploads)
+
     source.write_bytes(changed)
     recipe[0]["sha256"] = hashlib.sha256(changed).hexdigest()
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
 
-    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
-        export_again(recipe, zotero, cache, tmp_path / "stale")
-
-    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
-    assert zotero.reindexes[-1] == [attachment]
-    assert recipe[0]["sha256"] in zotero.items[attachment]["data"]["extra"]
+    # This is the gap, pinned down rather than asserted-away: a correct re-pin is
+    # currently invisible to inject()'s reconciliation.
+    assert counts == {"created_parents": 0, "updated_parents": 0,
+                      "created_attachments": 0, "updated_attachments": 0}
+    assert len(zotero.uploads) == uploads_after_first
     export_again(recipe, zotero, cache, tmp_path / "current")
 
 
@@ -370,15 +382,14 @@ def test_failed_reindex_leaves_attachment_pending_and_unexportable(tmp_path):
     zotero.reindex_fulltext = fail_reindex
     with pytest.raises(gf.GoldenFixtureError, match="reindex control failure"):
         gf.inject(recipe, cache, zotero, collection_key="COLLECT1")
-    attachment = next(item["data"] for item in zotero.items.values()
-                      if item["data"]["itemType"] == "attachment")
-    assert attachment["extra"].endswith("fulltext: pending")
-    attachment_key = attachment["key"]
-    zotero.fulltexts[attachment_key] = {
-        "content": "possibly stale", "indexedPages": 1, "totalPages": 1, "version": 1,
-    }
-    with pytest.raises(gf.GoldenFixtureError, match="attachment metadata drifted"):
-        export_again(recipe, zotero, cache, tmp_path / "must-not-export")
+    # inject() still fails loud on a reindex error (unchanged) -- the operator knows
+    # the run did not complete. What this test used to also prove is now a known,
+    # ticketed gap (0641, filed 2026-09-04): the attachment item's own fields no
+    # longer carry a "pending" marker (extra was the only place it lived, and real
+    # Zotero rejects extra on attachment items -- verified against its live schema),
+    # so a SEPARATE export attempt against this same half-failed state would no
+    # longer be caught by _managed_equal the way it was before. Not exercised or
+    # asserted here on purpose, rather than leaving a false-passing assertion.
 
 
 def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
@@ -823,6 +834,10 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
             export_again(recipe, zotero, cache, snapshot)
 
 
+#: A "source_attestation" mutation case (a stale sha256 forged into an attachment's
+#: `extra` field) lived here and was dropped 2026-09-04: real Zotero rejects `extra`
+#: on attachment items outright, so no export ever carries one to tamper with any
+#: more, and there is nothing left for the loader to catch on this axis (ticket 0641).
 @pytest.mark.parametrize("mutation, message", [
     ("recipe_id", "not present in the source recipe"),
     ("parent_marker", "expected only managed marker"),
@@ -830,7 +845,6 @@ def test_export_refuses_extra_child_empty_content_and_invalid_pages(tmp_path):
     ("duplicate_parent_marker", "expected only managed marker"),
     ("parent_cross_role_marker", "expected only managed marker"),
     ("attachment_cross_role_marker", "expected only managed marker"),
-    ("source_attestation", "extra does not match"),
     ("metadata", "title does not match"),
     ("orphan_item", "not consumed"),
     ("empty_content", "malformed fulltext"),
@@ -857,8 +871,6 @@ def test_loader_rejects_binding_and_fulltext_mutants(tmp_path, mutation, message
         parent["data"]["tags"].append({"tag": "zoteus-golden-attachment:invented-1900-control"})
     elif mutation == "attachment_cross_role_marker":
         child["data"]["tags"].append({"tag": "zoteus-golden-source:invented-1900-control"})
-    elif mutation == "source_attestation":
-        child["data"]["extra"] = "ticket-0029 source sha256: stale; fulltext: reindexed"
     elif mutation == "metadata":
         parent["data"]["title"] = "tampered"
     elif mutation == "orphan_item":

@@ -305,10 +305,15 @@ export function loadGoldenExport(directory, options = {}) {
       }
     }
     requireOnlyManagedMarker(data, `${ATTACHMENT_TAG_PREFIX}${source.id}`, source.id);
+    // No `extra` here: Zotero's own live schema (GET /api/schema, verified 2026-09-04)
+    // accepts only title/accessDate/url on an `attachment` item -- `extra` is rejected
+    // outright (400 "'extra' is not a valid field for type 'attachment'"). The
+    // provenance this used to carry (source sha256, role, relation, language,
+    // selection, skip reason) is not load-bearing here: every field below this row
+    // reads it from the recipe (`source`), never from the live Zotero item.
     requireFields(data, {
       itemType: 'attachment', title: source.title ?? doc.title,
       contentType: CONTENT_TYPES[source.bytes_format ?? 'pdf'] ?? 'application/octet-stream',
-      extra: `ticket-0029 source sha256: ${source.sha256}; role: ${source.role ?? 'primary'}; relation: ${source.relation ?? 'primary'}; language: ${source.language ?? ''}; selection: ${source.selection_expectation ?? 'indexed'}; skip reason: ${source.skip_reason ?? ''}; fulltext: reindexed`,
     }, source.id);
     if (String(attachment.links?.enclosure?.href ?? '').startsWith('file:')) {
       throw new Error(`${recipeId}: linked-file enclosure discloses a machine path`);

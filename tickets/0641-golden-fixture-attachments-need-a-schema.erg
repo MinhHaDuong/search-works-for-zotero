@@ -1,0 +1,118 @@
+%erg 0.1
+Title: golden fixture attachments need a schema-compliant state/drift marker, not extra
+Created: 2026-09-04
+Author: claude
+
+--- log ---
+2026-09-04T06:39Z claude created
+
+--- body ---
+## Context
+
+Filed while running ticket 0632's real golden-fixture injection for the
+first time. Zotero's own live schema (`GET /api/schema`, verified
+2026-09-04) restricts the `attachment` item type to exactly `title`,
+`accessDate`, `url` as data fields — `extra` is rejected outright: `400
+"'extra' is not a valid field for type 'attachment'"`. `golden_fixture.py`'s
+`_desired_attachment()` had, since it was first written, unconditionally
+written a rich attestation string into `extra` on every attachment
+(source sha256, role, relation, language, selection expectation, skip
+reason, and a pending/reindexed extraction-state marker). This was never
+validated against real Zotero before 2026-09-04 — the mocked test double
+(`MemoryZotero`) enforces no field-legality rules at all — so the defect
+sat invisible through every prior review and test run.
+
+0632 fixed the immediate blocker (removed `extra` from the attachment
+payload; commit on `t0632-golden-fixture-harness-verify`), which was
+required to run at all. That fix is deliberately narrow: it drops the
+capability the field used to carry rather than replacing it, because doing
+so safely mid-real-run risked a second rushed, unverified change on top of
+the first. This ticket is the properly-scoped follow-up.
+
+## What was lost, precisely
+
+1. **Crash-recovery marker.** The old design wrote a "pending" version of
+   an attachment's `extra` before calling `reindex_fulltext`, then a
+   "reindexed" version after. If the script crashed between those two
+   writes, a re-run would see the mismatch and retry. Without it, a re-run
+   after such a crash sees the attachment as already matching its desired
+   state and will not retry — narrow window (only mid-poll), but real, and
+   affects every future re-run of this harness, not just today's.
+2. **Sha256-drift detection.** Nothing in `_desired_attachment()`'s output
+   now depends on the recipe's pinned `sha256`. A correct re-pin — the
+   source file AND `recipe.json`'s hash updated together, so
+   `verify_source_bytes` sees no mismatch — silently does not force a
+   re-upload or re-extraction, because `inject()`'s reconciliation
+   (`_managed_equal`) has nothing left to detect the change with.
+   `bench/fixtures/README.md`'s own documented "Re-pinning" procedure
+   depends on this working. Pinned down as a red test:
+   `tests/test_golden_fixture_harness.py::
+   test_a_repin_with_no_local_hash_mismatch_is_not_yet_redetected`.
+
+Both gaps are real (not hypothetical) and both matter more than "today's
+one-off run" — the golden fixture is meant to be re-pinned and re-injected
+repeatedly over the corpus's life (browser-only sources landing later,
+occasional archive corrections). Neither blocks the very first, fresh
+injection into an empty collection, which is why 0632 could ship without
+them and still complete its own real run.
+
+## Relevant files
+- `bench/fixtures/golden_fixture.py` — `_desired_attachment`, `inject`,
+  `_refresh_fulltext_from_pinned_sources`, `_managed_markers`,
+  `_require_only_managed_marker`, `ZoteroLocalClient.upload_file`
+- `bench/fixtures/make_index_fixture.mjs` — `loadGoldenExport`'s mirrored
+  validation (`requireFields`, `requireOnlyManagedMarker`)
+- `tests/test_golden_fixture_harness.py` — the red test named above, plus
+  `test_failed_reindex_leaves_attachment_pending_and_unexportable` (now
+  documents rather than proves the crash-recovery gap)
+- `bench/fixtures/README.md` — "Re-pinning" section, whose promise this
+  ticket needs to keep actually true
+
+## Actions (a starting sketch, not a spec)
+1. Design a schema-compliant carrier for both signals. Tags are the
+   only field Zotero's attachment schema leaves free-form and already
+   proven (`SOURCE_TAG_PREFIX`, `ATTACHMENT_TAG_PREFIX`); a sha256 tag
+   and/or a pending-state tag are the obvious candidates, but this needs a
+   real design pass, not a copy of the identity-tag pattern verbatim —
+   `_managed_markers`/`_require_only_managed_marker` currently assume
+   "exactly one managed tag" per item, which a second tag category breaks
+   for attachments specifically (parents stay single-marker). Consider
+   also: does the local API's `imported_file` item data expose a real,
+   Zotero-computed `md5` after upload registers, usable as a
+   zero-new-tag drift signal for the group path specifically (verify
+   against live Zotero, not assumed)? If so, `user`/`linked_file` still
+   needs its own answer, since Zotero does not upload/hash linked files
+   the same way.
+2. Update both `golden_fixture.py` and `make_index_fixture.mjs` in lockstep
+   (they already mirror each other's attachment-shape validation).
+3. Turn the red test in `test_golden_fixture_harness.py` green; restore
+   real coverage for the "reindex failed, subsequent export must refuse"
+   scenario that `test_failed_reindex_leaves_attachment_pending_and_
+   unexportable` had to relax.
+
+## Test
+- Start from the red test named above (already committed, already failing
+  the *old* assertion until this ticket's fix lands — currently passing
+  only because it asserts the gap, not the fix).
+
+## Invariants
+- `_managed_markers`/`_require_only_managed_marker` keep working correctly
+  for PARENT items exactly as today (single identity marker); any
+  generalization must not weaken parent-side reconciliation.
+- The fix must be verified against Zotero's real schema/API behavior
+  (`GET /api/schema`, a real local-API round trip), not only the mocked
+  `MemoryZotero` test double — that is exactly the blind spot that let the
+  original `extra` defect ship unnoticed.
+
+## Exit criteria
+- [ ] a schema-compliant mechanism restores crash-recovery detection
+      (interrupted reindex is retried on the next run)
+- [ ] a schema-compliant mechanism restores sha256-drift detection (a
+      correct re-pin is detected and forces re-upload/re-extraction)
+- [ ] `test_a_repin_with_no_local_hash_mismatch_is_not_yet_redetected` is
+      rewritten to assert the restored (positive) behavior
+- [ ] `test_failed_reindex_leaves_attachment_pending_and_unexportable`'s
+      relaxed assertion is restored to a real one
+- [ ] `bench/fixtures/README.md`'s "Re-pinning" section is re-verified true
+      end to end (fetch → re-pin → re-inject → re-export), not just by
+      inspection

@@ -164,34 +164,35 @@ def _desired_parent(doc: dict, collection_key: str) -> dict:
     return desired
 
 
-def _attachment_attestation(doc: dict, state: str) -> str:
-    return "; ".join([
-        f"ticket-0029 source sha256: {doc['sha256']}",
-        f"role: {doc.get('role', 'primary')}",
-        f"relation: {doc.get('relation', 'primary')}",
-        f"language: {doc.get('language', '')}",
-        f"selection: {doc.get('selection_expectation', 'indexed')}",
-        f"skip reason: {doc.get('skip_reason', '')}",
-        f"fulltext: {state}",
-    ])
-
-
 def _desired_attachment(
-    parent: dict, doc: dict, parent_key: str, path: Path, *,
-    extraction_state: str = "reindexed", library_type: str = "user",
+    parent: dict, doc: dict, parent_key: str, path: Path, *, library_type: str = "user",
 ) -> dict:
     """A group library refuses linked-file attachments outright (Zotero's own local
     API: 400 "Linked files can only be added to user library" -- verified 2026-09-04,
     not a configuration issue on any one group). Only the user library keeps
     linked_file; a group needs a stored attachment, whose bytes this module uploads
-    separately (see ZoteroLocalClient.upload_file) before the item can be reindexed."""
+    separately (see ZoteroLocalClient.upload_file) before the item can be reindexed.
+
+    No `extra` field: verified against Zotero's own live schema (GET /api/schema,
+    2026-09-04) that the `attachment` item type accepts only title/accessDate/url --
+    `extra` is rejected outright, 400 "'extra' is not a valid field for type
+    'attachment'". A previous version of this function wrote source sha256, role,
+    relation, language, selection, skip reason, and a pending/reindexed extraction
+    marker there; none of it was ever validated against real Zotero before today,
+    since the mocked test client enforces no field-legality rules at all. The
+    provenance content is not load-bearing for the export (see_snapshot_rows reads
+    role/relation/etc. straight from the recipe, never from the live item); the
+    pending/reindexed marker's crash-recovery value is real but narrower than this
+    fix restores -- see ticket 0641 (filed 2026-09-04) for giving a real
+    interrupted-reindex recovery marker its own reviewed change, since the earlier
+    two-phase pending/final write only differed by this now-removed field, so a
+    single write suffices."""
     fmt = doc.get("bytes_format", "pdf")
     common = {
         "itemType": "attachment",
         "parentItem": parent_key,
         "title": doc.get("title", parent["title"]),
         "contentType": CONTENT_TYPES.get(fmt, "application/octet-stream"),
-        "extra": _attachment_attestation(doc, extraction_state),
         "tags": [{"tag": attachment_tag(doc["id"])}],
     }
     if library_type == "group":
@@ -290,31 +291,23 @@ def inject(
             attach_want = _desired_attachment(
                 doc, source, _key(parent), source_path, library_type=library_type
             )
-            attach_pending = _desired_attachment(
-                doc, source, _key(parent), source_path,
-                extraction_state="pending", library_type=library_type,
-            )
             attachment = attachment_by_id.get(source["id"])
             changed = False
             if attachment is None:
-                attachment = client.write_items([attach_pending])[0]
+                attachment = client.write_items([attach_want])[0]
                 counts["created_attachments"] += 1
                 changed = True
             elif not _managed_equal(attachment, attach_want):
-                attachment = client.write_items([_update_payload(attachment, attach_pending)])[0]
+                attachment = client.write_items([_update_payload(attachment, attach_want)])[0]
                 counts["updated_attachments"] += 1
                 changed = True
             if changed:
                 if library_type == "group":
                     content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
                     client.upload_file(_key(attachment), source_path, content_type)
-                pending_reindex.append((attachment, attach_want))
+                pending_reindex.append(_key(attachment))
     if pending_reindex:
-        client.reindex_fulltext([_key(attachment) for attachment, _ in pending_reindex])
-        client.write_items([
-            _update_payload(attachment, final)
-            for attachment, final in pending_reindex
-        ])
+        client.reindex_fulltext(pending_reindex)
     return counts
 
 
@@ -469,9 +462,13 @@ def _refresh_fulltext_from_pinned_sources(
     recipe: list[dict], client, source_paths: dict[str, Path], collection_key: str,
     cache_dir: Path, *, library_type: str = "user",
 ) -> None:
-    """Force the export's extraction from the bytes verified around this operation."""
+    """Force the export's extraction from the bytes verified around this operation.
+
+    reindex_fulltext (the plugin call) is what forces the actual re-extraction; no
+    item write is needed to trigger it, and the metadata equality check just above
+    already proves the live item matches what the recipe wants."""
     parents = client.list_top_items()
-    pending = []
+    keys = []
     for doc in recipe:
         parent = _one_marked(parents, source_tag(doc["id"]), "parent")
         if parent is None or not _managed_equal(parent, _desired_parent(doc, collection_key)):
@@ -488,20 +485,12 @@ def _refresh_fulltext_from_pinned_sources(
             )
             if not _managed_equal(attachment, final):
                 raise GoldenFixtureError(f"{source['id']}: attachment metadata drifted from the source recipe")
-            waiting = _desired_attachment(
-                doc, source, _key(parent), source_paths[source["id"]],
-                extraction_state="pending", library_type=library_type,
-            )
-            pending.append((attachment, final, waiting))
+            keys.append(_key(attachment))
 
-    waiting_items = client.write_items([_update_payload(attachment, waiting)
-                                        for attachment, _, waiting in pending])
-    client.reindex_fulltext([_key(attachment) for attachment in waiting_items])
+    client.reindex_fulltext(keys)
     # A linked file can change while Zotero is reading it.  Do not attest or export
     # unless the complete source set still has the recipe hashes after extraction.
     verify_source_bytes(recipe, cache_dir)
-    client.write_items([_update_payload(attachment, pending[index][1])
-                        for index, attachment in enumerate(waiting_items)])
 
 
 def _portable_item(item: dict) -> dict:
