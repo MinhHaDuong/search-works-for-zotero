@@ -1,7 +1,12 @@
-# UNINSTALL.md draft — ticket 0630, the R15 removal procedure
+# Uninstall draft — ticket 0630, the R15 removal procedure
 
 Drafted 2026-09-03 from `src/lib/paths.ts`, `src/features/search/embeddings.ts`,
 `src/tools/whoami.ts`, `src/lib/update-check.ts` and `docs/configuration.md`.
+Placement and format reconsidered 2026-09-04 — see below — from a single
+root-level `UNINSTALL.md` to a two-piece hand-off: a short section in
+`README.md` and the full procedure in `docs/uninstall.md`. The end-to-end run
+this reconsideration accompanies is
+`bench/results/0630-gap-b/README.md`.
 
 **Read at v1.12.0 (`b05ed69`), re-verified at the reviewed baseline.** The
 `fork/` checkout on this machine sits at `b05ed69`, one release behind the
@@ -13,8 +18,9 @@ line number.
 
 **Not sent.** This is a staged artifact in the same form as
 `verification/ISSUE-DRAFT-0530.md` and
-`verification/UPSTREAM-PR-POOLING-0612.md`: everything from `## Content` down
-is what would go upstream, this preamble would not. The hand-off is
+`verification/UPSTREAM-PR-POOLING-0612.md`: everything from the first
+`## Content —` heading down is what would go upstream, split across the two
+destinations each heading names; this preamble would not. The hand-off is
 `GOVERNANCE.md`'s lane, not this ticket's — contained-PR form, a docs change
 of the shape that merged verbatim twice (#27, #28), against a volume cap this
 ticket does not spend.
@@ -43,12 +49,68 @@ a dedicated account owning the arena, is closed (ticket 0625). The document's
 correctness does not depend on either, but R15 cannot be graded green for
 zoteus until the redirection gap closes.
 
+**Location and format, reconsidered 2026-09-04.** The original plan (0613's
+log, 2026-09-03T13:43Z) named a single new root file, `UNINSTALL.md`, on the
+strength of `CHANGELOG.md`/`CONTRIBUTING.md`/`PRIVACY.md` sitting at the
+fork's root. Reread against `fork/README.md` itself, that precedent argues
+less than it first looks like it does, and a stronger one was sitting beside
+it unused.
+
+*Format.* Checked for an agent-facing consumption format before assuming
+prose was the only option: `fork/` ships no `llms.txt` and no agent-facing
+doc index of any kind (`find`, empty). The one machine-readable manifest that
+exists, `mcpb/manifest.json`, is Claude Desktop's own install-time
+configuration schema — third party, not ours to extend, and its only present
+consumer is Claude Desktop's own extension manager, which already knows how
+to remove the `.mcpb` bundle it installed, through its own UI, independent of
+anything this repository publishes. What that manager does *not* know about
+is exactly `ZOTEUS_DATA_DIR` — state living outside the bundle, which is the
+whole reason a removal procedure needs to exist at all. No consumer for a
+machine-readable manifest was found, so there is nothing a manifest format
+would win here that prose does not already provide; every doc in `fork/` is
+`.md`, and this one stays `.md` by consistency and by fit, not by default.
+
+*Location.* `fork/README.md` already carries a `## Install` section — client
+commands, a table, a cloud-key note — and there is no `INSTALL.md` at root:
+this project's own precedent for an *operational lifecycle step* is a README
+section, not a spun-off file. `CHANGELOG.md`/`CONTRIBUTING.md`/`PRIVACY.md`
+are a different class: `CONTRIBUTING.md` is a filename GitHub itself
+recognises and surfaces (a PR/issue banner), and the other two are
+freestanding history/policy documents with no README counterpart to pair
+against. Uninstall has one: it is Install's closing half, and README already
+has a working pattern for "the short answer here, the full one linked" — the
+"Vector ranking is opt-in" and "Embedding through an API" callouts in `##
+How it works`, each a paragraph pointing at `docs/semantic-search.md`. A
+fifth unlinked root file is one click further from a person skimming GitHub
+than a paragraph under the section they are already reading, and no closer
+for an agent that only reads what a tool call surfaces — a `docs/` path
+linked from README is exactly as reachable as a root file, and more likely to
+actually be linked from the place a reader looks. So: a short `## Uninstall`
+section in `README.md`, immediately after `## Install`, plus the full
+procedure at `docs/uninstall.md` — not a new root file. The content below is
+unchanged in substance; only its two destinations and the split between them
+are new.
+
 ---
 
-## Content
+## Content — addition to `README.md`
 
-*(This is the file, `UNINSTALL.md` at the repository root — beside
-`CHANGELOG.md`, `CONTRIBUTING.md` and `PRIVACY.md`, not under `docs/`.)*
+*(Insert as a new `## Uninstall` section immediately after the existing `##
+Install` section, in the same short-answer-plus-link shape as the "Vector
+ranking is opt-in" callout under `## How it works`. Also add one entry,
+`[Uninstall](./docs/uninstall.md)`, to the `## Documentation` link list.)*
+
+## Uninstall
+
+Zoteus writes everything it derives — the search index, the on-device model
+weights, the update-check cache — into one directory: `ZOTEUS_DATA_DIR` if
+you set it, otherwise your OS's default application-data path. Stop the
+server, remove it from your MCP client's configuration, then delete that
+directory; your Zotero library lives elsewhere and nothing here touches it.
+Full steps, platform paths, and the pre-v1.10.0 case (model weights that used
+to land outside this directory): [`docs/uninstall.md`](./docs/uninstall.md).
+
+## Content — `docs/uninstall.md`
 
 # Uninstalling Zoteus
 
