@@ -846,16 +846,25 @@ class ZoteroLocalClient:
                 f"{error}"
             ) from error
 
-    @staticmethod
-    def _fulltext_complete(item: dict) -> bool:
-        if isinstance(item.get("indexedPages"), int) and isinstance(item.get("totalPages"), int):
-            return item["indexedPages"] >= item["totalPages"]
-        if isinstance(item.get("indexedChars"), int) and isinstance(item.get("totalChars"), int):
-            return item["indexedChars"] >= item["totalChars"]
-        return False
-
     def reindex_fulltext(self, keys: list[str], *, poll: float = 1.0, max_wait: float = 3600) -> None:
-        """Force complete extraction and attest success before injection becomes current."""
+        """Force extraction to run and settle; accept whatever terminal state results.
+
+        A forced reindex is not guaranteed to reach ``indexed``: a document with
+        no extractable text (an un-OCR'd scan) or an unsupported container
+        (DjVu) settles at ``unindexed`` once Zotero has genuinely finished
+        trying, and that is real ground truth for the export to capture -- one
+        of ticket 0029's own declared failure-control cases, not a failure to
+        wait past. Requiring ``state == "indexed"`` for every key made this
+        hang the full ``max_wait`` and then raise, for any recipe containing
+        such a document -- the two Vietnamese volumes ruled to stay in the
+        fixture on 2026-09-04 (DECISIONS.md) trigger it every time.
+
+        What this still enforces: the reindex actually *ran* -- queued, then
+        the plugin's own ``busy``/``running`` counters idle -- before any state
+        is trusted. A state read the instant after queuing, before Zotero has
+        started, is not evidence of anything, so idleness must hold across two
+        consecutive polls before it is accepted.
+        """
         wanted = set(keys)
         queued = self._plugin_request("reindex", {"keys": keys})
         if not isinstance(queued, dict):
@@ -867,6 +876,7 @@ class ZoteroLocalClient:
             raise GoldenFixtureError("the full-text plugin did not queue every fixture attachment")
         started = time.monotonic()
         query = "status?keys=" + urllib.parse.quote(",".join(keys), safe=",")
+        idle_since = None
         while time.monotonic() - started < max_wait:
             status = self._plugin_request(query)
             if not isinstance(status, dict):
@@ -878,18 +888,19 @@ class ZoteroLocalClient:
             }
             if status.get("lastError") or any(row.get("error") for row in by_key.values()):
                 raise GoldenFixtureError("fixture attachment reindex reported an error")
-            if (
+            idle = (
                 set(by_key) == wanted
                 and not status.get("busy")
-                and all(
-                    by_key[key].get("state") == "indexed"
-                    and isinstance(by_key[key].get("version"), int)
-                    and by_key[key]["version"] >= 0
-                    and self._fulltext_complete(by_key[key])
-                    for key in wanted
-                )
-            ):
-                return
+                and not status.get("running")
+                and all(isinstance(by_key[key].get("state"), str) for key in wanted)
+            )
+            if idle:
+                if idle_since is None:
+                    idle_since = time.monotonic()
+                elif time.monotonic() - idle_since >= poll:
+                    return
+            else:
+                idle_since = None
             time.sleep(poll)
         raise GoldenFixtureError("fixture attachment reindex timed out")
 

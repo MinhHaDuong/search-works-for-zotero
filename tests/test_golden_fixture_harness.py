@@ -396,35 +396,96 @@ def test_local_client_verifies_plugin_reindex_completion(monkeypatch):
     client = gf.ZoteroLocalClient(
         library_type="group", library_id=4321, collection_key="COLLECT1"
     )
+    idle_indexed = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
+        "totalPages": 2, "version": 9,
+    }]}
     responses = [
         {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
-        {"busy": False, "lastError": None, "items": [{
-            "key": "ATTACH01", "state": "indexed", "indexedPages": 2,
-            "totalPages": 2, "version": 9,
-        }]},
+        idle_indexed,
+        idle_indexed,
     ]
     monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
     client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
 
-    responses.extend([
-        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
-        {"busy": False, "lastError": None, "items": [{
-            "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
-            "totalPages": 0, "version": 9,
-        }]},
-    ])
 
-    def incomplete(*_args, **_kwargs):
+def test_reindex_accepts_a_genuinely_settled_unindexed_state(monkeypatch):
+    """A document with no extractable text (an un-OCR'd scan, an unsupported
+    container) never reaches 'indexed' -- and that is real ground truth for
+    the export to capture, one of ticket 0029's declared failure-control
+    cases, not a timeout. Once Zotero has genuinely finished trying (idle
+    across two consecutive polls), reindex_fulltext must return rather than
+    burn the full max_wait waiting for a state that will never arrive."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    idle_unindexed = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+        "totalPages": 0, "version": 9,
+    }]}
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+        idle_unindexed,
+        idle_unindexed,
+    ]
+    monkeypatch.setattr(client, "_plugin_request", lambda *_args, **_kwargs: responses.pop(0))
+    client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=1)
+
+
+def test_reindex_still_times_out_when_genuinely_never_idle(monkeypatch):
+    """The idle-settle relaxation must not become a blank check: a plugin that
+    never stops reporting busy (a real hang, not a settled failure-control
+    case) still exhausts max_wait and raises."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+    ]
+
+    def still_busy(*_args, **_kwargs):
         return responses.pop(0) if responses else {
-            "busy": False, "lastError": None, "items": [{
-                "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
-                "totalPages": 0, "version": 9,
+            "busy": True, "running": 1, "lastError": None, "items": [{
+                "key": "ATTACH01", "state": "queued", "indexedPages": 0,
+                "totalPages": 0, "version": None,
             }],
         }
 
-    monkeypatch.setattr(client, "_plugin_request", incomplete)
+    monkeypatch.setattr(client, "_plugin_request", still_busy)
     with pytest.raises(gf.GoldenFixtureError, match="timed out"):
-        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.001)
+        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.05)
+
+
+def test_reindex_idle_must_hold_across_two_polls_not_one(monkeypatch):
+    """A single idle-looking read the instant after queuing is not evidence
+    Zotero has started, let alone finished -- idleness must be observed on
+    two consecutive polls before it is trusted. A response sequence that
+    flips busy/idle every poll must never satisfy that and must time out."""
+    client = gf.ZoteroLocalClient(
+        library_type="group", library_id=4321, collection_key="COLLECT1"
+    )
+    busy = {"busy": True, "running": 1, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "queued", "indexedPages": 0,
+        "totalPages": 0, "version": None,
+    }]}
+    idle = {"busy": False, "running": 0, "lastError": None, "items": [{
+        "key": "ATTACH01", "state": "unindexed", "indexedPages": 0,
+        "totalPages": 0, "version": 9,
+    }]}
+    responses = [
+        {"queued": [{"key": "ATTACH01", "libraryID": 2}], "missing": [], "notAttachments": []},
+    ]
+    status_calls = [0]
+
+    def flipping(*_args, **_kwargs):
+        if responses:
+            return responses.pop(0)
+        status_calls[0] += 1
+        return idle if status_calls[0] % 2 else busy
+
+    monkeypatch.setattr(client, "_plugin_request", flipping)
+    with pytest.raises(gf.GoldenFixtureError, match="timed out"):
+        client.reindex_fulltext(["ATTACH01"], poll=0, max_wait=0.05)
 
 
 def exported_snapshot(tmp_path):
