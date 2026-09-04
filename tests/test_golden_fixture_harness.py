@@ -241,6 +241,24 @@ def test_group_injection_retries_upload_after_metadata_creation_succeeds(tmp_pat
     assert len(zotero.reindexes) == 1
 
 
+def test_group_metadata_update_preserves_previous_md5_for_file_replacement(tmp_path):
+    payload = b"%PDF-1.4\ninvented control\n"
+    recipe = recipe_for(payload)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "invented-1900-control.pdf").write_bytes(payload)
+    zotero = MemoryZotero()
+    gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+    previous_md5 = hashlib.md5(payload).hexdigest()
+
+    recipe[0]["title"] = "Corrected fixture title"
+    counts = gf.inject(recipe, cache, zotero, collection_key="COLLECT1", library_type="group")
+
+    assert counts["updated_parents"] == 1
+    assert counts["updated_attachments"] == 1
+    assert zotero.uploads[-1][3] == previous_md5
+
+
 def test_representative_parent_reconciles_multiple_attachments_independently(tmp_path):
     payloads = (b"%PDF-1.4\npdf body\n", b"<html>same body</html>")
     recipe = representative_recipe(payloads)

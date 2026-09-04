@@ -296,6 +296,7 @@ def inject(
                 doc, source, _key(parent), source_path, library_type=library_type
             )
             attachment = attachment_by_id.get(source["id"])
+            existing_md5 = _data(attachment).get("md5") if attachment is not None else None
             changed = False
             if attachment is None:
                 attachment = client.write_items([attach_want])[0]
@@ -307,10 +308,9 @@ def inject(
                 changed = True
             if library_type == "group":
                 content_type = CONTENT_TYPES.get(source.get("bytes_format", "pdf"), "application/octet-stream")
-                previous_md5 = _data(attachment).get("md5")
                 client.upload_file(
                     _key(attachment), source_path, content_type,
-                    previous_md5=previous_md5 if isinstance(previous_md5, str) else None,
+                    previous_md5=existing_md5 if isinstance(existing_md5, str) else None,
                 )
                 pending_reindex.append(_key(attachment))
             elif changed:
