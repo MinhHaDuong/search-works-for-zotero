@@ -6,6 +6,8 @@ let sitter, alive = false, timer, pulse, timers;
 const buttons = new Set(), dialogs = new Set();
 const BUTTON = 'sdt-pack-sitter-button';
 let generation = 0;
+let lastCompleted = 0;
+let completionBlinkUntil = 0;
 
 function getSDTCoverage(state) {
   return { known: state.scanned === state.total && state.phase !== 'ready',
@@ -18,9 +20,19 @@ function render() {
   const s = sitter.state;
   for (const button of buttons) {
     const working = s.phase === 'census' || s.active !== null;
-    button.setAttribute('label', 'SDT');
-    button.style.setProperty('opacity', working
-      ? String(0.55 + 0.45 * (0.5 + 0.5 * Math.sin(Date.now() / 450))) : '1', 'important');
+    const now = Date.now();
+    if (s.completed > lastCompleted) {
+      lastCompleted = s.completed;
+      completionBlinkUntil = now + 1400;
+    }
+    const spinning = s.active !== null;
+    const blinking = !working && now < completionBlinkUntil;
+    button.setAttribute('label', spinning
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT` : 'SDT');
+    const opacity = s.phase === 'census'
+      ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
+      : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
+    button.style.setProperty('opacity', String(opacity), 'important');
     button.setAttribute('tooltiptext', `${s.phase === 'census' ? 'Recensement' : s.phase} — ${s.completed} packs créés`);
   }
   for (const dialog of dialogs) {
