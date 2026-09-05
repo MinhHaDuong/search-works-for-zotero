@@ -18,7 +18,9 @@ function render() {
   const s = sitter.state;
   for (const button of buttons) {
     const working = s.phase === 'census' || s.active !== null;
-    button.setAttribute('label', working ? `${['◐', '◓', '◑', '◒'][Math.floor(Date.now() / 1000) % 4]} SDT` : 'SDT');
+    button.setAttribute('label', 'SDT');
+    button.style.setProperty('opacity', working
+      ? String(0.55 + 0.45 * (0.5 + 0.5 * Math.sin(Date.now() / 450))) : '1', 'important');
     button.setAttribute('tooltiptext', `${s.phase === 'census' ? 'Recensement' : s.phase} — ${s.completed} packs créés`);
   }
   for (const dialog of dialogs) {
@@ -340,7 +342,7 @@ async function initialize(rootURI, token) {
     await sitter.sweep();
     if (alive && token === generation) timer = timers.setTimeout(sweep, 30000);
   };
-  pulse = timers.setInterval(render, 1000);
+  pulse = timers.setInterval(render, 100);
   timer = timers.setTimeout(sweep, 0);
 }
 function shutdown() {
