@@ -1,0 +1,10 @@
+{
+  "manifest_version": 2,
+  "name": "SDT isolated phase probe",
+  "version": "0.0.1",
+  "applications": { "zotero": {
+    "id": "sdt-phase-harness@search-works-for-zotero.invalid",
+    "strict_min_version": "10.0.1", "strict_max_version": "10.*",
+    "update_url": "https://example.invalid/sdt-phase-updates.json"
+  } }
+}
