@@ -1,0 +1,32 @@
+%erg 0.1
+Title: Measure SDT CPU and CUDA extraction on padme
+Created: 2026-09-05
+Author: codex
+Closed: Measured CPU threads, parallel documents and explicit CUDA; evidence preserved and make check passed.
+
+--- log ---
+2026-09-05T19:32Z codex created
+
+2026-09-05T19:45Z codex note Authorized live padme comparison, extended by the author to CPU threads and parallel documents. Isolated document-worker source and models verified against the installed model hashes; no Zotero cache writes. Raw campaign is running on padme under /tmp/sdt-gpu-results; report and reproducible probes will be preserved here. llama-server is temporarily stopped during timing with automatic SIGCONT cleanup.
+2026-09-05T19:56Z codex note Completed the CPU thread/document-process campaign and independent Python CUDA replay. Successful extraction outputs agree after timestamp normalization; the failed Node CUDA arm remains explicitly diagnostic. Installed PDFWorker queue serialization is confirmed at source. Evidence and limits are in verification/SDT-PARALLELISM-0674.md. llama-server resumed. make check passed in the shared checkout and the isolated evidence worktree; 872 tests passed, 16 skipped.
+2026-09-05T19:57Z Minh Ha-Duong closed — Measured CPU threads, parallel documents and explicit CUDA; evidence preserved and make check passed.
+--- body ---
+## Context
+
+The author requested a live SDT CPU/GPU comparison on padme, then added
+multicore inference and parallel document extraction to the question.
+
+## Evidence
+
+- `verification/SDT-PARALLELISM-0674.md` owns the factual report and reproduction.
+- `bench/results/0674-sdt-padme/` holds raw timing, profiles and provenance.
+- `verification/probes/sdt_cpu_campaign.py` drives the CPU campaign.
+- The report points to the extraction, runtime, replay and summary probes.
+
+## Exit criteria
+
+- [x] Compare CPU and CUDA using actual model inputs and verify the provider.
+- [x] Measure inference threads and parallel documents separately.
+- [x] Check extraction identity and state the limits of failed GPU runs.
+- [x] Preserve evidence without document text and resume llama-server.
+- [x] Repository checks pass.
