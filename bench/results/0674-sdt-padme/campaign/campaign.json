@@ -1,0 +1,829 @@
+[
+  {
+    "name": "doc0-wasm-t1",
+    "backend": "wasm",
+    "threads": 1,
+    "processWallSeconds": 5.3722338139778,
+    "exitCode": 0
+  },
+  {
+    "name": "doc0-cpu-t1",
+    "backend": "cpu",
+    "threads": 1,
+    "processWallSeconds": 3.7695969520136714,
+    "exitCode": 0
+  },
+  {
+    "name": "doc0-cpu-t2",
+    "backend": "cpu",
+    "threads": 2,
+    "processWallSeconds": 3.768730796989985,
+    "exitCode": 0
+  },
+  {
+    "name": "doc0-cpu-t4",
+    "backend": "cpu",
+    "threads": 4,
+    "processWallSeconds": 3.9689273420954123,
+    "exitCode": 0
+  },
+  {
+    "name": "doc0-cpu-t8",
+    "backend": "cpu",
+    "threads": 8,
+    "processWallSeconds": 4.180024140980095,
+    "exitCode": 0
+  },
+  {
+    "name": "doc1-wasm-t1",
+    "backend": "wasm",
+    "threads": 1,
+    "processWallSeconds": 19.247825794969685,
+    "exitCode": 0
+  },
+  {
+    "name": "doc1-cpu-t1",
+    "backend": "cpu",
+    "threads": 1,
+    "processWallSeconds": 14.639130875933915,
+    "exitCode": 0
+  },
+  {
+    "name": "doc1-cpu-t2",
+    "backend": "cpu",
+    "threads": 2,
+    "processWallSeconds": 14.936251546954736,
+    "exitCode": 0
+  },
+  {
+    "name": "doc1-cpu-t4",
+    "backend": "cpu",
+    "threads": 4,
+    "processWallSeconds": 14.88378284405917,
+    "exitCode": 0
+  },
+  {
+    "name": "doc1-cpu-t8",
+    "backend": "cpu",
+    "threads": 8,
+    "processWallSeconds": 16.697679435950704,
+    "exitCode": 0
+  },
+  {
+    "name": "doc2-wasm-t1",
+    "backend": "wasm",
+    "threads": 1,
+    "processWallSeconds": 13.39076307497453,
+    "exitCode": 0
+  },
+  {
+    "name": "doc2-cpu-t1",
+    "backend": "cpu",
+    "threads": 1,
+    "processWallSeconds": 9.429377937922254,
+    "exitCode": 0
+  },
+  {
+    "name": "doc2-cpu-t2",
+    "backend": "cpu",
+    "threads": 2,
+    "processWallSeconds": 9.476521866978146,
+    "exitCode": 0
+  },
+  {
+    "name": "doc2-cpu-t4",
+    "backend": "cpu",
+    "threads": 4,
+    "processWallSeconds": 9.476311050006188,
+    "exitCode": 0
+  },
+  {
+    "name": "doc2-cpu-t8",
+    "backend": "cpu",
+    "threads": 8,
+    "processWallSeconds": 10.263898484990932,
+    "exitCode": 0
+  },
+  {
+    "name": "doc3-wasm-t1",
+    "backend": "wasm",
+    "threads": 1,
+    "processWallSeconds": 8.578962184023112,
+    "exitCode": 0
+  },
+  {
+    "name": "doc3-cpu-t1",
+    "backend": "cpu",
+    "threads": 1,
+    "processWallSeconds": 6.774439282016829,
+    "exitCode": 0
+  },
+  {
+    "name": "doc3-cpu-t2",
+    "backend": "cpu",
+    "threads": 2,
+    "processWallSeconds": 6.624217586009763,
+    "exitCode": 0
+  },
+  {
+    "name": "doc3-cpu-t4",
+    "backend": "cpu",
+    "threads": 4,
+    "processWallSeconds": 6.622437582933344,
+    "exitCode": 0
+  },
+  {
+    "name": "doc3-cpu-t8",
+    "backend": "cpu",
+    "threads": 8,
+    "processWallSeconds": 6.988510809023865,
+    "exitCode": 0
+  },
+  {
+    "kind": "batch",
+    "repeat": 0,
+    "jobs": 1,
+    "wallSeconds": 16.694814906921238,
+    "workers": [
+      {
+        "name": "batch-r0-j1-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 16.693072617985308,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 0,
+    "jobs": 2,
+    "wallSeconds": 11.184024018002674,
+    "workers": [
+      {
+        "name": "batch-r0-j2-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 7.124498171033338,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j2-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 11.182888324023224,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 0,
+    "jobs": 4,
+    "wallSeconds": 8.328172736917622,
+    "workers": [
+      {
+        "name": "batch-r0-j4-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8223290909081697,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j4-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 8.326547218952328,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j4-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 5.725275516975671,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j4-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.472241504001431,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 0,
+    "jobs": 8,
+    "wallSeconds": 6.234136268030852,
+    "workers": [
+      {
+        "name": "batch-r0-j8-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.4221797640202567,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 6.231248889002018,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.626561096985824,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.5720299790846184,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 1.8738874349510297,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.024379391921684,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.019879339961335,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j8-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.5174670920241624,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 0,
+    "jobs": 12,
+    "wallSeconds": 4.4875133510213345,
+    "workers": [
+      {
+        "name": "batch-r0-j12-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.1324486600933596,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.485454434994608,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.4358002200024202,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8784847429487854,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.1305367900058627,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.379979301942512,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.3883153490023687,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.9344907550839707,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w8",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.1789747189031914,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w9",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.385672447038814,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w10",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.332395110046491,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r0-j12-w11",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.9328207629732788,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 1,
+    "jobs": 12,
+    "wallSeconds": 4.38395333790686,
+    "workers": [
+      {
+        "name": "batch-r1-j12-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.128832323011011,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.331940061994828,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.382787973037921,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8819307340309024,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.126802781946026,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.3307296759448946,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.380680136033334,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8790315110236406,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w8",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.1246135589899495,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w9",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.378987333970144,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w10",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.378989884047769,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j12-w11",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.835141315939836,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 1,
+    "jobs": 8,
+    "wallSeconds": 6.38207149610389,
+    "workers": [
+      {
+        "name": "batch-r1-j8-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.421149472007528,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 6.380596622941084,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.622798001975752,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.575019577052444,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 1.7713759200414643,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.1266948049888015,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.0714911069953814,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j8-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.4739719959907234,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 1,
+    "jobs": 4,
+    "wallSeconds": 8.429500245954841,
+    "workers": [
+      {
+        "name": "batch-r1-j4-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.720532326027751,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j4-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 8.427933810045943,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j4-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 5.825228417990729,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j4-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.422581066028215,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 1,
+    "jobs": 2,
+    "wallSeconds": 11.334061841014773,
+    "workers": [
+      {
+        "name": "batch-r1-j2-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 7.325559331919067,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r1-j2-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 11.333041545003653,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 1,
+    "jobs": 1,
+    "wallSeconds": 16.541190169984475,
+    "workers": [
+      {
+        "name": "batch-r1-j1-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 16.540773543994874,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 2,
+    "jobs": 1,
+    "wallSeconds": 16.189187999931164,
+    "workers": [
+      {
+        "name": "batch-r2-j1-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 16.18864644796122,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 2,
+    "jobs": 2,
+    "wallSeconds": 11.086319594993256,
+    "workers": [
+      {
+        "name": "batch-r2-j2-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 7.325445689959452,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j2-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 11.08531415706966,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 2,
+    "jobs": 4,
+    "wallSeconds": 8.42904603399802,
+    "workers": [
+      {
+        "name": "batch-r2-j4-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8197889109142125,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j4-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 8.427422789973207,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j4-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 5.775585602037609,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j4-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.220571256009862,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 2,
+    "jobs": 8,
+    "wallSeconds": 6.128340181079693,
+    "workers": [
+      {
+        "name": "batch-r2-j8-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.42523918999359,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 6.126830491004512,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.577776459977031,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.573951952974312,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 1.8690137719968334,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.926294094999321,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.0739031770499423,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j8-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.51970495400019,
+        "exitCode": 0
+      }
+    ]
+  },
+  {
+    "kind": "batch",
+    "repeat": 2,
+    "jobs": 12,
+    "wallSeconds": 4.48734349606093,
+    "workers": [
+      {
+        "name": "batch-r2-j12-w0",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.1290249719750136,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w1",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.430894169025123,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w2",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.38564621808473,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w3",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8810453210026026,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w4",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.133394889999181,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w5",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.483770582941361,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w6",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.479133144952357,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w7",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.835268607013859,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w8",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.125885328045115,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w9",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 4.438379397033714,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w10",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 3.385151755064726,
+        "exitCode": 0
+      },
+      {
+        "name": "batch-r2-j12-w11",
+        "backend": "cpu",
+        "threads": 1,
+        "processWallSeconds": 2.8374882959760725,
+        "exitCode": 0
+      }
+    ]
+  }
+]

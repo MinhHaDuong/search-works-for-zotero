@@ -1,0 +1,74 @@
+{
+  "backend": "cpu",
+  "ortVersion": "1.24.4",
+  "calls": 78,
+  "rows": [
+    {
+      "iteration": 0,
+      "warmup": true,
+      "sumMs": 71.72130909748375,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 46.79581068921834,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 3.0480234418064356,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 21.877474966458976
+      },
+      "maxAbsError": 1.33514404296875e-05
+    },
+    {
+      "iteration": 1,
+      "warmup": false,
+      "sumMs": 69.50220465660095,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 45.721856760792434,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 2.9297448927536607,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 20.850603003054857
+      },
+      "maxAbsError": 1.33514404296875e-05
+    },
+    {
+      "iteration": 2,
+      "warmup": false,
+      "sumMs": 69.42585634533316,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 45.710209058597684,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 2.9249173821881413,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 20.790729904547334
+      },
+      "maxAbsError": 1.33514404296875e-05
+    },
+    {
+      "iteration": 3,
+      "warmup": false,
+      "sumMs": 69.41347476094961,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 45.714059844613075,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 2.9199490090832114,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 20.779465907253325
+      },
+      "maxAbsError": 1.33514404296875e-05
+    },
+    {
+      "iteration": 4,
+      "warmup": false,
+      "sumMs": 70.49605681095272,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 46.21506098192185,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 2.9935898492112756,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 21.287405979819596
+      },
+      "maxAbsError": 1.33514404296875e-05
+    },
+    {
+      "iteration": 5,
+      "warmup": false,
+      "sumMs": 72.67643953673542,
+      "byModel": {
+        "5cb6f8645a0f4c8f4396d5e8b1da70d9c8d8fff8c98f324889b8c6e271575350": 47.70408233162016,
+        "7fd29831c26f09cefa5a4f92c797e559bda5f513f6691d339d6c323bd563a789": 3.043613862246275,
+        "572077354eea61583982a31a3f443c5abd8d92c04e2dbfd105299c1ca1d131f7": 21.928743342868984
+      },
+      "maxAbsError": 1.33514404296875e-05
+    }
+  ],
+  "profiles": []
+}

@@ -1,0 +1,22 @@
+{
+  "structure": {
+    "files": 35,
+    "lines": 15674,
+    "nonblank": 14226
+  },
+  "pdfAdapter": {
+    "files": 17,
+    "lines": 6006,
+    "nonblank": 5572
+  },
+  "pdfjs": {
+    "files": 207,
+    "lines": 131780,
+    "nonblank": 119136
+  },
+  "format": {
+    "files": 38,
+    "lines": 5036,
+    "nonblank": 4473
+  }
+}
