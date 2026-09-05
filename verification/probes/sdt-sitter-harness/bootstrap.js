@@ -73,10 +73,18 @@ async function run() {
     }
     assert(dialog?.document.getElementById('sdt-fulltext')?.textContent.includes('indexed'), 'native statistics absent');
     const surface = dialog.getComputedStyle(dialog.document.documentElement).backgroundColor;
-    assert(surface === 'rgb(245, 245, 245)', `dialog surface is not opaque: ${surface}`);
+    const foreground = dialog.getComputedStyle(dialog.document.documentElement).color;
+    assert(surface.startsWith('rgb(') && surface !== foreground, `dialog surface or contrast invalid: ${surface}, ${foreground}`);
+    assert(dialog.document.documentElement.style.colorScheme === 'light dark', 'system color scheme disabled');
+    if (config.expectDark) {
+      assert(dialog.matchMedia('(prefers-color-scheme: dark)').matches, 'dark system preference not propagated');
+      const brightness = color => color.match(/\d+/g).slice(0, 3).map(Number).reduce((a, b) => a + b, 0);
+      assert(brightness(surface) < brightness(foreground), 'dark system theme did not produce a dark surface');
+    }
     assert(dialog.getComputedStyle(dialog.document.getElementById('sdt-status')).whiteSpace === 'pre-wrap', 'status lines do not wrap');
     report.tests.push({ name: 'toolbar has text width and dialog has opaque wrapping surface', result: 'pass',
-      buttonWidth: button.getBoundingClientRect().width, surface });
+      buttonWidth: button.getBoundingClientRect().width, surface, foreground,
+      darkSystemTheme: dialog.matchMedia('(prefers-color-scheme: dark)').matches });
     report.tests.push({ name: 'toolbar opens status with native fulltext statistics', result: 'pass' });
     await addon.disable();
     assert(!Zotero.SDTPackSitter && !Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button'), 'disable left API or toolbar');
