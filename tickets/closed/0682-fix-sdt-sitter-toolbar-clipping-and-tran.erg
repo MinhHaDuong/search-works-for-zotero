@@ -1,0 +1,27 @@
+%erg 0.1
+Title: Fix SDT sitter toolbar clipping and transparent status window
+Created: 2026-09-05
+Author: codex
+Closed: UI-only fix validated in real Zotero; versioned XPI delivered in author home
+
+--- log ---
+2026-09-05T20:48Z codex created
+
+2026-09-05T20:49Z Minh Ha-Duong closed — UI-only fix validated in real Zotero; versioned XPI delivered in author home
+--- body ---
+The author reports a clipped SDT toolbar label and a transparent status window
+in the first installed build. Correct the extension UI only: override the
+icon-width toolbar styling, give the root and body explicit opaque colors,
+and wrap status text. Do not change extraction admission or native worker state.
+
+The isolated smoke driver in `verification/probes/sdt-sitter-harness/` now
+checks rendered button width, computed opaque background and wrapping, in
+addition to generation, statistics and disable cleanup. The original smoke
+only established DOM presence and did not test these visual properties.
+
+Deliver a new versioned XPI in the author's home without replacing the old
+artifact or installing into the live profile. Updating the extension resets
+its session-only census and estimates; native persisted packs remain reusable.
+
+Passing real-Zotero evidence, with source digests:
+`bench/results/sdt-sitter-launch-2026-09-05/ui-fix.json`.

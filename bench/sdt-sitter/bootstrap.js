@@ -66,10 +66,14 @@ function openDialog(window) {
     doc.title = 'SDT Pack Sitter';
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
+    // A bare chrome about:blank window does not inherit Zotero's opaque surface.
+    doc.documentElement.style.cssText = 'background: #f5f5f5; color: #202020; color-scheme: light; min-height: 100%;';
+    body.style.cssText = 'background: #f5f5f5; color: #202020; margin: 0; padding: 16px; box-sizing: border-box; min-height: 100vh; font: menu;';
     for (const [tag, id] of [['pre', 'sdt-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-fulltext']]) {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
-      if (tag === 'progress') node.max = 100;
+      if (tag === 'progress') { node.max = 100; node.style.width = '100%'; }
+      else node.style.cssText = 'white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5;';
       body.append(node);
     }
     dialogs.add(dialog); render();
@@ -91,6 +95,12 @@ function onMainWindowLoad({ window }) {
   if (!toolbar) return;
   const button = window.document.createXULElement('toolbarbutton');
   button.id = BUTTON;
+  // Zotero's toolbar styles otherwise constrain this to an icon-sized square.
+  button.style.setProperty('min-width', '80px', 'important');
+  button.style.setProperty('width', 'auto', 'important');
+  button.style.setProperty('max-width', 'none', 'important');
+  button.style.setProperty('flex-shrink', '0', 'important');
+  button.style.setProperty('padding-inline', '8px', 'important');
   button.addEventListener('command', () => openDialog(window));
   toolbar.append(button); buttons.add(button); render();
 }
