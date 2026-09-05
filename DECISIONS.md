@@ -6444,3 +6444,12 @@ tickets, `verification/` and git history.
 The author's statement that the design is done is the declaration AGENTS.md
 requires to move `SPEC.md` from DRAFT to COMPLETE. Complete describes the
 specification deliverable, not implementation of all its requirements.
+**2026-09-05 — RATIFIED: disabling the native SDT sitter lets the submitted
+document finish.** The author: "C'est plutot bien qu'il finisse le travail en
+cours." Disabling the plugin stops further admissions and removes its UI and
+callbacks; the attachment already handed to Zotero may finish and persist its
+native pack. This is intended graceful stopping, not an immediate-cancellation
+requirement. It does not authorize draining an entire pre-submitted library,
+retrying a hung job, or weakening the separate non-interference requirement.
+The isolated integration evidence belongs to ticket 0675; the system contract
+is reflected in SPEC.md's R22 design paragraph.

@@ -1,0 +1,34 @@
+%erg 0.1
+Title: Run isolated SDT diagnostic plugin and audit giant-document risks
+Created: 2026-09-05
+Author: codex
+Closed: Diagnostic and audit delivered; remaining production resource and non-interference gates are named in the reports.
+
+--- log ---
+2026-09-05T19:33Z codex created
+
+2026-09-05T19:45Z Isolated Zotero 10.0.1 integration passed; native disable-in-flight behavior demonstrated and ratified by author as graceful stopping. Palgrave source audit and bounded pack/reference probes delivered. No production extraction or installation.
+2026-09-05T19:45Z Minh Ha-Duong closed — Diagnostic and audit delivered; remaining production resource and non-interference gates are named in the reports.
+--- body ---
+## Scope
+
+Run the isolated diagnostic plugin authorized by the author and audit Palgrave
+large-document failure risks. No production library sweep or Palgrave extraction.
+
+## Evidence
+
+- Integration: `verification/SDT-DIAGNOSTIC-LIVE.md`.
+- Palgrave audit: `verification/SDT-PALGRAVE-AUDIT.md`.
+- Raw results: `bench/results/sdt-diagnostic-2026-09-05/`.
+- Driver: `verification/probes/run_sdt_diagnostic.py`.
+- Diagnostic/harness addons: `verification/probes/sdt-diagnostic-plugin/` and
+  `verification/probes/sdt-diagnostic-harness/`.
+- Bounded source probes: `verification/probes/sdt_pack_roundtrip.mjs` and
+  `verification/probes/sdt_reference_membership.mjs`.
+
+## Exit criteria
+
+- [x] Execute real native generation and passive inspection in an isolated profile.
+- [x] Exercise stale/corrupt sources, failure suppression, and actual addon lifecycle.
+- [x] Audit string/pack limits, memory lifetime and long-document algorithmic risks.
+- [x] Record verified results separately from remaining production gates.
