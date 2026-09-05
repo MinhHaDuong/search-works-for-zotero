@@ -1,0 +1,6 @@
+{
+  "version": "2.1.1",
+  "change": "Global finish estimate imputes uncovariated documents from observed duration quantiles instead of hiding the estimate",
+  "example": {"rateDocumentsPerHour": 2099, "remainingDocuments": 13592},
+  "artifact": "/home/haduong/sdt-pack-sitter-2.1.1.xpi"
+}
