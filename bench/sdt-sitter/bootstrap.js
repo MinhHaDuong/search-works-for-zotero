@@ -187,6 +187,7 @@ async function initialize(rootURI, token) {
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   if (token !== generation) return;
   const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
+  const errorPath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-errors.jsonl');
   await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
   const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
   try {
@@ -231,7 +232,10 @@ async function initialize(rootURI, token) {
     const hash = await item.attachmentHash;
     const directory = Zotero.Attachments.getStorageDirectory(item).path;
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
+    const parent = item.parentItemID ? await Zotero.Items.getAsync(item.parentItemID) : null;
     const result = { status: 'missing-pack', directory,
+      title: item.getField('title') || sourcePath.split(/[\\/]/).pop(),
+      parentTitle: parent?.getField('title') || null,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
     result.cacheKey = `${item.libraryID}/${item.key}`;
     seen.add(result.cacheKey);
@@ -300,6 +304,21 @@ async function initialize(rootURI, token) {
     censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
     observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
+    describeError: (info, error) => {
+      const parent = info.parentTitle ? ` — élément : « ${info.parentTitle} »` : '';
+      return `Échec de « ${info.title || 'pièce jointe inconnue'} »${parent} : ${String(error)}`;
+    },
+    reportError: async (info, error) => {
+      const line = JSON.stringify({
+        at: new Date().toISOString(), attachment: info.title || null,
+        parent: info.parentTitle || null, identity: info.identity || null, error: String(error),
+      }) + '\n';
+      try {
+        await IOUtils.write(errorPath, new TextEncoder().encode(line), { mode: 'append' });
+      } catch (writeError) {
+        if (alive) sitter.state.error = `${sitter.state.error} (journal non enregistré : ${writeError})`;
+      }
+    },
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
   });
