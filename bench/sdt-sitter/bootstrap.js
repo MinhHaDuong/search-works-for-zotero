@@ -34,6 +34,11 @@ function render() {
       const minutes = Math.max(1, Math.round(ms / 60000));
       return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
     };
+    const formatDocumentDuration = ms => {
+      const seconds = Math.max(0, Math.round(ms / 1000));
+      if (seconds < 60) return `${seconds} s`;
+      return `${Math.floor(seconds / 60)} min ${String(seconds % 60).padStart(2, '0')} s`;
+    };
     const format = prediction => prediction ?
       `Durée estimée : ${formatDuration(prediction.median)} (entre ${formatDuration(prediction.low)} et ${formatDuration(prediction.high)})` : '';
     const activePrediction = s.active === null ? null : estimateSDTDuration(s.fittedSamples, s.activeInfo);
@@ -63,11 +68,12 @@ function render() {
     else globalProgress.removeAttribute('value');
     status.textContent = coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total}` : `Packs à jour : ${coverage.current}`;
     const documentMessage = s.active === null ? 'Aucun document en cours' :
-      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDuration(elapsed * 1000)} écoulées`;
+      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDocumentDuration(elapsed * 1000)} écoulées`;
     const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
       ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
     doc.getElementById('sdt-document-status').textContent = [documentMessage, quietMessage].filter(Boolean).join('\n');
-    doc.getElementById('sdt-document-estimate').textContent = format(activePrediction);
+    doc.getElementById('sdt-document-estimate').textContent = activePrediction
+      ? `Durée estimée : ${formatDocumentDuration(activePrediction.median)} (entre ${formatDocumentDuration(activePrediction.low)} et ${formatDocumentDuration(activePrediction.high)})` : '';
     const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
       ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
     doc.getElementById('sdt-global-estimate').textContent = globalEstimate;

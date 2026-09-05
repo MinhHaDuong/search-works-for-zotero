@@ -1,0 +1,5 @@
+{
+  "version": "2.1.3",
+  "change": "Active document elapsed and estimated durations use seconds, then minutes and seconds",
+  "globalFinishClock": "unchanged"
+}
