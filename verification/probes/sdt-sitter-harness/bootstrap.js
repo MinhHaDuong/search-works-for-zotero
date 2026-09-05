@@ -62,7 +62,9 @@ async function run() {
     for (const item of [pdf, epub, anotherPDF]) assert((await api.inspect(item.id)).status === 'current', 'pack not current');
     report.tests.push({ name: 'confirmed automatic sweep produces native PDF and EPUB packs', result: 'pass' });
     const button = Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button');
-    assert(button, 'toolbar absent'); button.doCommand();
+    assert(button, 'toolbar absent');
+    assert(button.getBoundingClientRect().width >= 80, 'toolbar label constrained to icon width');
+    button.doCommand();
     await sleep(1000);
     const windows = Services.ww.getWindowEnumerator(); let dialog;
     while (windows.hasMoreElements()) {
@@ -70,6 +72,11 @@ async function run() {
       if (window.document?.getElementById('sdt-status')) dialog = window;
     }
     assert(dialog?.document.getElementById('sdt-fulltext')?.textContent.includes('indexed'), 'native statistics absent');
+    const surface = dialog.getComputedStyle(dialog.document.documentElement).backgroundColor;
+    assert(surface === 'rgb(245, 245, 245)', `dialog surface is not opaque: ${surface}`);
+    assert(dialog.getComputedStyle(dialog.document.getElementById('sdt-status')).whiteSpace === 'pre-wrap', 'status lines do not wrap');
+    report.tests.push({ name: 'toolbar has text width and dialog has opaque wrapping surface', result: 'pass',
+      buttonWidth: button.getBoundingClientRect().width, surface });
     report.tests.push({ name: 'toolbar opens status with native fulltext statistics', result: 'pass' });
     await addon.disable();
     assert(!Zotero.SDTPackSitter && !Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button'), 'disable left API or toolbar');
