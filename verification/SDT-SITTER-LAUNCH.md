@@ -18,12 +18,28 @@ a prediction for exceptional books: document sizes and global citation costs
 are heterogeneous. Missing local files, unsupported attachments and unsupported
 pack versions are reported rather than silently treated as covered.
 
-The session estimator follows the cadence and quantiles owned by SPEC.md's
+The empirical estimator follows the cadence and quantiles owned by SPEC.md's
 R22 design paragraph. It uses observed duration per page when available,
-otherwise per byte, for the active document and for total remaining scenarios.
+otherwise per byte, for the active document and for completion date/time scenarios.
 It does not infer calibrated predictive coverage from a small sample. An active
 job exceeding the empirical upper quantile is not declared failed; this simple
-model does not extrapolate an unobserved tail or repair its own selection bias.
+model reports the finish estimate as unavailable rather than completion now.
+It does not extrapolate an unobserved tail or repair its own selection bias.
+
+The disposable `sdt-sitter-cache.jsonl` in Zotero's data directory retains
+verified census hints and the latest successful duration observation per
+attachment. It contains no text, source paths, active tasks or failure ledger.
+Native source hashes, processor versions and pack filesystem fingerprints
+gate reuse. Missing/corrupt records fall back to inspection. The first completed
+census compacts the cache; later writes append changed derived rows, avoiding
+a whole-library rewrite on every completion. Removing this file is safe while
+the extension is disabled; it will be rebuilt without deleting native packs.
+
+The cache/clock and grouped-progress build is covered by
+`bench/results/sdt-sitter-launch-2026-09-05/cache-and-progress.json`, including
+reactivation with restored observations and no repeated native extraction.
+`verification/SDT-SITTER-UI-PANEL.md` records the requested independent panel
+verdicts and the remaining accessibility/wording recommendations.
 
 Disable the extension to stop further admissions. The already submitted native
 job can finish and persist its pack. Re-enabling asks for confirmation again
