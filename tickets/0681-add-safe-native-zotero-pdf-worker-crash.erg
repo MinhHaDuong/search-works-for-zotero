@@ -1,0 +1,28 @@
+%erg 0.1
+Title: Add safe native Zotero PDF worker crash recovery
+Created: 2026-09-05
+Author: codex
+
+--- log ---
+2026-09-05T20:33Z codex created
+
+--- body ---
+## Scope
+
+Follow-up to the author's question whether the sitter can repair a failed
+worker. Track a native Zotero recovery mechanism, not a plugin monkey patch.
+`verification/SDT-PALGRAVE-AUDIT.md` identifies unresolved manager promises
+after worker errors. The overnight plugin must not restart the shared worker
+or submit another job while a native promise is unresolved.
+
+## Acceptance
+
+- Re-read native worker lifecycle and pending changes before implementation.
+- On a proven worker death, reject affected pending promises and release queue
+  processing consistently, then lazily create a replacement for future work.
+- Distinguish actual worker failure from long citation-stage progress silence.
+- Preserve other clients' lifecycle and define queued versus running outcomes.
+- Exercise crash, initialization failure, message errors, concurrent clients,
+  persistence failure and repeated worker death without infinite retries.
+- No automatic retry of a pathological document without a bounded policy.
+- Upstream filing requires separate explicit authorization.

@@ -6453,3 +6453,22 @@ requirement. It does not authorize draining an entire pre-submitted library,
 retrying a hung job, or weakening the separate non-interference requirement.
 The isolated integration evidence belongs to ticket 0675; the system contract
 is reflected in SPEC.md's R22 design paragraph.
+
+**2026-09-05 — RATIFIED: experimental overnight native SDT sitter.** The author
+requests a launchable plugin and assigns the quadratic membership correction
+to a separate Zotero patch ticket. The author accepts admission guards of
+4 GiB available RAM and 8 GiB available disk, and confirms overnight operation
+without competing native work. These are admission guards, not resource caps
+on an already submitted document. The shared native worker cannot be preempted
+or independently OS-niced by the plugin. The experimental launch must disclose
+that limitation; it does not establish general foreground non-interference.
+No truncation preference change is needed for native SDT. SPEC.md's R22 design
+paragraph owns the experimental guards; tickets 0679 and 0680 track delivery.
+
+**2026-09-05 — RATIFIED: session-only empirical SDT duration estimates.** The
+author asks for a distribution starting with three completed documents,
+refreshed every three completions, for both the active document and the total.
+Elapsed time remains visible. Size and page counts condition estimates where
+available. Empirical quantiles must not be presented as calibrated predictive
+coverage, and sums of marginal quantiles are scenarios, not joint quantiles.
+The experimental estimator parameters belong to SPEC.md's R22 design paragraph.
