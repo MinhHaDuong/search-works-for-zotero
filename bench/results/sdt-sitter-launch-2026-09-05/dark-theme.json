@@ -1,0 +1,100 @@
+{
+  "arena": "/home/haduong/CNRS/code/search-works-for-zotero/corpus-cache/sdt-diagnostic-lvrh1cmt",
+  "returncode": 0,
+  "deadlineReached": false,
+  "wallSeconds": 13.19227179698646,
+  "pluginSourceSHA256": {
+    "sdt-sitter/bootstrap.js": "47aad3a8f92fafc4f8f7c65b0cb970eb16581226fc2363018a90c012ad643377",
+    "sdt-sitter/manifest.json": "0aa14fe1285ef542841b0a5f99200967e7861038dcbfa445e4a58561df5a5e50",
+    "sdt-sitter/scheduler.js": "23bbd23a7352c7b52fbe953d4f8d1dfe500b1126671d1e62eb4adb9572bdd697",
+    "sdt-sitter-harness/bootstrap.js": "82f784c1b394f293da829d3537a528a4df2edc28794af1b9e7504dec4bd446b5",
+    "sdt-sitter-harness/manifest.json": "2a6569b7f95b8e6a5950a01734808bee1da5459a097cf20245d4e0f40d7912f3"
+  },
+  "network": "unshared",
+  "filesystem": "host read-only, arena writable",
+  "report": {
+    "tests": [
+      {
+        "name": "confirmed automatic sweep produces native PDF and EPUB packs",
+        "result": "pass"
+      },
+      {
+        "name": "toolbar has text width and dialog has opaque wrapping surface",
+        "result": "pass",
+        "buttonWidth": 80,
+        "surface": "rgb(44, 44, 44)",
+        "foreground": "rgb(247, 247, 247)",
+        "darkSystemTheme": true
+      },
+      {
+        "name": "toolbar opens status with native fulltext statistics",
+        "result": "pass"
+      },
+      {
+        "name": "disable removes UI and API",
+        "result": "pass"
+      }
+    ],
+    "version": "10.0.1",
+    "scope": "isolated unmodified production sitter, synthetic attachments",
+    "lastState": {
+      "enabled": false,
+      "phase": "waiting",
+      "active": null,
+      "progress": 100,
+      "lastProgressAt": 1788641547667,
+      "startedAt": 1788641547610,
+      "completed": 3,
+      "failed": 0,
+      "scanned": 3,
+      "total": 3,
+      "counts": {
+        "missing-pack": 0,
+        "current": 3
+      },
+      "serviceMS": 2902,
+      "samples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 2777
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 56
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 69
+        }
+      ],
+      "activeInfo": {
+        "sourceBytes": 590,
+        "pages": 1
+      },
+      "fittedSamples": [
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 2777
+        },
+        {
+          "sourceBytes": 1140,
+          "pages": null,
+          "milliseconds": 56
+        },
+        {
+          "sourceBytes": 590,
+          "pages": 1,
+          "milliseconds": 69
+        }
+      ],
+      "pending": [],
+      "error": null
+    },
+    "accepted": true,
+    "finished": "2026-09-05T20:52:28.738Z"
+  }
+}

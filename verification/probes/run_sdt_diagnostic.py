@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--application', type=Path, required=True)
     parser.add_argument('--deadline', type=float, default=240)
     parser.add_argument('--sitter', action='store_true', help='Test the production sitter with a private UI driver')
+    parser.add_argument('--dark', action='store_true', help='Emulate a dark system theme in the private profile')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
     arena_parent = repo / 'corpus-cache' if args.sitter else None
@@ -37,6 +38,8 @@ def main():
         'extensions.zotero.httpServer.enabled': False,
         'extensions.zotero.firstRun': False,
     }
+    if args.dark:
+        prefs['ui.systemUsesDarkTheme'] = 1
     (arena / 'profile/prefs.js').write_text('\n'.join(
         f'user_pref({json.dumps(key)}, {json.dumps(value)});' for key, value in prefs.items()
     ) + '\n')
@@ -65,6 +68,7 @@ def main():
     marker_name = 'sdt-sitter-smoke.json' if args.sitter else 'sdt-diagnostic.json'
     (arena / 'data' / marker_name).write_text(json.dumps({
         'allowDiagnostic': True, 'dataDir': str(arena / 'data'),
+        'expectDark': args.dark,
         'pdf': str(arena / 'fixtures/input.pdf'),
         'epub': str(arena / 'fixtures/input.epub'), 'output': str(output),
         'multipage': str(arena / 'fixtures/multipage.pdf'),

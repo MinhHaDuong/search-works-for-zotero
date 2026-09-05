@@ -67,8 +67,8 @@ function openDialog(window) {
     const body = doc.body || doc.documentElement;
     body.replaceChildren();
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
-    doc.documentElement.style.cssText = 'background: #f5f5f5; color: #202020; color-scheme: light; min-height: 100%;';
-    body.style.cssText = 'background: #f5f5f5; color: #202020; margin: 0; padding: 16px; box-sizing: border-box; min-height: 100vh; font: menu;';
+    doc.documentElement.style.cssText = 'background: Canvas; color: CanvasText; color-scheme: light dark; min-height: 100%;';
+    body.style.cssText = 'background: Canvas; color: CanvasText; margin: 0; padding: 16px; box-sizing: border-box; min-height: 100vh; font: menu;';
     for (const [tag, id] of [['pre', 'sdt-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-fulltext']]) {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
