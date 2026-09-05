@@ -1,0 +1,61 @@
+{
+  "workerSha256": "070610cc62ba6ff01feb059d12ecb155dc0b6a810f0dfd36074b2eaf21aee231",
+  "readerSha256": "340f44fea8d616eaac04b83ef6329eaad2753916b1d50342a8edc7a0b717bed4",
+  "metadata": {
+    "SDT_SCHEMA_VERSION": "1.1.0",
+    "SDT_PACK_VERSION": 1,
+    "SDT_PROCESSOR_VERSIONS": {
+      "pdf": 3,
+      "epub": 1,
+      "snapshot": 1
+    }
+  },
+  "runtime": "v22.23.1",
+  "scope": "Installed writer/reader in Node VM; synthetic structures; Node raw-DEFLATE hooks; not PDF extraction or Gecko heap-limit validation",
+  "cases": [
+    {
+      "fixture": "many-small-blocks",
+      "blocks": 10000,
+      "chunks": 173,
+      "packBytes": 202761,
+      "packSha256": "2c7304eb3f4d92fe5ced170580ef9ce8b587e75a7410eb1c16a4bef8e52b6b60",
+      "maximumJsonCodeUnits": 577808,
+      "maximumJsonUtf8Bytes": 577808,
+      "serializationCalls": 10002,
+      "warnings": [],
+      "checks": [
+        "destructive-release",
+        "no-whole-content-stringify",
+        "full-roundtrip",
+        "last-block",
+        "last-page",
+        "block-range"
+      ]
+    },
+    {
+      "fixture": "single-oversized-block",
+      "blocks": 1,
+      "chunks": 1,
+      "packBytes": 4832,
+      "packSha256": "2dd706e480afaafa7983b4172f73d3fa2c5037b10465f3ea96e899fac030fb63",
+      "maximumJsonCodeUnits": 1245286,
+      "maximumJsonUtf8Bytes": 1835110,
+      "serializationCalls": 3,
+      "warnings": [
+        "SDTPack: 1 oversized top-level blocks written as single-block chunks; largest 1.75 MiB"
+      ],
+      "checks": [
+        "destructive-release",
+        "no-whole-content-stringify",
+        "full-roundtrip",
+        "last-block",
+        "last-page",
+        "block-range"
+      ]
+    }
+  ],
+  "overflowChecks": [
+    "content-length-rejected-before-append",
+    "u32-overflow-rejected"
+  ]
+}

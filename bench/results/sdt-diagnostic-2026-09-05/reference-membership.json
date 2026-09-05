@@ -1,0 +1,21 @@
+{
+  "workerSha256": "070610cc62ba6ff01feb059d12ecb155dc0b6a810f0dfd36074b2eaf21aee231",
+  "scope": "Exact installed membership function, synthetic nonmatching runs; not an extraction benchmark",
+  "cases": [
+    {
+      "blocks": 100,
+      "runs": 100,
+      "comparisons": 10000
+    },
+    {
+      "blocks": 1000,
+      "runs": 100,
+      "comparisons": 100000
+    },
+    {
+      "blocks": 1000,
+      "runs": 1000,
+      "comparisons": 1000000
+    }
+  ]
+}

@@ -6343,3 +6343,13 @@ arena, entered at the target-process seam or around R10's target-driving inner
 subprocess. Existing ticket logs, decisions and measurement artifacts retain
 `tester` because they record what the account was called when those events and
 runs happened.
+
+**2026-09-05 — RATIFIED: disabling the native SDT sitter lets the submitted
+document finish.** The author: "C'est plutot bien qu'il finisse le travail en
+cours." Disabling the plugin stops further admissions and removes its UI and
+callbacks; the attachment already handed to Zotero may finish and persist its
+native pack. This is intended graceful stopping, not an immediate-cancellation
+requirement. It does not authorize draining an entire pre-submitted library,
+retrying a hung job, or weakening the separate non-interference requirement.
+The isolated integration evidence belongs to ticket 0675; the system contract
+is reflected in SPEC.md's R22 design paragraph.

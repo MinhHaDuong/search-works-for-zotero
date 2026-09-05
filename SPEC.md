@@ -2,7 +2,7 @@
 
 - **Status:** DRAFT
 - **Author:** Minh Ha-Duong (CNRS)
-- **Date:** 2026-09-03
+- **Date:** 2026-09-05
 
 ## 1. Introduction
 
@@ -2188,6 +2188,12 @@ not gate queries, the probe, deletions, or explicit verbs (`build` while
 paused asks). It survives restart by construction, and survives *sideline*
 by being carried into the fresh file. R1-versus-R22 resolves in the user's
 favor, disclosed: "paused since <date>".
+
+For a native SDT pack sitter, Zotero's plugin disable control stops further
+admissions and removes the sitter's UI and callbacks. The attachment already
+handed to Zotero may finish and persist its native pack; disabling does not
+cancel that work or authorize a queued library-wide drain. This graceful stop
+does not relax the separate obligation to avoid interfering with native work.
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a
