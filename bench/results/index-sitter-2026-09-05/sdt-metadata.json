@@ -1,0 +1,50 @@
+[
+  {
+    "key": "BSMCQ6BM",
+    "dateCreated": "2026-08-22T06:54:15.908Z",
+    "processor": {
+      "type": "pdf",
+      "version": 3
+    },
+    "source_hash": "bdc191f121f7f284c6fa500d400aedba",
+    "mtime_ns": 1787381659322967393,
+    "pages": 24,
+    "pack_sha256": "0d11f02124e84a0ecf8b2e23fcfc57820a4d6f9d79b1c7be86d7b9a2d20b7270"
+  },
+  {
+    "key": "GMAP993G",
+    "dateCreated": "2026-08-22T06:53:08.080Z",
+    "processor": {
+      "type": "pdf",
+      "version": 3
+    },
+    "source_hash": "f3c4fb6889fce7c5a30a1c3ea09a0078",
+    "mtime_ns": 1787381591019285582,
+    "pages": 26,
+    "pack_sha256": "23554a4db4cd60aece02fdff8ddecbb88fe2917cb1b99fbc10c791af25ab2446"
+  },
+  {
+    "key": "LGMFDEDM",
+    "dateCreated": "2026-09-03T09:17:41.120Z",
+    "processor": {
+      "type": "pdf",
+      "version": 3
+    },
+    "source_hash": "a1f1b47358a3a6d3cac5088b252d0a5f",
+    "mtime_ns": 1788427615262046945,
+    "pages": 2913,
+    "pack_sha256": "9376e11d31e1b83f52bda424d1b67025fa56f85c0b05f416c098740aac686485"
+  },
+  {
+    "key": "EBWH8FNB",
+    "dateCreated": "2026-09-03T09:17:17.450Z",
+    "processor": {
+      "type": "pdf",
+      "version": 3
+    },
+    "source_hash": "1cddba6a800caa5dcaf3baf64675aad1",
+    "mtime_ns": 1788427041761896096,
+    "pages": 28,
+    "pack_sha256": "4e3b0aaf4eb7d15b8247326aa9bd2a347acabd07220030e25b44ead2efcea747"
+  }
+]
