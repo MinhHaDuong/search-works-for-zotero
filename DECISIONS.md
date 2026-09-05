@@ -6372,3 +6372,12 @@ Elapsed time remains visible. Size and page counts condition estimates where
 available. Empirical quantiles must not be presented as calibrated predictive
 coverage, and sums of marginal quantiles are scenarios, not joint quantiles.
 The experimental estimator parameters belong to SPEC.md's R22 design paragraph.
+
+**2026-09-05 — RATIFIED: disposable persistent sitter cache and finish time.**
+The author: "Avec cache alors", accepting reconstructible census hints and
+duration observations across sessions, never a durable active-job or failure
+ledger. Native sources and packs remain authoritative. This supersedes the
+session-only restriction on observations, not graceful disable. The author
+also clarifies that the global estimate must say at what time work will finish,
+with date when needed, rather than only a duration. Empirical uncertainty and
+overrun must remain explicit.

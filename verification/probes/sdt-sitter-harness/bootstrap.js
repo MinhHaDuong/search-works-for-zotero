@@ -72,6 +72,12 @@ async function run() {
       if (window.document?.getElementById('sdt-status')) dialog = window;
     }
     assert(dialog?.document.getElementById('sdt-fulltext')?.textContent.includes('indexed'), 'native statistics absent');
+    const globalBar = dialog.document.getElementById('sdt-global-progress');
+    assert(globalBar?.closest('fieldset')?.id === 'sdt-global-section', 'global bar is not grouped');
+    assert(globalBar.value === api.state.counts.current && globalBar.max === api.state.total,
+      'global progress does not reflect verified pack coverage');
+    assert(dialog.document.getElementById('sdt-progress')?.closest('fieldset')?.id === 'sdt-document-section', 'document bar is not separately grouped');
+    report.tests.push({ name: 'global verified coverage and document progress have separate labelled groups', result: 'pass' });
     const surface = dialog.getComputedStyle(dialog.document.documentElement).backgroundColor;
     const foreground = dialog.getComputedStyle(dialog.document.documentElement).color;
     assert(surface.startsWith('rgb(') && surface !== foreground, `dialog surface or contrast invalid: ${surface}, ${foreground}`);
@@ -90,6 +96,15 @@ async function run() {
     assert(!Zotero.SDTPackSitter && !Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button'), 'disable left API or toolbar');
     assert(dialog.closed, 'disable left dialog');
     report.tests.push({ name: 'disable removes UI and API', result: 'pass' });
+    await addon.enable();
+    for (let i = 0; i < 600 && Zotero.SDTPackSitter?.state.scanned !== 3; i++) await sleep(100);
+    await sleep(500);
+    const restored = Zotero.SDTPackSitter;
+    assert(restored.state.samples.length === 3 && restored.state.completed === 0,
+      `observations did not survive reload: ${JSON.stringify(restored.state)}`);
+    assert((await restored.inspect(pdf.id)).cached === true, 'verified census metadata was not cached');
+    report.tests.push({ name: 'reload restores duration observations and reuses verified census cache without extraction', result: 'pass' });
+    await addon.disable();
   } catch (error) { report.fatal = String(error); report.stack = error.stack; }
   finally { clearInterval(promptPoll); Services.ww.unregisterNotification(observer); observer = null; }
   report.finished = new Date().toISOString(); await save();

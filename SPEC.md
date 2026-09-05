@@ -2206,15 +2206,25 @@ alone does not prove a hang. Failures are suppressed for the session by source
 and processor identity, without a private durable ledger.
 
 The experimental sitter collects successful document durations, byte sizes
-and available page counts in session memory. It begins empirical estimation
+and available page counts in a disposable persistent cache. It begins empirical estimation
 after 3 completions and refreshes the fitted distribution every 3 completions.
 For each pending document it uses duration per page when the document and at
 least 3 observations have page counts, otherwise duration per byte when usable.
 It displays empirical 5th, 50th and 95th percentiles, elapsed time and the
-estimated total remaining work. Summed marginal quantiles are labelled total
+estimated completion date and time for remaining work. Summed marginal quantiles are labelled total
 scenarios, not a calibrated joint interval. Missing covariates or insufficient
 observations leave the corresponding estimate unavailable. These empirical
 estimates do not assert reliable predictive coverage or bounded completion time.
+
+The sitter may cache verified pack metadata and successful duration observations
+across sessions. Reuse checks attachment identity, live source hash, processor
+versions and the pack's filesystem fingerprint. Source or processor changes
+invalidate observations; pack deletion or changed fingerprints force inspection.
+The cache is derived, not a work ledger: active jobs and failures are never
+persisted. Missing, corrupt or unwritable cache falls back to native inspection
+and fresh measurements. It contains no text, titles or source paths and keeps
+only the latest observation per attachment. An active document exceeding its
+empirical upper duration makes the displayed finish time unavailable, not now.
 
 **D3 — serve-stale.** The verified violation (`dropStaleVectors` →
 `clearVectors()` at open) dies. Vectors carry per-row embedder keys: on a

@@ -1,0 +1,20 @@
+%erg 0.1
+Title: Group sitter global and document progress with coverage bar
+Created: 2026-09-05
+Author: codex
+Closed: Grouped native document and global coverage bars verified in Zotero
+
+--- log ---
+2026-09-05T20:56Z codex created
+
+2026-09-05T21:05Z Minh Ha-Duong closed — Grouped native document and global coverage bars verified in Zotero
+--- body ---
+Add distinct global-library and active-document fieldsets, each with its own
+labelled progress bar. Global progress is verified current packs divided by
+supported non-trash attachments, retaining failures and missing sources in
+the denominator. During census the global bar is indeterminate. Native fulltext
+statistics remain separate and collapsible. Keep system theme colors.
+
+Code-level panel review is recorded in `verification/SDT-SITTER-UI-PANEL.md`.
+The source and real-Zotero integration tests live with ticket 0685's combined
+delivery; no UI accessibility certification is claimed.

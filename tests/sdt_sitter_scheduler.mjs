@@ -82,3 +82,25 @@ assert.equal(prediction.low, 2200); assert.equal(prediction.median, 4000); asser
 prediction = context.estimateSDTDuration(samples, { sourceBytes: 200 });
 assert.equal(prediction.median, 4000); assert.equal(prediction.basis, 'sourceBytes');
 assert.equal(context.estimateSDTDuration(samples, {}), null);
+
+const ui = {};
+vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
+let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
+  counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });
+assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);
+coverage = ui.getSDTCoverage({ total: 10, scanned: 4, phase: 'census', counts: { current: 4 } });
+assert.equal(coverage.known, false);
+
+const cache = context.createSDTCache(null, 'v');
+cache.remember('1/a', 'source-v', 'pack-stamp', { sourceBytes: 100, pages: 2 });
+cache.observe('1/a', 'source-v', { sourceBytes: 100, pages: 2, milliseconds: 500 });
+const restoredCache = context.createSDTCache(JSON.parse(JSON.stringify(cache.data())), 'v');
+assert.equal(restoredCache.samples().length, 1);
+assert(restoredCache.check('1/a', 'source-v', 'pack-stamp'));
+assert.equal(restoredCache.check('1/a', 'source-v', 'changed-pack'), null);
+assert.equal(restoredCache.check('1/a', 'changed-source', 'pack-stamp'), null);
+assert.equal(restoredCache.samples().length, 0);
+assert.equal(context.createSDTCache(cache.data(), 'new-version').samples().length, 0);
+assert.equal(context.createSDTCache({ records: { broken: true } }, 'v').samples().length, 0);
+assert.equal(cache.changes().length, 1); cache.saved(cache.changes()); assert.equal(cache.changes().length, 0);
+cache.prune(new Set()); assert.equal(cache.samples().length, 0);

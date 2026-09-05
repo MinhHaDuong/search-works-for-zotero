@@ -1,10 +1,17 @@
 /* Experimental native SDT warmer. No endpoints, private ledger, or worker patch. */
 var createSDTSitter;
 var estimateSDTDuration;
+var createSDTCache;
 let sitter, alive = false, timer, pulse, timers;
 const buttons = new Set(), dialogs = new Set();
 const BUTTON = 'sdt-pack-sitter-button';
 let generation = 0;
+
+function getSDTCoverage(state) {
+  return { known: state.scanned === state.total && state.phase !== 'ready',
+    current: state.counts.current || 0,
+    total: Math.max(0, state.total - (state.counts.excluded || 0) - (state.counts.unsupported || 0)) };
+}
 
 function render() {
   if (!alive || !sitter) return;
@@ -27,6 +34,9 @@ function render() {
       .map(ms => `${Math.round(ms / 1000).toLocaleString('fr-FR')} s`).join(' / ') : 'indisponible';
     const activePrediction = s.active === null ? null : estimateSDTDuration(s.fittedSamples, s.activeInfo);
     const total = { low: 0, median: 0, high: 0 };
+    const overrun = activePrediction && Date.now() - s.startedAt > activePrediction.high;
+    const finishAt = ms => new Date(Date.now() + ms).toLocaleString('fr-FR',
+      { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     let unknown = 0;
     for (const item of s.pending) {
       const prediction = estimateSDTDuration(s.fittedSamples, item);
@@ -34,17 +44,30 @@ function render() {
       const spent = item.id === s.active ? Date.now() - s.startedAt : 0;
       for (const key of ['low', 'median', 'high']) total[key] += Math.max(0, prediction[key] - spent);
     }
+    const coverage = getSDTCoverage(s);
+    const globalProgress = doc.getElementById('sdt-global-progress');
+    globalProgress.max = Math.max(1, coverage.total);
+    if (coverage.known) globalProgress.value = coverage.current;
+    else globalProgress.removeAttribute('value');
     status.textContent = [
       `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total} pièces jointes`,
+      coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total} documents pris en charge` : `Packs à jour déjà repérés : ${coverage.current} ; total en cours de recensement`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
       `Créés cette session : ${s.completed} ; échecs : ${s.failed}`,
+      'La barre mesure les packs à jour, pas le temps restant. Échecs et fichiers manquants ne sont pas comptés comme terminés.',
+    ].join('\n');
+    doc.getElementById('sdt-document-status').textContent = [
       s.active === null ? 'Aucun document en cours' : `Pièce jointe ${s.active} : ${s.progress ?? '?'} % ; ${elapsed} s ; dernier progrès il y a ${silence} s`,
       s.active === null ? '' : `Taille : ${s.activeInfo?.sourceBytes?.toLocaleString('fr-FR') ?? '?'} octets ; pages : ${s.activeInfo?.pages ?? '?'}`,
       'Un long silence peut correspondre à une résolution normale des citations.',
+    ].filter(Boolean).join('\n');
+    doc.getElementById('sdt-document-estimate').textContent = s.active === null ? '' :
+      `Durée totale du document, quantiles empiriques 5 / 50 / 95 % : ${format(activePrediction)}`;
+    doc.getElementById('sdt-global-estimate').textContent = [
       mean ? `Vitesse empirique : ${(3600000 / mean).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} documents/h de traitement` : 'Vitesse : en attente du premier pack',
-      `Durée totale du document actif, quantiles empiriques 5 / 50 / 95 % : ${format(activePrediction)}`,
+      overrun ? 'Heure de fin indéterminée : estimation dépassée, document toujours en cours.' :
       s.scanned === s.total && !unknown && s.fittedSamples.length >= 3
-        ? `Travail total restant, scénarios bas / médian / haut : ${format(total)} (hors attentes)`
+        ? `Fin estimée vers ${finishAt(total.median)} ; plage indicative ${finishAt(total.low)} – ${finishAt(total.high)} (hors attentes)`
         : `Estimation totale indisponible : ${unknown || remaining} documents sans estimation ou recensement incomplet`,
       `Distribution : ${s.fittedSamples.length} observations ; mise à jour tous les 3 documents. Normalisation par pages, sinon octets.`,
       'Quantiles empiriques non calibrés. Les scénarios totaux ne sont pas un intervalle prédictif conjoint. Un dépassement ne signifie pas une panne.',
@@ -52,6 +75,7 @@ function render() {
       'Désactiver dans les extensions arrête les admissions, pas le document en cours.',
     ].filter(Boolean).join('\n');
     const progress = doc.getElementById('sdt-progress');
+    progress.hidden = s.active === null;
     if (s.active !== null && Number.isFinite(s.progress)) progress.value = s.progress;
     else progress.removeAttribute('value');
   }
@@ -69,13 +93,34 @@ function openDialog(window) {
     // A bare chrome about:blank window does not inherit Zotero's opaque surface.
     doc.documentElement.style.cssText = 'background: Canvas; color: CanvasText; color-scheme: light dark; min-height: 100%;';
     body.style.cssText = 'background: Canvas; color: CanvasText; margin: 0; padding: 16px; box-sizing: border-box; min-height: 100vh; font: menu;';
-    for (const [tag, id] of [['pre', 'sdt-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-fulltext']]) {
+    const element = (tag, id) => {
       const node = doc.createElementNS('http://www.w3.org/1999/xhtml', tag);
       node.id = id;
       if (tag === 'progress') { node.max = 100; node.style.width = '100%'; }
       else node.style.cssText = 'white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5;';
-      body.append(node);
-    }
+      return node;
+    };
+    const section = (id, title, children) => {
+      const group = element('fieldset', id);
+      group.style.cssText = 'border: 1px solid GrayText; border-radius: 6px; padding: 12px; margin: 0 0 16px; min-width: 0;';
+      const legend = element('legend', `${id}-title`);
+      legend.textContent = title; legend.style.fontWeight = 'bold';
+      group.append(legend);
+      for (const [tag, childID] of children) {
+        const node = element(tag, childID);
+        if (tag === 'progress') node.setAttribute('aria-labelledby', legend.id);
+        group.append(node);
+      }
+      body.append(group);
+    };
+    section('sdt-global-section', 'Progression globale — bibliothèque', [
+      ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate']]);
+    section('sdt-document-section', 'Document en cours', [
+      ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
+    const details = element('details', 'sdt-index-details');
+    const summary = element('summary', 'sdt-index-title');
+    summary.textContent = 'Statistiques de l’index texte natif';
+    details.append(summary, element('pre', 'sdt-fulltext')); body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
@@ -127,6 +172,40 @@ async function initialize(rootURI, token) {
   const pako = win.require('pako');
   const versions = JSON.parse(await Zotero.File.getContentsFromURLAsync('resource://zotero/document-worker/metadata.json'));
   if (token !== generation) return;
+  const cachePath = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-cache.jsonl');
+  await Zotero.SDTPackSitterCacheWrite?.catch(() => {});
+  const raw = { format: 1, versions: JSON.stringify(versions), records: Object.create(null) };
+  try {
+    for (const line of (await IOUtils.readUTF8(cachePath)).split('\n')) {
+      try {
+        const row = JSON.parse(line);
+        if (row.versions !== raw.versions || typeof row.key !== 'string') continue;
+        if (row.record) raw.records[row.key] = row.record;
+        else delete raw.records[row.key];
+      } catch (error) { /* Ignore incomplete/corrupt cache rows. */ }
+    }
+  } catch (error) { /* Disposable cache. */ }
+  const cache = createSDTCache(raw, JSON.stringify(versions));
+  let seen = new Set();
+  let compact = true;
+  const saveCache = async () => {
+    const previous = Zotero.SDTPackSitterCacheWrite || Promise.resolve();
+    const write = previous.catch(() => {}).then(async () => {
+      if (!alive || token !== generation) return;
+      const changes = cache.changes(compact);
+      if (!compact && !changes.length) return;
+      const bytes = new TextEncoder().encode(changes.map(change => JSON.stringify({ versions: raw.versions, ...change })).join('\n') + '\n');
+      try {
+        // Compact once per activation; subsequent writes contain changed rows only.
+        await IOUtils.write(cachePath, bytes, compact ? { tmpPath: `${cachePath}.tmp` } : { mode: 'append' });
+        cache.saved(changes); compact = false;
+      }
+      catch (error) { if (alive) sitter.state.cacheWarning = `Cache non enregistré : ${error}`; }
+    });
+    Zotero.SDTPackSitterCacheWrite = write;
+    await write;
+  };
+  if (token !== generation) return;
 
   async function inspect(id) {
     const item = await Zotero.Items.getAsync(id);
@@ -140,12 +219,17 @@ async function initialize(rootURI, token) {
     const path = PathUtils.join(directory, '.zotero-sdt-cache');
     const result = { status: 'missing-pack', directory,
       identity: `${item.libraryID}/${item.key}/${hash}/${JSON.stringify(versions)}` };
+    result.cacheKey = `${item.libraryID}/${item.key}`;
+    seen.add(result.cacheKey);
     result.sourceBytes = (await IOUtils.stat(sourcePath)).size;
     result.pages = processor === 'pdf' ? await Zotero.DB.valueQueryAsync(
       'SELECT totalPages FROM fulltextItems WHERE itemID = ?', [id]) : null;
-    if (!(await IOUtils.exists(path))) return result;
+    if (!(await IOUtils.exists(path))) { cache.drop(result.cacheKey); return result; }
     try {
       const stat = await IOUtils.stat(path);
+      const fingerprint = JSON.stringify([stat.size, stat.lastModified]);
+      const cached = cache.check(result.cacheKey, result.identity, fingerprint);
+      if (cached) return { ...result, status: 'current', cached: true };
       const reader = await SDT.openStructuredDocumentTextPack({ byteLength: stat.size,
         read: async (offset, length) => {
           const bytes = await IOUtils.read(path, { offset, maxBytes: length });
@@ -158,6 +242,8 @@ async function initialize(rootURI, token) {
         ? 'unsupported-pack' : metadata.source?.hash !== hash ? 'stale-source'
           : metadata.processor?.type !== processor || metadata.processor?.version !== versions.SDT_PROCESSOR_VERSIONS[processor]
             ? 'stale-processor' : 'current';
+      if (result.status === 'current') cache.remember(result.cacheKey, result.identity, fingerprint, result);
+      else cache.drop(result.cacheKey);
     } catch (error) { result.status = 'invalid-pack'; }
     return result;
   }
@@ -196,7 +282,9 @@ async function initialize(rootURI, token) {
   }
 
   sitter = createSDTSitter({
-    list: () => Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'),
+    list: () => { seen = new Set(); return Zotero.DB.columnQueryAsync('SELECT itemID FROM itemAttachments ORDER BY itemID'); },
+    censusComplete: async () => { cache.prune(seen); await saveCache(); return cache.samples(); },
+    observed: async (info, sample) => { cache.observe(info.cacheKey, info.identity, sample); await saveCache(); },
     inspect, blocked, now: () => Date.now(), changed: render,
     yield: () => new Promise(resolve => timers.setTimeout(resolve, 0)),
     ensure: (id, onProgress) => Zotero.SDT.ensure(id, { isPriority: false, onProgress }),
@@ -211,7 +299,7 @@ async function initialize(rootURI, token) {
     'Le worker partagé ne peut être interrompu ni recevoir une priorité système indépendante. ' +
     'Un gros document peut retarder un travail natif arrivé ensuite. Les seuils ne plafonnent pas sa consommation.\n\n' +
     'Désactiver l’extension arrête les admissions ; le document en cours finit. ' +
-    'Les erreurs et statistiques de session ne sont pas conservées au redémarrage.');
+    'Les erreurs restent propres à la session. Un cache local jetable conserve les vérifications et durées ; il ne contient ni texte ni tâche active.');
   if (token !== generation) return;
   if (!launch) { sitter.state.phase = 'launch-declined; disable/re-enable to launch'; render(); return; }
   const sweep = async () => {
