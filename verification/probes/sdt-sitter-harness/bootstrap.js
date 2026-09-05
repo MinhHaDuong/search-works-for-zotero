@@ -63,6 +63,7 @@ async function run() {
     report.tests.push({ name: 'confirmed automatic sweep produces native PDF and EPUB packs', result: 'pass' });
     const button = Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button');
     assert(button, 'toolbar absent');
+    assert(button.getAttribute('label').includes('%'), 'toolbar does not show library coverage');
     assert(button.getBoundingClientRect().width >= 80, 'toolbar label constrained to icon width');
     button.doCommand();
     await sleep(1000);
