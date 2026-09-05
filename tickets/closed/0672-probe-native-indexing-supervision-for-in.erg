@@ -1,0 +1,27 @@
+%erg 0.1
+Title: Probe native indexing supervision for Index Sitter
+Created: 2026-09-05
+Author: codex
+Closed: Live native-indexing probe complete; evidence and reproduction in verification/INDEX-SITTER-LIVE.md
+
+--- log ---
+2026-09-05T18:50Z codex created
+
+2026-09-05T19:00Z codex note Completed authorized native reindex probes and read real SDT provenance. Report: verification/INDEX-SITTER-LIVE.md; raw traces and derived summary: bench/results/index-sitter-2026-09-05/. Healthy long extraction delayed the short control; status polling also encountered a transient failure near cache replacement. No cancellation, restart, source edit or preference change.
+2026-09-05T19:00Z Minh Ha-Duong closed — Live native-indexing probe complete; evidence and reproduction in verification/INDEX-SITTER-LIVE.md
+--- body ---
+
+## Question
+
+Can a stateless Index Sitter supervise Zotero's native extraction and indexing,
+distinguish long-running work from a stall, and avoid blocking short jobs?
+Also verify extraction-date provenance in real structured-text caches.
+
+## Evidence
+
+Report: `verification/INDEX-SITTER-LIVE.md`.
+Raw observations: `bench/results/index-sitter-2026-09-05/`.
+Reproduction: `verification/probes/index_sitter_live.py`.
+
+This is a live probe, not implementation of the sitter or a change to the
+requirements. Source documents and global indexing preferences stay untouched.
