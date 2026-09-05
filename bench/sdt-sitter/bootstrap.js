@@ -18,6 +18,9 @@ function getSDTCoverage(state) {
 function render() {
   if (!alive || !sitter) return;
   const s = sitter.state;
+  const coverage = getSDTCoverage(s);
+  const coverageLabel = coverage.total > 0
+    ? ` ${Math.floor((coverage.current / coverage.total) * 100)} %` : '';
   for (const button of buttons) {
     const working = s.phase === 'census' || s.active !== null;
     const now = Date.now();
@@ -28,7 +31,7 @@ function render() {
     const spinning = s.active !== null;
     const blinking = !working && now < completionBlinkUntil;
     button.setAttribute('label', spinning
-      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT` : 'SDT');
+      ? `${['◐', '◓', '◑', '◒'][Math.floor(now / 140) % 4]} SDT${coverageLabel}` : `SDT${coverageLabel}`);
     const opacity = s.phase === 'census'
       ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 450))
       : blinking ? ((Math.floor(now / 180) % 2) ? 0.2 : 1) : 1;
@@ -76,7 +79,6 @@ function render() {
       total.median += unknown * quantile(0.5);
       total.high += unknown * quantile(0.95);
     }
-    const coverage = getSDTCoverage(s);
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
