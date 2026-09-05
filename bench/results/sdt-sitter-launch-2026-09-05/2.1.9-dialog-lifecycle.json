@@ -1,0 +1,4 @@
+{
+  "version": "2.1.9",
+  "change": "Re-click focuses and refreshes the existing status window without rebuilding its DOM"
+}

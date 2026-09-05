@@ -106,6 +106,14 @@ function render() {
 }
 
 function openDialog(window) {
+  for (const existing of dialogs) {
+    if (!existing.closed) {
+      existing.focus();
+      render();
+      return existing;
+    }
+    dialogs.delete(existing);
+  }
   const dialog = window.openDialog('about:blank', 'sdt-pack-sitter-status',
     'chrome,dialog=no,resizable,width=700,height=650');
   const populate = async () => {

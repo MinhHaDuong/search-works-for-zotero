@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "SDT Pack Sitter (experimental)",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "Warm native Zotero SDT packs, one attachment at a time, with session-only supervision.",
   "applications": { "zotero": {
     "id": "sdt-pack-sitter@search-works-for-zotero.invalid",

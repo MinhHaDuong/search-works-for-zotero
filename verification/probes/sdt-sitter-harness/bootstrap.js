@@ -92,6 +92,19 @@ async function run() {
       buttonWidth: button.getBoundingClientRect().width, surface, foreground,
       darkSystemTheme: dialog.matchMedia('(prefers-color-scheme: dark)').matches });
     report.tests.push({ name: 'toolbar opens status with native fulltext statistics', result: 'pass' });
+    const firstDialog = dialog;
+    button.doCommand();
+    await sleep(100);
+    let secondDialog;
+    const reopened = Services.ww.getWindowEnumerator();
+    while (reopened.hasMoreElements()) {
+      const window = reopened.getNext();
+      if (window.document?.getElementById('sdt-status')) secondDialog = window;
+    }
+    assert(secondDialog === firstDialog, 're-click created/replaced the status window');
+    assert(secondDialog.document.getElementById('sdt-fulltext')?.textContent.includes('indexed'),
+      're-click cleared the dialog contents');
+    report.tests.push({ name: 're-click preserves the existing dialog contents', result: 'pass' });
     await addon.disable();
     assert(!Zotero.SDTPackSitter && !Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button'), 'disable left API or toolbar');
     assert(dialog.closed, 'disable left dialog');
