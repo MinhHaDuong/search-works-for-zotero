@@ -1,0 +1,39 @@
+%erg 0.1
+Title: Patch Zotero SDT quadratic reference-block membership scan
+Created: 2026-09-05
+Author: codex
+
+--- log ---
+2026-09-05T20:27Z codex created
+
+2026-09-05T20:40Z codex note Created local Zotero document-worker patch ticket with exact-function operation-count evidence and semantic-equivalence acceptance criteria; no upstream filing.
+--- body ---
+## Scope
+
+Author requests a Zotero patch, not a Zoteus workaround. Target the
+document-worker reference index and `isReferenceBlock`, as shipped in Zotero
+10.0.1. This is a local implementation ticket; no upstream issue or PR has
+been sent.
+
+For B eligible blocks and R bibliography runs, the current membership query
+scans the runs before consulting a Set: worst-case O(B × R). Build a Set of
+run root references once with the reference index, then test membership with
+the same equality semantics. Preserve the existing nested reference-block Set
+fallback. Expected work becomes O(R + B), with O(R) additional index space.
+Do not silently replace citation selection or change extraction semantics.
+
+## Evidence and acceptance
+
+- Source audit: `verification/SDT-PALGRAVE-AUDIT.md`.
+- Exact-function counter probe:
+  `verification/probes/sdt_reference_membership.mjs` and
+  `bench/results/sdt-diagnostic-2026-09-05/reference-membership.json`.
+- Phase measurements: `verification/SDT-PALGRAVE-PHASES.md`. The scan is
+  demonstrated, but its share of total citation time is not isolated.
+- Re-read current document-worker source and open changes before patching.
+- Differential tests cover matching/nonmatching roots, nested references,
+  malformed references, empty indexes and index construction/mutation.
+- Count operations while independently scaling blocks and bibliography runs.
+- Compare native decoded packs on identical fixtures, excluding creation date.
+- Measure citation-stage time without promising a whole-pipeline linear bound.
+- Any upstream filing follows `GOVERNANCE.md` and explicit authorization.

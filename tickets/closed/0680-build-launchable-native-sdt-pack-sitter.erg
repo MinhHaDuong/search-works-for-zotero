@@ -1,0 +1,45 @@
+%erg 0.1
+Title: Build launchable native SDT pack sitter for Zotero 10
+Created: 2026-09-05
+Author: codex
+Closed: Experimental native sitter built and real-Zotero smoke passed; XPI delivered to author home without profile installation
+
+--- log ---
+2026-09-05T20:27Z codex created
+
+2026-09-05T20:40Z codex note Production extension and asynchronous scheduler written. Unit tests pass; isolated real-Zotero UI and extraction validation in progress. Approved overnight resource guards recorded in DECISIONS.md and SPEC.md.
+2026-09-05T20:45Z codex note Isolated Zotero smoke passed on exact production sources: confirmed automatic PDF/EPUB generation, empirical distribution refresh, toolbar statistics and disable cleanup. Evidence: bench/results/sdt-sitter-launch-2026-09-05/integration.json.
+2026-09-05T20:45Z Minh Ha-Duong closed — Experimental native sitter built and real-Zotero smoke passed; XPI delivered to author home without profile installation
+--- body ---
+## Scope
+
+Build an experimental Zotero 10 extension that warms native SDT packs through
+`Zotero.SDT.ensure`, with a toolbar status dialog and no private durable ledger.
+The author wants a launchable build tonight. It does not patch Zotero's worker,
+replace source PDFs, or change native flat-text indexing preferences.
+
+Use the previously tested native contract and passive pack inspection from
+`verification/SDT-DIAGNOSTIC-LIVE.md` and
+`verification/SDT-PLUGIN-PREREQUISITES.md`. Graceful disable is owned by
+SPEC.md R22. Resource policy awaits the author's confirmation in this session.
+
+## Acceptance
+
+- One outstanding admission, non-priority native ensure, yield between items.
+- Reconstruct coverage from native cache metadata; suppress failures for the
+  session, without retrying unresolved native work.
+- Disable removes timers/UI and prevents further admissions; submitted work
+  may finish without updating detached UI.
+- Explicitly disclose shared-worker non-preemption and absent OS nice control.
+- Show coverage, failures, active item, native progress, last progress age,
+  empirical speed/ETA and native full-text statistics.
+- Unit tests and isolated real-Zotero smoke test before providing the XPI.
+- No automatic installation into the author's live profile by the test harness.
+
+## Delivery evidence
+
+`verification/SDT-SITTER-LAUNCH.md` documents installation, limits and reproduction.
+`bench/results/sdt-sitter-launch-2026-09-05/integration.json` records the passing
+isolated native application run and exact source digests. The extension is in
+`bench/sdt-sitter/`, the packager in `bench/build_sdt_sitter.py`, and deterministic
+scheduler/estimator tests in `tests/sdt_sitter_scheduler.mjs`.

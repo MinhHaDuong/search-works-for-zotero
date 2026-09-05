@@ -22,9 +22,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--application', type=Path, required=True)
     parser.add_argument('--deadline', type=float, default=240)
+    parser.add_argument('--sitter', action='store_true', help='Test the production sitter with a private UI driver')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
-    arena = Path(tempfile.mkdtemp(prefix='sdt-diagnostic-'))
+    arena_parent = repo / 'corpus-cache' if args.sitter else None
+    if arena_parent:
+        arena_parent.mkdir(exist_ok=True)
+    arena = Path(tempfile.mkdtemp(prefix='sdt-diagnostic-', dir=arena_parent))
     for name in ('profile/extensions', 'data', 'fixtures', 'runtime', 'cache', 'config'):
         (arena / name).mkdir(parents=True, exist_ok=True)
     (arena / 'runtime').chmod(0o700)
@@ -37,8 +41,12 @@ def main():
         f'user_pref({json.dumps(key)}, {json.dumps(value)});' for key, value in prefs.items()
     ) + '\n')
     source_digests = {}
-    for name in ('sdt-diagnostic-plugin', 'sdt-diagnostic-harness'):
-        folder = repo / 'verification/probes' / name
+    folders = [repo / 'verification/probes' / name
+               for name in ('sdt-diagnostic-plugin', 'sdt-diagnostic-harness')]
+    if args.sitter:
+        folders = [repo / 'bench/sdt-sitter', repo / 'verification/probes/sdt-sitter-harness']
+    for folder in folders:
+        name = folder.name
         manifest = json.loads((folder / 'manifest.json').read_text())
         addon_id = manifest['applications']['zotero']['id']
         with zipfile.ZipFile(arena / 'profile/extensions' / f'{addon_id}.xpi', 'x',
@@ -54,7 +62,8 @@ def main():
     subprocess.run(['pdfunite', *([str(arena / 'fixtures/input.pdf')] * 128),
                     str(arena / 'fixtures/multipage.pdf')], check=True, capture_output=True)
     output = arena / 'integration.json'
-    (arena / 'data/sdt-diagnostic.json').write_text(json.dumps({
+    marker_name = 'sdt-sitter-smoke.json' if args.sitter else 'sdt-diagnostic.json'
+    (arena / 'data' / marker_name).write_text(json.dumps({
         'allowDiagnostic': True, 'dataDir': str(arena / 'data'),
         'pdf': str(arena / 'fixtures/input.pdf'),
         'epub': str(arena / 'fixtures/input.epub'), 'output': str(output),

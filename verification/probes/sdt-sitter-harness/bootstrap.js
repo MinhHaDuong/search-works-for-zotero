@@ -1,0 +1,85 @@
+/* Test driver only: admits synthetic attachments in a marked private profile. */
+let observer;
+function startup() {
+  const { setTimeout } = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
+  setTimeout(() => run().catch(error => Zotero.logError(error)), 0);
+}
+async function run() {
+  await Zotero.initializationPromise;
+  const path = PathUtils.join(Zotero.DataDirectory.dir, 'sdt-sitter-smoke.json');
+  if (!(await IOUtils.exists(path))) return;
+  const config = await IOUtils.readJSON(path);
+  if (config.dataDir !== Zotero.DataDirectory.dir || !config.allowDiagnostic) return;
+  const { setTimeout, setInterval, clearInterval } = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const report = { tests: [], version: Zotero.version, scope: 'isolated unmodified production sitter, synthetic attachments' };
+  const save = () => IOUtils.writeJSON(config.output, report, { tmpPath: `${config.output}.tmp` });
+  const assert = (ok, message) => { if (!ok) throw new Error(message); };
+  let accepted = false;
+  const acceptWindow = window => {
+    const title = window.args?.title || window.document?.documentElement?.getAttribute('headertitle') || window.document?.title || '';
+    if (!title.includes('SDT Pack Sitter')) return;
+    const dialog = window.document.querySelector('dialog');
+    if (dialog?.getButton('accept')) { accepted = true; dialog.getButton('accept').click(); }
+  };
+  const acceptExisting = () => {
+    const windows = Services.ww.getWindowEnumerator();
+    while (windows.hasMoreElements()) acceptWindow(windows.getNext());
+  };
+  observer = {
+    observe(window) {
+      window.addEventListener('load', () => setTimeout(() => acceptWindow(window), 0), { once: true });
+    },
+  };
+  Services.ww.registerNotification(observer);
+  let ticks = 0;
+  const promptPoll = setInterval(() => {
+    acceptExisting();
+    if (++ticks % 10 === 0) {
+      report.lastState = Zotero.SDTPackSitter?.state || null;
+      report.accepted = accepted;
+      save().catch(error => Zotero.logError(error));
+    }
+  }, 100);
+  // An enable after fixture creation provides deterministic addon startup order.
+  const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+  try {
+    const addon = await AddonManager.getAddonByID('sdt-pack-sitter@search-works-for-zotero.invalid');
+    for (let i = 0; i < 600 && !accepted; i++) { acceptExisting(); await sleep(100); }
+    assert(accepted, 'initial launch dialog was not observed');
+    await addon.disable();
+    const pdf = await Zotero.Attachments.importFromFile({ file: config.pdf });
+    const epub = await Zotero.Attachments.importFromFile({ file: config.epub });
+    const anotherPDF = await Zotero.Attachments.importFromFile({ file: config.pdf });
+    await Zotero.uiReadyPromise;
+    await addon.enable();
+    for (let i = 0; i < 1200 && Zotero.SDTPackSitter?.state.completed !== 3; i++) { acceptExisting(); await sleep(100); }
+    const api = Zotero.SDTPackSitter;
+    assert(api, 'sitter API absent');
+    assert(accepted, 'launch confirmation not accepted through UI');
+    assert(api.state.completed === 3, JSON.stringify(api.state));
+    assert(api.state.fittedSamples.length === 3, 'empirical fit was not refreshed');
+    for (const item of [pdf, epub, anotherPDF]) assert((await api.inspect(item.id)).status === 'current', 'pack not current');
+    report.tests.push({ name: 'confirmed automatic sweep produces native PDF and EPUB packs', result: 'pass' });
+    const button = Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button');
+    assert(button, 'toolbar absent'); button.doCommand();
+    await sleep(1000);
+    const windows = Services.ww.getWindowEnumerator(); let dialog;
+    while (windows.hasMoreElements()) {
+      const window = windows.getNext();
+      if (window.document?.getElementById('sdt-status')) dialog = window;
+    }
+    assert(dialog?.document.getElementById('sdt-fulltext')?.textContent.includes('indexed'), 'native statistics absent');
+    report.tests.push({ name: 'toolbar opens status with native fulltext statistics', result: 'pass' });
+    await addon.disable();
+    assert(!Zotero.SDTPackSitter && !Zotero.getMainWindow().document.getElementById('sdt-pack-sitter-button'), 'disable left API or toolbar');
+    assert(dialog.closed, 'disable left dialog');
+    report.tests.push({ name: 'disable removes UI and API', result: 'pass' });
+  } catch (error) { report.fatal = String(error); report.stack = error.stack; }
+  finally { clearInterval(promptPoll); Services.ww.unregisterNotification(observer); observer = null; }
+  report.finished = new Date().toISOString(); await save();
+  Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit);
+}
+function shutdown() { if (observer) Services.ww.unregisterNotification(observer); }
+function install() {}
+function uninstall() {}
