@@ -68,7 +68,9 @@ var createSDTSitter = function (host) {
             state.counts[status]--; state.counts.current = (state.counts.current || 0) + 1;
           } catch (error) {
             if (!state.enabled) break;
-            failed.add(before.identity); state.failed++; state.error = String(error);
+            failed.add(before.identity); state.failed++;
+            state.error = host.describeError ? host.describeError(before, error) : String(error);
+            if (host.reportError) await host.reportError(before, error);
             state.counts[status]--; state.counts['failed-session'] = (state.counts['failed-session'] || 0) + 1;
           } finally {
             state.active = null;
