@@ -1,0 +1,207 @@
+{
+  "scope": "cold isolated native SDT; cgroup memory includes process tree and charged cache",
+  "runs": [
+    {
+      "key": "AXE7G67C",
+      "pageCount": 256,
+      "control": false,
+      "inputSHA256": "dc0ea5e27cd2444548afa3b6d7c87a2fa8d4251abdcef0f1eef1b096a8f345fc",
+      "ok": true,
+      "stopReason": null,
+      "sourceUnchanged": true,
+      "limits": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/sdt-phase-m17_9xpx.scope",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0"
+      },
+      "ensureSeconds": 21.073,
+      "phaseSeconds": {
+        "pages": 16.548,
+        "structureIndex": 0.012,
+        "annotationLinks": 0.19,
+        "parsedLinks": 0.363,
+        "candidateLists": 0.142,
+        "candidateIndex": 0.05,
+        "supportedLists": 0.284,
+        "referenceIndex": 0.019,
+        "citations": 0.772,
+        "figures": 0.002,
+        "math": 0.002,
+        "figureMathCandidates": 0.315,
+        "applyRefs": 0.533,
+        "outline": 0.03,
+        "cleanup": 0.011,
+        "pack": 0.775,
+        "globalAfterPages": 2.806
+      },
+      "maximumProgressGapSeconds": 2.807,
+      "scopePeakBytes": 771252224,
+      "minimumHostAvailableBytes": 9819082752,
+      "referenceRuns": 83,
+      "pack": {
+        "status": "current",
+        "bytes": 1105065,
+        "hash": "d5fce60d311877ebc2f5a50bfd883351",
+        "metadata": {
+          "processor": {
+            "type": "pdf",
+            "version": 3
+          },
+          "dateCreated": "2026-09-05T19:56:37.426Z",
+          "source": {
+            "contentType": "application/pdf",
+            "hash": "91bb62a0316f56ae7d2f433121aa8d99",
+            "properties": {
+              "PDFFormatVersion": "1.7"
+            }
+          }
+        },
+        "pages": 256,
+        "blocks": 2309,
+        "degradedPages": 0,
+        "lastBlockReadable": true,
+        "lastBlockPageRects": [
+          [
+            255,
+            18,
+            4.69,
+            577.74,
+            12.61
+          ]
+        ]
+      },
+      "packSHA256IgnoringCreationDate": "2ef88ea7e60a488ace4c73803a54c64be23af7208f412febcaa5cafe34133162"
+    },
+    {
+      "key": "AXE7G67C",
+      "pageCount": 1024,
+      "control": false,
+      "inputSHA256": "b2e174eb4fcaa9414340dc3106483143455b8b79ed15efaa9c396e362c6ce63f",
+      "ok": true,
+      "stopReason": null,
+      "sourceUnchanged": true,
+      "limits": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/sdt-phase-_2yjy68p.scope",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0"
+      },
+      "ensureSeconds": 130.987,
+      "phaseSeconds": {
+        "pages": 58.105,
+        "structureIndex": 0.027,
+        "annotationLinks": 0.664,
+        "parsedLinks": 1.523,
+        "candidateLists": 0.551,
+        "candidateIndex": 0.169,
+        "supportedLists": 1.371,
+        "referenceIndex": 0.097,
+        "citations": 44.532,
+        "figures": 0.022,
+        "math": 0.016,
+        "figureMathCandidates": 5.552,
+        "applyRefs": 11.04,
+        "outline": 0.103,
+        "cleanup": 0.043,
+        "pack": 5.897,
+        "globalAfterPages": 66.027
+      },
+      "maximumProgressGapSeconds": 66.046,
+      "scopePeakBytes": 1209962496,
+      "minimumHostAvailableBytes": 9153617920,
+      "referenceRuns": 323,
+      "pack": {
+        "status": "current",
+        "bytes": 4644634,
+        "hash": "a8b2f5fc877935a2ab2935d7d27d893f",
+        "metadata": {
+          "processor": {
+            "type": "pdf",
+            "version": 3
+          },
+          "dateCreated": "2026-09-05T19:57:43.422Z",
+          "source": {
+            "contentType": "application/pdf",
+            "hash": "953a81870ebf5401c46aed5a24796e1e",
+            "properties": {
+              "PDFFormatVersion": "1.7"
+            }
+          }
+        },
+        "pages": 1024,
+        "blocks": 9171,
+        "degradedPages": 0,
+        "lastBlockReadable": true,
+        "lastBlockPageRects": [
+          [
+            1023,
+            18,
+            4.69,
+            575.77,
+            12.61
+          ]
+        ]
+      },
+      "packSHA256IgnoringCreationDate": "d3c6c7c2aa0ff1d983fc11310517101c6f677ad4f70bcb0d1969330dfa8b97c9"
+    },
+    {
+      "key": "AXE7G67C",
+      "pageCount": 256,
+      "control": true,
+      "inputSHA256": "dc0ea5e27cd2444548afa3b6d7c87a2fa8d4251abdcef0f1eef1b096a8f345fc",
+      "ok": true,
+      "stopReason": null,
+      "sourceUnchanged": true,
+      "limits": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/sdt-phase-983xoac9.scope",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0"
+      },
+      "ensureSeconds": 20.983,
+      "phaseSeconds": {},
+      "maximumProgressGapSeconds": 2.747,
+      "scopePeakBytes": 750555136,
+      "minimumHostAvailableBytes": 9628868608,
+      "referenceRuns": null,
+      "pack": {
+        "status": "current",
+        "bytes": 1105064,
+        "hash": "3219a88d37e1606a9f6b0fc636680e1b",
+        "metadata": {
+          "processor": {
+            "type": "pdf",
+            "version": 3
+          },
+          "dateCreated": "2026-09-05T20:00:56.991Z",
+          "source": {
+            "contentType": "application/pdf",
+            "hash": "91bb62a0316f56ae7d2f433121aa8d99",
+            "properties": {
+              "PDFFormatVersion": "1.7"
+            }
+          }
+        },
+        "pages": 256,
+        "blocks": 2309,
+        "degradedPages": 0,
+        "lastBlockReadable": true,
+        "lastBlockPageRects": [
+          [
+            255,
+            18,
+            4.69,
+            577.74,
+            12.61
+          ]
+        ]
+      },
+      "packSHA256IgnoringCreationDate": "2ef88ea7e60a488ace4c73803a54c64be23af7208f412febcaa5cafe34133162"
+    }
+  ],
+  "controls": [
+    {
+      "pageCount": 256,
+      "identicalInput": true,
+      "equalPackIgnoringCreationDate": true
+    }
+  ]
+}

@@ -1,0 +1,1002 @@
+{
+  "key": "AXE7G67C",
+  "pages": "1-256",
+  "pageCount": 256,
+  "provenance": {
+    "sourceSHA256": "939cfdb72570c2d3bf8f2e283daed09fb83621f23607607820c64cce236e0cc9",
+    "inputSHA256": "dc0ea5e27cd2444548afa3b6d7c87a2fa8d4251abdcef0f1eef1b096a8f345fc",
+    "workerOriginalSHA256": "070610cc62ba6ff01feb059d12ecb155dc0b6a810f0dfd36074b2eaf21aee231",
+    "workerInstrumentedSHA256": "321641fc37e75d521e98e8fbe37bb9c069e89522c1ff04abc7e04b638a0dbfc6",
+    "anchors": [
+      "async function getFullStructure(pdfDocument, onnxRuntimeProvider, modelProvider, options = {}) {\n\tconst pageCount = pdfDocument.numPages;",
+      "\t// Block transformations\n\twrapListItems(structure);",
+      "\tlet structureIndex = createStructureIndex(structure, options.structureIndex);",
+      "\tlet annotLinkRefs = getAnnotLinkRefs(structure, linkMap, structureIndex);",
+      "\tlet parsedLinkRefs = getParsedLinkRefs(structure, structureIndex);",
+      "\tlet candidateReferenceLists = getReferenceLists(structure, regularWordsSet);",
+      "\tlet candidateReferenceIndex = getReferenceIndex(candidateReferenceLists, regularWordsSet);",
+      "\tlet referenceLists = getSupportedReferenceLists(structure, candidateReferenceIndex, structureIndex);",
+      "\tlet referenceIndex = getReferenceIndex(referenceLists, regularWordsSet);",
+      "\tlet citationRefs = getCitationRefs(structure, referenceIndex, annotLinkRefs, structureIndex);",
+      "\tlet figures = getFigures(structure);",
+      "\tlet mathBlocks = getMathBlocks(structure);",
+      "\tgetFigureAndMathCandidates(structure, candidateGroups, figures, mathBlocks, structureIndex);",
+      "\tapplyRefs(structure, citationRefs);",
+      "\tlet outline = await getOutline(structure.content, referenceTitleRefs, pdfDocument);",
+      "\tcleanupBlockMetrics(structure);",
+      "\tensureBlockPageRects(structure);",
+      "\tonProgress(95);\n\tlet buffer = packStructuredDocumentText(structure, {",
+      "\tonProgress(100);\n\treturn { buf: buffer };"
+    ],
+    "pluginSourceSHA256": {
+      "sdt-diagnostic-plugin/bootstrap.js": "a73f9a4d735d0cbd6fa737c51309692f271a2c8bf63dcca258cc103eca8e6648",
+      "sdt-diagnostic-plugin/manifest.json": "5ca1fdabb0f9f1f3093ea3ea488f0853257857b96b675d80463334b1bc7849fd",
+      "sdt-phase-harness/bootstrap.js": "082c57c974bb99115e1484bfd9943acc06aa29f418b8cee66860b95dec636b0b",
+      "sdt-phase-harness/manifest.json": "cddd963828e394cc88c991ed55c5169a838e87b81d20552275d95e3598a710ba"
+    }
+  },
+  "limits": {
+    "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/sdt-phase-m17_9xpx.scope",
+    "MemoryMax": "4294967296",
+    "MemorySwapMax": "0"
+  },
+  "stopReason": null,
+  "returncode": 0,
+  "wallSeconds": 27.062559910991695,
+  "samples": [
+    {
+      "time": 1788638192.0747383,
+      "hostAvailableBytes": 10580086784,
+      "memory.current": 1716224,
+      "memory.peak": 1716224,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638193.0777624,
+      "hostAvailableBytes": 10480123904,
+      "memory.current": 57118720,
+      "memory.peak": 57118720,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638194.0805886,
+      "hostAvailableBytes": 10501939200,
+      "memory.current": 115957760,
+      "memory.peak": 115957760,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638195.0812633,
+      "hostAvailableBytes": 10431606784,
+      "memory.current": 198414336,
+      "memory.peak": 214306816,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638196.082907,
+      "hostAvailableBytes": 10346737664,
+      "memory.current": 250466304,
+      "memory.peak": 250466304,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638197.0847952,
+      "hostAvailableBytes": 10206478336,
+      "memory.current": 367788032,
+      "memory.peak": 368025600,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638198.085478,
+      "hostAvailableBytes": 10121068544,
+      "memory.current": 460668928,
+      "memory.peak": 462028800,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638199.0871785,
+      "hostAvailableBytes": 9969709056,
+      "memory.current": 616263680,
+      "memory.peak": 616427520,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638200.0881245,
+      "hostAvailableBytes": 10091323392,
+      "memory.current": 526077952,
+      "memory.peak": 620187648,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638201.0887883,
+      "hostAvailableBytes": 9967329280,
+      "memory.current": 644833280,
+      "memory.peak": 644833280,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638202.0894177,
+      "hostAvailableBytes": 9896497152,
+      "memory.current": 656912384,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638203.0903249,
+      "hostAvailableBytes": 10045132800,
+      "memory.current": 630861824,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638204.0912976,
+      "hostAvailableBytes": 9926107136,
+      "memory.current": 669474816,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638205.091979,
+      "hostAvailableBytes": 9902510080,
+      "memory.current": 687497216,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638206.0927687,
+      "hostAvailableBytes": 9880035328,
+      "memory.current": 698048512,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638207.0934658,
+      "hostAvailableBytes": 9836843008,
+      "memory.current": 699817984,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638208.0940962,
+      "hostAvailableBytes": 10062786560,
+      "memory.current": 578498560,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638209.0954418,
+      "hostAvailableBytes": 9965219840,
+      "memory.current": 564277248,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638210.0975666,
+      "hostAvailableBytes": 9912852480,
+      "memory.current": 617525248,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638211.0982122,
+      "hostAvailableBytes": 9876144128,
+      "memory.current": 663535616,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638212.0996246,
+      "hostAvailableBytes": 9844244480,
+      "memory.current": 598913024,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638213.1016889,
+      "hostAvailableBytes": 9836105728,
+      "memory.current": 594878464,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638214.1029217,
+      "hostAvailableBytes": 9830375424,
+      "memory.current": 633053184,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638215.1035583,
+      "hostAvailableBytes": 9959555072,
+      "memory.current": 663130112,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638216.104132,
+      "hostAvailableBytes": 9908621312,
+      "memory.current": 695664640,
+      "memory.peak": 728715264,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638217.1047509,
+      "hostAvailableBytes": 9855758336,
+      "memory.current": 732045312,
+      "memory.peak": 732045312,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    },
+    {
+      "time": 1788638218.1058154,
+      "hostAvailableBytes": 9819082752,
+      "memory.current": 748040192,
+      "memory.peak": 771252224,
+      "memory.events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0",
+        "sock_throttled": "0"
+      }
+    }
+  ],
+  "report": {
+    "key": "AXE7G67C",
+    "pagesRequested": "1-256",
+    "version": "10.0.1",
+    "started": 1788638196368,
+    "phases": [
+      {
+        "phase": "pages:start",
+        "time": 1788638197426,
+        "pages": 256
+      },
+      {
+        "phase": "pages:end",
+        "time": 1788638213974,
+        "pages": 256,
+        "blocks": 2943
+      },
+      {
+        "phase": "structureIndex:start",
+        "time": 1788638214044
+      },
+      {
+        "phase": "structureIndex:end",
+        "time": 1788638214056
+      },
+      {
+        "phase": "annotationLinks:start",
+        "time": 1788638214057
+      },
+      {
+        "phase": "annotationLinks:end",
+        "time": 1788638214247
+      },
+      {
+        "phase": "parsedLinks:start",
+        "time": 1788638214247
+      },
+      {
+        "phase": "parsedLinks:end",
+        "time": 1788638214610
+      },
+      {
+        "phase": "candidateLists:start",
+        "time": 1788638214610
+      },
+      {
+        "phase": "candidateLists:end",
+        "time": 1788638214752
+      },
+      {
+        "phase": "candidateIndex:start",
+        "time": 1788638214752
+      },
+      {
+        "phase": "candidateIndex:end",
+        "time": 1788638214802
+      },
+      {
+        "phase": "supportedLists:start",
+        "time": 1788638214802
+      },
+      {
+        "phase": "supportedLists:end",
+        "time": 1788638215086
+      },
+      {
+        "phase": "referenceIndex:start",
+        "time": 1788638215087
+      },
+      {
+        "phase": "referenceIndex:end",
+        "time": 1788638215106,
+        "runs": 83
+      },
+      {
+        "phase": "citations:start",
+        "time": 1788638215106
+      },
+      {
+        "phase": "citations:end",
+        "time": 1788638215878
+      },
+      {
+        "phase": "figures:start",
+        "time": 1788638215878
+      },
+      {
+        "phase": "figures:end",
+        "time": 1788638215880
+      },
+      {
+        "phase": "math:start",
+        "time": 1788638215880
+      },
+      {
+        "phase": "math:end",
+        "time": 1788638215882
+      },
+      {
+        "phase": "figureMathCandidates:start",
+        "time": 1788638215882
+      },
+      {
+        "phase": "figureMathCandidates:end",
+        "time": 1788638216197
+      },
+      {
+        "phase": "applyRefs:start",
+        "time": 1788638216205
+      },
+      {
+        "phase": "applyRefs:end",
+        "time": 1788638216738
+      },
+      {
+        "phase": "outline:start",
+        "time": 1788638216739
+      },
+      {
+        "phase": "outline:end",
+        "time": 1788638216769
+      },
+      {
+        "phase": "cleanup:start",
+        "time": 1788638216769
+      },
+      {
+        "phase": "cleanup:end",
+        "time": 1788638216780
+      },
+      {
+        "phase": "pack:start",
+        "time": 1788638216780,
+        "blocks": 2309
+      },
+      {
+        "phase": "pack:end",
+        "time": 1788638217555,
+        "bytes": 1105065
+      }
+    ],
+    "progress": [
+      {
+        "time": 1788638197414,
+        "value": 0
+      },
+      {
+        "time": 1788638197427,
+        "value": 5
+      },
+      {
+        "time": 1788638199660,
+        "value": 6
+      },
+      {
+        "time": 1788638199671,
+        "value": 7
+      },
+      {
+        "time": 1788638199689,
+        "value": 8
+      },
+      {
+        "time": 1788638200259,
+        "value": 9
+      },
+      {
+        "time": 1788638200272,
+        "value": 10
+      },
+      {
+        "time": 1788638200841,
+        "value": 11
+      },
+      {
+        "time": 1788638200850,
+        "value": 12
+      },
+      {
+        "time": 1788638200864,
+        "value": 13
+      },
+      {
+        "time": 1788638201335,
+        "value": 14
+      },
+      {
+        "time": 1788638201350,
+        "value": 15
+      },
+      {
+        "time": 1788638201363,
+        "value": 16
+      },
+      {
+        "time": 1788638202228,
+        "value": 17
+      },
+      {
+        "time": 1788638202267,
+        "value": 18
+      },
+      {
+        "time": 1788638202942,
+        "value": 19
+      },
+      {
+        "time": 1788638202943,
+        "value": 20
+      },
+      {
+        "time": 1788638202943,
+        "value": 21
+      },
+      {
+        "time": 1788638203534,
+        "value": 22
+      },
+      {
+        "time": 1788638203545,
+        "value": 23
+      },
+      {
+        "time": 1788638203556,
+        "value": 24
+      },
+      {
+        "time": 1788638203887,
+        "value": 25
+      },
+      {
+        "time": 1788638203894,
+        "value": 26
+      },
+      {
+        "time": 1788638204208,
+        "value": 27
+      },
+      {
+        "time": 1788638204213,
+        "value": 28
+      },
+      {
+        "time": 1788638204223,
+        "value": 29
+      },
+      {
+        "time": 1788638204538,
+        "value": 30
+      },
+      {
+        "time": 1788638204546,
+        "value": 31
+      },
+      {
+        "time": 1788638204553,
+        "value": 32
+      },
+      {
+        "time": 1788638204856,
+        "value": 33
+      },
+      {
+        "time": 1788638204863,
+        "value": 34
+      },
+      {
+        "time": 1788638205267,
+        "value": 35
+      },
+      {
+        "time": 1788638205279,
+        "value": 36
+      },
+      {
+        "time": 1788638205291,
+        "value": 37
+      },
+      {
+        "time": 1788638205732,
+        "value": 38
+      },
+      {
+        "time": 1788638205737,
+        "value": 39
+      },
+      {
+        "time": 1788638205751,
+        "value": 40
+      },
+      {
+        "time": 1788638206108,
+        "value": 41
+      },
+      {
+        "time": 1788638206118,
+        "value": 42
+      },
+      {
+        "time": 1788638206478,
+        "value": 43
+      },
+      {
+        "time": 1788638206485,
+        "value": 44
+      },
+      {
+        "time": 1788638206493,
+        "value": 45
+      },
+      {
+        "time": 1788638206820,
+        "value": 46
+      },
+      {
+        "time": 1788638206829,
+        "value": 47
+      },
+      {
+        "time": 1788638206836,
+        "value": 48
+      },
+      {
+        "time": 1788638207110,
+        "value": 49
+      },
+      {
+        "time": 1788638207117,
+        "value": 50
+      },
+      {
+        "time": 1788638207620,
+        "value": 51
+      },
+      {
+        "time": 1788638207631,
+        "value": 52
+      },
+      {
+        "time": 1788638207637,
+        "value": 53
+      },
+      {
+        "time": 1788638208012,
+        "value": 54
+      },
+      {
+        "time": 1788638208019,
+        "value": 55
+      },
+      {
+        "time": 1788638208686,
+        "value": 56
+      },
+      {
+        "time": 1788638208697,
+        "value": 57
+      },
+      {
+        "time": 1788638208711,
+        "value": 58
+      },
+      {
+        "time": 1788638209141,
+        "value": 59
+      },
+      {
+        "time": 1788638209153,
+        "value": 60
+      },
+      {
+        "time": 1788638209163,
+        "value": 61
+      },
+      {
+        "time": 1788638209569,
+        "value": 62
+      },
+      {
+        "time": 1788638209574,
+        "value": 63
+      },
+      {
+        "time": 1788638209955,
+        "value": 64
+      },
+      {
+        "time": 1788638209970,
+        "value": 65
+      },
+      {
+        "time": 1788638209981,
+        "value": 66
+      },
+      {
+        "time": 1788638210355,
+        "value": 67
+      },
+      {
+        "time": 1788638210369,
+        "value": 68
+      },
+      {
+        "time": 1788638210382,
+        "value": 69
+      },
+      {
+        "time": 1788638210817,
+        "value": 70
+      },
+      {
+        "time": 1788638210836,
+        "value": 71
+      },
+      {
+        "time": 1788638211212,
+        "value": 72
+      },
+      {
+        "time": 1788638211220,
+        "value": 73
+      },
+      {
+        "time": 1788638211344,
+        "value": 74
+      },
+      {
+        "time": 1788638211700,
+        "value": 75
+      },
+      {
+        "time": 1788638211711,
+        "value": 76
+      },
+      {
+        "time": 1788638211722,
+        "value": 77
+      },
+      {
+        "time": 1788638212150,
+        "value": 78
+      },
+      {
+        "time": 1788638212156,
+        "value": 79
+      },
+      {
+        "time": 1788638212647,
+        "value": 80
+      },
+      {
+        "time": 1788638212662,
+        "value": 81
+      },
+      {
+        "time": 1788638212669,
+        "value": 82
+      },
+      {
+        "time": 1788638213071,
+        "value": 83
+      },
+      {
+        "time": 1788638213086,
+        "value": 84
+      },
+      {
+        "time": 1788638213098,
+        "value": 85
+      },
+      {
+        "time": 1788638213503,
+        "value": 86
+      },
+      {
+        "time": 1788638213516,
+        "value": 87
+      },
+      {
+        "time": 1788638213952,
+        "value": 88
+      },
+      {
+        "time": 1788638213961,
+        "value": 89
+      },
+      {
+        "time": 1788638213973,
+        "value": 90
+      },
+      {
+        "time": 1788638216780,
+        "value": 95
+      },
+      {
+        "time": 1788638217555,
+        "value": 100
+      }
+    ],
+    "scope": "isolated modified worker, native SDT path",
+    "resources": {
+      "diskFreeBytes": 185821884416,
+      "directoryWritable": true,
+      "logicalCPUs": 8,
+      "sysinfoCPUs": null,
+      "physicalMemoryBytes": 25079377920,
+      "availableMemoryBytes": null
+    },
+    "before": {
+      "status": "missing-pack"
+    },
+    "dispatched": 1788638196489,
+    "ok": true,
+    "persisted": 1788638217562,
+    "pack": {
+      "status": "current",
+      "bytes": 1105065,
+      "hash": "d5fce60d311877ebc2f5a50bfd883351",
+      "metadata": {
+        "processor": {
+          "type": "pdf",
+          "version": 3
+        },
+        "dateCreated": "2026-09-05T19:56:37.426Z",
+        "source": {
+          "contentType": "application/pdf",
+          "hash": "91bb62a0316f56ae7d2f433121aa8d99",
+          "properties": {
+            "PDFFormatVersion": "1.7"
+          }
+        }
+      },
+      "pages": 256,
+      "blocks": 2309,
+      "degradedPages": 0,
+      "lastBlockReadable": true,
+      "lastBlockPageRects": [
+        [
+          255,
+          18,
+          4.69,
+          577.74,
+          12.61
+        ]
+      ]
+    },
+    "finished": 1788638217600
+  },
+  "sourceUnchanged": true
+}
