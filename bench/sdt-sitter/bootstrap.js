@@ -30,8 +30,12 @@ function render() {
     const remaining = ['missing-pack', 'stale-source', 'stale-processor', 'invalid-pack']
       .reduce((n, key) => n + (s.counts[key] || 0), 0);
     const mean = s.completed ? s.serviceMS / s.completed : null;
-    const format = prediction => prediction ? [prediction.low, prediction.median, prediction.high]
-      .map(ms => `${Math.round(ms / 1000).toLocaleString('fr-FR')} s`).join(' / ') : 'indisponible';
+    const formatDuration = ms => {
+      const minutes = Math.max(1, Math.round(ms / 60000));
+      return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+    };
+    const format = prediction => prediction ?
+      `Durée estimée : ${formatDuration(prediction.median)} (entre ${formatDuration(prediction.low)} et ${formatDuration(prediction.high)})` : '';
     const activePrediction = s.active === null ? null : estimateSDTDuration(s.fittedSamples, s.activeInfo);
     const total = { low: 0, median: 0, high: 0 };
     const overrun = activePrediction && Date.now() - s.startedAt > activePrediction.high;
@@ -44,35 +48,34 @@ function render() {
       const spent = item.id === s.active ? Date.now() - s.startedAt : 0;
       for (const key of ['low', 'median', 'high']) total[key] += Math.max(0, prediction[key] - spent);
     }
+    if (unknown && s.fittedSamples.length >= 3) {
+      const durations = s.fittedSamples.map(sample => sample.milliseconds).sort((a, b) => a - b);
+      const quantile = fraction => durations[Math.min(durations.length - 1,
+        Math.floor((durations.length - 1) * fraction))];
+      total.low += unknown * quantile(0.05);
+      total.median += unknown * quantile(0.5);
+      total.high += unknown * quantile(0.95);
+    }
     const coverage = getSDTCoverage(s);
     const globalProgress = doc.getElementById('sdt-global-progress');
     globalProgress.max = Math.max(1, coverage.total);
     if (coverage.known) globalProgress.value = coverage.current;
     else globalProgress.removeAttribute('value');
-    status.textContent = [
-      `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total} pièces jointes`,
-      coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total} documents pris en charge` : `Packs à jour déjà repérés : ${coverage.current} ; total en cours de recensement`,
+    status.textContent = coverage.known ? `Packs à jour : ${coverage.current} / ${coverage.total}` : `Packs à jour : ${coverage.current}`;
+    const documentMessage = s.active === null ? 'Aucun document en cours' :
+      `Document ${s.active} — ${s.progress ?? '?'} % — ${formatDuration(elapsed * 1000)} écoulées`;
+    const quietMessage = s.active !== null && Number(s.progress) >= 90 && silence >= 60
+      ? (Number(s.progress) >= 95 ? 'Finalisation…' : 'Analyse des références…') : '';
+    doc.getElementById('sdt-document-status').textContent = [documentMessage, quietMessage].filter(Boolean).join('\n');
+    doc.getElementById('sdt-document-estimate').textContent = format(activePrediction);
+    const globalEstimate = !overrun && s.scanned === s.total && s.fittedSamples.length >= 3
+      ? `Fin estimée vers ${finishAt(total.median)} (entre ${finishAt(total.low)} et ${finishAt(total.high)})` : '';
+    doc.getElementById('sdt-global-estimate').textContent = globalEstimate;
+    doc.getElementById('sdt-diagnostics').textContent = [
+      `État : ${s.phase}`, `Recensement : ${s.scanned} / ${s.total}`,
       ...Object.entries(s.counts).map(([key, n]) => `${key} : ${n}`),
       `Créés cette session : ${s.completed} ; échecs : ${s.failed}`,
-      'La barre mesure les packs à jour, pas le temps restant. Échecs et fichiers manquants ne sont pas comptés comme terminés.',
-    ].join('\n');
-    doc.getElementById('sdt-document-status').textContent = [
-      s.active === null ? 'Aucun document en cours' : `Pièce jointe ${s.active} : ${s.progress ?? '?'} % ; ${elapsed} s ; dernier progrès il y a ${silence} s`,
-      s.active === null ? '' : `Taille : ${s.activeInfo?.sourceBytes?.toLocaleString('fr-FR') ?? '?'} octets ; pages : ${s.activeInfo?.pages ?? '?'}`,
-      'Un long silence peut correspondre à une résolution normale des citations.',
-    ].filter(Boolean).join('\n');
-    doc.getElementById('sdt-document-estimate').textContent = s.active === null ? '' :
-      `Durée totale du document, quantiles empiriques 5 / 50 / 95 % : ${format(activePrediction)}`;
-    doc.getElementById('sdt-global-estimate').textContent = [
-      mean ? `Vitesse empirique : ${(3600000 / mean).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} documents/h de traitement` : 'Vitesse : en attente du premier pack',
-      overrun ? 'Heure de fin indéterminée : estimation dépassée, document toujours en cours.' :
-      s.scanned === s.total && !unknown && s.fittedSamples.length >= 3
-        ? `Fin estimée vers ${finishAt(total.median)} ; plage indicative ${finishAt(total.low)} – ${finishAt(total.high)} (hors attentes)`
-        : `Estimation totale indisponible : ${unknown || remaining} documents sans estimation ou recensement incomplet`,
-      `Distribution : ${s.fittedSamples.length} observations ; mise à jour tous les 3 documents. Normalisation par pages, sinon octets.`,
-      'Quantiles empiriques non calibrés. Les scénarios totaux ne sont pas un intervalle prédictif conjoint. Un dépassement ne signifie pas une panne.',
-      s.error ? `Dernière erreur : ${s.error}` : '',
-      'Désactiver dans les extensions arrête les admissions, pas le document en cours.',
+      s.error ? `Erreur : ${s.error}` : '',
     ].filter(Boolean).join('\n');
     const progress = doc.getElementById('sdt-progress');
     progress.hidden = s.active === null;
@@ -117,10 +120,15 @@ function openDialog(window) {
       ['pre', 'sdt-status'], ['progress', 'sdt-global-progress'], ['pre', 'sdt-global-estimate']]);
     section('sdt-document-section', 'Document en cours', [
       ['pre', 'sdt-document-status'], ['progress', 'sdt-progress'], ['pre', 'sdt-document-estimate']]);
-    const details = element('details', 'sdt-index-details');
-    const summary = element('summary', 'sdt-index-title');
-    summary.textContent = 'Statistiques de l’index texte natif';
-    details.append(summary, element('pre', 'sdt-fulltext')); body.append(details);
+    const details = element('details', 'sdt-details');
+    const summary = element('summary', 'sdt-details-title');
+    summary.textContent = 'Détails';
+    details.append(summary, element('pre', 'sdt-diagnostics'));
+    const indexDetails = element('details', 'sdt-index-details');
+    const indexSummary = element('summary', 'sdt-index-title');
+    indexSummary.textContent = 'Index texte natif';
+    indexDetails.append(indexSummary, element('pre', 'sdt-fulltext'));
+    details.append(indexDetails); body.append(details);
     dialogs.add(dialog); render();
     try {
       const stats = await Zotero.Fulltext.getIndexStats();
