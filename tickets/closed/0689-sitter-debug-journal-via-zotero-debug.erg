@@ -2,6 +2,7 @@
 Title: Journal sitter state transitions through Zotero.debug and an in-memory ring
 Created: 2026-09-06
 Author: claude
+Closed: autoclosed — PR #372
 
 --- log ---
 2026-09-06T00:00Z claude created
@@ -13,6 +14,7 @@ Author: claude
 2026-09-06T10:07Z claude note Two consider-level findings recorded, not fixed: (a) a stale generation's suspended initialize() can write one extra cache-load record -- a count, no identity -- into the live ring across an unguarded await gap; bounded and self-correcting at the next token check. (b) ring retention under heavy progress traffic during a long sweep is open, since the native callback's cadence is not this repo's to set; 2000 records is a guess until measured.
 2026-09-06T10:09Z claude note Manifest goes to 2.4.0, not 2.3.0: PR #373 bumps the same string over a different payload and adds bench/check_sitter_version.py to make check, which fails on two payloads sharing one version. The bump is also the last commit of the series, since a later bootstrap.js edit under an already-bumped number reds that same guard against this branch alone.
 2026-09-06T10:18Z claude note Version is 2.4.1, not 2.4.0: the merge with origin/main changed the payload again (0691's describeSDTFile wording, and the M4 anchor restored in scheduler.js), and #373's guard compares the working tree's version against every earlier revision of bench/sdt-sitter -- an earlier commit carrying 2.4.0 over a different payload is exactly what it fires on. Verified by running that guard from the #373 branch against this tree: OK, ahead of all 27 earlier revisions.
+2026-09-06T10:25Z sim closed — autoclosed — PR #372
 --- body ---
 ## Context
 

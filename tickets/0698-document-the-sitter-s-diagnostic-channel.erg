@@ -2,12 +2,12 @@
 Title: Document the sitter's diagnostic channel and its debug pref in SPEC
 Created: 2026-09-06
 Author: claude
-Blocked-by: 0689
 
 --- log ---
 2026-09-06T09:01Z claude created
 2026-09-06T09:01Z claude note Split out of 0689 rather than folded into it. SPEC.md carries a date-is-version header, several sibling sitter tickets are in flight against the same file, and 0689's own acceptance bar is entirely code and tests. Deferring it in 0689's log alone would have archived the deferral when 0689 closed, which is why this exists as a ticket.
 
+2026-09-06T10:25Z sim note blocker 0689 closed — Blocked-by removed.
 --- body ---
 ## Context
 
