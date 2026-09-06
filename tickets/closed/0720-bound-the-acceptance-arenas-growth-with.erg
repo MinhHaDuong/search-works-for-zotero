@@ -2,11 +2,13 @@
 Title: Bound the acceptance arenas' growth with a retention policy at allocation
 Created: 2026-09-06
 Author: sim
+Closed: autoclosed — PR #398
 
 --- log ---
 2026-09-06T16:17Z sim created
 
 2026-09-06T16:24Z sim note Red on the unfixed tree: tests/test_acceptance_arena_retention.py 6 of 7 fail (assess() has no keep_runs, no DEFAULT_KEEP_RUNS, no in_progress_marker); green after the retention landed in run.py, 7 of 7. End to end: three --fixtures runs on one fresh arena with --keep-runs 1, the third removed 14 arenas of 1 previous run per fixture, two runs' arenas remain per fixture, trace/ untouched, no marker left behind. make lint and make check-fast green (949 passed, 14 skipped).
+2026-09-06T16:29Z sim closed — autoclosed — PR #398
 --- body ---
 ## Context
 `bench/acceptance/run.py` allocates a fresh arena per run (`arena_for`:
