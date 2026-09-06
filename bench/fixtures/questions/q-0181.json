@@ -1,0 +1,78 @@
+{
+  "schema": "menagerie-bank/v2",
+  "id": "q-0181",
+  "need": "Written before opening the document: does the paper put Vietnam's exploitable wind resource at well under 2 GW while hydropower runs to tens of gigawatts?",
+  "query": "Vietnam's exploitable wind resource is under two gigawatts while hydropower reaches tens of gigawatts",
+  "question_language": "en",
+  "answer_language": "en",
+  "lane": "en->en",
+  "signal": "agreement",
+  "mode": "any",
+  "facet": "core",
+  "stratum": "core",
+  "mechanisms": [],
+  "generator": "need",
+  "set_kind": "any-of",
+  "pinned": [
+    {
+      "work_id": "worldbank-2009-vietnam-energy-mitigation",
+      "recipe_id": "worldbank-2009-vietnam-energy-mitigation",
+      "attachment_id": "worldbank-2009-vietnam-energy-mitigation-pdf",
+      "attachment_key": "2ZWGCBBM",
+      "section": "2.1 Overview",
+      "alternates": [
+        {
+          "page_printed": "7",
+          "char_offset": 8859,
+          "quote": "Vietnam has potentially exploitable renewable energy resources amounting to 18,000-30,000 megawatts (MW) of hydropower; 6-10 MW of solar energy; 1,680 MW of wind energy; 600 to 800 MW of biomass energy; and 200-300 MW of geothermal energy."
+        }
+      ],
+      "chain": {
+        "title": "Potential Climate Change Mitigation Opportunities in the Energy Sector in Vietnam: Background Paper",
+        "author": "RCEE Energy and Environment JSC; Full Advantage Co., Ltd. (for the World Bank Carbon Finance Assist Program)",
+        "date": "2009",
+        "identifier": "10.1596/28215",
+        "part_title": null,
+        "part_byline": null,
+        "section_heading": "2.1 Overview",
+        "page_printed": "7"
+      }
+    }
+  ],
+  "expected_miss": false,
+  "expected_miss_mechanism": null,
+  "reachability": {
+    "computed_by": "bench/golden_gate.py validate --stamp",
+    "export_sha256": "579ab8dd24d609077727764d7468a34c051b7676734da2a2a02a6233c2296ccc",
+    "extraction": {
+      "reindex_mode": "stock",
+      "reindex_limits": "applied",
+      "caps": {
+        "fulltext.pdfMaxPages": 100,
+        "fulltext.textMaxLength": 500000
+      },
+      "index_fulltext_max_chars": 40000,
+      "recipe_sha256": "e3f18dc790c6292a8ff3013fc2c95b3e8992bd0bfeba6578e220371ff3072ca1"
+    },
+    "reachable": true,
+    "rows": [
+      {
+        "attachment_key": "2ZWGCBBM",
+        "alternates": [
+          {
+            "reachable": true,
+            "char_offset": 8859,
+            "occurrences": 1,
+            "reason": null,
+            "within_index_cap": true
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "page_read": true,
+    "author": "claude (0722 authoring lane Q1b)",
+    "date": "2026-09-06"
+  }
+}
