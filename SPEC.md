@@ -2232,10 +2232,22 @@ scenarios, not a calibrated joint interval. Missing covariates or insufficient
 observations leave the corresponding estimate unavailable. These empirical
 estimates do not assert reliable predictive coverage or bounded completion time.
 
+Every span the sitter measures or displays — elapsed, since-progress, service
+time, the observations the estimator is fitted on, and the source-hash reuse
+window below — is measured on the host's monotonic clock. Wall-clock time is
+used only where the answer is a point on the calendar: a journal record's
+timestamp, and the projected completion date and time. A correction to the
+system clock therefore cannot produce a negative or an inflated duration. A
+monotonic clock does not advance while the machine is suspended, so every span
+above counts running time rather than calendar time. Where the host offers no
+monotonic clock, the wall clock is used ratcheted to its own highest reading:
+that cannot measure across a backwards step, and does not report one as a
+negative duration.
+
 The sitter may cache verified pack metadata and successful duration observations
 across sessions. Reuse checks attachment identity, source hash, processor
 versions and the pack's filesystem fingerprint. The source hash is read from the
-file, then reused for at most 24 hours while the source's path, byte size and
+file, then reused for at most 24 hours of running time while the source's path, byte size and
 modification time are all unchanged; past that bound it is read again whether or
 not they match, so a source rewritten in place at the same size and modification
 time is detected within a day. The hash memory is in-session only and is
