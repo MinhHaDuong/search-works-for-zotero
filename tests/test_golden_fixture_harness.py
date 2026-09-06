@@ -2228,6 +2228,14 @@ def test_retire_moves_a_parent_out_of_the_collection_and_inject_no_longer_sees_i
     assert retired["data"]["tags"] == [{"tag": "zoteus-golden-source:invented-1950-record-only"}]
     assert {i["data"]["itemType"] for i in zotero.get_children(retired["key"])} == {"note"}, "children follow"
     assert [i["data"]["title"] for i in zotero.list_top_items()] == ["Invented control"]
+    # The write carries the whole record, not a bare {collections}: Zotero's local API
+    # applies writes through Item.fromJSON, which clears every field the JSON omits, so
+    # a partial payload would blank the retired item's title and creators. The memory
+    # client merges and cannot see that, so the payload itself is asserted.
+    retire_write = zotero.writes[-1]
+    assert retire_write["collections"] == [] and retire_write["key"] == retired["key"]
+    assert retire_write["title"] == "A record with no file" and retire_write["itemType"] == retired["data"]["itemType"]
+    assert retire_write["tags"] == retired["data"]["tags"]
     # Idempotent: a second run finds nothing in the collection to move.
     assert gf.retire(["invented-1950-record-only"], zotero, collection_key="COLLECT1") == {
         "retired": [], "absent": ["invented-1950-record-only"]}

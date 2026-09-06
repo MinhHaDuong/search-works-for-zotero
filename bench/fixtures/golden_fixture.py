@@ -636,7 +636,10 @@ def retire(recipe_ids, client, *, collection_key: str) -> dict[str, list[str]]:
         if not isinstance(collections, list) or collection_key not in collections:
             continue
         remaining = [key for key in collections if key != collection_key]
-        client.write_items([_update_payload(item, {"collections": remaining})])
+        # The full item data goes back, not a partial object: Zotero's local API applies
+        # a write through Item.fromJSON, which clears every field the JSON omits, so a
+        # bare {collections} would blank the retired record's title and creators.
+        client.write_items([_update_payload(item, {**_data(item), "collections": remaining})])
         retired.append(recipe_id)
     return {"retired": retired, "absent": [recipe_id for recipe_id in wanted if recipe_id not in retired]}
 
