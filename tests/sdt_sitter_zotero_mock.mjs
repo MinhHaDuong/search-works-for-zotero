@@ -469,15 +469,25 @@ export function createHarness(options = {}) {
     },
     ChromeUtils: {
       now: () => clock.mono,
+      // Timer is the ONE module the real host serves this way. Fluent used to
+      // be answered here too, and that was the mock inventing a platform: no
+      // `resource://gre/modules/Fluent.sys.mjs` exists in Zotero 10.0.1, the
+      // import always threw there, and the whole locale layer fell to its
+      // catch while forty tests stayed green against a module only this file
+      // provided. An unexpected spec must be loud, never answered.
       importESModule: spec => {
-        // Two platform modules now, so the assertion becomes a switch: an
-        // unexpected spec must still be loud rather than answered with the
-        // wrong module.
-        if (spec === 'resource://gre/modules/Fluent.sys.mjs') return FluentModule;
-        assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs');
+        assert.equal(spec, 'resource://gre/modules/Timer.sys.mjs',
+          'the real host serves no other module through importESModule');
         return timers.module;
       },
     },
+    // Ambient globals, exactly as privileged JS sees them. Verified live in
+    // Zotero 10.0.1's Browser Console: `typeof FluentBundle`, `FluentResource`,
+    // `L10nRegistry` and `L10nFileSource` all answer "function", with no
+    // resource:// module backing any of them. bootstrap.js reads them off the
+    // global the way it reads `Services`.
+    FluentBundle: FluentModule.FluentBundle,
+    FluentResource: FluentModule.FluentResource,
     // The calendar, separable from the monotonic source above. Everything else
     // about Date is the real one, so `toLocaleString` still formats.
     Date: class extends Date {

@@ -30,11 +30,15 @@ const locale = tag => `${ROOT}locale/${tag}/sdt-pack-sitter.ftl`;
 function host(files) {
   const ui = {};
   vm.runInNewContext(fs.readFileSync(`${SITTER}/bootstrap.js`, 'utf8'), ui);
-  ui.ChromeUtils = { importESModule: url => {
-    assert.equal(url, 'resource://gre/modules/Fluent.sys.mjs',
-      'the sitter no longer loads Gecko\'s own Fluent');
-    return FluentModule;
-  } };
+  // Ambient globals, which is how privileged JS actually gets Fluent: verified
+  // live in Zotero 10.0.1, `typeof FluentBundle` and `typeof FluentResource`
+  // both answer "function", and every `resource://gre/modules/Fluent*.sys.mjs`
+  // fails to load. This file used to serve them through a mocked
+  // `ChromeUtils.importESModule`, so it asserted the sitter kept making an
+  // import the real host has never answered — green here, and every string in
+  // the shipped window rendering as its own id.
+  ui.FluentBundle = FluentModule.FluentBundle;
+  ui.FluentResource = FluentModule.FluentResource;
   ui.Zotero = { debug: () => {}, Prefs: { get: () => false }, File: {
     getContentsFromURLAsync: async url => {
       if (!(url in files)) {
@@ -199,9 +203,13 @@ test('no locale file at all leaves the window naming its ids', () => {
 });
 
 const noFluent = host({ [locale('en')]: english });
-noFluent.ChromeUtils = { importESModule: () => { throw new Error('no Fluent here'); } };
+// A host where the globals are simply not there — an older Gecko, or a scope
+// that does not expose them. Deleting them is the whole of the simulation now:
+// there is no import left to make throw.
+delete noFluent.FluentBundle;
+delete noFluent.FluentResource;
 
-test('a host with no Fluent module degrades instead of stopping startup', async () => {
+test('a host with no Fluent global degrades instead of stopping startup', async () => {
   const result = await noFluent.loadSDTLocalization(ROOT, 'en');
   assert.equal(result.bundles, 0);
   assert.equal(noFluent.sdtText('dialog-title'), 'dialog-title');
