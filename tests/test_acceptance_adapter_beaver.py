@@ -36,6 +36,7 @@ Every test here runs offline, starts no process and writes only under tmp_path.
 """
 
 import importlib
+import json
 import os
 import sys
 import time
@@ -580,3 +581,112 @@ def test_running_under_the_already_isolated_posture_spawns_normally(
                             posture=isolated)
     with target.running():
         pass  # reaching here at all is the assertion: startup completed
+
+
+# --- 11. the host's extensions record is read, not crashed on (ticket 0712) --
+
+
+#: A document nested past the interpreter's recursion limit. `json` rejects it
+#: by exhausting the stack, and `RecursionError` descends from `RuntimeError`,
+#: outside the families a reader catches by reflex.
+TOO_DEEP = "[" * 200_000 + "]" * 200_000
+
+
+def with_extensions(tmp_path, artifact, name: str, document: str):
+    """A Beaver on its own arena whose profile holds `document` verbatim."""
+    target = build(tmp_path / name, artifact)
+    target.profile.mkdir(parents=True, exist_ok=True)
+    (target.profile / "extensions.json").write_text(document, encoding="utf-8")
+    return target
+
+
+def test_the_host_record_reads_present_absent_and_unreadable_apart(tmp_path, artifact):
+    """The controls, without which the shape arms below prove only that it runs.
+
+    Three findings the record must keep apart, because the verbs report it as
+    evidence and a reader cannot tell them apart afterwards: our add-on is
+    there, someone else's is and ours is not, and the file could not be read at
+    all. The last is the one that collapses silently — coerced to `present:
+    False` it reads as a measurement rather than as a failure to measure.
+    """
+    entry = {"id": adapter.ADDON_ID, "version": "1.2.3", "active": True,
+             "location": "app-profile"}
+    present = with_extensions(tmp_path, artifact, "present",
+                              json.dumps({"schemaVersion": 35, "addons": [entry]}))
+    assert present._host_addon_record() == {
+        "read": True, "present": True, "version": "1.2.3",
+        "active": True, "location": "app-profile"}
+
+    absent = with_extensions(
+        tmp_path, artifact, "absent",
+        json.dumps({"schemaVersion": 35, "addons": [{"id": "other@example.org"}]}))
+    record = absent._host_addon_record()
+    assert record["read"] is True and record["present"] is False
+    assert record["ids"] == ["other@example.org"]
+
+    # Absent-because-we-looked and unread-because-we-could-not are different
+    # findings, and neither of the two below carries a `present` key at all.
+    missing = build(tmp_path / "missing", artifact)
+    missing.profile.mkdir(parents=True)
+    record = missing._host_addon_record()
+    assert record["read"] is False and "present" not in record
+
+    truncated = with_extensions(tmp_path, artifact, "truncated", "{ truncated")
+    record = truncated._host_addon_record()
+    assert record["read"] is False and "present" not in record
+
+
+def test_a_document_of_the_wrong_shape_is_unread_rather_than_a_crash(
+        tmp_path, artifact):
+    """Valid JSON is not a valid record, and `except (ValueError, OSError)` cannot tell.
+
+    `[]` and `"text"` parse cleanly and then have no `.get`; an `addons` that
+    is an object rather than a list iterates over its KEYS, handing a string to
+    the same `.get`. Both raised out of `_host_addon_record` before the fix, and
+    the call sites at `install()` and `uninstall()` are unguarded — so the raise
+    does not produce a bad record, it takes down the assertion that was reading
+    it, far from the profile that caused it.
+    """
+    for i, document in enumerate(("[]", '"text"', "3", "null",
+                                  json.dumps({"addons": {"id": "x"}}),
+                                  json.dumps({"addons": "one add-on"}))):
+        target = with_extensions(tmp_path, artifact, f"shape-{i}", document)
+        record = target._host_addon_record()
+        assert record["read"] is False, document
+        assert "present" not in record, document
+
+    deep = with_extensions(tmp_path, artifact, "deep", TOO_DEEP)
+    record = deep._host_addon_record()
+    assert record["read"] is False and "present" not in record
+
+
+def test_an_element_of_the_wrong_shape_is_absent_rather_than_a_crash(
+        tmp_path, artifact):
+    """The third floor of the same trapdoor: document, container, then element.
+
+    An entry whose `id` is a number is valid JSON in a valid object in a valid
+    list, and it reached `sorted()` over mixed types, where `str < int` raises
+    TypeError. An id that is not a string is not an id this adapter could have
+    installed under, so it is not one of the ids reported back — and the add-on
+    is still found when it sits among that debris, which is the arm that keeps
+    the fix from being a blanket "give up on any odd file".
+    """
+    def profile(name, addons):
+        return with_extensions(tmp_path, artifact, name,
+                               json.dumps({"schemaVersion": 35, "addons": addons}))
+
+    debris = profile("mixed", [
+        {"id": 17, "version": "1.0"},
+        {"id": "other@example.org"},
+        {"id": None},
+        {"id": ["a", "list"]},
+        "not an object at all",
+        {},
+    ])
+    record = debris._host_addon_record()
+    assert record["read"] is True and record["present"] is False
+    assert record["ids"] == ["other@example.org"], record["ids"]
+
+    found = profile("found-among-debris",
+                    [{"id": 17}, {"id": adapter.ADDON_ID, "active": True}, "junk"])
+    assert found._host_addon_record()["present"] is True
