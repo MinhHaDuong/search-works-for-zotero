@@ -67,20 +67,31 @@ await test('native success without current persisted cache counts as failure', a
   const f = fixture(); f.host.ensure = async () => true;
   await f.api.sweep(); assert.equal(f.api.state.failed, 2); assert.equal(f.api.state.completed, 0);
 });
-await test('the document title reaches pending and active info for the UI', async () => {
+await test('both the file and its reference title reach pending and active info', async () => {
   const f = fixture();
   f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
-    identity: String(id), title: `Titre ${id}` });
+    identity: String(id), title: `Fichier ${id}`, parentTitle: `Référence ${id}` });
   const active = [], queued = [];
   const ensure = f.host.ensure;
+  const describe = item => `${item.parentTitle}/${item.title}`;
   f.host.ensure = (id, progress) => {
-    active.push(f.api.state.activeInfo.title);
-    queued.push(f.api.state.pending.map(item => item.title).join(','));
+    active.push(describe(f.api.state.activeInfo));
+    queued.push(f.api.state.pending.map(describe).join(','));
     return ensure(id, progress);
   };
   await f.api.sweep();
-  assert.deepEqual(active, ['Titre 1', 'Titre 2']);
-  assert.equal(queued[0], 'Titre 1,Titre 2');
+  assert.deepEqual(active, ['Référence 1/Fichier 1', 'Référence 2/Fichier 2']);
+  assert.equal(queued[0], 'Référence 1/Fichier 1,Référence 2/Fichier 2');
+});
+await test('a file with no parent reference threads null, never undefined', async () => {
+  const f = fixture();
+  f.host.inspect = async id => ({ status: f.cached.has(id) ? 'current' : 'missing-pack',
+    identity: String(id), title: `Fichier ${id}` });
+  const seen = [];
+  const ensure = f.host.ensure;
+  f.host.ensure = (id, progress) => { seen.push(f.api.state.activeInfo.parentTitle); return ensure(id, progress); };
+  await f.api.sweep();
+  assert.deepEqual(seen, [null, null]);
 });
 await test('unsupported, missing and future-version packs are never overwritten', async () => {
   for (const status of ['unsupported', 'missing-source', 'unsupported-pack', 'excluded']) {
@@ -99,7 +110,65 @@ assert.equal(prediction.median, 4000); assert.equal(prediction.basis, 'sourceByt
 assert.equal(context.estimateSDTDuration(samples, {}), null);
 
 const ui = {};
-vm.runInNewContext(fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8'), ui);
+const bootstrapSource = fs.readFileSync('bench/sdt-sitter/bootstrap.js', 'utf8');
+const schedulerSource = fs.readFileSync('bench/sdt-sitter/scheduler.js', 'utf8');
+vm.runInNewContext(bootstrapSource, ui);
+
+/* The tooltip is the only zero-click view of the sitter. Drive it with real
+   state: a blocked or failed sitter must never read like a healthy idle one,
+   and no internal phase name may reach it. */
+const literals = (source, pattern) => [...source.matchAll(pattern)].map(match => match[1]);
+const blockedBody = bootstrapSource.slice(bootstrapSource.indexOf('async function blocked(info)'),
+  bootstrapSource.indexOf('sitter = createSDTSitter'));
+const phases = new Set([
+  ...literals(blockedBody, /return '([^']+)'/g),
+  ...literals(schedulerSource, /state\.phase = '([^']+)'/g),
+  ...literals(schedulerSource, /phase: '([^']+)'/g),
+  ...literals(bootstrapSource, /sitter\.state\.phase = '([^']+)'/g),
+]);
+// Guard the extraction itself: a regex that matched nothing would pass vacuously.
+assert(phases.size >= 12, `phase enumeration failed: ${[...phases].join(' | ')}`);
+for (const phase of phases) {
+  assert(phase in ui.SDT_PHASE_LABELS, `phase '${phase}' has no decided tooltip`);
+}
+
+const idle = ui.describeSDTTooltip({ phase: 'waiting', completed: 3 });
+assert.equal(idle, '3 fichiers indexés');
+assert.equal(ui.describeSDTTooltip({ phase: 'ready', completed: 1 }), '1 fichier indexé');
+assert.equal(ui.describeSDTTooltip({ phase: 'waiting', completed: 0 }), '0 fichier indexé');
+assert.equal(ui.describeSDTTooltip({ phase: 'census', completed: 2 }), 'Recensement — 2 fichiers indexés');
+// A bare count is reserved for the two healthy idle phases. Mapping any other
+// phase to null would silence it exactly as the raw-name removal once did.
+const silent = [...phases].filter(phase => !ui.SDT_PHASE_LABELS[phase]).sort();
+assert.deepEqual(silent, ['ready', 'waiting'],
+  `only healthy idle phases may render a bare count: ${silent.join(' | ')}`);
+const stalled = [...phases].filter(phase => !silent.includes(phase) && phase !== 'census');
+const rendered = new Set();
+for (const phase of stalled) {
+  const tooltip = ui.describeSDTTooltip({ phase, completed: 3 });
+  assert(tooltip !== idle, `'${phase}' is indistinguishable from a healthy idle sitter`);
+  assert(!tooltip.includes(phase), `'${phase}' leaks its internal name: ${tooltip}`);
+  assert(!/[a-z]-[a-z]/.test(tooltip), `'${phase}' reads as an identifier, not a sentence: ${tooltip}`);
+  assert(tooltip.endsWith(idle), `'${phase}' dropped the count: ${tooltip}`);
+  rendered.add(tooltip);
+}
+assert.equal(rendered.size, stalled.length, 'two blocking phases share one tooltip');
+// An unlisted phase degrades to the bare count instead of leaking its name.
+assert.equal(ui.describeSDTTooltip({ phase: 'a-brand-new-phase', completed: 3 }), idle);
+
+/* Zotero auto-names attachments, so the reference must lead. A line reading
+   only 'Full Text PDF' identifies nothing, which is the whole point of
+   carrying a title at all. */
+assert.equal(ui.describeSDTActiveFile({ active: 7,
+  activeInfo: { parentTitle: 'Sen 1999', title: 'Full Text PDF' } }), 'Sen 1999 — Full Text PDF');
+assert.equal(ui.describeSDTActiveFile({ active: 7,
+  activeInfo: { parentTitle: null, title: 'rapport.pdf' } }), 'rapport.pdf');
+assert.equal(ui.describeSDTActiveFile({ active: 7,
+  activeInfo: { parentTitle: 'Sen 1999', title: null } }), 'Sen 1999');
+assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: { parentTitle: null, title: null } }),
+  'fichier n° 7');
+assert.equal(ui.describeSDTActiveFile({ active: 7, activeInfo: null }), 'fichier n° 7');
+
 let coverage = ui.getSDTCoverage({ total: 10, scanned: 10, phase: 'waiting',
   counts: { current: 4, excluded: 2, unsupported: 1, 'failed-session': 1, 'missing-source': 2 } });
 assert.equal(coverage.current, 4); assert.equal(coverage.total, 7); assert.equal(coverage.known, true);
