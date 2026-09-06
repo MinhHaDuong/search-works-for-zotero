@@ -186,3 +186,16 @@ def test_block_text_joins_runs_and_block_page_reads_the_rectangle():
     assert block_page(BLOCKS[0]) == 0
     assert block_page(BLOCKS[2]) == 1
     assert block_page({"type": "paragraph"}) is None
+
+
+def test_block_text_descends_into_list_items():
+    # A `list` block's content is `listitem` blocks, each carrying its own runs.
+    # Bibliographies are typed as lists, so a flat read hid every one of them.
+    block = {"type": "list", "anchor": {"pageRects": [[18, 272, 187, 457, 206]]},
+             "content": [
+                 {"type": "listitem", "content": [{"text": "American Economic Association. 1951."},
+                                                  {"text": " Readings."}]},
+                 {"type": "listitem", "content": [{"text": "Arrow, K.J. 1951."}]},
+             ]}
+    assert block_text(block) == "American Economic Association. 1951.  Readings. Arrow, K.J. 1951."
+    assert block_text({"type": "image", "content": [{"kind": "bitmap"}]}) == ""
